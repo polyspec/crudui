@@ -182,6 +182,14 @@ function MultipleFormGroup({
     add();
   }, [add]);
 
+  // Handle add after specific index
+  const handleAddAfter = useCallback(
+    (afterIndex: number) => {
+      add(afterIndex + 1);
+    },
+    [add]
+  );
+
   // Handle remove button
   const handleRemove = useCallback(
     (key: string) => {
@@ -243,6 +251,18 @@ function MultipleFormGroup({
               <span className="badge bg-secondary">{index + 1}</span>
 
               <div className="btn-group btn-group-sm">
+                {/* Add button - adds new item after this one */}
+                {canAdd && !isDisabled && !isReadonly && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary"
+                    onClick={() => handleAddAfter(index)}
+                    aria-label={addButtonLabel}
+                  >
+                    +
+                  </button>
+                )}
+
                 {/* Sortable controls */}
                 {isSortable && !isDisabled && !isReadonly && (
                   <>
@@ -275,7 +295,7 @@ function MultipleFormGroup({
                     onClick={() => handleRemove(item.key)}
                     aria-label={removeButtonLabel}
                   >
-                    {removeButtonLabel}
+                    -
                   </button>
                 )}
               </div>
@@ -300,9 +320,9 @@ function MultipleFormGroup({
         ))}
       </div>
 
-      {/* Add button */}
-      {canAdd && !isDisabled && !isReadonly && (
-        <button type="button" className="btn btn-outline-primary" onClick={handleAdd}>
+      {/* Add button - show at bottom when no items */}
+      {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
+        <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
           + {addButtonLabel}
         </button>
       )}
