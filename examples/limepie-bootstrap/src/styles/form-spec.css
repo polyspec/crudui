@@ -45,15 +45,6 @@
   /* margin-bottom: 1rem; */
 }
 
-.form-element-wrapper .form-element-wrapper {
-  border-top: 1px solid var(--fs-color-border-light);
-}
-
-.form-element-wrapper .form-element-wrapper:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
 /* Input Group Wrapper - 홀수 레벨 스타일 (원본 패턴: > div > div > 중간 구조) */
 div.input-group-wrapper > .form-group {
   border: 1px solid #efefef;
