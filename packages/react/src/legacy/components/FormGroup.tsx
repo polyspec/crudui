@@ -237,7 +237,7 @@ function MultipleFormGroup({
     <div className={wrapperClasses.join(' ')}>
       {/* Group header with label and add button */}
       {(label || (items.length === 0 && canAdd && !isDisabled && !isReadonly)) && (
-        <div className="d-flex justify-content-between align-items-center mb-2">
+        <div className="d-flex justify-content-between align-items-center">
           {label && <h6 className="mb-0">{label}</h6>}
           {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
             <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
