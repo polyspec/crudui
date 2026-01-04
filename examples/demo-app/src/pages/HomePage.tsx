@@ -109,7 +109,7 @@ export function HomePage({ language }: HomePageProps) {
       <section className="usage">
         <h2>{language === 'ko' ? '사용법' : 'Usage'}</h2>
         <pre>
-{`import { FormBuilder } from '@limepie/form-react';
+{`import { FormBuilder } from '@limepie/form-react/legacy';
 
 const yamlSpec = \`
 type: group

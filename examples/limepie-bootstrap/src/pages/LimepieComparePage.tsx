@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FormBuilder } from '@limepie/form-react';
+import { FormBuilder } from '@limepie/form-react/legacy';
 import contactSpec from '../specs/contact.yaml?raw';
 
 interface LimepieComparePageProps {

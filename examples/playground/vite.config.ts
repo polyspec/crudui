@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@limepie/form-react': path.resolve(__dirname, '../../react/src'),
+      '@limepie/form-react/legacy': path.resolve(__dirname, '../../react/src'),
     },
   },
   optimizeDeps: {

@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { FormBuilder } from '@limepie/form-react';
-import type { FormData, FormErrors, Language, FieldComponentProps } from '@limepie/form-react';
+import { FormBuilder } from '@limepie/form-react/legacy';
+import type { FormData, FormErrors, Language, FieldComponentProps } from '@limepie/form-react/legacy';
 
 // =============================================================================
 // Basic Usage
