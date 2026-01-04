@@ -34,6 +34,7 @@
 .form-element-wrapper:last-child {
   padding-bottom: 0;
   margin-bottom: 0;
+  border-bottom: 0;
 }
 
 /* Nested groups - 중첩 그룹 */
