@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage';
 import { ContactPage } from './pages/ContactPage';
 import { RegistrationPage } from './pages/RegistrationPage';
 import { ProductPage } from './pages/ProductPage';
+import { MultiplePage } from './pages/MultiplePage';
 import { LimepieComparePage } from './pages/LimepieComparePage';
 import './App.css';
 
@@ -40,6 +41,11 @@ function Navigation({ language, onLanguageChange }: { language: Language; onLang
             <li className="nav-item">
               <Link to="/product" className={`nav-link ${isActive('/product') ? 'active' : ''}`}>
                 {language === 'ko' ? '상품' : 'Product'}
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link to="/multiple" className={`nav-link ${isActive('/multiple') ? 'active' : ''}`}>
+                {language === 'ko' ? 'Multiple' : 'Multiple'}
               </Link>
             </li>
             <li className="nav-item">
@@ -83,6 +89,7 @@ function AppContent() {
             <Route path="/contact" element={<ContactPage language={language} />} />
             <Route path="/registration" element={<RegistrationPage language={language} />} />
             <Route path="/product" element={<ProductPage language={language} />} />
+            <Route path="/multiple" element={<MultiplePage language={language} />} />
             <Route path="/compare" element={<LimepieComparePage language={language} />} />
           </Routes>
         </div>
