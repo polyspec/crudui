@@ -62,3 +62,45 @@ properties:
     label: Notes
     placeholder: Additional notes
     rows: 3
+
+  # 깊은 중첩 테스트 (4레벨)
+  company:
+    type: group
+    label: Company Info (Level 1)
+    properties:
+      name:
+        type: text
+        label: Company Name
+      departments:
+        type: group
+        label: Departments (Level 2)
+        multiple: true
+        min: 0
+        max: 3
+        properties:
+          dept_name:
+            type: text
+            label: Department Name
+          teams:
+            type: group
+            label: Teams (Level 3)
+            multiple: true
+            min: 0
+            max: 3
+            properties:
+              team_name:
+                type: text
+                label: Team Name
+              members:
+                type: group
+                label: Members (Level 4)
+                multiple: true
+                min: 0
+                max: 5
+                properties:
+                  member_name:
+                    type: text
+                    label: Member Name
+                  role:
+                    type: text
+                    label: Role
