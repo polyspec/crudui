@@ -71,7 +71,7 @@ export function FormGroup({
   }
 
   // Single group - matches Limepie original output exactly
-  const wrapperClasses = ['form-element-wrapper', spec.class || 'border p-3 mb-3'];
+  const wrapperClasses = ['form-element-wrapper', spec.class || 'border'];
 
   return (
     <div className={wrapperClasses.join(' ')} style={{}} data-name={`${path}-layer`}>
@@ -224,7 +224,7 @@ function MultipleFormGroup({
   const isReadonly = globalReadonly || spec.readonly === true;
 
   // Wrapper classes - Bootstrap 5 compatible (matches Limepie original output)
-  const wrapperClasses = ['form-element-wrapper', spec.class || 'border p-3 mb-3'];
+  const wrapperClasses = ['form-element-wrapper', spec.class || 'border'];
 
   // Button labels
   const addButtonLabel = spec.add_button_label ? t(spec.add_button_label) : t('add');
