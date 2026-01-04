@@ -1,0 +1,282 @@
+# User Registration Form
+# Demonstrates conditional fields and nested groups with real-time validation
+
+type: group
+name: registration_form
+label:
+  ko: 회원가입
+  en: User Registration
+description:
+  ko: 새 계정을 만들어주세요.
+  en: Create your new account.
+action:
+  method: post
+  url: /api/register
+buttons:
+  - type: submit
+    name: __submitted__
+    value: register
+    class: btn btn-primary btn-lg w-100
+    text:
+      ko: 가입하기
+      en: Sign Up
+
+properties:
+  # Personal Information
+  personal:
+    type: group
+    label:
+      ko: 개인 정보
+      en: Personal Information
+    class: card mb-3
+    group_class: card-body
+    properties:
+      name:
+        type: text
+        label:
+          ko: 이름
+          en: Full Name
+        placeholder:
+          ko: 홍길동
+          en: John Doe
+        rules:
+          required: true
+          minlength: 2
+          maxlength: 50
+        messages:
+          ko:
+            required: 이름을 입력해주세요.
+          en:
+            required: Please enter your name.
+
+      email:
+        type: email
+        label:
+          ko: 이메일
+          en: Email
+        placeholder:
+          ko: example@domain.com
+          en: example@domain.com
+        rules:
+          required: true
+          email: true
+        messages:
+          ko:
+            required: 이메일을 입력해주세요.
+            email: 올바른 이메일 형식으로 입력해주세요.
+          en:
+            required: Please enter your email.
+            email: Please enter a valid email address.
+
+      birth_date:
+        type: date
+        label:
+          ko: 생년월일
+          en: Date of Birth
+        rules:
+          required: true
+        messages:
+          ko:
+            required: 생년월일을 선택해주세요.
+          en:
+            required: Please select your date of birth.
+
+  # Account Information
+  account:
+    type: group
+    label:
+      ko: 계정 정보
+      en: Account Information
+    class: card mb-3
+    group_class: card-body
+    properties:
+      username:
+        type: text
+        label:
+          ko: 사용자 ID
+          en: Username
+        description:
+          ko: 4-20자, 영문자와 숫자만 사용 가능
+          en: 4-20 characters, letters and numbers only
+        rules:
+          required: true
+          minlength: 4
+          maxlength: 20
+          match: '^[a-zA-Z0-9]+$'
+        messages:
+          ko:
+            required: 사용자 ID를 입력해주세요.
+            match: 영문자와 숫자만 사용 가능합니다.
+          en:
+            required: Please enter a username.
+            match: Only letters and numbers are allowed.
+
+      password:
+        type: password
+        label:
+          ko: 비밀번호
+          en: Password
+        description:
+          ko: 8자 이상, 영문자와 숫자 포함
+          en: At least 8 characters with letters and numbers
+        rules:
+          required: true
+          minlength: 8
+          match: '^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$'
+        messages:
+          ko:
+            required: 비밀번호를 입력해주세요.
+            minlength: 비밀번호는 최소 {0}자 이상이어야 합니다.
+            match: 영문자와 숫자를 포함해야 합니다.
+          en:
+            required: Please enter a password.
+            minlength: Password must be at least {0} characters.
+            match: Must contain at least one letter and one number.
+
+  # Account Type Selection (conditional)
+  account_type:
+    type: choice
+    label:
+      ko: 계정 유형
+      en: Account Type
+    default: personal
+    items:
+      personal:
+        ko: 개인
+        en: Personal
+      business:
+        ko: 비즈니스
+        en: Business
+
+  # Business Information (shown when account_type == business)
+  business_info:
+    type: group
+    label:
+      ko: 비즈니스 정보
+      en: Business Information
+    class: card mb-3
+    group_class: card-body
+    display_switch: .account_type == business
+    properties:
+      company_name:
+        type: text
+        label:
+          ko: 회사명
+          en: Company Name
+        rules:
+          required: ..account_type == business
+        messages:
+          ko:
+            required: 회사명을 입력해주세요.
+          en:
+            required: Please enter your company name.
+
+      business_number:
+        type: text
+        label:
+          ko: 사업자등록번호
+          en: Business Registration Number
+        placeholder:
+          ko: 000-00-00000
+          en: 000-00-00000
+        rules:
+          required: ..account_type == business
+          match: '^[0-9]{3}-[0-9]{2}-[0-9]{5}$'
+        messages:
+          ko:
+            required: 사업자등록번호를 입력해주세요.
+            match: 올바른 형식으로 입력해주세요 (000-00-00000).
+          en:
+            required: Please enter your business registration number.
+            match: Please enter a valid format (000-00-00000).
+
+      employee_count:
+        type: select
+        label:
+          ko: 직원 수
+          en: Number of Employees
+        items:
+          "":
+            ko: 선택하세요
+            en: Please select
+          "1-10":
+            ko: 1-10명
+            en: 1-10
+          "11-50":
+            ko: 11-50명
+            en: 11-50
+          "51-200":
+            ko: 51-200명
+            en: 51-200
+          "200+":
+            ko: 200명 이상
+            en: 200+
+
+  # Preferences
+  preferences:
+    type: group
+    label:
+      ko: 설정
+      en: Preferences
+    class: card mb-3
+    group_class: card-body
+    properties:
+      newsletter:
+        type: multichoice
+        label:
+          ko: 뉴스레터 구독
+          en: Newsletter Subscription
+        items:
+          updates:
+            ko: 제품 업데이트
+            en: Product Updates
+          tips:
+            ko: 사용 팁
+            en: Usage Tips
+          events:
+            ko: 이벤트 및 프로모션
+            en: Events & Promotions
+
+      language:
+        type: select
+        label:
+          ko: 선호 언어
+          en: Preferred Language
+        default: ko
+        items:
+          ko:
+            ko: 한국어
+            en: Korean
+          en:
+            ko: English
+            en: English
+          ja:
+            ko: 日本語
+            en: Japanese
+
+  # Terms and Conditions
+  terms:
+    type: switcher
+    label:
+      ko: 이용약관에 동의합니다
+      en: I agree to the Terms of Service
+    rules:
+      required: true
+    messages:
+      ko:
+        required: 이용약관에 동의해주세요.
+      en:
+        required: You must agree to the Terms of Service.
+
+  privacy:
+    type: switcher
+    label:
+      ko: 개인정보처리방침에 동의합니다
+      en: I agree to the Privacy Policy
+    rules:
+      required: true
+    messages:
+      ko:
+        required: 개인정보처리방침에 동의해주세요.
+      en:
+        required: You must agree to the Privacy Policy.

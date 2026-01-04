@@ -1,0 +1,38 @@
+# .dockerignore for PHP API
+# Note: When building from project root, place this at the project root
+# or use: docker build --ignore-file examples/php-api/.dockerignore
+
+# Dependencies (will be installed in container)
+**/vendor/
+**/node_modules/
+
+# Development files
+**/*.md
+**/test-api.php
+**/tests/
+**/*.test.*
+
+# IDE and editor files
+.idea/
+.vscode/
+**/*.swp
+**/*.swo
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Git
+.git/
+**/.gitignore
+
+# Other examples and docs (not needed for php-api)
+examples/demo-app/
+examples/nextjs-app/
+docs/
+react/
+desktop/
+
+# Other validators (only need php)
+validator/go/
+validator/js/

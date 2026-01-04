@@ -1,0 +1,74 @@
+type: group
+name: contact
+title: Contact Form
+description: Simple contact form with name, email, and message
+
+properties:
+  name:
+    type: text
+    label: Full Name
+    placeholder: Enter your full name
+    rules:
+      required: true
+      minlength: 2
+      maxlength: 100
+    messages:
+      required: Please enter your name
+      minlength: Name must be at least 2 characters
+      maxlength: Name cannot exceed 100 characters
+
+  email:
+    type: email
+    label: Email Address
+    placeholder: your@email.com
+    rules:
+      required: true
+      email: true
+    messages:
+      required: Please enter your email address
+      email: Please enter a valid email address
+
+  phone:
+    type: tel
+    label: Phone Number
+    placeholder: "+1 (555) 123-4567"
+    description: Optional - we may call to follow up
+    rules:
+      minlength: 10
+      maxlength: 20
+    messages:
+      minlength: Phone number must be at least 10 digits
+      maxlength: Phone number cannot exceed 20 characters
+
+  subject:
+    type: select
+    label: Subject
+    rules:
+      required: true
+    messages:
+      required: Please select a subject
+    items:
+      general: General Inquiry
+      support: Technical Support
+      sales: Sales Question
+      feedback: Feedback
+      other: Other
+
+  message:
+    type: textarea
+    label: Message
+    placeholder: How can we help you?
+    rules:
+      required: true
+      minlength: 10
+      maxlength: 2000
+    messages:
+      required: Please enter your message
+      minlength: Message must be at least 10 characters
+      maxlength: Message cannot exceed 2000 characters
+
+  newsletter:
+    type: checkbox
+    label: Subscribe to newsletter
+    description: Get updates about our products and services
+    default: false

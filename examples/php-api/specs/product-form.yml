@@ -1,0 +1,231 @@
+# Product Form Specification
+# Demonstrates conditional validation and complex field structures
+
+type: group
+name: product-form
+
+properties:
+  # Basic Information
+  name:
+    type: text
+    label:
+      ko: 상품명
+      en: Product Name
+    rules:
+      required: true
+      minlength: 2
+      maxlength: 100
+    messages:
+      ko:
+        required: 상품명을 입력해주세요.
+        minlength: 상품명은 최소 {0}자 이상이어야 합니다.
+        maxlength: 상품명은 {0}자를 초과할 수 없습니다.
+      en:
+        required: Product name is required.
+        minlength: Product name must be at least {0} characters.
+        maxlength: Product name cannot exceed {0} characters.
+
+  # Product Type with conditional fields
+  product_type:
+    type: choice
+    label:
+      ko: 상품 유형
+      en: Product Type
+    default: physical
+    items:
+      physical:
+        ko: 실물 상품
+        en: Physical Product
+      digital:
+        ko: 디지털 상품
+        en: Digital Product
+      service:
+        ko: 서비스
+        en: Service
+    rules:
+      required: true
+
+  # Price Information
+  price:
+    type: number
+    label:
+      ko: 판매가격
+      en: Price
+    rules:
+      required: true
+      min: 0
+    messages:
+      ko:
+        required: 가격을 입력해주세요.
+        min: 가격은 0 이상이어야 합니다.
+      en:
+        required: Price is required.
+        min: Price must be 0 or greater.
+
+  original_price:
+    type: number
+    label:
+      ko: 정가
+      en: Original Price
+    rules:
+      min: 0
+    messages:
+      ko:
+        min: 정가는 0 이상이어야 합니다.
+      en:
+        min: Original price must be 0 or greater.
+
+  # Shipping - Only for physical products
+  shipping:
+    type: group
+    label:
+      ko: 배송 정보
+      en: Shipping Information
+    display_switch: .product_type == "physical"
+    properties:
+      weight:
+        type: number
+        label:
+          ko: 무게 (kg)
+          en: Weight (kg)
+        rules:
+          required: ..product_type == "physical"
+          min: 0.01
+        messages:
+          ko:
+            required: 무게를 입력해주세요.
+            min: 무게는 0.01kg 이상이어야 합니다.
+          en:
+            required: Weight is required for physical products.
+            min: Weight must be at least 0.01kg.
+
+      dimensions:
+        type: text
+        label:
+          ko: 규격 (가로x세로x높이)
+          en: Dimensions (LxWxH)
+        rules:
+          match: '^\d+x\d+x\d+$'
+        messages:
+          ko:
+            match: 올바른 규격 형식으로 입력해주세요. (예: 10x20x30)
+          en:
+            match: Please enter valid dimensions format. (e.g., 10x20x30)
+
+  # Digital product fields
+  download_url:
+    type: text
+    label:
+      ko: 다운로드 URL
+      en: Download URL
+    display_switch: .product_type == "digital"
+    rules:
+      required: .product_type == "digital"
+      url: true
+    messages:
+      ko:
+        required: 다운로드 URL을 입력해주세요.
+        url: 올바른 URL 형식으로 입력해주세요.
+      en:
+        required: Download URL is required for digital products.
+        url: Please enter a valid URL.
+
+  file_size:
+    type: text
+    label:
+      ko: 파일 크기
+      en: File Size
+    display_switch: .product_type == "digital"
+
+  # Inventory
+  is_quantity_tracked:
+    type: choice
+    label:
+      ko: 재고 추적
+      en: Track Inventory
+    default: 0
+    items:
+      0:
+        ko: 사용안함
+        en: Disabled
+      1:
+        ko: 사용함
+        en: Enabled
+
+  quantity:
+    type: number
+    label:
+      ko: 재고 수량
+      en: Stock Quantity
+    display_switch: .is_quantity_tracked == 1
+    rules:
+      required: .is_quantity_tracked == 1
+      min: 0
+    messages:
+      ko:
+        required: 재고 수량을 입력해주세요.
+        min: 재고 수량은 0 이상이어야 합니다.
+      en:
+        required: Stock quantity is required.
+        min: Stock quantity must be 0 or greater.
+
+  # Categories
+  categories[]:
+    type: select
+    label:
+      ko: 카테고리
+      en: Categories
+    multiple: true
+    items:
+      "": 선택하세요
+    rules:
+      required: true
+      unique: true
+      mincount: 1
+    messages:
+      ko:
+        required: 카테고리를 선택해주세요.
+        unique: 중복된 카테고리가 있습니다.
+        mincount: 최소 {0}개의 카테고리를 선택해주세요.
+      en:
+        required: Please select at least one category.
+        unique: Duplicate categories are not allowed.
+        mincount: Please select at least {0} category.
+
+  # Images
+  images[]:
+    type: image
+    label:
+      ko: 상품 이미지
+      en: Product Images
+    multiple: true
+    rules:
+      required: true
+      accept: image/*
+      mincount: 1
+      maxcount: 10
+    messages:
+      ko:
+        required: 상품 이미지를 등록해주세요.
+        accept: 이미지 파일만 업로드 가능합니다.
+        mincount: 최소 {0}개의 이미지가 필요합니다.
+        maxcount: 최대 {0}개의 이미지만 등록 가능합니다.
+      en:
+        required: Product images are required.
+        accept: Only image files are allowed.
+        mincount: At least {0} image is required.
+        maxcount: Maximum {0} images are allowed.
+
+  # Description
+  description:
+    type: textarea
+    label:
+      ko: 상품 설명
+      en: Product Description
+    rules:
+      maxlength: 5000
+    messages:
+      ko:
+        maxlength: 상품 설명은 {0}자를 초과할 수 없습니다.
+      en:
+        maxlength: Description cannot exceed {0} characters.
