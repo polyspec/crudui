@@ -126,19 +126,10 @@ export function FormField({
     return null;
   }
 
-  // Build wrapper class
-  const wrapperClasses = ['form-field', `form-field--${spec.type}`];
+  // Build wrapper class - Bootstrap 5 compatible
+  const wrapperClasses = ['mb-3'];
   if (spec.wrapper_class) {
     wrapperClasses.push(spec.wrapper_class);
-  }
-  if (error) {
-    wrapperClasses.push('form-field--error');
-  }
-  if (isDisabled) {
-    wrapperClasses.push('form-field--disabled');
-  }
-  if (isReadonly) {
-    wrapperClasses.push('form-field--readonly');
   }
   if (allOfResult?.className) {
     wrapperClasses.push(allOfResult.className);
