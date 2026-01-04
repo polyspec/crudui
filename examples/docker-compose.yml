@@ -119,6 +119,8 @@ services:
       dockerfile: examples/legacy-bootstrap/Dockerfile
     ports:
       - "8016:80"
+    volumes:
+      - ./shared-specs:/usr/share/nginx/html/specs:ro
     networks:
       - form-generator-network
     labels:
@@ -143,7 +145,7 @@ services:
       # Mount REAL Legacy library with all dependencies
       - /path/to/app/vendor:/var/www/vendor:ro
       - ./legacy-original/public/index.php:/var/www/html/index.php:ro
-      - ./legacy-original/specs:/var/www/specs:ro
+      - ./shared-specs:/var/www/specs:ro
       - ./legacy-original/assets/js:/var/www/html/assets/js:ro
     networks:
       - form-generator-network
