@@ -103,6 +103,11 @@ div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.
   padding: 0.25rem;
 }
 
+/* btn-sm 패딩 조정 */
+.btn-sm {
+  --bs-btn-padding-y: 0.1rem;
+}
+
 /* Group Title - 그룹 제목 */
 .form-element-wrapper > h6,
 .form-element-wrapper > div > h6 {
