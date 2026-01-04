@@ -137,8 +137,8 @@ function FormBuilderInner({
       {/* Form description */}
       {spec.description && <p className="form-description">{t(spec.description)}</p>}
 
-      {/* Form fields */}
-      <div className="form-fields">{renderFields()}</div>
+      {/* Form fields - wrapped in form-group like Limepie */}
+      <div className="form-group form-fields">{renderFields()}</div>
 
       {/* Form buttons */}
       {renderButtons ? (
