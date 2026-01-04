@@ -126,8 +126,8 @@ export function FormField({
     return null;
   }
 
-  // Build wrapper class - Bootstrap 5 compatible
-  const wrapperClasses = ['mb-3'];
+  // Build wrapper class - Bootstrap 5 compatible + Limepie form-group
+  const wrapperClasses = ['form-group', 'mb-3'];
   if (spec.wrapper_class) {
     wrapperClasses.push(spec.wrapper_class);
   }

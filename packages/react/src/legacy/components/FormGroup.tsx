@@ -82,8 +82,8 @@ export function FormGroup({
       {/* Group description */}
       {spec.description && <Description text={t(spec.description)} />}
 
-      {/* Group fields */}
-      <div>
+      {/* Group fields - wrapped in form-group like Limepie */}
+      <div className="form-group">
         {spec.properties &&
           Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
             <FormField
@@ -230,8 +230,8 @@ function MultipleFormGroup({
       {/* Group description */}
       {spec.description && <Description text={t(spec.description)} />}
 
-      {/* Multiple items */}
-      <div>
+      {/* Multiple items - wrapped in form-group like Limepie */}
+      <div className="form-group">
         {items.map((item, index) => (
           <div key={item.key} className="card mb-2">
             {/* Item header with controls */}
