@@ -22,14 +22,10 @@
 
 /* Form Element Wrapper - 필드 래퍼 */
 .form-element-wrapper {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  border-top: 1px solid var(--fs-color-border);
+  margin-top: 1rem;
 }
 
 .form-element-wrapper:first-child {
-  padding-top: 0 !important;
-  border-top: 0 !important;
   margin-top: 0 !important;
 }
 
