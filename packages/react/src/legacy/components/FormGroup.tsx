@@ -244,67 +244,71 @@ function MultipleFormGroup({
       {/* Group description */}
       {spec.description && <Description text={t(spec.description)} />}
 
-      {/* Multiple items with card structure */}
-      <div className="form-group">{items.map((item, index) => (
-        <div key={item.key} className="card mb-2">
-          {/* Item header with controls */}
-          <div className="card-header d-flex justify-content-between align-items-center py-2">
-            <span className="badge bg-secondary">{index + 1}</span>
+      {/* form-element > input-group-wrapper > form-group structure (original Limepie) */}
+      <div className="form-element">
+        <div className="input-group-wrapper" style={{}}>
+          <div className="form-group">{items.map((item, index) => (
+            <div key={item.key} className="card mb-2">
+              {/* Item header with controls */}
+              <div className="card-header d-flex justify-content-between align-items-center py-2">
+                <span className="badge bg-secondary">{index + 1}</span>
 
-            <div className="btn-group btn-group-sm">
-              {/* Add button - adds new item after this one */}
-              {canAdd && !isDisabled && !isReadonly && (
-                <button
-                  type="button"
-                  className="btn btn-outline-primary"
-                  onClick={() => handleAddAfter(index)}
-                ><Plus size={16} /></button>
-              )}
+                <div className="btn-group btn-group-sm">
+                  {/* Add button - adds new item after this one */}
+                  {canAdd && !isDisabled && !isReadonly && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary"
+                      onClick={() => handleAddAfter(index)}
+                    ><Plus size={16} /></button>
+                  )}
 
-              {/* Sortable controls */}
-              {isSortable && !isDisabled && !isReadonly && (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => handleMoveUp(index)}
-                    disabled={index === 0}
-                  ><ChevronUp size={16} /></button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => handleMoveDown(index)}
-                    disabled={index === items.length - 1}
-                  ><ChevronDown size={16} /></button>
-                </>
-              )}
+                  {/* Sortable controls */}
+                  {isSortable && !isDisabled && !isReadonly && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleMoveUp(index)}
+                        disabled={index === 0}
+                      ><ChevronUp size={16} /></button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleMoveDown(index)}
+                        disabled={index === items.length - 1}
+                      ><ChevronDown size={16} /></button>
+                    </>
+                  )}
 
-              {/* Remove button */}
-              {canRemove && !isDisabled && !isReadonly && (
-                <button
-                  type="button"
-                  className="btn btn-outline-danger"
-                  onClick={() => handleRemove(item.key)}
-                ><Minus size={16} /></button>
-              )}
+                  {/* Remove button */}
+                  {canRemove && !isDisabled && !isReadonly && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger"
+                      onClick={() => handleRemove(item.key)}
+                    ><Minus size={16} /></button>
+                  )}
+                </div>
+              </div>
+
+              {/* Item fields */}
+              <div className="card-body">{spec.properties &&
+                Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
+                  <FormField
+                    key={fieldName}
+                    name={fieldName}
+                    spec={fieldSpec}
+                    path={joinPath(path, item.key, fieldName)}
+                    parentPath={joinPath(path, item.key)}
+                    index={index}
+                    uniqueKey={item.key}
+                  />
+                ))}</div>
             </div>
-          </div>
-
-          {/* Item fields */}
-          <div className="card-body">{spec.properties &&
-            Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
-              <FormField
-                key={fieldName}
-                name={fieldName}
-                spec={fieldSpec}
-                path={joinPath(path, item.key, fieldName)}
-                parentPath={joinPath(path, item.key)}
-                index={index}
-                uniqueKey={item.key}
-              />
-            ))}</div>
+          ))}</div>
         </div>
-      ))}</div>
+      </div>
 
       {/* Group error */}
       {error && <ErrorMessage message={error} />}
