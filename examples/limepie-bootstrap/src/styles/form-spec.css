@@ -51,29 +51,29 @@
   padding-top: 0;
 }
 
-/* Input Group Wrapper - 홀수 레벨 스타일 (1, 3, 5...) */
-.input-group-wrapper > .form-group {
+/* Input Group Wrapper - 홀수 레벨 스타일 (원본 패턴: > div > div > 중간 구조) */
+div.input-group-wrapper > .form-group {
   border: 1px solid #efefef;
   border-radius: 5px;
   background: #f9f9f9;
 }
 
-/* 짝수 레벨 - 스타일 제거 (2, 4, 6...) */
-.input-group-wrapper .input-group-wrapper > .form-group {
+/* 짝수 레벨 - 스타일 제거 */
+div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group {
   border: none;
   border-radius: 0;
   background: transparent;
 }
 
-/* 홀수 레벨 - 다시 적용 (3, 5...) */
-.input-group-wrapper .input-group-wrapper .input-group-wrapper > .form-group {
+/* 홀수 레벨 (3) - 다시 적용 */
+div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group {
   border: 1px solid #efefef;
   border-radius: 5px;
   background: #f9f9f9;
 }
 
-/* 짝수 레벨 (4, 6...) */
-.input-group-wrapper .input-group-wrapper .input-group-wrapper .input-group-wrapper > .form-group {
+/* 짝수 레벨 (4) */
+div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group {
   border: none;
   border-radius: 0;
   background: transparent;
