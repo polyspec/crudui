@@ -25,6 +25,11 @@
   padding-top: 0.75rem;
 }
 
+.form-element-wrapper:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
 /* Nested groups - 중첩 그룹 */
 .form-element-wrapper.border {
   border: 1px solid var(--fs-color-border) !important;
