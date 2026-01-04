@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REAL Limepie Form Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-element-wrapper { margin-bottom: 1rem; }
+        .valid-target.is-invalid { border-color: #dc3545; }
+        .valid-target.is-valid { border-color: #198754; }
+        .error-message { color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem; }
+        pre { background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="h3 mb-3">
+                    <span class="badge bg-success">REAL</span>
+                    Limepie Form Generator
+                </h1>
+                <p class="text-muted">
+                    This uses the <strong>ACTUAL</strong> Limepie PHP library (yejune/limepie) to generate forms.
+                </p>
+
+                <ul class="nav nav-pills mb-4">
+                                            <li class="nav-item">
+                            <a class="nav-link "
+                               href="?spec=contact">
+                                Contact                            </a>
+                        </li>
+                                            <li class="nav-item">
+                            <a class="nav-link "
+                               href="?spec=order-form">
+                                Order Form                            </a>
+                        </li>
+                                            <li class="nav-item">
+                            <a class="nav-link active"
+                               href="?spec=product-form">
+                                Product Form                            </a>
+                        </li>
+                                            <li class="nav-item">
+                            <a class="nav-link "
+                               href="?spec=registration">
+                                Registration                            </a>
+                        </li>
+                                            <li class="nav-item">
+                            <a class="nav-link "
+                               href="?spec=user-registration">
+                                User Registration                            </a>
+                        </li>
+                                    </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-7 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">Generated Form (Real Limepie)</div>
+                    <div class="card-body">
+                                                                                <form id="mainForm" method="POST" novalidate>
+                                <label class="form-label">Product Entry Form</label><div class="form-description">A comprehensive product entry form with nested structures</div><hr /><div class='form-group'><div class="form-element-wrapper border p-3 mb-3" style="" name="product.basic-layer"><h6 class="">Basic Information</h6><div class="form-element"><div data-uniqid="__695a638000f38__" class="input-group-wrapper" style=""><div class='form-group'><div class="form-element-wrapper" style="" name="product.basic.name-layer"><h6 class="">Product Name</h6><div class="form-element"><div data-uniqid="__695a638000f42__" class="input-group-wrapper" style=""><div class="input-group"><input type="text" class="valid-target form-control" name="product[basic][name]" value="" data-name="name" data-rule-name="basic[name]"  data-default="" placeholder="Enter product name" /><!--btn--></div></div></div></div><div class="form-element-wrapper" style="" name="product.basic.sku-layer"><h6 class="">SKU</h6><div class="form-element"><div data-uniqid="__695a638000fa2__" class="input-group-wrapper" style=""><div class="input-group"><span class="input-group-text">SKU:</span><input type="text" class="valid-target form-control" name="product[basic][sku]" value="" data-name="sku" data-rule-name="basic[sku]"  data-default="" placeholder="e.g., PROD-001" /><!--btn--></div></div></div></div><div class="form-element-wrapper" style="" name="product.basic.category-layer"><h6 class="">Category</h6><div class="form-element"><div data-uniqid="__695a638000fac__" class="input-group-wrapper" style=""><div class="input-group"><select class="valid-target form-select"  name="product[basic][category]" data-name="category" data-rule-name="basic[category]"   data-default=""><option value="" selected="selected">Select Category</option><option value="electronics" >Electronics</option><option value="clothing" >Clothing</option><option value="food" >Food & Beverage</option><option value="home" >Home & Garden</option></select><!--btn--></div></div></div></div><div class="form-element-wrapper" style="" name="product.basic.description-layer"><h6 class="">Description</h6><div class="form-element"><div data-uniqid="__695a638000fea__" class="input-group-wrapper" style=""><div class="input-group"><textarea class="valid-target form-control "   name="product[basic][description]" data-name="description" data-rule-name="basic[description]"  data-default="" rows="4"></textarea></div></div></div></div></div></div></div></div><div class="form-element-wrapper border p-3 mb-3" style="" name="product.pricing-layer"><h6 class="">Pricing</h6><div class="form-element"><div data-uniqid="__695a638001087__" class="input-group-wrapper" style=""><div class='form-group'><div class="form-element-wrapper" style="" name="product.pricing.price-layer"><h6 class="">Price</h6><div class="form-element"><div data-uniqid="__695a63800108b__" class="input-group-wrapper" style=""><div class="input-group"><span class="input-group-text">$</span><input type="number" class="valid-target form-control" name="product[pricing][price]" data-name="price" data-rule-name="pricing[price]"  value="" data-default="" placeholder="0.00"  /></div></div></div></div><div class="form-element-wrapper" style="" name="product.pricing.sale_price-layer"><h6 class="">Sale Price</h6><div class="form-element"><div data-uniqid="__695a6380010e3__" class="input-group-wrapper" style=""><div class="input-group"><span class="input-group-text">$</span><input type="number" class="valid-target form-control" name="product[pricing][sale_price]" data-name="sale_price" data-rule-name="pricing[sale_price]"  value="" data-default="" placeholder="0.00"  /></div></div></div></div><div class="form-element-wrapper" style="" name="product.pricing.tax_rate-layer"><h6 class="">Tax Rate</h6><div class="form-element"><div data-uniqid="__695a6380010e9__" class="input-group-wrapper" style=""><div class="input-group"><input type="number" class="valid-target form-control" name="product[pricing][tax_rate]" data-name="tax_rate" data-rule-name="pricing[tax_rate]"  value="10" data-default="10"  /><span class="input-group-text">%</span></div></div></div></div></div></div></div></div><div class="form-element-wrapper border p-3 mb-3" style="" name="product.inventory-layer"><h6 class="">Inventory</h6><div class="form-element"><div data-uniqid="__695a63800111c__" class="input-group-wrapper" style=""><div class='form-group'><div class="form-element-wrapper" style="" name="product.inventory.quantity-layer"><h6 class="">Quantity in Stock</h6><div class="form-element"><div data-uniqid="__695a63800111f__" class="input-group-wrapper" style=""><div class="input-group"><input type="number" class="valid-target form-control" name="product[inventory][quantity]" data-name="quantity" data-rule-name="inventory[quantity]"  value="0" data-default="0"  /></div></div></div></div><div class="form-element-wrapper" style="" name="product.inventory.low_stock_alert-layer"><h6 class="">Low Stock Alert Threshold</h6><div class="form-element"><div data-uniqid="__695a638001125__" class="input-group-wrapper" style=""><div class="input-group"><input type="number" class="valid-target form-control" name="product[inventory][low_stock_alert]" data-name="low_stock_alert" data-rule-name="inventory[low_stock_alert]"  value="10" data-default="10"  /></div></div></div></div><div class="form-element-wrapper" name="product.inventory.track_inventory-layer"><div class="checkbox"><h6><div data-uniqid="__695a63800112b__" class="input-group-wrapper" style=""><div><input type="checkbox" class="valid-target" name="product[inventory][track_inventory]" data-name="track_inventory" data-rule-name="inventory[track_inventory]" value="1" checked  /> <span>Track Inventory</span></div></div></h6></div></div></div></div></div></div><div class="form-element-wrapper" style="" name="product.status-layer"><h6 class="">Product Status</h6><div class="form-element"><div data-uniqid="__695a63800114f__" class="input-group-wrapper" style=""><div class="input-group"><select class="valid-target form-select"  name="product[status]" data-name="status" data-rule-name="status"   data-default="draft"><option value="draft" selected="selected">Draft</option><option value="active" >Active</option><option value="inactive" >Inactive</option><option value="archived" >Archived</option></select><!--btn--></div></div></div></div><div class="form-element-wrapper" name="product.featured-layer"><div class="checkbox"><h6><div data-uniqid="__695a638001158__" class="input-group-wrapper" style=""><div><input type="checkbox" class="valid-target" name="product[featured]" data-name="featured" data-rule-name="featured" value="1"   /> <span>Featured Product</span></div></div></h6></div></div></div><hr /> <div class="clearfix"><input type="submit" value="Save Product" class="btn btn-primary" /><a href="../" class="btn btn-secondary float-end">Back to List</a></div>                            </form>
+                            
+                                                                        </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">Library Info</div>
+                    <div class="card-body">
+                        <p class="mb-0"><strong>Library:</strong> yejune/limepie<br>
+                        <strong>Class:</strong> Limepie\Form\Generator<br>
+                        <strong>Method:</strong> write($spec, $data)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header">YAML Spec</div>
+                    <div class="card-body">
+                                                    <pre style="max-height: 500px; overflow: auto;"><code># Original Limepie Form Spec - Product Entry
+type: group
+key: product
+label: Product Entry Form
+description: A comprehensive product entry form with nested structures
+properties:
+  basic:
+    type: group
+    label: Basic Information
+    class: border p-3 mb-3
+    properties:
+      name:
+        type: text
+        label: Product Name
+        placeholder: &quot;Enter product name&quot;
+        rules:
+          required: true
+          maxlength: 100
+        messages:
+          required: &quot;Product name is required&quot;
+          maxlength: &quot;Product name cannot exceed 100 characters&quot;
+
+      sku:
+        type: text
+        label: SKU
+        placeholder: &quot;e.g., PROD-001&quot;
+        prepend: &quot;SKU:&quot;
+        rules:
+          required: true
+          pattern: &quot;^[A-Z]{2,4}-[0-9]{3,6}$&quot;
+        messages:
+          required: &quot;SKU is required&quot;
+          pattern: &quot;Invalid SKU format (e.g., PROD-001)&quot;
+
+      category:
+        type: select
+        label: Category
+        items:
+          &quot;&quot;: &quot;Select Category&quot;
+          electronics: &quot;Electronics&quot;
+          clothing: &quot;Clothing&quot;
+          food: &quot;Food &amp; Beverage&quot;
+          home: &quot;Home &amp; Garden&quot;
+        rules:
+          required: true
+        messages:
+          required: &quot;Please select a category&quot;
+
+      description:
+        type: textarea
+        label: Description
+        placeholder: &quot;Enter product description&quot;
+        rows: 4
+
+  pricing:
+    type: group
+    label: Pricing
+    class: border p-3 mb-3
+    properties:
+      price:
+        type: number
+        label: Price
+        prepend: &quot;$&quot;
+        placeholder: &quot;0.00&quot;
+        rules:
+          required: true
+          min: 0
+        messages:
+          required: &quot;Price is required&quot;
+          min: &quot;Price cannot be negative&quot;
+
+      sale_price:
+        type: number
+        label: Sale Price
+        prepend: &quot;$&quot;
+        placeholder: &quot;0.00&quot;
+        rules:
+          min: 0
+        messages:
+          min: &quot;Sale price cannot be negative&quot;
+
+      tax_rate:
+        type: number
+        label: Tax Rate
+        append: &quot;%&quot;
+        default: &quot;10&quot;
+        rules:
+          min: 0
+          max: 100
+        messages:
+          min: &quot;Tax rate cannot be negative&quot;
+          max: &quot;Tax rate cannot exceed 100%&quot;
+
+  inventory:
+    type: group
+    label: Inventory
+    class: border p-3 mb-3
+    properties:
+      quantity:
+        type: number
+        label: Quantity in Stock
+        default: &quot;0&quot;
+        rules:
+          required: true
+          min: 0
+        messages:
+          required: &quot;Quantity is required&quot;
+          min: &quot;Quantity cannot be negative&quot;
+
+      low_stock_alert:
+        type: number
+        label: Low Stock Alert Threshold
+        default: &quot;10&quot;
+        rules:
+          min: 0
+        messages:
+          min: &quot;Threshold cannot be negative&quot;
+
+      track_inventory:
+        type: checkbox
+        label: Track Inventory
+        default: true
+
+  status:
+    type: select
+    label: Product Status
+    default: draft
+    items:
+      draft: &quot;Draft&quot;
+      active: &quot;Active&quot;
+      inactive: &quot;Inactive&quot;
+      archived: &quot;Archived&quot;
+
+  featured:
+    type: checkbox
+    label: Featured Product
+    default: false
+
+submit_button_text: Save Product
+list_button_text: Back to List
+</code></pre>
+                                            </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">Generated HTML</div>
+                    <div class="card-body">
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#htmlSource">
+                            Show HTML
+                        </button>
+                        <div class="collapse mt-3" id="htmlSource">
+                                                            <pre style="max-height: 400px; overflow: auto;"><code>&lt;label class=&quot;form-label&quot;&gt;Product Entry Form&lt;/label&gt;&lt;div class=&quot;form-description&quot;&gt;A comprehensive product entry form with nested structures&lt;/div&gt;&lt;hr /&gt;&lt;div class=&#039;form-group&#039;&gt;&lt;div class=&quot;form-element-wrapper border p-3 mb-3&quot; style=&quot;&quot; name=&quot;product.basic-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Basic Information&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a638000f38__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&#039;form-group&#039;&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.basic.name-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Product Name&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a638000f42__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;input type=&quot;text&quot; class=&quot;valid-target form-control&quot; name=&quot;product[basic][name]&quot; value=&quot;&quot; data-name=&quot;name&quot; data-rule-name=&quot;basic[name]&quot;  data-default=&quot;&quot; placeholder=&quot;Enter product name&quot; /&gt;&lt;!--btn--&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.basic.sku-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;SKU&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a638000fa2__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;span class=&quot;input-group-text&quot;&gt;SKU:&lt;/span&gt;&lt;input type=&quot;text&quot; class=&quot;valid-target form-control&quot; name=&quot;product[basic][sku]&quot; value=&quot;&quot; data-name=&quot;sku&quot; data-rule-name=&quot;basic[sku]&quot;  data-default=&quot;&quot; placeholder=&quot;e.g., PROD-001&quot; /&gt;&lt;!--btn--&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.basic.category-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Category&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a638000fac__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;select class=&quot;valid-target form-select&quot;  name=&quot;product[basic][category]&quot; data-name=&quot;category&quot; data-rule-name=&quot;basic[category]&quot;   data-default=&quot;&quot;&gt;&lt;option value=&quot;&quot; selected=&quot;selected&quot;&gt;Select Category&lt;/option&gt;&lt;option value=&quot;electronics&quot; &gt;Electronics&lt;/option&gt;&lt;option value=&quot;clothing&quot; &gt;Clothing&lt;/option&gt;&lt;option value=&quot;food&quot; &gt;Food &amp; Beverage&lt;/option&gt;&lt;option value=&quot;home&quot; &gt;Home &amp; Garden&lt;/option&gt;&lt;/select&gt;&lt;!--btn--&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.basic.description-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Description&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a638000fea__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;textarea class=&quot;valid-target form-control &quot;   name=&quot;product[basic][description]&quot; data-name=&quot;description&quot; data-rule-name=&quot;basic[description]&quot;  data-default=&quot;&quot; rows=&quot;4&quot;&gt;&lt;/textarea&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper border p-3 mb-3&quot; style=&quot;&quot; name=&quot;product.pricing-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Pricing&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a638001087__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&#039;form-group&#039;&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.pricing.price-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Price&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a63800108b__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;span class=&quot;input-group-text&quot;&gt;$&lt;/span&gt;&lt;input type=&quot;number&quot; class=&quot;valid-target form-control&quot; name=&quot;product[pricing][price]&quot; data-name=&quot;price&quot; data-rule-name=&quot;pricing[price]&quot;  value=&quot;&quot; data-default=&quot;&quot; placeholder=&quot;0.00&quot;  /&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.pricing.sale_price-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Sale Price&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a6380010e3__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;span class=&quot;input-group-text&quot;&gt;$&lt;/span&gt;&lt;input type=&quot;number&quot; class=&quot;valid-target form-control&quot; name=&quot;product[pricing][sale_price]&quot; data-name=&quot;sale_price&quot; data-rule-name=&quot;pricing[sale_price]&quot;  value=&quot;&quot; data-default=&quot;&quot; placeholder=&quot;0.00&quot;  /&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.pricing.tax_rate-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Tax Rate&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a6380010e9__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;input type=&quot;number&quot; class=&quot;valid-target form-control&quot; name=&quot;product[pricing][tax_rate]&quot; data-name=&quot;tax_rate&quot; data-rule-name=&quot;pricing[tax_rate]&quot;  value=&quot;10&quot; data-default=&quot;10&quot;  /&gt;&lt;span class=&quot;input-group-text&quot;&gt;%&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper border p-3 mb-3&quot; style=&quot;&quot; name=&quot;product.inventory-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Inventory&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a63800111c__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&#039;form-group&#039;&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.inventory.quantity-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Quantity in Stock&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a63800111f__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;input type=&quot;number&quot; class=&quot;valid-target form-control&quot; name=&quot;product[inventory][quantity]&quot; data-name=&quot;quantity&quot; data-rule-name=&quot;inventory[quantity]&quot;  value=&quot;0&quot; data-default=&quot;0&quot;  /&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.inventory.low_stock_alert-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Low Stock Alert Threshold&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a638001125__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;input type=&quot;number&quot; class=&quot;valid-target form-control&quot; name=&quot;product[inventory][low_stock_alert]&quot; data-name=&quot;low_stock_alert&quot; data-rule-name=&quot;inventory[low_stock_alert]&quot;  value=&quot;10&quot; data-default=&quot;10&quot;  /&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; name=&quot;product.inventory.track_inventory-layer&quot;&gt;&lt;div class=&quot;checkbox&quot;&gt;&lt;h6&gt;&lt;div data-uniqid=&quot;__695a63800112b__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div&gt;&lt;input type=&quot;checkbox&quot; class=&quot;valid-target&quot; name=&quot;product[inventory][track_inventory]&quot; data-name=&quot;track_inventory&quot; data-rule-name=&quot;inventory[track_inventory]&quot; value=&quot;1&quot; checked  /&gt; &lt;span&gt;Track Inventory&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/h6&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; style=&quot;&quot; name=&quot;product.status-layer&quot;&gt;&lt;h6 class=&quot;&quot;&gt;Product Status&lt;/h6&gt;&lt;div class=&quot;form-element&quot;&gt;&lt;div data-uniqid=&quot;__695a63800114f__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div class=&quot;input-group&quot;&gt;&lt;select class=&quot;valid-target form-select&quot;  name=&quot;product[status]&quot; data-name=&quot;status&quot; data-rule-name=&quot;status&quot;   data-default=&quot;draft&quot;&gt;&lt;option value=&quot;draft&quot; selected=&quot;selected&quot;&gt;Draft&lt;/option&gt;&lt;option value=&quot;active&quot; &gt;Active&lt;/option&gt;&lt;option value=&quot;inactive&quot; &gt;Inactive&lt;/option&gt;&lt;option value=&quot;archived&quot; &gt;Archived&lt;/option&gt;&lt;/select&gt;&lt;!--btn--&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;form-element-wrapper&quot; name=&quot;product.featured-layer&quot;&gt;&lt;div class=&quot;checkbox&quot;&gt;&lt;h6&gt;&lt;div data-uniqid=&quot;__695a638001158__&quot; class=&quot;input-group-wrapper&quot; style=&quot;&quot;&gt;&lt;div&gt;&lt;input type=&quot;checkbox&quot; class=&quot;valid-target&quot; name=&quot;product[featured]&quot; data-name=&quot;featured&quot; data-rule-name=&quot;featured&quot; value=&quot;1&quot;   /&gt; &lt;span&gt;Featured Product&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/h6&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;hr /&gt; &lt;div class=&quot;clearfix&quot;&gt;&lt;input type=&quot;submit&quot; value=&quot;Save Product&quot; class=&quot;btn btn-primary&quot; /&gt;&lt;a href=&quot;../&quot; class=&quot;btn btn-secondary float-end&quot;&gt;Back to List&lt;/a&gt;&lt;/div&gt;</code></pre>
+                                                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/dist.validate.js"></script>
+    <script>
+        $(function() {
+            var validator = $('#mainForm').validate({ debug: true });
+            console.log('Real Limepie Form Generator loaded');
+        });
+    </script>
+</body>
+</html>

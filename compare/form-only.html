@@ -1,0 +1,182 @@
+<form id="mainForm" method="POST" novalidate>
+    <label class="form-label">Product Entry Form</label>
+    <div class="form-description">A comprehensive product entry form with nested structures</div>
+    <hr />
+    <div class='form-group'>
+        <div class="form-element-wrapper border p-3 mb-3" style="" name="product.basic-layer">
+            <h6 class="">Basic Information</h6>
+            <div class="form-element">
+                <div data-uniqid="__695a638000f38__" class="input-group-wrapper" style="">
+                    <div class='form-group'>
+                        <div class="form-element-wrapper" style="" name="product.basic.name-layer">
+                            <h6 class="">Product Name</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a638000f42__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <input type="text" class="valid-target form-control" name="product[basic][name]" value="" data-name="name" data-rule-name="basic[name]" data-default="" placeholder="Enter product name" />
+                                        <!--btn-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-element-wrapper" style="" name="product.basic.sku-layer">
+                            <h6 class="">SKU</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a638000fa2__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <span class="input-group-text">SKU:</span>
+                                        <input type="text" class="valid-target form-control" name="product[basic][sku]" value="" data-name="sku" data-rule-name="basic[sku]" data-default="" placeholder="e.g., PROD-001" />
+                                        <!--btn-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-element-wrapper" style="" name="product.basic.category-layer">
+                            <h6 class="">Category</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a638000fac__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <select class="valid-target form-select" name="product[basic][category]" data-name="category" data-rule-name="basic[category]" data-default="">
+                                            <option value="" selected="selected">Select Category</option>
+                                            <option value="electronics">Electronics</option>
+                                            <option value="clothing">Clothing</option>
+                                            <option value="food">Food &amp; Beverage</option>
+                                            <option value="home">Home &amp; Garden</option>
+                                        </select>
+                                        <!--btn-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-element-wrapper" style="" name="product.basic.description-layer">
+                            <h6 class="">Description</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a638000fea__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <textarea class="valid-target form-control " name="product[basic][description]" data-name="description" data-rule-name="basic[description]" data-default="" rows="4"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-element-wrapper border p-3 mb-3" style="" name="product.pricing-layer">
+            <h6 class="">Pricing</h6>
+            <div class="form-element">
+                <div data-uniqid="__695a638001087__" class="input-group-wrapper" style="">
+                    <div class='form-group'>
+                        <div class="form-element-wrapper" style="" name="product.pricing.price-layer">
+                            <h6 class="">Price</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a63800108b__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="valid-target form-control" name="product[pricing][price]" data-name="price" data-rule-name="pricing[price]" value="" data-default="" placeholder="0.00" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-element-wrapper" style="" name="product.pricing.sale_price-layer">
+                            <h6 class="">Sale Price</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a6380010e3__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="valid-target form-control" name="product[pricing][sale_price]" data-name="sale_price" data-rule-name="pricing[sale_price]" value="" data-default="" placeholder="0.00" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-element-wrapper" style="" name="product.pricing.tax_rate-layer">
+                            <h6 class="">Tax Rate</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a6380010e9__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <input type="number" class="valid-target form-control" name="product[pricing][tax_rate]" data-name="tax_rate" data-rule-name="pricing[tax_rate]" value="10" data-default="10" />
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-element-wrapper border p-3 mb-3" style="" name="product.inventory-layer">
+            <h6 class="">Inventory</h6>
+            <div class="form-element">
+                <div data-uniqid="__695a63800111c__" class="input-group-wrapper" style="">
+                    <div class='form-group'>
+                        <div class="form-element-wrapper" style="" name="product.inventory.quantity-layer">
+                            <h6 class="">Quantity in Stock</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a63800111f__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <input type="number" class="valid-target form-control" name="product[inventory][quantity]" data-name="quantity" data-rule-name="inventory[quantity]" value="0" data-default="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-element-wrapper" style="" name="product.inventory.low_stock_alert-layer">
+                            <h6 class="">Low Stock Alert Threshold</h6>
+                            <div class="form-element">
+                                <div data-uniqid="__695a638001125__" class="input-group-wrapper" style="">
+                                    <div class="input-group">
+                                        <input type="number" class="valid-target form-control" name="product[inventory][low_stock_alert]" data-name="low_stock_alert" data-rule-name="inventory[low_stock_alert]" value="10" data-default="10" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-element-wrapper" name="product.inventory.track_inventory-layer">
+                            <div class="checkbox">
+                                <h6>
+                                    <div data-uniqid="__695a63800112b__" class="input-group-wrapper" style="">
+                                        <div>
+                                            <input type="checkbox" class="valid-target" name="product[inventory][track_inventory]" data-name="track_inventory" data-rule-name="inventory[track_inventory]" value="1" checked />
+                                            <span>Track Inventory</span>
+                                        </div>
+                                    </div>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-element-wrapper" style="" name="product.status-layer">
+            <h6 class="">Product Status</h6>
+            <div class="form-element">
+                <div data-uniqid="__695a63800114f__" class="input-group-wrapper" style="">
+                    <div class="input-group">
+                        <select class="valid-target form-select" name="product[status]" data-name="status" data-rule-name="status" data-default="draft">
+                            <option value="draft" selected="selected">Draft</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                        <!--btn-->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-element-wrapper" name="product.featured-layer">
+            <div class="checkbox">
+                <h6>
+                    <div data-uniqid="__695a638001158__" class="input-group-wrapper" style="">
+                        <div>
+                            <input type="checkbox" class="valid-target" name="product[featured]" data-name="featured" data-rule-name="featured" value="1" />
+                            <span>Featured Product</span>
+                        </div>
+                    </div>
+                </h6>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="clearfix">
+        <input type="submit" value="Save Product" class="btn btn-primary" />
+        <a href="../" class="btn btn-secondary float-end">Back to List</a>
+    </div>
+</form>

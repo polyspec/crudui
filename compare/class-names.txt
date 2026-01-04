@@ -1,0 +1,57 @@
+Key CSS Class Names Used by Limepie PHP Form Generator
+======================================================
+
+STRUCTURE CLASSES:
+------------------
+form-group              - Wraps groups of form elements
+form-element-wrapper    - Wrapper for each field element (has name attribute like "product.basic.name-layer")
+form-element            - Container for the actual input inside a wrapper
+input-group-wrapper     - Wrapper with data-uniqid attribute for unique identification
+input-group             - Bootstrap input group for prepend/append elements
+
+FORM ELEMENT CLASSES:
+---------------------
+form-label              - Root form label
+form-description        - Description text below main label
+form-control            - Bootstrap class for text/number/textarea inputs
+form-select             - Bootstrap class for select dropdowns
+valid-target            - Custom class for validation targeting (on all inputs/selects)
+checkbox                - Wrapper div for checkbox elements
+
+LAYOUT/UTILITY CLASSES (Bootstrap):
+-----------------------------------
+border                  - Add border to groups
+p-3                     - Padding level 3
+mb-3                    - Margin bottom level 3
+clearfix                - Clear floats
+
+BUTTON CLASSES:
+---------------
+btn                     - Bootstrap button base
+btn-primary             - Primary submit button
+btn-secondary           - Secondary/cancel button
+float-end               - Float right (Bootstrap 5)
+
+ADDON CLASSES:
+--------------
+input-group-text        - For prepend/append text (e.g., "$", "%", "SKU:")
+
+DATA ATTRIBUTES:
+----------------
+data-uniqid             - Unique identifier for each input wrapper (e.g., "__695a638000f42__")
+data-name               - Field name (e.g., "name", "sku", "price")
+data-rule-name          - Validation rule reference (e.g., "basic[name]", "pricing[price]")
+data-default            - Default value for the field
+name (on wrapper)       - Layer identifier (e.g., "product.basic.name-layer")
+
+INPUT NAME PATTERN:
+-------------------
+product[basic][name]    - Nested array notation for form submission
+product[pricing][price] - Groups nested under product key
+product[status]         - Top-level fields under product
+
+VALIDATION CLASSES (for states):
+--------------------------------
+is-invalid              - Applied to invalid inputs
+is-valid                - Applied to valid inputs
+error-message           - Error message display class
