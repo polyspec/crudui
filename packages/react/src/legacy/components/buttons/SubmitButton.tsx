@@ -41,15 +41,13 @@ export function SubmitButton({
 }: SubmitButtonProps) {
   const { t } = useI18n();
 
-  const buttonClasses = ['form-button', 'form-button--submit'];
-  if (spec?.class) {
-    buttonClasses.push(spec.class);
-  }
+  // Bootstrap 5 button classes
+  const buttonClasses = ['btn', spec?.class || 'btn-primary'];
   if (className) {
     buttonClasses.push(className);
   }
   if (isSubmitting) {
-    buttonClasses.push('form-button--loading');
+    buttonClasses.push('disabled');
   }
 
   // Support both 'text' (new format) and 'label' (legacy format)
@@ -64,8 +62,8 @@ export function SubmitButton({
     >
       {isSubmitting ? (
         <>
-          <span className="form-button__spinner" aria-hidden="true" />
-          <span className="form-button__text">{label}</span>
+          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+          {label}
         </>
       ) : (
         label
