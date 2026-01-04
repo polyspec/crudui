@@ -180,3 +180,15 @@
   flex-wrap: nowrap;
 }
 
+/* Multiple 버튼 아이콘 중앙 정렬 */
+.btn-group-sm .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+}
+
+.btn-group-sm .btn svg {
+  display: block;
+}
+
