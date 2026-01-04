@@ -71,14 +71,20 @@ export function FormContextProvider({
    */
   const setValue = useCallback(
     (path: string, value: FormValue) => {
+      let newData: FormData = {};
       setData((prev: FormData) => {
-        const newData = setValueByPath({ ...prev }, path, value);
+        newData = setValueByPath({ ...prev }, path, value);
         onChange?.(path, value, newData);
         return newData;
       });
-      // Clear error when value changes
+      // Re-validate if there was an error, otherwise clear
       setErrors((prev) => {
-        if (prev[path]) {
+        if (prev[path] && validatorRef.current) {
+          // Re-validate with new value
+          const error = validatorRef.current.validateField(path, value, newData as Record<string, unknown>);
+          if (error) {
+            return { ...prev, [path]: error };
+          }
           const { [path]: _, ...rest } = prev;
           return rest;
         }
