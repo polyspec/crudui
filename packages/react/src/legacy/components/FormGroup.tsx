@@ -228,17 +228,19 @@ function MultipleFormGroup({
 
   return (
     <div className={wrapperClasses.join(' ')} style={{}} data-name={`${path}-layer`}>
-      {/* Group header with label and add button */}
-      {(label || (items.length === 0 && canAdd && !isDisabled && !isReadonly)) && (
+      {/* Group label */}
+      {label && (
         <div className="d-flex justify-content-between align-items-center">
-          {label && <h6 className="">{label}</h6>}
-          {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
-              <Plus size={16} className="me-1" />
-              {t('add')}
-            </button>
-          )}
+          <h6 className="">{label}</h6>
         </div>
+      )}
+
+      {/* Add button when empty - below label */}
+      {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
+        <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
+          <Plus size={16} className="me-1" />
+          {t('add')}
+        </button>
       )}
 
       {/* Group description */}
