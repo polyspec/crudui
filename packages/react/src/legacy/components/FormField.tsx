@@ -126,8 +126,8 @@ export function FormField({
     return null;
   }
 
-  // Build wrapper class - Bootstrap 5 compatible + Limepie form-group
-  const wrapperClasses = ['form-group', 'mb-3'];
+  // Build wrapper class - matches Limepie form-element-wrapper exactly
+  const wrapperClasses = ['form-element-wrapper'];
   if (spec.wrapper_class) {
     wrapperClasses.push(spec.wrapper_class);
   }
@@ -170,26 +170,25 @@ export function FormField({
   const label = spec.label ? t(spec.label) : undefined;
 
   return (
-    <div className={wrapperClasses.join(' ')} style={wrapperStyle}>
-      {/* Label */}
+    <div className={wrapperClasses.join(' ')} style={wrapperStyle} data-name={`${path}-layer`}>
+      {/* Label - use h6 to match Limepie original */}
       {label && spec.type !== 'hidden' && (
-        <Label
-          htmlFor={path}
-          required={Boolean(spec.rules?.required)}
-          className={spec.label_class}
-        >
-          {label}
-        </Label>
+        <h6 className="">{label}</h6>
       )}
-
-      {/* Field component */}
-      <FieldComponent {...fieldProps} />
-
-      {/* Error message */}
-      {error && <ErrorMessage message={error} />}
 
       {/* Description */}
       {spec.description && <Description text={t(spec.description)} />}
+
+      {/* form-element > input-group-wrapper structure like Limepie */}
+      <div className="form-element">
+        <div className="input-group-wrapper" style={{}}>
+          {/* Field component */}
+          <FieldComponent {...fieldProps} />
+        </div>
+      </div>
+
+      {/* Error message */}
+      {error && <ErrorMessage message={error} />}
     </div>
   );
 }

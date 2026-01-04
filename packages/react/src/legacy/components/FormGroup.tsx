@@ -69,11 +69,11 @@ export function FormGroup({
     );
   }
 
-  // Single group - Bootstrap 5 compatible (matches Limepie original output)
+  // Single group - matches Limepie original output exactly
   const wrapperClasses = ['form-element-wrapper', spec.class || 'border p-3 mb-3'];
 
   return (
-    <div className={wrapperClasses.join(' ')}>
+    <div className={wrapperClasses.join(' ')} style={{}} data-name={`${path}-layer`}>
       {/* Group label - use h6 to match Limepie original */}
       {label && (
         <h6 className="">{label}</h6>
@@ -82,18 +82,22 @@ export function FormGroup({
       {/* Group description */}
       {spec.description && <Description text={t(spec.description)} />}
 
-      {/* Group fields - wrapped in form-group like Limepie */}
-      <div className="form-group">
-        {spec.properties &&
-          Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
-            <FormField
-              key={fieldName}
-              name={fieldName}
-              spec={fieldSpec}
-              path={joinPath(path, fieldName)}
-              parentPath={path}
-            />
-          ))}
+      {/* form-element > input-group-wrapper > form-group structure like Limepie */}
+      <div className="form-element">
+        <div className="input-group-wrapper" style={{}}>
+          <div className="form-group">
+            {spec.properties &&
+              Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
+                <FormField
+                  key={fieldName}
+                  name={fieldName}
+                  spec={fieldSpec}
+                  path={joinPath(path, fieldName)}
+                  parentPath={path}
+                />
+              ))}
+          </div>
+        </div>
       </div>
 
       {/* Group error */}
