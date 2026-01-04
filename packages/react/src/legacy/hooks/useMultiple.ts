@@ -91,19 +91,34 @@ export function useMultiple<T = FormValue>({
   }, [items.length, min]);
 
   /**
-   * Add new item
+   * Add new item at specific index (or at end if no index provided)
    */
   const add = useCallback(
-    (value?: T) => {
+    (indexOrValue?: number | T, value?: T) => {
       if (!canAdd) return;
+
+      // Determine index and value based on arguments
+      let insertIndex = items.length;
+      let itemValue = getDefaultValue();
+
+      if (typeof indexOrValue === 'number') {
+        insertIndex = indexOrValue;
+        if (value !== undefined) {
+          itemValue = value;
+        }
+      } else if (indexOrValue !== undefined) {
+        itemValue = indexOrValue;
+      }
 
       const newItem: MultipleItem<T> = {
         key: generateUniqueKey(),
-        value: value ?? getDefaultValue(),
-        order: items.length,
+        value: itemValue,
+        order: insertIndex,
       };
 
-      updateItems([...items, newItem]);
+      const newItems = [...items];
+      newItems.splice(insertIndex, 0, newItem);
+      updateItems(newItems);
     },
     [items, canAdd, getDefaultValue, updateItems]
   );

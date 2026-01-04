@@ -383,8 +383,8 @@ export interface AllOfResult {
 export interface UseMultipleReturn<T = FormValue> {
   /** Array items with unique keys */
   items: MultipleItem<T>[];
-  /** Add new item */
-  add: (value?: T) => void;
+  /** Add new item at specific index (or at end if no index provided) */
+  add: (indexOrValue?: number | T, value?: T) => void;
   /** Remove item by key */
   remove: (key: string) => void;
   /** Move item to new index */
