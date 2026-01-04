@@ -93,6 +93,14 @@ div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.
   padding: 0;
 }
 
+.form-group > .card {
+  margin-bottom: 1rem;
+}
+
+.form-group > .card:last-child {
+  margin-bottom: 0;
+}
+
 /* Group Title - 그룹 제목 */
 .form-element-wrapper > h6,
 .form-element-wrapper > div > h6 {
