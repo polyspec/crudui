@@ -95,8 +95,8 @@ div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.
 }
 
 .form-group.multiple-items:empty {
-  padding: 0;
-  border: 0;
+  padding: 0 !important;
+  border: 0 !important;
 }
 
 .form-group.multiple-items {
