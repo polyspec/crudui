@@ -1,0 +1,608 @@
+# Complex Form Example
+# Demonstrates nested groups, conditional required, display_switch, multiple/sortable arrays
+
+type: group
+name: product
+action:
+  method: post
+  url: /api/products
+buttons:
+  - type: submit
+    name: __submitted__
+    value: go
+    class: btn btn-primary
+    text:
+      ko: 저장
+      en: Save
+      ja: 保存
+  - type: a
+    href: ../
+    class: btn btn-secondary
+    text:
+      ko: 취소
+      en: Cancel
+      ja: キャンセル
+
+properties:
+  # Basic Settings Group
+  basic:
+    type: group
+    label:
+      ko: 기본 설정
+      en: Basic Settings
+      ja: 基本設定
+    class: row gx-2
+    properties:
+      status:
+        type: choice
+        label:
+          ko: 상태
+          en: Status
+          ja: ステータス
+        default: 1
+        items:
+          0:
+            ko: 비활성
+            en: Inactive
+            ja: 非アクティブ
+          1:
+            ko: 활성
+            en: Active
+            ja: アクティブ
+          9:
+            ko: 삭제됨
+            en: Deleted
+            ja: 削除済み
+
+      # Display Period with Conditional Fields
+      display_type:
+        type: choice
+        label:
+          ko: 노출 기간
+          en: Display Period
+          ja: 表示期間
+        default: 1
+        class: col-12 col-md-6
+        items:
+          0:
+            ko: 노출 안함
+            en: Not Displayed
+            ja: 非表示
+          1:
+            ko: 상시 노출
+            en: Always Display
+            ja: 常時表示
+          2:
+            ko: 기간 설정
+            en: Custom Period
+            ja: 期間設定
+
+      # Date range group - shown only when display_type == 2
+      display_period:
+        type: group
+        class: col-12
+        group_class: row g-2 p-0 border-0 bg-transparent
+        display_switch: .display_type == 2
+        properties:
+          start_dt:
+            type: datetime
+            label:
+              ko: 시작일
+              en: Start Date
+              ja: 開始日
+            class: col-12 col-md-6
+            rules:
+              required: ..display_type == 2
+            messages:
+              ko:
+                required: 시작일을 선택해주세요.
+              en:
+                required: Please select a start date.
+              ja:
+                required: 開始日を選択してください。
+
+          end_dt:
+            type: datetime
+            label:
+              ko: 종료일
+              en: End Date
+              ja: 終了日
+            class: col-12 col-md-6
+            rules:
+              required: ..display_type == 2
+            messages:
+              ko:
+                required: 종료일을 선택해주세요.
+              en:
+                required: Please select an end date.
+              ja:
+                required: 終了日を選択してください。
+
+      name:
+        type: text
+        label:
+          ko: 상품명
+          en: Product Name
+          ja: 商品名
+        lang: append
+        rules:
+          required: true
+          minlength: 2
+          maxlength: 100
+        messages:
+          ko:
+            required: 상품명을 입력해주세요.
+            maxlength: 상품명은 {0}자 이내로 입력해주세요.
+          en:
+            required: Please enter a product name.
+            maxlength: Product name must be {0} characters or less.
+          ja:
+            required: 商品名を入力してください。
+            maxlength: 商品名は{0}文字以内で入力してください。
+
+      product_code:
+        type: text
+        label:
+          ko: 상품 코드
+          en: Product Code
+          ja: 商品コード
+        description:
+          ko: 영문자, 숫자, -, _ 만 사용 가능합니다.
+          en: Only letters, numbers, hyphens, and underscores allowed.
+          ja: 英数字、ハイフン、アンダースコアのみ使用可能です。
+        rules:
+          match: '^[a-zA-Z0-9_-]+$'
+          maxlength: 50
+        messages:
+          ko:
+            match: 올바른 형식으로 입력해주세요.
+          en:
+            match: Please enter a valid format.
+          ja:
+            match: 正しい形式で入力してください。
+
+  # Price Settings Group
+  pricing:
+    type: group
+    label:
+      ko: 가격 설정
+      en: Pricing
+      ja: 価格設定
+    class: row gx-2
+    properties:
+      price_type:
+        type: choice
+        label:
+          ko: 가격 유형
+          en: Price Type
+          ja: 価格タイプ
+        default: 0
+        items:
+          0:
+            ko: 무료
+            en: Free
+            ja: 無料
+          1:
+            ko: 유료
+            en: Paid
+            ja: 有料
+          2:
+            ko: 상담 필요
+            en: Contact for Price
+            ja: 要相談
+
+      # Price fields - shown only when price_type == 1
+      price_info:
+        type: group
+        class: col-12
+        group_class: row g-2 p-0 border-0 bg-transparent
+        display_switch: .price_type == 1
+        properties:
+          original_price:
+            type: number
+            label:
+              ko: 정가
+              en: Original Price
+              ja: 定価
+            append:
+              ko: 원
+              en: USD
+              ja: 円
+            class: col-12 col-md-4
+            default: 0
+            rules:
+              min: 0
+              max: 100000000
+            messages:
+              ko:
+                min: 0 이상의 금액을 입력해주세요.
+                max: 1억원 이하로 입력해주세요.
+              en:
+                min: Please enter an amount of 0 or more.
+                max: Please enter an amount of $100,000,000 or less.
+              ja:
+                min: 0以上の金額を入力してください。
+                max: 1億円以下で入力してください。
+
+          sale_price:
+            type: number
+            label:
+              ko: 판매가
+              en: Sale Price
+              ja: 販売価格
+            append:
+              ko: 원
+              en: USD
+              ja: 円
+            class: col-12 col-md-4
+            default: 0
+            rules:
+              required: ..price_type == 1
+              min: 0
+            messages:
+              ko:
+                required: 판매가를 입력해주세요.
+                min: 0 이상의 금액을 입력해주세요.
+              en:
+                required: Please enter a sale price.
+                min: Please enter an amount of 0 or more.
+              ja:
+                required: 販売価格を入力してください。
+                min: 0以上の金額を入力してください。
+
+          currency:
+            type: select
+            label:
+              ko: 통화
+              en: Currency
+              ja: 通貨
+            class: col-12 col-md-4
+            default: KRW
+            items:
+              KRW:
+                ko: 원 (KRW)
+                en: Korean Won (KRW)
+                ja: 韓国ウォン (KRW)
+              USD:
+                ko: 달러 (USD)
+                en: US Dollar (USD)
+                ja: 米ドル (USD)
+              JPY:
+                ko: 엔 (JPY)
+                en: Japanese Yen (JPY)
+                ja: 日本円 (JPY)
+
+  # Categories - Multiple Select with Sortable
+  categories[]:
+    type: select
+    label:
+      ko: 카테고리
+      en: Categories
+      ja: カテゴリー
+    description:
+      ko: 하나 이상의 카테고리를 선택하세요. 순서 변경이 가능합니다.
+      en: Select one or more categories. You can reorder them.
+      ja: 1つ以上のカテゴリを選択してください。順序を変更できます。
+    multiple: true
+    sortable: true
+    sortable_button: true
+    items:
+      "":
+        ko: 선택하세요
+        en: Please select
+        ja: 選択してください
+      electronics:
+        ko: 전자기기
+        en: Electronics
+        ja: 電子機器
+      clothing:
+        ko: 의류
+        en: Clothing
+        ja: 衣類
+      food:
+        ko: 식품
+        en: Food
+        ja: 食品
+      home:
+        ko: 가정용품
+        en: Home & Living
+        ja: 家庭用品
+    rules:
+      required: true
+      unique: true
+    messages:
+      ko:
+        required: 최소 1개의 카테고리를 선택해주세요.
+        unique: 중복된 카테고리는 선택할 수 없습니다.
+      en:
+        required: Please select at least one category.
+        unique: Duplicate categories are not allowed.
+      ja:
+        required: 1つ以上のカテゴリを選択してください。
+        unique: 重複したカテゴリは選択できません。
+
+  # Tags - Multiple Text Fields
+  tags[]:
+    type: text
+    label:
+      ko: 태그
+      en: Tags
+      ja: タグ
+    multiple: true
+    sortable: true
+    rules:
+      unique: true
+      maxlength: 30
+    messages:
+      ko:
+        unique: 중복된 태그는 입력할 수 없습니다.
+        maxlength: 태그는 {0}자 이내로 입력해주세요.
+      en:
+        unique: Duplicate tags are not allowed.
+        maxlength: Tags must be {0} characters or less.
+      ja:
+        unique: 重複したタグは入力できません。
+        maxlength: タグは{0}文字以内で入力してください。
+
+  # Product Images - Multiple with Sortable
+  images[]:
+    type: image
+    label:
+      ko: 상품 이미지
+      en: Product Images
+      ja: 商品画像
+    description:
+      ko: 최대 10개까지 업로드 가능합니다.
+      en: You can upload up to 10 images.
+      ja: 最大10枚までアップロード可能です。
+    multiple: true
+    sortable: true
+    preview-max-width: 200
+    rules:
+      required: true
+      accept: image/*
+      maxcount: 10
+    messages:
+      ko:
+        required: 최소 1개의 이미지를 업로드해주세요.
+        maxcount: 이미지는 최대 {0}개까지 업로드 가능합니다.
+      en:
+        required: Please upload at least one image.
+        maxcount: You can upload a maximum of {0} images.
+      ja:
+        required: 1枚以上の画像をアップロードしてください。
+        maxcount: 画像は最大{0}枚までアップロード可能です。
+
+  # Options Group with Nested Array
+  has_options:
+    type: choice
+    label:
+      ko: 옵션 사용
+      en: Use Options
+      ja: オプション使用
+    default: 0
+    items:
+      0:
+        ko: 사용안함
+        en: No Options
+        ja: オプションなし
+      1:
+        ko: 사용함
+        en: Use Options
+        ja: オプション使用
+
+  # Options Array - Nested Groups with Multiple
+  options:
+    type: group
+    label:
+      ko: 옵션 설정
+      en: Options Configuration
+      ja: オプション設定
+    display_switch: .has_options == 1
+    properties:
+      groups[]:
+        type: group
+        label:
+          ko: 옵션 그룹
+          en: Option Groups
+          ja: オプショングループ
+        description:
+          ko: 옵션 그룹을 추가하고 각 그룹에 옵션값을 설정하세요.
+          en: Add option groups and set option values for each group.
+          ja: オプショングループを追加し、各グループにオプション値を設定してください。
+        multiple: true
+        sortable: true
+        group_class: row g-2
+        properties:
+          name:
+            type: text
+            label:
+              ko: 옵션명
+              en: Option Name
+              ja: オプション名
+            class: col-12 col-md-4
+            placeholder:
+              ko: "예: 사이즈, 컬러"
+              en: "e.g., Size, Color"
+              ja: "例: サイズ、カラー"
+            rules:
+              required: basic.has_options == 1
+            messages:
+              ko:
+                required: 옵션명을 입력해주세요.
+              en:
+                required: Please enter an option name.
+              ja:
+                required: オプション名を入力してください。
+
+          values[]:
+            type: text
+            label:
+              ko: 옵션값
+              en: Option Values
+              ja: オプション値
+            class: col-12 col-md-8
+            multiple: true
+            sortable: true
+            placeholder:
+              ko: "예: S, M, L, XL"
+              en: "e.g., S, M, L, XL"
+              ja: "例: S、M、L、XL"
+            rules:
+              required: basic.has_options == 1
+              unique: true
+            messages:
+              ko:
+                required: 옵션값을 입력해주세요.
+                unique: 중복된 옵션값은 입력할 수 없습니다.
+              en:
+                required: Please enter option values.
+                unique: Duplicate option values are not allowed.
+              ja:
+                required: オプション値を入力してください。
+                unique: 重複したオプション値は入力できません。
+
+  # Inventory Settings with Conditional Display
+  inventory:
+    type: group
+    label:
+      ko: 재고 관리
+      en: Inventory Management
+      ja: 在庫管理
+    class: row gx-2
+    properties:
+      track_inventory:
+        type: choice
+        label:
+          ko: 재고 추적
+          en: Track Inventory
+          ja: 在庫追跡
+        default: 0
+        items:
+          0:
+            ko: 사용안함
+            en: Disabled
+            ja: 無効
+          1:
+            ko: 사용함
+            en: Enabled
+            ja: 有効
+
+      stock_info:
+        type: group
+        class: col-12
+        group_class: row g-2 p-0 border-0 bg-transparent
+        display_switch: .track_inventory == 1
+        properties:
+          quantity:
+            type: number
+            label:
+              ko: 재고 수량
+              en: Stock Quantity
+              ja: 在庫数量
+            class: col-12 col-md-6
+            default: 0
+            rules:
+              required: ..track_inventory == 1
+              min: 0
+            messages:
+              ko:
+                required: 재고 수량을 입력해주세요.
+                min: 0 이상의 수량을 입력해주세요.
+              en:
+                required: Please enter stock quantity.
+                min: Please enter a quantity of 0 or more.
+              ja:
+                required: 在庫数量を入力してください。
+                min: 0以上の数量を入力してください。
+
+          low_stock_threshold:
+            type: number
+            label:
+              ko: 재고 경고 수준
+              en: Low Stock Threshold
+              ja: 在庫警告閾値
+            description:
+              ko: 이 수량 이하가 되면 알림을 받습니다.
+              en: You will be notified when stock falls below this level.
+              ja: この数量以下になると通知を受け取ります。
+            class: col-12 col-md-6
+            default: 10
+            rules:
+              min: 0
+
+  # Description with WYSIWYG
+  content:
+    type: tinymce
+    label:
+      ko: 상품 설명
+      en: Product Description
+      ja: 商品説明
+    fileserver: ../upload
+    rows: 10
+    lang: append
+    rules:
+      required: true
+    messages:
+      ko:
+        required: 상품 설명을 입력해주세요.
+      en:
+        required: Please enter a product description.
+      ja:
+        required: 商品説明を入力してください。
+
+  # SEO Settings - Nested Group
+  seo:
+    type: group
+    label:
+      ko: SEO 설정
+      en: SEO Settings
+      ja: SEO設定
+    description:
+      ko: 검색 엔진 최적화를 위한 설정입니다.
+      en: Settings for search engine optimization.
+      ja: 検索エンジン最適化のための設定です。
+    properties:
+      meta_title:
+        type: text
+        label:
+          ko: 메타 타이틀
+          en: Meta Title
+          ja: メタタイトル
+        rules:
+          maxlength: 60
+        messages:
+          ko:
+            maxlength: 메타 타이틀은 {0}자 이내로 입력해주세요.
+          en:
+            maxlength: Meta title must be {0} characters or less.
+          ja:
+            maxlength: メタタイトルは{0}文字以内で入力してください。
+
+      meta_description:
+        type: textarea
+        label:
+          ko: 메타 설명
+          en: Meta Description
+          ja: メタ説明
+        rows: 3
+        rules:
+          maxlength: 160
+        messages:
+          ko:
+            maxlength: 메타 설명은 {0}자 이내로 입력해주세요.
+          en:
+            maxlength: Meta description must be {0} characters or less.
+          ja:
+            maxlength: メタ説明は{0}文字以内で入力してください。
+
+      meta_keywords:
+        type: text
+        label:
+          ko: 메타 키워드
+          en: Meta Keywords
+          ja: メタキーワード
+        description:
+          ko: 쉼표로 구분하여 입력하세요.
+          en: Separate keywords with commas.
+          ja: カンマで区切って入力してください。

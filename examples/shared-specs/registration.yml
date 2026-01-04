@@ -1,0 +1,139 @@
+type: group
+properties:
+  username:
+    type: text
+    rules:
+      required: true
+      minlength: 3
+      maxlength: 20
+      match: "^[a-zA-Z0-9_]+$"
+    design:
+      label: { ko: "사용자명", en: "Username" }
+      placeholder: { ko: "사용자명을 입력하세요", en: "Enter username" }
+
+  email:
+    type: email
+    rules:
+      required: true
+      email: true
+    design:
+      label: { ko: "이메일", en: "Email" }
+      placeholder: { ko: "이메일을 입력하세요", en: "Enter email" }
+
+  password:
+    type: password
+    rules:
+      required: true
+      minlength: 8
+      maxlength: 100
+    design:
+      label: { ko: "비밀번호", en: "Password" }
+      placeholder: { ko: "비밀번호를 입력하세요", en: "Enter password" }
+
+  password_confirm:
+    type: password
+    rules:
+      required: true
+      equalTo: ".password"
+    design:
+      label: { ko: "비밀번호 확인", en: "Confirm Password" }
+      placeholder: { ko: "비밀번호를 다시 입력하세요", en: "Confirm password" }
+
+  profile:
+    type: group
+    properties:
+      first_name:
+        type: text
+        rules:
+          required: true
+          minlength: 1
+          maxlength: 50
+        design:
+          label: { ko: "이름", en: "First Name" }
+
+      last_name:
+        type: text
+        rules:
+          required: true
+          minlength: 1
+          maxlength: 50
+        design:
+          label: { ko: "성", en: "Last Name" }
+
+      date_of_birth:
+        type: date
+        design:
+          label: { ko: "생년월일", en: "Date of Birth" }
+
+      country:
+        type: select
+        items:
+          KR: { ko: "대한민국", en: "South Korea" }
+          US: { ko: "미국", en: "United States" }
+          JP: { ko: "일본", en: "Japan" }
+          CN: { ko: "중국", en: "China" }
+        design:
+          label: { ko: "국가", en: "Country" }
+
+  account_type:
+    type: choice
+    rules:
+      required: true
+    items:
+      personal: { ko: "개인", en: "Personal" }
+      business: { ko: "기업", en: "Business" }
+    display_switch:
+      personal: []
+      business: [company_name, business_number]
+    design:
+      label: { ko: "계정 유형", en: "Account Type" }
+
+  company_name:
+    type: text
+    rules:
+      required: ".account_type == 'business'"
+      minlength: 2
+      maxlength: 100
+    design:
+      label: { ko: "회사명", en: "Company Name" }
+
+  business_number:
+    type: text
+    rules:
+      required: ".account_type == 'business'"
+      match: "^[0-9-]+$"
+    design:
+      label: { ko: "사업자번호", en: "Business Number" }
+
+  preferences:
+    type: group
+    properties:
+      language:
+        type: select
+        items:
+          ko: { ko: "한국어", en: "Korean" }
+          en: { ko: "영어", en: "English" }
+          ja: { ko: "일본어", en: "Japanese" }
+        design:
+          label: { ko: "언어", en: "Language" }
+
+      notifications:
+        type: multichoice
+        items:
+          email: { ko: "이메일", en: "Email" }
+          sms: { ko: "SMS", en: "SMS" }
+          push: { ko: "푸시 알림", en: "Push Notifications" }
+        design:
+          label: { ko: "알림 수신", en: "Notifications" }
+
+      marketing:
+        type: checkbox
+        design:
+          label: { ko: "마케팅 수신 동의", en: "Marketing Consent" }
+
+  terms:
+    type: checkbox
+    rules:
+      required: true
+    design:
+      label: { ko: "이용약관 동의", en: "Agree to Terms" }

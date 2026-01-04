@@ -1,0 +1,31 @@
+# Redirect all requests to validate.php if file doesn't exist
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Handle CORS preflight requests
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+
+    # Redirect to validate.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ validate.php [L,QSA]
+</IfModule>
+
+# Set JSON content type for API responses
+<FilesMatch "\.php$">
+    Header set Content-Type "application/json; charset=utf-8"
+</FilesMatch>
+
+# Security: Deny access to sensitive files
+<FilesMatch "\.(yml|yaml|json|md)$">
+    Require all denied
+</FilesMatch>
+
+# Deny access to src directory
+<IfModule mod_rewrite.c>
+    RewriteRule ^src/ - [F,L]
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^vendor/ - [F,L]
+</IfModule>
