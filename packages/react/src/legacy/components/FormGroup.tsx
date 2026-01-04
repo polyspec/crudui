@@ -248,7 +248,7 @@ function MultipleFormGroup({
       <div className="form-element">
         <div className="input-group-wrapper" style={{}}>
           <div className="form-group">{items.map((item, index) => (
-            <div key={item.key} className="card mb-2">
+            <div key={item.key} className="card">
               {/* Item header with controls */}
               <div className="card-header d-flex justify-content-between align-items-center py-2">
                 <span className="badge bg-secondary">{index + 1}</span>
