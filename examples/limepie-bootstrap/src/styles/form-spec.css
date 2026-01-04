@@ -94,7 +94,8 @@ div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.
 }
 
 /* Group Title - 그룹 제목 */
-.form-element-wrapper > h6 {
+.form-element-wrapper > h6,
+.form-element-wrapper > div > h6 {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--fs-color-main);
