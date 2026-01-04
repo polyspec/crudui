@@ -99,6 +99,9 @@ export class Validator {
     // Get messages from field spec
     const messages = fieldSpec.messages;
 
+    // Collect all errors
+    const errors: string[] = [];
+
     // Validate each rule
     for (const [ruleName, ruleParam] of Object.entries(fieldSpec.rules)) {
       const error = this.validateRule(
@@ -111,11 +114,12 @@ export class Validator {
       );
 
       if (error) {
-        return error;
+        errors.push(error);
       }
     }
 
-    return null;
+    // Return all errors joined, or null if valid
+    return errors.length > 0 ? errors.join(' ') : null;
   }
 
   /**
