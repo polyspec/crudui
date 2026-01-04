@@ -43,23 +43,25 @@ export function TextareaField({
   const bracketName = toBracketNotation(path);
 
   return (
-    <textarea
-      id={path}
-      name={bracketName}
-      value={(value as string) ?? ''}
-      onChange={handleChange}
-      onBlur={onBlur}
-      disabled={disabled}
-      readOnly={readonly}
-      className={getInputClasses('', spec, !!error)}
-      placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
-      rows={spec.rows as number | undefined ?? 5}
-      cols={spec.cols as number | undefined}
-      maxLength={spec.maxlength as number | undefined}
-      autoFocus={spec.autofocus === true}
-      style={style}
-      {...getLimepieDataAttributes(spec, path, language)}
-    />
+    <div className="input-group">
+      <textarea
+        id={path}
+        name={bracketName}
+        value={(value as string) ?? ''}
+        onChange={handleChange}
+        onBlur={onBlur}
+        disabled={disabled}
+        readOnly={readonly}
+        className={getInputClasses('', spec, !!error)}
+        placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
+        rows={spec.rows as number | undefined ?? 5}
+        cols={spec.cols as number | undefined}
+        maxLength={spec.maxlength as number | undefined}
+        autoFocus={spec.autofocus === true}
+        style={style}
+        {...getLimepieDataAttributes(spec, path, language)}
+      />
+    </div>
   );
 }
 

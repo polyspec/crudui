@@ -114,36 +114,48 @@ export function SelectField({
   const bracketName = toBracketNotation(path);
 
   return (
-    <select
-      id={path}
-      name={bracketName}
-      value={(value as string) ?? ''}
-      onChange={handleChange}
-      onBlur={onBlur}
-      disabled={disabled || readonly}
-      className={getSelectClasses(spec, !!error)}
-      autoFocus={spec.autofocus === true}
-      {...getLimepieDataAttributes(spec, path, language)}
-    >
-      {/* Ungrouped options */}
-      {groupedOptions.ungrouped.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
+    <div className="input-group">
+      {/* Prepend */}
+      {spec.prepend && (
+        <span className="input-group-text" dangerouslySetInnerHTML={{ __html: spec.prepend }} />
+      )}
 
-      {/* Grouped options */}
-      {hasGroups &&
-        Object.entries(groupedOptions.groups).map(([groupLabel, groupOptions]) => (
-          <optgroup key={groupLabel} label={groupLabel}>
-            {groupOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </optgroup>
+      <select
+        id={path}
+        name={bracketName}
+        value={(value as string) ?? ''}
+        onChange={handleChange}
+        onBlur={onBlur}
+        disabled={disabled || readonly}
+        className={getSelectClasses(spec, !!error)}
+        autoFocus={spec.autofocus === true}
+        {...getLimepieDataAttributes(spec, path, language)}
+      >
+        {/* Ungrouped options */}
+        {groupedOptions.ungrouped.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
-    </select>
+
+        {/* Grouped options */}
+        {hasGroups &&
+          Object.entries(groupedOptions.groups).map(([groupLabel, groupOptions]) => (
+            <optgroup key={groupLabel} label={groupLabel}>
+              {groupOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+      </select>
+
+      {/* Append */}
+      {spec.append && (
+        <span className="input-group-text" dangerouslySetInnerHTML={{ __html: spec.append }} />
+      )}
+    </div>
   );
 }
 

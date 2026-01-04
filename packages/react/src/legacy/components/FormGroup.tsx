@@ -9,7 +9,6 @@ import { useFormContext } from '../context/FormContext';
 import { useI18n } from '../context/I18nContext';
 import { useMultiple, arrayToMultipleItems, multipleItemsToArray } from '../hooks/useMultiple';
 import { FormField } from './FormField';
-import { Label } from './common/Label';
 import { ErrorMessage } from './common/ErrorMessage';
 import { Description } from './common/Description';
 import type { FormValue, FormData, MultipleItem, FieldSpec, MultiLangText } from '../types';
@@ -70,19 +69,14 @@ export function FormGroup({
     );
   }
 
-  // Single group - Bootstrap 5 compatible
-  const wrapperClasses = ['mb-3'];
-  if (spec.class) {
-    wrapperClasses.push(spec.class);
-  }
+  // Single group - Bootstrap 5 compatible (matches Limepie original output)
+  const wrapperClasses = ['form-element-wrapper', spec.class || 'border p-3 mb-3'];
 
   return (
     <div className={wrapperClasses.join(' ')}>
-      {/* Group label */}
+      {/* Group label - use h6 to match Limepie original */}
       {label && (
-        <Label required={Boolean(spec.rules?.required)}>
-          {label}
-        </Label>
+        <h6 className="">{label}</h6>
       )}
 
       {/* Group description */}
@@ -219,11 +213,8 @@ function MultipleFormGroup({
   const isDisabled = globalDisabled || spec.disabled === true;
   const isReadonly = globalReadonly || spec.readonly === true;
 
-  // Wrapper classes - Bootstrap 5 compatible
-  const wrapperClasses = ['mb-3'];
-  if (spec.class) {
-    wrapperClasses.push(spec.class);
-  }
+  // Wrapper classes - Bootstrap 5 compatible (matches Limepie original output)
+  const wrapperClasses = ['form-element-wrapper', spec.class || 'border p-3 mb-3'];
 
   // Button labels
   const addButtonLabel = spec.add_button_label ? t(spec.add_button_label) : t('add');
@@ -231,11 +222,9 @@ function MultipleFormGroup({
 
   return (
     <div className={wrapperClasses.join(' ')}>
-      {/* Group label */}
+      {/* Group label - use h6 to match Limepie original */}
       {label && (
-        <Label required={Boolean(spec.rules?.required)}>
-          {label}
-        </Label>
+        <h6 className="">{label}</h6>
       )}
 
       {/* Group description */}

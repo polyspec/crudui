@@ -119,6 +119,8 @@ services:
       dockerfile: examples/limepie-bootstrap/Dockerfile
     ports:
       - "8016:80"
+    volumes:
+      - ./shared-specs:/usr/share/nginx/html/specs:ro
     networks:
       - form-generator-network
     labels:
@@ -143,7 +145,7 @@ services:
       # Mount REAL Limepie library with all dependencies
       - /Users/max/Work/bluetools-deploy/source/app/bluetools-app-main/vendor:/var/www/vendor:ro
       - ./limepie-original/public/index.php:/var/www/html/index.php:ro
-      - ./limepie-original/specs:/var/www/specs:ro
+      - ./shared-specs:/var/www/specs:ro
       - ./limepie-original/assets/js:/var/www/html/assets/js:ro
     networks:
       - form-generator-network

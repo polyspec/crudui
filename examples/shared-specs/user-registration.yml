@@ -1,0 +1,99 @@
+# Original Limepie Form Spec - User Registration
+type: group
+key: common
+label: User Registration Form
+description: This form demonstrates the original Limepie Form Generator output
+properties:
+  email:
+    type: email
+    label: Email
+    placeholder: "Enter your email address"
+    rules:
+      required: true
+      email: true
+    messages:
+      required: "Email is required"
+      email: "Please enter a valid email address"
+
+  username:
+    type: text
+    label: Username
+    placeholder: "Choose a username"
+    rules:
+      required: true
+      minlength: 3
+      maxlength: 20
+    messages:
+      required: "Username is required"
+      minlength: "Username must be at least 3 characters"
+      maxlength: "Username cannot exceed 20 characters"
+
+  password:
+    type: password
+    label: Password
+    placeholder: "Enter password"
+    rules:
+      required: true
+      minlength: 8
+    messages:
+      required: "Password is required"
+      minlength: "Password must be at least 8 characters"
+
+  password_confirm:
+    type: password
+    label: Confirm Password
+    placeholder: "Confirm your password"
+    rules:
+      required: true
+      equalTo: common.password
+    messages:
+      required: "Please confirm your password"
+      equalTo: "Passwords must match"
+
+  phone:
+    type: text
+    label: Phone Number
+    placeholder: "010-1234-5678"
+    prepend: "+82"
+    rules:
+      pattern: "^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$"
+    messages:
+      pattern: "Please enter a valid phone number (e.g., 010-1234-5678)"
+
+  birth_date:
+    type: date
+    label: Birth Date
+    rules:
+      required: true
+    messages:
+      required: "Birth date is required"
+
+  gender:
+    type: select
+    label: Gender
+    default: ""
+    items:
+      "": "Select Gender"
+      male: "Male"
+      female: "Female"
+      other: "Other"
+    rules:
+      required: true
+    messages:
+      required: "Please select your gender"
+
+  newsletter:
+    type: checkbox
+    label: Subscribe to Newsletter
+    default: false
+
+  terms:
+    type: checkbox
+    label: I agree to the Terms of Service
+    rules:
+      required: true
+    messages:
+      required: "You must agree to the Terms of Service"
+
+submit_button_text: Register
+remove_list_button: true

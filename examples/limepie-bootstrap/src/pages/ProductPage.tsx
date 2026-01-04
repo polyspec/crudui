@@ -1,23 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormBuilder } from '@limepie/form-react/legacy';
-import productSpec from '../specs/product.yaml?raw';
 
 interface ProductPageProps {
   language: 'ko' | 'en';
 }
 
 export function ProductPage({ language }: ProductPageProps) {
+  const [spec, setSpec] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    product_name: '',
-    category: '',
-    price: '',
-    stock: '',
-    description: '',
-    options: [''],
-    is_active: true,
+    basic: {
+      name: '',
+      sku: '',
+      category: '',
+      description: '',
+    },
+    pricing: {
+      price: '',
+      sale_price: '',
+      tax_rate: 10,
+    },
+    inventory: {
+      quantity: 0,
+      low_stock_alert: 10,
+      track_inventory: true,
+    },
+    status: 'draft',
+    featured: false,
   });
   const [submittedData, setSubmittedData] = useState<Record<string, unknown> | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch('/specs/product-form.yml')
+      .then(res => res.text())
+      .then(setSpec)
+      .catch(err => console.error('Failed to load spec:', err));
+  }, []);
 
   const handleSubmit = (data: Record<string, unknown>, errors: Record<string, string>) => {
     setValidationErrors(errors);
@@ -38,6 +56,19 @@ export function ProductPage({ language }: ProductPageProps) {
     }));
   };
 
+  if (!spec) {
+    return (
+      <div className="row">
+        <div className="col-12 text-center py-5">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2">{language === 'ko' ? '스펙 로딩 중...' : 'Loading spec...'}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="row">
       <div className="col-lg-8">
@@ -55,7 +86,7 @@ export function ProductPage({ language }: ProductPageProps) {
         <div className="card">
           <div className="card-body">
             <FormBuilder
-              spec={productSpec}
+              spec={spec}
               data={formData}
               language={language}
               onSubmit={handleSubmit}
