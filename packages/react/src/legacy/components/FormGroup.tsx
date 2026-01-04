@@ -235,9 +235,17 @@ function MultipleFormGroup({
 
   return (
     <div className={wrapperClasses.join(' ')}>
-      {/* Group label - use h6 to match Limepie original */}
-      {label && (
-        <h6 className="">{label}</h6>
+      {/* Group header with label and add button */}
+      {(label || (items.length === 0 && canAdd && !isDisabled && !isReadonly)) && (
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          {label && <h6 className="mb-0">{label}</h6>}
+          {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
+              <Plus size={16} className="me-1" />
+              {addButtonLabel}
+            </button>
+          )}
+        </div>
       )}
 
       {/* Group description */}
@@ -320,14 +328,6 @@ function MultipleFormGroup({
           </div>
         ))}
       </div>
-
-      {/* Add button - show at bottom when no items */}
-      {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
-        <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
-          <Plus size={16} className="me-1" />
-          {addButtonLabel}
-        </button>
-      )}
 
       {/* Group error */}
       {error && <ErrorMessage message={error} />}
