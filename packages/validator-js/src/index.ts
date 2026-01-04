@@ -1,0 +1,57 @@
+/** CRUDUI validation and shared rule APIs. */
+export * from './types';
+// Parser exports
+export {
+  Lexer,
+  Parser,
+  ParseError,
+  parseCondition,
+  clearConditionCache,
+  isConditionExpression,
+} from './parser/ConditionParser';
+
+// Path resolver exports
+export {
+  resolvePathSegments,
+  getValueByPath,
+  setValueByPath,
+  extractCurrentIndex,
+  resolveWildcardPath,
+  hasWildcard,
+  replaceWildcardWithIndex,
+  evaluateCondition,
+  parsePathString,
+  pathToString,
+  getParentPath,
+  getFieldName,
+  isChildPath,
+  getRelativePath,
+} from './parser/PathResolver';
+
+// Rule registry exports
+export {
+  getRule,
+  registerRule,
+  unregisterRule,
+  hasRule,
+  getRuleNames,
+  clearCustomRules,
+  // Individual rules
+  requiredRule,
+  emailRule,
+  minlengthRule,
+  maxlengthRule,
+  minRule,
+  maxRule,
+  matchRule,
+  uniqueRule,
+  // Utility functions
+  isEmpty,
+  isValidEmail,
+  getLength,
+  toNumber,
+  getPattern,
+  areAllUnique,
+} from './rules/index';
+
+// Default export
