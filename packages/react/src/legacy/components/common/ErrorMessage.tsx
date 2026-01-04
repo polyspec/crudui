@@ -27,7 +27,7 @@ export function ErrorMessage({
     return null;
   }
 
-  const errorClasses = ['form-error'];
+  const errorClasses = ['invalid-feedback', 'd-block'];
   if (className) {
     errorClasses.push(className);
   }

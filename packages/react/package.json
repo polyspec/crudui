@@ -38,7 +38,7 @@
     "react-dom": ">=17.0.0"
   },
   "dependencies": {
-    "@legacy/form-validator": "^0.0.1",
+    "@legacy/form-validator": "file:../validator-js",
     "yaml": "^2.3.0"
   },
   "devDependencies": {
