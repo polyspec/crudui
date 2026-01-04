@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@limepie/form-validator": "file:../validator-js",
+    "lucide-react": "^0.562.0",
     "yaml": "^2.3.0"
   },
   "devDependencies": {
