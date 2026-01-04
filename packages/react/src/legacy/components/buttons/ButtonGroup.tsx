@@ -58,7 +58,8 @@ export function ButtonGroup({
   const hasActionButtons = Object.keys(actionButtons).length > 0;
   const hasButtons = hasTopLevelButtons || hasActionButtons;
 
-  const groupClasses = ['form-buttons'];
+  // Bootstrap 5 button group classes
+  const groupClasses = ['d-flex', 'gap-2', 'mt-3', 'pt-3', 'border-top'];
   if (className) {
     groupClasses.push(className);
   }
@@ -135,10 +136,9 @@ function FormButton({
   const label = labelText ? t(labelText) : name;
   const buttonType = spec.type ?? (name === 'submit' ? 'submit' : 'button');
 
-  const buttonClasses = ['form-button', `form-button--${name}`];
-  if (spec.class) {
-    buttonClasses.push(spec.class);
-  }
+  // Bootstrap 5 button classes
+  const buttonClasses = ['btn', spec.class || 'btn-secondary'];
+  // Note: spec.class should contain Bootstrap classes like 'btn-primary', 'btn-secondary', etc.
 
   // Handle submit button
   if (buttonType === 'submit' || name === 'submit') {

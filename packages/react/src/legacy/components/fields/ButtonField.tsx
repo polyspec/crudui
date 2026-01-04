@@ -41,20 +41,34 @@ export function ButtonField({
     onChange({ clicked: true, timestamp: Date.now() });
   }, [name, path, spec.action, spec.data, onChange]);
 
-  // Button variant
-  const variant = (spec.variant as string) ?? 'default';
+  // Button variant - map to Bootstrap classes
+  const variantMap: Record<string, string> = {
+    default: 'btn-secondary',
+    primary: 'btn-primary',
+    secondary: 'btn-secondary',
+    success: 'btn-success',
+    danger: 'btn-danger',
+    warning: 'btn-warning',
+    info: 'btn-info',
+    outline: 'btn-outline-primary',
+  };
+  const sizeMap: Record<string, string> = {
+    sm: 'btn-sm',
+    md: '',
+    lg: 'btn-lg',
+  };
+  const variant = (spec.variant as string) ?? 'secondary';
   const size = (spec.size as string) ?? 'md';
 
-  const buttonClasses = [
-    'form-button',
-    `form-button--${variant}`,
-    `form-button--${size}`,
-  ];
+  const buttonClasses = ['btn', variantMap[variant] || 'btn-secondary'];
+  if (sizeMap[size]) {
+    buttonClasses.push(sizeMap[size]);
+  }
   if (spec.input_class) {
     buttonClasses.push(spec.input_class);
   }
   if (error) {
-    buttonClasses.push('form-button--error');
+    buttonClasses.push('btn-outline-danger');
   }
 
   // Button label
@@ -64,11 +78,11 @@ export function ButtonField({
   const icon = spec.icon as string | undefined;
 
   return (
-    <div className="form-button-wrapper">
+    <div className="input-group">
       {/* Prepend */}
       {spec.prepend && (
         <span
-          className="form-input__prepend"
+          className="input-group-text"
           dangerouslySetInnerHTML={{ __html: spec.prepend }}
         />
       )}
@@ -85,18 +99,18 @@ export function ButtonField({
         {/* Icon before label */}
         {icon && spec.icon_position !== 'after' && (
           <span
-            className="form-button__icon form-button__icon--before"
+            className="me-1"
             dangerouslySetInnerHTML={{ __html: icon }}
           />
         )}
 
         {/* Label */}
-        <span className="form-button__label">{t(buttonLabel)}</span>
+        {t(buttonLabel)}
 
         {/* Icon after label */}
         {icon && spec.icon_position === 'after' && (
           <span
-            className="form-button__icon form-button__icon--after"
+            className="ms-1"
             dangerouslySetInnerHTML={{ __html: icon }}
           />
         )}
@@ -105,7 +119,7 @@ export function ButtonField({
       {/* Append */}
       {spec.append && (
         <span
-          className="form-input__append"
+          className="input-group-text"
           dangerouslySetInnerHTML={{ __html: spec.append }}
         />
       )}
