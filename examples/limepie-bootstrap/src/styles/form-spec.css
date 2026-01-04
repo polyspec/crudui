@@ -22,7 +22,6 @@
 
 /* Form Element Wrapper - 필드 래퍼 */
 .form-element-wrapper {
-  padding-top: 0.75rem;
   border-bottom: 1px solid gray;
   padding-bottom: 1rem;
 }
