@@ -1,0 +1,21 @@
+{
+  "name": "@form-spec/generator-svelte",
+  "version": "0.0.1",
+  "description": "Svelte form generator for @form-spec (Coming Soon)",
+  "scripts": {
+    "build": "echo 'Not implemented yet'"
+  },
+  "peerDependencies": {
+    "svelte": ">=4.0.0"
+  },
+  "dependencies": {
+    "@form-spec/validator": "file:../validator-js"
+  },
+  "license": "MIT",
+  "exports": {
+    "./legacy": {
+      "types": "./dist/legacy/index.d.ts",
+      "import": "./dist/legacy/index.js"
+    }
+  }
+}
