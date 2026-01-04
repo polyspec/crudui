@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FormBuilder } from '@limepie/form-react/legacy';
+import { FormBuilder } from '@form-spec/generator-react/legacy';
 
 interface ProductPageProps {
   language: 'ko' | 'en';

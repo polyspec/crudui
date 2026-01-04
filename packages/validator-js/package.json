@@ -1,5 +1,5 @@
 {
-  "name": "@limepie/form-validator",
+  "name": "@form-spec/validator",
   "version": "0.0.1",
   "description": "Form validation library based on form-spec YAML definitions",
   "main": "dist/index.js",

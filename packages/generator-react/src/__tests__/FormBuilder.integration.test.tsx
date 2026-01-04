@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormBuilder } from '../legacy/components/FormBuilder';
-import type { Spec } from '@limepie/form-validator/legacy';
+import type { Spec } from '@form-spec/validator/legacy';
 import type { FormData, FormErrors } from '../legacy/types';
 
 // ============================================================================

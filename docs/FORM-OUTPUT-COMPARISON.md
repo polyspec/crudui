@@ -459,5 +459,5 @@ function toBracketNotation(dotPath: string): string {
 - The Limepie PHP version heavily relies on jQuery for dynamic behavior
 - The React version uses state management for the same functionality
 - Validation in Limepie uses jQuery Validation plugin with custom extensions
-- React uses `@limepie/form-validator` for validation
+- React uses `@form-spec/validator` for validation
 - Both share the same YAML spec format, but HTML output differs significantly

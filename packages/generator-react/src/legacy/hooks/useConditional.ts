@@ -6,8 +6,8 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { parseCondition, evaluateCondition } from '@limepie/form-validator/legacy';
-import type { PathContext } from '@limepie/form-validator/legacy';
+import { parseCondition, evaluateCondition } from '@form-spec/validator/legacy';
+import type { PathContext } from '@form-spec/validator/legacy';
 import type {
   FormData,
   FormValue,

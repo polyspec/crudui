@@ -1,12 +1,12 @@
 /**
  * useValidation Hook
  *
- * Hook for form validation using @limepie/form-validator
+ * Hook for form validation using @form-spec/validator
  */
 
 import { useCallback, useRef } from 'react';
-import { Validator, getRule } from '@limepie/form-validator/legacy';
-import type { Spec, ValidationContext } from '@limepie/form-validator/legacy';
+import { Validator, getRule } from '@form-spec/validator/legacy';
+import type { Spec, ValidationContext } from '@form-spec/validator/legacy';
 import type { FormData, FormErrors, FormValue, UseValidationReturn } from '../types';
 import { parsePathString } from '../utils/path';
 

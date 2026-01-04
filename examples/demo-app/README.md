@@ -1,6 +1,6 @@
 # Form Builder Demo Application
 
-A demo React application that renders forms from YAML specifications using `@limepie/form-react`.
+A demo React application that renders forms from YAML specifications using `@form-spec/generator-react`.
 
 ## Features
 
@@ -84,7 +84,7 @@ demo-app/
 ## Usage Example
 
 ```tsx
-import { FormBuilder } from '@limepie/form-react';
+import { FormBuilder } from '@form-spec/generator-react';
 
 const yamlSpec = `
 type: group

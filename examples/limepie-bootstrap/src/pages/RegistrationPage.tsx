@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormBuilder } from '@limepie/form-react/legacy';
+import { FormBuilder } from '@form-spec/generator-react/legacy';
 import registrationSpec from '../specs/registration.yaml?raw';
 
 interface RegistrationPageProps {

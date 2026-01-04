@@ -21,19 +21,19 @@ COPY examples/demo-app/vite.config.ts ./examples/demo-app/
 COPY examples/demo-app/index.html ./examples/demo-app/
 COPY examples/demo-app/src ./examples/demo-app/src/
 
-# Build @limepie/form-validator
+# Build @form-spec/validator
 WORKDIR /app/validator/js
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 
-# Build @limepie/form-react
+# Build @form-spec/generator-react
 WORKDIR /app/react
 # Update package.json to use local path for validator
-RUN sed -i 's|"@limepie/form-validator": "\^1.0.0"|"@limepie/form-validator": "file:../validator/js"|g' package.json
+RUN sed -i 's|"@form-spec/validator": "\^1.0.0"|"@form-spec/validator": "file:../validator/js"|g' package.json
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 
 # Build the demo-app
 WORKDIR /app/examples/demo-app
-# The demo-app already uses file: reference for @limepie/form-react
+# The demo-app already uses file: reference for @form-spec/generator-react
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 
 # Production stage - serve with nginx

@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@limepie/form-react": "file:../../packages/react",
+    "@form-spec/generator-react": "file:../../packages/generator-react",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
     "react": "^18.2.0",

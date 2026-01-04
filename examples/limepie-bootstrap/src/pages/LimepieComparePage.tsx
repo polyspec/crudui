@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FormBuilder } from '@limepie/form-react/legacy';
+import { FormBuilder } from '@form-spec/generator-react/legacy';
 import contactSpec from '../specs/contact.yaml?raw';
 
 interface LimepieComparePageProps {
@@ -78,8 +78,8 @@ export function LimepieComparePage({ language }: LimepieComparePageProps) {
             <div className="card-footer bg-light">
               <small className="text-muted">
                 {language === 'ko'
-                  ? '@limepie/form-react 패키지로 생성'
-                  : 'Generated with @limepie/form-react package'}
+                  ? '@form-spec/generator-react 패키지로 생성'
+                  : 'Generated with @form-spec/generator-react package'}
               </small>
             </div>
           </div>

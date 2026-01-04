@@ -9,10 +9,10 @@ COPY packages/validator-js/package*.json ./packages/validator-js/
 COPY packages/validator-js/tsconfig.json ./packages/validator-js/
 COPY packages/validator-js/src ./packages/validator-js/src/
 
-# Copy the react package
-COPY packages/react/package*.json ./packages/react/
-COPY packages/react/tsconfig.json ./packages/react/
-COPY packages/react/src ./packages/react/src/
+# Copy the generator-react package
+COPY packages/generator-react/package*.json ./packages/generator-react/
+COPY packages/generator-react/tsconfig.json ./packages/generator-react/
+COPY packages/generator-react/src ./packages/generator-react/src/
 
 # Copy the limepie-bootstrap demo
 COPY examples/limepie-bootstrap/package*.json ./examples/limepie-bootstrap/
@@ -22,12 +22,12 @@ COPY examples/limepie-bootstrap/index.html ./examples/limepie-bootstrap/
 COPY examples/limepie-bootstrap/src ./examples/limepie-bootstrap/src/
 COPY examples/limepie-bootstrap/public ./examples/limepie-bootstrap/public/
 
-# Build @limepie/form-validator
+# Build @form-spec/validator
 WORKDIR /app/packages/validator-js
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 
-# Build @limepie/form-react
-WORKDIR /app/packages/react
+# Build @form-spec/generator-react
+WORKDIR /app/packages/generator-react
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 
 # Build the limepie-bootstrap demo
