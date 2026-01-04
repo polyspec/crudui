@@ -235,29 +235,30 @@ function MultipleFormGroup({
         </div>
       )}
 
-      {/* Add button when empty - card style for consistency */}
-      {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
-        <div className="card">
-          <div className="card-header d-flex justify-content-between align-items-center py-2">
-            <span></span>
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
-              <Plus size={16} className="me-1" />
-              {t('add')}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Group description */}
       {spec.description && <Description text={t(spec.description)} />}
 
       {/* form-element > input-group-wrapper > form-group structure (original Limepie) */}
       <div className="form-element">
         <div className="input-group-wrapper" style={{}}>
-          <div className="form-group multiple-items">{items.map((item, index) => (
+          <div className="form-group multiple-items">
+            {/* Add button when empty - same style as item's + button */}
+            {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center py-1">
+                  <span className="badge bg-secondary">0</span>
+                  <div className="btn-group btn-group-sm">
+                    <button type="button" className="btn btn-outline-primary" onClick={handleAdd}>
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {items.map((item, index) => (
             <div key={item.key} className="card">
               {/* Item header with controls */}
-              <div className="card-header d-flex justify-content-between align-items-center py-2">
+              <div className="card-header d-flex justify-content-between align-items-center py-1">
                 <span className="badge bg-secondary">{index + 1}</span>
 
                 <div className="btn-group btn-group-sm">
