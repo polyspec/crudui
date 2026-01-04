@@ -228,78 +228,83 @@ function MultipleFormGroup({
 
   return (
     <div className={wrapperClasses.join(' ')} style={{}} data-name={`${path}-layer`}>
-      {/* Group label */}
-      {label && <h6 className="">{label}</h6>}
+      {/* Group header with label and add button */}
+      {(label || (items.length === 0 && canAdd && !isDisabled && !isReadonly)) && (
+        <div className="d-flex justify-content-between align-items-center">
+          {label && <h6 className="mb-0">{label}</h6>}
+          {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
+              <Plus size={16} className="me-1" />
+              {t('add')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Group description */}
       {spec.description && <Description text={t(spec.description)} />}
 
-      {/* form-element > input-group-wrapper structure like original Limepie */}
-      <div className="form-element">
-        {items.map((item, index) => (
-          <div key={item.key} data-uniqid={`__${item.key}__`} className="input-group-wrapper" style={{}}>
-            {/* form-group with fields */}
-            <div className="form-group">{spec.properties &&
-              Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
-                <FormField
-                  key={fieldName}
-                  name={fieldName}
-                  spec={fieldSpec}
-                  path={joinPath(path, item.key, fieldName)}
-                  parentPath={joinPath(path, item.key)}
-                  index={index}
-                  uniqueKey={item.key}
-                />
-              ))}</div>
-            {/* Buttons - Lucide icons */}
-            <span className="btn-group input-group-btn">
+      {/* Multiple items with card structure */}
+      <div className="form-group">{items.map((item, index) => (
+        <div key={item.key} className="card mb-2">
+          {/* Item header with controls */}
+          <div className="card-header d-flex justify-content-between align-items-center py-2">
+            <span className="badge bg-secondary">{index + 1}</span>
+
+            <div className="btn-group btn-group-sm">
+              {/* Add button - adds new item after this one */}
+              {canAdd && !isDisabled && !isReadonly && (
+                <button
+                  type="button"
+                  className="btn btn-outline-primary"
+                  onClick={() => handleAddAfter(index)}
+                ><Plus size={16} /></button>
+              )}
+
+              {/* Sortable controls */}
               {isSortable && !isDisabled && !isReadonly && (
                 <>
                   <button
                     type="button"
-                    className="btn btn-outline-secondary btn-sm"
+                    className="btn btn-outline-secondary"
                     onClick={() => handleMoveUp(index)}
                     disabled={index === 0}
                   ><ChevronUp size={16} /></button>
                   <button
                     type="button"
-                    className="btn btn-outline-secondary btn-sm"
+                    className="btn btn-outline-secondary"
                     onClick={() => handleMoveDown(index)}
                     disabled={index === items.length - 1}
                   ><ChevronDown size={16} /></button>
                 </>
               )}
-              {canAdd && !isDisabled && !isReadonly && (
-                <button
-                  type="button"
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={() => handleAddAfter(index)}
-                ><Plus size={16} /></button>
-              )}
+
+              {/* Remove button */}
               {canRemove && !isDisabled && !isReadonly && (
                 <button
                   type="button"
-                  className="btn btn-outline-danger btn-sm"
+                  className="btn btn-outline-danger"
                   onClick={() => handleRemove(item.key)}
                 ><Minus size={16} /></button>
               )}
-            </span>
+            </div>
           </div>
-        ))}
-        {/* Empty state - show add button */}
-        {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
-          <div className="input-group-wrapper" style={{}}>
-            <div className="form-group"></div>
-            <span className="btn-group input-group-btn">
-              <button
-                type="button"
-                className="btn btn-outline-primary btn-sm"
-                onClick={handleAdd}
-              ><Plus size={16} /></button>
-            </span>
-          </div>
-        )}
-      </div>
+
+          {/* Item fields */}
+          <div className="card-body">{spec.properties &&
+            Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
+              <FormField
+                key={fieldName}
+                name={fieldName}
+                spec={fieldSpec}
+                path={joinPath(path, item.key, fieldName)}
+                parentPath={joinPath(path, item.key)}
+                index={index}
+                uniqueKey={item.key}
+              />
+            ))}</div>
+        </div>
+      ))}</div>
 
       {/* Group error */}
       {error && <ErrorMessage message={error} />}
