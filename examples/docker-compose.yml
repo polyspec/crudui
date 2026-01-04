@@ -147,6 +147,7 @@ services:
       - ./limepie-original/public/index.php:/var/www/html/index.php:ro
       - ./shared-specs:/var/www/specs:ro
       - ./limepie-original/assets/js:/var/www/html/assets/js:ro
+      - ./limepie-original/assets/css:/var/www/html/assets/css:ro
     networks:
       - form-generator-network
     labels:

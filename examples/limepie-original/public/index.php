@@ -57,8 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REAL Limepie Form Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/form.css" rel="stylesheet">
     <style>
-        .form-element-wrapper { margin-bottom: 1rem; }
         .valid-target.is-invalid { border-color: #dc3545; }
         .valid-target.is-valid { border-color: #198754; }
         .error-message { color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem; }
