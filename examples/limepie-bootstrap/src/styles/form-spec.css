@@ -42,6 +42,10 @@
   border-top: 1px solid var(--fs-color-border-light);
 }
 
+.form-element-wrapper .form-element-wrapper:first-child {
+  border-top: 0;
+}
+
 /* Form Group - 그룹 */
 .form-group {
   margin-bottom: 0;
