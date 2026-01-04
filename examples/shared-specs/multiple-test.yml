@@ -1,0 +1,64 @@
+# Multiple Items Test - 다중 아이템 테스트
+type: group
+key: form
+label: Multiple Items Test
+description: Test form with multiple/repeatable fields
+
+properties:
+  title:
+    type: text
+    label: Form Title
+    placeholder: Enter title
+    rules:
+      required: true
+
+  contacts:
+    type: group
+    label: Contacts
+    multiple: true
+    min: 1
+    max: 5
+    sortable: true
+    add_button_label: Add Contact
+    remove_button_label: Remove
+    properties:
+      name:
+        type: text
+        label: Name
+        placeholder: Contact name
+        rules:
+          required: true
+
+      email:
+        type: email
+        label: Email
+        placeholder: email@example.com
+        rules:
+          required: true
+          email: true
+
+      phone:
+        type: text
+        label: Phone
+        placeholder: 010-1234-5678
+        prepend: "Tel:"
+
+  tags:
+    type: group
+    label: Tags
+    multiple: true
+    min: 0
+    max: 10
+    add_button_label: Add Tag
+    remove_button_label: X
+    properties:
+      tag:
+        type: text
+        label: Tag Name
+        placeholder: Enter tag
+
+  notes:
+    type: textarea
+    label: Notes
+    placeholder: Additional notes
+    rows: 3
