@@ -84,6 +84,10 @@ div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.
   margin-bottom: 0;
 }
 
+.form-group .form-group {
+  padding: 1rem;
+}
+
 /* Group Title - 그룹 제목 */
 .form-element-wrapper > h6 {
   font-size: 0.875rem;
