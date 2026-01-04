@@ -86,18 +86,15 @@ export function FormGroup({
       {/* form-element > input-group-wrapper > form-group structure like Limepie */}
       <div className="form-element">
         <div className="input-group-wrapper" style={{}}>
-          <div className="form-group">
-            {spec.properties &&
-              Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
-                <FormField
-                  key={fieldName}
-                  name={fieldName}
-                  spec={fieldSpec}
-                  path={joinPath(path, fieldName)}
-                  parentPath={path}
-                />
-              ))}
-          </div>
+          <div className="form-group">{spec.properties && Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
+            <FormField
+              key={fieldName}
+              name={fieldName}
+              spec={fieldSpec}
+              path={joinPath(path, fieldName)}
+              parentPath={path}
+            />
+          ))}</div>
         </div>
       </div>
 
@@ -252,8 +249,7 @@ function MultipleFormGroup({
       {spec.description && <Description text={t(spec.description)} />}
 
       {/* Multiple items - wrapped in form-group like Limepie */}
-      <div className="form-group">
-        {items.map((item, index) => (
+      <div className="form-group">{items.map((item, index) => (
           <div key={item.key} className="card mb-2">
             {/* Item header with controls */}
             <div className="card-header d-flex justify-content-between align-items-center py-2">
@@ -326,8 +322,7 @@ function MultipleFormGroup({
                 ))}
             </div>
           </div>
-        ))}
-      </div>
+        ))}</div>
 
       {/* Group error */}
       {error && <ErrorMessage message={error} />}
