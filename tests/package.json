@@ -1,0 +1,38 @@
+{
+  "name": "@legacy/form-validator-tests",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Cross-language validation test runner for form-spec validators",
+  "type": "commonjs",
+  "scripts": {
+    "test": "npm run test:js",
+    "test:js": "node runner/test-js.js",
+    "test:php": "node runner/test-php.js",
+    "test:go": "node runner/test-go.js",
+    "test:all": "npm run test:js && npm run test:php",
+    "compare": "npx ts-node runner/compare.ts",
+    "compare:all": "npx ts-node runner/compare.ts --all",
+    "compare:verbose": "npx ts-node runner/compare.ts --verbose",
+    "idempotency": "node runner/compare-all.js",
+    "idempotency:js-php": "node runner/compare-all.js --no-go",
+    "idempotency:all": "node runner/compare-all.js --verbose"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "form",
+    "validation",
+    "testing",
+    "cross-language"
+  ],
+  "repository": {
+    "type": "git",
+    "directory": "tests"
+  }
+}
