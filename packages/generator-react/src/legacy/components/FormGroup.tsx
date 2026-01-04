@@ -235,12 +235,17 @@ function MultipleFormGroup({
         </div>
       )}
 
-      {/* Add button when empty - below label */}
+      {/* Add button when empty - card style for consistency */}
       {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
-        <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
-          <Plus size={16} className="me-1" />
-          {t('add')}
-        </button>
+        <div className="card">
+          <div className="card-header d-flex justify-content-between align-items-center py-2">
+            <span></span>
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
+              <Plus size={16} className="me-1" />
+              {t('add')}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Group description */}
