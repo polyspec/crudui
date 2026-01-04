@@ -459,5 +459,5 @@ function toBracketNotation(dotPath: string): string {
 - The Legacy PHP version heavily relies on jQuery for dynamic behavior
 - The React version uses state management for the same functionality
 - Validation in Legacy uses jQuery Validation plugin with custom extensions
-- React uses `@legacy/form-validator` for validation
+- React uses `@form-spec/validator` for validation
 - Both share the same YAML spec format, but HTML output differs significantly

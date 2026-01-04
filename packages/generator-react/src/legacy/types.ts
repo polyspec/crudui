@@ -17,7 +17,7 @@ export type {
   MessagesSpec,
   ValidationResult,
   ValidationError,
-} from '@legacy/form-validator/legacy';
+} from '@form-spec/validator/legacy';
 
 // ============================================================================
 // Language Types
@@ -75,7 +75,7 @@ export type FormErrors = Record<string, string>;
  */
 export interface FormBuilderProps {
   /** Form specification (YAML string or parsed object) */
-  spec: string | import('@legacy/form-validator/legacy').Spec;
+  spec: string | import('@form-spec/validator/legacy').Spec;
   /** Initial form data */
   data?: FormData;
   /** Current language */
@@ -116,8 +116,8 @@ export interface ReactFieldSpec {
   multiple?: boolean | 'only';
 
   // Validation
-  rules?: import('@legacy/form-validator/legacy').RulesSpec;
-  messages?: import('@legacy/form-validator/legacy').MessagesSpec;
+  rules?: import('@form-spec/validator/legacy').RulesSpec;
+  messages?: import('@form-spec/validator/legacy').MessagesSpec;
 
   // Conditional display
   display_switch?: string;
@@ -125,7 +125,7 @@ export interface ReactFieldSpec {
   element?: ElementConfig;
 
   // Items for select/radio/checkbox lists
-  items?: Record<string, string> | import('@legacy/form-validator/legacy').ItemsSourceSpec;
+  items?: Record<string, string> | import('@form-spec/validator/legacy').ItemsSourceSpec;
 
   // CSS classes
   input_class?: string;
@@ -211,7 +211,7 @@ export interface FieldComponentProps {
  */
 export interface WrapperRenderProps {
   children: ReactNode;
-  spec: import('@legacy/form-validator/legacy').Spec;
+  spec: import('@form-spec/validator/legacy').Spec;
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -219,7 +219,7 @@ export interface WrapperRenderProps {
  * Buttons render props
  */
 export interface ButtonsRenderProps {
-  spec: import('@legacy/form-validator/legacy').Spec;
+  spec: import('@form-spec/validator/legacy').Spec;
   isSubmitting: boolean;
   isValid: boolean;
 }
@@ -233,7 +233,7 @@ export interface ButtonsRenderProps {
  */
 export interface FormContextValue {
   /** Full form specification */
-  spec: import('@legacy/form-validator/legacy').Spec;
+  spec: import('@form-spec/validator/legacy').Spec;
   /** Current form data */
   data: FormData;
   /** Current errors */

@@ -1,5 +1,5 @@
 {
-  "name": "@legacy/form-validator-tests",
+  "name": "@form-spec/validator-tests",
   "version": "0.0.1",
   "private": true,
   "description": "Cross-language validation test runner for form-spec validators",

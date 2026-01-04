@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { Validator } from '@legacy/form-validator/legacy';
+ * import { Validator } from '@form-spec/validator/legacy';
  *
  * const spec = {
  *   type: 'group',

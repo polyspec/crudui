@@ -5,8 +5,8 @@
  * in a Node.js/Express backend for server-side validation.
  */
 
-import { Validator, createValidator } from '@legacy/form-validator/legacy';
-import type { Spec, ValidationResult, RuleFn } from '@legacy/form-validator/legacy';
+import { Validator, createValidator } from '@form-spec/validator/legacy';
+import type { Spec, ValidationResult, RuleFn } from '@form-spec/validator/legacy';
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import * as path from 'path';
@@ -555,7 +555,7 @@ function expressIntegrationExample() {
 
   const exampleCode = `
 import express from 'express';
-import { Validator } from '@legacy/form-validator/legacy';
+import { Validator } from '@form-spec/validator/legacy';
 import * as yaml from 'yaml';
 import * as fs from 'fs';
 

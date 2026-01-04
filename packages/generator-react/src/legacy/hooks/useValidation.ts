@@ -1,12 +1,12 @@
 /**
  * useValidation Hook
  *
- * Hook for form validation using @legacy/form-validator
+ * Hook for form validation using @form-spec/validator
  */
 
 import { useCallback, useRef } from 'react';
-import { Validator, getRule } from '@legacy/form-validator/legacy';
-import type { Spec, ValidationContext } from '@legacy/form-validator/legacy';
+import { Validator, getRule } from '@form-spec/validator/legacy';
+import type { Spec, ValidationContext } from '@form-spec/validator/legacy';
 import type { FormData, FormErrors, FormValue, UseValidationReturn } from '../types';
 import { parsePathString } from '../utils/path';
 

@@ -6,8 +6,8 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { parseCondition, evaluateCondition } from '@legacy/form-validator/legacy';
-import type { PathContext } from '@legacy/form-validator/legacy';
+import { parseCondition, evaluateCondition } from '@form-spec/validator/legacy';
+import type { PathContext } from '@form-spec/validator/legacy';
 import type {
   FormData,
   FormValue,

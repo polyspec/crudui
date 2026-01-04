@@ -10,7 +10,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { FormContextProvider, useFormContext } from '../legacy/context/FormContext';
 import { I18nContextProvider } from '../legacy/context/I18nContext';
 import { useConditional, checkFieldVisibility } from '../legacy/hooks/useConditional';
-import type { Spec } from '@legacy/form-validator/legacy';
+import type { Spec } from '@form-spec/validator/legacy';
 import type { FormData, AllOfCondition } from '../legacy/types';
 
 // ============================================================================

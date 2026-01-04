@@ -1,13 +1,13 @@
 /**
  * Integration Test: FormBuilder + Validator
  *
- * Verifies that the React FormBuilder correctly integrates with @legacy/form-validator
+ * Verifies that the React FormBuilder correctly integrates with @form-spec/validator
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { Validator, createValidator } from '@legacy/form-validator/legacy';
+import { Validator, createValidator } from '@form-spec/validator/legacy';
 import { useValidation } from '../legacy/hooks/useValidation';
-import type { Spec } from '@legacy/form-validator/legacy';
+import type { Spec } from '@form-spec/validator/legacy';
 
 // Test spec for validation
 const testSpec: Spec = {
