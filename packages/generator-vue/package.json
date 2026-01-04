@@ -1,0 +1,21 @@
+{
+  "name": "@form-spec/generator-vue",
+  "version": "0.0.1",
+  "description": "Vue form generator for @form-spec (Coming Soon)",
+  "scripts": {
+    "build": "echo 'Not implemented yet'"
+  },
+  "peerDependencies": {
+    "vue": ">=3.0.0"
+  },
+  "dependencies": {
+    "@form-spec/validator": "file:../validator-js"
+  },
+  "license": "MIT",
+  "exports": {
+    "./legacy": {
+      "types": "./dist/legacy/index.d.ts",
+      "import": "./dist/legacy/index.js"
+    }
+  }
+}

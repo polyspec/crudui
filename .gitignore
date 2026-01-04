@@ -26,3 +26,4 @@ test-*.html
 # Environment
 .env
 .env.local
+.history
