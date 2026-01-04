@@ -22,17 +22,13 @@
 
 /* Form Element Wrapper - 필드 래퍼 */
 .form-element-wrapper {
-  margin-top: 1rem;
+  padding-top: 0.75rem;
 }
 
 .form-element-wrapper:first-child {
-  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
-.form-element-wrapper:last-child {
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-}
 
 /* Nested groups - 중첩 그룹 */
 .form-element-wrapper.border {
