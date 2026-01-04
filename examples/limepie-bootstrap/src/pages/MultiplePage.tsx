@@ -37,11 +37,9 @@ export function MultiplePage({ language }: MultiplePageProps) {
     }
   };
 
-  const handleChange = (name: string, value: unknown) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (name: string, value: unknown, fullData: Record<string, unknown>) => {
+    // Use the full data from FormBuilder instead of managing state separately
+    setFormData(fullData as typeof formData);
   };
 
   if (!spec) {
