@@ -118,6 +118,15 @@ div.input-group-wrapper > .form-group div.input-group-wrapper > .form-group div.
   margin-bottom: 0.75rem;
 }
 
+/* Multiple 헤더 (라벨 + 버튼) */
+.form-element-wrapper > .d-flex {
+  margin-bottom: 0.75rem;
+}
+
+.form-element-wrapper > .d-flex > h6 {
+  margin-bottom: 0;
+}
+
 /* Form Label - 라벨 */
 .form-label {
   font-size: 0.875rem;
