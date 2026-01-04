@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import type { FormData } from '@legacy/form-react';
+import type { FormData } from '@legacy/form-react/legacy';
 
 interface BackendResult {
   backend: string;

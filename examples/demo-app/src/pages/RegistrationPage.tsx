@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormBuilder } from '@legacy/form-react';
+import { FormBuilder } from '@legacy/form-react/legacy';
 import registrationSpec from '../specs/registration.yaml?raw';
 
 interface RegistrationPageProps {

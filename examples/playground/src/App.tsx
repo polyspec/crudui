@@ -3,7 +3,7 @@ import { YamlEditor } from './components/YamlEditor';
 import { FormPreview } from './components/FormPreview';
 import { OutputPanel } from './components/OutputPanel';
 import { exampleSpecs, defaultSpec } from './specs/examples';
-import type { FormData, FormErrors } from '@legacy/form-react';
+import type { FormData, FormErrors } from '@legacy/form-react/legacy';
 
 type PlaygroundLanguage = 'ko' | 'en';
 

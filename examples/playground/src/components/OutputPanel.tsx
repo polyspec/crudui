@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { FormData, FormErrors } from '@legacy/form-react';
+import type { FormData, FormErrors } from '@legacy/form-react/legacy';
 import { BackendComparison } from './BackendComparison';
 
 interface OutputPanelProps {
