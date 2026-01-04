@@ -5,6 +5,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
+import { Plus, Minus, ChevronUp, ChevronDown } from 'lucide-react';
 import { useFormContext } from '../context/FormContext';
 import { useI18n } from '../context/I18nContext';
 import { useMultiple, arrayToMultipleItems, multipleItemsToArray } from '../hooks/useMultiple';
@@ -259,7 +260,7 @@ function MultipleFormGroup({
                     onClick={() => handleAddAfter(index)}
                     aria-label={addButtonLabel}
                   >
-                    +
+                    <Plus size={16} />
                   </button>
                 )}
 
@@ -273,7 +274,7 @@ function MultipleFormGroup({
                       disabled={index === 0}
                       aria-label={t('moveUp')}
                     >
-                      &#9650;
+                      <ChevronUp size={16} />
                     </button>
                     <button
                       type="button"
@@ -282,7 +283,7 @@ function MultipleFormGroup({
                       disabled={index === items.length - 1}
                       aria-label={t('moveDown')}
                     >
-                      &#9660;
+                      <ChevronDown size={16} />
                     </button>
                   </>
                 )}
@@ -295,7 +296,7 @@ function MultipleFormGroup({
                     onClick={() => handleRemove(item.key)}
                     aria-label={removeButtonLabel}
                   >
-                    -
+                    <Minus size={16} />
                   </button>
                 )}
               </div>
@@ -323,7 +324,8 @@ function MultipleFormGroup({
       {/* Add button - show at bottom when no items */}
       {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
         <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAdd}>
-          + {addButtonLabel}
+          <Plus size={16} className="me-1" />
+          {addButtonLabel}
         </button>
       )}
 
