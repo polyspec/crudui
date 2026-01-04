@@ -25,11 +25,6 @@
   padding-top: 0.75rem;
 }
 
-.form-element-wrapper:first-child {
-  padding-top: 0 !important;
-}
-
-
 /* Nested groups - 중첩 그룹 */
 .form-element-wrapper.border {
   border: 1px solid var(--fs-color-border) !important;
@@ -181,10 +176,3 @@
   flex-wrap: nowrap;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .form-element-wrapper {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-  }
-}
