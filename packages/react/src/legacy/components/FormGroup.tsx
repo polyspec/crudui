@@ -70,20 +70,17 @@ export function FormGroup({
     );
   }
 
-  // Single group
-  const wrapperClasses = ['form-group'];
+  // Single group - Bootstrap 5 compatible
+  const wrapperClasses = ['mb-3'];
   if (spec.class) {
     wrapperClasses.push(spec.class);
-  }
-  if (error) {
-    wrapperClasses.push('form-group--error');
   }
 
   return (
     <div className={wrapperClasses.join(' ')}>
       {/* Group label */}
       {label && (
-        <Label className="form-group__label" required={Boolean(spec.rules?.required)}>
+        <Label required={Boolean(spec.rules?.required)}>
           {label}
         </Label>
       )}
@@ -92,7 +89,7 @@ export function FormGroup({
       {spec.description && <Description text={t(spec.description)} />}
 
       {/* Group fields */}
-      <div className="form-group__fields">
+      <div>
         {spec.properties &&
           Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
             <FormField
@@ -222,13 +219,10 @@ function MultipleFormGroup({
   const isDisabled = globalDisabled || spec.disabled === true;
   const isReadonly = globalReadonly || spec.readonly === true;
 
-  // Wrapper classes
-  const wrapperClasses = ['form-group', 'form-group--multiple'];
+  // Wrapper classes - Bootstrap 5 compatible
+  const wrapperClasses = ['mb-3'];
   if (spec.class) {
     wrapperClasses.push(spec.class);
-  }
-  if (error) {
-    wrapperClasses.push('form-group--error');
   }
 
   // Button labels
@@ -239,7 +233,7 @@ function MultipleFormGroup({
     <div className={wrapperClasses.join(' ')}>
       {/* Group label */}
       {label && (
-        <Label className="form-group__label" required={Boolean(spec.rules?.required)}>
+        <Label required={Boolean(spec.rules?.required)}>
           {label}
         </Label>
       )}
@@ -248,52 +242,54 @@ function MultipleFormGroup({
       {spec.description && <Description text={t(spec.description)} />}
 
       {/* Multiple items */}
-      <div className="form-group__items">
+      <div>
         {items.map((item, index) => (
-          <div key={item.key} className="form-group__item">
+          <div key={item.key} className="card mb-2">
             {/* Item header with controls */}
-            <div className="form-group__item-header">
-              <span className="form-group__item-index">{index + 1}</span>
+            <div className="card-header d-flex justify-content-between align-items-center py-2">
+              <span className="badge bg-secondary">{index + 1}</span>
 
-              {/* Sortable controls */}
-              {isSortable && !isDisabled && !isReadonly && (
-                <div className="form-group__item-sort">
+              <div className="btn-group btn-group-sm">
+                {/* Sortable controls */}
+                {isSortable && !isDisabled && !isReadonly && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => handleMoveUp(index)}
+                      disabled={index === 0}
+                      aria-label={t('moveUp')}
+                    >
+                      &#9650;
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => handleMoveDown(index)}
+                      disabled={index === items.length - 1}
+                      aria-label={t('moveDown')}
+                    >
+                      &#9660;
+                    </button>
+                  </>
+                )}
+
+                {/* Remove button */}
+                {canRemove && !isDisabled && !isReadonly && (
                   <button
                     type="button"
-                    className="form-group__sort-btn form-group__sort-btn--up"
-                    onClick={() => handleMoveUp(index)}
-                    disabled={index === 0}
-                    aria-label={t('moveUp')}
+                    className="btn btn-outline-danger"
+                    onClick={() => handleRemove(item.key)}
+                    aria-label={removeButtonLabel}
                   >
-                    &#9650;
+                    {removeButtonLabel}
                   </button>
-                  <button
-                    type="button"
-                    className="form-group__sort-btn form-group__sort-btn--down"
-                    onClick={() => handleMoveDown(index)}
-                    disabled={index === items.length - 1}
-                    aria-label={t('moveDown')}
-                  >
-                    &#9660;
-                  </button>
-                </div>
-              )}
-
-              {/* Remove button */}
-              {canRemove && !isDisabled && !isReadonly && (
-                <button
-                  type="button"
-                  className="form-group__remove-btn"
-                  onClick={() => handleRemove(item.key)}
-                  aria-label={removeButtonLabel}
-                >
-                  {removeButtonLabel}
-                </button>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Item fields */}
-            <div className="form-group__item-fields">
+            <div className="card-body">
               {spec.properties &&
                 Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
                   <FormField
@@ -313,8 +309,8 @@ function MultipleFormGroup({
 
       {/* Add button */}
       {canAdd && !isDisabled && !isReadonly && (
-        <button type="button" className="form-group__add-btn" onClick={handleAdd}>
-          {addButtonLabel}
+        <button type="button" className="btn btn-outline-primary" onClick={handleAdd}>
+          + {addButtonLabel}
         </button>
       )}
 

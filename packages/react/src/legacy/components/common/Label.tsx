@@ -33,14 +33,11 @@ export function Label({
   if (className) {
     labelClasses.push(className);
   }
-  if (required) {
-    labelClasses.push('form-label--required');
-  }
 
   return (
     <label htmlFor={htmlFor} className={labelClasses.join(' ')}>
       {children}
-      {required && <span className="form-label__required" aria-hidden="true"> *</span>}
+      {required && <span className="text-danger" aria-hidden="true"> *</span>}
     </label>
   );
 }
