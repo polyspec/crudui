@@ -1,0 +1,160 @@
+type: group
+name: registration
+title: User Registration
+description: Create a new account
+
+properties:
+  username:
+    type: text
+    label: Username
+    placeholder: Choose a username
+    description: 3-20 characters, letters and numbers only
+    rules:
+      required: true
+      minlength: 3
+      maxlength: 20
+      match: "^[a-zA-Z0-9_]+$"
+    messages:
+      required: Username is required
+      minlength: Username must be at least 3 characters
+      maxlength: Username cannot exceed 20 characters
+      match: Username can only contain letters, numbers, and underscores
+
+  email:
+    type: email
+    label: Email Address
+    placeholder: your@email.com
+    rules:
+      required: true
+      email: true
+    messages:
+      required: Email is required
+      email: Please enter a valid email address
+
+  password:
+    type: password
+    label: Password
+    placeholder: Create a strong password
+    description: At least 8 characters with uppercase, lowercase, and number
+    rules:
+      required: true
+      minlength: 8
+      maxlength: 128
+      match: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$"
+    messages:
+      required: Password is required
+      minlength: Password must be at least 8 characters
+      maxlength: Password cannot exceed 128 characters
+      match: Password must contain uppercase, lowercase, and a number
+
+  password_confirm:
+    type: password
+    label: Confirm Password
+    placeholder: Re-enter your password
+    rules:
+      required: true
+      equalTo: password
+    messages:
+      required: Please confirm your password
+      equalTo: Passwords do not match
+
+  profile:
+    type: group
+    label: Profile Information
+    properties:
+      first_name:
+        type: text
+        label: First Name
+        placeholder: John
+        rules:
+          required: true
+          minlength: 1
+          maxlength: 50
+        messages:
+          required: First name is required
+
+      last_name:
+        type: text
+        label: Last Name
+        placeholder: Doe
+        rules:
+          required: true
+          minlength: 1
+          maxlength: 50
+        messages:
+          required: Last name is required
+
+      date_of_birth:
+        type: date
+        label: Date of Birth
+        description: You must be 13 years or older to register
+        rules:
+          date: true
+        messages:
+          date: Please enter a valid date
+
+      country:
+        type: select
+        label: Country
+        rules:
+          required: true
+        messages:
+          required: Please select your country
+        items:
+          us: United States
+          ca: Canada
+          uk: United Kingdom
+          au: Australia
+          de: Germany
+          fr: France
+          jp: Japan
+          other: Other
+
+  preferences:
+    type: group
+    label: Preferences
+    properties:
+      language:
+        type: select
+        label: Preferred Language
+        default: en
+        items:
+          en: English
+          es: Spanish
+          fr: French
+          de: German
+          ja: Japanese
+
+      notifications:
+        type: checkbox
+        label: Email Notifications
+        description: Receive email updates about your account
+        default: true
+
+      marketing:
+        type: checkbox
+        label: Marketing Emails
+        description: Receive promotional emails and special offers
+        default: false
+
+  terms:
+    type: checkbox
+    label: I agree to the Terms of Service and Privacy Policy
+    rules:
+      required: true
+    messages:
+      required: You must agree to the terms to register
+
+action:
+  method: POST
+  url: /api/submit/registration
+  buttons:
+    submit:
+      label: Create Account
+      type: submit
+      class: btn btn-primary btn-lg
+    cancel:
+      label: Cancel
+      type: button
+      href: /
+      class: btn btn-outline-secondary

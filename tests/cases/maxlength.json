@@ -1,0 +1,108 @@
+{
+  "testSuite": "maxlength",
+  "version": "1.0.0",
+  "description": "Maxlength 규칙 검증 테스트 - 최대 문자열 길이 검증",
+  "tests": [
+    {
+      "id": "maxlength-001",
+      "description": "기본 maxlength 검증",
+      "spec": { "type": "text", "rules": { "maxlength": 5 } },
+      "cases": [
+        { "input": "abcd", "expected": { "valid": true } },
+        { "input": "abcde", "expected": { "valid": true } },
+        { "input": "abcdef", "expected": { "valid": false, "error": "maxlength" } }
+      ]
+    },
+    {
+      "id": "maxlength-002",
+      "description": "빈 값은 maxlength 항상 통과",
+      "spec": { "type": "text", "rules": { "maxlength": 5 } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } },
+        { "input": null, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "maxlength-003",
+      "description": "required와 maxlength 조합",
+      "spec": { "type": "text", "rules": { "required": true, "maxlength": 10 } },
+      "cases": [
+        { "input": "", "expected": { "valid": false, "error": "required" } },
+        { "input": "1234567890", "expected": { "valid": true } },
+        { "input": "12345678901", "expected": { "valid": false, "error": "maxlength" } }
+      ]
+    },
+    {
+      "id": "maxlength-004",
+      "description": "maxlength 1 (단일 문자만 허용)",
+      "spec": { "type": "text", "rules": { "maxlength": 1 } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } },
+        { "input": "a", "expected": { "valid": true } },
+        { "input": "ab", "expected": { "valid": false, "error": "maxlength" } }
+      ]
+    },
+    {
+      "id": "maxlength-005",
+      "description": "큰 maxlength 값 (45자 - 상품명 등)",
+      "spec": { "type": "text", "rules": { "maxlength": 45 } },
+      "cases": [
+        { "input": "이것은 상품명입니다.", "expected": { "valid": true } },
+        { "input": "123456789012345678901234567890123456789012345", "expected": { "valid": true } },
+        { "input": "1234567890123456789012345678901234567890123456", "expected": { "valid": false, "error": "maxlength" } }
+      ]
+    },
+    {
+      "id": "maxlength-006",
+      "description": "공백 포함 문자열 길이 계산",
+      "spec": { "type": "text", "rules": { "maxlength": 5 } },
+      "cases": [
+        { "input": "a b c", "expected": { "valid": true } },
+        { "input": "a b c ", "expected": { "valid": false, "error": "maxlength" } },
+        { "input": " ab  ", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "maxlength-007",
+      "description": "한글 문자열 길이 계산",
+      "spec": { "type": "text", "rules": { "maxlength": 5 } },
+      "cases": [
+        { "input": "가나다라마", "expected": { "valid": true } },
+        { "input": "가나다라마바", "expected": { "valid": false, "error": "maxlength" } },
+        { "input": "상품명", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "maxlength-008",
+      "description": "minlength와 maxlength 조합",
+      "spec": { "type": "text", "rules": { "minlength": 2, "maxlength": 5 } },
+      "cases": [
+        { "input": "a", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "ab", "expected": { "valid": true } },
+        { "input": "abcde", "expected": { "valid": true } },
+        { "input": "abcdef", "expected": { "valid": false, "error": "maxlength" } }
+      ]
+    },
+    {
+      "id": "maxlength-009",
+      "description": "textarea에서의 maxlength",
+      "spec": { "type": "textarea", "rules": { "maxlength": 255 } },
+      "cases": [
+        { "input": "짧은 텍스트", "expected": { "valid": true } },
+        { "input": "이것은 255자 미만의 텍스트입니다. 여러 줄로\n작성될 수 있습니다.", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "maxlength-010",
+      "description": "커스텀 에러 메시지 참조",
+      "spec": {
+        "type": "text",
+        "rules": { "maxlength": 45 },
+        "messages": { "maxlength": "{0}자로 입력" }
+      },
+      "cases": [
+        { "input": "1234567890123456789012345678901234567890123456", "expected": { "valid": false, "error": "maxlength", "message": "45자로 입력" } }
+      ]
+    }
+  ]
+}

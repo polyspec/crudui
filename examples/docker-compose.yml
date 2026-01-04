@@ -1,0 +1,165 @@
+version: '3.8'
+
+services:
+  # Demo App - React application showcasing form generation
+  demo-app:
+    build:
+      context: ..
+      dockerfile: examples/demo-app/Dockerfile
+    ports:
+      - "8010:80"
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=demo-app"
+      - "com.form-generator.description=React demo application"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -sf http://localhost/ || wget -q --spider http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Node.js API - Express validation server
+  node-api:
+    build:
+      context: ..
+      dockerfile: examples/node-api/Dockerfile
+    ports:
+      - "8011:3000"
+    volumes:
+      - ./shared-specs:/app/node-api/specs:ro
+      - ./node-api/server.js:/app/node-api/server.js:ro
+      - ../validator/js/dist:/app/validator/js/dist:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=node-api"
+      - "com.form-generator.description=Node.js/Express validation API"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # PHP API - PHP validation server
+  php-api:
+    build:
+      context: ..
+      dockerfile: examples/php-api/Dockerfile
+    ports:
+      - "8012:80"
+    volumes:
+      - ./shared-specs:/var/www/html/specs:ro
+      - ./php-api/validate.php:/var/www/html/validate.php:ro
+      - ./php-api/index.php:/var/www/html/index.php:ro
+      - ../validator/php/src:/var/www/validator/php/src:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=php-api"
+      - "com.form-generator.description=PHP validation API"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Go API - Go validation server
+  go-api:
+    build:
+      context: ..
+      dockerfile: examples/go-api/Dockerfile
+    ports:
+      - "8013:8080"
+    volumes:
+      - ./shared-specs:/app/specs:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=go-api"
+      - "com.form-generator.description=Go validation API"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Playground - Interactive form spec editor
+  playground:
+    build:
+      context: ..
+      dockerfile: examples/playground/Dockerfile
+    ports:
+      - "8014:80"
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=playground"
+      - "com.form-generator.description=Interactive form spec playground"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Limepie Bootstrap - Bootstrap 5 styled form demo
+  limepie-bootstrap:
+    build:
+      context: ..
+      dockerfile: examples/limepie-bootstrap/Dockerfile
+    ports:
+      - "8016:80"
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=limepie-bootstrap"
+      - "com.form-generator.description=Limepie-style Bootstrap 5 form demo"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Limepie Original - REAL Limepie PHP Form System
+  limepie-original:
+    build:
+      context: ./limepie-original
+      dockerfile: Dockerfile
+    ports:
+      - "8015:80"
+    volumes:
+      # Mount REAL Limepie library with all dependencies
+      - /Users/max/Work/bluetools-deploy/source/app/bluetools-app-main/vendor:/var/www/vendor:ro
+      - ./limepie-original/public/index.php:/var/www/html/index.php:ro
+      - ./limepie-original/specs:/var/www/specs:ro
+      - ./limepie-original/assets/js:/var/www/html/assets/js:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=limepie-original"
+      - "com.form-generator.description=REAL Limepie PHP Form System"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  form-generator-network:
+    driver: bridge
+    labels:
+      - "com.form-generator.network=main"

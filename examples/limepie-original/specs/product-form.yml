@@ -1,0 +1,140 @@
+# Original Limepie Form Spec - Product Entry
+type: group
+key: product
+label: Product Entry Form
+description: A comprehensive product entry form with nested structures
+properties:
+  basic:
+    type: group
+    label: Basic Information
+    class: border p-3 mb-3
+    properties:
+      name:
+        type: text
+        label: Product Name
+        placeholder: "Enter product name"
+        rules:
+          required: true
+          maxlength: 100
+        messages:
+          required: "Product name is required"
+          maxlength: "Product name cannot exceed 100 characters"
+
+      sku:
+        type: text
+        label: SKU
+        placeholder: "e.g., PROD-001"
+        prepend: "SKU:"
+        rules:
+          required: true
+          pattern: "^[A-Z]{2,4}-[0-9]{3,6}$"
+        messages:
+          required: "SKU is required"
+          pattern: "Invalid SKU format (e.g., PROD-001)"
+
+      category:
+        type: select
+        label: Category
+        items:
+          "": "Select Category"
+          electronics: "Electronics"
+          clothing: "Clothing"
+          food: "Food & Beverage"
+          home: "Home & Garden"
+        rules:
+          required: true
+        messages:
+          required: "Please select a category"
+
+      description:
+        type: textarea
+        label: Description
+        placeholder: "Enter product description"
+        rows: 4
+
+  pricing:
+    type: group
+    label: Pricing
+    class: border p-3 mb-3
+    properties:
+      price:
+        type: number
+        label: Price
+        prepend: "$"
+        placeholder: "0.00"
+        rules:
+          required: true
+          min: 0
+        messages:
+          required: "Price is required"
+          min: "Price cannot be negative"
+
+      sale_price:
+        type: number
+        label: Sale Price
+        prepend: "$"
+        placeholder: "0.00"
+        rules:
+          min: 0
+        messages:
+          min: "Sale price cannot be negative"
+
+      tax_rate:
+        type: number
+        label: Tax Rate
+        append: "%"
+        default: "10"
+        rules:
+          min: 0
+          max: 100
+        messages:
+          min: "Tax rate cannot be negative"
+          max: "Tax rate cannot exceed 100%"
+
+  inventory:
+    type: group
+    label: Inventory
+    class: border p-3 mb-3
+    properties:
+      quantity:
+        type: number
+        label: Quantity in Stock
+        default: "0"
+        rules:
+          required: true
+          min: 0
+        messages:
+          required: "Quantity is required"
+          min: "Quantity cannot be negative"
+
+      low_stock_alert:
+        type: number
+        label: Low Stock Alert Threshold
+        default: "10"
+        rules:
+          min: 0
+        messages:
+          min: "Threshold cannot be negative"
+
+      track_inventory:
+        type: checkbox
+        label: Track Inventory
+        default: true
+
+  status:
+    type: select
+    label: Product Status
+    default: draft
+    items:
+      draft: "Draft"
+      active: "Active"
+      inactive: "Inactive"
+      archived: "Archived"
+
+  featured:
+    type: checkbox
+    label: Featured Product
+    default: false
+
+submit_button_text: Save Product
+list_button_text: Back to List

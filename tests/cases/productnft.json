@@ -1,0 +1,553 @@
+{
+  "testSuite": "productnft",
+  "version": "1.0.0",
+  "description": "ProductNft specification validation tests - the target spec for this project",
+  "tests": [
+    {
+      "id": "productnft-required-001",
+      "description": "Required fields: name (required: true)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "name": { "type": "text", "rules": { "required": true, "minlength": 1, "maxlength": 45 } }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "name": "" } }, "expected": { "valid": false, "error": "required", "field": "common.name" } },
+        { "input": { "common": { "name": "Test Product" } }, "expected": { "valid": true } },
+        { "input": { "common": { "name": "A" } }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "productnft-conditional-001",
+      "description": "Conditional required: display.start_dt (required when is_display == 2 or 3)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_display": { "type": "choice", "default": 1 },
+              "display": {
+                "type": "group",
+                "properties": {
+                  "start_dt": { "type": "datetime", "rules": { "required": "..is_display == 2 || ..is_display == 3" } },
+                  "end_dt": { "type": "datetime", "rules": { "required": "..is_display == 2" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "is_display": 0, "display": { "start_dt": "", "end_dt": "" } } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_display": 1, "display": { "start_dt": "", "end_dt": "" } } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_display": 2, "display": { "start_dt": "", "end_dt": "" } } }, "expected": { "valid": false, "error": "required", "field": "common.display.start_dt" } },
+        { "input": { "common": { "is_display": 2, "display": { "start_dt": "2024-01-01", "end_dt": "" } } }, "expected": { "valid": false, "error": "required", "field": "common.display.end_dt" } },
+        { "input": { "common": { "is_display": 2, "display": { "start_dt": "2024-01-01", "end_dt": "2024-12-31" } } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_display": 3, "display": { "start_dt": "", "end_dt": "" } } }, "expected": { "valid": false, "error": "required", "field": "common.display.start_dt" } },
+        { "input": { "common": { "is_display": 3, "display": { "start_dt": "2024-01-01", "end_dt": "" } } }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "productnft-conditional-002",
+      "description": "Conditional required: yoil.day[] (required when is_allday == 1)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "yoil": {
+                "type": "group",
+                "properties": {
+                  "is_allday": { "type": "choice", "default": 0 },
+                  "day": { "type": "multichoice", "rules": { "required": ".is_allday == 1" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "yoil": { "is_allday": 0, "day": [] } } }, "expected": { "valid": true } },
+        { "input": { "common": { "yoil": { "is_allday": 1, "day": [] } } }, "expected": { "valid": false, "error": "required", "field": "common.yoil.day" } },
+        { "input": { "common": { "yoil": { "is_allday": 1, "day": ["is_monday", "is_tuesday"] } } }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "productnft-conditional-003",
+      "description": "Absolute path conditional: sale.start_dt (required when common.is_sale == 2)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_sale": { "type": "choice", "default": 1 },
+              "sale": {
+                "type": "group",
+                "properties": {
+                  "start_dt": { "type": "datetime", "rules": { "required": "common.is_sale == 2" } },
+                  "end_dt": { "type": "datetime", "rules": { "required": "common.is_sale == 2" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "is_sale": 0, "sale": { "start_dt": "", "end_dt": "" } } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_sale": 1, "sale": { "start_dt": "", "end_dt": "" } } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_sale": 2, "sale": { "start_dt": "", "end_dt": "" } } }, "expected": { "valid": false, "error": "required" } },
+        { "input": { "common": { "is_sale": 2, "sale": { "start_dt": "2024-01-01", "end_dt": "2024-12-31" } } }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "productnft-wildcard-001",
+      "description": "Array wildcard: option_single.items.*.price (required when is_option == 0 and item.is_close == 0)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": { "type": "number", "rules": { "required": "common.is_option == 0 && option_single.items.*.is_close == 0", "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": [{ "is_close": 0, "price": null }] } },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.0.price" }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": [{ "is_close": 1, "price": null }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": [{ "is_close": 0, "price": 10000 }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option_single": { "items": [{ "is_close": 0, "price": null }] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "productnft-wildcard-002",
+      "description": "Array wildcard with quantity: option_single.items.*.total_quantity (required when is_option == 0, is_quantity > 0, and is_close == 0)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 },
+              "is_quantity": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "total_quantity": { "type": "number", "rules": { "required": "common.is_option == 0 && common.is_quantity > 0 && option_single.items.*.is_close == 0", "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0, "is_quantity": 0 }, "option_single": { "items": [{ "is_close": 0, "total_quantity": null }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 0, "is_quantity": 1 }, "option_single": { "items": [{ "is_close": 0, "total_quantity": null }] } },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.0.total_quantity" }
+        },
+        {
+          "input": { "common": { "is_option": 0, "is_quantity": 1 }, "option_single": { "items": [{ "is_close": 1, "total_quantity": null }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 0, "is_quantity": 2 }, "option_single": { "items": [{ "is_close": 0, "total_quantity": 100 }] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "productnft-wildcard-003",
+      "description": "Multiple option items with wildcard",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_multiple": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "name": { "type": "text", "rules": { "required": "common.is_option == 2 && option_multiple.items.*.is_close == 0" } },
+                  "price": { "type": "number", "rules": { "required": "common.is_option == 2 && option_multiple.items.*.is_close == 0", "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0 }, "option_multiple": { "items": [{ "is_close": 0, "name": "", "price": null }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 2 }, "option_multiple": { "items": [{ "is_close": 0, "name": "", "price": null }] } },
+          "expected": { "valid": false, "error": "required" }
+        },
+        {
+          "input": { "common": { "is_option": 2 }, "option_multiple": { "items": [{ "is_close": 1, "name": "", "price": null }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 2 }, "option_multiple": { "items": [{ "is_close": 0, "name": "Large", "price": 15000 }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 2 }, "option_multiple": { "items": [
+            { "is_close": 0, "name": "Large", "price": 15000 },
+            { "is_close": 0, "name": "", "price": null }
+          ] } },
+          "expected": { "valid": false, "error": "required", "field": "option_multiple.items.1.name" }
+        }
+      ]
+    },
+    {
+      "id": "productnft-wildcard-004",
+      "description": "Multiplexable option items",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 },
+              "is_quantity": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_multiplexable": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": { "type": "number", "rules": { "required": "common.is_option == 1 && option_multiplexable.items.*.is_close == 0", "min": 0 } },
+                  "total_quantity": { "type": "number", "rules": { "required": "common.is_option == 1 && common.is_quantity > 0 && option_multiplexable.items.*.is_close == 0", "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0, "is_quantity": 0 }, "option_multiplexable": { "items": [{ "is_close": 0, "price": null, "total_quantity": null }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1, "is_quantity": 0 }, "option_multiplexable": { "items": [{ "is_close": 0, "price": null, "total_quantity": null }] } },
+          "expected": { "valid": false, "error": "required", "field": "option_multiplexable.items.0.price" }
+        },
+        {
+          "input": { "common": { "is_option": 1, "is_quantity": 0 }, "option_multiplexable": { "items": [{ "is_close": 0, "price": 10000, "total_quantity": null }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1, "is_quantity": 1 }, "option_multiplexable": { "items": [{ "is_close": 0, "price": 10000, "total_quantity": null }] } },
+          "expected": { "valid": false, "error": "required", "field": "option_multiplexable.items.0.total_quantity" }
+        },
+        {
+          "input": { "common": { "is_option": 1, "is_quantity": 1 }, "option_multiplexable": { "items": [{ "is_close": 0, "price": 10000, "total_quantity": 50 }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1, "is_quantity": 1 }, "option_multiplexable": { "items": [{ "is_close": 1, "price": null, "total_quantity": null }] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "productnft-option-groups-001",
+      "description": "Option groups with unique items validation",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option": {
+            "type": "group",
+            "properties": {
+              "groups": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": "common.is_option == 1" } },
+                  "items": { "type": "text", "multiple": true, "rules": { "required": "common.is_option == 1", "unique": true } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0 }, "option": { "groups": [{ "name": "", "items": [] }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "groups": [{ "name": "", "items": [] }] } },
+          "expected": { "valid": false, "error": "required" }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "groups": [{ "name": "Size", "items": ["S", "M", "L"] }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "groups": [{ "name": "Size", "items": ["S", "M", "S"] }] } },
+          "expected": { "valid": false, "error": "unique" }
+        }
+      ]
+    },
+    {
+      "id": "productnft-minmax-001",
+      "description": "Min/max validation for numeric fields",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "require_point_start": { "type": "number", "rules": { "required": true, "min": 0, "max": 100000000 } },
+              "require_point_end": { "type": "number", "rules": { "required": true, "min": 0, "max": 100000000 } },
+              "grade_number": { "type": "number", "rules": { "required": true, "min": 1, "max": 10 } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "require_point_start": -1, "require_point_end": 0, "grade_number": 5 } },
+          "expected": { "valid": false, "error": "min", "field": "common.require_point_start" }
+        },
+        {
+          "input": { "common": { "require_point_start": 0, "require_point_end": 0, "grade_number": 0 } },
+          "expected": { "valid": false, "error": "min", "field": "common.grade_number" }
+        },
+        {
+          "input": { "common": { "require_point_start": 0, "require_point_end": 0, "grade_number": 11 } },
+          "expected": { "valid": false, "error": "max", "field": "common.grade_number" }
+        },
+        {
+          "input": { "common": { "require_point_start": 0, "require_point_end": 1000, "grade_number": 5 } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "require_point_start": 100000001, "require_point_end": 0, "grade_number": 5 } },
+          "expected": { "valid": false, "error": "max", "field": "common.require_point_start" }
+        }
+      ]
+    },
+    {
+      "id": "productnft-minmax-002",
+      "description": "Min validation for prices in option items",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "original_price": { "type": "number", "default": 0, "rules": { "min": 0 } },
+                  "price": { "type": "number", "default": 0, "rules": { "required": "common.is_option == 0 && option_single.items.*.is_close == 0", "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": [{ "is_close": 0, "original_price": -100, "price": 5000 }] } },
+          "expected": { "valid": false, "error": "min", "field": "option_single.items.0.original_price" }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": [{ "is_close": 0, "original_price": 10000, "price": -100 }] } },
+          "expected": { "valid": false, "error": "min", "field": "option_single.items.0.price" }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": [{ "is_close": 0, "original_price": 10000, "price": 5000 }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": [{ "is_close": 0, "original_price": 0, "price": 0 }] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "productnft-unique-001",
+      "description": "Unique validation for category selections",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "category_seqs": { "type": "select", "multiple": true, "rules": { "unique": true } },
+              "sub_category_seqs": { "type": "select", "multiple": true, "rules": { "required": true, "unique": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "category_seqs": [1, 2, 3], "sub_category_seqs": [10, 20, 30] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "category_seqs": [1, 2, 1], "sub_category_seqs": [10, 20, 30] } },
+          "expected": { "valid": false, "error": "unique", "field": "common.category_seqs" }
+        },
+        {
+          "input": { "common": { "category_seqs": [1, 2, 3], "sub_category_seqs": [10, 20, 10] } },
+          "expected": { "valid": false, "error": "unique", "field": "common.sub_category_seqs" }
+        },
+        {
+          "input": { "common": { "category_seqs": [], "sub_category_seqs": [] } },
+          "expected": { "valid": false, "error": "required", "field": "common.sub_category_seqs" }
+        }
+      ]
+    },
+    {
+      "id": "productnft-maxlength-001",
+      "description": "Maxlength validation for text fields",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "name": { "type": "text", "rules": { "required": true, "minlength": 1, "maxlength": 45 } },
+              "id": { "type": "text", "rules": { "minlength": 2, "maxlength": 45 } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "name": "Short", "id": "abc" } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "name": "This is a very long product name that exceeds the maximum allowed length", "id": "abc" } },
+          "expected": { "valid": false, "error": "maxlength", "field": "common.name" }
+        },
+        {
+          "input": { "common": { "name": "Valid", "id": "a" } },
+          "expected": { "valid": false, "error": "minlength", "field": "common.id" }
+        }
+      ]
+    },
+    {
+      "id": "productnft-multiple-only-001",
+      "description": "multiple: only pattern for single item array behavior",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": "only",
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": { "type": "number", "rules": { "required": "common.is_option == 0 && option_single.items.*.is_close == 0", "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": { "is_close": 0, "price": null } } },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.price" }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": { "is_close": 0, "price": 10000 } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": { "is_close": 1, "price": null } } },
+          "expected": { "valid": true }
+        }
+      ]
+    }
+  ]
+}

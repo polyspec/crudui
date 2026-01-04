@@ -1,0 +1,105 @@
+{
+  "testSuite": "minlength",
+  "version": "1.0.0",
+  "description": "Minlength 규칙 검증 테스트 - 최소 문자열 길이 검증",
+  "tests": [
+    {
+      "id": "minlength-001",
+      "description": "기본 minlength 검증",
+      "spec": { "type": "text", "rules": { "minlength": 3 } },
+      "cases": [
+        { "input": "ab", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "abc", "expected": { "valid": true } },
+        { "input": "abcd", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-002",
+      "description": "빈 값은 minlength 검증 건너뜀 (required가 없을 때)",
+      "spec": { "type": "text", "rules": { "minlength": 5 } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } },
+        { "input": null, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-003",
+      "description": "required와 minlength 조합",
+      "spec": { "type": "text", "rules": { "required": true, "minlength": 3 } },
+      "cases": [
+        { "input": "", "expected": { "valid": false, "error": "required" } },
+        { "input": "ab", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "abc", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-004",
+      "description": "minlength 1 (최소 1자)",
+      "spec": { "type": "text", "rules": { "minlength": 1 } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } },
+        { "input": "a", "expected": { "valid": true } },
+        { "input": "abc", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-005",
+      "description": "긴 minlength 검증",
+      "spec": { "type": "text", "rules": { "minlength": 10 } },
+      "cases": [
+        { "input": "123456789", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "1234567890", "expected": { "valid": true } },
+        { "input": "12345678901", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-006",
+      "description": "공백 포함 문자열 길이 계산",
+      "spec": { "type": "text", "rules": { "minlength": 5 } },
+      "cases": [
+        { "input": "a b", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "a b c", "expected": { "valid": true } },
+        { "input": "ab cd", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-007",
+      "description": "한글 문자열 길이 계산",
+      "spec": { "type": "text", "rules": { "minlength": 3 } },
+      "cases": [
+        { "input": "가나", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "가나다", "expected": { "valid": true } },
+        { "input": "가나다라마", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-008",
+      "description": "특수문자 포함 문자열",
+      "spec": { "type": "text", "rules": { "minlength": 4 } },
+      "cases": [
+        { "input": "a@b", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "a@b!", "expected": { "valid": true } },
+        { "input": "!@#$%", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-009",
+      "description": "이모지 문자열 길이 (UTF-16 기준)",
+      "spec": { "type": "text", "rules": { "minlength": 2 } },
+      "cases": [
+        { "input": "a", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "ab", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "minlength-010",
+      "description": "textarea에서의 minlength",
+      "spec": { "type": "textarea", "rules": { "minlength": 10 } },
+      "cases": [
+        { "input": "짧은글", "expected": { "valid": false, "error": "minlength" } },
+        { "input": "이것은 10자 이상의 텍스트입니다.", "expected": { "valid": true } },
+        { "input": "줄바꿈이\n포함된\n텍스트", "expected": { "valid": true } }
+      ]
+    }
+  ]
+}

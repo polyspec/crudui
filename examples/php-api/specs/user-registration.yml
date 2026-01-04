@@ -1,0 +1,115 @@
+# User Registration Form Specification
+# Compatible with Limepie PHP form system
+
+type: group
+name: user-registration
+
+properties:
+  email:
+    type: email
+    label:
+      ko: 이메일
+      en: Email Address
+    rules:
+      required: true
+      email: true
+    messages:
+      ko:
+        required: 이메일을 입력해주세요.
+        email: 올바른 이메일 형식으로 입력해주세요.
+      en:
+        required: Email is required.
+        email: Please enter a valid email address.
+
+  password:
+    type: password
+    label:
+      ko: 비밀번호
+      en: Password
+    rules:
+      required: true
+      minlength: 8
+      match: '^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$'
+    messages:
+      ko:
+        required: 비밀번호를 입력해주세요.
+        minlength: 비밀번호는 최소 {0}자 이상이어야 합니다.
+        match: 영문자와 숫자를 포함해야 합니다.
+      en:
+        required: Password is required.
+        minlength: Password must be at least {0} characters.
+        match: Password must contain letters and numbers.
+
+  password_confirm:
+    type: password
+    label:
+      ko: 비밀번호 확인
+      en: Confirm Password
+    rules:
+      required: true
+      equalTo: password
+    messages:
+      ko:
+        required: 비밀번호 확인을 입력해주세요.
+        equalTo: 비밀번호가 일치하지 않습니다.
+      en:
+        required: Please confirm your password.
+        equalTo: Passwords do not match.
+
+  name:
+    type: text
+    label:
+      ko: 이름
+      en: Name
+    rules:
+      required: true
+      minlength: 2
+      maxlength: 50
+    messages:
+      ko:
+        required: 이름을 입력해주세요.
+        minlength: 이름은 최소 {0}자 이상이어야 합니다.
+        maxlength: 이름은 {0}자를 초과할 수 없습니다.
+      en:
+        required: Name is required.
+        minlength: Name must be at least {0} characters.
+        maxlength: Name cannot exceed {0} characters.
+
+  phone:
+    type: text
+    label:
+      ko: 전화번호
+      en: Phone Number
+    rules:
+      match: '^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$'
+    messages:
+      ko:
+        match: 올바른 전화번호 형식으로 입력해주세요. (예: 010-1234-5678)
+      en:
+        match: Please enter a valid phone number. (e.g., 010-1234-5678)
+
+  birth_date:
+    type: date
+    label:
+      ko: 생년월일
+      en: Date of Birth
+    rules:
+      dateISO: true
+    messages:
+      ko:
+        dateISO: 올바른 날짜 형식으로 입력해주세요. (YYYY-MM-DD)
+      en:
+        dateISO: Please enter a valid date format. (YYYY-MM-DD)
+
+  terms:
+    type: switcher
+    label:
+      ko: 이용약관 동의
+      en: I agree to the Terms of Service
+    rules:
+      required: true
+    messages:
+      ko:
+        required: 이용약관에 동의해주세요.
+      en:
+        required: You must agree to the Terms of Service.

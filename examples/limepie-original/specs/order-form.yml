@@ -1,0 +1,168 @@
+# Original Limepie Form Spec - Order Form with Multiple Groups
+type: group
+key: order
+label: Order Form
+description: Demonstrates nested groups and multiple field types with original Limepie output
+properties:
+  order_number:
+    type: text
+    label: Order Number
+    prepend: "#"
+    placeholder: "Auto-generated"
+    readonly: true
+    default: "ORD-2024-0001"
+
+  customer:
+    type: group
+    label: Customer Information
+    class: border rounded p-3 mb-4 bg-light
+    properties:
+      name:
+        type: text
+        label: Full Name
+        placeholder: "Enter customer name"
+        rules:
+          required: true
+          minlength: 2
+        messages:
+          required: "Customer name is required"
+          minlength: "Name must be at least 2 characters"
+
+      email:
+        type: email
+        label: Email Address
+        placeholder: "customer@example.com"
+        rules:
+          required: true
+          email: true
+        messages:
+          required: "Email is required"
+          email: "Please enter a valid email"
+
+      phone:
+        type: text
+        label: Phone
+        placeholder: "010-0000-0000"
+        prepend: "+82"
+
+  shipping:
+    type: group
+    label: Shipping Address
+    class: border rounded p-3 mb-4
+    properties:
+      address_line1:
+        type: text
+        label: Address Line 1
+        placeholder: "Street address"
+        rules:
+          required: true
+        messages:
+          required: "Address is required"
+
+      address_line2:
+        type: text
+        label: Address Line 2
+        placeholder: "Apartment, suite, etc. (optional)"
+
+      city:
+        type: text
+        label: City
+        placeholder: "City"
+        rules:
+          required: true
+        messages:
+          required: "City is required"
+
+      postal_code:
+        type: text
+        label: Postal Code
+        placeholder: "12345"
+        rules:
+          required: true
+          pattern: "^[0-9]{5}$"
+        messages:
+          required: "Postal code is required"
+          pattern: "Invalid postal code format"
+
+      country:
+        type: select
+        label: Country
+        default: KR
+        items:
+          "": "Select Country"
+          KR: "South Korea"
+          US: "United States"
+          JP: "Japan"
+          CN: "China"
+        rules:
+          required: true
+        messages:
+          required: "Please select a country"
+
+  payment:
+    type: group
+    label: Payment Details
+    class: border rounded p-3 mb-4
+    properties:
+      method:
+        type: select
+        label: Payment Method
+        items:
+          "": "Select Payment Method"
+          credit_card: "Credit Card"
+          bank_transfer: "Bank Transfer"
+          paypal: "PayPal"
+        rules:
+          required: true
+        messages:
+          required: "Please select a payment method"
+
+      card_number:
+        type: text
+        label: Card Number
+        placeholder: "1234 5678 9012 3456"
+        rules:
+          pattern: "^[0-9]{4}\\s?[0-9]{4}\\s?[0-9]{4}\\s?[0-9]{4}$"
+        messages:
+          pattern: "Invalid card number format"
+
+      expiry:
+        type: text
+        label: Expiry Date
+        placeholder: "MM/YY"
+        rules:
+          pattern: "^(0[1-9]|1[0-2])/[0-9]{2}$"
+        messages:
+          pattern: "Invalid expiry date format (MM/YY)"
+
+      cvv:
+        type: password
+        label: CVV
+        placeholder: "123"
+
+  notes:
+    type: textarea
+    label: Order Notes
+    placeholder: "Special instructions or notes"
+    rows: 3
+
+  express_shipping:
+    type: checkbox
+    label: Express Shipping (+$10)
+    default: false
+
+  gift_wrap:
+    type: checkbox
+    label: Gift Wrap (+$5)
+    default: false
+
+  terms_accepted:
+    type: checkbox
+    label: I accept the Terms and Conditions
+    rules:
+      required: true
+    messages:
+      required: "You must accept the terms to continue"
+
+submit_button_text: Place Order
+remove_list_button: true

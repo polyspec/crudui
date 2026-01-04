@@ -1,0 +1,108 @@
+# 조합시에도 사용되므로 분리
+type: group
+multiple: only
+group_class: form-row align-items-top border-md-0 p-md-0 row gx-1 bg-md-transparent
+wrapper_class: mt-md-1
+properties:
+    name:
+        type: dummy-input
+        label_class: d-block d-md-none
+        label: 옵션
+        class: col-6 col-md-3 col-sm-6 col-line-first border-0
+        element_style: "background: #f7f7f7; pointer-events: none;"
+
+    is_close:
+        type: choice
+        class: col-6 col-md-1  col-sm-6 col-line-first border-0
+        label_class: d-block d-md-none
+        label: 판매여부
+        default: 0
+        items:
+            0: O
+            1: X
+
+        button_class: w-100
+        display_target: common.is_quantity
+        display_target_condition_class:
+            0: "wide-last-child last-child"
+            1: ""
+            2: ""
+
+    original_price:
+        type: number
+        label_class: d-block d-md-none
+        label: 권장가격
+        append: 원
+        class: col-6 col-md-2 col-md-line-first border-0 msingle-wide4
+        default: 0
+        rules:
+            # required: common.is_option == 1 && option_multiplexable.items.*.is_close == 0
+            min: 0
+        messages:
+            min: 양수로 입력해주세요.
+        display_target: common.is_quantity
+        display_target_condition_class:
+            0: "col-md-4 wide-last-child last-child"
+            1: "col-md-2"
+            2: ""
+
+    price:
+        type: number
+        label_class: d-block d-md-none
+        label: 판매가격
+        append: 원
+        class: col-6 col-md-2 col-md-line-first border-0 msingle-wide4
+        default: 0
+        rules:
+            required: common.is_option == 1 && option_multiplexable.items.*.is_close == 0
+            min: 0
+        messages:
+            min: 양수로 입력해주세요.
+        display_target: common.is_quantity
+        display_target_condition_class:
+            0: "col-md-4 wide-last-child last-child"
+            1: "col-md-2"
+            2: ""
+
+    total_quantity:
+        type: number
+        label_class: d-block d-md-none
+        label: 전체수량
+        append: 개
+        class: col-6 col-md-2 col-md-line-first col-line-last border-0  items-quantity
+        # default: 0
+        rules:
+            required: common.is_option == 1 && common.is_quantity > 0 &&  option_multiplexable.items.*.is_close == 0
+            min: 0
+        messages:
+            min: 양수로 입력해주세요.
+        display_target: common.is_quantity
+        display_target_condition_style:
+            0: "display: none;"
+            1: "display: block;"
+            2: "display: block;"
+        display_target_condition_class:
+            0: ""
+            1: ""
+            2: ""
+    rest_quantity:
+        type: number
+        label_class: d-block d-md-none
+        label: 판매가능수량
+        append: 개
+        class: col-6 col-md-2 col-md-line-first col-line-last border-0  items-quantity
+        # default: 0
+        rules:
+            # required: common.is_option == 1 && common.is_quantity > 0 && option_multiplexable.items.*.is_close == 0
+            min: 0
+        messages:
+            min: 양수로 입력해주세요.
+        display_target: common.is_quantity
+        display_target_condition_style:
+            0: "display: none;"
+            1: "display: block;"
+            2: "display: block;"
+        display_target_condition_class:
+            0: ""
+            1: ""
+            2: ""

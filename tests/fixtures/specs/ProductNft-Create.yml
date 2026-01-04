@@ -1,0 +1,1318 @@
+type: group
+name: common
+action:
+method: post
+buttons:
+    - type: submit
+      name: __submitted__
+      value: "go"
+      class: btn-submit
+      text: "저장"
+    - type: a
+      href: ../
+      # name: __submitted__
+      # value: "go"
+      class: btn-list float-end
+      text: "리스트로"
+
+    - type: button
+      href: ./
+      # name: __submitted__
+      # value: "go"
+      onclick: if(confirm('작성을 취소하시겠습니까? 페이지를 새로고침합니다.')) {location.reload();}
+      class: btn-list float-end me-2
+      text: "취소"
+
+properties:
+    common:
+        label: 기본설정
+        type: group
+        class: row gx-1
+        properties:
+            is_close:
+                label: 사용여부
+                type: choice
+                default: 0
+                items:
+                    0: 노출
+                    1: 비노출
+                    9: 삭제
+                    10: 스튜디오
+                    11: 인큐베이터
+
+
+            is_display:
+                label: 노출 기간
+                type: choice
+                default: 1
+                class: col-12 col-sm-6 display-switch-btn
+                button_class: w-100
+                items:
+                    0: 안함
+                    1: 상시
+                    2: 기간설정
+                    3: 시작일만
+                onchange: |
+                    var $this = $(this);
+                    if(this.value == 0) {
+                      $this.closest('.form-group').find('.display-switch').hide();
+                      $this.closest('.form-group').find('.display-switch-yoil').hide();
+                    } else if(this.value == 1) { // 상시 노출
+                      $this.closest('.form-group').find('.display-switch').hide();
+                      $this.closest('.form-group').find('.display-switch-yoil').hide();
+                    } else if(this.value == 2) {
+                      $this.closest('.form-group').find('.display-switch').show();
+                      $this.closest('.form-group').find('.switch-startdt').removeClass('col-sm-12').addClass('col-sm-6').show();
+                    } else {
+                      $this.closest('.form-group').find('.display-switch').hide();
+                      $this.closest('.form-group').find('.display-switch-startdt').show();
+                      $this.closest('.form-group').find('.switch-startdt').removeClass('col-sm-6').show();
+                    }
+
+
+                    if(this.value == 0 || this.value == 1) {
+                      //$this.closest('.form-group').find('.module-target').addClass('mt-3').removeClass('mt-0');
+                    } else {
+                      //$this.closest('.form-group').find('.module-target').removeClass('mt-3').addClass('mt-0');
+                    }
+
+                    if($this.closest('form').length > 0) {
+                      // console.log(this, $this.closest('form'));
+                      $this.closest('form').validate().checkByElements(
+                        $('.valid-target', $this.closest('.form-element-wrapper').next())
+                      );
+                    }
+
+            display:
+                # label: 노출기간
+                type: group
+                class: col-12 xmt-3 display-switch display-switch-dt display-switch-startdt switch-display copy-hide
+                group_class: form-row row g-1  p-0 border-0 bg-transparent
+                display_target: .is_display
+                display_target_condition_class:
+                    0: "last-child"
+                    1: "last-child"
+                display_target_condition_style:
+                    0: "display: none"
+                    1: "display: none"
+                    2: "display: block"
+                    3: "1display: block"
+                properties:
+                    start_dt:
+                        label: 시작일
+                        type: datetime
+                        rules:
+                            required: ..is_display == 2 || ..is_display == 3
+                        class: col-12 col-sm-6 border-top border-top-1 xpb-0 border-sm-0 display-switch display-switch-dt display-switch-startdt switch-startdt
+                        display_target: ..is_display
+                        display_target_condition_style:
+                            0: "display: none"
+                            1: "display: none"
+                            2: "display: block"
+                            3: "display: block"
+                        display_target_condition_class:
+                            0: "col-12 col-sm-6"
+                            1: "col-12 col-sm-6"
+                            2: "col-12 col-sm-6"
+                            3: "col-sm-12"
+                        event:
+                            type:
+                                - onchange
+                                - onload
+                            function: |
+                                if(this.value) {
+                                    if(new Date() > new Date(this.value)) {
+                                        $(this).addClass('bg-striped border-primary rounded rounded-3');
+                                    } else {
+                                        $(this).removeClass('bg-striped border-primary rounded rounded-3');
+                                    }
+                                } else {
+                                    $(this).removeClass('bg-striped border-primary rounded rounded-3');
+                                }
+
+                    end_dt:
+                        label: 종료일
+                        type: datetime
+                        class: col-12 col-sm-6 pt-sm-0 xpb-sm-0 mt-sm-0 border-sm-0 display-switch display-switch-dt switch-enddt mb-1
+                        rules:
+                            required: ..is_display == 2
+                        display_target: ..is_display
+                        display_target_condition_style:
+                            0: "display: none"
+                            1: "display: block"
+                            3: "display: none"
+                        display_target_condition_class:
+                        event:
+                            function: |
+                                if(this.value) {
+                                    if(new Date() > new Date(this.value)) {
+                                        $(this).addClass('bg-striped border-danger rounded rounded-3');
+                                    } else {
+                                        $(this).removeClass('bg-striped border-danger rounded rounded-3');
+                                    }
+                                } else {
+                                    $(this).removeClass('bg-striped border-danger rounded rounded-3');
+                                }
+                            type:
+                                - onchange
+                                - onload
+
+            yoil:
+                # label: 요일설정
+                type: group
+                class: col-12 display-switch display-switch-dt display-switch-startdt switch-yoil display-switch-yoil
+                group_class: form-row g-1 p-0 bg-transparent border-0
+                display_target: .is_display
+                display_target_condition_style:
+                    0: "display: none"
+                    1: "display: none"
+
+                properties:
+                    is_allday:
+                        # label: 전체
+                        type: choice
+                        default: 0
+                        class: col-12 col-sm-3 pb-0 display-switch display-switch-always display-switch-dt display-switch-startdt display-switch-yoil
+                        button_class: w-100
+                        items:
+                            0: 요일전체
+                            1: 요일별
+                        onchange: |
+                            var $this = $(this);
+                            if(this.value == 0) {
+                                $this.closest('.form-element-wrapper').next().hide();
+                            } else {
+                                $this.closest('.form-element-wrapper').next().show();
+                            }
+                            if($this.closest('form').length > 0) {
+                                $this.closest('form').validate().checkByElements(
+                                    $('.valid-target', $this.closest('.form-element-wrapper').next())
+                                );
+                            }
+                        display_target: .is_allday
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                    day[]:
+                        # label: 요일
+                        type: multichoice
+                        class: col-12 col-sm-9 pt-sm-0 pm-sm-0 mt-sm-0 border-0 mb-1x
+                        s: display-switch display-switch-always display-switch-dt display-switch-startdt display-switch-yoil
+                        element_class: yoil_elemenet px-2 px-3
+                        items:
+                            is_sunday: 일
+                            is_monday: 월
+                            is_tuesday: 화
+                            is_wednesday: 수
+                            is_thursday: 목
+                            is_friday: 금
+                            is_saturday: 토
+                        button_class: w-100
+                        rules:
+                            required: ..is_allday == 1
+                        display_target: .is_allday
+                        display_target_condition_style:
+                            0: "display: none; "
+                            1: "display: block;"
+
+
+
+            is_sale:
+                label: 판매 구분
+                description: |
+                    판매 안함으로 설정하시면 판매가 중지됩니다.
+                    옵션에서도 개별 판매여부 설정이 가능하지만 "판매 구분"의 판매 안함이 우선입니다.
+                description: |
+                    판매 안함으로 설정하시면 판매가 중지됩니다.
+                type: choice
+                default: 1
+                items:
+                    0: 판매 안함
+                    1: 상시 판매
+                    2: 기간 판매
+                onchange: |
+                    if(this.value == 2) {
+                    $(this).closest('.form-element-wrapper').next().show();
+                    } else {
+                    $(this).closest('.form-element-wrapper').next().hide();
+                    }
+
+            sale:
+                label: 판매기간
+                type: group
+                display_target: common.is_sale
+                display_target_condition_style:
+                    0: "display: none;"
+                    1: "display: none;"
+                    2: "display: block;"
+                group_class: form-row row gx-1
+                properties:
+                    start_dt:
+                        label: 시작일
+                        type: datetime
+                        rules:
+                            required: common.is_sale == 2
+                        class: col-12 col-md-6 pb-md-0
+                    end_dt:
+                        label: 종료일
+                        type: datetime
+                        rules:
+                            required: common.is_sale == 2
+                            enddate: common.sale.start_dt
+                        class: col-12 col-md-6 border-md-0 pt-md-0 pb-md-0
+
+
+            name:
+                prepend: 상품 명
+                type: text
+                # prepend: '<i class="fi fi-kr"></i>'
+                lang: append
+                remove_lang_title: true
+                # langs:
+                #   ja:
+                #     label: 상품 명 - 일본어
+                #     rules:
+                #         required: true
+                #   en:
+                #     label: 상품 명 - 영어
+                #     rules:
+                #         required: false
+                rules:
+                    minlength: 1
+                    maxlength: 45
+                    required: true
+                messages:
+                    ko:
+                        maxlength: "{0}자로 입력"
+            id:
+                label:
+                    ko: 상품 아이디
+                description: 상품의 고유 코드를 입력하세요.
+                # description: 입력하면 url로 사용됩니다. 영문자로 시작, 숫자, 영문자, -, _ 허용
+                type: text
+                rules:
+                    minlength: 2
+                    maxlength: 45
+                    # required: true
+                    match: '[0-9a-zA-Z_\-]{1,44}'
+                messages:
+                    ko:
+                        maxlength: "{0}자로 입력"
+
+            require_point_start:
+                label: 필요 포인트 시작
+                description: |
+                    상품을 구매하기 위해 필요한 시작 포인트를 입력하세요.
+                type: number
+                default: 0
+                rules:
+                    required: true
+                    min: 0
+                    max: 100000000
+                messages:
+                    min: 0이상의 숫자를 입력하세요.
+                    max: 100000000이하의 숫자를 입력하세요.
+
+
+            require_point_end:
+                label: 필요 포인트 종료
+                description: |
+                    상품을 구매하기 위해 필요한 종료 포인트를 입력하세요.
+                type: number
+                default: 0
+                rules:
+                    required: true
+                    min: 0
+                    max: 100000000
+                messages:
+                    min: 0이상의 숫자를 입력하세요.
+                    max: 100000000이하의 숫자를 입력하세요.
+
+
+            max_quantity:
+                label: 주문 가능 수량
+                type: number
+                default: 1
+
+            grade_number:
+                label: 속성 등급
+                description: |
+                    상품의 속성 등급을 입력하세요.
+                    1부터 10까지, 높은 숫자일수록 높은 등급입니다.
+                type: number
+                rules:
+                    required: true
+                    min: 1
+                    max: 10
+                messages:
+                    min: 1이상의 숫자를 입력하세요.
+                    max: 10이하의 숫자를 입력하세요.
+            product_brand_seq:
+                label: 브랜드
+                short_description: |
+                    키워드를 입력하여 브랜드를 검색하세요.
+                type: search
+                items: []
+                api_server: |
+                    function() {
+                      return '../search_product_brand';
+                    }
+                # rules:
+                #     required: true
+
+            product_type_attribute_seq:
+                label: 상품 분류
+                type: select
+                items:
+                    "": 선택하세요
+                rules:
+                    required: true
+                description: 상품 타입을 선택하세요.
+                onchange: |
+                    $(form).ajaxSubmit({
+                        type: 'POST',
+                        url: '../attribute',
+                        dataType: 'json',
+                        success: function(result ) {
+                            try {
+
+                              if('object' == typeof result.payload.spec) {
+                                var $form  = $(form);
+
+
+                                var spec = $form.validate().getSpec();
+                                spec.properties.common.properties.product_type_attribute_items.properties = result.payload.spec.properties.common.properties.product_type_attribute_items.properties;
+                                console.log(spec);
+
+                                $form.validate().setSpec(spec);
+
+                                var result_html = $(result.payload.html).find('[name=\'common-product_type_attribute_items-layer\']');
+
+                                $('[name=\'common-product_type_attribute_items-layer\']').html(result_html.html());
+
+                                console.log($('.valid-target-attribute-set'));
+                                $form.validate().checkByElements(
+                                  $('.valid-target-attribute-set')
+                                );
+
+                              }
+
+                            } catch(error) {
+                              console.log(error);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            //alert(xhr.responseJSON.message);
+                            console.log('error', xhr, status, error);
+                        }
+                    });
+
+            product_type_attribute_items:
+              type: group
+              label: 필수 표기 정보
+              class: product_type_attribute_items
+              description: |
+                상품 분류를 먼저 선택하세요.
+
+
+            product_attribute:
+              type: textarea
+              rules:
+                  required: true
+              label: 필수 표기 정보
+
+            category_seqs[]:
+                label: 카테고리
+                type: select
+                sortable: true
+                sortable_button: true
+                items:
+                    "": 선택하세요
+                multiple: true
+                rules:
+                    unique: true
+                    # required: true
+
+
+            sub_category_seqs[]:
+                label: 그루핑
+                description: |
+                  상점내에서 상품을 구루핑합니다.
+                  '<a href="../../store">정보 설정</a>' >  '추가 설정' > '상품 그룹'에서 설정할수 있습니다.
+                type: select
+                sortable: true
+                sortable_button: true
+                items:
+                    "": 선택하세요
+                multiple: true
+                rules:
+                    unique: true
+                    required: true
+
+            # category_seqs[]:
+            #     label: 카테고리
+            #     type: select
+            #     sortable: true
+            #     sortable_button: true
+            #     items:
+            #         "": 선택하세요
+            #     multiple: true
+            #     rules:
+            #         unique: true
+            #         required: true
+
+            # stickers[]:
+            #   label: 스티커
+            #   type: multichoice
+
+            #   rules:
+            #     maxcount: 2
+
+            # company_seq:
+            #   label: 상점
+            #   type: select
+            #   items:
+            #     "": 선택하세요
+            #     1: 모두의 캠핑
+            #   rules:
+            #     required: true
+
+            cover_images[]:
+                label: 상품 이미지
+                prepend: 첨부
+                type: image
+                multiple: true
+                sortable: true
+                rules:
+                    required: true
+                    accept: image/*
+                preview-max-width: 200
+
+
+            # content_images[]:
+            #     label: 내용이미지
+            #     type: image
+            #     prepend: 첨부
+            #     multiple: true
+            #     sortable: true
+            #     rules:
+            #         # required: true
+            #         accept: image/*
+            #     preview-max-width: 200
+
+
+            product_attribute_image:
+                type: image
+                prepend: 첨부
+                rules:
+                    # required: true
+                    accept: image/*
+                label: 필수 표기 정보
+                preview-max-width: 200
+
+            short_description:
+                label: 짧은 설명
+                description: 리스트 등 짧은 설명이 필요한곳에 사용됩니다.
+                type: text
+
+            content:
+                label: 설명
+                type: tinymce
+                fileserver: ../upload
+                rows: 5
+                rules:
+                    # required: true
+                lang: append
+
+            # # content_langs:
+            #     # label: 설명 언어팩
+            #     type: group
+            #     group_class: p-0 m-0 border-0 bg-transparent
+            #     properties:
+            #         ja:
+            #             label: 설명 - 일본어
+            #             type: tinymce
+            #             rows: 5
+            #             # rules:
+            #             #     required: true
+            #             fileserver: ../upload
+
+                    # en:
+                    #     label: 설명 - 영어
+                    #     type: textarea
+                    #     rows: 5
+                    #     rules:
+                    #         required: false
+            # is_html:
+            #     # label: 설명 타입
+            #     append: 설명에 html을 사용하시겠습니까?
+            #     type: switcher
+            #     default: 0
+            #     element_class: fw-normal
+            #     class: border-0 pt-0
+
+            # is_delivery:
+            #     label: 배송
+            #     append: 실제 제품입니다.
+            #     type: switcher
+            #     default: 0
+            #     element_class: fw-normal
+
+            # delivery_weight:
+            #     label: 중량
+
+
+            is_quantity:
+                label: 수량 추적
+                description: |
+                    "사용함"의 경우 수량을 추적하고 0일경우 판매가 중단됩니다.
+                    "사용안함"의 경우 수량을 입력하지 않아도 되고 추적하지 않으며 0이어도 판매됩니다. 판매여부를 X로 할 경우에만 판매가 중단됩니다.
+                    "일별 사용함"의 경우 일별로 수량을 추적합니다.
+                    "전체수량" 없이 "판매가능수량"만 입력해도 됩니다.
+                type: choice
+                default: 0
+                items:
+                    0: 사용안함
+                    1: 사용함
+                    2: 일별 사용함
+                onchange: |
+                    console.log(this.checked);
+                    if(this.value == 1 || this.value == 2) {
+                      $('.items-quantity').show();
+                      $('.single-wide4').removeClass('col-md-4');
+                      $('.single-wide6').removeClass('col-md-6').addClass('col-md-4');
+
+                      $('.msingle-wide4').removeClass('col-md-4').addClass('col-md-2');
+                      $('.wide-last-child').removeClass('last-child');
+                    } else {
+                      $('.items-quantity').hide();
+                      $('.single-wide4').addClass('col-md-4');
+                      $('.single-wide6').removeClass('col-md-4').addClass('col-md-6');
+                      $('.msingle-wide4').removeClass('col-md-2').addClass('col-md-4');
+                      $('.wide-last-child').addClass('last-child');
+                    }
+            is_option:
+                label: 옵션
+                # description: |
+                #   단일옵션은 500ml, 1kg등 단일 속성일 경우 사용하십시요.
+                #   다중옵션은 컬러, 사이즈, 타입등 속성이 하나 이상일 경우 옵션명과 옵션값을 조합하여 입력하는 방식입니다.
+                type: choice
+                default: 0
+                items:
+                    0: 없음
+                    2: 단일
+                    1: 다중
+                onchange: |
+                    console.log(this.value);
+                    if(this.value == 1) {
+                        $('.multiplexable').show();
+
+                        $('.single-option-list').hide();
+
+                        $('.multiple-option-list').hide();
+
+                    } else if(this.value == 2) {
+                        $('.multiple-option-list').show();
+
+                        $('.single-option-list').hide();
+
+                        $('.multiplexable').hide();
+
+                    } else {
+
+                        $('.multiple-option-list').hide();
+
+                        $('.multiplexable').hide();
+
+                        $('.single-option-list').show();
+                    }
+
+    option:
+        type: group
+        class: border-0 pt-0 row gx-1 multiplexable multiplexable-condition
+        label: 옵션 설정
+        display_target: common.is_option
+        display_target_condition_style:
+            0: "display: none;"
+            1: "display: block;"
+            2: "display: none;"
+
+        properties:
+            groups[]:
+                type: group
+                group_class: form-row row gx-1
+                label: 옵션 그룹 설정
+                description: |
+                  옵션명에는 사이즈, 컬러, 타입등을 입력하시고 옵션값에는 각 옵션명에 맞는 값을 입력하세요.
+                  사이즈의 경우 라지, 미듐, 스몰, 컬러의 경우 블랙, 블루, 그린.., 타입의 경우 A, B, C.. 등을 입력하시고
+                  조합하시면 사이즈, 컬러, 타입등이 조합된 옵션을 생성해줍니다.
+
+                multiple: true
+                sortable: true
+                dynamic_onchange: |
+                    $('[name=option\\[button\\]]').val('').trigger('change');
+
+                properties:
+                    name:
+                        label: 옵션명
+                        type: text
+                        class: col-12 col-sm-3 py-sm-0
+                        element_class: option-multiplexable-name
+                        rules:
+                            required: common.is_option == 1
+
+                    items[]:
+                        label: 옵션값
+                        multiple: true
+                        sortable: true
+                        dynamic_onchange: |
+                            $('[name=option\\[button\\]]').val('').trigger('change');
+
+                        type: text
+                        class: col-12 col-sm-9 col-sm-line-first border-sm-0
+                        element_class: option-multiplexable-value
+                        rules:
+                            required: common.is_option == 1
+                            unique: true
+
+            button:
+                #description: 옵션 수정이 끝나면 옵션 조합 적용 버튼을 누르고 수량과 가격을 설정하세요.
+                type: button
+                text: 조합
+                rules:
+                    required: common.is_option == 1
+                messages:
+                    required: |
+                        옵션 수정이 끝나면 "조합" 버튼을 누르고 "판매 정보"을 하세요.
+                button_class: btn-submit
+                init_script: |
+                    $(document).on('change', '[name^=option\\[groups\\]]', function() {
+                      $('[name=option\\[button\\]]').val('').trigger('change');
+                    });
+                onclick: |
+                    $(form).ajaxSubmit({
+                        type: 'POST',
+                        url: '../option',
+                        dataType: 'json',
+                        beforeSubmit: function (data, $form, groups) {
+                            var option_chk = true;
+                            var option_group_count = $('.option-multiplexable-name').length;
+
+                            $('.option-multiplexable-name').each(function() {
+                              var items = $(this).closest('.form-group').find('.option-multiplexable-value');
+                              console.log(this, items);
+                              if(items.length == 1) {
+                                option_chk = false;
+                              }
+                            });
+                            console.log(
+                              option_group_count, option_chk
+                            )
+                            if(option_group_count == 1 && option_chk == false) {
+                              alert('다중옵션은 옵션을 조합하여 편리하게 입력할수 있습니다.\n\n옵션값이 하나일 경우 기본설정 > 옵션 > 단일을 선택하세요.');
+                              $('[name=option\\[button\\]]').val('').trigger('change');
+                              return false;
+                            }
+                            // var data = $form.elementObject();
+                            // var formData = new FormData(form[0]);
+
+                            var validate = $form.validate();
+                            var spec = $form.validate().getSpec();
+
+                            var custom_spec = {
+                                type: 'group',
+                                properties: {
+                                    common: {
+                                        type: 'group',
+                                        properties: {
+                                            is_option: spec.properties.common.properties.is_option
+                                        }
+                                    },
+                                    option: {
+                                        type: 'group',
+                                        properties: {
+                                            'groups[]': spec.properties.option.properties['groups[]']
+                                        }
+                                    }
+                                }
+                            }
+
+                            $form.validate().setSpec(custom_spec);
+                            var result = validate.loadvalid(true);
+                            $form.validate().setSpec(spec);
+
+                            return result;
+                        },
+                        success: function(result ) {
+                            console.log("result.payload", result.payload);
+                            var $form  = $(form);
+                            var result_html = $(result.payload.html).find('[name=\"option_multiplexable.items-layer\"]');;
+
+                            var spec = $form.validate().getSpec();
+                            spec.properties.option_multiplexable.properties['items[]'] = result.payload.spec.properties.option_multiplexable.properties['items[]'];
+
+                            $form.validate().setSpec(spec);
+
+                            try {
+                                $('[name=\"option_multiplexable.items-layer\"]').html(result_html.html());
+                            } catch(error) {
+
+                            }
+                            $('[name=option\\[button\\]]').val(1).trigger('change');
+
+                            //$form.validate().loadvalid();
+
+                             $('[name=\"option_multiplexable.items-layer\"]').scrollView();
+                        },
+                        error: function(xhr, status, error) {
+                            //alert(xhr.responseJSON.message);
+                            console.log('error', xhr, status, error);
+                        }
+                    });
+
+
+    option_multiplexable:
+        type: group
+        class: border-0 pt-0 row gx-1 multiplexable multiplexable-option-list
+        group_class: p-md-1
+        label: 판매 정보 [다중옵션]
+        # description: |
+        #     개별 판매여부 설정이 가능하지만 "판매 구분"의 판매 안함이 우선입니다.
+        #     정가을 입력하시면 할인율이 표시됩니다.
+        display_target: common.is_option
+        display_target_condition_style:
+            0: "display: none;"
+            1: "display: block;"
+            2: "display: none;"
+        display_target_condition_class:
+            0: ""
+            1: ""
+
+        properties:
+            title:
+                type: group
+                # label: 옵션목록
+                class: py-0 border-0 d-none d-md-block col-12
+                group_class: form-row
+                group_style: "padding:10px 0px 10px 0px;"
+                properties:
+                    name:
+                        type: dummy
+                        default: 옵션명
+                        class: col-12 col-md-3 col-md-line-first border-0
+                        style: "font-weight: 500"
+                        element_class: text-center
+                    is_close1:
+                        type: dummy
+                        class: col-6 col-md-1 col-md-line-first border-0
+                        default: 판매여부
+                        style: "font-weight: 500"
+                        element_class: text-center
+
+                    is_close5:
+                        type: dummy
+                        class: col-6 col-md-2 col-md-line-first border-0 msingle-wide4
+                        default: 정가
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-4"
+                            1: "col-md-2"
+                            2: ""
+                    is_close4:
+                        type: dummy
+                        class: col-6 col-md-2 col-md-line-first border-0 msingle-wide4
+                        default: 판매가격
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-4"
+                            1: "col-md-2"
+                            2: ""
+                    is_close2:
+                        type: dummy
+                        class: col-6 col-md-2 col-md-line-first border-0  items-quantity
+                        default: 전체수량
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+                    is_close3:
+                        type: dummy
+                        class: col-6 col-md-2 col-md-line-first border-0  items-quantity
+                        default: 판매가능수량
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+            items[]:
+                type: group
+                multiple: only
+                class: py-0 row gx-1 border-0 mt-0  option-multi-items
+                wrapper_class: mt-md-1
+                group_class: |
+                    form-row align-items-top border-md-0 p-md-0 row gx-1 bg-md-transparent ! option-blank
+                properties:
+                    # 조합시에도 사용되므로 분리
+                    $ref: OptionMultiplexable.yml
+
+    option_single:
+        type: group
+        class: border-0 pt-0 row gx-1 single-option-list
+        group_class: p-md-1
+        label: 판매 정보 [옵션없음]
+        # description: |
+        #     정가을 입력하시면 할인율이 표시됩니다.
+
+        display_target: common.is_option
+        display_target_condition_style:
+            2: "display: none;"
+            1: "display: none;"
+            0: "display: block;"
+        display_target_condition_class:
+            0: ""
+            1: ""
+            1: ""
+
+        properties:
+            title:
+                type: group
+                # label: 상품
+                class: py-0 border-0 d-none d-md-block col-12
+                group_class: form-row
+                group_style: "padding:10px 0px 10px 0px;"
+                properties:
+                    # is_close1:
+                    #     type: dummy
+                    #     class: col-12 col-md-2 p-0 border-0
+                    #     default: 판매여부
+                    #     style: "font-weight: 500"
+                    #     element_class: text-center
+
+                    is_close5:
+                        type: dummy
+                        class: col-12 col-md-line-first border-0 single-wide6
+                        default: 정가
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-6"
+                            1: "col-md-4"
+                            2: ""
+
+                    is_close4:
+                        type: dummy
+                        class: col-12  col-md-line-first border-0 single-wide6
+                        default: 판매가격
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-6"
+                            1: "col-md-4"
+                            2: ""
+
+                    is_close2:
+                        type: dummy
+                        class: col-12 col-md-2 col-md-line-first border-0  items-quantity
+                        default: 전체수량
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: "col-md-2"
+                            2: "col-md-2"
+                    is_close3:
+                        type: dummy
+                        class: col-12 col-md-2 col-md-line-first border-0  items-quantity
+                        default: 판매가능수량
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: "col-md-2"
+                            2: "col-md-2"
+            items[]:
+                type: group
+                class: py-0 row gx-1 border-0 mt-0
+                group_class: form-row align-items-top border-md-0 p-md-0 row gx-1 bg-md-transparent
+                wrapper_class: mt-md-1
+                multiple: only
+                properties:
+                    is_close:
+                        type: choice
+                        class: col-12 col-md-2 col-md-line-first border-0
+                        label_class: d-block d-md-none
+                        label: 판매여부
+                        default: 0
+                        items:
+                            0: O
+                            1: X
+                        style: "display: none;"
+                    #     button_class: w-100
+                    #     display_target: common.is_quantity
+                    #     display_target_condition_class:
+                    #         0: "wide-last-child last-child"
+                    #         1: ""
+                    #         2: ""
+                    original_price:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 정가
+                        append: 원
+                        class: col-6 py-0 pb-md-0 border-0  mt-0 single-wide6
+                        default: 0
+                        rules:
+                            # required: common.is_option == 0 && option_single.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-6 wide-last-child last-child"
+                            1: "col-md-4"
+                            2: "col-md-4"
+                    price:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 판매가격
+                        append: 원
+                        class: col-6 py-0 border-0 mt-0 single-wide6
+                        default: 0
+                        rules:
+                            required: common.is_option == 0 && option_single.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-6 wide-last-child last-child"
+                            1: "col-md-4"
+                            2: "col-md-4"
+
+                    total_quantity:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 전체수량
+                        append: 개
+                        class: col-6 col-md-2 pt-md-0 mt-md-0 pb-0 border-0  items-quantity
+                        # default: 0
+                        rules:
+                            required: common.is_option == 0 && common.is_quantity > 0 && option_single.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+                    rest_quantity:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 판매가능수량
+                        append: 개
+                        class: col-6 col-md-2  pt-md-0 mt-md-0 pb-0 border-0  items-quantity
+                        # default: 0
+                        rules:
+                            # required: common.is_option == 0 && common.is_quantity > 0 && option_single.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+
+    option_multiple:
+        type: group
+        class: border-0 pt-0 row gx-1 multiple-option-list
+        group_class: p-md-1
+        label: 판매 정보 [단일옵션]
+        # description: |
+        #     개별 판매여부 설정이 가능하지만 "판매 구분"의 판매 안함이 우선입니다.
+        #     정가을 입력하시면 할인율이 표시됩니다.
+        display_target: common.is_option
+        display_target_condition_style:
+            0: "display: none;"
+            1: "display: none;"
+            2: "display: block;"
+        display_target_condition_class:
+            0: ""
+            1: ""
+            2: ""
+
+        properties:
+            title:
+                type: group
+                # label: 옵션목록
+                class: py-0 border-0 d-none d-md-block col-12
+                group_class: form-row
+                group_style: "padding:10px 0px 10px 0px;"
+                properties:
+                    name:
+                        type: dummy
+                        default: 옵션명
+                        class: col-6 col-md-2 col-md-line-first border-0
+                        style: "font-weight: 500"
+                        element_class: text-center
+                    is_close1:
+                        type: dummy
+                        class: col-6 col-md-1 col-md-line-first border-0
+                        default: 판매여부
+                        style: "font-weight: 500"
+                        element_class: text-center
+
+                    is_close5:
+                        type: dummy
+                        class: col-12 col-md-2 col-md-line-first border-0 single-wide4
+                        default: 정가
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-4"
+                            1: ""
+                            2: ""
+                    is_close4:
+                        type: dummy
+                        class: col-12 col-md-2 col-md-line-first border-0 single-wide4
+                        default: 판매가격
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-4"
+                            1: ""
+                            2: ""
+                    is_close2:
+                        type: dummy
+                        class: col-12 col-md-2 col-md-line-first border-0  items-quantity
+                        default: 전체수량
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+                    is_close3:
+                        type: dummy
+                        class: col-12 col-md-2 col-md-line-first border-0  items-quantity
+                        default: 판매가능수량
+                        style: "font-weight: 500"
+                        element_class: text-center
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+            items[]:
+                type: group
+                multiple: true
+                class: py-0 row gx-1 border-0 mt-0 option-multi-items
+                wrapper_class: mt-md-1
+                group_class: |
+                    form-row align-items-top border-md-0 p-md-0 row gx-1 bg-md-transparent
+                properties:
+                    name:
+                        type: text
+                        label_class: d-block d-md-none
+                        label: 옵션
+                        class: col-6 col-md-2 col-md-line-first border-0
+                        #element_style: "background: #f7f7f7; pointer-events: none;"
+                        rules:
+                            required: common.is_option == 2 && option_multiple.items.*.is_close == 0
+
+                    is_close:
+                        type: choice
+                        class: col-6 col-md-1 col-line-first border-0 
+                        label_class: d-block d-md-none
+                        label: 판매여부
+                        default: 0
+                        items:
+                            0: O
+                            1: X
+
+                        button_class: w-100
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "wide-last-child last-child"
+                            1: ""
+                            2: ""
+                    original_price:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 정가
+                        append: 원
+                        class: col-6 col-md-2 col-md-line-first border-0 mt-0 single-wide4
+                        default: 0
+                        rules:
+                            # required: common.is_option == 2 && option_multiple.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-4 wide-last-child last-child"
+                            1: ""
+                            2: ""
+                    price:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 판매가격
+                        append: 원
+                        class: col-6 col-md-2 col-md-line-first border-0 mt-0 single-wide4
+                        default: 0
+                        rules:
+                            required: common.is_option == 2 && option_multiple.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_class:
+                            0: "col-md-4 wide-last-child last-child"
+                            1: ""
+                            2: ""
+                    total_quantity:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 전체수량
+                        append: 개
+                        class: col-6 col-md-2  col-line-last col-md-line-first border-0 mt-0 items-quantity
+                        # default: 0
+                        rules:
+                            required: common.is_option == 2 && common.is_quantity > 0 &&  option_multiple.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+                    rest_quantity:
+                        type: number
+                        label_class: d-block d-md-none
+                        label: 판매가능수량
+                        append: 개
+                        class: col-6 col-md-2 col-line-last col-md-line-first border-0 mt-0 items-quantity
+                        # default: 0
+                        rules:
+                        #     required: common.is_option == 2 && common.is_quantity > 0 && option_multiple.items.*.is_close == 0
+                            min: 0
+                        messages:
+                            min: 양수로 입력해주세요.
+                        display_target: common.is_quantity
+                        display_target_condition_style:
+                            0: "display: none;"
+                            1: "display: block;"
+                            2: "display: block;"
+                        display_target_condition_class:
+                            0: ""
+                            1: ""
+                            2: ""
+
+    # info:
+    #     label: 판매 정보 링크
+    #     type: text
+    #     rules:
+    #         maxlength: 255
+
+    # release_dt:
+    #     label: 발매일
+    #     type: date
+
+
+    additionals[]:
+        label: 추가상품
+        description: |
+            '<a href="../../product_additional">추가상품 관리</a>' 메뉴에서 생성후 연결하세요.
+            상품의 수량 추적을 하지 않더라도 추가상품은 수량 추적할수 있습니다. 반대의 경우도 가능합니다.
+        type: select
+        multiple: true
+        sortable: true
+        items:
+            "": 선택하세요.
+        rules:
+            unique: true
+        onchange: |
+            $(this).closest('form').data('validator').checkByElements(
+              $(this).closest('.form-element-wrapper').find('.valid-target')
+            );
+
+    shipping_methods[]:
+        label: 발송방법
+        description: |
+            '<a href="../../shipping">발송방법 관리</a>' 메뉴에서 생성후 연결하세요.
+
+        type: select
+        multiple: true
+        sortable: true
+        items:
+          '': '선택하세요'
+        rules:
+          required: true
+          unique: true
+
+
+    # product_ingredient_tags:
+    #   label: 성분
+    #   description: 키워드를 일부 입력하면 검색할수 있습니다.
+    #   type: tagify
+    #   server: ../tagify
+
+    # ingredient_info:
+    #     label: 성분 자료 출처
+    #     type: textarea
+    #     counter: true
+    #     rules:
+    #       maxlength: 255

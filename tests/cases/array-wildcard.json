@@ -1,0 +1,716 @@
+{
+  "testSuite": "array-wildcard",
+  "version": "1.0.0",
+  "description": "Array Wildcard 패턴 검증 테스트 - *.field 패턴을 사용한 배열 요소 참조",
+  "tests": [
+    {
+      "id": "wildcard-001",
+      "description": "기본 와일드카드 패턴 - 현재 배열 요소 참조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "is_close": { "type": "choice", "default": 0, "items": { "0": "O", "1": "X" } },
+              "price": { "type": "number", "rules": { "required": "items.*.is_close == 0" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [{ "is_close": 0, "price": null }] },
+          "expected": { "valid": false, "error": "required", "field": "items.0.price" }
+        },
+        {
+          "input": { "items": [{ "is_close": 1, "price": null }] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "items": [{ "is_close": 0, "price": 10000 }] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-002",
+      "description": "다중 배열 요소 - 각 요소별 독립 검증",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "is_close": { "type": "choice", "default": 0 },
+              "name": { "type": "text", "rules": { "required": "items.*.is_close == 0" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [
+            { "is_close": 0, "name": "" },
+            { "is_close": 0, "name": "상품B" }
+          ]},
+          "expected": { "valid": false, "error": "required", "field": "items.0.name" }
+        },
+        {
+          "input": { "items": [
+            { "is_close": 0, "name": "상품A" },
+            { "is_close": 0, "name": "" }
+          ]},
+          "expected": { "valid": false, "error": "required", "field": "items.1.name" }
+        },
+        {
+          "input": { "items": [
+            { "is_close": 0, "name": "상품A" },
+            { "is_close": 1, "name": "" }
+          ]},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "items": [
+            { "is_close": 0, "name": "상품A" },
+            { "is_close": 0, "name": "상품B" }
+          ]},
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-003",
+      "description": "외부 필드와 와일드카드 조합",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": {
+                    "type": "number",
+                    "rules": { "required": "common.is_option == 0 && option_single.items.*.is_close == 0" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_option": 1 },
+            "option_single": { "items": [{ "is_close": 0, "price": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 0 },
+            "option_single": { "items": [{ "is_close": 1, "price": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 0 },
+            "option_single": { "items": [{ "is_close": 0, "price": null }] }
+          },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.0.price" }
+        },
+        {
+          "input": {
+            "common": { "is_option": 0 },
+            "option_single": { "items": [{ "is_close": 0, "price": 5000 }] }
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-004",
+      "description": "세 개의 조건 AND 연산 - 와일드카드 포함",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 },
+              "is_quantity": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "total_quantity": {
+                    "type": "number",
+                    "rules": { "required": "common.is_option == 0 && common.is_quantity > 0 && option_single.items.*.is_close == 0" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_option": 0, "is_quantity": 0 },
+            "option_single": { "items": [{ "is_close": 0, "total_quantity": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 0, "is_quantity": 1 },
+            "option_single": { "items": [{ "is_close": 1, "total_quantity": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 1, "is_quantity": 1 },
+            "option_single": { "items": [{ "is_close": 0, "total_quantity": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 0, "is_quantity": 1 },
+            "option_single": { "items": [{ "is_close": 0, "total_quantity": null }] }
+          },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.0.total_quantity" }
+        },
+        {
+          "input": {
+            "common": { "is_option": 0, "is_quantity": 1 },
+            "option_single": { "items": [{ "is_close": 0, "total_quantity": 100 }] }
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-005",
+      "description": "option_multiplexable 패턴 - 다중 옵션",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_multiplexable": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": {
+                    "type": "number",
+                    "rules": { "required": "common.is_option == 1 && option_multiplexable.items.*.is_close == 0" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_option": 0 },
+            "option_multiplexable": { "items": [{ "is_close": 0, "price": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 1 },
+            "option_multiplexable": { "items": [
+              { "is_close": 0, "price": null },
+              { "is_close": 0, "price": 5000 }
+            ]}
+          },
+          "expected": { "valid": false, "error": "required", "field": "option_multiplexable.items.0.price" }
+        },
+        {
+          "input": {
+            "common": { "is_option": 1 },
+            "option_multiplexable": { "items": [
+              { "is_close": 0, "price": 10000 },
+              { "is_close": 0, "price": 5000 }
+            ]}
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-006",
+      "description": "option_multiple 패턴 - 단일 옵션",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_multiple": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "name": {
+                    "type": "text",
+                    "rules": { "required": "common.is_option == 2 && option_multiple.items.*.is_close == 0" }
+                  },
+                  "price": {
+                    "type": "number",
+                    "rules": { "required": "common.is_option == 2 && option_multiple.items.*.is_close == 0" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_option": 0 },
+            "option_multiple": { "items": [{ "is_close": 0, "name": "", "price": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 2 },
+            "option_multiple": { "items": [{ "is_close": 0, "name": "", "price": null }] }
+          },
+          "expected": { "valid": false, "error": "required" }
+        },
+        {
+          "input": {
+            "common": { "is_option": 2 },
+            "option_multiple": { "items": [{ "is_close": 0, "name": "Large", "price": 15000 }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 2 },
+            "option_multiple": { "items": [{ "is_close": 1, "name": "", "price": null }] }
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-007",
+      "description": "빈 배열 처리",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "is_close": { "type": "choice", "default": 0 },
+              "price": { "type": "number", "rules": { "required": "items.*.is_close == 0" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-008",
+      "description": "와일드카드와 min 규칙 조합",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "is_close": { "type": "choice", "default": 0 },
+              "price": {
+                "type": "number",
+                "rules": {
+                  "required": "common.is_option == 1 && items.*.is_close == 0",
+                  "min": 0
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_option": 1 },
+            "items": [{ "is_close": 0, "price": -100 }]
+          },
+          "expected": { "valid": false, "error": "min", "field": "items.0.price" }
+        },
+        {
+          "input": {
+            "common": { "is_option": 1 },
+            "items": [{ "is_close": 0, "price": 0 }]
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-009",
+      "description": "중첩된 그룹 내 와일드카드",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "orders": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "status": { "type": "choice", "default": "pending" },
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "quantity": {
+                    "type": "number",
+                    "rules": { "required": "orders.*.status == confirmed" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "orders": [{ "status": "pending", "items": [{ "quantity": null }] }] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "orders": [{ "status": "confirmed", "items": [{ "quantity": null }] }] },
+          "expected": { "valid": false, "error": "required", "field": "orders.0.items.0.quantity" }
+        },
+        {
+          "input": { "orders": [{ "status": "confirmed", "items": [{ "quantity": 5 }] }] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-010",
+      "description": "unique 규칙과 배열",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "option": {
+            "type": "group",
+            "properties": {
+              "groups": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": true } },
+                  "items": {
+                    "type": "text",
+                    "multiple": true,
+                    "rules": { "required": true, "unique": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "option": { "groups": [{ "name": "색상", "items": ["빨강", "파랑", "빨강"] }] } },
+          "expected": { "valid": false, "error": "unique" }
+        },
+        {
+          "input": { "option": { "groups": [{ "name": "색상", "items": ["빨강", "파랑", "초록"] }] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-011",
+      "description": "multiple: only 패턴 (단일 요소 배열처럼 동작)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": "only",
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": {
+                    "type": "number",
+                    "rules": { "required": "common.is_option == 0 && option_single.items.*.is_close == 0" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_option": 0 },
+            "option_single": { "items": { "is_close": 0, "price": null } }
+          },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.price" }
+        },
+        {
+          "input": {
+            "common": { "is_option": 0 },
+            "option_single": { "items": { "is_close": 0, "price": 10000 } }
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-012",
+      "description": "다중 필드 와일드카드 참조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "products": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "type": { "type": "choice", "default": "physical" },
+              "weight": { "type": "number", "rules": { "required": "products.*.type == physical" } },
+              "download_url": { "type": "text", "rules": { "required": "products.*.type == digital" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "products": [{ "type": "physical", "weight": null, "download_url": "" }] },
+          "expected": { "valid": false, "error": "required", "field": "products.0.weight" }
+        },
+        {
+          "input": { "products": [{ "type": "digital", "weight": null, "download_url": "" }] },
+          "expected": { "valid": false, "error": "required", "field": "products.0.download_url" }
+        },
+        {
+          "input": { "products": [{ "type": "physical", "weight": 500, "download_url": "" }] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "products": [{ "type": "digital", "weight": null, "download_url": "https://example.com/file.zip" }] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-013",
+      "description": "is_quantity와 와일드카드 복합 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 },
+              "is_quantity": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_multiplexable": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "total_quantity": {
+                    "type": "number",
+                    "rules": { "required": "common.is_option == 1 && common.is_quantity > 0 && option_multiplexable.items.*.is_close == 0" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_option": 1, "is_quantity": 0 },
+            "option_multiplexable": { "items": [{ "is_close": 0, "total_quantity": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 1, "is_quantity": 1 },
+            "option_multiplexable": { "items": [{ "is_close": 1, "total_quantity": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_option": 1, "is_quantity": 1 },
+            "option_multiplexable": { "items": [{ "is_close": 0, "total_quantity": null }] }
+          },
+          "expected": { "valid": false, "error": "required", "field": "option_multiplexable.items.0.total_quantity" }
+        },
+        {
+          "input": {
+            "common": { "is_option": 1, "is_quantity": 2 },
+            "option_multiplexable": { "items": [
+              { "is_close": 0, "total_quantity": 50 },
+              { "is_close": 0, "total_quantity": 100 }
+            ]}
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-014",
+      "description": "여러 배열 간 교차 참조 불가 확인",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "products": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "name": { "type": "text" }
+            }
+          },
+          "variants": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "product_ref": { "type": "number" },
+              "sku": { "type": "text", "rules": { "required": "variants.*.product_ref > 0" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "products": [{ "name": "상품A" }],
+            "variants": [{ "product_ref": 0, "sku": "" }]
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "products": [{ "name": "상품A" }],
+            "variants": [{ "product_ref": 1, "sku": "" }]
+          },
+          "expected": { "valid": false, "error": "required", "field": "variants.0.sku" }
+        },
+        {
+          "input": {
+            "products": [{ "name": "상품A" }],
+            "variants": [{ "product_ref": 1, "sku": "SKU-001" }]
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "wildcard-015",
+      "description": "인덱스 3개 이상 배열에서의 와일드카드",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "active": { "type": "switcher", "default": 1 },
+              "value": { "type": "text", "rules": { "required": "items.*.active == 1" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [
+            { "active": 1, "value": "A" },
+            { "active": 0, "value": "" },
+            { "active": 1, "value": "" },
+            { "active": 1, "value": "D" }
+          ]},
+          "expected": { "valid": false, "error": "required", "field": "items.2.value" }
+        },
+        {
+          "input": { "items": [
+            { "active": 1, "value": "A" },
+            { "active": 0, "value": "" },
+            { "active": 1, "value": "C" },
+            { "active": 1, "value": "D" }
+          ]},
+          "expected": { "valid": true }
+        }
+      ]
+    }
+  ]
+}

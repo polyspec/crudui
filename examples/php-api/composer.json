@@ -1,0 +1,26 @@
+{
+    "name": "form-spec/php-api-example",
+    "description": "PHP API example for form-spec validation system",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.0",
+        "form-spec/validator": "^1.0",
+        "symfony/yaml": "^6.0 || ^7.0"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../validator/php"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "scripts": {
+        "serve": "php -S localhost:8080 -t .",
+        "test": "php test-api.php"
+    }
+}

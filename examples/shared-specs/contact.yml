@@ -1,0 +1,56 @@
+type: group
+properties:
+  name:
+    type: text
+    rules:
+      required: true
+      minlength: 2
+      maxlength: 100
+    design:
+      label: { ko: "이름", en: "Name" }
+      placeholder: { ko: "이름을 입력하세요", en: "Enter your name" }
+
+  email:
+    type: email
+    rules:
+      required: true
+      email: true
+    design:
+      label: { ko: "이메일", en: "Email" }
+      placeholder: { ko: "이메일을 입력하세요", en: "Enter your email" }
+
+  phone:
+    type: text
+    rules:
+      minlength: 10
+      maxlength: 20
+    design:
+      label: { ko: "전화번호", en: "Phone" }
+      placeholder: { ko: "전화번호를 입력하세요", en: "Enter your phone" }
+
+  subject:
+    type: select
+    rules:
+      required: true
+    items:
+      general: { ko: "일반 문의", en: "General Inquiry" }
+      support: { ko: "기술 지원", en: "Technical Support" }
+      sales: { ko: "영업 문의", en: "Sales" }
+      partnership: { ko: "제휴 문의", en: "Partnership" }
+    design:
+      label: { ko: "문의 유형", en: "Subject" }
+
+  message:
+    type: textarea
+    rules:
+      required: true
+      minlength: 10
+      maxlength: 2000
+    design:
+      label: { ko: "메시지", en: "Message" }
+      placeholder: { ko: "메시지를 입력하세요", en: "Enter your message" }
+
+  newsletter:
+    type: checkbox
+    design:
+      label: { ko: "뉴스레터 구독", en: "Subscribe to newsletter" }

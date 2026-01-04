@@ -1,0 +1,162 @@
+{
+  "testSuite": "email",
+  "version": "1.0.0",
+  "description": "Email 규칙 검증 테스트 - 이메일 형식 검증",
+  "tests": [
+    {
+      "id": "email-001",
+      "description": "유효한 기본 이메일 형식",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user@example.com", "expected": { "valid": true } },
+        { "input": "test@domain.org", "expected": { "valid": true } },
+        { "input": "admin@company.co.kr", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-002",
+      "description": "서브도메인이 있는 이메일",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user@mail.example.com", "expected": { "valid": true } },
+        { "input": "test@subdomain.domain.org", "expected": { "valid": true } },
+        { "input": "admin@a.b.c.d.example.com", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-003",
+      "description": "특수문자가 포함된 로컬 파트",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user.name@example.com", "expected": { "valid": true } },
+        { "input": "user+tag@example.com", "expected": { "valid": true } },
+        { "input": "user-name@example.com", "expected": { "valid": true } },
+        { "input": "user_name@example.com", "expected": { "valid": true } },
+        { "input": "user123@example.com", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-004",
+      "description": "@가 없는 경우 실패",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "userexample.com", "expected": { "valid": false, "error": "email" } },
+        { "input": "user.example.com", "expected": { "valid": false, "error": "email" } }
+      ]
+    },
+    {
+      "id": "email-005",
+      "description": "@가 여러 개인 경우 실패",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user@@example.com", "expected": { "valid": false, "error": "email" } },
+        { "input": "user@domain@example.com", "expected": { "valid": false, "error": "email" } }
+      ]
+    },
+    {
+      "id": "email-006",
+      "description": "도메인이 없는 경우 실패",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user@", "expected": { "valid": false, "error": "email" } },
+        { "input": "user@.com", "expected": { "valid": false, "error": "email" } }
+      ]
+    },
+    {
+      "id": "email-007",
+      "description": "로컬 파트가 없는 경우 실패",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "@example.com", "expected": { "valid": false, "error": "email" } },
+        { "input": " @example.com", "expected": { "valid": false, "error": "email" } }
+      ]
+    },
+    {
+      "id": "email-008",
+      "description": "공백이 포함된 경우 실패",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user @example.com", "expected": { "valid": false, "error": "email" } },
+        { "input": "user@ example.com", "expected": { "valid": false, "error": "email" } },
+        { "input": "user name@example.com", "expected": { "valid": false, "error": "email" } }
+      ]
+    },
+    {
+      "id": "email-009",
+      "description": "빈 값 - required와 조합되지 않으면 통과",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } },
+        { "input": null, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-010",
+      "description": "required와 email 조합",
+      "spec": { "type": "text", "rules": { "required": true, "email": true } },
+      "cases": [
+        { "input": "", "expected": { "valid": false, "error": "required" } },
+        { "input": "invalid", "expected": { "valid": false, "error": "email" } },
+        { "input": "valid@email.com", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-011",
+      "description": "TLD가 짧은 경우",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user@example.co", "expected": { "valid": true } },
+        { "input": "user@example.io", "expected": { "valid": true } },
+        { "input": "user@example.ai", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-012",
+      "description": "TLD가 긴 경우",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user@example.museum", "expected": { "valid": true } },
+        { "input": "user@example.technology", "expected": { "valid": true } },
+        { "input": "user@example.international", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-013",
+      "description": "숫자로 시작하는 로컬 파트",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "123user@example.com", "expected": { "valid": true } },
+        { "input": "1@example.com", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-014",
+      "description": "특수문자가 잘못된 위치에 있는 경우",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": ".user@example.com", "expected": { "valid": false, "error": "email" } },
+        { "input": "user.@example.com", "expected": { "valid": false, "error": "email" } },
+        { "input": "user..name@example.com", "expected": { "valid": false, "error": "email" } }
+      ]
+    },
+    {
+      "id": "email-015",
+      "description": "대소문자 혼합",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "User@Example.COM", "expected": { "valid": true } },
+        { "input": "USER@EXAMPLE.COM", "expected": { "valid": true } },
+        { "input": "UsEr@ExAmPlE.CoM", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "email-016",
+      "description": "국제화 도메인 (IDN) - 일반적으로 비허용",
+      "spec": { "type": "text", "rules": { "email": true } },
+      "cases": [
+        { "input": "user@도메인.한국", "expected": { "valid": false, "error": "email" } },
+        { "input": "user@例え.jp", "expected": { "valid": false, "error": "email" } }
+      ]
+    }
+  ]
+}

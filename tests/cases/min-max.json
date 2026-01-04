@@ -1,0 +1,211 @@
+{
+  "testSuite": "min-max",
+  "version": "1.0.0",
+  "description": "Min/Max 규칙 검증 테스트 - 숫자 범위 검증",
+  "tests": [
+    {
+      "id": "min-001",
+      "description": "기본 min 검증",
+      "spec": { "type": "number", "rules": { "min": 0 } },
+      "cases": [
+        { "input": -1, "expected": { "valid": false, "error": "min" } },
+        { "input": 0, "expected": { "valid": true } },
+        { "input": 1, "expected": { "valid": true } },
+        { "input": 100, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "min-002",
+      "description": "min 1 검증 (양수만 허용)",
+      "spec": { "type": "number", "rules": { "min": 1 } },
+      "cases": [
+        { "input": 0, "expected": { "valid": false, "error": "min" } },
+        { "input": 1, "expected": { "valid": true } },
+        { "input": 10, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "max-001",
+      "description": "기본 max 검증",
+      "spec": { "type": "number", "rules": { "max": 100 } },
+      "cases": [
+        { "input": 99, "expected": { "valid": true } },
+        { "input": 100, "expected": { "valid": true } },
+        { "input": 101, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-001",
+      "description": "min과 max 조합 (범위 검증)",
+      "spec": { "type": "number", "rules": { "min": 1, "max": 10 } },
+      "cases": [
+        { "input": 0, "expected": { "valid": false, "error": "min" } },
+        { "input": 1, "expected": { "valid": true } },
+        { "input": 5, "expected": { "valid": true } },
+        { "input": 10, "expected": { "valid": true } },
+        { "input": 11, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-002",
+      "description": "빈 값은 min/max 검증 건너뜀",
+      "spec": { "type": "number", "rules": { "min": 0, "max": 100 } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } },
+        { "input": null, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "min-max-003",
+      "description": "required와 min/max 조합",
+      "spec": { "type": "number", "rules": { "required": true, "min": 0, "max": 100 } },
+      "cases": [
+        { "input": "", "expected": { "valid": false, "error": "required" } },
+        { "input": null, "expected": { "valid": false, "error": "required" } },
+        { "input": -1, "expected": { "valid": false, "error": "min" } },
+        { "input": 50, "expected": { "valid": true } },
+        { "input": 101, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-004",
+      "description": "소수점 숫자 검증",
+      "spec": { "type": "number", "rules": { "min": 0.5, "max": 10.5 } },
+      "cases": [
+        { "input": 0.4, "expected": { "valid": false, "error": "min" } },
+        { "input": 0.5, "expected": { "valid": true } },
+        { "input": 5.5, "expected": { "valid": true } },
+        { "input": 10.5, "expected": { "valid": true } },
+        { "input": 10.6, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-005",
+      "description": "음수 범위 검증",
+      "spec": { "type": "number", "rules": { "min": -100, "max": -1 } },
+      "cases": [
+        { "input": -101, "expected": { "valid": false, "error": "min" } },
+        { "input": -100, "expected": { "valid": true } },
+        { "input": -50, "expected": { "valid": true } },
+        { "input": -1, "expected": { "valid": true } },
+        { "input": 0, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-006",
+      "description": "문자열로 된 숫자 처리",
+      "spec": { "type": "number", "rules": { "min": 0, "max": 100 } },
+      "cases": [
+        { "input": "50", "expected": { "valid": true } },
+        { "input": "-1", "expected": { "valid": false, "error": "min" } },
+        { "input": "101", "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-007",
+      "description": "큰 숫자 범위 (상품 가격 등)",
+      "spec": { "type": "number", "rules": { "min": 0, "max": 100000000 } },
+      "cases": [
+        { "input": -1, "expected": { "valid": false, "error": "min" } },
+        { "input": 0, "expected": { "valid": true } },
+        { "input": 50000000, "expected": { "valid": true } },
+        { "input": 100000000, "expected": { "valid": true } },
+        { "input": 100000001, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-008",
+      "description": "커스텀 에러 메시지",
+      "spec": {
+        "type": "number",
+        "rules": { "min": 0, "max": 100 },
+        "messages": {
+          "min": "양수로 입력해주세요.",
+          "max": "{0}이하의 숫자를 입력하세요."
+        }
+      },
+      "cases": [
+        { "input": -1, "expected": { "valid": false, "error": "min", "message": "양수로 입력해주세요." } },
+        { "input": 101, "expected": { "valid": false, "error": "max", "message": "100이하의 숫자를 입력하세요." } }
+      ]
+    },
+    {
+      "id": "min-max-009",
+      "description": "등급 숫자 범위 (1-10)",
+      "spec": {
+        "type": "number",
+        "rules": { "required": true, "min": 1, "max": 10 },
+        "messages": {
+          "min": "1이상의 숫자를 입력하세요.",
+          "max": "10이하의 숫자를 입력하세요."
+        }
+      },
+      "cases": [
+        { "input": 0, "expected": { "valid": false, "error": "min" } },
+        { "input": 1, "expected": { "valid": true } },
+        { "input": 5, "expected": { "valid": true } },
+        { "input": 10, "expected": { "valid": true } },
+        { "input": 11, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-010",
+      "description": "default 값이 있는 경우",
+      "spec": { "type": "number", "default": 0, "rules": { "min": 0, "max": 100 } },
+      "cases": [
+        { "input": 0, "expected": { "valid": true } },
+        { "input": 50, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "min-max-011",
+      "description": "min만 있는 경우 (수량 추적)",
+      "spec": { "type": "number", "rules": { "min": 0 } },
+      "cases": [
+        { "input": -1, "expected": { "valid": false, "error": "min" } },
+        { "input": 0, "expected": { "valid": true } },
+        { "input": 999999999, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "min-max-012",
+      "description": "max만 있는 경우",
+      "spec": { "type": "number", "rules": { "max": 1000 } },
+      "cases": [
+        { "input": -999999, "expected": { "valid": true } },
+        { "input": 1000, "expected": { "valid": true } },
+        { "input": 1001, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-013",
+      "description": "min == max (고정값)",
+      "spec": { "type": "number", "rules": { "min": 5, "max": 5 } },
+      "cases": [
+        { "input": 4, "expected": { "valid": false, "error": "min" } },
+        { "input": 5, "expected": { "valid": true } },
+        { "input": 6, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-014",
+      "description": "0 경계값 테스트",
+      "spec": { "type": "number", "rules": { "min": 0, "max": 0 } },
+      "cases": [
+        { "input": -0.1, "expected": { "valid": false, "error": "min" } },
+        { "input": 0, "expected": { "valid": true } },
+        { "input": 0.1, "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "min-max-015",
+      "description": "NaN 및 비숫자 입력 처리",
+      "spec": { "type": "number", "rules": { "min": 0, "max": 100 } },
+      "cases": [
+        { "input": "abc", "expected": { "valid": false, "error": "number" } },
+        { "input": "12abc", "expected": { "valid": false, "error": "number" } },
+        { "input": "Infinity", "expected": { "valid": false, "error": "max" } }
+      ]
+    }
+  ]
+}

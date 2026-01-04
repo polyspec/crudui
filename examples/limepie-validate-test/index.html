@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limepie Validate.js Test - Plain HTML</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .input-group-wrapper {
+            margin-bottom: 1rem;
+        }
+        .message {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .test-section {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .test-section h3 {
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+        .result-box {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        .result-success {
+            background-color: #d1e7dd;
+            border: 1px solid #badbcc;
+        }
+        .result-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c2c7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="mb-4">Limepie Validate.js - Backward Compatibility Test</h1>
+
+        <div class="row">
+            <!-- Plain HTML Form Section -->
+            <div class="col-md-6">
+                <div class="test-section">
+                    <h3>Plain HTML Form</h3>
+                    <p class="text-muted">Using original Limepie validate.js with data-rules attributes</p>
+
+                    <form id="plain-html-form">
+                        <!-- Text Input - Required -->
+                        <div class="input-group-wrapper">
+                            <label for="plain-username" class="form-label">Username (required, min 3 chars)</label>
+                            <input type="text"
+                                   class="form-control valid-target"
+                                   id="plain-username"
+                                   name="username"
+                                   data-rule-name="username"
+                                   placeholder="Enter username">
+                        </div>
+
+                        <!-- Email Input -->
+                        <div class="input-group-wrapper">
+                            <label for="plain-email" class="form-label">Email (required, valid email)</label>
+                            <input type="email"
+                                   class="form-control valid-target"
+                                   id="plain-email"
+                                   name="email"
+                                   data-rule-name="email"
+                                   placeholder="Enter email">
+                        </div>
+
+                        <!-- Password Input -->
+                        <div class="input-group-wrapper">
+                            <label for="plain-password" class="form-label">Password (required, min 8 chars)</label>
+                            <input type="password"
+                                   class="form-control valid-target"
+                                   id="plain-password"
+                                   name="password"
+                                   data-rule-name="password"
+                                   placeholder="Enter password">
+                        </div>
+
+                        <!-- Password Confirm -->
+                        <div class="input-group-wrapper">
+                            <label for="plain-password-confirm" class="form-label">Confirm Password (must match)</label>
+                            <input type="password"
+                                   class="form-control valid-target"
+                                   id="plain-password-confirm"
+                                   name="password_confirm"
+                                   data-rule-name="password_confirm"
+                                   placeholder="Confirm password">
+                        </div>
+
+                        <!-- Age Input -->
+                        <div class="input-group-wrapper">
+                            <label for="plain-age" class="form-label">Age (optional, 18-100)</label>
+                            <input type="number"
+                                   class="form-control valid-target"
+                                   id="plain-age"
+                                   name="age"
+                                   data-rule-name="age"
+                                   placeholder="Enter age">
+                        </div>
+
+                        <!-- Select Input -->
+                        <div class="input-group-wrapper">
+                            <label for="plain-country" class="form-label">Country (required)</label>
+                            <select class="form-select valid-target"
+                                    id="plain-country"
+                                    name="country"
+                                    data-rule-name="country">
+                                <option value="">Select country</option>
+                                <option value="kr">Korea</option>
+                                <option value="us">United States</option>
+                                <option value="jp">Japan</option>
+                            </select>
+                        </div>
+
+                        <!-- Checkbox -->
+                        <div class="input-group-wrapper">
+                            <div class="form-check">
+                                <input type="checkbox"
+                                       class="form-check-input valid-target"
+                                       id="plain-agree"
+                                       name="agree"
+                                       data-rule-name="agree"
+                                       value="1">
+                                <label class="form-check-label" for="plain-agree">
+                                    I agree to terms (required)
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" id="plain-validate-btn">
+                            Validate Form
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="plain-reset-btn">
+                            Reset
+                        </button>
+
+                        <div id="plain-result" class="result-box" style="display:none;"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- React-Generated Form Section (placeholder for now) -->
+            <div class="col-md-6">
+                <div class="test-section">
+                    <h3>React-Generated Form</h3>
+                    <p class="text-muted">React form that outputs same HTML structure</p>
+                    <div id="react-root"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div class="test-section">
+            <h3>Validation Comparison</h3>
+            <p class="text-muted">Both forms should produce identical validation results</p>
+            <button type="button" class="btn btn-success" id="compare-btn">
+                Compare Both Forms
+            </button>
+            <div id="comparison-result" class="result-box" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/dist.validate.js"></script>
+
+    <script>
+        // Define validation spec for the form
+        const validationSpec = {
+            properties: {
+                username: {
+                    type: 'string',
+                    rules: {
+                        required: true,
+                        minlength: 3
+                    },
+                    messages: {
+                        required: 'Username is required.',
+                        minlength: 'Username must be at least 3 characters.'
+                    }
+                },
+                email: {
+                    type: 'string',
+                    rules: {
+                        required: true,
+                        email: true
+                    },
+                    messages: {
+                        required: 'Email is required.',
+                        email: 'Please enter a valid email address.'
+                    }
+                },
+                password: {
+                    type: 'string',
+                    rules: {
+                        required: true,
+                        minlength: 8
+                    },
+                    messages: {
+                        required: 'Password is required.',
+                        minlength: 'Password must be at least 8 characters.'
+                    }
+                },
+                password_confirm: {
+                    type: 'string',
+                    rules: {
+                        required: true,
+                        equalTo: 'password'
+                    },
+                    messages: {
+                        required: 'Please confirm your password.',
+                        equalTo: 'Passwords must match.'
+                    }
+                },
+                age: {
+                    type: 'number',
+                    rules: {
+                        min: 18,
+                        max: 100
+                    },
+                    messages: {
+                        min: 'Age must be at least 18.',
+                        max: 'Age must be 100 or less.'
+                    }
+                },
+                country: {
+                    type: 'string',
+                    rules: {
+                        required: true
+                    },
+                    messages: {
+                        required: 'Please select a country.'
+                    }
+                },
+                agree: {
+                    type: 'boolean',
+                    rules: {
+                        required: true
+                    },
+                    messages: {
+                        required: 'You must agree to the terms.'
+                    }
+                }
+            }
+        };
+
+        $(function() {
+            // Initialize validator for plain HTML form
+            const $plainForm = $('#plain-html-form');
+            const plainValidator = $plainForm.validate({
+                spec: validationSpec
+            });
+
+            // Validate button click handler
+            $('#plain-validate-btn').click(function() {
+                const isValid = plainValidator.loadvalid(true);
+                const $result = $('#plain-result');
+
+                if (isValid) {
+                    $result.removeClass('result-error').addClass('result-success')
+                           .html('<strong>Valid!</strong> All fields passed validation.')
+                           .show();
+                } else {
+                    $result.removeClass('result-success').addClass('result-error')
+                           .html('<strong>Invalid!</strong> Please fix the errors above.')
+                           .show();
+                }
+            });
+
+            // Reset button
+            $('#plain-reset-btn').click(function() {
+                $plainForm[0].reset();
+                $plainForm.find('.message').remove();
+                $('#plain-result').hide();
+            });
+
+            // Compare button
+            $('#compare-btn').click(function() {
+                const plainResult = plainValidator.loadvalid(true);
+
+                // Get React form validator if exists
+                const $reactForm = $('#react-form');
+                let reactResult = null;
+
+                if ($reactForm.length && $reactForm.data('validator')) {
+                    reactResult = $reactForm.data('validator').loadvalid(true);
+                }
+
+                const $result = $('#comparison-result');
+
+                if (reactResult === null) {
+                    $result.removeClass('result-success result-error')
+                           .addClass('result-error')
+                           .html('<strong>React form not initialized.</strong> Please wait for React to load.')
+                           .show();
+                } else if (plainResult === reactResult) {
+                    $result.removeClass('result-error').addClass('result-success')
+                           .html(`<strong>Match!</strong> Both forms returned: ${plainResult ? 'Valid' : 'Invalid'}`)
+                           .show();
+                } else {
+                    $result.removeClass('result-success').addClass('result-error')
+                           .html(`<strong>Mismatch!</strong> Plain: ${plainResult}, React: ${reactResult}`)
+                           .show();
+                }
+            });
+        });
+
+        // Export spec for React to use
+        window.validationSpec = validationSpec;
+    </script>
+
+    <!-- React will be loaded here -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" src="react-form.jsx"></script>
+</body>
+</html>

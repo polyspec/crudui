@@ -1,0 +1,442 @@
+{
+  "testSuite": "conditional",
+  "version": "1.0.0",
+  "description": "Conditional 표현식 검증 테스트 - 조건부 규칙 평가",
+  "tests": [
+    {
+      "id": "cond-eq-001",
+      "description": "동등 비교 (== 숫자)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "type": { "type": "choice", "default": 0 },
+          "value": { "type": "text", "rules": { "required": ".type == 1" } }
+        }
+      },
+      "cases": [
+        { "input": { "type": 0, "value": "" }, "expected": { "valid": true } },
+        { "input": { "type": 1, "value": "" }, "expected": { "valid": false, "error": "required", "field": "value" } },
+        { "input": { "type": 1, "value": "test" }, "expected": { "valid": true } },
+        { "input": { "type": 2, "value": "" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-eq-002",
+      "description": "동등 비교 (== 문자열)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "country": { "type": "text", "default": "" },
+          "state": { "type": "text", "rules": { "required": ".country == US" } }
+        }
+      },
+      "cases": [
+        { "input": { "country": "KR", "state": "" }, "expected": { "valid": true } },
+        { "input": { "country": "US", "state": "" }, "expected": { "valid": false, "error": "required", "field": "state" } },
+        { "input": { "country": "US", "state": "CA" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-neq-001",
+      "description": "부등 비교 (!=)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "status": { "type": "choice", "default": "draft" },
+          "reason": { "type": "text", "rules": { "required": ".status != draft" } }
+        }
+      },
+      "cases": [
+        { "input": { "status": "draft", "reason": "" }, "expected": { "valid": true } },
+        { "input": { "status": "published", "reason": "" }, "expected": { "valid": false, "error": "required", "field": "reason" } },
+        { "input": { "status": "archived", "reason": "정리함" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-gt-001",
+      "description": "크다 비교 (>)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "quantity": { "type": "number", "default": 0 },
+          "warehouse": { "type": "text", "rules": { "required": ".quantity > 0" } }
+        }
+      },
+      "cases": [
+        { "input": { "quantity": 0, "warehouse": "" }, "expected": { "valid": true } },
+        { "input": { "quantity": -1, "warehouse": "" }, "expected": { "valid": true } },
+        { "input": { "quantity": 1, "warehouse": "" }, "expected": { "valid": false, "error": "required", "field": "warehouse" } },
+        { "input": { "quantity": 100, "warehouse": "A창고" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-gte-001",
+      "description": "크거나 같다 비교 (>=)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "age": { "type": "number", "default": 0 },
+          "consent": { "type": "text", "rules": { "required": ".age >= 18" } }
+        }
+      },
+      "cases": [
+        { "input": { "age": 17, "consent": "" }, "expected": { "valid": true } },
+        { "input": { "age": 18, "consent": "" }, "expected": { "valid": false, "error": "required", "field": "consent" } },
+        { "input": { "age": 20, "consent": "동의함" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-lt-001",
+      "description": "작다 비교 (<)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "discount": { "type": "number", "default": 0 },
+          "approval": { "type": "text", "rules": { "required": ".discount < 50" } }
+        }
+      },
+      "cases": [
+        { "input": { "discount": 50, "approval": "" }, "expected": { "valid": true } },
+        { "input": { "discount": 51, "approval": "" }, "expected": { "valid": true } },
+        { "input": { "discount": 49, "approval": "" }, "expected": { "valid": false, "error": "required", "field": "approval" } }
+      ]
+    },
+    {
+      "id": "cond-lte-001",
+      "description": "작거나 같다 비교 (<=)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "price": { "type": "number", "default": 0 },
+          "coupon": { "type": "text", "rules": { "required": ".price <= 10000" } }
+        }
+      },
+      "cases": [
+        { "input": { "price": 10001, "coupon": "" }, "expected": { "valid": true } },
+        { "input": { "price": 10000, "coupon": "" }, "expected": { "valid": false, "error": "required", "field": "coupon" } },
+        { "input": { "price": 5000, "coupon": "SAVE10" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-and-001",
+      "description": "AND 연산자 (&&) - 두 조건 모두 참",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "is_option": { "type": "choice", "default": 0 },
+          "is_close": { "type": "choice", "default": 0 },
+          "price": { "type": "number", "rules": { "required": ".is_option == 1 && .is_close == 0" } }
+        }
+      },
+      "cases": [
+        { "input": { "is_option": 0, "is_close": 0, "price": null }, "expected": { "valid": true } },
+        { "input": { "is_option": 1, "is_close": 1, "price": null }, "expected": { "valid": true } },
+        { "input": { "is_option": 0, "is_close": 1, "price": null }, "expected": { "valid": true } },
+        { "input": { "is_option": 1, "is_close": 0, "price": null }, "expected": { "valid": false, "error": "required", "field": "price" } },
+        { "input": { "is_option": 1, "is_close": 0, "price": 10000 }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-or-001",
+      "description": "OR 연산자 (||) - 하나 이상 참",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "is_display": { "type": "choice", "default": 0 },
+          "start_dt": { "type": "datetime", "rules": { "required": ".is_display == 2 || .is_display == 3" } }
+        }
+      },
+      "cases": [
+        { "input": { "is_display": 0, "start_dt": "" }, "expected": { "valid": true } },
+        { "input": { "is_display": 1, "start_dt": "" }, "expected": { "valid": true } },
+        { "input": { "is_display": 2, "start_dt": "" }, "expected": { "valid": false, "error": "required", "field": "start_dt" } },
+        { "input": { "is_display": 3, "start_dt": "" }, "expected": { "valid": false, "error": "required", "field": "start_dt" } },
+        { "input": { "is_display": 2, "start_dt": "2024-01-01" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-complex-001",
+      "description": "복합 조건 - AND와 OR 혼합",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "is_option": { "type": "choice", "default": 0 },
+          "is_quantity": { "type": "choice", "default": 0 },
+          "is_close": { "type": "choice", "default": 0 },
+          "total_quantity": {
+            "type": "number",
+            "rules": { "required": ".is_option == 0 && .is_quantity > 0 && .is_close == 0" }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "is_option": 0, "is_quantity": 0, "is_close": 0, "total_quantity": null }, "expected": { "valid": true } },
+        { "input": { "is_option": 0, "is_quantity": 1, "is_close": 1, "total_quantity": null }, "expected": { "valid": true } },
+        { "input": { "is_option": 1, "is_quantity": 1, "is_close": 0, "total_quantity": null }, "expected": { "valid": true } },
+        { "input": { "is_option": 0, "is_quantity": 1, "is_close": 0, "total_quantity": null }, "expected": { "valid": false, "error": "required", "field": "total_quantity" } },
+        { "input": { "is_option": 0, "is_quantity": 2, "is_close": 0, "total_quantity": 100 }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-path-parent-001",
+      "description": "상위 경로 참조 (..) - 한 단계",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_sale": { "type": "choice", "default": 0 },
+              "sale": {
+                "type": "group",
+                "properties": {
+                  "start_dt": { "type": "datetime", "rules": { "required": "..is_sale == 2" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "is_sale": 0, "sale": { "start_dt": "" } } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_sale": 1, "sale": { "start_dt": "" } } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_sale": 2, "sale": { "start_dt": "" } } }, "expected": { "valid": false, "error": "required", "field": "common.sale.start_dt" } },
+        { "input": { "common": { "is_sale": 2, "sale": { "start_dt": "2024-06-01" } } }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-path-abs-001",
+      "description": "절대 경로 참조 (common.is_option)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option": {
+            "type": "group",
+            "properties": {
+              "name": { "type": "text", "rules": { "required": "common.is_option == 1" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "is_option": 0 }, "option": { "name": "" } }, "expected": { "valid": true } },
+        { "input": { "common": { "is_option": 1 }, "option": { "name": "" } }, "expected": { "valid": false, "error": "required", "field": "option.name" } },
+        { "input": { "common": { "is_option": 1 }, "option": { "name": "사이즈" } }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-in-001",
+      "description": "in 연산자 - 배열 포함 여부",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "country": { "type": "choice", "default": "" },
+          "tax_id": { "type": "text", "rules": { "required": ".country in [US, CA, UK]" } }
+        }
+      },
+      "cases": [
+        { "input": { "country": "KR", "tax_id": "" }, "expected": { "valid": true } },
+        { "input": { "country": "JP", "tax_id": "" }, "expected": { "valid": true } },
+        { "input": { "country": "US", "tax_id": "" }, "expected": { "valid": false, "error": "required", "field": "tax_id" } },
+        { "input": { "country": "CA", "tax_id": "" }, "expected": { "valid": false, "error": "required", "field": "tax_id" } },
+        { "input": { "country": "UK", "tax_id": "GB123456789" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-in-002",
+      "description": "in 연산자 - 숫자 배열",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "category": { "type": "number", "default": 0 },
+          "subcategory": { "type": "text", "rules": { "required": ".category in [1, 2, 3]" } }
+        }
+      },
+      "cases": [
+        { "input": { "category": 0, "subcategory": "" }, "expected": { "valid": true } },
+        { "input": { "category": 4, "subcategory": "" }, "expected": { "valid": true } },
+        { "input": { "category": 1, "subcategory": "" }, "expected": { "valid": false, "error": "required", "field": "subcategory" } },
+        { "input": { "category": 2, "subcategory": "의류" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-not-in-001",
+      "description": "not in 연산자",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "role": { "type": "choice", "default": "guest" },
+          "email": { "type": "text", "rules": { "required": ".role not in [guest, anonymous]" } }
+        }
+      },
+      "cases": [
+        { "input": { "role": "guest", "email": "" }, "expected": { "valid": true } },
+        { "input": { "role": "anonymous", "email": "" }, "expected": { "valid": true } },
+        { "input": { "role": "user", "email": "" }, "expected": { "valid": false, "error": "required", "field": "email" } },
+        { "input": { "role": "admin", "email": "admin@example.com" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-bool-001",
+      "description": "불리언 조건 (true/false)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "is_active": { "type": "switcher", "default": false },
+          "activation_date": { "type": "date", "rules": { "required": ".is_active == true" } }
+        }
+      },
+      "cases": [
+        { "input": { "is_active": false, "activation_date": "" }, "expected": { "valid": true } },
+        { "input": { "is_active": true, "activation_date": "" }, "expected": { "valid": false, "error": "required", "field": "activation_date" } },
+        { "input": { "is_active": true, "activation_date": "2024-01-01" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-truthy-001",
+      "description": "Truthy 값 검사 (필드 존재 여부)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "has_warranty": { "type": "switcher", "default": 0 },
+          "warranty_period": { "type": "number", "rules": { "required": ".has_warranty" } }
+        }
+      },
+      "cases": [
+        { "input": { "has_warranty": 0, "warranty_period": null }, "expected": { "valid": true } },
+        { "input": { "has_warranty": 1, "warranty_period": null }, "expected": { "valid": false, "error": "required", "field": "warranty_period" } },
+        { "input": { "has_warranty": 1, "warranty_period": 12 }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-nested-001",
+      "description": "깊은 중첩 경로 참조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "config": {
+            "type": "group",
+            "properties": {
+              "shipping": {
+                "type": "group",
+                "properties": {
+                  "enabled": { "type": "switcher", "default": 0 }
+                }
+              }
+            }
+          },
+          "address": {
+            "type": "group",
+            "properties": {
+              "street": { "type": "text", "rules": { "required": "config.shipping.enabled == 1" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "config": { "shipping": { "enabled": 0 } }, "address": { "street": "" } }, "expected": { "valid": true } },
+        { "input": { "config": { "shipping": { "enabled": 1 } }, "address": { "street": "" } }, "expected": { "valid": false, "error": "required", "field": "address.street" } },
+        { "input": { "config": { "shipping": { "enabled": 1 } }, "address": { "street": "강남대로 123" } }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-multiple-rules-001",
+      "description": "여러 규칙에 각각 다른 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "type": { "type": "choice", "default": 0 },
+          "amount": {
+            "type": "number",
+            "rules": {
+              "required": ".type == 1",
+              "min": ".type == 1 ? 100 : 0"
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "type": 0, "amount": null }, "expected": { "valid": true } },
+        { "input": { "type": 1, "amount": null }, "expected": { "valid": false, "error": "required", "field": "amount" } },
+        { "input": { "type": 1, "amount": 50 }, "expected": { "valid": false, "error": "min", "field": "amount" } },
+        { "input": { "type": 1, "amount": 100 }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-string-compare-001",
+      "description": "문자열 비교 (따옴표 없이)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "payment_method": { "type": "choice", "default": "card" },
+          "bank_account": { "type": "text", "rules": { "required": ".payment_method == bank" } }
+        }
+      },
+      "cases": [
+        { "input": { "payment_method": "card", "bank_account": "" }, "expected": { "valid": true } },
+        { "input": { "payment_method": "bank", "bank_account": "" }, "expected": { "valid": false, "error": "required", "field": "bank_account" } },
+        { "input": { "payment_method": "bank", "bank_account": "110-123-456789" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-empty-check-001",
+      "description": "빈 값 체크 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "primary_email": { "type": "text", "default": "" },
+          "secondary_email": { "type": "text", "rules": { "required": ".primary_email == ''" } }
+        }
+      },
+      "cases": [
+        { "input": { "primary_email": "main@example.com", "secondary_email": "" }, "expected": { "valid": true } },
+        { "input": { "primary_email": "", "secondary_email": "" }, "expected": { "valid": false, "error": "required", "field": "secondary_email" } },
+        { "input": { "primary_email": "", "secondary_email": "backup@example.com" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "cond-precedence-001",
+      "description": "연산자 우선순위 - && vs ||",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "a": { "type": "number", "default": 0 },
+          "b": { "type": "number", "default": 0 },
+          "c": { "type": "number", "default": 0 },
+          "result": { "type": "text", "rules": { "required": ".a == 1 && .b == 1 || .c == 1" } }
+        }
+      },
+      "cases": [
+        { "input": { "a": 0, "b": 0, "c": 0, "result": "" }, "expected": { "valid": true } },
+        { "input": { "a": 1, "b": 0, "c": 0, "result": "" }, "expected": { "valid": true } },
+        { "input": { "a": 1, "b": 1, "c": 0, "result": "" }, "expected": { "valid": false, "error": "required", "field": "result" } },
+        { "input": { "a": 0, "b": 0, "c": 1, "result": "" }, "expected": { "valid": false, "error": "required", "field": "result" } }
+      ]
+    },
+    {
+      "id": "cond-parentheses-001",
+      "description": "괄호를 사용한 우선순위 조정",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "a": { "type": "number", "default": 0 },
+          "b": { "type": "number", "default": 0 },
+          "c": { "type": "number", "default": 0 },
+          "result": { "type": "text", "rules": { "required": ".a == 1 && (.b == 1 || .c == 1)" } }
+        }
+      },
+      "cases": [
+        { "input": { "a": 0, "b": 1, "c": 1, "result": "" }, "expected": { "valid": true } },
+        { "input": { "a": 1, "b": 0, "c": 0, "result": "" }, "expected": { "valid": true } },
+        { "input": { "a": 1, "b": 1, "c": 0, "result": "" }, "expected": { "valid": false, "error": "required", "field": "result" } },
+        { "input": { "a": 1, "b": 0, "c": 1, "result": "" }, "expected": { "valid": false, "error": "required", "field": "result" } }
+      ]
+    }
+  ]
+}
