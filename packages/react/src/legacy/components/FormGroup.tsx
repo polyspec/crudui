@@ -5,6 +5,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
+import { Plus, Minus, ChevronUp, ChevronDown } from 'lucide-react';
 import { useFormContext } from '../context/FormContext';
 import { useI18n } from '../context/I18nContext';
 import { useMultiple, arrayToMultipleItems, multipleItemsToArray } from '../hooks/useMultiple';
@@ -179,6 +180,14 @@ function MultipleFormGroup({
     add();
   }, [add]);
 
+  // Handle add after specific index
+  const handleAddAfter = useCallback(
+    (afterIndex: number) => {
+      add(afterIndex + 1);
+    },
+    [add]
+  );
+
   // Handle remove button
   const handleRemove = useCallback(
     (key: string) => {
@@ -242,37 +251,37 @@ function MultipleFormGroup({
                   uniqueKey={item.key}
                 />
               ))}</div>
-            {/* Buttons - original Limepie structure */}
+            {/* Buttons - Lucide icons */}
             <span className="btn-group input-group-btn">
               {isSortable && !isDisabled && !isReadonly && (
                 <>
                   <button
                     type="button"
-                    className="btn btn-move-up"
+                    className="btn btn-outline-secondary btn-sm"
                     onClick={() => handleMoveUp(index)}
                     disabled={index === 0}
-                  >&nbsp;</button>
+                  ><ChevronUp size={16} /></button>
                   <button
                     type="button"
-                    className="btn btn-move-down"
+                    className="btn btn-outline-secondary btn-sm"
                     onClick={() => handleMoveDown(index)}
                     disabled={index === items.length - 1}
-                  >&nbsp;</button>
+                  ><ChevronDown size={16} /></button>
                 </>
               )}
               {canAdd && !isDisabled && !isReadonly && (
                 <button
                   type="button"
-                  className="btn btn-plus"
-                  onClick={handleAdd}
-                >&nbsp;</button>
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() => handleAddAfter(index)}
+                ><Plus size={16} /></button>
               )}
               {canRemove && !isDisabled && !isReadonly && (
                 <button
                   type="button"
-                  className="btn btn-minus"
+                  className="btn btn-outline-danger btn-sm"
                   onClick={() => handleRemove(item.key)}
-                >&nbsp;</button>
+                ><Minus size={16} /></button>
               )}
             </span>
           </div>
@@ -284,9 +293,9 @@ function MultipleFormGroup({
             <span className="btn-group input-group-btn">
               <button
                 type="button"
-                className="btn btn-plus"
+                className="btn btn-outline-primary btn-sm"
                 onClick={handleAdd}
-              >&nbsp;</button>
+              ><Plus size={16} /></button>
             </span>
           </div>
         )}
