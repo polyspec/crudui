@@ -131,14 +131,17 @@ function FormBuilderInner({
    */
   const formContent = (
     <>
-      {/* Form title */}
-      {spec.label && <h2 className="form-title">{t(spec.label)}</h2>}
+      {/* Form title - use label.form-label like Limepie */}
+      {spec.label && <label className="form-label">{t(spec.label)}</label>}
 
       {/* Form description */}
-      {spec.description && <p className="form-description">{t(spec.description)}</p>}
+      {spec.description && <div className="form-description">{t(spec.description)}</div>}
+
+      {/* Separator like Limepie */}
+      {(spec.label || spec.description) && <hr />}
 
       {/* Form fields - wrapped in form-group like Limepie */}
-      <div className="form-group form-fields">{renderFields()}</div>
+      <div className="form-group">{renderFields()}</div>
 
       {/* Form buttons */}
       {renderButtons ? (
