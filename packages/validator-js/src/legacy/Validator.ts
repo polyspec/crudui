@@ -190,6 +190,11 @@ export class Validator {
           fieldValue !== null &&
           typeof fieldValue === 'object' &&
           !Array.isArray(fieldValue);
+        // Check if it's object-based multiple (multiple: true with object data using unique keys)
+        const isObjectMultiple = fieldSpec.multiple === true &&
+          fieldValue !== null &&
+          typeof fieldValue === 'object' &&
+          !Array.isArray(fieldValue);
 
         if (isArrayMultiple) {
           // Repeatable group (array of objects)
@@ -207,6 +212,29 @@ export class Validator {
           }
 
           // Validate array-level rules
+          this.validateFieldRules(
+            fieldSpec,
+            fieldValue,
+            fieldPath,
+            allData,
+            errors
+          );
+        } else if (isObjectMultiple) {
+          // Repeatable group stored as object with unique keys
+          const objectValue = fieldValue as Record<string, Record<string, unknown>>;
+          for (const [key, itemData] of Object.entries(objectValue)) {
+            const itemPath = [...fieldPath, key];
+
+            this.validateProperties(
+              fieldSpec.properties,
+              itemData ?? {},
+              itemPath,
+              allData,
+              errors
+            );
+          }
+
+          // Validate group-level rules
           this.validateFieldRules(
             fieldSpec,
             fieldValue,
@@ -453,8 +481,8 @@ export class Validator {
     for (let i = 0; i < pathSegments.length; i++) {
       const segment = pathSegments[i]!;
 
-      // Skip numeric indices (array elements)
-      if (/^\d+$/.test(segment)) {
+      // Skip numeric indices (array elements) and unique keys (__xxxx__ format)
+      if (/^\d+$/.test(segment) || /^__[a-z0-9]+__$/.test(segment)) {
         continue;
       }
 

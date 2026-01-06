@@ -290,15 +290,15 @@ describe('Nested Group Validation', () => {
 
     expect(result.valid).toBe(false);
 
-    // Check array item errors
+    // Check array item errors (using bracket notation for indices)
     const contact0TypeError = result.errors.find(
-      (e) => e.path === 'contacts.0.type'
+      (e) => e.path === 'contacts[0].type'
     );
     const contact0ValueError = result.errors.find(
-      (e) => e.path === 'contacts.0.value'
+      (e) => e.path === 'contacts[0].value'
     );
     const contact1ValueError = result.errors.find(
-      (e) => e.path === 'contacts.1.value'
+      (e) => e.path === 'contacts[1].value'
     );
 
     expect(contact0TypeError).toBeDefined();

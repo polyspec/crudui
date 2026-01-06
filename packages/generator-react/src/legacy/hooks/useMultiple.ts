@@ -4,7 +4,7 @@
  * Hook for managing multiple/sortable array fields
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { FormValue, UseMultipleReturn, MultipleItem, UniqueKey } from '../types';
 import { generateUniqueKey } from '../utils/path';
 
@@ -46,6 +46,20 @@ export function useMultiple<T = FormValue>({
   }, []);
 
   const [items, setItems] = useState<MultipleItem<T>[]>(() => initializeItems(initialItems));
+
+  // Track if initial sync has been done
+  const hasInitialSynced = useRef(false);
+
+  // Sync items and form data on mount when initialItems has data
+  useEffect(() => {
+    if (!hasInitialSynced.current && initialItems.length > 0) {
+      hasInitialSynced.current = true;
+      const initialized = initializeItems(initialItems);
+      setItems(initialized);
+      // Trigger onChange to sync form data with unique keys
+      onChange?.(initialized);
+    }
+  }, [initialItems, initializeItems, onChange]);
 
   /**
    * Get default value for new item
