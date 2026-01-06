@@ -75,6 +75,15 @@ export function useForm({
         return newData;
       });
 
+      // Clear error immediately when value changes
+      setErrors((prev) => {
+        if (prev[path]) {
+          const { [path]: _, ...rest } = prev;
+          return rest;
+        }
+        return prev;
+      });
+
       // Always validate on change - rules are checked sequentially
       // and first failed rule shows error immediately
       const validator = validatorRef.current;
@@ -85,15 +94,6 @@ export function useForm({
             const error = validator.validateField(path, value, currentData as Record<string, unknown>);
             if (error) {
               setErrors((prev) => ({ ...prev, [path]: error }));
-            } else {
-              // Clear error if validation passes
-              setErrors((prev) => {
-                if (prev[path]) {
-                  const { [path]: _, ...rest } = prev;
-                  return rest;
-                }
-                return prev;
-              });
             }
             return currentData;
           });

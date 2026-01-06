@@ -587,9 +587,25 @@ export function parsePathString(pathString: string): string[] {
 
 /**
  * Convert path segments to path string
+ * Formats numeric indices and unique keys with bracket notation
  */
 export function pathToString(path: string[]): string {
-  return path.join('.');
+  if (path.length === 0) return '';
+
+  return path.reduce((result, segment, index) => {
+    // Check if segment is numeric or unique key (__xxxx__ format)
+    if (/^\d+$/.test(segment) || /^__[a-z0-9]+__$/.test(segment)) {
+      return `${result}[${segment}]`;
+    }
+
+    // First segment
+    if (index === 0) {
+      return segment;
+    }
+
+    // Use dot notation
+    return `${result}.${segment}`;
+  }, '');
 }
 
 /**
