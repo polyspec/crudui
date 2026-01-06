@@ -55,7 +55,6 @@ export function PasswordField({
 
       <input
         type={showPassword ? 'text' : 'password'}
-        id={path}
         name={bracketName}
         value={(value as string) ?? ''}
         onChange={handleChange}

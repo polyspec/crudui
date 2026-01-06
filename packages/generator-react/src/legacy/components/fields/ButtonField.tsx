@@ -89,7 +89,6 @@ export function ButtonField({
 
       <button
         type="button"
-        id={path}
         name={path}
         onClick={handleClick}
         onBlur={onBlur}

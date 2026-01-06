@@ -151,7 +151,6 @@ export function BrowserImageField({
       {/* Hidden input for form */}
       <input
         type="hidden"
-        id={path}
         name={bracketName}
         value={currentImage ?? ''}
         onBlur={onBlur}

@@ -30,7 +30,7 @@ properties:
 
       // Labels are rendered as h6 in this implementation
       expect(screen.getByText('Name')).toBeInTheDocument();
-      expect(container.querySelector('#name')).toBeInTheDocument();
+      expect(container.querySelector('[name="name"]')).toBeInTheDocument();
     });
 
     it('should handle invalid YAML gracefully', () => {
@@ -80,8 +80,8 @@ properties:
 
       const { container } = render(<FormBuilder spec={spec} data={undefined} language="en" />);
 
-      // h6 label style - use id selector
-      const input = container.querySelector('#name') as HTMLInputElement;
+      // h6 label style - use name selector (no id attribute)
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       expect(input).toBeInTheDocument();
       expect(input).toHaveValue('');
     });
@@ -97,8 +97,8 @@ properties:
 
       const { container } = render(<FormBuilder spec={spec} data={{}} language="en" />);
 
-      const nameInput = container.querySelector('#name') as HTMLInputElement;
-      const emailInput = container.querySelector('#email') as HTMLInputElement;
+      const nameInput = container.querySelector('[name="name"]') as HTMLInputElement;
+      const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
       expect(nameInput).toHaveValue('');
       expect(emailInput).toHaveValue('');
     });
@@ -116,7 +116,7 @@ properties:
       );
 
       // Should not crash and handle null gracefully
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       expect(input).toBeInTheDocument();
     });
 
@@ -132,7 +132,7 @@ properties:
         <FormBuilder spec={spec} data={{ name: undefined }} language="en" />
       );
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       expect(input).toHaveValue('');
     });
   });
@@ -210,7 +210,7 @@ describe('Validation Edge Cases', () => {
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
       // Type only spaces
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, '   ');
 
       const submitButton = screen.getByRole('button', { name: /save/i });
@@ -246,7 +246,7 @@ describe('Validation Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#password') as HTMLInputElement;
+      const input = container.querySelector('[name="password"]') as HTMLInputElement;
 
       // Test minlength
       await userEvent.type(input, 'short');
@@ -279,7 +279,7 @@ describe('Validation Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const input = container.querySelector('#text') as HTMLInputElement;
+      const input = container.querySelector('[name="text"]') as HTMLInputElement;
       await userEvent.type(input, '<script>alert("xss")</script>');
 
       await waitFor(() => {
@@ -300,7 +300,7 @@ describe('Validation Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, '한글');
 
       await waitFor(() => {
@@ -321,7 +321,7 @@ describe('Validation Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const input = container.querySelector('#message') as HTMLInputElement;
+      const input = container.querySelector('[name="message"]') as HTMLInputElement;
       // Note: userEvent may have issues with emoji, using fireEvent as backup
       fireEvent.change(input, { target: { value: 'Hello!' } });
 
@@ -350,7 +350,7 @@ describe('Callback Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onSubmit={onSubmit} />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, 'Test');
 
       const submitButton = screen.getByRole('button', { name: /save/i });
@@ -375,7 +375,7 @@ describe('Callback Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, 'test');
 
       await waitFor(() => {
@@ -454,7 +454,7 @@ describe('Nested Data Path Edge Cases', () => {
         />
       );
 
-      const input = container.querySelector('#level1\\.level2\\.level3\\.deep') as HTMLInputElement;
+      const input = container.querySelector('[name="level1[level2][level3][deep]"]') as HTMLInputElement;
       expect(input).toHaveValue('deep value');
     });
 
@@ -479,7 +479,7 @@ describe('Nested Data Path Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onSubmit={onSubmit} />);
 
-      const input = container.querySelector('[id="a.b.c"]') as HTMLInputElement;
+      const input = container.querySelector('[name="a[b][c]"]') as HTMLInputElement;
       await userEvent.type(input, 'nested value');
 
       const submitButton = screen.getByRole('button', { name: /save/i });
@@ -532,7 +532,7 @@ describe('Form State Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, 'rapidtext', { delay: 1 });
 
       await waitFor(() => {
@@ -554,7 +554,7 @@ describe('Form State Edge Cases', () => {
         <FormBuilder spec={spec} language="en" />
       );
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, 'Test Value');
 
       expect(input).toHaveValue('Test Value');
@@ -564,7 +564,7 @@ describe('Form State Edge Cases', () => {
 
       // Value should be preserved (form state is internal)
       // Note: This depends on implementation - external state may reset
-      expect(container.querySelector('#name')).toBeInTheDocument();
+      expect(container.querySelector('[name="name"]')).toBeInTheDocument();
     });
 
     it('should update when data prop changes', () => {
@@ -579,7 +579,7 @@ describe('Form State Edge Cases', () => {
         <FormBuilder spec={spec} data={{ name: 'Initial' }} language="en" />
       );
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       expect(input).toHaveValue('Initial');
 
       // Rerender with new data - note: FormBuilder uses initial data, so this behavior may vary
@@ -589,7 +589,7 @@ describe('Form State Edge Cases', () => {
 
       // Depending on implementation, this may or may not update
       // This test documents the behavior
-      expect(container.querySelector('#name')).toBeInTheDocument();
+      expect(container.querySelector('[name="name"]')).toBeInTheDocument();
     });
   });
 });
@@ -626,9 +626,9 @@ describe('Accessibility Edge Cases', () => {
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
       // In this implementation labels are h6, not for attribute labels
-      // So we check by id directly
-      const input = container.querySelector('#email');
-      expect(input).toHaveAttribute('id');
+      // So we check by name attribute directly (PHP compatibility: no id attribute)
+      const input = container.querySelector('[name="email"]');
+      expect(input).toHaveAttribute('name');
     });
 
     it('should have accessible error messages', async () => {
@@ -668,8 +668,8 @@ describe('Accessibility Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const firstInput = container.querySelector('#first') as HTMLInputElement;
-      const secondInput = container.querySelector('#second') as HTMLInputElement;
+      const firstInput = container.querySelector('[name="first"]') as HTMLInputElement;
+      const secondInput = container.querySelector('[name="second"]') as HTMLInputElement;
 
       firstInput.focus();
       expect(document.activeElement).toBe(firstInput);
@@ -689,7 +689,7 @@ describe('Accessibility Edge Cases', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onSubmit={onSubmit} />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, 'test{enter}');
 
       await waitFor(() => {

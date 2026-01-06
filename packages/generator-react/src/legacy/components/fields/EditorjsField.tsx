@@ -68,7 +68,6 @@ export function EditorjsField({
 
       {/* Fallback textarea for JSON */}
       <textarea
-        id={path}
         name={bracketName}
         value={stringValue}
         onChange={handleChange}

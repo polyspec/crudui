@@ -185,7 +185,6 @@ export function SearchField({
         <input
           ref={inputRef}
           type="text"
-          id={path}
           name={bracketName}
           value={searchTerm}
           onChange={handleInputChange}

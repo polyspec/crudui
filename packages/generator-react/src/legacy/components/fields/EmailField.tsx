@@ -50,7 +50,6 @@ export function EmailField({
 
       <input
         type="email"
-        id={path}
         name={bracketName}
         value={(value as string) ?? ''}
         onChange={handleChange}

@@ -39,7 +39,6 @@ export function DatetimeField({
   return (
     <input
       type="datetime-local"
-      id={path}
       name={bracketName}
       value={formattedValue}
       onChange={handleChange}

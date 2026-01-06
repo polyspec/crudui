@@ -93,7 +93,6 @@ export function ImageField({
       <input
         ref={inputRef}
         type="file"
-        id={path}
         name={bracketName}
         onChange={handleChange}
         onBlur={onBlur}

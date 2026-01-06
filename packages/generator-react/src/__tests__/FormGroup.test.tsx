@@ -35,7 +35,7 @@ describe('FormGroup Component', () => {
 
       expect(screen.getByText('Profile Information')).toBeInTheDocument();
       expect(screen.getByText('Name')).toBeInTheDocument();
-      expect(container.querySelector('#profile\\.name')).toBeInTheDocument();
+      expect(container.querySelector('[name="profile[name]"]')).toBeInTheDocument();
     });
 
     it('should render group with description', () => {
@@ -79,9 +79,9 @@ describe('FormGroup Component', () => {
       expect(screen.getByText('Email')).toBeInTheDocument();
       expect(screen.getByText('Phone')).toBeInTheDocument();
       expect(screen.getByText('Address')).toBeInTheDocument();
-      expect(container.querySelector('#contact\\.email')).toBeInTheDocument();
-      expect(container.querySelector('#contact\\.phone')).toBeInTheDocument();
-      expect(container.querySelector('#contact\\.address')).toBeInTheDocument();
+      expect(container.querySelector('[name="contact[email]"]')).toBeInTheDocument();
+      expect(container.querySelector('[name="contact[phone]"]')).toBeInTheDocument();
+      expect(container.querySelector('[name="contact[address]"]')).toBeInTheDocument();
     });
 
     it('should handle nested groups', () => {
@@ -109,7 +109,7 @@ describe('FormGroup Component', () => {
       expect(screen.getByText('Outer Group')).toBeInTheDocument();
       expect(screen.getByText('Inner Group')).toBeInTheDocument();
       expect(screen.getByText('Nested Field')).toBeInTheDocument();
-      expect(container.querySelector('#outer\\.inner\\.field')).toBeInTheDocument();
+      expect(container.querySelector('[name="outer[inner][field]"]')).toBeInTheDocument();
     });
   });
 
@@ -141,8 +141,8 @@ describe('FormGroup Component', () => {
         />
       );
 
-      const firstNameInput = container.querySelector('#profile\\.firstName') as HTMLInputElement;
-      const lastNameInput = container.querySelector('#profile\\.lastName') as HTMLInputElement;
+      const firstNameInput = container.querySelector('[name="profile[firstName]"]') as HTMLInputElement;
+      const lastNameInput = container.querySelector('[name="profile[lastName]"]') as HTMLInputElement;
       expect(firstNameInput).toHaveValue('John');
       expect(lastNameInput).toHaveValue('Doe');
     });
@@ -164,8 +164,8 @@ describe('FormGroup Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onSubmit={onSubmit} />);
 
-      const nameInput = container.querySelector('#profile\\.name') as HTMLInputElement;
-      const emailInput = container.querySelector('#profile\\.email') as HTMLInputElement;
+      const nameInput = container.querySelector('[name="profile[name]"]') as HTMLInputElement;
+      const emailInput = container.querySelector('[name="profile[email]"]') as HTMLInputElement;
       await userEvent.type(nameInput, 'John Doe');
       await userEvent.type(emailInput, 'john@example.com');
 
@@ -264,7 +264,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
       // Should now have an item with Name field
       await waitFor(() => {
         expect(screen.getByText('Name')).toBeInTheDocument();
-        expect(container.querySelector('[id*="name"]')).toBeInTheDocument();
+        expect(container.querySelector('[data-name="name"]')).toBeInTheDocument();
       });
     });
 
@@ -560,7 +560,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
 
       // Fill values
       await waitFor(async () => {
-        const inputs = container.querySelectorAll('[id*="value"]') as NodeListOf<HTMLInputElement>;
+        const inputs = container.querySelectorAll('[data-name="value"]') as NodeListOf<HTMLInputElement>;
         await userEvent.type(inputs[0], 'tag1');
         await userEvent.type(inputs[1], 'tag2');
       });
@@ -611,11 +611,11 @@ describe('Multiple FormGroup (Array Fields)', () => {
       await userEvent.click(addButton!);
 
       await waitFor(() => {
-        expect(container.querySelector('[id*="email"]')).toBeInTheDocument();
+        expect(container.querySelector('[data-name="email"]')).toBeInTheDocument();
       });
 
       // Type invalid email
-      const emailInput = container.querySelector('[id*="email"]') as HTMLInputElement;
+      const emailInput = container.querySelector('[data-name="email"]') as HTMLInputElement;
       await userEvent.type(emailInput, 'invalid');
 
       // Submit form to trigger validation
@@ -827,7 +827,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
         />
       );
 
-      const nameInput = container.querySelector('[id*="name"]') as HTMLInputElement;
+      const nameInput = container.querySelector('[data-name="name"]') as HTMLInputElement;
       expect(nameInput).toBeDisabled();
     });
   });
@@ -872,7 +872,7 @@ describe('Complex Nested Multiple Groups', () => {
 
       await waitFor(() => {
         // Order ID field should appear
-        const orderIdInput = container.querySelector('[id*="orderId"]');
+        const orderIdInput = container.querySelector('[data-name="orderId"]');
         expect(orderIdInput).toBeInTheDocument();
         expect(screen.getByText('Order Items')).toBeInTheDocument();
       });
@@ -911,12 +911,12 @@ describe('Complex Nested Multiple Groups', () => {
       await userEvent.click(addButton);
 
       await waitFor(() => {
-        const input = container.querySelector('[id*="name"]');
+        const input = container.querySelector('[data-name="name"]');
         expect(input).toBeInTheDocument();
       });
 
       // Fill child name
-      const nameInput = container.querySelector('[id*="name"]') as HTMLInputElement;
+      const nameInput = container.querySelector('[data-name="name"]') as HTMLInputElement;
       if (nameInput) {
         await userEvent.type(nameInput, 'Child 1');
 

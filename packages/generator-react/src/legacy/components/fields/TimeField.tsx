@@ -48,7 +48,6 @@ export function TimeField({
 
       <input
         type="time"
-        id={path}
         name={bracketName}
         value={(value as string) ?? ''}
         onChange={handleChange}
