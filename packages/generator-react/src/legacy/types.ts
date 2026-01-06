@@ -262,6 +262,8 @@ export interface FormContextValue {
   readonly: boolean;
   /** Custom field components */
   customFields: Record<string, React.ComponentType<FieldComponentProps>>;
+  /** Key prefix for field names (e.g., "product") */
+  keyPrefix: string;
 }
 
 /**

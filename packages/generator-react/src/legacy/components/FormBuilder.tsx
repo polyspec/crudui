@@ -51,6 +51,9 @@ export function FormBuilder({
     return specProp;
   }, [specProp]);
 
+  // Get key prefix from spec.key (e.g., "product" for "product[basic][name]")
+  const keyPrefix = spec.key ?? '';
+
   return (
     <I18nContextProvider language={language}>
       <FormContextProvider
@@ -61,6 +64,7 @@ export function FormBuilder({
         customFields={customFields}
         onChange={onChange}
         onValidate={onValidate}
+        keyPrefix={keyPrefix}
       >
         <FormBuilderInner
           className={className}
