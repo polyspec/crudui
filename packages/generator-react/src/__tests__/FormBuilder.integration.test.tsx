@@ -637,8 +637,8 @@ describe('Required Field Validation', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" onSubmit={handleSubmit} />);
 
-    // Fill only required field using id
-    const requiredInput = container.querySelector('#requiredField') as HTMLInputElement;
+    // Fill only required field using name selector (PHP compatibility: no id attribute)
+    const requiredInput = container.querySelector('[name="requiredField"]') as HTMLInputElement;
     expect(requiredInput).not.toBeNull();
     await user.type(requiredInput, 'filled');
 
@@ -676,12 +676,12 @@ describe('Required Field Validation', () => {
     expect(screen.getByText('Required Field')).toBeInTheDocument();
     expect(screen.getByText('Optional Field')).toBeInTheDocument();
 
-    // Required field input should have required data attribute
-    const requiredInput = container.querySelector('#required') as HTMLInputElement;
+    // Required field input should have required data attribute (PHP compatibility: no id attribute)
+    const requiredInput = container.querySelector('[name="required"]') as HTMLInputElement;
     expect(requiredInput).toBeInTheDocument();
 
     // Optional field input should exist
-    const optionalInput = container.querySelector('#optional') as HTMLInputElement;
+    const optionalInput = container.querySelector('[name="optional"]') as HTMLInputElement;
     expect(optionalInput).toBeInTheDocument();
   });
 });
@@ -696,7 +696,7 @@ describe('Email/Number/Minlength Validation', () => {
 
     const { container } = render(<FormBuilder spec={validationRulesSpec} language="en" />);
 
-    const emailInput = container.querySelector('#email') as HTMLInputElement;
+    const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
     expect(emailInput).not.toBeNull();
 
     // Enter invalid email
@@ -724,7 +724,7 @@ describe('Email/Number/Minlength Validation', () => {
 
     const { container } = render(<FormBuilder spec={validationRulesSpec} language="en" />);
 
-    const ageInput = container.querySelector('#age') as HTMLInputElement;
+    const ageInput = container.querySelector('[name="age"]') as HTMLInputElement;
     expect(ageInput).not.toBeNull();
 
     // Enter negative number
@@ -760,7 +760,7 @@ describe('Email/Number/Minlength Validation', () => {
 
     const { container } = render(<FormBuilder spec={validationRulesSpec} language="en" />);
 
-    const usernameInput = container.querySelector('#username') as HTMLInputElement;
+    const usernameInput = container.querySelector('[name="username"]') as HTMLInputElement;
     expect(usernameInput).not.toBeNull();
 
     // Enter too short username
@@ -808,15 +808,15 @@ describe('Nested Group Validation', () => {
   it('should render nested group fields', () => {
     const { container } = render(<FormBuilder spec={nestedGroupSpec} language="en" />);
 
-    // Profile fields
+    // Profile fields (PHP compatibility: bracket notation for nested names)
     expect(screen.getByText('Profile Information')).toBeInTheDocument();
-    expect(container.querySelector('#profile\\.firstName')).toBeInTheDocument();
-    expect(container.querySelector('#profile\\.lastName')).toBeInTheDocument();
+    expect(container.querySelector('[name="profile[firstName]"]')).toBeInTheDocument();
+    expect(container.querySelector('[name="profile[lastName]"]')).toBeInTheDocument();
 
     // Address fields
     expect(screen.getByText('Address')).toBeInTheDocument();
-    expect(container.querySelector('#address\\.street')).toBeInTheDocument();
-    expect(container.querySelector('#address\\.city')).toBeInTheDocument();
+    expect(container.querySelector('[name="address[street]"]')).toBeInTheDocument();
+    expect(container.querySelector('[name="address[city]"]')).toBeInTheDocument();
   });
 
   it('should validate nested fields on submit', async () => {
@@ -851,7 +851,7 @@ describe('Nested Group Validation', () => {
 
     const { container } = render(<FormBuilder spec={nestedGroupSpec} language="en" />);
 
-    const firstNameInput = container.querySelector('#profile\\.firstName') as HTMLInputElement;
+    const firstNameInput = container.querySelector('[name="profile[firstName]"]') as HTMLInputElement;
     expect(firstNameInput).not.toBeNull();
 
     // Focus and blur without entering value
@@ -869,12 +869,12 @@ describe('Nested Group Validation', () => {
 
     const { container } = render(<FormBuilder spec={nestedGroupSpec} language="en" onSubmit={handleSubmit} />);
 
-    // Fill all fields using id selectors
-    const firstNameInput = container.querySelector('#profile\\.firstName') as HTMLInputElement;
-    const lastNameInput = container.querySelector('#profile\\.lastName') as HTMLInputElement;
-    const emailInput = container.querySelector('#profile\\.email') as HTMLInputElement;
-    const streetInput = container.querySelector('#address\\.street') as HTMLInputElement;
-    const cityInput = container.querySelector('#address\\.city') as HTMLInputElement;
+    // Fill all fields using name selectors (PHP compatibility: bracket notation)
+    const firstNameInput = container.querySelector('[name="profile[firstName]"]') as HTMLInputElement;
+    const lastNameInput = container.querySelector('[name="profile[lastName]"]') as HTMLInputElement;
+    const emailInput = container.querySelector('[name="profile[email]"]') as HTMLInputElement;
+    const streetInput = container.querySelector('[name="address[street]"]') as HTMLInputElement;
+    const cityInput = container.querySelector('[name="address[city]"]') as HTMLInputElement;
 
     await user.type(firstNameInput, 'John');
     await user.type(lastNameInput, 'Doe');
@@ -1106,7 +1106,7 @@ describe('Error Messages Display', () => {
 
     await waitFor(() => {
       // Error causes is-invalid class on the input element
-      const emailInput = container.querySelector('#email');
+      const emailInput = container.querySelector('[name="email"]');
       expect(emailInput).toHaveClass('is-invalid');
     });
   });
@@ -1133,18 +1133,18 @@ describe('Error Messages Display', () => {
 
     await waitFor(() => {
       // Error causes is-invalid class on the input element
-      const emailInput = container.querySelector('#email');
+      const emailInput = container.querySelector('[name="email"]');
       expect(emailInput).toHaveClass('is-invalid');
     });
 
     // Fix the error using input element directly
-    const emailInput = container.querySelector('#email') as HTMLInputElement;
+    const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
     expect(emailInput).not.toBeNull();
     await user.type(emailInput, 'valid@example.com');
 
     await waitFor(() => {
       // Input should no longer have is-invalid class
-      const input = container.querySelector('#email');
+      const input = container.querySelector('[name="email"]');
       expect(input).not.toHaveClass('is-invalid');
       expect(screen.queryByText('Email is required')).not.toBeInTheDocument();
     });
@@ -1177,8 +1177,8 @@ describe('Error Messages Display', () => {
       expect(screen.getByText('Password cannot be empty!')).toBeInTheDocument();
     });
 
-    // Enter short password using the input element directly (find by id)
-    const passwordInput = document.getElementById('password') as HTMLInputElement;
+    // Enter short password using the input element directly (find by name)
+    const passwordInput = document.querySelector('[name="password"]') as HTMLInputElement;
     expect(passwordInput).not.toBeNull();
     await user.type(passwordInput, 'short');
     fireEvent.blur(passwordInput);
@@ -1212,9 +1212,9 @@ describe('Form Data Collection on Submit', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" onSubmit={handleSubmit} />);
 
     // Fill form
-    const nameInput = container.querySelector('#name') as HTMLInputElement;
-    const emailInput = container.querySelector('#email') as HTMLInputElement;
-    const ageInput = container.querySelector('#age') as HTMLInputElement;
+    const nameInput = container.querySelector('[name="name"]') as HTMLInputElement;
+    const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
+    const ageInput = container.querySelector('[name="age"]') as HTMLInputElement;
     await user.type(nameInput, 'John Doe');
     await user.type(emailInput, 'john@example.com');
     await user.type(ageInput, '30');
@@ -1245,7 +1245,7 @@ describe('Form Data Collection on Submit', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" onChange={handleChange} />);
 
     // Type in field
-    const nameInput = container.querySelector('#name') as HTMLInputElement;
+    const nameInput = container.querySelector('[name="name"]') as HTMLInputElement;
     await user.type(nameInput, 'Test');
 
     // onChange should be called for each character
@@ -1309,7 +1309,7 @@ describe('Form Data Collection on Submit', () => {
     );
 
     // Only update email
-    const emailInput = container.querySelector('#email') as HTMLInputElement;
+    const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
     await user.type(emailInput, 'john@example.com');
 
     // Submit
@@ -1342,8 +1342,8 @@ describe('Form Disabled/Readonly States', () => {
 
     const { container } = render(<FormBuilder spec={spec} disabled={true} />);
 
-    const nameInput = container.querySelector('#name');
-    const emailInput = container.querySelector('#email');
+    const nameInput = container.querySelector('[name="name"]');
+    const emailInput = container.querySelector('[name="email"]');
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
   });
@@ -1359,8 +1359,8 @@ describe('Form Disabled/Readonly States', () => {
 
     const { container } = render(<FormBuilder spec={spec} readonly={true} />);
 
-    const nameInput = container.querySelector('#name');
-    const emailInput = container.querySelector('#email');
+    const nameInput = container.querySelector('[name="name"]');
+    const emailInput = container.querySelector('[name="email"]');
     expect(nameInput).toHaveAttribute('readonly');
     expect(emailInput).toHaveAttribute('readonly');
   });
@@ -1376,8 +1376,8 @@ describe('Form Disabled/Readonly States', () => {
 
     const { container } = render(<FormBuilder spec={spec} />);
 
-    const nameInput = container.querySelector('#name');
-    const emailInput = container.querySelector('#email');
+    const nameInput = container.querySelector('[name="name"]');
+    const emailInput = container.querySelector('[name="email"]');
     expect(nameInput).not.toBeDisabled();
     expect(emailInput).toBeDisabled();
   });

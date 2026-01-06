@@ -123,7 +123,6 @@ export function SelectField({
       )}
 
       <select
-        id={path}
         name={bracketName}
         value={(value as string) ?? ''}
         onChange={handleChange}

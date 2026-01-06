@@ -42,7 +42,6 @@ export function DateField({
   return (
     <input
       type="date"
-      id={path}
       name={bracketName}
       value={formattedValue}
       onChange={handleChange}

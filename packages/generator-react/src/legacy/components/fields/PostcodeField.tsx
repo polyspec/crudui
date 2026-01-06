@@ -105,7 +105,6 @@ export function PostcodeField({
 
         <input
           type="text"
-          id={path}
           name={bracketName}
           value={(value as string) ?? ''}
           onChange={handleChange}
