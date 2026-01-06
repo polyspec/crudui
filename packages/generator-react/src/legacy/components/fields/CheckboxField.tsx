@@ -2,7 +2,7 @@
  * CheckboxField Component
  *
  * Single checkbox for boolean values
- * Matches PHP Limepie structure: div > input + span
+ * Matches PHP Limepie structure: div.form-check > input.form-check-input + label.form-check-label
  */
 
 import React, { useCallback, type ChangeEvent } from 'react';
@@ -14,8 +14,9 @@ import { getLimepieDataAttributes, toBracketNotationWithPrefix, getCheckboxClass
 /**
  * CheckboxField component
  * PHP Limepie structure:
- * <div>
- *   <input type="checkbox" class="valid-target" value="1" checked /> <span>Label</span>
+ * <div class="form-check">
+ *   <input type="checkbox" class="valid-target form-check-input" value="1" checked />
+ *   <label class="form-check-label">Label</label>
  * </div>
  */
 export function CheckboxField({
@@ -48,7 +49,7 @@ export function CheckboxField({
   const fullBracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
-    <div>
+    <div className="form-check">
       {/* Prepend */}
       {spec.prepend && (
         <span dangerouslySetInnerHTML={{ __html: spec.prepend }} />
@@ -62,12 +63,12 @@ export function CheckboxField({
         onChange={handleChange}
         onBlur={onBlur}
         disabled={disabled || readonly}
-        className={getCheckboxClasses(spec, !!error)}
+        className={`${getCheckboxClasses(spec, !!error)} form-check-input`}
         {...getLimepieDataAttributes(spec, path, language)}
       />
       {' '}
       {checkboxLabel && (
-        <span dangerouslySetInnerHTML={{ __html: t(checkboxLabel) }} />
+        <label className="form-check-label" dangerouslySetInnerHTML={{ __html: t(checkboxLabel) }} />
       )}
 
       {/* Append */}

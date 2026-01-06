@@ -91,11 +91,13 @@ export function MultichoiceField({
     >
       {options.map((option, index) => {
         const isChecked = selectedValues.includes(option.value);
+        const inputId = `${path}-${option.value}`;
 
         return (
           <div key={option.value} className="form-check">
             <input
               type="checkbox"
+              id={inputId}
               name={`${bracketName}[]`}
               value={option.value}
               checked={isChecked}
@@ -107,9 +109,9 @@ export function MultichoiceField({
               {...(index === 0 ? getLimepieDataAttributes(spec, path, language) : {})}
             />
             {' '}
-            <span className="form-check-label">
+            <label htmlFor={inputId} className="form-check-label">
               {option.label}
-            </span>
+            </label>
           </div>
         );
       })}

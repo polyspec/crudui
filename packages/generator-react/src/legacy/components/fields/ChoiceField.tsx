@@ -62,18 +62,25 @@ export function ChoiceField({
   // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
+  // Determine default value from spec
+  const defaultValue = spec.default !== undefined ? String(spec.default) : undefined;
+
   return (
     <div
-      className={isHorizontal ? 'd-flex flex-wrap gap-3' : ''}
+      className="btn-group btn-group-toggle"
+      data-toggle="buttons"
       role="radiogroup"
       aria-labelledby={`${path}-label`}
     >
       {options.map((option, index) => {
         const isChecked = value === option.value;
+        const isDefault = defaultValue === option.value;
+        const inputId = `${path}-${option.value}`;
 
         return (
-          <div key={option.value} className="form-check">
+          <React.Fragment key={option.value}>
             <input
+              id={inputId}
               type="radio"
               name={bracketName}
               value={option.value}
@@ -82,14 +89,14 @@ export function ChoiceField({
               onBlur={index === options.length - 1 ? onBlur : undefined}
               disabled={disabled}
               readOnly={readonly}
-              className={`valid-target form-check-input ${error ? 'is-invalid' : ''}`}
+              className={`valid-target btn-check ${error ? 'is-invalid' : ''}`}
+              data-is-default={isDefault ? 'true' : 'false'}
               {...(index === 0 ? getLimepieDataAttributes(spec, path, language) : {})}
             />
-            {' '}
-            <span className="form-check-label">
-              {option.label}
-            </span>
-          </div>
+            <label htmlFor={inputId} className="btn btn-switch">
+              <span>{option.label}</span>
+            </label>
+          </React.Fragment>
         );
       })}
     </div>
