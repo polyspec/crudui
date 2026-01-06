@@ -67,3 +67,13 @@ export interface ItemsSourceSpec {
   empty_option?: string;
 }
 
+/**
+ * Options for Validator instance
+ */
+export interface ValidatorOptions {
+  /**
+   * Enable debug mode for verbose error logging
+   * When enabled, condition parsing/evaluation errors will be logged to console.warn
+   */
+  debug?: boolean;
+}
