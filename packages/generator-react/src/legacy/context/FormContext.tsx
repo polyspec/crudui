@@ -41,6 +41,8 @@ interface FormContextProviderProps {
   customFields?: Record<string, React.ComponentType<FieldComponentProps>>;
   onChange?: (name: string, value: FormValue, data: FormData) => void;
   onValidate?: (errors: FormErrors) => void;
+  /** Key prefix for field names (e.g., "product" -> "product[field][name]") */
+  keyPrefix?: string;
 }
 
 /**
@@ -55,6 +57,7 @@ export function FormContextProvider({
   customFields = {},
   onChange,
   onValidate,
+  keyPrefix = '',
 }: FormContextProviderProps) {
   const [data, setData] = useState<FormData>(() => initialData);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -238,6 +241,7 @@ export function FormContextProvider({
       disabled,
       readonly,
       customFields,
+      keyPrefix,
     }),
     [
       spec,
@@ -255,6 +259,7 @@ export function FormContextProvider({
       disabled,
       readonly,
       customFields,
+      keyPrefix,
     ]
   );
 
