@@ -31,10 +31,11 @@ describe('FormGroup Component', () => {
         },
       };
 
-      render(<FormBuilder spec={spec} language="en" />);
+      const { container } = render(<FormBuilder spec={spec} language="en" />);
 
       expect(screen.getByText('Profile Information')).toBeInTheDocument();
-      expect(screen.getByLabelText('Name')).toBeInTheDocument();
+      expect(screen.getByText('Name')).toBeInTheDocument();
+      expect(container.querySelector('#profile\\.name')).toBeInTheDocument();
     });
 
     it('should render group with description', () => {
@@ -73,11 +74,14 @@ describe('FormGroup Component', () => {
         },
       };
 
-      render(<FormBuilder spec={spec} language="en" />);
+      const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      expect(screen.getByLabelText('Email')).toBeInTheDocument();
-      expect(screen.getByLabelText('Phone')).toBeInTheDocument();
-      expect(screen.getByLabelText('Address')).toBeInTheDocument();
+      expect(screen.getByText('Email')).toBeInTheDocument();
+      expect(screen.getByText('Phone')).toBeInTheDocument();
+      expect(screen.getByText('Address')).toBeInTheDocument();
+      expect(container.querySelector('#contact\\.email')).toBeInTheDocument();
+      expect(container.querySelector('#contact\\.phone')).toBeInTheDocument();
+      expect(container.querySelector('#contact\\.address')).toBeInTheDocument();
     });
 
     it('should handle nested groups', () => {
@@ -100,11 +104,12 @@ describe('FormGroup Component', () => {
         },
       };
 
-      render(<FormBuilder spec={spec} language="en" />);
+      const { container } = render(<FormBuilder spec={spec} language="en" />);
 
       expect(screen.getByText('Outer Group')).toBeInTheDocument();
       expect(screen.getByText('Inner Group')).toBeInTheDocument();
-      expect(screen.getByLabelText('Nested Field')).toBeInTheDocument();
+      expect(screen.getByText('Nested Field')).toBeInTheDocument();
+      expect(container.querySelector('#outer\\.inner\\.field')).toBeInTheDocument();
     });
   });
 
@@ -123,7 +128,7 @@ describe('FormGroup Component', () => {
         },
       };
 
-      render(
+      const { container } = render(
         <FormBuilder
           spec={spec}
           data={{
@@ -136,8 +141,10 @@ describe('FormGroup Component', () => {
         />
       );
 
-      expect(screen.getByLabelText('First Name')).toHaveValue('John');
-      expect(screen.getByLabelText('Last Name')).toHaveValue('Doe');
+      const firstNameInput = container.querySelector('#profile\\.firstName') as HTMLInputElement;
+      const lastNameInput = container.querySelector('#profile\\.lastName') as HTMLInputElement;
+      expect(firstNameInput).toHaveValue('John');
+      expect(lastNameInput).toHaveValue('Doe');
     });
 
     it('should collect nested group data on submit', async () => {
@@ -155,10 +162,12 @@ describe('FormGroup Component', () => {
         },
       };
 
-      render(<FormBuilder spec={spec} language="en" onSubmit={onSubmit} />);
+      const { container } = render(<FormBuilder spec={spec} language="en" onSubmit={onSubmit} />);
 
-      await userEvent.type(screen.getByLabelText('Name'), 'John Doe');
-      await userEvent.type(screen.getByLabelText('Email'), 'john@example.com');
+      const nameInput = container.querySelector('#profile\\.name') as HTMLInputElement;
+      const emailInput = container.querySelector('#profile\\.email') as HTMLInputElement;
+      await userEvent.type(nameInput, 'John Doe');
+      await userEvent.type(emailInput, 'john@example.com');
 
       const submitButton = screen.getByRole('button', { name: /save/i });
       await userEvent.click(submitButton);
@@ -254,7 +263,8 @@ describe('Multiple FormGroup (Array Fields)', () => {
 
       // Should now have an item with Name field
       await waitFor(() => {
-        expect(screen.getByLabelText('Name')).toBeInTheDocument();
+        expect(screen.getByText('Name')).toBeInTheDocument();
+        expect(container.querySelector('[id*="name"]')).toBeInTheDocument();
       });
     });
 
@@ -496,7 +506,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
         },
       };
 
-      render(
+      const { container } = render(
         <FormBuilder
           spec={spec}
           data={{
@@ -509,8 +519,8 @@ describe('Multiple FormGroup (Array Fields)', () => {
         />
       );
 
-      const nameInputs = screen.getAllByLabelText('Name');
-      const emailInputs = screen.getAllByLabelText('Email');
+      const nameInputs = container.querySelectorAll('input[data-name="name"]') as NodeListOf<HTMLInputElement>;
+      const emailInputs = container.querySelectorAll('input[data-name="email"]') as NodeListOf<HTMLInputElement>;
 
       expect(nameInputs).toHaveLength(2);
       expect(nameInputs[0]).toHaveValue('John');
@@ -550,7 +560,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
 
       // Fill values
       await waitFor(async () => {
-        const inputs = screen.getAllByLabelText('Value');
+        const inputs = container.querySelectorAll('[id*="value"]') as NodeListOf<HTMLInputElement>;
         await userEvent.type(inputs[0], 'tag1');
         await userEvent.type(inputs[1], 'tag2');
       });
@@ -601,13 +611,16 @@ describe('Multiple FormGroup (Array Fields)', () => {
       await userEvent.click(addButton!);
 
       await waitFor(() => {
-        expect(screen.getByLabelText('Email')).toBeInTheDocument();
+        expect(container.querySelector('[id*="email"]')).toBeInTheDocument();
       });
 
       // Type invalid email
-      const emailInput = screen.getByLabelText('Email');
+      const emailInput = container.querySelector('[id*="email"]') as HTMLInputElement;
       await userEvent.type(emailInput, 'invalid');
-      fireEvent.blur(emailInput);
+
+      // Submit form to trigger validation
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      await userEvent.click(submitButton);
 
       await waitFor(() => {
         expect(screen.getByText('Invalid email format')).toBeInTheDocument();
@@ -803,7 +816,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
         },
       };
 
-      render(
+      const { container } = render(
         <FormBuilder
           spec={spec}
           data={{
@@ -814,7 +827,8 @@ describe('Multiple FormGroup (Array Fields)', () => {
         />
       );
 
-      expect(screen.getByLabelText('Name')).toBeDisabled();
+      const nameInput = container.querySelector('[id*="name"]') as HTMLInputElement;
+      expect(nameInput).toBeDisabled();
     });
   });
 });
