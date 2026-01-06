@@ -56,7 +56,6 @@ export function TinymceField({
 
       {/* Fallback textarea */}
       <textarea
-        id={path}
         name={bracketName}
         value={(value as string) ?? ''}
         onChange={handleChange}

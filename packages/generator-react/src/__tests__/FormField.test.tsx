@@ -3,7 +3,8 @@
  *
  * Tests for the FormField component that renders individual field types
  * Note: This implementation uses h6 tags for labels instead of label elements,
- * so we use container.querySelector('#fieldId') instead of getByLabelText
+ * so we use container.querySelector('[name="fieldName"]') to find elements
+ * PHP compatibility: React does not output id attributes on form fields
  */
 
 import React from 'react';
@@ -34,7 +35,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       expect(input).toBeInTheDocument();
       expect(input).toHaveAttribute('type', 'text');
       expect(input).toHaveAttribute('placeholder', 'Enter your name');
@@ -71,7 +72,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, 'John');
 
       await waitFor(() => {
@@ -97,7 +98,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#email') as HTMLInputElement;
+      const input = container.querySelector('[name="email"]') as HTMLInputElement;
       expect(input).toHaveAttribute('type', 'email');
     });
 
@@ -116,7 +117,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#email') as HTMLInputElement;
+      const input = container.querySelector('[name="email"]') as HTMLInputElement;
       await userEvent.type(input, 'invalid-email');
       fireEvent.blur(input);
 
@@ -143,7 +144,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#age') as HTMLInputElement;
+      const input = container.querySelector('[name="age"]') as HTMLInputElement;
       expect(input).toHaveAttribute('type', 'number');
     });
 
@@ -162,7 +163,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#age') as HTMLInputElement;
+      const input = container.querySelector('[name="age"]') as HTMLInputElement;
       await userEvent.type(input, '15');
       fireEvent.blur(input);
 
@@ -182,7 +183,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const input = container.querySelector('#count') as HTMLInputElement;
+      const input = container.querySelector('[name="count"]') as HTMLInputElement;
       await userEvent.type(input, '42');
 
       await waitFor(() => {
@@ -207,7 +208,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#password') as HTMLInputElement;
+      const input = container.querySelector('[name="password"]') as HTMLInputElement;
       expect(input).toHaveAttribute('type', 'password');
     });
   });
@@ -227,7 +228,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const textarea = container.querySelector('#description');
+      const textarea = container.querySelector('[name="description"]');
       expect(textarea?.tagName.toLowerCase()).toBe('textarea');
     });
   });
@@ -252,7 +253,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const select = container.querySelector('#country');
+      const select = container.querySelector('[name="country"]');
       expect(select?.tagName.toLowerCase()).toBe('select');
       expect(screen.getByText('Select a country')).toBeInTheDocument();
       expect(screen.getByText('United States')).toBeInTheDocument();
@@ -279,7 +280,7 @@ describe('FormField Component', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" onChange={onChange} />);
 
-      const select = container.querySelector('#status') as HTMLSelectElement;
+      const select = container.querySelector('[name="status"]') as HTMLSelectElement;
       await userEvent.selectOptions(select, 'active');
 
       await waitFor(() => {
@@ -381,7 +382,7 @@ describe('FormField States', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#name') as HTMLInputElement;
+      const input = container.querySelector('[name="name"]') as HTMLInputElement;
       expect(input).toBeDisabled();
     });
 
@@ -396,8 +397,8 @@ describe('FormField States', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" disabled={true} />);
 
-      const nameInput = container.querySelector('#name') as HTMLInputElement;
-      const emailInput = container.querySelector('#email') as HTMLInputElement;
+      const nameInput = container.querySelector('[name="name"]') as HTMLInputElement;
+      const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
       expect(nameInput).toBeDisabled();
       expect(emailInput).toBeDisabled();
     });
@@ -418,7 +419,7 @@ describe('FormField States', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      const input = container.querySelector('#id') as HTMLInputElement;
+      const input = container.querySelector('[name="id"]') as HTMLInputElement;
       expect(input).toHaveAttribute('readonly');
     });
 
@@ -433,8 +434,8 @@ describe('FormField States', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" readonly={true} />);
 
-      const nameInput = container.querySelector('#name') as HTMLInputElement;
-      const emailInput = container.querySelector('#email') as HTMLInputElement;
+      const nameInput = container.querySelector('[name="name"]') as HTMLInputElement;
+      const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
       expect(nameInput).toHaveAttribute('readonly');
       expect(emailInput).toHaveAttribute('readonly');
     });
@@ -456,7 +457,7 @@ describe('FormField States', () => {
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
       // Check that the input exists (required indicator may vary by implementation)
-      const input = container.querySelector('#name');
+      const input = container.querySelector('[name="name"]');
       expect(input).toBeInTheDocument();
     });
   });
@@ -540,7 +541,7 @@ describe('FormField Error Display', () => {
     });
 
     // Fix the error
-    const input = container.querySelector('#email') as HTMLInputElement;
+    const input = container.querySelector('[name="email"]') as HTMLInputElement;
     await userEvent.type(input, 'valid@example.com');
 
     await waitFor(() => {
@@ -599,7 +600,7 @@ describe('FormField Conditional Display', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
     // Phone field should be hidden initially
-    expect(container.querySelector('#phone')).not.toBeInTheDocument();
+    expect(container.querySelector('[name="phone"]')).not.toBeInTheDocument();
   });
 
   it('should show field when display_switch condition is met', async () => {
@@ -627,7 +628,7 @@ describe('FormField Conditional Display', () => {
 
     // Phone field should now be visible
     await waitFor(() => {
-      expect(container.querySelector('#phone')).toBeInTheDocument();
+      expect(container.querySelector('[name="phone"]')).toBeInTheDocument();
     });
   });
 
@@ -651,7 +652,7 @@ describe('FormField Conditional Display', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
     // Hidden initially
-    expect(container.querySelector('#moreOptions')).not.toBeInTheDocument();
+    expect(container.querySelector('[name="moreOptions"]')).not.toBeInTheDocument();
 
     // Toggle checkbox
     const checkbox = screen.getByRole('checkbox');
@@ -659,7 +660,7 @@ describe('FormField Conditional Display', () => {
 
     // Should be visible now
     await waitFor(() => {
-      expect(container.querySelector('#moreOptions')).toBeInTheDocument();
+      expect(container.querySelector('[name="moreOptions"]')).toBeInTheDocument();
     });
   });
 
@@ -692,24 +693,24 @@ describe('FormField Conditional Display', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
     // Initially both hidden
-    expect(container.querySelector('#email')).not.toBeInTheDocument();
-    expect(container.querySelector('#phone')).not.toBeInTheDocument();
+    expect(container.querySelector('[name="email"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[name="phone"]')).not.toBeInTheDocument();
 
     // Select email
-    const select = container.querySelector('#contactType') as HTMLSelectElement;
+    const select = container.querySelector('[name="contactType"]') as HTMLSelectElement;
     await userEvent.selectOptions(select, 'email');
 
     await waitFor(() => {
-      expect(container.querySelector('#email')).toBeInTheDocument();
-      expect(container.querySelector('#phone')).not.toBeInTheDocument();
+      expect(container.querySelector('[name="email"]')).toBeInTheDocument();
+      expect(container.querySelector('[name="phone"]')).not.toBeInTheDocument();
     });
 
     // Switch to phone
     await userEvent.selectOptions(select, 'phone');
 
     await waitFor(() => {
-      expect(container.querySelector('#email')).not.toBeInTheDocument();
-      expect(container.querySelector('#phone')).toBeInTheDocument();
+      expect(container.querySelector('[name="email"]')).not.toBeInTheDocument();
+      expect(container.querySelector('[name="phone"]')).toBeInTheDocument();
     });
   });
 });
@@ -736,8 +737,8 @@ describe('FormField Initial Data', () => {
       />
     );
 
-    const nameInput = container.querySelector('#name') as HTMLInputElement;
-    const emailInput = container.querySelector('#email') as HTMLInputElement;
+    const nameInput = container.querySelector('[name="name"]') as HTMLInputElement;
+    const emailInput = container.querySelector('[name="email"]') as HTMLInputElement;
     expect(nameInput).toHaveValue('John Doe');
     expect(emailInput).toHaveValue('john@example.com');
   });
@@ -762,7 +763,7 @@ describe('FormField Initial Data', () => {
       <FormBuilder spec={spec} data={{ status: 'active' }} language="en" />
     );
 
-    const select = container.querySelector('#status') as HTMLSelectElement;
+    const select = container.querySelector('[name="status"]') as HTMLSelectElement;
     expect(select).toHaveValue('active');
   });
 

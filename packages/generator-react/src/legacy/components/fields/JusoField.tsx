@@ -190,7 +190,6 @@ export function JusoField({
       {/* Hidden input for form */}
       <input
         type="hidden"
-        id={path}
         name={bracketName}
         value={currentAddress?.roadAddr ?? ''}
         onBlur={onBlur}

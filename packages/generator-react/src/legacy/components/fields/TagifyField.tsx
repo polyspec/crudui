@@ -141,7 +141,6 @@ export function TagifyField({
           <input
             ref={inputRef}
             type="text"
-            id={path}
             name={bracketName}
             value={inputValue}
             onChange={handleInputChange}

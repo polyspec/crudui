@@ -64,7 +64,6 @@ export function NumberField({
 
       <input
         type="number"
-        id={path}
         name={bracketName}
         value={(value as string | number) ?? ''}
         onChange={handleChange}

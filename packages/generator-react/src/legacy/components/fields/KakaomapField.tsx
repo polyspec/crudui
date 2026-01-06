@@ -208,7 +208,6 @@ export function KakaomapField({
       {/* Hidden input for form */}
       <input
         type="hidden"
-        id={path}
         name={bracketName}
         value={currentLocation ? JSON.stringify(currentLocation) : ''}
         onBlur={onBlur}
