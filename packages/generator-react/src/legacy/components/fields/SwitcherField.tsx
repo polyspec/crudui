@@ -2,16 +2,21 @@
  * SwitcherField Component
  *
  * Boolean toggle switch
+ * Matches PHP Limepie structure: div > input + span
  */
 
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
-import { getLimepieDataAttributes, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getCheckboxClasses } from '../../utils/dataAttributes';
 
 /**
  * SwitcherField component
+ * PHP Limepie structure:
+ * <div>
+ *   <input type="checkbox" class="valid-target" value="1" checked /> <span>Label</span>
+ * </div>
  */
 export function SwitcherField({
   name,
@@ -37,51 +42,36 @@ export function SwitcherField({
 
   // Labels for on/off states
   const onLabel = (spec.on_label as string) ?? t('on') ?? 'On';
-  const offLabel = (spec.off_label as string) ?? t('off') ?? 'Off';
 
   // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
-    <div className="form-check form-switch">
+    <div>
       {/* Prepend */}
       {spec.prepend && (
-        <span
-          className="me-2"
-          dangerouslySetInnerHTML={{ __html: spec.prepend }}
-        />
-      )}
-
-      {spec.show_labels !== false && (
-        <span className="me-2 text-muted">{offLabel}</span>
+        <span dangerouslySetInnerHTML={{ __html: spec.prepend }} />
       )}
 
       <input
         type="checkbox"
-        id={path}
         name={bracketName}
+        value="1"
         checked={Boolean(value)}
         onChange={handleChange}
         onBlur={onBlur}
         disabled={disabled || readonly}
-        className={`valid-target form-check-input ${error ? 'is-invalid' : ''}`}
-        role="switch"
-        aria-checked={Boolean(value)}
+        className={getCheckboxClasses(spec, !!error)}
         {...getLimepieDataAttributes(spec, path, language)}
       />
-
+      {' '}
       {spec.show_labels !== false && (
-        <label className="form-check-label ms-2" htmlFor={path}>
-          {onLabel}
-        </label>
+        <span>{onLabel}</span>
       )}
 
       {/* Append */}
       {spec.append && (
-        <span
-          className="ms-2"
-          dangerouslySetInnerHTML={{ __html: spec.append }}
-        />
+        <span dangerouslySetInnerHTML={{ __html: spec.append }} />
       )}
     </div>
   );

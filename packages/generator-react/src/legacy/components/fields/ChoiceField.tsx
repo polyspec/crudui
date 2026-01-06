@@ -69,14 +69,12 @@ export function ChoiceField({
       aria-labelledby={`${path}-label`}
     >
       {options.map((option, index) => {
-        const optionId = `${path}-${option.value}`;
         const isChecked = value === option.value;
 
         return (
           <div key={option.value} className="form-check">
             <input
               type="radio"
-              id={optionId}
               name={bracketName}
               value={option.value}
               checked={isChecked}
@@ -87,9 +85,10 @@ export function ChoiceField({
               className={`valid-target form-check-input ${error ? 'is-invalid' : ''}`}
               {...(index === 0 ? getLimepieDataAttributes(spec, path, language) : {})}
             />
-            <label className="form-check-label" htmlFor={optionId}>
+            {' '}
+            <span className="form-check-label">
               {option.label}
-            </label>
+            </span>
           </div>
         );
       })}

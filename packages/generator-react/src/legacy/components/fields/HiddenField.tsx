@@ -27,7 +27,6 @@ export function HiddenField({
   return (
     <input
       type="hidden"
-      id={path}
       name={bracketName}
       value={(value as string) ?? (spec.default as string) ?? ''}
       {...getLimepieDataAttributes(spec, path, language)}

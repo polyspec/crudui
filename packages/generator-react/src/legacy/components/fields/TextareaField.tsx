@@ -47,7 +47,6 @@ export function TextareaField({
   return (
     <div className="input-group">
       <textarea
-        id={path}
         name={bracketName}
         value={(value as string) ?? ''}
         onChange={handleChange}

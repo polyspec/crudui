@@ -108,6 +108,12 @@ class FormGenerator
 
             $type = $fieldSpec['type'] ?? 'text';
 
+            // Handle multiple fields
+            if (!empty($fieldSpec['multiple'])) {
+                $html .= $this->generateMultiple($ruleName, $fieldSpec, is_array($value) ? $value : [], $label);
+                continue;
+            }
+
             // Handle nested groups
             if ($type === 'group') {
                 $groupClass = $fieldSpec['class'] ?? '';
@@ -367,6 +373,155 @@ HTML;
         }
         $class = $spec['append_class'] ?? '';
         return '<span class="input-group-text ' . htmlspecialchars($class) . '">' . htmlspecialchars($spec['append']) . '</span>';
+    }
+
+    /**
+     * Generate multiple (array) field with card UI
+     * Matches React FormGroup's MultipleFormGroup component
+     */
+    private function generateMultiple(string $parentRuleName, array $spec, array $data, string $label): string
+    {
+        $wrapperClass = $spec['class'] ?? '';
+        $isSortable = !empty($spec['sortable']);
+        $min = $spec['min'] ?? 0;
+        $max = $spec['max'] ?? PHP_INT_MAX;
+
+        $html = '<div class="form-element-wrapper ' . htmlspecialchars($wrapperClass) . '">';
+
+        // Label
+        if ($label) {
+            $html .= '<label class="form-label fw-bold">' . htmlspecialchars($label) . '</label>';
+        }
+
+        // Description
+        if (!empty($spec['description'])) {
+            $html .= '<div class="form-text text-muted mb-1">' . nl2br(htmlspecialchars($spec['description'])) . '</div>';
+        }
+
+        $html .= '<div class="form-group multiple-items" data-multiple="true" data-rule-name="' . htmlspecialchars($parentRuleName) . '" data-min="' . $min . '" data-max="' . $max . '" data-sortable="' . ($isSortable ? 'true' : 'false') . '">';
+
+        // If empty, show add button with card style
+        if (empty($data)) {
+            $html .= '<div class="card multiple-item-empty">';
+            $html .= '<div class="card-header d-flex justify-content-between align-items-center py-1">';
+            $html .= '<span class="badge bg-secondary">0</span>';
+            $html .= '<div class="btn-group btn-group-sm">';
+            $html .= '<button type="button" class="btn btn-outline-primary multiple-add" data-action="add">+</button>';
+            $html .= '</div>';
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
+        // Render each item
+        $index = 0;
+        foreach ($data as $itemKey => $itemData) {
+            $html .= $this->generateMultipleItem(
+                $parentRuleName,
+                $spec,
+                $itemKey,
+                is_array($itemData) ? $itemData : [],
+                $index,
+                count($data),
+                $isSortable,
+                $min,
+                $max
+            );
+            $index++;
+        }
+
+        $html .= '</div>'; // .form-group.multiple-items
+        $html .= '</div>'; // .form-element-wrapper
+
+        return $html;
+    }
+
+    /**
+     * Generate a single multiple item with card UI
+     */
+    private function generateMultipleItem(
+        string $parentRuleName,
+        array $spec,
+        string|int $itemKey,
+        array $itemData,
+        int $index,
+        int $totalItems,
+        bool $isSortable,
+        int $min,
+        int $max
+    ): string {
+        $canAdd = $totalItems < $max;
+        $canRemove = $totalItems > $min;
+
+        $html = '<div class="card multiple-item" data-index="' . $index . '" data-key="' . htmlspecialchars((string)$itemKey) . '">';
+
+        // Card header with badge and buttons
+        $html .= '<div class="card-header d-flex justify-content-between align-items-center py-1">';
+        $html .= '<span class="badge bg-secondary">' . ($index + 1) . '</span>';
+
+        // Button group
+        $html .= '<div class="btn-group btn-group-sm">';
+
+        // Add button
+        if ($canAdd) {
+            $html .= '<button type="button" class="btn btn-outline-primary multiple-add" data-action="add" data-index="' . $index . '">+</button>';
+        }
+
+        // Sortable up/down buttons
+        if ($isSortable) {
+            $upDisabled = $index === 0 ? ' disabled' : '';
+            $downDisabled = $index === $totalItems - 1 ? ' disabled' : '';
+            $html .= '<button type="button" class="btn btn-outline-secondary multiple-up" data-action="up" data-index="' . $index . '"' . $upDisabled . '>&uarr;</button>';
+            $html .= '<button type="button" class="btn btn-outline-secondary multiple-down" data-action="down" data-index="' . $index . '"' . $downDisabled . '>&darr;</button>';
+        }
+
+        // Remove button
+        if ($canRemove) {
+            $html .= '<button type="button" class="btn btn-outline-danger multiple-remove" data-action="remove" data-index="' . $index . '">-</button>';
+        }
+
+        $html .= '</div>'; // .btn-group
+        $html .= '</div>'; // .card-header
+
+        // Card body with nested fields
+        $html .= '<div class="card-body">';
+
+        // Build rule name for nested items: parent.itemKey
+        $itemRuleName = $parentRuleName . '.' . $itemKey;
+
+        // Generate nested fields
+        foreach ($spec['properties'] ?? [] as $fieldKey => $fieldSpec) {
+            $fieldRuleName = $itemRuleName . '.' . $fieldKey;
+            $nameKey = $this->dotToBracket($fieldRuleName);
+            $value = $itemData[$fieldKey] ?? null;
+            $fieldLabel = $this->getLabel($fieldSpec);
+            $type = $fieldSpec['type'] ?? 'text';
+
+            // Handle nested multiple (recursive)
+            if (!empty($fieldSpec['multiple'])) {
+                $html .= $this->generateMultiple($fieldRuleName, $fieldSpec, is_array($value) ? $value : [], $fieldLabel);
+                continue;
+            }
+
+            // Handle nested groups
+            if ($type === 'group') {
+                $groupClass = $fieldSpec['class'] ?? '';
+                $html .= '<div class="form-element-wrapper ' . $groupClass . '">';
+                if ($fieldLabel) {
+                    $html .= '<label class="form-label fw-bold">' . htmlspecialchars($fieldLabel) . '</label>';
+                }
+                $html .= $this->generateGroup($fieldRuleName, $fieldSpec, is_array($value) ? $value : []);
+                $html .= '</div>';
+                continue;
+            }
+
+            // Generate the field
+            $html .= $this->generateField($nameKey, $fieldRuleName, $fieldSpec, $value, $fieldLabel);
+        }
+
+        $html .= '</div>'; // .card-body
+        $html .= '</div>'; // .card.multiple-item
+
+        return $html;
     }
 
     /**

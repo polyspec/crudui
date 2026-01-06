@@ -59,7 +59,6 @@ export function DummyField({
   return (
     <div
       className="form-dummy"
-      id={path}
       dangerouslySetInnerHTML={{ __html: content }}
     />
   );

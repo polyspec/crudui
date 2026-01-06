@@ -267,7 +267,6 @@ export function GeometryField({
       {/* Hidden input for form */}
       <input
         type="hidden"
-        id={path}
         name={bracketName}
         value={geometry ? JSON.stringify(geometry) : ''}
         {...getLimepieDataAttributes(spec, path, language)}

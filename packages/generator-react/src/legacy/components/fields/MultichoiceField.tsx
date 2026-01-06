@@ -90,14 +90,12 @@ export function MultichoiceField({
       aria-labelledby={`${path}-label`}
     >
       {options.map((option, index) => {
-        const optionId = `${path}-${option.value}`;
         const isChecked = selectedValues.includes(option.value);
 
         return (
           <div key={option.value} className="form-check">
             <input
               type="checkbox"
-              id={optionId}
               name={`${bracketName}[]`}
               value={option.value}
               checked={isChecked}
@@ -108,9 +106,10 @@ export function MultichoiceField({
               className={`valid-target form-check-input ${error ? 'is-invalid' : ''}`}
               {...(index === 0 ? getLimepieDataAttributes(spec, path, language) : {})}
             />
-            <label className="form-check-label" htmlFor={optionId}>
+            {' '}
+            <span className="form-check-label">
               {option.label}
-            </label>
+            </span>
           </div>
         );
       })}
