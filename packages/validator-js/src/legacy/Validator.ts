@@ -14,6 +14,7 @@ import {
   RuleFn,
   RuleDefinition,
   PathContext,
+  ValidatorOptions,
 } from './types';
 
 import {
@@ -39,14 +40,17 @@ import {
  */
 export class Validator {
   private spec: Spec;
+  private options: ValidatorOptions;
   private customRules: Map<string, RuleDefinition> = new Map();
 
   /**
    * Create a new Validator instance
    * @param spec - Form specification
+   * @param options - Validator options (optional)
    */
-  constructor(spec: Spec) {
+  constructor(spec: Spec, options: ValidatorOptions = {}) {
     this.spec = spec;
+    this.options = options;
   }
 
   /**
@@ -394,8 +398,15 @@ export class Validator {
     try {
       const ast = parseCondition(expression);
       return evaluateCondition(ast, context, 'CURRENT');
-    } catch {
-      // If parsing fails, treat as false
+    } catch (error) {
+      if (this.options.debug) {
+        console.warn(
+          `[Form-Spec] Failed to evaluate condition: "${expression}"`,
+          `\n  Path: ${pathToString(context.currentPath)}`,
+          `\n  Error:`,
+          error
+        );
+      }
       return false;
     }
   }
@@ -409,8 +420,15 @@ export class Validator {
     try {
       const ast = parseCondition(expression);
       return evaluateExpressionValue(ast, context, 'CURRENT');
-    } catch {
-      // If parsing fails, return false
+    } catch (error) {
+      if (this.options.debug) {
+        console.warn(
+          `[Form-Spec] Failed to evaluate expression: "${expression}"`,
+          `\n  Path: ${pathToString(context.currentPath)}`,
+          `\n  Error:`,
+          error
+        );
+      }
       return false;
     }
   }
@@ -459,9 +477,10 @@ export class Validator {
 /**
  * Create a new Validator instance
  * @param spec - Form specification
+ * @param options - Validator options (optional)
  */
-export function createValidator(spec: Spec): Validator {
-  return new Validator(spec);
+export function createValidator(spec: Spec, options?: ValidatorOptions): Validator {
+  return new Validator(spec, options);
 }
 
 export default Validator;

@@ -70,6 +70,8 @@ export type {
   ConditionContext,
   WildcardStrategy,
   CachedCondition,
+  // Validator options
+  ValidatorOptions,
 } from './types';
 
 // Parser exports
@@ -79,8 +81,19 @@ export {
   ParseError,
   parseCondition,
   clearConditionCache,
+  getConditionCacheStats,
+  setConditionCache,
+  getConditionCache,
   isConditionExpression,
 } from '../parser/ConditionParser';
+
+// Cache exports
+export {
+  ConditionCache,
+  getDefaultCache,
+  resetDefaultCache,
+  type CacheStats,
+} from '../parser/ConditionCache';
 
 // Path resolver exports
 export {

@@ -1,0 +1,420 @@
+{
+  "testSuite": "pattern",
+  "version": "1.0.0",
+  "description": "Pattern/Match 규칙 검증 테스트 - 정규식 패턴 매칭",
+  "tests": [
+    {
+      "id": "pattern-phone-001",
+      "description": "한국 휴대폰 번호 패턴 (010-XXXX-XXXX)",
+      "spec": { "type": "text", "rules": { "pattern": "^010-\\d{4}-\\d{4}$" } },
+      "cases": [
+        { "input": "010-1234-5678", "expected": { "valid": true } },
+        { "input": "010-0000-0000", "expected": { "valid": true } },
+        { "input": "011-1234-5678", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "01012345678", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "010-123-5678", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "010-12345-678", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-phone-002",
+      "description": "한국 전화번호 패턴 (유선 포함)",
+      "spec": { "type": "text", "rules": { "pattern": "^0\\d{1,2}-\\d{3,4}-\\d{4}$" } },
+      "cases": [
+        { "input": "02-123-4567", "expected": { "valid": true } },
+        { "input": "02-1234-5678", "expected": { "valid": true } },
+        { "input": "031-123-4567", "expected": { "valid": true } },
+        { "input": "031-1234-5678", "expected": { "valid": true } },
+        { "input": "010-1234-5678", "expected": { "valid": true } },
+        { "input": "1234-5678", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "02-12-3456", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-phone-003",
+      "description": "국제 전화번호 패턴 (+XX)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\+\\d{1,3}-\\d{2,3}-\\d{3,4}-\\d{4}$" } },
+      "cases": [
+        { "input": "+82-10-1234-5678", "expected": { "valid": true } },
+        { "input": "+1-123-456-7890", "expected": { "valid": true } },
+        { "input": "+81-90-1234-5678", "expected": { "valid": true } },
+        { "input": "82-10-1234-5678", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "+82101234567", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-date-001",
+      "description": "날짜 패턴 (YYYY-MM-DD)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{4}-\\d{2}-\\d{2}$" } },
+      "cases": [
+        { "input": "2024-01-15", "expected": { "valid": true } },
+        { "input": "2024-12-31", "expected": { "valid": true } },
+        { "input": "24-01-15", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "2024/01/15", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "2024-1-15", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "20240115", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-date-002",
+      "description": "날짜 패턴 (YYYY/MM/DD)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{4}/\\d{2}/\\d{2}$" } },
+      "cases": [
+        { "input": "2024/01/15", "expected": { "valid": true } },
+        { "input": "2024/12/31", "expected": { "valid": true } },
+        { "input": "2024-01-15", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "24/01/15", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-date-003",
+      "description": "날짜시간 패턴 (YYYY-MM-DD HH:MM:SS)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$" } },
+      "cases": [
+        { "input": "2024-01-15 09:30:00", "expected": { "valid": true } },
+        { "input": "2024-12-31 23:59:59", "expected": { "valid": true } },
+        { "input": "2024-01-15T09:30:00", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "2024-01-15 9:30:00", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "2024-01-15", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-postal-001",
+      "description": "한국 우편번호 패턴 (5자리)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{5}$" } },
+      "cases": [
+        { "input": "12345", "expected": { "valid": true } },
+        { "input": "06100", "expected": { "valid": true } },
+        { "input": "1234", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "123456", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "1234a", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "123-45", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-postal-002",
+      "description": "미국 우편번호 패턴 (ZIP, ZIP+4)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{5}(-\\d{4})?$" } },
+      "cases": [
+        { "input": "12345", "expected": { "valid": true } },
+        { "input": "12345-6789", "expected": { "valid": true } },
+        { "input": "1234", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "12345-678", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "12345-67890", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-postal-003",
+      "description": "일본 우편번호 패턴 (XXX-XXXX)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{3}-\\d{4}$" } },
+      "cases": [
+        { "input": "100-0001", "expected": { "valid": true } },
+        { "input": "123-4567", "expected": { "valid": true } },
+        { "input": "1234567", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "12-34567", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-email-001",
+      "description": "기본 이메일 패턴",
+      "spec": { "type": "text", "rules": { "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" } },
+      "cases": [
+        { "input": "user@example.com", "expected": { "valid": true } },
+        { "input": "test.user@domain.co.kr", "expected": { "valid": true } },
+        { "input": "user+tag@example.com", "expected": { "valid": true } },
+        { "input": "user@example", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "@example.com", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "user@.com", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-special-001",
+      "description": "특수문자 이스케이프 - 점(.)",
+      "spec": { "type": "text", "rules": { "pattern": "^www\\.example\\.com$" } },
+      "cases": [
+        { "input": "www.example.com", "expected": { "valid": true } },
+        { "input": "wwwXexampleXcom", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "www-example-com", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-special-002",
+      "description": "특수문자 이스케이프 - 괄호",
+      "spec": { "type": "text", "rules": { "pattern": "^\\(\\d{3}\\)\\d{4}$" } },
+      "cases": [
+        { "input": "(123)4567", "expected": { "valid": true } },
+        { "input": "1234567", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "[123]4567", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-special-003",
+      "description": "특수문자 이스케이프 - 달러($)와 캐럿(^)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\$\\d+\\.\\d{2}$" } },
+      "cases": [
+        { "input": "$100.00", "expected": { "valid": true } },
+        { "input": "$1.99", "expected": { "valid": true } },
+        { "input": "100.00", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "$100", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "$100.0", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-special-004",
+      "description": "특수문자 이스케이프 - 백슬래시",
+      "spec": { "type": "text", "rules": { "pattern": "^C:\\\\Users\\\\[a-zA-Z]+$" } },
+      "cases": [
+        { "input": "C:\\Users\\Admin", "expected": { "valid": true } },
+        { "input": "C:\\Users\\test", "expected": { "valid": true } },
+        { "input": "C:/Users/Admin", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "C:\\Users\\", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-special-005",
+      "description": "특수문자 이스케이프 - 대괄호",
+      "spec": { "type": "text", "rules": { "pattern": "^\\[\\d+\\]$" } },
+      "cases": [
+        { "input": "[123]", "expected": { "valid": true } },
+        { "input": "[0]", "expected": { "valid": true } },
+        { "input": "123", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "(123)", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-korean-001",
+      "description": "한글만 허용",
+      "spec": { "type": "text", "rules": { "pattern": "^[가-힣]+$" } },
+      "cases": [
+        { "input": "홍길동", "expected": { "valid": true } },
+        { "input": "테스트", "expected": { "valid": true } },
+        { "input": "가나다라마바사", "expected": { "valid": true } },
+        { "input": "Hong길동", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "홍 길동", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "홍123동", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-korean-002",
+      "description": "한글과 공백 허용",
+      "spec": { "type": "text", "rules": { "pattern": "^[가-힣\\s]+$" } },
+      "cases": [
+        { "input": "홍길동", "expected": { "valid": true } },
+        { "input": "홍 길 동", "expected": { "valid": true } },
+        { "input": "대한 민국 만세", "expected": { "valid": true } },
+        { "input": "홍길동123", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "Hong Gil Dong", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-korean-003",
+      "description": "한글, 영문, 숫자 조합",
+      "spec": { "type": "text", "rules": { "pattern": "^[가-힣a-zA-Z0-9]+$" } },
+      "cases": [
+        { "input": "홍길동", "expected": { "valid": true } },
+        { "input": "HongGilDong", "expected": { "valid": true } },
+        { "input": "상품코드ABC123", "expected": { "valid": true } },
+        { "input": "테스트123test", "expected": { "valid": true } },
+        { "input": "특수@문자", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "공백 포함", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-korean-004",
+      "description": "한글 이름 패턴 (2-5자)",
+      "spec": { "type": "text", "rules": { "pattern": "^[가-힣]{2,5}$" } },
+      "cases": [
+        { "input": "홍길", "expected": { "valid": true } },
+        { "input": "홍길동", "expected": { "valid": true } },
+        { "input": "남궁세가명", "expected": { "valid": true } },
+        { "input": "홍", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "남궁세가명문", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-empty-001",
+      "description": "빈 값은 패턴 검증 건너뜀",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d+$" } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } },
+        { "input": null, "expected": { "valid": true } },
+        { "input": "123", "expected": { "valid": true } },
+        { "input": "abc", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-required-001",
+      "description": "required와 pattern 조합",
+      "spec": { "type": "text", "rules": { "required": true, "pattern": "^\\d{3}-\\d{4}$" } },
+      "cases": [
+        { "input": "", "expected": { "valid": false, "error": "required" } },
+        { "input": null, "expected": { "valid": false, "error": "required" } },
+        { "input": "123-4567", "expected": { "valid": true } },
+        { "input": "1234567", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "abc-defg", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-id-001",
+      "description": "영문 숫자 조합 ID 패턴",
+      "spec": { "type": "text", "rules": { "pattern": "^[a-zA-Z][a-zA-Z0-9_]{3,15}$" } },
+      "cases": [
+        { "input": "user123", "expected": { "valid": true } },
+        { "input": "Admin_user", "expected": { "valid": true } },
+        { "input": "a_b_c_d_e_f_g_h", "expected": { "valid": true } },
+        { "input": "123user", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "ab", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "a", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "a123456789012345678", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-url-001",
+      "description": "URL 패턴 (http/https)",
+      "spec": { "type": "text", "rules": { "pattern": "^https?://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(/.*)?$" } },
+      "cases": [
+        { "input": "http://example.com", "expected": { "valid": true } },
+        { "input": "https://example.com", "expected": { "valid": true } },
+        { "input": "https://sub.example.com/path", "expected": { "valid": true } },
+        { "input": "https://example.com/path/to/page", "expected": { "valid": true } },
+        { "input": "ftp://example.com", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "example.com", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "//example.com", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-hex-001",
+      "description": "16진수 색상 코드 패턴",
+      "spec": { "type": "text", "rules": { "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$" } },
+      "cases": [
+        { "input": "#fff", "expected": { "valid": true } },
+        { "input": "#FFF", "expected": { "valid": true } },
+        { "input": "#ffffff", "expected": { "valid": true } },
+        { "input": "#FFFFFF", "expected": { "valid": true } },
+        { "input": "#123abc", "expected": { "valid": true } },
+        { "input": "fff", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "#ffff", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "#gggggg", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-uuid-001",
+      "description": "UUID 패턴",
+      "spec": { "type": "text", "rules": { "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" } },
+      "cases": [
+        { "input": "550e8400-e29b-41d4-a716-446655440000", "expected": { "valid": true } },
+        { "input": "6ba7b810-9dad-11d1-80b4-00c04fd430c8", "expected": { "valid": true } },
+        { "input": "550e8400e29b41d4a716446655440000", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "550e8400-e29b-41d4-a716", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "not-a-uuid-at-all-here", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-credit-card-001",
+      "description": "신용카드 번호 패턴 (XXXX-XXXX-XXXX-XXXX)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{4}-\\d{4}-\\d{4}-\\d{4}$" } },
+      "cases": [
+        { "input": "1234-5678-9012-3456", "expected": { "valid": true } },
+        { "input": "0000-0000-0000-0000", "expected": { "valid": true } },
+        { "input": "1234567890123456", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "1234-5678-9012-345", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "1234-5678-9012-34567", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-ipv4-001",
+      "description": "IPv4 주소 패턴",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$" } },
+      "cases": [
+        { "input": "192.168.0.1", "expected": { "valid": true } },
+        { "input": "10.0.0.1", "expected": { "valid": true } },
+        { "input": "255.255.255.255", "expected": { "valid": true } },
+        { "input": "1.2.3.4", "expected": { "valid": true } },
+        { "input": "192.168.0", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "192.168.0.1.5", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "192.168.0.1234", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-sku-001",
+      "description": "상품 SKU 패턴 (ABC-12345)",
+      "spec": { "type": "text", "rules": { "pattern": "^[A-Z]{2,4}-\\d{4,6}$" } },
+      "cases": [
+        { "input": "AB-1234", "expected": { "valid": true } },
+        { "input": "ABC-12345", "expected": { "valid": true } },
+        { "input": "ABCD-123456", "expected": { "valid": true } },
+        { "input": "A-1234", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "ABCDE-1234", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "abc-1234", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "AB-123", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-message-001",
+      "description": "커스텀 에러 메시지",
+      "spec": {
+        "type": "text",
+        "rules": { "pattern": "^[가-힣]+$" },
+        "messages": { "pattern": "한글만 입력해주세요." }
+      },
+      "cases": [
+        { "input": "홍길동", "expected": { "valid": true } },
+        { "input": "abc123", "expected": { "valid": false, "error": "pattern", "message": "한글만 입력해주세요." } }
+      ]
+    },
+    {
+      "id": "pattern-conditional-001",
+      "description": "조건부 pattern 적용",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "country": { "type": "choice", "default": "KR" },
+          "postal_code": {
+            "type": "text",
+            "rules": { "pattern": ".country == KR ? ^\\d{5}$ : ^[A-Z0-9\\s-]+$" }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "country": "KR", "postal_code": "12345" }, "expected": { "valid": true } },
+        { "input": { "country": "KR", "postal_code": "1234" }, "expected": { "valid": false, "error": "pattern", "field": "postal_code" } },
+        { "input": { "country": "US", "postal_code": "12345-6789" }, "expected": { "valid": true } },
+        { "input": { "country": "US", "postal_code": "ABC 123" }, "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "match-alias-001",
+      "description": "match 규칙 (pattern의 별칭)",
+      "spec": { "type": "text", "rules": { "match": "^\\d{4}$" } },
+      "cases": [
+        { "input": "1234", "expected": { "valid": true } },
+        { "input": "0000", "expected": { "valid": true } },
+        { "input": "123", "expected": { "valid": false, "error": "match" } },
+        { "input": "12345", "expected": { "valid": false, "error": "match" } },
+        { "input": "abcd", "expected": { "valid": false, "error": "match" } }
+      ]
+    },
+    {
+      "id": "pattern-business-001",
+      "description": "사업자등록번호 패턴 (XXX-XX-XXXXX)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{3}-\\d{2}-\\d{5}$" } },
+      "cases": [
+        { "input": "123-45-67890", "expected": { "valid": true } },
+        { "input": "000-00-00000", "expected": { "valid": true } },
+        { "input": "1234567890", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "123-456-7890", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    },
+    {
+      "id": "pattern-resident-001",
+      "description": "주민등록번호 패턴 (XXXXXX-XXXXXXX)",
+      "spec": { "type": "text", "rules": { "pattern": "^\\d{6}-\\d{7}$" } },
+      "cases": [
+        { "input": "900101-1234567", "expected": { "valid": true } },
+        { "input": "000000-0000000", "expected": { "valid": true } },
+        { "input": "9001011234567", "expected": { "valid": false, "error": "pattern" } },
+        { "input": "900101-123456", "expected": { "valid": false, "error": "pattern" } }
+      ]
+    }
+  ]
+}

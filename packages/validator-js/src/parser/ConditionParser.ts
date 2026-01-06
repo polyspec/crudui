@@ -22,21 +22,192 @@ import {
   TernaryNode,
   PathSegment,
 } from '../types';
+import { ConditionCache, getDefaultCache, CacheStats } from './ConditionCache';
 
 // ============================================================================
 // Lexer
 // ============================================================================
 
 /**
- * Parse error with position information
+ * Error context information for detailed error reporting
+ */
+export interface ParseErrorContext {
+  /** The token that caused the error */
+  foundToken?: Token;
+  /** Expected token types or descriptions */
+  expected?: string[];
+  /** Partial AST constructed before the error */
+  partialAST?: ASTNode | null;
+  /** The parsing phase where the error occurred */
+  phase?: 'lexer' | 'parser';
+  /** Additional context information */
+  hint?: string;
+}
+
+/**
+ * Parse error with detailed position and context information
  */
 export class ParseError extends Error {
+  public readonly position: TokenPosition;
+  public readonly context: ParseErrorContext;
+  public readonly expression?: string;
+
   constructor(
     message: string,
-    public position: TokenPosition
+    position: TokenPosition,
+    context: ParseErrorContext = {}
   ) {
-    super(`${message} at position ${position.start}`);
+    const formattedMessage = ParseError.formatMessage(message, position, context);
+    super(formattedMessage);
     this.name = 'ParseError';
+    this.position = position;
+    this.context = context;
+  }
+
+  /**
+   * Format a human-readable error message
+   */
+  private static formatMessage(
+    message: string,
+    position: TokenPosition,
+    context: ParseErrorContext
+  ): string {
+    const parts: string[] = [message];
+
+    // Add position information
+    parts.push(`  at line ${position.line}, column ${position.column} (position ${position.start})`);
+
+    // Add found token information
+    if (context.foundToken) {
+      const tokenDesc = ParseError.describeToken(context.foundToken);
+      parts.push(`  Found: ${tokenDesc}`);
+    }
+
+    // Add expected tokens
+    if (context.expected && context.expected.length > 0) {
+      if (context.expected.length === 1) {
+        parts.push(`  Expected: ${context.expected[0]}`);
+      } else {
+        parts.push(`  Expected one of: ${context.expected.join(', ')}`);
+      }
+    }
+
+    // Add hint if provided
+    if (context.hint) {
+      parts.push(`  Hint: ${context.hint}`);
+    }
+
+    return parts.join('\n');
+  }
+
+  /**
+   * Create a human-readable description of a token
+   */
+  static describeToken(token: Token): string {
+    switch (token.type) {
+      case TokenType.EOF:
+        return 'end of expression';
+      case TokenType.STRING:
+        return `string "${token.literal}"`;
+      case TokenType.NUMBER:
+        return `number ${token.literal}`;
+      case TokenType.BOOLEAN:
+        return `boolean ${token.literal}`;
+      case TokenType.NULL:
+        return 'null';
+      case TokenType.IDENTIFIER:
+        return `identifier "${token.value}"`;
+      case TokenType.DOT:
+        return 'dot (.)';
+      case TokenType.DOT_DOT:
+        return `dots (${'.'.repeat(token.literal as number)})`;
+      case TokenType.ASTERISK:
+        return 'wildcard (*)';
+      case TokenType.LPAREN:
+        return 'opening parenthesis (';
+      case TokenType.RPAREN:
+        return 'closing parenthesis )';
+      case TokenType.LBRACKET:
+        return 'opening bracket [';
+      case TokenType.RBRACKET:
+        return 'closing bracket ]';
+      case TokenType.COMMA:
+        return 'comma (,)';
+      case TokenType.QUESTION:
+        return 'question mark (?)';
+      case TokenType.COLON:
+        return 'colon (:)';
+      case TokenType.AND:
+        return 'AND operator (&&)';
+      case TokenType.OR:
+        return 'OR operator (||)';
+      case TokenType.NOT:
+        return 'NOT operator (!)';
+      case TokenType.EQ:
+        return 'equality operator (==)';
+      case TokenType.NE:
+        return 'not-equal operator (!=)';
+      case TokenType.GT:
+        return 'greater-than operator (>)';
+      case TokenType.GE:
+        return 'greater-or-equal operator (>=)';
+      case TokenType.LT:
+        return 'less-than operator (<)';
+      case TokenType.LE:
+        return 'less-or-equal operator (<=)';
+      case TokenType.IN:
+        return 'IN operator';
+      case TokenType.NOT_IN:
+        return 'NOT IN operator';
+      case TokenType.INVALID:
+        return `invalid character "${token.value}"`;
+      default:
+        return `"${token.value}"`;
+    }
+  }
+
+  /**
+   * Get a visual representation of the error location in the expression
+   */
+  getErrorPointer(expression: string): string {
+    const lines = expression.split('\n');
+    const lineIndex = this.position.line - 1;
+
+    if (lineIndex >= 0 && lineIndex < lines.length) {
+      const line = lines[lineIndex];
+      const pointer = ' '.repeat(this.position.column - 1) + '^';
+      return `${line}\n${pointer}`;
+    }
+
+    return expression;
+  }
+
+  /**
+   * Get the partial AST if available
+   */
+  getPartialAST(): ASTNode | null {
+    return this.context.partialAST ?? null;
+  }
+
+  /**
+   * Create a JSON-serializable representation of the error
+   */
+  toJSON(): Record<string, unknown> {
+    return {
+      name: this.name,
+      message: this.message,
+      position: this.position,
+      context: {
+        foundToken: this.context.foundToken ? {
+          type: this.context.foundToken.type,
+          value: this.context.foundToken.value,
+        } : undefined,
+        expected: this.context.expected,
+        phase: this.context.phase,
+        hint: this.context.hint,
+        hasPartialAST: this.context.partialAST !== undefined,
+      },
+    };
   }
 }
 
@@ -230,7 +401,15 @@ export class Lexer {
     }
 
     if (this.isAtEnd()) {
-      throw new ParseError('Unterminated string', this.makePosition(start));
+      throw new ParseError(
+        'Unterminated string literal',
+        this.makePosition(start),
+        {
+          phase: 'lexer',
+          expected: [`closing ${quote} quote`],
+          hint: `String starting at position ${start - 1} was not closed. Add a ${quote} at the end.`,
+        }
+      );
     }
 
     this.advance(); // closing quote
@@ -388,11 +567,26 @@ export class Lexer {
 // ============================================================================
 
 /**
+ * Parse result containing AST and optional partial AST on error
+ */
+export interface ParseResult {
+  /** The successfully parsed AST (null if parsing failed) */
+  ast: ASTNode | null;
+  /** Whether parsing was successful */
+  success: boolean;
+  /** Error if parsing failed */
+  error?: ParseError;
+  /** Partial AST constructed before the error occurred */
+  partialAST?: ASTNode | null;
+}
+
+/**
  * Parser class for building AST from tokens
  */
 export class Parser {
   private tokens: Token[];
   private current: number = 0;
+  private partialAST: ASTNode | null = null;
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -403,28 +597,69 @@ export class Parser {
    */
   parse(): ASTNode {
     const expression = this.parseTernaryExpression();
+    this.partialAST = expression;
 
     if (!this.isAtEnd()) {
+      const token = this.peek();
       throw new ParseError(
-        `Unexpected token: ${this.peek().value}`,
-        this.peek().position
+        'Unexpected token after expression',
+        token.position,
+        {
+          foundToken: token,
+          expected: ['end of expression'],
+          phase: 'parser',
+          partialAST: this.partialAST,
+          hint: 'The expression appears complete, but there are additional tokens. Check for missing operators or extra characters.',
+        }
       );
     }
 
     return expression;
   }
 
+  /**
+   * Try to parse and return a result object instead of throwing
+   */
+  tryParse(): ParseResult {
+    try {
+      const ast = this.parse();
+      return {
+        ast,
+        success: true,
+      };
+    } catch (error) {
+      if (error instanceof ParseError) {
+        return {
+          ast: null,
+          success: false,
+          error,
+          partialAST: error.getPartialAST(),
+        };
+      }
+      throw error;
+    }
+  }
+
   // ternary_expression = or_expression [ "?" ternary_expression ":" ternary_expression ]
   private parseTernaryExpression(): ASTNode {
     const condition = this.parseOrExpression();
+    this.partialAST = condition;
 
     if (this.match(TokenType.QUESTION)) {
       const trueValue = this.parseTernaryExpression();
 
       if (!this.match(TokenType.COLON)) {
+        const token = this.peek();
         throw new ParseError(
-          'Expected ":" in ternary expression',
-          this.peek().position
+          'Missing colon in ternary expression',
+          token.position,
+          {
+            foundToken: token,
+            expected: ['colon (:)'],
+            phase: 'parser',
+            partialAST: condition,
+            hint: 'Ternary expressions require the format: condition ? trueValue : falseValue',
+          }
         );
       }
 
@@ -573,9 +808,16 @@ export class Parser {
     // Consume closing bracket if we had an opening one
     if (hasBrackets) {
       if (!this.match(TokenType.RBRACKET)) {
+        const token = this.peek();
         throw new ParseError(
-          'Expected closing bracket ]',
-          this.peek().position
+          'Missing closing bracket in value list',
+          token.position,
+          {
+            foundToken: token,
+            expected: ['closing bracket (])'],
+            phase: 'parser',
+            hint: `List started with '[' but was not closed. Found ${values.length} value(s) so far.`,
+          }
         );
       }
     }
@@ -620,8 +862,14 @@ export class Parser {
     }
 
     throw new ParseError(
-      `Expected value in list, got: ${token.value}`,
-      token.position
+      'Invalid value in list',
+      token.position,
+      {
+        foundToken: token,
+        expected: ['identifier', 'number', 'string'],
+        phase: 'parser',
+        hint: 'Values in an "in" list must be identifiers, numbers, or quoted strings.',
+      }
     );
   }
 
@@ -665,9 +913,17 @@ export class Parser {
       const expression = this.parseOrExpression();
 
       if (!this.match(TokenType.RPAREN)) {
+        const token = this.peek();
         throw new ParseError(
-          'Expected closing parenthesis',
-          this.peek().position
+          'Missing closing parenthesis',
+          token.position,
+          {
+            foundToken: token,
+            expected: ['closing parenthesis )'],
+            phase: 'parser',
+            partialAST: expression,
+            hint: 'Opening parenthesis was found but not closed. Check for matching parentheses.',
+          }
         );
       }
 
@@ -731,9 +987,17 @@ export class Parser {
       } as LiteralNode;
     }
 
+    const token = this.peek();
     throw new ParseError(
-      `Unexpected token: ${this.peek().value}`,
-      this.peek().position
+      'Unexpected token in expression',
+      token.position,
+      {
+        foundToken: token,
+        expected: ['path (.field)', 'literal (string, number, boolean, null)', 'grouped expression (...)'],
+        phase: 'parser',
+        partialAST: this.partialAST,
+        hint: 'Expected a value, field reference, or grouped expression.',
+      }
     );
   }
 
@@ -760,9 +1024,16 @@ export class Parser {
         value: this.previous().value,
       });
     } else if (relative) {
+      const token = this.peek();
       throw new ParseError(
-        'Expected identifier after dot prefix',
-        this.peek().position
+        'Missing field name after dot prefix',
+        token.position,
+        {
+          foundToken: token,
+          expected: ['identifier (field name)'],
+          phase: 'parser',
+          hint: 'A dot prefix must be followed by a field name, e.g., ".fieldName" or "..parentField".',
+        }
       );
     }
 
@@ -781,9 +1052,16 @@ export class Parser {
           value: this.previous().value,
         });
       } else {
+        const token = this.peek();
         throw new ParseError(
-          'Expected identifier, number, or wildcard after dot',
-          this.peek().position
+          'Invalid path segment after dot',
+          token.position,
+          {
+            foundToken: token,
+            expected: ['identifier (field name)', 'number (array index)', 'wildcard (*)'],
+            phase: 'parser',
+            hint: `Path segments after '.' must be a field name, array index, or wildcard. Got: ${ParseError.describeToken(token)}`,
+          }
         );
       }
     }
@@ -840,16 +1118,21 @@ export class Parser {
 // ============================================================================
 
 /**
- * Cache for parsed conditions
+ * Default cache instance for parsed conditions
  */
-const conditionCache = new Map<string, ASTNode>();
+let conditionCache: ConditionCache = getDefaultCache();
 
 /**
  * Parse a condition expression string into an AST
+ * @param expression The condition expression to parse
+ * @param cache Optional custom cache instance (uses default if not provided)
+ * @throws {ParseError} If the expression is invalid
  */
-export function parseCondition(expression: string): ASTNode {
+export function parseCondition(expression: string, cache?: ConditionCache): ASTNode {
+  const activeCache = cache || conditionCache;
+
   // Check cache
-  const cached = conditionCache.get(expression);
+  const cached = activeCache.get(expression);
   if (cached) {
     return cached;
   }
@@ -861,16 +1144,105 @@ export function parseCondition(expression: string): ASTNode {
   const ast = parser.parse();
 
   // Cache result
-  conditionCache.set(expression, ast);
+  activeCache.set(expression, ast);
 
   return ast;
 }
 
 /**
- * Clear the condition cache
+ * Extended parse result with expression context
  */
-export function clearConditionCache(): void {
-  conditionCache.clear();
+export interface TryParseResult extends ParseResult {
+  /** The original expression that was parsed */
+  expression: string;
+  /** Error pointer showing where the error occurred (if error) */
+  errorPointer?: string;
+}
+
+/**
+ * Try to parse a condition expression without throwing
+ * Returns a result object with success/failure info and partial AST on error
+ * @param expression The condition expression to parse
+ * @param cache Optional custom cache instance (uses default if not provided)
+ */
+export function tryParseCondition(expression: string, cache?: ConditionCache): TryParseResult {
+  const activeCache = cache || conditionCache;
+
+  // Check cache
+  const cached = activeCache.get(expression);
+  if (cached) {
+    return {
+      ast: cached,
+      success: true,
+      expression,
+    };
+  }
+
+  try {
+    // Tokenize and parse
+    const lexer = new Lexer(expression);
+    const tokens = lexer.tokenize();
+    const parser = new Parser(tokens);
+    const result = parser.tryParse();
+
+    if (result.success && result.ast) {
+      // Cache successful result
+      activeCache.set(expression, result.ast);
+    }
+
+    return {
+      ...result,
+      expression,
+      errorPointer: result.error ? result.error.getErrorPointer(expression) : undefined,
+    };
+  } catch (error) {
+    if (error instanceof ParseError) {
+      return {
+        ast: null,
+        success: false,
+        error,
+        partialAST: error.getPartialAST(),
+        expression,
+        errorPointer: error.getErrorPointer(expression),
+      };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Clear the condition cache
+ * @param cache Optional custom cache instance (uses default if not provided)
+ */
+export function clearConditionCache(cache?: ConditionCache): void {
+  const activeCache = cache || conditionCache;
+  activeCache.clear();
+}
+
+/**
+ * Get cache statistics
+ * @param cache Optional custom cache instance (uses default if not provided)
+ * @returns Cache statistics including hits, misses, and hit rate
+ */
+export function getConditionCacheStats(cache?: ConditionCache): CacheStats {
+  const activeCache = cache || conditionCache;
+  return activeCache.getStats();
+}
+
+/**
+ * Set the default condition cache instance
+ * @param cache The cache instance to use as default
+ */
+export function setConditionCache(cache: ConditionCache): void {
+  conditionCache = cache;
+}
+
+/**
+ * Get the default condition cache instance
+ * @returns The default ConditionCache instance
+ */
+export function getConditionCache(): ConditionCache {
+  return conditionCache;
 }
 
 /**

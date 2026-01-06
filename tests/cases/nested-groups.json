@@ -1,0 +1,646 @@
+{
+  "testSuite": "nested-groups",
+  "version": "1.0.0",
+  "description": "Nested Groups 검증 테스트 - 중첩 그룹 및 상대 경로 참조",
+  "tests": [
+    {
+      "id": "nested-2level-001",
+      "description": "2단계 중첩 그룹 - 기본 구조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "level1": {
+            "type": "group",
+            "properties": {
+              "level2": {
+                "type": "group",
+                "properties": {
+                  "value": { "type": "text", "rules": { "required": true } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "level1": { "level2": { "value": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "level1.level2.value" }
+        },
+        {
+          "input": { "level1": { "level2": { "value": "test" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-3level-001",
+      "description": "3단계 중첩 그룹",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "company": {
+            "type": "group",
+            "properties": {
+              "department": {
+                "type": "group",
+                "properties": {
+                  "team": {
+                    "type": "group",
+                    "properties": {
+                      "name": { "type": "text", "rules": { "required": true } },
+                      "leader": { "type": "text", "rules": { "required": true } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "company": { "department": { "team": { "name": "", "leader": "" } } } },
+          "expected": { "valid": false, "error": "required", "field": "company.department.team.name" }
+        },
+        {
+          "input": { "company": { "department": { "team": { "name": "개발팀", "leader": "" } } } },
+          "expected": { "valid": false, "error": "required", "field": "company.department.team.leader" }
+        },
+        {
+          "input": { "company": { "department": { "team": { "name": "개발팀", "leader": "김팀장" } } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-parent-ref-001",
+      "description": "상위 경로 참조 (..) - 한 단계",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "parent": {
+            "type": "group",
+            "properties": {
+              "enabled": { "type": "switcher", "default": 0 },
+              "child": {
+                "type": "group",
+                "properties": {
+                  "value": { "type": "text", "rules": { "required": "..enabled == 1" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "parent": { "enabled": 0, "child": { "value": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "parent": { "enabled": 1, "child": { "value": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "parent.child.value" }
+        },
+        {
+          "input": { "parent": { "enabled": 1, "child": { "value": "test" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-parent-ref-002",
+      "description": "상위 경로 참조 (...) - 두 단계",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "root": {
+            "type": "group",
+            "properties": {
+              "config": {
+                "type": "group",
+                "properties": {
+                  "is_active": { "type": "switcher", "default": 0 }
+                }
+              },
+              "data": {
+                "type": "group",
+                "properties": {
+                  "detail": {
+                    "type": "group",
+                    "properties": {
+                      "name": { "type": "text", "rules": { "required": "...config.is_active == 1" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "root": { "config": { "is_active": 0 }, "data": { "detail": { "name": "" } } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "root": { "config": { "is_active": 1 }, "data": { "detail": { "name": "" } } } },
+          "expected": { "valid": false, "error": "required", "field": "root.data.detail.name" }
+        },
+        {
+          "input": { "root": { "config": { "is_active": 1 }, "data": { "detail": { "name": "테스트" } } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-parent-ref-003",
+      "description": "상위 경로 참조 - 형제 필드 참조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "settings": {
+            "type": "group",
+            "properties": {
+              "use_custom": { "type": "switcher", "default": 0 },
+              "custom": {
+                "type": "group",
+                "properties": {
+                  "title": { "type": "text", "rules": { "required": "..use_custom == 1" } },
+                  "description": { "type": "text", "rules": { "required": "..use_custom == 1" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "settings": { "use_custom": 0, "custom": { "title": "", "description": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "settings": { "use_custom": 1, "custom": { "title": "", "description": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "settings.custom.title" }
+        },
+        {
+          "input": { "settings": { "use_custom": 1, "custom": { "title": "제목", "description": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "settings.custom.description" }
+        },
+        {
+          "input": { "settings": { "use_custom": 1, "custom": { "title": "제목", "description": "설명" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-abs-path-001",
+      "description": "절대 경로 참조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option": {
+            "type": "group",
+            "properties": {
+              "details": {
+                "type": "group",
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": "common.is_option == 1" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0 }, "option": { "details": { "name": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "details": { "name": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "option.details.name" }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "details": { "name": "옵션명" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-sibling-001",
+      "description": "같은 레벨 형제 필드 참조 (.)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "form": {
+            "type": "group",
+            "properties": {
+              "type": { "type": "choice", "default": "basic" },
+              "advanced_settings": { "type": "text", "rules": { "required": ".type == advanced" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "form": { "type": "basic", "advanced_settings": "" } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "form": { "type": "advanced", "advanced_settings": "" } },
+          "expected": { "valid": false, "error": "required", "field": "form.advanced_settings" }
+        },
+        {
+          "input": { "form": { "type": "advanced", "advanced_settings": "config=true" } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-mixed-ref-001",
+      "description": "혼합 경로 참조 - 상대 + 절대",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "global": {
+            "type": "group",
+            "properties": {
+              "enabled": { "type": "switcher", "default": 0 }
+            }
+          },
+          "section": {
+            "type": "group",
+            "properties": {
+              "local_enabled": { "type": "switcher", "default": 0 },
+              "content": {
+                "type": "group",
+                "properties": {
+                  "title": { "type": "text", "rules": { "required": "global.enabled == 1 && ..local_enabled == 1" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "global": { "enabled": 0 }, "section": { "local_enabled": 1, "content": { "title": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "global": { "enabled": 1 }, "section": { "local_enabled": 0, "content": { "title": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "global": { "enabled": 1 }, "section": { "local_enabled": 1, "content": { "title": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "section.content.title" }
+        },
+        {
+          "input": { "global": { "enabled": 1 }, "section": { "local_enabled": 1, "content": { "title": "제목" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-multiple-001",
+      "description": "중첩 그룹 내 multiple 배열",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "order": {
+            "type": "group",
+            "properties": {
+              "customer": {
+                "type": "group",
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": true } }
+                }
+              },
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "product_name": { "type": "text", "rules": { "required": true } },
+                  "quantity": { "type": "number", "rules": { "required": true, "min": 1 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "order": { "customer": { "name": "" }, "items": [] } },
+          "expected": { "valid": false, "error": "required", "field": "order.customer.name" }
+        },
+        {
+          "input": { "order": { "customer": { "name": "홍길동" }, "items": [{ "product_name": "", "quantity": 1 }] } },
+          "expected": { "valid": false, "error": "required", "field": "order.items.0.product_name" }
+        },
+        {
+          "input": { "order": { "customer": { "name": "홍길동" }, "items": [{ "product_name": "상품A", "quantity": 0 }] } },
+          "expected": { "valid": false, "error": "min", "field": "order.items.0.quantity" }
+        },
+        {
+          "input": { "order": { "customer": { "name": "홍길동" }, "items": [{ "product_name": "상품A", "quantity": 2 }] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-multiple-parent-ref-001",
+      "description": "multiple 배열 내에서 상위 경로 참조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "config": {
+            "type": "group",
+            "properties": {
+              "require_details": { "type": "switcher", "default": 0 },
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": true } },
+                  "details": { "type": "text", "rules": { "required": "..require_details == 1" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "config": { "require_details": 0, "items": [{ "name": "아이템", "details": "" }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "config": { "require_details": 1, "items": [{ "name": "아이템", "details": "" }] } },
+          "expected": { "valid": false, "error": "required", "field": "config.items.0.details" }
+        },
+        {
+          "input": { "config": { "require_details": 1, "items": [{ "name": "아이템", "details": "상세정보" }] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-deep-validation-001",
+      "description": "깊은 중첩에서의 검증 규칙",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "app": {
+            "type": "group",
+            "properties": {
+              "module": {
+                "type": "group",
+                "properties": {
+                  "feature": {
+                    "type": "group",
+                    "properties": {
+                      "settings": {
+                        "type": "group",
+                        "properties": {
+                          "name": { "type": "text", "rules": { "required": true, "minlength": 2 } },
+                          "value": { "type": "number", "rules": { "min": 0, "max": 100 } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "app": { "module": { "feature": { "settings": { "name": "", "value": 50 } } } } },
+          "expected": { "valid": false, "error": "required", "field": "app.module.feature.settings.name" }
+        },
+        {
+          "input": { "app": { "module": { "feature": { "settings": { "name": "A", "value": 50 } } } } },
+          "expected": { "valid": false, "error": "minlength", "field": "app.module.feature.settings.name" }
+        },
+        {
+          "input": { "app": { "module": { "feature": { "settings": { "name": "AB", "value": 150 } } } } },
+          "expected": { "valid": false, "error": "max", "field": "app.module.feature.settings.value" }
+        },
+        {
+          "input": { "app": { "module": { "feature": { "settings": { "name": "Valid", "value": 50 } } } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-cross-branch-001",
+      "description": "다른 브랜치 참조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "branch_a": {
+            "type": "group",
+            "properties": {
+              "flag": { "type": "switcher", "default": 0 }
+            }
+          },
+          "branch_b": {
+            "type": "group",
+            "properties": {
+              "sub": {
+                "type": "group",
+                "properties": {
+                  "value": { "type": "text", "rules": { "required": "branch_a.flag == 1" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "branch_a": { "flag": 0 }, "branch_b": { "sub": { "value": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "branch_a": { "flag": 1 }, "branch_b": { "sub": { "value": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "branch_b.sub.value" }
+        },
+        {
+          "input": { "branch_a": { "flag": 1 }, "branch_b": { "sub": { "value": "test" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-product-real-001",
+      "description": "실제 사용 사례 - 상품 폼 구조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_display": { "type": "choice", "default": 0 },
+              "display": {
+                "type": "group",
+                "properties": {
+                  "start_dt": { "type": "datetime", "rules": { "required": "..is_display == 2" } },
+                  "end_dt": { "type": "datetime", "rules": { "required": "..is_display == 2" } }
+                }
+              }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": { "type": "number", "rules": { "required": "common.is_display != 0 && option_single.items.*.is_close == 0" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "common": { "is_display": 0, "display": { "start_dt": "", "end_dt": "" } },
+            "option_single": { "items": [{ "is_close": 0, "price": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_display": 2, "display": { "start_dt": "", "end_dt": "" } },
+            "option_single": { "items": [] }
+          },
+          "expected": { "valid": false, "error": "required", "field": "common.display.start_dt" }
+        },
+        {
+          "input": {
+            "common": { "is_display": 1, "display": { "start_dt": "", "end_dt": "" } },
+            "option_single": { "items": [{ "is_close": 0, "price": null }] }
+          },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.0.price" }
+        },
+        {
+          "input": {
+            "common": { "is_display": 1, "display": { "start_dt": "", "end_dt": "" } },
+            "option_single": { "items": [{ "is_close": 1, "price": null }] }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "common": { "is_display": 2, "display": { "start_dt": "2024-01-01 00:00:00", "end_dt": "2024-12-31 23:59:59" } },
+            "option_single": { "items": [{ "is_close": 0, "price": 10000 }] }
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-grandparent-ref-001",
+      "description": "조부모 레벨 참조 (...)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "level0": {
+            "type": "group",
+            "properties": {
+              "enabled": { "type": "switcher", "default": 0 },
+              "level1": {
+                "type": "group",
+                "properties": {
+                  "level2": {
+                    "type": "group",
+                    "properties": {
+                      "value": { "type": "text", "rules": { "required": "...enabled == 1" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "level0": { "enabled": 0, "level1": { "level2": { "value": "" } } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "level0": { "enabled": 1, "level1": { "level2": { "value": "" } } } },
+          "expected": { "valid": false, "error": "required", "field": "level0.level1.level2.value" }
+        },
+        {
+          "input": { "level0": { "enabled": 1, "level1": { "level2": { "value": "filled" } } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "nested-complex-condition-001",
+      "description": "복잡한 중첩 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "master": {
+            "type": "group",
+            "properties": {
+              "type": { "type": "choice", "default": "A" },
+              "status": { "type": "choice", "default": "draft" }
+            }
+          },
+          "detail": {
+            "type": "group",
+            "properties": {
+              "section": {
+                "type": "group",
+                "properties": {
+                  "field_a": { "type": "text", "rules": { "required": "master.type == A && master.status == published" } },
+                  "field_b": { "type": "text", "rules": { "required": "master.type == B || master.status == archived" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "master": { "type": "A", "status": "draft" }, "detail": { "section": { "field_a": "", "field_b": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "master": { "type": "A", "status": "published" }, "detail": { "section": { "field_a": "", "field_b": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "detail.section.field_a" }
+        },
+        {
+          "input": { "master": { "type": "B", "status": "draft" }, "detail": { "section": { "field_a": "", "field_b": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "detail.section.field_b" }
+        },
+        {
+          "input": { "master": { "type": "A", "status": "archived" }, "detail": { "section": { "field_a": "", "field_b": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "detail.section.field_b" }
+        },
+        {
+          "input": { "master": { "type": "A", "status": "published" }, "detail": { "section": { "field_a": "value", "field_b": "" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    }
+  ]
+}

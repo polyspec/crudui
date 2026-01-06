@@ -1,0 +1,447 @@
+{
+  "testSuite": "unique",
+  "version": "1.0.0",
+  "description": "Unique 규칙 검증 테스트 - 배열 내 중복 검사",
+  "tests": [
+    {
+      "id": "unique-basic-001",
+      "description": "문자열 배열 내 중복 검사",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["a", "b", "c"], "expected": { "valid": true } },
+        { "input": ["apple", "banana", "cherry"], "expected": { "valid": true } },
+        { "input": ["a", "b", "a"], "expected": { "valid": false, "error": "unique" } },
+        { "input": ["test", "test"], "expected": { "valid": false, "error": "unique" } },
+        { "input": ["x", "y", "z", "x"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-basic-002",
+      "description": "숫자 배열 내 중복 검사",
+      "spec": { "type": "number", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": [1, 2, 3], "expected": { "valid": true } },
+        { "input": [100, 200, 300], "expected": { "valid": true } },
+        { "input": [1, 2, 1], "expected": { "valid": false, "error": "unique" } },
+        { "input": [0, 0], "expected": { "valid": false, "error": "unique" } },
+        { "input": [5, 10, 15, 5], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-basic-003",
+      "description": "빈 배열은 유효",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": [], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "unique-basic-004",
+      "description": "단일 요소 배열은 유효",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["single"], "expected": { "valid": true } },
+        { "input": ["only one"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "unique-case-001",
+      "description": "대소문자 구분 중복 검사",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["Apple", "apple"], "expected": { "valid": true } },
+        { "input": ["TEST", "test", "Test"], "expected": { "valid": true } },
+        { "input": ["Apple", "Apple"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-whitespace-001",
+      "description": "공백 차이로 구분",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["hello", "hello "], "expected": { "valid": true } },
+        { "input": [" test", "test"], "expected": { "valid": true } },
+        { "input": ["a b", "ab"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "unique-object-field-001",
+      "description": "객체 배열에서 특정 필드 기준 중복 검사",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "code": { "type": "text", "rules": { "unique": true } },
+              "name": { "type": "text" }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [
+            { "code": "A001", "name": "상품A" },
+            { "code": "A002", "name": "상품B" }
+          ]},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "items": [
+            { "code": "A001", "name": "상품A" },
+            { "code": "A001", "name": "상품B" }
+          ]},
+          "expected": { "valid": false, "error": "unique", "field": "items.1.code" }
+        },
+        {
+          "input": { "items": [
+            { "code": "A001", "name": "상품A" },
+            { "code": "A002", "name": "상품A" }
+          ]},
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "unique-object-field-002",
+      "description": "객체 배열 - 여러 필드에 각각 unique 적용",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "users": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "email": { "type": "text", "rules": { "unique": true } },
+              "username": { "type": "text", "rules": { "unique": true } },
+              "display_name": { "type": "text" }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "users": [
+            { "email": "a@test.com", "username": "user1", "display_name": "User" },
+            { "email": "b@test.com", "username": "user2", "display_name": "User" }
+          ]},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "users": [
+            { "email": "a@test.com", "username": "user1", "display_name": "User1" },
+            { "email": "a@test.com", "username": "user2", "display_name": "User2" }
+          ]},
+          "expected": { "valid": false, "error": "unique", "field": "users.1.email" }
+        },
+        {
+          "input": { "users": [
+            { "email": "a@test.com", "username": "user1", "display_name": "User1" },
+            { "email": "b@test.com", "username": "user1", "display_name": "User2" }
+          ]},
+          "expected": { "valid": false, "error": "unique", "field": "users.1.username" }
+        }
+      ]
+    },
+    {
+      "id": "unique-object-field-003",
+      "description": "객체 배열 - 빈 값은 중복 검사에서 제외",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "sku": { "type": "text", "rules": { "unique": true } },
+              "name": { "type": "text" }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [
+            { "sku": "", "name": "상품A" },
+            { "sku": "", "name": "상품B" }
+          ]},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "items": [
+            { "sku": null, "name": "상품A" },
+            { "sku": null, "name": "상품B" }
+          ]},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "items": [
+            { "sku": "SKU001", "name": "상품A" },
+            { "sku": "", "name": "상품B" },
+            { "sku": "SKU001", "name": "상품C" }
+          ]},
+          "expected": { "valid": false, "error": "unique" }
+        }
+      ]
+    },
+    {
+      "id": "unique-required-001",
+      "description": "unique와 required 조합",
+      "spec": { "type": "text", "multiple": true, "rules": { "required": true, "unique": true } },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "required" } },
+        { "input": ["a"], "expected": { "valid": true } },
+        { "input": ["a", "b"], "expected": { "valid": true } },
+        { "input": ["a", "a"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-mincount-001",
+      "description": "unique와 mincount 조합",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true, "mincount": 2 } },
+      "cases": [
+        { "input": ["a"], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["a", "b"], "expected": { "valid": true } },
+        { "input": ["a", "b", "c"], "expected": { "valid": true } },
+        { "input": ["a", "a"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-number-string-001",
+      "description": "숫자와 문자열 혼합 타입 비교",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["1", 1], "expected": { "valid": true } },
+        { "input": ["123", "123"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-korean-001",
+      "description": "한글 중복 검사",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["사과", "바나나", "체리"], "expected": { "valid": true } },
+        { "input": ["홍길동", "김철수", "홍길동"], "expected": { "valid": false, "error": "unique" } },
+        { "input": ["가", "나", "다"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "unique-option-items-001",
+      "description": "옵션 항목 중복 검사 (실제 사용 사례)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "option": {
+            "type": "group",
+            "properties": {
+              "groups": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": true, "unique": true } },
+                  "items": {
+                    "type": "text",
+                    "multiple": true,
+                    "rules": { "required": true, "unique": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "option": { "groups": [
+            { "name": "색상", "items": ["빨강", "파랑", "초록"] },
+            { "name": "사이즈", "items": ["S", "M", "L"] }
+          ]}},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "option": { "groups": [
+            { "name": "색상", "items": ["빨강", "파랑", "빨강"] }
+          ]}},
+          "expected": { "valid": false, "error": "unique" }
+        },
+        {
+          "input": { "option": { "groups": [
+            { "name": "색상", "items": ["빨강", "파랑"] },
+            { "name": "색상", "items": ["S", "M"] }
+          ]}},
+          "expected": { "valid": false, "error": "unique" }
+        }
+      ]
+    },
+    {
+      "id": "unique-nested-001",
+      "description": "중첩된 그룹 내 unique",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "orders": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "order_id": { "type": "text", "rules": { "unique": true } },
+              "items": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "product_code": { "type": "text", "rules": { "unique": true } },
+                  "quantity": { "type": "number" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "orders": [
+            { "order_id": "ORD001", "items": [{ "product_code": "P001", "quantity": 1 }] },
+            { "order_id": "ORD002", "items": [{ "product_code": "P001", "quantity": 2 }] }
+          ]},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "orders": [
+            { "order_id": "ORD001", "items": [{ "product_code": "P001", "quantity": 1 }] },
+            { "order_id": "ORD001", "items": [{ "product_code": "P002", "quantity": 2 }] }
+          ]},
+          "expected": { "valid": false, "error": "unique", "field": "orders.1.order_id" }
+        },
+        {
+          "input": { "orders": [
+            { "order_id": "ORD001", "items": [
+              { "product_code": "P001", "quantity": 1 },
+              { "product_code": "P001", "quantity": 2 }
+            ]}
+          ]},
+          "expected": { "valid": false, "error": "unique", "field": "orders.0.items.1.product_code" }
+        }
+      ]
+    },
+    {
+      "id": "unique-conditional-001",
+      "description": "조건부 unique - 활성 항목만 검사",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "is_active": { "type": "switcher", "default": 1 },
+              "code": { "type": "text", "rules": { "unique": "items.*.is_active == 1" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [
+            { "is_active": 1, "code": "A001" },
+            { "is_active": 0, "code": "A001" }
+          ]},
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "items": [
+            { "is_active": 1, "code": "A001" },
+            { "is_active": 1, "code": "A001" }
+          ]},
+          "expected": { "valid": false, "error": "unique" }
+        }
+      ]
+    },
+    {
+      "id": "unique-message-001",
+      "description": "커스텀 에러 메시지",
+      "spec": {
+        "type": "text",
+        "multiple": true,
+        "rules": { "unique": true },
+        "messages": { "unique": "중복된 값이 있습니다." }
+      },
+      "cases": [
+        { "input": ["a", "b", "a"], "expected": { "valid": false, "error": "unique", "message": "중복된 값이 있습니다." } }
+      ]
+    },
+    {
+      "id": "unique-tags-001",
+      "description": "태그 중복 검사 (실제 사용 사례)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "tags": {
+            "type": "text",
+            "multiple": true,
+            "rules": { "unique": true, "maxcount": 10 }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "tags": ["javascript", "react", "nodejs"] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "tags": ["javascript", "react", "javascript"] },
+          "expected": { "valid": false, "error": "unique" }
+        },
+        {
+          "input": { "tags": [] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "unique-select-001",
+      "description": "다중 선택 필드에서 중복 검사",
+      "spec": {
+        "type": "select",
+        "multiple": true,
+        "items": { "1": "옵션1", "2": "옵션2", "3": "옵션3" },
+        "rules": { "unique": true }
+      },
+      "cases": [
+        { "input": ["1", "2", "3"], "expected": { "valid": true } },
+        { "input": ["1", "2"], "expected": { "valid": true } },
+        { "input": ["1", "1"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-false-001",
+      "description": "unique: false는 중복 허용",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": false } },
+      "cases": [
+        { "input": ["a", "a", "a"], "expected": { "valid": true } },
+        { "input": ["test", "test"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "unique-special-chars-001",
+      "description": "특수문자 포함 값 중복 검사",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["a@b.com", "c@d.com"], "expected": { "valid": true } },
+        { "input": ["a@b.com", "a@b.com"], "expected": { "valid": false, "error": "unique" } },
+        { "input": ["hello!", "hello?"], "expected": { "valid": true } },
+        { "input": ["$100", "$100"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    },
+    {
+      "id": "unique-unicode-001",
+      "description": "유니코드 문자 중복 검사",
+      "spec": { "type": "text", "multiple": true, "rules": { "unique": true } },
+      "cases": [
+        { "input": ["cafe", "cafe"], "expected": { "valid": false, "error": "unique" } },
+        { "input": ["日本語", "한국어", "中文"], "expected": { "valid": true } },
+        { "input": ["日本語", "日本語"], "expected": { "valid": false, "error": "unique" } }
+      ]
+    }
+  ]
+}

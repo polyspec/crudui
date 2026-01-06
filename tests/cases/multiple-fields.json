@@ -1,0 +1,484 @@
+{
+  "testSuite": "multiple-fields",
+  "version": "1.0.0",
+  "description": "Multiple Fields 검증 테스트 - multiple: true, multiple: only, mincount/maxcount",
+  "tests": [
+    {
+      "id": "multiple-true-001",
+      "description": "multiple: true - 기본 배열 입력",
+      "spec": { "type": "text", "multiple": true },
+      "cases": [
+        { "input": [], "expected": { "valid": true } },
+        { "input": ["a"], "expected": { "valid": true } },
+        { "input": ["a", "b", "c"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "multiple-true-002",
+      "description": "multiple: true - required와 조합",
+      "spec": { "type": "text", "multiple": true, "rules": { "required": true } },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "required" } },
+        { "input": ["a"], "expected": { "valid": true } },
+        { "input": ["a", "b"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "multiple-true-003",
+      "description": "multiple: true - number 타입",
+      "spec": { "type": "number", "multiple": true, "rules": { "min": 0 } },
+      "cases": [
+        { "input": [1, 2, 3], "expected": { "valid": true } },
+        { "input": [0, 100, 200], "expected": { "valid": true } },
+        { "input": [-1, 0, 1], "expected": { "valid": false, "error": "min" } },
+        { "input": [5, -10, 15], "expected": { "valid": false, "error": "min" } }
+      ]
+    },
+    {
+      "id": "multiple-true-004",
+      "description": "multiple: true - image 타입",
+      "spec": { "type": "image", "multiple": true },
+      "cases": [
+        { "input": [], "expected": { "valid": true } },
+        { "input": ["/path/to/img1.jpg"], "expected": { "valid": true } },
+        { "input": ["/path/to/img1.jpg", "/path/to/img2.png"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "multiple-only-001",
+      "description": "multiple: only - 단일 객체로 처리 (배열 아님)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "item": {
+            "type": "group",
+            "multiple": "only",
+            "properties": {
+              "name": { "type": "text", "rules": { "required": true } },
+              "price": { "type": "number", "rules": { "min": 0 } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "item": { "name": "", "price": 100 } },
+          "expected": { "valid": false, "error": "required", "field": "item.name" }
+        },
+        {
+          "input": { "item": { "name": "상품", "price": -10 } },
+          "expected": { "valid": false, "error": "min", "field": "item.price" }
+        },
+        {
+          "input": { "item": { "name": "상품", "price": 100 } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "multiple-only-002",
+      "description": "multiple: only - 조건부 required와 조합",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option_single": {
+            "type": "group",
+            "properties": {
+              "items": {
+                "type": "group",
+                "multiple": "only",
+                "properties": {
+                  "is_close": { "type": "choice", "default": 0 },
+                  "price": { "type": "number", "rules": { "required": "common.is_option == 0 && option_single.items.*.is_close == 0" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 1 }, "option_single": { "items": { "is_close": 0, "price": null } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": { "is_close": 1, "price": null } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": { "is_close": 0, "price": null } } },
+          "expected": { "valid": false, "error": "required", "field": "option_single.items.price" }
+        },
+        {
+          "input": { "common": { "is_option": 0 }, "option_single": { "items": { "is_close": 0, "price": 10000 } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "mincount-001",
+      "description": "mincount - 최소 개수 검증",
+      "spec": { "type": "text", "multiple": true, "rules": { "mincount": 2 } },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["a"], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["a", "b"], "expected": { "valid": true } },
+        { "input": ["a", "b", "c"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "mincount-002",
+      "description": "mincount: 1 - 최소 1개 필수 (required와 유사)",
+      "spec": { "type": "text", "multiple": true, "rules": { "mincount": 1 } },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["a"], "expected": { "valid": true } },
+        { "input": ["a", "b"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "mincount-003",
+      "description": "mincount: 0 - 빈 배열 허용",
+      "spec": { "type": "text", "multiple": true, "rules": { "mincount": 0 } },
+      "cases": [
+        { "input": [], "expected": { "valid": true } },
+        { "input": ["a"], "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "maxcount-001",
+      "description": "maxcount - 최대 개수 검증",
+      "spec": { "type": "text", "multiple": true, "rules": { "maxcount": 3 } },
+      "cases": [
+        { "input": [], "expected": { "valid": true } },
+        { "input": ["a", "b"], "expected": { "valid": true } },
+        { "input": ["a", "b", "c"], "expected": { "valid": true } },
+        { "input": ["a", "b", "c", "d"], "expected": { "valid": false, "error": "maxcount" } },
+        { "input": ["1", "2", "3", "4", "5"], "expected": { "valid": false, "error": "maxcount" } }
+      ]
+    },
+    {
+      "id": "maxcount-002",
+      "description": "maxcount: 1 - 단일 선택만 허용",
+      "spec": { "type": "text", "multiple": true, "rules": { "maxcount": 1 } },
+      "cases": [
+        { "input": [], "expected": { "valid": true } },
+        { "input": ["a"], "expected": { "valid": true } },
+        { "input": ["a", "b"], "expected": { "valid": false, "error": "maxcount" } }
+      ]
+    },
+    {
+      "id": "mincount-maxcount-001",
+      "description": "mincount와 maxcount 조합 - 범위 지정",
+      "spec": { "type": "text", "multiple": true, "rules": { "mincount": 2, "maxcount": 5 } },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["a"], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["a", "b"], "expected": { "valid": true } },
+        { "input": ["a", "b", "c", "d", "e"], "expected": { "valid": true } },
+        { "input": ["1", "2", "3", "4", "5", "6"], "expected": { "valid": false, "error": "maxcount" } }
+      ]
+    },
+    {
+      "id": "mincount-maxcount-002",
+      "description": "mincount == maxcount - 정확한 개수",
+      "spec": { "type": "text", "multiple": true, "rules": { "mincount": 3, "maxcount": 3 } },
+      "cases": [
+        { "input": ["a", "b"], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["a", "b", "c"], "expected": { "valid": true } },
+        { "input": ["a", "b", "c", "d"], "expected": { "valid": false, "error": "maxcount" } }
+      ]
+    },
+    {
+      "id": "multiple-image-001",
+      "description": "multiple image - mincount/maxcount",
+      "spec": { "type": "image", "multiple": true, "rules": { "mincount": 1, "maxcount": 5 } },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "mincount" } },
+        { "input": ["/img/1.jpg"], "expected": { "valid": true } },
+        { "input": ["/img/1.jpg", "/img/2.jpg", "/img/3.jpg"], "expected": { "valid": true } },
+        { "input": ["/img/1.jpg", "/img/2.jpg", "/img/3.jpg", "/img/4.jpg", "/img/5.jpg"], "expected": { "valid": true } },
+        { "input": ["/img/1.jpg", "/img/2.jpg", "/img/3.jpg", "/img/4.jpg", "/img/5.jpg", "/img/6.jpg"], "expected": { "valid": false, "error": "maxcount" } }
+      ]
+    },
+    {
+      "id": "multiple-select-001",
+      "description": "multiple select - 다중 선택",
+      "spec": {
+        "type": "select",
+        "multiple": true,
+        "items": { "1": "옵션1", "2": "옵션2", "3": "옵션3", "4": "옵션4", "5": "옵션5" },
+        "rules": { "required": true, "mincount": 1, "maxcount": 3 }
+      },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "required" } },
+        { "input": ["1"], "expected": { "valid": true } },
+        { "input": ["1", "2", "3"], "expected": { "valid": true } },
+        { "input": ["1", "2", "3", "4"], "expected": { "valid": false, "error": "maxcount" } }
+      ]
+    },
+    {
+      "id": "multiple-group-001",
+      "description": "multiple group - 그룹 배열",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "contacts": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "mincount": 1, "maxcount": 3 },
+            "properties": {
+              "name": { "type": "text", "rules": { "required": true } },
+              "phone": { "type": "text", "rules": { "required": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "contacts": [] },
+          "expected": { "valid": false, "error": "mincount", "field": "contacts" }
+        },
+        {
+          "input": { "contacts": [{ "name": "", "phone": "" }] },
+          "expected": { "valid": false, "error": "required", "field": "contacts.0.name" }
+        },
+        {
+          "input": { "contacts": [{ "name": "홍길동", "phone": "010-1234-5678" }] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "contacts": [
+            { "name": "홍길동", "phone": "010-1234-5678" },
+            { "name": "김철수", "phone": "010-9876-5432" },
+            { "name": "이영희", "phone": "010-1111-2222" },
+            { "name": "박민수", "phone": "010-3333-4444" }
+          ]},
+          "expected": { "valid": false, "error": "maxcount", "field": "contacts" }
+        }
+      ]
+    },
+    {
+      "id": "multiple-conditional-001",
+      "description": "조건부 mincount",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "type": { "type": "choice", "default": "single" },
+          "items": {
+            "type": "text",
+            "multiple": true,
+            "rules": { "mincount": ".type == multiple ? 2 : 0" }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "type": "single", "items": [] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "type": "single", "items": ["a"] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "type": "multiple", "items": [] },
+          "expected": { "valid": false, "error": "mincount", "field": "items" }
+        },
+        {
+          "input": { "type": "multiple", "items": ["a"] },
+          "expected": { "valid": false, "error": "mincount", "field": "items" }
+        },
+        {
+          "input": { "type": "multiple", "items": ["a", "b"] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "multiple-message-001",
+      "description": "커스텀 에러 메시지",
+      "spec": {
+        "type": "text",
+        "multiple": true,
+        "rules": { "mincount": 2, "maxcount": 5 },
+        "messages": {
+          "mincount": "최소 2개 이상 선택해주세요.",
+          "maxcount": "최대 5개까지만 선택할 수 있습니다."
+        }
+      },
+      "cases": [
+        { "input": ["a"], "expected": { "valid": false, "error": "mincount", "message": "최소 2개 이상 선택해주세요." } },
+        { "input": ["1", "2", "3", "4", "5", "6"], "expected": { "valid": false, "error": "maxcount", "message": "최대 5개까지만 선택할 수 있습니다." } }
+      ]
+    },
+    {
+      "id": "multiple-tags-001",
+      "description": "실제 사용 사례 - 태그 입력",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "post": {
+            "type": "group",
+            "properties": {
+              "title": { "type": "text", "rules": { "required": true } },
+              "tags": {
+                "type": "text",
+                "multiple": true,
+                "rules": { "mincount": 1, "maxcount": 10, "unique": true }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "post": { "title": "제목", "tags": [] } },
+          "expected": { "valid": false, "error": "mincount", "field": "post.tags" }
+        },
+        {
+          "input": { "post": { "title": "제목", "tags": ["javascript", "react"] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "post": { "title": "제목", "tags": ["js", "js"] } },
+          "expected": { "valid": false, "error": "unique" }
+        }
+      ]
+    },
+    {
+      "id": "multiple-option-items-001",
+      "description": "실제 사용 사례 - 상품 옵션",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "option": {
+            "type": "group",
+            "properties": {
+              "groups": {
+                "type": "group",
+                "multiple": true,
+                "rules": { "mincount": 1, "maxcount": 5 },
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": true, "unique": true } },
+                  "items": {
+                    "type": "text",
+                    "multiple": true,
+                    "rules": { "mincount": 1, "maxcount": 20, "unique": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "option": { "groups": [] } },
+          "expected": { "valid": false, "error": "mincount", "field": "option.groups" }
+        },
+        {
+          "input": { "option": { "groups": [{ "name": "색상", "items": [] }] } },
+          "expected": { "valid": false, "error": "mincount", "field": "option.groups.0.items" }
+        },
+        {
+          "input": { "option": { "groups": [{ "name": "색상", "items": ["빨강", "파랑", "초록"] }] } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "option": { "groups": [
+            { "name": "색상", "items": ["빨강", "파랑"] },
+            { "name": "사이즈", "items": ["S", "M", "L"] }
+          ] } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "multiple-each-validation-001",
+      "description": "배열 각 요소에 대한 검증",
+      "spec": {
+        "type": "text",
+        "multiple": true,
+        "rules": { "minlength": 2, "maxlength": 10 }
+      },
+      "cases": [
+        { "input": ["ab", "abc", "abcd"], "expected": { "valid": true } },
+        { "input": ["a", "abc"], "expected": { "valid": false, "error": "minlength" } },
+        { "input": ["abc", "abcdefghijk"], "expected": { "valid": false, "error": "maxlength" } }
+      ]
+    },
+    {
+      "id": "multiple-number-range-001",
+      "description": "숫자 배열 - 각 요소 범위 검증",
+      "spec": {
+        "type": "number",
+        "multiple": true,
+        "rules": { "min": 1, "max": 100, "mincount": 1 }
+      },
+      "cases": [
+        { "input": [], "expected": { "valid": false, "error": "mincount" } },
+        { "input": [50], "expected": { "valid": true } },
+        { "input": [1, 50, 100], "expected": { "valid": true } },
+        { "input": [0, 50], "expected": { "valid": false, "error": "min" } },
+        { "input": [50, 101], "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "multiple-empty-string-001",
+      "description": "빈 문자열 요소 처리",
+      "spec": {
+        "type": "text",
+        "multiple": true,
+        "rules": { "required": true }
+      },
+      "cases": [
+        { "input": [""], "expected": { "valid": true } },
+        { "input": ["a", ""], "expected": { "valid": true } },
+        { "input": [], "expected": { "valid": false, "error": "required" } }
+      ]
+    },
+    {
+      "id": "multiple-nested-array-001",
+      "description": "중첩된 multiple 구조",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "categories": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "mincount": 1 },
+            "properties": {
+              "name": { "type": "text", "rules": { "required": true } },
+              "subcategories": {
+                "type": "text",
+                "multiple": true,
+                "rules": { "mincount": 1 }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "categories": [] },
+          "expected": { "valid": false, "error": "mincount", "field": "categories" }
+        },
+        {
+          "input": { "categories": [{ "name": "전자제품", "subcategories": [] }] },
+          "expected": { "valid": false, "error": "mincount", "field": "categories.0.subcategories" }
+        },
+        {
+          "input": { "categories": [{ "name": "전자제품", "subcategories": ["휴대폰", "노트북"] }] },
+          "expected": { "valid": true }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,804 @@
+{
+  "testSuite": "display-switch",
+  "version": "1.0.0",
+  "description": "Display Switch 조건부 검증 테스트 - 숨겨진 필드 검증 건너뛰기",
+  "tests": [
+    {
+      "id": "display-switch-basic-001",
+      "description": "display_switch로 숨겨진 필드는 검증 건너뜀",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "show_extra": { "type": "switcher", "default": 0 },
+          "extra_field": {
+            "type": "text",
+            "display_switch": ".show_extra == 1",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "show_extra": 0, "extra_field": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "show_extra": 1, "extra_field": "" },
+          "expected": { "valid": false, "error": "required", "field": "extra_field" }
+        },
+        {
+          "input": { "show_extra": 1, "extra_field": "value" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-basic-002",
+      "description": "display_switch false면 항상 숨김",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "hidden_field": {
+            "type": "text",
+            "display_switch": false,
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "hidden_field": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "hidden_field": "value" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-basic-003",
+      "description": "display_switch true면 항상 표시 및 검증",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "visible_field": {
+            "type": "text",
+            "display_switch": true,
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "visible_field": "" },
+          "expected": { "valid": false, "error": "required", "field": "visible_field" }
+        },
+        {
+          "input": { "visible_field": "value" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-condition-001",
+      "description": "동등 비교 조건 (==)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "type": { "type": "choice", "default": "basic" },
+          "advanced_setting": {
+            "type": "text",
+            "display_switch": ".type == advanced",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "type": "basic", "advanced_setting": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "type": "advanced", "advanced_setting": "" },
+          "expected": { "valid": false, "error": "required", "field": "advanced_setting" }
+        },
+        {
+          "input": { "type": "advanced", "advanced_setting": "config" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-condition-002",
+      "description": "부등 비교 조건 (!=)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "status": { "type": "choice", "default": "active" },
+          "reason": {
+            "type": "text",
+            "display_switch": ".status != active",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "status": "active", "reason": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "status": "inactive", "reason": "" },
+          "expected": { "valid": false, "error": "required", "field": "reason" }
+        },
+        {
+          "input": { "status": "suspended", "reason": "정책 위반" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-condition-003",
+      "description": "숫자 비교 조건 (>, <, >=, <=)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "quantity": { "type": "number", "default": 0 },
+          "bulk_discount": {
+            "type": "number",
+            "display_switch": ".quantity >= 10",
+            "rules": { "required": true, "min": 0, "max": 50 }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "quantity": 5, "bulk_discount": null },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "quantity": 10, "bulk_discount": null },
+          "expected": { "valid": false, "error": "required", "field": "bulk_discount" }
+        },
+        {
+          "input": { "quantity": 100, "bulk_discount": 20 },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "quantity": 50, "bulk_discount": 60 },
+          "expected": { "valid": false, "error": "max", "field": "bulk_discount" }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-and-001",
+      "description": "AND 조건 (&&)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "is_premium": { "type": "switcher", "default": 0 },
+          "is_verified": { "type": "switcher", "default": 0 },
+          "premium_feature": {
+            "type": "text",
+            "display_switch": ".is_premium == 1 && .is_verified == 1",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "is_premium": 0, "is_verified": 0, "premium_feature": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "is_premium": 1, "is_verified": 0, "premium_feature": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "is_premium": 0, "is_verified": 1, "premium_feature": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "is_premium": 1, "is_verified": 1, "premium_feature": "" },
+          "expected": { "valid": false, "error": "required", "field": "premium_feature" }
+        },
+        {
+          "input": { "is_premium": 1, "is_verified": 1, "premium_feature": "enabled" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-or-001",
+      "description": "OR 조건 (||)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "is_display": { "type": "choice", "default": 0 },
+          "display_date": {
+            "type": "datetime",
+            "display_switch": ".is_display == 2 || .is_display == 3",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "is_display": 0, "display_date": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "is_display": 1, "display_date": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "is_display": 2, "display_date": "" },
+          "expected": { "valid": false, "error": "required", "field": "display_date" }
+        },
+        {
+          "input": { "is_display": 3, "display_date": "" },
+          "expected": { "valid": false, "error": "required", "field": "display_date" }
+        },
+        {
+          "input": { "is_display": 2, "display_date": "2024-01-01 00:00:00" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-complex-001",
+      "description": "복합 조건식 - AND/OR 혼합",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "category": { "type": "choice", "default": "general" },
+          "is_sale": { "type": "switcher", "default": 0 },
+          "is_featured": { "type": "switcher", "default": 0 },
+          "special_price": {
+            "type": "number",
+            "display_switch": "(.category == premium && .is_sale == 1) || .is_featured == 1",
+            "rules": { "required": true, "min": 0 }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "category": "general", "is_sale": 0, "is_featured": 0, "special_price": null },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "category": "premium", "is_sale": 0, "is_featured": 0, "special_price": null },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "category": "premium", "is_sale": 1, "is_featured": 0, "special_price": null },
+          "expected": { "valid": false, "error": "required", "field": "special_price" }
+        },
+        {
+          "input": { "category": "general", "is_sale": 0, "is_featured": 1, "special_price": null },
+          "expected": { "valid": false, "error": "required", "field": "special_price" }
+        },
+        {
+          "input": { "category": "premium", "is_sale": 1, "is_featured": 1, "special_price": 10000 },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-in-001",
+      "description": "in 연산자 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "country": { "type": "choice", "default": "" },
+          "tax_id": {
+            "type": "text",
+            "display_switch": ".country in [US, CA, UK, AU]",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "country": "KR", "tax_id": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "country": "JP", "tax_id": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "country": "US", "tax_id": "" },
+          "expected": { "valid": false, "error": "required", "field": "tax_id" }
+        },
+        {
+          "input": { "country": "UK", "tax_id": "GB123456789" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-not-in-001",
+      "description": "not in 연산자 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "shipping_method": { "type": "choice", "default": "standard" },
+          "address": {
+            "type": "text",
+            "display_switch": ".shipping_method not in [digital, pickup]",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "shipping_method": "digital", "address": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "shipping_method": "pickup", "address": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "shipping_method": "standard", "address": "" },
+          "expected": { "valid": false, "error": "required", "field": "address" }
+        },
+        {
+          "input": { "shipping_method": "express", "address": "서울시 강남구" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-parent-ref-001",
+      "description": "상위 경로 참조 (..) 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "settings": {
+            "type": "group",
+            "properties": {
+              "enable_notifications": { "type": "switcher", "default": 0 },
+              "notification": {
+                "type": "group",
+                "properties": {
+                  "email": {
+                    "type": "text",
+                    "display_switch": "..enable_notifications == 1",
+                    "rules": { "required": true, "email": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "settings": { "enable_notifications": 0, "notification": { "email": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "settings": { "enable_notifications": 1, "notification": { "email": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "settings.notification.email" }
+        },
+        {
+          "input": { "settings": { "enable_notifications": 1, "notification": { "email": "invalid" } } },
+          "expected": { "valid": false, "error": "email", "field": "settings.notification.email" }
+        },
+        {
+          "input": { "settings": { "enable_notifications": 1, "notification": { "email": "user@example.com" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-abs-path-001",
+      "description": "절대 경로 참조 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_option": { "type": "choice", "default": 0 }
+            }
+          },
+          "option": {
+            "type": "group",
+            "properties": {
+              "details": {
+                "type": "group",
+                "display_switch": "common.is_option == 1",
+                "properties": {
+                  "name": { "type": "text", "rules": { "required": true } },
+                  "price": { "type": "number", "rules": { "required": true, "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_option": 0 }, "option": { "details": { "name": "", "price": null } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "details": { "name": "", "price": null } } },
+          "expected": { "valid": false, "error": "required", "field": "option.details.name" }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "details": { "name": "옵션명", "price": null } } },
+          "expected": { "valid": false, "error": "required", "field": "option.details.price" }
+        },
+        {
+          "input": { "common": { "is_option": 1 }, "option": { "details": { "name": "옵션명", "price": 1000 } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-group-001",
+      "description": "그룹 전체에 display_switch 적용",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "has_shipping": { "type": "switcher", "default": 0 },
+          "shipping": {
+            "type": "group",
+            "display_switch": ".has_shipping == 1",
+            "properties": {
+              "address": { "type": "text", "rules": { "required": true } },
+              "city": { "type": "text", "rules": { "required": true } },
+              "postal_code": { "type": "text", "rules": { "required": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "has_shipping": 0, "shipping": { "address": "", "city": "", "postal_code": "" } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "has_shipping": 1, "shipping": { "address": "", "city": "", "postal_code": "" } },
+          "expected": { "valid": false, "error": "required", "field": "shipping.address" }
+        },
+        {
+          "input": { "has_shipping": 1, "shipping": { "address": "123 Main St", "city": "", "postal_code": "" } },
+          "expected": { "valid": false, "error": "required", "field": "shipping.city" }
+        },
+        {
+          "input": { "has_shipping": 1, "shipping": { "address": "123 Main St", "city": "Seoul", "postal_code": "12345" } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-multiple-001",
+      "description": "multiple 필드에 display_switch 적용",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "allow_multiple": { "type": "switcher", "default": 0 },
+          "items": {
+            "type": "text",
+            "multiple": true,
+            "display_switch": ".allow_multiple == 1",
+            "rules": { "required": true, "mincount": 2 }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "allow_multiple": 0, "items": [] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "allow_multiple": 1, "items": [] },
+          "expected": { "valid": false, "error": "required", "field": "items" }
+        },
+        {
+          "input": { "allow_multiple": 1, "items": ["a"] },
+          "expected": { "valid": false, "error": "mincount", "field": "items" }
+        },
+        {
+          "input": { "allow_multiple": 1, "items": ["a", "b"] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-nested-001",
+      "description": "중첩된 display_switch 조건",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "level1_show": { "type": "switcher", "default": 0 },
+          "level1": {
+            "type": "group",
+            "display_switch": ".level1_show == 1",
+            "properties": {
+              "level2_show": { "type": "switcher", "default": 0 },
+              "level2": {
+                "type": "group",
+                "display_switch": "..level2_show == 1",
+                "properties": {
+                  "value": { "type": "text", "rules": { "required": true } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "level1_show": 0, "level1": { "level2_show": 1, "level2": { "value": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "level1_show": 1, "level1": { "level2_show": 0, "level2": { "value": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "level1_show": 1, "level1": { "level2_show": 1, "level2": { "value": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "level1.level2.value" }
+        },
+        {
+          "input": { "level1_show": 1, "level1": { "level2_show": 1, "level2": { "value": "test" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-wildcard-001",
+      "description": "배열 와일드카드와 display_switch",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "products": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "type": { "type": "choice", "default": "physical" },
+              "weight": {
+                "type": "number",
+                "display_switch": "products.*.type == physical",
+                "rules": { "required": true, "min": 0 }
+              },
+              "download_url": {
+                "type": "text",
+                "display_switch": "products.*.type == digital",
+                "rules": { "required": true }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "products": [{ "type": "physical", "weight": null, "download_url": "" }] },
+          "expected": { "valid": false, "error": "required", "field": "products.0.weight" }
+        },
+        {
+          "input": { "products": [{ "type": "digital", "weight": null, "download_url": "" }] },
+          "expected": { "valid": false, "error": "required", "field": "products.0.download_url" }
+        },
+        {
+          "input": { "products": [{ "type": "physical", "weight": 500, "download_url": "" }] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "products": [{ "type": "digital", "weight": null, "download_url": "https://example.com/file.zip" }] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-real-001",
+      "description": "실제 사용 사례 - 상품 등록 폼",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "is_display": { "type": "choice", "default": 0, "items": { "0": "숨김", "1": "즉시", "2": "예약", "3": "기간" } },
+              "display": {
+                "type": "group",
+                "display_switch": "common.is_display in [2, 3]",
+                "properties": {
+                  "start_dt": { "type": "datetime", "rules": { "required": true } },
+                  "end_dt": {
+                    "type": "datetime",
+                    "display_switch": "common.is_display == 3",
+                    "rules": { "required": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "common": { "is_display": 0, "display": { "start_dt": "", "end_dt": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_display": 1, "display": { "start_dt": "", "end_dt": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_display": 2, "display": { "start_dt": "", "end_dt": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "common.display.start_dt" }
+        },
+        {
+          "input": { "common": { "is_display": 2, "display": { "start_dt": "2024-01-01 00:00:00", "end_dt": "" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "common": { "is_display": 3, "display": { "start_dt": "2024-01-01 00:00:00", "end_dt": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "common.display.end_dt" }
+        },
+        {
+          "input": { "common": { "is_display": 3, "display": { "start_dt": "2024-01-01 00:00:00", "end_dt": "2024-12-31 23:59:59" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-real-002",
+      "description": "실제 사용 사례 - 배송 정보",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "delivery_type": { "type": "choice", "default": "none", "items": { "none": "없음", "digital": "디지털", "physical": "실물" } },
+          "digital_delivery": {
+            "type": "group",
+            "display_switch": ".delivery_type == digital",
+            "properties": {
+              "download_url": { "type": "text", "rules": { "required": true } },
+              "expiry_days": { "type": "number", "rules": { "required": true, "min": 1 } }
+            }
+          },
+          "physical_delivery": {
+            "type": "group",
+            "display_switch": ".delivery_type == physical",
+            "properties": {
+              "weight": { "type": "number", "rules": { "required": true, "min": 0 } },
+              "dimensions": {
+                "type": "group",
+                "properties": {
+                  "length": { "type": "number", "rules": { "required": true, "min": 0 } },
+                  "width": { "type": "number", "rules": { "required": true, "min": 0 } },
+                  "height": { "type": "number", "rules": { "required": true, "min": 0 } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": {
+            "delivery_type": "none",
+            "digital_delivery": { "download_url": "", "expiry_days": null },
+            "physical_delivery": { "weight": null, "dimensions": { "length": null, "width": null, "height": null } }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "delivery_type": "digital",
+            "digital_delivery": { "download_url": "", "expiry_days": null },
+            "physical_delivery": { "weight": null, "dimensions": { "length": null, "width": null, "height": null } }
+          },
+          "expected": { "valid": false, "error": "required", "field": "digital_delivery.download_url" }
+        },
+        {
+          "input": {
+            "delivery_type": "digital",
+            "digital_delivery": { "download_url": "https://example.com/file.zip", "expiry_days": 7 },
+            "physical_delivery": { "weight": null, "dimensions": { "length": null, "width": null, "height": null } }
+          },
+          "expected": { "valid": true }
+        },
+        {
+          "input": {
+            "delivery_type": "physical",
+            "digital_delivery": { "download_url": "", "expiry_days": null },
+            "physical_delivery": { "weight": null, "dimensions": { "length": null, "width": null, "height": null } }
+          },
+          "expected": { "valid": false, "error": "required", "field": "physical_delivery.weight" }
+        },
+        {
+          "input": {
+            "delivery_type": "physical",
+            "digital_delivery": { "download_url": "", "expiry_days": null },
+            "physical_delivery": { "weight": 500, "dimensions": { "length": 10, "width": 10, "height": 10 } }
+          },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-truthy-001",
+      "description": "Truthy 값으로 조건 평가",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "has_extra": { "type": "switcher", "default": 0 },
+          "extra_info": {
+            "type": "text",
+            "display_switch": ".has_extra",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "has_extra": 0, "extra_info": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "has_extra": 1, "extra_info": "" },
+          "expected": { "valid": false, "error": "required", "field": "extra_info" }
+        },
+        {
+          "input": { "has_extra": 1, "extra_info": "추가 정보" },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "display-switch-validation-combo-001",
+      "description": "display_switch와 다양한 검증 규칙 조합",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "show_field": { "type": "switcher", "default": 0 },
+          "validated_field": {
+            "type": "text",
+            "display_switch": ".show_field == 1",
+            "rules": {
+              "required": true,
+              "minlength": 5,
+              "maxlength": 20,
+              "pattern": "^[a-zA-Z0-9]+$"
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "show_field": 0, "validated_field": "" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "show_field": 1, "validated_field": "" },
+          "expected": { "valid": false, "error": "required", "field": "validated_field" }
+        },
+        {
+          "input": { "show_field": 1, "validated_field": "abc" },
+          "expected": { "valid": false, "error": "minlength", "field": "validated_field" }
+        },
+        {
+          "input": { "show_field": 1, "validated_field": "abcdefghijklmnopqrstuvwxyz" },
+          "expected": { "valid": false, "error": "maxlength", "field": "validated_field" }
+        },
+        {
+          "input": { "show_field": 1, "validated_field": "abc@123" },
+          "expected": { "valid": false, "error": "pattern", "field": "validated_field" }
+        },
+        {
+          "input": { "show_field": 1, "validated_field": "Valid123" },
+          "expected": { "valid": true }
+        }
+      ]
+    }
+  ]
+}
