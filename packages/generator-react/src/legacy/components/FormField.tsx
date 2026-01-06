@@ -4,7 +4,7 @@
  * Field dispatcher that renders appropriate field component based on type
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFormContext } from '../context/FormContext';
 import { useI18n } from '../context/I18nContext';
 import { useConditional } from '../hooks/useConditional';
@@ -13,6 +13,7 @@ import { Label } from './common/Label';
 import { ErrorMessage } from './common/ErrorMessage';
 import { Description } from './common/Description';
 import { getFieldComponent } from './fields';
+import { generateUniqid } from '../utils/dataAttributes';
 import type { FormValue, Language, FieldComponentProps, AllOfCondition, AllOfResult, FieldSpec, MultiLangText } from '../types';
 
 /**
@@ -55,9 +56,13 @@ export function FormField({
     disabled: globalDisabled,
     readonly: globalReadonly,
     customFields,
+    keyPrefix,
   } = useFormContext();
   const { language, t } = useI18n();
   const { evaluateAllOf } = useConditional({ path });
+
+  // Generate stable uniqid for this field (like PHP's data-uniqid)
+  const uniqidRef = useRef<string>(generateUniqid());
 
   // Register/unregister field
   useEffect(() => {
@@ -169,8 +174,28 @@ export function FormField({
   // Get translated label
   const label = spec.label ? t(spec.label) : undefined;
 
+  // Build wrapper name attribute (like PHP: "product.basic.name-layer")
+  const wrapperName = keyPrefix ? `${keyPrefix}.${path}-layer` : `${path}-layer`;
+
+  // Checkbox has completely different structure in PHP Limepie
+  if (spec.type === 'checkbox' || spec.type === 'switcher') {
+    return (
+      <div className={wrapperClasses.join(' ')} style={wrapperStyle} {...{ name: wrapperName }}>
+        <div className="checkbox">
+          <h6>
+            <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
+              <FieldComponent {...fieldProps} />
+            </div>
+          </h6>
+        </div>
+        {/* Error message */}
+        {error && <ErrorMessage message={error} />}
+      </div>
+    );
+  }
+
   return (
-    <div className={wrapperClasses.join(' ')} style={wrapperStyle} data-name={`${path}-layer`}>
+    <div className={wrapperClasses.join(' ')} style={wrapperStyle} {...{ name: wrapperName }}>
       {/* Label - use h6 to match Limepie original */}
       {label && spec.type !== 'hidden' && (
         <h6 className="">{label}</h6>
@@ -181,7 +206,7 @@ export function FormField({
 
       {/* form-element > input-group-wrapper structure like Limepie */}
       <div className="form-element">
-        <div className="input-group-wrapper" style={{}}>
+        <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
           {/* Field component */}
           <FieldComponent {...fieldProps} />
         </div>

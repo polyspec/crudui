@@ -7,7 +7,8 @@
 import React, { useCallback, useRef, type ChangeEvent } from 'react';
 import type { FieldComponentProps, FormValue } from '../../types';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation, getInputClasses } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
 
 /**
  * FileField component
@@ -25,6 +26,7 @@ export function FileField({
   language,
 }: FieldComponentProps) {
   const { t } = useI18n();
+  const { keyPrefix } = useFormContext();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = useCallback(
@@ -61,7 +63,7 @@ export function FileField({
   const fileInfo = getFileInfo(value);
 
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <div className="input-group">

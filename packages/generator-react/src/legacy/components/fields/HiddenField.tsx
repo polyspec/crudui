@@ -6,7 +6,8 @@
 
 import React from 'react';
 import type { FieldComponentProps } from '../../types';
-import { getLimepieDataAttributes, toBracketNotation } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
 
 /**
  * HiddenField component
@@ -18,8 +19,10 @@ export function HiddenField({
   path,
   language,
 }: FieldComponentProps) {
+  const { keyPrefix } = useFormContext();
+
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <input

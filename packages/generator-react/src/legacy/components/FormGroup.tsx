@@ -4,7 +4,7 @@
  * Handles nested groups and multiple/sortable array fields
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Plus, Minus, ChevronUp, ChevronDown } from 'lucide-react';
 import { useFormContext } from '../context/FormContext';
 import { useI18n } from '../context/I18nContext';
@@ -12,6 +12,7 @@ import { useMultiple, arrayToMultipleItems, multipleItemsToArray } from '../hook
 import { FormField } from './FormField';
 import { ErrorMessage } from './common/ErrorMessage';
 import { Description } from './common/Description';
+import { generateUniqid } from '../utils/dataAttributes';
 import type { FormValue, FormData, MultipleItem, FieldSpec, MultiLangText } from '../types';
 import { getValueByPath, setValueByPath, joinPath, generateUniqueKey } from '../utils/path';
 
@@ -44,8 +45,11 @@ export function FormGroup({
   index,
   uniqueKey,
 }: FormGroupProps) {
-  const { getValue, setValue, errors, disabled: globalDisabled, readonly: globalReadonly } = useFormContext();
+  const { getValue, setValue, errors, disabled: globalDisabled, readonly: globalReadonly, keyPrefix } = useFormContext();
   const { t } = useI18n();
+
+  // Generate stable uniqid for this group (like PHP's data-uniqid)
+  const uniqidRef = useRef<string>(generateUniqid());
 
   // Get group label
   const label = spec.label ? t(spec.label) : undefined;
@@ -73,8 +77,11 @@ export function FormGroup({
   // Single group - matches Limepie original output exactly
   const wrapperClasses = ['form-element-wrapper', spec.class || ''].filter(Boolean);
 
+  // Build wrapper name attribute (like PHP: "product.basic-layer")
+  const wrapperName = keyPrefix ? `${keyPrefix}.${path}-layer` : `${path}-layer`;
+
   return (
-    <div className={wrapperClasses.join(' ')} style={{}} data-name={`${path}-layer`}>
+    <div className={wrapperClasses.join(' ')} style={{}} {...{ name: wrapperName }}>
       {/* Group label - use h6 to match Limepie original */}
       {label && (
         <h6 className="">{label}</h6>
@@ -85,7 +92,7 @@ export function FormGroup({
 
       {/* form-element > input-group-wrapper > form-group structure like Limepie */}
       <div className="form-element">
-        <div className="input-group-wrapper" style={{}}>
+        <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
           <div className="form-group">{spec.properties && Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
             <FormField
               key={fieldName}
@@ -124,8 +131,11 @@ function MultipleFormGroup({
   label,
   error,
 }: MultipleFormGroupProps) {
-  const { getValue, setValue, disabled: globalDisabled, readonly: globalReadonly } = useFormContext();
+  const { getValue, setValue, disabled: globalDisabled, readonly: globalReadonly, keyPrefix } = useFormContext();
   const { t } = useI18n();
+
+  // Generate stable uniqid for this group
+  const uniqidRef = useRef<string>(generateUniqid());
 
   // Get current array value
   const currentValue = getValue(path);
@@ -226,8 +236,11 @@ function MultipleFormGroup({
   // Wrapper classes
   const wrapperClasses = ['form-element-wrapper', spec.class || ''].filter(Boolean);
 
+  // Build wrapper name attribute (like PHP: "product.items-layer")
+  const wrapperName = keyPrefix ? `${keyPrefix}.${path}-layer` : `${path}-layer`;
+
   return (
-    <div className={wrapperClasses.join(' ')} style={{}} data-name={`${path}-layer`}>
+    <div className={wrapperClasses.join(' ')} style={{}} {...{ name: wrapperName }}>
       {/* Group label */}
       {label && (
         <div className="d-flex justify-content-between align-items-center">
@@ -240,7 +253,7 @@ function MultipleFormGroup({
 
       {/* form-element > input-group-wrapper > form-group structure (original Limepie) */}
       <div className="form-element">
-        <div className="input-group-wrapper" style={{}}>
+        <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
           <div className="form-group multiple-items">
             {/* Add button when empty - same style as item's + button */}
             {items.length === 0 && canAdd && !isDisabled && !isReadonly && (

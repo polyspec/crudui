@@ -2,15 +2,21 @@
  * CheckboxField Component
  *
  * Single checkbox for boolean values
+ * Matches PHP Limepie structure: div > input + span
  */
 
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
+import { useFormContext } from '../../context/FormContext';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation, getCheckboxClasses } from '../../utils/dataAttributes';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getCheckboxClasses } from '../../utils/dataAttributes';
 
 /**
  * CheckboxField component
+ * PHP Limepie structure:
+ * <div>
+ *   <input type="checkbox" class="valid-target" value="1" checked /> <span>Label</span>
+ * </div>
  */
 export function CheckboxField({
   name,
@@ -24,6 +30,7 @@ export function CheckboxField({
   path,
   language,
 }: FieldComponentProps) {
+  const { keyPrefix } = useFormContext();
   const { t } = useI18n();
 
   const handleChange = useCallback(
@@ -36,23 +43,21 @@ export function CheckboxField({
   // Determine the label text
   const checkboxLabel = spec.checkbox_label ?? spec.label;
 
-  // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  // Convert path to bracket notation with keyPrefix for name attribute
+  // e.g., "product[inventory][track_inventory]"
+  const fullBracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
-    <div className="form-check">
+    <div>
       {/* Prepend */}
       {spec.prepend && (
-        <span
-          className="form-check-prepend"
-          dangerouslySetInnerHTML={{ __html: spec.prepend }}
-        />
+        <span dangerouslySetInnerHTML={{ __html: spec.prepend }} />
       )}
 
       <input
         type="checkbox"
-        id={path}
-        name={bracketName}
+        name={fullBracketName}
+        value="1"
         checked={Boolean(value)}
         onChange={handleChange}
         onBlur={onBlur}
@@ -60,20 +65,14 @@ export function CheckboxField({
         className={getCheckboxClasses(spec, !!error)}
         {...getLimepieDataAttributes(spec, path, language)}
       />
+      {' '}
       {checkboxLabel && (
-        <label
-          className="form-check-label"
-          htmlFor={path}
-          dangerouslySetInnerHTML={{ __html: t(checkboxLabel) }}
-        />
+        <span dangerouslySetInnerHTML={{ __html: t(checkboxLabel) }} />
       )}
 
       {/* Append */}
       {spec.append && (
-        <span
-          className="form-check-append"
-          dangerouslySetInnerHTML={{ __html: spec.append }}
-        />
+        <span dangerouslySetInnerHTML={{ __html: spec.append }} />
       )}
     </div>
   );

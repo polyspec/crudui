@@ -7,7 +7,8 @@
 import React, { useCallback, useState, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
 import type { FieldComponentProps, FormValue } from '../../types';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation, getInputClasses } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
 
 interface SearchResult {
   value: string;
@@ -31,6 +32,7 @@ export function SearchField({
   language,
 }: FieldComponentProps) {
   const { t } = useI18n();
+  const { keyPrefix } = useFormContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -167,7 +169,7 @@ export function SearchField({
   }, [displayValue]);
 
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <div className="position-relative">

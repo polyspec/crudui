@@ -7,7 +7,8 @@
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation, getInputClasses } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
 
 /**
  * NumberField component
@@ -25,6 +26,7 @@ export function NumberField({
   language,
 }: FieldComponentProps) {
   const { t } = useI18n();
+  const { keyPrefix } = useFormContext();
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +50,7 @@ export function NumberField({
   );
 
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <div className="input-group">

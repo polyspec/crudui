@@ -6,8 +6,9 @@
 
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
+import { useFormContext } from '../../context/FormContext';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation, getInputClasses } from '../../utils/dataAttributes';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
 
 /**
  * TextField component
@@ -24,6 +25,7 @@ export function TextField({
   path,
   language,
 }: FieldComponentProps) {
+  const { keyPrefix } = useFormContext();
   const { t } = useI18n();
 
   const handleChange = useCallback(
@@ -33,8 +35,8 @@ export function TextField({
     [onChange]
   );
 
-  // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  // Convert path to bracket notation with keyPrefix for name attribute
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <div className="input-group">

@@ -7,7 +7,8 @@
 import React, { useCallback, useMemo } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
 
 /**
  * ChoiceField component
@@ -25,6 +26,7 @@ export function ChoiceField({
   language,
 }: FieldComponentProps) {
   const { t } = useI18n();
+  const { keyPrefix } = useFormContext();
 
   const handleChange = useCallback(
     (optionValue: string) => {
@@ -58,7 +60,7 @@ export function ChoiceField({
   const isHorizontal = spec.layout === 'horizontal' || spec.inline === true;
 
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <div

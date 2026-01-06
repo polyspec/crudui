@@ -7,7 +7,8 @@
 import React, { useCallback, useMemo, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation, getSelectClasses } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getSelectClasses } from '../../utils/dataAttributes';
 
 /**
  * SelectField component
@@ -25,6 +26,7 @@ export function SelectField({
   language,
 }: FieldComponentProps) {
   const { t } = useI18n();
+  const { keyPrefix } = useFormContext();
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
@@ -111,7 +113,7 @@ export function SelectField({
   const hasGroups = Object.keys(groupedOptions.groups).length > 0;
 
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <div className="input-group">

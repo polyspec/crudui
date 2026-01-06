@@ -6,7 +6,8 @@
 
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
-import { getLimepieDataAttributes, toBracketNotation, getInputClasses } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
 
 /**
  * DateField component
@@ -23,6 +24,8 @@ export function DateField({
   path,
   language,
 }: FieldComponentProps) {
+  const { keyPrefix } = useFormContext();
+
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       onChange(e.target.value);
@@ -34,7 +37,7 @@ export function DateField({
   const formattedValue = formatDateValue(value as string | undefined);
 
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <input

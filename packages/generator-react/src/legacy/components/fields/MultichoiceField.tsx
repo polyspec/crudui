@@ -7,7 +7,8 @@
 import React, { useCallback, useMemo } from 'react';
 import type { FieldComponentProps, FormValue } from '../../types';
 import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { getLimepieDataAttributes, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
 
 /**
  * MultichoiceField component
@@ -25,6 +26,7 @@ export function MultichoiceField({
   language,
 }: FieldComponentProps) {
   const { t } = useI18n();
+  const { keyPrefix } = useFormContext();
 
   // Ensure value is an array
   const selectedValues = useMemo((): string[] => {
@@ -79,7 +81,7 @@ export function MultichoiceField({
   const isHorizontal = spec.layout === 'horizontal' || spec.inline === true;
 
   // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
     <div
