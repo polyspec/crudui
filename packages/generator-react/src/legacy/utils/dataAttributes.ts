@@ -8,6 +8,40 @@
 import type { ReactFieldSpec, MultiLangText } from '../types';
 
 /**
+ * Generate a legacy uniqid
+ * Format: __[12 hex chars]__ (similar to PHP uniqid)
+ */
+export function generateUniqid(): string {
+  const chars = '0123456789abcdef';
+  let id = '';
+  for (let i = 0; i < 12; i++) {
+    id += chars.charAt(Math.floor(Math.random() * 16));
+  }
+  return `__${id}__`;
+}
+
+/**
+ * Convert dot notation path to bracket notation with optional key prefix
+ * Example: "common.email" -> "common[email]"
+ * Example: "user.address.city" -> "user[address][city]"
+ * Example: with keyPrefix "product": "basic.name" -> "product[basic][name]"
+ */
+export function toBracketNotationWithPrefix(path: string, keyPrefix?: string): string {
+  const baseBracket = toBracketNotation(path);
+  if (!keyPrefix) return baseBracket;
+
+  // Convert "basic[name]" to "product[basic][name]"
+  // or "name" to "product[name]"
+  if (baseBracket.includes('[')) {
+    const firstBracket = baseBracket.indexOf('[');
+    const firstPart = baseBracket.substring(0, firstBracket);
+    const rest = baseBracket.substring(firstBracket);
+    return `${keyPrefix}[${firstPart}]${rest}`;
+  }
+  return `${keyPrefix}[${baseBracket}]`;
+}
+
+/**
  * Convert dot notation path to bracket notation
  * Example: "common.email" -> "common[email]"
  * Example: "user.address.city" -> "user[address][city]"
@@ -76,11 +110,25 @@ function getDisplayName(label: string | MultiLangText | undefined, language: str
 }
 
 /**
+ * Convert path to rule-name format (bracket notation without key prefix)
+ * Example: "basic.name" -> "basic[name]"
+ * Example: "pricing.price" -> "pricing[price]"
+ * Example: "name" -> "name"
+ */
+export function toRuleNameNotation(path: string): string {
+  const segments = path.split('.');
+  if (segments.length <= 1) return path;
+
+  // First segment + rest in brackets
+  return segments[0] + segments.slice(1).map(s => `[${s}]`).join('');
+}
+
+/**
  * Generate the legacy data attributes for a field
  *
  * Output format:
- * - data-rule-name: path in dot notation (for rule lookup)
- * - data-name: human-readable field name (for error messages)
+ * - data-rule-name: path in bracket notation (for rule lookup), e.g., "basic[name]"
+ * - data-name: field name only (for error messages)
  * - data-default: default value from spec
  */
 export function getLegacyDataAttributes(
@@ -90,13 +138,12 @@ export function getLegacyDataAttributes(
 ): Record<string, string> {
   const attributes: Record<string, string> = {};
 
-  // data-rule-name: field name only
-  // The field name only, not the full path
-  const fieldName = path.includes('.') ? path.split('.').pop()! : path;
-  attributes['data-rule-name'] = fieldName;
+  // data-rule-name: path in bracket notation
+  // Example: "basic.name" -> "basic[name]"
+  attributes['data-rule-name'] = toRuleNameNotation(path);
 
-  // data-name: field name for error messages
-  // The field name, not the label
+  // data-name: field name only for error messages
+  const fieldName = path.includes('.') ? path.split('.').pop()! : path;
   attributes['data-name'] = fieldName;
 
   // data-default: default value from spec
@@ -138,12 +185,13 @@ export function getInputClasses(
 /**
  * Get CSS classes for select field
  * Returns Bootstrap-compatible classes with valid-target for validation
+ * Uses the form-select class
  */
 export function getSelectClasses(
   spec: ReactFieldSpec,
   hasError?: boolean
 ): string {
-  const classes = ['valid-target', 'form-control'];
+  const classes = ['valid-target', 'form-select'];
 
   if (spec.input_class) {
     classes.push(spec.input_class);
@@ -158,13 +206,14 @@ export function getSelectClasses(
 
 /**
  * Get CSS classes for checkbox field
- * Returns Bootstrap-compatible classes with valid-target for validation
+ * Returns the legacy classes with valid-target for validation
+ * Note: only the "valid-target" class, not form-check-input
  */
 export function getCheckboxClasses(
   spec: ReactFieldSpec,
   hasError?: boolean
 ): string {
-  const classes = ['valid-target', 'form-check-input'];
+  const classes = ['valid-target'];
 
   if (spec.input_class) {
     classes.push(spec.input_class);
