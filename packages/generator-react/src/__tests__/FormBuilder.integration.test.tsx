@@ -552,8 +552,7 @@ describe('Conditional Field Visibility (display_switch)', () => {
       properties: {
         showDetail: {
           type: 'checkbox',
-          label: 'Show Detail',
-          checkbox_label: 'Enable',
+          label: 'Show Detail',  // checkbox에서는 checkbox_label 우선, 없으면 label 사용
         },
         detail: {
           type: 'text',
