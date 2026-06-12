@@ -1,11 +1,11 @@
 # Form-Spec 문서
 
-YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, PHP, Go 에서
-동일한 검증 결과(멱등성)를 보장하고, React 로 폼을 렌더링한다.
+YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, PHP, Go, Rust 에서
+동일한 검증 결과(멱등성)를 보장하고, React/Vue/Svelte 로 폼을 렌더링한다.
 
 - 스펙 형식: `{type: 'group', properties: {...}}`, 필드별 `rules` 는 객체
 - 검증 결과: `{valid: boolean, errors: ValidationError[]}`
-- 크로스 언어 게이트: 951 케이스, 2026-06 기준 3개 언어 전부 GREEN
+- 크로스 언어 게이트: 1013 케이스, 2026-06 기준 4개 언어 전부 GREEN
 
 ## 문서 색인
 
@@ -24,8 +24,8 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 
 | 문서 | 내용 |
 |------|------|
-| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교, 브리지 3종, HTML parity, 골든 재생성) |
-| [TEST-CASES.md](./TEST-CASES.md) | 크로스 언어 케이스 형식과 14개 파일 현황 (951 케이스) |
+| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교, 브리지 4종, HTML parity, 골든 재생성) |
+| [TEST-CASES.md](./TEST-CASES.md) | 크로스 언어 케이스 형식과 19개 파일 현황 (1013 케이스) |
 | [EVALUATION.md](./EVALUATION.md) | 프로젝트 평가 보고서 (현황 업데이트 포함) |
 
 ### 사료 (legacy 분석 — 현 구현 기준 아님)
@@ -46,20 +46,21 @@ form-spec/
 ├── packages/
 │   ├── validator-js/        # TS 검증기 (@form-spec/validator)
 │   ├── validator-php/       # PHP 검증기 (PHP ^8.2, FormSpec\Validator)
-│   ├── validator-go/        # Go 검증기 (모듈명 github.com/example/form-generator/validator — placeholder)
-│   ├── generator-react/     # React 폼 생성기 (@form-spec/generator-react)
-│   ├── generator-vue/       # placeholder (v0.0.1, 미구현)
-│   ├── generator-svelte/    # placeholder (v0.0.1, 미구현)
+│   ├── validator-go/        # Go 검증기 (모듈명 github.com/yejune/form-spec/packages/validator-go)
+│   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator)
+│   ├── generator-react/     # React 폼 생성기 (@form-spec/generator-react) — 골든 7/7 parity
+│   ├── generator-vue/       # Vue 3 폼 생성기 (@form-spec/generator-vue, @vue/server-renderer SSR) — 골든 7/7 parity
+│   ├── generator-svelte/    # Svelte 5 폼 생성기 (@form-spec/generator-svelte, SSR) — 골든 7/7 parity
 │   └── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets — 골든 HTML 파이프라인이 사용하는 기준 구현
 ├── tests/                   # 크로스 언어 픽스처(cases/), 골든 HTML(fixtures/), 러너(runner/), parity 하네스(parity/)
 ├── tools/
 │   └── limepie-baseline/    # Limepie 골든 HTML 재생성 파이프라인 (핀 커밋 강제)
-└── examples/                # demo-app, node/php/go API 서버, playground 등 (docker-compose)
+└── examples/                # demo-app, node/php/go/rust API 서버, playground 등 (docker-compose)
 ```
 
 ## 빠른 시작 (검증기)
 
-세 언어 모두 동일한 스펙 객체와 동일한 결과 형식을 쓴다.
+네 언어 모두 동일한 스펙 객체와 동일한 결과 형식을 쓴다.
 
 ### JavaScript/TypeScript
 
@@ -98,10 +99,20 @@ $result = $validator->validate($data);       // ValidationResult
 ### Go
 
 ```go
-import validator "github.com/example/form-generator/validator/validator"
+import "github.com/yejune/form-spec/packages/validator-go/validator"
 
 v := validator.NewValidator(spec)
 result := v.Validate(data) // *ValidationResult
+```
+
+### Rust
+
+```rust
+use formspec_validator::{parse_spec, Validator};
+
+let parsed = parse_spec(&spec_value);          // 기준 type/properties JSON Value
+let mut v = Validator::new(parsed.spec);
+let result = v.validate(&data);                // ValidationResult { is_valid, errors }
 ```
 
 상세 API 는 [API.md](./API.md), 규칙 동작은
@@ -109,7 +120,7 @@ result := v.Validate(data) // *ValidationResult
 
 ## 백엔드 API 계약
 
-예제 API 서버 3종(node/php/go)의 기준 계약 (`examples/README.md`):
+예제 API 서버 4종(node/php/go/rust)의 기준 계약 (`examples/README.md`):
 
 ```
 POST /api/validate   body: {"spec": ..., "data": ...}
@@ -122,8 +133,10 @@ POST /api/validate   body: {"spec": ..., "data": ...}
 ## 테스트
 
 ```bash
-cd tests && npm test          # 크로스 언어 비교 (JS+PHP+Go, 951 케이스)
-cd tests/parity && npm test   # React SSR ↔ Limepie 골든 HTML parity
+cd tests && npm test          # 크로스 언어 비교 (JS+PHP+Go+Rust, 1013 케이스)
+cd tests/parity && npm test   # React SSR ↔ Limepie 골든 HTML parity (7/7)
+cd packages/generator-vue    && npm test  # Vue SSR ↔ 골든 parity (7/7)
+cd packages/generator-svelte && npm test  # Svelte SSR ↔ 골든 parity (7/7)
 ```
 
 전체 게이트 목록·언어별 브리지·골든 재생성 절차는 [TESTING.md](./TESTING.md).
