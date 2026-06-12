@@ -1,10 +1,10 @@
-module github.com/example/form-generator/examples/go-api
+module github.com/yejune/form-spec/examples/go-api
 
 go 1.21
 
 require (
-	github.com/example/form-generator/validator v0.0.0
+	github.com/yejune/form-spec/packages/validator-go v0.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/example/form-generator/validator => ../../packages/validator-go
+replace github.com/yejune/form-spec/packages/validator-go => ../../packages/validator-go
