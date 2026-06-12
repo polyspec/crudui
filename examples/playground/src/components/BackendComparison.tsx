@@ -1,27 +1,43 @@
 import React, { useState, useCallback } from 'react';
 import type { FormData } from '@form-spec/generator-react';
 
+/** Canonical validation error shape returned by every backend. */
+interface ValidationError {
+  field: string;
+  rule: string;
+  message: string;
+}
+
 interface BackendResult {
   backend: string;
   url: string;
   status: 'idle' | 'loading' | 'success' | 'error';
   valid?: boolean;
-  errors?: Record<string, string[]>;
+  errors?: ValidationError[];
   responseTime?: number;
   errorMessage?: string;
 }
 
 interface BackendComparisonProps {
-  spec: string;
+  /** Parsed spec object (YAML already parsed). Null when the YAML failed to parse. */
+  spec: Record<string, unknown> | null;
   data: FormData;
   language: 'ko' | 'en';
 }
 
 const BACKENDS = [
   { name: 'Node.js', url: 'http://localhost:8011/api/validate', color: '#68a063' },
-  { name: 'PHP', url: 'http://localhost:8012/validate.php', color: '#777bb4' },
-  { name: 'Go', url: 'http://localhost:8013/validate', color: '#00add8' },
+  { name: 'PHP', url: 'http://localhost:8012/api/validate', color: '#777bb4' },
+  { name: 'Go', url: 'http://localhost:8013/api/validate', color: '#00add8' },
 ];
+
+/** Sort errors so that ordering differences between backends do not cause false mismatches. */
+function normalizeErrors(errors: ValidationError[] | undefined): ValidationError[] {
+  if (!errors) return [];
+  return [...errors].sort((a, b) =>
+    a.field === b.field ? a.rule.localeCompare(b.rule) : a.field.localeCompare(b.field)
+  );
+}
 
 export const BackendComparison: React.FC<BackendComparisonProps> = ({
   spec,
@@ -41,6 +57,7 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
     async (backend: typeof BACKENDS[0]): Promise<BackendResult> => {
       const startTime = performance.now();
       try {
+        // Canonical contract: POST /api/validate with { spec: <parsed object>, data }.
         const response = await fetch(backend.url, {
           method: 'POST',
           headers: {
@@ -53,22 +70,33 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
         const responseTime = Math.round(endTime - startTime);
 
         if (!response.ok) {
+          // Validation failures are NOT HTTP errors — a non-200 means a server error.
+          let message = `HTTP ${response.status}: ${response.statusText}`;
+          try {
+            const errorBody = await response.json();
+            if (errorBody && typeof errorBody.error === 'string') {
+              message = `HTTP ${response.status}: ${errorBody.error}`;
+            }
+          } catch {
+            // keep default message
+          }
           return {
             backend: backend.name,
             url: backend.url,
             status: 'error',
             responseTime,
-            errorMessage: `HTTP ${response.status}: ${response.statusText}`,
+            errorMessage: message,
           };
         }
 
+        // Always-200 contract: { valid: bool, errors: [{ field, rule, message }] }
         const result = await response.json();
         return {
           backend: backend.name,
           url: backend.url,
           status: 'success',
           valid: result.valid,
-          errors: result.errors || {},
+          errors: Array.isArray(result.errors) ? result.errors : [],
           responseTime,
         };
       } catch (error) {
@@ -87,6 +115,7 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
   );
 
   const handleValidateAll = useCallback(async () => {
+    if (!spec) return;
     setIsValidating(true);
 
     // Set all to loading
@@ -104,7 +133,7 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
 
     setResults(newResults);
     setIsValidating(false);
-  }, [validateBackend]);
+  }, [spec, validateBackend]);
 
   // Check if all results match
   const allResultsMatch = useCallback(() => {
@@ -112,10 +141,11 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
     if (successResults.length < 2) return null;
 
     const firstResult = successResults[0];
+    const firstErrors = JSON.stringify(normalizeErrors(firstResult.errors));
     return successResults.every(
       (r) =>
         r.valid === firstResult.valid &&
-        JSON.stringify(r.errors) === JSON.stringify(firstResult.errors)
+        JSON.stringify(normalizeErrors(r.errors)) === firstErrors
     );
   }, [results]);
 
@@ -127,7 +157,7 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
         <button
           className="btn btn-primary validate-all-btn"
           onClick={handleValidateAll}
-          disabled={isValidating}
+          disabled={isValidating || !spec}
         >
           {isValidating
             ? language === 'ko'
@@ -137,6 +167,13 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
               ? '모든 백엔드 검증'
               : 'Validate All Backends'}
         </button>
+        {!spec && (
+          <span className="match-status mismatch">
+            {language === 'ko'
+              ? 'YAML 스펙을 파싱할 수 없습니다'
+              : 'Cannot parse YAML spec'}
+          </span>
+        )}
         {matchStatus !== null && (
           <span
             className={`match-status ${matchStatus ? 'match' : 'mismatch'}`}
@@ -230,15 +267,17 @@ export const BackendComparison: React.FC<BackendComparisonProps> = ({
                       </>
                     )}
                   </div>
-                  {result.errors && Object.keys(result.errors).length > 0 && (
+                  {result.errors && result.errors.length > 0 && (
                     <div className="errors-list">
-                      {Object.entries(result.errors).map(([field, messages]) => (
-                        <div key={field} className="error-item">
-                          <span className="error-field">{field}:</span>
+                      {result.errors.map((err, errIndex) => (
+                        <div
+                          key={`${err.field}-${err.rule}-${errIndex}`}
+                          className="error-item"
+                        >
+                          <span className="error-field">{err.field}:</span>
                           <span className="error-messages">
-                            {Array.isArray(messages)
-                              ? messages.join(', ')
-                              : messages}
+                            {err.message}
+                            {err.rule ? ` (${err.rule})` : ''}
                           </span>
                         </div>
                       ))}

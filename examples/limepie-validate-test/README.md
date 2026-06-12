@@ -17,7 +17,6 @@ limepie-validate-test/
 │   └── dist.validate.js    # Original Limepie validate.js (v1.0.26)
 ├── index.html              # Side-by-side comparison (Plain HTML vs React)
 ├── react-form.jsx          # React form component
-├── test-runner.html        # Automated test suite
 └── README.md               # This file
 ```
 
@@ -26,13 +25,13 @@ limepie-validate-test/
 ### Option 1: Simple HTTP Server
 
 ```bash
-cd /Users/max/Work/form-generator/examples/limepie-validate-test
+# from the repository root
+cd examples/limepie-validate-test
 python3 -m http.server 8080
 ```
 
 Then open:
 - http://localhost:8080/index.html - Side-by-side comparison
-- http://localhost:8080/test-runner.html - Automated tests
 
 ### Option 2: Live Server (VS Code)
 
@@ -94,7 +93,8 @@ const isValid = validator.loadvalid(true);
 
 ## Test Cases
 
-The automated test runner (`test-runner.html`) tests:
+Verify these scenarios manually in `index.html` (an automated `test-runner.html`
+no longer exists in this directory):
 
 1. Empty form fails validation
 2. Valid complete form passes

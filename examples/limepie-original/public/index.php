@@ -10,8 +10,27 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-// Load the REAL Limepie autoloader
+// Load the composer autoloader (symfony/yaml + ics-parser, vendored under
+// packages/generator-legacy/limepie — mounted at /var/www/vendor by docker-compose)
 require_once '/var/www/vendor/autoload.php';
+
+// /var/www/vendor/yejune/limepie is the local yejune/limepie checkout bind-mounted
+// by docker-compose (pinned at a47ccba — see tools/limepie-baseline/README.md).
+// The vendored autoload.php has no Limepie\ PSR-4 mapping (the checkout is mounted,
+// not composer-installed), so autoload Limepie classes straight from the source
+// tree — same approach as tools/limepie-baseline/render.php.
+spl_autoload_register(function ($class) {
+    $prefix = 'Limepie\\';
+
+    if (str_starts_with($class, $prefix)) {
+        $path = '/var/www/vendor/yejune/limepie/src/Limepie/'
+            . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+
+        if (file_exists($path)) {
+            require $path;
+        }
+    }
+});
 
 // Load Limepie helper functions (camelize, etc.)
 require_once '/var/www/vendor/yejune/limepie/src/Limepie.php';
@@ -19,6 +38,11 @@ require_once '/var/www/vendor/yejune/limepie/src/Limepie.php';
 // Set up language for Limepie Cookie system
 $_COOKIE['language'] = 'ko';
 \Limepie\Cookie::setKeyStore('language', 'language');
+
+// Runtime globals some fields read (see tools/limepie-baseline/render.php):
+// search/tinymce interpolate a CSP nonce from the session; button hrefs append QSA.
+$_SESSION['nonce'] = $_SESSION['nonce'] ?? '';
+$_SERVER['QSA']    = $_SERVER['QSA'] ?? '';
 
 use Limepie\Form\Generator;
 

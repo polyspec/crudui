@@ -1,16 +1,13 @@
-# Redirect all requests to validate.php if file doesn't exist
+# Redirect all requests to api.php (canonical API router) if file doesn't exist
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # Handle CORS preflight requests
-    RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule ^(.*)$ $1 [R=200,L]
-
-    # Redirect to validate.php
+    # Redirect to api.php (handles /api/specs, /api/specs/{name}, /api/validate,
+    # CORS headers and OPTIONS preflight)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ validate.php [L,QSA]
+    RewriteRule ^(.*)$ api.php [L,QSA]
 </IfModule>
 
 # Set JSON content type for API responses

@@ -3,11 +3,13 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy the validator/js package first
-COPY validator/js /app/validator/js
+# Copy the validator-js package first
+COPY packages/validator-js/package*.json /app/packages/validator-js/
+COPY packages/validator-js/tsconfig.json /app/packages/validator-js/
+COPY packages/validator-js/src /app/packages/validator-js/src/
 
 # Build the validator package
-WORKDIR /app/validator/js
+WORKDIR /app/packages/validator-js
 RUN npm install && npm run build
 
 # Copy the node-api application
@@ -17,7 +19,7 @@ COPY examples/node-api/server.js ./
 COPY examples/node-api/specs ./specs
 
 # Update package.json to use the correct local path for the validator
-RUN sed -i 's|file:../../validator/js|file:/app/validator/js|g' package.json
+RUN sed -i 's|file:../../packages/validator-js|file:/app/packages/validator-js|g' package.json
 
 # Install dependencies
 RUN npm install
