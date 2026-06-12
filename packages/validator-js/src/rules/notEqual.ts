@@ -6,14 +6,14 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-import { getValueByPath } from './equalTo';
+import { resolveFieldParam } from './equalTo';
 
 /**
  * Not Equal rule definition
  */
 export const notEqualRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages, allData, pathSegments } = context;
+    const { value, ruleParam, messages } = context;
 
     // Skip if no rule param
     if (ruleParam === null || ruleParam === undefined) {
@@ -27,24 +27,10 @@ export const notEqualRule: RuleDefinition = {
 
     let compareValue: unknown;
 
-    // Check if ruleParam is a field path (starts with .)
+    // Check if ruleParam is a field path reference (starts with .)
     if (typeof ruleParam === 'string' && ruleParam.startsWith('.')) {
-      // Relative path - resolve from current field's parent
-      let targetPath = ruleParam;
-      const parentPath = pathSegments.slice(0, -1);
-      const relativeParts = targetPath.split('.');
-
-      for (const part of relativeParts) {
-        if (part === '') {
-          if (parentPath.length > 0) {
-            parentPath.pop();
-          }
-        } else {
-          parentPath.push(part);
-        }
-      }
-      targetPath = parentPath.join('.');
-      compareValue = getValueByPath(allData, targetPath);
+      // Resolved with the same relative-path semantics as conditions
+      compareValue = resolveFieldParam(ruleParam, context);
     } else {
       // Direct value comparison
       compareValue = ruleParam;
