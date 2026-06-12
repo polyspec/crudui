@@ -169,7 +169,7 @@ describe('FormGroup Component', () => {
       await userEvent.type(nameInput, 'John Doe');
       await userEvent.type(emailInput, 'john@example.com');
 
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -200,7 +200,7 @@ describe('FormGroup Component', () => {
 
       render(<FormBuilder spec={spec} language="en" />);
 
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -214,217 +214,149 @@ describe('FormGroup Component', () => {
 // Multiple Group (Array) Tests
 // ============================================================================
 
+// ============================================================================
+// Multiple Group (Array) Tests
+//
+// Markup assertions follow the golden Limepie convention
+// (tests/fixtures/golden-html/multiple-test.html):
+//  - an EMPTY multiple group renders ONE blank placeholder row;
+//  - each row is .form-element > .input-group-wrapper[data-uniqid=rowKey],
+//    containing <div class="form-group">…fields…</div> followed by
+//    <span class="btn-group input-group-btn"> with .btn-plus/.btn-minus
+//    (+ .btn-move-up/.btn-move-down when sortable);
+//  - field names embed the row key: items[__13hex__][name].
+// ============================================================================
+
+/** Rows of a multiple group = input-group-wrapper children of .form-element */
+function getRows(container: HTMLElement, layerName: string): HTMLElement[] {
+  return Array.from(
+    container.querySelectorAll(`div[name="${layerName}"] > .form-element > .input-group-wrapper`)
+  );
+}
+
 describe('Multiple FormGroup (Array Fields)', () => {
-  describe('basic multiple group rendering', () => {
-    it('should render add button for empty multiple group', () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          contacts: {
-            type: 'group',
-            label: 'Contacts',
-            multiple: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
+  describe('basic multiple group rendering (golden convention)', () => {
+    const spec: Spec = {
+      type: 'group',
+      properties: {
+        items: {
+          type: 'group',
+          label: 'Items',
+          multiple: true,
+          properties: {
+            name: { type: 'text', label: 'Name' },
           },
         },
-      };
+      },
+    };
 
-      render(<FormBuilder spec={spec} language="en" />);
-
-      expect(screen.getByText('Contacts')).toBeInTheDocument();
-      // Add button should be visible (Plus icon button)
-      const addButton = screen.getByRole('button', { name: '' });
-      expect(addButton).toBeInTheDocument();
-    });
-
-    it('should add new item when add button is clicked', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          items: {
-            type: 'group',
-            label: 'Items',
-            multiple: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
-          },
-        },
-      };
-
+    it('should render one blank placeholder row with plus/minus buttons when empty', () => {
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      // Click add button
-      const addButton = container.querySelector('.btn-outline-primary');
-      expect(addButton).toBeInTheDocument();
-      await userEvent.click(addButton!);
+      expect(screen.getByText('Items')).toBeInTheDocument();
 
-      // Should now have an item with Name field
-      await waitFor(() => {
-        expect(screen.getByText('Name')).toBeInTheDocument();
-        expect(container.querySelector('[data-name="name"]')).toBeInTheDocument();
-      });
+      const rows = getRows(container, 'items-layer');
+      expect(rows).toHaveLength(1);
+
+      // Blank row already contains the field input
+      expect(rows[0]!.querySelector('input[data-name="name"]')).toBeInTheDocument();
+
+      // Legacy button group: span.btn-group.input-group-btn > .btn-plus/.btn-minus
+      const btnGroup = rows[0]!.querySelector('span.btn-group.input-group-btn');
+      expect(btnGroup).toBeInTheDocument();
+      expect(btnGroup!.querySelector('.btn-plus')).toBeInTheDocument();
+      expect(btnGroup!.querySelector('.btn-minus')).toBeInTheDocument();
     });
 
-    it('should add multiple items', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          tags: {
-            type: 'group',
-            label: 'Tags',
-            multiple: true,
-            properties: {
-              value: { type: 'text', label: 'Value' },
-            },
-          },
-        },
-      };
-
+    it('should embed the row key in field name and data-uniqid', () => {
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      // Add first item
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
+      const row = getRows(container, 'items-layer')[0]!;
+      const rowKey = row.getAttribute('data-uniqid')!;
+      expect(rowKey).toMatch(/^__[a-z0-9]{13}__$/);
 
-      await waitFor(() => {
-        expect(container.querySelectorAll('.card')).toHaveLength(1);
-      });
-
-      // Add second item (button is now inside the card header)
-      addButton = container.querySelector('.card .btn-outline-primary');
-      await userEvent.click(addButton!);
-
-      await waitFor(() => {
-        expect(container.querySelectorAll('.card')).toHaveLength(2);
-      });
+      const input = row.querySelector('input[data-name="name"]')!;
+      expect(input.getAttribute('name')).toBe(`items[${rowKey}][name]`);
+      expect(input.getAttribute('data-rule-name')).toBe('items[][name]');
     });
 
-    it('should display item index badges', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          items: {
-            type: 'group',
-            label: 'Items',
-            multiple: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
-          },
-        },
-      };
-
+    it('should add a new row after the clicked row', async () => {
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      // Add two items
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
+      await userEvent.click(container.querySelector('.btn-plus')!);
 
       await waitFor(() => {
-        addButton = container.querySelector('.card .btn-outline-primary');
+        expect(getRows(container, 'items-layer')).toHaveLength(2);
       });
 
-      await userEvent.click(addButton!);
+      // Second row gets the legacy clone-element class
+      const rows = getRows(container, 'items-layer');
+      expect(rows[0]!.classList.contains('clone-element')).toBe(false);
+      expect(rows[1]!.classList.contains('clone-element')).toBe(true);
+    });
 
+    it('should add multiple rows', async () => {
+      const { container } = render(<FormBuilder spec={spec} language="en" />);
+
+      await userEvent.click(container.querySelector('.btn-plus')!);
       await waitFor(() => {
-        const badges = container.querySelectorAll('.badge');
-        expect(badges).toHaveLength(2);
-        expect(badges[0]).toHaveTextContent('1');
-        expect(badges[1]).toHaveTextContent('2');
+        expect(getRows(container, 'items-layer')).toHaveLength(2);
       });
+
+      await userEvent.click(container.querySelectorAll('.btn-plus')[1]!);
+      await waitFor(() => {
+        expect(getRows(container, 'items-layer')).toHaveLength(3);
+      });
+
+      // Every row has its own button group
+      expect(container.querySelectorAll('.btn-plus')).toHaveLength(3);
+      expect(container.querySelectorAll('.btn-minus')).toHaveLength(3);
     });
   });
 
   describe('remove operation', () => {
-    it('should remove item when remove button is clicked', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          items: {
-            type: 'group',
-            label: 'Items',
-            multiple: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
+    const spec: Spec = {
+      type: 'group',
+      properties: {
+        items: {
+          type: 'group',
+          label: 'Items',
+          multiple: true,
+          properties: {
+            name: { type: 'text', label: 'Name' },
           },
         },
-      };
+      },
+    };
 
-      const { container } = render(<FormBuilder spec={spec} language="en" />);
-
-      // Add two items
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
-
-      await waitFor(() => {
-        addButton = container.querySelector('.card .btn-outline-primary');
-      });
-      await userEvent.click(addButton!);
-
-      await waitFor(() => {
-        expect(container.querySelectorAll('.card')).toHaveLength(2);
-      });
-
-      // Remove first item
-      const removeButton = container.querySelector('.btn-outline-danger');
-      await userEvent.click(removeButton!);
+    it('should remove the clicked row', async () => {
+      const { container } = render(
+        <FormBuilder
+          spec={spec}
+          data={{ items: [{ name: 'First' }, { name: 'Second' }] }}
+          language="en"
+        />
+      );
 
       await waitFor(() => {
-        expect(container.querySelectorAll('.card')).toHaveLength(1);
-      });
-    });
-
-    it('should reindex badges after remove', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          items: {
-            type: 'group',
-            label: 'Items',
-            multiple: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
-          },
-        },
-      };
-
-      const { container } = render(<FormBuilder spec={spec} language="en" />);
-
-      // Add three items
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
-
-      for (let i = 0; i < 2; i++) {
-        await waitFor(() => {
-          addButton = container.querySelector('.card .btn-outline-primary');
-        });
-        await userEvent.click(addButton!);
-      }
-
-      await waitFor(() => {
-        expect(container.querySelectorAll('.card')).toHaveLength(3);
+        expect(getRows(container, 'items-layer')).toHaveLength(2);
       });
 
-      // Remove second item (index 1)
-      const removeButtons = container.querySelectorAll('.btn-outline-danger');
-      await userEvent.click(removeButtons[1]!);
+      // Remove the first row
+      await userEvent.click(container.querySelectorAll('.btn-minus')[0]!);
 
       await waitFor(() => {
-        const badges = container.querySelectorAll('.badge');
-        expect(badges).toHaveLength(2);
-        expect(badges[0]).toHaveTextContent('1');
-        expect(badges[1]).toHaveTextContent('2');
+        const inputs = container.querySelectorAll(
+          'input[data-name="name"]'
+        ) as NodeListOf<HTMLInputElement>;
+        expect(inputs).toHaveLength(1);
+        expect(inputs[0]).toHaveValue('Second');
       });
     });
   });
 
   describe('min/max constraints', () => {
-    it('should disable add button when max is reached', async () => {
+    it('should not add beyond max', async () => {
       const spec: Spec = {
         type: 'group',
         properties: {
@@ -442,24 +374,19 @@ describe('Multiple FormGroup (Array Fields)', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      // Add first item
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
-
+      await userEvent.click(container.querySelector('.btn-plus')!);
       await waitFor(() => {
-        addButton = container.querySelector('.card .btn-outline-primary');
+        expect(getRows(container, 'items-layer')).toHaveLength(2);
       });
-      await userEvent.click(addButton!);
 
-      // After reaching max, add buttons should be hidden
+      // At max — another click is a no-op (buttons stay rendered, golden style)
+      await userEvent.click(container.querySelector('.btn-plus')!);
       await waitFor(() => {
-        expect(container.querySelectorAll('.card')).toHaveLength(2);
-        const addButtons = container.querySelectorAll('.btn-outline-primary');
-        expect(addButtons).toHaveLength(0);
+        expect(getRows(container, 'items-layer')).toHaveLength(2);
       });
     });
 
-    it('should hide remove button when min is reached', async () => {
+    it('should not remove below min', async () => {
       const spec: Spec = {
         type: 'group',
         properties: {
@@ -475,22 +402,25 @@ describe('Multiple FormGroup (Array Fields)', () => {
         },
       };
 
-      const { container } = render(<FormBuilder spec={spec} language="en" />);
-
-      // Add one item
-      const addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
+      const { container } = render(
+        <FormBuilder spec={spec} data={{ items: [{ name: 'Keep me' }] }} language="en" />
+      );
 
       await waitFor(() => {
-        // When min is 1 and we have 1 item, remove button should be hidden
-        const removeButtons = container.querySelectorAll('.btn-outline-danger');
-        expect(removeButtons).toHaveLength(0);
+        expect(getRows(container, 'items-layer')).toHaveLength(1);
+      });
+
+      await userEvent.click(container.querySelector('.btn-minus')!);
+
+      await waitFor(() => {
+        const input = container.querySelector('input[data-name="name"]') as HTMLInputElement;
+        expect(input).toHaveValue('Keep me');
       });
     });
   });
 
   describe('data handling with multiple groups', () => {
-    it('should display initial array data', () => {
+    it('should display initial array data', async () => {
       const spec: Spec = {
         type: 'group',
         properties: {
@@ -549,24 +479,20 @@ describe('Multiple FormGroup (Array Fields)', () => {
         <FormBuilder spec={spec} language="en" onSubmit={onSubmit} />
       );
 
-      // Add two items
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
+      // Fill the placeholder row, then add a second row and fill it
+      const firstInput = container.querySelector('[data-name="value"]') as HTMLInputElement;
+      await userEvent.type(firstInput, 'tag1');
 
+      await userEvent.click(container.querySelector('.btn-plus')!);
       await waitFor(() => {
-        addButton = container.querySelector('.card .btn-outline-primary');
+        expect(container.querySelectorAll('[data-name="value"]')).toHaveLength(2);
       });
-      await userEvent.click(addButton!);
 
-      // Fill values
-      await waitFor(async () => {
-        const inputs = container.querySelectorAll('[data-name="value"]') as NodeListOf<HTMLInputElement>;
-        await userEvent.type(inputs[0], 'tag1');
-        await userEvent.type(inputs[1], 'tag2');
-      });
+      const inputs = container.querySelectorAll('[data-name="value"]') as NodeListOf<HTMLInputElement>;
+      await userEvent.type(inputs[1]!, 'tag2');
 
       // Submit
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -606,20 +532,12 @@ describe('Multiple FormGroup (Array Fields)', () => {
 
       const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-      // Add item
-      const addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
-
-      await waitFor(() => {
-        expect(container.querySelector('[data-name="email"]')).toBeInTheDocument();
-      });
-
-      // Type invalid email
+      // Type invalid email into the placeholder row
       const emailInput = container.querySelector('[data-name="email"]') as HTMLInputElement;
       await userEvent.type(emailInput, 'invalid');
 
       // Submit form to trigger validation
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -628,118 +546,212 @@ describe('Multiple FormGroup (Array Fields)', () => {
     });
   });
 
-  describe('sortable multiple groups', () => {
-    it('should show sort controls when sortable is true', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          items: {
-            type: 'group',
-            label: 'Items',
-            multiple: true,
-            sortable: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
+  // ==========================================================================
+  // Edit-loss regression: FormContext data is the single source of truth.
+  // Structural row operations (add/remove/move) MUST NOT overwrite values the
+  // user edited — the old items[].value snapshot in useMultiple did exactly
+  // that.
+  // ==========================================================================
+  describe('edited values survive row operations (regression)', () => {
+    const spec: Spec = {
+      type: 'group',
+      properties: {
+        items: {
+          type: 'group',
+          label: 'Items',
+          multiple: true,
+          sortable: true,
+          properties: {
+            name: { type: 'text', label: 'Name' },
           },
         },
-      };
+      },
+    };
 
-      const { container } = render(<FormBuilder spec={spec} language="en" />);
+    it('should keep an edited value when a row is added', async () => {
+      const { container } = render(
+        <FormBuilder spec={spec} data={{ items: [{ name: 'Original' }] }} language="en" />
+      );
 
-      // Add two items to see sort buttons
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
+      const input = container.querySelector('input[data-name="name"]') as HTMLInputElement;
+      await userEvent.clear(input);
+      await userEvent.type(input, 'Edited');
+      expect(input).toHaveValue('Edited');
+
+      await userEvent.click(container.querySelector('.btn-plus')!);
 
       await waitFor(() => {
-        addButton = container.querySelector('.card .btn-outline-primary');
-      });
-      await userEvent.click(addButton!);
-
-      await waitFor(() => {
-        // Should have up/down buttons
-        const sortButtons = container.querySelectorAll('.btn-outline-secondary');
-        expect(sortButtons.length).toBeGreaterThan(0);
+        const inputs = container.querySelectorAll(
+          'input[data-name="name"]'
+        ) as NodeListOf<HTMLInputElement>;
+        expect(inputs).toHaveLength(2);
+        expect(inputs[0]).toHaveValue('Edited');
       });
     });
 
-    it('should disable up button for first item', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          items: {
-            type: 'group',
-            label: 'Items',
-            multiple: true,
-            sortable: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
-          },
-        },
-      };
+    it('should keep edited values when another row is removed', async () => {
+      const { container } = render(
+        <FormBuilder
+          spec={spec}
+          data={{ items: [{ name: 'First' }, { name: 'Second' }] }}
+          language="en"
+        />
+      );
 
-      const { container } = render(<FormBuilder spec={spec} language="en" />);
+      const inputs = () =>
+        container.querySelectorAll('input[data-name="name"]') as NodeListOf<HTMLInputElement>;
 
-      // Add two items
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
+      await userEvent.clear(inputs()[1]!);
+      await userEvent.type(inputs()[1]!, 'Second edited');
+
+      // Remove the FIRST row — the edit in the second row must survive
+      await userEvent.click(container.querySelectorAll('.btn-minus')[0]!);
 
       await waitFor(() => {
-        addButton = container.querySelector('.card .btn-outline-primary');
-      });
-      await userEvent.click(addButton!);
-
-      await waitFor(() => {
-        // First item's up button should be disabled
-        const cards = container.querySelectorAll('.card');
-        const firstCardButtons = cards[0]?.querySelectorAll('.btn-outline-secondary');
-        if (firstCardButtons && firstCardButtons.length > 0) {
-          expect(firstCardButtons[0]).toBeDisabled();
-        }
+        expect(inputs()).toHaveLength(1);
+        expect(inputs()[0]).toHaveValue('Second edited');
       });
     });
 
-    it('should disable down button for last item', async () => {
-      const spec: Spec = {
-        type: 'group',
-        properties: {
-          items: {
-            type: 'group',
-            label: 'Items',
-            multiple: true,
-            sortable: true,
-            properties: {
-              name: { type: 'text', label: 'Name' },
-            },
-          },
-        },
-      };
+    it('should keep edited values when rows are reordered', async () => {
+      const { container } = render(
+        <FormBuilder
+          spec={spec}
+          data={{ items: [{ name: 'First' }, { name: 'Second' }] }}
+          language="en"
+        />
+      );
 
-      const { container } = render(<FormBuilder spec={spec} language="en" />);
+      const inputs = () =>
+        container.querySelectorAll('input[data-name="name"]') as NodeListOf<HTMLInputElement>;
 
-      // Add two items
-      let addButton = container.querySelector('.btn-outline-primary');
-      await userEvent.click(addButton!);
+      await userEvent.clear(inputs()[0]!);
+      await userEvent.type(inputs()[0]!, 'First edited');
+
+      // Move the first row down
+      await userEvent.click(container.querySelectorAll('.btn-move-down')[0]!);
 
       await waitFor(() => {
-        addButton = container.querySelector('.card .btn-outline-primary');
-      });
-      await userEvent.click(addButton!);
-
-      await waitFor(() => {
-        // Last item's down button should be disabled
-        const cards = container.querySelectorAll('.card');
-        const lastCardButtons = cards[cards.length - 1]?.querySelectorAll('.btn-outline-secondary');
-        if (lastCardButtons && lastCardButtons.length > 1) {
-          expect(lastCardButtons[1]).toBeDisabled();
-        }
+        expect(inputs()[0]).toHaveValue('Second');
+        expect(inputs()[1]).toHaveValue('First edited');
       });
     });
   });
 
+  describe('sortable multiple groups', () => {
+    const spec: Spec = {
+      type: 'group',
+      properties: {
+        items: {
+          type: 'group',
+          label: 'Items',
+          multiple: true,
+          sortable: true,
+          properties: {
+            name: { type: 'text', label: 'Name' },
+          },
+        },
+      },
+    };
+
+    it('should render move buttons before plus/minus when sortable', () => {
+      const { container } = render(<FormBuilder spec={spec} language="en" />);
+
+      const btnGroup = container.querySelector('span.btn-group.input-group-btn')!;
+      const classes = Array.from(btnGroup.querySelectorAll('button')).map((b) => b.className);
+      expect(classes).toEqual([
+        'btn btn-move-up',
+        'btn btn-move-down',
+        'btn btn-plus',
+        'btn btn-minus',
+      ]);
+    });
+
+    it('should move a row up', async () => {
+      const { container } = render(
+        <FormBuilder
+          spec={spec}
+          data={{ items: [{ name: 'A' }, { name: 'B' }] }}
+          language="en"
+        />
+      );
+
+      const inputs = () =>
+        container.querySelectorAll('input[data-name="name"]') as NodeListOf<HTMLInputElement>;
+
+      await userEvent.click(container.querySelectorAll('.btn-move-up')[1]!);
+
+      await waitFor(() => {
+        expect(inputs()[0]).toHaveValue('B');
+        expect(inputs()[1]).toHaveValue('A');
+      });
+    });
+
+    it('should ignore move up on the first row', async () => {
+      const { container } = render(
+        <FormBuilder
+          spec={spec}
+          data={{ items: [{ name: 'A' }, { name: 'B' }] }}
+          language="en"
+        />
+      );
+
+      const inputs = () =>
+        container.querySelectorAll('input[data-name="name"]') as NodeListOf<HTMLInputElement>;
+
+      await userEvent.click(container.querySelectorAll('.btn-move-up')[0]!);
+
+      await waitFor(() => {
+        expect(inputs()[0]).toHaveValue('A');
+        expect(inputs()[1]).toHaveValue('B');
+      });
+    });
+  });
+
+  describe("multiple: 'only' (rows without buttons)", () => {
+    it('should render data rows but no add/remove buttons', () => {
+      const spec: Spec = {
+        type: 'group',
+        properties: {
+          items: {
+            type: 'group',
+            label: 'Items',
+            multiple: 'only' as unknown as boolean,
+            properties: {
+              name: { type: 'text', label: 'Name' },
+            },
+          },
+        },
+      };
+
+      const { container } = render(
+        <FormBuilder
+          spec={spec}
+          data={{ items: [{ name: 'Row 1' }, { name: 'Row 2' }] }}
+          language="en"
+        />
+      );
+
+      const inputs = container.querySelectorAll(
+        'input[data-name="name"]'
+      ) as NodeListOf<HTMLInputElement>;
+      expect(inputs).toHaveLength(2);
+      expect(inputs[0]).toHaveValue('Row 1');
+      expect(inputs[1]).toHaveValue('Row 2');
+
+      // Row keys still drive names (rule name uses empty brackets)
+      expect(inputs[0]!.getAttribute('name')).toMatch(/^items\[__[a-z0-9]{13}__\]\[name\]$/);
+      expect(inputs[0]!.getAttribute('data-rule-name')).toBe('items[][name]');
+
+      // multiple: 'only' has NO buttons (legacy renders none)
+      expect(container.querySelector('.btn-plus')).not.toBeInTheDocument();
+      expect(container.querySelector('.btn-minus')).not.toBeInTheDocument();
+      expect(container.querySelector('span.btn-group.input-group-btn')).not.toBeInTheDocument();
+    });
+  });
+
   describe('disabled/readonly state', () => {
-    it('should disable add/remove buttons when form is disabled', () => {
+    it('should not render add/remove buttons when form is disabled', () => {
       const spec: Spec = {
         type: 'group',
         properties: {
@@ -766,11 +778,11 @@ describe('Multiple FormGroup (Array Fields)', () => {
       );
 
       // Add/remove buttons should not be visible when disabled
-      expect(container.querySelector('.btn-outline-primary')).not.toBeInTheDocument();
-      expect(container.querySelector('.btn-outline-danger')).not.toBeInTheDocument();
+      expect(container.querySelector('.btn-plus')).not.toBeInTheDocument();
+      expect(container.querySelector('.btn-minus')).not.toBeInTheDocument();
     });
 
-    it('should disable add/remove buttons when form is readonly', () => {
+    it('should not render add/remove buttons when form is readonly', () => {
       const spec: Spec = {
         type: 'group',
         properties: {
@@ -797,8 +809,8 @@ describe('Multiple FormGroup (Array Fields)', () => {
       );
 
       // Add/remove buttons should not be visible when readonly
-      expect(container.querySelector('.btn-outline-primary')).not.toBeInTheDocument();
-      expect(container.querySelector('.btn-outline-danger')).not.toBeInTheDocument();
+      expect(container.querySelector('.btn-plus')).not.toBeInTheDocument();
+      expect(container.querySelector('.btn-minus')).not.toBeInTheDocument();
     });
 
     it('should disable fields in array items when form is disabled', async () => {
@@ -834,6 +846,38 @@ describe('Multiple FormGroup (Array Fields)', () => {
 });
 
 // ============================================================================
+// Empty group (no properties) — legacy renders an empty form-group, no warning
+// ============================================================================
+
+describe('Group without properties', () => {
+  it('should render an empty form-group without warning', () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const spec: Spec = {
+      type: 'group',
+      properties: {
+        placeholder_group: {
+          type: 'group',
+          label: 'Pending Group',
+        },
+      },
+    };
+
+    const { container } = render(<FormBuilder spec={spec} language="en" />);
+
+    expect(screen.getByText('Pending Group')).toBeInTheDocument();
+    const group = container.querySelector(
+      'div[name="placeholder_group-layer"] .form-element .form-group'
+    );
+    expect(group).toBeInTheDocument();
+    expect(group!.children).toHaveLength(0);
+
+    expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Unknown field type'));
+    consoleSpy.mockRestore();
+  });
+});
+
+// ============================================================================
 // Complex Nested Multiple Groups Tests
 // ============================================================================
 
@@ -864,19 +908,20 @@ describe('Complex Nested Multiple Groups', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Add an order
-    const addOrderButton = container.querySelector('.btn-outline-primary');
+    // Placeholder rows render immediately at both levels
+    expect(container.querySelector('[data-name="orderId"]')).toBeInTheDocument();
+    expect(screen.getByText('Order Items')).toBeInTheDocument();
+    expect(container.querySelector('[data-name="product"]')).toBeInTheDocument();
 
-    if (addOrderButton) {
-      await userEvent.click(addOrderButton);
+    // Add an outer order row (first .btn-plus belongs to the inner items row,
+    // DOM order: inner row buttons come before the outer row buttons)
+    const outerPlus = Array.from(container.querySelectorAll('.btn-plus')).pop()!;
+    await userEvent.click(outerPlus);
 
-      await waitFor(() => {
-        // Order ID field should appear
-        const orderIdInput = container.querySelector('[data-name="orderId"]');
-        expect(orderIdInput).toBeInTheDocument();
-        expect(screen.getByText('Order Items')).toBeInTheDocument();
-      });
-    }
+    await waitFor(() => {
+      expect(container.querySelectorAll('[data-name="orderId"]')).toHaveLength(2);
+      expect(container.querySelectorAll('[data-name="product"]').length).toBeGreaterThanOrEqual(2);
+    });
   });
 
   it('should correctly path nested array data', async () => {
@@ -905,32 +950,21 @@ describe('Complex Nested Multiple Groups', () => {
       <FormBuilder spec={spec} language="en" onSubmit={onSubmit} />
     );
 
-    // Add a child
-    const addButton = container.querySelector('.btn-outline-primary');
-    if (addButton) {
-      await userEvent.click(addButton);
+    // Fill the placeholder child row
+    const nameInput = container.querySelector('[data-name="name"]') as HTMLInputElement;
+    await userEvent.type(nameInput, 'Child 1');
 
-      await waitFor(() => {
-        const input = container.querySelector('[data-name="name"]');
-        expect(input).toBeInTheDocument();
-      });
+    // Submit
+    const submitButton = screen.getByRole('button', { name: '저장' });
+    await userEvent.click(submitButton);
 
-      // Fill child name
-      const nameInput = container.querySelector('[data-name="name"]') as HTMLInputElement;
-      if (nameInput) {
-        await userEvent.type(nameInput, 'Child 1');
-
-        // Submit
-        const submitButton = screen.getByRole('button', { name: /save/i });
-        await userEvent.click(submitButton);
-
-        await waitFor(() => {
-          expect(onSubmit).toHaveBeenCalled();
-          const [data] = onSubmit.mock.calls[0];
-          expect(data.parent).toBeDefined();
-          expect(data.parent.children).toBeDefined();
-        });
-      }
-    }
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalled();
+      const [data] = onSubmit.mock.calls[0];
+      expect(data.parent).toBeDefined();
+      expect(data.parent.children).toBeDefined();
+      const children = Object.values(data.parent.children) as Array<{ name: string }>;
+      expect(children[0]?.name).toBe('Child 1');
+    });
   });
 });

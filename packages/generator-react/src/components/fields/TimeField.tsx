@@ -13,7 +13,6 @@ import { getLimepieDataAttributes, toBracketNotationWithPrefix, getInputClasses 
  * TimeField component
  */
 export function TimeField({
-  name,
   spec,
   value,
   onChange,

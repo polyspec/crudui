@@ -4,7 +4,7 @@
  * Hook for form validation using @form-spec/validator
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Validator, getRule } from '@form-spec/validator';
 import type { Spec, ValidationContext } from '@form-spec/validator';
 import type { FormData, FormErrors, FormValue, UseValidationReturn } from '../types';
@@ -22,15 +22,10 @@ interface UseValidationOptions {
  * useValidation hook
  */
 export function useValidation({ spec }: UseValidationOptions): UseValidationReturn {
-  const validatorRef = useRef<Validator | null>(null);
-
-  // Create validator lazily
-  const getValidator = useCallback(() => {
-    if (!validatorRef.current) {
-      validatorRef.current = new Validator(spec);
-    }
-    return validatorRef.current;
-  }, [spec]);
+  // Recreated whenever the spec changes (a lazily-filled ref would keep
+  // validating against the first spec forever).
+  const validator = useMemo(() => new Validator(spec), [spec]);
+  const getValidator = useCallback(() => validator, [validator]);
 
   /**
    * Validate single field

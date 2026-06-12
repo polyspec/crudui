@@ -298,17 +298,19 @@ describe('FormField Component', () => {
         properties: {
           agree: {
             type: 'checkbox',
-            label: 'Terms',
-            checkbox_label: 'I agree to the terms',
+            label: 'I agree to the terms',
           },
         },
       };
 
       render(<FormBuilder spec={spec} language="en" />);
 
+      // Golden (Limepie Checkbox.php): <div><input class="valid-target"
+      // type="checkbox" value="1"/> <span>{label}</span></div>
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toBeInTheDocument();
-      expect(screen.getByText('I agree to the terms')).toBeInTheDocument();
+      expect(checkbox).toHaveClass('valid-target');
+      expect(screen.getByText('I agree to the terms').tagName.toLowerCase()).toBe('span');
     });
 
     it('should handle checkbox toggle', async () => {
@@ -484,7 +486,7 @@ describe('FormField Error Display', () => {
     render(<FormBuilder spec={spec} language="en" />);
 
     // Trigger validation
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await userEvent.click(submitButton);
 
     await waitFor(() => {
@@ -508,7 +510,7 @@ describe('FormField Error Display', () => {
     render(<FormBuilder spec={spec} language="en" />);
 
     // Trigger validation
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await userEvent.click(submitButton);
 
     await waitFor(() => {
@@ -533,7 +535,7 @@ describe('FormField Error Display', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
     // Trigger error
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await userEvent.click(submitButton);
 
     await waitFor(() => {
@@ -565,7 +567,7 @@ describe('FormField Error Display', () => {
     render(<FormBuilder spec={spec} language="en" />);
 
     // Trigger error
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await userEvent.click(submitButton);
 
     await waitFor(() => {
@@ -599,8 +601,13 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Phone field should be hidden initially
-    expect(container.querySelector('[name="phone"]')).not.toBeInTheDocument();
+    // Golden contract (legacy Limepie): a condition-failing field is NEVER
+    // removed from the DOM — its form-element-wrapper is hidden with
+    // style="display: none".
+    expect(container.querySelector('[name="phone"]')).toBeInTheDocument();
+    const wrapper = container.querySelector('[name="phone-layer"]') as HTMLElement;
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper.style.display).toBe('none');
   });
 
   it('should show field when display_switch condition is met', async () => {
@@ -626,9 +633,12 @@ describe('FormField Conditional Display', () => {
     const checkbox = screen.getByRole('checkbox');
     await userEvent.click(checkbox);
 
-    // Phone field should now be visible
+    // Phone field wrapper should no longer be hidden (golden: visibility is
+    // wrapper display:none, the field always stays in the DOM)
     await waitFor(() => {
-      expect(container.querySelector('[name="phone"]')).toBeInTheDocument();
+      const wrapper = container.querySelector('[name="phone-layer"]') as HTMLElement;
+      expect(wrapper).toBeInTheDocument();
+      expect(wrapper.style.display).not.toBe('none');
     });
   });
 
@@ -651,8 +661,11 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Hidden initially
-    expect(container.querySelector('[name="moreOptions"]')).not.toBeInTheDocument();
+    // Hidden initially — kept in the DOM with wrapper display:none (golden
+    // contract; DOM removal is the old pre-golden behavior)
+    expect(container.querySelector('[name="moreOptions"]')).toBeInTheDocument();
+    const wrapper = container.querySelector('[name="moreOptions-layer"]') as HTMLElement;
+    expect(wrapper.style.display).toBe('none');
 
     // Toggle checkbox
     const checkbox = screen.getByRole('checkbox');
@@ -660,7 +673,7 @@ describe('FormField Conditional Display', () => {
 
     // Should be visible now
     await waitFor(() => {
-      expect(container.querySelector('[name="moreOptions"]')).toBeInTheDocument();
+      expect(wrapper.style.display).not.toBe('none');
     });
   });
 
@@ -692,25 +705,32 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
+    // Golden contract: both fields stay in the DOM; visibility toggles via
+    // wrapper style="display: none", never DOM removal.
+    const emailWrapper = container.querySelector('[name="email-layer"]') as HTMLElement;
+    const phoneWrapper = container.querySelector('[name="phone-layer"]') as HTMLElement;
+    expect(container.querySelector('[name="email"]')).toBeInTheDocument();
+    expect(container.querySelector('[name="phone"]')).toBeInTheDocument();
+
     // Initially both hidden
-    expect(container.querySelector('[name="email"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[name="phone"]')).not.toBeInTheDocument();
+    expect(emailWrapper.style.display).toBe('none');
+    expect(phoneWrapper.style.display).toBe('none');
 
     // Select email
     const select = container.querySelector('[name="contactType"]') as HTMLSelectElement;
     await userEvent.selectOptions(select, 'email');
 
     await waitFor(() => {
-      expect(container.querySelector('[name="email"]')).toBeInTheDocument();
-      expect(container.querySelector('[name="phone"]')).not.toBeInTheDocument();
+      expect(emailWrapper.style.display).not.toBe('none');
+      expect(phoneWrapper.style.display).toBe('none');
     });
 
     // Switch to phone
     await userEvent.selectOptions(select, 'phone');
 
     await waitFor(() => {
-      expect(container.querySelector('[name="email"]')).not.toBeInTheDocument();
-      expect(container.querySelector('[name="phone"]')).toBeInTheDocument();
+      expect(emailWrapper.style.display).toBe('none');
+      expect(phoneWrapper.style.display).not.toBe('none');
     });
   });
 });
@@ -794,7 +814,7 @@ describe('FormField Initial Data', () => {
 
 describe('FormField Multi-language Labels', () => {
   it('should display label in selected language', () => {
-    const spec: Spec = {
+    const spec = {
       type: 'group',
       properties: {
         name: {
@@ -805,7 +825,7 @@ describe('FormField Multi-language Labels', () => {
           },
         },
       },
-    };
+    } as unknown as Spec; // multilang label/placeholder maps — validator Spec types them as plain strings
 
     // English
     render(<FormBuilder spec={spec} language="en" />);
@@ -819,7 +839,7 @@ describe('FormField Multi-language Labels', () => {
   });
 
   it('should display placeholder in selected language', () => {
-    const spec: Spec = {
+    const spec = {
       type: 'group',
       properties: {
         name: {
@@ -831,7 +851,7 @@ describe('FormField Multi-language Labels', () => {
           },
         },
       },
-    };
+    } as unknown as Spec; // multilang placeholder map — validator Spec types it as a plain string
 
     render(<FormBuilder spec={spec} language="en" />);
     expect(screen.getByPlaceholderText('Enter your name')).toBeInTheDocument();
@@ -856,7 +876,7 @@ describe('FormField Multi-language Labels', () => {
 
     render(<FormBuilder spec={spec} language="en" />);
 
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await userEvent.click(submitButton);
 
     await waitFor(() => {

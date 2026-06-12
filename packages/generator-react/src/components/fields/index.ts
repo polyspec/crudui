@@ -18,6 +18,7 @@ import { FileField } from './FileField';
 import { ImageField } from './ImageField';
 import { HiddenField } from './HiddenField';
 import { DummyField } from './DummyField';
+import { DummyInputField } from './DummyInputField';
 import { PasswordField } from './PasswordField';
 import { TimeField } from './TimeField';
 import { CheckboxField } from './CheckboxField';
@@ -120,6 +121,7 @@ fieldRegistry.set('hidden', HiddenField);
 fieldRegistry.set('dummy', DummyField);
 fieldRegistry.set('html', DummyField); // Alias
 fieldRegistry.set('static', DummyField); // Alias
+fieldRegistry.set('dummy-input', DummyInputField); // Readonly display input (Limepie DummyInput)
 
 /**
  * Get field component by type
@@ -173,6 +175,7 @@ export { FileField } from './FileField';
 export { ImageField } from './ImageField';
 export { HiddenField } from './HiddenField';
 export { DummyField } from './DummyField';
+export { DummyInputField } from './DummyInputField';
 export { PasswordField } from './PasswordField';
 export { TimeField } from './TimeField';
 export { CheckboxField } from './CheckboxField';

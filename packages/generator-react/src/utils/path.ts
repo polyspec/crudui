@@ -247,7 +247,9 @@ export function isChildPath(child: string, parent: string): boolean {
  * Convert unique keys to indices for server submission
  */
 export function keysToIndices(data: FormData): FormData {
-  const result: FormData = {};
+  // setValueByPath is immutable: it returns a new object instead of mutating
+  // its argument, so the accumulator must be reassigned on every call.
+  let result: FormData = {};
 
   function processValue(value: FormValue, path: string[] = []): void {
     if (value === null || value === undefined) {
@@ -282,7 +284,7 @@ export function keysToIndices(data: FormData): FormData {
     } else {
       // Primitive value
       const pathStr = pathToString(path);
-      setValueByPath(result, pathStr, value);
+      result = setValueByPath(result, pathStr, value);
     }
   }
 

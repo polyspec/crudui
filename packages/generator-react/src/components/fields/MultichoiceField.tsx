@@ -1,20 +1,40 @@
 /**
  * MultichoiceField Component
  *
- * Checkbox group for multiple selection
+ * Checkbox group for multiple selection.
+ *
+ * Limepie PHP golden structure (Fields/Multichoice.php):
+ *   <div class="btn-group flex-wrap btn-group-toggle">
+ *     <input type="checkbox" name="{key}" id="mchoice-{clean_key}{n}"
+ *            class="valid-target btn-check" autocomplete="off"
+ *            data-name=".." data-rule-name=".." value="{k}" [checked]>
+ *     <label for="mchoice-{clean_key}{n}"
+ *            class="btn btn-switch btn-mswitch {element_class}">
+ *       <span>{label}</span>
+ *     </label>
+ *     ...
+ *   </div>
+ *
+ * Notes pinned by the golden fixtures:
+ *   - name is the bracket key AS-IS (no [] appended; a spec key like
+ *     "day[]" already carries its own [] suffix)
+ *   - every input carries data-name / data-rule-name; NO data-default,
+ *     NO data-is-default
+ *   - ids have no random token: mchoice-{clean_key}{index}
+ *   - no data-toggle and no role/aria on the container
  */
 
 import React, { useCallback, useMemo } from 'react';
 import type { FieldComponentProps, FormValue } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
-import { getLimepieDataAttributes, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { cleanStr, itemEntries, leafName, phpString, ruleNameForPath } from './limepieParity';
 
 /**
  * MultichoiceField component
  */
 export function MultichoiceField({
-  name,
   spec,
   value,
   onChange,
@@ -23,21 +43,27 @@ export function MultichoiceField({
   disabled,
   readonly,
   path,
-  language,
 }: FieldComponentProps) {
   const { t } = useI18n();
   const { keyPrefix } = useFormContext();
 
-  // Ensure value is an array
+  // PHP: if (!$value) $value = []; if empty and default isset -> [(string)default]
   const selectedValues = useMemo((): string[] => {
+    let values: string[];
     if (Array.isArray(value)) {
-      return value.map(String);
+      values = value.map(String);
+    } else if (value) {
+      values = [String(value)];
+    } else {
+      values = [];
     }
-    if (value) {
-      return [String(value)];
+    if (values.length === 0 && spec.default !== undefined && spec.default !== null) {
+      values = Array.isArray(spec.default)
+        ? (spec.default as unknown[]).map((d) => phpString(d))
+        : [phpString(spec.default)];
     }
-    return [];
-  }, [value]);
+    return values;
+  }, [value, spec.default]);
 
   const handleChange = useCallback(
     (optionValue: string, checked: boolean) => {
@@ -58,7 +84,7 @@ export function MultichoiceField({
     [selectedValues, onChange, disabled, readonly]
   );
 
-  // Parse items
+  // Parse items (ordered — itemEntries keeps the spec's entry order)
   const options = useMemo(() => {
     const items = spec.items;
 
@@ -67,52 +93,56 @@ export function MultichoiceField({
     }
 
     // Check if items is dynamic
-    if ('model' in items) {
+    if (!Array.isArray(items) && 'model' in items) {
       return [];
     }
 
-    return Object.entries(items as Record<string, unknown>).map(([key, label]) => ({
+    return itemEntries(items).map(([key, label]) => ({
       value: key,
       label: t(label as string | Record<string, string>),
     }));
   }, [spec.items, t]);
 
-  // Layout direction
-  const isHorizontal = spec.layout === 'horizontal' || spec.inline === true;
+  // PHP key: bracket name as-is. toBracketNotationWithPrefix() eats a
+  // trailing "[]" segment suffix, so restore it from the leaf segment.
+  const bracketBase = toBracketNotationWithPrefix(path, keyPrefix || undefined);
+  const bracketName = leafName(path).endsWith('[]') ? `${bracketBase}[]` : bracketBase;
 
-  // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
+  // PHP id prefix: 'mchoice-' . clean_str($key) — index appended directly.
+  const idPrefix = `mchoice-${cleanStr(bracketName)}`;
+
+  const dataName = leafName(path);
+  const dataRuleName = ruleNameForPath(path);
 
   return (
-    <div
-      className={isHorizontal ? 'd-flex flex-wrap gap-3' : ''}
-      role="group"
-      aria-labelledby={`${path}-label`}
-    >
+    <div className="btn-group flex-wrap btn-group-toggle">
       {options.map((option, index) => {
         const isChecked = selectedValues.includes(option.value);
-        const inputId = `${path}-${option.value}`;
+        const inputId = `${idPrefix}${index + 1}`;
 
         return (
-          <div key={option.value} className="form-check">
+          <React.Fragment key={option.value}>
             <input
               type="checkbox"
               id={inputId}
-              name={`${bracketName}[]`}
+              name={bracketName}
               value={option.value}
               checked={isChecked}
               onChange={(e) => handleChange(option.value, e.target.checked)}
               onBlur={index === options.length - 1 ? onBlur : undefined}
               disabled={disabled}
-              readOnly={readonly}
-              className={`valid-target form-check-input ${error ? 'is-invalid' : ''}`}
-              {...(index === 0 ? getLimepieDataAttributes(spec, path, language) : {})}
+              autoComplete="off"
+              className={`valid-target btn-check${error ? ' is-invalid' : ''}`}
+              data-name={dataName}
+              data-rule-name={dataRuleName}
             />
-            {' '}
-            <label htmlFor={inputId} className="form-check-label">
-              {option.label}
+            <label
+              htmlFor={inputId}
+              className={`btn btn-switch btn-mswitch${spec.element_class ? ` ${spec.element_class as string}` : ''}`}
+            >
+              <span>{option.label}</span>
             </label>
-          </div>
+          </React.Fragment>
         );
       })}
     </div>

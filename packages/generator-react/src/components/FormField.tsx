@@ -1,20 +1,51 @@
 /**
  * FormField Component
  *
- * Field dispatcher that renders appropriate field component based on type
+ * Field dispatcher that renders appropriate field component based on type.
+ *
+ * Golden markup contract (legacy Limepie Group::write, single source of
+ * truth = tests/fixtures/golden-html):
+ *
+ *   <div class="form-element-wrapper[ spec.class][ allOf class]"
+ *        style="[spec.style][allOf style]" name="<dot-path>-layer">
+ *     <h6 class="[label_class]">label</h6>
+ *     [<p class="description">nl2br(description)</p>]
+ *     <div class="form-element">
+ *       <div data-uniqid="__13hex__" class="input-group-wrapper[ wrapper_class]">
+ *         …field markup…
+ *
+ * Property keys may carry a literal "[]" suffix (additionals[], items[]):
+ * the suffix is stripped from the data path. Combined with
+ * multiple true/'true'/'only' the field renders one row per data key —
+ * see MultipleLeafField below and FormGroup for group rows.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFormContext } from '../context/FormContext';
 import { useI18n } from '../context/I18nContext';
 import { useConditional } from '../hooks/useConditional';
-import { FormGroup } from './FormGroup';
-import { Label } from './common/Label';
+import {
+  resolveDisplayTargetParts,
+  legacyWrapperClassName,
+  legacyWrapperStyle,
+  type DisplayTargetParts,
+} from '../hooks/legacyDisplay';
+import { useMultipleRows } from '../hooks/useMultiple';
+import {
+  FormGroup,
+  isMultipleSpec,
+  LegacyDescription,
+  MultipleRowButtons,
+  inputGroupWrapperClassName,
+  legacyRowButtonsHtml,
+  rowButtonsClickHandler,
+} from './FormGroup';
 import { ErrorMessage } from './common/ErrorMessage';
-import { Description } from './common/Description';
 import { getFieldComponent } from './fields';
+import { parseStyleString, wrapperLayerName } from './fields/limepieParity';
+import { datetimeLegacyRawHtml, datetimeNeedsRawHtml } from './fields/DatetimeField';
 import { generateUniqid } from '../utils/dataAttributes';
-import type { FormValue, Language, FieldComponentProps, AllOfCondition, AllOfResult, FieldSpec, MultiLangText } from '../types';
+import type { FormValue, Language, FieldComponentProps, AllOfCondition, AllOfResult, FieldSpec } from '../types';
 
 /**
  * FormField props
@@ -35,17 +66,31 @@ interface FormFieldProps {
 }
 
 /**
+ * Strip the legacy "[]" key suffix from the data path of an array-rendered
+ * field (PHP: str_replace('[]', '', $propertyKey) when isArray).
+ */
+function stripArraySuffix(path: string, spec: FieldSpec): string {
+  if (isMultipleSpec(spec) && path.includes('[]')) {
+    return path.split('[]').join('');
+  }
+  return path;
+}
+
+/**
  * FormField component
  */
 export function FormField({
   name,
   spec,
-  path,
+  path: rawPath,
   parentPath,
   index,
   uniqueKey,
 }: FormFieldProps) {
+  const path = stripArraySuffix(rawPath, spec);
   const {
+    spec: rootSpec,
+    data,
     getValue,
     setValue,
     errors,
@@ -70,7 +115,8 @@ export function FormField({
     return () => unregisterField(path);
   }, [path, registerField, unregisterField]);
 
-  // Check visibility
+  // Check visibility — legacy never removes a hidden field from the DOM;
+  // invisibility renders as wrapper style display:none (golden contract).
   const visible = useMemo(() => isFieldVisible(path), [isFieldVisible, path]);
 
   // Evaluate element.all_of for styling
@@ -80,6 +126,19 @@ export function FormField({
     }
     return null;
   }, [spec.element, evaluateAllOf]);
+
+  // Legacy display_target condition maps (Group::processSingleTarget) —
+  // wrapper class/style additions resolved against the PARENT dot path.
+  const conditionParts = useMemo(
+    (): DisplayTargetParts =>
+      resolveDisplayTargetParts(
+        spec as Record<string, unknown>,
+        parentPath ?? '',
+        data,
+        rootSpec as unknown as Record<string, unknown>
+      ),
+    [spec, parentPath, data, rootSpec]
+  );
 
   // Get current value
   const value = getValue(path);
@@ -104,13 +163,10 @@ export function FormField({
     validateField(path);
   }, [path, validateField]);
 
-  // Don't render if not visible
-  if (!visible) {
-    return null;
-  }
-
-  // Handle group type
-  if (spec.type === 'group' && spec.properties) {
+  // Handle group type — ALWAYS routed to FormGroup. A group without
+  // properties renders an empty <div class="form-group"></div> (legacy
+  // behavior, e.g. ProductNft common.product_type_attribute_items).
+  if (spec.type === 'group') {
     return (
       <FormGroup
         name={name}
@@ -123,35 +179,24 @@ export function FormField({
     );
   }
 
+  // Multiple leaf field (select/text/... with multiple) — one row per key
+  if (isMultipleSpec(spec)) {
+    return (
+      <MultipleLeafField
+        name={name}
+        spec={spec}
+        path={path}
+        parentPath={parentPath}
+      />
+    );
+  }
+
   // Get field component
   const FieldComponent = customFields[spec.type] ?? getFieldComponent(spec.type);
 
   if (!FieldComponent) {
     console.warn(`Unknown field type: ${spec.type}`);
     return null;
-  }
-
-  // Build wrapper class - matches Limepie form-element-wrapper exactly
-  const wrapperClasses = ['form-element-wrapper'];
-  if (spec.wrapper_class) {
-    wrapperClasses.push(spec.wrapper_class);
-  }
-  if (allOfResult?.className) {
-    wrapperClasses.push(allOfResult.className);
-  }
-
-  // Build wrapper style
-  const wrapperStyle: React.CSSProperties = {};
-  if (allOfResult?.style) {
-    // Parse inline style string
-    const styleEntries = allOfResult.style.split(';').filter(Boolean);
-    for (const entry of styleEntries) {
-      const [key, val] = entry.split(':').map((s) => s.trim());
-      if (key && val) {
-        const camelKey = key.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-        (wrapperStyle as Record<string, string>)[camelKey] = val;
-      }
-    }
   }
 
   // Prepare field props
@@ -174,19 +219,26 @@ export function FormField({
   // Get translated label
   const label = spec.label ? t(spec.label) : undefined;
 
-  // Build wrapper name attribute (like PHP: "product.basic.name-layer")
-  const wrapperName = keyPrefix ? `${keyPrefix}.${path}-layer` : `${path}-layer`;
+  // Build wrapper name attribute (like PHP: "product.basic.name-layer";
+  // literal "[]" key suffixes render as ".*" — Group::getDotName)
+  const wrapperName = wrapperLayerName(path, keyPrefix || undefined);
 
   // Checkbox has completely different structure in PHP Limepie
   if (spec.type === 'checkbox' || spec.type === 'switcher') {
     return (
-      <div className={wrapperClasses.join(' ')} style={wrapperStyle} {...{ name: wrapperName }}>
+      <div
+        className={fieldWrapperClassName(spec, allOfResult, conditionParts)}
+        style={fieldWrapperStyle(spec, allOfResult, conditionParts, !visible)}
+        {...{ name: wrapperName }}
+      >
         <div className="checkbox">
           <h6>
-            <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
+            <div data-uniqid={uniqidRef.current} className={inputGroupWrapperClassName(spec)} style={{}}>
               <FieldComponent {...fieldProps} />
             </div>
           </h6>
+          {/* Legacy checkbox keeps the description INSIDE .checkbox */}
+          {spec.description && <LegacyDescription text={t(spec.description)} />}
         </div>
         {/* Error message */}
         {error && <ErrorMessage message={error} />}
@@ -194,26 +246,226 @@ export function FormField({
     );
   }
 
+  // Legacy-raw wrapper branch: specs whose BARE input carries inline-JS
+  // attributes (datetime event onchange/data-onload) render the verbatim
+  // PHP markup on the .input-group-wrapper — React rejects string on*
+  // props and the golden input has no field-owned container of its own.
+  const rawWrapperHtml =
+    (spec.type === 'datetime' || spec.type === 'datetime-local') &&
+    datetimeNeedsRawHtml(spec)
+      ? datetimeLegacyRawHtml(spec, path, keyPrefix || undefined, value)
+      : null;
+
   return (
-    <div className={wrapperClasses.join(' ')} style={wrapperStyle} {...{ name: wrapperName }}>
+    <div
+      className={fieldWrapperClassName(spec, allOfResult, conditionParts)}
+      style={fieldWrapperStyle(spec, allOfResult, conditionParts, !visible)}
+      {...{ name: wrapperName }}
+    >
       {/* Label - use h6 to match Limepie original */}
       {label && spec.type !== 'hidden' && (
-        <h6 className="">{label}</h6>
+        <h6 className={(spec as { label_class?: string }).label_class ?? ''}>{label}</h6>
       )}
 
-      {/* Description */}
-      {spec.description && <Description text={t(spec.description)} />}
+      {/* Description (legacy <p class="description">, nl2br) */}
+      {spec.description && <LegacyDescription text={t(spec.description)} />}
 
       {/* form-element > input-group-wrapper structure like Limepie */}
       <div className="form-element">
-        <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
-          {/* Field component */}
-          <FieldComponent {...fieldProps} />
-        </div>
+        {rawWrapperHtml !== null ? (
+          <div
+            data-uniqid={uniqidRef.current}
+            className={inputGroupWrapperClassName(spec)}
+            style={{}}
+            dangerouslySetInnerHTML={{ __html: rawWrapperHtml }}
+          />
+        ) : (
+          <div data-uniqid={uniqidRef.current} className={inputGroupWrapperClassName(spec)} style={{}}>
+            {/* Field component */}
+            <FieldComponent {...fieldProps} />
+          </div>
+        )}
       </div>
 
       {/* Error message */}
       {error && <ErrorMessage message={error} />}
+    </div>
+  );
+}
+
+/**
+ * form-element-wrapper class chain (Group::write addClass order):
+ * base, spec.class (NOT wrapper_class — that belongs to the inner
+ * .input-group-wrapper), element.all_of class, display_target condition
+ * classes.
+ */
+function fieldWrapperClassName(
+  spec: FieldSpec,
+  allOfResult: AllOfResult | null,
+  conditionParts: DisplayTargetParts | null
+): string {
+  return legacyWrapperClassName(
+    spec as Record<string, unknown>,
+    allOfResult?.className,
+    conditionParts
+  );
+}
+
+/**
+ * form-element-wrapper style chain (Group::write addStyle order):
+ * spec.style, element.all_of inline, display_target condition style, then
+ * display:none when the field is invisible — legacy keeps hidden fields in
+ * the DOM (golden contract), never removes them.
+ */
+function fieldWrapperStyle(
+  spec: FieldSpec,
+  allOfResult: AllOfResult | null,
+  conditionParts: DisplayTargetParts | null,
+  hidden = false
+): React.CSSProperties {
+  return (
+    legacyWrapperStyle(
+      spec as Record<string, unknown>,
+      allOfResult?.style,
+      conditionParts,
+      hidden
+    ) ?? {}
+  );
+}
+
+/**
+ * Multiple leaf field — legacy Group::generateElements for non-group types:
+ * one .input-group-wrapper per row whose data-uniqid IS the row key inside
+ * the field name (additionals[__13hex__]); multiple === true rows receive
+ * the move/plus/minus buttons at the field's `<!--btn-->` slot (last child
+ * of .input-group); multiple: 'only' rows render without buttons.
+ */
+function MultipleLeafField({
+  name,
+  spec,
+  path,
+  parentPath,
+}: {
+  name: string;
+  spec: FieldSpec;
+  path: string;
+  parentPath?: string;
+}) {
+  const {
+    spec: rootSpec,
+    data,
+    getValue,
+    setValue,
+    errors,
+    validateField,
+    isFieldVisible,
+    disabled: globalDisabled,
+    readonly: globalReadonly,
+    customFields,
+    keyPrefix,
+  } = useFormContext();
+  const { language, t } = useI18n();
+
+  const visible = isFieldVisible(path);
+  const conditionParts = useMemo(
+    (): DisplayTargetParts =>
+      resolveDisplayTargetParts(
+        spec as Record<string, unknown>,
+        parentPath ?? '',
+        data,
+        rootSpec as unknown as Record<string, unknown>
+      ),
+    [spec, parentPath, data, rootSpec]
+  );
+
+  const { rowKeys, add, remove, moveUp, moveDown } = useMultipleRows({
+    path,
+    min: spec.min as number | undefined,
+    max: spec.max as number | undefined,
+    defaultValue: useCallback(
+      (): FormValue => (spec.default !== undefined ? (spec.default as FormValue) : null),
+      [spec.default]
+    ),
+  });
+
+  const FieldComponent = customFields[spec.type] ?? getFieldComponent(spec.type);
+  if (!FieldComponent) {
+    console.warn(`Unknown field type: ${spec.type}`);
+    return null;
+  }
+
+  const isDisabled = globalDisabled || spec.disabled === true;
+  const isReadonly = globalReadonly || spec.readonly === true;
+  const showButtons =
+    (spec as { multiple?: boolean | string }).multiple === true &&
+    !isDisabled &&
+    !isReadonly;
+
+  const label = spec.label ? t(spec.label) : undefined;
+  const wrapperName = wrapperLayerName(path, keyPrefix || undefined);
+
+  return (
+    <div
+      className={fieldWrapperClassName(spec, null, conditionParts)}
+      style={fieldWrapperStyle(spec, null, conditionParts, !visible)}
+      {...{ name: wrapperName }}
+    >
+      {label && spec.type !== 'hidden' && (
+        <h6 className={(spec as { label_class?: string }).label_class ?? ''}>{label}</h6>
+      )}
+
+      {spec.description && <LegacyDescription text={t(spec.description)} />}
+
+      <div className="form-element">
+        {rowKeys.map((rowKey, rowIndex) => {
+          const rowPath = `${path}.${rowKey}`;
+          const fieldProps: FieldComponentProps = {
+            name,
+            spec,
+            value: getValue(rowPath),
+            onChange: (newValue: FormValue) => setValue(rowPath, newValue),
+            onBlur: () => validateField(rowPath),
+            error: errors[rowPath],
+            disabled: isDisabled,
+            readonly: isReadonly,
+            language: language as Language,
+            path: rowPath,
+            parentPath,
+            index: rowIndex,
+            uniqueKey: rowKey,
+            buttons: showButtons ? (
+              <MultipleRowButtons
+                spec={spec}
+                onAdd={() => add(rowKey)}
+                onRemove={() => remove(rowKey)}
+                onMoveUp={() => moveUp(rowKey)}
+                onMoveDown={() => moveDown(rowKey)}
+              />
+            ) : undefined,
+            // Raw alternative for the same slot — consumed by the field's
+            // legacy-raw branch (inline onchange/dynamic_onchange specs).
+            buttonsHtml: showButtons ? legacyRowButtonsHtml(spec) : undefined,
+            onButtonsClick: showButtons
+              ? rowButtonsClickHandler({
+                  onAdd: () => add(rowKey),
+                  onRemove: () => remove(rowKey),
+                  onMoveUp: () => moveUp(rowKey),
+                  onMoveDown: () => moveDown(rowKey),
+                })
+              : undefined,
+          };
+          return (
+            <div
+              key={rowKey}
+              data-uniqid={rowKey}
+              className={inputGroupWrapperClassName(spec, rowIndex)}
+              style={parseStyleString((spec as Record<string, unknown>).wrapper_style) ?? {}}
+            >
+              <FieldComponent {...fieldProps} />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

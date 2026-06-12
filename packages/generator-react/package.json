@@ -10,14 +10,20 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
-    }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
   },
+  "sideEffects": [
+    "*.css"
+  ],
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean --external react --external react-dom",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean --external react --external react-dom && npm run build:css",
+    "build:css": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/styles/form-spec.css','dist/styles.css')\"",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external react --external react-dom",
     "test": "vitest",
     "test:coverage": "vitest --coverage",

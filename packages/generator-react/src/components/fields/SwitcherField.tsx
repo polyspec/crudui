@@ -19,7 +19,6 @@ import { getLimepieDataAttributes, toBracketNotationWithPrefix, getCheckboxClass
  * </div>
  */
 export function SwitcherField({
-  name,
   spec,
   value,
   onChange,

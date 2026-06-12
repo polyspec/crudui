@@ -5,7 +5,7 @@
  * Uses Juso.go.kr or Daum/Kakao address API
  */
 
-import React, { useCallback, useState, type ChangeEvent } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { FieldComponentProps, FormValue } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { getLimepieDataAttributes, toBracketNotation } from '../../utils/dataAttributes';
@@ -26,7 +26,6 @@ interface JusoResult {
  * JusoField component
  */
 export function JusoField({
-  name,
   spec,
   value,
   onChange,

@@ -369,7 +369,7 @@ describe('useForm hook', () => {
         result.current.setValue('profile.bio', 'x'.repeat(501));
       });
 
-      let error: string | null;
+      let error: string | null = null;
       act(() => {
         error = result.current.validateField('profile.bio');
       });
@@ -466,7 +466,7 @@ describe('useForm hook', () => {
 
     it('should set isSubmitting during submission', async () => {
       const onSubmit = vi.fn(
-        () => new Promise((resolve) => setTimeout(resolve, 100))
+        () => new Promise<void>((resolve) => setTimeout(resolve, 100))
       );
       const { result } = renderHook(() =>
         useForm({ spec: testSpec, onSubmit })
@@ -703,6 +703,50 @@ describe('useForm hook', () => {
 
       // Error should not exist (only validates on submit)
       expect(result.current.errors.email).toBeUndefined();
+    });
+  });
+
+  describe('spec changes', () => {
+    it('should recreate the validator when spec changes', () => {
+      const strictSpec: Spec = {
+        type: 'group',
+        name: 'strict_form',
+        properties: {
+          username: {
+            type: 'text',
+            label: 'Username',
+            rules: { required: true, minlength: 10 },
+            messages: {
+              required: 'Username is required',
+              minlength: 'Username must be at least 10 characters',
+            },
+          },
+        },
+      };
+
+      const { result, rerender } = renderHook(
+        ({ spec }: { spec: Spec }) => useForm({ spec }),
+        { initialProps: { spec: testSpec } }
+      );
+
+      // Valid under testSpec (minlength: 3)
+      act(() => {
+        result.current.setValue('username', 'short');
+      });
+
+      let error: string | null = null;
+      act(() => {
+        error = result.current.validateField('username');
+      });
+      expect(error).toBeNull();
+
+      // Swap spec: same value must now fail under minlength: 10
+      rerender({ spec: strictSpec });
+
+      act(() => {
+        error = result.current.validateField('username');
+      });
+      expect(error).toBe('Username must be at least 10 characters');
     });
   });
 

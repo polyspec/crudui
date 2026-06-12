@@ -13,7 +13,6 @@ import { getLimepieDataAttributes, toBracketNotation } from '../../utils/dataAtt
  * TagifyField component
  */
 export function TagifyField({
-  name,
   spec,
   value,
   onChange,

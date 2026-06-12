@@ -1,51 +1,41 @@
 /**
- * EmailField Component
+ * DummyInputField Component
  *
- * Email input field.
+ * Always-readonly display input ("dummy-input" type).
  *
- * Limepie PHP golden structure (Fields/Email.php):
+ * Limepie PHP golden structure (Fields/DummyInput.php), verified via
+ * tools/limepie-baseline/render.php:
  *   <div class="input-group">
  *     [<span class="input-group-text">{prepend}</span>]
- *     <input type="email" class="valid-target form-control{element_class}"
- *            name=".." data-name=".." data-rule-name=".." value=".."
- *            data-default=".." [readonly] [disabled] [placeholder]
- *            [autocomplete] />
+ *     <input type="text" class="form-control{element_class}" name=".."
+ *            value=".." data-default=".." readonly="readonly" [disabled]
+ *            [placeholder] [style] />
  *     [<span class="input-group-text">{append}</span>]
  *   </div>
  *
- * placeholder is emitted ONLY when the spec sets one (no hardcoded
- * example@email.com fallback).
+ * Notes: NO valid-target class, NO data-name / data-rule-name (the field is
+ * excluded from validation). readonly is unconditional; element_style gains
+ * " pointer-events: none;" only when spec.readonly is truthy.
  */
 
-import React, { useCallback, type ChangeEvent } from 'react';
+import React from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
 import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
-import { applyDefaultString, limepieDataAttrs } from './limepieParity';
+import { applyDefaultString, parseStyleString, phpString } from './limepieParity';
 
 /**
- * EmailField component
+ * DummyInputField component
  */
-export function EmailField({
+export function DummyInputField({
   spec,
   value,
-  onChange,
-  onBlur,
-  error,
   disabled,
-  readonly,
   path,
 }: FieldComponentProps) {
   const { t } = useI18n();
   const { keyPrefix } = useFormContext();
-
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.value);
-    },
-    [onChange]
-  );
 
   // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
@@ -53,9 +43,8 @@ export function EmailField({
   // PHP: empty value falls back to (string)$property['default'] (non-array)
   const displayValue = applyDefaultString(value, spec.default);
 
-  const classes = ['valid-target', 'form-control'];
-  if (spec.element_class) classes.push(spec.element_class as string);
-  if (error) classes.push('is-invalid');
+  // PHP: ' pointer-events: none;' appended only when spec.readonly truthy
+  const elementStyle = `${(spec.element_style as string) ?? ''}${spec.readonly ? ' pointer-events: none;' : ''}`;
 
   return (
     <div className="input-group">
@@ -68,17 +57,16 @@ export function EmailField({
       )}
 
       <input
-        type="email"
+        type="text"
         name={bracketName}
         value={displayValue}
-        onChange={handleChange}
-        onBlur={onBlur}
-        disabled={disabled}
-        readOnly={readonly}
-        className={classes.join(' ')}
+        readOnly
+        disabled={disabled || spec.disabled === true}
+        className={`form-control${spec.element_class ? ` ${spec.element_class as string}` : ''}`}
         placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
-        autoComplete={spec.autocomplete as string | undefined}
-        {...limepieDataAttrs(spec, path)}
+        style={parseStyleString(elementStyle)}
+        data-default={phpString(spec.default)}
+        onChange={() => undefined}
       />
 
       {/* Append */}
@@ -92,4 +80,4 @@ export function EmailField({
   );
 }
 
-export default EmailField;
+export default DummyInputField;

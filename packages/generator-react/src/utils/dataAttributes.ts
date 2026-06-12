@@ -5,50 +5,59 @@
  * for form validation (data-rule-name, data-name, data-default)
  */
 
-import type { ReactFieldSpec, MultiLangText } from '../types';
+import type { ReactFieldSpec } from '../types';
+
+/**
+ * Monotonic counter backing generateUniqid().
+ *
+ * A deterministic counter (instead of Math.random()) keeps server-rendered
+ * markup and the client hydration pass in sync: both render passes consume
+ * the sequence in the same component order, so the emitted data-uniqid
+ * values match and React reports no hydration mismatch.
+ */
+let uniqidCounter = 0;
+
+/**
+ * Seed so every id is exactly 13 hex chars, like PHP uniqid()
+ * (e.g. "6a2beba1cf601"). 0x1000000000000 = 2^48, well below
+ * Number.MAX_SAFE_INTEGER.
+ */
+const UNIQID_SEED = 0x1000000000000;
 
 /**
  * Generate Limepie-compatible uniqid
- * Format: __[12 hex chars]__ (similar to PHP uniqid)
+ * Format: __[13 hex chars]__ (same length as PHP uniqid())
+ *
+ * Deterministic and SSR-safe: sequential ids, identical between an SSR pass
+ * and the client hydration pass. Matches the `{13}` pattern used by
+ * isUniqueKey()/extractUniqueKeys() in utils/path.
  */
 export function generateUniqid(): string {
-  const chars = '0123456789abcdef';
-  let id = '';
-  for (let i = 0; i < 12; i++) {
-    id += chars.charAt(Math.floor(Math.random() * 16));
-  }
+  const id = (UNIQID_SEED + uniqidCounter++).toString(16);
   return `__${id}__`;
 }
 
 /**
- * Convert dot notation path to bracket notation with optional key prefix
- * Example: "common.email" -> "common[email]"
- * Example: "user.address.city" -> "user[address][city]"
- * Example: with keyPrefix "product": "basic.name" -> "product[basic][name]"
+ * Reset the uniqid counter (test helper).
+ * Call between renders when a test asserts on exact data-uniqid values.
  */
-export function toBracketNotationWithPrefix(path: string, keyPrefix?: string): string {
-  const baseBracket = toBracketNotation(path);
-  if (!keyPrefix) return baseBracket;
-
-  // Convert "basic[name]" to "product[basic][name]"
-  // or "name" to "product[name]"
-  if (baseBracket.includes('[')) {
-    const firstBracket = baseBracket.indexOf('[');
-    const firstPart = baseBracket.substring(0, firstBracket);
-    const rest = baseBracket.substring(firstBracket);
-    return `${keyPrefix}[${firstPart}]${rest}`;
-  }
-  return `${keyPrefix}[${baseBracket}]`;
+export function resetUniqid(): void {
+  uniqidCounter = 0;
 }
 
 /**
- * Convert dot notation path to bracket notation
+ * Convert dot notation path to bracket notation with optional key prefix.
+ *
+ * This is the canonical bracket-notation converter — new code must call this
+ * function, not toBracketNotation().
+ *
  * Example: "common.email" -> "common[email]"
  * Example: "user.address.city" -> "user[address][city]"
  * Example: "items[0].name" -> "items[0][name]"
+ * Example: with keyPrefix "product": "basic.name" -> "product[basic][name]"
  */
-export function toBracketNotation(path: string): string {
-  if (!path) return '';
+export function toBracketNotationWithPrefix(path: string, keyPrefix?: string): string {
+  if (!path) return keyPrefix ? `${keyPrefix}[]` : '';
 
   const segments: string[] = [];
   let current = '';
@@ -83,6 +92,10 @@ export function toBracketNotation(path: string): string {
     segments.push(current);
   }
 
+  if (keyPrefix) {
+    segments.unshift(keyPrefix);
+  }
+
   if (segments.length === 0) return '';
   if (segments.length === 1) return segments[0]!;
 
@@ -91,22 +104,13 @@ export function toBracketNotation(path: string): string {
 }
 
 /**
- * Get display name from spec label
- * Extracts the appropriate text for error messages
+ * Convert dot notation path to bracket notation
+ *
+ * @deprecated Use toBracketNotationWithPrefix(path) instead — it is the
+ * canonical implementation; this wrapper only delegates to it.
  */
-function getDisplayName(label: string | MultiLangText | undefined, language: string = 'ko'): string {
-  if (!label) return '';
-
-  if (typeof label === 'string') {
-    return label;
-  }
-
-  // Multi-language object: prefer current language, fall back to ko, then first available
-  if (typeof label === 'object') {
-    return label[language as keyof typeof label] || label.ko || label.en || Object.values(label)[0] || '';
-  }
-
-  return '';
+export function toBracketNotation(path: string): string {
+  return toBracketNotationWithPrefix(path);
 }
 
 /**
@@ -135,7 +139,7 @@ export function toRuleNameNotation(path: string): string {
 export function getLimepieDataAttributes(
   spec: ReactFieldSpec,
   path: string,
-  language: string = 'ko'
+  _language: string = 'ko'
 ): Record<string, string> {
   const attributes: Record<string, string> = {};
 
