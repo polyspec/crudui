@@ -26,10 +26,10 @@ type testCase struct {
 
 // TestDefinition represents a test with multiple cases
 type testDefinition struct {
-	ID          string                 `json:"id"`
-	Description string                 `json:"description"`
-	Spec        map[string]interface{} `json:"spec"`
-	Cases       []testCase             `json:"cases"`
+	ID          string          `json:"id"`
+	Description string          `json:"description"`
+	Spec        json.RawMessage `json:"spec"`
+	Cases       []testCase      `json:"cases"`
 }
 
 // TestSuite represents a complete test suite
@@ -44,10 +44,9 @@ type testSuiteData struct {
 func findTestCasesDir() (string, error) {
 	// Try different paths relative to where tests might be run from
 	candidatePaths := []string{
-		"../cases",                                               // From tests/runner/go
-		"../../cases",                                            // From tests/runner
-		"tests/cases",                                            // From project root
-		"/path/to/Work/form-generator/tests/cases",             // Absolute path
+		"../cases",    // From tests/runner/go
+		"../../cases", // From tests/runner
+		"tests/cases", // From project root
 	}
 
 	for _, path := range candidatePaths {
@@ -63,93 +62,9 @@ func findTestCasesDir() (string, error) {
 	return "", fmt.Errorf("could not find test cases directory")
 }
 
-// convertSpecToValidator converts spec from test format to Validator format
-func convertSpecToValidator(spec map[string]interface{}) validator.Spec {
-	specType, _ := spec["type"].(string)
-	_, hasProps := spec["properties"].(map[string]interface{})
-
-	if specType == "group" && hasProps {
-		return convertGroupSpecToValidator(spec)
-	}
-
-	// Wrap simple field spec in a group with a 'value' property
-	return validator.Spec{
-		Fields: []validator.Field{
-			convertFieldSpecToValidator("value", spec),
-		},
-	}
-}
-
-// convertGroupSpecToValidator converts a group spec to Validator Spec
-func convertGroupSpecToValidator(spec map[string]interface{}) validator.Spec {
-	properties, _ := spec["properties"].(map[string]interface{})
-
-	var fields []validator.Field
-	for name, fieldSpec := range properties {
-		if fs, ok := fieldSpec.(map[string]interface{}); ok {
-			fields = append(fields, convertFieldSpecToValidator(name, fs))
-		}
-	}
-
-	return validator.Spec{
-		Fields: fields,
-	}
-}
-
-// convertFieldSpecToValidator converts a field spec map to a Field struct
-func convertFieldSpecToValidator(name string, spec map[string]interface{}) validator.Field {
-	field := validator.Field{
-		Name: name,
-	}
-
-	if t, ok := spec["type"].(string); ok {
-		field.Type = t
-	}
-
-	if label, ok := spec["label"].(string); ok {
-		field.Label = label
-	}
-
-	if rules, ok := spec["rules"].(map[string]interface{}); ok {
-		field.Rules = rules
-	}
-
-	if messages, ok := spec["messages"].(map[string]interface{}); ok {
-		field.Messages = make(map[string]string)
-		for k, v := range messages {
-			if s, ok := v.(string); ok {
-				field.Messages[k] = s
-			}
-		}
-	}
-
-	// Handle nested properties (group type)
-	if props, ok := spec["properties"].(map[string]interface{}); ok {
-		for propName, propSpec := range props {
-			if ps, ok := propSpec.(map[string]interface{}); ok {
-				field.Fields = append(field.Fields, convertFieldSpecToValidator(propName, ps))
-			}
-		}
-	}
-
-	// Handle multiple flag
-	if multiple, ok := spec["multiple"].(bool); ok {
-		field.Multiple = multiple
-	}
-	// Also handle "only" string value for multiple
-	if multiple, ok := spec["multiple"].(string); ok && multiple == "only" {
-		field.Multiple = true
-	}
-
-	return field
-}
-
 // convertInputData converts input data to match the spec structure
-func convertInputData(spec map[string]interface{}, input interface{}) map[string]interface{} {
-	specType, _ := spec["type"].(string)
-	_, hasProps := spec["properties"].(map[string]interface{})
-
-	if specType == "group" && hasProps {
+func convertInputData(isGroup bool, input interface{}) map[string]interface{} {
+	if isGroup {
 		if m, ok := input.(map[string]interface{}); ok {
 			return m
 		}
@@ -226,10 +141,13 @@ func TestAllValidatorCases(t *testing.T) {
 
 // runSingleTestCase runs a single test case and reports results
 func runSingleTestCase(t *testing.T, testDef testDefinition, tc testCase, caseIdx int) {
-	spec := convertSpecToValidator(testDef.Spec)
-	input := convertInputData(testDef.Spec, tc.Input)
+	parsed, err := validator.ParseSpec(testDef.Spec)
+	if err != nil {
+		t.Fatalf("Failed to parse spec: %v", err)
+	}
+	input := convertInputData(parsed.IsGroup, tc.Input)
 
-	v := validator.NewValidator(spec)
+	v := validator.NewValidator(parsed.Spec)
 	result := v.Validate(input)
 
 	// Check valid/invalid match
