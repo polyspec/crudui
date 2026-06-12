@@ -67,14 +67,15 @@ export const minRule: RuleDefinition = {
     }
 
     if (numValue < minValue) {
-      const message = messages?.min ?? `Please enter a value of at least ${minValue}.`;
+      const message =
+        messages?.min ?? 'Please enter a value greater than or equal to {0}.';
       return message.replace('{0}', String(minValue));
     }
 
     return null;
   },
 
-  defaultMessage: 'Please enter a value of at least {0}.',
+  defaultMessage: 'Please enter a value greater than or equal to {0}.',
 };
 
 export default minRule;

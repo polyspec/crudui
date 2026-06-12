@@ -13,8 +13,8 @@ import (
 
 // Request represents the validation request from stdin
 type Request struct {
-	Spec  map[string]interface{} `json:"spec"`
-	Input interface{}            `json:"input"`
+	Spec  json.RawMessage `json:"spec"`
+	Input interface{}     `json:"input"`
 }
 
 // Response represents the validation response to stdout
@@ -38,11 +38,17 @@ func main() {
 		return
 	}
 
-	// Convert spec
-	validatorSpec, validatorInput := convertRequest(req.Spec, req.Input)
+	// Parse spec preserving property/rule declaration order
+	parsed, err := validator.ParseSpec(req.Spec)
+	if err != nil {
+		outputError(fmt.Sprintf("Failed to parse spec: %v", err))
+		return
+	}
+
+	validatorInput := convertInput(parsed.IsGroup, req.Input)
 
 	// Run validation
-	v := validator.NewValidator(validatorSpec)
+	v := validator.NewValidator(parsed.Spec)
 	result := v.Validate(validatorInput)
 
 	// Build response
@@ -60,76 +66,21 @@ func main() {
 	outputJSON(resp)
 }
 
-func convertRequest(spec map[string]interface{}, input interface{}) (validator.Spec, map[string]interface{}) {
-	specType, _ := spec["type"].(string)
-	_, hasProps := spec["properties"].(map[string]interface{})
-
-	var validatorSpec validator.Spec
-	var validatorInput map[string]interface{}
-
-	if specType == "group" && hasProps {
-		validatorSpec = convertGroupSpec(spec)
+// convertInput converts the request input to match the spec structure.
+func convertInput(isGroup bool, input interface{}) map[string]interface{} {
+	if isGroup {
 		if m, ok := input.(map[string]interface{}); ok {
-			validatorInput = m
-		} else {
-			validatorInput = make(map[string]interface{})
+			return m
 		}
-	} else {
-		validatorSpec = validator.Spec{
-			Fields: []validator.Field{{
-				Name:  "value",
-				Type:  specType,
-				Rules: getRules(spec),
-			}},
-		}
-		if s, ok := input.(string); ok && s == "__undefined__" {
-			validatorInput = map[string]interface{}{"value": nil}
-		} else {
-			validatorInput = map[string]interface{}{"value": input}
-		}
+		return make(map[string]interface{})
 	}
 
-	return validatorSpec, validatorInput
-}
-
-func convertGroupSpec(spec map[string]interface{}) validator.Spec {
-	props, _ := spec["properties"].(map[string]interface{})
-	var fields []validator.Field
-	for name, fs := range props {
-		if fieldSpec, ok := fs.(map[string]interface{}); ok {
-			fields = append(fields, convertField(name, fieldSpec))
-		}
-	}
-	return validator.Spec{Fields: fields}
-}
-
-func convertField(name string, spec map[string]interface{}) validator.Field {
-	field := validator.Field{Name: name}
-	if t, ok := spec["type"].(string); ok {
-		field.Type = t
-	}
-	field.Rules = getRules(spec)
-
-	if props, ok := spec["properties"].(map[string]interface{}); ok {
-		for pname, ps := range props {
-			if pspec, ok := ps.(map[string]interface{}); ok {
-				field.Fields = append(field.Fields, convertField(pname, pspec))
-			}
-		}
+	// Handle special undefined marker
+	if s, ok := input.(string); ok && s == "__undefined__" {
+		return map[string]interface{}{"value": nil}
 	}
 
-	if multiple, ok := spec["multiple"].(bool); ok {
-		field.Multiple = multiple
-	}
-
-	return field
-}
-
-func getRules(spec map[string]interface{}) map[string]interface{} {
-	if rules, ok := spec["rules"].(map[string]interface{}); ok {
-		return rules
-	}
-	return nil
+	return map[string]interface{}{"value": input}
 }
 
 func outputJSON(v interface{}) {

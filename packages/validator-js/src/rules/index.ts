@@ -13,6 +13,7 @@ import { minRule } from './min';
 import { maxRule } from './max';
 import { matchRule } from './match';
 import { uniqueRule } from './unique';
+import { inRule } from './in';
 import { rangeRule } from './range';
 import { rangelengthRule } from './rangelength';
 import { numberRule } from './number';
@@ -39,7 +40,10 @@ const builtInRules: Map<string, RuleDefinition> = new Map([
   ['min', minRule],
   ['max', maxRule],
   ['match', matchRule],
+  // 'pattern' is an alias of 'match' (same implementation)
+  ['pattern', matchRule],
   ['unique', uniqueRule],
+  ['in', inRule],
   ['range', rangeRule],
   ['rangelength', rangelengthRule],
   ['number', numberRule],
@@ -136,6 +140,7 @@ export { minRule } from './min';
 export { maxRule } from './max';
 export { matchRule } from './match';
 export { uniqueRule } from './unique';
+export { inRule } from './in';
 export { rangeRule } from './range';
 export { rangelengthRule } from './rangelength';
 export { numberRule } from './number';
@@ -158,6 +163,7 @@ export { getLength } from './minlength';
 export { toNumber } from './min';
 export { getPattern } from './match';
 export { areAllUnique } from './unique';
+export { flattenInValues, isInList } from './in';
 export { isValidNumber } from './number';
 export { isDigitsOnly } from './digits';
 export { getValueByPath } from './equalTo';

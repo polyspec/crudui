@@ -17,6 +17,8 @@ export interface RulesSpec {
   maxlength?: number;
   rangelength?: [number, number];
   match?: string;
+  /** Alias of `match` - both names resolve to the same rule implementation */
+  pattern?: string;
   number?: boolean;
   digits?: boolean;
   min?: number;
@@ -49,6 +51,8 @@ export interface MessagesSpec {
   maxlength?: string;
   rangelength?: string;
   match?: string;
+  /** Alias of `match` message */
+  pattern?: string;
   number?: string;
   digits?: string;
   min?: string;
@@ -113,6 +117,8 @@ export interface ValidationContext {
   ruleParam: unknown;
   /** Custom messages */
   messages?: MessagesSpec;
+  /** Name under which the rule was invoked (e.g., 'pattern' vs 'match') */
+  ruleName?: string;
 }
 
 /**
@@ -315,6 +321,12 @@ export interface PathContext {
   currentPath: string[];
   /** Complete form data */
   formData: Record<string, unknown>;
+  /**
+   * True when the condition being evaluated is attached to a group node
+   * (e.g., display_switch on a group). Affects relative path resolution:
+   * both "." and ".." resolve to the group's siblings.
+   */
+  groupNode?: boolean;
 }
 
 /**

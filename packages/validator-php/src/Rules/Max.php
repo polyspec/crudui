@@ -15,12 +15,18 @@ class Max implements RuleInterface
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
+        // A non-numeric threshold is a malformed rule param; skip it (valid)
+        // rather than coercing to 0, matching JS (isNaN) and Go (ParseFloat err).
+        if (!is_numeric($param)) {
+            return true;
+        }
+
         $numValue = $this->toNumber($value);
         if ($numValue === null) {
             return false;
         }
 
-        $maxValue = is_numeric($param) ? (float)$param : 0;
+        $maxValue = (float)$param;
         return $numValue <= $maxValue;
     }
 

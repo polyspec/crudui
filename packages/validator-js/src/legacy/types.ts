@@ -32,7 +32,12 @@ export interface FieldSpec {
   messages?: MessagesSpec;
   properties?: Record<string, FieldSpec>;
   items?: Record<string, string> | ItemsSourceSpec;
-  display_switch?: string;
+  /**
+   * Condition expression controlling field visibility.
+   * Boolean values are also accepted: false = always hidden (validation
+   * skipped), true = always visible.
+   */
+  display_switch?: string | boolean;
   display_target?: string;
   [key: string]: unknown;
 }
