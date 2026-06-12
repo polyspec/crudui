@@ -1,7 +1,7 @@
-module github.com/example/form-generator/tests/runner/go
+module github.com/polyspec/crudui/tests/runner/go
 
 go 1.21
 
-require github.com/example/form-generator/validator v0.0.0
+require github.com/polyspec/crudui/packages/validator-go v0.0.0
 
-replace github.com/example/form-generator/validator => ../../../packages/validator-go
+replace github.com/polyspec/crudui/packages/validator-go => ../../../packages/validator-go

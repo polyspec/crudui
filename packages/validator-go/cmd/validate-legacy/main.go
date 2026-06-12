@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/example/form-generator/validator/validator"
+	validator "github.com/polyspec/crudui/packages/validator-go/validator/legacy"
 )
 
 // Request represents the validation request from stdin
