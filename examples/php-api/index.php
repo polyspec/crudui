@@ -16,46 +16,52 @@ $documentation = [
     'description' => 'PHP API for validating form data against YAML specifications',
     'endpoints' => [
         [
-            'path' => '/validate.php',
+            'path' => '/api/specs',
+            'method' => 'GET',
+            'description' => 'List all available form specs',
+            'response' => [
+                'specs' => 'string[] - Available spec names',
+            ],
+        ],
+        [
+            'path' => '/api/specs/{name}',
+            'method' => 'GET',
+            'description' => 'Get a form spec by name (YAML converted to JSON). 404 {"error"} when not found.',
+            'response' => [
+                'name' => 'string - Spec name',
+                'spec' => 'object - Form spec',
+            ],
+        ],
+        [
+            'path' => '/api/validate',
             'method' => 'POST',
-            'description' => 'Validate form data',
+            'description' => 'Validate form data against a spec object. Always 200; validation failure is NOT an HTTP error.',
             'request' => [
-                'spec' => 'string (required) - Specification name',
-                'mode' => 'string (optional) - "full" or "field" (default: "full")',
-                'data' => 'object (required for full mode) - Form data to validate',
-                'path' => 'string (required for field mode) - Field path',
-                'value' => 'any (required for field mode) - Field value',
-                'allData' => 'object (optional for field mode) - All form data',
+                'spec' => 'object (required) - Form spec object',
+                'data' => 'object (required) - Form data to validate',
             ],
             'response' => [
-                'success' => 'boolean - Request processed successfully',
                 'valid' => 'boolean - Validation result',
-                'errors' => 'object - Validation errors (full mode)',
-                'error' => 'string|null - Validation error (field mode)',
+                'errors' => 'array - [{"field", "rule", "message"}], empty when valid',
             ],
         ],
     ],
     'available_specs' => getAvailableSpecs(),
     'examples' => [
-        'full_validation' => [
+        'validation' => [
             'request' => [
-                'spec' => 'user-registration',
+                'spec' => [
+                    'type' => 'group',
+                    'properties' => [
+                        'email' => [
+                            'type' => 'email',
+                            'rules' => ['required' => true, 'email' => true],
+                        ],
+                    ],
+                ],
                 'data' => [
                     'email' => 'user@example.com',
-                    'password' => 'SecurePass123',
-                    'password_confirm' => 'SecurePass123',
-                    'name' => 'John Doe',
-                    'terms' => true,
                 ],
-            ],
-        ],
-        'field_validation' => [
-            'request' => [
-                'spec' => 'user-registration',
-                'mode' => 'field',
-                'path' => 'email',
-                'value' => 'test@example.com',
-                'allData' => [],
             ],
         ],
     ],
@@ -72,11 +78,12 @@ function getAvailableSpecs(): array
     $specs = [];
 
     if (is_dir($specsDir)) {
-        $files = glob($specsDir . '/*.yml');
+        $files = glob($specsDir . '/*.{yml,yaml}', GLOB_BRACE) ?: [];
         foreach ($files as $file) {
-            $specs[] = basename($file, '.yml');
+            $specs[] = preg_replace('/\.(yml|yaml)$/', '', basename($file));
         }
     }
 
+    sort($specs);
     return $specs;
 }

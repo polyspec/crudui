@@ -11,7 +11,7 @@
     "repositories": [
         {
             "type": "path",
-            "url": "../../validator/php"
+            "url": "../../packages/validator-php"
         }
     ],
     "autoload": {
@@ -20,7 +20,7 @@
         }
     },
     "scripts": {
-        "serve": "php -S localhost:8080 -t .",
+        "serve": "php -S localhost:8080 api.php",
         "test": "php test-api.php"
     }
 }

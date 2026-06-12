@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import yaml from 'js-yaml';
 import type { FormData, FormErrors } from '@form-spec/generator-react/legacy';
 import { BackendComparison } from './BackendComparison';
 
@@ -18,6 +19,18 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
   language,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('json');
+
+  // Canonical contract: backends receive the parsed spec object, never the raw YAML string.
+  const parsedSpec = useMemo<Record<string, unknown> | null>(() => {
+    try {
+      const parsed = yaml.load(spec);
+      return parsed && typeof parsed === 'object'
+        ? (parsed as Record<string, unknown>)
+        : null;
+    } catch {
+      return null;
+    }
+  }, [spec]);
 
   const errorEntries = Object.entries(errors);
   const hasErrors = errorEntries.length > 0;
@@ -101,7 +114,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
             )}
           </div>
         ) : (
-          <BackendComparison spec={spec} data={data} language={language} />
+          <BackendComparison spec={parsedSpec} data={data} language={language} />
         )}
       </div>
     </>

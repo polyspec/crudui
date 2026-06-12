@@ -108,7 +108,7 @@ properties:
           match: '^\d+x\d+x\d+$'
         messages:
           ko:
-            match: 올바른 규격 형식으로 입력해주세요. (예: 10x20x30)
+            match: '올바른 규격 형식으로 입력해주세요. (예: 10x20x30)'
           en:
             match: Please enter valid dimensions format. (e.g., 10x20x30)
 

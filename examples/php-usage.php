@@ -8,7 +8,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../validator/php/vendor/autoload.php';
+require_once __DIR__ . '/../packages/validator-php/vendor/autoload.php';
 
 use FormSpec\Validator\Legacy\Validator;
 use FormSpec\Validator\Legacy\ValidationResult;
