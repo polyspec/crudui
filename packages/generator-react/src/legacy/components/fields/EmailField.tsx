@@ -1,20 +1,33 @@
 /**
  * EmailField Component
  *
- * Email input field
+ * Email input field.
+ *
+ * Email structure:
+ *   <div class="input-group">
+ *     [<span class="input-group-text">{prepend}</span>]
+ *     <input type="email" class="valid-target form-control{element_class}"
+ *            name=".." data-name=".." data-rule-name=".." value=".."
+ *            data-default=".." [readonly] [disabled] [placeholder]
+ *            [autocomplete] />
+ *     [<span class="input-group-text">{append}</span>]
+ *   </div>
+ *
+ * placeholder is emitted ONLY when the spec sets one (no hardcoded
+ * example@email.com fallback).
  */
 
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
-import { getLegacyDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
+import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { applyDefaultString, legacyDataAttrs } from './legacyParity';
 
 /**
  * EmailField component
  */
 export function EmailField({
-  name,
   spec,
   value,
   onChange,
@@ -23,7 +36,6 @@ export function EmailField({
   disabled,
   readonly,
   path,
-  language,
 }: FieldComponentProps) {
   const { t } = useI18n();
   const { keyPrefix } = useFormContext();
@@ -38,6 +50,13 @@ export function EmailField({
   // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
+  // An empty value falls back to the default as a string (non-array)
+  const displayValue = applyDefaultString(value, spec.default);
+
+  const classes = ['valid-target', 'form-control'];
+  if (spec.element_class) classes.push(spec.element_class as string);
+  if (error) classes.push('is-invalid');
+
   return (
     <div className="input-group">
       {/* Prepend */}
@@ -51,17 +70,15 @@ export function EmailField({
       <input
         type="email"
         name={bracketName}
-        value={(value as string) ?? ''}
+        value={displayValue}
         onChange={handleChange}
         onBlur={onBlur}
         disabled={disabled}
         readOnly={readonly}
-        className={getInputClasses('', spec, !!error)}
-        placeholder={spec.placeholder ? t(spec.placeholder) : 'example@email.com'}
-        maxLength={spec.maxlength as number | undefined}
-        autoFocus={spec.autofocus === true}
+        className={classes.join(' ')}
+        placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
         autoComplete={spec.autocomplete as string | undefined}
-        {...getLegacyDataAttributes(spec, path, language)}
+        {...legacyDataAttrs(spec, path)}
       />
 
       {/* Append */}

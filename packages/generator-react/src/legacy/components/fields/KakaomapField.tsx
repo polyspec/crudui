@@ -62,7 +62,6 @@ interface KakaoGeocoder {
  * KakaomapField component
  */
 export function KakaomapField({
-  name,
   spec,
   value,
   onChange,
@@ -77,7 +76,7 @@ export function KakaomapField({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<KakaoMap | null>(null);
   const markerRef = useRef<KakaoMarker | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [, setIsLoaded] = useState(false);
 
   // Parse current location
   const currentLocation: MapLocation | null = typeof value === 'object' && value !== null

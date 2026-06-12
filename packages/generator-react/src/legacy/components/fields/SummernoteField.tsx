@@ -16,7 +16,6 @@ import { getLegacyDataAttributes, toBracketNotation, getInputClasses } from '../
  * For actual Summernote, register a custom component with Summernote integration
  */
 export function SummernoteField({
-  name,
   spec,
   value,
   onChange,

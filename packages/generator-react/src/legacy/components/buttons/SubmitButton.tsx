@@ -36,7 +36,6 @@ interface SubmitButtonProps {
 export function SubmitButton({
   spec,
   isSubmitting = false,
-  isValid = true,
   className,
 }: SubmitButtonProps) {
   const { t } = useI18n();

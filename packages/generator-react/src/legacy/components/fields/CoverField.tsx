@@ -13,7 +13,6 @@ import { getLegacyDataAttributes, toBracketNotation } from '../../utils/dataAttr
  * CoverField component
  */
 export function CoverField({
-  name,
   spec,
   value,
   onChange,

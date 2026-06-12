@@ -8,7 +8,20 @@ import { useState, useCallback, useMemo, useRef, type ChangeEvent, type FocusEve
 import { Validator } from '@form-spec/validator/legacy';
 import type { Spec } from '@form-spec/validator/legacy';
 import type { FormData, FormErrors, FormValue, UseFormReturn } from '../types';
-import { getValueByPath, setValueByPath, parsePathString } from '../utils/path';
+import { getValueByPath, setValueByPath } from '../utils/path';
+
+/**
+ * Remove a key from an errors map without mutating the original.
+ * Returns the original object when the key is absent (referential stability).
+ */
+function removeError(errors: FormErrors, path: string): FormErrors {
+  if (!(path in errors)) {
+    return errors;
+  }
+  const next = { ...errors };
+  delete next[path];
+  return next;
+}
 
 /**
  * useForm hook options
@@ -43,12 +56,15 @@ export function useForm({
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initialDataRef = useRef(initialData);
-  const validatorRef = useRef<Validator | null>(null);
 
-  // Create validator
-  if (!validatorRef.current) {
-    validatorRef.current = new Validator(spec);
-  }
+  // Latest form data, updated synchronously by the mutators below.
+  // Lets setValue/validate read the current data inside the same act/batch
+  // without waiting for a re-render.
+  const dataRef = useRef(data);
+
+  // Recreated whenever the spec changes (a ref would keep validating
+  // against the first spec forever).
+  const validator = useMemo(() => new Validator(spec), [spec]);
 
   /**
    * Check if form is dirty (has changes)
@@ -69,38 +85,22 @@ export function useForm({
    */
   const setValue = useCallback(
     (path: string, value: FormValue) => {
-      setData((prev: FormData) => {
-        const newData = setValueByPath({ ...prev }, path, value);
-        onChange?.(path, value, newData);
-        return newData;
-      });
+      const newData = setValueByPath(dataRef.current, path, value);
+      dataRef.current = newData;
+      setData(newData);
+      onChange?.(path, value, newData);
 
-      // Clear error immediately when value changes
-      setErrors((prev) => {
-        if (prev[path]) {
-          const { [path]: _, ...rest } = prev;
-          return rest;
-        }
-        return prev;
-      });
-
-      // Always validate on change - rules are checked sequentially
-      // and first failed rule shows error immediately
-      const validator = validatorRef.current;
-      if (validator) {
-        // Defer validation to next tick to use updated data
-        setTimeout(() => {
-          setData((currentData: FormData) => {
-            const error = validator.validateField(path, value, currentData as Record<string, unknown>);
-            if (error) {
-              setErrors((prev) => ({ ...prev, [path]: error }));
-            }
-            return currentData;
-          });
-        }, 0);
+      if (validationMode === 'onChange') {
+        // Validate synchronously against the just-computed data
+        const error = validator.validateField(path, value, newData as Record<string, unknown>);
+        setErrors((prev) => (error ? { ...prev, [path]: error } : removeError(prev, path)));
+      } else {
+        // Clear stale error when value changes; onBlur/onSubmit modes
+        // re-validate later
+        setErrors((prev) => removeError(prev, path));
       }
     },
-    [onChange]
+    [onChange, validationMode, validator]
   );
 
   /**
@@ -118,13 +118,12 @@ export function useForm({
    */
   const setValues = useCallback(
     (values: FormData) => {
-      setData((prev: FormData) => {
-        let newData = { ...prev };
-        for (const [path, value] of Object.entries(values)) {
-          newData = setValueByPath(newData, path, value);
-        }
-        return newData;
-      });
+      let newData = dataRef.current;
+      for (const [path, value] of Object.entries(values)) {
+        newData = setValueByPath(newData, path, value);
+      }
+      dataRef.current = newData;
+      setData(newData);
     },
     []
   );
@@ -134,6 +133,7 @@ export function useForm({
    */
   const reset = useCallback((newData?: FormData) => {
     const resetData = newData ?? initialDataRef.current;
+    dataRef.current = resetData;
     setData(resetData);
     setErrors({});
     if (newData) {
@@ -146,37 +146,22 @@ export function useForm({
    */
   const validateField = useCallback(
     (path: string): string | null => {
-      const validator = validatorRef.current;
-      if (!validator) return null;
+      const currentData = dataRef.current;
+      const value = getValueByPath(currentData, path);
+      const error = validator.validateField(path, value, currentData as Record<string, unknown>);
 
-      const value = getValueByPath(data, path);
-      const error = validator.validateField(path, value, data as Record<string, unknown>);
-
-      if (error) {
-        setErrors((prev) => ({ ...prev, [path]: error }));
-      } else {
-        setErrors((prev) => {
-          if (prev[path]) {
-            const { [path]: _, ...rest } = prev;
-            return rest;
-          }
-          return prev;
-        });
-      }
+      setErrors((prev) => (error ? { ...prev, [path]: error } : removeError(prev, path)));
 
       return error;
     },
-    [data]
+    [validator]
   );
 
   /**
    * Validate entire form
    */
   const validate = useCallback((): FormErrors => {
-    const validator = validatorRef.current;
-    if (!validator) return {};
-
-    const result = validator.validate(data as Record<string, unknown>);
+    const result = validator.validate(dataRef.current as Record<string, unknown>);
     const newErrors: FormErrors = {};
 
     for (const error of result.errors) {
@@ -187,7 +172,7 @@ export function useForm({
     onValidate?.(newErrors);
 
     return newErrors;
-  }, [data, onValidate]);
+  }, [validator, onValidate]);
 
   /**
    * Submit form
@@ -199,12 +184,12 @@ export function useForm({
       const formErrors = validate();
 
       if (onSubmit) {
-        await onSubmit(data, formErrors);
+        await onSubmit(dataRef.current, formErrors);
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [validate, data, onSubmit]);
+  }, [validate, onSubmit]);
 
   /**
    * Handle input change event

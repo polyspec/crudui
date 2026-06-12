@@ -15,8 +15,8 @@ import type {
   FormBuilderProps,
   FormData,
   FormErrors,
-  FormValue,
-  Language,
+  
+  
 } from '../types';
 
 /**
@@ -65,6 +65,7 @@ export function FormBuilder({
         onChange={onChange}
         onValidate={onValidate}
         keyPrefix={keyPrefix}
+        language={language}
       >
         <FormBuilderInner
           className={className}

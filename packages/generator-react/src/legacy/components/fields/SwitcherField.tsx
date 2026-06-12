@@ -19,7 +19,6 @@ import { getLegacyDataAttributes, toBracketNotationWithPrefix, getCheckboxClasse
  * </div>
  */
 export function SwitcherField({
-  name,
   spec,
   value,
   onChange,

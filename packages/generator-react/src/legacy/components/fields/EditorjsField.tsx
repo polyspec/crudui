@@ -16,7 +16,6 @@ import { getLegacyDataAttributes, toBracketNotation, getInputClasses } from '../
  * For actual Editor.js, register a custom component with Editor.js integration
  */
 export function EditorjsField({
-  name,
   spec,
   value,
   onChange,
