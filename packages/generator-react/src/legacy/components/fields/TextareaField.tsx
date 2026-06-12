@@ -1,20 +1,31 @@
 /**
  * TextareaField Component
  *
- * Multi-line text input field
+ * Multi-line text input field.
+ *
+ * Legacy PHP golden structure (Fields/Textarea.php):
+ *   <div class="input-group">
+ *     [<span class="input-group-text{prepend_class}">{prepend}</span>]
+ *     <textarea class="valid-target form-control {element_class}" [readonly]
+ *               [style] name=".." data-name=".." data-rule-name=".."
+ *               data-default=".." rows="{rows|5}" [maxlength]>{value}</textarea>
+ *     [<span class="input-group-text{append_class}">{append}</span>]
+ *   </div>
+ *
+ * NO placeholder attribute — PHP Textarea does not support it.
+ * maxlength is emitted only with counter + rules.maxlength.
  */
 
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
-import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
-import { getLegacyDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
+import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { applyDefaultString, legacyDataAttrs, parseStyleString } from './legacyParity';
 
 /**
  * TextareaField component
  */
 export function TextareaField({
-  name,
   spec,
   value,
   onChange,
@@ -23,9 +34,7 @@ export function TextareaField({
   disabled,
   readonly,
   path,
-  language,
 }: FieldComponentProps) {
-  const { t } = useI18n();
   const { keyPrefix } = useFormContext();
 
   const handleChange = useCallback(
@@ -35,33 +44,52 @@ export function TextareaField({
     [onChange]
   );
 
-  // Build style for resize
-  const style: React.CSSProperties = {};
-  if (spec.resize) {
-    style.resize = spec.resize as 'none' | 'both' | 'horizontal' | 'vertical';
-  }
-
   // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
+  // PHP: empty value falls back to (string)$property['default']
+  const displayValue = applyDefaultString(value, spec.default);
+
+  // PHP: maxlength only when counter && rules.maxlength
+  const rulesMaxlength = spec.rules?.maxlength;
+  const maxLength =
+    spec.counter && typeof rulesMaxlength === 'number' ? rulesMaxlength : undefined;
+
+  const classes = ['valid-target', 'form-control'];
+  if (spec.element_class) classes.push(spec.element_class as string);
+  if (error) classes.push('is-invalid');
+
   return (
     <div className="input-group">
+      {/* Prepend */}
+      {spec.prepend && (
+        <span
+          className={`input-group-text${spec.prepend_class ? ` ${spec.prepend_class as string}` : ''}`}
+          dangerouslySetInnerHTML={{ __html: spec.prepend }}
+        />
+      )}
+
       <textarea
         name={bracketName}
-        value={(value as string) ?? ''}
+        value={displayValue}
         onChange={handleChange}
         onBlur={onBlur}
         disabled={disabled}
         readOnly={readonly}
-        className={getInputClasses('', spec, !!error)}
-        placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
-        rows={spec.rows as number | undefined ?? 5}
-        cols={spec.cols as number | undefined}
-        maxLength={spec.maxlength as number | undefined}
-        autoFocus={spec.autofocus === true}
-        style={style}
-        {...getLegacyDataAttributes(spec, path, language)}
+        className={classes.join(' ')}
+        rows={(spec.rows as number | undefined) ?? 5}
+        maxLength={maxLength}
+        style={parseStyleString(spec.element_style)}
+        {...legacyDataAttrs(spec, path)}
       />
+
+      {/* Append */}
+      {spec.append && (
+        <span
+          className={`input-group-text${spec.append_class ? ` ${spec.append_class as string}` : ''}`}
+          dangerouslySetInnerHTML={{ __html: spec.append }}
+        />
+      )}
     </div>
   );
 }

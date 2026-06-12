@@ -1,277 +1,203 @@
 /**
  * SearchField Component
  *
- * Autocomplete search field with API support
+ * Legacy PHP golden structure (Fields/Search.php) — a select2-driven
+ * <select> with its CSP-nonce'd bootstrap <style>/<script> siblings:
+ *
+ *   <style nonce="">.{id}_select2 .loading-results { display: none; }</style>
+ *   <script nonce="">$(function() {select2('{id}', '{kml}', '{delay}',
+ *           '{containerClass}');[callback]});</script>
+ *   <div class="input-group field-search">
+ *     [<span class="input-group-text {prepend_class}">{prepend}</span>]
+ *     <select class="valid-target form-control{element_class}" name=".."
+ *             data-class="{containerClass}" data-keyword-min-length=".."
+ *             data-delay=".." data-api-server="{minified js}" data-name=".."
+ *             data-rule-name=".." id="{id}" [onchange] data-default="..">
+ *       {options | <option value="">select</option> when items unset}
+ *     </select>
+ *     [<span class="input-group-text">{append}</span>]
+ *   </div>
+ *
+ * id = clean_str($key) . '_' . uniqid(). containerClass keeps its LEADING
+ * space (' input-group-first input-group-last') — it is part of the golden
+ * data-class/select2() argument contract.
+ *
+ * The select content renders raw (dangerouslySetInnerHTML): legacy search
+ * fields are select2/jQuery surface (option selected=""/inline onchange
+ * attributes), not React-controlled inputs — same stance as ChoiceField's
+ * inline-JS branch.
  */
 
-import React, { useCallback, useState, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
-import type { FieldComponentProps, FormValue } from '../../types';
-import { useI18n } from '../../context/I18nContext';
+import React, { useRef } from 'react';
+import type { FieldComponentProps } from '../../types';
 import { useFormContext } from '../../context/FormContext';
-import { getLegacyDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
+import { generateUniqid, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { minifyJs } from '../../hooks/legacyDisplay';
+import {
+  cleanStr,
+  escAttr,
+  escText,
+  itemEntries,
+  leafName,
+  phpString,
+  ruleNameForPath,
+} from './legacyParity';
 
-interface SearchResult {
-  value: string;
-  label: string;
-  [key: string]: unknown;
+/** Localized item text (PHP: $itemText[get_language()] when array). */
+function itemText(v: unknown, language: string): string {
+  if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+    const localized = (v as Record<string, unknown>)[language];
+    if (typeof localized === 'string') return localized;
+  }
+  return phpString(v);
 }
 
 /**
  * SearchField component
  */
 export function SearchField({
-  name,
   spec,
   value,
-  onChange,
-  onBlur,
-  error,
   disabled,
   readonly,
   path,
   language,
 }: FieldComponentProps) {
-  const { t } = useI18n();
   const { keyPrefix } = useFormContext();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Get display value for current selection
-  const displayValue = typeof value === 'object' && value !== null
-    ? (value as Record<string, unknown>).label as string || ''
-    : (value as string) ?? '';
+  // PHP: $id = clean_str($key) . '_' . uniqid() — bare 13-hex.
+  const uniqRef = useRef<string>(generateUniqid().slice(2, -2));
 
-  // API configuration from spec
-  const apiUrl = spec.api_server as string | undefined;
-  const minChars = (spec.min_chars as number) ?? 2;
-  const debounceMs = (spec.debounce as number) ?? 300;
-  const valueField = (spec.value_field as string) ?? 'value';
-  const labelField = (spec.label_field as string) ?? 'label';
-
-  // Search function
-  const search = useCallback(async (term: string) => {
-    if (!apiUrl || term.length < minChars) {
-      setResults([]);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const url = apiUrl.includes('?')
-        ? `${apiUrl}&q=${encodeURIComponent(term)}`
-        : `${apiUrl}?q=${encodeURIComponent(term)}`;
-
-      const response = await fetch(url);
-      const data = await response.json();
-
-      // Handle various response formats
-      const items = Array.isArray(data) ? data : data.results ?? data.items ?? [];
-      const mapped = items.map((item: Record<string, unknown>) => ({
-        value: item[valueField] as string,
-        label: item[labelField] as string,
-        ...item,
-      }));
-
-      setResults(mapped);
-      setIsOpen(mapped.length > 0);
-      setHighlightIndex(-1);
-    } catch (err) {
-      console.error('Search error:', err);
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [apiUrl, minChars, valueField, labelField]);
-
-  // Debounced search
-  const handleInputChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const term = e.target.value;
-      setSearchTerm(term);
-
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-
-      debounceRef.current = setTimeout(() => {
-        search(term);
-      }, debounceMs);
-    },
-    [search, debounceMs]
-  );
-
-  // Handle selection
-  const handleSelect = useCallback((result: SearchResult) => {
-    setSearchTerm(result.label);
-    setIsOpen(false);
-    setResults([]);
-
-    // Store full object or just value depending on spec
-    if (spec.store_object) {
-      onChange(result as unknown as FormValue);
-    } else {
-      onChange(result.value);
-    }
-  }, [onChange, spec.store_object]);
-
-  // Keyboard navigation
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
-    if (!isOpen) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setHighlightIndex((prev) => Math.min(prev + 1, results.length - 1));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setHighlightIndex((prev) => Math.max(prev - 1, 0));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (highlightIndex >= 0 && results[highlightIndex]) {
-          handleSelect(results[highlightIndex]);
-        }
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        break;
-    }
-  }, [isOpen, results, highlightIndex, handleSelect]);
-
-  // Clear on escape
-  const handleClear = useCallback(() => {
-    setSearchTerm('');
-    setResults([]);
-    setIsOpen(false);
-    onChange(null);
-    inputRef.current?.focus();
-  }, [onChange]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
-
-  // Set initial display value
-  useEffect(() => {
-    setSearchTerm(displayValue);
-  }, [displayValue]);
-
-  // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
+  const id = `${cleanStr(bracketName)}_${uniqRef.current}`;
+
+  const specRec = spec as Record<string, unknown>;
+
+  // PHP `isset && truthy` fallbacks.
+  const keywordMinLength = specRec.keyword_min_length ? String(specRec.keyword_min_length) : '2';
+  const hideSearching = specRec.hide_searching !== undefined && !specRec.hide_searching ? false : true;
+  const delay = specRec.delay ? String(specRec.delay) : '250';
+  // NOTE: PHP computes a $placeholder fallback but never emits it — omitted.
+
+  const apiServer =
+    typeof specRec.api_server === 'string' && specRec.api_server
+      ? minifyJs(specRec.api_server)
+      : '';
+
+  // PHP: empty value falls back to (string)$property['default'].
+  const effectiveValue = (() => {
+    const v = phpString(value);
+    return v.length === 0 ? phpString(spec.default) : v;
+  })();
+
+  // readonly appends the legacy pointer-events style chain to element_style.
+  let elementStyle = typeof specRec.element_style === 'string' ? specRec.element_style : '';
+  if (spec.readonly || readonly) {
+    elementStyle +=
+      "-webkit-appearance: none; -moz-appearance: none; text-indent: 1px;text-overflow: ''; pointer-events: none;";
+  }
+  const styleAttr = elementStyle ? ` style="${escAttr(elementStyle)}"` : '';
+
+  const elementClass = specRec.element_class ? ` ${String(specRec.element_class)}` : '';
+  const globalDisabledAttr = spec.disabled || disabled ? 'disabled="disabled"' : '';
+  const disables = Array.isArray(specRec.disables) ? specRec.disables.map(String) : [];
+
+  // prepend / append spans.
+  let prependHtml = '';
+  if (specRec.prepend) {
+    const prependClass = specRec.prepend_class ? ` ${String(specRec.prepend_class)}` : '';
+    const prependText = itemText(specRec.prepend, language);
+    prependHtml = `<span class="input-group-text ${prependClass}">${prependText}</span>`;
+  }
+  let appendHtml = '';
+  if (specRec.append) {
+    appendHtml = `<span class="input-group-text">${String(specRec.append)}</span>`;
+  }
+
+  // PHP container class — leading space is part of the contract.
+  let containerClass = '';
+  if (!prependHtml) containerClass += ' input-group-first';
+  if (!appendHtml && !specRec.multiple) containerClass += ' input-group-last';
+
+  // Options (Search.php items loop; `items` unset -> the single
+  // <option value="">select</option> placeholder).
+  let optionHtml = '';
+  if (specRec.items !== undefined && specRec.items !== null) {
+    // itemEntries keeps the spec's entry order (ordered pair form supported)
+    for (const [itemKey, itemValue] of itemEntries(specRec.items)) {
+      let coverUrl = '';
+      let text: string;
+      let prependText = '';
+      let appendText = '';
+      let optionClass = '';
+      if (itemValue !== null && typeof itemValue === 'object' && 'id' in (itemValue as object)) {
+        const o = itemValue as Record<string, unknown>;
+        coverUrl = phpString(o.cover_url);
+        text = itemText(o.text, language);
+        prependText = phpString(o.prepend_text);
+        appendText = phpString(o.append_text);
+        if (o.class) optionClass = ` ${String(o.class)}`;
+      } else {
+        text = itemText(itemValue, language);
+      }
+      const optionDisabled = disables.includes(itemKey)
+        ? 'disabled="disabled"'
+        : globalDisabledAttr;
+      const selected = effectiveValue === String(itemKey);
+      optionHtml +=
+        `<option data-prepend-text="${escAttr(prependText)}" data-append-text="${escAttr(appendText)}"` +
+        ` data-cover-url="${escAttr(coverUrl)}" value="${escAttr(itemKey)}"` +
+        (selected ? ' selected="selected"' : ' ') +
+        `${optionDisabled} data-class="${escAttr(optionClass)}">${escText(text)}</option>`;
+    }
+  } else {
+    optionHtml = '<option value="">select</option>';
+  }
+
+  // Inline onchange / legacy readonly select lock.
+  let onchangeAttr = '';
+  if (typeof specRec.onchange === 'string' && specRec.onchange) {
+    onchangeAttr = ` onchange="${escAttr(minifyJs(specRec.onchange))}"`;
+  } else if (spec.readonly || readonly) {
+    onchangeAttr =
+      " readonly onFocus='this.initialSelect = this.selectedIndex;'" +
+      " onChange='this.selectedIndex = this.initialSelect;'";
+  }
+
+  const selectHtml =
+    `<select class="valid-target form-control${escAttr(elementClass)}"${styleAttr}` +
+    ` name="${escAttr(bracketName)}" data-class="${escAttr(containerClass)}"` +
+    ` data-keyword-min-length="${escAttr(keywordMinLength)}" data-delay="${escAttr(delay)}"` +
+    ` data-api-server="${escAttr(apiServer)}" data-name="${escAttr(leafName(path))}"` +
+    ` data-rule-name="${escAttr(ruleNameForPath(path))}" id="${escAttr(id)}"${onchangeAttr}` +
+    ` data-default="${escAttr(phpString(spec.default))}">${optionHtml}</select>`;
+
+  const callback =
+    typeof specRec.callback === 'string' && specRec.callback
+      ? `$('#${id}').on('select2:select', ${specRec.callback});`
+      : '';
 
   return (
-    <div className="position-relative">
-      <div className="input-group">
-        {/* Prepend */}
-        {spec.prepend && (
-          <span
-            className="input-group-text"
-            dangerouslySetInnerHTML={{ __html: spec.prepend }}
-          />
-        )}
-
-        <input
-          ref={inputRef}
-          type="text"
-          name={bracketName}
-          value={searchTerm}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setIsOpen(true)}
-          onBlur={() => {
-            // Delay to allow click on results
-            setTimeout(() => {
-              setIsOpen(false);
-              onBlur();
-            }, 200);
+    <>
+      {hideSearching && (
+        <style
+          nonce=""
+          dangerouslySetInnerHTML={{
+            __html: `.${id}_select2 .loading-results { display: none; }`,
           }}
-          disabled={disabled}
-          readOnly={readonly}
-          className={getInputClasses('', spec, !!error)}
-          placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
-          autoComplete="off"
-          autoFocus={spec.autofocus === true}
-          role="combobox"
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          aria-autocomplete="list"
-          {...getLegacyDataAttributes(spec, path, language)}
         />
-
-        {/* Loading indicator */}
-        {isLoading && (
-          <span className="input-group-text">
-            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          </span>
-        )}
-
-        {/* Clear button */}
-        {searchTerm && !disabled && !readonly && (
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            onClick={handleClear}
-            aria-label={t('remove')}
-            tabIndex={-1}
-          >
-            &times;
-          </button>
-        )}
-
-        {/* Append */}
-        {spec.append && (
-          <span
-            className="input-group-text"
-            dangerouslySetInnerHTML={{ __html: spec.append }}
-          />
-        )}
-      </div>
-
-      {/* Results dropdown */}
-      {isOpen && results.length > 0 && (
-        <ul
-          ref={listRef}
-          className="dropdown-menu show w-100"
-          role="listbox"
-          style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1000 }}
-        >
-          {results.map((result, index) => (
-            <li key={result.value}>
-              <button
-                type="button"
-                className={`dropdown-item ${index === highlightIndex ? 'active' : ''}`}
-                onClick={() => handleSelect(result)}
-                role="option"
-                aria-selected={index === highlightIndex}
-              >
-                {result.label}
-              </button>
-            </li>
-          ))}
-        </ul>
       )}
-
-      {/* No results message */}
-      {isOpen && !isLoading && searchTerm.length >= minChars && results.length === 0 && (
-        <div className="dropdown-menu show w-100" style={{ position: 'absolute', top: '100%', left: 0 }}>
-          <span className="dropdown-item text-muted">
-            {t('no_results') || 'No results found'}
-          </span>
-        </div>
-      )}
-    </div>
+      <script
+        nonce=""
+        dangerouslySetInnerHTML={{
+          __html: `$(function() {select2('${id}', '${keywordMinLength}', '${delay}', '${containerClass}');${callback}});`,
+        }}
+      />
+      <div
+        className="input-group field-search"
+        dangerouslySetInnerHTML={{ __html: prependHtml + selectHtml + appendHtml }}
+      />
+    </>
   );
 }
 

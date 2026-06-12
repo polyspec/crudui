@@ -1,135 +1,93 @@
 /**
  * ButtonField Component
  *
- * Button field for triggering actions (not for form submission)
+ * Verbatim port of the legacy Legacy Generator\Fields\Button::write()
+ * (single source of truth = tests/fixtures/golden-html, e.g. LargeForm
+ * option.button "조합"):
+ *
+ *   <script nonce="">
+ *   $(function() {
+ *       {init_script}
+ *       $("#btn{id}").on('click', function() {
+ *           {onclick}
+ *       });
+ *   });
+ *   </script>
+ *   <input type="hidden" class="valid-target form-control" readonly
+ *          name="{key}" data-name=".." data-rule-name=".." value=".."
+ *          data-default=".." />
+ *   <input type="button" class="btn{button_class}" name="btn{key}"
+ *          id="btn{id}" value="{text}" [readonly] />
+ *
+ * id = key with '[' -> '_' and ']' removed (option[button] -> option_button).
+ * The init_script/onclick JS is embedded RAW (legacy does not minify here).
+ * Inline jQuery is legacy surface — the script only executes in a jQuery
+ * page, never inside React. No .input-group wrapper (legacy has none).
  */
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import type { FieldComponentProps } from '../../types';
+import { useFormContext } from '../../context/FormContext';
 import { useI18n } from '../../context/I18nContext';
+import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { applyDefaultString, legacyDataAttrs, phpString } from './legacyParity';
+import type { MultiLangText } from '../../types';
 
 /**
  * ButtonField component
  */
-export function ButtonField({
-  name,
-  spec,
-  value,
-  onChange,
-  onBlur,
-  error,
-  disabled,
-  readonly,
-  path,
-}: FieldComponentProps) {
+export function ButtonField({ spec, value, path, readonly }: FieldComponentProps) {
+  const { keyPrefix } = useFormContext();
   const { t } = useI18n();
 
-  const handleClick = useCallback(() => {
-    // Emit custom event for button click
-    const event = new CustomEvent('form:button:click', {
-      detail: {
-        name,
-        path,
-        action: spec.action,
-        data: spec.data,
-      },
-      bubbles: true,
-    });
-    document.dispatchEvent(event);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
+  // PHP: $id = str_replace(['[', ']'], ['_', ''], $key)
+  const id = bracketName.split('[').join('_').split(']').join('');
 
-    // Also call onChange if handler expects it
-    onChange({ clicked: true, timestamp: Date.now() });
-  }, [name, path, spec.action, spec.data, onChange]);
+  const dataAttrs = legacyDataAttrs(spec, path);
+  // PHP: rule_name property overrides the computed rule name
+  const ruleName =
+    typeof (spec as Record<string, unknown>).rule_name === 'string'
+      ? ((spec as Record<string, unknown>).rule_name as string)
+      : dataAttrs['data-rule-name']!;
 
-  // Button variant - map to Bootstrap classes
-  const variantMap: Record<string, string> = {
-    default: 'btn-secondary',
-    primary: 'btn-primary',
-    secondary: 'btn-secondary',
-    success: 'btn-success',
-    danger: 'btn-danger',
-    warning: 'btn-warning',
-    info: 'btn-info',
-    outline: 'btn-outline-primary',
-  };
-  const sizeMap: Record<string, string> = {
-    sm: 'btn-sm',
-    md: '',
-    lg: 'btn-lg',
-  };
-  const variant = (spec.variant as string) ?? 'secondary';
-  const size = (spec.size as string) ?? 'md';
+  const initScript =
+    typeof (spec as Record<string, unknown>).init_script === 'string'
+      ? ((spec as Record<string, unknown>).init_script as string)
+      : '';
+  const onclick = typeof spec.onclick === 'string' ? spec.onclick : '';
 
-  const buttonClasses = ['btn', variantMap[variant] || 'btn-secondary'];
-  if (sizeMap[size]) {
-    buttonClasses.push(sizeMap[size]);
-  }
-  if (spec.input_class) {
-    buttonClasses.push(spec.input_class);
-  }
-  if (error) {
-    buttonClasses.push('btn-outline-danger');
-  }
+  // Heredoc-equivalent script body — content is whitespace-insensitive for
+  // parity (normalizer collapses runs), but keep the legacy shape readable.
+  const script =
+    `\n$(function() {\n    ${initScript}\n    $("#btn${id}").on('click', function() {\n        ${onclick}\n    });\n});\n`;
 
-  // Button label
-  const buttonLabel = (spec.button_label ?? spec.label ?? 'button') as string;
-
-  // Icon
-  const icon = spec.icon as string | undefined;
+  const displayValue = applyDefaultString(value, spec.default);
+  const text = spec.text !== undefined ? t(spec.text as string | MultiLangText) : '';
+  const isReadonly = readonly || phpString(spec.readonly) === '1' || spec.readonly === true;
 
   return (
-    <div className="input-group">
-      {/* Prepend */}
-      {spec.prepend && (
-        <span
-          className="input-group-text"
-          dangerouslySetInnerHTML={{ __html: spec.prepend }}
-        />
-      )}
-
-      <button
-        type="button"
-        name={path}
-        onClick={handleClick}
-        onBlur={onBlur}
-        disabled={disabled || readonly}
-        className={buttonClasses.join(' ')}
-      >
-        {/* Icon before label */}
-        {icon && spec.icon_position !== 'after' && (
-          <span
-            className="me-1"
-            dangerouslySetInnerHTML={{ __html: icon }}
-          />
-        )}
-
-        {/* Label */}
-        {t(buttonLabel)}
-
-        {/* Icon after label */}
-        {icon && spec.icon_position === 'after' && (
-          <span
-            className="ms-1"
-            dangerouslySetInnerHTML={{ __html: icon }}
-          />
-        )}
-      </button>
-
-      {/* Append */}
-      {spec.append && (
-        <span
-          className="input-group-text"
-          dangerouslySetInnerHTML={{ __html: spec.append }}
-        />
-      )}
-
-      {/* Hidden input to track button clicks if needed */}
+    <>
+      <script nonce="" dangerouslySetInnerHTML={{ __html: script }} />
       <input
         type="hidden"
-        name={`${path}_clicked`}
-        value={value ? 'true' : 'false'}
+        className="valid-target form-control"
+        readOnly
+        name={bracketName}
+        data-name={dataAttrs['data-name']}
+        data-rule-name={ruleName}
+        value={displayValue}
+        data-default={dataAttrs['data-default']}
       />
-    </div>
+      <input
+        type="button"
+        className={`btn${spec.button_class ? ` ${spec.button_class as string}` : ''}`}
+        name={`btn${bracketName}`}
+        id={`btn${id}`}
+        defaultValue={text}
+        readOnly={isReadonly || undefined}
+      />
+    </>
   );
 }
 

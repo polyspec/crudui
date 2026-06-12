@@ -119,13 +119,19 @@ export interface ReactFieldSpec {
   rules?: import('@form-spec/validator/legacy').RulesSpec;
   messages?: import('@form-spec/validator/legacy').MessagesSpec;
 
-  // Conditional display
-  display_switch?: string;
+  // Conditional display (boolean = unconditional on/off, string = condition expression)
+  display_switch?: string | boolean;
   display_target?: string;
   element?: ElementConfig;
 
-  // Items for select/radio/checkbox lists
-  items?: Record<string, string> | import('@form-spec/validator/legacy').ItemsSourceSpec;
+  // Items for select/radio/checkbox lists. The ordered pair form
+  // ([[key, label], ...]) preserves entry order that plain JS objects
+  // destroy for integer-like keys (legacy YAML maps are ordered; see
+  // legacyParity itemEntries).
+  items?:
+    | Record<string, string>
+    | Array<[string | number, unknown]>
+    | import('@form-spec/validator/legacy').ItemsSourceSpec;
 
   // CSS classes
   input_class?: string;
@@ -204,6 +210,23 @@ export interface FieldComponentProps {
   index?: number;
   /** Unique key for array items */
   uniqueKey?: string;
+  /**
+   * Multiple-row buttons injected at the legacy `<!--btn-->` slot — the LAST
+   * child of the field's .input-group (after append). Only set for
+   * multiple: true leaf rows. Field components MUST render it there;
+   * rendering it outside .input-group breaks golden parity.
+   */
+  buttons?: ReactNode;
+  /**
+   * Raw legacy HTML for the SAME `<!--btn-->` slot (Fields::addElement
+   * port), set alongside `buttons` for multiple leaf rows. A field's
+   * legacy-raw branch (spec-authored inline onchange / dynamic_onchange)
+   * MUST render this string INSTEAD of `buttons` — React cannot emit string
+   * on* attributes. Never render both.
+   */
+  buttonsHtml?: string;
+  /** Delegated click handler for buttonsHtml rows (add/remove/move). */
+  onButtonsClick?: React.MouseEventHandler<HTMLElement>;
 }
 
 /**

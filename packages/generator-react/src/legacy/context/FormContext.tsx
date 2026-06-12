@@ -23,6 +23,11 @@ import type {
   FieldComponentProps,
 } from '../types';
 import { getValueByPath, setValueByPath, parsePathString } from '../utils/path';
+import {
+  applyDisplaySwitchTransform,
+  hasDisplayTargetConditionMaps,
+} from '../hooks/legacyDisplay';
+import { applyLangAppendTransform } from '../hooks/legacyLang';
 
 /**
  * Form context
@@ -43,6 +48,8 @@ interface FormContextProviderProps {
   onValidate?: (errors: FormErrors) => void;
   /** Key prefix for field names (e.g., "product" -> "product[field][name]") */
   keyPrefix?: string;
+  /** UI language — legacy parser-stage label localization (lang: append). */
+  language?: string;
 }
 
 /**
@@ -58,16 +65,29 @@ export function FormContextProvider({
   onChange,
   onValidate,
   keyPrefix = '',
+  language = 'ko',
 }: FormContextProviderProps) {
   const [data, setData] = useState<FormData>(() => initialData);
   const [errors, setErrors] = useState<FormErrors>({});
   const registeredFields = useRef<Set<string>>(new Set());
-  const validatorRef = useRef<Validator | null>(null);
 
-  // Create validator instance
-  if (!validatorRef.current) {
-    validatorRef.current = new Validator(spec);
-  }
+  // Create the validator from the ORIGINAL spec — the Phase B validator owns
+  // display_switch/display_target validation semantics and must never see the
+  // render-side legacy transform below. Recreated whenever the spec changes:
+  // a ref-guarded singleton would keep validating against the FIRST spec
+  // forever after a spec swap (same fix as useForm.ts).
+  const validator = useMemo(() => new Validator(spec), [spec]);
+
+  // Render spec: legacy Parser ports, in parser order — the `lang:` element
+  // expansion (LanguageHandler, incl. the display_switch list patch) runs
+  // BEFORE Parser\ElementVisibilityManager. Map-form display_switch rewrites
+  // SIBLING specs (identifying class + display:none style + display_target
+  // condition maps) and puts the inline onchange JS on the controlling
+  // field. Memoized — the transform draws random tokens.
+  const renderSpec = useMemo(
+    () => applyDisplaySwitchTransform(applyLangAppendTransform(spec, language)),
+    [spec, language]
+  );
 
   /**
    * Set value at path
@@ -82,19 +102,20 @@ export function FormContextProvider({
       });
       // Re-validate if there was an error, otherwise clear
       setErrors((prev) => {
-        if (prev[path] && validatorRef.current) {
+        if (prev[path]) {
           // Re-validate with new value
-          const error = validatorRef.current.validateField(path, value, newData as Record<string, unknown>);
+          const error = validator.validateField(path, value, newData as Record<string, unknown>);
           if (error) {
             return { ...prev, [path]: error };
           }
-          const { [path]: _, ...rest } = prev;
+          const rest = { ...prev };
+          delete rest[path];
           return rest;
         }
         return prev;
       });
     },
-    [onChange]
+    [onChange, validator]
   );
 
   /**
@@ -120,7 +141,8 @@ export function FormContextProvider({
   const clearError = useCallback((path: string) => {
     setErrors((prev) => {
       if (prev[path]) {
-        const { [path]: _, ...rest } = prev;
+        const rest = { ...prev };
+        delete rest[path];
         return rest;
       }
       return prev;
@@ -132,17 +154,16 @@ export function FormContextProvider({
    */
   const validateField = useCallback(
     (path: string): string | null => {
-      if (!validatorRef.current) return null;
-
       const value = getValueByPath(data, path);
-      const error = validatorRef.current.validateField(path, value, data as Record<string, unknown>);
+      const error = validator.validateField(path, value, data as Record<string, unknown>);
 
       if (error) {
         setErrors((prev) => ({ ...prev, [path]: error }));
       } else {
         setErrors((prev) => {
           if (prev[path]) {
-            const { [path]: _, ...rest } = prev;
+            const rest = { ...prev };
+            delete rest[path];
             return rest;
           }
           return prev;
@@ -151,16 +172,14 @@ export function FormContextProvider({
 
       return error;
     },
-    [data]
+    [data, validator]
   );
 
   /**
    * Validate entire form
    */
   const validateForm = useCallback((): FormErrors => {
-    if (!validatorRef.current) return {};
-
-    const result = validatorRef.current.validate(data as Record<string, unknown>);
+    const result = validator.validate(data as Record<string, unknown>);
     const newErrors: FormErrors = {};
 
     for (const error of result.errors) {
@@ -171,21 +190,27 @@ export function FormContextProvider({
     onValidate?.(newErrors);
 
     return newErrors;
-  }, [data, onValidate]);
+  }, [data, onValidate, validator]);
 
   /**
    * Check if field should be visible based on conditional display rules
    */
   const isFieldVisible = useCallback(
     (path: string): boolean => {
-      // Find field spec
+      // Find field spec (render spec — post display_switch transform)
       const pathSegments = parsePathString(path);
-      const fieldSpec = getFieldSpecByPath(spec.properties, pathSegments);
+      const fieldSpec = getFieldSpecByPath(renderSpec.properties, pathSegments);
 
       if (!fieldSpec) return true;
 
       // Check display_switch condition
       if (fieldSpec.display_switch) {
+        // Boolean true = unconditional on; the legacy map form controls
+        // SIBLING presentation, never this field's own visibility (string
+        // form is a condition expression; boolean false never enters here).
+        if (typeof fieldSpec.display_switch !== 'string') {
+          return true;
+        }
         try {
           const ast = parseCondition(fieldSpec.display_switch);
           const context: PathContext = {
@@ -198,8 +223,14 @@ export function FormContextProvider({
         }
       }
 
-      // Check display_target condition
-      if (fieldSpec.display_target) {
+      // Check display_target condition. Truthy-target semantics apply only
+      // WITHOUT legacy condition maps — with maps, the wrapper stays in the
+      // DOM and resolveDisplayTargetParts owns its style/class (golden:
+      // LargeForm option groups render hidden, never removed).
+      if (
+        fieldSpec.display_target &&
+        !hasDisplayTargetConditionMaps(fieldSpec as Record<string, unknown>)
+      ) {
         const targetValue = getValueByPath(data, fieldSpec.display_target);
         // Field is visible if target field has a truthy value
         return Boolean(targetValue);
@@ -207,7 +238,7 @@ export function FormContextProvider({
 
       return true;
     },
-    [spec, data]
+    [renderSpec, data]
   );
 
   /**
@@ -226,7 +257,7 @@ export function FormContextProvider({
 
   const contextValue = useMemo<FormContextValue>(
     () => ({
-      spec,
+      spec: renderSpec,
       data,
       errors,
       setValue,
@@ -244,7 +275,7 @@ export function FormContextProvider({
       keyPrefix,
     }),
     [
-      spec,
+      renderSpec,
       data,
       errors,
       setValue,

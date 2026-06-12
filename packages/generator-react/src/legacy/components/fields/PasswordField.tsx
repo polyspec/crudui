@@ -1,20 +1,28 @@
 /**
  * PasswordField Component
  *
- * Password input field with optional show/hide toggle
+ * Password input field.
+ *
+ * Legacy PHP golden structure (Fields/Password.php) — a BARE input, no
+ * input-group wrapper, no visibility toggle, no placeholder:
+ *   <input type="password" class="valid-target form-control" name=".."
+ *          data-name=".." data-rule-name=".." value="" data-default=".."
+ *          [readonly] [autocomplete] />
+ *
+ * PHP always renders value="" (passwords are never echoed). React keeps the
+ * live state value so typing works; the empty-data SSR render is identical.
  */
 
-import React, { useCallback, useState, type ChangeEvent } from 'react';
+import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
-import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
-import { getLegacyDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
+import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { legacyDataAttrs } from './legacyParity';
 
 /**
  * PasswordField component
  */
 export function PasswordField({
-  name,
   spec,
   value,
   onChange,
@@ -23,11 +31,8 @@ export function PasswordField({
   disabled,
   readonly,
   path,
-  language,
 }: FieldComponentProps) {
-  const { t } = useI18n();
   const { keyPrefix } = useFormContext();
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -36,61 +41,22 @@ export function PasswordField({
     [onChange]
   );
 
-  const toggleVisibility = useCallback(() => {
-    setShowPassword((prev) => !prev);
-  }, []);
-
   // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
-    <div className="input-group">
-      {/* Prepend */}
-      {spec.prepend && (
-        <span
-          className="input-group-text"
-          dangerouslySetInnerHTML={{ __html: spec.prepend }}
-        />
-      )}
-
-      <input
-        type={showPassword ? 'text' : 'password'}
-        name={bracketName}
-        value={(value as string) ?? ''}
-        onChange={handleChange}
-        onBlur={onBlur}
-        disabled={disabled}
-        readOnly={readonly}
-        className={getInputClasses('', spec, !!error)}
-        placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
-        maxLength={spec.maxlength as number | undefined}
-        autoFocus={spec.autofocus === true}
-        autoComplete={spec.autocomplete as string | undefined}
-        {...getLegacyDataAttributes(spec, path, language)}
-      />
-
-      {/* Toggle visibility button */}
-      {spec.show_toggle !== false && (
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={toggleVisibility}
-          disabled={disabled}
-          aria-label={showPassword ? t('hide') : t('show')}
-          tabIndex={-1}
-        >
-          {showPassword ? '👁' : '👁‍🗨'}
-        </button>
-      )}
-
-      {/* Append */}
-      {spec.append && (
-        <span
-          className="input-group-text"
-          dangerouslySetInnerHTML={{ __html: spec.append }}
-        />
-      )}
-    </div>
+    <input
+      type="password"
+      name={bracketName}
+      value={(value as string) ?? ''}
+      onChange={handleChange}
+      onBlur={onBlur}
+      disabled={disabled}
+      readOnly={readonly}
+      className={error ? 'valid-target form-control is-invalid' : 'valid-target form-control'}
+      autoComplete={spec.autocomplete as string | undefined}
+      {...legacyDataAttrs(spec, path)}
+    />
   );
 }
 

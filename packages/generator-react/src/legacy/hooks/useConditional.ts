@@ -5,7 +5,7 @@
  * Supports display_switch, display_target, and element.all_of
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { parseCondition, evaluateCondition } from '@form-spec/validator/legacy';
 import type { PathContext } from '@form-spec/validator/legacy';
 import type {
@@ -18,6 +18,21 @@ import type {
 } from '../types';
 import { useFormContext } from '../context/FormContext';
 import { getValueByPath, parsePathString } from '../utils/path';
+import { hasDisplayTargetConditionMaps } from './legacyDisplay';
+
+// Legacy Legacy conditional-display ports (single home: legacyDisplay.ts).
+// display_switch condition EXPRESSIONS stay on the validator's
+// parseCondition/evaluateCondition below — never re-implement them.
+export {
+  applyDisplaySwitchTransform,
+  resolveDisplayTargetParts,
+  hasDisplayTargetConditionMaps,
+  legacyWrapperClassName,
+  legacyWrapperStyle,
+  minifyJs,
+  genDisplayToken,
+  displayTokenForSeed,
+} from './legacyDisplay';
 
 /**
  * useConditional hook options
@@ -30,7 +45,7 @@ interface UseConditionalOptions {
 /**
  * useConditional hook
  */
-export function useConditional({ path }: UseConditionalOptions): UseConditionalReturn {
+export function useConditional({ path: _path }: UseConditionalOptions): UseConditionalReturn {
   const { spec, data } = useFormContext();
 
   /**
@@ -43,8 +58,13 @@ export function useConditional({ path }: UseConditionalOptions): UseConditionalR
 
       if (!fieldSpec) return true;
 
-      // Check display_switch condition
+      // Check display_switch condition (string expression form only — the
+      // legacy map form controls SIBLING presentation via the spec
+      // transform, never this field's own visibility)
       if (fieldSpec.display_switch) {
+        if (typeof fieldSpec.display_switch !== 'string') {
+          return true;
+        }
         const context: ConditionalContext = {
           path: fieldPath,
           data,
@@ -53,8 +73,13 @@ export function useConditional({ path }: UseConditionalOptions): UseConditionalR
         return evaluateDisplaySwitch(fieldSpec.display_switch, context);
       }
 
-      // Check display_target condition
-      if (fieldSpec.display_target) {
+      // Check display_target condition — truthy-target semantics apply only
+      // WITHOUT legacy condition maps; with maps, presentation is owned by
+      // resolveDisplayTargetParts (golden: wrapper stays in the DOM)
+      if (
+        fieldSpec.display_target &&
+        !hasDisplayTargetConditionMaps(fieldSpec as Record<string, unknown>)
+      ) {
         const targetValue = getValueByPath(data, fieldSpec.display_target);
         return Boolean(targetValue);
       }
@@ -119,13 +144,6 @@ export function useConditional({ path }: UseConditionalOptions): UseConditionalR
     [data]
   );
 
-  /**
-   * Current field visibility
-   */
-  const currentVisibility = useMemo(() => {
-    return isVisible(path);
-  }, [isVisible, path]);
-
   return {
     isVisible,
     evaluateDisplaySwitch,
@@ -135,9 +153,10 @@ export function useConditional({ path }: UseConditionalOptions): UseConditionalR
 }
 
 /**
- * Internal function to evaluate all_of conditions
+ * Pure all_of evaluation — exported for wrapper builders (FormGroup) that
+ * need it outside the hook.
  */
-function evaluateAllOfInternal(conditions: AllOfCondition, data: FormData): AllOfResult {
+export function evaluateAllOfInternal(conditions: AllOfCondition, data: FormData): AllOfResult {
   const conditionEntries = Object.entries(conditions.conditions);
 
   const allMet = conditionEntries.every(([fieldName, expected]) => {
@@ -188,8 +207,12 @@ function compareValues(actual: FormValue, expected: FormValue): boolean {
  * Internal field spec type for conditional checking
  */
 interface ConditionalFieldSpec {
-  display_switch?: string;
+  /** string = condition expression; boolean = unconditional; object = legacy
+   *  sibling-presentation map (handled by applyDisplaySwitchTransform) */
+  display_switch?: string | boolean | Record<string, unknown>;
   display_target?: string;
+  display_target_condition_style?: Record<string, string>;
+  display_target_condition_class?: Record<string, string>;
   element?: {
     all_of?: AllOfCondition;
   };
@@ -243,9 +266,13 @@ export function checkFieldVisibility(
 
   if (!fieldSpec) return true;
 
-  // Check display_switch
-  const displaySwitch = fieldSpec.display_switch as string | undefined;
+  // Check display_switch (string expression form only — map form is the
+  // legacy sibling-presentation switch and never hides this field)
+  const displaySwitch = fieldSpec.display_switch as unknown;
   if (displaySwitch) {
+    if (typeof displaySwitch !== 'string') {
+      return true;
+    }
     try {
       const ast = parseCondition(displaySwitch);
       const context: PathContext = {
@@ -258,9 +285,11 @@ export function checkFieldVisibility(
     }
   }
 
-  // Check display_target
+  // Check display_target — truthy-target semantics only WITHOUT legacy
+  // condition maps (with maps the wrapper stays visible in the DOM and
+  // resolveDisplayTargetParts owns the style/class)
   const displayTarget = fieldSpec.display_target as string | undefined;
-  if (displayTarget) {
+  if (displayTarget && !hasDisplayTargetConditionMaps(fieldSpec as Record<string, unknown>)) {
     const targetValue = getValueByPath(data, displayTarget);
     return Boolean(targetValue);
   }

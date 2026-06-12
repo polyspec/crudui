@@ -1,19 +1,28 @@
 /**
  * DateField Component
  *
- * Date input field
+ * Date input field.
+ *
+ * Legacy PHP golden structure (Fields/Date.php):
+ *   <div class="input-group">
+ *     [<span class="input-group-text">{prepend}</span>]
+ *     <input type="date" class="valid-target form-control" name=".."
+ *            data-name=".." data-rule-name=".." value=".." data-default=".."
+ *            [readonly] />
+ *     [<span class="input-group-text">{append}</span>]
+ *   </div>
  */
 
 import React, { useCallback, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useFormContext } from '../../context/FormContext';
-import { getLegacyDataAttributes, toBracketNotationWithPrefix, getInputClasses } from '../../utils/dataAttributes';
+import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { legacyDataAttrs, phpString } from './legacyParity';
 
 /**
  * DateField component
  */
 export function DateField({
-  name,
   spec,
   value,
   onChange,
@@ -22,7 +31,6 @@ export function DateField({
   disabled,
   readonly,
   path,
-  language,
 }: FieldComponentProps) {
   const { keyPrefix } = useFormContext();
 
@@ -33,27 +41,43 @@ export function DateField({
     [onChange]
   );
 
-  // Format value as YYYY-MM-DD for date input
-  const formattedValue = formatDateValue(value as string | undefined);
+  // PHP: value falls back to date('Y-m-d', strtotime(default)) when empty
+  const rawValue = phpString(value) || phpString(spec.default);
+  const formattedValue = formatDateValue(rawValue || undefined);
 
   // Convert path to bracket notation for name attribute
   const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
 
   return (
-    <input
-      type="date"
-      name={bracketName}
-      value={formattedValue}
-      onChange={handleChange}
-      onBlur={onBlur}
-      disabled={disabled}
-      readOnly={readonly}
-      className={getInputClasses('', spec, !!error)}
-      min={spec.min as string | undefined}
-      max={spec.max as string | undefined}
-      autoFocus={spec.autofocus === true}
-      {...getLegacyDataAttributes(spec, path, language)}
-    />
+    <div className="input-group">
+      {/* Prepend */}
+      {spec.prepend && (
+        <span
+          className="input-group-text"
+          dangerouslySetInnerHTML={{ __html: spec.prepend }}
+        />
+      )}
+
+      <input
+        type="date"
+        name={bracketName}
+        value={formattedValue}
+        onChange={handleChange}
+        onBlur={onBlur}
+        disabled={disabled}
+        readOnly={readonly}
+        className={error ? 'valid-target form-control is-invalid' : 'valid-target form-control'}
+        {...legacyDataAttrs(spec, path)}
+      />
+
+      {/* Append */}
+      {spec.append && (
+        <span
+          className="input-group-text"
+          dangerouslySetInnerHTML={{ __html: spec.append }}
+        />
+      )}
+    </div>
   );
 }
 

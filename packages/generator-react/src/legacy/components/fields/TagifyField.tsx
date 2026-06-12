@@ -13,7 +13,6 @@ import { getLegacyDataAttributes, toBracketNotation } from '../../utils/dataAttr
  * TagifyField component
  */
 export function TagifyField({
-  name,
   spec,
   value,
   onChange,
