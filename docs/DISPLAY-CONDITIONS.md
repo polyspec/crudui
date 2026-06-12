@@ -1,14 +1,15 @@
 # 조건부 표시 (Conditional Display)
 
 `display_switch` / `display_target`의 기준(canonical) 의미론.
-두 속성 모두 **숨김 대상 필드 자신에** 선언하며, 3개 언어 검증기
-(JS/PHP/Go)가 동일하게 평가한다. 숨겨진 필드는 **검증이 스킵된다**.
+두 속성 모두 **숨김 대상 필드 자신에** 선언하며, 4개 언어 검증기
+(JS/PHP/Go/Rust)가 동일하게 평가한다. 숨겨진 필드는 **검증이 스킵된다**.
 
 검증기 구현 출처:
 
 - JS: `packages/validator-js/src/legacy/Validator.ts` `shouldValidateField()` (L395-448)
 - PHP: `packages/validator-php/src/Legacy/Validator.php` `shouldValidateField()` (L441-473)
 - Go: `packages/validator-go/validator/legacy/validator.go` `shouldDisplay()` (L361-407)
+- Rust: `packages/validator-rust/src/legacy/validator.rs` `should_display()` (L421-)
 
 > **구버전 문서 교정**: 이 문서의 과거 버전은 `display_switch`를
 > "소스 필드에 값→타깃 필드 목록 맵"(`display_switch: { value1: [target1, ...] }`)
@@ -21,7 +22,7 @@
 2. [display_target](#display_target)
 3. [그룹과 중첩](#그룹과-중첩)
 4. [표시 상태와 검증](#표시-상태와-검증)
-5. [React 렌더러의 element.all_of](#react-렌더러의-elementall_of)
+5. [렌더러의 element.all_of](#렌더러의-elementall_of)
 
 ---
 
@@ -93,7 +94,7 @@ options:
   properties: { ... }
 ```
 
-### 빈 값 판정 (3개 언어 공통)
+### 빈 값 판정 (4개 언어 공통)
 
 | 타깃 값 | 판정 |
 |---------|------|
@@ -146,7 +147,7 @@ PHP `PathResolver::resolve`, Go `resolveFieldReference`):
 | `display_target` 타깃이 빈 값 | 스킵 |
 | 숨겨진 그룹의 자식 | 스킵 |
 
-이 스킵은 클라이언트(React)와 서버(JS/PHP/Go 검증기) 모두에서 동일하게
+이 스킵은 클라이언트(React/Vue/Svelte)와 서버(JS/PHP/Go/Rust 검증기) 모두에서 동일하게
 동작한다 — 같은 스펙을 양쪽에서 평가하므로 서버 측에 별도의 조건부 필수
 로직을 중복 구현할 필요가 없다.
 
@@ -167,15 +168,18 @@ card_number:
 
 ---
 
-## React 렌더러의 element.all_of
+## 렌더러의 element.all_of
 
-`element.all_of` / `element.any_of`는 **generator-react 전용 렌더링 기능**이다.
-검증기(JS/PHP/Go)는 이 속성을 평가하지 않는다 — 표시 스타일/클래스에만
-영향을 주고 검증 스킵과는 무관하다.
+`element.all_of` / `element.any_of`는 **generator 전용 렌더링 기능**으로,
+React/Vue/Svelte 3개 generator 모두 구현한다. 검증기(JS/PHP/Go/Rust)는 이
+속성을 평가하지 않는다 — 표시 스타일/클래스에만 영향을 주고 검증 스킵과는
+무관하다.
 
-구현: `packages/generator-react/src/legacy/hooks/useConditional.ts`
+구현(예시는 React): `packages/generator-react/src/legacy/hooks/useConditional.ts`
 (`evaluateAllOf`), `packages/generator-react/src/legacy/components/FormField.tsx`.
 타입: `packages/generator-react/src/legacy/types.ts` (`AllOfCondition`, `ElementConfig`).
+Vue/Svelte 는 각각 `packages/generator-vue/src/legacy/hooks/legacyDisplay.ts`,
+`packages/generator-svelte/src/legacy/legacyDisplay.ts` 에 동일 의미론을 둔다.
 
 ```yaml
 special_content:
