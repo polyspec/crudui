@@ -213,7 +213,7 @@ describe('Validation Edge Cases', () => {
       const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, '   ');
 
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -353,7 +353,7 @@ describe('Callback Edge Cases', () => {
       const input = container.querySelector('[name="name"]') as HTMLInputElement;
       await userEvent.type(input, 'Test');
 
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -399,7 +399,7 @@ describe('Callback Edge Cases', () => {
 
       render(<FormBuilder spec={spec} language="en" onSubmit={onSubmit} />);
 
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -482,7 +482,7 @@ describe('Nested Data Path Edge Cases', () => {
       const input = container.querySelector('[name="a[b][c]"]') as HTMLInputElement;
       await userEvent.type(input, 'nested value');
 
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {
@@ -646,7 +646,7 @@ describe('Accessibility Edge Cases', () => {
 
       render(<FormBuilder spec={spec} language="en" />);
 
-      const submitButton = screen.getByRole('button', { name: /save/i });
+      const submitButton = screen.getByRole('button', { name: '저장' });
       await userEvent.click(submitButton);
 
       await waitFor(() => {

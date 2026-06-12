@@ -20,7 +20,6 @@ interface BrowsedImage {
  * BrowserImageField component
  */
 export function BrowserImageField({
-  name,
   spec,
   value,
   onChange,

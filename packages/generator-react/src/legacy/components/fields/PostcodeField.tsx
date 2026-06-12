@@ -5,7 +5,7 @@
  */
 
 import React, { useCallback, useState, type ChangeEvent } from 'react';
-import type { FieldComponentProps, FormValue } from '../../types';
+import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { getLegacyDataAttributes, toBracketNotation, getInputClasses } from '../../utils/dataAttributes';
 
@@ -22,7 +22,6 @@ interface PostcodeResult {
  * PostcodeField component
  */
 export function PostcodeField({
-  name,
   spec,
   value,
   onChange,

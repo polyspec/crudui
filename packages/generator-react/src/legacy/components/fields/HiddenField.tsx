@@ -13,7 +13,6 @@ import { getLegacyDataAttributes, toBracketNotationWithPrefix } from '../../util
  * HiddenField component
  */
 export function HiddenField({
-  name,
   spec,
   value,
   path,

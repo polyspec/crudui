@@ -21,7 +21,6 @@ interface GeoJSONGeometry {
  * GeometryField component
  */
 export function GeometryField({
-  name,
   spec,
   value,
   onChange,

@@ -73,7 +73,8 @@ export {
 export { useForm, default as useFormDefault } from './hooks/useForm';
 export { useValidation, default as useValidationDefault } from './hooks/useValidation';
 export { useConditional, checkFieldVisibility, default as useConditionalDefault } from './hooks/useConditional';
-export { useMultiple, multipleItemsToArray, arrayToMultipleItems, default as useMultipleDefault } from './hooks/useMultiple';
+export { useMultiple, useMultipleRows, multipleItemsToArray, arrayToMultipleItems, default as useMultipleDefault } from './hooks/useMultiple';
+export type { UseMultipleRowsOptions, UseMultipleRowsReturn } from './hooks/useMultiple';
 
 // ============================================================================
 // Components
@@ -132,6 +133,19 @@ export {
   keysToIndices,
 } from './utils/path';
 
+export {
+  generateUniqid,
+  resetUniqid,
+  toBracketNotation,
+  toBracketNotationWithPrefix,
+  toRuleNameNotation,
+  getLegacyDataAttributes,
+  spreadLegacyAttributes,
+  getInputClasses,
+  getSelectClasses,
+  getCheckboxClasses,
+} from './utils/dataAttributes';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -139,6 +153,7 @@ export type {
   // Re-exported from validator
   Spec,
   FieldSpec,
+  ReactFieldSpec,
   ActionSpec,
   ButtonSpec,
   ItemsSourceSpec,

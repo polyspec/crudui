@@ -14,7 +14,6 @@ import { getLegacyDataAttributes, toBracketNotationWithPrefix, getInputClasses }
  * FileField component
  */
 export function FileField({
-  name,
   spec,
   value,
   onChange,
