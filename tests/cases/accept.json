@@ -1,0 +1,154 @@
+{
+  "testSuite": "accept",
+  "version": "1.0.0",
+  "description": "accept 규칙 검증 - 파일명 문자열의 확장자를 MIME으로 유추해 MIME 와일드카드(image/*)·확장자(.jpg)·MIME 직접 매칭. JS/PHP/Go 수렴 확인용. accept 파라미터는 조건식이 아닌 리터럴로 취급한다(.jpg가 필드 경로로 오인되어 규칙이 스킵되면 안 된다).",
+  "tests": [
+    {
+      "id": "accept-mime-wildcard",
+      "description": "image/* 와일드카드 - 파일명 확장자를 MIME으로 유추해 매칭",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "img": {
+            "type": "image",
+            "rules": { "accept": "image/*" }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "img": "image1.jpg" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "photo.PNG" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "logo.svg" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "document.pdf" },
+          "expected": { "valid": false, "error": "accept", "field": "img" }
+        },
+        {
+          "input": { "img": "archive.zip" },
+          "expected": { "valid": false, "error": "accept", "field": "img" }
+        }
+      ]
+    },
+    {
+      "id": "accept-extension-literal",
+      "description": "확장자 리터럴(.jpg) - 점으로 시작해도 조건식이 아닌 리터럴로 취급. .jpg는 image/jpeg로 확장되므로 동일 MIME인 .jpeg도 통과한다(parseAcceptParam 기준).",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "img": {
+            "type": "image",
+            "rules": { "accept": ".jpg" }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "img": "photo.jpg" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "photo.jpeg" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "photo.png" },
+          "expected": { "valid": false, "error": "accept", "field": "img" }
+        }
+      ]
+    },
+    {
+      "id": "accept-extension-list",
+      "description": "콤마 구분 확장자 목록(.jpg,.png) - 각 토큰으로 분리해 매칭",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "img": {
+            "type": "image",
+            "rules": { "accept": ".jpg,.png" }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "img": "photo.png" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "photo.jpg" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "photo.gif" },
+          "expected": { "valid": false, "error": "accept", "field": "img" }
+        }
+      ]
+    },
+    {
+      "id": "accept-mime-exact",
+      "description": "정확한 MIME 타입(image/png) - 파일명 유추 MIME과 직접 매칭",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "img": {
+            "type": "image",
+            "rules": { "accept": "image/png" }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "img": "photo.png" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "photo.jpg" },
+          "expected": { "valid": false, "error": "accept", "field": "img" }
+        },
+        {
+          "input": { "img": "image/png" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "img": "image/jpeg" },
+          "expected": { "valid": false, "error": "accept", "field": "img" }
+        }
+      ]
+    },
+    {
+      "id": "accept-mime-and-extension-list",
+      "description": "MIME 와일드카드와 확장자 혼합(image/*,.pdf)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "file": {
+            "type": "file",
+            "rules": { "accept": "image/*,.pdf" }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "file": "photo.jpg" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "file": "document.pdf" },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "file": "archive.zip" },
+          "expected": { "valid": false, "error": "accept", "field": "file" }
+        }
+      ]
+    }
+  ]
+}

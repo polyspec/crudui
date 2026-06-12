@@ -1,0 +1,41 @@
+{
+  "testSuite": "number-implicit",
+  "version": "1.0.0",
+  "description": "Regression: a type:number field with NO rules must still run implicit number validation. Before the fix JS returned early on the `!fieldSpec.rules` guard and skipped the implicit check, while PHP (Validator.php:290) and Go ran it regardless of rules. Note: legacy had no implicit number at all; this is an intentional strengthening so the client is never looser than the server. Empty values are skipped (required handles them).",
+  "tests": [
+    {
+      "id": "number-implicit-norules-001",
+      "description": "type:number, no rules object at all: non-numeric input is invalid via implicit number",
+      "spec": { "type": "number" },
+      "cases": [
+        { "input": "abc", "expected": { "valid": false, "error": "number", "field": "value" } },
+        { "input": "12abc", "expected": { "valid": false, "error": "number", "field": "value" } },
+        { "input": "", "expected": { "valid": true } },
+        { "input": null, "expected": { "valid": true } },
+        { "input": "42", "expected": { "valid": true } },
+        { "input": 42, "expected": { "valid": true } },
+        { "input": "-3.14", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "number-implicit-group-001",
+      "description": "type:number with no rules nested inside a group: implicit number still fires",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "qty": { "type": "number" }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "qty": "not-a-number" } }, "expected": { "valid": false, "error": "number", "field": "common.qty" } },
+        { "input": { "common": { "qty": "100" } }, "expected": { "valid": true } },
+        { "input": { "common": { "qty": "" } }, "expected": { "valid": true } }
+      ]
+    }
+  ]
+}
