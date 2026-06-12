@@ -22,6 +22,7 @@ docker-compose up --build
 | playground | 8014 | Interactive form spec editor |
 | legacy-original | 8015 | REAL Legacy PHP form system (local legacy checkout, pinned a47ccba — see `tools/legacy-baseline/README.md`) |
 | legacy-bootstrap | 8016 | Legacy-style Bootstrap 5 form demo (React) |
+| rust-api | 8017 | Rust validation server |
 
 ## URLs
 
@@ -34,6 +35,7 @@ Once the services are running, access them at:
 - **playground**: [http://localhost:8014](http://localhost:8014)
 - **legacy-original**: [http://localhost:8015](http://localhost:8015)
 - **legacy-bootstrap**: [http://localhost:8016](http://localhost:8016)
+- **rust-api**: [http://localhost:8017](http://localhost:8017)
 
 Form specs shared by the backend APIs and the legacy demos live in `shared-specs/`
 (mounted into each container by `docker-compose.yml`).
@@ -64,6 +66,7 @@ docker-compose logs -f go-api
 docker-compose logs -f playground
 docker-compose logs -f legacy-original
 docker-compose logs -f legacy-bootstrap
+docker-compose logs -f rust-api
 ```
 
 ### Stop all services
@@ -78,7 +81,7 @@ docker-compose up --build demo-app
 
 ## API Contract
 
-All three backend APIs (`node-api`, `php-api`, `go-api`) implement the same canonical contract:
+All four backend APIs (`node-api`, `php-api`, `go-api`, `rust-api`) implement the same canonical contract:
 
 ### `GET /api/specs`
 
@@ -157,6 +160,7 @@ Each service includes a health check configuration:
 - **playground**: HTTP check on port 80
 - **legacy-original**: curl check on port 80 (via Apache)
 - **legacy-bootstrap**: HTTP check on port 80
+- **rust-api**: wget check on port 8080 (`/health`)
 
 Check service health status:
 ```bash
