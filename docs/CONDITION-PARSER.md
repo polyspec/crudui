@@ -8,8 +8,9 @@ form-spec 조건식의 문법과 평가 의미론.
 - 경로 해석·평가기: `packages/validator-js/src/parser/PathResolver.ts`
 
 Go(`packages/validator-go/validator/condition_parser.go`, `path_resolver.go`,
-`ternary.go`)와 PHP(`packages/validator-php/src/ConditionParser.php`,
-`PathResolver.php`)는 동일 동작의 포팅이며, 951케이스 크로스언어 테스트로
+`ternary.go`), PHP(`packages/validator-php/src/ConditionParser.php`,
+`PathResolver.php`), Rust(`packages/validator-rust/src/condition_parser.rs`,
+`ternary.rs`)는 동일 동작의 포팅이며, 1013케이스 크로스언어 테스트로
 일치가 검증된다. 이 문서와 구현이 다르면 구현(validator-js)이 정답이다.
 
 ## 목차

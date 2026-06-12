@@ -1,17 +1,18 @@
 # 테스트 케이스 명세서
 
-> JS, PHP, Go 세 언어에서 멱등성(idempotency) 검증을 보장하기 위한
+> JS, PHP, Go, Rust 네 언어에서 멱등성(idempotency) 검증을 보장하기 위한
 > 크로스 언어 테스트 케이스의 형식과 현황을 기술한다.
 > 실행 방법과 게이트 체계는 [TESTING.md](./TESTING.md) 참조.
 
 ## 개요
 
-`tests/cases/*.json` 이 단일진실이다. 동일한 픽스처를 4개 경로가 소비한다:
+`tests/cases/*.json` 이 단일진실이다. 동일한 픽스처를 여러 경로가 소비한다:
 
-1. `tests/runner/compare-all.js` — 크로스 언어 비교 (언어 간 결과 일치)
+1. `tests/runner/compare-all.js` — 크로스 언어 비교 (JS/PHP/Go/Rust 결과 일치)
 2. `tests/runner/run-js.ts` / `run-php.php` / `runner/go` — 단일 언어 기대값 검사
 3. `packages/validator-js/src/__tests__/conformance.test.ts` — vitest 브리지
 4. `packages/validator-php/tests/ConformanceTest.php` — PHPUnit 브리지
+5. `packages/validator-rust/tests/conformance.rs` — cargo test 브리지
 
 픽스처 기대값을 구현에 맞춰 고치지 마라 — 구현을 픽스처에 맞춰라.
 
@@ -85,7 +86,7 @@
 
 ## 케이스 파일 현황 (실측)
 
-총 **14개 파일, 951 케이스**. 2026-06 기준 3개 언어 전부 951/951 GREEN.
+총 **19개 파일, 1013 케이스**. 2026-06 기준 4개 언어(JS/PHP/Go/Rust) 전부 1013/1013 GREEN.
 
 | 파일 | 테스트 수 | 케이스 수 | 영역 |
 |------|-----------|-----------|------|
@@ -103,11 +104,16 @@
 | `array-wildcard.json` | 15 | 46 | 와일드카드 경로 (`items.*.x`) |
 | `productnft.json` | 14 | 59 | ProductNft 실폼 부분 시나리오 |
 | `productnft-full.json` | 15 | 77 | ProductNft 실폼 전체 시나리오 |
-| **합계** | **258** | **951** | |
+| `pattern-unanchored.json` | 4 | 15 | 미앵커 정규식 경계 회귀 |
+| `number-implicit.json` | 2 | 10 | 암시적 number 타입 검증 회귀 |
+| `length-codepoint.json` | 4 | 13 | 코드포인트 단위 길이 계산 회귀 |
+| `accept.json` | 5 | 18 | `accept` 파일 확장자 규칙 회귀 |
+| `malformed-threshold.json` | 3 | 6 | 비숫자 임계값(min/max) 스킵 회귀 |
+| **합계** | **276** | **1013** | |
 
 ## 규칙 커버리지
 
-3개 언어 공통 구현 규칙은 24개 등록명(23개 구현 + `pattern` = `match` 별칭)이다.
+4개 언어 공통 구현 규칙은 24개 등록명(23개 구현 + `pattern` = `match` 별칭)이다.
 출처: `packages/validator-js/src/rules/index.ts`,
 `packages/validator-go/validator/rules.go` `DefaultRules()`,
 `packages/validator-php/src/Rules/` + `Validator.php` 의 pattern/match 별칭.
@@ -115,15 +121,19 @@
 ### 픽스처가 직접 행사하는 규칙
 
 `required`, `email`, `minlength`, `maxlength`, `min`, `max`,
-`pattern`/`match`, `unique`, `mincount`, `maxcount`
+`pattern`/`match`, `unique`, `mincount`, `maxcount`, `accept`
+
+암시적 number 타입 검증(`number-implicit.json`), 코드포인트 단위 길이 계산
+(`length-codepoint.json`), 미앵커 정규식 경계(`pattern-unanchored.json`),
+비숫자 임계값 스킵(`malformed-threshold.json`)도 회귀 스위트로 고정돼 있다.
 
 ### 구현됨 — 전용 픽스처 스위트 없음 (Planned)
 
-다음 규칙은 3개 언어에 구현되어 있으나 `tests/cases/` 에 전용 스위트가 없다.
+다음 규칙은 4개 언어에 구현되어 있으나 `tests/cases/` 에 전용 스위트가 없다.
 스위트 추가가 계획 항목이다:
 
 `url`, `rangelength`, `number`, `digits`, `range`, `step`,
-`equalTo`, `notEqual`, `in`, `date`, `dateISO`, `enddate`, `accept`
+`equalTo`, `notEqual`, `in`, `date`, `dateISO`, `enddate`
 
 ### 미구현 (Planned — 문서상으로만 존재했던 규칙)
 
@@ -143,8 +153,8 @@
 ## 케이스 추가 절차
 
 1. 해당 영역의 기존 파일에 추가하거나 새 `tests/cases/*.json` 생성.
-2. `cd tests && npm test` — 3개 언어 일치 확인 (게이트).
-3. 브리지 3종(vitest/PHPUnit/go test)은 같은 디렉터리를 glob 하므로 자동 반영된다.
+2. `cd tests && npm test` — 4개 언어(JS/PHP/Go/Rust) 일치 확인 (게이트).
+3. 브리지 4종(vitest/PHPUnit/go test/cargo test)은 같은 디렉터리를 glob 하므로 자동 반영된다.
 
 ## CI/CD (Planned)
 

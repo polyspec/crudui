@@ -1,14 +1,15 @@
 # 폼 스펙 형식 명세서
 
 form-spec의 폼 정의(YAML/JSON) 형식 명세. 같은 스펙 하나로
-React 렌더링(generator-react)과 3개 언어 서버 검증(validator-js/php/go)을
-수행한다.
+React/Vue/Svelte 렌더링(generator-react/vue/svelte)과
+4개 언어 서버 검증(validator-js/php/go/rust)을 수행한다.
 
-타입 정의 출처:
+타입 정의 출처(아래 React 경로가 렌더러 확장의 정본 — Vue/Svelte 가 동일
+필드 모델을 공유한다):
 
 - 검증기 공통: `packages/validator-js/src/types.ts` (`Spec`, `FieldSpec`,
   `RulesSpec`, `MessagesSpec`, `ActionSpec`, `ButtonSpec`, `ItemsSourceSpec`)
-- React 확장: `packages/generator-react/src/types.ts` (`ReactFieldSpec`,
+- 렌더러 확장: `packages/generator-react/src/types.ts` (`ReactFieldSpec`,
   `MultiLangText`, `Language`)
 - 필드 타입 레지스트리: `packages/generator-react/src/components/fields/index.ts`
 
@@ -336,8 +337,8 @@ options:
 상세 의미론(빈 값 판정, `0`/`'0'` 취급, 그룹 스코프)은
 [DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md) 참조.
 
-`element.all_of`는 React 렌더러 전용 스타일 조건이다 (검증과 무관 —
-[DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md#react-렌더러의-elementall_of)).
+`element.all_of`는 렌더러 전용 스타일 조건이다 (React/Vue/Svelte 공통, 검증과 무관 —
+[DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md#렌더러의-elementall_of)).
 
 ---
 

@@ -1,13 +1,14 @@
 # 검증 규칙 명세서
 
 form-spec 검증기에 **실제 등록된** 규칙의 목록과 동작 명세.
-규칙 목록은 3개 언어 레지스트리에서 추출했으며 세 구현이 완전히 일치한다.
+규칙 목록은 4개 언어 레지스트리에서 추출했으며 네 구현이 완전히 일치한다.
 
 레지스트리 출처:
 
 - JS: `packages/validator-js/src/rules/index.ts` (`builtInRules`)
 - PHP: `packages/validator-php/src/Validator.php` (`registerDefaultRules()`)
 - Go: `packages/validator-go/validator/rules.go` (`DefaultRules()`)
+- Rust: `packages/validator-rust/src/rules.rs` (`default_rules()`)
 
 ## 목차
 
@@ -23,7 +24,7 @@ form-spec 검증기에 **실제 등록된** 규칙의 목록과 동작 명세.
 
 ## 등록 규칙 목록
 
-23개 규칙 + 별칭 1개 = 24개 이름. 3개 언어 공통.
+23개 규칙 + 별칭 1개 = 24개 이름. 4개 언어 공통.
 
 | 규칙 | 파라미터 | 분류 |
 |------|----------|------|
@@ -54,12 +55,14 @@ form-spec 검증기에 **실제 등록된** 규칙의 목록과 동작 명세.
 
 ### pattern / match 별칭
 
-`pattern`과 `match`는 **동일 구현을 가리키는 별칭**이다. 3개 언어 모두 동일하다.
+`pattern`과 `match`는 **동일 구현을 가리키는 별칭**이다. 4개 언어 모두 동일하다.
 
 - JS: `['pattern', matchRule]` — `packages/validator-js/src/rules/index.ts:44`
 - PHP: `$this->rules['match'] = $patternRule; $this->rules['pattern'] = $patternRule;`
   — `packages/validator-php/src/Validator.php:114-116`
 - Go: `"match": ruleMatch, "pattern": ruleMatch` — `packages/validator-go/validator/rules.go:25-26`
+- Rust: `m.insert("match", rule_match); m.insert("pattern", rule_match);`
+  — `packages/validator-rust/src/rules.rs:33-34`
 
 커스텀 메시지는 사용한 규칙명 키(`messages.pattern` 또는 `messages.match`)로 조회된다.
 
@@ -132,7 +135,7 @@ JS의 규칙별 `defaultMessage`는 전체 항목이 이 표와 일치하며
 `multiple: true` 필드(값이 배열)에서는 규칙이 두 부류로 나뉜다.
 **배열 레벨 규칙**은 배열 전체에 1회 적용되고, 나머지 규칙은 각 원소에 적용된다.
 
-배열 레벨 규칙 (3개 언어 공통 상수):
+배열 레벨 규칙 (4개 언어 공통 상수):
 
 ```
 required, unique, mincount, maxcount
@@ -141,14 +144,15 @@ required, unique, mincount, maxcount
 - JS: `ARRAY_LEVEL_RULES` — `packages/validator-js/src/Validator.ts:132`
 - PHP: `Validator::ARRAY_LEVEL_RULES` — `packages/validator-php/src/Validator.php:42`
 - Go: `arrayLevelRules` — `packages/validator-go/validator/validator.go:30-35`
+- Rust: `array_level_rules()` — `packages/validator-rust/src/validator.rs:21`
 
 ---
 
 ## 규칙 상세
 
 검증 동작은 JS 구현(`packages/validator-js/src/rules/*.ts`)을 기준으로 기술한다.
-PHP(`src/Rules/*.php`)·Go(`validator/rules.go`)는 동일 동작의 포팅이며
-크로스언어 테스트로 일치가 검증된다.
+PHP(`src/Rules/*.php`)·Go(`validator/rules.go`)·Rust(`packages/validator-rust/src/rules.rs`)는
+동일 동작의 포팅이며 크로스언어 테스트로 일치가 검증된다.
 
 ### required
 

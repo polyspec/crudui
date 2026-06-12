@@ -1,10 +1,10 @@
 # Validator API Reference
 
-form-spec 검증기의 3개 언어 구현(JavaScript/TypeScript, PHP, Go) 공개 API 레퍼런스.
+form-spec 검증기의 4개 언어 구현(JavaScript/TypeScript, PHP, Go, Rust) 공개 API 레퍼런스.
 모든 시그니처는 실제 소스 코드에서 추출했다 — 각 절에 출처 파일을 명기한다.
 
-3개 구현은 동일한 스펙·데이터에 대해 동일한 검증 결과를 내도록
-크로스언어 테스트(951케이스, `tests/runner/compare-all.js`)로 검증된다.
+4개 구현은 동일한 스펙·데이터에 대해 동일한 검증 결과를 내도록
+크로스언어 테스트(1013케이스, `tests/runner/compare-all.js`)로 검증된다.
 
 ## 목차
 
@@ -12,6 +12,7 @@ form-spec 검증기의 3개 언어 구현(JavaScript/TypeScript, PHP, Go) 공개
 - [JavaScript/TypeScript (`@form-spec/validator`)](#javascripttypescript-form-specvalidator)
 - [PHP (`form-spec/validator`)](#php-form-specvalidator)
 - [Go (`validator` 패키지)](#go-validator-패키지)
+- [Rust (`formspec-validator` 크레이트)](#rust-formspec-validator-크레이트)
 - [언어별 에러 형식 차이](#언어별-에러-형식-차이)
 - [백엔드 HTTP API 계약](#백엔드-http-api-계약)
 
@@ -19,7 +20,7 @@ form-spec 검증기의 3개 언어 구현(JavaScript/TypeScript, PHP, Go) 공개
 
 ## 공통 계약
 
-세 구현 모두 다음을 공유한다.
+네 구현 모두 다음을 공유한다.
 
 1. **스펙 형식**: 루트는 `{ type: 'group', properties: { 필드명: FieldSpec, ... } }`.
    `rules`는 **객체**다 (`rules: { required: true, minlength: 2 }`).
@@ -298,8 +299,9 @@ $result->getError('email');      // ['field' => 'email', 'rule' => 'email', 'mes
 ## Go (`validator` 패키지)
 
 출처: `packages/validator-go/validator/validator.go`, `types.go`, `spec.go`
-모듈 경로: `github.com/example/form-generator/validator` — **placeholder이며 변경 보류 중**
+모듈 경로: `github.com/yejune/form-spec/packages/validator-go`
 (`packages/validator-go/go.mod`, go 1.21).
+import 경로: `github.com/yejune/form-spec/packages/validator-go/validator`.
 
 ### 스펙 파싱
 
@@ -381,7 +383,7 @@ type ValidationContext struct {
 ### 사용 예
 
 ```go
-import "github.com/example/form-generator/validator"
+import "github.com/yejune/form-spec/packages/validator-go/validator"
 
 parsed, err := validator.ParseSpec(specJSON) // 정본 type/properties JSON
 if err != nil { ... }
@@ -398,17 +400,90 @@ result.Errors[0].Field  // "items.0.code"
 
 ---
 
+## Rust (`formspec-validator` 크레이트)
+
+출처: `packages/validator-rust/src/lib.rs`, `validator.rs`, `spec.rs`, `types.rs`
+크레이트: `formspec-validator` (`packages/validator-rust/Cargo.toml`).
+deps: `serde`, `serde_json`(`preserve_order`), `regex`. lib + `validate` 바이너리.
+
+Go 검증기를 1:1 포팅한 독립 크레이트다. 동일 정본 JSON 스펙
+(`type`/`properties` 형식)을 `parse_spec`으로 파싱하고, 선언 순서를
+`serde_json` `preserve_order`로 보존한다.
+
+### 스펙 파싱 / 검증
+
+```rust
+use formspec_validator::{parse_spec, ParsedSpec, Validator};
+use serde_json::Value;
+
+// 정본 type/properties JSON Value 를 파싱
+pub fn parse_spec(root: &Value) -> ParsedSpec;
+
+pub struct ParsedSpec {
+    pub spec: Spec,
+    pub is_group: bool, // 루트가 group 스펙이었는지. 아니면 "value" 단일 필드로 래핑됨
+}
+
+impl Validator {
+    pub fn new(spec: Spec) -> Self;
+
+    // 전체 데이터 검증
+    pub fn validate(&mut self, data: &Value) -> ValidationResult;
+}
+```
+
+### CLI 엔트리 (`run_validation`)
+
+검증기 바이너리와 conformance 테스트가 공유하는 단일 진입점
+(`lib.rs:52`). 첫 에러를 CLI 응답으로 반환한다.
+
+```rust
+pub fn run_validation(spec_value: &Value, input: &Value) -> CliResponse;
+
+pub struct CliResponse {
+    pub valid: bool,
+    pub error: Option<String>, // 첫 에러의 rule 명
+    pub field: Option<String>, // 첫 에러의 dot notation 경로
+}
+```
+
+### CLI 프로토콜
+
+`validate` 바이너리(`packages/validator-rust/src/bin/validate.rs`)는
+Go CLI(`validate-case.php`/`cmd/validate`)와 동일한 stdin/stdout 프로토콜을 쓴다.
+
+```
+stdin:  {"spec": <spec>, "input": <input>}
+stdout: {"valid": bool, "error": <rule|null>, "field": <path|null>}
+```
+
+비-group 스펙은 `{value: <input>}`으로 래핑되고, 입력 마커
+`"__undefined__"`는 `value=null`로 매핑된다 (`convert_input` — `lib.rs:30`).
+
+### 빌드
+
+```bash
+export PATH="$HOME/.cargo/bin:$PATH"
+cd packages/validator-rust && cargo build --release   # → target/release/validate
+```
+
+규칙 레지스트리는 `default_rules()`(`packages/validator-rust/src/rules.rs`)로
+초기화되며 다른 세 언어와 동일한 24개 등록명을 갖는다 —
+규칙 목록은 [VALIDATION-RULES.md](./VALIDATION-RULES.md) 참조.
+
+---
+
 ## 언어별 에러 형식 차이
 
-세 구현 모두 동일한 검증 판정을 내리지만, 에러 컨테이너 표현이 다르다.
+네 구현 모두 동일한 검증 판정을 내리지만, 에러 컨테이너 표현이 다르다.
 
-| 항목 | JS | PHP | Go |
-|------|----|----|----|
-| 결과 valid | `result.valid` | `$result->valid` / `isValid()` | `result.IsValid` |
-| errors 컨테이너 | `ValidationError[]` 배열 | 경로 키 연관 배열 | `[]ValidationError` 슬라이스 |
-| 전체 경로 | `error.path` | 배열 키 = `field` 값 = 전체 경로 | `error.Field` |
-| 필드명만 | `error.field` (마지막 세그먼트) | 없음 | 없음 |
-| 규칙명 | `error.rule` | `'rule'` | `error.Rule` |
+| 항목 | JS | PHP | Go | Rust |
+|------|----|----|----|------|
+| 결과 valid | `result.valid` | `$result->valid` / `isValid()` | `result.IsValid` | `result.is_valid` |
+| errors 컨테이너 | `ValidationError[]` 배열 | 경로 키 연관 배열 | `[]ValidationError` 슬라이스 | `Vec<ValidationError>` |
+| 전체 경로 | `error.path` | 배열 키 = `field` 값 = 전체 경로 | `error.Field` | `error.field` |
+| 필드명만 | `error.field` (마지막 세그먼트) | 없음 | 없음 | 없음 |
+| 규칙명 | `error.rule` | `'rule'` | `error.Rule` | `error.rule` |
 
 경로 표기는 전부 dot notation (`items.0.code`)이다. 크로스언어 비교 러너는
 이 차이를 정규화해 `{field, rule}` 기준으로 일치 여부를 판정한다.
@@ -417,7 +492,7 @@ result.Errors[0].Field  // "items.0.code"
 
 ## 백엔드 HTTP API 계약
 
-출처: `examples/README.md` — `node-api`/`php-api`/`go-api` 3개 예제 서버가 동일하게 구현.
+출처: `examples/README.md` — `node-api`/`php-api`/`go-api`/`rust-api` 4개 예제 서버가 동일하게 구현.
 
 ### `POST /api/validate`
 
