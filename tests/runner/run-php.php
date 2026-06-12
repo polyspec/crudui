@@ -3,14 +3,14 @@
 /**
  * PHP Test Runner
  *
- * Loads test cases from tests/cases/*.json and validates using validator/php
+ * Loads test cases from tests/cases/*.json and validates using packages/validator-php
  * Outputs colored pass/fail results and exits with error code if any fail.
  */
 
 declare(strict_types=1);
 
 // Autoload validator classes
-require_once __DIR__ . '/../../validator/php/vendor/autoload.php';
+require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 
 use FormSpec\Validator\Legacy\Validator;
 use FormSpec\Validator\Legacy\ValidationResult;
@@ -256,7 +256,7 @@ function main(): int
             $totalPassed += $passed;
             $totalFailed += $failed;
             $totalTests += count($results);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $fileName = basename($testFile);
             echo Colors::RED . "Error loading test file {$fileName}: {$e->getMessage()}" . Colors::RESET . "\n";
             $totalFailed++;

@@ -32,9 +32,9 @@ const colors = {
 
 // Paths
 const CASES_DIR = path.join(__dirname, '..', 'cases');
-const JS_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'validator', 'js');
-const PHP_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'validator', 'php');
-const GO_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'validator', 'go');
+const JS_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-js');
+const PHP_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-php');
+const GO_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-go');
 
 // Statistics
 let stats = {
@@ -143,7 +143,12 @@ function runJsValidation(jsModule, spec, input) {
 }
 
 /**
- * Run PHP validation via subprocess
+ * Run PHP validation via subprocess.
+ *
+ * Uses a stdin JSON protocol (same pattern as the Go CLI): the request
+ * {spec, input} is piped to validate-case.php on stdin. Do NOT pass
+ * spec/input through argv or inline `php -r` code — that requires manual
+ * string escaping and is fragile.
  */
 function runPhpValidation(spec, input) {
   const vendorAutoload = path.join(PHP_VALIDATOR_DIR, 'vendor', 'autoload.php');
@@ -152,50 +157,17 @@ function runPhpValidation(spec, input) {
   if (!fs.existsSync(vendorAutoload)) {
     return {
       success: false,
-      error: 'PHP vendor not installed. Run: cd validator/php && composer install',
+      error: 'PHP vendor not installed. Run: cd packages/validator-php && composer install',
     };
   }
 
-  // Escape for PHP
-  const specJson = JSON.stringify(spec).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  const inputJson = JSON.stringify(input).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-
-  const phpScript = `
-require_once '${vendorAutoload}';
-
-use FormSpec\\Validator\\Validator;
-
-$spec = json_decode('${specJson}', true);
-$input = json_decode('${inputJson}', true);
-
-// Convert spec
-if (!isset($spec['type']) || $spec['type'] !== 'group' || !isset($spec['properties'])) {
-    $spec = ['type' => 'group', 'properties' => ['value' => $spec]];
-    $input = ['value' => $input];
-}
-
-// Handle __undefined__ marker
-if (is_array($input) && isset($input['value']) && $input['value'] === '__undefined__') {
-    $input['value'] = null;
-}
-
-$validator = new Validator($spec);
-$result = $validator->validate($input ?? []);
-
-$output = ['valid' => $result->isValid()];
-$errors = $result->getErrors();
-if (!$result->isValid() && count($errors) > 0) {
-    $firstError = reset($errors);
-    $output['error'] = $firstError['rule'] ?? null;
-    $output['field'] = $firstError['field'] ?? null;
-}
-
-echo json_encode($output);
-`;
+  const phpWorker = path.join(__dirname, 'validate-case.php');
+  const request = JSON.stringify({ spec, input: input === undefined ? null : input });
 
   try {
-    const result = spawnSync('php', ['-r', phpScript], {
+    const result = spawnSync('php', [phpWorker], {
       encoding: 'utf-8',
+      input: request,
       timeout: 10000,
       cwd: PHP_VALIDATOR_DIR,
     });
@@ -293,7 +265,8 @@ function resultsMatch(results) {
     const normalized = normalizeResult(r.result);
     return (
       normalized.valid === first.valid &&
-      normalized.error === first.error
+      normalized.error === first.error &&
+      normalized.field === first.field
     );
   });
 }

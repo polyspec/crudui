@@ -1,15 +1,20 @@
 {
   "name": "form-spec",
   "version": "0.0.1",
+  "private": true,
   "description": "YAML-based form generation and validation system (Multi-language, Multi-framework)",
   "main": "capture-react.js",
+  "workspaces": [
+    "packages/*"
+  ],
   "directories": {
     "doc": "docs",
     "example": "examples",
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run build -w @form-spec/validator && npm run build -w @form-spec/generator-react",
+    "test": "node tests/runner/compare-all.js",
     "lint": "eslint packages/validator-js/src packages/generator-react/src --ext .ts,.tsx",
     "lint:fix": "eslint packages/validator-js/src packages/generator-react/src --ext .ts,.tsx --fix"
   },
