@@ -5,7 +5,6 @@
  */
 
 import { RuleDefinition, ValidationContext } from '../types';
-import { isEmpty } from './required';
 import { getArrayLength } from './mincount';
 
 /**
@@ -20,10 +19,8 @@ export const maxcountRule: RuleDefinition = {
       return null;
     }
 
-    // Skip validation if value is empty (required rule handles this)
-    if (isEmpty(value)) {
-      return null;
-    }
+    // NOTE: maxcount does not skip empty values; an empty array always
+    // satisfies maxcount (count 0 <= max)
 
     const maxCount = Number(ruleParam);
     if (isNaN(maxCount)) {

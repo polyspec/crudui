@@ -5,7 +5,6 @@
  */
 
 import { RuleDefinition, ValidationContext } from '../types';
-import { isEmpty } from './required';
 
 /**
  * Get array length from value
@@ -43,10 +42,8 @@ export const mincountRule: RuleDefinition = {
       return null;
     }
 
-    // Skip validation if value is empty (required rule handles this)
-    if (isEmpty(value)) {
-      return null;
-    }
+    // NOTE: unlike most rules, mincount does NOT skip empty values -
+    // an empty array (count 0) must fail mincount >= 1 (fixture mincount-001)
 
     const minCount = Number(ruleParam);
     if (isNaN(minCount)) {

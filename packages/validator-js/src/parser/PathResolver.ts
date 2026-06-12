@@ -40,8 +40,34 @@ export function resolvePathSegments(
     // . = 0 levels up (sibling)
     // .. = 1 level up (parent's sibling)
     // ... = 2 levels up (grandparent's sibling)
-    const levelsToRemove = levelsUp + 1;
-    basePath = currentPath.slice(0, Math.max(0, currentPath.length - levelsToRemove));
+    //
+    // When the condition is attached to a group node (display_switch on a
+    // group), the group itself acts as the scope boundary: both "." and ".."
+    // resolve to the group's siblings (fixture: display-switch-nested-001).
+    const effectiveLevelsUp = context.groupNode
+      ? Math.max(0, levelsUp - 1)
+      : levelsUp;
+
+    basePath = [...currentPath];
+
+    // Remove the current field name itself
+    if (basePath.length > 0) {
+      basePath.pop();
+    }
+
+    // Go up additional levels; array indices do not count as a level
+    // (PHP PathResolver::resolveRelativePath parity)
+    for (let i = 0; i < effectiveLevelsUp; i++) {
+      while (
+        basePath.length > 0 &&
+        /^\d+$/.test(basePath[basePath.length - 1]!)
+      ) {
+        basePath.pop();
+      }
+      if (basePath.length > 0) {
+        basePath.pop();
+      }
+    }
   } else {
     // Absolute path starts from root
     basePath = [];
@@ -509,13 +535,13 @@ function compare(
     case '!=':
       return !looseEquals(left, right);
     case '>':
-      return toNumber(left) > toNumber(right);
+      return coerceNumber(left) > coerceNumber(right);
     case '>=':
-      return toNumber(left) >= toNumber(right);
+      return coerceNumber(left) >= coerceNumber(right);
     case '<':
-      return toNumber(left) < toNumber(right);
+      return coerceNumber(left) < coerceNumber(right);
     case '<=':
-      return toNumber(left) <= toNumber(right);
+      return coerceNumber(left) <= coerceNumber(right);
     default:
       return false;
   }
@@ -555,9 +581,12 @@ function looseEquals(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Convert value to number for comparison
+ * Coerce a value to a number for condition comparison.
+ * Deliberately lenient (PHP ConditionParser::toNumber parity).
+ * Not to be confused with the strict rules/min.ts toNumber used by
+ * value-validation rules.
  */
-function toNumber(value: unknown): number {
+function coerceNumber(value: unknown): number {
   if (typeof value === 'number') {
     return value;
   }
@@ -569,6 +598,74 @@ function toNumber(value: unknown): number {
     return value ? 1 : 0;
   }
   return 0;
+}
+
+// ============================================================================
+// Field Reference Resolution (display_target etc.)
+// ============================================================================
+
+/**
+ * Resolve a simple field reference expression to its value.
+ *
+ * Supports:
+ * - ".field" / "..field" relative references (PHP PathResolver::resolveExpression parity)
+ * - "a.b.c" absolute-ish references with wildcard support
+ * - bare "field" sibling lookup (PHP PathResolver::resolve parity)
+ */
+export function resolveFieldReference(
+  expression: string,
+  context: PathContext
+): unknown {
+  const trimmed = expression.trim();
+  if (trimmed === '') {
+    return undefined;
+  }
+
+  const formData = context.formData as Record<string, unknown>;
+
+  // Count leading dots
+  let dots = 0;
+  while (dots < trimmed.length && trimmed[dots] === '.') {
+    dots++;
+  }
+
+  if (dots > 0) {
+    const fieldPath = trimmed.slice(dots);
+    const pathNode: PathNode = {
+      type: 'Path',
+      relative: true,
+      levelsUp: dots - 1,
+      segments: parsePathString(fieldPath).map((s) =>
+        s === '*'
+          ? ({ type: 'wildcard' } as const)
+          : ({ type: 'identifier', value: s } as const)
+      ),
+      position: { start: 0, end: trimmed.length },
+    };
+
+    let resolved = resolvePathSegments(pathNode, context);
+    if (hasWildcard(resolved)) {
+      resolved = replaceWildcardWithIndex(resolved, context.currentPath);
+    }
+    return getValueByPath(formData, resolved);
+  }
+
+  // Path with dots inside (e.g., "common.is_display") - resolve from root
+  if (trimmed.includes('.')) {
+    let segments = parsePathString(trimmed);
+    if (hasWildcard(segments)) {
+      segments = replaceWildcardWithIndex(segments, context.currentPath);
+    }
+    return getValueByPath(formData, segments);
+  }
+
+  // Bare field name - look in the same group as the current field
+  if (context.currentPath.length > 0) {
+    const siblingPath = [...context.currentPath.slice(0, -1), trimmed];
+    return getValueByPath(formData, siblingPath);
+  }
+
+  return getValueByPath(formData, [trimmed]);
 }
 
 // ============================================================================
@@ -587,25 +684,11 @@ export function parsePathString(pathString: string): string[] {
 
 /**
  * Convert path segments to path string
- * Formats numeric indices and unique keys with bracket notation
+ * Uses dot notation for all segments, including numeric indices and
+ * unique keys (e.g., "items.0.code") to match fixture expectations.
  */
 export function pathToString(path: string[]): string {
-  if (path.length === 0) return '';
-
-  return path.reduce((result, segment, index) => {
-    // Check if segment is numeric or unique key (__xxxx__ format)
-    if (/^\d+$/.test(segment) || /^__[a-z0-9]+__$/.test(segment)) {
-      return `${result}[${segment}]`;
-    }
-
-    // First segment
-    if (index === 0) {
-      return segment;
-    }
-
-    // Use dot notation
-    return `${result}.${segment}`;
-  }, '');
+  return path.join('.');
 }
 
 /**

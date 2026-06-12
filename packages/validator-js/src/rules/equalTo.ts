@@ -6,25 +6,37 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import {
+  getValueByPath as getValueBySegments,
+  parsePathString,
+  resolveFieldReference,
+} from '../parser/PathResolver';
 
 /**
- * Get value from form data by path
+ * Get value from form data by dot-notation path string.
+ * Thin wrapper over the PathResolver implementation (single source of truth
+ * for path traversal).
  */
-export function getValueByPath(data: Record<string, unknown>, path: string): unknown {
-  const segments = path.replace(/^\.*/, '').split('.');
-  let current: unknown = data;
+export function getValueByPath(
+  data: Record<string, unknown>,
+  path: string
+): unknown {
+  return getValueBySegments(data, parsePathString(path.replace(/^\.*/, '')));
+}
 
-  for (const segment of segments) {
-    if (current === null || current === undefined) {
-      return undefined;
-    }
-    if (typeof current !== 'object') {
-      return undefined;
-    }
-    current = (current as Record<string, unknown>)[segment];
-  }
-
-  return current;
+/**
+ * Resolve a rule param that references another field (relative or absolute).
+ * Shares the relative-path semantics of condition expressions:
+ * ".x" = sibling, "..x" = parent group's sibling (array indices skipped).
+ */
+export function resolveFieldParam(
+  param: string,
+  context: ValidationContext
+): unknown {
+  return resolveFieldReference(param, {
+    currentPath: context.pathSegments,
+    formData: context.allData,
+  });
 }
 
 /**
@@ -32,7 +44,7 @@ export function getValueByPath(data: Record<string, unknown>, path: string): unk
  */
 export const equalToRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages, allData, pathSegments } = context;
+    const { value, ruleParam, messages } = context;
 
     // Skip if no rule param
     if (ruleParam === null || ruleParam === undefined) {
@@ -44,30 +56,8 @@ export const equalToRule: RuleDefinition = {
       return null;
     }
 
-    // Get the target field path
-    let targetPath = String(ruleParam);
-
-    // Handle relative paths
-    if (targetPath.startsWith('.')) {
-      // Relative path - resolve from current field's parent
-      const parentPath = pathSegments.slice(0, -1);
-      const relativeParts = targetPath.split('.');
-
-      for (const part of relativeParts) {
-        if (part === '') {
-          // Each leading dot means go up one level
-          if (parentPath.length > 0) {
-            parentPath.pop();
-          }
-        } else {
-          parentPath.push(part);
-        }
-      }
-      targetPath = parentPath.join('.');
-    }
-
-    // Get the target field's value
-    const targetValue = getValueByPath(allData, targetPath);
+    // Resolve the target field's value via the shared path resolver
+    const targetValue = resolveFieldParam(String(ruleParam), context);
 
     // Compare values
     if (value !== targetValue) {

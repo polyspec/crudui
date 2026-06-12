@@ -37,14 +37,15 @@ export const maxRule: RuleDefinition = {
     }
 
     if (numValue > maxValue) {
-      const message = messages?.max ?? `Please enter a value of at most ${maxValue}.`;
+      const message =
+        messages?.max ?? 'Please enter a value less than or equal to {0}.';
       return message.replace('{0}', String(maxValue));
     }
 
     return null;
   },
 
-  defaultMessage: 'Please enter a value of at most {0}.',
+  defaultMessage: 'Please enter a value less than or equal to {0}.',
 };
 
 export default maxRule;

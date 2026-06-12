@@ -897,41 +897,6 @@ func (e *evaluator) evaluateIn(node *InNode) bool {
 }
 
 func (e *evaluator) evaluatePath(node *PathNode) interface{} {
-	path := e.resolvePath(node)
-	return e.getValueByPath(path)
-}
-
-func (e *evaluator) resolvePath(node *PathNode) []string {
-	if !node.Relative {
-		// Absolute path: use segments directly
-		var path []string
-		for _, seg := range node.Segments {
-			if seg.Type == "wildcard" {
-				path = append(path, "*")
-			} else {
-				path = append(path, seg.Value)
-			}
-		}
-		return path
-	}
-
-	// Relative path calculation (like file system paths)
-	// currentPath includes the field name being validated
-	//
-	// For '.field' (levelsUp=0): sibling - same parent (go up 1 from field)
-	// For '..field' (levelsUp=1): parent's sibling (go up 2 from field)
-	// For '...field' (levelsUp=2): grandparent's sibling (go up 3 from field)
-	//
-	// Example: currentPath = ["common", "yoil", "day"]
-	// - .is_allday (levelsUp=0): basePath = ["common", "yoil"], result = ["common", "yoil", "is_allday"]
-	// - ..is_sale (levelsUp=1): basePath = ["common"], result = ["common", "is_sale"]
-	// - ...something (levelsUp=2): basePath = [], result = ["something"]
-	baseLen := len(e.currentPath) - 1 - node.LevelsUp
-	if baseLen < 0 {
-		baseLen = 0
-	}
-	basePath := e.currentPath[:baseLen]
-
 	var segmentPath []string
 	for _, seg := range node.Segments {
 		if seg.Type == "wildcard" {
@@ -941,10 +906,68 @@ func (e *evaluator) resolvePath(node *PathNode) []string {
 		}
 	}
 
-	result := make([]string, len(basePath)+len(segmentPath))
-	copy(result, basePath)
-	copy(result[len(basePath):], segmentPath)
-	return result
+	if !node.Relative {
+		// Absolute path: use segments directly
+		return e.getValueByPath(segmentPath)
+	}
+
+	// Relative path calculation
+	// currentPath includes the field name being validated
+	//
+	// For '.field' (levelsUp=0): sibling - same parent (go up 1 from field)
+	// For '..field' (levelsUp=1): parent's sibling (go up 2 from field)
+	// For '...field' (levelsUp=2): grandparent's sibling (go up 3 from field)
+	//
+	// Array indices are skipped when walking up levels, so '..x' from
+	// "config.items.0.details" resolves to "config.x".
+	parentPath := []string{}
+	if len(e.currentPath) > 0 {
+		parentPath = e.currentPath[:len(e.currentPath)-1]
+	}
+
+	basePath := append([]string{}, parentPath...)
+	for i := 0; i < node.LevelsUp; i++ {
+		// Skip array indices (numeric segments) before popping one level
+		for len(basePath) > 0 && isNumericSegment(basePath[len(basePath)-1]) {
+			basePath = basePath[:len(basePath)-1]
+		}
+		if len(basePath) > 0 {
+			basePath = basePath[:len(basePath)-1]
+		}
+	}
+
+	strictPath := append(append([]string{}, basePath...), segmentPath...)
+	if value := e.getValueByPath(strictPath); value != nil {
+		return value
+	}
+
+	// Fallback: lexical upward search. Groups carrying display_switch
+	// reference siblings from the group's own scope, so search from the
+	// nearest scope outward until the reference resolves.
+	search := append([]string{}, parentPath...)
+	for {
+		if len(search) != len(basePath) || PathToString(search) != PathToString(basePath) {
+			candidate := append(append([]string{}, search...), segmentPath...)
+			if value := e.getValueByPath(candidate); value != nil {
+				return value
+			}
+		}
+		if len(search) == 0 {
+			break
+		}
+		search = search[:len(search)-1]
+	}
+
+	return nil
+}
+
+// isNumericSegment reports whether a path segment is an array index.
+func isNumericSegment(segment string) bool {
+	if segment == "" {
+		return false
+	}
+	_, err := strconv.Atoi(segment)
+	return err == nil
 }
 
 func (e *evaluator) getValueByPath(path []string) interface{} {
