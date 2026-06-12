@@ -90,6 +90,28 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  # Rust API - Rust validation server
+  rust-api:
+    build:
+      context: ..
+      dockerfile: examples/rust-api/Dockerfile
+    ports:
+      - "8017:8080"
+    volumes:
+      - ./shared-specs:/app/specs:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=rust-api"
+      - "com.form-generator.description=Rust validation API"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
   # Playground - Interactive form spec editor
   playground:
     build:

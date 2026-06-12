@@ -11,6 +11,9 @@ dist/
 # Rust build outputs (Cargo.lock is committed for the binary crate)
 target/
 
+# Compiled example Go server binaries
+examples/go-api/go-api
+
 # IDE
 .idea/
 .vscode/
