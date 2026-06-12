@@ -1,9 +1,20 @@
 import { useState } from 'react';
+import yaml from 'js-yaml';
 import { FormBuilder } from '@form-spec/generator-react/legacy';
 import contactSpec from '../specs/contact.yaml?raw';
 
+// Canonical contract: backends receive the parsed spec object, never the raw YAML string.
+const contactSpecObject = yaml.load(contactSpec) as Record<string, unknown>;
+
 interface CompareValidationPageProps {
   language: 'ko' | 'en';
+}
+
+/** Canonical validation error shape returned by every backend. */
+interface ValidationError {
+  field: string;
+  rule: string;
+  message: string;
 }
 
 interface BackendResult {
@@ -11,9 +22,8 @@ interface BackendResult {
   status: 'pending' | 'loading' | 'success' | 'error';
   responseTime?: number;
   data?: {
-    success: boolean;
-    errors?: Record<string, string>;
-    message?: string;
+    valid: boolean;
+    errors: ValidationError[];
   };
   error?: string;
 }
@@ -27,29 +37,27 @@ interface ValidationResults {
 const BACKENDS = {
   nodejs: {
     name: 'Node.js',
-    url: 'http://localhost:8011/api/submit/contact',
+    url: 'http://localhost:8011/api/validate',
     color: '#68a063',
   },
   php: {
     name: 'PHP',
-    url: 'http://localhost:8012/validate.php',
+    url: 'http://localhost:8012/api/validate',
     color: '#777bb4',
   },
   go: {
     name: 'Go',
-    url: 'http://localhost:8013/submit/contact',
+    url: 'http://localhost:8013/api/validate',
     color: '#00add8',
   },
 };
 
-function normalizeErrors(errors: Record<string, string> | undefined): Record<string, string> {
-  if (!errors) return {};
-  const normalized: Record<string, string> = {};
-  const sortedKeys = Object.keys(errors).sort();
-  for (const key of sortedKeys) {
-    normalized[key] = errors[key];
-  }
-  return normalized;
+/** Sort errors so that ordering differences between backends do not cause false mismatches. */
+function normalizeErrors(errors: ValidationError[] | undefined): ValidationError[] {
+  if (!errors) return [];
+  return [...errors].sort((a, b) =>
+    a.field === b.field ? a.rule.localeCompare(b.rule) : a.field.localeCompare(b.field)
+  );
 }
 
 function compareResults(results: ValidationResults): { match: boolean; details: string } {
@@ -59,12 +67,12 @@ function compareResults(results: ValidationResults): { match: boolean; details: 
   }
 
   const errorSets = completed.map(r => JSON.stringify(normalizeErrors(r.data?.errors)));
-  const successFlags = completed.map(r => r.data?.success);
+  const validFlags = completed.map(r => r.data?.valid);
 
   const allErrorsMatch = errorSets.every(e => e === errorSets[0]);
-  const allSuccessMatch = successFlags.every(s => s === successFlags[0]);
+  const allValidMatch = validFlags.every(v => v === validFlags[0]);
 
-  if (allErrorsMatch && allSuccessMatch) {
+  if (allErrorsMatch && allValidMatch) {
     return { match: true, details: 'All backends returned identical results' };
   }
 
@@ -104,26 +112,47 @@ export function CompareValidationPage({ language }: CompareValidationPageProps) 
     const startTime = performance.now();
 
     try {
-      const requestBody = key === 'php'
-        ? { spec: 'contact', data }
-        : data;
-
+      // Canonical contract: POST /api/validate with { spec: <parsed object>, data }.
       const response = await fetch(backend.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({ spec: contactSpecObject, data }),
       });
 
       const responseTime = Math.round(performance.now() - startTime);
+
+      if (!response.ok) {
+        // Validation failures are NOT HTTP errors — a non-200 means a server error.
+        let message = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorBody = await response.json();
+          if (errorBody && typeof errorBody.error === 'string') {
+            message = `HTTP ${response.status}: ${errorBody.error}`;
+          }
+        } catch {
+          // keep default message
+        }
+        return {
+          name: backend.name,
+          status: 'error',
+          responseTime,
+          error: message,
+        };
+      }
+
+      // Always-200 contract: { valid: bool, errors: [{ field, rule, message }] }
       const result = await response.json();
 
       return {
         name: backend.name,
         status: 'success',
         responseTime,
-        data: result,
+        data: {
+          valid: Boolean(result.valid),
+          errors: Array.isArray(result.errors) ? result.errors : [],
+        },
       };
     } catch (err) {
       const responseTime = Math.round(performance.now() - startTime);
@@ -258,19 +287,20 @@ export function CompareValidationPage({ language }: CompareValidationPageProps) 
 
                     {result.status === 'success' && result.data && (
                       <div className="result-success">
-                        <div className={`validation-status ${result.data.success ? 'valid' : 'invalid'}`}>
-                          {result.data.success
+                        <div className={`validation-status ${result.data.valid ? 'valid' : 'invalid'}`}>
+                          {result.data.valid
                             ? (language === 'ko' ? '유효함' : 'Valid')
                             : (language === 'ko' ? '유효하지 않음' : 'Invalid')}
                         </div>
 
-                        {result.data.errors && Object.keys(result.data.errors).length > 0 && (
+                        {result.data.errors && result.data.errors.length > 0 && (
                           <div className="errors-list">
                             <h4>{language === 'ko' ? '검증 오류' : 'Validation Errors'}</h4>
                             <ul>
-                              {Object.entries(result.data.errors).map(([field, message]) => (
-                                <li key={field}>
-                                  <strong>{field}:</strong> {message}
+                              {result.data.errors.map((err, errIndex) => (
+                                <li key={`${err.field}-${err.rule}-${errIndex}`}>
+                                  <strong>{err.field}:</strong> {err.message}
+                                  {err.rule ? ` (${err.rule})` : ''}
                                 </li>
                               ))}
                             </ul>

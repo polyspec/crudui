@@ -20,10 +20,10 @@ An interactive web playground for testing and developing form specifications usi
 
 ### Installation
 
-1. First, build the form-react library:
+1. First, build the `@form-spec/generator-react` library:
 
 ```bash
-cd ../../react
+cd ../../packages/generator-react
 npm install
 npm run build
 ```
@@ -31,7 +31,7 @@ npm run build
 2. Install playground dependencies:
 
 ```bash
-cd ../examples/playground
+cd ../../examples/playground
 npm install
 ```
 

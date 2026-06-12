@@ -7,4 +7,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/polyspec/crudui/packages/validator-go => ../../validator/go
+replace github.com/polyspec/crudui/packages/validator-go => ../../packages/validator-go
