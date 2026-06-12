@@ -3,9 +3,9 @@
 > **현황 업데이트 (2026-06).** 이 보고서의 §3-§10 평가는 작성 시점 기준이며,
 > 아래 항목은 그 이후 실측으로 갱신되었다:
 >
-> - **크로스 언어 검증 951/951 GREEN** — `tests/cases/*.json` 14개 스위트,
->   951 케이스가 JS/PHP/Go 전부에서 일치 (`tests/runner/compare-all.js` +
->   vitest/PHPUnit/go test 브리지 3종, 2026-06 실행 확인). 게이트 체계는
+> - **크로스 언어 검증 1013/1013 GREEN** — `tests/cases/*.json` 19개 스위트,
+>   1013 케이스가 JS/PHP/Go/Rust 전부에서 일치 (`tests/runner/compare-all.js` +
+>   vitest/PHPUnit/go test/cargo test 브리지 4종, 2026-06 실행 확인). 게이트 체계는
 >   [TESTING.md](./TESTING.md) 참조.
 > - **조건식 캐싱 구현 완료** — LRU 캐시
 >   (`packages/validator-js/src/parser/ConditionCache.ts`). §3.4 의
@@ -14,14 +14,15 @@
 >   (parsing.bench.ts, validation.bench.ts).
 > - **골든 HTML 파이프라인 구축** — legacy Legacy 출력(골든 7종,
 >   `tests/fixtures/golden-html/`)을 단일진실로 하는 재생성 파이프라인
->   (`tools/legacy-baseline/`)과 React SSR 비교 하네스(`tests/parity/`).
->   parity 는 generator-react 격차가 닫힐 때까지 RED 가 기대 상태다.
+>   (`tools/legacy-baseline/`)과 SSR 비교 하네스. React 는 `tests/parity/`,
+>   Vue/Svelte 는 각 패키지 `packages/<pkg>/test/parity.test.mjs`. 세 프레임워크
+>   generator 모두 골든 7종에 7/7 parity GREEN (필드 50/50 + chrome, canonical 일치).
 > - 빌트인 규칙 수는 **24개 등록명(23개 구현 + pattern/match 별칭)** 이다
 >   (`packages/validator-js/src/rules/index.ts`) — 본문 '25+' 표기는 과거 수치.
 
 ## 1. 프로젝트 개요
 
-YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증 로직을 실행하고 React로 폼을 렌더링하는 크로스 플랫폼 폼 라이브러리.
+YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 검증 로직을 실행하고 React/Vue/Svelte로 폼을 렌더링하는 크로스 플랫폼 폼 라이브러리.
 
 ---
 
@@ -30,7 +31,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 ### 2.1 멱등성 보장
 - **핵심 가치**: 동일한 YAML 스펙 → 모든 언어에서 동일한 검증 결과
 - 클라이언트/서버 검증 불일치 문제 해결
-- 951개 크로스 언어 테스트 케이스(14개 스위트)로 언어 간 일관성 검증
+- 1013개 크로스 언어 테스트 케이스(19개 스위트)로 언어 간 일관성 검증
 
 ### 2.2 복잡한 폼 구조 지원
 - 1,318줄 규모의 LargeForm 같은 e-commerce 폼 완벽 지원
@@ -56,13 +57,22 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 
 ## 3. 부족한 점
 
-### 3.1 생태계 미완성
+### 3.1 생태계 — 검증기 4언어 + 렌더러 3프레임워크 완성
 | 패키지 | 상태 |
 |--------|------|
-| @form-spec/generator-react | legacy.0.0 완성 |
-| @form-spec/validator | legacy.0.0 완성 |
-| @form-spec/generator-vue | v0.0.1 미구현 |
-| @form-spec/generator-svelte | v0.0.1 미구현 |
+| @form-spec/validator (JS) | legacy.0.0 완성 |
+| validator-php | 완성 (PHP ^8.2) |
+| validator-go | 완성 |
+| validator-rust (formspec-validator) | 완성 |
+| @form-spec/generator-react | 완성 — 골든 7/7 parity (353 테스트) |
+| @form-spec/generator-vue | 완성 — 골든 7/7 parity (@vue/server-renderer SSR) |
+| @form-spec/generator-svelte | 완성 — 골든 7/7 parity (Svelte 5 SSR) |
+
+검증기는 4개 언어(JS/PHP/Go/Rust) 모두 완성됐다. 렌더러는 React/Vue/Svelte 3개
+프레임워크 generator 가 전부 실제 구현이며, 동일 Legacy 골든 HTML 7종에 각각
+7/7 parity GREEN(필드 50/50 + chrome, canonical 일치)이다. 세 generator 는
+프레임워크 무관 PHP-cast 헬퍼 `src/legacyParity.ts` 를 공유 패턴으로 쓴다.
+부족한 것은 생태계 성숙도(미발행·외부 사용자 부재)이지 렌더러 커버리지가 아니다.
 
 ### 3.2 에러 처리 미흡 — 부분 해소
 
@@ -98,7 +108,8 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 3. ~~기본 벤치마크 추가~~ (완료 — `packages/validator-js/benchmarks/`)
 
 ### 중기 (Medium Priority)
-1. Vue/Svelte 생성기 구현 (미완 — v0.0.1 placeholder)
+1. ~~추가 렌더러(Vue/Svelte)~~ (완료 — `generator-vue`/`generator-svelte`,
+   각 골든 7/7 parity)
 2. ~~조건식 캐싱 구현~~ (완료 — `ConditionCache.ts`)
 3. 성능 최적화
 
@@ -115,8 +126,8 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 | 항목 | JSON Forms | Form-Spec |
 |------|-----------|-----------|
 | 스키마 | JSON Schema 표준 | 자체 YAML 스펙 |
-| 프레임워크 | React, Vue, Angular | React (Vue/Svelte 예정) |
-| 백엔드 검증 | 없음 (프론트엔드 전용) | JS, PHP, Go |
+| 프레임워크 | React, Vue, Angular | React, Vue, Svelte |
+| 백엔드 검증 | 없음 (프론트엔드 전용) | JS, PHP, Go, Rust |
 | 성숙도 | 프로덕션 (수년) | 초기 단계 |
 | 커뮤니티 | 활성화 | 없음 |
 
@@ -142,7 +153,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 ## 6. 계속 vs 대체 판단
 
 ### 계속 개발이 유리한 경우
-1. **다중 백엔드 검증 필수**: PHP + Go + JS 모두 동일한 검증이 필요
+1. **다중 백엔드 검증 필수**: JS + PHP + Go + Rust 모두 동일한 검증이 필요
 2. **복잡한 조건부 로직**: display_switch 같은 고급 기능 활용 중
 3. **YAML 선언적 접근 선호**: 코드보다 설정 파일 기반 관리
 4. **어드민/CRM 자동화**: 폼 기반 업무 시스템 구축
@@ -169,7 +180,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 | JSON Forms | 없음 | 불가 | 중간 | **부적합** |
 | Formily | 없음 | 불가 | 높음 | **부적합** |
 | RHF + Zod | 수동 구현 | 보장 안됨 | 낮음 | **부적합** |
-| **Form-Spec** | JS/PHP/Go | 보장 | 높음 | **유일한 적합** |
+| **Form-Spec** | JS/PHP/Go/Rust | 보장 | 높음 | **유일한 적합** |
 
 ### 결론: 대안 없음
 
@@ -185,7 +196,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 |----------|------|------|
 | 아키텍처 | 8.5/10 | 잘 설계된 구조 |
 | 코드 품질 | 8.5/10 | TypeScript strict, 일관된 패턴 |
-| 기능 완성도 | 7.0/10 | React만 완성, Vue/Svelte 미구현 |
+| 기능 완성도 | 7.0/10 | 검증기 4언어(JS/PHP/Go/Rust) + 렌더러 3프레임워크(React/Vue/Svelte) 완성 |
 | 문서화 | 7.0/10 | 기본 문서 있음, 고급 가이드 부족 |
 | 생태계/커뮤니티 | 3.0/10 | 미발행, 외부 사용자 없음 |
 | 차별화 가치 | 8.0/10 | 멱등성, 다중 언어, 복잡한 폼 지원 |
@@ -208,7 +219,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 > 이 절은 작성 시점의 작업 계획 기록이다. 실측 완료 항목:
 > #3 조건식 캐싱(`ConditionCache.ts`), #4 벤치마크(`benchmarks/`),
 > vitest 커버리지 설정(`vitest.config.ts`). 단위 테스트 강화(#5-8)는 이후
-> 951케이스 크로스 언어 conformance 브리지 체계로 대체되었다
+> 1013케이스 크로스 언어 conformance 브리지 체계로 대체되었다
 > (`packages/validator-js/src/__tests__/conformance.test.ts`). CI 설정은 미구현.
 
 ### 브랜치: `feature/quality-improvements`

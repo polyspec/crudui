@@ -10,7 +10,7 @@ JavaScript/PHP/Go/Rust 서버 검증을 수행한다. 4개 언어 검증기는 �
 
 - **선언적 폼 정의** — YAML/JSON 스펙으로 폼 구조와 검증 규칙 정의
 - **4개 언어 검증기** — JavaScript/TypeScript, PHP(^8.2), Go, Rust — 크로스언어 결과 일치 보장
-- **React 폼 빌더** — 스펙에서 폼 UI 생성 (legacy Legacy HTML 출력과 골든 픽스처로 비교)
+- **React/Vue/Svelte 폼 빌더** — 스펙에서 폼 UI 생성 (legacy Legacy 골든 HTML 7종에 각 7/7 parity)
 - **23개 검증 규칙** (+`pattern`/`match` 별칭) — required, email, min/max, in, unique 등
 - **조건식 엔진** — lexer+AST 파서, ternary(`?:`), 상대 경로(`.x`/`..x`), 와일드카드(`*`)
 - **조건부 표시** — `display_switch`/`display_target` (숨김 필드는 검증 스킵)
@@ -25,9 +25,11 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 |------|----------|------|
 | [`packages/validator-js`](./packages/validator-js) | `@form-spec/validator` | TypeScript 검증 라이브러리 |
 | [`packages/validator-php`](./packages/validator-php) | `form-spec/validator` | PHP 검증 라이브러리 (PHP ^8.2) |
-| [`packages/validator-go`](./packages/validator-go) | `github.com/example/form-generator/validator` (placeholder 모듈명, 변경 보류) | Go 검증 라이브러리 |
+| [`packages/validator-go`](./packages/validator-go) | `github.com/polyspec/crudui/packages/validator-go` | Go 검증 라이브러리 |
 | [`packages/validator-rust`](./packages/validator-rust) | `formspec-validator` (crate) | Rust 검증 라이브러리 + `validate` CLI (deps: serde/serde_json/regex) |
-| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 컴포넌트 |
+| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 — Legacy 골든 7/7 parity |
+| [`packages/generator-vue`](./packages/generator-vue) | `@form-spec/generator-vue` | Vue 폼 빌더 — Legacy 골든 7/7 parity |
+| [`packages/generator-svelte`](./packages/generator-svelte) | `@form-spec/generator-svelte` | Svelte 폼 빌더 — Legacy 골든 7/7 parity |
 | [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Legacy PHP 사본 (골든 HTML 베이스라인용, `tools/legacy-baseline` 참조) |
 
 ## Quick Start
@@ -100,7 +102,7 @@ $result->getErrors();                       // 경로 키 에러 배열
 ### Go
 
 ```go
-import "github.com/example/form-generator/validator"
+import "github.com/polyspec/crudui/packages/validator-go/validator"
 
 parsed, err := validator.ParseSpec(specJSON) // 기준 type/properties JSON
 v := validator.NewValidator(parsed.Spec)
@@ -128,8 +130,10 @@ cd packages/validator-php  && composer test # PHPUnit — 동일 1013 픽스처 
 cd packages/validator-go   && go test ./...
 cd packages/validator-rust && cargo test    # cargo — 동일 1013 픽스처 conformance
 
-# HTML parity: React SSR ↔ Legacy 골든 HTML 7종 비교
-cd tests/parity && npm test
+# HTML parity: React/Vue/Svelte SSR ↔ Legacy 골든 HTML 7종 비교 (각 7/7)
+cd tests/parity              && npm test   # React
+cd packages/generator-vue    && npm test   # Vue (@vue/server-renderer SSR)
+cd packages/generator-svelte && npm test   # Svelte (Svelte 5 SSR)
 # 골든 재생성은 tools/legacy-baseline/ 파이프라인으로만 (README 참조)
 ```
 
@@ -148,7 +152,7 @@ cd tests/parity && npm test
 `examples/` — docker-compose로 전체 실행 (`cd examples && docker-compose up --build`):
 
 - [demo-app](./examples/demo-app/) — React 데모 (8010)
-- [node-api](./examples/node-api/) / [php-api](./examples/php-api/) / [go-api](./examples/go-api/) — 동일 계약의 검증 API 서버 (8011-8013)
+- [node-api](./examples/node-api/) / [php-api](./examples/php-api/) / [go-api](./examples/go-api/) / [rust-api](./examples/rust-api/) — 동일 계약의 검증 API 서버 (8011-8013, 8017)
 - [playground](./examples/playground/) — 실시간 스펙 편집기 (8014)
 - [legacy-original](./examples/legacy-original/) — legacy Legacy 원본 폼 시스템 (8015)
 
