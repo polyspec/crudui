@@ -26,7 +26,7 @@ import (
 	"os"
 	"strings"
 
-	validator "github.com/polyspec/crudui/packages/validator-go/validator"
+	validator "github.com/polyspec/crudui/packages/validator-go/validator/legacy"
 	"gopkg.in/yaml.v3"
 )
 
@@ -678,7 +678,7 @@ import (
     "net/http"
 
     "github.com/gin-gonic/gin"
-    validator "github.com/polyspec/crudui/packages/validator-go/validator"
+    validator "github.com/polyspec/crudui/packages/validator-go/validator/legacy"
     "gopkg.in/yaml.v3"
 )
 
