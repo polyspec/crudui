@@ -1,38 +1,186 @@
 # Form-Spec 테스트 가이드
 
-## 테스트 구조
+이 문서는 실제 저장소에 존재하는 테스트 게이트와 실행 방법을 기술한다.
+모든 명령은 검증된 것만 수록한다 — 추측으로 명령을 추가하지 마라.
+
+## 게이트 요약
+
+| 게이트 | 위치 | 실행 | 케이스 수 | 검증 대상 |
+|--------|------|------|-----------|-----------|
+| 크로스 언어 비교 | `tests/runner/compare-all.js` | `cd tests && npm test` | 951 | JS/PHP/Go 검증 결과 일치 (멱등성) |
+| JS 단일 러너 | `tests/runner/run-js.ts` | `cd tests && npm run run:js` | 951 | JS 검증기 단독 pass/fail |
+| PHP 단일 러너 | `tests/runner/run-php.php` | `cd tests && npm run run:php` | 951 | PHP 검증기 단독 pass/fail |
+| Go 브리지 | `tests/runner/go/run_test.go` | `cd tests/runner/go && go test ./...` | 951 | Go 검증기 단독 pass/fail |
+| vitest 브리지 | `packages/validator-js/src/__tests__/conformance.test.ts` | `cd packages/validator-js && npx vitest run` | 951 | JS 검증기 (vitest 리포팅) |
+| PHPUnit 브리지 | `packages/validator-php/tests/ConformanceTest.php` | `cd packages/validator-php && ./vendor/bin/phpunit` | 951 | PHP 검증기 (PHPUnit data provider) |
+| Go 내부 테스트 | `packages/validator-go/validator/legacy/validator_test.go` | `cd packages/validator-go && go test ./...` | — | Go 내부 단위 테스트 |
+| HTML parity | `tests/parity/parity.test.mjs` | `cd tests/parity && npm test` | 골든 7종 | React SSR ↔ Limepie 골든 HTML |
+
+`tests/cases/*.json` 14개 파일, 총 951 케이스가 단일진실(single source of truth)이다.
+크로스 언어 비교·단일 러너·브리지 3종이 전부 같은 픽스처 디렉터리를 읽는다 —
+케이스를 추가하면 모든 게이트가 자동으로 집어간다.
+
+현재 상태 (2026-06 검증): 검증기 게이트는 전부 GREEN (951/951, 3개 언어 일치).
+HTML parity 는 RED (7/7 실패) — `tests/parity/README.md` 가 명시하듯 RED 가
+기대 상태이며, generator-react 의 알려진 격차가 닫힐 때까지 유지된다.
+골든 픽스처나 정규화 규칙을 약화해 GREEN 으로 만들지 마라.
+
+## 디렉터리 구조
 
 ```
 form-spec/
-├── tests/                          # 크로스 언어 테스트 (멱등성)
-│   ├── cases/*.json               # 테스트 케이스 정의
-│   └── runner/                    # 언어별 테스트 러너
-│
-└── packages/
-    ├── validator-js/              # JS 검증기
-    │   └── benchmarks/            # 성능 벤치마크 (JS 전용)
-    ├── validator-php/             # PHP 검증기
-    ├── validator-go/              # Go 검증기
-    └── generator-react/           # React 폼 생성기
-        └── src/__tests__/         # React 컴포넌트 테스트
+├── packages/
+│   ├── validator-js/        # TS 검증기 (vitest 브리지, benchmarks/ 포함)
+│   ├── validator-php/       # PHP 검증기 (PHP ^8.2, PHPUnit 브리지)
+│   ├── validator-go/        # Go 검증기 (모듈명 github.com/example/form-generator/validator — placeholder)
+│   ├── generator-react/     # React 폼 생성기 (vitest)
+│   ├── generator-vue/       # placeholder (v0.0.1, 미구현)
+│   ├── generator-svelte/    # placeholder (v0.0.1, 미구현)
+│   └── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets (골든 파이프라인 지원)
+├── tests/
+│   ├── cases/               # 크로스 언어 픽스처 14개 (951 케이스) — 단일진실
+│   ├── fixtures/
+│   │   ├── golden-html/     # Limepie PHP 골든 HTML 7종 (재생성: tools/limepie-baseline)
+│   │   └── specs/           # ProductNft.yml 등 테스트용 YAML 스펙
+│   ├── runner/
+│   │   ├── compare-all.js   # 크로스 언어 비교 게이트
+│   │   ├── run-js.ts        # JS 단일 러너 (ts-node)
+│   │   ├── run-php.php      # PHP 단일 러너
+│   │   ├── validate-case.php # PHP stdin 워커 (compare-all.js 가 호출)
+│   │   └── go/              # Go 브리지 (go test)
+│   └── parity/              # React SSR ↔ 골든 HTML 비교 하네스
+└── tools/
+    └── limepie-baseline/    # 골든 HTML 재생성 파이프라인 (핀 커밋 강제)
 ```
 
-## 테스트 규칙
+## 1. 크로스 언어 비교 게이트 (compare-all.js)
 
-### 1. 크로스 언어 테스트 (Validator)
+**목적:** 동일 스펙 + 동일 입력 → JS/PHP/Go 가 동일 결과를 내는지 비교.
+기대값과의 일치가 아니라 **언어 간 일치**를 검사한다 (기대값 검사는 단일
+러너/브리지의 몫).
 
-**위치:** `tests/cases/*.json`
+```bash
+cd tests
+npm test                       # = node runner/compare-all.js (JS+PHP+Go)
+npm run test:js                # --js-only
+npm run test:php               # --php-only
+npm run test:go                # --go-only
+npm run idempotency:js-php     # --no-go
+node runner/compare-all.js -f required.json   # 특정 파일만
+node runner/compare-all.js --verbose          # 전체 결과 출력
+```
 
-**목적:** JS, PHP, Go에서 동일한 입력에 대해 동일한 결과를 반환하는지 검증 (멱등성)
+언어별 실행 방식 (`tests/runner/compare-all.js` 기준):
 
-**대상:**
-- 검증 규칙 (required, email, min, max, pattern 등)
-- 조건부 검증 (display_switch, 조건식)
-- 중첩 그룹, 상대 경로 참조
-- multiple 필드, mincount/maxcount
-- 와일드카드 경로
+- **JS**: `packages/validator-js/dist/index.js` 를 직접 require (없으면 ts-node 로 src).
+- **PHP**: 케이스마다 `runner/validate-case.php` 워커를 서브프로세스로 실행.
+- **Go**: `packages/validator-go/validate` CLI 바이너리 실행 (없으면
+  `go build -o validate ./cmd/validate` 로 자동 빌드).
 
-**테스트 케이스 형식:**
+### stdin JSON 프로토콜
+
+PHP 워커와 Go CLI 는 동일한 프로토콜을 쓴다 (`tests/runner/validate-case.php`,
+`packages/validator-go/cmd/validate-legacy/main.go`):
+
+```
+stdin:  {"spec": <spec>, "input": <input>}
+stdout: {"valid": bool, "error": string|null, "field": string|null}
+```
+
+spec/input 을 argv 나 인라인 코드로 전달하지 마라 — stdin 이 raw JSON 을
+운반하므로 셸/문자열 이스케이프가 개입하지 않는다.
+
+### 스펙 래핑 규약
+
+모든 러너가 공유하는 규약:
+
+- `type: group` + `properties` 가 아닌 단순 필드 스펙은
+  `{type:'group', properties:{value: spec}}` 으로 감싸고 입력도 `{value: input}` 으로 감싼다.
+- 입력 마커 `"__undefined__"` 는 undefined 로 매핑한다 (JSON 은 undefined 를 표현 못 함).
+
+## 2. 단일 언어 러너
+
+기대값(`expected.valid` / `expected.error` / `expected.field`)과 실제 결과를
+비교해 pass/fail 을 보고한다.
+
+```bash
+cd tests
+npm run run:js     # ts-node runner/run-js.ts
+npm run run:php    # php runner/run-php.php
+
+cd tests/runner/go
+go test ./...      # Go 브리지 (tests/cases/*.json 을 읽음)
+```
+
+`expected.field` 는 dot notation 경로다 (예: `option_single.items.0.price`) —
+배열 인덱스도 점으로 잇는다.
+
+## 3. 언어별 테스트 프레임워크 브리지
+
+같은 951 케이스를 각 언어의 표준 테스트 프레임워크로 실행한다. CI/IDE 통합과
+케이스 단위 리포팅이 목적이다. 브리지에서 단언을 약화해 RED 를 GREEN 으로
+만들지 마라 — 구현을 고쳐라.
+
+```bash
+# JS — vitest (packages/validator-js/src/__tests__/conformance.test.ts)
+cd packages/validator-js
+npx vitest run            # npm test 는 watch 모드로 열린다
+
+# PHP — PHPUnit (packages/validator-php/tests/ConformanceTest.php)
+cd packages/validator-php
+./vendor/bin/phpunit      # 또는 composer test
+# 최초 1회: composer install
+
+# Go — tests/runner/go (위 2절) + 내부 단위 테스트
+cd packages/validator-go
+go test ./...
+```
+
+이 밖에 언어별 전용 테스트:
+
+- `packages/validator-js/benchmarks/` — 성능 벤치마크 (`npm run bench`).
+- `packages/validator-go/validator/legacy/validator_test.go` — Go 내부 단위 테스트.
+- `packages/generator-react` — 컴포넌트 테스트 (`npm test`, vitest).
+
+## 4. HTML parity 하네스 (tests/parity)
+
+`tests/fixtures/golden-html/*.html`(legacy Limepie PHP 출력, 단일진실)과
+`@form-spec/generator-react` 의 SSR 출력을 정규화 후 비교한다.
+상세 규칙(토큰 마스킹, 속성 정렬, 공백 처리 등)은 `tests/parity/README.md` 참조.
+
+```bash
+cd tests/parity
+npm install          # 최초 1회
+npm test             # vitest run — 픽스처별 구조화 diff 리포트
+# 또는 tests/ 에서: npm run test:parity
+
+node capture-react.mjs <spec.yml> [data.json]   # 단일 스펙 SSR 캡처
+node normalize.js <file.html>                   # 정규화 결과 확인
+```
+
+비교 대상: `examples/shared-specs/*.yml` 6종 + `tests/fixtures/specs/ProductNft.yml`.
+모두 빈 데이터 렌더 기준. React 쪽 격차가 닫힐 때까지 RED 가 기대 상태다.
+
+## 5. 골든 HTML 재생성 (tools/limepie-baseline)
+
+골든 픽스처를 손으로 수정하지 마라. 재생성은 이 파이프라인으로만 하라.
+핀 커밋(`a47ccba7...`)이 아닌 Limepie 로 재생성하지 마라 — `generate-all.sh` 가
+HEAD 가드로 즉시 중단한다. 상세는 `tools/limepie-baseline/README.md` 참조.
+
+```bash
+# 1. 핀 확인 (clean tree + 핀 커밋)
+git -C /Users/max/ai/gui/limepie rev-parse HEAD      # a47ccba... 여야 함
+git -C /Users/max/ai/gui/limepie status --porcelain  # 출력 없어야 함
+
+# 2. 전체 재생성
+bash tools/limepie-baseline/generate-all.sh
+
+# 3. 단일 스펙 렌더 (확인용)
+php tools/limepie-baseline/render.php examples/shared-specs/product-form.yml
+```
+
+## 테스트 케이스 형식
+
 ```json
 {
   "testSuite": "required",
@@ -52,90 +200,29 @@ form-spec/
 }
 ```
 
-**실행:**
-```bash
-cd tests
-npm run compare        # JS + PHP 비교
-npm run compare:all    # JS + PHP + Go 비교
-npm run idempotency    # 멱등성 전체 테스트
-```
+- `expected.error` — 실패 시 규칙명. 성공 케이스에서는 생략.
+- `expected.field` — 그룹 스펙에서 에러 필드의 dot notation 경로. 단순 스펙에서는 생략.
+- 형식 상세와 케이스 파일 현황은 [TEST-CASES.md](./TEST-CASES.md) 참조.
 
-### 2. 언어별 단위 테스트
+## 케이스 추가 가이드
 
-**목적:** 각 언어의 내부 구현 세부사항 테스트
-
-**대상:**
-- 캐싱 동작 (ConditionCache)
-- 벤치마크/성능
-- 내부 유틸리티 함수 (isEmpty, parseCondition 등)
-
-**참고:** 이 테스트들은 언어마다 API가 다르므로 크로스 언어로 통합 불가능
-
-### 3. Generator 테스트
-
-**위치:** `packages/generator-*/src/__tests__/`
-
-**목적:** UI 프레임워크별 컴포넌트 동작 테스트
-
-**현재:**
-- React: `packages/generator-react/src/__tests__/`
-
-**향후 (Vue, Svelte 추가 시):**
-- 동일한 테스트 케이스 구조로 통합 가능
-- 입력: 스펙 + 사용자 액션
-- 출력: 폼 상태 (값, 에러, visibility)
-
-**실행:**
-```bash
-cd packages/generator-react
-npm test
-```
-
-## 테스트 케이스 추가 가이드
-
-### 크로스 언어 테스트 케이스 추가
-
-1. `tests/cases/`에 JSON 파일 생성 또는 수정
-2. 기존 파일 형식 참고 (required.json, email.json 등)
-3. `npm run compare`로 JS/PHP 결과 비교 확인
-
-### 새로운 검증 규칙 추가 시
-
-1. 각 언어에 규칙 구현 (JS, PHP, Go)
-2. `tests/cases/`에 테스트 케이스 추가
-3. `npm run idempotency`로 멱등성 확인
-
-## 테스트 파일 목록
-
-### 크로스 언어 테스트 케이스
-
-| 파일 | 설명 |
-|------|------|
-| `required.json` | 필수 입력 검증 |
-| `email.json` | 이메일 형식 검증 |
-| `minlength.json` | 최소 길이 검증 |
-| `maxlength.json` | 최대 길이 검증 |
-| `min-max.json` | 숫자 범위 검증 |
-| `pattern.json` | 정규식 패턴 검증 |
-| `unique.json` | 중복 검사 |
-| `conditional.json` | 조건부 검증 |
-| `display-switch.json` | 조건부 표시/숨김 |
-| `nested-groups.json` | 중첩 그룹 |
-| `multiple-fields.json` | 반복 필드 |
-| `array-wildcard.json` | 와일드카드 경로 |
+1. `tests/cases/` 의 기존 JSON 파일에 추가하거나 새 파일 생성 (기존 파일 형식 참고).
+2. `cd tests && npm test` 로 3개 언어 일치 확인.
+3. 새 검증 규칙을 추가할 때는 **3개 언어 전부에 구현**한 뒤 케이스를 추가하라 —
+   한 언어에만 구현된 규칙은 크로스 언어 게이트가 잡는다.
+4. 픽스처 기대값을 구현에 맞춰 고치지 마라 — 픽스처가 단일진실이다.
 
 ## 멱등성 원칙
 
-Form-Spec의 핵심 가치는 **멱등성**입니다:
-
 ```
-동일한 YAML 스펙 + 동일한 입력 데이터
+동일한 스펙 + 동일한 입력 데이터
             ↓
 ┌───────────┬───────────┬───────────┐
 │    JS     │    PHP    │    Go     │
 └───────────┴───────────┴───────────┘
             ↓
-      동일한 검증 결과
+      동일한 검증 결과 {valid, error, field}
 ```
 
-모든 테스트는 이 원칙을 검증하기 위해 존재합니다.
+검증기 테스트는 전부 이 원칙을 검증하기 위해 존재한다. HTML parity 는 같은
+원칙의 렌더링 판이다 — 동일 스펙은 동일 마크업 규약을 따라야 한다.
