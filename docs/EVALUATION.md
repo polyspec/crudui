@@ -1,5 +1,24 @@
 # Form-Spec 프로젝트 평가 보고서
 
+> **현황 업데이트 (2026-06).** 이 보고서의 §3-§10 평가는 작성 시점 기준이며,
+> 아래 항목은 그 이후 실측으로 갱신되었다:
+>
+> - **크로스 언어 검증 951/951 GREEN** — `tests/cases/*.json` 14개 스위트,
+>   951 케이스가 JS/PHP/Go 전부에서 일치 (`tests/runner/compare-all.js` +
+>   vitest/PHPUnit/go test 브리지 3종, 2026-06 실행 확인). 게이트 체계는
+>   [TESTING.md](./TESTING.md) 참조.
+> - **조건식 캐싱 구현 완료** — LRU 캐시
+>   (`packages/validator-js/src/parser/ConditionCache.ts`). §3.4 의
+>   '구현 없음' 서술은 더 이상 사실이 아니다.
+> - **벤치마크 존재** — `packages/validator-js/benchmarks/`
+>   (parsing.bench.ts, validation.bench.ts).
+> - **골든 HTML 파이프라인 구축** — legacy Legacy 출력(골든 7종,
+>   `tests/fixtures/golden-html/`)을 단일진실로 하는 재생성 파이프라인
+>   (`tools/legacy-baseline/`)과 React SSR 비교 하네스(`tests/parity/`).
+>   parity 는 generator-react 격차가 닫힐 때까지 RED 가 기대 상태다.
+> - 빌트인 규칙 수는 **24개 등록명(23개 구현 + pattern/match 별칭)** 이다
+>   (`packages/validator-js/src/rules/index.ts`) — 본문 '25+' 표기는 과거 수치.
+
 ## 1. 프로젝트 개요
 
 YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증 로직을 실행하고 React로 폼을 렌더링하는 크로스 플랫폼 폼 라이브러리.
@@ -11,7 +30,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 ### 2.1 멱등성 보장
 - **핵심 가치**: 동일한 YAML 스펙 → 모든 언어에서 동일한 검증 결과
 - 클라이언트/서버 검증 불일치 문제 해결
-- 25개 테스트 케이스로 언어 간 일관성 검증
+- 951개 크로스 언어 테스트 케이스(14개 스위트)로 언어 간 일관성 검증
 
 ### 2.2 복잡한 폼 구조 지원
 - 1,318줄 규모의 LargeForm 같은 e-commerce 폼 완벽 지원
@@ -26,7 +45,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 
 ### 2.4 코드 품질
 - TypeScript strict mode 완전 활성화
-- 플러그인 패턴으로 규칙 확장 가능 (25+ 빌트인 규칙)
+- 플러그인 패턴으로 규칙 확장 가능 (빌트인 24개 등록 규칙명 = 23개 구현 + pattern/match 별칭)
 - ESM/CJS 듀얼 빌드
 
 ### 2.5 실전 검증된 설계
@@ -45,22 +64,24 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 | @form-spec/generator-vue | v0.0.1 미구현 |
 | @form-spec/generator-svelte | v0.0.1 미구현 |
 
-### 3.2 에러 처리 미흡
-```typescript
-// 현재: 조건식 파싱 실패 시 정보 손실
-} catch {
-  return false;  // 디버깅 어려움
-}
-```
+### 3.2 에러 처리 미흡 — 부분 해소
+
+조건식 평가 실패 시 기본 동작은 여전히 `false` 폴백이지만, `debug` 옵션을 켜면
+표현식·경로·에러를 `console.warn` 으로 남긴다
+(`packages/validator-js/src/legacy/Validator.ts` `evaluateCondition`, 776-791행).
+기본(debug off)에서는 silent 폴백이 유지된다.
 
 ### 3.3 문서화 부족
 - 고급 사용법 가이드 없음
 - 트러블슈팅 문서 없음
 - 성능 최적화 팁 없음
 
-### 3.4 성능 최적화 미비
-- 조건식 캐싱 타입만 정의 (CachedCondition), 구현 없음
-- 대규모 폼 벤치마킹 없음
+### 3.4 성능 최적화 — 해소됨
+- ~~조건식 캐싱 타입만 정의 (CachedCondition), 구현 없음~~ → LRU 캐시 구현 완료
+  (`packages/validator-js/src/parser/ConditionCache.ts` — Map + 이중 연결 리스트,
+  O(1) lookup/eviction, 히트율 통계)
+- ~~대규모 폼 벤치마킹 없음~~ → `packages/validator-js/benchmarks/` 추가
+  (`npm run bench`)
 
 ### 3.5 커뮤니티/인지도 부재
 - npm 미발행 상태 (로컬 파일 참조만)
@@ -72,13 +93,13 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 ## 4. 개선 필요 사항
 
 ### 즉시 (High Priority)
-1. npm 패키지 발행
-2. 에러 로깅 개선
-3. 기본 벤치마크 추가
+1. npm 패키지 발행 (미완)
+2. 에러 로깅 개선 (부분 완료 — debug 옵션 로깅, §3.2 참조)
+3. ~~기본 벤치마크 추가~~ (완료 — `packages/validator-js/benchmarks/`)
 
 ### 중기 (Medium Priority)
-1. Vue/Svelte 생성기 구현
-2. 조건식 캐싱 구현
+1. Vue/Svelte 생성기 구현 (미완 — v0.0.1 placeholder)
+2. ~~조건식 캐싱 구현~~ (완료 — `ConditionCache.ts`)
 3. 성능 최적화
 
 ### 장기 (Low Priority)
@@ -182,7 +203,13 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 
 ---
 
-## 9. 개선 작업 계획
+## 9. 개선 작업 계획 (사료 — 당시 계획, 일부 완료)
+
+> 이 절은 작성 시점의 작업 계획 기록이다. 실측 완료 항목:
+> #3 조건식 캐싱(`ConditionCache.ts`), #4 벤치마크(`benchmarks/`),
+> vitest 커버리지 설정(`vitest.config.ts`). 단위 테스트 강화(#5-8)는 이후
+> 951케이스 크로스 언어 conformance 브리지 체계로 대체되었다
+> (`packages/validator-js/src/__tests__/conformance.test.ts`). CI 설정은 미구현.
 
 ### 브랜치: `feature/quality-improvements`
 
@@ -239,7 +266,10 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go에서 동일한 검증
 
 ---
 
-## 10. 이번 작업 범위 (병렬 실행)
+## 10. 이번 작업 범위 (사료 — 당시 실행 계획)
+
+> §9 와 동일한 시점의 기록이다. 현재 진행 상황은 문서 상단
+> '현황 업데이트' 절을 보라.
 
 ### Phase 1: 즉시 실행 (에이전트 10개 병렬)
 

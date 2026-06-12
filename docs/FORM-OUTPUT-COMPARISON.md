@@ -1,5 +1,13 @@
 # Form Output Comparison: Legacy PHP vs React Form Builder
 
+> **상태 (2026-06).** 이 문서는 정합화 작업 착수 시점의 비교 분석이다.
+> §3/§5 의 항목 다수가 그 후 구현 완료되었다 — 각 항목의 ✅ 표시를 보라.
+> "React Output" 으로 인용된 마크업 예시는 작성 시점 스냅샷이며 현재 출력과
+> 다를 수 있다. **현재의 출력 일치 여부는 이 문서가 아니라
+> `tests/parity` 하네스(골든 HTML 7종 비교)가 단일 기준이다** —
+> `tests/parity/README.md` 참조. generator-react 마크업은 현재도 정합화
+> 작업이 진행 중이므로 이 문서의 마크업 세부를 구현 기준으로 삼지 마라.
+
 This document compares the HTML output structure between the Legacy PHP form generator and the React form builder to identify differences and what needs to be aligned.
 
 ## 1. Overall Form Structure
@@ -92,29 +100,38 @@ This document compares the HTML output structure between the Legacy PHP form gen
 
 ## 3. Missing in React Version
 
+> 작성 시점의 격차 목록이다. ✅ = 구현 완료 (출처 파일 병기).
+
 ### 3.1 Critical for Validation Compatibility
 
-1. **`data-rule-name` attribute** - Used by jQuery validation plugin to identify rules
-2. **`data-name` attribute** - Property key for validation messages
-3. **`data-default` attribute** - Default value reference
-4. **`valid-target` class** - Used by jQuery validation to target elements
-5. **`name` attribute format** - PHP uses bracket notation `group[field][]`, React uses dots
+1. ✅ **`data-rule-name` attribute** - Used by jQuery validation plugin to identify rules
+   (`generator-react/src/utils/dataAttributes.ts` `getLegacyDataAttributes`)
+2. ✅ **`data-name` attribute** - Property key for validation messages (같은 함수)
+3. ✅ **`data-default` attribute** - Default value reference (같은 함수)
+4. ✅ **`valid-target` class** - Used by jQuery validation to target elements
+   (`dataAttributes.ts` `getInputClasses`/`getSelectClasses`/`getCheckboxClasses`)
+5. ✅ **`name` attribute format** - bracket notation 변환 구현
+   (`dataAttributes.ts` `toBracketNotation`/`toBracketNotationWithPrefix`)
 
 ### 3.2 Layout Compatibility
 
-1. **`name="fieldName-layer"` on wrapper** - Used for dynamic show/hide via `display_target`
-2. **`data-uniqid` attribute** - Used for dynamic add/remove in multiple fields
-3. **`input-group-wrapper` div** - Container for add/remove buttons in multiple fields
-4. **`clone-element` class** - Added to cloned elements (index > 1)
+1. ✅ **`name="fieldName-layer"` on wrapper** - Used for dynamic show/hide via `display_target`
+   (`generator-react/src/components/FormField.tsx`, `FormGroup.tsx` — dot 표기 `path-layer`)
+2. ✅ **`data-uniqid` attribute** - Used for dynamic add/remove in multiple fields
+   (`FormField.tsx`, `FormGroup.tsx`. 단, React 는 12 hex, PHP 는 13 hex —
+   `tests/parity/README.md` 에 알려진 deviation 으로 기록됨)
+3. ✅ **`input-group-wrapper` div** - Container for add/remove buttons in multiple fields
+   (`FormField.tsx`, `FormGroup.tsx`)
+4. **`clone-element` class** - Added to cloned elements (index > 1) — 미구현
 
 ### 3.3 Bootstrap Classes
 
-1. **`form-control`** - Bootstrap input class (React uses custom `form-input`)
-2. **`form-select`** - Bootstrap select class
-3. **`input-group`** - Bootstrap input group
-4. **`input-group-text`** - For prepend/append
-5. **`btn-group`** - For choice/multichoice button groups
-6. **`form-check`** - For checkbox/radio
+1. ✅ **`form-control`** - Bootstrap input class (`dataAttributes.ts` `getInputClasses`)
+2. ✅ **`form-select`** - Bootstrap select class (`dataAttributes.ts` `getSelectClasses`)
+3. ✅ **`input-group`** - Bootstrap input group (`fields/TextField.tsx`)
+4. ✅ **`input-group-text`** - For prepend/append (`fields/TextField.tsx`)
+5. ✅ **`btn-group`** - For choice/multichoice button groups (`fields/ChoiceField.tsx`)
+6. ✅ **`form-check`** - For checkbox/radio (`fields/CheckboxField.tsx`)
 
 ## 4. Detailed Element Comparisons
 
@@ -309,9 +326,12 @@ This document compares the HTML output structure between the Legacy PHP form gen
 
 ## 5. Required Changes for React Version
 
+> 작성 시점의 작업 목록이다. ✅ = 구현 완료. 코드 스니펫은 당시 제안이며
+> 실제 구현은 `generator-react/src/utils/dataAttributes.ts` 등 출처 파일을 보라.
+
 ### 5.1 High Priority (Validation Compatibility)
 
-1. **Add validation data attributes to inputs:**
+1. ✅ **Add validation data attributes to inputs:**
    ```tsx
    <input
      data-name={name}
@@ -320,12 +340,12 @@ This document compares the HTML output structure between the Legacy PHP form gen
    />
    ```
 
-2. **Add `valid-target` class to all form controls:**
+2. ✅ **Add `valid-target` class to all form controls:**
    ```tsx
    const inputClasses = ['valid-target', 'form-control', ...];
    ```
 
-3. **Convert name format from dots to brackets:**
+3. ✅ **Convert name format from dots to brackets:**
    ```tsx
    // path: "group.field.subfield"
    // name: "group[field][subfield]"
@@ -336,17 +356,17 @@ This document compares the HTML output structure between the Legacy PHP form gen
 
 ### 5.2 Medium Priority (Layout Compatibility)
 
-4. **Add layer name to wrapper divs:**
+4. ✅ **Add layer name to wrapper divs:**
    ```tsx
    <div className="form-element-wrapper" name={`${path.replace(/\./g, '-')}-layer`}>
    ```
 
-5. **Add data-uniqid to array item wrappers:**
+5. ✅ **Add data-uniqid to array item wrappers** (단, `clone-element` 클래스는 미구현):
    ```tsx
    <div data-uniqid={item.key} className={`input-group-wrapper ${index > 0 ? 'clone-element' : ''}`}>
    ```
 
-6. **Change input wrapper structure:**
+6. ✅ **Change input wrapper structure:**
    ```tsx
    <div className="input-group">
      {prepend}
@@ -359,28 +379,34 @@ This document compares the HTML output structure between the Legacy PHP form gen
 
 ### 5.3 Lower Priority (Bootstrap Compatibility)
 
-7. **Use Bootstrap classes instead of custom:**
+7. ✅ **Use Bootstrap classes instead of custom:**
    - `form-control` instead of `form-input`
    - `form-select` instead of `form-input--select`
    - `input-group` instead of `form-input-wrapper`
    - `input-group-text` instead of `form-input__prepend`
    - `btn-group btn-group-toggle` for choice fields
 
-8. **Use `<h6>` for labels in groups instead of `<label>`**
+8. ✅ **Use `<h6>` for labels in groups instead of `<label>`** (`FormField.tsx`, `FormGroup.tsx`)
 
-9. **Move description before form element**
+9. ✅ **Move description before form element** (`FormField.tsx`)
 
 ### 5.4 Optional Enhancements
 
-10. **Support `onchange`, `onclick` attributes from spec**
+10. **Support `onchange`, `onclick` attributes from spec** — 미구현 (필드 레벨)
 
-11. **Support `data-init-change` for initial trigger**
+11. **Support `data-init-change` for initial trigger** — 미구현
 
-12. **Support `data-is-default` on choice options**
+12. ✅ **Support `data-is-default` on choice options** (`fields/ChoiceField.tsx`)
 
-13. **Add `<!--btn-->` comment marker for multiple field button injection**
+13. **Add `<!--btn-->` comment marker** — 해당 없음(N/A): React 는 HTML 주석을
+    출력할 수 없고, parity 비교에서 주석은 정규화로 제외된다
+    (`tests/parity/README.md` 규칙 (d))
 
 ## 6. Name Format Conversion
+
+> ✅ 구현 완료 — `generator-react/src/utils/dataAttributes.ts` 의
+> `toBracketNotation`/`toBracketNotationWithPrefix`/`toRuleNameNotation`.
+> 아래 스니펫은 당시 제안 코드다.
 
 ### Current React (Dot Notation)
 ```
