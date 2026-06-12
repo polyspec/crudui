@@ -36,29 +36,23 @@ use FormSpec\Validator\Rules\Step;
 class Validator
 {
     /**
-     * @var array<string, RuleInterface|callable>
+     * Rules that apply to a multiple field's array as a whole,
+     * never to its individual entries.
      */
-    private array $rules = [];
+    public const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
 
     /**
-     * @var array The form specification
+     * Rules whose string param is a literal value, never a condition
+     * expression. An accept param such as ".jpg" starts with a dot and would
+     * otherwise be misread as a relative field reference and the rule skipped.
      */
-    private array $spec;
-
-    /**
-     * @var ConditionParser
-     */
-    private ConditionParser $conditionParser;
-
-    /**
-     * @var PathResolver
-     */
-    private PathResolver $pathResolver;
+    public const LITERAL_PARAM_RULES = ['accept'];
 
     /**
      * Default error messages for each rule.
+     * 'pattern' and 'match' are aliases of the same rule.
      */
-    private array $defaultMessages = [
+    private const DEFAULT_MESSAGES = [
         'required' => 'This field is required.',
         'email' => 'Please enter a valid email address.',
         'minlength' => 'Please enter at least {0} characters.',
@@ -66,6 +60,7 @@ class Validator
         'min' => 'Please enter a value greater than or equal to {0}.',
         'max' => 'Please enter a value less than or equal to {0}.',
         'match' => 'Please enter a valid format.',
+        'pattern' => 'Please enter a valid format.',
         'unique' => 'Values must be unique.',
         'in' => 'Please select a valid option.',
         'range' => 'Please enter a value between {0} and {1}.',
@@ -83,6 +78,20 @@ class Validator
         'maxcount' => 'Please select no more than {0} items.',
         'step' => 'Please enter a value that is a multiple of {0}.',
     ];
+
+    /**
+     * @var array<string, RuleInterface|callable>
+     */
+    private array $rules = [];
+
+    /**
+     * @var array The form specification
+     */
+    private readonly array $spec;
+
+    private readonly ConditionParser $conditionParser;
+
+    private readonly PathResolver $pathResolver;
 
     /**
      * Create a new Validator instance.
@@ -108,7 +117,10 @@ class Validator
         $this->rules['maxlength'] = new MaxLength();
         $this->rules['min'] = new Min();
         $this->rules['max'] = new Max();
-        $this->rules['match'] = new Pattern();
+        // 'pattern' and 'match' are aliases of the same rule (fixtures use 'pattern')
+        $patternRule = new Pattern();
+        $this->rules['match'] = $patternRule;
+        $this->rules['pattern'] = $patternRule;
         $this->rules['unique'] = new Unique();
         $this->rules['in'] = new In();
         $this->rules['range'] = new Range();
@@ -195,6 +207,12 @@ class Validator
         $properties = $spec['properties'] ?? [];
 
         foreach ($properties as $propertyKey => $propertySpec) {
+            // A field spec must be an object/array; a malformed spec (e.g. a bare
+            // string) is skipped rather than crashing, matching JS/Go behavior.
+            if (!is_array($propertySpec)) {
+                continue;
+            }
+
             // Handle array notation (e.g., "items[]")
             $isArray = str_ends_with($propertyKey, '[]');
             $cleanKey = $isArray ? rtrim($propertyKey, '[]') : $propertyKey;
@@ -219,6 +237,12 @@ class Validator
                 $isOnlyMultiple = $multiple === 'only' && is_array($value) && !array_is_list($value);
 
                 if ($isArrayMultiple) {
+                    // Array-level rules (mincount/maxcount/...) on the group array itself
+                    $this->validateFieldRules($propertySpec, $value, $currentPath, $allData, $errors, RuleScope::ArrayLevel);
+                    if (isset($errors[$currentPath])) {
+                        continue; // First error per field: skip item validation
+                    }
+
                     // Handle array of groups (repeatable group)
                     foreach ($value as $index => $itemData) {
                         if (is_array($itemData)) {
@@ -239,14 +263,16 @@ class Validator
                 $isFieldMultiple = $isArray || ($propertySpec['multiple'] ?? false) === true;
 
                 if ($isFieldMultiple && is_array($value)) {
-                    // Validate the array as a whole first (for rules like 'unique')
-                    $this->validateFieldRules($propertySpec, $value, $currentPath, $allData, $errors);
+                    // Array-level rules (required/unique/mincount/maxcount) on the array as a whole
+                    $this->validateFieldRules($propertySpec, $value, $currentPath, $allData, $errors, RuleScope::ArrayLevel);
+                    if (isset($errors[$currentPath])) {
+                        continue; // First error per field: skip item validation
+                    }
 
-                    // Then validate each item individually (for rules like 'required' on each item)
+                    // Then validate each item individually (format rules, min/max, etc.)
                     foreach ($value as $index => $itemValue) {
                         $indexPath = "{$currentPath}.{$index}";
-                        // Only validate required and format rules on individual items, not array-level rules
-                        $this->validateArrayItemRules($propertySpec, $itemValue, $indexPath, $allData, $errors);
+                        $this->validateFieldRules($propertySpec, $itemValue, $indexPath, $allData, $errors, RuleScope::ItemLevel);
                     }
                 } else {
                     $this->validateFieldRules($propertySpec, $value, $currentPath, $allData, $errors);
@@ -256,21 +282,28 @@ class Validator
     }
 
     /**
-     * Validate rules for a single field.
+     * Validate rules for a single field within the given scope.
      */
     private function validateFieldRules(
         array $fieldSpec,
         mixed $value,
         string $path,
         array $allData,
-        array &$errors
+        array &$errors,
+        RuleScope $scope = RuleScope::Single
     ): void {
         $rules = $fieldSpec['rules'] ?? [];
         $fieldType = $fieldSpec['type'] ?? 'text';
 
         // For number type fields, implicitly run number validation first
-        // if there's no explicit number rule (to catch invalid numbers before min/max)
-        if ($fieldType === 'number' && !isset($rules['number']) && !$this->isEmpty($value)) {
+        // if there's no explicit number rule (to catch invalid numbers before min/max).
+        // The implicit check targets scalar values, never the array of a multiple field.
+        if (
+            $scope !== RuleScope::ArrayLevel
+            && $fieldType === 'number'
+            && !isset($rules['number'])
+            && !$this->isEmpty($value)
+        ) {
             $error = $this->applyRule('number', true, $value, $path, $allData, $fieldSpec);
             if ($error !== null) {
                 $errors[$path] = [
@@ -284,37 +317,7 @@ class Validator
         }
 
         foreach ($rules as $ruleName => $ruleParam) {
-            $error = $this->applyRule($ruleName, $ruleParam, $value, $path, $allData, $fieldSpec);
-            if ($error !== null) {
-                $errors[$path] = [
-                    'field' => $path,
-                    'rule' => $ruleName,
-                    'message' => $error,
-                    'value' => $value,
-                ];
-                break; // Stop on first error for this field
-            }
-        }
-    }
-
-    /**
-     * Validate array item rules (excludes array-level rules like 'unique').
-     */
-    private function validateArrayItemRules(
-        array $fieldSpec,
-        mixed $value,
-        string $path,
-        array $allData,
-        array &$errors
-    ): void {
-        $rules = $fieldSpec['rules'] ?? [];
-
-        // Array-level rules that should not be applied to individual items
-        $arrayLevelRules = ['unique', 'mincount', 'maxcount'];
-
-        foreach ($rules as $ruleName => $ruleParam) {
-            // Skip array-level rules for individual items
-            if (in_array($ruleName, $arrayLevelRules, true)) {
+            if (!$scope->appliesTo($ruleName)) {
                 continue;
             }
 
@@ -342,8 +345,11 @@ class Validator
         array $allData,
         array $fieldSpec
     ): ?string {
-        // Handle ternary expressions (e.g., min: ".type == 1 ? 100 : 0")
-        if (is_string($ruleParam) && $this->isTernaryExpression($ruleParam)) {
+        $isLiteralParamRule = in_array($ruleName, self::LITERAL_PARAM_RULES, true);
+
+        // Handle ternary expressions (e.g., min: ".type == 1 ? 100 : 0").
+        // Literal-param rules (accept) keep their string param verbatim.
+        if (!$isLiteralParamRule && is_string($ruleParam) && $this->isTernaryExpression($ruleParam)) {
             $ruleParam = $this->conditionParser->evaluateTernary($ruleParam, $path, $allData);
             // If result is null or false, skip the rule
             if ($ruleParam === null || $ruleParam === false) {
@@ -351,7 +357,7 @@ class Validator
             }
         }
         // Handle conditional rules (e.g., required: ".field == 'value'")
-        elseif (is_string($ruleParam) && $this->isConditionExpression($ruleParam)) {
+        elseif (!$isLiteralParamRule && is_string($ruleParam) && $this->isConditionExpression($ruleParam)) {
             $conditionMet = $this->conditionParser->evaluate($ruleParam, $path, $allData);
             if (!$conditionMet) {
                 return null; // Condition not met, skip this rule
@@ -374,9 +380,14 @@ class Validator
             return null;
         }
 
-        // For non-required fields, skip validation if value is empty
+        // For non-required fields, skip validation if value is empty.
+        // Exception: mincount/maxcount must still fire on empty arrays
+        // (an empty multiple field violates mincount - tests/cases/multiple-fields.json).
         if ($ruleName !== 'required' && $this->isEmpty($value)) {
-            return null;
+            $isCountRuleOnArray = is_array($value) && in_array($ruleName, ['mincount', 'maxcount'], true);
+            if (!$isCountRuleOnArray) {
+                return null;
+            }
         }
 
         // Get the rule handler
@@ -409,17 +420,35 @@ class Validator
         if ($this->isTernaryExpression($value)) {
             return false;
         }
-        return preg_match('/^\./', $value) === 1 ||
-               preg_match('/\s*(==|!=|>=|<=|>|<|\s+in\s+|\s+not\s+in\s+)\s*/', $value) === 1;
+        return $this->looksLikeCondition($value);
     }
 
     /**
-     * Check if a string is a ternary expression (contains ? ... :).
+     * Check if a string is a ternary expression (condition ? trueValue : falseValue).
+     *
+     * The part before '?' must itself look like a condition. This keeps regex
+     * params like "^https?://..." (where '?' is a quantifier) out of the
+     * ternary path while ".country == KR ? A : B" stays in.
      */
     private function isTernaryExpression(string $value): bool
     {
-        // Ternary expressions have the form: condition ? trueValue : falseValue
-        return preg_match('/\?[^:]*:/', $value) === 1;
+        if (preg_match('/\?[^:]*:/', $value) !== 1) {
+            return false;
+        }
+
+        $questionPos = strpos($value, '?');
+        $condition = trim(substr($value, 0, (int)$questionPos));
+
+        return $condition !== '' && $this->looksLikeCondition($condition);
+    }
+
+    /**
+     * Check if a string looks like a condition (path reference or comparison).
+     */
+    private function looksLikeCondition(string $value): bool
+    {
+        return preg_match('/^\./', $value) === 1 ||
+               preg_match('/\s*(==|!=|>=|<=|>|<|\s+in\s+|\s+not\s+in\s+)\s*/', $value) === 1;
     }
 
     /**
@@ -427,10 +456,23 @@ class Validator
      */
     private function shouldValidateField(array $fieldSpec, string $path, array $allData): bool
     {
-        // Check display_switch condition
+        // Check display_switch condition.
+        // Boolean values short-circuit: false = always hidden (skip validation),
+        // true = always shown. Only string expressions are evaluated.
         if (isset($fieldSpec['display_switch'])) {
-            if (!$this->conditionParser->evaluate($fieldSpec['display_switch'], $path, $allData)) {
+            $displaySwitch = $fieldSpec['display_switch'];
+
+            if ($displaySwitch === false) {
                 return false;
+            }
+
+            if (is_string($displaySwitch)) {
+                // Relative paths in a group's own condition resolve from the
+                // group's scope (see PathResolver::resolveRelativePath)
+                $fromGroup = ($fieldSpec['type'] ?? 'text') === 'group';
+                if (!$this->conditionParser->evaluate($displaySwitch, $path, $allData, $fromGroup)) {
+                    return false;
+                }
             }
         }
 
@@ -483,7 +525,7 @@ class Validator
         $messages = $fieldSpec['messages'] ?? [];
 
         // Check for custom message
-        $message = $messages[$ruleName] ?? $this->defaultMessages[$ruleName] ?? 'Validation failed.';
+        $message = $messages[$ruleName] ?? self::DEFAULT_MESSAGES[$ruleName] ?? 'Validation failed.';
 
         // Handle multi-language messages
         if (is_array($message)) {

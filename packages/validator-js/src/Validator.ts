@@ -19,7 +19,6 @@ import {
 
 import {
   getRule,
-  registerRule,
 } from './rules/index';
 
 import {
@@ -33,7 +32,111 @@ import {
   parsePathString,
   pathToString,
   getFieldName,
+  resolveFieldReference,
 } from './parser/PathResolver';
+
+/**
+ * Rules that receive their raw param (path references / filter conditions)
+ * instead of having string params pre-evaluated as condition expressions
+ */
+const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique'];
+
+/**
+ * Rules whose string param is a literal value, never a condition expression.
+ * An accept param such as ".jpg" or ".jpg,.png" starts with a dot and would
+ * otherwise be misread as a relative field reference and the rule skipped.
+ */
+const LITERAL_PARAM_RULES = ['accept'];
+
+/**
+ * Find the position of a top-level ternary operator ('?' or ':') in an
+ * expression, respecting quotes, parentheses, brackets and nested ternaries
+ * (PHP ConditionParser::findTernaryOperator parity)
+ */
+function findTernaryOperator(
+  expression: string,
+  operator: '?' | ':',
+  startPos = 0
+): number {
+  let depth = 0;
+  let inQuote = false;
+  let quoteChar = '';
+  let ternaryDepth = 0;
+
+  for (let i = startPos; i < expression.length; i++) {
+    const char = expression[i]!;
+
+    // Handle quotes
+    if ((char === '"' || char === "'") && !inQuote) {
+      inQuote = true;
+      quoteChar = char;
+    } else if (char === quoteChar && inQuote) {
+      inQuote = false;
+      quoteChar = '';
+    }
+
+    if (!inQuote) {
+      if (char === '(' || char === '[') {
+        depth++;
+      } else if (char === ')' || char === ']') {
+        depth--;
+      }
+
+      if (char === '?' && depth === 0) {
+        if (operator === '?') {
+          return i;
+        }
+        ternaryDepth++;
+      } else if (char === ':' && depth === 0) {
+        if (operator === ':') {
+          if (ternaryDepth === 0) {
+            return i;
+          }
+          ternaryDepth--;
+        }
+      }
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Parse a ternary branch value string into a typed value
+ * (PHP ConditionParser::parseValue parity for scalar values)
+ */
+function parseTernaryBranchValue(raw: string): unknown {
+  const value = raw.trim();
+
+  // Quoted strings
+  const quoted = value.match(/^["'](.*)["']$/s);
+  if (quoted) {
+    return quoted[1];
+  }
+
+  if (value === 'true') {
+    return true;
+  }
+  if (value === 'false') {
+    return false;
+  }
+  if (value === 'null') {
+    return null;
+  }
+
+  if (value !== '' && !isNaN(Number(value))) {
+    return value.includes('.') ? parseFloat(value) : parseInt(value, 10);
+  }
+
+  // Raw string (e.g., a regex pattern branch)
+  return value;
+}
+
+/**
+ * Rules that apply to the array as a whole for `multiple: true` fields.
+ * All other rules apply to each array element individually.
+ */
+const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
 
 /**
  * Validator class for form-spec validation
@@ -133,10 +236,9 @@ export class Validator {
       defaultMessage: 'Validation failed.',
     };
 
+    // Instance-scoped only: never pollutes the global registry.
+    // Use registerRule() from rules/index for explicit global registration.
     this.customRules.set(name, definition);
-
-    // Also register globally for other validators
-    registerRule(name, definition);
   }
 
   /**
@@ -164,21 +266,9 @@ export class Validator {
       const fieldPath = [...currentPath, fieldName];
       const fieldValue = data?.[fieldName];
 
-      // Check if field should be validated (display_switch condition)
-      if (fieldSpec.display_switch) {
-        const context: PathContext = {
-          currentPath: fieldPath,
-          formData: allData,
-        };
-
-        const shouldDisplay = this.evaluateDisplayCondition(
-          fieldSpec.display_switch,
-          context
-        );
-
-        if (!shouldDisplay) {
-          continue; // Skip validation for hidden fields
-        }
+      // Check display_switch / display_target visibility conditions
+      if (!this.shouldValidateField(fieldSpec, fieldPath, allData)) {
+        continue; // Skip validation for hidden fields
       }
 
       // Handle group type (nested or array)
@@ -281,6 +371,17 @@ export class Validator {
           );
         }
         // Note: if multiple is set but data format doesn't match, skip validation
+      } else if (fieldSpec.multiple === true && Array.isArray(fieldValue)) {
+        // Regular field with multiple values (e.g., multiple text inputs):
+        // array-level rules apply to the whole array, the remaining rules
+        // apply to each element
+        this.validateMultipleFieldRules(
+          fieldSpec,
+          fieldValue,
+          fieldPath,
+          allData,
+          errors
+        );
       } else {
         // Regular field
         this.validateFieldRules(
@@ -295,6 +396,200 @@ export class Validator {
   }
 
   /**
+   * Check display_switch / display_target conditions for a field.
+   * Returns false when the field is hidden (validation must be skipped).
+   */
+  private shouldValidateField(
+    fieldSpec: FieldSpec,
+    fieldPath: string[],
+    allData: Record<string, unknown>
+  ): boolean {
+    const isGroup = fieldSpec.type === 'group';
+
+    // display_switch: condition string or boolean
+    const displaySwitch = fieldSpec.display_switch;
+    if (displaySwitch !== undefined && displaySwitch !== null) {
+      if (displaySwitch === false) {
+        return false; // Always hidden
+      }
+      if (typeof displaySwitch === 'string' && displaySwitch !== '') {
+        const context: PathContext = {
+          currentPath: fieldPath,
+          formData: allData,
+          groupNode: isGroup,
+        };
+        if (!this.evaluateCondition(displaySwitch, context)) {
+          return false;
+        }
+      }
+      // displaySwitch === true: always visible
+    }
+
+    // display_target: hidden when the target field value is empty
+    // ('0' and 0 count as present - PHP Validator::shouldValidateField parity)
+    const displayTarget = fieldSpec.display_target;
+    if (typeof displayTarget === 'string' && displayTarget !== '') {
+      const targetValue = resolveFieldReference(displayTarget, {
+        currentPath: fieldPath,
+        formData: allData,
+        groupNode: isGroup,
+      });
+
+      const isHidden =
+        targetValue === null ||
+        targetValue === undefined ||
+        targetValue === false ||
+        targetValue === '' ||
+        (Array.isArray(targetValue) && targetValue.length === 0) ||
+        (typeof targetValue === 'object' &&
+          targetValue !== null &&
+          !Array.isArray(targetValue) &&
+          Object.keys(targetValue).length === 0);
+
+      if (isHidden) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Validate a `multiple: true` non-group field whose value is an array.
+   * Array-level rules (required/unique/mincount/maxcount) run against the
+   * whole array; all other rules run against each element.
+   */
+  private validateMultipleFieldRules(
+    fieldSpec: FieldSpec,
+    values: unknown[],
+    fieldPath: string[],
+    allData: Record<string, unknown>,
+    errors: ValidationError[]
+  ): void {
+    const messages = fieldSpec.messages;
+
+    // 1. Array-level rules (in spec declaration order, first error wins)
+    if (fieldSpec.rules) {
+      const context: PathContext = {
+        currentPath: fieldPath,
+        formData: allData,
+      };
+
+      for (const [ruleName, ruleParam] of Object.entries(fieldSpec.rules)) {
+        if (!ARRAY_LEVEL_RULES.includes(ruleName)) {
+          continue;
+        }
+
+        const error = this.validateRule(
+          ruleName,
+          ruleParam,
+          values,
+          context,
+          fieldSpec,
+          messages
+        );
+
+        if (error) {
+          errors.push({
+            path: pathToString(fieldPath),
+            field: getFieldName(fieldPath),
+            rule: ruleName,
+            message: error,
+            value: values,
+          });
+          return; // First error wins for this field
+        }
+      }
+    }
+
+    // 2. Item-level rules for each element
+    for (let i = 0; i < values.length; i++) {
+      const itemPath = [...fieldPath, String(i)];
+      this.validateArrayItemRules(
+        fieldSpec,
+        values[i],
+        itemPath,
+        allData,
+        errors
+      );
+    }
+  }
+
+  /**
+   * Validate item-level rules for a single element of a multiple field.
+   * Array-level rules are excluded.
+   */
+  private validateArrayItemRules(
+    fieldSpec: FieldSpec,
+    value: unknown,
+    itemPath: string[],
+    allData: Record<string, unknown>,
+    errors: ValidationError[]
+  ): void {
+    const context: PathContext = {
+      currentPath: itemPath,
+      formData: allData,
+    };
+    const messages = fieldSpec.messages;
+
+    // For number type fields, implicitly run number validation first
+    if (
+      fieldSpec.type === 'number' &&
+      !(fieldSpec.rules && 'number' in fieldSpec.rules)
+    ) {
+      const error = this.validateRule(
+        'number',
+        true,
+        value,
+        context,
+        fieldSpec,
+        messages
+      );
+
+      if (error) {
+        errors.push({
+          path: pathToString(itemPath),
+          field: getFieldName(itemPath),
+          rule: 'number',
+          message: error,
+          value,
+        });
+        return;
+      }
+    }
+
+    if (!fieldSpec.rules) {
+      return;
+    }
+
+    for (const [ruleName, ruleParam] of Object.entries(fieldSpec.rules)) {
+      if (ARRAY_LEVEL_RULES.includes(ruleName)) {
+        continue;
+      }
+
+      const error = this.validateRule(
+        ruleName,
+        ruleParam,
+        value,
+        context,
+        fieldSpec,
+        messages
+      );
+
+      if (error) {
+        errors.push({
+          path: pathToString(itemPath),
+          field: getFieldName(itemPath),
+          rule: ruleName,
+          message: error,
+          value,
+        });
+        break; // Stop at first error for this item
+      }
+    }
+  }
+
+  /**
    * Validate rules for a single field
    */
   private validateFieldRules(
@@ -304,10 +599,6 @@ export class Validator {
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
-    if (!fieldSpec.rules) {
-      return;
-    }
-
     const context: PathContext = {
       currentPath: fieldPath,
       formData: allData,
@@ -316,8 +607,16 @@ export class Validator {
     const messages = fieldSpec.messages;
 
     // For number type fields, implicitly run number validation first
-    // if there's no explicit number rule (to catch invalid numbers before min/max)
-    if (fieldSpec.type === 'number' && !('number' in fieldSpec.rules)) {
+    // if there's no explicit number rule (to catch invalid numbers before min/max).
+    // This MUST run before the `!fieldSpec.rules` guard below — a number field
+    // with no rules still gets the implicit number check (PHP Validator.php:290
+    // and Go run the implicit number regardless of rules; JS must match, even
+    // though legacy had no implicit number at all — intentional strengthening,
+    // client must not be looser than server).
+    if (
+      fieldSpec.type === 'number' &&
+      !(fieldSpec.rules && 'number' in fieldSpec.rules)
+    ) {
       const error = this.validateRule(
         'number',
         true,
@@ -337,6 +636,10 @@ export class Validator {
         });
         return; // Stop at first error
       }
+    }
+
+    if (!fieldSpec.rules) {
+      return;
     }
 
     for (const [ruleName, ruleParam] of Object.entries(fieldSpec.rules)) {
@@ -375,23 +678,35 @@ export class Validator {
     fieldSpec: FieldSpec,
     messages?: MessagesSpec
   ): string | null {
-    // Rules that use path references directly (not evaluated as conditions)
-    // These rules need the raw path string to resolve values themselves
-    const PATH_REFERENCE_RULES = ['equalTo', 'notEqual'];
-
     // Check for conditional rules
     let effectiveParam = ruleParam;
 
-    // Only evaluate condition expressions for rules that don't use path references
-    if (isConditionExpression(ruleParam) && !PATH_REFERENCE_RULES.includes(ruleName)) {
-      // Parse and evaluate expression (returns actual value for ternary, boolean for conditions)
-      const expressionResult = this.evaluateExpressionValue(ruleParam, context);
-      effectiveParam = expressionResult;
+    // Only evaluate condition expressions for rules that don't use path
+    // references / filter conditions (those receive the raw string)
+    if (
+      typeof ruleParam === 'string' &&
+      !PATH_REFERENCE_RULES.includes(ruleName) &&
+      !LITERAL_PARAM_RULES.includes(ruleName)
+    ) {
+      // Ternary expressions are evaluated by string-splitting so that branch
+      // values which are not parseable expressions (e.g., regex patterns for
+      // the pattern/match rule) survive as raw strings.
+      // A string only counts as a ternary when its condition part parses as
+      // a real condition - "^https?://..." style regexes do not.
+      const ternary = this.tryEvaluateTernary(ruleParam, context);
 
-      // For required rule, if condition is false, skip validation
-      if (ruleName === 'required' && !expressionResult) {
-        return null;
+      if (ternary.handled) {
+        effectiveParam = ternary.value;
+      } else if (isConditionExpression(ruleParam) && !/\?[^:]*:/.test(ruleParam)) {
+        // Plain (non-ternary) condition expression
+        effectiveParam = this.evaluateExpressionValue(ruleParam, context);
       }
+    }
+
+    // A false/null param disables the rule
+    // (covers literal `rule: false` and conditions that evaluate to false)
+    if (effectiveParam === false || effectiveParam === null) {
+      return null;
     }
 
     // Get rule definition
@@ -413,10 +728,62 @@ export class Validator {
       pathSegments: context.currentPath,
       ruleParam: effectiveParam,
       messages,
+      ruleName,
     };
 
     // Run validation
     return ruleDefinition.validate(validationContext);
+  }
+
+  /**
+   * Try to evaluate a string param as a ternary expression
+   * (condition ? trueValue : falseValue).
+   *
+   * Returns { handled: false } when the string is not a ternary or its
+   * condition part is not a parseable condition expression (so raw strings
+   * like regex patterns containing "?...:" pass through untouched).
+   */
+  private tryEvaluateTernary(
+    expression: string,
+    context: PathContext
+  ): { handled: boolean; value?: unknown } {
+    const questionPos = findTernaryOperator(expression, '?');
+    if (questionPos === -1) {
+      return { handled: false };
+    }
+
+    const colonPos = findTernaryOperator(expression, ':', questionPos + 1);
+    if (colonPos === -1) {
+      return { handled: false };
+    }
+
+    const condition = expression.slice(0, questionPos).trim();
+
+    // The condition part must look like a condition AND parse successfully -
+    // otherwise this is not a ternary (e.g., "^https?://..." regex)
+    if (!isConditionExpression(condition)) {
+      return { handled: false };
+    }
+    try {
+      parseCondition(condition);
+    } catch {
+      return { handled: false };
+    }
+
+    const conditionResult = this.evaluateCondition(condition, context);
+    const branch = conditionResult
+      ? expression.slice(questionPos + 1, colonPos).trim()
+      : expression.slice(colonPos + 1).trim();
+
+    // Nested ternary support
+    if (/\?[^:]*:/.test(branch)) {
+      const nested = this.tryEvaluateTernary(branch, context);
+      if (nested.handled) {
+        return nested;
+      }
+    }
+
+    return { handled: true, value: parseTernaryBranchValue(branch) };
   }
 
   /**
@@ -459,16 +826,6 @@ export class Validator {
       }
       return false;
     }
-  }
-
-  /**
-   * Evaluate display_switch condition
-   */
-  private evaluateDisplayCondition(
-    condition: string,
-    context: PathContext
-  ): boolean {
-    return this.evaluateCondition(condition, context);
   }
 
   /**

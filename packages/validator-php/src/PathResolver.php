@@ -25,13 +25,13 @@ class PathResolver
      * @param array $allData All form data
      * @return mixed The resolved value
      */
-    public function resolveExpression(string $expression, string $currentPath, array $allData): mixed
+    public function resolveExpression(string $expression, string $currentPath, array $allData, bool $fromGroup = false): mixed
     {
         $expression = trim($expression);
 
         // Handle relative path notation (., .., ...)
         if (str_starts_with($expression, '.')) {
-            $absolutePath = $this->resolveRelativePath($expression, $currentPath);
+            $absolutePath = $this->resolveRelativePath($expression, $currentPath, $fromGroup);
             return $this->getValueByPath($absolutePath, $allData);
         }
 
@@ -48,13 +48,13 @@ class PathResolver
      * @param array $allData All form data
      * @return mixed The resolved value
      */
-    public function resolveExpressionWithWildcard(string $expression, string $currentPath, array $allData): mixed
+    public function resolveExpressionWithWildcard(string $expression, string $currentPath, array $allData, bool $fromGroup = false): mixed
     {
         $expression = trim($expression);
 
         // Handle relative path notation (., .., ...)
         if (str_starts_with($expression, '.')) {
-            $absolutePath = $this->resolveRelativePath($expression, $currentPath);
+            $absolutePath = $this->resolveRelativePath($expression, $currentPath, $fromGroup);
             return $this->getValueByPath($absolutePath, $allData);
         }
 
@@ -236,11 +236,18 @@ class PathResolver
     /**
      * Resolve a relative path to an absolute path.
      *
+     * For fields, each extra dot climbs one group: . = sibling, .. = parent's sibling.
+     * For groups ($fromGroup = true), the group itself counts as the first scope level:
+     * both . and .. resolve to the group's sibling scope, ... climbs one group, etc.
+     * (canonical per tests/cases/display-switch.json: display-switch-group-001 and
+     * display-switch-nested-001 together force this asymmetry)
+     *
      * @param string $relativePath The relative path (e.g., ".field", "..field")
      * @param string $currentPath The current field's absolute path
+     * @param bool $fromGroup Whether the path is resolved for a group's own condition
      * @return string The absolute path
      */
-    private function resolveRelativePath(string $relativePath, string $currentPath): string
+    private function resolveRelativePath(string $relativePath, string $currentPath, bool $fromGroup = false): string
     {
         $currentParts = $this->pathToParts($currentPath);
 
@@ -263,7 +270,7 @@ class PathResolver
         $fieldPath = substr($relativePath, $dots);
 
         // Go up directories based on dot count (. = same level, .. = parent, etc.)
-        $levelsUp = $dots - 1;
+        $levelsUp = max(0, $dots - ($fromGroup ? 2 : 1));
         for ($i = 0; $i < $levelsUp && count($currentParts) > 0; $i++) {
             // Pop non-numeric parts (skip array indices)
             while (count($currentParts) > 0 && is_numeric(end($currentParts))) {

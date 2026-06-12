@@ -22,7 +22,7 @@ namespace FormSpec\Validator;
  */
 class ConditionParser
 {
-    private PathResolver $pathResolver;
+    private readonly PathResolver $pathResolver;
 
     public function __construct()
     {
@@ -37,22 +37,22 @@ class ConditionParser
      * @param array $allData All form data
      * @return bool Whether the condition is met
      */
-    public function evaluate(string $expression, string $currentPath, array $allData): bool
+    public function evaluate(string $expression, string $currentPath, array $allData, bool $fromGroup = false): bool
     {
         $expression = trim($expression);
 
         // Handle parenthesized expressions first
         if ($this->startsWithParenthesis($expression)) {
-            return $this->evaluateParenthesizedExpression($expression, $currentPath, $allData);
+            return $this->evaluateParenthesizedExpression($expression, $currentPath, $allData, $fromGroup);
         }
 
         // Handle logical operators (split by && and ||)
         if ($this->containsLogicalOperator($expression)) {
-            return $this->evaluateLogicalExpression($expression, $currentPath, $allData);
+            return $this->evaluateLogicalExpression($expression, $currentPath, $allData, $fromGroup);
         }
 
         // Handle simple comparison
-        return $this->evaluateSimpleExpression($expression, $currentPath, $allData);
+        return $this->evaluateSimpleExpression($expression, $currentPath, $allData, $fromGroup);
     }
 
     /**
@@ -207,11 +207,11 @@ class ConditionParser
     /**
      * Evaluate a parenthesized expression.
      */
-    private function evaluateParenthesizedExpression(string $expression, string $currentPath, array $allData): bool
+    private function evaluateParenthesizedExpression(string $expression, string $currentPath, array $allData, bool $fromGroup = false): bool
     {
         // Remove outer parentheses
         $inner = substr($expression, 1, -1);
-        return $this->evaluate($inner, $currentPath, $allData);
+        return $this->evaluate($inner, $currentPath, $allData, $fromGroup);
     }
 
     /**
@@ -260,13 +260,13 @@ class ConditionParser
     /**
      * Evaluate an expression with logical operators.
      */
-    private function evaluateLogicalExpression(string $expression, string $currentPath, array $allData): bool
+    private function evaluateLogicalExpression(string $expression, string $currentPath, array $allData, bool $fromGroup = false): bool
     {
         // Handle OR (||) - lower precedence
         $orParts = $this->splitByOperator($expression, '||');
         if (count($orParts) > 1) {
             foreach ($orParts as $part) {
-                if ($this->evaluate($part, $currentPath, $allData)) {
+                if ($this->evaluate($part, $currentPath, $allData, $fromGroup)) {
                     return true;
                 }
             }
@@ -277,14 +277,14 @@ class ConditionParser
         $andParts = $this->splitByOperator($expression, '&&');
         if (count($andParts) > 1) {
             foreach ($andParts as $part) {
-                if (!$this->evaluate($part, $currentPath, $allData)) {
+                if (!$this->evaluate($part, $currentPath, $allData, $fromGroup)) {
                     return false;
                 }
             }
             return true;
         }
 
-        return $this->evaluateSimpleExpression($expression, $currentPath, $allData);
+        return $this->evaluateSimpleExpression($expression, $currentPath, $allData, $fromGroup);
     }
 
     /**
@@ -351,7 +351,7 @@ class ConditionParser
     /**
      * Evaluate a simple comparison expression.
      */
-    private function evaluateSimpleExpression(string $expression, string $currentPath, array $allData): bool
+    private function evaluateSimpleExpression(string $expression, string $currentPath, array $allData, bool $fromGroup = false): bool
     {
         $expression = trim($expression);
 
@@ -359,7 +359,7 @@ class ConditionParser
         if (str_starts_with($expression, '(')) {
             $closePos = $this->findMatchingParen($expression, 0);
             if ($closePos === strlen($expression) - 1) {
-                return $this->evaluate(substr($expression, 1, -1), $currentPath, $allData);
+                return $this->evaluate(substr($expression, 1, -1), $currentPath, $allData, $fromGroup);
             }
         }
 
@@ -374,7 +374,7 @@ class ConditionParser
             $compareValue = trim($matches[3]);
 
             // Resolve the field path with wildcard support
-            $fieldValue = $this->pathResolver->resolveExpressionWithWildcard($pathExpr, $currentPath, $allData);
+            $fieldValue = $this->pathResolver->resolveExpressionWithWildcard($pathExpr, $currentPath, $allData, $fromGroup);
 
             // Parse the compare value
             $compareValue = $this->parseValue($compareValue);
@@ -383,7 +383,7 @@ class ConditionParser
         }
 
         // If no operator found, check if expression is just a path (truthy check)
-        $value = $this->pathResolver->resolveExpressionWithWildcard($expression, $currentPath, $allData);
+        $value = $this->pathResolver->resolveExpressionWithWildcard($expression, $currentPath, $allData, $fromGroup);
         return $this->isTruthy($value);
     }
 
@@ -398,7 +398,7 @@ class ConditionParser
         if (preg_match('/^\[(.+)\]$/', $value, $matches)) {
             $innerValue = trim($matches[1]);
             $parts = $this->splitValueList($innerValue);
-            return array_map(fn($v) => $this->parseValue(trim($v)), $parts);
+            return array_map($this->parseValue(...), array_map(trim(...), $parts));
         }
 
         // Handle quoted strings
@@ -409,7 +409,7 @@ class ConditionParser
         // Handle comma-separated list (for 'in' operator without brackets)
         if (str_contains($value, ',') && !str_contains($value, '[')) {
             $parts = $this->splitValueList($value);
-            return array_map(fn($v) => $this->parseValue(trim($v)), $parts);
+            return array_map($this->parseValue(...), array_map(trim(...), $parts));
         }
 
         // Handle boolean
@@ -479,36 +479,17 @@ class ConditionParser
         $left = $this->normalizeForComparison($left);
         $right = $this->normalizeForComparison($right);
 
-        switch ($operator) {
-            case '==':
-                return $this->looseEquals($left, $right);
-
-            case '!=':
-                return !$this->looseEquals($left, $right);
-
-            case '>':
-                return $this->toNumber($left) > $this->toNumber($right);
-
-            case '>=':
-                return $this->toNumber($left) >= $this->toNumber($right);
-
-            case '<':
-                return $this->toNumber($left) < $this->toNumber($right);
-
-            case '<=':
-                return $this->toNumber($left) <= $this->toNumber($right);
-
-            case 'in':
-                $haystack = is_array($right) ? $right : [$right];
-                return $this->inArray($left, $haystack);
-
-            case 'not in':
-                $haystack = is_array($right) ? $right : [$right];
-                return !$this->inArray($left, $haystack);
-
-            default:
-                return false;
-        }
+        return match ($operator) {
+            '==' => $this->looseEquals($left, $right),
+            '!=' => !$this->looseEquals($left, $right),
+            '>' => $this->toNumber($left) > $this->toNumber($right),
+            '>=' => $this->toNumber($left) >= $this->toNumber($right),
+            '<' => $this->toNumber($left) < $this->toNumber($right),
+            '<=' => $this->toNumber($left) <= $this->toNumber($right),
+            'in' => $this->inArray($left, is_array($right) ? $right : [$right]),
+            'not in' => !$this->inArray($left, is_array($right) ? $right : [$right]),
+            default => false,
+        };
     }
 
     /**

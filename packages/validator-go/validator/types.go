@@ -2,21 +2,24 @@ package validator
 
 // Spec represents the form specification
 type Spec struct {
-	Fields []Field          `json:"fields"`
-	Rules  map[string]Rule  `json:"rules,omitempty"`
+	Fields []Field         `json:"fields"`
+	Rules  map[string]Rule `json:"rules,omitempty"`
 }
 
 // Field represents a form field definition
 type Field struct {
-	Name         string                 `json:"name"`
-	Type         string                 `json:"type"`
-	Label        string                 `json:"label,omitempty"`
-	Required     interface{}            `json:"required,omitempty"` // bool or string (condition)
-	Rules        map[string]interface{} `json:"rules,omitempty"`
-	Messages     map[string]string      `json:"messages,omitempty"`
-	Fields       []Field                `json:"fields,omitempty"`   // for nested/group fields
-	Multiple     bool                   `json:"multiple,omitempty"` // for repeatable groups (array)
-	MultipleOnly bool                   `json:"-"`                  // for "only" mode (single object treated like array for wildcards)
+	Name          string                 `json:"name"`
+	Type          string                 `json:"type"`
+	Label         string                 `json:"label,omitempty"`
+	Required      interface{}            `json:"required,omitempty"` // bool or string (condition)
+	Rules         map[string]interface{} `json:"rules,omitempty"`
+	RuleOrder     []string               `json:"-"` // declaration order of Rules keys
+	Messages      map[string]string      `json:"messages,omitempty"`
+	Fields        []Field                `json:"fields,omitempty"`         // for nested/group fields
+	Multiple      bool                   `json:"multiple,omitempty"`       // for repeatable groups (array)
+	MultipleOnly  bool                   `json:"-"`                        // for "only" mode (single object treated like array for wildcards)
+	DisplaySwitch interface{}            `json:"display_switch,omitempty"` // bool or condition string; false hides the field (validation skipped)
+	DisplayTarget string                 `json:"display_target,omitempty"` // field reference; empty target value hides the field
 }
 
 // Rule represents a custom rule definition
@@ -123,7 +126,7 @@ type BinaryNode struct {
 	Position ASTPosition
 }
 
-func (n *BinaryNode) nodeType() string        { return "Binary" }
+func (n *BinaryNode) nodeType() string          { return "Binary" }
 func (n *BinaryNode) getPosition() *ASTPosition { return &n.Position }
 
 // UnaryNode represents a unary operation (!)
@@ -133,7 +136,7 @@ type UnaryNode struct {
 	Position ASTPosition
 }
 
-func (n *UnaryNode) nodeType() string        { return "Unary" }
+func (n *UnaryNode) nodeType() string          { return "Unary" }
 func (n *UnaryNode) getPosition() *ASTPosition { return &n.Position }
 
 // InNode represents an 'in' or 'not in' operation
@@ -144,7 +147,7 @@ type InNode struct {
 	Position ASTPosition
 }
 
-func (n *InNode) nodeType() string        { return "In" }
+func (n *InNode) nodeType() string          { return "In" }
 func (n *InNode) getPosition() *ASTPosition { return &n.Position }
 
 // PathNode represents a path reference
@@ -155,7 +158,7 @@ type PathNode struct {
 	Position ASTPosition
 }
 
-func (n *PathNode) nodeType() string        { return "Path" }
+func (n *PathNode) nodeType() string          { return "Path" }
 func (n *PathNode) getPosition() *ASTPosition { return &n.Position }
 
 // PathSegment represents a segment of a path
@@ -171,7 +174,7 @@ type LiteralNode struct {
 	Position  ASTPosition
 }
 
-func (n *LiteralNode) nodeType() string        { return "Literal" }
+func (n *LiteralNode) nodeType() string          { return "Literal" }
 func (n *LiteralNode) getPosition() *ASTPosition { return &n.Position }
 
 // GroupNode represents a parenthesized expression
