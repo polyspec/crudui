@@ -3,9 +3,7 @@
 # Build from project root:
 #   docker build -f examples/php-api/Dockerfile -t formspec-php-api .
 #
-# Or build from this directory with validator copied:
-#   cp -r ../../validator/php ./validator-php
-#   docker build -t formspec-php-api .
+# The validator lives at packages/validator-php (composer path repository).
 #
 # Run:
 #   docker run -p 8080:80 formspec-php-api
@@ -35,21 +33,21 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # Copy validator package first (for composer path repository)
-# When building from project root: validator/php -> /var/www/validator/php
-COPY validator/php /var/www/validator/php
+# When building from project root: packages/validator-php -> /var/www/packages/validator-php
+COPY packages/validator-php /var/www/packages/validator-php
 
 # Copy application files
 COPY examples/php-api/ .
 
 # Update composer.json to use correct validator path in container
-RUN sed -i 's|../../validator/php|/var/www/validator/php|g' composer.json
+RUN sed -i 's|../../packages/validator-php|/var/www/packages/validator-php|g' composer.json
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chown -R www-data:www-data /var/www/validator \
+    && chown -R www-data:www-data /var/www/packages \
     && chmod -R 755 /var/www/html
 
 # Expose port 80

@@ -15,21 +15,28 @@ docker-compose up --build
 
 | Service | Port | Description |
 |---------|------|-------------|
-| Demo App | 8010 | React application showcasing form generation |
-| Node API | 8011 | Node.js/Express validation server |
-| PHP API | 8012 | PHP validation server with Apache |
-| Go API | 8013 | Go validation server |
-| Playground | 8014 | Interactive form spec editor |
+| demo-app | 8010 | React application showcasing form generation |
+| node-api | 8011 | Node.js/Express validation server |
+| php-api | 8012 | PHP validation server with Apache |
+| go-api | 8013 | Go validation server |
+| playground | 8014 | Interactive form spec editor |
+| limepie-original | 8015 | REAL Limepie PHP form system (local limepie checkout, pinned a47ccba — see `tools/limepie-baseline/README.md`) |
+| limepie-bootstrap | 8016 | Limepie-style Bootstrap 5 form demo (React) |
 
 ## URLs
 
 Once the services are running, access them at:
 
-- **Demo App**: [http://localhost:8010](http://localhost:8010)
-- **Node API**: [http://localhost:8011](http://localhost:8011)
-- **PHP API**: [http://localhost:8012](http://localhost:8012)
-- **Go API**: [http://localhost:8013](http://localhost:8013)
-- **Playground**: [http://localhost:8014](http://localhost:8014)
+- **demo-app**: [http://localhost:8010](http://localhost:8010)
+- **node-api**: [http://localhost:8011](http://localhost:8011)
+- **php-api**: [http://localhost:8012](http://localhost:8012)
+- **go-api**: [http://localhost:8013](http://localhost:8013)
+- **playground**: [http://localhost:8014](http://localhost:8014)
+- **limepie-original**: [http://localhost:8015](http://localhost:8015)
+- **limepie-bootstrap**: [http://localhost:8016](http://localhost:8016)
+
+Form specs shared by the backend APIs and the limepie demos live in `shared-specs/`
+(mounted into each container by `docker-compose.yml`).
 
 ## Individual Service Commands
 
@@ -55,6 +62,8 @@ docker-compose logs -f node-api
 docker-compose logs -f php-api
 docker-compose logs -f go-api
 docker-compose logs -f playground
+docker-compose logs -f limepie-original
+docker-compose logs -f limepie-bootstrap
 ```
 
 ### Stop all services
@@ -67,6 +76,72 @@ docker-compose down
 docker-compose up --build demo-app
 ```
 
+## API Contract
+
+All three backend APIs (`node-api`, `php-api`, `go-api`) implement the same canonical contract:
+
+### `GET /api/specs`
+
+List all available form specs.
+
+```json
+{ "specs": ["contact", "registration"] }
+```
+
+### `GET /api/specs/{name}`
+
+Get a form spec by name. The YAML spec is converted to JSON.
+
+- `200`:
+
+```json
+{ "name": "contact", "spec": { "type": "group", "properties": { } } }
+```
+
+- `404` when the spec does not exist:
+
+```json
+{ "error": "Spec not found: contact2" }
+```
+
+### `POST /api/validate`
+
+Validate form data against a spec object supplied in the request body.
+
+Request:
+
+```json
+{
+  "spec": { "type": "group", "properties": { } },
+  "data": { "email": "user@example.com" }
+}
+```
+
+Response — always `200`, validation failure is NOT an HTTP error (no 422):
+
+```json
+{
+  "valid": false,
+  "errors": [
+    { "field": "email", "rule": "email", "message": "Please enter a valid email address." }
+  ]
+}
+```
+
+`errors` is always present (empty array when `valid` is `true`).
+
+### Error responses
+
+Only server/request errors use 4xx/5xx, with the shape:
+
+```json
+{ "error": "..." }
+```
+
+### CORS
+
+Every endpoint responds with `Access-Control-Allow-Origin: *` and answers `OPTIONS` preflight requests (`204`).
+
 ## Network
 
 All services are connected via the `form-generator-network` bridge network, allowing inter-service communication using service names as hostnames.
@@ -75,11 +150,13 @@ All services are connected via the `form-generator-network` bridge network, allo
 
 Each service includes a health check configuration:
 
-- **Demo App**: HTTP check on port 80
-- **Node API**: HTTP check on port 3000
-- **PHP API**: curl check on port 80 (via Apache)
-- **Go API**: wget check on port 8080
-- **Playground**: HTTP check on port 80
+- **demo-app**: HTTP check on port 80
+- **node-api**: HTTP check on port 3000
+- **php-api**: curl check on port 80 (via Apache)
+- **go-api**: wget check on port 8080
+- **playground**: HTTP check on port 80
+- **limepie-original**: curl check on port 80 (via Apache)
+- **limepie-bootstrap**: HTTP check on port 80
 
 Check service health status:
 ```bash

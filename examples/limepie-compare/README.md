@@ -9,9 +9,16 @@ The goal is to verify that the React form builder produces **identical validatio
 ## Files
 
 - `index.html` - Main comparison page with side-by-side forms
-- `spec.yaml` - YAML specification for the contact form
+- `spec.yaml` - YAML specification for the contact form (reference only — see note below)
 - `js/dist.validate-1.0.26.js` - Original Limepie validation library (jQuery-based)
 - `js/dist.validate.custom-1.0.45.js` - Limepie custom validation extensions (AJAX utilities)
+
+> **Note — `spec.yaml` is not loaded by `index.html`.** The page does not fetch
+> `spec.yaml`; the same spec is duplicated inline in `index.html` as the
+> `formSpec` JavaScript object. The inline `formSpec` is what actually runs.
+> If you change validation rules, change `formSpec` in `index.html` — and keep
+> `spec.yaml` in sync by hand, or treat it purely as YAML-format documentation
+> of the inline spec.
 
 ## How to Use
 

@@ -7,4 +7,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/example/form-generator/validator => ../../validator/go
+replace github.com/example/form-generator/validator => ../../packages/validator-go

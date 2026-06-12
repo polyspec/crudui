@@ -4,7 +4,7 @@ FROM golang:1.21-alpine AS builder
 WORKDIR /app
 
 # Copy validator module first (dependency)
-COPY validator/go /app/validator
+COPY packages/validator-go /app/validator
 
 # Copy go-api module
 COPY examples/go-api /app/go-api
