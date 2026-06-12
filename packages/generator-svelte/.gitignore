@@ -1,0 +1,6 @@
+# Parity test artifacts (written by test/parity.test.mjs)
+out/
+
+# Build output (also covered by the repo-root .gitignore)
+dist/
+node_modules/
