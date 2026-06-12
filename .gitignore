@@ -8,6 +8,9 @@ examples/**/vendor/
 dist/
 *.tsbuildinfo
 
+# Rust build outputs (Cargo.lock is committed for the binary crate)
+target/
+
 # IDE
 .idea/
 .vscode/

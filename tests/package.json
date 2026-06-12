@@ -9,6 +9,7 @@
     "test:js": "node runner/compare-all.js --js-only",
     "test:php": "node runner/compare-all.js --php-only",
     "test:go": "node runner/compare-all.js --go-only",
+    "test:rust": "node runner/compare-all.js --rust-only",
     "test:all": "node runner/compare-all.js",
     "test:parity": "npm --prefix parity test",
     "run:js": "ts-node runner/run-js.ts",

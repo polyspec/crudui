@@ -2,12 +2,13 @@
 /**
  * Cross-Language Idempotency Comparison Test Runner
  *
- * GOAL: Verify that same spec + same data = same result across JS, PHP, Go.
+ * GOAL: Verify that same spec + same data = same result across JS, PHP, Go, Rust.
  *
  * Loads test cases from cases/*.json and runs each test through:
  * - JavaScript validator (direct import)
- * - PHP validator (via `php -r`)
+ * - PHP validator (via stdin JSON worker)
  * - Go validator (via pre-compiled CLI tool)
+ * - Rust validator (via pre-compiled CLI tool)
  *
  * Reports any discrepancies where languages produce different results.
  */
@@ -35,6 +36,7 @@ const CASES_DIR = path.join(__dirname, '..', 'cases');
 const JS_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-js');
 const PHP_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-php');
 const GO_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-go');
+const RUST_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-rust');
 
 // Statistics
 let stats = {
@@ -44,6 +46,7 @@ let stats = {
   jsErrors: 0,
   phpErrors: 0,
   goErrors: 0,
+  rustErrors: 0,
 };
 
 /**
@@ -254,6 +257,75 @@ function runGoValidation(spec, input) {
 }
 
 /**
+ * Run Rust validation via pre-compiled CLI binary.
+ *
+ * Mirrors the Go path: the release binary lives at
+ * packages/validator-rust/target/release/validate and speaks the same
+ * stdin JSON protocol ({spec, input} in, {valid, error, field} out).
+ * If the binary is missing, build it with cargo. cargo/rustc may not be on
+ * the default PATH, so prepend $HOME/.cargo/bin.
+ */
+function runRustValidation(spec, input) {
+  const rustBinaryPath = path.join(RUST_VALIDATOR_DIR, 'target', 'release', 'validate');
+
+  // If binary doesn't exist, try to build it.
+  if (!fs.existsSync(rustBinaryPath)) {
+    const cargoEnv = {
+      ...process.env,
+      PATH: `${path.join(process.env.HOME || '', '.cargo', 'bin')}:${process.env.PATH || ''}`,
+    };
+    const buildResult = spawnSync('cargo', ['build', '--release', '--bin', 'validate'], {
+      encoding: 'utf-8',
+      timeout: 300000,
+      cwd: RUST_VALIDATOR_DIR,
+      env: cargoEnv,
+    });
+
+    if (buildResult.error || buildResult.status !== 0) {
+      return {
+        success: false,
+        error: `Rust build failed: ${
+          (buildResult.error && buildResult.error.message) || buildResult.stderr || 'Unknown error'
+        }. Build manually: export PATH="$HOME/.cargo/bin:$PATH" && (cd packages/validator-rust && cargo build --release)`,
+      };
+    }
+  }
+
+  // Prepare request
+  const request = JSON.stringify({ spec, input });
+
+  try {
+    const result = spawnSync(rustBinaryPath, [], {
+      encoding: 'utf-8',
+      input: request,
+      timeout: 10000,
+      cwd: RUST_VALIDATOR_DIR,
+    });
+
+    if (result.error) {
+      stats.rustErrors++;
+      return { success: false, error: result.error.message };
+    }
+
+    if (result.status !== 0) {
+      stats.rustErrors++;
+      return { success: false, error: result.stderr || 'Rust execution failed' };
+    }
+
+    const output = result.stdout.trim();
+    if (!output) {
+      stats.rustErrors++;
+      return { success: false, error: 'Empty Rust output' };
+    }
+
+    return { success: true, result: JSON.parse(output) };
+  } catch (error) {
+    stats.rustErrors++;
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Compare results from different languages
  */
 function resultsMatch(results) {
@@ -338,6 +410,11 @@ function runComparison(jsModule, testFile, enabledLangs) {
         results.go = runGoValidation(testDef.spec, testCase.input);
       }
 
+      // Run Rust
+      if (enabledLangs.includes('rust')) {
+        results.rust = runRustValidation(testDef.spec, testCase.input);
+      }
+
       // Check for discrepancies
       const resultArray = Object.values(results);
       const allMatch = resultsMatch(resultArray);
@@ -392,7 +469,7 @@ function main() {
   const args = process.argv.slice(2);
 
   // Parse arguments
-  let enabledLangs = ['js', 'php', 'go'];
+  let enabledLangs = ['js', 'php', 'go', 'rust'];
   let verbose = false;
   let specificFile = null;
 
@@ -404,10 +481,14 @@ function main() {
       enabledLangs = ['php'];
     } else if (arg === '--go-only') {
       enabledLangs = ['go'];
+    } else if (arg === '--rust-only') {
+      enabledLangs = ['rust'];
     } else if (arg === '--no-go') {
       enabledLangs = enabledLangs.filter((l) => l !== 'go');
     } else if (arg === '--no-php') {
       enabledLangs = enabledLangs.filter((l) => l !== 'php');
+    } else if (arg === '--no-rust') {
+      enabledLangs = enabledLangs.filter((l) => l !== 'rust');
     } else if (arg === '--verbose' || arg === '-v') {
       verbose = true;
     } else if (arg === '--file' || arg === '-f') {
@@ -416,7 +497,7 @@ function main() {
       console.log(`
 ${colors.cyan}Cross-Language Idempotency Test Runner${colors.reset}
 
-GOAL: Verify that same spec + same data = same result across JS, PHP, Go.
+GOAL: Verify that same spec + same data = same result across JS, PHP, Go, Rust.
 
 Usage: node compare-all.js [options]
 
@@ -424,15 +505,17 @@ Options:
   --js-only       Run JavaScript validator only
   --php-only      Run PHP validator only
   --go-only       Run Go validator only
+  --rust-only     Run Rust validator only
   --no-go         Skip Go validator
   --no-php        Skip PHP validator
+  --no-rust       Skip Rust validator
   --file, -f      Test specific file only
   --verbose, -v   Show all results, not just discrepancies
   --help, -h      Show this help message
 
 Examples:
-  node compare-all.js                    # Compare all three languages
-  node compare-all.js --no-go            # Compare JS and PHP only
+  node compare-all.js                    # Compare all four languages
+  node compare-all.js --no-go            # Compare JS, PHP and Rust only
   node compare-all.js -f required.json   # Test specific file
 `);
       process.exit(0);
@@ -505,6 +588,9 @@ Examples:
   }
   if (stats.goErrors > 0) {
     console.log(`${colors.yellow}Go Errors: ${stats.goErrors}${colors.reset}`);
+  }
+  if (stats.rustErrors > 0) {
+    console.log(`${colors.yellow}Rust Errors: ${stats.rustErrors}${colors.reset}`);
   }
 
   console.log('');
