@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Example PHP dependencies
+examples/**/vendor/
+
 # Build outputs
 dist/
 *.tsbuildinfo
