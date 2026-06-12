@@ -179,6 +179,12 @@ class Accept implements RuleInterface
 
     /**
      * Check if a file extension matches the accept list.
+     *
+     * A filename carries no MIME header, so the extension is mapped to its
+     * MIME type(s) via EXTENSION_TO_MIME and those are matched against MIME
+     * entries, including wildcards (image slash star, star slash star).
+     * Direct extension entries (.jpg) are also matched. Without this mapping a
+     * filename such as "image1.jpg" would never satisfy accept image slash star.
      */
     private function matchesExtension(string $filename, array $acceptList): bool
     {
@@ -192,6 +198,14 @@ class Accept implements RuleInterface
                 if (substr($accept, 1) === $ext) {
                     return true;
                 }
+            }
+        }
+
+        // Infer MIME from the extension, then match MIME wildcards/exact.
+        $inferredMimes = self::EXTENSION_TO_MIME[$ext] ?? [];
+        foreach ($inferredMimes as $mime) {
+            if ($this->matchesMimeType($mime, $acceptList)) {
+                return true;
             }
         }
 

@@ -8,91 +8,129 @@ use FormSpec\Validator\PathResolver;
 
 /**
  * Unique values validation rule.
- * Ensures all values in an array field are unique.
+ *
+ * Two modes (canonical per tests/cases/unique.json):
+ * 1. Array-level: value is the whole array of a multiple field - every
+ *    non-empty entry must be unique (type-strict comparison).
+ * 2. Field-level: value is a scalar field inside a repeated group
+ *    (e.g. items.1.code) - the value must not repeat the same field of
+ *    any EARLIER sibling, so the error is reported on the later duplicate.
  */
 class Unique implements RuleInterface
 {
-    private PathResolver $pathResolver;
+    private readonly PathResolver $pathResolver;
 
     public function __construct()
     {
         $this->pathResolver = new PathResolver();
     }
 
-    /**
-     * Validate that all values in the array are unique.
-     *
-     * This can be called in two ways:
-     * 1. With value being the entire array (new behavior for array-level validation)
-     * 2. With value being a single item (legacy behavior for item-level validation)
-     */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
         if ($param === false) {
             return true;
         }
 
-        // Check if value is the array itself (array-level validation)
+        // Array-level validation: the multiple field's array as a whole
         if (is_array($value) && array_is_list($value)) {
             return $this->validateArray($value, $param);
         }
 
-        // Legacy: value is a single item, get the parent array
-        $pathParts = explode('.', $path);
-        array_pop($pathParts); // Remove current index
+        // Field-level validation: scalar inside a repeated group
+        return $this->validateAgainstEarlierSiblings($value, $allData, $path);
+    }
 
-        // Get the parent array
-        $parentPath = implode('.', $pathParts);
-        $parentArray = $this->pathResolver->getValueByPath($parentPath, $allData);
+    /**
+     * Validate uniqueness within a single array (multiple field).
+     */
+    private function validateArray(array $array, mixed $param): bool
+    {
+        $seen = [];
 
+        foreach ($array as $item) {
+            // If param is a field name, compare that field of each object entry
+            if (is_array($item) && is_string($param) && $param !== '') {
+                $item = $item[$param] ?? null;
+            }
+
+            $item = $this->normalizeValue($item);
+
+            // Skip empty values
+            if ($item === null || $item === '') {
+                continue;
+            }
+
+            // Type-strict comparison: "1" (string) and 1 (int) are distinct
+            if (in_array($item, $seen, true)) {
+                return false;
+            }
+
+            $seen[] = $item;
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate a scalar field of a repeated group against earlier siblings.
+     * E.g. for path "orders.0.items.1.product_code" the comparison set is
+     * "orders.0.items.<i>.product_code" for all i < 1.
+     */
+    private function validateAgainstEarlierSiblings(mixed $value, array $allData, string $path): bool
+    {
+        $current = $this->normalizeValue($value);
+        if ($current === null || $current === '') {
+            return true;
+        }
+
+        $parts = explode('.', $path);
+        $fieldName = array_pop($parts);
+        if ($fieldName === null || count($parts) === 0) {
+            return true;
+        }
+
+        // The field must live inside an indexed array item
+        $indexPart = array_pop($parts);
+        if ($indexPart === null || !is_numeric($indexPart)) {
+            return true;
+        }
+        $index = (int)$indexPart;
+
+        $parentArray = $this->pathResolver->getValueByPath(implode('.', $parts), $allData);
         if (!is_array($parentArray)) {
             return true;
         }
 
-        return $this->validateArray($parentArray, $param);
-    }
-
-    /**
-     * Validate uniqueness in an array.
-     */
-    private function validateArray(array $array, mixed $param): bool
-    {
-        // Collect all values
-        $values = [];
-        foreach ($array as $item) {
-            if (is_array($item)) {
-                // If param is a string, it's a field name to check uniqueness for
-                if (is_string($param) && $param !== '') {
-                    $itemValue = $item[$param] ?? null;
-                } else {
-                    // Check the whole item or use the value itself
-                    $itemValue = $item;
-                }
-            } else {
-                $itemValue = $item;
+        foreach ($parentArray as $siblingIndex => $sibling) {
+            if (!is_numeric((string)$siblingIndex) || (int)$siblingIndex >= $index) {
+                continue;
             }
-
-            // Skip empty values
-            if ($itemValue === null || $itemValue === '') {
+            if (!is_array($sibling)) {
                 continue;
             }
 
-            // Handle file arrays
-            if (is_array($itemValue) && isset($itemValue['name']) && isset($itemValue['tmp_name'])) {
-                $itemValue = $itemValue['name'];
+            $siblingValue = $this->normalizeValue($sibling[$fieldName] ?? null);
+            if ($siblingValue === null || $siblingValue === '') {
+                continue;
             }
 
-            // Convert to string for comparison
-            $compareValue = is_scalar($itemValue) ? (string)$itemValue : json_encode($itemValue);
-
-            if (in_array($compareValue, $values, true)) {
+            if ($siblingValue === $current) {
                 return false;
             }
-
-            $values[] = $compareValue;
         }
 
         return true;
+    }
+
+    /**
+     * Normalize a value for comparison (file uploads compare by name).
+     */
+    private function normalizeValue(mixed $value): mixed
+    {
+        if (is_array($value) && isset($value['name'], $value['tmp_name'])) {
+            return $value['name'];
+        }
+        return $value;
     }
 
     public function getDefaultMessage(): string

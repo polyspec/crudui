@@ -124,9 +124,20 @@ export function matchesMimeType(mimeType: string, acceptList: string[]): boolean
 
 /**
  * Check if a file extension matches the accept list
+ *
+ * A filename carries no MIME header, so the extension is mapped to its MIME
+ * type(s) via EXTENSION_TO_MIME and those are matched against MIME entries
+ * (including wildcards like image slash star and star slash star). Direct
+ * extension entries (.jpg) are also matched. Without this mapping a filename
+ * such as "image1.jpg" would never satisfy accept of image slash star.
  */
 export function matchesExtension(filename: string, acceptList: string[]): boolean {
-  const ext = filename.toLowerCase().split('.').pop();
+  const parts = filename.toLowerCase().split('.');
+  // No dot in the filename means no extension to test.
+  if (parts.length < 2) {
+    return false;
+  }
+  const ext = parts.pop();
   if (!ext) {
     return false;
   }
@@ -134,6 +145,16 @@ export function matchesExtension(filename: string, acceptList: string[]): boolea
   for (const accept of acceptList) {
     if (accept.startsWith('.')) {
       if (accept.slice(1) === ext) {
+        return true;
+      }
+    }
+  }
+
+  // Infer MIME from the extension, then match MIME wildcards/exact.
+  const inferredMimes = EXTENSION_TO_MIME[ext];
+  if (inferredMimes) {
+    for (const mime of inferredMimes) {
+      if (matchesMimeType(mime, acceptList)) {
         return true;
       }
     }

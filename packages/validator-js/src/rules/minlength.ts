@@ -8,13 +8,17 @@ import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
 
 /**
- * Get the length of a value
- * For strings, returns the character count
- * For arrays, returns the number of elements
+ * Get the length of a value.
+ * For strings, returns the Unicode code point count (NOT UTF-16 code units):
+ * an astral character such as an emoji counts as 1, matching PHP
+ * (preg_split('//u') / mb_strlen) and Go (utf8.RuneCountInString) and the
+ * legacy server (Validation.php:468 preg_split('//u')). value.length would
+ * count a surrogate pair as 2 and diverge.
+ * For arrays, returns the number of elements.
  */
 export function getLength(value: unknown): number {
   if (typeof value === 'string') {
-    return value.length;
+    return [...value].length;
   }
 
   if (Array.isArray(value)) {

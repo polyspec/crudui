@@ -1,6 +1,7 @@
 package legacy
 
 import (
+	"encoding/json"
 	"math"
 	"net/url"
 	"reflect"
@@ -11,7 +12,8 @@ import (
 	"unicode/utf8"
 )
 
-// DefaultRules returns the built-in validation rules
+// DefaultRules returns the built-in validation rules.
+// "pattern" and "match" are aliases for the same implementation.
 func DefaultRules() map[string]RuleFunc {
 	return map[string]RuleFunc{
 		"required":    ruleRequired,
@@ -21,6 +23,7 @@ func DefaultRules() map[string]RuleFunc {
 		"min":         ruleMin,
 		"max":         ruleMax,
 		"match":       ruleMatch,
+		"pattern":     ruleMatch,
 		"unique":      ruleUnique,
 		"in":          ruleIn,
 		"range":       ruleRange,
@@ -43,7 +46,7 @@ func DefaultRules() map[string]RuleFunc {
 // ruleRequired validates that a value is not empty
 func ruleRequired(value interface{}, params []string, allData map[string]interface{}, ctx *ValidationContext) *string {
 	if isEmpty(value) {
-		msg := "This field is required"
+		msg := "This field is required."
 		return &msg
 	}
 	return nil
@@ -60,7 +63,7 @@ func ruleEmail(value interface{}, params []string, allData map[string]interface{
 	pattern := `^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`
 	matched, _ := regexp.MatchString(pattern, str)
 	if !matched {
-		msg := "Please enter a valid email address"
+		msg := "Please enter a valid email address."
 		return &msg
 	}
 
@@ -71,19 +74,19 @@ func ruleEmail(value interface{}, params []string, allData map[string]interface{
 
 		// Reject if local part starts with a dot
 		if strings.HasPrefix(localPart, ".") {
-			msg := "Please enter a valid email address"
+			msg := "Please enter a valid email address."
 			return &msg
 		}
 
 		// Reject if local part ends with a dot
 		if strings.HasSuffix(localPart, ".") {
-			msg := "Please enter a valid email address"
+			msg := "Please enter a valid email address."
 			return &msg
 		}
 
 		// Reject if local part has consecutive dots
 		if strings.Contains(localPart, "..") {
-			msg := "Please enter a valid email address"
+			msg := "Please enter a valid email address."
 			return &msg
 		}
 	}
@@ -110,7 +113,7 @@ func ruleMinLength(value interface{}, params []string, allData map[string]interf
 	length := utf8.RuneCountInString(str) // Count Unicode characters
 
 	if length < minLen {
-		msg := "Please enter at least " + params[0] + " characters"
+		msg := "Please enter at least " + params[0] + " characters."
 		return &msg
 	}
 	return nil
@@ -135,7 +138,7 @@ func ruleMaxLength(value interface{}, params []string, allData map[string]interf
 	length := utf8.RuneCountInString(str)
 
 	if length > maxLen {
-		msg := "Please enter no more than " + params[0] + " characters"
+		msg := "Please enter no more than " + params[0] + " characters."
 		return &msg
 	}
 	return nil
@@ -163,7 +166,7 @@ func ruleMin(value interface{}, params []string, allData map[string]interface{},
 	}
 
 	if numVal < minVal {
-		msg := "Please enter a value greater than or equal to " + params[0]
+		msg := "Please enter a value greater than or equal to " + params[0] + "."
 		return &msg
 	}
 	return nil
@@ -191,10 +194,26 @@ func ruleMax(value interface{}, params []string, allData map[string]interface{},
 	}
 
 	if numVal > maxVal {
-		msg := "Please enter a value less than or equal to " + params[0]
+		msg := "Please enter a value less than or equal to " + params[0] + "."
 		return &msg
 	}
 	return nil
+}
+
+// anchorPattern forces a pattern to full-string match (^...$), mirroring legacy.
+// legacy client dist.validate.js:1652-1657 and legacy server Validation.php:126
+// ('~^'.$param.'$~') both force full match. Do NOT double-anchor: if the pattern
+// already starts with ^ or ends with $, leave that side alone (matches PHP
+// Pattern.php:35-40 str_starts_with/str_ends_with).
+func anchorPattern(pattern string) string {
+	anchored := pattern
+	if !strings.HasPrefix(anchored, "^") {
+		anchored = "^" + anchored
+	}
+	if !strings.HasSuffix(anchored, "$") {
+		anchored = anchored + "$"
+	}
+	return anchored
 }
 
 // ruleMatch validates against a regex pattern
@@ -207,39 +226,105 @@ func ruleMatch(value interface{}, params []string, allData map[string]interface{
 		return nil
 	}
 
-	pattern := params[0]
+	pattern := anchorPattern(params[0])
 	str := toString(value)
 
 	matched, err := regexp.MatchString(pattern, str)
 	if err != nil {
-		msg := "Invalid pattern"
+		msg := "Please enter a valid format."
 		return &msg
 	}
 
 	if !matched {
-		msg := "Please enter a value matching the required format"
+		msg := "Please enter a valid format."
 		return &msg
 	}
 	return nil
 }
 
-// ruleUnique validates that all values in an array are unique
+// ruleUnique validates uniqueness in two modes:
+//   - Array mode: the value is an array; its non-empty elements must be unique.
+//   - Sibling mode: the value is a scalar field inside a repeated group item;
+//     it must not duplicate the same field of any EARLIER sibling item,
+//     so the error is reported on the later (duplicate) item.
 func ruleUnique(value interface{}, params []string, allData map[string]interface{}, ctx *ValidationContext) *string {
-	arr, ok := value.([]interface{})
+	msg := "Values must be unique."
+
+	// Array mode
+	if arr, ok := value.([]interface{}); ok {
+		seen := make(map[string]bool, len(arr))
+		for _, item := range arr {
+			if isEmpty(item) {
+				continue
+			}
+			key := uniqueComparisonKey(item)
+			if seen[key] {
+				return &msg
+			}
+			seen[key] = true
+		}
+		return nil
+	}
+
+	// Sibling mode: current path must be <arrayPath>.<index>.<fieldName>
+	path := ctx.CurrentPath
+	if len(path) < 2 {
+		return nil
+	}
+	fieldName := path[len(path)-1]
+	idx, err := strconv.Atoi(path[len(path)-2])
+	if err != nil {
+		return nil
+	}
+
+	arrayPath := path[:len(path)-2]
+	parentArray, ok := getNestedValue(allData, arrayPath).([]interface{})
 	if !ok {
 		return nil
 	}
 
-	seen := make(map[string]bool)
-	for _, item := range arr {
-		key := toString(item)
-		if seen[key] {
-			msg := "Duplicate values are not allowed"
+	currentKey := uniqueComparisonKey(value)
+	for i := 0; i < idx && i < len(parentArray); i++ {
+		item, ok := parentArray[i].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		sibling := item[fieldName]
+		if isEmpty(sibling) {
+			continue
+		}
+		if uniqueComparisonKey(sibling) == currentKey {
 			return &msg
 		}
-		seen[key] = true
 	}
 	return nil
+}
+
+// uniqueComparisonKey builds a type-sensitive comparison key, so the string
+// "1" and the number 1 are NOT duplicates.
+func uniqueComparisonKey(value interface{}) string {
+	switch v := value.(type) {
+	case nil:
+		return "z:"
+	case string:
+		return "s:" + v
+	case bool:
+		return "b:" + strconv.FormatBool(v)
+	case float64:
+		return "n:" + strconv.FormatFloat(v, 'f', -1, 64)
+	case float32:
+		return "n:" + strconv.FormatFloat(float64(v), 'f', -1, 64)
+	case int:
+		return "n:" + strconv.FormatFloat(float64(v), 'f', -1, 64)
+	case int64:
+		return "n:" + strconv.FormatFloat(float64(v), 'f', -1, 64)
+	default:
+		encoded, err := json.Marshal(v)
+		if err != nil {
+			return "x:"
+		}
+		return "j:" + string(encoded)
+	}
 }
 
 // ruleIn validates that a value is in a list of allowed values
@@ -259,7 +344,7 @@ func ruleIn(value interface{}, params []string, allData map[string]interface{}, 
 		}
 	}
 
-	msg := "Please select a valid option"
+	msg := "Please select a valid option."
 	return &msg
 }
 
@@ -406,12 +491,12 @@ func ruleRange(value interface{}, params []string, allData map[string]interface{
 
 	numVal, ok := toFloat64(value)
 	if !ok {
-		msg := "Please enter a valid number"
+		msg := "Please enter a valid number."
 		return &msg
 	}
 
 	if numVal < minVal || numVal > maxVal {
-		msg := "Please enter a value between " + params[0] + " and " + params[1]
+		msg := "Please enter a value between " + params[0] + " and " + params[1] + "."
 		return &msg
 	}
 	return nil
@@ -437,7 +522,7 @@ func ruleRangeLength(value interface{}, params []string, allData map[string]inte
 	length := utf8.RuneCountInString(str)
 
 	if length < minLen || length > maxLen {
-		msg := "Please enter a value between " + params[0] + " and " + params[1] + " characters"
+		msg := "Please enter a value between " + params[0] + " and " + params[1] + " characters."
 		return &msg
 	}
 	return nil
@@ -451,7 +536,7 @@ func ruleNumber(value interface{}, params []string, allData map[string]interface
 
 	_, ok := toNumber(value)
 	if !ok {
-		msg := "Please enter a valid number"
+		msg := "Please enter a valid number."
 		return &msg
 	}
 	return nil
@@ -466,7 +551,7 @@ func ruleDigits(value interface{}, params []string, allData map[string]interface
 	str := toString(value)
 	matched, _ := regexp.MatchString(`^\d+$`, str)
 	if !matched {
-		msg := "Please enter only digits"
+		msg := "Please enter only digits."
 		return &msg
 	}
 	return nil
@@ -486,7 +571,7 @@ func ruleEqualTo(value interface{}, params []string, allData map[string]interfac
 	targetValue := getValueByPath(allData, targetPath, ctx.CurrentPath)
 
 	if toString(value) != toString(targetValue) {
-		msg := "Please enter the same value again"
+		msg := "Please enter the same value again."
 		return &msg
 	}
 	return nil
@@ -508,12 +593,12 @@ func ruleNotEqual(value interface{}, params []string, allData map[string]interfa
 	if strings.HasPrefix(compareValue, ".") {
 		targetValue := getValueByPath(allData, compareValue, ctx.CurrentPath)
 		if toString(value) == toString(targetValue) {
-			msg := "Please enter a different value"
+			msg := "Please enter a different value."
 			return &msg
 		}
 	} else {
 		if toString(value) == compareValue {
-			msg := "Please enter a different value"
+			msg := "Please enter a different value."
 			return &msg
 		}
 	}
@@ -545,7 +630,7 @@ func ruleDate(value interface{}, params []string, allData map[string]interface{}
 		}
 	}
 
-	msg := "Please enter a valid date"
+	msg := "Please enter a valid date."
 	return &msg
 }
 
@@ -560,14 +645,14 @@ func ruleDateISO(value interface{}, params []string, allData map[string]interfac
 	// Check format YYYY-MM-DD
 	matched, _ := regexp.MatchString(`^\d{4}-\d{2}-\d{2}$`, str)
 	if !matched {
-		msg := "Please enter a valid date in ISO format (YYYY-MM-DD)"
+		msg := "Please enter a valid date in ISO format (YYYY-MM-DD)."
 		return &msg
 	}
 
 	// Validate the date components
 	_, err := time.Parse("2006-01-02", str)
 	if err != nil {
-		msg := "Please enter a valid date in ISO format (YYYY-MM-DD)"
+		msg := "Please enter a valid date in ISO format (YYYY-MM-DD)."
 		return &msg
 	}
 
@@ -602,7 +687,7 @@ func ruleEndDate(value interface{}, params []string, allData map[string]interfac
 	}
 
 	if endDate.Before(*startDate) {
-		msg := "End date must be after the start date"
+		msg := "End date must be after the start date."
 		return &msg
 	}
 	return nil
@@ -635,20 +720,20 @@ func ruleURL(value interface{}, params []string, allData map[string]interface{},
 	str := toString(value)
 	parsed, err := url.Parse(str)
 	if err != nil {
-		msg := "Please enter a valid URL"
+		msg := "Please enter a valid URL."
 		return &msg
 	}
 
 	// Check for valid scheme
 	scheme := strings.ToLower(parsed.Scheme)
 	if scheme != "http" && scheme != "https" && scheme != "ftp" {
-		msg := "Please enter a valid URL"
+		msg := "Please enter a valid URL."
 		return &msg
 	}
 
 	// Check for host
 	if parsed.Host == "" {
-		msg := "Please enter a valid URL"
+		msg := "Please enter a valid URL."
 		return &msg
 	}
 
@@ -665,7 +750,11 @@ func ruleAccept(value interface{}, params []string, allData map[string]interface
 		return nil
 	}
 
-	acceptList := params
+	// Normalize the accept param the same way JS/PHP parseAcceptParam does:
+	// split commas, lowercase, and expand known ".ext" tokens to their MIME
+	// type(s). Without this, ".jpg" and ".jpeg" (both image/jpeg) would not be
+	// treated as equivalent across languages.
+	acceptList := parseAcceptList(params)
 
 	// Handle string value (filename or MIME type)
 	str := toString(value)
@@ -673,18 +762,45 @@ func ruleAccept(value interface{}, params []string, allData map[string]interface
 	if strings.Contains(str, "/") {
 		// MIME type
 		if !matchesMimeType(str, acceptList) {
-			msg := "Please upload a file with a valid format"
+			msg := "Please upload a file with a valid format."
 			return &msg
 		}
 	} else {
 		// Filename
 		if !matchesExtension(str, acceptList) {
-			msg := "Please upload a file with a valid format"
+			msg := "Please upload a file with a valid format."
 			return &msg
 		}
 	}
 
 	return nil
+}
+
+// parseAcceptList mirrors the JS/PHP parseAcceptParam: it splits comma-separated
+// accept entries, lowercases each, and expands a known ".ext" token into its
+// MIME type(s). An unknown ".ext" is kept verbatim so matchesExtension can still
+// match it literally. A bare token (no dot, no slash) is dropped.
+func parseAcceptList(params []string) []string {
+	var out []string
+	for _, p := range params {
+		for _, part := range strings.Split(p, ",") {
+			part = strings.ToLower(strings.TrimSpace(part))
+			if part == "" {
+				continue
+			}
+			if strings.HasPrefix(part, ".") {
+				ext := part[1:]
+				if mimes, ok := extensionToMime[ext]; ok {
+					out = append(out, mimes...)
+				} else {
+					out = append(out, part)
+				}
+			} else if strings.Contains(part, "/") {
+				out = append(out, part)
+			}
+		}
+	}
+	return out
 }
 
 // matchesMimeType checks if a MIME type matches the accept list
@@ -712,7 +828,67 @@ func matchesMimeType(mimeType string, acceptList []string) bool {
 	return false
 }
 
-// matchesExtension checks if a file extension matches the accept list
+// extensionToMime maps a file extension to its MIME type(s). A filename string
+// carries no MIME header, so accept matching infers the MIME from the extension
+// before testing MIME wildcards (image/*, */*). Kept in sync with the PHP/JS
+// EXTENSION_TO_MIME tables.
+var extensionToMime = map[string][]string{
+	// Images
+	"jpg":  {"image/jpeg"},
+	"jpeg": {"image/jpeg"},
+	"png":  {"image/png"},
+	"gif":  {"image/gif"},
+	"webp": {"image/webp"},
+	"svg":  {"image/svg+xml"},
+	"bmp":  {"image/bmp"},
+	"ico":  {"image/x-icon", "image/vnd.microsoft.icon"},
+
+	// Documents
+	"pdf":  {"application/pdf"},
+	"doc":  {"application/msword"},
+	"docx": {"application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
+	"xls":  {"application/vnd.ms-excel"},
+	"xlsx": {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+	"ppt":  {"application/vnd.ms-powerpoint"},
+	"pptx": {"application/vnd.openxmlformats-officedocument.presentationml.presentation"},
+	"txt":  {"text/plain"},
+	"csv":  {"text/csv", "application/csv"},
+
+	// Audio
+	"mp3":  {"audio/mpeg", "audio/mp3"},
+	"wav":  {"audio/wav", "audio/x-wav"},
+	"ogg":  {"audio/ogg"},
+	"flac": {"audio/flac"},
+
+	// Video
+	"mp4":  {"video/mp4"},
+	"webm": {"video/webm"},
+	"avi":  {"video/x-msvideo"},
+	"mov":  {"video/quicktime"},
+	"mkv":  {"video/x-matroska"},
+
+	// Archives
+	"zip": {"application/zip", "application/x-zip-compressed"},
+	"rar": {"application/x-rar-compressed", "application/vnd.rar"},
+	"tar": {"application/x-tar"},
+	"gz":  {"application/gzip"},
+	"7z":  {"application/x-7z-compressed"},
+
+	// Code
+	"json": {"application/json"},
+	"xml":  {"application/xml", "text/xml"},
+	"html": {"text/html"},
+	"css":  {"text/css"},
+	"js":   {"application/javascript", "text/javascript"},
+}
+
+// matchesExtension checks if a file extension matches the accept list.
+//
+// A filename carries no MIME header, so the extension is mapped to its MIME
+// type(s) via extensionToMime and those are matched against MIME entries
+// (including wildcards like image/* and */*). Direct extension entries (.jpg)
+// are also matched. Without this mapping a filename such as "image1.jpg" would
+// never satisfy accept="image/*".
 func matchesExtension(filename string, acceptList []string) bool {
 	parts := strings.Split(filename, ".")
 	if len(parts) < 2 {
@@ -729,32 +905,43 @@ func matchesExtension(filename string, acceptList []string) bool {
 		}
 	}
 
+	// Infer MIME from the extension, then match MIME wildcards/exact.
+	for _, mime := range extensionToMime[ext] {
+		if matchesMimeType(mime, acceptList) {
+			return true
+		}
+	}
+
 	return false
 }
 
-// ruleMinCount validates that an array has at least the minimum number of items
-func ruleMinCount(value interface{}, params []string, allData map[string]interface{}, ctx *ValidationContext) *string {
-	if isEmpty(value) {
-		return nil
+// countableLength returns the item count of a value (0 for non-arrays).
+func countableLength(value interface{}) int {
+	if arr, ok := value.([]interface{}); ok {
+		return len(arr)
 	}
+	val := reflect.ValueOf(value)
+	if value != nil && val.Kind() == reflect.Slice {
+		return val.Len()
+	}
+	return 0
+}
 
+// ruleMinCount validates that an array has at least the minimum number of
+// items. Empty arrays are counted as 0 (not skipped), so mincount applies
+// to empty input.
+func ruleMinCount(value interface{}, params []string, allData map[string]interface{}, ctx *ValidationContext) *string {
 	if len(params) == 0 {
 		return nil
 	}
 
-	minCount, err := strconv.Atoi(params[0])
+	minCount, err := strconv.ParseFloat(params[0], 64)
 	if err != nil {
 		return nil
 	}
 
-	arr, ok := value.([]interface{})
-	if !ok {
-		msg := "Please select at least " + params[0] + " items"
-		return &msg
-	}
-
-	if len(arr) < minCount {
-		msg := "Please select at least " + params[0] + " items"
+	if float64(countableLength(value)) < minCount {
+		msg := "Please select at least " + params[0] + " items."
 		return &msg
 	}
 	return nil
@@ -770,23 +957,13 @@ func ruleMaxCount(value interface{}, params []string, allData map[string]interfa
 		return nil
 	}
 
-	maxCount, err := strconv.Atoi(params[0])
+	maxCount, err := strconv.ParseFloat(params[0], 64)
 	if err != nil {
 		return nil
 	}
 
-	arr, ok := value.([]interface{})
-	if !ok {
-		// Non-array values have count of 1
-		if 1 > maxCount {
-			msg := "Please select no more than " + params[0] + " items"
-			return &msg
-		}
-		return nil
-	}
-
-	if len(arr) > maxCount {
-		msg := "Please select no more than " + params[0] + " items"
+	if float64(countableLength(value)) > maxCount {
+		msg := "Please select no more than " + params[0] + " items."
 		return &msg
 	}
 	return nil
@@ -824,7 +1001,7 @@ func ruleStep(value interface{}, params []string, allData map[string]interface{}
 	intStep := int64(math.Round(step * multiplier))
 
 	if intValue%intStep != 0 {
-		msg := "Please enter a value that is a multiple of " + params[0]
+		msg := "Please enter a value that is a multiple of " + params[0] + "."
 		return &msg
 	}
 	return nil
