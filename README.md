@@ -3,13 +3,13 @@
 YAML 기반 폼 생성 및 검증 시스템 (Multi-language, Multi-framework)
 
 하나의 폼 스펙(`type: group` + `properties`)으로 React 렌더링과
-JavaScript/PHP/Go 서버 검증을 수행한다. 3개 언어 검증기는 동일 스펙·동일
-데이터에 대해 동일 결과를 내도록 951케이스 크로스언어 테스트로 검증된다.
+JavaScript/PHP/Go/Rust 서버 검증을 수행한다. 4개 언어 검증기는 동일 스펙·동일
+데이터에 대해 동일 결과를 내도록 1013케이스 크로스언어 테스트로 검증된다.
 
 ## Features
 
 - **선언적 폼 정의** — YAML/JSON 스펙으로 폼 구조와 검증 규칙 정의
-- **3개 언어 검증기** — JavaScript/TypeScript, PHP(^8.2), Go — 크로스언어 결과 일치 보장
+- **4개 언어 검증기** — JavaScript/TypeScript, PHP(^8.2), Go, Rust — 크로스언어 결과 일치 보장
 - **React 폼 빌더** — 스펙에서 폼 UI 생성 (legacy Limepie HTML 출력과 골든 픽스처로 비교)
 - **23개 검증 규칙** (+`pattern`/`match` 별칭) — required, email, min/max, in, unique 등
 - **조건식 엔진** — lexer+AST 파서, ternary(`?:`), 상대 경로(`.x`/`..x`), 와일드카드(`*`)
@@ -26,6 +26,7 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 | [`packages/validator-js`](./packages/validator-js) | `@form-spec/validator` | TypeScript 검증 라이브러리 |
 | [`packages/validator-php`](./packages/validator-php) | `form-spec/validator` | PHP 검증 라이브러리 (PHP ^8.2) |
 | [`packages/validator-go`](./packages/validator-go) | `github.com/example/form-generator/validator` (placeholder 모듈명, 변경 보류) | Go 검증 라이브러리 |
+| [`packages/validator-rust`](./packages/validator-rust) | `formspec-validator` (crate) | Rust 검증 라이브러리 + `validate` CLI (deps: serde/serde_json/regex) |
 | [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 컴포넌트 |
 | [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Limepie PHP 사본 (골든 HTML 베이스라인용, `tools/limepie-baseline` 참조) |
 
@@ -111,7 +112,7 @@ API 상세는 [docs/API.md](./docs/API.md) 참조.
 ## Tests (게이트)
 
 ```bash
-# 크로스언어 멱등성: 951케이스를 JS/PHP/Go 에 동일 입력으로 실행해 결과 비교
+# 크로스언어 멱등성: 1013케이스를 JS/PHP/Go/Rust 에 동일 입력으로 실행해 결과 비교
 npm test                                   # = node tests/runner/compare-all.js
 
 # 언어별 옵션 (tests/ 디렉토리에서)
@@ -119,22 +120,24 @@ cd tests
 npm run test:js                            # JS만
 npm run test:php                           # PHP만
 npm run test:go                            # Go만
+npm run test:rust                          # Rust만
 
 # 단일 언어 단위 게이트
-cd packages/validator-js  && npm test      # vitest — 동일 951 픽스처 conformance
-cd packages/validator-php && composer test # PHPUnit — 동일 951 픽스처 conformance
-cd packages/validator-go  && go test ./...
+cd packages/validator-js   && npm test      # vitest — 동일 1013 픽스처 conformance
+cd packages/validator-php  && composer test # PHPUnit — 동일 1013 픽스처 conformance
+cd packages/validator-go   && go test ./...
+cd packages/validator-rust && cargo test    # cargo — 동일 1013 픽스처 conformance
 
 # HTML parity: React SSR ↔ Limepie 골든 HTML 7종 비교
 cd tests/parity && npm test
 # 골든 재생성은 tools/limepie-baseline/ 파이프라인으로만 (README 참조)
 ```
 
-테스트 케이스는 `tests/cases/*.json`(14파일, 951케이스)이 단일진실이다.
+테스트 케이스는 `tests/cases/*.json`(19파일, 1013케이스)이 단일진실이다.
 
 ## Documentation
 
-- [API Reference](./docs/API.md) — 3개 언어 Validator API + HTTP API 계약
+- [API Reference](./docs/API.md) — 4개 언어 Validator API + HTTP API 계약
 - [Spec Format](./docs/spec/legacy-schema.md) — 폼 스펙 형식 명세
 - [Validation Rules](./docs/VALIDATION-RULES.md) — 등록 규칙·기본 메시지·미구현 목록
 - [Condition Parser](./docs/CONDITION-PARSER.md) — 조건식 문법·경로 해석
