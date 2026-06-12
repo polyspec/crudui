@@ -1,0 +1,60 @@
+{
+  "testSuite": "pattern-unanchored",
+  "version": "1.0.0",
+  "description": "Regression: unanchored patterns must full-match (^...$), mirroring legacy client dist.validate.js:1652-1657 and legacy server Validation.php:126 ('~^'.$param.'$~'). Before the fix, JS/Go did substring matching so partial-match inputs (extra leading/trailing junk, over-length) leaked through as valid. These cases lock full-string matching across JS/PHP/Go.",
+  "tests": [
+    {
+      "id": "unanchored-basic-001",
+      "description": "Bare pattern [0-9]{3} must reject inputs with surrounding non-matching junk (full match required)",
+      "spec": { "type": "text", "rules": { "pattern": "[0-9]{3}" } },
+      "cases": [
+        { "input": "123", "expected": { "valid": true } },
+        { "input": "abc123def", "expected": { "valid": false, "error": "pattern", "field": "value" } },
+        { "input": "123abc", "expected": { "valid": false, "error": "pattern", "field": "value" } },
+        { "input": "x123", "expected": { "valid": false, "error": "pattern", "field": "value" } },
+        { "input": "12", "expected": { "valid": false, "error": "pattern", "field": "value" } }
+      ]
+    },
+    {
+      "id": "unanchored-leading-anchor-001",
+      "description": "Pattern with only a leading ^ must still get a trailing $ appended (no double-anchor of the existing side)",
+      "spec": { "type": "text", "rules": { "pattern": "^[0-9]{3}" } },
+      "cases": [
+        { "input": "123", "expected": { "valid": true } },
+        { "input": "123x", "expected": { "valid": false, "error": "pattern", "field": "value" } }
+      ]
+    },
+    {
+      "id": "unanchored-trailing-anchor-001",
+      "description": "Pattern with only a trailing $ must still get a leading ^ prepended",
+      "spec": { "type": "text", "rules": { "pattern": "[0-9]{3}$" } },
+      "cases": [
+        { "input": "123", "expected": { "valid": true } },
+        { "input": "x123", "expected": { "valid": false, "error": "pattern", "field": "value" } }
+      ]
+    },
+    {
+      "id": "productnft-id-pattern-001",
+      "description": "ProductNft common.id pattern [0-9a-zA-Z_\\-]{1,44} (unanchored as authored). Full-match: junk chars and over-length must be rejected. Pre-fix these passed via substring match of a valid prefix.",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "common": {
+            "type": "group",
+            "properties": {
+              "id": { "type": "text", "rules": { "pattern": "[0-9a-zA-Z_\\-]{1,44}" } }
+            }
+          }
+        }
+      },
+      "cases": [
+        { "input": { "common": { "id": "abc123_ok-ID" } }, "expected": { "valid": true } },
+        { "input": { "common": { "id": "a" } }, "expected": { "valid": true } },
+        { "input": { "common": { "id": "0123456789012345678901234567890123456789abcd" } }, "expected": { "valid": true } },
+        { "input": { "common": { "id": "abc def!" } }, "expected": { "valid": false, "error": "pattern", "field": "common.id" } },
+        { "input": { "common": { "id": "good-id with space" } }, "expected": { "valid": false, "error": "pattern", "field": "common.id" } },
+        { "input": { "common": { "id": "01234567890123456789012345678901234567890123456789" } }, "expected": { "valid": false, "error": "pattern", "field": "common.id" } }
+      ]
+    }
+  ]
+}

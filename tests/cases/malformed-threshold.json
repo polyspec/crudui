@@ -1,0 +1,80 @@
+{
+  "testSuite": "malformed-threshold",
+  "version": "1.0.0",
+  "description": "비숫자 임계값(max/min 파라미터)에 대한 3개 언어 수렴 - 잘못된 룰 파라미터는 검증을 건너뛴다(valid)",
+  "tests": [
+    {
+      "id": "malformed-max-001",
+      "description": "max 파라미터가 비숫자면 건너뛴다",
+      "spec": {
+        "type": "text",
+        "rules": {
+          "max": "abc"
+        }
+      },
+      "cases": [
+        {
+          "input": "5",
+          "expected": {
+            "valid": true
+          }
+        },
+        {
+          "input": "999999",
+          "expected": {
+            "valid": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "malformed-min-001",
+      "description": "min 파라미터가 비숫자면 건너뛴다",
+      "spec": {
+        "type": "text",
+        "rules": {
+          "min": "xyz"
+        }
+      },
+      "cases": [
+        {
+          "input": "5",
+          "expected": {
+            "valid": true
+          }
+        },
+        {
+          "input": "-100",
+          "expected": {
+            "valid": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "malformed-max-valid-001",
+      "description": "정상 숫자 임계값은 그대로 동작한다(회귀 가드)",
+      "spec": {
+        "type": "number",
+        "rules": {
+          "max": 10
+        }
+      },
+      "cases": [
+        {
+          "input": 5,
+          "expected": {
+            "valid": true
+          }
+        },
+        {
+          "input": 15,
+          "expected": {
+            "valid": false,
+            "error": "max"
+          }
+        }
+      ]
+    }
+  ]
+}

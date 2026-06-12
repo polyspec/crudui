@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Example app PHP dependencies (validator-php ships vendored, examples do not)
+examples/**/vendor/
+
 # Build outputs
 dist/
 *.tsbuildinfo

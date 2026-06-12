@@ -2,13 +2,13 @@
 /**
  * JavaScript/TypeScript Test Runner
  *
- * Loads test cases from tests/cases/*.json and validates using validator/js
+ * Loads test cases from tests/cases/*.json and validates using packages/validator-js
  * Outputs colored pass/fail results and exits with error code if any fail.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Validator } from '../../validator/js/src/index';
+import { Validator } from '../../packages/validator-js/src/index';
 
 // ANSI color codes
 const colors = {

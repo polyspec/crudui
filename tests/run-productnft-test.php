@@ -5,7 +5,7 @@
  * This script tests the PHP validator against the ProductNft spec test cases.
  */
 
-require_once __DIR__ . '/../validator/php/vendor/autoload.php';
+require_once __DIR__ . '/../packages/validator-php/vendor/autoload.php';
 
 use FormSpec\Validator\Validator;
 
