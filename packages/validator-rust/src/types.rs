@@ -1,0 +1,79 @@
+//! Core types: Spec, Field, ValidationResult, ValidationError.
+//! Ports validator-go/validator/types.go (Spec/Field/Rule/ValidationResult/
+//! ValidationError) and the AST node set used by the condition parser.
+
+use serde_json::Value;
+use std::collections::HashMap;
+
+/// Spec is the form specification: an ordered list of fields plus optional
+/// named custom rules.
+#[derive(Debug, Clone, Default)]
+pub struct Spec {
+    pub fields: Vec<Field>,
+    pub rules: HashMap<String, CustomRule>,
+}
+
+/// Field is a single form field definition.
+#[derive(Debug, Clone, Default)]
+pub struct Field {
+    pub name: String,
+    pub field_type: String,
+    pub label: String,
+    /// Legacy top-level required attribute: bool or condition string.
+    pub required: Option<Value>,
+    /// Rule name -> raw rule param value, plus declaration order.
+    pub rules: HashMap<String, Value>,
+    pub rule_order: Vec<String>,
+    pub messages: HashMap<String, String>,
+    /// Nested/group child fields.
+    pub fields: Vec<Field>,
+    /// Repeatable group (array).
+    pub multiple: bool,
+    /// "only" mode: single object treated like an array for wildcards.
+    pub multiple_only: bool,
+    /// display_switch: bool or condition string. false hides the field
+    /// (validation skipped).
+    pub display_switch: Option<Value>,
+    /// display_target: field reference; empty target value hides the field.
+    pub display_target: String,
+}
+
+impl Field {
+    pub fn has_rule(&self, name: &str) -> bool {
+        self.rules.contains_key(name)
+    }
+}
+
+/// CustomRule is a custom rule definition declared at spec level.
+#[derive(Debug, Clone, Default)]
+pub struct CustomRule {
+    pub pattern: Option<String>,
+    pub min: Option<i64>,
+    pub max: Option<i64>,
+    pub message: String,
+}
+
+/// ValidationResult is the aggregate outcome of a validation pass.
+#[derive(Debug, Clone)]
+pub struct ValidationResult {
+    pub is_valid: bool,
+    pub errors: Vec<ValidationError>,
+}
+
+impl Default for ValidationResult {
+    fn default() -> Self {
+        ValidationResult {
+            is_valid: true,
+            errors: Vec::new(),
+        }
+    }
+}
+
+/// ValidationError is a single field failure.
+#[derive(Debug, Clone)]
+pub struct ValidationError {
+    pub field: String,
+    pub rule: String,
+    pub message: String,
+    pub value: Value,
+}

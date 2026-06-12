@@ -1,0 +1,17 @@
+[package]
+name = "formspec-validator"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "formspec_validator"
+path = "src/lib.rs"
+
+[[bin]]
+name = "validate"
+path = "src/bin/validate.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+regex = "1"
