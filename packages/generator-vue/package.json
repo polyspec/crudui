@@ -1,21 +1,52 @@
 {
   "name": "@form-spec/generator-vue",
   "version": "0.0.1",
-  "description": "Vue form generator for @form-spec (Coming Soon)",
-  "scripts": {
-    "build": "echo 'Not implemented yet'"
-  },
-  "peerDependencies": {
-    "vue": ">=3.0.0"
-  },
-  "dependencies": {
-    "@form-spec/validator": "file:../validator-js"
-  },
-  "license": "MIT",
+  "description": "Vue 3 form builder component library based on form-spec YAML definitions (PHP Limepie parity)",
+  "type": "module",
   "exports": {
+    "./package.json": "./package.json",
     "./legacy": {
       "types": "./dist/legacy/index.d.ts",
-      "import": "./dist/legacy/index.js"
+      "import": "./dist/legacy/index.js",
+      "require": "./dist/legacy/index.cjs"
     }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup src/legacy/index.ts --format cjs,esm --dts --clean --external vue",
+    "dev": "tsup src/legacy/index.ts --format cjs,esm --dts --watch --external vue",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "vue",
+    "form",
+    "form-builder",
+    "yaml",
+    "spec",
+    "validation",
+    "limepie"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "@form-spec/validator": "file:../validator-js",
+    "yaml": "^2.3.0"
+  },
+  "devDependencies": {
+    "@vue/server-renderer": "^3.4.0",
+    "@types/node": "^20.10.0",
+    "parse5": "^8.0.1",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vue": "^3.4.0",
+    "vitest": "^1.6.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
