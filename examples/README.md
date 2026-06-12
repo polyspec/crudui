@@ -20,6 +20,7 @@ docker-compose up --build
 | php-api | 8012 | PHP validation server with Apache |
 | go-api | 8013 | Go validation server |
 | playground | 8014 | Interactive form spec editor |
+| rust-api | 8017 | Rust validation server |
 
 ## URLs
 
@@ -30,6 +31,7 @@ Once the services are running, access them at:
 - **php-api**: [http://localhost:8012](http://localhost:8012)
 - **go-api**: [http://localhost:8013](http://localhost:8013)
 - **playground**: [http://localhost:8014](http://localhost:8014)
+- **rust-api**: [http://localhost:8017](http://localhost:8017)
 
 Form specs shared by the backend APIs and the legacy demos live in `shared-specs/`
 (mounted into each container by `docker-compose.yml`).
@@ -58,6 +60,7 @@ docker-compose logs -f node-api
 docker-compose logs -f php-api
 docker-compose logs -f go-api
 docker-compose logs -f playground
+docker-compose logs -f rust-api
 ```
 
 ### Stop all services
@@ -72,7 +75,7 @@ docker-compose up --build demo-app
 
 ## API Contract
 
-All three backend APIs (`node-api`, `php-api`, `go-api`) implement the same canonical contract:
+All four backend APIs (`node-api`, `php-api`, `go-api`, `rust-api`) implement the same canonical contract:
 
 ### `GET /api/specs`
 
@@ -149,6 +152,7 @@ Each service includes a health check configuration:
 - **php-api**: curl check on port 80 (via Apache)
 - **go-api**: wget check on port 8080
 - **playground**: HTTP check on port 80
+- **rust-api**: wget check on port 8080 (`/health`)
 
 Check service health status:
 ```bash

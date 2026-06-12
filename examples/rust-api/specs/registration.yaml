@@ -1,0 +1,90 @@
+type: group
+name: registration
+title: User Registration
+description: User registration form with profile information
+
+properties:
+  username:
+    type: text
+    label: Username
+    rules:
+      required: true
+      minlength: 3
+      maxlength: 20
+      match: "^[a-zA-Z0-9_]+$"
+    messages:
+      required: Username is required
+      minlength: Username must be at least 3 characters
+      maxlength: Username cannot exceed 20 characters
+      match: Username can only contain letters, numbers, and underscores
+
+  email:
+    type: email
+    label: Email Address
+    rules:
+      required: true
+      email: true
+    messages:
+      required: Email is required
+      email: Please enter a valid email address
+
+  password:
+    type: password
+    label: Password
+    rules:
+      required: true
+      minlength: 8
+      maxlength: 128
+    messages:
+      required: Password is required
+      minlength: Password must be at least 8 characters
+
+  password_confirm:
+    type: password
+    label: Confirm Password
+    rules:
+      required: true
+      equalTo: ".password"
+    messages:
+      required: Please confirm your password
+      equalTo: Passwords do not match
+
+  profile:
+    type: group
+    label: Profile Information
+    properties:
+      first_name:
+        type: text
+        label: First Name
+        rules:
+          required: true
+          minlength: 1
+          maxlength: 50
+        messages:
+          required: First name is required
+
+      last_name:
+        type: text
+        label: Last Name
+        rules:
+          required: true
+          minlength: 1
+          maxlength: 50
+        messages:
+          required: Last name is required
+
+      country:
+        type: select
+        label: Country
+        rules:
+          required: true
+        messages:
+          required: Please select your country
+
+  terms:
+    type: checkbox
+    label: I agree to the terms and conditions
+    rules:
+      required: true
+    messages:
+      required: You must agree to the terms and conditions
