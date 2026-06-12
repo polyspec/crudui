@@ -1,5 +1,11 @@
 # Limepie Validate.js Analysis
 
+> **사료 문서** — legacy Limepie(jQuery) 검증 시스템의 분석 기록이다.
+> **현 구현 상태는 [VALIDATION-RULES.md](./VALIDATION-RULES.md) 를 참조하라.**
+> 이 문서에 나오는 규칙 중 `even` / `odd` / `password8` / `maxTo` / `recaptcha` 는
+> 현 검증기(JS/PHP/Go) 어디에도 **포팅되지 않았다** (3개 언어 규칙 레지스트리
+> grep 검증, 2026-06). 이 문서를 근거로 해당 규칙이 동작한다고 가정하지 마라.
+
 This document provides a comprehensive analysis of the original Limepie validation system to ensure React version compatibility.
 
 ## Overview

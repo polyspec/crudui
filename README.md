@@ -2,72 +2,98 @@
 
 YAML 기반 폼 생성 및 검증 시스템 (Multi-language, Multi-framework)
 
+하나의 폼 스펙(`type: group` + `properties`)으로 React 렌더링과
+JavaScript/PHP/Go 서버 검증을 수행한다. 3개 언어 검증기는 동일 스펙·동일
+데이터에 대해 동일 결과를 내도록 951케이스 크로스언어 테스트로 검증된다.
+
 ## Features
 
-- 🎯 **선언적 폼 정의** - YAML 스펙으로 폼 구조와 검증 규칙 정의
-- 🌍 **다중 언어 검증기** - JavaScript/TypeScript, PHP, Go 지원
-- ⚛️ **다중 프레임워크** - React (활성), Vue/Svelte (준비 중)
-- 📝 **33+ 필드 타입** - 텍스트, 이메일, 날짜, 파일, 주소 검색 등
-- ✅ **27개 검증 규칙** - required, email, min/max, pattern 등
-- 🔄 **조건부 표시** - 필드 값에 따른 동적 폼 구성
-- 🌐 **다국어 지원** - 라벨, 메시지 다국어 처리
+- **선언적 폼 정의** — YAML/JSON 스펙으로 폼 구조와 검증 규칙 정의
+- **3개 언어 검증기** — JavaScript/TypeScript, PHP(^8.2), Go — 크로스언어 결과 일치 보장
+- **React 폼 빌더** — 스펙에서 폼 UI 생성 (legacy Limepie HTML 출력과 골든 픽스처로 비교)
+- **23개 검증 규칙** (+`pattern`/`match` 별칭) — required, email, min/max, in, unique 등
+- **조건식 엔진** — lexer+AST 파서, ternary(`?:`), 상대 경로(`.x`/`..x`), 와일드카드(`*`)
+- **조건부 표시** — `display_switch`/`display_target` (숨김 필드는 검증 스킵)
+- **다국어 라벨** — `ko`/`en`/`ja`/`zh` MultiLangText
+
+## Packages
+
+npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
+패키지는 npm/Packagist에 **미배포** 상태다 — 저장소 내 워크스페이스/경로 참조로 사용한다.
+
+| 경로 | 패키지명 | 설명 |
+|------|----------|------|
+| [`packages/validator-js`](./packages/validator-js) | `@form-spec/validator` | TypeScript 검증 라이브러리 |
+| [`packages/validator-php`](./packages/validator-php) | `form-spec/validator` | PHP 검증 라이브러리 (PHP ^8.2) |
+| [`packages/validator-go`](./packages/validator-go) | `github.com/example/form-generator/validator` (placeholder 모듈명, 변경 보류) | Go 검증 라이브러리 |
+| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 컴포넌트 |
+| [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Limepie PHP 사본 (골든 HTML 베이스라인용, `tools/limepie-baseline` 참조) |
 
 ## Quick Start
 
-### JavaScript/TypeScript
+### 설치 / 빌드
 
 ```bash
-npm install @form-spec/validator @form-spec/generator-react
+npm install        # 루트에서: 워크스페이스 일괄 설치
+npm run build      # @form-spec/validator + @form-spec/generator-react 빌드
 ```
+
+### 스펙 정의
+
+```yaml
+type: group
+properties:
+  email:
+    type: email
+    label: Email
+    rules:
+      required: true
+      email: true
+    messages:
+      required: 이메일을 입력하세요
+  name:
+    type: text
+    label: Name
+    rules:
+      required: true
+      minlength: 2
+```
+
+### JavaScript/TypeScript
 
 ```typescript
 import { Validator } from '@form-spec/validator';
+
+const validator = new Validator(spec);
+const result = validator.validate(formData);
+// result: { valid: boolean, errors: [{ path, field, rule, message, value? }] }
+```
+
+### React
+
+```tsx
 import { FormBuilder } from '@form-spec/generator-react';
 
-// YAML 스펙 정의
-const spec = {
-  type: 'group',
-  properties: {
-    email: {
-      type: 'email',
-      label: 'Email',
-      rules: { required: true, email: true },
-      messages: { required: '이메일을 입력하세요' }
-    },
-    name: {
-      type: 'text',
-      label: 'Name',
-      rules: { required: true, minlength: 2 }
-    }
-  }
-};
-
-// React에서 사용
 function App() {
   return (
     <FormBuilder
-      spec={spec}
+      spec={spec}            // YAML 문자열 또는 파싱된 객체
+      language="ko"
       onSubmit={(data, errors) => console.log(data, errors)}
     />
   );
 }
-
-// 서버에서 검증
-const validator = new Validator(spec);
-const result = validator.validate(formData);
 ```
 
 ### PHP
 
-```bash
-composer require form-spec/validator
-```
-
 ```php
 use FormSpec\Validator\Validator;
 
-$validator = new Validator($spec);
-$result = $validator->validate($data);
+$validator = new Validator($spec);          // $spec: type/properties 배열
+$result = $validator->validate($data);      // ValidationResult
+$result->valid;                             // bool
+$result->getErrors();                       // 경로 키 에러 배열
 ```
 
 ### Go
@@ -75,54 +101,62 @@ $result = $validator->validate($data);
 ```go
 import "github.com/example/form-generator/validator"
 
-v := validator.New(spec)
-result := v.Validate(data)
+parsed, err := validator.ParseSpec(specJSON) // 정본 type/properties JSON
+v := validator.NewValidator(parsed.Spec)
+result := v.Validate(data)                   // result.IsValid, result.Errors
 ```
 
-## Packages
+API 상세는 [docs/API.md](./docs/API.md) 참조.
 
-| 패키지 | 설명 | 상태 |
-|--------|------|------|
-| [@form-spec/validator](./packages/validator-js) | JavaScript/TypeScript 검증 라이브러리 | ✅ 활성 |
-| [@form-spec/generator-react](./packages/generator-react) | React 폼 빌더 컴포넌트 | ✅ 활성 |
-| [form-spec/validator (PHP)](./packages/validator-php) | PHP 검증 라이브러리 | ✅ 활성 |
-| [validator-go](./packages/validator-go) | Go 검증 라이브러리 | ✅ 활성 |
+## Tests (게이트)
+
+```bash
+# 크로스언어 멱등성: 951케이스를 JS/PHP/Go 에 동일 입력으로 실행해 결과 비교
+npm test                                   # = node tests/runner/compare-all.js
+
+# 언어별 옵션 (tests/ 디렉토리에서)
+cd tests
+npm run test:js                            # JS만
+npm run test:php                           # PHP만
+npm run test:go                            # Go만
+
+# 단일 언어 단위 게이트
+cd packages/validator-js  && npm test      # vitest — 동일 951 픽스처 conformance
+cd packages/validator-php && composer test # PHPUnit — 동일 951 픽스처 conformance
+cd packages/validator-go  && go test ./...
+
+# HTML parity: React SSR ↔ Limepie 골든 HTML 7종 비교
+cd tests/parity && npm test
+# 골든 재생성은 tools/limepie-baseline/ 파이프라인으로만 (README 참조)
+```
+
+테스트 케이스는 `tests/cases/*.json`(14파일, 951케이스)이 단일진실이다.
 
 ## Documentation
 
-- [API Reference](./docs/API.md) - Validator API 상세 문서
-- [YAML Spec](./docs/SPEC.md) - 스펙 형식 명세서
-- [Validation Rules](./docs/VALIDATION-RULES.md) - 검증 규칙 가이드
-- [Condition Parser](./docs/CONDITION-PARSER.md) - 조건식 파서 문서
+- [API Reference](./docs/API.md) — 3개 언어 Validator API + HTTP API 계약
+- [Spec Format](./docs/SPEC.md) — 폼 스펙 형식 명세
+- [Validation Rules](./docs/VALIDATION-RULES.md) — 등록 규칙·기본 메시지·미구현 목록
+- [Condition Parser](./docs/CONDITION-PARSER.md) — 조건식 문법·경로 해석
+- [Display Conditions](./docs/DISPLAY-CONDITIONS.md) — 조건부 표시·검증 스킵
 
 ## Examples
 
-- [Demo App](./examples/demo-app/) - 대화형 데모 애플리케이션
-- [Playground](./examples/playground/) - 실시간 YAML 편집기
-- [Node.js API](./examples/node-api/) - Express 서버 예제
-- [PHP API](./examples/php-api/) - PHP 서버 예제
-- [Go API](./examples/go-api/) - Go 서버 예제
+`examples/` — docker-compose로 전체 실행 (`cd examples && docker-compose up --build`):
 
-## Cross-Language Testing
+- [demo-app](./examples/demo-app/) — React 데모 (8010)
+- [node-api](./examples/node-api/) / [php-api](./examples/php-api/) / [go-api](./examples/go-api/) — 동일 계약의 검증 API 서버 (8011-8013)
+- [playground](./examples/playground/) — 실시간 스펙 편집기 (8014)
+- [limepie-original](./examples/limepie-original/) — legacy Limepie 원본 폼 시스템 (8015)
 
-모든 언어의 검증기가 동일한 스펙에 대해 동일한 결과를 반환하는지 검증합니다:
-
-```bash
-cd tests
-npm run idempotency:all   # JS/PHP/Go 멱등성 검증
-```
+API 계약·포트 상세는 [examples/README.md](./examples/README.md) 참조.
 
 ## Development
 
 ```bash
-# validator-js 빌드
-cd packages/validator-js && npm run build
-
-# generator-react 빌드
-cd packages/generator-react && npm run build
-
-# 테스트 실행
-npm test
+npm run build      # validator-js + generator-react 빌드
+npm run lint       # eslint (validator-js, generator-react)
+npm test           # 크로스언어 게이트
 ```
 
 ## License
