@@ -1,20 +1,278 @@
 /**
  * FormGroup Component
  *
- * Handles nested groups and multiple/sortable array fields
+ * Handles nested groups and multiple/sortable group rows.
+ *
+ * The golden fixtures (tests/fixtures/golden-html, captured from the legacy
+ * Limepie PHP Generator) are the single source of truth for the markup:
+ *
+ *   single group   <div class="form-element-wrapper" name="<dot>-layer">
+ *                    <h6>label</h6>[<p class="description">]
+ *                    <div class="form-element">
+ *                      <div data-uniqid class="input-group-wrapper">
+ *                        <div class="form-group">…fields…</div>
+ *
+ *   multiple group  same wrapper, but .form-element contains one
+ *                   .input-group-wrapper PER ROW; the row's data-uniqid IS the
+ *                   row key used inside field names
+ *                   (form[contacts][__k13__][name]); each row ends with
+ *                   <span class="btn-group input-group-btn"> move/plus/minus
+ *                   buttons (only when multiple === true — multiple: 'only'
+ *                   renders rows without buttons).
+ *
+ * FormContext data is the single source of truth for row values; row keys are
+ * derived via useMultipleRows. Do NOT write render-time value snapshots back
+ * into the context (legacy edit-loss bug).
  */
 
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Plus, Minus, ChevronUp, ChevronDown } from 'lucide-react';
+import React, { useCallback, useRef } from 'react';
 import { useFormContext } from '../context/FormContext';
 import { useI18n } from '../context/I18nContext';
-import { useMultiple, arrayToMultipleItems, multipleItemsToArray } from '../hooks/useMultiple';
+import { useMultipleRows } from '../hooks/useMultiple';
+import { evaluateAllOfInternal } from '../hooks/useConditional';
+import {
+  resolveDisplayTargetParts,
+  legacyWrapperClassName,
+  legacyWrapperStyle,
+} from '../hooks/legacyDisplay';
 import { FormField } from './FormField';
 import { ErrorMessage } from './common/ErrorMessage';
-import { Description } from './common/Description';
 import { generateUniqid } from '../utils/dataAttributes';
-import type { FormValue, FormData, MultipleItem, FieldSpec, MultiLangText } from '../types';
-import { getValueByPath, setValueByPath, joinPath, generateUniqueKey } from '../utils/path';
+import { parseStyleString, wrapperLayerName } from './fields/limepieParity';
+import type { FormValue, FieldSpec, AllOfCondition } from '../types';
+
+/**
+ * PHP-truthiness used by the legacy group_class exist/empty switch.
+ */
+function hasData(value: FormValue): boolean {
+  if (value === null || value === undefined) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return String(value).length > 0;
+}
+
+/**
+ * Legacy multiple detection (Group::determineIsArray):
+ * multiple true / 'true' / 'only' all render array rows.
+ */
+export function isMultipleSpec(spec: FieldSpec): boolean {
+  const m = (spec as { multiple?: boolean | string }).multiple;
+  return m === true || m === 'true' || m === 'only';
+}
+
+/**
+ * Legacy field description: <p class="description"> with nl2br applied and
+ * `*line` emphasized (Group::write). The text is spec-authored HTML — it is
+ * injected raw, exactly like the PHP string interpolation.
+ */
+export function legacyDescriptionHtml(text: string): string {
+  const bolded = text.replace(/\*(.*)\n/g, '<span class="bold">*$1</span>\n');
+  return bolded.replace(/(\r\n|\n\r|\r|\n)/g, '<br />$1');
+}
+
+export function LegacyDescription({ text }: { text: string }) {
+  if (!text) return null;
+  return (
+    <p
+      className="description"
+      dangerouslySetInnerHTML={{ __html: legacyDescriptionHtml(text) }}
+    />
+  );
+}
+
+/**
+ * Inner form-group class string (Group::write $groupClass):
+ * "form-group" + group_class, where group_class supports
+ * {exist, empty} objects and the "exist ! empty" string form.
+ */
+export function formGroupClassName(spec: FieldSpec, dataPresent: boolean): string {
+  const classes = ['form-group'];
+  const gc = (spec as Record<string, unknown>).group_class;
+  if (gc && typeof gc === 'object' && !Array.isArray(gc)) {
+    const obj = gc as { exist?: string; empty?: string };
+    if (obj.exist !== undefined && obj.empty !== undefined) {
+      classes.push((dataPresent ? obj.exist : obj.empty).trim());
+    }
+  } else if (typeof gc === 'string') {
+    if (gc.includes('!')) {
+      const [exist = '', empty = ''] = gc.split('!').map((s) => s.trim());
+      classes.push(dataPresent ? exist : empty);
+    } else {
+      classes.push(gc.trim());
+    }
+  }
+  return classes.filter(Boolean).join(' ');
+}
+
+/**
+ * Group wrapper (form-element-wrapper) class/style — same legacy chain as
+ * leaf fields (Group::write applies it to every property type):
+ * class: base + spec.class + all_of class + display_target condition class;
+ * style: spec.style + all_of inline + display_target condition style +
+ * display:none when invisible. Legacy keeps hidden groups in the DOM
+ * (golden: ProductNft option/option_* groups), never removes them.
+ */
+function groupWrapperPresentation(
+  spec: FieldSpec,
+  parentPath: string | undefined,
+  data: FormValue | Record<string, FormValue>,
+  rootSpec: unknown,
+  visible: boolean
+): { className: string; style: React.CSSProperties } {
+  const allOfResult = spec.element?.all_of
+    ? evaluateAllOfInternal(
+        spec.element.all_of as AllOfCondition,
+        data as Record<string, FormValue>
+      )
+    : null;
+  const conditionParts = resolveDisplayTargetParts(
+    spec as Record<string, unknown>,
+    parentPath ?? '',
+    data,
+    rootSpec as Record<string, unknown>
+  );
+  return {
+    className: legacyWrapperClassName(
+      spec as Record<string, unknown>,
+      allOfResult?.className,
+      conditionParts
+    ),
+    style:
+      legacyWrapperStyle(
+        spec as Record<string, unknown>,
+        allOfResult?.style,
+        conditionParts,
+        !visible
+      ) ?? {},
+  };
+}
+
+/**
+ * Row/input wrapper class (Fields::addElement): input-group-wrapper
+ * [clone-element when not the first row] [wrapper_class].
+ */
+export function inputGroupWrapperClassName(spec: FieldSpec, rowIndex = 0): string {
+  const classes = ['input-group-wrapper'];
+  if (rowIndex > 0) classes.push('clone-element');
+  const wc = (spec as Record<string, unknown>).wrapper_class;
+  if (typeof wc === 'string' && wc) classes.push(wc);
+  return classes.join(' ');
+}
+
+/** PHP addcslashes($str, '"') — quote escaping for inline-attr JS. */
+function addCSlashesQuote(s: string): string {
+  return s.split('"').join('\\"');
+}
+
+/**
+ * True when the spec carries the legacy dynamic_onchange inline JS
+ * (Fields::addElement puts it on every row button as an onclick attribute).
+ */
+export function hasDynamicOnchange(spec: FieldSpec): boolean {
+  const d = (spec as Record<string, unknown>).dynamic_onchange;
+  return typeof d === 'string' && d !== '';
+}
+
+/**
+ * Raw legacy row-buttons HTML — verbatim port of Fields::addElement
+ * $btnGroupHtml (multiple === true). React cannot render string on*
+ * attributes, so rows whose buttons need the dynamic_onchange onclick MUST
+ * render this string (golden: ProductNft option groups/items). The &nbsp;
+ * labels and the onclick value (PHP addcslashes($js, '"'), unminified, with
+ * the YAML trailing newline) are part of the golden contract.
+ */
+export function legacyRowButtonsHtml(spec: FieldSpec): string {
+  const dynRaw = (spec as Record<string, unknown>).dynamic_onchange;
+  const dyn =
+    typeof dynRaw === 'string' && dynRaw !== ''
+      ? ` onclick="${addCSlashesQuote(dynRaw)}"`
+      : '';
+  const sortable = (spec as { sortable?: boolean }).sortable === true;
+  const mm = (spec as Record<string, unknown>).multiple_max;
+  const max = mm !== undefined && mm !== null ? `data-multiple-max="${String(mm)}"` : '';
+
+  let html = '';
+  if (sortable) {
+    html += `<button  type="button" class="btn btn-move-up"${dyn}>&nbsp;</button>`;
+    html += `<button  type="button" class="btn btn-move-down"${dyn}>&nbsp;</button>`;
+  }
+  html += `<button class="btn btn-plus" ${max} type="button"${dyn}>&nbsp;</button>`;
+  let minusBtn = 'btn-minus';
+  if ((spec as Record<string, unknown>).multiple_copy) {
+    html += `<button class="btn btn-copy" type="button"${dyn}>&nbsp;</button>`;
+    minusBtn = 'btn-minus btn-delete';
+  }
+  html += `<button class="btn ${minusBtn}" type="button"${dyn}>&nbsp;</button>`;
+  return html;
+}
+
+/**
+ * Delegated click handler for raw legacyRowButtonsHtml rows — keeps
+ * add/remove/move interactive even though the buttons themselves are raw
+ * HTML (clicks bubble to the React-owned container).
+ */
+export function rowButtonsClickHandler(handlers: {
+  onAdd: () => void;
+  onRemove: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}): React.MouseEventHandler<HTMLElement> {
+  return (e) => {
+    const btn = (e.target as Element).closest?.('button');
+    if (!btn) return;
+    const cl = btn.classList;
+    if (cl.contains('btn-plus') || cl.contains('btn-copy')) handlers.onAdd();
+    else if (cl.contains('btn-minus')) handlers.onRemove();
+    else if (cl.contains('btn-move-up')) handlers.onMoveUp();
+    else if (cl.contains('btn-move-down')) handlers.onMoveDown();
+  };
+}
+
+/**
+ * Legacy row buttons (Fields::addElement, multiple === true only):
+ * [move-up, move-down when sortable] plus[, data-multiple-max] minus.
+ * Labels are literal &nbsp; — content, not whitespace.
+ */
+export function MultipleRowButtons({
+  spec,
+  onAdd,
+  onRemove,
+  onMoveUp,
+  onMoveDown,
+}: {
+  spec: FieldSpec;
+  onAdd: () => void;
+  onRemove: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  const sortable = (spec as { sortable?: boolean }).sortable === true;
+  const multipleMax = (spec as Record<string, unknown>).multiple_max;
+  const maxAttr =
+    multipleMax !== undefined && multipleMax !== null
+      ? { 'data-multiple-max': String(multipleMax) }
+      : {};
+  return (
+    <>
+      {sortable && (
+        <>
+          <button type="button" className="btn btn-move-up" onClick={onMoveUp}>
+            {'\u00a0'}
+          </button>
+          <button type="button" className="btn btn-move-down" onClick={onMoveDown}>
+            {'\u00a0'}
+          </button>
+        </>
+      )}
+      <button type="button" className="btn btn-plus" {...maxAttr} onClick={onAdd}>
+        {'\u00a0'}
+      </button>
+      <button type="button" className="btn btn-minus" onClick={onRemove}>
+        {'\u00a0'}
+      </button>
+    </>
+  );
+}
 
 /**
  * FormGroup props
@@ -42,10 +300,8 @@ export function FormGroup({
   spec,
   path,
   parentPath,
-  index,
-  uniqueKey,
 }: FormGroupProps) {
-  const { getValue, setValue, errors, disabled: globalDisabled, readonly: globalReadonly, keyPrefix } = useFormContext();
+  const { spec: rootSpec, data, getValue, errors, keyPrefix, isFieldVisible } = useFormContext();
   const { t } = useI18n();
 
   // Generate stable uniqid for this group (like PHP's data-uniqid)
@@ -57,11 +313,8 @@ export function FormGroup({
   // Get error for group level
   const error = errors[path];
 
-  // Check if multiple
-  const isMultiple = spec.multiple === true;
-
-  // If multiple, render multiple items
-  if (isMultiple) {
+  // Multiple groups render one row per data key
+  if (isMultipleSpec(spec)) {
     return (
       <MultipleFormGroup
         name={name}
@@ -75,30 +328,49 @@ export function FormGroup({
   }
 
   // Single group - matches Limepie original output exactly
-  const wrapperClasses = ['form-element-wrapper', spec.class || ''].filter(Boolean);
+  const wrapper = groupWrapperPresentation(
+    spec,
+    parentPath,
+    data,
+    rootSpec,
+    isFieldVisible(path)
+  );
 
   // Build wrapper name attribute (like PHP: "product.basic-layer")
-  const wrapperName = keyPrefix ? `${keyPrefix}.${path}-layer` : `${path}-layer`;
+  const wrapperName = wrapperLayerName(path, keyPrefix || undefined);
+
+  const groupValue = getValue(path);
+  const labelClass = (spec as { label_class?: string }).label_class ?? '';
+  const groupStyle = parseStyleString((spec as Record<string, unknown>).group_style);
 
   return (
-    <div className={wrapperClasses.join(' ')} style={{}} {...{ name: wrapperName }}>
+    <div className={wrapper.className} style={wrapper.style} {...{ name: wrapperName }}>
       {/* Group label - use h6 to match Limepie original */}
-      {label && (
-        <h6 className="">{label}</h6>
-      )}
+      {label && <h6 className={labelClass}>{label}</h6>}
 
-      {/* Group description */}
-      {spec.description && <Description text={t(spec.description)} />}
+      {/* Group description (legacy <p class="description">, nl2br) */}
+      {spec.description && <LegacyDescription text={t(spec.description)} />}
 
       {/* form-element > input-group-wrapper > form-group structure like Limepie */}
       <div className="form-element">
-        <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
-          <div className="form-group">{spec.properties && Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
+        <div
+          data-uniqid={uniqidRef.current}
+          className={inputGroupWrapperClassName(spec)}
+          style={parseStyleString((spec as Record<string, unknown>).wrapper_style) ?? {}}
+        >
+          <div
+            className={formGroupClassName(spec, hasData(groupValue))}
+            style={groupStyle}
+          >{spec.properties && Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
             <FormField
               key={fieldName}
               name={fieldName}
               spec={fieldSpec}
-              path={joinPath(path, fieldName)}
+              // Legacy keeps the literal [] suffix in the element name
+              // (extractProperties: non-multiple "day[]" -> common[yoil][day][]
+              // -> dot name common.yoil.day.*). FormField strips it for
+              // multiple specs and derives the data path itself.
+              path={`${path}.${fieldName}`}
               parentPath={path}
             />
           ))}</div>
@@ -124,48 +396,31 @@ interface MultipleFormGroupProps {
 }
 
 function MultipleFormGroup({
-  name,
   spec,
   path,
   parentPath,
   label,
   error,
 }: MultipleFormGroupProps) {
-  const { getValue, setValue, disabled: globalDisabled, readonly: globalReadonly, keyPrefix } = useFormContext();
+  const {
+    spec: rootSpec,
+    data,
+    disabled: globalDisabled,
+    readonly: globalReadonly,
+    keyPrefix,
+    isFieldVisible,
+  } = useFormContext();
   const { t } = useI18n();
 
-  // Generate stable uniqid for this group
-  const uniqidRef = useRef<string>(generateUniqid());
-
-  // Get current array value
-  const currentValue = getValue(path);
-  const arrayValue = useMemo(() => {
-    if (Array.isArray(currentValue)) {
-      return currentValue;
-    }
-    if (typeof currentValue === 'object' && currentValue !== null) {
-      // Object with unique keys - convert to array
-      const entries = Object.entries(currentValue as Record<string, FormValue>);
-      return entries.map(([, value]) => value);
-    }
-    return [];
-  }, [currentValue]);
-
-  // Use multiple hook
-  const {
-    items,
-    add,
-    remove,
-    move,
-    canAdd,
-    canRemove,
-  } = useMultiple<FormData>({
-    initialItems: arrayValue as FormData[],
+  // Row keys are DERIVED from FormContext data (single source of truth).
+  const { rowKeys, getRowValue, add, remove, moveUp, moveDown } = useMultipleRows({
+    path,
     min: spec.min as number | undefined,
     max: spec.max as number | undefined,
-    defaultValue: () => {
-      // Create default values from properties
-      const defaults: FormData = {};
+    defaultValue: useCallback((): FormValue => {
+      // New rows start from property defaults (PHP starts from null; defaults
+      // surface through each field's default fallback either way).
+      const defaults: Record<string, FormValue> = {};
       if (spec.properties) {
         for (const [fieldName, fieldSpec] of Object.entries(spec.properties)) {
           if (fieldSpec.default !== undefined) {
@@ -173,162 +428,98 @@ function MultipleFormGroup({
           }
         }
       }
-      return defaults;
-    },
-    onChange: (newItems) => {
-      // Convert items to object with unique keys
-      const newValue: Record<string, FormData> = {};
-      for (const item of newItems) {
-        newValue[item.key] = item.value;
-      }
-      setValue(path, newValue as FormValue);
-    },
+      return Object.keys(defaults).length > 0 ? defaults : null;
+    }, [spec.properties]),
   });
 
-  // Handle add button
-  const handleAdd = useCallback(() => {
-    add();
-  }, [add]);
-
-  // Handle add after specific index
-  const handleAddAfter = useCallback(
-    (afterIndex: number) => {
-      add(afterIndex + 1);
-    },
-    [add]
-  );
-
-  // Handle remove button
-  const handleRemove = useCallback(
-    (key: string) => {
-      remove(key);
-    },
-    [remove]
-  );
-
-  // Handle move up
-  const handleMoveUp = useCallback(
-    (currentIndex: number) => {
-      if (currentIndex > 0) {
-        move(currentIndex, currentIndex - 1);
-      }
-    },
-    [move]
-  );
-
-  // Handle move down
-  const handleMoveDown = useCallback(
-    (currentIndex: number) => {
-      if (currentIndex < items.length - 1) {
-        move(currentIndex, currentIndex + 1);
-      }
-    },
-    [move, items.length]
-  );
-
-  // Is sortable
-  const isSortable = spec.sortable === true;
-
-  // Is disabled or readonly
   const isDisabled = globalDisabled || spec.disabled === true;
   const isReadonly = globalReadonly || spec.readonly === true;
 
-  // Wrapper classes
-  const wrapperClasses = ['form-element-wrapper', spec.class || ''].filter(Boolean);
+  // Legacy renders the +/- button group only for multiple === true
+  // (multiple: 'only' rows have no buttons), and never in disabled/readonly
+  // interactive forms.
+  const showButtons =
+    (spec as { multiple?: boolean | string }).multiple === true &&
+    !isDisabled &&
+    !isReadonly;
+
+  // Wrapper class/style — same legacy conditional chain as single groups
+  const wrapper = groupWrapperPresentation(
+    spec,
+    parentPath,
+    data,
+    rootSpec,
+    isFieldVisible(path)
+  );
 
   // Build wrapper name attribute (like PHP: "product.items-layer")
-  const wrapperName = keyPrefix ? `${keyPrefix}.${path}-layer` : `${path}-layer`;
+  const wrapperName = wrapperLayerName(path, keyPrefix || undefined);
+
+  const labelClass = (spec as { label_class?: string }).label_class ?? '';
+  const groupStyle = parseStyleString((spec as Record<string, unknown>).group_style);
 
   return (
-    <div className={wrapperClasses.join(' ')} style={{}} {...{ name: wrapperName }}>
+    <div className={wrapper.className} style={wrapper.style} {...{ name: wrapperName }}>
       {/* Group label */}
-      {label && (
-        <div className="d-flex justify-content-between align-items-center">
-          <h6 className="">{label}</h6>
-        </div>
-      )}
+      {label && <h6 className={labelClass}>{label}</h6>}
 
-      {/* Group description */}
-      {spec.description && <Description text={t(spec.description)} />}
+      {/* Group description (legacy <p class="description">, nl2br) */}
+      {spec.description && <LegacyDescription text={t(spec.description)} />}
 
-      {/* form-element > input-group-wrapper > form-group structure (original Limepie) */}
+      {/* form-element contains one input-group-wrapper PER ROW; the row's
+          data-uniqid equals the row key used inside field names. */}
       <div className="form-element">
-        <div data-uniqid={uniqidRef.current} className="input-group-wrapper" style={{}}>
-          <div className="form-group multiple-items">
-            {/* Add button when empty - same style as item's + button */}
-            {items.length === 0 && canAdd && !isDisabled && !isReadonly && (
-              <div className="card">
-                <div className="card-header d-flex justify-content-between align-items-center py-1">
-                  <span className="badge bg-secondary">0</span>
-                  <div className="btn-group btn-group-sm">
-                    <button type="button" className="btn btn-outline-primary" onClick={handleAdd}>
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            {items.map((item, index) => (
-            <div key={item.key} className="card">
-              {/* Item header with controls */}
-              <div className="card-header d-flex justify-content-between align-items-center py-1">
-                <span className="badge bg-secondary">{index + 1}</span>
-
-                <div className="btn-group btn-group-sm">
-                  {/* Add button - adds new item after this one */}
-                  {canAdd && !isDisabled && !isReadonly && (
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary"
-                      onClick={() => handleAddAfter(index)}
-                    ><Plus size={16} /></button>
-                  )}
-
-                  {/* Sortable controls */}
-                  {isSortable && !isDisabled && !isReadonly && (
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary"
-                        onClick={() => handleMoveUp(index)}
-                        disabled={index === 0}
-                      ><ChevronUp size={16} /></button>
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary"
-                        onClick={() => handleMoveDown(index)}
-                        disabled={index === items.length - 1}
-                      ><ChevronDown size={16} /></button>
-                    </>
-                  )}
-
-                  {/* Remove button */}
-                  {canRemove && !isDisabled && !isReadonly && (
-                    <button
-                      type="button"
-                      className="btn btn-outline-danger"
-                      onClick={() => handleRemove(item.key)}
-                    ><Minus size={16} /></button>
-                  )}
-                </div>
-              </div>
-
-              {/* Item fields */}
-              <div className="card-body">{spec.properties &&
-                Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
-                  <FormField
-                    key={fieldName}
-                    name={fieldName}
-                    spec={fieldSpec}
-                    path={joinPath(path, item.key, fieldName)}
-                    parentPath={joinPath(path, item.key)}
-                    index={index}
-                    uniqueKey={item.key}
+        {rowKeys.map((rowKey, rowIndex) => (
+          <div
+            key={rowKey}
+            data-uniqid={rowKey}
+            className={inputGroupWrapperClassName(spec, rowIndex)}
+            style={parseStyleString((spec as Record<string, unknown>).wrapper_style) ?? {}}
+          >
+            <div
+              className={formGroupClassName(spec, hasData(getRowValue(rowKey)))}
+              style={groupStyle}
+            >{spec.properties &&
+              Object.entries(spec.properties).map(([fieldName, fieldSpec]) => (
+                <FormField
+                  key={fieldName}
+                  name={fieldName}
+                  spec={fieldSpec}
+                  path={`${path}.${rowKey}.${fieldName.split('[]').join('')}`}
+                  parentPath={`${path}.${rowKey}`}
+                  index={rowIndex}
+                  uniqueKey={rowKey}
+                />
+              ))}</div>
+            {showButtons &&
+              (hasDynamicOnchange(spec) ? (
+                // dynamic_onchange rows carry an onclick ATTRIBUTE on every
+                // button (legacy addElement) — React rejects string on*
+                // props, so the buttons render raw; interactivity is kept by
+                // click delegation on the span.
+                <span
+                  className="btn-group input-group-btn"
+                  onClick={rowButtonsClickHandler({
+                    onAdd: () => add(rowKey),
+                    onRemove: () => remove(rowKey),
+                    onMoveUp: () => moveUp(rowKey),
+                    onMoveDown: () => moveDown(rowKey),
+                  })}
+                  dangerouslySetInnerHTML={{ __html: legacyRowButtonsHtml(spec) }}
+                />
+              ) : (
+                <span className="btn-group input-group-btn">
+                  <MultipleRowButtons
+                    spec={spec}
+                    onAdd={() => add(rowKey)}
+                    onRemove={() => remove(rowKey)}
+                    onMoveUp={() => moveUp(rowKey)}
+                    onMoveDown={() => moveDown(rowKey)}
                   />
-                ))}</div>
-            </div>
-          ))}</div>
-        </div>
+                </span>
+              ))}
+          </div>
+        ))}
       </div>
 
       {/* Group error */}

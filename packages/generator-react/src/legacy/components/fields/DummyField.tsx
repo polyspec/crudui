@@ -1,65 +1,57 @@
 /**
  * DummyField Component
  *
- * Non-input UI element for dividers, headings, etc.
+ * Non-input display element — verbatim port of the legacy Limepie
+ * Generator\Fields\Dummy::write() (single source of truth =
+ * tests/fixtures/golden-html, e.g. ProductNft option_* title rows):
+ *
+ *   <div class="{element_class}" style="{element_style}">{value}</div>
+ *
+ * Value resolution pinned by the golden contract:
+ *   - the group walker substitutes a truthy spec default when data is null
+ *     (Group.php: `null === $currentData && $currentSpec['default']`)
+ *   - `items[value] ?? value` lookup when an items map exists
+ *   - nl2br on PHP-truthy values
+ *
+ * Do NOT reintroduce template/label wrappers here — legacy renders exactly
+ * one div with the element class/style.
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import type { FieldComponentProps } from '../../types';
-import { useI18n } from '../../context/I18nContext';
+import { parseStyleString, phpString, phpTruthy } from './limepieParity';
+
+/** PHP nl2br(): insert <br /> BEFORE each newline, keeping the newline. */
+function nl2br(s: string): string {
+  return s.replace(/(\r\n|\n\r|\r|\n)/g, '<br />$1');
+}
 
 /**
  * DummyField component
  */
-export function DummyField({
-  name,
-  spec,
-  path,
-}: FieldComponentProps) {
-  const { t } = useI18n();
+export function DummyField({ spec, value }: FieldComponentProps) {
+  // Group walker default substitution: null data + PHP-truthy default
+  let v: unknown = value;
+  if ((v === null || v === undefined) && phpTruthy(phpString(spec.default))) {
+    v = spec.default;
+  }
 
-  // Process template with placeholders
-  const content = useMemo(() => {
-    // If template is provided
-    if (spec.template) {
-      let html = spec.template as string;
+  // PHP: $property['items'][$value] ?? $value
+  const items = spec.items;
+  if (items && typeof items === 'object' && !Array.isArray(items) && !('model' in items)) {
+    const looked = (items as Record<string, unknown>)[phpString(v)];
+    if (looked !== undefined) v = looked;
+  }
 
-      // Replace {{label}} placeholder
-      if (spec.label) {
-        html = html.replace(/\{\{label\}\}/g, t(spec.label));
-      }
-
-      // Replace {{description}} placeholder
-      if (spec.description) {
-        html = html.replace(/\{\{description\}\}/g, t(spec.description));
-      }
-
-      return html;
-    }
-
-    // If html is provided directly
-    if (spec.html) {
-      return spec.html as string;
-    }
-
-    // Default: render label and description
-    let defaultHtml = '';
-
-    if (spec.label) {
-      defaultHtml += `<h4 class="form-dummy__label">${t(spec.label)}</h4>`;
-    }
-
-    if (spec.description) {
-      defaultHtml += `<p class="form-dummy__description">${t(spec.description)}</p>`;
-    }
-
-    return defaultHtml || '<hr class="form-dummy__divider" />';
-  }, [spec.template, spec.html, spec.label, spec.description, t]);
+  const text = phpString(v);
+  // PHP: if ($value) { $value = nl2br((string)$value); }
+  const html = phpTruthy(text) ? nl2br(text) : text;
 
   return (
     <div
-      className="form-dummy"
-      dangerouslySetInnerHTML={{ __html: content }}
+      className={spec.element_class ? String(spec.element_class) : ''}
+      style={parseStyleString(spec.element_style) ?? {}}
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 }

@@ -1,33 +1,44 @@
 /**
  * TinymceField Component
  *
- * TinyMCE rich text editor placeholder
- * Actual TinyMCE integration should be done via custom field registration
+ * Limepie PHP golden structure (Fields/Tinymce.php) — a textarea plus the
+ * legacy bootstrap <script>:
+ *
+ *   <textarea id="tinymce{uniqid}" class="valid-target form-control tinymcearea"
+ *             name=".." data-type="{spec.type}" data-height="{height}"
+ *             data-upload-server="{fileserver}" data-name=".."
+ *             data-rule-name=".." data-default=".." rows="{rows}">{value}</textarea>
+ *   <script nonce="">$(function() {editor_tinymce('#tinymce{uniqid}', {height},
+ *           '{fileserver}', {readonly});});</script>
+ *
+ * The nonce is the legacy CSP session nonce — the golden baseline renders it
+ * empty (tools/limepie-baseline/render.php pins $_SESSION['nonce'] = '').
+ * Actual TinyMCE integration belongs to the host page JS (editor_tinymce),
+ * exactly like the legacy runtime.
  */
 
-import React, { useCallback, type ChangeEvent } from 'react';
+import React, { useCallback, useRef, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
-import { useI18n } from '../../context/I18nContext';
-import { getLimepieDataAttributes, toBracketNotation, getInputClasses } from '../../utils/dataAttributes';
+import { useFormContext } from '../../context/FormContext';
+import { generateUniqid, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { applyDefaultString, limepieDataAttrs } from './limepieParity';
 
 /**
  * TinymceField component
- * This is a placeholder that falls back to textarea
- * For actual TinyMCE, register a custom component with TinyMCE integration
  */
 export function TinymceField({
-  name,
   spec,
   value,
   onChange,
   onBlur,
-  error,
   disabled,
   readonly,
   path,
-  language,
 }: FieldComponentProps) {
-  const { t } = useI18n();
+  const { keyPrefix } = useFormContext();
+
+  // PHP: $id = \uniqid() — bare 13-hex (generateUniqid() wraps in "__").
+  const idRef = useRef<string>(generateUniqid().slice(2, -2));
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -36,46 +47,40 @@ export function TinymceField({
     [onChange]
   );
 
-  // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotation(path);
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
+
+  // PHP fallbacks: rows ?? 3, height ?? 300, fileserver ?? 'upload'.
+  const rows = (spec.rows as number | undefined) ?? 3;
+  const height = (spec as Record<string, unknown>).height ?? 300;
+  const upload = ((spec as Record<string, unknown>).fileserver as string | undefined) ?? 'upload';
+  const readonlyJs = spec.readonly !== undefined ? (spec.readonly ? 'true' : 'false') : 'false';
+  const displayValue = applyDefaultString(value, spec.default);
+  const editorId = `tinymce${idRef.current}`;
 
   return (
-    <div className="form-editor form-editor--tinymce">
-      {/* Prepend */}
-      {spec.prepend && (
-        <span
-          className="input-group-text"
-          dangerouslySetInnerHTML={{ __html: spec.prepend }}
-        />
-      )}
-
-      {/* Placeholder notice */}
-      <div className="alert alert-info mb-2">
-        {t('tinymce_placeholder') || 'TinyMCE Editor - Register custom component for full functionality'}
-      </div>
-
-      {/* Fallback textarea */}
+    <>
       <textarea
+        id={editorId}
+        className="valid-target form-control tinymcearea"
         name={bracketName}
-        value={(value as string) ?? ''}
+        value={displayValue}
         onChange={handleChange}
         onBlur={onBlur}
         disabled={disabled}
         readOnly={readonly}
-        className={getInputClasses('', spec, !!error)}
-        placeholder={spec.placeholder ? t(spec.placeholder) : undefined}
-        rows={(spec.rows as number) ?? 10}
-        {...getLimepieDataAttributes(spec, path, language)}
+        rows={rows}
+        data-type={spec.type ?? 'tinymce'}
+        data-height={String(height)}
+        data-upload-server={upload}
+        {...limepieDataAttrs(spec, path)}
       />
-
-      {/* Append */}
-      {spec.append && (
-        <span
-          className="input-group-text"
-          dangerouslySetInnerHTML={{ __html: spec.append }}
-        />
-      )}
-    </div>
+      <script
+        nonce=""
+        dangerouslySetInnerHTML={{
+          __html: `$(function() {editor_tinymce('#${editorId}', ${String(height)}, '${upload}', ${readonlyJs});});`,
+        }}
+      />
+    </>
   );
 }
 

@@ -13,7 +13,6 @@ import { getLimepieDataAttributes, toBracketNotation } from '../../utils/dataAtt
  * CoverField component
  */
 export function CoverField({
-  name,
   spec,
   value,
   onChange,

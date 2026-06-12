@@ -13,7 +13,6 @@ import { getLimepieDataAttributes, toBracketNotationWithPrefix } from '../../uti
  * HiddenField component
  */
 export function HiddenField({
-  name,
   spec,
   value,
   path,

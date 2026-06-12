@@ -1,12 +1,208 @@
 /**
  * useMultiple Hook
  *
- * Hook for managing multiple/sortable array fields
+ * Hooks for managing multiple/sortable array fields.
+ *
+ * useMultipleRows is the rendering hook: FormContext data is the single
+ * source of truth and row keys are DERIVED from it. Do NOT reintroduce a
+ * local items[].value snapshot — a snapshot written back on add/remove/move
+ * overwrites edits the user made through setValue (the original
+ * "multiple edit loss" bug).
+ *
+ * useMultiple (legacy) is a generic standalone list-state hook kept for
+ * backward compatibility. Do not use it to render multiple form groups.
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import type { FormValue, UseMultipleReturn, MultipleItem, UniqueKey } from '../types';
+import type { FormValue, UseMultipleReturn, MultipleItem } from '../types';
 import { generateUniqueKey } from '../utils/path';
+import { generateUniqid } from '../utils/dataAttributes';
+import { useFormContext } from '../context/FormContext';
+
+// ---------------------------------------------------------------------------
+// useMultipleRows — derived multiple-row state (single source: FormContext)
+// ---------------------------------------------------------------------------
+
+/**
+ * Legacy Limepie multiple semantics ported to React state:
+ *  - the multiple value lives in FormContext data as an object keyed by
+ *    `__<13hex>__` unique keys (PHP uniqid row ids);
+ *  - empty data still renders ONE blank placeholder row (PHP
+ *    `[$parentId => null]`) whose key is NOT written into the data until
+ *    the user edits or clicks a row button;
+ *  - array data is normalized once (effect) into a keyed object using
+ *    stable per-index keys, so row identity survives the conversion.
+ */
+export interface UseMultipleRowsOptions {
+  /** Dot path of the multiple field inside the form data */
+  path: string;
+  /** Minimum number of rows (remove is a no-op at min) */
+  min?: number;
+  /** Maximum number of rows (add is a no-op at max) */
+  max?: number;
+  /** Value for a newly added row (default: null, like PHP) */
+  defaultValue?: () => FormValue;
+}
+
+export interface UseMultipleRowsReturn {
+  /** Row keys in render order (always at least one — the placeholder) */
+  rowKeys: string[];
+  /** Current value of a row (undefined for the unsaved placeholder row) */
+  getRowValue: (key: string) => FormValue;
+  /** Insert a new row after `afterKey` (append when omitted) */
+  add: (afterKey?: string) => void;
+  /** Remove a row (no-op below min) */
+  remove: (key: string) => void;
+  /** Move a row one position up */
+  moveUp: (key: string) => void;
+  /** Move a row one position down */
+  moveDown: (key: string) => void;
+  canAdd: boolean;
+  canRemove: boolean;
+  length: number;
+}
+
+export function useMultipleRows({
+  path,
+  min = 0,
+  max = Infinity,
+  defaultValue,
+}: UseMultipleRowsOptions): UseMultipleRowsReturn {
+  const { getValue, setValue } = useFormContext();
+
+  const raw = getValue(path);
+
+  // Stable placeholder key for the blank row rendered when data is empty.
+  const placeholderKeyRef = useRef<string | null>(null);
+  if (placeholderKeyRef.current === null) {
+    placeholderKeyRef.current = generateUniqid();
+  }
+  const placeholderKey = placeholderKeyRef.current;
+
+  // Stable keys for rows that arrived as a plain array (index -> key).
+  const arrayKeysRef = useRef<string[]>([]);
+  if (Array.isArray(raw)) {
+    while (arrayKeysRef.current.length < raw.length) {
+      arrayKeysRef.current.push(generateUniqid());
+    }
+  }
+
+  const rowKeys = useMemo<string[]>(() => {
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((_, i) => arrayKeysRef.current[i]!);
+    }
+    if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+      const keys = Object.keys(raw as Record<string, FormValue>);
+      if (keys.length > 0) return keys;
+    }
+    return [placeholderKey];
+  }, [raw, placeholderKey]);
+
+  // Normalize array data into a keyed object ONCE so row identity (names,
+  // data-uniqid) is stable. Values are mapped 1:1 — never snapshot-restored.
+  useEffect(() => {
+    if (Array.isArray(raw) && raw.length > 0) {
+      const keyed: Record<string, FormValue> = {};
+      raw.forEach((value, i) => {
+        keyed[arrayKeysRef.current[i]!] = value as FormValue;
+      });
+      setValue(path, keyed as FormValue);
+    }
+  }, [raw, path, setValue]);
+
+  const getRowValue = useCallback(
+    (key: string): FormValue => {
+      if (Array.isArray(raw)) {
+        const idx = arrayKeysRef.current.indexOf(key);
+        return idx === -1 ? undefined : (raw[idx] as FormValue);
+      }
+      if (raw !== null && typeof raw === 'object') {
+        return (raw as Record<string, FormValue>)[key];
+      }
+      return undefined;
+    },
+    [raw]
+  );
+
+  const newRowValue = useCallback((): FormValue => {
+    return defaultValue ? defaultValue() : null;
+  }, [defaultValue]);
+
+  /**
+   * Write the row list back into form data. Values are read from the
+   * CURRENT data at commit time (never from a render-time snapshot).
+   */
+  const commit = useCallback(
+    (keys: string[], freshKey?: string) => {
+      const next: Record<string, FormValue> = {};
+      for (const key of keys) {
+        if (key === freshKey) {
+          next[key] = newRowValue();
+        } else {
+          const existing = getRowValue(key);
+          next[key] = existing === undefined ? newRowValue() : existing;
+        }
+      }
+      setValue(path, next as FormValue);
+    },
+    [getRowValue, newRowValue, path, setValue]
+  );
+
+  const canAdd = rowKeys.length < max;
+  const canRemove = rowKeys.length > min;
+
+  const add = useCallback(
+    (afterKey?: string) => {
+      if (!canAdd) return;
+      const freshKey = generateUniqid();
+      const keys = [...rowKeys];
+      const at = afterKey === undefined ? keys.length - 1 : keys.indexOf(afterKey);
+      keys.splice((at === -1 ? keys.length - 1 : at) + 1, 0, freshKey);
+      commit(keys, freshKey);
+    },
+    [canAdd, rowKeys, commit]
+  );
+
+  const remove = useCallback(
+    (key: string) => {
+      if (!canRemove) return;
+      commit(rowKeys.filter((k) => k !== key));
+    },
+    [canRemove, rowKeys, commit]
+  );
+
+  const move = useCallback(
+    (key: string, delta: number) => {
+      const from = rowKeys.indexOf(key);
+      const to = from + delta;
+      if (from === -1 || to < 0 || to >= rowKeys.length) return;
+      const keys = [...rowKeys];
+      keys.splice(from, 1);
+      keys.splice(to, 0, key);
+      commit(keys);
+    },
+    [rowKeys, commit]
+  );
+
+  const moveUp = useCallback((key: string) => move(key, -1), [move]);
+  const moveDown = useCallback((key: string) => move(key, 1), [move]);
+
+  return {
+    rowKeys,
+    getRowValue,
+    add,
+    remove,
+    moveUp,
+    moveDown,
+    canAdd,
+    canRemove,
+    length: rowKeys.length,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// useMultiple — legacy generic list-state hook (not data-derived)
+// ---------------------------------------------------------------------------
 
 /**
  * useMultiple hook options
@@ -26,6 +222,10 @@ interface UseMultipleOptions<T = FormValue> {
 
 /**
  * useMultiple hook
+ *
+ * @deprecated for form rendering — it keeps a local items[].value snapshot
+ * that goes stale against FormContext data. Render multiple groups with
+ * useMultipleRows instead. Kept as a generic standalone list-state utility.
  */
 export function useMultiple<T = FormValue>({
   initialItems = [],

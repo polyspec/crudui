@@ -1,29 +1,48 @@
 /**
  * ButtonGroup Component
  *
- * Form button group (submit, cancel, etc.)
+ * Form footer — a verbatim port of Limepie PHP Generator::write()'s footer:
+ *
+ *   <hr /> <div class="clearfix">
+ *     ... buttons ...
+ *   </div>
+ *
+ * Default branch (no spec.buttons):
+ *   <input type="submit" value="{submit_button_text|저장}" class="btn btn-primary" />
+ *   [<a href="../" class="btn btn-secondary float-end">{list_button_text|목록}</a>]
+ * The list link is suppressed by spec.remove_list_button. The 저장/목록
+ * defaults are hardcoded in PHP (NOT localized) — golden fixtures pin them.
+ *
+ * spec.buttons / spec.add_buttons arrays go through a port of
+ * Generator::addButtons(); string onclick attributes cannot be expressed as
+ * React props, so that branch renders raw HTML.
  */
 
 import React from 'react';
 import type { Spec, ButtonSpec } from '@form-spec/validator/legacy';
 import { useI18n } from '../../context/I18nContext';
-import { SubmitButton } from './SubmitButton';
 import type { MultiLangText } from '../../types';
 
 /**
- * Extended ButtonSpec with text property for multi-language support
+ * Legacy button entry (Limepie spec.buttons / spec.add_buttons item)
  */
-interface ExtendedButtonSpec extends ButtonSpec {
+interface LegacyButtonSpec extends ButtonSpec {
   text?: MultiLangText;
   name?: string;
   value?: string;
+  string?: string;
+  description?: MultiLangText;
 }
 
 /**
- * Extended Spec to include top-level buttons array
+ * Extended Spec with the legacy footer keys
  */
 interface ExtendedSpec extends Spec {
-  buttons?: ExtendedButtonSpec[];
+  buttons?: LegacyButtonSpec[];
+  add_buttons?: LegacyButtonSpec[];
+  submit_button_text?: string;
+  list_button_text?: string;
+  remove_list_button?: boolean;
 }
 
 /**
@@ -41,148 +60,96 @@ interface ButtonGroupProps {
 }
 
 /**
+ * Port of Generator::addButtons(). Returns raw HTML — PHP emits string
+ * onclick/onChange attributes that React props cannot express.
+ */
+function renderLegacyButtons(
+  buttons: LegacyButtonSpec[],
+  t: (text: MultiLangText) => string
+): string {
+  let html = '';
+
+  for (const button of buttons) {
+    const type = button.type ?? '';
+    const text = button.text !== undefined ? t(button.text) : '';
+    const cls = button.class ?? '';
+    const onclick = button.onclick ? ` onclick="${button.onclick}"` : '';
+    const name = button.name ? ` name="${button.name}"` : '';
+    const value = button.value ? ` value="${button.value}"` : '';
+
+    if (type === 'a') {
+      const href = button.href ?? '';
+      html += `<a data-href="${href}" href="${href}" class="btn ${cls}">${text}</a>`;
+    } else {
+      html += `<button type="${type}"${name} class="btn ${cls}"${value}${onclick}>${text}</button>`;
+    }
+  }
+
+  return html;
+}
+
+/**
  * ButtonGroup component
  */
 export function ButtonGroup({
   spec,
   isSubmitting = false,
-  isValid = true,
   className,
 }: ButtonGroupProps) {
   const { t } = useI18n();
 
-  // Support both top-level buttons array and action.buttons object
-  const topLevelButtons = spec.buttons;
-  const actionButtons = spec.action?.buttons ?? {};
-  const hasTopLevelButtons = Array.isArray(topLevelButtons) && topLevelButtons.length > 0;
-  const hasActionButtons = Object.keys(actionButtons).length > 0;
-  const hasButtons = hasTopLevelButtons || hasActionButtons;
+  const buttons = spec.buttons;
+  const addButtons = spec.add_buttons;
+  const hasButtons = Array.isArray(buttons) && buttons.length > 0;
+  const hasAddButtons = Array.isArray(addButtons) && addButtons.length > 0;
 
-  // Bootstrap 5 button group classes
-  const groupClasses = ['d-flex', 'gap-2', 'mt-3', 'pt-3', 'border-top'];
-  if (className) {
-    groupClasses.push(className);
-  }
-
-  // If no buttons defined in spec, render default submit button
-  if (!hasButtons) {
+  // spec.buttons replaces the whole footer content (PHP: if isset buttons)
+  if (hasButtons) {
     return (
-      <div className={groupClasses.join(' ')}>
-        <SubmitButton isSubmitting={isSubmitting} isValid={isValid} />
-      </div>
-    );
-  }
-
-  // Render top-level buttons array (new format)
-  if (hasTopLevelButtons) {
-    return (
-      <div className={groupClasses.join(' ')}>
-        {topLevelButtons!.map((buttonSpec, index) => (
-          <FormButton
-            key={buttonSpec.name ?? `button-${index}`}
-            name={buttonSpec.name ?? `button-${index}`}
-            spec={buttonSpec}
-            isSubmitting={isSubmitting}
-            isValid={isValid}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  // Render action.buttons object (legacy format)
-  return (
-    <div className={groupClasses.join(' ')}>
-      {Object.entries(actionButtons).map(([key, buttonSpec]) => (
-        <FormButton
-          key={key}
-          name={key}
-          spec={buttonSpec}
-          isSubmitting={isSubmitting}
-          isValid={isValid}
+      <>
+        <hr />
+        <div
+          className={className ? `clearfix ${className}` : 'clearfix'}
+          dangerouslySetInnerHTML={{ __html: renderLegacyButtons(buttons!, t) }}
         />
-      ))}
-    </div>
-  );
-}
-
-/**
- * FormButton props
- */
-interface FormButtonProps {
-  /** Button name/key */
-  name: string;
-  /** Button specification */
-  spec: ExtendedButtonSpec;
-  /** Is form submitting */
-  isSubmitting?: boolean;
-  /** Is form valid */
-  isValid?: boolean;
-}
-
-/**
- * FormButton component
- */
-function FormButton({
-  name,
-  spec,
-  isSubmitting = false,
-  isValid = true,
-}: FormButtonProps) {
-  const { t } = useI18n();
-
-  // Support both 'text' (new format) and 'label' (legacy format)
-  const labelText = spec.text ?? spec.label;
-  const label = labelText ? t(labelText) : name;
-  const buttonType = spec.type ?? (name === 'submit' ? 'submit' : 'button');
-
-  // Bootstrap 5 button classes
-  const buttonClasses = ['btn', spec.class || 'btn-secondary'];
-  // Note: spec.class should contain Bootstrap classes like 'btn-primary', 'btn-secondary', etc.
-
-  // Handle submit button
-  if (buttonType === 'submit' || name === 'submit') {
-    return (
-      <SubmitButton
-        spec={spec}
-        isSubmitting={isSubmitting}
-        isValid={isValid}
-        className={buttonClasses.slice(2).join(' ')} // Remove base classes
-      />
+      </>
     );
   }
 
-  // Handle link button (cancel with href)
-  if (spec.href) {
-    return (
-      <a href={spec.href} className={buttonClasses.join(' ')}>
-        {label}
-      </a>
-    );
-  }
+  const submitText =
+    typeof spec.submit_button_text === 'string' && spec.submit_button_text
+      ? spec.submit_button_text
+      : '저장';
 
-  // Handle button with onclick
-  const handleClick = spec.onclick
-    ? () => {
-        // Execute onclick as JavaScript (use with caution)
-        try {
-          // eslint-disable-next-line no-new-func
-          const fn = new Function(spec.onclick as string);
-          fn();
-        } catch (error) {
-          console.error('Button onclick error:', error);
-        }
-      }
-    : undefined;
+  const listText =
+    typeof spec.list_button_text === 'string' && spec.list_button_text
+      ? spec.list_button_text
+      : '목록';
+
+  const showListButton = !spec.remove_list_button;
 
   return (
-    <button
-      type={buttonType as 'button' | 'reset'}
-      className={buttonClasses.join(' ')}
-      onClick={handleClick}
-    >
-      {label}
-    </button>
+    <>
+      <hr />
+      <div className={className ? `clearfix ${className}` : 'clearfix'}>
+        <input
+          type="submit"
+          value={submitText}
+          className="btn btn-primary"
+          disabled={isSubmitting}
+        />
+        {hasAddButtons && (
+          <span
+            dangerouslySetInnerHTML={{ __html: renderLegacyButtons(addButtons!, t) }}
+          />
+        )}
+        {showListButton && (
+          <a href="../" className="btn btn-secondary float-end">
+            {listText}
+          </a>
+        )}
+      </div>
+    </>
   );
 }
 

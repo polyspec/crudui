@@ -1,171 +1,199 @@
 /**
  * ImageField Component
  *
- * Image upload field with preview
+ * Limepie PHP golden structure (Fields/Image.php) — a legacy file
+ * input-group, NOT a styled preview widget:
+ *
+ *   <div class="input-group">
+ *     [<span class="input-group-text{prepend_class}">{prepend}</span>]
+ *     <input type="text" class="form-control form-control-file" value=""
+ *            readonly="readonly" />
+ *     <input type="file" class="valid-target form-control-file form-control-image"
+ *            data-max-width=".." data-min-width=".." data-max-height=".."
+ *            data-min-height=".." data-preview-max-width=".."
+ *            data-preview-max-height=".." name=".." data-name=".."
+ *            data-rule-name=".." value="" accept=".." />
+ *     <button class="btn btn-search btn-file-search" type="button">&nbsp;</button>
+ *     [multiple-row move/plus/minus buttons]
+ *   </div>
+ *
+ * The file input carries NO data-default; the size data-* attributes default
+ * to 0. The btn-search button always renders at the legacy `<!--btn-->` slot
+ * (Fields::addElement str_replace), BEFORE the multiple-row buttons.
+ *
+ * The row renders raw (dangerouslySetInnerHTML): React refuses value="" on
+ * file inputs and the multiple-row buttons may carry inline onclick
+ * attributes. Interactivity is delegated: btn-search clicks open the file
+ * dialog, file changes propagate through onChange, row-button clicks go to
+ * onButtonsClick (FormField/FormGroup delegation pattern).
+ *
+ * Uploaded-value rows (legacy arr::is_file_array data — {name, url, ...})
+ * render the readonly name input, per-key hidden clone-element inputs and
+ * the sibling .form-preview block, like Image::write's file-array branch.
  */
 
-import React, { useCallback, useRef, useState, useMemo, type ChangeEvent } from 'react';
+import React, { useCallback, type ChangeEvent, type MouseEvent } from 'react';
 import type { FieldComponentProps, FormValue } from '../../types';
-import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
-import { getLimepieDataAttributes, toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { toBracketNotationWithPrefix } from '../../utils/dataAttributes';
+import { escAttr, leafName, phpString, ruleNameForPath } from './limepieParity';
+
+/** Data keys the legacy file-array branch serializes (Image::write). */
+const FILE_ARRAY_KEYS = [
+  'name',
+  'type',
+  'size',
+  'tmp_name',
+  'error',
+  'full_path',
+  'file_name_alias_seq',
+  'url',
+] as const;
+
+/** arr::is_file_array($data, false) approximation for spec-shaped values. */
+function isFileArrayValue(value: FormValue): value is Record<string, FormValue> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    typeof (value as Record<string, unknown>).name === 'string' &&
+    ('url' in value || 'size' in value || 'tmp_name' in value)
+  );
+}
 
 /**
  * ImageField component
  */
 export function ImageField({
-  name,
   spec,
   value,
   onChange,
-  onBlur,
-  error,
-  disabled,
-  readonly,
   path,
   language,
+  buttonsHtml,
+  onButtonsClick,
 }: FieldComponentProps) {
-  const { t } = useI18n();
   const { keyPrefix } = useFormContext();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Generate preview URL for File
-  const currentPreview = useMemo(() => {
-    if (previewUrl) return previewUrl;
+  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
+  const specRec = spec as Record<string, unknown>;
 
-    if (value instanceof File) {
-      return URL.createObjectURL(value);
+  // PHP: accept from rules.accept, size limits ?? 0.
+  const rules = (spec.rules ?? {}) as Record<string, unknown>;
+  const accept = typeof rules.accept === 'string' ? rules.accept : 'image/*';
+  const maxWidth = phpString(specRec['max-width']) || '0';
+  const minWidth = phpString(specRec['min-width']) || '0';
+  const maxHeight = phpString(specRec['max-height']) || '0';
+  const minHeight = phpString(specRec['min-height']) || '0';
+  const viewWidth = phpString(specRec['preview-max-width']) || '0';
+  const viewHeight = phpString(specRec['preview-max-height']) || '0';
+
+  // prepend span (localized when given as a language map).
+  let prependHtml = '';
+  if (specRec.prepend) {
+    const prependClass = specRec.prepend_class ? ` ${String(specRec.prepend_class)}` : '';
+    let prependText: string;
+    if (
+      specRec.prepend !== null &&
+      typeof specRec.prepend === 'object' &&
+      !Array.isArray(specRec.prepend)
+    ) {
+      prependText = phpString((specRec.prepend as Record<string, unknown>)[language]);
+    } else {
+      prependText = phpString(specRec.prepend);
     }
+    prependHtml = `<span class="input-group-text${escAttr(prependClass)}">${prependText}</span>`;
+  }
 
-    if (typeof value === 'string' && value) {
-      return value;
-    }
+  const sizeAttrs =
+    ` data-max-width="${escAttr(maxWidth)}" data-min-width="${escAttr(minWidth)}"` +
+    ` data-max-height="${escAttr(maxHeight)}" data-min-height="${escAttr(minHeight)}"` +
+    ` data-preview-max-width="${escAttr(viewWidth)}" data-preview-max-height="${escAttr(viewHeight)}"`;
+  const validAttrs =
+    ` data-name="${escAttr(leafName(path))}" data-rule-name="${escAttr(ruleNameForPath(path))}"`;
 
-    return null;
-  }, [value, previewUrl]);
-
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files;
-
-      if (!files || files.length === 0) {
-        onChange(null);
-        setPreviewUrl(null);
+  // Delegated interactivity over the raw markup.
+  const handleClick = useCallback(
+    (e: MouseEvent<HTMLElement>) => {
+      const btn = (e.target as Element).closest?.('button');
+      if (btn?.classList.contains('btn-file-search')) {
+        e.currentTarget
+          .querySelector<HTMLInputElement>('input[type="file"]')
+          ?.click();
         return;
       }
-
-      const file = files[0];
-      if (file) {
-        onChange(file as FormValue);
-
-        // Create preview URL
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
+      onButtonsClick?.(e);
+    },
+    [onButtonsClick]
+  );
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const target = e.target as HTMLInputElement;
+      if (target.type === 'file') {
+        const file = target.files?.[0];
+        onChange((file as FormValue) ?? null);
       }
     },
     [onChange]
   );
 
-  const handleClear = useCallback(() => {
-    if (inputRef.current) {
-      inputRef.current.value = '';
+  const fileArray = isFileArrayValue(value) ? value : null;
+
+  if (fileArray) {
+    // Legacy file-array branch: readonly name + per-key hidden clone inputs.
+    const fileName = phpString(fileArray.name);
+    let html =
+      `<div class="input-group">${prependHtml}` +
+      `<input type="text" class="form-control form-control-file" value="${escAttr(fileName)}" readonly="readonly" />`;
+    for (const key of FILE_ARRAY_KEYS) {
+      if (!(key in fileArray)) continue;
+      if (key === 'name') {
+        html +=
+          `<input type="text" class="valid-target form-control-file form-control-filetext form-control-image"` +
+          `${sizeAttrs} name="${escAttr(bracketName)}[name]"${validAttrs}` +
+          ` value="${escAttr(fileName)}" accept="${escAttr(accept)}" />`;
+      } else if (key !== 'tmp_name') {
+        html +=
+          `<input type="hidden" class="clone-element" name="${escAttr(bracketName)}[${key}]"` +
+          ` value="${escAttr(phpString(fileArray[key]))}" />`;
+      }
     }
-    onChange(null);
-    setPreviewUrl(null);
-  }, [onChange]);
+    html +=
+      '<button class="btn btn-search btn-file-search-text" type="button">&nbsp;</button>' +
+      (buttonsHtml ?? '') +
+      '</div>';
+    const url = phpString(fileArray.url);
+    const previewStyle = viewWidth !== '0' ? ` style="max-width:${escAttr(viewWidth)}px"` : '';
+    html +=
+      `<div class="form-preview clone-element"><div><a href="${escAttr(url)}" target="_new">` +
+      `<img${previewStyle} src="${escAttr(url)}" class="form-preview-image"></a></div></div>`;
+    return (
+      <div
+        onClick={handleClick}
+        onChange={handleChange}
+        dangerouslySetInnerHTML={{ __html: html }}
+        style={{ display: 'contents' }}
+      />
+    );
+  }
 
-  const handleClick = useCallback(() => {
-    if (!disabled && !readonly && inputRef.current) {
-      inputRef.current.click();
-    }
-  }, [disabled, readonly]);
-
-  // Default accept for images
-  const accept = (spec.accept as string) ?? 'image/*';
-
-  // Convert path to bracket notation for name attribute
-  const bracketName = toBracketNotationWithPrefix(path, keyPrefix || undefined);
+  // Empty branch — verbatim Image::write else-side markup.
+  const html =
+    prependHtml +
+    '<input type="text" class="form-control form-control-file" value="" readonly="readonly" />' +
+    `<input type="file" class="valid-target form-control-file form-control-image"${sizeAttrs}` +
+    ` name="${escAttr(bracketName)}"${validAttrs} value="" accept="${escAttr(accept)}" />` +
+    '<button class="btn btn-search btn-file-search" type="button">&nbsp;</button>' +
+    (buttonsHtml ?? '');
 
   return (
-    <div className="form-image">
-      {/* Hidden file input */}
-      <input
-        ref={inputRef}
-        type="file"
-        name={bracketName}
-        onChange={handleChange}
-        onBlur={onBlur}
-        disabled={disabled || readonly}
-        className="valid-target form-control"
-        accept={accept}
-        style={{ display: 'none' }}
-        {...getLimepieDataAttributes(spec, path, language)}
-      />
-
-      {/* Preview area */}
-      <div
-        className={`form-image-preview ${currentPreview ? 'has-image' : ''} ${error ? 'is-invalid' : ''}`}
-        onClick={handleClick}
-        role="button"
-        tabIndex={disabled || readonly ? -1 : 0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            handleClick();
-          }
-        }}
-      >
-        {currentPreview ? (
-          <img
-            src={currentPreview}
-            alt="Preview"
-            className="form-image-img"
-          />
-        ) : (
-          <div className="form-image-placeholder">
-            <span className="form-image-placeholder-icon">+</span>
-            <span className="form-image-placeholder-text">
-              {spec.placeholder ? t(spec.placeholder) : t('add')}
-            </span>
-          </div>
-        )}
-
-        {/* Clear button */}
-        {currentPreview && !disabled && !readonly && (
-          <button
-            type="button"
-            className="btn-close position-absolute top-0 end-0 m-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClear();
-            }}
-            aria-label={t('remove')}
-          />
-        )}
-      </div>
-
-      {/* File info */}
-      {value instanceof File && (
-        <div className="form-image-info mt-2 small text-muted">
-          <span className="me-2">{value.name}</span>
-          <span>({formatFileSize(value.size)})</span>
-        </div>
-      )}
-    </div>
+    <div
+      className="input-group"
+      onClick={handleClick}
+      onChange={handleChange}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
-}
-
-/**
- * Format file size
- */
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default ImageField;

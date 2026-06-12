@@ -322,7 +322,7 @@ describe('Validation on Submit', () => {
     render(<FormBuilder spec={basicFormYaml} language="en" onSubmit={handleSubmit} />);
 
     // Submit empty form (button label is "Save" in English)
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     fireEvent.click(submitButton);
 
     // Wait for error messages
@@ -353,7 +353,7 @@ describe('Validation on Submit', () => {
     );
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     // onSubmit should be called without errors
@@ -372,7 +372,7 @@ describe('Validation on Submit', () => {
     render(<FormBuilder spec={basicFormYaml} language="en" />);
 
     // Submit empty form to trigger errors
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     // Verify error is shown
@@ -607,7 +607,7 @@ describe('Required Field Validation', () => {
     render(<FormBuilder spec={spec} language="en" />);
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     // Only required field should show error
@@ -643,7 +643,7 @@ describe('Required Field Validation', () => {
     await user.type(requiredInput, 'filled');
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     // No errors should be shown
@@ -826,7 +826,7 @@ describe('Nested Group Validation', () => {
     render(<FormBuilder spec={nestedGroupSpec} language="en" onSubmit={handleSubmit} />);
 
     // Submit empty form
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     // Check for nested field errors
@@ -883,7 +883,7 @@ describe('Nested Group Validation', () => {
     await user.type(cityInput, 'New York');
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -899,18 +899,25 @@ describe('Nested Group Validation', () => {
   });
 });
 
+
 // ============================================================================
 // Test Suite: Array Field (Multiple) Validation
+//
+// Golden Limepie convention: an empty multiple group renders ONE blank
+// placeholder row; every row carries .btn-plus/.btn-minus buttons that stay
+// rendered at min/max (clicks become no-ops).
 // ============================================================================
 
 describe('Array Field (Multiple) Validation', () => {
-  it('should render multiple group with add button', () => {
+  it('should render multiple group with a placeholder row and buttons', () => {
     const { container } = render(<FormBuilder spec={arrayFieldSpec} language="en" />);
 
     expect(screen.getByText('Contacts')).toBeInTheDocument();
-    // Add button should be visible (Plus icon button with .btn-outline-primary class)
-    const addButton = container.querySelector('.btn-outline-primary');
-    expect(addButton).toBeInTheDocument();
+
+    // One blank placeholder row with legacy buttons
+    expect(screen.getAllByRole('combobox')).toHaveLength(1);
+    expect(container.querySelector('.btn-plus')).toBeInTheDocument();
+    expect(container.querySelector('.btn-minus')).toBeInTheDocument();
   });
 
   it('should add new array item when add button is clicked', async () => {
@@ -918,24 +925,14 @@ describe('Array Field (Multiple) Validation', () => {
 
     const { container } = render(<FormBuilder spec={arrayFieldSpec} language="en" />);
 
-    // Initially we have a card for empty state
-    expect(container.querySelectorAll('.card')).toHaveLength(1);
+    // Initially one placeholder row
+    expect(screen.getAllByRole('combobox')).toHaveLength(1);
 
     // Click add button
-    let addButton = container.querySelector('.btn-outline-primary') as HTMLElement;
-    await user.click(addButton);
-
-    // One item should be added
-    await waitFor(() => {
-      expect(container.querySelectorAll('.card')).toHaveLength(1);
-    });
-
-    // Add another item (button may be inside card now)
-    addButton = container.querySelector('.card .btn-outline-primary') as HTMLElement;
-    await user.click(addButton);
+    await user.click(container.querySelector('.btn-plus') as HTMLElement);
 
     await waitFor(() => {
-      expect(container.querySelectorAll('.card')).toHaveLength(2);
+      expect(screen.getAllByRole('combobox')).toHaveLength(2);
     });
   });
 
@@ -945,18 +942,15 @@ describe('Array Field (Multiple) Validation', () => {
 
     const { container } = render(<FormBuilder spec={arrayFieldSpec} language="en" onSubmit={handleSubmit} />);
 
-    // Add two items
-    let addButton = container.querySelector('.btn-outline-primary') as HTMLElement;
-    await user.click(addButton);
-    addButton = container.querySelector('.card .btn-outline-primary') as HTMLElement;
-    await user.click(addButton);
+    // Add a second row (materializes both rows in the form data)
+    await user.click(container.querySelector('.btn-plus') as HTMLElement);
 
     await waitFor(() => {
-      expect(container.querySelectorAll('.card')).toHaveLength(2);
+      expect(screen.getAllByRole('combobox')).toHaveLength(2);
     });
 
     // Submit without filling fields
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     // onSubmit should be called
@@ -975,35 +969,21 @@ describe('Array Field (Multiple) Validation', () => {
 
     const { container } = render(<FormBuilder spec={arrayFieldSpec} language="en" />);
 
-    // Add first item
-    let addButton = container.querySelector('.btn-outline-primary') as HTMLElement;
-    await user.click(addButton);
+    // Add a second row
+    await user.click(container.querySelector('.btn-plus') as HTMLElement);
 
     await waitFor(() => {
-      // Check we have one item by looking for the Type select
-      const selects = screen.getAllByRole('combobox');
-      expect(selects.length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByRole('combobox')).toHaveLength(2);
     });
 
-    // Add second item
-    addButton = container.querySelector('.card .btn-outline-primary') as HTMLElement;
-    await user.click(addButton);
-
-    await waitFor(() => {
-      // Now we should have 2 Type selects in the contacts array
-      const typeSelects = screen.getAllByRole('combobox');
-      expect(typeSelects.length).toBe(2);
-    });
-
-    // Remove first item (X icon button with .btn-outline-danger class)
-    const removeButtons = container.querySelectorAll('.btn-outline-danger');
-    expect(removeButtons.length).toBeGreaterThanOrEqual(1);
+    // Remove the first row
+    const removeButtons = container.querySelectorAll('.btn-minus');
+    expect(removeButtons.length).toBe(2);
     await user.click(removeButtons[0] as HTMLElement);
 
     await waitFor(() => {
       // Should have 1 Type select remaining
-      const typeSelects = screen.getAllByRole('combobox');
-      expect(typeSelects.length).toBe(1);
+      expect(screen.getAllByRole('combobox')).toHaveLength(1);
     });
   });
 
@@ -1025,31 +1005,20 @@ describe('Array Field (Multiple) Validation', () => {
 
     const { container } = render(<FormBuilder spec={limitedSpec} language="en" />);
 
-    let addButton = container.querySelector('.btn-outline-primary') as HTMLElement;
-
-    // Add first item
-    await user.click(addButton);
+    // Placeholder row + one added = max (2)
+    await user.click(container.querySelector('.btn-plus') as HTMLElement);
     await waitFor(() => {
-      const nameInputs = container.querySelectorAll('[data-name="name"]');
-      expect(nameInputs).toHaveLength(1);
+      expect(container.querySelectorAll('[data-name="name"]')).toHaveLength(2);
     });
 
-    // Add second item (button may be inside card now)
-    addButton = container.querySelector('.card .btn-outline-primary') as HTMLElement;
-    await user.click(addButton);
+    // At max, another click is a no-op (buttons stay rendered, golden style)
+    await user.click(container.querySelector('.btn-plus') as HTMLElement);
     await waitFor(() => {
-      const nameInputs = container.querySelectorAll('[data-name="name"]');
-      expect(nameInputs).toHaveLength(2);
-    });
-
-    // Add button should be disabled or hidden after reaching max
-    await waitFor(() => {
-      const addButtons = container.querySelectorAll('.btn-outline-primary');
-      // Button might be hidden when max is reached
-      expect(addButtons).toHaveLength(0);
+      expect(container.querySelectorAll('[data-name="name"]')).toHaveLength(2);
     });
   });
 });
+
 
 // ============================================================================
 // Test Suite: Error Messages Display
@@ -1073,7 +1042,7 @@ describe('Error Messages Display', () => {
     render(<FormBuilder spec={spec} language="en" />);
 
     // Trigger error
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -1101,7 +1070,7 @@ describe('Error Messages Display', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
     // Trigger error
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -1128,7 +1097,7 @@ describe('Error Messages Display', () => {
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
     // Trigger error
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -1170,7 +1139,7 @@ describe('Error Messages Display', () => {
     render(<FormBuilder spec={spec} language="en" />);
 
     // Submit empty form
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -1220,7 +1189,7 @@ describe('Form Data Collection on Submit', () => {
     await user.type(ageInput, '30');
 
     // Submit
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -1277,7 +1246,7 @@ describe('Form Data Collection on Submit', () => {
     render(<FormBuilder spec={spec} language="en" onValidate={handleValidate} />);
 
     // Submit empty form
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -1313,7 +1282,7 @@ describe('Form Data Collection on Submit', () => {
     await user.type(emailInput, 'john@example.com');
 
     // Submit
-    const submitButton = screen.getByRole('button', { name: /save/i });
+    const submitButton = screen.getByRole('button', { name: '저장' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -1398,13 +1367,14 @@ describe('Language Support (I18n)', () => {
 
     render(<FormBuilder spec={spec} />);
 
-    // Default submit button should exist with Korean label
+    // Golden footer (Limepie Generator::write()): the submit control is
+    // <input type="submit" value="저장" class="btn btn-primary"/> — the
+    // default label is hardcoded in PHP and NOT localized.
     expect(screen.getByRole('button')).toBeInTheDocument();
-    // Default language is Korean, so submit button says "저장"
-    expect(screen.getByRole('button').textContent).toContain('저장');
+    expect(screen.getByRole('button')).toHaveAttribute('value', '저장');
   });
 
-  it('should render with English language', () => {
+  it('should keep the PHP-hardcoded submit label regardless of language', () => {
     const spec: Spec = {
       type: 'group',
       properties: {
@@ -1414,13 +1384,27 @@ describe('Language Support (I18n)', () => {
 
     render(<FormBuilder spec={spec} language="en" />);
 
-    // Submit button should have English label
+    // Golden contract: PHP does not localize the footer defaults
     expect(screen.getByRole('button')).toBeInTheDocument();
-    expect(screen.getByRole('button').textContent).toContain('Save');
+    expect(screen.getByRole('button')).toHaveAttribute('value', '저장');
+  });
+
+  it('should use spec submit_button_text for the submit value', () => {
+    const spec = {
+      type: 'group',
+      submit_button_text: 'Place Order',
+      properties: {
+        name: { type: 'text', label: 'Name' },
+      },
+    } as Spec;
+
+    render(<FormBuilder spec={spec} language="en" />);
+
+    expect(screen.getByRole('button')).toHaveAttribute('value', 'Place Order');
   });
 
   it('should support multilingual labels with English', () => {
-    const spec: Spec = {
+    const spec = {
       type: 'group',
       properties: {
         name: {
@@ -1432,7 +1416,7 @@ describe('Language Support (I18n)', () => {
           },
         },
       },
-    };
+    } as unknown as Spec; // multilang label/placeholder maps — validator Spec types them as plain strings
 
     // Render with English
     render(<FormBuilder spec={spec} language="en" />);
@@ -1440,7 +1424,7 @@ describe('Language Support (I18n)', () => {
   });
 
   it('should support multilingual labels with Korean', () => {
-    const spec: Spec = {
+    const spec = {
       type: 'group',
       properties: {
         name: {
@@ -1452,7 +1436,7 @@ describe('Language Support (I18n)', () => {
           },
         },
       },
-    };
+    } as unknown as Spec; // multilang label/placeholder maps — validator Spec types them as plain strings
 
     // Render with Korean
     render(<FormBuilder spec={spec} language="ko" />);
