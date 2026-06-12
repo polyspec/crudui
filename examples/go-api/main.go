@@ -4,6 +4,15 @@
 // - Loading form specs from YAML files
 // - Validating form data using the validator package
 // - RESTful API design for form validation
+//
+// Canonical API contract (shared by node-api / php-api / go-api):
+//
+//	GET  /api/specs        -> 200 {"specs": ["contact", ...]}
+//	GET  /api/specs/{name} -> 200 {"name": "...", "spec": {...}} | 404 {"error": "..."}
+//	POST /api/validate     -> body {"spec": {...}, "data": {...}}
+//	                          always 200 {"valid": bool, "errors": [{"field","rule","message"}]}
+//	Server errors only use 4xx/5xx with {"error": "..."}.
+//	CORS: Access-Control-Allow-Origin * + OPTIONS preflight.
 package main
 
 import (
@@ -41,29 +50,32 @@ type CachedSpec struct {
 	Validator *validator.Validator
 }
 
-// ValidateRequest is the request body for POST /validate
+// ValidateRequest is the request body for POST /api/validate
 type ValidateRequest struct {
 	Spec map[string]interface{} `json:"spec"`
 	Data map[string]interface{} `json:"data"`
 }
 
-// ValidateFieldRequest is the request body for single field validation
-type ValidateFieldRequest struct {
-	Path  string                 `json:"path"`
-	Value interface{}            `json:"value"`
-	Data  map[string]interface{} `json:"data"`
+// SpecsResponse is the response for GET /api/specs
+type SpecsResponse struct {
+	Specs []string `json:"specs"`
 }
 
-// APIResponse is the standard API response format
-type APIResponse struct {
-	Success    bool                   `json:"success"`
-	Message    string                 `json:"message,omitempty"`
-	Error      string                 `json:"error,omitempty"`
-	Errors     []ValidationErrorDTO   `json:"errors,omitempty"`
-	ErrorCount int                    `json:"errorCount,omitempty"`
-	Data       map[string]interface{} `json:"data,omitempty"`
-	Spec       map[string]interface{} `json:"spec,omitempty"`
-	Forms      []string               `json:"forms,omitempty"`
+// SpecResponse is the response for GET /api/specs/{name}
+type SpecResponse struct {
+	Name string                 `json:"name"`
+	Spec map[string]interface{} `json:"spec"`
+}
+
+// ValidateResponse is the response for POST /api/validate
+type ValidateResponse struct {
+	Valid  bool                 `json:"valid"`
+	Errors []ValidationErrorDTO `json:"errors"`
+}
+
+// ErrorResponse is the error envelope for 4xx/5xx responses
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 // ValidationErrorDTO is the API representation of a validation error
@@ -131,6 +143,21 @@ func (s *Server) loadSpec(name string) (*CachedSpec, error) {
 	s.cacheMux.Unlock()
 
 	return cached, nil
+}
+
+// isValidSpecShape reports whether a raw spec has the canonical form-spec
+// shape: a group whose `properties` is an object. Anything else (arbitrary
+// keys, a missing `properties`, a non-group type) is malformed and is rejected
+// with 400 instead of being passed to the validator.
+func isValidSpecShape(raw map[string]interface{}) bool {
+	if raw == nil {
+		return false
+	}
+	if t, ok := raw["type"].(string); !ok || t != "group" {
+		return false
+	}
+	_, ok := raw["properties"].(map[string]interface{})
+	return ok
 }
 
 // convertToValidatorSpec converts a raw YAML spec to validator.Spec
@@ -237,6 +264,19 @@ func convertRule(raw map[string]interface{}) validator.Rule {
 	return rule
 }
 
+// toWireErrors maps validator errors to the canonical wire format
+func toWireErrors(errs []validator.ValidationError) []ValidationErrorDTO {
+	wire := make([]ValidationErrorDTO, len(errs))
+	for i, err := range errs {
+		wire[i] = ValidationErrorDTO{
+			Field:   err.Field,
+			Rule:    err.Rule,
+			Message: err.Message,
+		}
+	}
+	return wire
+}
+
 // writeJSON writes a JSON response
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
@@ -246,19 +286,12 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 
 // writeError writes an error response
 func writeError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, APIResponse{
-		Success: false,
-		Error:   message,
-	})
+	writeJSON(w, status, ErrorResponse{Error: message})
 }
 
-// writeSuccess writes a success response
-func writeSuccess(w http.ResponseWriter, resp APIResponse) {
-	resp.Success = true
-	writeJSON(w, http.StatusOK, resp)
-}
-
-// handleValidate handles POST /validate
+// handleValidate handles POST /api/validate
+//
+// Validation failure is NOT an HTTP error: always 200 with {valid, errors}.
 func (s *Server) handleValidate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -272,12 +305,20 @@ func (s *Server) handleValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Spec == nil {
-		writeError(w, http.StatusBadRequest, "Missing required field: spec")
+		writeError(w, http.StatusBadRequest, "Missing or invalid field: spec")
+		return
+	}
+
+	// A valid form spec is a group with a properties object. Reject any other
+	// shape with 400 instead of returning a misleading valid:true. Keeps the
+	// three backends aligned: malformed specs are a client error.
+	if !isValidSpecShape(req.Spec) {
+		writeError(w, http.StatusBadRequest, "Invalid spec: expected a group with a properties object")
 		return
 	}
 
 	if req.Data == nil {
-		writeError(w, http.StatusBadRequest, "Missing required field: data")
+		writeError(w, http.StatusBadRequest, "Missing or invalid field: data")
 		return
 	}
 
@@ -286,29 +327,14 @@ func (s *Server) handleValidate(w http.ResponseWriter, r *http.Request) {
 	v := validator.NewValidator(spec)
 	result := v.Validate(req.Data)
 
-	if result.IsValid {
-		writeSuccess(w, APIResponse{
-			Message: "Validation passed",
-		})
-	} else {
-		errors := make([]ValidationErrorDTO, len(result.Errors))
-		for i, err := range result.Errors {
-			errors[i] = ValidationErrorDTO{
-				Field:   err.Field,
-				Rule:    err.Rule,
-				Message: err.Message,
-			}
-		}
-		writeJSON(w, http.StatusUnprocessableEntity, APIResponse{
-			Success:    false,
-			Errors:     errors,
-			ErrorCount: len(errors),
-		})
-	}
+	writeJSON(w, http.StatusOK, ValidateResponse{
+		Valid:  result.IsValid,
+		Errors: toWireErrors(result.Errors),
+	})
 }
 
-// handleListForms handles GET /forms
-func (s *Server) handleListForms(w http.ResponseWriter, r *http.Request) {
+// handleListSpecs handles GET /api/specs
+func (s *Server) handleListSpecs(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
@@ -316,161 +342,48 @@ func (s *Server) handleListForms(w http.ResponseWriter, r *http.Request) {
 
 	entries, err := os.ReadDir(s.config.SpecsDir)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "Error listing forms: "+err.Error())
+		writeError(w, http.StatusInternalServerError, "Error listing specs: "+err.Error())
 		return
 	}
 
-	var forms []string
+	specs := []string{}
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
 		name := entry.Name()
 		if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
-			formName := strings.TrimSuffix(strings.TrimSuffix(name, ".yaml"), ".yml")
-			forms = append(forms, formName)
+			specName := strings.TrimSuffix(strings.TrimSuffix(name, ".yaml"), ".yml")
+			specs = append(specs, specName)
 		}
 	}
 
-	writeSuccess(w, APIResponse{
-		Forms: forms,
-	})
+	writeJSON(w, http.StatusOK, SpecsResponse{Specs: specs})
 }
 
-// handleGetForm handles GET /form/{name}
-func (s *Server) handleGetForm(w http.ResponseWriter, r *http.Request) {
+// handleGetSpec handles GET /api/specs/{name}
+func (s *Server) handleGetSpec(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
-	// Extract form name from path
-	name := strings.TrimPrefix(r.URL.Path, "/form/")
+	// Extract spec name from path
+	name := strings.TrimPrefix(r.URL.Path, "/api/specs/")
 	if name == "" {
-		writeError(w, http.StatusBadRequest, "Form name is required")
+		writeError(w, http.StatusBadRequest, "Spec name is required")
 		return
 	}
 
 	cached, err := s.loadSpec(name)
 	if err != nil {
-		writeError(w, http.StatusNotFound, "Form spec not found: "+name)
+		writeError(w, http.StatusNotFound, "Spec not found: "+name)
 		return
 	}
 
-	writeSuccess(w, APIResponse{
+	writeJSON(w, http.StatusOK, SpecResponse{
+		Name: name,
 		Spec: cached.Raw,
-	})
-}
-
-// handleSubmit handles POST /submit/{name}
-func (s *Server) handleSubmit(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
-	// Extract form name from path
-	name := strings.TrimPrefix(r.URL.Path, "/submit/")
-	if name == "" {
-		writeError(w, http.StatusBadRequest, "Form name is required")
-		return
-	}
-
-	// Load spec
-	cached, err := s.loadSpec(name)
-	if err != nil {
-		writeError(w, http.StatusNotFound, "Form spec not found: "+name)
-		return
-	}
-
-	// Parse request body
-	var data map[string]interface{}
-	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid JSON: "+err.Error())
-		return
-	}
-
-	// Validate
-	result := cached.Validator.Validate(data)
-
-	if !result.IsValid {
-		errors := make([]ValidationErrorDTO, len(result.Errors))
-		for i, err := range result.Errors {
-			errors[i] = ValidationErrorDTO{
-				Field:   err.Field,
-				Rule:    err.Rule,
-				Message: err.Message,
-			}
-		}
-		writeJSON(w, http.StatusUnprocessableEntity, APIResponse{
-			Success:    false,
-			Errors:     errors,
-			ErrorCount: len(errors),
-		})
-		return
-	}
-
-	// Log successful submission
-	log.Printf("Form \"%s\" submitted successfully: %+v\n", name, data)
-
-	writeSuccess(w, APIResponse{
-		Message: "Form submitted successfully",
-		Data:    data,
-	})
-}
-
-// handleValidateField handles POST /validate-field/{name}
-func (s *Server) handleValidateField(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
-	// Extract form name from path
-	name := strings.TrimPrefix(r.URL.Path, "/validate-field/")
-	if name == "" {
-		writeError(w, http.StatusBadRequest, "Form name is required")
-		return
-	}
-
-	// Load spec
-	cached, err := s.loadSpec(name)
-	if err != nil {
-		writeError(w, http.StatusNotFound, "Form spec not found: "+name)
-		return
-	}
-
-	// Parse request
-	var req ValidateFieldRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid JSON: "+err.Error())
-		return
-	}
-
-	if req.Path == "" {
-		writeError(w, http.StatusBadRequest, "Missing required field: path")
-		return
-	}
-
-	// Provide empty data if not supplied
-	if req.Data == nil {
-		req.Data = make(map[string]interface{})
-	}
-
-	// Validate single field
-	errMsg := cached.Validator.ValidateField(req.Path, req.Value, req.Data)
-
-	if errMsg != nil {
-		writeJSON(w, http.StatusUnprocessableEntity, map[string]interface{}{
-			"success": false,
-			"field":   req.Path,
-			"error":   *errMsg,
-		})
-		return
-	}
-
-	writeSuccess(w, APIResponse{
-		Message: "Field is valid",
 	})
 }
 
@@ -483,20 +396,25 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 // ServeHTTP implements http.Handler
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// CORS: allow all origins, answer OPTIONS preflight
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	path := r.URL.Path
 
 	// Route requests
 	switch {
-	case path == "/validate" && r.Method == http.MethodPost:
+	case path == "/api/validate":
 		s.handleValidate(w, r)
-	case path == "/forms" && r.Method == http.MethodGet:
-		s.handleListForms(w, r)
-	case strings.HasPrefix(path, "/form/"):
-		s.handleGetForm(w, r)
-	case strings.HasPrefix(path, "/submit/"):
-		s.handleSubmit(w, r)
-	case strings.HasPrefix(path, "/validate-field/"):
-		s.handleValidateField(w, r)
+	case path == "/api/specs":
+		s.handleListSpecs(w, r)
+	case strings.HasPrefix(path, "/api/specs/"):
+		s.handleGetSpec(w, r)
 	case path == "/health":
 		s.handleHealth(w, r)
 	default:
@@ -534,12 +452,10 @@ func main() {
 	fmt.Printf("Specs directory: %s\n", config.SpecsDir)
 	fmt.Println()
 	fmt.Println("Available endpoints:")
-	fmt.Println("  GET  /forms              - List all form specs")
-	fmt.Println("  GET  /form/:name         - Get form spec by name")
-	fmt.Println("  POST /validate           - Validate data against spec")
-	fmt.Println("  POST /submit/:name       - Validate and submit form")
-	fmt.Println("  POST /validate-field/:name - Validate single field")
-	fmt.Println("  GET  /health             - Health check")
+	fmt.Println("  GET  /api/specs        - List all form specs")
+	fmt.Println("  GET  /api/specs/:name  - Get form spec by name")
+	fmt.Println("  POST /api/validate     - Validate data against spec")
+	fmt.Println("  GET  /health           - Health check")
 
 	addr := ":" + config.Port
 	if err := http.ListenAndServe(addr, server); err != nil {

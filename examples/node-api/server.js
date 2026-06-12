@@ -1,14 +1,22 @@
 /**
  * Node.js/Express API Example
  *
- * Demonstrates form validation using @legacy/form-validator
+ * Demonstrates form validation using @form-spec/validator.
+ *
+ * Canonical API contract (shared by node-api / php-api / go-api):
+ *   GET  /api/specs        -> 200 {"specs": ["contact", ...]}
+ *   GET  /api/specs/:name  -> 200 {"name": "...", "spec": {...}} | 404 {"error": "..."}
+ *   POST /api/validate     -> body {"spec": {...}, "data": {...}}
+ *                             always 200 {"valid": bool, "errors": [{"field","rule","message"}]}
+ *   Server errors only use 4xx/5xx with {"error": "..."}.
+ *   CORS: Access-Control-Allow-Origin * + OPTIONS preflight.
  */
 
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const { Validator } = require('@legacy/form-validator');
+const { Validator } = require('@form-spec/validator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +24,17 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// CORS: allow all origins, answer OPTIONS preflight
+app.use((req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
 
 // Specs directory
 const SPECS_DIR = path.join(__dirname, 'specs');
@@ -62,33 +81,34 @@ function loadSpec(name) {
 }
 
 /**
- * Format validation errors for API response
- * @param {Array} errors - Validation errors from validator
- * @returns {object} - Formatted error response
+ * Check that a spec has the canonical form-spec shape: a group whose
+ * `properties` is a plain object. Anything else (arbitrary keys, a missing
+ * `properties`, a non-group type) is malformed and must be rejected with 400.
+ * @param {*} spec - The submitted spec
+ * @returns {boolean}
  */
-function formatErrors(errors) {
-  return {
-    success: false,
-    errors: errors.map(err => ({
-      field: err.field,
-      path: err.path,
-      rule: err.rule,
-      message: err.message
-    })),
-    errorCount: errors.length
-  };
+function isValidSpecShape(spec) {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
+    return false;
+  }
+  if (spec.type !== 'group') {
+    return false;
+  }
+  const props = spec.properties;
+  return Boolean(props) && typeof props === 'object' && !Array.isArray(props);
 }
 
 /**
- * Format success response
- * @param {object} data - Optional data to include
- * @returns {object} - Success response
+ * Map validator errors to the canonical wire format
+ * @param {Array} errors - Validation errors from validator
+ * @returns {Array} - [{field, rule, message}]
  */
-function formatSuccess(data = {}) {
-  return {
-    success: true,
-    ...data
-  };
+function toWireErrors(errors) {
+  return errors.map(err => ({
+    field: err.path || err.field,
+    rule: err.rule,
+    message: err.message
+  }));
 }
 
 // ============================================================================
@@ -96,8 +116,42 @@ function formatSuccess(data = {}) {
 // ============================================================================
 
 /**
+ * GET /api/specs
+ * List all available form specs
+ */
+app.get('/api/specs', (req, res) => {
+  try {
+    const files = fs.readdirSync(SPECS_DIR);
+    const specs = files
+      .filter(f => f.endsWith('.yaml') || f.endsWith('.yml'))
+      .map(f => f.replace(/\.(yaml|yml)$/, ''));
+
+    return res.json({ specs });
+  } catch (error) {
+    return res.status(500).json({ error: 'Error listing specs: ' + error.message });
+  }
+});
+
+/**
+ * GET /api/specs/:name
+ * Get a form spec by name (YAML converted to JSON)
+ */
+app.get('/api/specs/:name', (req, res) => {
+  const { name } = req.params;
+
+  const spec = loadSpec(name);
+
+  if (!spec) {
+    return res.status(404).json({ error: `Spec not found: ${name}` });
+  }
+
+  return res.json({ name, spec });
+});
+
+/**
  * POST /api/validate
- * Validate form data against a provided spec
+ * Validate form data against a provided spec.
+ * Validation failure is NOT an HTTP error: always 200 with {valid, errors}.
  *
  * Request body:
  * {
@@ -106,211 +160,35 @@ function formatSuccess(data = {}) {
  * }
  */
 app.post('/api/validate', (req, res) => {
-  const { spec, data } = req.body;
+  const { spec, data } = req.body || {};
 
-  if (!spec) {
+  if (!spec || typeof spec !== 'object') {
+    return res.status(400).json({ error: 'Missing or invalid field: spec' });
+  }
+
+  // A valid form spec is a group with a properties object. Reject any other
+  // shape with 400 instead of letting the validator throw (500). Keeps the
+  // three backends aligned: malformed specs are a client error, not a crash.
+  if (!isValidSpecShape(spec)) {
     return res.status(400).json({
-      success: false,
-      error: 'Missing required field: spec'
+      error: 'Invalid spec: expected a group with a properties object',
     });
   }
 
-  if (!data) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required field: data'
-    });
+  if (!data || typeof data !== 'object') {
+    return res.status(400).json({ error: 'Missing or invalid field: data' });
   }
 
   try {
     const validator = new Validator(spec);
     const result = validator.validate(data);
 
-    if (result.valid) {
-      return res.json(formatSuccess({ message: 'Validation passed' }));
-    } else {
-      return res.status(422).json(formatErrors(result.errors));
-    }
+    return res.json({
+      valid: result.valid,
+      errors: toWireErrors(result.errors)
+    });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: 'Validation error: ' + error.message
-    });
-  }
-});
-
-/**
- * POST /api/form/:name
- * Get form spec by name (loaded from YAML file)
- *
- * Response:
- * {
- *   "success": true,
- *   "spec": { ... }
- * }
- */
-app.post('/api/form/:name', (req, res) => {
-  const { name } = req.params;
-
-  const spec = loadSpec(name);
-
-  if (!spec) {
-    return res.status(404).json({
-      success: false,
-      error: `Form spec not found: ${name}`
-    });
-  }
-
-  return res.json(formatSuccess({ spec }));
-});
-
-/**
- * GET /api/form/:name (convenience alias)
- */
-app.get('/api/form/:name', (req, res) => {
-  const { name } = req.params;
-
-  const spec = loadSpec(name);
-
-  if (!spec) {
-    return res.status(404).json({
-      success: false,
-      error: `Form spec not found: ${name}`
-    });
-  }
-
-  return res.json(formatSuccess({ spec }));
-});
-
-/**
- * POST /api/submit/:name
- * Validate and process form submission
- *
- * Request body: Form data to validate
- *
- * Response on success:
- * {
- *   "success": true,
- *   "message": "Form submitted successfully",
- *   "data": { ... }
- * }
- *
- * Response on validation failure:
- * {
- *   "success": false,
- *   "errors": [ ... ]
- * }
- */
-app.post('/api/submit/:name', (req, res) => {
-  const { name } = req.params;
-  const data = req.body;
-
-  // Load spec
-  const spec = loadSpec(name);
-
-  if (!spec) {
-    return res.status(404).json({
-      success: false,
-      error: `Form spec not found: ${name}`
-    });
-  }
-
-  try {
-    // Validate
-    const validator = new Validator(spec);
-    const result = validator.validate(data);
-
-    if (!result.valid) {
-      return res.status(422).json(formatErrors(result.errors));
-    }
-
-    // Process submission (in real app, save to database, send email, etc.)
-    console.log(`Form "${name}" submitted successfully:`, data);
-
-    return res.json(formatSuccess({
-      message: 'Form submitted successfully',
-      data: data
-    }));
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: 'Processing error: ' + error.message
-    });
-  }
-});
-
-/**
- * GET /api/forms
- * List all available form specs
- */
-app.get('/api/forms', (req, res) => {
-  try {
-    const files = fs.readdirSync(SPECS_DIR);
-    const forms = files
-      .filter(f => f.endsWith('.yaml') || f.endsWith('.yml'))
-      .map(f => f.replace(/\.(yaml|yml)$/, ''));
-
-    return res.json(formatSuccess({ forms }));
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: 'Error listing forms: ' + error.message
-    });
-  }
-});
-
-/**
- * POST /api/validate-field/:name
- * Validate a single field
- *
- * Request body:
- * {
- *   "path": "email",       // Field path
- *   "value": "test@...",   // Field value
- *   "data": { ... }        // Full form data for context
- * }
- */
-app.post('/api/validate-field/:name', (req, res) => {
-  const { name } = req.params;
-  const { path: fieldPath, value, data = {} } = req.body;
-
-  if (!fieldPath) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required field: path'
-    });
-  }
-
-  const spec = loadSpec(name);
-
-  if (!spec) {
-    return res.status(404).json({
-      success: false,
-      error: `Form spec not found: ${name}`
-    });
-  }
-
-  try {
-    const validator = new Validator(spec);
-    const error = validator.validateField(fieldPath, value, data);
-
-    if (error) {
-      return res.status(422).json({
-        success: false,
-        field: fieldPath,
-        error: error
-      });
-    }
-
-    return res.json(formatSuccess({
-      field: fieldPath,
-      message: 'Field is valid'
-    }));
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: 'Validation error: ' + error.message
-    });
+    return res.status(500).json({ error: 'Validation error: ' + error.message });
   }
 });
 
@@ -321,19 +199,13 @@ app.get('/health', (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint not found'
-  });
+  res.status(404).json({ error: 'Endpoint not found' });
 });
 
 // Error handler
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error'
-  });
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start server
@@ -341,13 +213,10 @@ app.listen(PORT, () => {
   console.log(`Form Validator API server running on port ${PORT}`);
   console.log(`Specs directory: ${SPECS_DIR}`);
   console.log(`\nAvailable endpoints:`);
-  console.log(`  GET  /api/forms              - List all form specs`);
-  console.log(`  GET  /api/form/:name         - Get form spec by name`);
-  console.log(`  POST /api/form/:name         - Get form spec by name`);
-  console.log(`  POST /api/validate           - Validate data against spec`);
-  console.log(`  POST /api/submit/:name       - Validate and submit form`);
-  console.log(`  POST /api/validate-field/:name - Validate single field`);
-  console.log(`  GET  /health                 - Health check`);
+  console.log(`  GET  /api/specs        - List all form specs`);
+  console.log(`  GET  /api/specs/:name  - Get form spec by name`);
+  console.log(`  POST /api/validate     - Validate data against spec`);
+  console.log(`  GET  /health           - Health check`);
 });
 
 module.exports = app;

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Demo App - React application showcasing form generation
   demo-app:
@@ -31,7 +29,7 @@ services:
     volumes:
       - ./shared-specs:/app/node-api/specs:ro
       - ./node-api/server.js:/app/node-api/server.js:ro
-      - ../validator/js/dist:/app/validator/js/dist:ro
+      - ../packages/validator-js/dist:/app/packages/validator-js/dist:ro
     networks:
       - form-generator-network
     labels:
@@ -56,7 +54,7 @@ services:
       - ./shared-specs:/var/www/html/specs:ro
       - ./php-api/validate.php:/var/www/html/validate.php:ro
       - ./php-api/index.php:/var/www/html/index.php:ro
-      - ../validator/php/src:/var/www/validator/php/src:ro
+      - ../packages/validator-php/src:/var/www/packages/validator-php/src:ro
     networks:
       - form-generator-network
     labels:
@@ -142,9 +140,13 @@ services:
     ports:
       - "8015:80"
     volumes:
-      # Mount REAL Legacy library with all dependencies
-      - /path/to/app/vendor:/var/www/vendor:ro
+      # composer vendor (symfony/yaml, ics-parser) — packages/generator-legacy/legacy 에 vendored
+      - ../packages/generator-legacy/legacy/vendor:/var/www/vendor:ro
+      # 로컬 legacy 소스 체크아웃을 composer 패키지 경로로 중첩 마운트.
+      # legacy/framework a47ccba 핀 — tools/legacy-baseline/README.md 참조.
+      - /path/to/ai/gui/legacy:/var/www/vendor/legacy/framework:ro
       - ./legacy-original/public/index.php:/var/www/html/index.php:ro
+      # 스펙은 shared-specs 단일 소스에서 마운트 (legacy-original/specs 사본은 제거됨)
       - ./shared-specs:/var/www/specs:ro
       - ./legacy-original/assets/js:/var/www/html/assets/js:ro
       - ./legacy-original/assets/css:/var/www/html/assets/css:ro

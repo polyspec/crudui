@@ -2,6 +2,19 @@
 //
 // This example demonstrates how to use the form-generator validator
 // in Go applications for server-side validation.
+//
+// How to run: this file is NOT part of a Go module (examples/ has no go.mod).
+// To execute it standalone, copy it into a new directory and create a module:
+//
+//	mkdir /tmp/go-usage && cp go-usage.go /tmp/go-usage/main.go
+//	cd /tmp/go-usage
+//	go mod init example.com/go-usage
+//	go mod edit -replace github.com/example/form-generator/validator=/path/to/form-spec/packages/validator-go
+//	go get gopkg.in/yaml.v3 && go mod tidy
+//	go run .
+//
+// For a ready-to-run HTTP server using the same validator, see examples/go-api
+// (it already has a working go.mod with the replace directive).
 
 package main
 
@@ -11,10 +24,9 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 
-	validator "github.com/legacy/form-generator/validator/go/validator"
+	validator "github.com/example/form-generator/validator/validator"
 	"gopkg.in/yaml.v3"
 )
 
@@ -666,7 +678,7 @@ import (
     "net/http"
 
     "github.com/gin-gonic/gin"
-    validator "github.com/legacy/form-generator/validator/go/validator"
+    validator "github.com/example/form-generator/validator/validator"
     "gopkg.in/yaml.v3"
 )
 
