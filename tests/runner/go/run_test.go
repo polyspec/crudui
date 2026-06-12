@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	validator "github.com/example/form-generator/validator/validator"
+	validator "github.com/yejune/form-spec/packages/validator-go/validator"
 )
 
 // TestCase represents a single test case from the JSON files

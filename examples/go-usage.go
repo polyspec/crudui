@@ -9,7 +9,7 @@
 //	mkdir /tmp/go-usage && cp go-usage.go /tmp/go-usage/main.go
 //	cd /tmp/go-usage
 //	go mod init example.com/go-usage
-//	go mod edit -replace github.com/example/form-generator/validator=/path/to/form-spec/packages/validator-go
+//	go mod edit -replace github.com/yejune/form-spec/packages/validator-go=/path/to/form-spec/packages/validator-go
 //	go get gopkg.in/yaml.v3 && go mod tidy
 //	go run .
 //
@@ -26,7 +26,7 @@ import (
 	"os"
 	"strings"
 
-	validator "github.com/example/form-generator/validator/validator"
+	validator "github.com/yejune/form-spec/packages/validator-go/validator"
 	"gopkg.in/yaml.v3"
 )
 
@@ -678,7 +678,7 @@ import (
     "net/http"
 
     "github.com/gin-gonic/gin"
-    validator "github.com/example/form-generator/validator/validator"
+    validator "github.com/yejune/form-spec/packages/validator-go/validator"
     "gopkg.in/yaml.v3"
 )
 

@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/example/form-generator/validator/validator"
+	"github.com/yejune/form-spec/packages/validator-go/validator"
 )
 
 // Request represents the validation request from stdin
