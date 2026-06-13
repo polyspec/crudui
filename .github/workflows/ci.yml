@@ -60,7 +60,7 @@ jobs:
           cache: npm
 
       - name: Install workspace deps
-        run: npm ci
+        run: npm i -g npm@11.17.0 && npm ci
 
       - name: Build (validator-js + generator-react/vue/svelte)
         run: npm run build
@@ -107,7 +107,7 @@ jobs:
           workspaces: packages/validator-rust
 
       - name: Install workspace deps
-        run: npm ci
+        run: npm i -g npm@11.17.0 && npm ci
 
       - name: Build JS validator (compare-all loads dist/index.js)
         run: npm run build:validator
@@ -136,7 +136,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install workspace deps
-        run: npm ci
+        run: npm i -g npm@11.17.0 && npm ci
       - name: Test
         run: npm test
         working-directory: packages/validator-js
@@ -205,7 +205,7 @@ jobs:
           cache: npm
 
       - name: Install workspace deps
-        run: npm ci
+        run: npm i -g npm@11.17.0 && npm ci
 
       - name: Build generators (validator + react/vue/svelte)
         run: npm run build
@@ -265,7 +265,7 @@ jobs:
           workspaces: packages/validator-rust
 
       - name: Install workspace deps (typedoc lives here)
-        run: npm ci
+        run: npm i -g npm@11.17.0 && npm ci
 
       - name: Doc-coverage gate (libs + servers, 4 langs)
         run: make docs-check
