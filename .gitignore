@@ -36,3 +36,15 @@ test-*.html
 .env
 .env.local
 .history
+
+# Generated documentation (reproducible via `make docs` — do not commit)
+# VitePress build output, cache, and generated API trees are regenerated on
+# every run and must not be committed (only docs/.vitepress/config.mts is source).
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/api/
+# Generated JSON Schema (reproducible via `make docs-schema`)
+schema/form-spec.schema.json
+# phpDocumentor phar + cache (large, environment-local)
+tools/bin/phpDocumentor.phar
+tools/bin/.phpdoc-cache/

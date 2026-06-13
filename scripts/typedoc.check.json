@@ -1,0 +1,18 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "readme": "none",
+  "githubPages": false,
+  "disableSources": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "skipErrorChecking": true,
+  "emit": "none",
+  "validation": {
+    "notExported": false,
+    "invalidLink": false,
+    "notDocumented": true
+  },
+  "treatValidationWarningsAsErrors": true,
+  "requiredToBeDocumented": ["Class", "Function", "Interface", "TypeAlias", "Enum", "Variable", "Method", "Property"]
+}
