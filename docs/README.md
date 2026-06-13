@@ -5,7 +5,7 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 
 - 스펙 형식: `{type: 'group', properties: {...}}`, 필드별 `rules` 는 객체
 - 검증 결과: `{valid: boolean, errors: ValidationError[]}`
-- 크로스 언어 게이트: 1013 케이스, 2026-06 기준 4개 언어 전부 GREEN
+- 크로스 언어 게이트: 1074 케이스, 2026-06 기준 4개 언어 전부 GREEN
 
 ## 문서 색인
 
@@ -24,8 +24,8 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 
 | 문서 | 내용 |
 |------|------|
-| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교, 브리지 4종, HTML parity, 기준 재생성) |
-| [TEST-CASES.md](./TEST-CASES.md) | 크로스 언어 케이스 형식과 19개 파일 현황 (1013 케이스) |
+| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교+Axis Diagnostics, 브리지 4종, HTML parity, 프레임워크끼리 비교, 벤치마크, CI) |
+| [TEST-CASES.md](./TEST-CASES.md) | 크로스 언어 케이스 형식과 23개 파일 현황 (1074 케이스) |
 
 | 문서 | 내용 |
 |------|------|
@@ -125,12 +125,14 @@ POST /api/validate   body: {"spec": ..., "data": ...}
 ## 테스트
 
 ```bash
-cd tests && npm test          # 크로스 언어 비교 (JS+PHP+Go+Rust, 1013 케이스)
+cd tests && npm test                # 크로스 언어 비교 (JS+PHP+Go+Rust, 1074 케이스 + Axis Diagnostics)
 cd packages/generator-vue    && npm test  # Vue SSR
 cd packages/generator-svelte && npm test  # Svelte SSR
+cd tests/cross-framework && npm test # React == Vue == Svelte SSR 직접 비교 (21쌍)
+make bench                          # 4언어 검증기 처리량 비교 (tools/bench)
 ```
 
-전체 게이트 목록·언어별 브리지·기준 재생성 절차는 [TESTING.md](./TESTING.md).
+전체 게이트 목록·언어별 브리지·기준 재생성 절차·CI 는 [TESTING.md](./TESTING.md).
 
 ## 라이선스
 

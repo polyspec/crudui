@@ -18,7 +18,7 @@ hero:
 
 features:
   - title: 멀티언어 검증기
-    details: JavaScript/TypeScript, PHP, Go, Rust 가 동일한 스펙·동일한 결과 형식을 사용한다. 크로스 언어 게이트 1013 케이스 전부 GREEN.
+    details: JavaScript/TypeScript, PHP, Go, Rust 가 동일한 스펙·동일한 결과 형식을 사용한다. 크로스 언어 게이트 1074 케이스 전부 GREEN.
   - title: 멀티프레임워크 렌더러
     details: React / Vue 3 / Svelte 5 가 같은 스펙에서 같은 폼을 렌더링한다.
   - title: 조건식 엔진
@@ -41,7 +41,7 @@ flowchart TD
     spec --> R["렌더 (parity)"]
     V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
     R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
-    VL -->|"공유 픽스처 1013"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
+    VL -->|"공유 픽스처 1074"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
     RL -->|"SSR · 정규화 비교"| G["tests/cross-framework<br/>(프레임워크 간 일치)"]
 ```
 

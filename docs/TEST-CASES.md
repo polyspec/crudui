@@ -86,7 +86,7 @@
 
 ## 케이스 파일 현황 (실측)
 
-총 **19개 파일, 1013 케이스**. 2026-06 기준 4개 언어(JS/PHP/Go/Rust) 전부 1013/1013 GREEN.
+총 **23개 파일, 1074 케이스**. 2026-06 기준 4개 언어(JS/PHP/Go/Rust) 전부 1074/1074 GREEN.
 
 | 파일 | 테스트 수 | 케이스 수 | 영역 |
 |------|-----------|-----------|------|
@@ -109,7 +109,15 @@
 | `length-codepoint.json` | 4 | 13 | 코드포인트 단위 길이 계산 회귀 |
 | `accept.json` | 5 | 18 | `accept` 파일 확장자 규칙 회귀 |
 | `malformed-threshold.json` | 3 | 6 | 비숫자 임계값(min/max) 스킵 회귀 |
-| **합계** | **276** | **1013** | |
+| `array-suffix-key.json` | 6 | 17 | `[]`-suffix 키 정규화 (`items[]` → `items`) 회귀 |
+| `count-object-key.json` | 7 | 12 | 객체키(`__uid__`) multiple group 엔트리 카운트 회귀 |
+| `number-nonfinite.json` | 5 | 18 | 비유한 number 입력(Infinity/NaN) 거부 회귀 |
+| `object-key-multiple.json` | 6 | 14 | 객체키 multiple group 에러 경로(uniqid 보존) 회귀 |
+| **합계** | **300** | **1074** | |
+
+마지막 9개(`pattern-unanchored` 부터)는 회귀 잠금 스위트다. 검증 의미론의 단일
+진실은 "논리적 올바름"이다 — 상세는 [VALIDATION-RULES.md](./VALIDATION-RULES.md)
+"검증 의미론 원칙(Validation Semantics Principles)" 참조.
 
 ## 규칙 커버리지
 
@@ -125,7 +133,11 @@
 
 암시적 number 타입 검증(`number-implicit.json`), 코드포인트 단위 길이 계산
 (`length-codepoint.json`), 미앵커 정규식 경계(`pattern-unanchored.json`),
-비숫자 임계값 스킵(`malformed-threshold.json`)도 회귀 스위트로 고정돼 있다.
+비숫자 임계값 스킵(`malformed-threshold.json`), `[]`-suffix 키 정규화
+(`array-suffix-key.json`), 객체키 multiple group 엔트리 카운트
+(`count-object-key.json`), 비유한 number 입력 거부(`number-nonfinite.json`),
+객체키 multiple group 에러 경로 보존(`object-key-multiple.json`)도 회귀 스위트로
+고정돼 있다.
 
 ### 구현됨 — 전용 픽스처 스위트 없음 (Planned)
 
@@ -156,10 +168,11 @@
 2. `cd tests && npm test` — 4개 언어(JS/PHP/Go/Rust) 일치 확인 (게이트).
 3. 브리지 4종(vitest/PHPUnit/go test/cargo test)은 같은 디렉터리를 glob 하므로 자동 반영된다.
 
-## CI/CD (Planned)
+## CI/CD
 
-이 저장소에는 `.github/` 워크플로가 존재하지 않는다 — CI 자동화는 미구현
-계획 항목이다. 현재 게이트는 전부 로컬 실행이다 ([TESTING.md](./TESTING.md) 참조).
+`.github/workflows/ci.yml` 가 push/PR 마다 8개 잡(build-lint, cross-language,
+검증기 단위 4종, parity, docs-coverage)을 돌린다. `.github/dependabot.yml` 가
+의존성을 주간 갱신한다. 게이트 상세는 [TESTING.md](./TESTING.md) 참조.
 
 ## 참고 자료
 

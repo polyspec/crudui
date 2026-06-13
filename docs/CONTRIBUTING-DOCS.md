@@ -19,7 +19,7 @@ make docs-site     # VitePress 정적 빌드 (.vitepress/dist)
 make docs-dev      # VitePress 개발 서버
 make docs-preview  # 빌드 결과 미리보기 서버
 make docs-clean    # 생성물 전부 제거
-make docs-check    # doc-coverage 게이트 (공개 API 미문서화 시 RED)
+make docs-check    # doc-coverage 게이트 (라이브러리 + examples 서버, 미문서화 시 RED)
 ```
 
 ## npm scripts (하위 빌딩블록)
@@ -69,9 +69,12 @@ phpDocumentor 가 환경에 없으면 PHP HTML 생성은 건너뛰고 `docs/api/
 
 ## doc-coverage 게이트
 
-`make docs-check` (= `node scripts/check-doc-coverage.mjs`) 는 4언어 공개 API 의
-doc 주석 존재를 강제한다. 미문서화 공개 심볼이 추가되면 해당 언어 arm 이 RED 이고,
-하나라도 RED 면 게이트가 비0 exit.
+`make docs-check` 는 **라이브러리 + examples 서버** 두 팔을 함께 강제한다 —
+`docs-check-libs`(= `npm run docs:check`, 4언어 패키지 공개 API)와
+`docs-check-servers`(= `npm run docs:check:servers`, examples 서버 4종 node/go/
+php/rust). 미문서화 공개 심볼이 추가되면 해당 arm 이 RED 이고, 하나라도 RED 면
+게이트가 비0 exit. 라이브러리만/서버만 검사하려면 `make docs-check-libs` /
+`make docs-check-servers` 를 쓴다.
 
 | 언어 | 메커니즘 | 각 패키지 test 편입 |
 |------|----------|---------------------|
@@ -80,8 +83,10 @@ doc 주석 존재를 강제한다. 미문서화 공개 심볼이 추가되면 �
 | PHP | public 클래스/메서드 docblock 검사 (`scripts/php-doc-coverage.php`) | `DocCoverageTest` 로 phpunit 에 포함 |
 | TypeScript | typedoc `validation.notDocumented` + `treatValidationWarningsAsErrors` (`scripts/typedoc.check.json`) | `npm run docs:check:ts` |
 
-게이트 범위는 검증기/렌더러 패키지의 공개 API (`packages/*`) 다. 예제 서버
-(`examples/*`)는 사용 데모이므로 게이트 대상이 아니다.
+게이트 범위는 검증기/렌더러 패키지의 공개 API (`packages/*`) 와 examples 서버
+4종 (`examples/{node,go,php,rust}-api`) 이다. 서버 arm 은
+`scripts/check-server-doc-coverage.mjs` (PHP 는 `scripts/php-server-doc-coverage.php`)
+로 검사한다.
 
 현 상태: Go·Rust·PHP·generator-svelte arm GREEN. validator-js / generator-react
 / generator-vue 의 TSDoc 보강은 진행 중이라 해당 arm 은 RED 일 수 있다 — 미문서화

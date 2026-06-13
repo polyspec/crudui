@@ -4,7 +4,7 @@ form-spec 검증기의 4개 언어 구현(JavaScript/TypeScript, PHP, Go, Rust) 
 모든 시그니처는 실제 소스 코드에서 추출했다 — 각 절에 출처 파일을 명기한다.
 
 4개 구현은 동일한 스펙·데이터에 대해 동일한 검증 결과를 내도록
-크로스언어 테스트(1013케이스, `tests/runner/compare-all.js`)로 검증된다.
+크로스언어 테스트(1074케이스, `tests/runner/compare-all.js`)로 검증된다.
 
 ## 목차
 
