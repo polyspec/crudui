@@ -15,6 +15,7 @@ form-spec 검증기에 **실제 등록된** 규칙의 목록과 동작 명세.
 - [등록 규칙 목록](#등록-규칙-목록)
 - [기본 에러 메시지](#기본-에러-메시지)
 - [공통 평가 규칙](#공통-평가-규칙)
+- [검증 의미론 원칙 (Validation Semantics Principles)](#검증-의미론-원칙-validation-semantics-principles)
 - [규칙 상세](#규칙-상세)
 - [조건부 규칙 파라미터](#조건부-규칙-파라미터)
 - [커스텀 규칙](#커스텀-규칙)
@@ -145,6 +146,82 @@ required, unique, mincount, maxcount
 - PHP: `Validator::ARRAY_LEVEL_RULES` — `packages/validator-php/src/Validator.php:42`
 - Go: `arrayLevelRules` — `packages/validator-go/validator/validator.go:30-35`
 - Rust: `array_level_rules()` — `packages/validator-rust/src/validator.rs:21`
+
+---
+
+## 검증 의미론 원칙 (Validation Semantics Principles)
+
+검증 의미론의 단일 진실은 **"논리적으로 올바른 동작"** 이다. legacy 런타임의
+동작이 아니다. legacy(`examples/limepie-original/assets/js/dist.validate.js`)의
+결함은 보완하고, 모든 구현(validator-js/php/go/rust + legacy 클라)에 일관 적용한다.
+새 검증기 4언어는 이 원칙대로 구현돼 1044 케이스 교차언어 멱등이며, legacy 클라는
+새 검증기에 맞춰 보완했다. legacy의 과거 동작을 근거로 원칙을 약화하지 마라.
+
+아래 3원칙은 확정이다. 각 원칙은 새 검증기 구현이 출처이며, legacy 클라는 동일
+의미론으로 패치됐다.
+
+### 1. required — 값을 trim한 뒤 비었으면 실패
+
+`required`는 문자열 값을 trim한 뒤 빈 문자열이면 실패시킨다. 공백만(`" "`,
+`"\t"`, `"\n"`) 입력은 빈 값과 동일하다.
+
+- 근거: 공백만 통과는 보안 결함이다. "내용이 있다"가 아니라 "공백을 채웠다"를
+  통과시키면 필수 입력 강제가 무력화된다.
+- 새 검증기 출처: `packages/validator-js/src/rules/required.ts:18`
+  (`value.trim() === ''`).
+- legacy 보완: `dist.validate.js` `required` 메서드 —
+  free-text 분기에서 `value.trim().length > 0`. legacy의 과거 동작은
+  `value.length > 0`(trim 없음)이었다.
+
+### 2. type:number — 암묵 number 검사
+
+`type: number` 필드는 `number` 규칙 선언 여부와 무관하게, 값이 비어 있지 않은데
+숫자가 아니면 실패시킨다. 이 검사는 다른 규칙(min/max 등)보다 **먼저** 수행하므로
+보고되는 규칙명은 `number`다.
+
+- 근거: 숫자 필드가 비숫자를 받아들이면 후속 숫자 규칙(min/max)이 무의미한
+  비교를 한다. 타입 자체가 암묵적 number 제약이다.
+- 새 검증기 출처: `packages/validator-js/src/Validator.ts:629-652`
+  (`fieldSpec.type === 'number'` 이고 명시 `number` 규칙이 없으면 암묵 number를
+  먼저 실행). 서버측 동치: `packages/validator-php/src/Validator.php:288-304`,
+  `packages/validator-go/validator/validator.go:205`.
+- legacy 보완: `dist.validate.js` `fixSpec` — `type: number` leaf에 명시 `number`
+  규칙이 없으면 규칙 객체 맨 앞에 `number: true`를 주입한다(원본 스펙 비변형).
+  legacy의 과거 동작은 선언된 규칙만 실행(암묵 number 없음)이었다.
+
+### 3. 무효 규칙 파라미터 skip
+
+min/max 등의 임계값(param)이 숫자로 파싱되지 않으면(`Number(param)`이 NaN) 그
+규칙은 적용 불가로 간주해 skip(통과)한다.
+
+- 근거: 무효 임계값을 문자열 비교(`"5" >= "xyz"`)로 처리하면 결과가 타입 저글링
+  부작용으로 결정된다. 적용 불가능한 규칙은 검증 결과를 좌우해선 안 된다.
+- 새 검증기 출처: `packages/validator-js/src/rules/min.ts:58-61`,
+  `packages/validator-js/src/rules/max.ts:28-31`
+  (`Number(ruleParam)`이 NaN이면 `null` 반환 = skip).
+- legacy 보완: `dist.validate.js` `min`/`max` 메서드 — 숫자 비교 분기에서
+  `isNaN(Number(param))`이면 통과. legacy의 과거 동작은 `value >= param`
+  문자열 비교였다.
+
+### 정책
+
+- 위 원칙은 향후 모든 검증기/클라가 따른다. legacy 결함은 보완하고 모든 구현에
+  일관 적용한다.
+- 새 검증기 src(`packages/validator-*/src`)는 1044 멱등 정답이다. 수정 금지.
+  의미론 변경이 필요하면 4언어를 함께 바꾸고 멱등을 재검증한다.
+- legacy 클라<->새 검증기 일치는 `tests/legacy-client` 게이트가 강제한다.
+  잔존 갭은 `tests/legacy-client/known-gaps.js`에 근거와 함께 명시하며, 미문서
+  불일치는 게이트 FAIL이다.
+
+### 잔존 갭 (정당 사유)
+
+`"Infinity"` 입력의 `type:number` + `max` 케이스
+(`min-max.json min-max-015[2]`)는 양쪽 다 **거부**하나 보고 규칙명이 다르다.
+새 검증기는 `"Infinity"`를 유효 숫자로 보고(`number.ts:25-26`) max 초과로
+`max`를 보고한다. legacy `number` 메서드의 정규식은 `"Infinity"` 리터럴을
+숫자로 인정하지 않아 암묵 number에서 먼저 거부해 `number`를 보고한다. 이는 위
+3원칙과 별개인 "어떤 문자열이 숫자인가" 문제이며, 양쪽 다 값을 거부하므로
+규칙명 차이는 양성(benign)이다. 강제 일치시키지 않고 문서화한다.
 
 ---
 
