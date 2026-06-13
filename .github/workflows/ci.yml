@@ -1,0 +1,271 @@
+# CI — YAML form-spec multi-language validators + multi-framework generators.
+#
+# This workflow only INVOKES the project's existing gate commands. It does not
+# define new gates. Every command below maps to a real script in package.json,
+# Makefile, or a per-package test runner verified to exist in the repo.
+#
+# README CI badge (add by hand into README.md later — this workflow does not
+# touch README.md):
+#
+#   ![CI](https://github.com/polyspec/crudui/actions/workflows/ci.yml/badge.svg)
+#
+# Gate -> job map:
+#   cross-language   node tests/runner/compare-all.js          (JS/PHP/Go/Rust, 1013 cases)
+#   validator-unit   per-language unit tests (js/php/go/rust)
+#   build-lint       npm run build  +  npm run lint
+#   parity           React / Vue / Svelte HTML parity (SSR, no browser)
+#   docs-coverage    make docs-check                           (libs + servers, 4 langs)
+#
+# Toolchain pinning rationale:
+#   - dist/ and target/ are gitignored, so cross-language must build the JS
+#     validator (compare-all loads dist/index.js; no ts-node at root) and the
+#     Rust release binary before running. compare-all auto-builds the Go and
+#     Rust binaries if missing, but we build Rust explicitly so failures are
+#     attributed to the build step, and so rust-cache populates.
+#   - validator-php ships a committed vendor/, so PHP unit + parity need no
+#     composer install. composer is still set up for the docs-coverage job
+#     (DocCoverage filter runs vendor/bin/phpunit).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref to save runner minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # build-lint — root workspace build (validator-js + 3 generators) and lint.
+  # `npm run build` => build:validator + build:generators (react/vue/svelte).
+  # `npm run lint`  => eslint over validator-js/src + generator-react/src.
+  # ---------------------------------------------------------------------------
+  build-lint:
+    name: build + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install workspace deps
+        run: npm ci
+
+      - name: Build (validator-js + generator-react/vue/svelte)
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+  # ---------------------------------------------------------------------------
+  # cross-language — the idempotency gate. Same spec + same data must produce
+  # identical results across JS, PHP, Go, Rust over all 1013 cases.
+  # Needs ALL FOUR toolchains. The JS validator dist and the Rust release
+  # binary are built first (both gitignored; compare-all expects them present).
+  # ---------------------------------------------------------------------------
+  cross-language:
+    name: cross-language idempotency (1013)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: packages/validator-go/go.sum
+
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/validator-rust
+
+      - name: Install workspace deps
+        run: npm ci
+
+      - name: Build JS validator (compare-all loads dist/index.js)
+        run: npm run build:validator
+
+      - name: Build Rust release binary
+        run: cargo build --release --bin validate
+        working-directory: packages/validator-rust
+
+      - name: Cross-language compare (JS/PHP/Go/Rust, 1013 cases)
+        run: node tests/runner/compare-all.js
+
+  # ---------------------------------------------------------------------------
+  # validator-unit — per-language unit suites. Split into one job per language
+  # rather than a matrix: each language needs a different toolchain, so a
+  # matrix would install all four per shard anyway. Separate jobs give clear
+  # red/green per language and let unrelated toolchains cache independently.
+  # ---------------------------------------------------------------------------
+  validator-unit-js:
+    name: unit · validator-js (vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install workspace deps
+        run: npm ci
+      - name: Test
+        run: npm test
+        working-directory: packages/validator-js
+
+  validator-unit-php:
+    name: unit · validator-php (phpunit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+      # vendor/ is committed (phpunit present); composer test == phpunit.
+      - name: Test
+        run: composer test
+        working-directory: packages/validator-php
+
+  validator-unit-go:
+    name: unit · validator-go (go test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: packages/validator-go/go.sum
+      - name: Test
+        run: go test ./...
+        working-directory: packages/validator-go
+
+  validator-unit-rust:
+    name: unit · validator-rust (cargo test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/validator-rust
+      - name: Test
+        run: cargo test
+        working-directory: packages/validator-rust
+
+  # ---------------------------------------------------------------------------
+  # parity — HTML parity across the three frameworks. All SSR (vitest), no
+  # browser/puppeteer needed. React parity lives in tests/parity (own lockfile
+  # => own npm install). Vue/Svelte parity run from their packages, so they
+  # need the root workspace build (the generators import @form-spec/validator)
+  # plus their built dist.
+  # ---------------------------------------------------------------------------
+  parity:
+    name: HTML parity (React/Vue/Svelte)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install workspace deps
+        run: npm ci
+
+      - name: Build generators (validator + react/vue/svelte)
+        run: npm run build
+
+      - name: React parity
+        run: |
+          npm ci
+          npm test
+        working-directory: tests/parity
+
+      - name: Vue parity
+        run: npm test
+        working-directory: packages/generator-vue
+
+      - name: Svelte parity
+        run: npm test
+        working-directory: packages/generator-svelte
+
+  # ---------------------------------------------------------------------------
+  # docs-coverage — `make docs-check` gates documented public API across the
+  # library packages (ts/go/rust/php) AND the examples/* servers (node/go/php/
+  # rust). The Makefile prepends ~/.cargo/bin to PATH; the runner cargo is on
+  # PATH anyway. Needs all four toolchains. PHP DocCoverage runs vendor/bin/
+  # phpunit (committed), so no composer install is required, but composer is
+  # set up for completeness.
+  # ---------------------------------------------------------------------------
+  docs-coverage:
+    name: doc-coverage gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: packages/validator-go/go.sum
+
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/validator-rust
+
+      - name: Install workspace deps (typedoc lives here)
+        run: npm ci
+
+      - name: Doc-coverage gate (libs + servers, 4 langs)
+        run: make docs-check
