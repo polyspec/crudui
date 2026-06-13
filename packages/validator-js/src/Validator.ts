@@ -262,7 +262,16 @@ export class Validator {
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
-    for (const [fieldName, fieldSpec] of Object.entries(properties)) {
+    for (const [propertyKey, fieldSpec] of Object.entries(properties)) {
+      // A "[]"-suffix key (e.g. "items[]") is legacy Limepie shorthand for a
+      // multiple field. Strip the suffix for both the data lookup and the
+      // path, and treat the field as multiple === true (PHP Validator.php and
+      // client dist.validate.js parity). Without this the raw "items[]" key
+      // misses the "items" data and validation is silently skipped.
+      const isArraySuffix = propertyKey.endsWith('[]');
+      const fieldName = isArraySuffix ? propertyKey.slice(0, -2) : propertyKey;
+      const isMultiple = fieldSpec.multiple === true || isArraySuffix;
+
       const fieldPath = [...currentPath, fieldName];
       const fieldValue = data?.[fieldName];
 
@@ -273,15 +282,15 @@ export class Validator {
 
       // Handle group type (nested or array)
       if (fieldSpec.type === 'group' && fieldSpec.properties) {
-        // Check if it's a true array (multiple: true with array data)
-        const isArrayMultiple = fieldSpec.multiple === true && Array.isArray(fieldValue);
+        // Check if it's a true array (multiple with array data)
+        const isArrayMultiple = isMultiple && Array.isArray(fieldValue);
         // Check if it's "only" mode (multiple: "only" with object data)
         const isOnlyMultiple = fieldSpec.multiple === 'only' &&
           fieldValue !== null &&
           typeof fieldValue === 'object' &&
           !Array.isArray(fieldValue);
-        // Check if it's object-based multiple (multiple: true with object data using unique keys)
-        const isObjectMultiple = fieldSpec.multiple === true &&
+        // Check if it's object-based multiple (multiple with object data using unique keys)
+        const isObjectMultiple = isMultiple &&
           fieldValue !== null &&
           typeof fieldValue === 'object' &&
           !Array.isArray(fieldValue);
@@ -351,7 +360,7 @@ export class Validator {
             allData,
             errors
           );
-        } else if (!fieldSpec.multiple) {
+        } else if (!isMultiple && fieldSpec.multiple !== 'only') {
           // Single nested group
           this.validateProperties(
             fieldSpec.properties,
@@ -371,7 +380,7 @@ export class Validator {
           );
         }
         // Note: if multiple is set but data format doesn't match, skip validation
-      } else if (fieldSpec.multiple === true && Array.isArray(fieldValue)) {
+      } else if (isMultiple && Array.isArray(fieldValue)) {
         // Regular field with multiple values (e.g., multiple text inputs):
         // array-level rules apply to the whole array, the remaining rules
         // apply to each element

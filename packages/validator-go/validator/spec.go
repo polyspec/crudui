@@ -1,5 +1,7 @@
 package validator
 
+import "strings"
+
 // ParsedSpec is the result of parsing a canonical form-spec JSON document.
 // IsGroup reports whether the document root was a group spec with properties;
 // non-group specs are wrapped into a single field named "value".
@@ -52,8 +54,22 @@ func convertOrderedProperties(props *OrderedMap) []Field {
 }
 
 // convertOrderedField converts a single field spec object to a Field.
+//
+// A "[]"-suffix property key (e.g. "items[]") is legacy Limepie shorthand for
+// a multiple field: the suffix is stripped from the field name (so it binds to
+// the "items" data key) and Multiple is forced on. Without this the raw
+// "items[]" key never matches the data and validation is silently skipped
+// (PHP Validator.php and client dist.validate.js parity).
 func convertOrderedField(name string, om *OrderedMap) Field {
+	arraySuffix := strings.HasSuffix(name, "[]")
+	if arraySuffix {
+		name = strings.TrimSuffix(name, "[]")
+	}
+
 	field := Field{Name: name}
+	if arraySuffix {
+		field.Multiple = true
+	}
 
 	field.Type = om.GetString("type")
 	field.Label = om.GetString("label")
@@ -90,7 +106,9 @@ func convertOrderedField(name string, om *OrderedMap) Field {
 	if raw, ok := om.Get("multiple"); ok {
 		switch mv := raw.(type) {
 		case bool:
-			field.Multiple = mv
+			// A "[]"-suffix key already forced Multiple on; an explicit
+			// multiple key can only widen it, never turn it off.
+			field.Multiple = field.Multiple || mv
 		case string:
 			if mv == "only" {
 				field.MultipleOnly = true
