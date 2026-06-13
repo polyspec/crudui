@@ -36,6 +36,11 @@ class DateISO implements RuleInterface
         return checkdate((int)$month, (int)$day, (int)$year);
     }
 
+    /**
+     * Returns the default error message for this rule.
+     *
+     * @return string Default message, with {0}, {1} placeholders where applicable
+     */
     public function getDefaultMessage(): string
     {
         return 'Please enter a valid date in ISO format (YYYY-MM-DD).';

@@ -1,6 +1,7 @@
 //! formspec-validator: Rust port of the form-spec multi-language validator.
 //! Replicates the JS/PHP/Go reference validators exactly (shared fixtures are
 //! the single source of truth). Go's validator package is the primary blueprint.
+#![deny(missing_docs)]
 
 pub mod condition_parser;
 pub mod rules;
@@ -19,8 +20,11 @@ use serde_json::Value;
 /// CliResponse mirrors the cross-language CLI protocol output.
 #[derive(Debug, Clone)]
 pub struct CliResponse {
+    /// Whether the data passed validation.
     pub valid: bool,
+    /// First error message, if any (None when valid).
     pub error: Option<String>,
+    /// Field name the first error belongs to, if any.
     pub field: Option<String>,
 }
 

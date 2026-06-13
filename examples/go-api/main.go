@@ -422,6 +422,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// main resolves Config from the PORT / SPECS_DIR environment (with sensible
+// defaults), constructs the Server, logs the served endpoints, and blocks in
+// http.ListenAndServe until the process exits or the listen call fails.
 func main() {
 	// Get configuration from environment or use defaults
 	port := os.Getenv("PORT")

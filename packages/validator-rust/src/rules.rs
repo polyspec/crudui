@@ -13,7 +13,9 @@ use std::sync::OnceLock;
 
 /// ValidationContext carries the current path and full form data into a rule.
 pub struct ValidationContext<'a> {
+    /// Path segments to the field currently being validated.
     pub current_path: &'a [String],
+    /// The full form data object (for cross-field rules).
     pub form_data: &'a Value,
 }
 

@@ -24,6 +24,9 @@ class ConditionParser
 {
     private readonly PathResolver $pathResolver;
 
+    /**
+     * Constructs the parser with a fresh path resolver.
+     */
     public function __construct()
     {
         $this->pathResolver = new PathResolver();
