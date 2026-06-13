@@ -42,7 +42,12 @@ export function FormBuilder({
   const spec = useMemo((): Spec => {
     if (typeof specProp === 'string') {
       try {
-        return yaml.parse(specProp) as Spec;
+        const parsed = yaml.parse(specProp) as Spec | null | undefined;
+        if (parsed == null || typeof parsed !== 'object') {
+          console.error('Failed to parse YAML spec: empty or non-object result');
+          return { type: 'group', properties: {} };
+        }
+        return parsed;
       } catch (error) {
         console.error('Failed to parse YAML spec:', error);
         return { type: 'group', properties: {} };
