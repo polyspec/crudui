@@ -11,7 +11,7 @@
  *   <script nonce="">$(function() {editor_tinymce('#tinymce{uniqid}', {height},
  *           '{fileserver}', {readonly});});</script>
  *
- * The nonce is the legacy CSP session nonce; the markup renders it
+ * The nonce is the legacy CSP session nonce — the reference baseline renders it
  * empty.
  * Actual TinyMCE integration belongs to the host page JS (editor_tinymce),
  * exactly like the legacy runtime.

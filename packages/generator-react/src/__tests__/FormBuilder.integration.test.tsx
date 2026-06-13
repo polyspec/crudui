@@ -1011,7 +1011,7 @@ describe('Array Field (Multiple) Validation', () => {
       expect(container.querySelectorAll('[data-name="name"]')).toHaveLength(2);
     });
 
-    // At max, another click is a no-op (buttons stay rendered)
+    // At max, another click is a no-op (buttons stay rendered, reference style)
     await user.click(container.querySelector('.btn-plus') as HTMLElement);
     await waitFor(() => {
       expect(container.querySelectorAll('[data-name="name"]')).toHaveLength(2);
@@ -1384,7 +1384,7 @@ describe('Language Support (I18n)', () => {
 
     render(<FormBuilder spec={spec} language="en" />);
 
-    // The footer defaults are not localized
+    // Reference contract: PHP does not localize the footer defaults
     expect(screen.getByRole('button')).toBeInTheDocument();
     expect(screen.getByRole('button')).toHaveAttribute('value', '저장');
   });

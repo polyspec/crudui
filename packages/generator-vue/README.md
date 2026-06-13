@@ -46,8 +46,6 @@ strips (legacy `write()` returns form content only).
 
 ## Parity
 
-`npx vitest run` renders the specs through `@vue/server-renderer`.
-
 ```
 cd packages/generator-vue && npx vitest run
 ```

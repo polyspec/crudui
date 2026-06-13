@@ -109,7 +109,7 @@ export function formGroupClassName(spec: FieldSpec, dataPresent: boolean): strin
  * class: base + spec.class + all_of class + display_target condition class;
  * style: spec.style + all_of inline + display_target condition style +
  * display:none when invisible. The legacy markup keeps hidden groups in the DOM
- * (e.g. LargeForm option/option_* groups), never removes them.
+ * (reference: LargeForm option/option_* groups), never removes them.
  */
 function groupWrapperPresentation(
   spec: FieldSpec,
@@ -176,9 +176,9 @@ export function hasDynamicOnchange(spec: FieldSpec): boolean {
  * Raw legacy row-buttons HTML — the button group
  * (multiple === true). React cannot render string on*
  * attributes, so rows whose buttons need the dynamic_onchange onclick MUST
- * render this string (e.g. LargeForm option groups/items). The &nbsp;
+ * render this string (reference: LargeForm option groups/items). The &nbsp;
  * labels and the onclick value (PHP addcslashes($js, '"'), unminified, with
- * the YAML trailing newline) are part of the legacy markup contract.
+ * the YAML trailing newline) are part of the reference contract.
  */
 export function legacyRowButtonsHtml(spec: FieldSpec): string {
   const dynRaw = (spec as Record<string, unknown>).dynamic_onchange;

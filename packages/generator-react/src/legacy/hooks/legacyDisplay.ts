@@ -22,7 +22,7 @@
  *
  * Known deviations (recorded, not silently widened):
  *   - the visibility setup appends a 'ready' JS blob;
- *     no fixture renders it, so it is not produced.
+ *     no reference fixture ever renders it, so it is not produced.
  *   - '*' display_target paths (getFixedPath) and display_targets (eq/lt/gt
  *     pairs) are not used by any fixture spec; both resolve to "no styling"
  *     here instead of crashing.
@@ -60,7 +60,7 @@ function fnv1a(seed: string): number {
  *
  * Format invariant preserved: 5 chars drawn from TOKEN_CHARS, i.e. matches the
  * parity mask `_[a-hj-km-np-z2-9]{5}` (normalize.js rule 4). The token is still
- * masked by parity, so only the shape
+ * masked by parity, so its literal value is never compared — only the shape
  * is contractual.
  */
 export function displayTokenForSeed(seed: string): string {
@@ -419,7 +419,7 @@ export function hasDisplayTargetConditionMaps(fieldSpec: SpecNode): boolean {
  * form-element-wrapper class chain: base, spec.class (trimmed — NOT
  * wrapper_class, which belongs to .input-group-wrapper), element.all_of
  * class, then display_target_condition_class matches. Order is part of the
- * legacy markup contract.
+ * reference contract.
  */
 export function legacyWrapperClassName(
   spec: SpecNode,
@@ -440,7 +440,7 @@ export function legacyWrapperClassName(
  * from the DOM, so invisibility renders as display:none here.
  *
  * Same-property duplicates collapse last-wins (React style object); PHP
- * would emit both declarations. No fixture produces a conflict.
+ * would emit both declarations. No reference fixture produces a conflict.
  */
 export function legacyWrapperStyle(
   spec: SpecNode,

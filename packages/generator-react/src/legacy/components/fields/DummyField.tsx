@@ -5,7 +5,7 @@
  *
  *   <div class="{element_class}" style="{element_style}">{value}</div>
  *
- * Value resolution:
+ * Value resolution pinned by the reference contract:
  *   - the group walker substitutes a truthy spec default when data is null
  *   - `items[value] ?? value` lookup when an items map exists
  *   - nl2br on PHP-truthy values

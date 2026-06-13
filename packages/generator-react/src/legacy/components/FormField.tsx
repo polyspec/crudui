@@ -115,7 +115,7 @@ export function FormField({
   }, [path, registerField, unregisterField]);
 
   // Check visibility — legacy never removes a hidden field from the DOM;
-  // invisibility renders as wrapper style display:none.
+  // invisibility renders as wrapper style display:none (reference contract).
   const visible = useMemo(() => isFieldVisible(path), [isFieldVisible, path]);
 
   // Evaluate element.all_of for styling
@@ -248,7 +248,7 @@ export function FormField({
   // Legacy-raw wrapper branch: specs whose BARE input carries inline-JS
   // attributes (datetime event onchange/data-onload) render the verbatim
   // PHP markup on the .input-group-wrapper — React rejects string on*
-  // props and the legacy input has no field-owned container of its own.
+  // props and the reference input has no field-owned container of its own.
   const rawWrapperHtml =
     (spec.type === 'datetime' || spec.type === 'datetime-local') &&
     datetimeNeedsRawHtml(spec)
@@ -314,7 +314,7 @@ function fieldWrapperClassName(
  * form-element-wrapper style chain (in addStyle order):
  * spec.style, element.all_of inline, display_target condition style, then
  * display:none when the field is invisible — legacy keeps hidden fields in
- * the DOM, never removes them.
+ * the DOM (reference contract), never removes them.
  */
 function fieldWrapperStyle(
   spec: FieldSpec,

@@ -71,7 +71,7 @@ export function TextField({
   // Legacy-raw branch: dynamic_onchange rows need an onclick ATTRIBUTE on
   // every row button. React rejects string on* props
   // and the buttons are direct .input-group children (no wrapper allowed by
-  // the legacy markup), so the whole row renders raw. Row actions stay
+  // the reference contract), so the whole row renders raw. Row actions stay
   // interactive through delegated clicks on the container; the input itself
   // is legacy jQuery surface (same stance as ChoiceField's raw branch).
   if (

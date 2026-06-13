@@ -2,7 +2,7 @@
  * fieldHtml — pure HTML emitters for each leaf field type. Each function
  * reproduces the SSR output of the corresponding
  * packages/generator-react/src/components/fields/*.tsx component for an
- * empty-data render, byte-for-byte (verified
+ * empty-data render, byte-for-byte (verified against the React output
  * after normalization).
  *
  * Mirroring React: where a React field used dangerouslySetInnerHTML the raw

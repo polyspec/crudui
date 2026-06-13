@@ -1125,7 +1125,7 @@ function TinymceField(p: FieldRenderProps): VNode[] {
 }
 
 // ---------------------------------------------------------------------------
-// Tagify (non-faithful placeholder, mirrors React)
+// Tagify (non-faithful placeholder, mirrors React; not in strict reference path)
 // ---------------------------------------------------------------------------
 
 function TagifyField(p: FieldRenderProps): VNode {

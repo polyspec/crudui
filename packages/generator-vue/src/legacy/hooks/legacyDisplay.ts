@@ -1,6 +1,6 @@
 /**
  * legacyDisplay — the legacy conditional-display
- * pipeline (framework-independent port of generator-react):
+ * pipeline (framework-independent port of generator-react). The reference
  *   - minifyJs                    : inline JS minification
  *   - applyDisplaySwitchTransform : the display_switch visibility transform
  *   - resolveDisplayTargetParts
