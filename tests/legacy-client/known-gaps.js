@@ -35,22 +35,11 @@
  *   - conditional `&&`/`||` precedence (`&&` binds tighter).
  *   - conditional ternary thresholds in a min/max param.
  *   - bare-path truthiness: a numeric value "0" is falsy (Boolean(0)).
+ *   - non-finite number input: "Infinity"/"-Infinity"/"NaN" are rejected as a
+ *     `number` error on both sides — a number input value must be finite
+ *     (number.ts isFinite). Both runtimes now report the SAME rule key.
+ *
+ * No documented gaps remain: the legacy client matches the new validators on
+ * every comparable case. Any new mismatch fails the gate (regression guard).
  */
-module.exports = {
-  // --- "Infinity": both sides REJECT; they disagree only on which rule key
-  // reports the failure. This is NOT one of the three corrected principles —
-  // it is a separate question of what string counts as a number.
-  //
-  // New validators: isValidNumber("Infinity") === true (number.ts:25-26 accepts
-  // the "Infinity"/"-Infinity" literals), so the implicit number passes and
-  // max(100) rejects it -> error `max`.
-  // Legacy client: the `number` method's regex
-  //   /^(?:-?\d+|-?\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/
-  // does NOT match "Infinity", so the implicit number rejects it first ->
-  // error `number`. Correcting this would require widening the legacy number
-  // regex to accept the Infinity literal — a distinct change outside the three
-  // confirmed principles (required-trim, implicit-number-presence,
-  // malformed-param-skip). Both runtimes still reject the value, so this is a
-  // benign rule-key divergence, documented rather than forced.
-  'min-max.json min-max-015[2]': 'both reject Infinity; new reports `max` (Infinity is a valid number, exceeds 100), legacy reports `number` (regex rejects the Infinity literal) — separate from the three corrected principles',
-};
+module.exports = {};
