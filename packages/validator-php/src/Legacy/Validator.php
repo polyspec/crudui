@@ -232,8 +232,19 @@ class Validator
             if ($type === 'group') {
                 $multiple = $propertySpec['multiple'] ?? false;
 
-                // Check if this is a true array (multiple: true with array data)
-                $isArrayMultiple = ($isArray || $multiple === true) && is_array($value) && array_is_list($value);
+                $multipleEnabled = $isArray || $multiple === true;
+
+                // Check if this is a true array (multiple: true with list data)
+                $isArrayMultiple = $multipleEnabled && is_array($value) && array_is_list($value);
+
+                // A repeatable group whose rows are stored as an object keyed by
+                // unique ids (__abc1234567__). Legacy Legacy's []-suffix path
+                // iterates such an object preserving the key in the error path
+                // (rows.__abc1234567__.v), so the row key must survive here too.
+                // Without this the object would fall through to single-group
+                // handling and the uniqid would be dropped (rows.v), diverging
+                // from JS/Go/Rust.
+                $isObjectMultiple = $multipleEnabled && is_array($value) && !array_is_list($value) && $multiple !== 'only';
 
                 // Check if this is "only" mode (multiple: "only" with object data)
                 $isOnlyMultiple = $multiple === 'only' && is_array($value) && !array_is_list($value);
@@ -250,6 +261,25 @@ class Validator
                         if (is_array($itemData)) {
                             $indexPath = "{$currentPath}.{$index}";
                             $this->validateProperties($propertySpec, $itemData, $indexPath, $allData, $errors);
+                        }
+                    }
+                } elseif ($isObjectMultiple) {
+                    // Group-level rules (mincount/maxcount/...) on the object itself
+                    $this->validateFieldRules($propertySpec, $value, $currentPath, $allData, $errors, RuleScope::ArrayLevel);
+                    if (isset($errors[$currentPath])) {
+                        continue; // First error per field: skip item validation
+                    }
+
+                    // Repeatable group stored as object with unique keys.
+                    // Keys are sorted so the first reported error is deterministic
+                    // across languages (Go/Rust/JS all sort their key list too).
+                    $keys = array_keys($value);
+                    sort($keys);
+                    foreach ($keys as $key) {
+                        $itemData = $value[$key];
+                        if (is_array($itemData)) {
+                            $keyPath = "{$currentPath}.{$key}";
+                            $this->validateProperties($propertySpec, $itemData, $keyPath, $allData, $errors);
                         }
                     }
                 } elseif ($isOnlyMultiple) {

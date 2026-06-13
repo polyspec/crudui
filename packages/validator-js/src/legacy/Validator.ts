@@ -319,9 +319,13 @@ export class Validator {
             errors
           );
         } else if (isObjectMultiple) {
-          // Repeatable group stored as object with unique keys
+          // Repeatable group stored as object with unique keys.
+          // Keys are sorted so the first reported error is deterministic across
+          // languages (Go/Rust/PHP iterate a sorted key list because their JSON
+          // maps carry no insertion order; JS must sort to match them).
           const objectValue = fieldValue as Record<string, Record<string, unknown>>;
-          for (const [key, itemData] of Object.entries(objectValue)) {
+          for (const key of Object.keys(objectValue).sort()) {
+            const itemData = objectValue[key];
             const itemPath = [...fieldPath, key];
 
             this.validateProperties(
