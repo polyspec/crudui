@@ -4,7 +4,7 @@
  * Dropdown select field
  */
 
-import React, { useCallback, useMemo, type ChangeEvent } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, type ChangeEvent } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
@@ -38,6 +38,29 @@ export function SelectField({
     },
     [onChange]
   );
+
+  // Legacy-raw controllers (map-form display_switch writes a jQuery onchange
+  // onto the controlling select, routing it into the dangerouslySetInnerHTML
+  // branch below) carry NO React synthetic onChange — the raw <select> is not a
+  // controlled element. Without jQuery the inline onchange is inert, so the
+  // sibling wrapper visibility never re-evaluates. Attach a native DOM change
+  // listener on the container instead: it pushes the controller value into
+  // FormContext (onChange -> setValue) so resolveDisplayTargetParts re-runs and
+  // React re-renders the siblings with the toggled display style. The listener
+  // does NOT alter the static SSR markup (parity-preserving — runtime only).
+  const rawContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const container = rawContainerRef.current;
+    if (!container) return;
+    const onNativeChange = (event: Event) => {
+      const target = event.target;
+      if (target instanceof HTMLSelectElement) {
+        onChange(target.value);
+      }
+    };
+    container.addEventListener('change', onNativeChange);
+    return () => container.removeEventListener('change', onNativeChange);
+  }, [onChange]);
 
   // Parse items
   const options = useMemo(() => {
@@ -223,6 +246,7 @@ export function SelectField({
 
     return (
       <div
+        ref={rawContainerRef}
         className="input-group"
         onClick={onButtonsClick}
         dangerouslySetInnerHTML={{
