@@ -1,0 +1,15 @@
+{
+  "name": "@form-spec/cross-framework-parity",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Direct React == Vue == Svelte SSR parity gate (no PHP reference; client renderers compared to each other).",
+  "scripts": {
+    "capture": "npm run capture:react && npm run capture:vue && npm run capture:svelte",
+    "capture:react": "node node-capture.mjs react",
+    "capture:vue": "node node-capture.mjs vue",
+    "capture:svelte": "vitest run --config vitest.svelte.config.mjs",
+    "compare": "vitest run --config vitest.config.mjs",
+    "test": "npm run capture && npm run compare"
+  }
+}

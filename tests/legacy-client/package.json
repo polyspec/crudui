@@ -1,0 +1,29 @@
+{
+  "name": "@form-spec/legacy-client-gate",
+  "version": "0.0.1",
+  "description": "Gate comparing the legacy jQuery client runtime (legacy-client.validate.js) against the new validators (client<->server idempotency)",
+  "private": true,
+  "main": "gate.js",
+  "scripts": {
+    "gate": "node gate.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "form",
+    "validation",
+    "legacy",
+    "idempotency",
+    "jquery"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "jquery": "^3.7.1",
+    "jsdom": "^27.4.0"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.1"
+  }
+}
