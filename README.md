@@ -18,23 +18,15 @@ YAML 기반 폼 생성 및 검증 시스템 — **다중 언어(4) · 다중 프
 
 ## 아키텍처
 
-```
-                         ┌──────────────────────────┐
-   YAML 폼 스펙  ───────▶│  type: group / properties │  (단일 진실)
-   (한 파일)             └────────────┬─────────────┘
-                                      │
-              ┌───────────────────────┼───────────────────────┐
-              ▼ 검증 (멱등)                        ▼ 렌더 (parity)
-   ┌──────────────────────────┐         ┌──────────────────────────┐
-   │ validator-js  (TS)        │         │ generator-react           │
-   │ validator-php (PHP ^8.2)  │         │ generator-vue             │
-   │ validator-go  (Go)        │         │ generator-svelte          │
-   │ validator-rust (Rust)     │         └────────────┬─────────────┘
-   └────────────┬─────────────┘                       │ SSR
-                │ 공유 픽스처 1013                       │ 정규화 비교
-                ▼                                       ▼
-   tests/runner/compare-all.js            tests/cross-framework
-   (4언어 결과 일치)                        (프레임워크 간 일치)
+```mermaid
+flowchart TD
+    spec["YAML 폼 스펙 · 한 파일<br/>type: group / properties<br/><b>단일 진실</b>"]
+    spec --> V["검증 (멱등)"]
+    spec --> R["렌더 (parity)"]
+    V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
+    R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
+    VL -->|"공유 픽스처 1013"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
+    RL -->|"SSR · 정규화 비교"| G["tests/cross-framework<br/>(프레임워크 간 일치)"]
 ```
 
 검증기는 규칙 레지스트리·조건식 파서(lexer+AST, ternary, 상대 경로)·경로
