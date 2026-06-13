@@ -1,5 +1,7 @@
 # Form-Spec
 
+[![CI](https://github.com/yejune/form-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/yejune/form-spec/actions/workflows/ci.yml)
+
 YAML 기반 폼 생성 및 검증 시스템 — **다중 언어(4) · 다중 프레임워크(3)**.
 
 하나의 폼 스펙(`type: group` + `properties`)을 단일 진실로 삼아, 같은 정의로
