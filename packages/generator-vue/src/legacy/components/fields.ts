@@ -1217,6 +1217,10 @@ registry.set('html', DummyField);
 registry.set('static', DummyField);
 registry.set('dummy-input', DummyInputField);
 
+/**
+ * Look up the renderer for a field `type` (case-insensitive). Returns the
+ * registered {@link FieldRenderer}, or `undefined` for an unknown type.
+ */
 export function getFieldRenderer(type: string): FieldRenderer | undefined {
   return registry.get(type.toLowerCase());
 }

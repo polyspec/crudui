@@ -212,6 +212,11 @@ class Accept implements RuleInterface
         return false;
     }
 
+    /**
+     * Returns the default error message for this rule.
+     *
+     * @return string Default message, with {0}, {1} placeholders where applicable
+     */
     public function getDefaultMessage(): string
     {
         return 'Please upload a file with a valid format.';

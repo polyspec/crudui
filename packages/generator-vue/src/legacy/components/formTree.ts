@@ -46,6 +46,10 @@ function hasData(value: FormValue): boolean {
   return String(value).length > 0;
 }
 
+/**
+ * True when a spec is a repeating (multiple) field — `multiple` is `true`,
+ * `'true'`, or `'only'`. Drives the per-row `input-group-wrapper` rendering.
+ */
 export function isMultipleSpec(spec: FieldSpec): boolean {
   const m = (spec as { multiple?: boolean | string }).multiple;
   return m === true || m === 'true' || m === 'only';
@@ -159,6 +163,12 @@ export interface FieldNodeArgs {
   ctx: RenderContext;
 }
 
+/**
+ * Leaf-field dispatcher. Routes `group` specs to {@link renderFormGroup},
+ * multiple leaf specs to the per-row renderer, and otherwise looks up the
+ * field renderer and wraps its output in the legacy `form-element-wrapper`
+ * markup (label heading, description, input-group). Returns the field VNode.
+ */
 export function renderFormField(args: FieldNodeArgs): VNode {
   const { name, spec, ctx, parentPath, index, uniqueKey } = args;
   const path = stripArraySuffix(args.path, spec);
@@ -348,6 +358,12 @@ function renderMultipleLeafField(args: {
 // FormGroup — single and multiple groups
 // ---------------------------------------------------------------------------
 
+/**
+ * Group renderer (Limepie Group::write port). Renders a `group` field's nested
+ * `properties` inside the `form-element-wrapper > form-element > form-group`
+ * structure; multiple groups delegate to the per-row group renderer. Returns
+ * the group VNode.
+ */
 export function renderFormGroup(args: FieldNodeArgs): VNode {
   const { spec, path, parentPath, ctx } = args;
 

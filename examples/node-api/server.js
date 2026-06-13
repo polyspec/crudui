@@ -21,11 +21,21 @@ const { Validator } = require('@form-spec/validator');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Parse application/json request bodies into req.body (POST /api/validate
+// sends JSON).
 app.use(express.json());
+// Also accept urlencoded form posts, so the same endpoints work from a plain
+// HTML <form> submission.
 app.use(express.urlencoded({ extended: true }));
 
-// CORS: allow all origins, answer OPTIONS preflight
+/**
+ * CORS middleware. Sets `Access-Control-Allow-*` on every response and
+ * short-circuits OPTIONS preflight with 204 No Content. All other methods fall
+ * through to the route handlers via next().
+ * @param {express.Request} req - Incoming request
+ * @param {express.Response} res - Response being built
+ * @param {express.NextFunction} next - Pass control to the next handler
+ */
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -192,23 +202,43 @@ app.post('/api/validate', (req, res) => {
   }
 });
 
-// Health check endpoint
+/**
+ * GET /health
+ * Liveness probe. Always 200 with {status: "ok", timestamp}; the timestamp is
+ * the only non-deterministic field in the API and exists purely for humans.
+ */
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 404 handler
+/**
+ * Fallback 404 handler. Reached when no route above matched the request path;
+ * returns the canonical {error} envelope so unknown endpoints stay machine-readable.
+ */
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Error handler
+/**
+ * Express error-handling middleware (4-arg signature). Catches anything thrown
+ * or passed to next(err) by an upstream handler and replies 500 {error}, never
+ * leaking the stack to the client. The unused `next` is required for Express to
+ * recognize this as an error handler.
+ * @param {Error} err - The error propagated by an upstream handler
+ * @param {express.Request} req - Incoming request
+ * @param {express.Response} res - Response being built
+ * @param {express.NextFunction} next - Required for Express to detect the error-handler arity
+ */
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
+/**
+ * Bind the HTTP server to PORT and log the served endpoints. The listen
+ * callback runs once the socket is ready.
+ */
 app.listen(PORT, () => {
   console.log(`Form Validator API server running on port ${PORT}`);
   console.log(`Specs directory: ${SPECS_DIR}`);

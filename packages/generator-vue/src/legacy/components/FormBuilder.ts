@@ -28,28 +28,46 @@ import { renderButtonGroup } from './buttons';
 export const FormBuilder = defineComponent({
   name: 'FormBuilder',
   props: {
+    /** Form spec — a YAML string or an already-parsed, order-preserving object. */
     spec: {
+      /** Accepted prop runtime types: YAML `String` or parsed spec `Object`. */
       type: [String, Object] as PropType<string | Spec>,
+      /** Spec is mandatory; there is nothing to render without it. */
       required: true,
     },
+    /** Initial form data bound to the fields (golden renders use empty data). */
     data: {
+      /** Plain object data bag. */
       type: Object as PropType<FormData>,
+      /** Default to an empty data bag. */
       default: () => ({}),
     },
+    /** UI language code for label/message resolution. */
     language: {
+      /** Language code string. */
       type: String,
+      /** Default language is Korean (`ko`). */
       default: 'ko',
     },
+    /** Extra CSS class appended to the `form-builder` wrapper. */
     className: {
+      /** Class-name string. */
       type: String,
+      /** Default to no extra class. */
       default: '',
     },
+    /** Render every field disabled. */
     disabled: {
+      /** Boolean flag. */
       type: Boolean,
+      /** Default enabled. */
       default: false,
     },
+    /** Render every field read-only. */
     readonly: {
+      /** Boolean flag. */
       type: Boolean,
+      /** Default editable. */
       default: false,
     },
   },

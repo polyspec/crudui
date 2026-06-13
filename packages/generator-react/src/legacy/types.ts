@@ -106,77 +106,123 @@ export interface FormBuilderProps {
  */
 export interface ReactFieldSpec {
   // Core field properties
+  /** Field type that selects the component (e.g. `text`, `select`, `group`) */
   type: string;
+  /** Visible field label (plain or per-language map) */
   label?: string | MultiLangText;
+  /** Help text shown below the field (plain or per-language map) */
   description?: string | MultiLangText;
+  /** Input placeholder text (plain or per-language map) */
   placeholder?: string | MultiLangText;
+  /** Initial value applied when the field has no data */
   default?: unknown;
+  /** Render the field read-only */
   readonly?: boolean;
+  /** Render the field disabled */
   disabled?: boolean;
+  /** Repeat the field as an array; `'only'` allows multiple without an add button */
   multiple?: boolean | 'only';
 
   // Validation
+  /** Validation rules applied to the field value */
   rules?: import('@form-spec/validator/legacy').RulesSpec;
+  /** Custom validation messages keyed by rule name */
   messages?: import('@form-spec/validator/legacy').MessagesSpec;
 
   // Conditional display (boolean = unconditional on/off, string = condition expression)
+  /** Show/hide condition: boolean toggles unconditionally, string is a condition expression */
   display_switch?: string | boolean;
+  /** Name of the field this field's visibility is driven by */
   display_target?: string;
+  /** Conditional display configuration (`all_of` / `any_of` rules) */
   element?: ElementConfig;
 
   // Items for select/radio/checkbox lists. The ordered pair form
   // ([[key, label], ...]) preserves entry order that plain JS objects
   // destroy for integer-like keys (legacy YAML maps are ordered; see
   // limepieParity itemEntries).
+  /**
+   * Options for select/radio/checkbox lists. The ordered pair form
+   * (`[[key, label], ...]`) preserves entry order that plain JS objects
+   * destroy for integer-like keys (legacy YAML maps are ordered; see
+   * limepieParity `itemEntries`).
+   */
   items?:
     | Record<string, string>
     | Array<[string | number, unknown]>
     | import('@form-spec/validator/legacy').ItemsSourceSpec;
 
   // CSS classes
+  /** Extra CSS classes applied to the input element */
   input_class?: string;
+  /** Extra CSS classes applied to the field wrapper */
   wrapper_class?: string;
+  /** Extra CSS classes applied to the label */
   label_class?: string;
+  /** Generic extra CSS classes (Limepie `class` attribute) */
   class?: string;
 
   // HTML content
+  /** Raw HTML rendered before the input (input-group prepend) */
   prepend?: string;
+  /** Raw HTML rendered after the input (input-group append) */
   append?: string;
 
   // Input attributes
+  /** Auto-focus the input on mount */
   autofocus?: boolean;
+  /** HTML `autocomplete` attribute value */
   autocomplete?: string;
+  /** HTML `maxlength` attribute value */
   maxlength?: number;
 
   // Button specific
+  /** Label for a single action button */
   button_label?: string | MultiLangText;
+  /** Label for the "add row" button of a multiple field */
   add_button_label?: string | MultiLangText;
+  /** Label for the "remove row" button of a multiple field */
   remove_button_label?: string | MultiLangText;
+  /** Inline label rendered beside a checkbox */
   checkbox_label?: string | MultiLangText;
+  /** Visual variant token for buttons (e.g. `primary`, `secondary`) */
   variant?: string;
+  /** Size token for buttons/inputs (e.g. `sm`, `lg`) */
   size?: string;
+  /** Icon identifier rendered with the field/button */
   icon?: string;
+  /** Whether the icon renders before or after the label */
   icon_position?: 'before' | 'after';
+  /** Action identifier for action-type fields */
   action?: string;
+  /** Arbitrary payload attached to the field/action */
   data?: unknown;
 
   // Multiple/sortable
+  /** Allow drag-reordering of multiple rows */
   sortable?: boolean;
+  /** Minimum number of multiple rows / minimum numeric value */
   min?: number;
+  /** Maximum number of multiple rows / maximum numeric value */
   max?: number;
+  /** Step increment for numeric inputs */
   step?: number;
 
   // Geometry specific
+  /** Geometry shape for map/geometry fields (e.g. `point`, `polygon`) */
   geometry_type?: string;
 
   // Helper text
+  /** Short helper text shown near the input (plain or per-language map) */
   helper?: string | MultiLangText;
 
   // Nested properties for groups
+  /** Child field specs for group/object fields, keyed by field name */
   properties?: Record<string, ReactFieldSpec>;
 
   // Index signature for additional properties used by specific field components
   // These are typed as unknown but cast to their proper types in each component
+  /** Additional spec properties consumed by specific field components, cast per-component */
   [key: string]: unknown;
 }
 
@@ -233,8 +279,11 @@ export interface FieldComponentProps {
  * Wrapper render props
  */
 export interface WrapperRenderProps {
+  /** Rendered form fields to place inside the custom wrapper */
   children: ReactNode;
+  /** Full form specification being rendered */
   spec: import('@form-spec/validator/legacy').Spec;
+  /** Submit handler to wire onto the wrapping `<form>` element */
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -242,8 +291,11 @@ export interface WrapperRenderProps {
  * Buttons render props
  */
 export interface ButtonsRenderProps {
+  /** Full form specification being rendered */
   spec: import('@form-spec/validator/legacy').Spec;
+  /** Whether a submit is currently in flight */
   isSubmitting: boolean;
+  /** Whether the form currently passes validation */
   isValid: boolean;
 }
 
@@ -381,11 +433,17 @@ export interface ConditionalContext {
  * All-of condition structure
  */
 export interface AllOfCondition {
+  /** Field-name → expected value(s); all entries must match for the condition to hold */
   conditions: Record<string, FormValue | FormValue[]>;
+  /** Inline style applied while all conditions are met */
   inline?: string;
+  /** CSS class applied while all conditions are met */
   class?: string;
+  /** Style/class applied while the conditions are NOT met */
   not?: {
+    /** Inline style applied while the conditions are not met */
     inline?: string;
+    /** CSS class applied while the conditions are not met */
     class?: string;
   };
 }
@@ -459,8 +517,11 @@ export interface DisplaySwitchConfig {
  * Display target configuration
  */
 export interface DisplayTargetConfig {
+  /** Name of the field whose value drives this field's display */
   target: string;
+  /** Target value → inline style to apply */
   conditionStyle?: Record<string, string>;
+  /** Target value → CSS class to apply */
   conditionClass?: Record<string, string>;
 }
 
@@ -468,7 +529,9 @@ export interface DisplayTargetConfig {
  * Element configuration
  */
 export interface ElementConfig {
+  /** Condition requiring every entry to match (with style/class effects) */
   all_of?: AllOfCondition;
+  /** Conditions where any single match triggers its effect */
   any_of?: AnyOfCondition[];
 }
 
@@ -476,7 +539,9 @@ export interface ElementConfig {
  * Any-of condition
  */
 export interface AnyOfCondition {
+  /** Condition expression evaluated against form data */
   condition: string;
+  /** Effect applied when the condition matches (e.g. show/hide) */
   effect?: string;
 }
 
@@ -498,8 +563,11 @@ export type FieldSpec = ReactFieldSpec;
  * Field registry entry
  */
 export interface FieldRegistryEntry {
+  /** React component that renders this field type */
   component: React.ComponentType<FieldComponentProps>;
+  /** Canonical field-type name the component is registered under */
   name: string;
+  /** Additional field-type names that resolve to the same component */
   aliases?: string[];
 }
 

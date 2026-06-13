@@ -178,7 +178,12 @@ export function resolveWildcardPath(
   path: string[],
   formData: Record<string, unknown>,
   currentIndex?: number
-): { path: string[]; value: unknown }[] {
+): {
+  /** Concrete path segments with each wildcard replaced by an actual index. */
+  path: string[];
+  /** Value found at the resolved concrete path. */
+  value: unknown;
+}[] {
   const wildcardInfo = findWildcardPosition(path);
 
   if (!wildcardInfo) {

@@ -33,6 +33,11 @@ class MinCount implements RuleInterface
         return false;
     }
 
+    /**
+     * Returns the default error message for this rule.
+     *
+     * @return string Default message, with {0}, {1} placeholders where applicable
+     */
     public function getDefaultMessage(): string
     {
         return 'Please select at least {0} items.';
