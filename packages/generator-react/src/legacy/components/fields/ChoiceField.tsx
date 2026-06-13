@@ -22,7 +22,7 @@
  *   - no role/aria attributes on the container
  */
 
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { FieldComponentProps } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { useFormContext } from '../../context/FormContext';
@@ -75,6 +75,35 @@ export function ChoiceField({
     },
     [onChange, disabled, readonly]
   );
+
+  // Legacy-raw controllers (map-form display_switch writes a jQuery onchange
+  // onto every radio, routing the group into the dangerouslySetInnerHTML branch
+  // below) carry NO React synthetic onChange — the raw radios are not controlled
+  // elements. Without jQuery the inline onchange is inert, so the sibling
+  // wrapper visibility never re-evaluates. Attach a native DOM change listener
+  // on the container instead: it pushes the checked radio value into FormContext
+  // (onChange -> setValue) so resolveDisplayTargetParts re-runs and React
+  // re-renders the siblings with the toggled display style. The listener does
+  // NOT alter the static SSR markup (parity-preserving — runtime only).
+  const rawContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const container = rawContainerRef.current;
+    if (!container) return;
+    const onNativeChange = (event: Event) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement &&
+        target.type === 'radio' &&
+        target.checked &&
+        !disabled &&
+        !readonly
+      ) {
+        onChange(target.value);
+      }
+    };
+    container.addEventListener('change', onNativeChange);
+    return () => container.removeEventListener('change', onNativeChange);
+  }, [onChange, disabled, readonly]);
 
   // Parse items (ordered — itemEntries keeps the spec's entry order)
   const options = useMemo(() => {
@@ -175,6 +204,7 @@ export function ChoiceField({
       .join('');
     return (
       <div
+        ref={rawContainerRef}
         className={containerClass}
         data-toggle="buttons"
         dangerouslySetInnerHTML={{ __html: html }}
