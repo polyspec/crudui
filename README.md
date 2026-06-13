@@ -9,10 +9,17 @@ YAML 기반 폼 생성 및 검증 시스템 — **다중 언어(4) · 다중 프
 수행한다. 핵심 보장은 두 가지다.
 
 - **검증 멱등성** — 같은 스펙·같은 데이터는 4개 언어 어디서나 동일한 결과를
-  낸다. 공유 픽스처 **1013 케이스**를 4개 언어에 동시 실행해 결과 일치를
-  교차 검증한다(`tests/runner/compare-all.js`).
+  낸다. 공유 픽스처 **1074 케이스**를 4개 언어에 동시 실행해 결과 일치를
+  교차 검증한다(`tests/runner/compare-all.js`). 불일치 시 클라이언트(js)↔서버
+  (php/go/rust)·서버끼리 어느 축이 깨졌는지 분류 보고한다("Axis Diagnostics").
 - **렌더 parity** — 3개 프레임워크의 출력 HTML이 legacy Legacy PHP 생성기의
   기준 HTML과 바이트 단위로 일치한다(기준 HTML 7종, 각 프레임워크 **7/7**).
+  프레임워크끼리도 직접 비교한다(React/Vue/Svelte SSR 21쌍 일치,
+  `tests/cross-framework`).
+
+검증 의미론의 단일 진실은 "논리적 올바름"이다(legacy 결함은 보완 대상). 원칙
+정의는 [docs/VALIDATION-RULES.md](./docs/VALIDATION-RULES.md)의 "검증 의미론 원칙
+(Validation Semantics Principles)" 참조.
 
 ## 왜 필요한가
 
@@ -31,7 +38,7 @@ flowchart TD
     spec --> R["렌더 (parity)"]
     V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
     R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
-    VL -->|"공유 픽스처 1013"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
+    VL -->|"공유 픽스처 1074"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
     RL -->|"SSR · 정규화 비교"| G["tests/fixtures/reference-html/*<br/>(Legacy 기준 HTML, 7/7 parity)"]
 ```
 
@@ -205,23 +212,35 @@ CORS·OPTIONS 프리플라이트 지원. 자세한 포트·기동법은
 ## Tests (게이트)
 
 ```bash
-# 크로스언어 멱등성: 1013케이스를 JS/PHP/Go/Rust 에 동일 입력으로 실행해 비교
+# 크로스언어 멱등성: 1074케이스를 JS/PHP/Go/Rust 에 동일 입력으로 실행해 비교
 npm test                                   # = node tests/runner/compare-all.js
 
 # 언어별 단일 게이트
-cd packages/validator-js   && npm test      # vitest    — 동일 1013 conformance
-cd packages/validator-php  && composer test # PHPUnit   — 동일 1013 conformance
+cd packages/validator-js   && npm test      # vitest    — 동일 1074 conformance
+cd packages/validator-php  && composer test # PHPUnit   — 동일 1074 conformance
 cd packages/validator-go   && go test ./...
-cd packages/validator-rust && cargo test    # cargo     — 동일 1013 conformance
+cd packages/validator-rust && cargo test    # cargo     — 동일 1074 conformance
 
 # HTML parity: React/Vue/Svelte SSR ↔ Legacy 기준 HTML 7종 (각 7/7)
 cd tests/parity              && npm test    # React
 cd packages/generator-vue    && npm test    # Vue   (@vue/server-renderer)
 cd packages/generator-svelte && npm test    # Svelte (Svelte SSR)
+
+# 프레임워크끼리 직접 비교: React == Vue == Svelte SSR (7specs / 21쌍)
+cd tests/cross-framework     && npm test
+
+# legacy 클라이언트 비교: jQuery legacy-client.validate.js ↔ 새 검증기 (jsdom 구동)
+cd tests/legacy-client       && npm run gate
+
+# 4언어 처리량 벤치마크
+make bench
 ```
 
-테스트 케이스는 `tests/cases/*.json`(19파일, 1013케이스)이 단일 진실이다.
+테스트 케이스는 `tests/cases/*.json`(23파일, 1074케이스)이 단일 진실이다.
 기준 HTML 재생성은 `tools/legacy-baseline/` 파이프라인으로만 한다(핀 커밋 가드).
+전체 게이트 체계는 [docs/TESTING.md](./docs/TESTING.md) 참조. CI(`.github/workflows/ci.yml`)는
+push/PR마다 8잡(build-lint·cross-language·검증기 단위 4종·parity·docs-coverage)을
+돌리고, dependabot이 의존성을 주간 갱신한다.
 
 ## Documentation
 

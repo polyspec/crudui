@@ -3,10 +3,12 @@
 > **현황 업데이트 (2026-06).** 이 보고서의 §3-§10 평가는 작성 시점 기준이며,
 > 아래 항목은 그 이후 실측으로 갱신되었다:
 >
-> - **크로스 언어 검증 1013/1013 GREEN** — `tests/cases/*.json` 19개 스위트,
->   1013 케이스가 JS/PHP/Go/Rust 전부에서 일치 (`tests/runner/compare-all.js` +
->   vitest/PHPUnit/go test/cargo test 브리지 4종, 2026-06 실행 확인). 게이트 체계는
->   [TESTING.md](./TESTING.md) 참조.
+> - **크로스 언어 검증 1074/1074 GREEN** — `tests/cases/*.json` 23개 스위트,
+>   1074 케이스가 JS/PHP/Go/Rust 전부에서 일치 (`tests/runner/compare-all.js` +
+>   vitest/PHPUnit/go test/cargo test 브리지 4종, 2026-06 실행 확인). 불일치 시
+>   클라이언트↔서버·서버끼리 축을 분류 보고한다(Axis Diagnostics). 게이트 체계는
+>   [TESTING.md](./TESTING.md) 참조. 검증 의미론의 단일 진실은 "논리적 올바름"이다
+>   ([VALIDATION-RULES.md](./VALIDATION-RULES.md) "검증 의미론 원칙").
 > - **조건식 캐싱 구현 완료** — LRU 캐시
 >   (`packages/validator-js/src/parser/ConditionCache.ts`). §3.4 의
 >   '구현 없음' 서술은 더 이상 사실이 아니다.
@@ -31,7 +33,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 ### 2.1 멱등성 보장
 - **핵심 가치**: 동일한 YAML 스펙 → 모든 언어에서 동일한 검증 결과
 - 클라이언트/서버 검증 불일치 문제 해결
-- 1013개 크로스 언어 테스트 케이스(19개 스위트)로 언어 간 일관성 검증
+- 1074개 크로스 언어 테스트 케이스(23개 스위트)로 언어 간 일관성 검증
 
 ### 2.2 복잡한 폼 구조 지원
 - 1,318줄 규모의 LargeForm 같은 e-commerce 폼 완벽 지원
@@ -219,8 +221,9 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 > 이 절은 작성 시점의 작업 계획 기록이다. 실측 완료 항목:
 > #3 조건식 캐싱(`ConditionCache.ts`), #4 벤치마크(`benchmarks/`),
 > vitest 커버리지 설정(`vitest.config.ts`). 단위 테스트 강화(#5-8)는 이후
-> 1013케이스 크로스 언어 conformance 브리지 체계로 대체되었다
-> (`packages/validator-js/src/__tests__/conformance.test.ts`). CI 설정은 미구현.
+> 1074케이스 크로스 언어 conformance 브리지 체계로 대체되었다
+> (`packages/validator-js/src/__tests__/conformance.test.ts`). CI 설정도 완료
+> (`.github/workflows/ci.yml` 8잡 + `.github/dependabot.yml` 주간 갱신).
 
 ### 브랜치: `feature/quality-improvements`
 
