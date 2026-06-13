@@ -24,6 +24,6 @@
     "jsdom": "^27.4.0"
   },
   "devDependencies": {
-    "vitest": "^1.6.1"
+    "vitest": "^4.1.8"
   }
 }

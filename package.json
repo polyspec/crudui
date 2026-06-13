@@ -17,8 +17,8 @@
     "build:validator": "npm run build -w @form-spec/validator",
     "build:generators": "npm run build -w @form-spec/generator-react && npm run build -w @form-spec/generator-vue && npm run build -w @form-spec/generator-svelte",
     "test": "node tests/runner/compare-all.js",
-    "lint": "eslint packages/validator-js/src packages/generator-react/src --ext .ts,.tsx",
-    "lint:fix": "eslint packages/validator-js/src packages/generator-react/src --ext .ts,.tsx --fix",
+    "lint": "eslint packages/validator-js/src packages/generator-react/src",
+    "lint:fix": "eslint packages/validator-js/src packages/generator-react/src --fix",
     "docs:api": "node scripts/gen-api-docs.mjs",
     "docs:build": "vitepress build docs",
     "docs:dev": "vitepress dev docs",
@@ -48,21 +48,25 @@
     "url": "https://github.com/yejune/form-spec/issues"
   },
   "homepage": "https://github.com/yejune/form-spec#readme",
+  "overrides": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
   "dependencies": {
-    "puppeteer": "^24.34.0"
+    "puppeteer": "^25.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
+    "@eslint/js": "^10.0.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "debug": "^4.4.3",
-    "eslint": "^9.0.0",
+    "eslint": "^10.5.0",
     "js-yaml": "^4.2.0",
     "mermaid": "^11.15.0",
     "ts-json-schema-generator": "^2.9.0",
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.12.0",
-    "typescript-eslint": "^8.0.0",
+    "typescript-eslint": "^8.61.0",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17"
   }
