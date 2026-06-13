@@ -34,7 +34,7 @@ npm run spec:schema  # = node scripts/gen-schema.mjs
 
 ## 멱등성
 
-문서 생성은 항상 멱등하다. `make docs` 를 몇 번 돌려도 동일한 산출물이 나온다.
+문서 생성은 항상 멱등하다. `make docs` 를 몇 번 실행해도 동일한 산출물이 나온다.
 
 - **clean-then-generate**: `make docs` 는 `docs-clean` 을 선행한다. 각 생성기도
   자신의 출력 디렉토리를 비우고 다시 쓴다.

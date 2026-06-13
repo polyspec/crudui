@@ -45,9 +45,9 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 | [`packages/validator-php`](./packages/validator-php) | `form-spec/validator` | PHP 검증 라이브러리 (PHP ^8.2, PHPUnit) |
 | [`packages/validator-go`](./packages/validator-go) | `github.com/polyspec/crudui/packages/validator-go` | Go 검증 라이브러리 |
 | [`packages/validator-rust`](./packages/validator-rust) | `formspec-validator` (crate) | Rust 검증 라이브러리 + `validate` CLI |
-| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 |
-| [`packages/generator-vue`](./packages/generator-vue) | `@form-spec/generator-vue` | Vue 3 폼 빌더 |
-| [`packages/generator-svelte`](./packages/generator-svelte) | `@form-spec/generator-svelte` | Svelte 폼 빌더 |
+| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-vue`](./packages/generator-vue) | `@form-spec/generator-vue` | Vue 3 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-svelte`](./packages/generator-svelte) | `@form-spec/generator-svelte` | Svelte 폼 빌더 — 기준 HTML 7/7 parity |
 
 ## Quick Start
 
@@ -216,7 +216,7 @@ cd packages/generator-svelte && npm test    # Svelte (Svelte SSR)
 ## Documentation
 
 문서 사이트와 멀티언어 API 레퍼런스는 Makefile로 **멱등하게** 생성한다(언제
-돌려도 같은 산출물; `make docs`는 clean 후 재생성).
+실행해도 같은 산출물; `make docs`는 clean 후 재생성).
 
 ```bash
 make help          # 사용 가능한 타겟
@@ -232,7 +232,7 @@ make docs-clean    # 생성물 제거
 - [Validation Rules](./docs/VALIDATION-RULES.md) — 등록 규칙·기본 메시지·미구현 목록
 - [Condition Parser](./docs/CONDITION-PARSER.md) — 조건식 문법·경로 해석
 - [Display Conditions](./docs/DISPLAY-CONDITIONS.md) — 조건부 표시·검증 스킵
-- [Testing](./docs/TESTING.md) — 게이트 체계
+- [Testing](./docs/TESTING.md) — 게이트 체계·기준 재생성
 
 ## Examples
 
