@@ -44,6 +44,10 @@ export interface UseMultipleRowsOptions {
   defaultValue?: () => FormValue;
 }
 
+/**
+ * Return value of {@link useMultipleRows} — the derived row list plus the
+ * mutation helpers used to render and edit a multiple/sortable group.
+ */
 export interface UseMultipleRowsReturn {
   /** Row keys in render order (always at least one — the placeholder) */
   rowKeys: string[];
@@ -57,11 +61,21 @@ export interface UseMultipleRowsReturn {
   moveUp: (key: string) => void;
   /** Move a row one position down */
   moveDown: (key: string) => void;
+  /** Whether another row may be added (row count is below `max`) */
   canAdd: boolean;
+  /** Whether a row may be removed (row count is above `min`) */
   canRemove: boolean;
+  /** Number of rows currently rendered (includes the placeholder) */
   length: number;
 }
 
+/**
+ * Renders and edits a multiple/sortable group, deriving its row list directly
+ * from FormContext data (the single source of truth — no local value
+ * snapshot). Returns stable row keys plus add/remove/move helpers that commit
+ * back into the form data, and renders one blank placeholder row when the
+ * field is empty (matching the legacy Legacy `[$parentId => null]` behavior).
+ */
 export function useMultipleRows({
   path,
   min = 0,
