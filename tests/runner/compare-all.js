@@ -38,11 +38,22 @@ const PHP_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validato
 const GO_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-go');
 const RUST_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-rust');
 
+// Tier definitions. Client tier = validator-js (the core that runs in the
+// browser). Server tier = validator-php/go/rust (the backends). Idempotency's
+// purpose: "passes in browser == passes on server" (client<->server agreement)
+// AND "any backend agrees" (server-side agreement).
+const CLIENT_LANGS = ['js'];
+const SERVER_LANGS = ['php', 'go', 'rust'];
+
 // Statistics
 let stats = {
   total: 0,
   matching: 0,
   discrepancies: 0,
+  // Axis diagnostics: classify each discrepancy by which axis broke.
+  // A single discrepancy may trip both axes.
+  clientServerMismatch: 0,
+  serverSideDivergence: 0,
   jsErrors: 0,
   phpErrors: 0,
   goErrors: 0,
@@ -344,6 +355,119 @@ function resultsMatch(results) {
 }
 
 /**
+ * Stable comparison signature for a single language result.
+ * Failed runs (no output) carry a distinct signature so a missing/errored
+ * language never silently agrees with a valid one.
+ */
+function resultSignature(langResult) {
+  if (!langResult || !langResult.success) return '__error__';
+  const n = normalizeResult(langResult.result);
+  return `${n.valid}|${n.error}|${n.field}`;
+}
+
+/**
+ * Pick the keyed lang results that ran (have output) for a tier.
+ * `results` is the keyed object { js, php, go, rust }.
+ */
+function tierResults(results, langs) {
+  const out = [];
+  for (const lang of langs) {
+    const r = results[lang];
+    if (r && r.success) out.push({ lang, result: r });
+  }
+  return out;
+}
+
+/**
+ * AXIS 1 — client <-> server agreement.
+ * "Passes in the browser == passes on the server."
+ * The server tier must already be self-consistent for this axis to be
+ * meaningful; when servers diverge among themselves there is no single
+ * server consensus to compare the client against. Returns true (this axis
+ * not broken) when fewer than two tiers ran or no client ran.
+ */
+function clientServerAgree(results) {
+  const client = tierResults(results, CLIENT_LANGS);
+  const server = tierResults(results, SERVER_LANGS);
+  if (client.length === 0 || server.length === 0) return true;
+
+  // Server consensus signature — only defined when servers agree.
+  const serverSigs = new Set(server.map((r) => resultSignature(r.result)));
+  if (serverSigs.size > 1) {
+    // No server consensus; this is a server-side divergence, not a
+    // client<->server fault. Don't blame the client axis.
+    return true;
+  }
+  const serverSig = [...serverSigs][0];
+  const clientSigs = new Set(client.map((r) => resultSignature(r.result)));
+  return clientSigs.size === 1 && [...clientSigs][0] === serverSig;
+}
+
+/**
+ * AXIS 2 — server-side agreement.
+ * "Any backend produces the same result." Returns true when fewer than two
+ * server validators ran.
+ */
+function serverSideAgree(results) {
+  const server = tierResults(results, SERVER_LANGS);
+  if (server.length < 2) return true;
+  const sigs = new Set(server.map((r) => resultSignature(r.result)));
+  return sigs.size === 1;
+}
+
+/**
+ * Classify a discrepancy by axis and produce a human-readable label.
+ * Returns { clientServer: bool, serverSide: bool, label: string }.
+ */
+function classifyAxis(results) {
+  const clientOk = clientServerAgree(results);
+  const serverOk = serverSideAgree(results);
+
+  const parts = [];
+
+  if (!serverOk) {
+    const server = tierResults(results, SERVER_LANGS);
+    const detail = server
+      .map(({ lang, result }) => `${lang}=${formatSignature(result)}`)
+      .join(' ≠ ');
+    parts.push(`${colors.magenta}server-side divergence${colors.reset}: ${detail}`);
+  }
+
+  if (!clientOk) {
+    const client = tierResults(results, CLIENT_LANGS);
+    const server = tierResults(results, SERVER_LANGS);
+    const clientDetail = client
+      .map(({ lang, result }) => `${lang}=${formatSignature(result)}`)
+      .join(', ');
+    // Server consensus is well-defined here (clientOk is only false when
+    // servers agreed but differ from the client).
+    const serverSig = server.length > 0 ? formatSignature(server[0].result) : '(none)';
+    parts.push(
+      `${colors.yellow}client↔server mismatch${colors.reset}: ${clientDetail}, ` +
+        `server(${SERVER_LANGS.join('/')})=${serverSig}`
+    );
+  }
+
+  return {
+    clientServer: !clientOk,
+    serverSide: !serverOk,
+    label: parts.join('; '),
+  };
+}
+
+/**
+ * Short human signature (valid + error@field) for axis labels.
+ */
+function formatSignature(langResult) {
+  if (!langResult || !langResult.success) return 'ERROR';
+  const n = normalizeResult(langResult.result);
+  let s = n.valid ? 'valid' : 'invalid';
+  if (n.error) s += `@${n.field || '?'}:${n.error}`;
+  else if (n.field) s += `@${n.field}`;
+  return s;
+}
+
+/**
  * Format input for display
  */
 function formatInput(input) {
@@ -423,6 +547,10 @@ function runComparison(jsModule, testFile, enabledLangs) {
         stats.matching++;
       } else {
         stats.discrepancies++;
+        // Axis classification: which agreement axis broke?
+        const axis = classifyAxis(results);
+        if (axis.clientServer) stats.clientServerMismatch++;
+        if (axis.serverSide) stats.serverSideDivergence++;
         discrepancies.push({
           testId: testDef.id,
           caseIndex,
@@ -430,6 +558,7 @@ function runComparison(jsModule, testFile, enabledLangs) {
           input: testCase.input,
           expected: testCase.expected,
           results,
+          axis,
         });
       }
     }
@@ -452,6 +581,9 @@ function runComparison(jsModule, testFile, enabledLangs) {
       console.log(`  ${colors.gray}Results:${colors.reset}`);
       for (const [lang, result] of Object.entries(disc.results)) {
         console.log(`    ${colors.cyan}${lang.toUpperCase()}:${colors.reset} ${formatResult(result)}`);
+      }
+      if (disc.axis && disc.axis.label) {
+        console.log(`  ${colors.gray}Axis:${colors.reset} ${disc.axis.label}`);
       }
       console.log('');
     }
@@ -562,6 +694,25 @@ Examples:
       );
     }
   }
+
+  // Print axis diagnostics. Idempotency stays binary (all-equal == pass);
+  // these labels only classify which agreement axis broke when it did.
+  console.log(`\n${colors.bold}${colors.cyan}=== Axis Diagnostics ===${colors.reset}`);
+  const fullyMatching = stats.matching;
+  console.log(
+    `${colors.gray}Tiers — client: ${CLIENT_LANGS.join('/')} | server: ${SERVER_LANGS.join('/')}${colors.reset}`
+  );
+  console.log(`${colors.green}Full agreement (all tiers): ${fullyMatching}${colors.reset}`);
+  const csColor = stats.clientServerMismatch > 0 ? colors.red : colors.green;
+  const ssColor = stats.serverSideDivergence > 0 ? colors.red : colors.green;
+  console.log(
+    `${csColor}Client↔server mismatch: ${stats.clientServerMismatch}${colors.reset} ` +
+      `${colors.gray}(browser core disagrees with backend consensus)${colors.reset}`
+  );
+  console.log(
+    `${ssColor}Server-side divergence: ${stats.serverSideDivergence}${colors.reset} ` +
+      `${colors.gray}(${SERVER_LANGS.join('/')} disagree among themselves)${colors.reset}`
+  );
 
   // Print summary
   console.log(`\n${colors.bold}${colors.cyan}=== Idempotency Summary ===${colors.reset}`);
