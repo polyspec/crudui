@@ -7,26 +7,35 @@
 
 | 게이트 | 위치 | 실행 | 케이스 수 | 검증 대상 |
 |--------|------|------|-----------|-----------|
-| 크로스 언어 비교 | `tests/runner/compare-all.js` | `cd tests && npm test` | 1013 | JS/PHP/Go/Rust 검증 결과 일치 (멱등성) |
-| JS 단일 러너 | `tests/runner/run-js.ts` | `cd tests && npm run run:js` | 1013 | JS 검증기 단독 pass/fail |
-| PHP 단일 러너 | `tests/runner/run-php.php` | `cd tests && npm run run:php` | 1013 | PHP 검증기 단독 pass/fail |
-| Go 브리지 | `tests/runner/go/run_test.go` | `cd tests/runner/go && go test ./...` | 1013 | Go 검증기 단독 pass/fail |
-| Rust conformance | `packages/validator-rust/tests/conformance.rs` | `cd packages/validator-rust && cargo test --release` | 1013 | Rust 검증기 단독 pass/fail |
-| vitest 브리지 | `packages/validator-js/src/__tests__/conformance.test.ts` | `cd packages/validator-js && npx vitest run` | 1013 | JS 검증기 (vitest 리포팅) |
-| PHPUnit 브리지 | `packages/validator-php/tests/ConformanceTest.php` | `cd packages/validator-php && ./vendor/bin/phpunit` | 1013 | PHP 검증기 (PHPUnit data provider) |
+| 크로스 언어 비교 | `tests/runner/compare-all.js` | `cd tests && npm test` | 1074 | JS/PHP/Go/Rust 검증 결과 일치 (멱등성) + Axis Diagnostics |
+| JS 단일 러너 | `tests/runner/run-js.ts` | `cd tests && npm run run:js` | 1074 | JS 검증기 단독 pass/fail |
+| PHP 단일 러너 | `tests/runner/run-php.php` | `cd tests && npm run run:php` | 1074 | PHP 검증기 단독 pass/fail |
+| Go 브리지 | `tests/runner/go/run_test.go` | `cd tests/runner/go && go test ./...` | 1074 | Go 검증기 단독 pass/fail |
+| Rust conformance | `packages/validator-rust/tests/conformance.rs` | `cd packages/validator-rust && cargo test --release` | 1074 | Rust 검증기 단독 pass/fail |
+| vitest 브리지 | `packages/validator-js/src/__tests__/conformance.test.ts` | `cd packages/validator-js && npx vitest run` | 1074 | JS 검증기 (vitest 리포팅) |
+| PHPUnit 브리지 | `packages/validator-php/tests/ConformanceTest.php` | `cd packages/validator-php && ./vendor/bin/phpunit` | 1074 | PHP 검증기 (PHPUnit data provider) |
 | Go 내부 테스트 | `packages/validator-go/validator/legacy/validator_test.go` | `cd packages/validator-go && go test ./...` | — | Go 내부 단위 테스트 |
 | HTML parity (React) | `tests/parity/parity.test.mjs` | `cd tests/parity && npm test` | 기준 HTML 7종 | React SSR ↔ Limepie 기준 HTML (7/7) |
 | HTML parity (Vue) | `packages/generator-vue/test/parity.test.mjs` | `cd packages/generator-vue && npm test` | 기준 HTML 7종 | Vue SSR ↔ Limepie 기준 HTML (7/7) |
 | HTML parity (Svelte) | `packages/generator-svelte/test/parity.test.mjs` | `cd packages/generator-svelte && npm test` | 기준 HTML 7종 | Svelte SSR ↔ Limepie 기준 HTML (7/7) |
+| 프레임워크끼리 비교 | `tests/cross-framework/cross-framework.test.mjs` | `cd tests/cross-framework && npm test` | 7 specs / 21쌍 | React == Vue == Svelte SSR 직접 비교 |
+| legacy 클라이언트 비교 | `tests/legacy-client/gate.js` | `cd tests/legacy-client && npm run gate` | 1074 (비교 가능분) | jQuery dist.validate.js ↔ 새 검증기 (jsdom) |
+| 벤치마크 | `tools/bench/run.js` | `make bench` | — | 4언어 처리량 비교 (ops/sec) |
+| doc-coverage | `tools/doc-coverage` | `make docs-check` | — | 라이브러리 + examples 서버 미문서화 시 RED |
 
-`tests/cases/*.json` 19개 파일, 총 1013 케이스가 단일진실(single source of truth)이다.
+`tests/cases/*.json` 23개 파일, 총 1074 케이스가 단일진실(single source of truth)이다.
 크로스 언어 비교·단일 러너·브리지 4종이 전부 같은 픽스처 디렉터리를 읽는다 —
 케이스를 추가하면 모든 게이트가 자동으로 집어간다.
 
-현재 상태 (2026-06 검증): 검증기 게이트는 전부 GREEN (1013/1013, 4개 언어 일치).
+현재 상태 (2026-06 검증): 검증기 게이트는 전부 GREEN (1074/1074, 4개 언어 일치).
 HTML parity 도 전부 GREEN — React/Vue/Svelte 3개 generator 가 각각 기준 HTML 7종에
-7/7 일치(필드 50/50 + chrome, canonical 일치)다.
+7/7 일치(필드 50/50 + chrome, canonical 일치)다. 프레임워크끼리 직접 비교도 21/21,
+legacy 클라이언트 비교는 문서화 gap 0·회귀 0 이다.
 기준 픽스처나 정규화 규칙을 약화해 GREEN 을 유지하지 마라 — 회귀 시 generator 를 고쳐라.
+
+검증 의미론의 단일 진실은 "논리적 올바름"이다(legacy 결함은 보완 대상). 원칙
+정의는 [VALIDATION-RULES.md](./VALIDATION-RULES.md) "검증 의미론 원칙
+(Validation Semantics Principles)" 참조. 픽스처 기대값은 이 원칙을 따른다.
 
 ## 디렉터리 구조
 
@@ -42,19 +51,22 @@ form-spec/
 │   ├── generator-svelte/    # Svelte 5 폼 생성기 (vitest, test/parity.test.mjs 7/7)
 │   └── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets (기준 파이프라인 지원)
 ├── tests/
-│   ├── cases/               # 크로스 언어 픽스처 19개 (1013 케이스) — 단일진실
+│   ├── cases/               # 크로스 언어 픽스처 23개 (1074 케이스) — 단일진실
 │   ├── fixtures/
 │   │   ├── reference-html/     # Limepie PHP 기준 HTML 7종 (재생성: tools/limepie-baseline)
 │   │   └── specs/           # ProductNft.yml 등 테스트용 YAML 스펙
 │   ├── runner/
-│   │   ├── compare-all.js   # 크로스 언어 비교 게이트 (JS/PHP/Go/Rust)
+│   │   ├── compare-all.js   # 크로스 언어 비교 게이트 (JS/PHP/Go/Rust) + Axis Diagnostics
 │   │   ├── run-js.ts        # JS 단일 러너 (ts-node)
 │   │   ├── run-php.php      # PHP 단일 러너
 │   │   ├── validate-case.php # PHP stdin 워커 (compare-all.js 가 호출)
 │   │   └── go/              # Go 브리지 (go test)
-│   └── parity/              # React SSR ↔ 기준 HTML 비교 하네스 (Vue/Svelte 는 각 패키지 test/)
+│   ├── parity/              # React SSR ↔ 기준 HTML 비교 하네스 (Vue/Svelte 는 각 패키지 test/)
+│   ├── cross-framework/     # React == Vue == Svelte SSR 직접 비교 (21쌍)
+│   └── legacy-client/       # legacy jQuery dist.validate.js ↔ 새 검증기 (jsdom)
 └── tools/
-    └── limepie-baseline/    # 기준 HTML 재생성 파이프라인 (핀 커밋 강제)
+    ├── limepie-baseline/    # 기준 HTML 재생성 파이프라인 (핀 커밋 강제)
+    └── bench/               # 4언어 검증기 처리량 벤치마크 (make bench)
 ```
 
 ## 1. 크로스 언어 비교 게이트 (compare-all.js)
@@ -62,6 +74,11 @@ form-spec/
 **목적:** 동일 스펙 + 동일 입력 → JS/PHP/Go/Rust 가 동일 결과를 내는지 비교.
 기대값과의 일치가 아니라 **언어 간 일치**를 검사한다 (기대값 검사는 단일
 러너/브리지의 몫).
+
+실행 끝에 **Axis Diagnostics** 를 출력한다. 불일치를 두 축으로 분류한다 —
+클라이언트(js) ↔ 서버(php/go/rust) 불일치(브라우저 코어가 백엔드 합의와
+어긋남), 서버끼리 불일치(php/go/rust 가 서로 어긋남). 어느 축이 깨졌는지
+즉시 드러나 회귀 추적이 빠르다.
 
 ```bash
 cd tests
@@ -126,7 +143,7 @@ go test ./...      # Go 브리지 (tests/cases/*.json 을 읽음)
 
 ## 3. 언어별 테스트 프레임워크 브리지
 
-같은 1013 케이스를 각 언어의 표준 테스트 프레임워크로 실행한다. CI/IDE 통합과
+같은 1074 케이스를 각 언어의 표준 테스트 프레임워크로 실행한다. CI/IDE 통합과
 케이스 단위 리포팅이 목적이다. 브리지에서 단언을 약화해 RED 를 GREEN 으로
 만들지 마라 — 구현을 고쳐라.
 
@@ -147,7 +164,7 @@ go test ./...
 # Rust — cargo test (packages/validator-rust/tests/conformance.rs)
 export PATH="$HOME/.cargo/bin:$PATH"
 cd packages/validator-rust
-cargo test --release      # ../../tests/cases/*.json 을 읽어 1013 케이스 전부 검사
+cargo test --release      # ../../tests/cases/*.json 을 읽어 1074 케이스 전부 검사
 ```
 
 이 밖에 언어별 전용 테스트:
@@ -155,7 +172,8 @@ cargo test --release      # ../../tests/cases/*.json 을 읽어 1013 케이스 �
 - `packages/validator-js/benchmarks/` — 성능 벤치마크 (`npm run bench`).
 - `packages/validator-go/validator/legacy/validator_test.go` — Go 내부 단위 테스트.
 - `packages/generator-react` — 컴포넌트 테스트 (`npm test`, vitest, 353 테스트).
-- `packages/generator-vue` / `packages/generator-svelte` — 컴포넌트 + parity 테스트 (`npm test`, vitest).
+- `packages/generator-vue` — 컴포넌트 + parity 테스트 (`npm test`, vitest, 7 테스트).
+- `packages/generator-svelte` — 컴포넌트 + parity 테스트 (`npm test`, vitest, 11 테스트).
 
 ## 4. HTML parity 하네스 (3개 프레임워크)
 
@@ -201,6 +219,74 @@ bash tools/limepie-baseline/generate-all.sh
 # 3. 단일 스펙 렌더 (확인용)
 php tools/limepie-baseline/render.php examples/shared-specs/product-form.yml
 ```
+
+## 6. 프레임워크끼리 직접 비교 (cross-framework)
+
+HTML parity(4절)는 각 프레임워크를 PHP 기준 HTML 과만 비교한다 — 셋이 모두 PHP 와
+같으면 서로 같다는 추론(transitive)이다. 이 게이트는 그 추론을 명시 검증한다:
+React/Vue/Svelte SSR 출력을 서로 직접 비교한다.
+
+```bash
+cd tests/cross-framework
+npm install        # 최초 1회
+npm test           # = capture(3 프레임워크) → compare
+```
+
+스펙은 parity 게이트와 동일한 7종(`examples/shared-specs/*.yml` 6종 +
+`tests/fixtures/specs/ProductNft.yml`). 스펙마다 세 순서쌍(React==Vue, Vue==Svelte,
+React==Svelte)을 단언한다 — 7specs × 3 = **21쌍**. 한 프레임워크만 어긋나면 그것이
+닿는 두 쌍만 RED 가 되고 세 번째는 GREEN 으로 남아 범인을 좁힌다. 현재 21/21 GREEN.
+
+세 프레임워크 SSR 을 한 프로세스에서 로드하면 충돌하므로 캡처는 프레임워크별로
+분리 실행(Svelte 는 `@sveltejs/vite-plugin-svelte` 로 소스 컴포넌트를 컴파일)한 뒤
+산출물을 모아 비교한다. 상세는 `tests/cross-framework/README.md` 참조.
+
+## 7. legacy 클라이언트 비교 (legacy-client)
+
+legacy Limepie 의 jQuery 브라우저 검증기 `examples/limepie-original/assets/js/
+dist.validate.js` 를 jsdom + jquery 로 구동해 새 검증기와 비교한다. legacy 폼이
+브라우저에서 통과하는데 새 검증기가 거부하면(또는 그 반대) 마이그레이션 회귀다.
+
+```bash
+cd tests/legacy-client
+npm install        # jquery + jsdom + vitest (이 디렉터리 로컬)
+npm run gate       # standalone 보고 (exit 0 = pass)
+npm test           # vitest 래퍼 (gate.test.mjs)
+```
+
+1074 케이스 중 jsdom 으로 DOM 합성이 불가능한 케이스(array group `[__uniqid__]`
+naming, display_switch 게이팅 없음, file/image 입력, 합성 불가 cross-field 등)는
+구조적 사유로 제외(excluded)하고, 비교 가능한 케이스에서 legacy ↔ 새 검증기가
+일치하는지 본다. 현재 문서화 gap 0·회귀 0 — 비교 가능분 전부 일치다.
+
+단일 진실은 legacy 런타임이 아니라 "논리적 올바름"이다
+([VALIDATION-RULES.md](./VALIDATION-RULES.md) "검증 의미론 원칙"). legacy 결함
+3종(required 공백 미트림,
+암묵 number 미강제, malformed min/max 임계값)은 `dist.validate.js` 를 새 검증기
+방향으로 패치해 보완했다. 문서화되지 않은 새 불일치 또는 해소되어야 할 gap 잔존은
+모두 게이트를 RED 로 만든다(`tests/legacy-client/known-gaps.js` 회귀 가드).
+
+## 8. 벤치마크 (tools/bench)
+
+4언어 검증기의 처리량(ops/sec, 평균 µs)을 같은 스펙·입력으로 비교한다.
+
+```bash
+make bench                              # 4언어 전부 → tools/bench/results.md
+make bench-js | bench-php | bench-go | bench-rust   # 단일 언어
+make bench BENCH_ITERS=100000 BENCH_WARMUP=10000    # 반복수 조절
+```
+
+절대 시간은 머신 의존이다 — 한 스펙 안에서 백엔드끼리 **상대 비교**하라.
+상세는 `tools/bench/README.md` 참조.
+
+## 9. CI
+
+`.github/workflows/ci.yml` 가 push/PR 마다 8개 잡을 돌린다: `build-lint`,
+`cross-language`(JS/PHP/Go/Rust 1074 비교), 검증기 단위 4종(`validator-unit-js`/
+`-php`/`-go`/`-rust`), `parity`(React SSR ↔ 기준 HTML), `docs-coverage`
+(`make docs-check`). 툴체인 핀: node 24, php 8.5, go 1.26, rust stable, npm 11.17.
+`.github/dependabot.yml` 가 모든 생태계(github-actions/npm/gomod/cargo/composer)의
+의존성을 주간 갱신한다.
 
 ## 테스트 케이스 형식
 

@@ -154,10 +154,10 @@ required, unique, mincount, maxcount
 검증 의미론의 단일 진실은 **"논리적으로 올바른 동작"** 이다. legacy 런타임의
 동작이 아니다. legacy(`examples/limepie-original/assets/js/dist.validate.js`)의
 결함은 보완하고, 모든 구현(validator-js/php/go/rust + legacy 클라)에 일관 적용한다.
-새 검증기 4언어는 이 원칙대로 구현돼 1044 케이스 교차언어 멱등이며, legacy 클라는
+새 검증기 4언어는 이 원칙대로 구현돼 1074 케이스 교차언어 멱등이며, legacy 클라는
 새 검증기에 맞춰 보완했다. legacy의 과거 동작을 근거로 원칙을 약화하지 마라.
 
-아래 3원칙은 확정이다. 각 원칙은 새 검증기 구현이 출처이며, legacy 클라는 동일
+아래 원칙은 확정이다. 각 원칙은 새 검증기 구현이 출처이며, legacy 클라는 동일
 의미론으로 패치됐다.
 
 ### 1. required — 값을 trim한 뒤 비었으면 실패
@@ -203,25 +203,53 @@ min/max 등의 임계값(param)이 숫자로 파싱되지 않으면(`Number(para
   `isNaN(Number(param))`이면 통과. legacy의 과거 동작은 `value >= param`
   문자열 비교였다.
 
+### 4. number 입력은 유한수여야 한다
+
+`number` 검사(암묵·명시 모두)에서 입력값은 유한 실수여야 한다. 문자열
+`"Infinity"`/`"-Infinity"`/`"NaN"`은 `number` 에러로 거부한다. 이 게이트는 입력
+**값**에만 적용된다 — min/max **임계값(param)** 의 Infinity 처리는 별개로 보존한다.
+
+- 근거: 비유한 값은 산술·비교를 오염시킨다. 숫자 입력은 유한해야 후속 규칙이
+  의미를 갖는다. `type:number` 암묵 number가 먼저 실행되므로 min/max보다 `number`가
+  먼저 보고된다.
+- 새 검증기 출처: `packages/validator-js/src/rules/number.ts:18,34`
+  (`isFinite(value)` / `isFinite(num)`). 회귀 잠금: `tests/cases/number-nonfinite.json`.
+- legacy 보완: `dist.validate.js` `number` 메서드의 정규식이 `"Infinity"` 리터럴을
+  숫자로 인정하지 않아 동일하게 `number`로 거부한다. 양 런타임이 같은 규칙명을 낸다.
+
+### 5. 객체키 multiple group — 엔트리 카운트·에러 경로 보존
+
+`multiple: true` group의 데이터가 list가 아니라 `__uid__` 키 객체로 올 때:
+group-level mincount/maxcount는 엔트리 수를 `count(value)`로 센다(배열 형태와 동일
+카운트로 수렴, 빈 객체/빈 배열은 0). 에러 field 경로에는 uniqid 키를 보존한다
+(`rows.__uid__.v`). 다중 행은 키 정렬 순서로 첫 에러가 결정된다.
+
+- 근거: legacy Limepie의 `[]`-suffix 반복 경로가 키를 보존하는 동작과 일치해야
+  한다(`Validation.php`). 키 정렬은 JSON 맵에 삽입 순서가 없는 Go/Rust/PHP와
+  JS가 동일한 첫 에러를 내기 위한 필수 조건이다.
+- 새 검증기 출처: `packages/validator-js/src/legacy/Validator.ts:293-296`(객체 multiple
+  판정), `:327`(`Object.keys(objectValue).sort()` 로 결정적 순회).
+- 회귀 잠금: `tests/cases/count-object-key.json`(카운트), `object-key-multiple.json`
+  (에러 경로 uniqid 보존).
+
 ### 정책
 
 - 위 원칙은 향후 모든 검증기/클라가 따른다. legacy 결함은 보완하고 모든 구현에
   일관 적용한다.
-- 새 검증기 src(`packages/validator-*/src`)는 1044 멱등 정답이다. 수정 금지.
+- 새 검증기 src(`packages/validator-*/src`)는 1074 멱등 정답이다. 수정 금지.
   의미론 변경이 필요하면 4언어를 함께 바꾸고 멱등을 재검증한다.
 - legacy 클라<->새 검증기 일치는 `tests/legacy-client` 게이트가 강제한다.
   잔존 갭은 `tests/legacy-client/known-gaps.js`에 근거와 함께 명시하며, 미문서
   불일치는 게이트 FAIL이다.
 
-### 잔존 갭 (정당 사유)
+### 잔존 갭
 
-`"Infinity"` 입력의 `type:number` + `max` 케이스
-(`min-max.json min-max-015[2]`)는 양쪽 다 **거부**하나 보고 규칙명이 다르다.
-새 검증기는 `"Infinity"`를 유효 숫자로 보고(`number.ts:25-26`) max 초과로
-`max`를 보고한다. legacy `number` 메서드의 정규식은 `"Infinity"` 리터럴을
-숫자로 인정하지 않아 암묵 number에서 먼저 거부해 `number`를 보고한다. 이는 위
-3원칙과 별개인 "어떤 문자열이 숫자인가" 문제이며, 양쪽 다 값을 거부하므로
-규칙명 차이는 양성(benign)이다. 강제 일치시키지 않고 문서화한다.
+현재 legacy 클라<->새 검증기 사이에 문서화된 잔존 갭은 **없다**
+(`tests/legacy-client` 게이트: documented gaps 0 · regressions 0). 과거 양성으로
+문서화했던 `"Infinity"` + `type:number` + `max` 케이스(`min-max.json
+min-max-015[2]`)는 위 원칙 4로 통일되어 양 런타임이 모두 `number`를 보고한다 —
+갭이 해소됐다. 새 갭이 생기면 `tests/legacy-client/known-gaps.js`에 근거와 함께
+등재하고, 미문서 불일치는 게이트 FAIL이다.
 
 ---
 
