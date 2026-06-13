@@ -1213,7 +1213,27 @@ $.extend($.validator, {
                 if ("group" == propertyValue["type"]) {
                     re = Object.assign(re, this.fixSpec(propertyValue, propertyName));
                 } else {
-                    re[propertyName] = propertyValue;
+                    // Implicit number rule for type:number fields. A number field
+                    // must reject a non-numeric value whether or not a `number`
+                    // rule is declared, and that check must run BEFORE min/max so
+                    // the reported rule is `number`. Matches the new validators
+                    // (validator-js Validator.ts:629-652 implicit number branch).
+                    // Inject `number: true` first when no explicit number rule
+                    // exists; build a fresh spec/rules object so the source spec
+                    // is never mutated.
+                    var leafSpec = propertyValue;
+                    if (
+                        propertyValue &&
+                        propertyValue["type"] === "number" &&
+                        !(propertyValue["rules"] && "number" in propertyValue["rules"])
+                    ) {
+                        leafSpec = Object.assign({}, propertyValue);
+                        leafSpec["rules"] = Object.assign(
+                            { number: true },
+                            propertyValue["rules"] || {}
+                        );
+                    }
+                    re[propertyName] = leafSpec;
                 }
             }
             //consolelog(377, re);
@@ -1323,6 +1343,14 @@ $.extend($.validator, {
                 // console.log('element', element);
                 return this.getLength(value, element) > 0;
             } else if (value) {
+                // Trim before the emptiness check: a whitespace-only string is an
+                // empty value, not a present one. Matches the new validators
+                // (validator-js required.ts:18 `value.trim() === ''`) so the
+                // browser runtime never accepts " " / "\t" / "\n" where the
+                // server rejects it. Non-string values keep their own length.
+                if (typeof value === "string") {
+                    return value.trim().length > 0;
+                }
                 return value.length > 0;
             }
             return false;
@@ -1444,6 +1472,13 @@ $.extend($.validator, {
                     }
 
                 default:
+                    // A non-numeric threshold (NaN after Number()) makes the rule
+                    // inapplicable: skip it (pass) instead of doing a string
+                    // comparison like "5" >= "xyz". Matches the new validators
+                    // (validator-js min.ts:58-61 `Number(ruleParam)` isNaN -> null).
+                    if (isNaN(Number(param))) {
+                        return true;
+                    }
                     // 기본 숫자 비교(기존 로직)
                     return value >= param;
             }
@@ -1494,6 +1529,13 @@ $.extend($.validator, {
                     }
 
                 default:
+                    // A non-numeric threshold (NaN after Number()) makes the rule
+                    // inapplicable: skip it (pass) instead of doing a string
+                    // comparison. Matches the new validators (validator-js
+                    // max.ts:28-31 `Number(ruleParam)` isNaN -> null).
+                    if (isNaN(Number(param))) {
+                        return true;
+                    }
                     // 기본 숫자 비교(기존 로직)
                     return value <= param;
             }
