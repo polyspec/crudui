@@ -432,15 +432,16 @@ func toFloat64(value interface{}) (float64, bool) {
 func toNumber(value interface{}) (float64, bool) {
 	switch v := value.(type) {
 	case float64:
-		if math.IsNaN(v) {
+		if math.IsNaN(v) || math.IsInf(v, 0) {
 			return 0, false
 		}
 		return v, true
 	case float32:
-		if math.IsNaN(float64(v)) {
+		f := float64(v)
+		if math.IsNaN(f) || math.IsInf(f, 0) {
 			return 0, false
 		}
-		return float64(v), true
+		return f, true
 	case int:
 		return float64(v), true
 	case int64:
@@ -452,19 +453,17 @@ func toNumber(value interface{}) (float64, bool) {
 		if trimmed == "" {
 			return 0, false
 		}
-		// Allow Infinity/-Infinity strings
-		if trimmed == "Infinity" || trimmed == "-Infinity" {
-			f, err := strconv.ParseFloat(trimmed, 64)
-			return f, err == nil
-		}
-		// Validate string is a proper number format (not partial like "12abc")
-		// Pattern: optional sign, followed by digits with optional decimal point
+		// Validate string is a proper number format (not partial like "12abc").
+		// Pattern: optional sign, followed by digits with optional decimal point.
+		// "Infinity"/"-Infinity"/"NaN" do not match, so they are rejected as
+		// input values (finite-number principle). min/max threshold parsing uses
+		// strconv.ParseFloat(params[0]) directly and still accepts Infinity.
 		matched, _ := regexp.MatchString(`^[-+]?(\d+\.?\d*|\d*\.?\d+)$`, trimmed)
 		if !matched {
 			return 0, false
 		}
 		f, err := strconv.ParseFloat(trimmed, 64)
-		if err != nil || math.IsNaN(f) {
+		if err != nil || math.IsNaN(f) || math.IsInf(f, 0) {
 			return 0, false
 		}
 		return f, true
@@ -915,14 +914,25 @@ func matchesExtension(filename string, acceptList []string) bool {
 	return false
 }
 
-// countableLength returns the item count of a value (0 for non-arrays).
+// countableLength returns the item count of a value (0 for non-countables).
+// Object-key multiple groups arrive as a map keyed by unique ids instead of a
+// slice; count its entries so mincount/maxcount see the repeated-group size.
+// PHP counts assoc arrays identically (Rules/MinCount.php count($value)).
 func countableLength(value interface{}) int {
 	if arr, ok := value.([]interface{}); ok {
 		return len(arr)
 	}
+	if m, ok := value.(map[string]interface{}); ok {
+		return len(m)
+	}
 	val := reflect.ValueOf(value)
-	if value != nil && val.Kind() == reflect.Slice {
-		return val.Len()
+	if value != nil {
+		switch val.Kind() {
+		case reflect.Slice:
+			return val.Len()
+		case reflect.Map:
+			return val.Len()
+		}
 	}
 	return 0
 }

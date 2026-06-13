@@ -1,0 +1,174 @@
+{
+  "testSuite": "count-object-key",
+  "version": "1.0.0",
+  "description": "객체키(__uid__) multiple group의 group-level mincount/maxcount 엔트리 카운트 회귀 잠금. multiple:true group의 데이터가 list가 아닌 __uid__ 키 객체로 올 때 엔트리 수를 카운트해야 한다(기준=legacy/PHP, count($value)). 배열 형태와 객체 형태가 동일 카운트로 수렴해야 한다. 빈 객체/빈 배열은 count 0. 4언어(js/php/go/rust) 동일 결과.",
+  "tests": [
+    {
+      "id": "count-object-key-mincount-object-001",
+      "description": "object-key 2엔트리 + mincount:1 -> count 2 >= 1 valid (PHP count, JS/Go/Rust 수렴)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "mincount": 1 },
+            "properties": { "v": { "type": "text" } }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" }, "__b1234567__": { "v": "y" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "count-object-key-mincount-object-violation-001",
+      "description": "object-key 1엔트리 + mincount:2 -> count 1 < 2 invalid mincount",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "mincount": 2 },
+            "properties": { "v": { "type": "text" } }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" } } },
+          "expected": { "valid": false, "error": "mincount", "field": "rows" }
+        },
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" }, "__b1234567__": { "v": "y" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "count-object-key-mincount-empty-001",
+      "description": "빈 객체 + mincount:1 -> count 0 < 1 invalid (빈 값도 mincount 발화)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "mincount": 1 },
+            "properties": { "v": { "type": "text" } }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": {} },
+          "expected": { "valid": false, "error": "mincount", "field": "rows" }
+        }
+      ]
+    },
+    {
+      "id": "count-object-key-maxcount-object-001",
+      "description": "object-key 2엔트리 + maxcount:1 -> count 2 > 1 invalid maxcount",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "maxcount": 1 },
+            "properties": { "v": { "type": "text" } }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" }, "__b1234567__": { "v": "y" } } },
+          "expected": { "valid": false, "error": "maxcount", "field": "rows" }
+        },
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "count-object-key-maxcount-object-three-001",
+      "description": "object-key 3엔트리 + maxcount:2 -> count 3 > 2 invalid maxcount",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "maxcount": 2 },
+            "properties": { "v": { "type": "text" } }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" }, "__b1234567__": { "v": "y" }, "__c1234567__": { "v": "z" } } },
+          "expected": { "valid": false, "error": "maxcount", "field": "rows" }
+        }
+      ]
+    },
+    {
+      "id": "count-object-key-array-parity-001",
+      "description": "배열 형태 동형 - 같은 엔트리 수가 객체 형태와 동일 카운트로 수렴(mincount:2)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "mincount": 2 },
+            "properties": { "v": { "type": "text" } }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": [ { "v": "x" }, { "v": "y" } ] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "rows": [ { "v": "x" } ] },
+          "expected": { "valid": false, "error": "mincount", "field": "rows" }
+        }
+      ]
+    },
+    {
+      "id": "count-object-key-range-001",
+      "description": "object-key mincount+maxcount 동시 - 경계(2엔트리, min2 max3) valid, 4엔트리 maxcount invalid",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "rules": { "mincount": 2, "maxcount": 3 },
+            "properties": { "v": { "type": "text" } }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__a1234567__": { "v": "x" }, "__b1234567__": { "v": "y" } } },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "rows": { "__a1234567__": { "v": "w" }, "__b1234567__": { "v": "x" }, "__c1234567__": { "v": "y" }, "__d1234567__": { "v": "z" } } },
+          "expected": { "valid": false, "error": "maxcount", "field": "rows" }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "testSuite": "number-nonfinite",
+  "version": "1.0.0",
+  "description": "비유한 number 입력 거부 회귀 잠금. 검증 의미론 원칙: number 입력값은 유한 실수여야 한다(isFinite). 문자열 'Infinity'/'-Infinity'/'NaN'은 number 에러로 거부한다(기준=legacy 정규식 거부). 입력값(value) 검증만 거부하고 min/max 임계값(rule param)의 Infinity 처리는 별개로 보존한다. type:number 암묵 number가 먼저 실행되므로 min/max보다 number가 먼저 보고된다. 4언어(js/php/go/rust) 동일 결과.",
+  "tests": [
+    {
+      "id": "number-nonfinite-implicit-001",
+      "description": "type:number 암묵 number - 'Infinity'/'-Infinity'/'NaN' 거부, 유한수 통과",
+      "spec": { "type": "number" },
+      "cases": [
+        { "input": "Infinity", "expected": { "valid": false, "error": "number" } },
+        { "input": "-Infinity", "expected": { "valid": false, "error": "number" } },
+        { "input": "NaN", "expected": { "valid": false, "error": "number" } },
+        { "input": "42", "expected": { "valid": true } },
+        { "input": "-3.14", "expected": { "valid": true } },
+        { "input": "0", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "number-nonfinite-explicit-rule-001",
+      "description": "명시 number 규칙 - 'Infinity'/'NaN' 거부",
+      "spec": { "type": "text", "rules": { "number": true } },
+      "cases": [
+        { "input": "Infinity", "expected": { "valid": false, "error": "number" } },
+        { "input": "-Infinity", "expected": { "valid": false, "error": "number" } },
+        { "input": "NaN", "expected": { "valid": false, "error": "number" } },
+        { "input": "100", "expected": { "valid": true } }
+      ]
+    },
+    {
+      "id": "number-nonfinite-min-001",
+      "description": "type:number + min - 비유한 입력은 암묵 number가 먼저 거부(number 보고), min 미도달. 유한수는 min 평가.",
+      "spec": { "type": "number", "rules": { "min": 0 } },
+      "cases": [
+        { "input": "Infinity", "expected": { "valid": false, "error": "number" } },
+        { "input": "-Infinity", "expected": { "valid": false, "error": "number" } },
+        { "input": "5", "expected": { "valid": true } },
+        { "input": "-1", "expected": { "valid": false, "error": "min" } }
+      ]
+    },
+    {
+      "id": "number-nonfinite-max-001",
+      "description": "type:number + max:100 - 'Infinity' 입력은 암묵 number 거부(number 보고, max 아님). 임계값 100은 유한 정상 동작.",
+      "spec": { "type": "number", "rules": { "max": 100 } },
+      "cases": [
+        { "input": "Infinity", "expected": { "valid": false, "error": "number" } },
+        { "input": "50", "expected": { "valid": true } },
+        { "input": "200", "expected": { "valid": false, "error": "max" } }
+      ]
+    },
+    {
+      "id": "number-nonfinite-empty-skip-001",
+      "description": "빈 값은 number 규칙이 스킵(required 책임) - 비유한 거부와 무관",
+      "spec": { "type": "text", "rules": { "number": true } },
+      "cases": [
+        { "input": "", "expected": { "valid": true } }
+      ]
+    }
+  ]
+}

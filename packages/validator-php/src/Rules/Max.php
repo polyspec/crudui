@@ -11,7 +11,7 @@ class Max implements RuleInterface
 {
     /**
      * Validate that a numeric value does not exceed the specified maximum.
-     * Handles Infinity/-Infinity strings.
+     * The input value must be finite; the threshold ($param) may be Infinity.
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
@@ -31,22 +31,23 @@ class Max implements RuleInterface
     }
 
     /**
-     * Convert value to number, handling Infinity.
+     * Convert an input value to a finite number for comparison.
+     * Validation semantics principle: input values must be finite real numbers,
+     * so "Infinity"/"-Infinity"/"NaN" (and non-finite floats) return null (the
+     * number rule reports them). Thresholds ($param) are handled separately and
+     * still accept Infinity.
      */
     private function toNumber(mixed $value): ?float
     {
-        if (is_numeric($value)) {
+        if (is_int($value)) {
             return (float)$value;
         }
-
-        if (is_string($value)) {
-            $trimmed = trim($value);
-            if ($trimmed === 'Infinity') {
-                return INF;
-            }
-            if ($trimmed === '-Infinity') {
-                return -INF;
-            }
+        if (is_float($value)) {
+            return is_finite($value) ? $value : null;
+        }
+        if (is_numeric($value)) {
+            $num = (float)$value;
+            return is_finite($num) ? $num : null;
         }
 
         return null;
