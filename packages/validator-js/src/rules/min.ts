@@ -8,13 +8,16 @@ import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
 
 /**
- * Convert value to number for comparison
- * Returns null for strings that aren't valid complete numbers (e.g., "12abc")
- * Allows Infinity/-Infinity for proper min/max comparison
+ * Convert an input value to a number for comparison.
+ * Returns null for strings that aren't valid complete numbers (e.g., "12abc").
+ * Validation semantics principle: input values must be finite real numbers, so
+ * "Infinity"/"-Infinity"/"NaN" return null (the number rule reports them). This
+ * is the input value gate only — min/max threshold parameters (Number(ruleParam)
+ * in min/max rules) keep accepting Infinity.
  */
 export function toNumber(value: unknown): number | null {
   if (typeof value === 'number') {
-    return isNaN(value) ? null : value;
+    return isFinite(value) ? value : null;
   }
 
   if (typeof value === 'string') {
@@ -22,17 +25,14 @@ export function toNumber(value: unknown): number | null {
     if (trimmed === '') {
       return null;
     }
-    // Allow Infinity/-Infinity strings
-    if (trimmed === 'Infinity' || trimmed === '-Infinity') {
-      return parseFloat(trimmed);
-    }
-    // Validate string is a proper number format (not partial like "12abc")
+    // Validate string is a proper number format (not partial like "12abc").
+    // "Infinity"/"-Infinity"/"NaN" do not match, so they convert to null.
     const numberPattern = /^[-+]?(\d+\.?\d*|\d*\.?\d+)$/;
     if (!numberPattern.test(trimmed)) {
       return null;
     }
     const num = parseFloat(trimmed);
-    return isNaN(num) ? null : num;
+    return isFinite(num) ? num : null;
   }
 
   return null;

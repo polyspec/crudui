@@ -526,6 +526,11 @@ fn get_decimal_places(num: f64) -> usize {
 fn countable_length(value: &Value) -> usize {
     match value {
         Value::Array(a) => a.len(),
+        // Object-key multiple group: data arrives as an object keyed by unique
+        // ids instead of an array. Count its entries so mincount/maxcount see
+        // the repeated-group size. PHP counts assoc arrays identically
+        // (Rules/MinCount.php count($value)).
+        Value::Object(o) => o.len(),
         _ => 0,
     }
 }

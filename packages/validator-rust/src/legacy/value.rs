@@ -71,16 +71,20 @@ fn number_pattern() -> &'static Regex {
     RE.get_or_init(|| Regex::new(r"^[-+]?(\d+\.?\d*|\d*\.?\d+)$").unwrap())
 }
 
-/// to_number mirrors Go toNumber (strict, for min/max/number): numbers convert;
-/// strings must be a full numeric token (not "12abc"); Infinity strings allowed.
+/// to_number mirrors Go toNumber (strict, for min/max/number value): numbers
+/// convert; strings must be a full numeric token (not "12abc").
+/// Validation semantics principle: an input value must be a finite real number,
+/// so "Infinity"/"-Infinity"/"NaN" return None (the number rule reports them).
+/// This is the input value gate only — min/max threshold parameters parse via
+/// params[0].parse() in their rules and still accept Infinity.
 pub fn to_number(value: &Value) -> Option<f64> {
     match value {
         Value::Number(n) => {
             let f = n.as_f64()?;
-            if f.is_nan() {
-                None
-            } else {
+            if f.is_finite() {
                 Some(f)
+            } else {
+                None
             }
         }
         Value::String(s) => {
@@ -88,17 +92,13 @@ pub fn to_number(value: &Value) -> Option<f64> {
             if trimmed.is_empty() {
                 return None;
             }
-            if trimmed == "Infinity" {
-                return Some(f64::INFINITY);
-            }
-            if trimmed == "-Infinity" {
-                return Some(f64::NEG_INFINITY);
-            }
+            // "Infinity"/"-Infinity"/"NaN" do not match number_pattern, so they
+            // are rejected as input values.
             if !number_pattern().is_match(trimmed) {
                 return None;
             }
             match trimmed.parse::<f64>() {
-                Ok(f) if !f.is_nan() => Some(f),
+                Ok(f) if f.is_finite() => Some(f),
                 _ => None,
             }
         }
