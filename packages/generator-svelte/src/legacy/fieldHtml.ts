@@ -32,12 +32,19 @@ import { generateUniqid, toBracketNotationWithPrefix } from './utils';
 import { minifyJs } from './legacyDisplay';
 import type { MultiLangText } from './i18n';
 
+/** Inputs a field HTML emitter needs to render one leaf field. */
 export interface FieldRenderCtx {
+  /** The field's spec node. */
   spec: SpecNode;
+  /** The field's current value. */
   value: unknown;
+  /** Dot-path of the field within the form. */
   path: string;
+  /** Name prefix applied to the field's `name`/`id`. */
   keyPrefix: string;
+  /** Active language code for translation. */
   language: string;
+  /** Translator resolving a multi-language text to a string. */
   t: (text: MultiLangText | undefined | null, fallback?: string) => string;
   /** Effective readonly (globalReadonly || spec.readonly === true). */
   readonly: boolean;
@@ -879,6 +886,7 @@ const button: FieldHtml = (ctx) => {
 // FormField — here we return the inner div>input+span markup)
 // ---------------------------------------------------------------------------
 
+/** Emits the inner markup for a switcher/toggle field (re-exported as `switcherHtml`). */
 const switcher: FieldHtml = (ctx) => {
   const { spec, t } = ctx;
   const name = bracket(ctx);
@@ -898,6 +906,7 @@ const switcher: FieldHtml = (ctx) => {
 // checkbox (single boolean) — CheckboxField inner markup: div>input+span
 // ---------------------------------------------------------------------------
 
+/** Emits the inner markup for a single boolean checkbox field. */
 export function checkboxInnerHtml(ctx: FieldRenderCtx): string {
   const { spec, t } = ctx;
   const title = spec.label ? t(spec.label as MultiLangText) : '';
@@ -972,6 +981,7 @@ const REGISTRY: Record<string, FieldHtml> = {
   toggle: switcher,
 };
 
+/** Returns the field HTML emitter registered for a field `type`, or undefined. */
 export function getFieldHtml(type: string): FieldHtml | undefined {
   return REGISTRY[type.toLowerCase()];
 }

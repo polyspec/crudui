@@ -41,6 +41,12 @@ struct RuleEntry {
     param: Value,
 }
 
+/// Validates form data against a [`Spec`], producing a [`ValidationResult`].
+///
+/// Fields are checked in declaration order, stopping at the first error per
+/// field — identical to the JS/PHP/Go validators so the same spec and data
+/// yield the same result in every language. Construct with [`Validator::new`]
+/// (a parsed spec is available via [`crate::legacy::parse_spec`]).
 pub struct Validator {
     spec: Spec,
     rules: HashMap<&'static str, RuleFn>,
@@ -48,6 +54,7 @@ pub struct Validator {
 }
 
 impl Validator {
+    /// Builds a validator for `spec`, registering the built-in rule set.
     pub fn new(spec: Spec) -> Self {
         Validator {
             spec,
@@ -56,6 +63,8 @@ impl Validator {
         }
     }
 
+    /// Validates the whole `data` object against the spec and returns the
+    /// aggregate result (all field errors, first-error-per-field).
     pub fn validate(&mut self, data: &Value) -> ValidationResult {
         let mut result = ValidationResult::default();
         let fields = self.spec.fields.clone();

@@ -20,11 +20,23 @@ class Unique implements RuleInterface
 {
     private readonly PathResolver $pathResolver;
 
+    /**
+     * Constructs the rule with a fresh path resolver for sibling lookups.
+     */
     public function __construct()
     {
         $this->pathResolver = new PathResolver();
     }
 
+    /**
+     * Validates uniqueness in array-level or field-level mode.
+     *
+     * @param mixed  $value   the array (array-level) or scalar (field-level) to check
+     * @param mixed  $param   field name for object entries, or false to skip
+     * @param array  $allData all form data (for sibling comparison)
+     * @param string $path    current field path (dot notation)
+     * @return bool true when unique
+     */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
         if ($param === false) {
@@ -133,6 +145,11 @@ class Unique implements RuleInterface
         return $value;
     }
 
+    /**
+     * Returns the default error message for this rule.
+     *
+     * @return string Default message, with {0}, {1} placeholders where applicable
+     */
     public function getDefaultMessage(): string
     {
         return 'Values must be unique.';

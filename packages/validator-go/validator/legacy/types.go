@@ -58,6 +58,9 @@ type ValidationContext struct {
 // TokenType represents the type of a lexer token
 type TokenType int
 
+// Token kinds produced by the condition-expression lexer. Values are assigned
+// via iota; TokenEOF marks end of input and TokenInvalid marks an
+// unrecognized rune.
 const (
 	TokenEOF TokenType = iota
 	TokenString

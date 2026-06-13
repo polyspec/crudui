@@ -36,11 +36,17 @@ import {
 } from './fieldHtml';
 import type { Language, MultiLangText } from './i18n';
 
+/** Per-render context threaded through the recursive content renderer. */
 export interface RenderState {
+  /** The root form spec being rendered. */
   rootSpec: SpecNode;
+  /** The current form data values, keyed by field name. */
   data: Record<string, unknown>;
+  /** Name prefix applied to field `name`/`id` attributes. */
   keyPrefix: string;
+  /** Active language for label/message translation. */
   language: Language;
+  /** Translator resolving a multi-language text to a string. */
   t: (text: MultiLangText | undefined | null, fallback?: string) => string;
 }
 
@@ -355,6 +361,7 @@ function renderMultipleLeaf(
 // FormGroup
 // ---------------------------------------------------------------------------
 
+/** Render a group field (FormGroup): the nested property list, plus multiple/array wrapping. */
 export function renderGroup(
   name: string,
   spec: SpecNode,

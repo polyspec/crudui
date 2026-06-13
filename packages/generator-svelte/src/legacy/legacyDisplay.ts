@@ -256,8 +256,11 @@ function getDefaultByDot(rootSpec: SpecNode, key: string): unknown {
   return property.default ?? null;
 }
 
+/** Resolved display-target presentation: wrapper classes and inline style. */
 export interface DisplayTargetParts {
+  /** Extra wrapper class names to apply. */
   addClass: string[];
+  /** Inline style string for the wrapper, or null when none. */
   style: string | null;
 }
 
