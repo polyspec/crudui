@@ -13,67 +13,44 @@
  * the list cannot rot).
  *
  * ---------------------------------------------------------------------------
- * Why these remain after the client<->server unification pass
+ * Single source of truth = logically correct behavior, not the legacy runtime
  * ---------------------------------------------------------------------------
- * The legacy SERVER (Legacy Form/Validation.php @ pin a47ccba) is the single
- * source of truth. Six client/server semantic divergences were reviewed against
- * that file. For every remaining gap below the legacy CLIENT already AGREES with
- * the legacy SERVER — it is the NEW validators that diverge (an intentional
- * strengthening). The legacy client could not be patched toward the new
- * validators without contradicting the legacy-server truth, and the new
- * validator src is locked (1030-case cross-language idempotency). So they stay
- * documented, not "fixed".
+ * The validation semantics are governed by docs/VALIDATION-RULES.md
+ * "Validation Semantics Principles". Legacy defects are corrected, not
+ * preserved: the new validators (validator-js/php/go/rust, 1044-case
+ * cross-language idempotency) are the reference, and legacy-client.validate.js is
+ * patched toward them. Three legacy defects were corrected in
+ * legacy-client.validate.js and removed from this list:
+ *   - required whitespace: value is trimmed before the emptiness check; a
+ *     whitespace-only string fails required (required method).
+ *   - implicit number: a type:number field rejects a non-numeric value even
+ *     with no declared `number` rule (fixSpec injects `number: true` first).
+ *   - malformed min/max threshold: a non-numeric (NaN) threshold makes the
+ *     rule inapplicable and is skipped (min/max methods).
  *
- * Gaps that WERE unified (legacy client patched to match the legacy server =
- * new validators, removed from this list):
- *   - length unit: minlength/maxlength now count Unicode code points
- *     (Validation.php:468 preg_split('//u')), not UTF-16 code units.
+ * Earlier-unified gaps (also corrected, also removed):
+ *   - length unit: minlength/maxlength count Unicode code points.
  *   - conditional `in [..]` / `not in [..]` literal arrays.
  *   - conditional `== ''` empty-string literal comparison.
  *   - conditional `&&`/`||` precedence (`&&` binds tighter).
  *   - conditional ternary thresholds in a min/max param.
- *   - bare-path truthiness: a numeric value "0" is now falsy (Boolean(0)).
+ *   - bare-path truthiness: a numeric value "0" is falsy (Boolean(0)).
  */
 module.exports = {
-  // --- required: legacy does NOT trim; whitespace-only passes required ---
-  // legacy-client.validate.js required (value.length > 0 only) AND the legacy server
-  // Validation.php:96 (0 < strlen((string)$value), no trim) both PASS a
-  // whitespace-only string. The NEW validators trim (required.ts:18
-  // value.trim() === '') and reject. The client matches the legacy server;
-  // the new validators are the divergent (stricter) side. Cannot patch the
-  // client toward the new validators without breaking from legacy-server truth.
-  'required.json required-004[0]': 'legacy server (Validation.php:96 strlen, no trim) passes whitespace; new validators trim',
-  'required.json required-004[1]': 'legacy server (Validation.php:96 strlen, no trim) passes whitespace; new validators trim',
-  'required.json required-004[2]': 'legacy server (Validation.php:96 strlen, no trim) passes whitespace; new validators trim',
-  'required.json required-004[3]': 'legacy server (Validation.php:96 strlen, no trim) passes whitespace; new validators trim',
-  'required.json required-004[5]': 'legacy server (Validation.php:96 strlen, no trim) passes whitespace; new validators trim',
-  'required.json required-019[1]': 'legacy server (Validation.php:96 strlen, no trim) passes whitespace; new validators trim',
-
-  // --- implicit number rule: new validators reject non-numeric for type:number
-  // even with no explicit `number` rule; legacy runs only declared rules. ---
-  // Legacy server Validation.php (check(): foreach $property['rules']) runs ONLY
-  // declared rules — there is no implicit number. legacy-client.validate.js does the
-  // same. The NEW validators add an implicit number check for type:number
-  // fields (Validator.ts:618-648, documented there as "intentional
-  // strengthening, legacy had no implicit number at all"). Client matches the
-  // legacy server; the new validators are the divergent side.
-  'min-max.json min-max-015[0]': 'legacy server runs only declared rules (no implicit number); new validators add implicit number',
-  'min-max.json min-max-015[1]': 'legacy server runs only declared rules (no implicit number); new validators add implicit number',
-  'min-max.json min-max-015[2]': 'Infinity: new validators reject via implicit number/max; legacy server string-compares (passes)',
-  'number-implicit.json number-implicit-norules-001[0]': 'legacy server runs only declared rules (no implicit number); new validators add implicit number',
-  'number-implicit.json number-implicit-norules-001[1]': 'legacy server runs only declared rules (no implicit number); new validators add implicit number',
-  'number-implicit.json number-implicit-group-001[0]': 'legacy server runs only declared rules (no implicit number); new validators add implicit number',
-
-  // --- malformed threshold: new validators skip a non-numeric min/max param;
-  // legacy does a raw comparison (value >= "xyz") and fails. ---
-  // Legacy server Validation.php:148 `$value >= $param` with a non-numeric
-  // param does a PHP loose comparison: "5" >= "xyz" === false -> min FAILS
-  // (verified: PHP 8.4 "5" >= "xyz" => false). legacy-client.validate.js `value >= param`
-  // does the same JS string comparison -> fails. The NEW validators skip a
-  // malformed (NaN) threshold (min.ts:58-61 Number(ruleParam) isNaN -> null).
-  // Client matches the legacy server; the new validators are the divergent side.
-  // (Only `min` reproduces; for `max`, "5" <= "abc" === true on both server and
-  // legacy, which already agrees with the new validators, so it is not a gap.)
-  'malformed-threshold.json malformed-min-001[0]': 'legacy server (Validation.php:148 "5">="xyz"=false) fails; new validators skip malformed min',
-  'malformed-threshold.json malformed-min-001[1]': 'legacy server (Validation.php:148 string-compares) fails; new validators skip malformed min',
+  // --- "Infinity": both sides REJECT; they disagree only on which rule key
+  // reports the failure. This is NOT one of the three corrected principles —
+  // it is a separate question of what string counts as a number.
+  //
+  // New validators: isValidNumber("Infinity") === true (number.ts:25-26 accepts
+  // the "Infinity"/"-Infinity" literals), so the implicit number passes and
+  // max(100) rejects it -> error `max`.
+  // Legacy client: the `number` method's regex
+  //   /^(?:-?\d+|-?\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/
+  // does NOT match "Infinity", so the implicit number rejects it first ->
+  // error `number`. Correcting this would require widening the legacy number
+  // regex to accept the Infinity literal — a distinct change outside the three
+  // confirmed principles (required-trim, implicit-number-presence,
+  // malformed-param-skip). Both runtimes still reject the value, so this is a
+  // benign rule-key divergence, documented rather than forced.
+  'min-max.json min-max-015[2]': 'both reject Infinity; new reports `max` (Infinity is a valid number, exceeds 100), legacy reports `number` (regex rejects the Infinity literal) — separate from the three corrected principles',
 };

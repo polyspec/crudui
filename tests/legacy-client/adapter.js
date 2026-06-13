@@ -45,7 +45,16 @@ function elementShapeFor(fieldSpec) {
     case 'number':
     case 'physical':
     case 'digital':
-      return { tag: 'input', type: 'number' };
+      // Use a text input, not input[type=number]. jsdom (like real browsers)
+      // SANITIZES a non-conforming value in a typed number input to "" (e.g.
+      // "abc"/"12abc"/"Infinity" -> ""), which would hide the raw value from
+      // the legacy validator and defeat the implicit-number check. A real
+      // browser surfaces the bad value via element.validity.badInput -> the
+      // legacy getValueByElement returns "NaN"; jsdom cannot reproduce badInput.
+      // A text input faithfully exposes the raw string to the legacy
+      // number/min/max methods, matching what validation actually sees in a
+      // browser. (Same jsdom-sanitization workaround already used for dates.)
+      return { tag: 'input', type: 'text', numberLike: true };
     case 'datetime':
     case 'date':
       // Use a text input, not a native date/datetime-local: jsdom (and real
