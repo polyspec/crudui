@@ -3,7 +3,7 @@
  *
  * Email input field.
  *
- * Limepie PHP golden structure (Fields/Email.php):
+ * Limepie PHP reference structure (Fields/Email.php):
  *   <div class="input-group">
  *     [<span class="input-group-text">{prepend}</span>]
  *     <input type="email" class="valid-target form-control{element_class}"

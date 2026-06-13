@@ -30,7 +30,7 @@ flowchart TD
     V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
     R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
     VL -->|"공유 픽스처 1013"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
-    RL -->|"SSR · 정규화 비교"| G["tests/fixtures/golden-html/*<br/>(Limepie 기준 HTML, 7/7 parity)"]
+    RL -->|"SSR · 정규화 비교"| G["tests/fixtures/reference-html/*<br/>(Limepie 기준 HTML, 7/7 parity)"]
 ```
 
 검증기는 규칙 레지스트리·조건식 파서(lexer+AST, ternary, 상대 경로)·경로

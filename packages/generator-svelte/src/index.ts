@@ -3,7 +3,7 @@
  *
  * Svelte form builder component library based on form-spec YAML definitions.
  * Renders the same Limepie-compatible markup as @form-spec/generator-react
- * (golden-html parity).
+ * (reference-html parity).
  */
 
 export { default as FormBuilder, buildFormContent } from './components/FormBuilder.svelte';

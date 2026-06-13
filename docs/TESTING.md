@@ -44,7 +44,7 @@ form-spec/
 ├── tests/
 │   ├── cases/               # 크로스 언어 픽스처 19개 (1013 케이스) — 단일진실
 │   ├── fixtures/
-│   │   ├── golden-html/     # Limepie PHP 기준 HTML 7종 (재생성: tools/limepie-baseline)
+│   │   ├── reference-html/     # Limepie PHP 기준 HTML 7종 (재생성: tools/limepie-baseline)
 │   │   └── specs/           # ProductNft.yml 등 테스트용 YAML 스펙
 │   ├── runner/
 │   │   ├── compare-all.js   # 크로스 언어 비교 게이트 (JS/PHP/Go/Rust)
@@ -159,7 +159,7 @@ cargo test --release      # ../../tests/cases/*.json 을 읽어 1013 케이스 �
 
 ## 4. HTML parity 하네스 (3개 프레임워크)
 
-`tests/fixtures/golden-html/*.html`(legacy Limepie PHP 출력, 단일진실)과
+`tests/fixtures/reference-html/*.html`(legacy Limepie PHP 출력, 단일진실)과
 React/Vue/Svelte 3개 generator 의 SSR 출력을 정규화 후 비교한다. 세 generator
 모두 프레임워크 무관 PHP-cast 헬퍼 `src/limepieParity.ts` 를 공유 패턴으로 쓰고,
 정규화 규칙(`tests/parity/normalize.js`)을 읽기 전용으로 재사용한다. 정규화 상세

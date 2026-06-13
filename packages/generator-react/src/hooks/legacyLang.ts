@@ -9,7 +9,7 @@
  *     key. `lang: <non-append>` REPLACES the key with the `<key>_langs`
  *     group (legacy processSingleLang sets only `$key.'_langs'`).
  *
- * Contract pinned by the golden (ProductNft.html):
+ * Contract pinned by the reference (ProductNft.html):
  *   - name (text, remove_lang_title): original wrapper gains pb-1; the
  *     name_langs group wrapper is `border-0 pt-0 mt-1`, inner form-group is
  *     `p-1`, has NO label/h6; each language wrapper is

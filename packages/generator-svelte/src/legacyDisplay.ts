@@ -8,7 +8,7 @@
  *   - applyDisplaySwitchTransform : Form\Parser\ElementVisibilityManager
  *   - resolveDisplayTargetParts   : Fields\Group::processSingleTarget
  *
- * Contract pinned by the goldens (registration.html, ProductNft.html):
+ * Contract pinned by the references (registration.html, ProductNft.html):
  *   - Legacy NEVER removes a condition-failing field from the DOM. The
  *     wrapper keeps an identifying class and is hidden via display:none.
  */
@@ -42,7 +42,7 @@ export function displayTokenForSeed(seed: string): string {
 }
 
 /** Port of \Limepie\minify_js(). Inline onchange/onclick spec JS passes
- *  through this before being emitted — the goldens contain the minified form. */
+ *  through this before being emitted — the references contain the minified form. */
 export function minifyJs(input: string): string {
   if (input.trim() === '') return input;
   let out = input;

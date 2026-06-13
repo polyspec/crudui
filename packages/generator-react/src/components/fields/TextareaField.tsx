@@ -3,7 +3,7 @@
  *
  * Multi-line text input field.
  *
- * Limepie PHP golden structure (Fields/Textarea.php):
+ * Limepie PHP reference structure (Fields/Textarea.php):
  *   <div class="input-group">
  *     [<span class="input-group-text{prepend_class}">{prepend}</span>]
  *     <textarea class="valid-target form-control {element_class}" [readonly]

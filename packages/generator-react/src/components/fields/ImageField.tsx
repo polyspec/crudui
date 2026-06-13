@@ -1,7 +1,7 @@
 /**
  * ImageField Component
  *
- * Limepie PHP golden structure (Fields/Image.php) — a legacy file
+ * Limepie PHP reference structure (Fields/Image.php) — a legacy file
  * input-group, NOT a styled preview widget:
  *
  *   <div class="input-group">

@@ -3,7 +3,7 @@
  *
  * Numeric input field.
  *
- * Limepie PHP golden structure (Fields/Number.php):
+ * Limepie PHP reference structure (Fields/Number.php):
  *   <div class="input-group">
  *     [<span class="input-group-text{prepend_class}">{prepend}</span>]
  *     <input type="number" class="valid-target form-control{element_class}"

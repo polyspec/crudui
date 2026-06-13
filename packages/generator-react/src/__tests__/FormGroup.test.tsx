@@ -217,8 +217,8 @@ describe('FormGroup Component', () => {
 // ============================================================================
 // Multiple Group (Array) Tests
 //
-// Markup assertions follow the golden Limepie convention
-// (tests/fixtures/golden-html/multiple-test.html):
+// Markup assertions follow the reference Limepie convention
+// (tests/fixtures/reference-html/multiple-test.html):
 //  - an EMPTY multiple group renders ONE blank placeholder row;
 //  - each row is .form-element > .input-group-wrapper[data-uniqid=rowKey],
 //    containing <div class="form-group">…fields…</div> followed by
@@ -235,7 +235,7 @@ function getRows(container: HTMLElement, layerName: string): HTMLElement[] {
 }
 
 describe('Multiple FormGroup (Array Fields)', () => {
-  describe('basic multiple group rendering (golden convention)', () => {
+  describe('basic multiple group rendering (reference convention)', () => {
     const spec: Spec = {
       type: 'group',
       properties: {
@@ -379,7 +379,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
         expect(getRows(container, 'items-layer')).toHaveLength(2);
       });
 
-      // At max — another click is a no-op (buttons stay rendered, golden style)
+      // At max — another click is a no-op (buttons stay rendered, reference style)
       await userEvent.click(container.querySelector('.btn-plus')!);
       await waitFor(() => {
         expect(getRows(container, 'items-layer')).toHaveLength(2);

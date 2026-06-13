@@ -6,7 +6,7 @@
  * return a CSS STRING (Svelte uses string style attributes) instead of a
  * React CSSProperties object.
  *
- * The golden fixtures (tests/fixtures/golden-html) are the single source of
+ * The reference fixtures (tests/fixtures/reference-html) are the single source of
  * truth. Do NOT "improve" these helpers — every rule is a verbatim port of
  * the PHP implementation.
  */

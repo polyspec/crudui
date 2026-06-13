@@ -2,7 +2,7 @@
  * ButtonField Component
  *
  * Verbatim port of the legacy Limepie Generator\Fields\Button::write()
- * (single source of truth = tests/fixtures/golden-html, e.g. ProductNft
+ * (single source of truth = tests/fixtures/reference-html, e.g. ProductNft
  * option.button "조합"):
  *
  *   <script nonce="">

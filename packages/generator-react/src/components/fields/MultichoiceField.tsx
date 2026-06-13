@@ -3,7 +3,7 @@
  *
  * Checkbox group for multiple selection.
  *
- * Limepie PHP golden structure (Fields/Multichoice.php):
+ * Limepie PHP reference structure (Fields/Multichoice.php):
  *   <div class="btn-group flex-wrap btn-group-toggle">
  *     <input type="checkbox" name="{key}" id="mchoice-{clean_key}{n}"
  *            class="valid-target btn-check" autocomplete="off"
@@ -15,7 +15,7 @@
  *     ...
  *   </div>
  *
- * Notes pinned by the golden fixtures:
+ * Notes pinned by the reference fixtures:
  *   - name is the bracket key AS-IS (no [] appended; a spec key like
  *     "day[]" already carries its own [] suffix)
  *   - every input carries data-name / data-rule-name; NO data-default,

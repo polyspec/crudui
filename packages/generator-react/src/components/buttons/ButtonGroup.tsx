@@ -11,7 +11,7 @@
  *   <input type="submit" value="{submit_button_text|저장}" class="btn btn-primary" />
  *   [<a href="../" class="btn btn-secondary float-end">{list_button_text|목록}</a>]
  * The list link is suppressed by spec.remove_list_button. The 저장/목록
- * defaults are hardcoded in PHP (NOT localized) — golden fixtures pin them.
+ * defaults are hardcoded in PHP (NOT localized) — reference fixtures pin them.
  *
  * spec.buttons / spec.add_buttons arrays go through a port of
  * Generator::addButtons(); string onclick attributes cannot be expressed as

@@ -1,8 +1,8 @@
 # @form-spec/generator-vue
 
 Vue 3 form builder for form-spec YAML definitions. Renders byte-parity output
-with the legacy Limepie PHP `Generator::write()` (the golden fixtures under
-`tests/fixtures/golden-html` are the single source of truth).
+with the legacy Limepie PHP `Generator::write()` (the reference fixtures under
+`tests/fixtures/reference-html` are the single source of truth).
 
 This package is the Vue counterpart of `@form-spec/generator-react`. It uses
 plain `h()` render functions (no SFC `<style scoped>`), so SSR emits no
@@ -40,15 +40,15 @@ strips (legacy `write()` returns form content only).
   `utils/*` — framework-independent PHP-cast / parser ports (adapted from
   generator-react; the cast/transform logic is framework-agnostic).
 - `context.ts` — the plain (non-reactive) render context threaded through
-  provide/inject. Golden fixtures are empty-data static renders, so live form
+  provide/inject. Reference fixtures are empty-data static renders, so live form
   state (setValue/validation/interactive multiple edit) is not needed for
   parity; the context exposes only the read paths (`getValue`,
   `isFieldVisible`, `t`, `keyPrefix`, `language`).
 
 ## Parity
 
-`test/parity.test.mjs` renders the 7 golden specs through `@vue/server-renderer`
-and compares against the goldens via `tests/parity/normalize.js` (the same
+`test/parity.test.mjs` renders the 7 reference specs through `@vue/server-renderer`
+and compares against the references via `tests/parity/normalize.js` (the same
 normalizer the React harness uses, imported read-only). Run it with:
 
 ```

@@ -9,14 +9,14 @@
 #   LIMEPIE_SRC  yejune/limepie 체크아웃 경로 (기본 /Users/max/ai/gui/limepie).
 #                반드시 핀 커밋 a47ccba 상태여야 한다. 다른 커밋으로 생성하지 마라.
 #
-# 출력: tests/fixtures/golden-html/<name>.html
+# 출력: tests/fixtures/reference-html/<name>.html
 # 기준 픽스처를 손으로 수정하지 마라 — 이 스크립트로만 재생성하라.
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RENDER="$ROOT/tools/limepie-baseline/render.php"
-OUT="$ROOT/tests/fixtures/golden-html"
+OUT="$ROOT/tests/fixtures/reference-html"
 LIMEPIE_SRC="${LIMEPIE_SRC:-/Users/max/ai/gui/limepie}"
 export LIMEPIE_SRC
 

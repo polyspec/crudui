@@ -1,7 +1,7 @@
 /**
  * SearchField Component
  *
- * Limepie PHP golden structure (Fields/Search.php) — a select2-driven
+ * Limepie PHP reference structure (Fields/Search.php) — a select2-driven
  * <select> with its CSP-nonce'd bootstrap <style>/<script> siblings:
  *
  *   <style nonce="">.{id}_select2 .loading-results { display: none; }</style>
@@ -19,7 +19,7 @@
  *   </div>
  *
  * id = clean_str($key) . '_' . uniqid(). containerClass keeps its LEADING
- * space (' input-group-first input-group-last') — it is part of the golden
+ * space (' input-group-first input-group-last') — it is part of the reference
  * data-class/select2() argument contract.
  *
  * The select content renders raw (dangerouslySetInnerHTML): legacy search

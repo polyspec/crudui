@@ -3,7 +3,7 @@
  *
  * Password input field.
  *
- * Limepie PHP golden structure (Fields/Password.php) — a BARE input, no
+ * Limepie PHP reference structure (Fields/Password.php) — a BARE input, no
  * input-group wrapper, no visibility toggle, no placeholder:
  *   <input type="password" class="valid-target form-control" name=".."
  *          data-name=".." data-rule-name=".." value="" data-default=".."
