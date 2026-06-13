@@ -1,0 +1,18 @@
+[package]
+name = "formspec-bench"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "formspec-bench"
+path = "main.rs"
+
+[dependencies]
+formspec-validator = { path = "../../../packages/validator-rust" }
+serde_json = { version = "1", features = ["preserve_order"] }
+
+# Always build the bench optimized — an unoptimized debug build would measure
+# the wrong thing entirely. `cargo run --release` from the Makefile picks this
+# up; this profile block just guarantees release codegen even if invoked plainly.
+[profile.release]
+opt-level = 3
