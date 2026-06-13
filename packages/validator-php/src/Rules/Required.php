@@ -40,6 +40,11 @@ class Required implements RuleInterface
         return true;
     }
 
+    /**
+     * Returns the default error message for this rule.
+     *
+     * @return string Default message, with {0}, {1} placeholders where applicable
+     */
     public function getDefaultMessage(): string
     {
         return 'This field is required.';

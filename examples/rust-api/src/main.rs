@@ -40,6 +40,9 @@ struct Request {
     body: Vec<u8>,
 }
 
+/// Program entry point. Resolves Config from PORT / SPECS_DIR, binds a
+/// TcpListener, and serves connections one thread apiece until the process is
+/// killed. Exits the process with status 1 if the bind fails.
 fn main() {
     let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
     let specs_dir = match env::var("SPECS_DIR") {
@@ -95,6 +98,9 @@ fn resolve_default_specs_dir() -> PathBuf {
     PathBuf::from("./specs")
 }
 
+/// handle_connection drives one client socket end to end: read the request,
+/// then route it. A request line that cannot be parsed is answered with 400 and
+/// the socket is closed.
 fn handle_connection(stream: TcpStream, specs_dir: &Path) {
     let mut stream = stream;
     let req = match read_request(&mut stream) {
@@ -394,6 +400,9 @@ fn write_raw(
     stream.flush()
 }
 
+/// status_text maps an HTTP status code to its reason phrase for the response
+/// line. Only the codes this server emits are listed; anything else falls back
+/// to "OK".
 fn status_text(status: u16) -> &'static str {
     match status {
         200 => "OK",

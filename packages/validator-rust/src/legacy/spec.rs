@@ -10,7 +10,9 @@ use serde_json::{Map, Value};
 /// is_group reports whether the root was a group spec with properties;
 /// non-group specs are wrapped into a single field named "value".
 pub struct ParsedSpec {
+    /// The parsed specification.
     pub spec: Spec,
+    /// True when the root was a group spec with `properties`.
     pub is_group: bool,
 }
 

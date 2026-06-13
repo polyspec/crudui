@@ -25,6 +25,11 @@ class MaxLength implements RuleInterface
         return $length <= $maxLength;
     }
 
+    /**
+     * Returns the default error message for this rule.
+     *
+     * @return string Default message, with {0}, {1} placeholders where applicable
+     */
     public function getDefaultMessage(): string
     {
         return 'Please enter no more than {0} characters.';

@@ -48,8 +48,11 @@ export interface ParseErrorContext {
  * Parse error with detailed position and context information
  */
 export class ParseError extends Error {
+  /** Source location where parsing failed. */
   public readonly position: TokenPosition;
+  /** Additional context (e.g., expected token, hint) describing the failure. */
   public readonly context: ParseErrorContext;
+  /** The full condition expression being parsed when the error occurred. */
   public readonly expression?: string;
 
   constructor(

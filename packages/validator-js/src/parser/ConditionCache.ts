@@ -13,8 +13,11 @@ import { ASTNode, CachedCondition } from '../types';
  * Cache statistics interface
  */
 export interface CacheStats {
+  /** Number of lookups served from the cache. */
   hits: number;
+  /** Number of lookups that missed and required parsing. */
   misses: number;
+  /** Hit ratio in the range 0..1 (`hits / (hits + misses)`); 0 when there were no lookups. */
   hitRate: number;
 }
 

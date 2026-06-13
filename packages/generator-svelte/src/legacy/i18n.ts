@@ -5,7 +5,9 @@
  * fixtures could reference are kept).
  */
 
+/** Supported UI language codes. */
 export type Language = 'ko' | 'en' | 'ja' | 'zh';
+/** A plain string, or a per-language map of strings (e.g. `{ ko, en }`). */
 export type MultiLangText = string | Record<string, string>;
 
 const defaultMessages: Record<Language, Record<string, string>> = {

@@ -53,44 +53,72 @@ struct Token {
     literal: Value,
 }
 
+/// AstNode is a parsed condition-expression node.
 #[derive(Debug, Clone)]
 pub enum AstNode {
+    /// Binary operation (e.g. `a == b`, `x && y`).
     Binary {
+        /// Operator symbol.
         operator: String,
+        /// Left operand.
         left: Box<AstNode>,
+        /// Right operand.
         right: Box<AstNode>,
     },
+    /// Unary operation (e.g. `!x`).
     Unary {
+        /// Operator symbol.
         operator: String,
+        /// Operand.
         operand: Box<AstNode>,
     },
+    /// Membership test (`value in [...]`, optionally negated).
     In {
+        /// True for `not in`.
         negated: bool,
+        /// Value being tested.
         value: Box<AstNode>,
+        /// Candidate list.
         list: Vec<AstNode>,
     },
+    /// Field path reference (absolute or relative).
     Path {
+        /// True when the path is relative to the current field.
         relative: bool,
+        /// Number of parent levels to ascend for a relative path.
         levels_up: usize,
+        /// Ordered path segments.
         segments: Vec<PathSegment>,
     },
+    /// Literal value (string/number/bool/null).
     Literal {
+        /// The literal payload.
         value: Value,
     },
+    /// Parenthesized sub-expression.
     Group {
+        /// The wrapped expression.
         expression: Box<AstNode>,
     },
+    /// Ternary conditional (`cond ? a : b`).
     Ternary {
+        /// Condition expression.
         condition: Box<AstNode>,
+        /// Value when the condition is truthy.
         true_value: Box<AstNode>,
+        /// Value when the condition is falsy.
         false_value: Box<AstNode>,
     },
 }
 
+/// PathSegment is one component of a field path reference.
 #[derive(Debug, Clone)]
 pub enum PathSegment {
+    /// A named key.
     Identifier(String),
+    /// A `*` wildcard matching any array index.
     Wildcard,
+    /// A concrete array index (kept as a string).
     Index(String),
 }
 
@@ -935,17 +963,22 @@ fn is_numeric_segment(segment: &str) -> bool {
 // ConditionParser facade
 // ---------------------------------------------------------------------------
 
+/// ConditionParser parses and evaluates condition expressions, caching parsed
+/// ASTs by source string for reuse across evaluations.
 pub struct ConditionParser {
     cache: HashMap<String, AstNode>,
 }
 
 impl ConditionParser {
+    /// Creates a parser with an empty AST cache.
     pub fn new() -> Self {
         ConditionParser {
             cache: HashMap::new(),
         }
     }
 
+    /// Parses `expression` into an [`AstNode`], returning a cached AST on repeat
+    /// calls. Returns the lexer/parser error message on failure.
     pub fn parse(&mut self, expression: &str) -> Result<AstNode, String> {
         if let Some(ast) = self.cache.get(expression) {
             return Ok(ast.clone());
