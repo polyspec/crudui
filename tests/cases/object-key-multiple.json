@@ -1,0 +1,183 @@
+{
+  "testSuite": "object-key-multiple",
+  "version": "1.0.0",
+  "description": "객체키(__uniqid__) multiple group 에러 경로 멱등 회귀 테스트 - multiple:true group의 데이터가 list가 아닌 __uid__ 키 객체로 올 때, 에러 field 경로에 uniqid가 보존되어야 한다(rows.__uid__.v). legacy Limepie의 []-suffix 반복 경로가 키를 보존하는 동작과 일치(Validation.php). 다중 행은 키 정렬 순서로 첫 에러가 결정된다(Go/Rust/PHP/JS 4언어 수렴). 4언어(js/php/go/rust) 동일 결과(field 경로까지) 보장.",
+  "tests": [
+    {
+      "id": "object-key-multiple-required-001",
+      "description": "multiple:true object-key group - 빈 required는 uniqid를 보존한 경로로 실패",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "v": { "type": "text", "rules": { "required": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__abc1234567__": { "v": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "rows.__abc1234567__.v" }
+        },
+        {
+          "input": { "rows": { "__abc1234567__": { "v": "x" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "object-key-multiple-ordering-001",
+      "description": "다중 __uid__ 행 - 두 행 모두 실패 시 키 정렬 순서로 첫 에러 결정(__aaa가 __zzz보다 먼저)",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "v": { "type": "text", "rules": { "required": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__zzz1111111__": { "v": "" }, "__aaa2222222__": { "v": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "rows.__aaa2222222__.v" }
+        },
+        {
+          "input": { "rows": { "__zzz1111111__": { "v": "" }, "__aaa2222222__": { "v": "ok" } } },
+          "expected": { "valid": false, "error": "required", "field": "rows.__zzz1111111__.v" }
+        },
+        {
+          "input": { "rows": { "__zzz1111111__": { "v": "ok" }, "__aaa2222222__": { "v": "ok" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "object-key-multiple-number-min-001",
+      "description": "object-key 행 내부 number min - 경로에 uniqid 보존",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "name": { "type": "text", "rules": { "required": true } },
+              "qty": { "type": "number", "rules": { "min": 1 } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": { "__r1234567890__": { "name": "item", "qty": 0 } } },
+          "expected": { "valid": false, "error": "min", "field": "rows.__r1234567890__.qty" }
+        },
+        {
+          "input": { "rows": { "__r1234567890__": { "name": "", "qty": 5 } } },
+          "expected": { "valid": false, "error": "required", "field": "rows.__r1234567890__.name" }
+        },
+        {
+          "input": { "rows": { "__r1234567890__": { "name": "item", "qty": 5 } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "object-key-multiple-nested-001",
+      "description": "중첩 object-key multiple - 두 레벨 uniqid 모두 보존",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "outer": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "inner": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "v": { "type": "text", "rules": { "required": true } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "outer": { "__o11234567__": { "inner": { "__i11234567__": { "v": "" } } } } },
+          "expected": { "valid": false, "error": "required", "field": "outer.__o11234567__.inner.__i11234567__.v" }
+        },
+        {
+          "input": { "outer": { "__o11234567__": { "inner": { "__i11234567__": { "v": "ok" } } } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "object-key-multiple-suffix-001",
+      "description": "[]-suffix group에 object(uniqid) 데이터 - legacy처럼 키 보존",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items[]": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "code": { "type": "text", "rules": { "required": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": { "__xyz1234567__": { "code": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "items.__xyz1234567__.code" }
+        },
+        {
+          "input": { "items": { "__xyz1234567__": { "code": "ok" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "object-key-multiple-only-001",
+      "description": "multiple:'only'는 단일 객체로 취급되어 인덱스/키 없이 검증",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "blk": {
+            "type": "group",
+            "multiple": "only",
+            "properties": {
+              "sub": {
+                "type": "group",
+                "properties": {
+                  "v": { "type": "text", "rules": { "required": true } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "blk": { "sub": { "v": "" } } },
+          "expected": { "valid": false, "error": "required", "field": "blk.sub.v" }
+        },
+        {
+          "input": { "blk": { "sub": { "v": "ok" } } },
+          "expected": { "valid": true }
+        }
+      ]
+    }
+  ]
+}
