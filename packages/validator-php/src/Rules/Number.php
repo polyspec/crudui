@@ -12,7 +12,9 @@ class Number implements RuleInterface
 {
     /**
      * Validate that a value is a valid number.
-     * Accepts Infinity/-Infinity as valid numbers for proper min/max validation.
+     * Validation semantics principle: an input value must be a finite real
+     * number. "Infinity"/"-Infinity"/"NaN" are rejected. This is the input value
+     * gate only — min/max threshold parameters keep accepting Infinity.
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
@@ -20,20 +22,14 @@ class Number implements RuleInterface
             return true;
         }
 
-        // Already a number
-        if (is_numeric($value)) {
-            return true;
+        // A non-finite float (INF/-INF/NAN) is not a valid input value.
+        if (is_float($value)) {
+            return is_finite($value);
         }
 
-        // Handle string Infinity/-Infinity (like JS)
-        if (is_string($value)) {
-            $trimmed = trim($value);
-            if ($trimmed === 'Infinity' || $trimmed === '-Infinity') {
-                return true;
-            }
-        }
-
-        return false;
+        // is_numeric covers ints and numeric strings. "Infinity"/"-Infinity"/
+        // "NaN" are not numeric strings in PHP, so they are rejected here.
+        return is_numeric($value);
     }
 
     /**
