@@ -15,18 +15,18 @@
 | vitest 브리지 | `packages/validator-js/src/__tests__/conformance.test.ts` | `cd packages/validator-js && npx vitest run` | 1013 | JS 검증기 (vitest 리포팅) |
 | PHPUnit 브리지 | `packages/validator-php/tests/ConformanceTest.php` | `cd packages/validator-php && ./vendor/bin/phpunit` | 1013 | PHP 검증기 (PHPUnit data provider) |
 | Go 내부 테스트 | `packages/validator-go/validator/legacy/validator_test.go` | `cd packages/validator-go && go test ./...` | — | Go 내부 단위 테스트 |
-| HTML parity (React) | `tests/parity/parity.test.mjs` | `cd tests/parity && npm test` | 골든 7종 | React SSR ↔ Limepie 골든 HTML (7/7) |
-| HTML parity (Vue) | `packages/generator-vue/test/parity.test.mjs` | `cd packages/generator-vue && npm test` | 골든 7종 | Vue SSR ↔ Limepie 골든 HTML (7/7) |
-| HTML parity (Svelte) | `packages/generator-svelte/test/parity.test.mjs` | `cd packages/generator-svelte && npm test` | 골든 7종 | Svelte SSR ↔ Limepie 골든 HTML (7/7) |
+| HTML parity (React) | `tests/parity/parity.test.mjs` | `cd tests/parity && npm test` | 기준 HTML 7종 | React SSR ↔ Limepie 기준 HTML (7/7) |
+| HTML parity (Vue) | `packages/generator-vue/test/parity.test.mjs` | `cd packages/generator-vue && npm test` | 기준 HTML 7종 | Vue SSR ↔ Limepie 기준 HTML (7/7) |
+| HTML parity (Svelte) | `packages/generator-svelte/test/parity.test.mjs` | `cd packages/generator-svelte && npm test` | 기준 HTML 7종 | Svelte SSR ↔ Limepie 기준 HTML (7/7) |
 
 `tests/cases/*.json` 19개 파일, 총 1013 케이스가 단일진실(single source of truth)이다.
 크로스 언어 비교·단일 러너·브리지 4종이 전부 같은 픽스처 디렉터리를 읽는다 —
 케이스를 추가하면 모든 게이트가 자동으로 집어간다.
 
 현재 상태 (2026-06 검증): 검증기 게이트는 전부 GREEN (1013/1013, 4개 언어 일치).
-HTML parity 도 전부 GREEN — React/Vue/Svelte 3개 generator 가 각각 골든 7종에
+HTML parity 도 전부 GREEN — React/Vue/Svelte 3개 generator 가 각각 기준 HTML 7종에
 7/7 일치(필드 50/50 + chrome, canonical 일치)다.
-골든 픽스처나 정규화 규칙을 약화해 GREEN 을 유지하지 마라 — 회귀 시 generator 를 고쳐라.
+기준 픽스처나 정규화 규칙을 약화해 GREEN 을 유지하지 마라 — 회귀 시 generator 를 고쳐라.
 
 ## 디렉터리 구조
 
@@ -37,14 +37,14 @@ form-spec/
 │   ├── validator-php/       # PHP 검증기 (PHP ^8.2, PHPUnit 브리지)
 │   ├── validator-go/        # Go 검증기 (모듈명 github.com/yejune/form-spec/packages/validator-go)
 │   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator, cargo test 브리지)
-│   ├── generator-react/     # React 폼 생성기 (vitest, 골든 7/7 parity)
+│   ├── generator-react/     # React 폼 생성기 (vitest, 기준 HTML 7/7 parity)
 │   ├── generator-vue/       # Vue 3 폼 생성기 (vitest, test/parity.test.mjs 7/7)
 │   ├── generator-svelte/    # Svelte 5 폼 생성기 (vitest, test/parity.test.mjs 7/7)
-│   └── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets (골든 파이프라인 지원)
+│   └── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets (기준 파이프라인 지원)
 ├── tests/
 │   ├── cases/               # 크로스 언어 픽스처 19개 (1013 케이스) — 단일진실
 │   ├── fixtures/
-│   │   ├── golden-html/     # Limepie PHP 골든 HTML 7종 (재생성: tools/limepie-baseline)
+│   │   ├── golden-html/     # Limepie PHP 기준 HTML 7종 (재생성: tools/limepie-baseline)
 │   │   └── specs/           # ProductNft.yml 등 테스트용 YAML 스펙
 │   ├── runner/
 │   │   ├── compare-all.js   # 크로스 언어 비교 게이트 (JS/PHP/Go/Rust)
@@ -52,9 +52,9 @@ form-spec/
 │   │   ├── run-php.php      # PHP 단일 러너
 │   │   ├── validate-case.php # PHP stdin 워커 (compare-all.js 가 호출)
 │   │   └── go/              # Go 브리지 (go test)
-│   └── parity/              # React SSR ↔ 골든 HTML 비교 하네스 (Vue/Svelte 는 각 패키지 test/)
+│   └── parity/              # React SSR ↔ 기준 HTML 비교 하네스 (Vue/Svelte 는 각 패키지 test/)
 └── tools/
-    └── limepie-baseline/    # 골든 HTML 재생성 파이프라인 (핀 커밋 강제)
+    └── limepie-baseline/    # 기준 HTML 재생성 파이프라인 (핀 커밋 강제)
 ```
 
 ## 1. 크로스 언어 비교 게이트 (compare-all.js)
@@ -182,11 +182,11 @@ cd packages/generator-svelte && npm test        # test/parity.test.mjs — 7/7
 ```
 
 비교 대상: `examples/shared-specs/*.yml` 6종 + `tests/fixtures/specs/ProductNft.yml`.
-모두 빈 데이터 렌더 기준. 세 프레임워크 모두 골든 7종에 7/7 GREEN 이다.
+모두 빈 데이터 렌더 기준. 세 프레임워크 모두 기준 HTML 7종에 7/7 GREEN 이다.
 
-## 5. 골든 HTML 재생성 (tools/limepie-baseline)
+## 5. 기준 HTML 재생성 (tools/limepie-baseline)
 
-골든 픽스처를 손으로 수정하지 마라. 재생성은 이 파이프라인으로만 하라.
+기준 픽스처를 손으로 수정하지 마라. 재생성은 이 파이프라인으로만 하라.
 핀 커밋(`a47ccba7...`)이 아닌 Limepie 로 재생성하지 마라 — `generate-all.sh` 가
 HEAD 가드로 즉시 중단한다. 상세는 `tools/limepie-baseline/README.md` 참조.
 

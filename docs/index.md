@@ -20,7 +20,7 @@ features:
   - title: 멀티언어 검증기
     details: JavaScript/TypeScript, PHP, Go, Rust 가 동일한 스펙·동일한 결과 형식을 사용한다. 크로스 언어 게이트 1013 케이스 전부 GREEN.
   - title: 멀티프레임워크 렌더러
-    details: React / Vue 3 / Svelte 5 가 Limepie 골든 HTML 과 byte-parity(7/7) 로 폼을 렌더링한다.
+    details: React / Vue 3 / Svelte 5 가 Limepie 기준 HTML 과 byte-parity(7/7) 로 폼을 렌더링한다.
   - title: 조건식 엔진
     details: display_switch / display_target 조건부 표시, lexer + AST 기반 조건식 파서를 4개 언어가 동일하게 구현.
   - title: 기계가독 스펙
@@ -38,9 +38,9 @@ Form-Spec 은 YAML 한 벌로 폼의 구조·검증 규칙·조건부 표시를 
 | 검증기 | `validator-php` (`form-spec/validator`) | PHP ^8.2 |
 | 검증기 | `validator-go` | `github.com/yejune/form-spec/packages/validator-go` |
 | 검증기 | `validator-rust` (`formspec-validator`) | Rust 크레이트 |
-| 렌더러 | `generator-react` (`@form-spec/generator-react`) | 골든 7/7 parity |
-| 렌더러 | `generator-vue` (`@form-spec/generator-vue`) | SSR, 골든 7/7 parity |
-| 렌더러 | `generator-svelte` (`@form-spec/generator-svelte`) | SSR, 골든 7/7 parity |
+| 렌더러 | `generator-react` (`@form-spec/generator-react`) | 기준 HTML 7/7 parity |
+| 렌더러 | `generator-vue` (`@form-spec/generator-vue`) | SSR, 기준 HTML 7/7 parity |
+| 렌더러 | `generator-svelte` (`@form-spec/generator-svelte`) | SSR, 기준 HTML 7/7 parity |
 
 ## 빠른 링크
 

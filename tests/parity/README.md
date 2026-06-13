@@ -1,4 +1,4 @@
-# parity — React SSR ↔ Limepie PHP 골든 HTML 자동 비교 하네스
+# parity — React SSR ↔ Limepie PHP 기준 HTML 자동 비교 하네스
 
 `tests/fixtures/golden-html/*.html`(legacy Limepie PHP 출력, 단일진실)과
 `@form-spec/generator-react` FormBuilder 의 SSR 출력(`react-dom/server`
@@ -7,9 +7,9 @@
 - **GREEN 이 기대 상태다 (7/7, 50/50 필드 + chrome).** Phase C 수렴 완료 —
   React 쪽 격차(체크박스 구조, footer/submit 버튼, multiple 마크업, 조건부
   그룹, lang append, search/tinymce/image 레거시 마크업, datetime event,
-  items 순서)는 전부 닫혔다. 회귀가 나면 골든 픽스처나 정규화 규칙을 약화해
+  items 순서)는 전부 닫혔다. 회귀가 나면 기준 픽스처나 정규화 규칙을 약화해
   GREEN 으로 만들지 마라 — generator-react 구현을 고쳐라.
-- 골든 재생성은 `tools/limepie-baseline/` 파이프라인으로만 하라.
+- 기준 재생성은 `tools/limepie-baseline/` 파이프라인으로만 하라.
 
 ## 실행
 
@@ -28,7 +28,7 @@ node normalize.js <file.html>                   # 정규화 결과 확인
 | 파일 | 내용 |
 | --- | --- |
 | `out/<name>.react.html` | React SSR 원본 캡처 (form 콘텐츠) |
-| `out/<name>.golden.norm.txt` | 정규화된 골든 |
+| `out/<name>.golden.norm.txt` | 정규화된 기준 |
 | `out/<name>.react.norm.txt` | 정규화된 React 출력 |
 
 ## 비교 대상 픽스처
