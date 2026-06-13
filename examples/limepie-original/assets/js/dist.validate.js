@@ -676,6 +676,14 @@ $.extend($.validator, {
                         return this.findByName(element.name).filter(":checked").length;
                     }
             }
+            // Count Unicode code points, NOT UTF-16 code units, to match the
+            // server (Validation.php:468 preg_split('//u')) and the new
+            // validators. value.length counts an astral char (emoji) as 2
+            // surrogate units; [...str] iterates by code point so an emoji
+            // counts as 1.
+            if (typeof value === "string") {
+                return [...value].length;
+            }
             return value.length;
         },
         // 시간 문자열을 자동으로 감지하여 적절한 단위로 변환하는 통합 헬퍼 함수
@@ -811,159 +819,13 @@ $.extend($.validator, {
                     if (-1 < params.indexOf("{")) {
                         return this.checkCondition(params, element);
                     } else {
-                        var gubun = "";
-                        if (-1 < params.indexOf("&&")) {
-                            gubun = "&&";
-                        } else if (-1 < params.indexOf("||")) {
-                            gubun = "||";
-                        }
-
-                        var conditions = params.split(/&&|\|\|/).map(function (item) {
-                            return item.trim();
-                        });
-
-                        // console.log(element, conditions);
-                        var results_true = [];
-                        var results_false = [];
-
-                        for (var index = 0, total = conditions.length; index < total; index++) {
-                            var parts = conditions[index].split(" ");
-                            var leftName = parts[0]; // a
-                            var newLeftName = "";
-                            var newRightName = "";
-                            var compareValue = ""; // ==
-                            var rightValue = ""; // b
-                            if (parts[1]) {
-                                compareValue = parts[1];
-                            }
-                            if (parts[2]) {
-                                rightValue = parts[2];
-                            }
-
-                            // console.log("element.accept ", element.accept);
-                            // console.log("element", element);
-                            if (element.classList.contains("form-control-file")) {
-                                // text file type일때 ['name]을 삭제
-                                newLeftName = this.getPath(leftName, element.name.replace(/\[name\]$/, ""));
-                            } else if (element.type == "checkbox" && element.name.endsWith("[]")) {
-                                newLeftName = this.getPath(
-                                    leftName.replace(/^\./, ""),
-                                    element.name.replace(/\[\]$/, "")
-                                );
-                            } else {
-                                newLeftName = this.getPath(leftName, element.name);
-                            }
-                            var newLeftSelector = '[name="' + newLeftName + '"]';
-                            var newLeftElement = $(newLeftSelector, element.form);
-
-                            if (0 == newLeftElement.length) {
-                                console.log(element);
-                                throw new Error(
-                                    element.name + " -> " + leftName + " => " + newLeftName + " target find error"
-                                );
-                            }
-
-                            if (typeof this.requiredWaves[newLeftName] === "undefined") {
-                                this.requiredWaves[newLeftName] = [];
-                            }
-                            if (-1 === $.inArray(element.name, this.requiredWaves[newLeftName])) {
-                                this.requiredWaves[newLeftName].push(element.name);
-                            }
-                            // console.log(compareValue);
-                            if (compareValue) {
-                                newRightName = this.getPath(rightValue, element.name);
-                                var newRightSelector = '[name="' + newRightName + '"]';
-                                var newRightElement = $(newRightSelector, element.form);
-
-                                if (newRightElement.length) {
-                                    rightValue = newRightElement.val();
-                                } else {
-                                    rightValue = parts[2];
-                                }
-                                var result = false;
-
-                                // console.log(compareValue, newLeftElement, newRightElement);
-                                switch (compareValue) {
-                                    case "in":
-                                        var rightvalues = rightValue.split(",").map(function (item) {
-                                            return item.trim();
-                                        });
-
-                                        // console.log(rightvalues, this.getValueByElement(newLeftElement));
-                                        result = rightvalues.includes(this.getValueByElement(newLeftElement));
-                                        break;
-                                    case "==":
-                                        result = this.getValueByElement(newLeftElement) == rightValue;
-                                        break;
-                                    case "<=":
-                                        result = this.getValueByElement(newLeftElement) <= rightValue;
-                                        break;
-                                    case "!=":
-                                        result = this.getValueByElement(newLeftElement) != rightValue;
-                                        break;
-                                    case ">=":
-                                        result = this.getValueByElement(newLeftElement) >= rightValue;
-                                        break;
-                                    case ">":
-                                        result = this.getValueByElement(newLeftElement) > rightValue;
-                                        break;
-                                    case "<":
-                                        result = this.getValueByElement(newLeftElement) < rightValue;
-                                        break;
-                                    case "&":
-                                        result = this.getValueByElement(newLeftElement) & rightValue;
-                                        break;
-
-                                    case "|":
-                                        consolelog(
-                                            "valaa",
-                                            param,
-                                            newLeftElement,
-                                            this.getValueByElement(newLeftElement)
-                                        );
-                                        var loop = newLeftElement;
-                                        for (var i10 = 0, j10 = loop.length; i10 < j10; i10++) {
-                                            consolelog("loop", loop, i10, loop[i10], loop[i10].value);
-                                            if (loop[i10].value == rightValue) {
-                                                result = true;
-                                            }
-                                        }
-                                        //return false;
-                                        break;
-                                }
-                                // console.log(
-                                //     newLeftElement.attr("name"),
-                                //     this.getValueByElement(newLeftElement),
-                                //     compareValue,
-                                //     rightValue,
-                                //     result
-                                // );
-
-                                if (result === true) {
-                                    results_true.push(result);
-                                } else {
-                                    results_false.push(result);
-                                }
-                            } else {
-                                //console.log(newLeftElement);
-                                var result = this.getValueByElement(newLeftElement);
-                                if (result) {
-                                    results_true.push(result);
-                                } else {
-                                    results_false.push(result);
-                                }
-                            }
-                        }
-                        // console.log(element.name, results_true, results_false, conditions);
-                        if (gubun == "||") {
-                            if (results_true.length) {
-                                return true;
-                            }
-                        } else {
-                            if (conditions.length === results_true.length) {
-                                return true;
-                            }
-                        }
+                        // Recursive-descent evaluator with correct &&/|| precedence,
+                        // `in [..]` / `not in [..]` literal arrays, `== ''` empty
+                        // literals, and numeric-string truthiness ("0" -> falsy) so
+                        // the browser runtime matches the new validators' condition
+                        // parser. (Replaces the legacy flat split-on-&&|| parser
+                        // that lacked these and mishandled precedence.)
+                        return Boolean(this.evalCondExpr(params, element));
                     }
                 }
                 return false;
@@ -972,6 +834,340 @@ $.extend($.validator, {
             function: function (param, element) {
                 return param(element);
             },
+        },
+
+        // -------------------------------------------------------------------
+        // Condition expression evaluator (matches the new validators' parser).
+        //
+        // Supports: && / || with correct precedence (&& binds tighter), the
+        // comparison operators == != <= >= < > , `in [a, b]` / `not in [a, b]`
+        // literal arrays and comma lists, '...' / "..." string literals
+        // (including the empty literal ''), and bare-path truthiness where a
+        // numeric value of 0 (DOM string "0") is falsy — matching
+        // Boolean(typed 0) in the new validators.
+        // -------------------------------------------------------------------
+        evalCondExpr: function (expr, element) {
+            var tokens = this.condTokenize(expr);
+            var pos = { i: 0 };
+            var value = this.condParseOr(tokens, pos, element);
+            return value;
+        },
+        // Resolve a rule param that may be a conditional/ternary expression to
+        // its effective value, matching the new validators (Validator.ts
+        // tryEvaluateTernary / evaluateExpressionValue). A ternary
+        // "<cond> ? a : b" yields the selected branch (a literal value); a
+        // plain condition yields a boolean. Anything else is returned as-is.
+        condEvalParam: function (param, element) {
+            if (typeof param !== "string") {
+                return param;
+            }
+            // ternary at top level: <cond> ? <a> : <b>
+            var qPos = this.condFindTernaryOp(param, "?", 0);
+            if (qPos !== -1) {
+                var cPos = this.condFindTernaryOp(param, ":", qPos + 1);
+                if (cPos !== -1) {
+                    var condStr = param.slice(0, qPos).trim();
+                    var trueStr = param.slice(qPos + 1, cPos).trim();
+                    var falseStr = param.slice(cPos + 1).trim();
+                    var cond;
+                    try {
+                        cond = this.evalCondExpr(condStr, element);
+                    } catch (e) {
+                        return param;
+                    }
+                    var branch = cond ? trueStr : falseStr;
+                    // strip quotes from a quoted branch literal
+                    if (
+                        (branch[0] === "'" && branch[branch.length - 1] === "'") ||
+                        (branch[0] === '"' && branch[branch.length - 1] === '"')
+                    ) {
+                        return branch.slice(1, -1);
+                    }
+                    // numeric branch -> a real number so downstream numeric
+                    // comparisons (min/max) coerce correctly.
+                    if (/^-?\d+(\.\d+)?$/.test(branch)) {
+                        return Number(branch);
+                    }
+                    return branch;
+                }
+            }
+            return param;
+        },
+        // Find a top-level ternary operator ('?' or ':') ignoring quotes,
+        // brackets, and parentheses (Validator.ts findTernaryOperator parity).
+        condFindTernaryOp: function (expr, op, from) {
+            var depth = 0;
+            var inQuote = null;
+            for (var i = from; i < expr.length; i++) {
+                var ch = expr[i];
+                if (inQuote) {
+                    if (ch === inQuote) inQuote = null;
+                    continue;
+                }
+                if (ch === "'" || ch === '"') {
+                    inQuote = ch;
+                    continue;
+                }
+                if (ch === "(" || ch === "[") {
+                    depth++;
+                    continue;
+                }
+                if (ch === ")" || ch === "]") {
+                    depth--;
+                    continue;
+                }
+                if (depth === 0 && ch === op) {
+                    return i;
+                }
+            }
+            return -1;
+        },
+        // Split an expression into tokens, keeping [..] arrays as a single
+        // bracket token and quoted strings intact.
+        condTokenize: function (expr) {
+            var tokens = [];
+            var i = 0;
+            var n = expr.length;
+            while (i < n) {
+                var c = expr[i];
+                if (c === " " || c === "\t" || c === "\n" || c === "\r") {
+                    i++;
+                    continue;
+                }
+                // grouping parens
+                if (c === "(" || c === ")") {
+                    tokens.push(c);
+                    i++;
+                    continue;
+                }
+                // bracket literal array: capture up to matching ]
+                if (c === "[") {
+                    var end = expr.indexOf("]", i);
+                    if (end === -1) end = n - 1;
+                    tokens.push(expr.slice(i, end + 1));
+                    i = end + 1;
+                    continue;
+                }
+                // quoted string literal (single or double); keep quotes
+                if (c === "'" || c === '"') {
+                    var q = c;
+                    var j = i + 1;
+                    while (j < n && expr[j] !== q) j++;
+                    tokens.push(expr.slice(i, j + 1));
+                    i = j + 1;
+                    continue;
+                }
+                // two-char operators
+                if (i + 1 < n) {
+                    var two = expr.substr(i, 2);
+                    if (two === "&&" || two === "||" || two === "==" || two === "!=" || two === "<=" || two === ">=") {
+                        tokens.push(two);
+                        i += 2;
+                        continue;
+                    }
+                }
+                // single-char operators
+                if (c === "<" || c === ">") {
+                    tokens.push(c);
+                    i++;
+                    continue;
+                }
+                // bareword (path, number, identifier, keyword like in/not)
+                var k = i;
+                while (
+                    k < n &&
+                    " \t\n\r()[]<>".indexOf(expr[k]) === -1 &&
+                    expr.substr(k, 2) !== "&&" &&
+                    expr.substr(k, 2) !== "||" &&
+                    expr.substr(k, 2) !== "==" &&
+                    expr.substr(k, 2) !== "!=" &&
+                    expr.substr(k, 2) !== "<=" &&
+                    expr.substr(k, 2) !== ">="
+                ) {
+                    k++;
+                }
+                tokens.push(expr.slice(i, k));
+                i = k;
+            }
+            return tokens;
+        },
+        condParseOr: function (tokens, pos, element) {
+            var left = this.condParseAnd(tokens, pos, element);
+            while (tokens[pos.i] === "||") {
+                pos.i++;
+                var right = this.condParseAnd(tokens, pos, element);
+                left = Boolean(left) || Boolean(right);
+            }
+            return left;
+        },
+        condParseAnd: function (tokens, pos, element) {
+            var left = this.condParseComparison(tokens, pos, element);
+            while (tokens[pos.i] === "&&") {
+                pos.i++;
+                var right = this.condParseComparison(tokens, pos, element);
+                left = Boolean(left) && Boolean(right);
+            }
+            return left;
+        },
+        condParseComparison: function (tokens, pos, element) {
+            // primary
+            var leftTok = tokens[pos.i];
+            // parenthesised sub-expression
+            if (leftTok === "(") {
+                pos.i++;
+                var inner = this.condParseOr(tokens, pos, element);
+                if (tokens[pos.i] === ")") pos.i++;
+                return inner;
+            }
+            pos.i++;
+            // `not in [..]`
+            if (tokens[pos.i] === "not" && tokens[pos.i + 1] === "in") {
+                pos.i += 2;
+                var listTokN = tokens[pos.i++];
+                return !this.condInList(this.condResolve(leftTok, element), listTokN);
+            }
+            var op = tokens[pos.i];
+            if (op === "in") {
+                pos.i++;
+                var listTok = tokens[pos.i++];
+                return this.condInList(this.condResolve(leftTok, element, false), listTok);
+            }
+            if (op === "==" || op === "!=" || op === "<=" || op === ">=" || op === "<" || op === ">") {
+                pos.i++;
+                var rightTok = tokens[pos.i++];
+                var lv = this.condResolve(leftTok, element, false);
+                var rv = this.condResolve(rightTok, element, true);
+                return this.condCompare(lv, rv, op);
+            }
+            // no operator: bare truthiness of the left value
+            return this.condTruthy(this.condResolve(leftTok, element, false));
+        },
+        // Resolve a token to its value. A quoted/numeric/boolean token is a
+        // literal. Otherwise the token is a field path: resolve it against the
+        // DOM via getPath/getValueByElement. `rhs` mirrors the legacy parser's
+        // right-hand-side behavior: an unquoted bareword that does not resolve
+        // to an element (e.g. `== US`, `== bank`) falls back to a string
+        // literal. The left side (rhs=false) is always a reference and throws
+        // when it cannot be resolved.
+        condResolve: function (tok, element, rhs) {
+            if (tok === undefined) return undefined;
+            // quoted string literal -> strip quotes (empty literal '' -> "")
+            if (
+                (tok[0] === "'" && tok[tok.length - 1] === "'") ||
+                (tok[0] === '"' && tok[tok.length - 1] === '"')
+            ) {
+                return tok.slice(1, -1);
+            }
+            // numeric literal
+            if (/^-?\d+(\.\d+)?$/.test(tok)) {
+                return tok;
+            }
+            // boolean keyword literals
+            if (tok === "true") return true;
+            if (tok === "false") return false;
+            // otherwise treat as a field path reference
+            var newName;
+            if (element.classList && element.classList.contains("form-control-file")) {
+                newName = this.getPath(tok, element.name.replace(/\[name\]$/, ""));
+            } else if (element.type == "checkbox" && element.name.endsWith("[]")) {
+                newName = this.getPath(tok.replace(/^\./, ""), element.name.replace(/\[\]$/, ""));
+            } else {
+                newName = this.getPath(tok, element.name);
+            }
+            var sel = '[name="' + newName + '"]';
+            var el = $(sel, element.form);
+            if (0 === el.length) {
+                // RHS bareword that is not a real field: treat as a literal.
+                if (rhs) {
+                    return tok;
+                }
+                throw new Error(element.name + " -> " + tok + " => " + newName + " target find error");
+            }
+            if (typeof this.requiredWaves[newName] === "undefined") {
+                this.requiredWaves[newName] = [];
+            }
+            if (-1 === $.inArray(element.name, this.requiredWaves[newName])) {
+                this.requiredWaves[newName].push(element.name);
+            }
+            return this.getValueByElement(el);
+        },
+        // Membership test against a literal list token: `[a, b, c]` or `a,b,c`.
+        condInList: function (value, listTok) {
+            if (typeof listTok !== "string") return false;
+            var inner = listTok;
+            if (inner[0] === "[" && inner[inner.length - 1] === "]") {
+                inner = inner.slice(1, -1);
+            }
+            var self = this;
+            var items = inner.split(",").map(function (s) {
+                s = s.trim();
+                if (
+                    (s[0] === "'" && s[s.length - 1] === "'") ||
+                    (s[0] === '"' && s[s.length - 1] === '"')
+                ) {
+                    return s.slice(1, -1);
+                }
+                return s;
+            });
+            for (var x = 0; x < items.length; x++) {
+                if (self.condLooseEquals(value, items[x])) {
+                    return true;
+                }
+            }
+            return false;
+        },
+        // Loose equality matching the new validators' looseEquals: numeric when
+        // both sides are numeric, otherwise string.
+        condLooseEquals: function (a, b) {
+            if (a === null || a === undefined) {
+                return b === null || b === undefined || b === "";
+            }
+            if (b === null || b === undefined) {
+                return a === "";
+            }
+            var aNum = Number(a);
+            var bNum = Number(b);
+            if (a !== "" && b !== "" && !isNaN(aNum) && !isNaN(bNum)) {
+                return aNum === bNum;
+            }
+            return String(a) === String(b);
+        },
+        condCompare: function (a, b, op) {
+            switch (op) {
+                case "==":
+                    return this.condLooseEquals(a, b);
+                case "!=":
+                    return !this.condLooseEquals(a, b);
+                case ">":
+                    return this.condNum(a) > this.condNum(b);
+                case ">=":
+                    return this.condNum(a) >= this.condNum(b);
+                case "<":
+                    return this.condNum(a) < this.condNum(b);
+                case "<=":
+                    return this.condNum(a) <= this.condNum(b);
+            }
+            return false;
+        },
+        condNum: function (v) {
+            if (typeof v === "number") return v;
+            if (typeof v === "boolean") return v ? 1 : 0;
+            var n = parseFloat(v);
+            return isNaN(n) ? 0 : n;
+        },
+        // Truthiness matching Boolean(typedValue) in the new validators: a
+        // numeric value of 0 (DOM "0") is falsy; empty string is falsy.
+        condTruthy: function (v) {
+            if (v === null || v === undefined || v === "") return false;
+            if (typeof v === "boolean") return v;
+            if (typeof v === "number") return v !== 0;
+            // numeric-looking string: "0" / "0.0" -> falsy, like Boolean(0)
+            if (typeof v === "string") {
+                var n = Number(v);
+                if (!isNaN(n)) return n !== 0;
+                return v.length > 0;
+            }
+            return Boolean(v);
         },
         destroy: function () {
             $(this.currentForm).off(".validate").removeData("validator");
@@ -1214,6 +1410,10 @@ $.extend($.validator, {
                 return true;
             }
 
+            // Resolve a conditional/ternary threshold param to its effective
+            // value (e.g. ".type == 1 ? 100 : 0") like the new validators.
+            param = this.condEvalParam(param, element);
+
             // 입력 요소의 타입에 따른 처리
             switch (element.type) {
                 case "time":
@@ -1259,6 +1459,10 @@ $.extend($.validator, {
             if ("dependency-mismatch" == $.validator.methods.required.call(this, value, element, required)) {
                 return true;
             }
+
+            // Resolve a conditional/ternary threshold param to its effective
+            // value (e.g. ".type == 1 ? 100 : 0") like the new validators.
+            param = this.condEvalParam(param, element);
 
             // 입력 요소의 타입에 따른 처리
             switch (element.type) {
