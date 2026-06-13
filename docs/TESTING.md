@@ -21,7 +21,8 @@
 케이스를 추가하면 모든 게이트가 자동으로 집어간다.
 
 현재 상태 (2026-06 검증): 검증기 게이트는 전부 GREEN (1013/1013, 4개 언어 일치).
-픽스처를 약화해 GREEN 을 유지하지 마라 — 회귀 시 구현을 고쳐라.
+HTML parity 도 전부 GREEN 이다. 프레임워크끼리 직접 비교도 21/21 이다.
+기준 픽스처나 정규화 규칙을 약화해 GREEN 을 유지하지 마라 — 회귀 시 generator 를 고쳐라.
 
 ## 디렉터리 구조
 
@@ -32,7 +33,7 @@ form-spec/
 │   ├── validator-php/       # PHP 검증기 (PHP ^8.2, PHPUnit 브리지)
 │   ├── validator-go/        # Go 검증기 (모듈명 github.com/polyspec/crudui/packages/validator-go)
 │   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator, cargo test 브리지)
-│   ├── generator-react/     # React 폼 생성기 (vitest)
+│   ├── generator-react/     # React 폼 생성기 (vitest, 기준 HTML 7/7 parity)
 │   ├── generator-vue/       # Vue 3 폼 생성기 (vitest)
 │   └── generator-svelte/    # Svelte 5 폼 생성기 (vitest)
 ├── tests/

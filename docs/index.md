@@ -38,9 +38,9 @@ Form-Spec 은 YAML 한 벌로 폼의 구조·검증 규칙·조건부 표시를 
 | 검증기 | `validator-php` (`form-spec/validator`) | PHP ^8.2 |
 | 검증기 | `validator-go` | `github.com/polyspec/crudui/packages/validator-go` |
 | 검증기 | `validator-rust` (`formspec-validator`) | Rust 크레이트 |
-| 렌더러 | `generator-react` (`@form-spec/generator-react`) | React |
-| 렌더러 | `generator-vue` (`@form-spec/generator-vue`) | SSR |
-| 렌더러 | `generator-svelte` (`@form-spec/generator-svelte`) | SSR |
+| 렌더러 | `generator-react` (`@form-spec/generator-react`) | 기준 HTML 7/7 parity |
+| 렌더러 | `generator-vue` (`@form-spec/generator-vue`) | SSR, 기준 HTML 7/7 parity |
+| 렌더러 | `generator-svelte` (`@form-spec/generator-svelte`) | SSR, 기준 HTML 7/7 parity |
 
 ## 빠른 링크
 

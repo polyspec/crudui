@@ -24,7 +24,7 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 
 | 문서 | 내용 |
 |------|------|
-| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교, 브리지 4종) |
+| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교, 브리지 4종, HTML parity, 기준 재생성) |
 | [TEST-CASES.md](./TEST-CASES.md) | 크로스 언어 케이스 형식과 19개 파일 현황 (1013 케이스) |
 
 | 문서 | 내용 |
@@ -130,7 +130,7 @@ cd packages/generator-vue    && npm test  # Vue SSR
 cd packages/generator-svelte && npm test  # Svelte SSR
 ```
 
-전체 게이트 목록·언어별 브리지는 [TESTING.md](./TESTING.md).
+전체 게이트 목록·언어별 브리지·기준 재생성 절차는 [TESTING.md](./TESTING.md).
 
 ## 라이선스
 
