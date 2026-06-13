@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Limepie 골든 HTML 픽스처 일괄 재생성.
+# Limepie 기준 HTML 픽스처 일괄 재생성.
 #
 # Usage:
 #   bash tools/limepie-baseline/generate-all.sh
@@ -10,7 +10,7 @@
 #                반드시 핀 커밋 a47ccba 상태여야 한다. 다른 커밋으로 생성하지 마라.
 #
 # 출력: tests/fixtures/golden-html/<name>.html
-# 골든 픽스처를 손으로 수정하지 마라 — 이 스크립트로만 재생성하라.
+# 기준 픽스처를 손으로 수정하지 마라 — 이 스크립트로만 재생성하라.
 
 set -euo pipefail
 
@@ -25,7 +25,7 @@ HEAD_NOW="$(git -C "$LIMEPIE_SRC" rev-parse HEAD)"
 
 if [ "$HEAD_NOW" != "$PIN" ]; then
     echo "ERROR: LIMEPIE_SRC($LIMEPIE_SRC) HEAD=$HEAD_NOW != pin $PIN" >&2
-    echo "핀 커밋이 아닌 Limepie로 골든을 생성하지 마라." >&2
+    echo "핀 커밋이 아닌 Limepie로 기준을 생성하지 마라." >&2
     exit 1
 fi
 
@@ -76,8 +76,8 @@ echo "ok: ProductNft.html ($(wc -c < "$OUT/ProductNft.html" | tr -d ' ') bytes)"
 # --- tests/fixtures/specs/OptionMultiplexable.yml ---------------------------
 # host 의존 fragment (ProductNft 의 $ref 대상). 단독 렌더는 legacy Limepie
 # 자체가 실패한다: display_target=common.is_quantity 조회가 루트 스펙에 없어
-# Exception('#1 not found key common.is_quantity'). 단독 골든을 조작해 만들지
-# 마라 — 이 fragment 의 골든 커버리지는 ProductNft.html 안의 포함 렌더다.
+# Exception('#1 not found key common.is_quantity'). 단독 기준을 조작해 만들지
+# 마라 — 이 fragment 의 기준 커버리지는 ProductNft.html 안의 포함 렌더다.
 # 미래에 단독 렌더가 가능해지면 자동으로 픽스처가 생성된다.
 if php "$RENDER" "$ROOT/tests/fixtures/specs/OptionMultiplexable.yml" > "$TMP/OptionMultiplexable.html" 2> "$TMP/option.err"; then
     mv "$TMP/OptionMultiplexable.html" "$OUT/OptionMultiplexable.html"

@@ -1,18 +1,18 @@
-# limepie-baseline — Limepie 골든 HTML 픽스처 파이프라인
+# limepie-baseline — Limepie 기준 HTML 픽스처 파이프라인
 
 `tests/fixtures/golden-html/*.html` 은 legacy **Limepie PHP Generator 의 실제 출력**이며,
 이 저장소의 모든 폼 렌더러(React, legacy port 등)가 따라야 하는 **단일진실(source of truth)** 이다.
 
-- 골든 픽스처를 손으로 수정하지 마라. 재생성은 `generate-all.sh` 로만 하라.
-- 테스트가 골든과 어긋나면 골든을 고치지 마라 — 구현을 고쳐라.
-- 핀 커밋이 아닌 Limepie 로 골든을 재생성하지 마라.
+- 기준 픽스처를 손으로 수정하지 마라. 재생성은 `generate-all.sh` 로만 하라.
+- 테스트가 기준과 어긋나면 기준을 고치지 마라 — 구현을 고쳐라.
+- 핀 커밋이 아닌 Limepie 로 기준을 재생성하지 마라.
 
 ## 핀(pin)
 
 | 항목 | 값 |
 | --- | --- |
 | Limepie 소스 | `yejune/limepie`, 로컬 체크아웃 `/Users/max/ai/gui/limepie` (env `LIMEPIE_SRC` 로 변경 가능) |
-| 핀 커밋 | `a47ccba7e318ae1d364c034b1d7c5b0de8a564bb` — 골든 생성 당시 로컬 체크아웃 HEAD (clean tree 확인). 이 저장소의 어떤 composer.lock 도 limepie 커밋을 기록하지 않는다 — 핀의 유일한 강제 장치는 `generate-all.sh` 의 HEAD 가드다. |
+| 핀 커밋 | `a47ccba7e318ae1d364c034b1d7c5b0de8a564bb` — 기준 생성 당시 로컬 체크아웃 HEAD (clean tree 확인). 이 저장소의 어떤 composer.lock 도 limepie 커밋을 기록하지 않는다 — 핀의 유일한 강제 장치는 `generate-all.sh` 의 HEAD 가드다. |
 | PHP | 8.4 (로컬 8.4.14 로 검증) |
 | YAML 파서 | symfony/yaml v8 (`packages/generator-legacy/limepie/vendor/autoload.php`) — ext-yaml polyfill 로 사용 |
 
@@ -23,9 +23,9 @@
 ```
 tools/limepie-baseline/
 ├── render.php        # php render.php <spec.yml> [data.json]  → stdout 으로 HTML
-├── generate-all.sh   # 골든 픽스처 전체 재생성
+├── generate-all.sh   # 기준 픽스처 전체 재생성
 └── README.md
-tests/fixtures/golden-html/   # 골든 픽스처 (이 파이프라인의 출력)
+tests/fixtures/golden-html/   # 기준 픽스처 (이 파이프라인의 출력)
 ```
 
 ## 재생성 절차
@@ -43,7 +43,7 @@ php tools/limepie-baseline/render.php examples/shared-specs/product-form.yml
 php tools/limepie-baseline/render.php spec.yml data.json   # 데이터 포함 렌더
 ```
 
-골든 픽스처는 모두 **빈 데이터 렌더** (`Generator::write($spec, [])`) 기준이다.
+기준 픽스처는 모두 **빈 데이터 렌더** (`Generator::write($spec, [])`) 기준이다.
 
 ## render.php 가 재현하는 런타임 환경
 
@@ -58,10 +58,10 @@ Limepie 는 웹 런타임 전역 상태에 의존한다. render.php 는 아래 s
 
 ## 출력의 비결정 토큰 (정규화 비교 필수)
 
-Limepie 출력은 실행마다 달라지는 난수 토큰을 포함한다. 골든은 **원본 그대로** 저장한다
+Limepie 출력은 실행마다 달라지는 난수 토큰을 포함한다. 기준은 **원본 그대로** 저장한다
 (multiple 그룹에서 `name="...[__<id>__]..."` 와 `data-uniqid="__<id>__"` 가 같은 id 를 공유하는
 상관관계가 스펙의 일부이므로, 저장 시점 마스킹은 정보를 파괴한다).
-골든과 비교할 때는 양쪽 모두 아래 정규화를 거쳐라. 토큰 값 자체를 비교 대상으로 삼지 마라.
+기준과 비교할 때는 양쪽 모두 아래 정규화를 거쳐라. 토큰 값 자체를 비교 대상으로 삼지 마라.
 
 | 토큰 | 출처 | 예 |
 | --- | --- | --- |
@@ -90,7 +90,7 @@ perl -0777 -pe '
 3. `_<5자>` 룰(display_switch 클래스)은 onchange 핸들러 JS 문자열 내부에도 등장하므로
    따옴표/공백 경계로 한정하지 마라 — negative lookahead 경계를 쓴다.
 
-이 레시피를 두 독립 실행 결과에 적용하면 byte-identical 함을 골든 7개 전부에서 검증했다.
+이 레시피를 두 독립 실행 결과에 적용하면 byte-identical 함을 기준 7개 전부에서 검증했다.
 
 ## 케이스별 기록
 
@@ -123,7 +123,7 @@ legacy ext-yaml(libyaml) 은 last-wins 로 조용히 허용하고, symfony/yaml 
 `$ref: OptionMultiplexable.yml` 은 스펙 파일 디렉터리 기준으로 정상 해석된다
 (임시 사본 디렉터리에 fragment 도 함께 복사).
 
-### OptionMultiplexable.html — 단독 렌더 불가 (골든 없음)
+### OptionMultiplexable.html — 단독 렌더 불가 (기준 없음)
 
 `OptionMultiplexable.yml` 은 ProductNft 에 `$ref` 로 포함되는 host 의존 fragment 다.
 필드들이 `display_target: common.is_quantity` 등 **host 폼의 키 경로**를 참조하므로
@@ -134,7 +134,7 @@ Limepie\Exception: #1 not found key common.is_quantity
   Fields::getDefaultByDot ← Group::processSingleTarget (display_target 평가)
 ```
 
-가짜 host 를 만들어 단독 골든을 조작하지 마라. 이 fragment 의 골든 커버리지는
+가짜 host 를 만들어 단독 기준을 조작하지 마라. 이 fragment 의 기준 커버리지는
 `ProductNft.html` 내 포함 렌더다 (`option_multiplexable[items][...]` 6개 필드 전부 포함).
 `generate-all.sh` 는 매회 단독 렌더를 시도하므로, 미래에 렌더 가능해지면 자동 생성된다.
 
@@ -144,5 +144,5 @@ Limepie\Exception: #1 not found key common.is_quantity
 `product-form.html` 과 **uniqid 마스킹 후 byte-identical** 임을 검증했다. 단, 이후 커밋
 `64b8e8c` 에서 캡처 파일의 wrapper 클래스 3곳(`border p-3 mb-3`)이 손으로 제거되었다
 (uniqid 가 그대로인 채 클래스만 삭제 — 재캡처가 아닌 수기 편집). 실제 Limepie 는 이 클래스를
-출력하므로 골든은 출력 그대로 유지한다. 캡처 파일 쪽이 단일진실이 아니다 — 골든을 캡처에
+출력하므로 기준은 출력 그대로 유지한다. 캡처 파일 쪽이 단일진실이 아니다 — 기준을 캡처에
 맞춰 고치지 마라.

@@ -10,7 +10,7 @@ YAML 기반 폼 생성 및 검증 시스템 — **다중 언어(4) · 다중 프
   낸다. 공유 픽스처 **1013 케이스**를 4개 언어에 동시 실행해 결과 일치를
   교차 검증한다(`tests/runner/compare-all.js`).
 - **렌더 parity** — 3개 프레임워크의 출력 HTML이 legacy Limepie PHP 생성기의
-  골든 HTML과 바이트 단위로 일치한다(골든 7종, 각 프레임워크 **7/7**).
+  기준 HTML과 바이트 단위로 일치한다(기준 HTML 7종, 각 프레임워크 **7/7**).
 
 ## 왜 필요한가
 
@@ -30,12 +30,12 @@ flowchart TD
     V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
     R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
     VL -->|"공유 픽스처 1013"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
-    RL -->|"SSR · 정규화 비교"| G["tests/fixtures/golden-html/*<br/>(Limepie 골든, 7/7 parity)"]
+    RL -->|"SSR · 정규화 비교"| G["tests/fixtures/golden-html/*<br/>(Limepie 기준 HTML, 7/7 parity)"]
 ```
 
 검증기는 규칙 레지스트리·조건식 파서(lexer+AST, ternary, 상대 경로)·경로
 해석기를 각 언어로 포팅한 것이고, 생성기는 프레임워크 무관 PHP-cast 헬퍼
-(`limepieParity`)를 공유해 동일 마크업을 낸다. 골든 HTML은
+(`limepieParity`)를 공유해 동일 마크업을 낸다. 기준 HTML은
 `tools/limepie-baseline`이 핀 커밋(`a47ccba`)의 Limepie 원본으로 재생성한다.
 
 ## Packages
@@ -50,10 +50,10 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 | [`packages/validator-php`](./packages/validator-php) | `form-spec/validator` | PHP 검증 라이브러리 (PHP ^8.2, PHPUnit) |
 | [`packages/validator-go`](./packages/validator-go) | `github.com/yejune/form-spec/packages/validator-go` | Go 검증 라이브러리 |
 | [`packages/validator-rust`](./packages/validator-rust) | `formspec-validator` (crate) | Rust 검증 라이브러리 + `validate` CLI |
-| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 — 골든 7/7 parity |
-| [`packages/generator-vue`](./packages/generator-vue) | `@form-spec/generator-vue` | Vue 3 폼 빌더 — 골든 7/7 parity |
-| [`packages/generator-svelte`](./packages/generator-svelte) | `@form-spec/generator-svelte` | Svelte 폼 빌더 — 골든 7/7 parity |
-| [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Limepie PHP 사본 (골든 baseline용) |
+| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-vue`](./packages/generator-vue) | `@form-spec/generator-vue` | Vue 3 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-svelte`](./packages/generator-svelte) | `@form-spec/generator-svelte` | Svelte 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Limepie PHP 사본 (기준 HTML 파이프라인용) |
 
 ## Quick Start
 
@@ -212,19 +212,19 @@ cd packages/validator-php  && composer test # PHPUnit   — 동일 1013 conforma
 cd packages/validator-go   && go test ./...
 cd packages/validator-rust && cargo test    # cargo     — 동일 1013 conformance
 
-# HTML parity: React/Vue/Svelte SSR ↔ Limepie 골든 HTML 7종 (각 7/7)
+# HTML parity: React/Vue/Svelte SSR ↔ Limepie 기준 HTML 7종 (각 7/7)
 cd tests/parity              && npm test    # React
 cd packages/generator-vue    && npm test    # Vue   (@vue/server-renderer)
 cd packages/generator-svelte && npm test    # Svelte (Svelte SSR)
 ```
 
 테스트 케이스는 `tests/cases/*.json`(19파일, 1013케이스)이 단일 진실이다.
-골든 HTML 재생성은 `tools/limepie-baseline/` 파이프라인으로만 한다(핀 커밋 가드).
+기준 HTML 재생성은 `tools/limepie-baseline/` 파이프라인으로만 한다(핀 커밋 가드).
 
 ## Documentation
 
 문서 사이트와 멀티언어 API 레퍼런스는 Makefile로 **멱등하게** 생성한다(언제
-돌려도 같은 산출물; `make docs`는 clean 후 재생성).
+실행해도 같은 산출물; `make docs`는 clean 후 재생성).
 
 ```bash
 make help          # 사용 가능한 타겟
@@ -240,7 +240,7 @@ make docs-clean    # 생성물 제거
 - [Validation Rules](./docs/VALIDATION-RULES.md) — 등록 규칙·기본 메시지·미구현 목록
 - [Condition Parser](./docs/CONDITION-PARSER.md) — 조건식 문법·경로 해석
 - [Display Conditions](./docs/DISPLAY-CONDITIONS.md) — 조건부 표시·검증 스킵
-- [Testing](./docs/TESTING.md) — 게이트 체계·골든 재생성
+- [Testing](./docs/TESTING.md) — 게이트 체계·기준 재생성
 
 ## Examples
 

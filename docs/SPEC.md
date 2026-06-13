@@ -140,7 +140,7 @@ name:
 `packages/generator-react/src/components/fields/index.ts`의 레지스트리에
 등록된 타입 키 목록이다. 타입 매칭은 **대소문자 무시**다
 (`getFieldComponent` — `index.ts:127-129`).
-마크업 구조는 이 문서의 범위가 아니다 (HTML parity는 `tests/parity` 골든이 단일진실).
+마크업 구조는 이 문서의 범위가 아니다 (HTML parity는 `tests/parity` 기준이 단일진실).
 
 | 정본 타입 | 별칭 | 용도 |
 |-----------|------|------|
