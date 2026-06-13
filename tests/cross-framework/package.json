@@ -11,5 +11,11 @@
     "capture:svelte": "vitest run --config vitest.svelte.config.mjs",
     "compare": "vitest run --config vitest.config.mjs",
     "test": "npm run capture && npm run compare"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "svelte": "^5.0.0",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
   }
 }

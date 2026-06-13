@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "target": "ES2020",
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
+    "rootDir": "./runner",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
