@@ -1,0 +1,8 @@
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "phone": "0212345678",
+  "subject": "support",
+  "message": "Hello, I have a question about my recent order and shipping.",
+  "newsletter": true
+}
