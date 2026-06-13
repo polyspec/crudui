@@ -199,12 +199,12 @@
     },
     {
       "id": "min-max-015",
-      "description": "NaN 및 비숫자 입력 처리",
+      "description": "NaN 및 비숫자 입력 처리. 'Infinity'는 비유한 입력이므로 암묵 number가 먼저 거부한다(원칙상 정정: 입력값은 유한 실수여야 한다 - VALIDATION-RULES.md '검증 의미론 원칙'). 임계값(max:100)은 유한이며 입력값 거부와 무관하다.",
       "spec": { "type": "number", "rules": { "min": 0, "max": 100 } },
       "cases": [
         { "input": "abc", "expected": { "valid": false, "error": "number" } },
         { "input": "12abc", "expected": { "valid": false, "error": "number" } },
-        { "input": "Infinity", "expected": { "valid": false, "error": "max" } }
+        { "input": "Infinity", "expected": { "valid": false, "error": "number" } }
       ]
     }
   ]

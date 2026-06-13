@@ -8,12 +8,14 @@ import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
 
 /**
- * Check if a value is a valid number
- * Accepts Infinity/-Infinity as valid numbers for proper min/max validation
+ * Check if a value is a valid number.
+ * Validation semantics principle: an input value must be a finite real number.
+ * "Infinity"/"-Infinity"/"NaN" are rejected (number error). This is the input
+ * value gate only — min/max threshold parameters keep accepting Infinity.
  */
 export function isValidNumber(value: unknown): boolean {
   if (typeof value === 'number') {
-    return !isNaN(value);
+    return isFinite(value);
   }
 
   if (typeof value === 'string') {
@@ -21,17 +23,15 @@ export function isValidNumber(value: unknown): boolean {
     if (trimmed === '') {
       return false;
     }
-    // Allow Infinity/-Infinity strings
-    if (trimmed === 'Infinity' || trimmed === '-Infinity') {
-      return true;
-    }
-    // Allow optional sign, digits, optional decimal point, optional digits
+    // Allow optional sign, digits, optional decimal point, optional digits.
+    // "Infinity"/"-Infinity"/"NaN" do not match this pattern, so they are
+    // rejected as input values (finite-number principle).
     const numberPattern = /^[-+]?(\d+\.?\d*|\d*\.?\d+)$/;
     if (!numberPattern.test(trimmed)) {
       return false;
     }
     const num = parseFloat(trimmed);
-    return !isNaN(num);
+    return isFinite(num);
   }
 
   return false;
