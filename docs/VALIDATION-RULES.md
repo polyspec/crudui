@@ -153,9 +153,9 @@ required, unique, mincount, maxcount
 
 검증 의미론의 단일 진실은 **"논리적으로 올바른 동작"** 이며, 모든 구현
 (validator-js/php/go/rust)에 일관 적용한다.
-새 검증기 4언어는 이 원칙대로 구현돼 1044 케이스 교차언어 멱등이다.
+새 검증기 4언어는 이 원칙대로 구현돼 1074 케이스 교차언어 멱등이다.
 
-아래 3원칙은 확정이다. 각 원칙은 새 검증기 구현이 출처다.
+아래 원칙은 확정이다. 각 원칙은 새 검증기 구현이 출처다.
 
 ### 1. required — 값을 trim한 뒤 비었으면 실패
 
@@ -191,14 +191,39 @@ min/max 등의 임계값(param)이 숫자로 파싱되지 않으면(`Number(para
   `packages/validator-js/src/rules/max.ts:28-31`
   (`Number(ruleParam)`이 NaN이면 `null` 반환 = skip).
 
+### 4. number 입력은 유한수여야 한다
+
+`number` 검사(암묵·명시 모두)에서 입력값은 유한 실수여야 한다. 문자열
+`"Infinity"`/`"-Infinity"`/`"NaN"`은 `number` 에러로 거부한다. 이 게이트는 입력
+**값**에만 적용된다 — min/max **임계값(param)** 의 Infinity 처리는 별개로 보존한다.
+
+- 근거: 비유한 값은 산술·비교를 오염시킨다. 숫자 입력은 유한해야 후속 규칙이
+  의미를 갖는다. `type:number` 암묵 number가 먼저 실행되므로 min/max보다 `number`가
+  먼저 보고된다.
+- 새 검증기 출처: `packages/validator-js/src/rules/number.ts:18,34`
+  (`isFinite(value)` / `isFinite(num)`). 회귀 잠금: `tests/cases/number-nonfinite.json`.
+
+### 5. 객체키 multiple group — 엔트리 카운트·에러 경로 보존
+
+`multiple: true` group의 데이터가 list가 아니라 `__uid__` 키 객체로 올 때:
+group-level mincount/maxcount는 엔트리 수를 `count(value)`로 센다(배열 형태와 동일
+카운트로 수렴, 빈 객체/빈 배열은 0). 에러 field 경로에는 uniqid 키를 보존한다
+(`rows.__uid__.v`). 다중 행은 키 정렬 순서로 첫 에러가 결정된다.
+
+- 근거: legacy 필드 모델의 `[]`-suffix 반복 경로는 키를 보존해야
+  한다. 키 정렬은 JSON 맵에 삽입 순서가 없는 Go/Rust/PHP와
+  JS가 동일한 첫 에러를 내기 위한 필수 조건이다.
+- 새 검증기 출처: `packages/validator-js/src/legacy/Validator.ts:293-296`(객체 multiple
+  판정), `:327`(`Object.keys(objectValue).sort()` 로 결정적 순회).
+- 회귀 잠금: `tests/cases/count-object-key.json`(카운트), `object-key-multiple.json`
+  (에러 경로 uniqid 보존).
+
 ### 정책
 
 - 위 원칙은 향후 모든 검증기가 따른다. 모든 구현에
   일관 적용한다.
-- 새 검증기 src(`packages/validator-*/src`)는 1044 멱등 정답이다. 수정 금지.
+- 새 검증기 src(`packages/validator-*/src`)는 1074 멱등 정답이다. 수정 금지.
   의미론 변경이 필요하면 4언어를 함께 바꾸고 멱등을 재검증한다.
-
-### 잔존 갭 (정당 사유)
 
 ---
 
