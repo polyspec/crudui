@@ -42,7 +42,7 @@ export function displayTokenForSeed(seed: string): string {
 }
 
 /** Minifies inline JS. Inline onchange/onclick spec JS passes
- *  through this before being emitted. */
+ *  through this before being emitted — the legacy markup contains the minified form. */
 export function minifyJs(input: string): string {
   if (input.trim() === '') return input;
   let out = input;

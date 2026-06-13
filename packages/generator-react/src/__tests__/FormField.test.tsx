@@ -633,7 +633,7 @@ describe('FormField Conditional Display', () => {
     const checkbox = screen.getByRole('checkbox');
     await userEvent.click(checkbox);
 
-    // Phone field wrapper is shown again (visibility is
+    // Phone field wrapper should no longer be hidden (reference: visibility is
     // wrapper display:none, the field always stays in the DOM)
     await waitFor(() => {
       const wrapper = container.querySelector('[name="phone-layer"]') as HTMLElement;
@@ -661,8 +661,8 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Hidden initially — kept in the DOM with wrapper display:none, never
-    // removed from the DOM)
+    // Hidden initially — kept in the DOM with wrapper display:none (reference
+    // contract; DOM removal is the old pre-reference behavior)
     expect(container.querySelector('[name="moreOptions"]')).toBeInTheDocument();
     const wrapper = container.querySelector('[name="moreOptions-layer"]') as HTMLElement;
     expect(wrapper.style.display).toBe('none');
@@ -705,7 +705,7 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Contract: both fields stay in the DOM; visibility toggles via
+    // Reference contract: both fields stay in the DOM; visibility toggles via
     // wrapper style="display: none", never DOM removal.
     const emailWrapper = container.querySelector('[name="email-layer"]') as HTMLElement;
     const phoneWrapper = container.querySelector('[name="phone-layer"]') as HTMLElement;

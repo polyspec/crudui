@@ -7,7 +7,7 @@ against its output.
 
 ## Status
 
-Implemented (see
+Implemented. Reference parity: 7/7 fixtures, 50/50 fields, chrome match (see
 `test/parity.test.mjs`).
 
 ## Usage

@@ -19,7 +19,7 @@
  *   </div>
  *
  * id = bracket-cleaned key, '_' and a 13-hex uniqid. containerClass keeps its LEADING
- * space (' input-group-first input-group-last') — it is part of the
+ * space (' input-group-first input-group-last') — it is part of the reference
  * data-class/select2() argument contract.
  *
  * The select content renders raw (dangerouslySetInnerHTML): legacy search

@@ -234,7 +234,7 @@ function getRows(container: HTMLElement, layerName: string): HTMLElement[] {
 }
 
 describe('Multiple FormGroup (Array Fields)', () => {
-  describe('basic multiple group rendering', () => {
+  describe('basic multiple group rendering (reference convention)', () => {
     const spec: Spec = {
       type: 'group',
       properties: {
@@ -378,7 +378,7 @@ describe('Multiple FormGroup (Array Fields)', () => {
         expect(getRows(container, 'items-layer')).toHaveLength(2);
       });
 
-      // At max — another click is a no-op (buttons stay rendered)
+      // At max — another click is a no-op (buttons stay rendered, reference style)
       await userEvent.click(container.querySelector('.btn-plus')!);
       await waitFor(() => {
         expect(getRows(container, 'items-layer')).toHaveLength(2);
