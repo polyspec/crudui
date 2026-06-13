@@ -1,0 +1,183 @@
+{
+  "testSuite": "array-suffix-key",
+  "version": "1.0.0",
+  "description": "'[]'-suffix 키 정규화 회귀 테스트 - 'items[]' 키가 'items' 데이터에 매칭되어 각 항목을 검증해야 한다 (legacy Limepie Validation.php / dist.validate.js 기준). 4언어(js/php/go/rust) 동일 결과 보장.",
+  "tests": [
+    {
+      "id": "array-suffix-group-001",
+      "description": "[]-suffix multiple group - 빈 required 항목은 검증 실패",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items[]": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "code": { "type": "text", "rules": { "required": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [{ "code": "" }, { "code": "ok" }] },
+          "expected": { "valid": false, "error": "required", "field": "items.0.code" }
+        },
+        {
+          "input": { "items": [{ "code": "ok" }, { "code": "" }] },
+          "expected": { "valid": false, "error": "required", "field": "items.1.code" }
+        },
+        {
+          "input": { "items": [{ "code": "a" }, { "code": "b" }] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "items": [] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "array-suffix-group-no-multiple-001",
+      "description": "[]-suffix group - multiple 키 없이도 []만으로 배열로 처리",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "items[]": {
+            "type": "group",
+            "properties": {
+              "code": { "type": "text", "rules": { "required": true } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "items": [{ "code": "" }, { "code": "ok" }] },
+          "expected": { "valid": false, "error": "required", "field": "items.0.code" }
+        },
+        {
+          "input": { "items": [{ "code": "a" }, { "code": "b" }] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "array-suffix-multifield-group-001",
+      "description": "[]-suffix multiple group - 여러 필드, 선언 순서대로 첫 에러",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "rows[]": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "name": { "type": "text", "rules": { "required": true } },
+              "qty": { "type": "number", "rules": { "required": true, "min": 1 } }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "rows": [{ "name": "상품A", "qty": 2 }, { "name": "", "qty": 1 }] },
+          "expected": { "valid": false, "error": "required", "field": "rows.1.name" }
+        },
+        {
+          "input": { "rows": [{ "name": "상품A", "qty": 0 }] },
+          "expected": { "valid": false, "error": "min", "field": "rows.0.qty" }
+        },
+        {
+          "input": { "rows": [{ "name": "상품A", "qty": 2 }, { "name": "상품B", "qty": 3 }] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "array-suffix-nested-001",
+      "description": "중첩 []-suffix - groups[].items[] 각 항목 재귀 검증",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "groups[]": {
+            "type": "group",
+            "multiple": true,
+            "properties": {
+              "items[]": {
+                "type": "group",
+                "multiple": true,
+                "properties": {
+                  "code": { "type": "text", "rules": { "required": true } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "groups": [{ "items": [{ "code": "x" }, { "code": "" }] }] },
+          "expected": { "valid": false, "error": "required", "field": "groups.0.items.1.code" }
+        },
+        {
+          "input": { "groups": [{ "items": [{ "code": "x" }] }, { "items": [{ "code": "" }] }] },
+          "expected": { "valid": false, "error": "required", "field": "groups.1.items.0.code" }
+        },
+        {
+          "input": { "groups": [{ "items": [{ "code": "x" }, { "code": "y" }] }] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "array-suffix-leaf-001",
+      "description": "[]-suffix 비group 필드 - 각 항목에 item-level 규칙 적용",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "tags[]": {
+            "type": "text",
+            "rules": { "minlength": 2 }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "tags": ["ab", "x"] },
+          "expected": { "valid": false, "error": "minlength", "field": "tags.1" }
+        },
+        {
+          "input": { "tags": ["ab", "cd"] },
+          "expected": { "valid": true }
+        },
+        {
+          "input": { "tags": [] },
+          "expected": { "valid": true }
+        }
+      ]
+    },
+    {
+      "id": "array-suffix-leaf-required-001",
+      "description": "[]-suffix 비group 필드 - array-level required는 빈 배열에서 실패",
+      "spec": {
+        "type": "group",
+        "properties": {
+          "tags[]": {
+            "type": "text",
+            "rules": { "required": true }
+          }
+        }
+      },
+      "cases": [
+        {
+          "input": { "tags": [] },
+          "expected": { "valid": false, "error": "required", "field": "tags" }
+        },
+        {
+          "input": { "tags": ["a"] },
+          "expected": { "valid": true }
+        }
+      ]
+    }
+  ]
+}
