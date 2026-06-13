@@ -13,14 +13,17 @@
  *               derived from the controlling field's dot path
  *               (displayTokenForSeed) — stable across renders/processes, format
  *               preserved (5 chars of [a-hj-km-np-z2-9]).
- *   F3 (high, DOCUMENTED-ONLY) The select controller of a MAP-form
- *               display_switch is inert in pure React: the transform writes a
- *               jQuery onchange onto the controller, which routes SelectField
- *               into its dangerouslySetInnerHTML branch with NO React onChange,
- *               so context data never updates and the sibling style never
- *               re-evaluates. The fix is out of scope for F2 — this test PINS
- *               the reproduction (not a desired behavior) so the regression is
- *               observable; see failures notes for the required design.
+ *   F3 (high, FIXED) The select controller of a MAP-form display_switch is now
+ *               interactive in pure React. The transform still writes the legacy
+ *               jQuery onchange onto the controller (parity surface), routing
+ *               SelectField into its dangerouslySetInnerHTML branch, but the
+ *               component now attaches a NATIVE DOM change listener on the raw
+ *               container. The listener pushes the controller value into
+ *               FormContext (onChange -> setValue), so resolveDisplayTargetParts
+ *               re-runs and React re-renders the sibling wrappers with the
+ *               toggled display style — no jQuery required. The static SSR
+ *               markup is unchanged (the raw onchange attribute is still
+ *               emitted), so parity stays 7/7.
  */
 
 import React, { useState } from 'react';
@@ -217,21 +220,24 @@ describe('F2: display_switch token is deterministic', () => {
 // F3 — DOCUMENTED reproduction: select controller is inert in pure React
 // ============================================================================
 
-describe('F3 (documented): map-form display_switch controller is inert in pure React', () => {
-  it('select with display_switch renders the raw jQuery-onchange branch (no React onChange)', () => {
+describe('F3 (fixed): map-form display_switch controller toggles siblings in pure React', () => {
+  it('select with display_switch still renders the raw jQuery-onchange branch (static parity surface)', () => {
     cleanup();
     const { container } = render(<FormBuilder spec={switchSpec} language="ko" />);
 
-    // The transform put a jQuery onchange on the controller; SelectField then
-    // emits the raw select via dangerouslySetInnerHTML.
+    // The transform put a jQuery onchange on the controller; SelectField still
+    // emits the raw select via dangerouslySetInnerHTML — the static markup
+    // (onchange attribute included) is unchanged, so SSR parity is preserved.
+    // Interactivity is added via a NATIVE DOM listener, not by removing the
+    // legacy attribute or switching to a controlled JSX element.
     const select = container.querySelector('select[name="payment_type"]') as HTMLSelectElement;
     expect(select).toBeInTheDocument();
     const onchange = select.getAttribute('onchange');
     expect(onchange).toBeTruthy();
-    expect(onchange).toContain('.show()'); // jQuery body, not React
+    expect(onchange).toContain('.show()'); // legacy jQuery body still emitted
   });
 
-  it('changing the controller does NOT toggle the sibling style (pure React, no jQuery)', () => {
+  it('changing the controller DOES toggle the sibling style (native listener -> FormContext)', () => {
     cleanup();
     const { container } = render(<FormBuilder spec={switchSpec} language="ko" />);
 
@@ -245,20 +251,35 @@ describe('F3 (documented): map-form display_switch controller is inert in pure R
     expect(bankWrapper.getAttribute('style') ?? '').toContain('display: none');
 
     // Strip the inline jQuery onchange before firing: it would throw
-    // ReferenceError($) in jsdom (it needs the real jQuery + real DOM). React
-    // attaches synthetic handlers independently of the HTML onchange attribute,
-    // so removing the attribute cannot remove a React handler — if one existed,
-    // the change below would still reach FormContext. None exists.
-    const select = container.querySelector('select[name="payment_type"]') as HTMLSelectElement;
-    select.removeAttribute('onchange');
-    select.value = 'bank';
-    fireEvent.change(select);
+    // ReferenceError($) in jsdom (it needs the real jQuery + real DOM). The
+    // native change listener the component attaches on the raw container is
+    // independent of this HTML attribute — removing the attribute cannot remove
+    // it. The fired change therefore reaches FormContext via onChange/setValue.
+    //
+    // The select is re-queried before each change: the controller change
+    // re-renders SelectField, whose dangerouslySetInnerHTML replaces the inner
+    // <select> node. A live browser always interacts with the fresh node; a
+    // held reference would be stale.
+    const selectController = () =>
+      container.querySelector('select[name="payment_type"]') as HTMLSelectElement;
 
-    // REPRODUCTION (not desired): the sibling styles are unchanged because the
-    // controller change never reached FormContext data — no React onChange,
-    // no re-render, no resolveDisplayTargetParts re-evaluation. The bank
-    // wrapper stays hidden; the card wrapper stays visible.
-    expect(bankWrapper.getAttribute('style') ?? '').toContain('display: none');
+    const toBank = selectController();
+    toBank.removeAttribute('onchange');
+    toBank.value = 'bank';
+    fireEvent.change(toBank);
+
+    // The controller value is now in FormContext data; resolveDisplayTargetParts
+    // re-evaluates the siblings and React re-renders the wrappers with the
+    // toggled display style: bank becomes visible, card becomes hidden.
+    expect(bankWrapper.getAttribute('style') ?? '').not.toContain('display: none');
+    expect(cardWrapper.getAttribute('style') ?? '').toContain('display: none');
+
+    // And back: selecting credit again restores the initial visibility.
+    const toCredit = selectController();
+    toCredit.removeAttribute('onchange');
+    toCredit.value = 'credit';
+    fireEvent.change(toCredit);
     expect(cardWrapper.getAttribute('style') ?? '').not.toContain('display: none');
+    expect(bankWrapper.getAttribute('style') ?? '').toContain('display: none');
   });
 });
