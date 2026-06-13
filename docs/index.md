@@ -32,6 +32,19 @@ features:
 Form-Spec 은 YAML 한 벌로 폼의 구조·검증 규칙·조건부 표시를 정의하고, 이를
 여러 언어의 검증기와 여러 프레임워크의 렌더러가 **동일하게** 해석하는 시스템이다.
 
+## 아키텍처
+
+```mermaid
+flowchart TD
+    spec["YAML 폼 스펙 · 한 파일<br/>type: group / properties<br/><b>단일 진실</b>"]
+    spec --> V["검증 (멱등)"]
+    spec --> R["렌더 (parity)"]
+    V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
+    R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
+    VL -->|"공유 픽스처 1013"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
+    RL -->|"SSR · 정규화 비교"| G["tests/fixtures/reference-html/*<br/>(Limepie 기준 HTML, 7/7 parity)"]
+```
+
 | 영역 | 패키지 | 비고 |
 |------|--------|------|
 | 검증기 | `validator-js` (`@form-spec/validator`) | TypeScript, 브라우저·Node |
