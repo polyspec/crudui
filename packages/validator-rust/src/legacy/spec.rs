@@ -64,9 +64,23 @@ fn convert_properties(props: &Map<String, Value>) -> Vec<Field> {
 }
 
 /// convert_field converts a single field spec object to a Field.
+///
+/// A `"[]"`-suffix property key (e.g. `"items[]"`) is legacy Legacy shorthand
+/// for a multiple field: the suffix is stripped from the field name (so it
+/// binds to the `"items"` data key) and `multiple` is forced on. Without this
+/// the raw `"items[]"` key never matches the data and validation is silently
+/// skipped (PHP Validator.php and client legacy-client.validate.js parity).
 fn convert_field(name: &str, obj: &Map<String, Value>) -> Field {
+    let array_suffix = name.ends_with("[]");
+    let clean_name = if array_suffix {
+        &name[..name.len() - 2]
+    } else {
+        name
+    };
+
     let mut field = Field {
-        name: name.to_string(),
+        name: clean_name.to_string(),
+        multiple: array_suffix,
         ..Default::default()
     };
 
@@ -96,7 +110,9 @@ fn convert_field(name: &str, obj: &Map<String, Value>) -> Field {
 
     if let Some(mv) = obj.get("multiple") {
         match mv {
-            Value::Bool(b) => field.multiple = *b,
+            // A "[]"-suffix key already forced multiple on; an explicit
+            // multiple key can only widen it, never turn it off.
+            Value::Bool(b) => field.multiple = field.multiple || *b,
             Value::String(s) if s == "only" => field.multiple_only = true,
             _ => {}
         }
