@@ -1,6 +1,6 @@
 /**
  * legacyDisplay — pure ports of the legacy Legacy conditional-display
- * pipeline. The golden fixtures (tests/fixtures/golden-html) are the single
+ * pipeline. The reference fixtures (tests/fixtures/reference-html) are the single
  * source of truth; every rule here is a verbatim port of the PHP code:
  *
  *   - minifyJs                    : \Legacy\minify_js()
@@ -11,7 +11,7 @@
  *   - resolveDisplayTargetParts   : Fields\Group::processSingleTarget +
  *                                   the displayUnique resolution in write()
  *
- * Contract pinned by the goldens (registration.html, LargeForm.html):
+ * Contract pinned by the references (registration.html, LargeForm.html):
  *   - Legacy NEVER removes a condition-failing field from the DOM. The
  *     wrapper keeps an identifying class (<element>_<5-char token>) and is
  *     hidden with style="display: none". Do NOT "optimize" this into
@@ -22,7 +22,7 @@
  *
  * Known deviations (recorded, not silently widened):
  *   - ElementVisibilityManager::setupInitialState appends a 'ready' JS blob;
- *     no golden fixture ever renders it, so it is not produced.
+ *     no reference fixture ever renders it, so it is not produced.
  *   - '*' display_target paths (getFixedPath) and display_targets (eq/lt/gt
  *     pairs) are not used by any fixture spec; both resolve to "no styling"
  *     here instead of crashing.
@@ -60,7 +60,7 @@ function fnv1a(seed: string): number {
  *
  * Format invariant preserved: 5 chars drawn from TOKEN_CHARS, i.e. matches the
  * parity mask `_[a-hj-km-np-z2-9]{5}` (normalize.js rule 4). The token is still
- * masked by parity, so the goldens never see its literal value — only the shape
+ * masked by parity, so the references never see its literal value — only the shape
  * is contractual.
  */
 export function displayTokenForSeed(seed: string): string {
@@ -94,7 +94,7 @@ export function genDisplayToken(): string {
  * Port of \Legacy\minify_js(). Same regex pipeline, with PHP possessive
  * quantifiers relaxed to greedy (no behavior change for non-pathological
  * input). Inline onchange/onclick spec JS MUST pass through this before
- * being emitted — the goldens contain the minified form.
+ * being emitted — the references contain the minified form.
  */
 export function minifyJs(input: string): string {
   if (input.trim() === '') return input;
@@ -419,7 +419,7 @@ export function hasDisplayTargetConditionMaps(fieldSpec: SpecNode): boolean {
  * form-element-wrapper class chain: base, spec.class (trimmed — NOT
  * wrapper_class, which belongs to .input-group-wrapper), element.all_of
  * class, then display_target_condition_class matches. Order is part of the
- * golden contract.
+ * reference contract.
  */
 export function legacyWrapperClassName(
   spec: SpecNode,
@@ -440,7 +440,7 @@ export function legacyWrapperClassName(
  * from the DOM, so invisibility renders as display:none here.
  *
  * Same-property duplicates collapse last-wins (React style object); PHP
- * would emit both declarations. No golden fixture produces a conflict.
+ * would emit both declarations. No reference fixture produces a conflict.
  */
 export function legacyWrapperStyle(
   spec: SpecNode,

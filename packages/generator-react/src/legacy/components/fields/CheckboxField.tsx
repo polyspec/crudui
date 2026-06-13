@@ -3,7 +3,7 @@
  *
  * Single checkbox for boolean values.
  *
- * Legacy PHP golden structure (Fields/Checkbox.php):
+ * Legacy PHP reference structure (Fields/Checkbox.php):
  *   <div>
  *     <input type="checkbox" class="valid-target" name=".." data-name=".."
  *            data-rule-name=".." value="1" [checked] [style] />

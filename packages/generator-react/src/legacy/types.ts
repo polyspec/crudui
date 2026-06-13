@@ -260,7 +260,7 @@ export interface FieldComponentProps {
    * Multiple-row buttons injected at the legacy `<!--btn-->` slot — the LAST
    * child of the field's .input-group (after append). Only set for
    * multiple: true leaf rows. Field components MUST render it there;
-   * rendering it outside .input-group breaks golden parity.
+   * rendering it outside .input-group breaks reference parity.
    */
   buttons?: ReactNode;
   /**

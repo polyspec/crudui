@@ -1,7 +1,7 @@
 /**
  * TinymceField Component
  *
- * Legacy PHP golden structure (Fields/Tinymce.php) — a textarea plus the
+ * Legacy PHP reference structure (Fields/Tinymce.php) — a textarea plus the
  * legacy bootstrap <script>:
  *
  *   <textarea id="tinymce{uniqid}" class="valid-target form-control tinymcearea"
@@ -11,7 +11,7 @@
  *   <script nonce="">$(function() {editor_tinymce('#tinymce{uniqid}', {height},
  *           '{fileserver}', {readonly});});</script>
  *
- * The nonce is the legacy CSP session nonce — the golden baseline renders it
+ * The nonce is the legacy CSP session nonce — the reference baseline renders it
  * empty (tools/legacy-baseline/render.php pins $_SESSION['nonce'] = '').
  * Actual TinyMCE integration belongs to the host page JS (editor_tinymce),
  * exactly like the legacy runtime.

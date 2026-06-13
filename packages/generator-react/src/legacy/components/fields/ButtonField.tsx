@@ -2,7 +2,7 @@
  * ButtonField Component
  *
  * Verbatim port of the legacy Legacy Generator\Fields\Button::write()
- * (single source of truth = tests/fixtures/golden-html, e.g. LargeForm
+ * (single source of truth = tests/fixtures/reference-html, e.g. LargeForm
  * option.button "조합"):
  *
  *   <script nonce="">

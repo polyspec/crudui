@@ -147,7 +147,7 @@ export interface FieldComponentProps {
 export interface FormBuilderProps {
   /** Form spec — a YAML string or an already-parsed, order-preserving object. */
   spec: string | Spec;
-  /** Initial form data bound to the fields (golden renders use empty data). */
+  /** Initial form data bound to the fields (reference renders use empty data). */
   data?: FormData;
   /** UI language for label/message resolution (defaults to `ko`). */
   language?: Language;
@@ -161,14 +161,14 @@ export interface FormBuilderProps {
 
 /**
  * The plain (non-reactive) render context threaded through provide/inject —
- * golden fixtures are empty-data static renders, so no live form state.
+ * reference fixtures are empty-data static renders, so no live form state.
  */
 export interface RenderContext {
   /** Render spec after legacy lang/display-switch transforms are applied. */
   spec: Spec;
   /** The bound form data (read-only during render). */
   data: FormData;
-  /** Validation errors keyed by field path (empty for golden renders). */
+  /** Validation errors keyed by field path (empty for reference renders). */
   errors: FormErrors;
   /** Read a field value out of {@link RenderContext.data} by dot path. */
   getValue: (path: string) => FormValue;

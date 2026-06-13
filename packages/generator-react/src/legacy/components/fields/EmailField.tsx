@@ -3,7 +3,7 @@
  *
  * Email input field.
  *
- * Legacy PHP golden structure (Fields/Email.php):
+ * Legacy PHP reference structure (Fields/Email.php):
  *   <div class="input-group">
  *     [<span class="input-group-text">{prepend}</span>]
  *     <input type="email" class="valid-target form-control{element_class}"

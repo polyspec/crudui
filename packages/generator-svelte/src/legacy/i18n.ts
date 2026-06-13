@@ -1,5 +1,5 @@
 /**
- * Translation helper — port of generator-react I18nContext `t`. The golden
+ * Translation helper — port of generator-react I18nContext `t`. The reference
  * fixtures render with language "ko"; default validation-message keys are
  * resolved exactly like the React I18n provider (only the message keys the
  * fixtures could reference are kept).

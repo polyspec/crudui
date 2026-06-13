@@ -1,13 +1,13 @@
 /**
- * parity.test.mjs — Vue SSR output vs Legacy PHP golden-html fixtures.
+ * parity.test.mjs — Vue SSR output vs Legacy PHP reference-html fixtures.
  *
- * Reuses the read-only golden fixtures and tests/parity/normalize.js (the
+ * Reuses the read-only reference fixtures and tests/parity/normalize.js (the
  * same normalization generator-react's harness uses). Do NOT weaken fixtures
  * or normalization to force GREEN — fix the Vue generator.
  *
  * Artifacts per fixture (inspect after a run):
  *   out/<name>.vue.html        raw Vue SSR capture (form content)
- *   out/<name>.golden.norm.txt normalized golden
+ *   out/<name>.reference.norm.txt normalized reference
  *   out/<name>.vue.norm.txt    normalized Vue
  */
 
@@ -20,7 +20,7 @@ import { analyzeForm, compareAnalyses, formatReport } from '../../../tests/parit
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../..');
-const GOLDEN_DIR = path.join(ROOT, 'tests/fixtures/golden-html');
+const REFERENCE_DIR = path.join(ROOT, 'tests/fixtures/reference-html');
 const OUT_DIR = path.join(HERE, 'out');
 
 const CASES = [
@@ -35,21 +35,21 @@ const CASES = [
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-describe('Vue SSR <-> Legacy PHP golden parity', () => {
+describe('Vue SSR <-> Legacy PHP reference parity', () => {
   for (const c of CASES) {
     it(`parity: ${c.name}`, async () => {
-      const goldenPath = path.join(GOLDEN_DIR, `${c.name}.html`);
+      const referencePath = path.join(REFERENCE_DIR, `${c.name}.html`);
       const specPath = path.join(ROOT, c.spec);
-      const goldenHtml = fs.readFileSync(goldenPath, 'utf8');
+      const referenceHtml = fs.readFileSync(referencePath, 'utf8');
 
       const rendered = await renderSpec(specPath, {}, { language: 'ko' });
 
-      const golden = analyzeForm(goldenHtml);
+      const reference = analyzeForm(referenceHtml);
       const vue = analyzeForm(rendered.html);
-      const report = compareAnalyses(golden, vue);
+      const report = compareAnalyses(reference, vue);
 
       fs.writeFileSync(path.join(OUT_DIR, `${c.name}.vue.html`), rendered.html);
-      fs.writeFileSync(path.join(OUT_DIR, `${c.name}.golden.norm.txt`), golden.canonical);
+      fs.writeFileSync(path.join(OUT_DIR, `${c.name}.reference.norm.txt`), reference.canonical);
       fs.writeFileSync(path.join(OUT_DIR, `${c.name}.vue.norm.txt`), vue.canonical);
 
       console.log(formatReport(c.name, report));

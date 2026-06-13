@@ -35,7 +35,7 @@ export const FormBuilder = defineComponent({
       /** Spec is mandatory; there is nothing to render without it. */
       required: true,
     },
-    /** Initial form data bound to the fields (golden renders use empty data). */
+    /** Initial form data bound to the fields (reference renders use empty data). */
     data: {
       /** Plain object data bag. */
       type: Object as PropType<FormData>,

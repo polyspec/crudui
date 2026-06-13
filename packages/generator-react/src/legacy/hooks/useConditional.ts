@@ -75,7 +75,7 @@ export function useConditional({ path: _path }: UseConditionalOptions): UseCondi
 
       // Check display_target condition — truthy-target semantics apply only
       // WITHOUT legacy condition maps; with maps, presentation is owned by
-      // resolveDisplayTargetParts (golden: wrapper stays in the DOM)
+      // resolveDisplayTargetParts (reference: wrapper stays in the DOM)
       if (
         fieldSpec.display_target &&
         !hasDisplayTargetConditionMaps(fieldSpec as Record<string, unknown>)

@@ -2,7 +2,7 @@
  * formTree — the field dispatcher + group renderer (ports of generator-react
  * FormField.tsx and FormGroup.tsx).
  *
- * Golden markup contract (legacy Legacy Group::write):
+ * Reference markup contract (legacy Legacy Group::write):
  *   <div class="form-element-wrapper[ class][ cond]" style=".." name="<dot>-layer">
  *     <h6 class="[label_class]">label</h6>
  *     [<p class="description">nl2br(description)</p>]

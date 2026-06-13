@@ -6,7 +6,7 @@
  * AFTER the original key. `lang: <non-append>` REPLACES the key with the
  * `<key>_langs` group.
  *
- * Contract pinned by the golden (LargeForm.html) — see generator-react
+ * Contract pinned by the reference (LargeForm.html) — see generator-react
  * legacyLang.ts header for the detailed cases.
  */
 

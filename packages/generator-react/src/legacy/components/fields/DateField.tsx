@@ -3,7 +3,7 @@
  *
  * Date input field.
  *
- * Legacy PHP golden structure (Fields/Date.php):
+ * Legacy PHP reference structure (Fields/Date.php):
  *   <div class="input-group">
  *     [<span class="input-group-text">{prepend}</span>]
  *     <input type="date" class="valid-target form-control" name=".."

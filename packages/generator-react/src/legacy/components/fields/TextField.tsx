@@ -3,7 +3,7 @@
  *
  * Basic text input field.
  *
- * Legacy PHP golden structure (Fields/Text.php):
+ * Legacy PHP reference structure (Fields/Text.php):
  *   <div class="input-group">
  *     [<span class="input-group-text{prepend_class}">{prepend}</span>]
  *     <input type="text" class="valid-target form-control{element_class}"
@@ -71,7 +71,7 @@ export function TextField({
   // Legacy-raw branch: dynamic_onchange rows need an onclick ATTRIBUTE on
   // every row button (Fields::addElement). React rejects string on* props
   // and the buttons are direct .input-group children (no wrapper allowed by
-  // the golden contract), so the whole row renders raw. Row actions stay
+  // the reference contract), so the whole row renders raw. Row actions stay
   // interactive through delegated clicks on the container; the input itself
   // is legacy jQuery surface (same stance as ChoiceField's raw branch).
   if (

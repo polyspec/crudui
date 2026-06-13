@@ -3,7 +3,7 @@
  *
  * Radio button group for single selection.
  *
- * Legacy PHP golden structure (Fields/Choice.php):
+ * Legacy PHP reference structure (Fields/Choice.php):
  *   <div class="btn-group btn-group-toggle{readonly}{button_class}" data-toggle="buttons">
  *     <input id="choice-{clean_key}-{token5}-{n}" class="valid-target btn-check{input_class}"
  *            type="radio" name=".." autocomplete="off" data-name=".."
@@ -14,7 +14,7 @@
  *     ...
  *   </div>
  *
- * Notes pinned by the golden fixtures:
+ * Notes pinned by the reference fixtures:
  *   - every input carries data-name / data-rule-name / autocomplete="off"
  *   - NO data-default attribute; data-is-default is "1" on the default item
  *     and "" elsewhere (PHP bool interpolation)
@@ -142,7 +142,7 @@ export function ChoiceField({
   // display_switch transform). PHP Choice.php puts the minified JS on every
   // input; React refuses lowercase on* string props, so this branch renders
   // the legacy markup raw via dangerouslySetInnerHTML. These inputs are not
-  // React-controlled — inline-JS specs are legacy jQuery forms (golden
+  // React-controlled — inline-JS specs are legacy jQuery forms (reference
   // parity surface), not interactive React forms.
   const inlineOnchange =
     typeof spec.onchange === 'string' && spec.onchange ? minifyJs(spec.onchange) : null;

@@ -8,7 +8,7 @@
  *  - empty data renders ONE blank placeholder row whose key is a fresh
  *    uniqid (PHP `[$parentId => null]`).
  *
- * No interactive add/remove/move is needed for golden parity (empty-data
+ * No interactive add/remove/move is needed for reference parity (empty-data
  * fixtures); the React snapshot/commit machinery is intentionally omitted.
  */
 

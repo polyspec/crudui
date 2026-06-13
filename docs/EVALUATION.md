@@ -13,7 +13,7 @@
 > - **벤치마크 존재** — `packages/validator-js/benchmarks/`
 >   (parsing.bench.ts, validation.bench.ts).
 > - **기준 HTML 파이프라인 구축** — legacy Legacy 출력(기준 HTML 7종,
->   `tests/fixtures/golden-html/`)을 단일진실로 하는 재생성 파이프라인
+>   `tests/fixtures/reference-html/`)을 단일진실로 하는 재생성 파이프라인
 >   (`tools/legacy-baseline/`)과 SSR 비교 하네스. React 는 `tests/parity/`,
 >   Vue/Svelte 는 각 패키지 `packages/<pkg>/test/parity.test.mjs`. 세 프레임워크
 >   generator 모두 기준 HTML 7종에 7/7 parity GREEN (필드 50/50 + chrome, canonical 일치).

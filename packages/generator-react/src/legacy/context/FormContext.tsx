@@ -225,7 +225,7 @@ export function FormContextProvider({
 
       // Check display_target condition. Truthy-target semantics apply only
       // WITHOUT legacy condition maps — with maps, the wrapper stays in the
-      // DOM and resolveDisplayTargetParts owns its style/class (golden:
+      // DOM and resolveDisplayTargetParts owns its style/class (reference:
       // LargeForm option groups render hidden, never removed).
       if (
         fieldSpec.display_target &&

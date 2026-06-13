@@ -1,7 +1,7 @@
 /**
  * ImageField Component
  *
- * Legacy PHP golden structure (Fields/Image.php) — a legacy file
+ * Legacy PHP reference structure (Fields/Image.php) — a legacy file
  * input-group, NOT a styled preview widget:
  *
  *   <div class="input-group">

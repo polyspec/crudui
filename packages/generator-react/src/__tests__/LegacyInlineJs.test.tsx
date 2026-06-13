@@ -1,8 +1,8 @@
 /**
  * Legacy inline-JS / conditional-presentation markup tests.
  *
- * Single source of truth = tests/fixtures/golden-html (LargeForm.html).
- * These pin the legacy-raw branches added for golden parity:
+ * Single source of truth = tests/fixtures/reference-html (LargeForm.html).
+ * These pin the legacy-raw branches added for reference parity:
  *   - DummyField  : Generator\Fields\Dummy::write() one-div markup
  *   - SelectField : spec-authored onchange (minify_js + ';') raw branch
  *   - ButtonField : Generator\Fields\Button::write() script/hidden/button
@@ -10,7 +10,7 @@
  *     on multiple group rows AND multiple leaf rows, with click delegation
  *     keeping add/remove interactive.
  *
- * Do NOT weaken these toward idiomatic React markup — the golden fixtures
+ * Do NOT weaken these toward idiomatic React markup — the reference fixtures
  * pin the legacy shapes.
  */
 
@@ -166,7 +166,7 @@ describe('ButtonField legacy markup', () => {
 
 describe('dynamic_onchange row buttons (legacy onclick attribute)', () => {
   // Harmless inline JS — jsdom executes onclick attributes on click, so the
-  // fixture JS must run cleanly. The golden value shape (raw spec string
+  // fixture JS must run cleanly. The reference value shape (raw spec string
   // with trailing newline, jQuery selector escapes intact) is pinned by the
   // parity suite (LargeForm option groups).
   const DYN_JS = 'window.__dynPing = (window.__dynPing || 0) + 1;\n';

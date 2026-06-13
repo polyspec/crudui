@@ -305,7 +305,7 @@ describe('FormField Component', () => {
 
       render(<FormBuilder spec={spec} language="en" />);
 
-      // Golden (Legacy Checkbox.php): <div><input class="valid-target"
+      // Reference (Legacy Checkbox.php): <div><input class="valid-target"
       // type="checkbox" value="1"/> <span>{label}</span></div>
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toBeInTheDocument();
@@ -601,7 +601,7 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Golden contract (legacy Legacy): a condition-failing field is NEVER
+    // Reference contract (legacy Legacy): a condition-failing field is NEVER
     // removed from the DOM — its form-element-wrapper is hidden with
     // style="display: none".
     expect(container.querySelector('[name="phone"]')).toBeInTheDocument();
@@ -633,7 +633,7 @@ describe('FormField Conditional Display', () => {
     const checkbox = screen.getByRole('checkbox');
     await userEvent.click(checkbox);
 
-    // Phone field wrapper should no longer be hidden (golden: visibility is
+    // Phone field wrapper should no longer be hidden (reference: visibility is
     // wrapper display:none, the field always stays in the DOM)
     await waitFor(() => {
       const wrapper = container.querySelector('[name="phone-layer"]') as HTMLElement;
@@ -661,8 +661,8 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Hidden initially — kept in the DOM with wrapper display:none (golden
-    // contract; DOM removal is the old pre-golden behavior)
+    // Hidden initially — kept in the DOM with wrapper display:none (reference
+    // contract; DOM removal is the old pre-reference behavior)
     expect(container.querySelector('[name="moreOptions"]')).toBeInTheDocument();
     const wrapper = container.querySelector('[name="moreOptions-layer"]') as HTMLElement;
     expect(wrapper.style.display).toBe('none');
@@ -705,7 +705,7 @@ describe('FormField Conditional Display', () => {
 
     const { container } = render(<FormBuilder spec={spec} language="en" />);
 
-    // Golden contract: both fields stay in the DOM; visibility toggles via
+    // Reference contract: both fields stay in the DOM; visibility toggles via
     // wrapper style="display: none", never DOM removal.
     const emailWrapper = container.querySelector('[name="email-layer"]') as HTMLElement;
     const phoneWrapper = container.querySelector('[name="phone-layer"]') as HTMLElement;

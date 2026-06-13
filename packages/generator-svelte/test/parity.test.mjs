@@ -1,13 +1,13 @@
 /**
- * parity.test.mjs — Svelte SSR output vs Legacy PHP golden-html fixtures.
+ * parity.test.mjs — Svelte SSR output vs Legacy PHP reference-html fixtures.
  *
- * The goldens (tests/fixtures/golden-html) and the normalization
+ * The references (tests/fixtures/reference-html) and the normalization
  * (tests/parity/normalize.js) are READ-ONLY single truth — the Svelte
  * generator is fixed to match them, never the reverse.
  *
  * Artifacts per fixture (inspect after a run):
  *   out/<name>.svelte.html        raw Svelte SSR capture (form content)
- *   out/<name>.golden.norm.txt    normalized golden
+ *   out/<name>.reference.norm.txt    normalized reference
  *   out/<name>.svelte.norm.txt    normalized Svelte
  */
 
@@ -20,7 +20,7 @@ import { analyzeForm, compareAnalyses, formatReport } from '../../../tests/parit
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../..');
-const GOLDEN_DIR = path.join(ROOT, 'tests/fixtures/golden-html');
+const REFERENCE_DIR = path.join(ROOT, 'tests/fixtures/reference-html');
 const OUT_DIR = path.join(HERE, '..', 'out');
 
 const CASES = [
@@ -35,21 +35,21 @@ const CASES = [
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-describe('Svelte SSR <-> Legacy PHP golden parity', () => {
+describe('Svelte SSR <-> Legacy PHP reference parity', () => {
   for (const c of CASES) {
     it(`parity: ${c.name}`, () => {
-      const goldenPath = path.join(GOLDEN_DIR, `${c.name}.html`);
+      const referencePath = path.join(REFERENCE_DIR, `${c.name}.html`);
       const specPath = path.join(ROOT, c.spec);
-      const goldenHtml = fs.readFileSync(goldenPath, 'utf8');
+      const referenceHtml = fs.readFileSync(referencePath, 'utf8');
 
       const rendered = renderSpec(specPath, {}, { language: 'ko' });
 
-      const golden = analyzeForm(goldenHtml);
+      const reference = analyzeForm(referenceHtml);
       const svelte = analyzeForm(rendered.html);
-      const report = compareAnalyses(golden, svelte);
+      const report = compareAnalyses(reference, svelte);
 
       fs.writeFileSync(path.join(OUT_DIR, `${c.name}.svelte.html`), rendered.html);
-      fs.writeFileSync(path.join(OUT_DIR, `${c.name}.golden.norm.txt`), golden.canonical);
+      fs.writeFileSync(path.join(OUT_DIR, `${c.name}.reference.norm.txt`), reference.canonical);
       fs.writeFileSync(path.join(OUT_DIR, `${c.name}.svelte.norm.txt`), svelte.canonical);
 
       console.log(formatReport(c.name, report));

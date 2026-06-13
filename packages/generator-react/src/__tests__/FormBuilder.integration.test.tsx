@@ -903,7 +903,7 @@ describe('Nested Group Validation', () => {
 // ============================================================================
 // Test Suite: Array Field (Multiple) Validation
 //
-// Golden Legacy convention: an empty multiple group renders ONE blank
+// Reference Legacy convention: an empty multiple group renders ONE blank
 // placeholder row; every row carries .btn-plus/.btn-minus buttons that stay
 // rendered at min/max (clicks become no-ops).
 // ============================================================================
@@ -1011,7 +1011,7 @@ describe('Array Field (Multiple) Validation', () => {
       expect(container.querySelectorAll('[data-name="name"]')).toHaveLength(2);
     });
 
-    // At max, another click is a no-op (buttons stay rendered, golden style)
+    // At max, another click is a no-op (buttons stay rendered, reference style)
     await user.click(container.querySelector('.btn-plus') as HTMLElement);
     await waitFor(() => {
       expect(container.querySelectorAll('[data-name="name"]')).toHaveLength(2);
@@ -1367,7 +1367,7 @@ describe('Language Support (I18n)', () => {
 
     render(<FormBuilder spec={spec} />);
 
-    // Golden footer (Legacy Generator::write()): the submit control is
+    // Reference footer (Legacy Generator::write()): the submit control is
     // <input type="submit" value="저장" class="btn btn-primary"/> — the
     // default label is hardcoded in PHP and NOT localized.
     expect(screen.getByRole('button')).toBeInTheDocument();
@@ -1384,7 +1384,7 @@ describe('Language Support (I18n)', () => {
 
     render(<FormBuilder spec={spec} language="en" />);
 
-    // Golden contract: PHP does not localize the footer defaults
+    // Reference contract: PHP does not localize the footer defaults
     expect(screen.getByRole('button')).toBeInTheDocument();
     expect(screen.getByRole('button')).toHaveAttribute('value', '저장');
   });

@@ -3,7 +3,7 @@
  *
  * Date and time input field.
  *
- * Legacy PHP golden structure (Fields/Datetime.php) — a BARE input, no
+ * Legacy PHP reference structure (Fields/Datetime.php) — a BARE input, no
  * input-group wrapper:
  *   <input type="datetime-local" class="valid-target form-control" name=".."
  *          data-name=".." data-rule-name=".." value=".." data-default=".."
@@ -14,7 +14,7 @@
  * spec.event ({type: [onchange|onload], function}) and string spec.onchange
  * emit inline onchange="" / data-onload="" attributes (minified JS, PHP
  * str_replace('"','\"') applied first). React rejects string on* props and
- * the golden input sits DIRECTLY inside .input-group-wrapper, so FormField
+ * the reference input sits DIRECTLY inside .input-group-wrapper, so FormField
  * renders datetimeLegacyRawHtml() on the wrapper for those specs — the
  * input is legacy jQuery surface there (same stance as ChoiceField's raw
  * branch).

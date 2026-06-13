@@ -3,7 +3,7 @@
  *
  * Always-readonly display input ("dummy-input" type).
  *
- * Legacy PHP golden structure (Fields/DummyInput.php), verified via
+ * Legacy PHP reference structure (Fields/DummyInput.php), verified via
  * tools/legacy-baseline/render.php:
  *   <div class="input-group">
  *     [<span class="input-group-text">{prepend}</span>]

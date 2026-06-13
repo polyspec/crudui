@@ -3,11 +3,11 @@
 Svelte form builder for [form-spec](../../README.md) YAML definitions. Renders
 the same Legacy-compatible markup as
 [`@form-spec/generator-react`](../generator-react) and is verified byte-for-byte
-against the shared golden HTML fixtures.
+against the shared reference HTML fixtures.
 
 ## Status
 
-Implemented. Golden parity: 7/7 fixtures, 50/50 fields, chrome match (see
+Implemented. Reference parity: 7/7 fixtures, 50/50 fields, chrome match (see
 `test/parity.test.mjs`).
 
 ## Usage
@@ -61,5 +61,5 @@ npm run build
 npx vitest run
 ```
 
-Parity is checked against `tests/fixtures/golden-html/*` using the shared
+Parity is checked against `tests/fixtures/reference-html/*` using the shared
 read-only normalizer at `tests/parity/normalize.js`.

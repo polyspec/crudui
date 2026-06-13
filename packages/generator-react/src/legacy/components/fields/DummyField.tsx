@@ -3,11 +3,11 @@
  *
  * Non-input display element — verbatim port of the legacy Legacy
  * Generator\Fields\Dummy::write() (single source of truth =
- * tests/fixtures/golden-html, e.g. LargeForm option_* title rows):
+ * tests/fixtures/reference-html, e.g. LargeForm option_* title rows):
  *
  *   <div class="{element_class}" style="{element_style}">{value}</div>
  *
- * Value resolution pinned by the golden contract:
+ * Value resolution pinned by the reference contract:
  *   - the group walker substitutes a truthy spec default when data is null
  *     (Group.php: `null === $currentData && $currentSpec['default']`)
  *   - `items[value] ?? value` lookup when an items map exists

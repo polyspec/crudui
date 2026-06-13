@@ -1,13 +1,13 @@
 /**
  * legacyDisplay — pure ports of the legacy Legacy conditional-display
- * pipeline (framework-independent port of generator-react). The golden
+ * pipeline (framework-independent port of generator-react). The reference
  * fixtures are the single source of truth; every rule is a verbatim port of
  * the PHP code:
  *   - minifyJs                    : \Legacy\minify_js()
  *   - applyDisplaySwitchTransform : Form\Parser\ElementVisibilityManager
  *   - resolveDisplayTargetParts   : Fields\Group::processSingleTarget
  *
- * Contract pinned by the goldens (registration.html, LargeForm.html):
+ * Contract pinned by the references (registration.html, LargeForm.html):
  *   - Legacy NEVER removes a condition-failing field from the DOM (kept with
  *     an identifying class and style="display: none").
  *   - display_switch condition EXPRESSIONS (string form) are evaluated by the
