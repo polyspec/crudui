@@ -12,11 +12,11 @@
 >   '구현 없음' 서술은 더 이상 사실이 아니다.
 > - **벤치마크 존재** — `packages/validator-js/benchmarks/`
 >   (parsing.bench.ts, validation.bench.ts).
-> - **골든 HTML 파이프라인 구축** — legacy Legacy 출력(골든 7종,
+> - **기준 HTML 파이프라인 구축** — legacy Legacy 출력(기준 HTML 7종,
 >   `tests/fixtures/golden-html/`)을 단일진실로 하는 재생성 파이프라인
 >   (`tools/legacy-baseline/`)과 SSR 비교 하네스. React 는 `tests/parity/`,
 >   Vue/Svelte 는 각 패키지 `packages/<pkg>/test/parity.test.mjs`. 세 프레임워크
->   generator 모두 골든 7종에 7/7 parity GREEN (필드 50/50 + chrome, canonical 일치).
+>   generator 모두 기준 HTML 7종에 7/7 parity GREEN (필드 50/50 + chrome, canonical 일치).
 > - 빌트인 규칙 수는 **24개 등록명(23개 구현 + pattern/match 별칭)** 이다
 >   (`packages/validator-js/src/rules/index.ts`) — 본문 '25+' 표기는 과거 수치.
 
@@ -64,12 +64,12 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 | validator-php | 완성 (PHP ^8.2) |
 | validator-go | 완성 |
 | validator-rust (formspec-validator) | 완성 |
-| @form-spec/generator-react | 완성 — 골든 7/7 parity (353 테스트) |
-| @form-spec/generator-vue | 완성 — 골든 7/7 parity (@vue/server-renderer SSR) |
-| @form-spec/generator-svelte | 완성 — 골든 7/7 parity (Svelte 5 SSR) |
+| @form-spec/generator-react | 완성 — 기준 HTML 7/7 parity (353 테스트) |
+| @form-spec/generator-vue | 완성 — 기준 HTML 7/7 parity (@vue/server-renderer SSR) |
+| @form-spec/generator-svelte | 완성 — 기준 HTML 7/7 parity (Svelte 5 SSR) |
 
 검증기는 4개 언어(JS/PHP/Go/Rust) 모두 완성됐다. 렌더러는 React/Vue/Svelte 3개
-프레임워크 generator 가 전부 실제 구현이며, 동일 Legacy 골든 HTML 7종에 각각
+프레임워크 generator 가 전부 실제 구현이며, 동일 Legacy 기준 HTML 7종에 각각
 7/7 parity GREEN(필드 50/50 + chrome, canonical 일치)이다. 세 generator 는
 프레임워크 무관 PHP-cast 헬퍼 `src/legacyParity.ts` 를 공유 패턴으로 쓴다.
 부족한 것은 생태계 성숙도(미발행·외부 사용자 부재)이지 렌더러 커버리지가 아니다.
@@ -109,7 +109,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 
 ### 중기 (Medium Priority)
 1. ~~추가 렌더러(Vue/Svelte)~~ (완료 — `generator-vue`/`generator-svelte`,
-   각 골든 7/7 parity)
+   각 기준 HTML 7/7 parity)
 2. ~~조건식 캐싱 구현~~ (완료 — `ConditionCache.ts`)
 3. 성능 최적화
 

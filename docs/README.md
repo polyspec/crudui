@@ -24,7 +24,7 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 
 | 문서 | 내용 |
 |------|------|
-| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교, 브리지 4종, HTML parity, 골든 재생성) |
+| [TESTING.md](./TESTING.md) | 테스트 게이트 체계와 실행 방법 (크로스 언어 비교, 브리지 4종, HTML parity, 기준 재생성) |
 | [TEST-CASES.md](./TEST-CASES.md) | 크로스 언어 케이스 형식과 19개 파일 현황 (1013 케이스) |
 | [EVALUATION.md](./EVALUATION.md) | 프로젝트 평가 보고서 (현황 업데이트 포함) |
 
@@ -36,7 +36,7 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 | [FORM-OUTPUT-COMPARISON.md](./FORM-OUTPUT-COMPARISON.md) | Legacy PHP ↔ React HTML 출력 비교 (착수 시점 분석, 상태 표시 갱신됨). 현재 출력 일치는 `tests/parity` 가 기준 |
 
 게이트 외부 문서: `tests/parity/README.md` (HTML parity 하네스 규칙),
-`tools/legacy-baseline/README.md` (골든 픽스처 파이프라인·핀),
+`tools/legacy-baseline/README.md` (기준 픽스처 파이프라인·핀),
 `examples/README.md` (예제 서비스와 백엔드 API 계약).
 
 ## 저장소 구성
@@ -48,13 +48,13 @@ form-spec/
 │   ├── validator-php/       # PHP 검증기 (PHP ^8.2, FormSpec\Validator)
 │   ├── validator-go/        # Go 검증기 (모듈명 github.com/polyspec/crudui/packages/validator-go)
 │   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator)
-│   ├── generator-react/     # React 폼 생성기 (@form-spec/generator-react) — 골든 7/7 parity
-│   ├── generator-vue/       # Vue 3 폼 생성기 (@form-spec/generator-vue, @vue/server-renderer SSR) — 골든 7/7 parity
-│   ├── generator-svelte/    # Svelte 5 폼 생성기 (@form-spec/generator-svelte, SSR) — 골든 7/7 parity
-│   └── generator-legacy/    # legacy Legacy vendor 체크아웃 + web assets — 골든 HTML 파이프라인이 사용하는 기준 구현
-├── tests/                   # 크로스 언어 픽스처(cases/), 골든 HTML(fixtures/), 러너(runner/), parity 하네스(parity/)
+│   ├── generator-react/     # React 폼 생성기 (@form-spec/generator-react) — 기준 HTML 7/7 parity
+│   ├── generator-vue/       # Vue 3 폼 생성기 (@form-spec/generator-vue, @vue/server-renderer SSR) — 기준 HTML 7/7 parity
+│   ├── generator-svelte/    # Svelte 5 폼 생성기 (@form-spec/generator-svelte, SSR) — 기준 HTML 7/7 parity
+│   └── generator-legacy/    # legacy Legacy vendor 체크아웃 + web assets — 기준 HTML 파이프라인이 사용하는 기준 구현
+├── tests/                   # 크로스 언어 픽스처(cases/), 기준 HTML(fixtures/), 러너(runner/), parity 하네스(parity/)
 ├── tools/
-│   └── legacy-baseline/    # Legacy 골든 HTML 재생성 파이프라인 (핀 커밋 강제)
+│   └── legacy-baseline/    # Legacy 기준 HTML 재생성 파이프라인 (핀 커밋 강제)
 └── examples/                # demo-app, node/php/go/rust API 서버, playground 등 (docker-compose)
 ```
 
@@ -134,12 +134,12 @@ POST /api/validate   body: {"spec": ..., "data": ...}
 
 ```bash
 cd tests && npm test          # 크로스 언어 비교 (JS+PHP+Go+Rust, 1013 케이스)
-cd tests/parity && npm test   # React SSR ↔ Legacy 골든 HTML parity (7/7)
-cd packages/generator-vue    && npm test  # Vue SSR ↔ 골든 parity (7/7)
-cd packages/generator-svelte && npm test  # Svelte SSR ↔ 골든 parity (7/7)
+cd tests/parity && npm test   # React SSR ↔ Legacy 기준 HTML parity (7/7)
+cd packages/generator-vue    && npm test  # Vue SSR ↔ 기준 parity (7/7)
+cd packages/generator-svelte && npm test  # Svelte SSR ↔ 기준 parity (7/7)
 ```
 
-전체 게이트 목록·언어별 브리지·골든 재생성 절차는 [TESTING.md](./TESTING.md).
+전체 게이트 목록·언어별 브리지·기준 재생성 절차는 [TESTING.md](./TESTING.md).
 
 ## 라이선스
 
