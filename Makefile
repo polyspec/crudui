@@ -11,7 +11,12 @@
 export PATH := $(HOME)/.cargo/bin:$(PATH)
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent
+.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust
+
+# Validator benchmark iteration counts (override on the command line, e.g.
+# `make bench BENCH_ITERS=100000`).
+BENCH_ITERS  ?= 50000
+BENCH_WARMUP ?= 5000
 
 help: ## 타겟 설명
 	@echo "Form-Spec docs — make targets:"
@@ -27,6 +32,17 @@ help: ## 타겟 설명
 	@echo "  make docs-check-libs       라이브러리 packages/* 만 검사"
 	@echo "  make docs-check-servers    examples 서버 4종만 검사 (node/go/php/rust)"
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
+	@echo ""
+	@echo "Form-Spec validator benchmark — make targets:"
+	@echo ""
+	@echo "  make bench                 4언어(JS/PHP/Go/Rust) 처리량 비교 (ops/sec + avg µs 표 → tools/bench/results.md)"
+	@echo "  make bench-js              JS 검증기만 측정"
+	@echo "  make bench-php             PHP 검증기만 측정"
+	@echo "  make bench-go              Go 검증기만 측정"
+	@echo "  make bench-rust            Rust 검증기만 측정"
+	@echo "  make bench-fixtures        벤치 스펙+입력 fixture JSON 재생성"
+	@echo "  (반복수 조절: make bench BENCH_ITERS=100000 BENCH_WARMUP=10000)"
+	@echo "  주의: 절대시간은 머신 의존 — 같은 스펙 안에서 백엔드 간 비율만 비교하라."
 	@echo ""
 
 docs: docs-clean docs-api docs-schema docs-site ## 전체 문서 생성 (clean-then-generate)
@@ -89,3 +105,31 @@ docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 		cat /tmp/formspec-docs-diff.txt; \
 		exit 1; \
 	fi
+
+# ----------------------------------------------------------------------------
+# Validator throughput benchmark (tools/bench).
+#
+# Runs the four validators (JS/PHP/Go/Rust) over the same spec+input N times
+# in-process and prints an ops/sec + avg-µs table, also written to
+# tools/bench/results.md. Absolute times are machine-dependent — compare
+# backends RELATIVELY within one spec. See tools/bench/README.md for the
+# fairness method (startup excluded, same workload enforced, agreement gate).
+# ----------------------------------------------------------------------------
+
+bench-fixtures: ## 벤치 fixture JSON 재생성 (YAML 스펙 → spec/input JSON)
+	node tools/bench/gen-fixtures.js
+
+bench: bench-fixtures ## 4언어 검증기 처리량 비교
+	node tools/bench/run.js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+
+bench-js: bench-fixtures ## JS 검증기만 측정
+	node tools/bench/run.js --only js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+
+bench-php: bench-fixtures ## PHP 검증기만 측정
+	node tools/bench/run.js --only php --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+
+bench-go: bench-fixtures ## Go 검증기만 측정
+	node tools/bench/run.js --only go --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+
+bench-rust: bench-fixtures ## Rust 검증기만 측정
+	node tools/bench/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
