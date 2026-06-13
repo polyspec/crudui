@@ -2,8 +2,8 @@
  * limepieParity — field-level helpers that reproduce Limepie PHP
  * Generator\Fields output semantics exactly.
  *
- * Framework-independent port (adapted from generator-react). The golden
- * fixtures (tests/fixtures/golden-html) are the single source of truth. Do
+ * Framework-independent port (adapted from generator-react). The reference
+ * fixtures (tests/fixtures/reference-html) are the single source of truth. Do
  * NOT "improve" these helpers toward idiomatic Vue/HTML — every rule is a
  * verbatim port of the PHP implementation.
  */

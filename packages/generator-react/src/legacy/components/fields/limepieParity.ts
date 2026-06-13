@@ -2,7 +2,7 @@
  * limepieParity — field-level helpers that reproduce Limepie PHP
  * Generator\Fields output semantics exactly.
  *
- * The golden fixtures (tests/fixtures/golden-html) are the single source of
+ * The reference fixtures (tests/fixtures/reference-html) are the single source of
  * truth. Do NOT "improve" these helpers toward idiomatic React/HTML — every
  * rule here is a verbatim port of the PHP implementation:
  *   - phpString          : PHP (string) cast (false -> '', true -> '1')

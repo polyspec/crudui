@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "React SSR vs Limepie PHP golden-html parity harness",
+  "description": "React SSR vs Limepie PHP reference-html parity harness",
   "scripts": {
     "test": "vitest run",
     "capture": "node capture-react.mjs"

@@ -310,25 +310,25 @@ export function firstDiff(a, b, { context = 2, maxLines = 10 } = {}) {
   const from = Math.max(0, start - context);
   return {
     line: start + 1,
-    goldenDiffLines: endA - start,
+    referenceDiffLines: endA - start,
     reactDiffLines: endB - start,
-    golden: a.slice(from, Math.min(endA, start + maxLines)),
+    reference: a.slice(from, Math.min(endA, start + maxLines)),
     react: b.slice(from, Math.min(endB, start + maxLines)),
   };
 }
 
 /**
- * Structured comparison report between golden(PHP) and React analyses.
+ * Structured comparison report between reference(PHP) and React analyses.
  * Fields are aligned BY POSITION (render order is part of the contract);
  * each pair also reports both wrapper keys so name-prefix drift is visible.
  */
-export function compareAnalyses(golden, react) {
-  const equal = golden.canonical === react.canonical;
-  const total = Math.max(golden.fields.length, react.fields.length);
+export function compareAnalyses(reference, react) {
+  const equal = reference.canonical === react.canonical;
+  const total = Math.max(reference.fields.length, react.fields.length);
   const fields = [];
   let matched = 0;
   for (let idx = 0; idx < total; idx++) {
-    const g = golden.fields[idx];
+    const g = reference.fields[idx];
     const r = react.fields[idx];
     if (g && r) {
       const gl = relabelTokens(g.lines);
@@ -337,20 +337,20 @@ export function compareAnalyses(golden, react) {
       if (same) matched++;
       fields.push({
         index: idx,
-        goldenKey: g.key,
+        referenceKey: g.key,
         reactKey: r.key,
         status: same ? 'match' : 'differs',
         diff: same ? null : firstDiff(gl, rl),
       });
     } else if (g) {
-      fields.push({ index: idx, goldenKey: g.key, reactKey: null, status: 'golden-only' });
+      fields.push({ index: idx, referenceKey: g.key, reactKey: null, status: 'reference-only' });
     } else {
-      fields.push({ index: idx, goldenKey: null, reactKey: r.key, status: 'react-only' });
+      fields.push({ index: idx, referenceKey: null, reactKey: r.key, status: 'react-only' });
     }
   }
-  const goldenChrome = relabelTokens(golden.chrome.split('\n'));
+  const referenceChrome = relabelTokens(reference.chrome.split('\n'));
   const reactChrome = relabelTokens(react.chrome.split('\n'));
-  const chromeSame = goldenChrome.join('\n') === reactChrome.join('\n');
+  const chromeSame = referenceChrome.join('\n') === reactChrome.join('\n');
   return {
     equal,
     totalFields: total,
@@ -358,7 +358,7 @@ export function compareAnalyses(golden, react) {
     mismatchedFields: total - matched,
     fields,
     chrome: chromeSame ? 'match' : 'differs',
-    chromeDiff: chromeSame ? null : firstDiff(goldenChrome, reactChrome),
+    chromeDiff: chromeSame ? null : firstDiff(referenceChrome, reactChrome),
   };
 }
 
@@ -371,23 +371,23 @@ export function formatReport(name, report) {
   );
   for (const f of report.fields) {
     if (f.status === 'match') continue;
-    if (f.status === 'golden-only') {
-      out.push(`  [${f.index}] GOLDEN-ONLY ${f.goldenKey}`);
+    if (f.status === 'reference-only') {
+      out.push(`  [${f.index}] REFERENCE-ONLY ${f.referenceKey}`);
       continue;
     }
     if (f.status === 'react-only') {
       out.push(`  [${f.index}] REACT-ONLY ${f.reactKey}`);
       continue;
     }
-    const keyNote = f.goldenKey === f.reactKey ? f.goldenKey : `${f.goldenKey} <-> ${f.reactKey}`;
-    out.push(`  [${f.index}] DIFFERS ${keyNote} @line ${f.diff.line} (golden ${f.diff.goldenDiffLines} / react ${f.diff.reactDiffLines} lines differ)`);
-    for (const l of f.diff.golden) out.push(`    G| ${l}`);
+    const keyNote = f.referenceKey === f.reactKey ? f.referenceKey : `${f.referenceKey} <-> ${f.reactKey}`;
+    out.push(`  [${f.index}] DIFFERS ${keyNote} @line ${f.diff.line} (reference ${f.diff.referenceDiffLines} / react ${f.diff.reactDiffLines} lines differ)`);
+    for (const l of f.diff.reference) out.push(`    G| ${l}`);
     for (const l of f.diff.react) out.push(`    R| ${l}`);
   }
   if (report.chromeDiff) {
     const d = report.chromeDiff;
-    out.push(`  [chrome] DIFFERS @line ${d.line} (golden ${d.goldenDiffLines} / react ${d.reactDiffLines} lines differ)`);
-    for (const l of d.golden) out.push(`    G| ${l}`);
+    out.push(`  [chrome] DIFFERS @line ${d.line} (reference ${d.referenceDiffLines} / react ${d.reactDiffLines} lines differ)`);
+    for (const l of d.reference) out.push(`    G| ${l}`);
     for (const l of d.react) out.push(`    R| ${l}`);
   }
   return out.join('\n');

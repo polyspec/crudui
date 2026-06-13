@@ -1,5 +1,5 @@
 /**
- * parity.test.mjs — React SSR output vs Limepie PHP golden-html fixtures.
+ * parity.test.mjs — React SSR output vs Limepie PHP reference-html fixtures.
  *
  * RED is the expected state while React<->PHP gaps remain open
  * (checkbox structure regression, footer/submit_button_text, textarea
@@ -9,7 +9,7 @@
  *
  * Artifacts per fixture (inspect after a run):
  *   out/<name>.react.html        raw React SSR capture (form content)
- *   out/<name>.golden.norm.txt   normalized golden
+ *   out/<name>.reference.norm.txt   normalized reference
  *   out/<name>.react.norm.txt    normalized React
  */
 
@@ -22,11 +22,11 @@ import { analyzeForm, compareAnalyses, formatReport } from './normalize.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
-const GOLDEN_DIR = path.join(ROOT, 'tests/fixtures/golden-html');
+const REFERENCE_DIR = path.join(ROOT, 'tests/fixtures/reference-html');
 const OUT_DIR = path.join(HERE, 'out');
 
 /**
- * Golden fixtures are empty-data renders: Generator::write($spec, []).
+ * Reference fixtures are empty-data renders: Generator::write($spec, []).
  * OptionMultiplexable.html does not exist (host-dependent fragment — see
  * tools/limepie-baseline/README.md); its coverage is inside ProductNft.
  */
@@ -42,12 +42,12 @@ const CASES = [
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-describe('React SSR <-> Limepie PHP golden parity', () => {
+describe('React SSR <-> Limepie PHP reference parity', () => {
   for (const c of CASES) {
     it(`parity: ${c.name}`, () => {
-      const goldenPath = path.join(GOLDEN_DIR, `${c.name}.html`);
+      const referencePath = path.join(REFERENCE_DIR, `${c.name}.html`);
       const specPath = path.join(ROOT, c.spec);
-      const goldenHtml = fs.readFileSync(goldenPath, 'utf8');
+      const referenceHtml = fs.readFileSync(referencePath, 'utf8');
 
       let rendered;
       try {
@@ -60,12 +60,12 @@ describe('React SSR <-> Limepie PHP golden parity', () => {
         );
       }
 
-      const golden = analyzeForm(goldenHtml);
+      const reference = analyzeForm(referenceHtml);
       const react = analyzeForm(rendered.html);
-      const report = compareAnalyses(golden, react);
+      const report = compareAnalyses(reference, react);
 
       fs.writeFileSync(path.join(OUT_DIR, `${c.name}.react.html`), rendered.html);
-      fs.writeFileSync(path.join(OUT_DIR, `${c.name}.golden.norm.txt`), golden.canonical);
+      fs.writeFileSync(path.join(OUT_DIR, `${c.name}.reference.norm.txt`), reference.canonical);
       fs.writeFileSync(path.join(OUT_DIR, `${c.name}.react.norm.txt`), react.canonical);
 
       console.log(formatReport(c.name, report));

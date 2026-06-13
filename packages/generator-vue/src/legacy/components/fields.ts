@@ -3,7 +3,7 @@
  *
  * Each renderer returns a Vue VNode (or array of VNodes) producing markup
  * byte-equivalent (after parity normalization) to the legacy Limepie PHP
- * golden. Render functions use h() so NO scoped-style/data-v attributes leak.
+ * reference. Render functions use h() so NO scoped-style/data-v attributes leak.
  * Raw legacy markup (inline-JS specs, file inputs) is set via the
  * `innerHTML` domProp, the Vue analogue of dangerouslySetInnerHTML.
  */
@@ -1125,7 +1125,7 @@ function TinymceField(p: FieldRenderProps): VNode[] {
 }
 
 // ---------------------------------------------------------------------------
-// Tagify (non-faithful placeholder, mirrors React; not in strict golden path)
+// Tagify (non-faithful placeholder, mirrors React; not in strict reference path)
 // ---------------------------------------------------------------------------
 
 function TagifyField(p: FieldRenderProps): VNode {

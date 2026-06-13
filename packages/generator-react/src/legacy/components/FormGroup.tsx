@@ -3,7 +3,7 @@
  *
  * Handles nested groups and multiple/sortable group rows.
  *
- * The golden fixtures (tests/fixtures/golden-html, captured from the legacy
+ * The reference fixtures (tests/fixtures/reference-html, captured from the legacy
  * Limepie PHP Generator) are the single source of truth for the markup:
  *
  *   single group   <div class="form-element-wrapper" name="<dot>-layer">
@@ -110,7 +110,7 @@ export function formGroupClassName(spec: FieldSpec, dataPresent: boolean): strin
  * class: base + spec.class + all_of class + display_target condition class;
  * style: spec.style + all_of inline + display_target condition style +
  * display:none when invisible. Legacy keeps hidden groups in the DOM
- * (golden: ProductNft option/option_* groups), never removes them.
+ * (reference: ProductNft option/option_* groups), never removes them.
  */
 function groupWrapperPresentation(
   spec: FieldSpec,
@@ -177,9 +177,9 @@ export function hasDynamicOnchange(spec: FieldSpec): boolean {
  * Raw legacy row-buttons HTML — verbatim port of Fields::addElement
  * $btnGroupHtml (multiple === true). React cannot render string on*
  * attributes, so rows whose buttons need the dynamic_onchange onclick MUST
- * render this string (golden: ProductNft option groups/items). The &nbsp;
+ * render this string (reference: ProductNft option groups/items). The &nbsp;
  * labels and the onclick value (PHP addcslashes($js, '"'), unminified, with
- * the YAML trailing newline) are part of the golden contract.
+ * the YAML trailing newline) are part of the reference contract.
  */
 export function legacyRowButtonsHtml(spec: FieldSpec): string {
   const dynRaw = (spec as Record<string, unknown>).dynamic_onchange;

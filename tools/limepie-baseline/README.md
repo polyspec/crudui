@@ -1,6 +1,6 @@
 # limepie-baseline — Limepie 기준 HTML 픽스처 파이프라인
 
-`tests/fixtures/golden-html/*.html` 은 legacy **Limepie PHP Generator 의 실제 출력**이며,
+`tests/fixtures/reference-html/*.html` 은 legacy **Limepie PHP Generator 의 실제 출력**이며,
 이 저장소의 모든 폼 렌더러(React, legacy port 등)가 따라야 하는 **단일진실(source of truth)** 이다.
 
 - 기준 픽스처를 손으로 수정하지 마라. 재생성은 `generate-all.sh` 로만 하라.
@@ -25,7 +25,7 @@ tools/limepie-baseline/
 ├── render.php        # php render.php <spec.yml> [data.json]  → stdout 으로 HTML
 ├── generate-all.sh   # 기준 픽스처 전체 재생성
 └── README.md
-tests/fixtures/golden-html/   # 기준 픽스처 (이 파이프라인의 출력)
+tests/fixtures/reference-html/   # 기준 픽스처 (이 파이프라인의 출력)
 ```
 
 ## 재생성 절차

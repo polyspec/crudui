@@ -1,6 +1,6 @@
 <?php
 /**
- * Limepie golden-HTML baseline renderer.
+ * Limepie reference-HTML baseline renderer.
  *
  * Usage:
  *   php render.php <spec.yml> [data.json]
@@ -13,7 +13,7 @@
  * Output: rendered form HTML on stdout. Errors go to stderr, exit code 1.
  *
  * The output of this script is the single source of truth for form rendering.
- * Do NOT edit golden fixtures by hand — regenerate them with generate-all.sh.
+ * Do NOT edit reference fixtures by hand — regenerate them with generate-all.sh.
  */
 
 error_reporting(E_ALL & ~E_DEPRECATED);

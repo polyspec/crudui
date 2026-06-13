@@ -25,10 +25,10 @@ docker compose up limepie-original
   `tools/limepie-baseline/render.php` 와 동일한 방식으로 마운트된 소스 트리에서
   Limepie 클래스를 직접 오토로드한다.
 
-## 기준 출력 (golden HTML)
+## 기준 출력 (reference HTML)
 
 이 데모의 화면 출력을 기준 출력으로 캡처하지 마라. 렌더러 비교용 기준 출력
-(`tests/fixtures/golden-html/*.html`)은 **`tools/limepie-baseline` 파이프라인으로만
+(`tests/fixtures/reference-html/*.html`)은 **`tools/limepie-baseline` 파이프라인으로만
 재생성**한다 — 절차와 핀(커밋 `a47ccba`), 비결정 토큰 정규화 규칙은
 `tools/limepie-baseline/README.md` 를 따르라.
 

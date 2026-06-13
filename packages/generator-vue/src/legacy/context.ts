@@ -1,6 +1,6 @@
 /**
  * Render context — a plain (non-reactive) object threaded through
- * provide/inject. Golden fixtures are empty-data static renders, so the
+ * provide/inject. Reference fixtures are empty-data static renders, so the
  * heavy interactive React state (setValue, validation, multiple edit) is not
  * needed for parity; this context exposes only the read paths each component
  * uses during render (getValue / isFieldVisible / t / keyPrefix / language).
