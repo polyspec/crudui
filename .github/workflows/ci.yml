@@ -32,6 +32,8 @@
 #   validate        28                                  JS/PHP/Go/Rust
 #   spec-validity   15 (recursive forbidden-scan)       JS/PHP/Go/Rust
 #   v2-render       22 (SSR HTML)                        React/Vue/Svelte
+#   v2-list-render  20 (list SSR HTML, SPEC §9)          React/Vue/Svelte
+#   v2-list-validity 18 (list meta-schema, SPEC §9.4)    JS (ajv #/definitions/List)
 # A v2 regression turns the matching job red via the test runner exit code.
 #
 # Toolchain pinning rationale:
@@ -385,13 +387,17 @@ jobs:
         working-directory: packages/validator-rust
 
   # ---------------------------------------------------------------------------
-  # v2-render — the 3-framework v2 SSR conformance (22 shared v2-render cases
-  # each). `npm run test:v2` per package runs only the v2-render conformance
-  # file. Generators import @form-spec/validator (dist), so the validator is
-  # built first — same dependency the v1 parity job has.
+  # v2-render — the 3-framework v2 SSR conformance. `npm run test:v2` per package
+  # runs BOTH shared-fixture conformance files: the form render (v2-render,
+  # tests/fixtures/v2-render) and the LIST render (v2-list-render,
+  # tests/fixtures/v2-list-render — SPEC §9, the read sister). Every framework
+  # must reproduce the React reference's normalized expected_html after the shared
+  # normalizer. The list meta-schema gate (SPEC §9.4) rides the v2-validator-js
+  # job (vitest run src/v2 picks up list-metaschema.conformance.test.ts).
+  # Generators import @form-spec/validator (dist), so the validator is built first.
   # ---------------------------------------------------------------------------
   v2-render:
-    name: v2 render (React/Vue/Svelte SSR)
+    name: v2 render (React/Vue/Svelte SSR — form + list)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
