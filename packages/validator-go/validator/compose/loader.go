@@ -44,8 +44,8 @@ func NewMemoryLoader(files map[string]*OMap) *MemoryLoader {
 	return &MemoryLoader{files: cp}
 }
 
-// Normalize: absolute path passes through; relative path is prefixed by basepath
-// (legacy parity).
+// Normalize passes an absolute path through unchanged; a relative path is
+// prefixed by basepath (legacy parity).
 func (l *MemoryLoader) Normalize(path, basepath string) string {
 	if len(path) > 0 && path[0] == '/' {
 		return path

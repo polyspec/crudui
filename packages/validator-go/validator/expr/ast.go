@@ -27,6 +27,8 @@ type TernaryNode struct {
 	FalseValue Node
 }
 
+// ToMap serializes the Ternary node and its children to the shared-fixture
+// AST shape {type, condition, trueValue, falseValue}.
 func (n *TernaryNode) ToMap() map[string]any {
 	return map[string]any{
 		"type":       "Ternary",
@@ -43,6 +45,8 @@ type BinaryNode struct {
 	Right    Node
 }
 
+// ToMap serializes the Binary node and its operands to the shared-fixture AST
+// shape {type, operator, left, right}.
 func (n *BinaryNode) ToMap() map[string]any {
 	return map[string]any{
 		"type":     "Binary",
@@ -58,6 +62,8 @@ type UnaryNode struct {
 	Operand  Node
 }
 
+// ToMap serializes the Unary node and its operand to the shared-fixture AST
+// shape {type, operator, operand}.
 func (n *UnaryNode) ToMap() map[string]any {
 	return map[string]any{
 		"type":     "Unary",
@@ -73,6 +79,8 @@ type InNode struct {
 	List    []Node
 }
 
+// ToMap serializes the In node and its list to the shared-fixture AST shape
+// {type, negated, value, list}.
 func (n *InNode) ToMap() map[string]any {
 	list := make([]any, len(n.List))
 	for i, item := range n.List {
@@ -115,6 +123,8 @@ type PathNode struct {
 	Segments []PathSegment
 }
 
+// ToMap serializes the Path node and its segments to the shared-fixture AST
+// shape {type, relative, levelsUp, segments}.
 func (n *PathNode) ToMap() map[string]any {
 	segs := make([]any, len(n.Segments))
 	for i, s := range n.Segments {
@@ -134,6 +144,8 @@ type LiteralNode struct {
 	Value     any
 }
 
+// ToMap serializes the Literal node to the shared-fixture AST shape {type,
+// valueType, value}.
 func (n *LiteralNode) ToMap() map[string]any {
 	return map[string]any{
 		"type":      "Literal",
@@ -147,6 +159,8 @@ type GroupNode struct {
 	Expression Node
 }
 
+// ToMap serializes the Group node and its inner expression to the
+// shared-fixture AST shape {type, expression}.
 func (n *GroupNode) ToMap() map[string]any {
 	return map[string]any{
 		"type":       "Group",

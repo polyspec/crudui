@@ -1,11 +1,14 @@
 package expr
 
+import "slices"
+
 // ParseError is raised by the lexer or parser on malformed input. It is panicked
 // internally and recovered by Parse/Tokenize wrappers into a returned error.
 type ParseError struct {
 	Message string
 }
 
+// Error returns the parse failure message (implements the error interface).
 func (e *ParseError) Error() string {
 	return e.Message
 }
@@ -257,11 +260,9 @@ func literalToInt(lit any) int {
 }
 
 func (p *Parser) match(types ...TokenType) bool {
-	for _, t := range types {
-		if p.check(t) {
-			p.advance()
-			return true
-		}
+	if slices.ContainsFunc(types, p.check) {
+		p.advance()
+		return true
 	}
 	return false
 }

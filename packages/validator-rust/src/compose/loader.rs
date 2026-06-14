@@ -1,14 +1,16 @@
 //! File loader for `$ref` resolution.
 //!
 //! `$ref` loads external YAML files (legacy ReferenceResolver: `yml_parse_file`). The
-//! compose engine never touches the filesystem directly — it goes through a
-//! `FileLoader`, so the shared fixtures can supply a virtual in-memory file set
-//! (the spec graph is the input; no disk needed) while production wires a real
-//! disk + YAML loader. One engine, two backends — identical semantics.
+//! compose engine never touches the filesystem directly — it goes through the
+//! `FileLoader` trait, so the shared fixtures supply a virtual in-memory file set
+//! (the spec graph is the input; no disk needed). The only implementation today
+//! is `MemoryLoader`; a disk + YAML backed loader is not implemented yet — when
+//! added it plugs into the same trait without touching the engine.
 //!
 //! Path normalization mirrors legacy ReferenceResolver:
-//!   - absolute (`/…`) paths pass through unchanged
-//!   - relative paths get the basepath prefix (`basepath + '/' + path`)
+//! - absolute (`/…`) paths pass through unchanged
+//! - relative paths get the basepath prefix (`basepath + '/' + path`)
+//!
 //! The loader receives the ALREADY-normalized absolute key, so cycle detection
 //! and the fixture map key on one canonical identifier.
 
