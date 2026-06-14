@@ -6,18 +6,36 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 - 스펙 형식: `{type: 'group', properties: {...}}`, 필드별 `rules` 는 객체
 - 검증 결과: `{valid: boolean, errors: ValidationError[]}`
 - 크로스 언어 게이트: 1074 케이스, 2026-06 기준 4개 언어 전부 GREEN
+- v2 는 조건을 값에 녹이고 역할로 가른 차세대 스펙이다 — 헌법은 [SPEC-V2.md](./SPEC-V2.md).
 
 ## 문서 색인
 
-### 스펙 · 검증
+### v2 명세 (헌법 · 차세대)
 
 | 문서 | 내용 |
 |------|------|
-| [SPEC.md](./SPEC.md) | YAML 스펙 형식 명세 |
+| [SPEC-V2.md](./SPEC-V2.md) | v2 헌법 — 단일 진실, 역할 슬롯(validate/design/behavior/options), 조건맵, $ref/$patch 합성, 금지키 게이트(§6), list-spec(§9) |
+| [EXPRESSION-GRAMMAR.md](./EXPRESSION-GRAMMAR.md) | 4언어 표현식 엔진 단일 진실 — 토크나이저·파서·평가기, 같은 토큰열·같은 AST·같은 값, eval 금지 |
+| list-spec (SPEC-V2 §9) | form-spec(create)의 read 자매. columns + rows 주입(DB 무관), read 셀 format 카탈로그, form-spec 과 같은 금지키 스캔 재사용 |
+
+### 도구체인 (CLI · MCP · 콘솔 · 스킬)
+
+| 문서 | 내용 |
+|------|------|
+| [FORM-SPEC-CLI.md](./FORM-SPEC-CLI.md) | `@form-spec/cli`(`form-spec`) — 구현: describe(--json/--md, drift 0, list capability 포함)·check(메타스키마+forbidden+type catalog)·explain(역검증)·list-widgets. 로드맵: validate·render·scaffold |
+| [FORM-SPEC-MCP.md](./FORM-SPEC-MCP.md) | LLM 도구 묶음 — 카탈로그 로드·정적 검증·값 검증·렌더·역검증. 모든 tool 은 CLI 에 위임(자체 엔진 0) |
+| `examples/cross-check-console` | 4언어 validate-v2 CLI 검증 × 3프레임워크 SSR 렌더 크로스전송, 멱등/parity, raw, 픽스처 export, list 탭(`/api/render-list` 렌더 + `/api/validate-list` 4언어 검증) |
+| `.claude/skills/nl-to-v2-form` | 자연어 기획서/구술 → 검증 통과 v2 스펙 변환 스킬 |
+
+### 스펙 · 검증 (v1 호환)
+
+| 문서 | 내용 |
+|------|------|
+| [SPEC.md](./SPEC.md) | YAML 스펙 형식 명세 (v1 호환) |
 | [VALIDATION-RULES.md](./VALIDATION-RULES.md) | 검증 규칙 상세 (현 구현 기준 규칙 레퍼런스) |
 | [CONDITION-PARSER.md](./CONDITION-PARSER.md) | 조건식 파서 (lexer + AST) |
-| [DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md) | display_switch / display_target |
-| [FIELD-KEYS.md](./FIELD-KEYS.md) | 필드 키 정의 |
+| [DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md) | display_switch / display_target — v1 호환 전용. v2 는 이 메타키를 금지한다(SPEC-V2 §6), 조건은 값의 표현식/조건맵으로 표현 |
+| [FIELD-KEYS.md](./FIELD-KEYS.md) | 필드 키 정의 (v1 호환) |
 | [API.md](./API.md) | 패키지 API 레퍼런스 |
 
 ### 테스트 · 평가
@@ -48,14 +66,16 @@ form-spec/
 │   ├── validator-php/       # PHP 검증기 (PHP ^8.2, FormSpec\Validator)
 │   ├── validator-go/        # Go 검증기 (모듈명 github.com/yejune/form-spec/packages/validator-go)
 │   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator)
+│   ├── generator-core/      # 프레임워크 무관 코어 (@form-spec/generator-core) — buildForm/buildList
 │   ├── generator-react/     # React 폼 생성기 (@form-spec/generator-react) — 기준 HTML 7/7 parity
 │   ├── generator-vue/       # Vue 3 폼 생성기 (@form-spec/generator-vue, @vue/server-renderer SSR) — 기준 HTML 7/7 parity
 │   ├── generator-svelte/    # Svelte 5 폼 생성기 (@form-spec/generator-svelte, SSR) — 기준 HTML 7/7 parity
-│   └── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets — 기준 HTML 파이프라인이 사용하는 기준 구현
+│   ├── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets — 기준 HTML 파이프라인이 사용하는 기준 구현
+│   └── form-spec-cli/       # @form-spec/cli (bin: form-spec) — describe/check/explain/list-widgets, CLI 도구층
 ├── tests/                   # 크로스 언어 픽스처(cases/), 기준 HTML(fixtures/), 러너(runner/), parity 하네스(parity/)
 ├── tools/
 │   └── limepie-baseline/    # Limepie 기준 HTML 재생성 파이프라인 (핀 커밋 강제)
-└── examples/                # demo-app, node/php/go/rust API 서버, playground 등 (docker-compose)
+└── examples/                # demo-app, cross-check-console, node/php/go/rust API 서버, playground 등 (docker-compose)
 ```
 
 ## 빠른 시작 (검증기)
