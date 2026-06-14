@@ -1,0 +1,108 @@
+/**
+ * CRUDUI list-spec meta-schema conformance (schema §9.4).
+ *
+ * The read sister of the form-spec meta-schema gate. The list definitions are
+ * ADDITIVE to schema/form-spec.schema.json — they do NOT touch the form-spec
+ * Field entry point (the top `$ref` stays `#/definitions/Field`); a list-spec is
+ * validated through a DIFFERENT entry, `#/definitions/List`. This test compiles
+ * that entry with the SAME ajv config the CLI meta-schema gate uses
+ * (form-spec-cli check.ts: `new Ajv({ strict:false, allErrors:true })` +
+ * ajv-formats) and runs the shared fixture tests/fixtures/list-validity.
+ *
+ * The §9.4 gate consistency:
+ *  - a valid list-spec passes (columns + the §9.2 catalog + read structure slots);
+ *  - a forbidden column key / x-prefixed key / forbidden meta key one level below
+ *    the open CellFormat options bucket is rejected (ForbiddenKeyNames, shared);
+ *  - an out-of-1급 key on Column/Sort/Pagination/ListAction or at the List top is
+ *    rejected (additionalProperties:false);
+ *  - a bad enum (sort.dir / pagination.mode) and a malformed CellFormat shape are
+ *    rejected.
+ *
+ * Do not weaken the fixture or the schema to force GREEN — the RED cases MUST be
+ * rejected. If the schema stops rejecting a RED case, the meta-schema regressed.
+ */
+
+import { describe, test, expect } from 'vitest';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import Ajv, { type ValidateFunction } from 'ajv';
+import addFormats from 'ajv-formats';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT = path.resolve(__dirname, '../../..');
+const SCHEMA_PATH = path.join(ROOT, 'schema/form-spec.schema.json');
+const FIXTURE = path.join(ROOT, 'tests/fixtures/list-validity/cases.json');
+
+interface ListValidityCase {
+  name: string;
+  note: string;
+  expect: 'ok' | 'fail';
+  reason?: string;
+  spec: Record<string, unknown>;
+}
+
+const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, 'utf8')) as {
+  $schema: string;
+  $ref: string;
+  definitions: Record<string, unknown>;
+};
+const cases: ListValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+
+/**
+ * Compile a root that points at `#/definitions/List` while keeping the shared
+ * `definitions` — the list entry, NOT the form Field entry. This proves the list
+ * definitions are additive: the top `$ref` of the schema file is left untouched
+ * (it still targets Field), and the list is reachable as its own entry point.
+ */
+function compileListValidator(): ValidateFunction {
+  const ajv = new Ajv({ strict: false, allErrors: true });
+  addFormats(ajv);
+  const listRoot = {
+    $schema: schema.$schema,
+    definitions: schema.definitions,
+    $ref: '#/definitions/List',
+  };
+  return ajv.compile(listRoot);
+}
+
+const validateList = compileListValidator();
+
+describe('current list meta-schema — additive: Field entry point is untouched', () => {
+  test('the schema file top $ref still targets the form-spec Field (unchanged)', () => {
+    expect(schema.$ref).toStrictEqual('#/definitions/Field');
+  });
+
+  test('the 7 list definitions are present (additive)', () => {
+    for (const def of ['List', 'Columns', 'Column', 'CellFormat', 'Sort', 'Pagination', 'ListAction']) {
+      expect(schema.definitions[def], `missing list definition ${def}`).toBeTruthy();
+    }
+  });
+});
+
+describe('current list meta-schema — a valid list-spec passes (§9.4)', () => {
+  for (const c of cases.filter((x) => x.expect === 'ok')) {
+    test(c.name, () => {
+      const ok = validateList(c.spec);
+      expect(ok, `${c.name} should validate but did not: ${JSON.stringify(validateList.errors)}`).toBe(true);
+    });
+  }
+});
+
+describe('current list meta-schema — an invalid list-spec is REJECTED (RED cases, §9.4)', () => {
+  for (const c of cases.filter((x) => x.expect === 'fail')) {
+    test(c.name, () => {
+      const ok = validateList(c.spec);
+      expect(ok, `${c.name} must be rejected by the meta-schema`).toBe(false);
+      // The declared rejection keyword must appear among the ajv errors — the
+      // RED case fails for the documented reason, not an incidental one.
+      if (c.reason) {
+        const keywords = (validateList.errors ?? []).map((e) => e.keyword);
+        expect(keywords, `${c.name}: expected '${c.reason}' among ${JSON.stringify(keywords)}`).toContain(
+          c.reason
+        );
+      }
+    });
+  }
+});
