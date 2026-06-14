@@ -6,6 +6,10 @@
  *     POST /api/validate    {spec, data, files?, basepath?} → 4-language CRUDUI validation
  *     POST /api/render      {spec, data, options}           → 3-framework CRUDUI form SSR
  *   list tab
+ *     POST /api/validate-list {listSpec, files?, basepath?}  → 4-language CRUDUI list
+ *       STRUCTURE validation (compose → forbidden-scan; no rows — a list has no
+ *       data). The validate sister of /api/validate, reusing the SAME 4-language
+ *       idempotency matrix the form tab draws.
  *     POST /api/render-list {listSpec, rows, options}        → 3-framework CRUDUI list SSR
  *     POST /api/render      {spec:<listSpec.search>, ...}    → the SAME form SSR,
  *       reused to render the list-spec's embedded search form ABOVE the list. The
@@ -65,6 +69,7 @@ const state = {
   listSpecText: '', // list-spec YAML (columns + optional embedded search form)
   rowsText: '[]', // injected display rows (JSON array)
   listRunning: false,
+  listValidate: null, // last /api/validate-list response (4-language list structure)
   listRender: null, // last /api/render-list response
   searchRender: null, // last /api/render of listSpec.search (form reuse)
   listError: null, // network/transport error string (list tab)
@@ -287,10 +292,12 @@ async function runAll() {
 }
 
 /**
- * List tab runner. Fires the list render AND — when the list-spec declares a
- * `search` slot — the form render of that slot in parallel, so the embedded
- * search form (rendered by the SAME /api/render the form tab uses) shows above
- * the list matrix. A list-spec with no search slot still renders the list.
+ * List tab runner. Fires the 4-language list STRUCTURE validate AND the list
+ * render in parallel, plus — when the list-spec declares a `search` slot — the
+ * form render of that slot, so the embedded search form (rendered by the SAME
+ * /api/render the form tab uses) shows above the list matrix. The list tab now
+ * proves both halves symmetric with the form tab: validate (4 langs) + render (3
+ * frameworks). A list-spec with no search slot still validates and renders.
  */
 async function runList() {
   const listSpec = parseListSpec();
@@ -299,6 +306,7 @@ async function runList() {
 
   state.listRunning = true;
   state.listError = null;
+  state.listValidate = null;
   state.listRender = null;
   state.searchRender = null;
   render();
@@ -306,7 +314,15 @@ async function runList() {
   const options = { language: state.language };
   const searchSpec = extractSearchSpec(listSpec.value);
   try {
+    // The 4-language list STRUCTURE validate is fixed at index 0; the list render
+    // at index 1; the optional search-form render is appended last so its slot in
+    // the destructure stays stable whether or not a search slot is declared.
     const calls = [
+      postJson('/api/validate-list', {
+        listSpec: listSpec.value,
+        files: {},
+        basepath: '',
+      }),
       postJson('/api/render-list', {
         listSpec: listSpec.value,
         rows: rows.value,
@@ -323,7 +339,8 @@ async function runList() {
         })
       );
     }
-    const [listRes, searchRes] = await Promise.all(calls);
+    const [validateRes, listRes, searchRes] = await Promise.all(calls);
+    state.listValidate = validateRes;
     state.listRender = listRes;
     state.searchRender = searchRes ?? null;
   } catch (e) {
@@ -560,6 +577,7 @@ function mountShell() {
         </section>
 
         <section class="cc-matrices">
+          <div id="list-validate-matrix" class="cc-matrix"></div>
           <div id="search-matrix" class="cc-matrix"></div>
           <div id="list-render-matrix" class="cc-matrix"></div>
         </section>
@@ -634,6 +652,7 @@ function mountShell() {
     if (!ex) return;
     state.listSpecText = ex.spec;
     state.rowsText = ex.rows;
+    state.listValidate = null;
     state.listRender = null;
     state.searchRender = null;
     state.listError = null;
@@ -776,6 +795,7 @@ function renderResults() {
   // hidden tab's matrices simply sit idle off-screen (no cross-tab interference).
   renderValidateMatrix();
   renderRenderMatrix();
+  renderListValidateMatrix();
   renderSearchMatrix();
   renderListRenderMatrix();
 }
@@ -790,14 +810,27 @@ function renderRunError() {
 // --- Validate matrix (4 langs) -------------------------------------------
 
 function renderValidateMatrix() {
-  const host = document.getElementById('validate-matrix');
-  const v = state.validate;
+  renderLangMatrix(
+    document.getElementById('validate-matrix'),
+    state.validate,
+    '검증 매트릭스 (js / php / go / rust)'
+  );
+}
+
+/**
+ * Generic 4-language idempotency matrix used by every validate endpoint (form
+ * validate AND list-structure validate). It recomputes idempotency from the raw
+ * per-language entries (computeIdempotent), paints divergent columns red, draws
+ * the per-language mismatch diff, and shows each engine's valid/loadError/ms —
+ * identical surface for form and list so the two tabs read symmetrically. The
+ * list path carries no `data` (a list has no rows); a clean structure is
+ * valid:true, a forbidden meta key surfaces as the SAME loadError envelope.
+ */
+function renderLangMatrix(host, v, title) {
+  if (!host) return;
 
   if (!v) {
-    host.innerHTML = sectionHead(
-      '검증 매트릭스 (js / php / go / rust)',
-      idleBadge()
-    );
+    host.innerHTML = sectionHead(title, idleBadge());
     return;
   }
 
@@ -831,7 +864,7 @@ function renderValidateMatrix() {
   }
 
   host.innerHTML =
-    sectionHead('검증 매트릭스 (js / php / go / rust)', badge) +
+    sectionHead(title, badge) +
     `<div class="cc-grid cc-grid-4">${cols}</div>` +
     mismatchPanel;
 }
@@ -975,6 +1008,22 @@ function renderFwMatrix(host, r, title) {
 }
 
 // --- List tab matrices ----------------------------------------------------
+
+/**
+ * List validate matrix — the 4-language CRUDUI list STRUCTURE validate fan-out
+ * (/api/validate-list). The validate sister of the form tab's validate matrix,
+ * drawn through the SAME renderLangMatrix: rows = js/php/go/rust, the badge is
+ * the 4-language idempotency verdict, a forbidden meta key surfaces as the SAME
+ * loadError cell. It sits ABOVE the search/list render matrices so the list tab
+ * reads top-down as validate (4 langs) → render (3 frameworks), mirroring form.
+ */
+function renderListValidateMatrix() {
+  renderLangMatrix(
+    document.getElementById('list-validate-matrix'),
+    state.listValidate,
+    'list 검증 매트릭스 (js / php / go / rust)'
+  );
+}
 
 /**
  * Search form matrix — the embedded `search` form-spec rendered through the
