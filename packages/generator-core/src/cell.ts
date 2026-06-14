@@ -241,103 +241,131 @@ export interface CellRenderCtx {
 }
 
 /**
- * Render one cell: dispatch on the normalized format type and produce the
- * display payload. Unknown types fall back to text (never throw out of render).
+ * One cell renderer: a function that turns a raw value + the format's isolated
+ * dependent keys (`o`) + render context into a `CellDisplay`.
+ */
+export type CellRenderer = (
+  value: unknown,
+  o: Record<string, unknown>,
+  ctx: CellRenderCtx
+) => CellDisplay;
+
+/**
+ * The read-cell format catalog AS DATA — the ONE table `renderCell` dispatches
+ * over. This map is the single source of truth for the format catalog (SPEC
+ * §9.2): `describe`'s list capability reads `CELL_FORMATS` (its keys), and the
+ * renderer below dispatches by the same keys. Adding a renderer here surfaces a
+ * new format in BOTH places with zero edits elsewhere (drift 0 — the read-side
+ * symmetric of widget.ts `REGISTRY`). `text` is also the unknown-type fallback.
+ */
+export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
+  text: (value, o) => {
+    const s = asString(value);
+    return o.truncate !== undefined ? truncate(s, o.truncate) : s;
+  },
+
+  date: (value, o) => formatDate(value, o.pattern),
+
+  number: (value, o, ctx) => formatNumber(value, o, ctx.t),
+
+  badge: (value, o, ctx) => {
+    const map = (o.map as Record<string, unknown>) ?? {};
+    const key = asString(value);
+    // map is value→variant; the variant may be an i18n label (LangMap). A
+    // plain-string variant is a style token and the value text is the label;
+    // an i18n-object variant resolves to a string used as BOTH variant + label.
+    const raw = key in map ? map[key] : undefined;
+    if (typeof raw === 'object' && raw !== null) {
+      const resolved = ctx.t(raw as LocalizedText);
+      return { kind: 'badge', variant: resolved, label: resolved };
+    }
+    return { kind: 'badge', variant: raw === undefined ? '' : asString(raw), label: key };
+  },
+
+  link: (value, o, ctx) => {
+    const rawHref = o.href;
+    let hrefTemplate: string;
+    if (typeof rawHref === 'string') {
+      hrefTemplate = rawHref;
+    } else if (rawHref && typeof rawHref === 'object') {
+      // condition map → shared expr engine resolves the winning branch.
+      hrefTemplate = evalAppearance(rawHref, ctx.expr);
+    } else {
+      hrefTemplate = '';
+    }
+    const href = interpolate(hrefTemplate, ctx.row, value);
+    const text =
+      o.text !== undefined && o.text !== null && o.text !== ''
+        ? ctx.t(o.text as LocalizedText)
+        : asString(value);
+    const out: LinkDisplay = { kind: 'link', href, text };
+    if (typeof o.target === 'string' && o.target) out.target = o.target;
+    return out;
+  },
+
+  'choice-label': (value, o, ctx) => {
+    const lookup = itemsLookup(o.items);
+    const key = asString(value);
+    if (key in lookup) {
+      const label = lookup[key];
+      return typeof label === 'object' && label !== null
+        ? ctx.t(label as LocalizedText)
+        : asString(label);
+    }
+    // dynamic {model} source or unknown key → preserve the raw code (never fabricate).
+    return key;
+  },
+
+  bool: (value, o, ctx) => {
+    const b = truthy(value);
+    const labelSource = b ? o.true : o.false;
+    const label =
+      labelSource !== undefined && labelSource !== null
+        ? ctx.t(labelSource as LocalizedText)
+        : b
+        ? 'true'
+        : 'false';
+    const as = typeof o.as === 'string' && o.as ? o.as : 'text';
+    return { kind: 'bool', value: b, label, as };
+  },
+
+  image: (value, o, ctx) => {
+    // src is the raw cell value (a URL/path) — NOT an interpolation template.
+    const src = asString(value);
+    const alt =
+      o.alt !== undefined && o.alt !== null
+        ? interpolate(ctx.t(o.alt as LocalizedText), ctx.row, value)
+        : '';
+    const out: ImageDisplay = { kind: 'image', src, alt };
+    if (o.width !== undefined) out.width = asString(o.width);
+    if (o.height !== undefined) out.height = asString(o.height);
+    return out;
+  },
+
+  html: (value) => ({ kind: 'html', html: asString(value) }),
+};
+
+/**
+ * The read-cell format catalog (SPEC §9.2) — a projection of `CELL_RENDERERS`'s
+ * keys. NOT a hand-copied list: a renderer added above appears here, in
+ * `renderCell`'s dispatch, and in `describe`'s list capability with zero edits
+ * (drift 0). The read-side symmetric of `WIDGET_KINDS`.
+ */
+export const CELL_FORMATS: readonly string[] = Object.keys(CELL_RENDERERS);
+
+/** The fallback format an unknown/absent `type` resolves to (also a catalog member). */
+export const CELL_FORMAT_DEFAULT = 'text';
+
+/**
+ * Render one cell: dispatch on the normalized format type via `CELL_RENDERERS`
+ * and produce the display payload. Unknown types fall back to text (never throw
+ * out of render).
  */
 export function renderCell(
   format: CellFormatModel,
   value: unknown,
   ctx: CellRenderCtx
 ): CellDisplay {
-  const o = format.options;
-  switch (format.type) {
-    case 'date':
-      return formatDate(value, o.pattern);
-
-    case 'number':
-      return formatNumber(value, o, ctx.t);
-
-    case 'badge': {
-      const map = (o.map as Record<string, unknown>) ?? {};
-      const key = asString(value);
-      // map is value→variant; the variant may be an i18n label (LangMap). A
-      // plain-string variant is a style token and the value text is the label;
-      // an i18n-object variant resolves to a string used as BOTH variant + label.
-      const raw = key in map ? map[key] : undefined;
-      if (typeof raw === 'object' && raw !== null) {
-        const resolved = ctx.t(raw as LocalizedText);
-        return { kind: 'badge', variant: resolved, label: resolved };
-      }
-      return { kind: 'badge', variant: raw === undefined ? '' : asString(raw), label: key };
-    }
-
-    case 'link': {
-      const rawHref = o.href;
-      let hrefTemplate: string;
-      if (typeof rawHref === 'string') {
-        hrefTemplate = rawHref;
-      } else if (rawHref && typeof rawHref === 'object') {
-        // condition map → shared expr engine resolves the winning branch.
-        hrefTemplate = evalAppearance(rawHref, ctx.expr);
-      } else {
-        hrefTemplate = '';
-      }
-      const href = interpolate(hrefTemplate, ctx.row, value);
-      const text =
-        o.text !== undefined && o.text !== null && o.text !== ''
-          ? ctx.t(o.text as LocalizedText)
-          : asString(value);
-      const out: LinkDisplay = { kind: 'link', href, text };
-      if (typeof o.target === 'string' && o.target) out.target = o.target;
-      return out;
-    }
-
-    case 'choice-label': {
-      const lookup = itemsLookup(o.items);
-      const key = asString(value);
-      if (key in lookup) {
-        const label = lookup[key];
-        return typeof label === 'object' && label !== null
-          ? ctx.t(label as LocalizedText)
-          : asString(label);
-      }
-      // dynamic {model} source or unknown key → preserve the raw code (never fabricate).
-      return key;
-    }
-
-    case 'bool': {
-      const b = truthy(value);
-      const labelSource = b ? o.true : o.false;
-      const label =
-        labelSource !== undefined && labelSource !== null
-          ? ctx.t(labelSource as LocalizedText)
-          : b
-          ? 'true'
-          : 'false';
-      const as = typeof o.as === 'string' && o.as ? o.as : 'text';
-      return { kind: 'bool', value: b, label, as };
-    }
-
-    case 'image': {
-      // src is the raw cell value (a URL/path) — NOT an interpolation template.
-      const src = asString(value);
-      const alt =
-        o.alt !== undefined && o.alt !== null
-          ? interpolate(ctx.t(o.alt as LocalizedText), ctx.row, value)
-          : '';
-      const out: ImageDisplay = { kind: 'image', src, alt };
-      if (o.width !== undefined) out.width = asString(o.width);
-      if (o.height !== undefined) out.height = asString(o.height);
-      return out;
-    }
-
-    case 'html':
-      return { kind: 'html', html: asString(value) };
-
-    case 'text':
-    default: {
-      const s = asString(value);
-      return o.truncate !== undefined ? truncate(s, o.truncate) : s;
-    }
-  }
+  const renderer = CELL_RENDERERS[format.type] ?? CELL_RENDERERS[CELL_FORMAT_DEFAULT];
+  return renderer(value, format.options, ctx);
 }
