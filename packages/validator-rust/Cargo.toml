@@ -11,6 +11,10 @@ path = "src/lib.rs"
 name = "validate-legacy"
 path = "src/bin/validate-legacy.rs"
 
+[[bin]]
+name = "validate"
+path = "src/bin/validate.rs"
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
