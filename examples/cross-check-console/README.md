@@ -4,51 +4,74 @@ A single Node gateway that runs the SAME CRUDUI engine the AI conformance gate r
 through a DIFFERENT call stack, so a human can flow arbitrary spec + data live and
 watch all four validators and all three SSR generators agree (or diverge).
 
-Three responsibilities in one process (`server/server.mjs`):
+Responsibilities in one process (`server/server.mjs`):
 
-- `POST /api/validate` — 4-language CRUDUI validation fan-out. ALL FOUR languages (JS
-  included) run as stdin-JSON CLI subprocesses (the CRUDUI wrappers, not the legacy ones):
-  compose → forbidden-scan → validate. The gateway imports NO validator — it is a
-  pure orchestrator with zero privileged path, so the four are fully symmetric.
-- `POST /api/render` — 3-framework CRUDUI SSR. React / Svelte (sync) and Vue (async)
-  all render in-process through the CRUDUI entries the conformance tests import (the
-  Svelte adapter compiles `.svelte` files, so a bundler-free CLI is impossible —
-  but all three frameworks load the same way, so the render side is symmetric too).
+- `POST /api/validate` — 4-language CRUDUI FORM validation fan-out. ALL FOUR languages
+  (JS included) run as stdin-JSON CLI subprocesses (the CRUDUI wrappers, not the legacy
+  ones): compose → forbidden-scan → validate. The gateway imports NO validator — it
+  is a pure orchestrator with zero privileged path, so the four are fully symmetric.
+- `POST /api/validate-list` — 4-language CRUDUI LIST STRUCTURE validation fan-out. The
+  validate sister of `/api/validate` (SPEC §9): the SAME four CLIs route on
+  `mode:"list"` (compose → forbidden-scan over the list tree). A list carries NO
+  rows (they are injected, DB-agnostic), so there is no DATA pass — `data` is
+  omitted. A forbidden meta key surfaces as the SAME `loadError` envelope.
+- `POST /api/render` — 3-framework CRUDUI FORM SSR. React / Svelte (sync) and Vue
+  (async) all render in-process through the CRUDUI entries the conformance tests import
+  (the Svelte adapter compiles `.svelte` files, so a bundler-free CLI is impossible
+  — but all three frameworks load the same way, so the render side is symmetric too).
+- `POST /api/render-list` — 3-framework CRUDUI LIST SSR. The read sister of
+  `/api/render` (SPEC §9): a list-spec + INJECTED rows fan out across the three
+  List SSR entries. The asymmetric per-framework layout key (React `layout:'card'`,
+  Vue `layout:'cards'`, Svelte `mode:'card'`) is mapped from a single fixture-shaped
+  `options.layout` exactly as the list-render conformance tests do, so the three
+  normalized outputs still collapse to one parity key.
 - static console — serves `client/` at `/` (no build; plain ES modules).
 
 ## Why it is independent verification
 
 The conformance gate (`tests/runner/compare-all.js` + the three
-`form-render.conformance` tests) drives the CRUDUI engine through vitest / go test /
-cargo test / a php worker against FIXED fixtures. The console drives the SAME CRUDUI
-functions through an HTTP gateway against FREE live input. Same engine, different
-wrapper — a bug in one path cannot hide a bug in the other. Removing the JS
-in-process import strengthens this: JS now runs through a CLI exactly like
+`form-render.conformance` tests, plus the list-render conformance and the
+4-language list-structure conformance) drives the CRUDUI engine through vitest / go
+test / cargo test / a php worker against FIXED fixtures. The console drives the
+SAME CRUDUI functions through an HTTP gateway against FREE live input. Same engine,
+different wrapper — a bug in one path cannot hide a bug in the other. Removing the
+JS in-process import strengthens this: JS now runs through a CLI exactly like
 PHP/Go/Rust, so no language is favored inside the gateway and a 4-language
-agreement is engine determinism, not a privileged-call-path artifact. The console computes
-its own `idempotent` / `parity` verdict AND exposes the raw per-language /
-per-framework bytes (raw toggle) so the verdict itself is auditable. A live
+agreement is engine determinism, not a privileged-call-path artifact. A live
 divergence you find can be exported as a fixture case and folded back into the
 gate as a permanent regression test.
+
+The console does NOT trust the server's verdict. For every run it recomputes
+`idempotent` (4 langs agree) and `parity` (3 frameworks agree) from the raw
+per-entry results, and exposes the raw per-language / per-framework bytes (raw
+toggle) so its OWN judgement can be re-checked against the source data. See
+[Console-side verdict re-computation](#console-side-verdict-re-computation).
 
 ## Endpoints
 
 ```
-POST /api/validate   { spec, data, files?, basepath? }
+POST /api/validate      { spec, data, files?, basepath? }
   → 200 { results:[{lang,ok,valid,errors,ms,loadError}], idempotent, mismatch }
 
-POST /api/render     { spec, data, options:{language,unsupported} }
+POST /api/validate-list { listSpec | spec, files?, basepath? }   # no data — a list has no rows
+  → 200 { results:[{lang,ok,valid,errors,ms,loadError}], idempotent, mismatch }
+
+POST /api/render        { spec, data, options:{language,unsupported} }
   → 200 { results:[{fw,ok,html,normalized,ms,error}], parity, mismatch }
 
-GET  /health         → 200 { status:"ok", timestamp }
-GET  /               → static console (client/)
+POST /api/render-list   { listSpec | spec, rows, options:{language,layout?} }
+  → 200 { results:[{fw,ok,html,normalized,ms,error}], parity, mismatch }
+
+GET  /health            → 200 { status:"ok", timestamp }
+GET  /                  → static console (client/)
 ```
 
-`spec` may be a YAML string OR an already-parsed object; both are accepted.
-Validation/render FAILURE is never an HTTP error — it is a result surface (always
-200). An unresolved `$ref`/`$patch`/forbidden key is a LOAD failure (`loadError` /
-`error` with a stable `code`), distinct from `valid:false`. Only real server
-faults use 4xx/5xx with `{ error }`.
+`spec` (and `listSpec`) may be a YAML string OR an already-parsed object; both are
+accepted. For the list endpoints `listSpec` is the canonical key and `spec` is
+accepted as an alias. Validation/render FAILURE is never an HTTP error — it is a
+result surface (always 200). An unresolved `$ref`/`$patch`/forbidden key is a LOAD
+failure (`loadError` / `error` with a stable `code`), distinct from `valid:false`.
+Only real server faults use 4xx/5xx with `{ error }`.
 
 ## Run
 
@@ -79,6 +102,73 @@ npm start                    # PORT=4000 by default
 
 Open http://localhost:4000 — pick an example, edit spec/data, hit run.
 
+## Two tabs: form and list
+
+The console has two tabs over the four endpoints. The panels never share DOM;
+switching only toggles which `<main>` is visible.
+
+- **form tab** — `POST /api/validate` (4-language form validation) + `POST
+  /api/render` (3-framework form SSR), fired in parallel. Spec editor + data
+  editor, `unsupported` toggle, fixture export.
+- **list tab** — three matrices stacked top-down so the tab reads as validate (4
+  langs) → render (3 frameworks), mirroring the form tab:
+  1. `POST /api/validate-list` — the 4-language list STRUCTURE validate
+     (compose → forbidden-scan; no rows). Drawn through the SAME idempotency
+     matrix the form tab uses; a forbidden meta key surfaces as the SAME
+     `loadError` cell.
+  2. `POST /api/render` of `listSpec.search` — the embedded `search` slot IS a
+     form-spec, rendered through the SAME form endpoint to prove it round-trips
+     unchanged. The list renderers ignore the `search` slot (they read only
+     columns / sort / pagination / empty / actions), so the SAME spec object is
+     what the form endpoint receives. A list-spec with no `search` slot shows an
+     idle note instead of a phantom result.
+  3. `POST /api/render-list` — the 3-framework List SSR over the INJECTED rows.
+     Columns / format / pagination are declared in the list-spec; the rows are a
+     separate JSON editor (DB-agnostic). Drawn through the SAME parity matrix the
+     form tab uses.
+
+  The list-spec editor + rows editor each carry a green/red parse badge; a parse
+  failure disables the list run button. The `search` form-spec reuse means the
+  same `search(form-spec)` round-trips through the form endpoint that the form tab
+  exercises directly.
+
+## Console-side verdict re-computation
+
+The server reports `idempotent` / `parity`, but the console NEVER trusts it. On
+every run it recomputes both from the raw per-entry results, so the on-screen
+badge is independently derived:
+
+- `idempotent` (validate / validate-list) — a stable per-language signature
+  (valid + load code + sorted 5-field errors, numeric `value` collapsed so a
+  Rust-f64-vs-int serialization never trips a false mismatch). A failed CLI
+  (`ok:false`) carries a distinct signature and never silently agrees. Fewer than
+  two languages ran → undetermined (null), not false.
+- `parity` (render / render-list / search render) — a success framework signs with
+  `html:<normalized>`, a failed framework with `error:<code>` (distinct
+  namespaces, so a framework that throws while the others render IS a parity break,
+  not silently dropped). Fewer than two frameworks rendered → undetermined (null).
+
+A divergent run paints the offending columns red and draws a per-entry diff table
+(which language/framework split on which path/rule or tag/attribute). The `raw`
+toggle replaces every cooked cell with the server's verbatim JSON entry — raw wins
+over every view — so the console's own verdict is auditable against the source.
+
+## Fixture export
+
+Each tab serializes its current run into the matching `cases.json` shape and
+downloads it, one case per language/framework:
+
+- form tab → `tests/fixtures/{validate,form-render}/cases.json` shapes: validate
+  `{name,note,spec,data,expected:{valid,errors}}` (or `{loadError}`) and form-render
+  `{name,note,spec,data,options,expected_html}` (or `{expected_error}`).
+- list tab → `tests/fixtures/list-render/cases.json` shape:
+  `{name,note,spec,rows,options,expected_html|expected_error}`. `spec` carries the
+  list-spec verbatim (including a `search` slot if present); the list conformance
+  reader ignores that slot exactly as the live renderers do.
+
+Paste an exported divergent case into the AI gate (`compare-all.js` /
+`*.conformance`) to turn a live break into a permanent regression test.
+
 ## Local curl smoke test
 
 ```bash
@@ -101,18 +191,34 @@ curl -s -X POST localhost:4000/api/render -H 'Content-Type: application/json' \
 curl -s -X POST localhost:4000/api/render -H 'Content-Type: application/json' \
   -d '{"spec":{"type":"group","properties":{"x":{"type":"totally-unknown-widget"}}},"options":{"unsupported":"throw"}}'
 # → parity:true, every fw error.code UNSUPPORTED_FIELD_TYPE
+
+# validate-list: clean list STRUCTURE → all 4 langs valid:true (no data pass)
+curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/json' \
+  -d '{"listSpec":{"columns":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}}}}}'
+# → idempotent:true, every lang valid:true (mode:list, compose → forbidden-scan)
+
+# validate-list: forbidden meta key in a list → LOAD error in all 4 langs
+curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/json' \
+  -d '{"listSpec":{"columns":{"$ref":"Missing.yml"}}}'
+# → idempotent:true, every lang loadError.code REF_FILE_NOT_FOUND
+
+# render-list: 2 injected rows + a column → 3 frameworks parity on the same table
+curl -s -X POST localhost:4000/api/render-list -H 'Content-Type: application/json' \
+  -d '{"listSpec":{"columns":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}}}},"rows":[{"name":"Ada"},{"name":"Lin"}],"options":{"language":"ko"}}'
+# → parity:true, normalized table == fixture expected_html
 ```
 
 ## Layout
 
 ```
 server/
-  server.mjs          gateway: routes + CORS + always-200 + static serving
-  engine.mjs          one Vite SSR boot → loads the 3 CRUDUI RENDER entries (render only)
-  validate-runner.mjs all 4 langs via spawnSync CLI (zero privileged path); idempotency verdict
-  render-runner.mjs   React/Svelte/Vue in-process SSR; parity verdict
+  server.mjs          gateway: routes (validate, validate-list, render, render-list) + CORS + always-200 + static serving
+  engine.mjs          one Vite SSR boot → loads the 3 CRUDUI form + 3 CRUDUI list RENDER entries (render only)
+  validate-runner.mjs all 4 langs via spawnSync CLI (zero privileged path); validateAll + validateAllList (mode:list); idempotency verdict
+  render-runner.mjs   React/Svelte/Vue in-process SSR; renderAll + renderAllList (per-fw layout map); parity verdict
   package.json        start + build:cli + check:js-cli scripts
-client/               no-build console (index.html + app.js + styles.css)
+client/               no-build console (index.html + app.js + examples.js + doc.js + styles.css);
+                      two tabs (form + list) over the four endpoints
 ```
 
 The CRUDUI validate CLI wrappers live in their own packages (JS
