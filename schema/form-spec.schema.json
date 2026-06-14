@@ -251,20 +251,48 @@
       ]
     },
 
-    "ItemsSource": {
-      "description": "items 하위 — 동적 선택지 소스. {model, method, table, relations} 로 외부 소스에서 옵션을 로드. 레거시에 흩어졌던 동적 소스 종속을 items 로 모음(§3 C).",
+    "ItemsModel": {
+      "description": "items.model 의 중첩 형태 — 단일 모델명이 아니라 관계형 질의 디스크립터({table, relations, keys}). 실 코퍼스 동적소스(type:search)의 실형태. 구조만 표현한다 — 질의를 만들어 실행하는 것은 런타임의 일이며 범위 밖이다(SPEC §6 R1: 타입은 보존, 차단은 검증). sub_keys 외 디스크립터 키도 보존하되 금지 메타키는 propertyNames 로 한 칸 아래에서 차단한다.",
       "type": "object",
-      "additionalProperties": false,
+      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
       "properties": {
-        "model": { "description": "옵션을 로드할 데이터 모델/소스 이름.", "type": "string" },
+        "table": { "description": "행을 끌어올 기본 테이블.", "type": "string" },
+        "relations": { "description": "조인/관계 디스크립터(각 행이 관련 테이블을 컬럼 쌍으로 연결).", "type": "array" },
+        "keys": { "description": "표시키 디스크립터(각 옵션 라벨을 구성하는 필드들).", "type": "array" }
+      }
+    },
+
+    "ItemsSource": {
+      "description": "items 하위 — 동적 선택지 소스. 레거시에 흩어졌던 동적 소스 종속을 items 로 모음(§3 C). 구조만 표현한다 — model 질의를 실행하거나 api_server 엔드포인트를 호출하는 것은 런타임의 일이며 범위 밖이다(SPEC §6 R1). 실 코퍼스 유일 동적소스(type:search)는 model(이름 string 또는 {table,relations,keys} 중첩 질의) + 형제 api_server(런타임 HTTP fn 참조) + placeholder 정적 items 가 공존하는 형태다 — 셋 모두 여기서 보존되며 엔진은 해석하지 않는다. 열린 버킷(propertyNames not-enum): 미흡수 소스 디스크립터 키는 보존하되 금지 메타키만 한 칸 아래에서 차단한다.",
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+      "properties": {
+        "model": {
+          "description": "옵션을 로드할 데이터 모델/소스. 모델명 string 또는 중첩 {table,relations,keys} 관계형 질의(실 코퍼스 형태). 어느 쪽이든 보존만 — 질의 실행은 런타임(범위 밖).",
+          "anyOf": [
+            { "type": "string" },
+            { "$ref": "#/definitions/ItemsModel" }
+          ]
+        },
         "method": { "description": "옵션 행을 가져오는 모델 메서드.", "type": "string" },
-        "table": { "description": "소스 테이블.", "type": "string" },
-        "relations": { "description": "조인/관계 정의." }
+        "table": { "description": "소스 테이블(model.table 의 최상위 단축형).", "type": "string" },
+        "relations": { "description": "조인/관계 정의." },
+        "api_server": { "description": "런타임 HTTP 엔드포인트 fn 참조(불투명 소스 콜백 문자열, 예: \"function() { return '/admin/user/search'; }\"). 그대로 보존하며 엔진은 호출하지 않는다 — 엔드포인트 호출은 런타임(범위 밖).", "type": "string" },
+        "items": {
+          "description": "동적 소스와 공존하는 placeholder 정적 items: api_server/model 해석 전 UI가 보여줄 사전 선택지(흔히 빈 [] 또는 단일 {\"\": \"선택하세요\"} 프롬프트). 정적 배열 또는 value→label 맵 — 런타임이 가져온 행으로 대체한다.",
+          "anyOf": [
+            { "type": "array" },
+            {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/ItemLabel" }
+            }
+          ]
+        }
       }
     },
 
     "Items": {
-      "description": "구조 — 선택지 소스(1급, 종속 격리 버킷). 다형: 정적 value→label 맵 | 정적 배열 | {model,method,table,relations} 동적 소스. 정적 value→label 맵은 key 가 값(멤버십 검증 대상), 값이 라벨(string 또는 LangMap, G3) — 라벨은 표시용이라 멤버십에 무관. 빈 라벨은 null 허용. 동적 소스 종속은 items 하위로 격리.",
+      "description": "구조 — 선택지 소스(1급, 종속 격리 버킷). 다형: 정적 value→label 맵 | 정적 배열 | 동적 소스(ItemsSource). 정적 value→label 맵은 key 가 값(멤버십 검증 대상), 값이 라벨(string 또는 LangMap, G3) — 라벨은 표시용이라 멤버십에 무관. 빈 라벨은 null 허용. 동적 소스(실 코퍼스 type:search)는 model(string 또는 {table,relations,keys} 중첩) + api_server(런타임 HTTP fn 참조) + placeholder 정적 items 공존 — items 하위로 격리·보존, 런타임 해석은 범위 밖.",
       "anyOf": [
         { "type": "array" },
         { "$ref": "#/definitions/ItemsSource" },
@@ -323,7 +351,7 @@
     },
 
     "Multiple": {
-      "description": "구조 — 반복 행(true=인덱스 배열 + 숨긴 id, G4). 1급, 종속 격리 버킷. 다형(false|{}|true). multiple 종속 세부(max·copy·sortable·onclick)는 multiple 하위로 격리(§3 C). sub_keys 가 닫혀 있어 정규 키 외(레거시 multiple_max/sortable*/add_buttons/remove_list_button/list_button_text/multiple_button_onclick)를 거부한다 — 레거시는 번역기가 max/sortable/copy/onclick 으로 매핑한다.",
+      "description": "구조 — 반복 행(true=켜짐). 1급, 종속 격리 버킷. 다형(false|{}|true). multiple 종속 세부(max·copy·sortable·onclick)는 multiple 하위로 격리(§3 C). sub_keys 가 닫혀 있어 정규 키 외(레거시 multiple_max/sortable*/add_buttons/remove_list_button/list_button_text/multiple_button_onclick)를 거부한다 — 레거시는 번역기가 max/sortable/copy/onclick 으로 매핑한다. 행 정체성(G4)은 multiple 필드가 아니다 — 런타임에 제출 데이터가 실어 나르는 숨은 서버 PK(기존 행=있음, 신규 행=없음)이고, 직렬화 순서가 배열 순서다. 빌드타임 모델에는 id 필드도 id 방출 코드도 없다(데이터 층 정체성, 서버가 동기화). 레거시 seqtokey/__13hex__ 합성 id 키를 번역기가 버리는 이유도 이것 — 애초에 스펙 필드가 아니다.",
       "anyOf": [
         { "type": "boolean" },
         {
@@ -380,11 +408,11 @@
           "$ref": "#/definitions/Properties"
         },
         "items": {
-          "description": "구조·정체성 — 선택지 소스. 다형: 정적 배열 | {model,method,table,relations} 동적 소스. 동적 소스 종속은 items 하위로 격리.",
+          "description": "구조·정체성 — 선택지 소스. 다형: 정적 배열 | 정적 value→label 맵 | 동적 소스. 동적 소스(실 코퍼스 type:search)는 model(string 또는 {table,relations,keys} 중첩 질의) + api_server(런타임 HTTP fn 참조) + placeholder 정적 items 공존 — 모두 items 하위로 격리·보존. 런타임 해석은 범위 밖(SPEC §6 R1).",
           "$ref": "#/definitions/Items"
         },
         "multiple": {
-          "description": "구조·정체성 — 반복 행(인덱스 배열 + 숨긴 id, G4). 다형 false|{}|true. 반복 종속 세부는 multiple 하위로 격리.",
+          "description": "구조·정체성 — 반복 행(true=켜짐). 다형 false|{}|true. 반복 종속 세부는 multiple 하위로 격리. 행 정체성(G4)은 multiple 필드가 아니라 런타임에 제출 데이터가 실어 나르는 숨은 서버 PK다(빌드타임 스펙 필드·id 키 없음).",
           "$ref": "#/definitions/Multiple"
         },
         "lang": {

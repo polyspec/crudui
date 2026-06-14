@@ -73,14 +73,18 @@ type FieldSpec struct {
 	// in declaration order. It is the $ref / $patch composition entry point.
 	Properties *PropertyMap `json:"properties,omitempty"`
 
-	// Items is structure / identity — the choice source: a static array, or a
-	// dynamic {model,method,table,relations}. Dynamic-source dependents are
-	// isolated under it.
+	// Items is structure / identity — the choice source: a static array, a
+	// static value→label map, or a dynamic source. The real corpus dynamic
+	// source (type: search) is a model (name string OR nested
+	// {table,relations,keys} query) + a sibling api_server (runtime HTTP fn
+	// reference) + a placeholder static items, all isolated under it and
+	// preserved verbatim. Runtime resolution is out of scope (SPEC §6 R1).
 	Items *Items `json:"items,omitempty"`
 
-	// Multiple is structure / identity — repeated rows (true = indexed array +
-	// hidden id, G4). Polymorphic false | {} | true; repetition dependents are
-	// isolated under it.
+	// Multiple is structure / identity — repeated rows (true = on). Polymorphic
+	// false | {} | true; repetition dependents are isolated under it. Row
+	// identity (G4) is NOT a multiple field — at runtime it is a hidden server PK
+	// carried in the submitted data, not a build-time spec field (no id key).
 	Multiple *Multiple `json:"multiple,omitempty"`
 
 	// Lang is structure / identity — the input-multilingual dimension (the field
@@ -746,13 +750,19 @@ func (s *OptionsSlot) UnmarshalJSON(data []byte) error {
 }
 
 // Items is the choice source: a static array (Static), a static value→label map
-// (StaticMap, G3), or a dynamic source (model / method / table / relations). It
-// is the dependency-isolation bucket for the items target — dynamic-source keys
-// live here, not at top level.
+// (StaticMap, G3), or a dynamic source. It is the dependency-isolation bucket
+// for the items target — dynamic-source keys live here, not at top level.
 //
 // A static value→label map (SPEC §2 G3) has the option VALUE as the KEY and the
 // display label (string | LangMap | null) as the value. The label is display-only
 // and never a membership value; an empty (null) label has no effect.
+//
+// A dynamic source is STRUCTURE ONLY. The single real corpus shape
+// (type: search) is a Model (a name string OR a nested {table, relations, keys}
+// relational query) plus a sibling ApiServer (a runtime HTTP-endpoint fn
+// reference) plus a placeholder static Items. Model / ApiServer / Items are kept
+// as raw JSON and preserved verbatim — the engine never runs the query or calls
+// the endpoint. Runtime resolution is out of scope (SPEC §6 R1).
 type Items struct {
 	// Static is the static choice array, when items is a literal list.
 	Static []any `json:"-"`
@@ -764,21 +774,34 @@ type Items struct {
 	// LangMap | null), kept as raw JSON so any label shape round-trips.
 	StaticMap map[string]json.RawMessage `json:"-"`
 
-	// Model is the dynamic source model.
-	Model any `json:"model,omitempty"`
+	// Model is the dynamic source model: a name string OR a nested
+	// {table, relations, keys} query. Raw JSON so both shapes round-trip; the
+	// runtime, not this model, builds and runs the query.
+	Model json.RawMessage `json:"model,omitempty"`
 	// Method is the dynamic source method.
 	Method any `json:"method,omitempty"`
-	// Table is the dynamic source table.
+	// Table is the dynamic source table (top-level shorthand of model.table).
 	Table any `json:"table,omitempty"`
 	// Relations is the dynamic source relations.
 	Relations any `json:"relations,omitempty"`
+	// ApiServer is the runtime HTTP-endpoint fn reference (an opaque source
+	// callback string). Preserved verbatim; the engine never calls it —
+	// invoking the endpoint is runtime, out of scope.
+	ApiServer json.RawMessage `json:"api_server,omitempty"`
+	// PlaceholderItems is the placeholder static items that coexists with the
+	// dynamic source (the pre-fetch choices shown before the source resolves,
+	// often [] or a single {"": "선택하세요"} prompt). Raw JSON so the array /
+	// value→label shapes round-trip; the runtime replaces it with fetched rows.
+	PlaceholderItems json.RawMessage `json:"items,omitempty"`
 }
 
 // itemsDynamicKeys is the closed dynamic-source key set; an items object whose
 // keys all fall inside it is a dynamic source, otherwise it is a static
-// value→label map (G3).
+// value→label map (G3). The placeholder "items" and the runtime fn reference
+// "api_server" are part of the source descriptor (they coexist with model).
 var itemsDynamicKeys = map[string]bool{
 	"model": true, "method": true, "table": true, "relations": true,
+	"api_server": true, "items": true,
 }
 
 // MarshalJSON emits Items as the static array, the static value→label map (in
@@ -887,9 +910,17 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 	return keys, values, nil
 }
 
-// Multiple is repeated rows (true = indexed array + hidden id, G4) and the
-// dependency-isolation bucket for the multiple target — repetition-control keys
-// live under it, never at top level. Polymorphic false | {} | true.
+// Multiple is repeated rows (true = on) and the dependency-isolation bucket for
+// the multiple target — repetition-control keys live under it, never at top
+// level. Polymorphic false | {} | true.
+//
+// Row identity (G4) is NOT a Multiple field. At runtime a repeated row's
+// identity is a hidden server PK carried in the submitted data (an existing row
+// has one, a new row has none); serialization order is the array order. This
+// build-time model has no id field and no id-emitting code — row identity lives
+// in the data layer the server reconciles, not in this spec. (That data-layer id
+// is why a translator drops the legacy seqtokey / __13hex__ synthesized id keys
+// — they were never spec fields.)
 //
 // Legacy multiple_max / sortable* / add_buttons / remove_list_button /
 // list_button_text / multiple_button_onclick are NOT fields here; their
