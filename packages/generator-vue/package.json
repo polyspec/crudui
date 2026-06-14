@@ -21,7 +21,8 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --clean --external vue",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external vue",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:v2": "vitest run test/v2-render.conformance.test.mjs"
   },
   "keywords": [
     "vue",

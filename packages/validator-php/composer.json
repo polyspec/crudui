@@ -26,7 +26,8 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit",
+        "test:v2": "phpunit tests/V2"
     },
     "minimum-stability": "stable"
 }
