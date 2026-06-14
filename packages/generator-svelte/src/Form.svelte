@@ -23,8 +23,7 @@
     type FileLoader,
   } from '@form-spec/validator';
   import { makeTranslate, type Language } from './content';
-  import { renderField, type RenderState } from './render';
-  import { resetUniqid } from './util';
+  import { renderField, type RenderState, type UnsupportedMode } from './render';
 
   /** Props for the CRUDUI form component. */
   export interface FormProps {
@@ -42,6 +41,11 @@
     loader?: FileLoader;
     /** Basepath for relative $ref. */
     basepath?: string;
+    /**
+     * Unsupported field-type handling (default 'throw' — un-ported types are RED,
+     * never silent). 'marker' emits a grep-able data-unsupported-type div instead.
+     */
+    unsupported?: UnsupportedMode;
   }
 
   /**
@@ -55,13 +59,16 @@
     const loader = props.loader ?? new MemoryLoader(props.files ?? {});
     const opts = props.basepath ? { basepath: props.basepath } : {};
 
-    resetUniqid();
-
     // Stage 2: compose the root properties (recurses into nested $ref/$patch).
     const rawProps = (props.spec.properties as Record<string, unknown>) ?? {};
     const composed = composeProperties(rawProps, loader, opts);
 
-    const state: RenderState = { data, keyPrefix: props.keyPrefix, t };
+    const state: RenderState = {
+      data,
+      keyPrefix: props.keyPrefix,
+      t,
+      unsupported: props.unsupported ?? 'throw',
+    };
 
     // Stages 3–4: render each composed top-level field.
     let fieldsHtml = '';

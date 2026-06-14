@@ -15,7 +15,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { renderForm, ComposeLoadError } from '../index';
+import { renderForm, ComposeLoadError, UnsupportedFieldTypeError } from '../index';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
 // The shared fixture, imported as JSON (resolveJsonModule) — the SAME file the
@@ -55,7 +55,16 @@ describe('current render — render is idempotent (stable across re-render)', ()
   }
 });
 
-describe('current render — unresolved $ref is a LOAD ERROR, never silent', () => {
+// Error lanes: an unresolved $ref (ComposeLoadError) and an un-ported field type
+// (UnsupportedFieldTypeError) BOTH surface as a thrown error carrying a stable
+// `code` — render FAILS, never valid:true / never silent ''. The lane is keyed on
+// the declared code so every un-ported type stays RED until ported.
+const ERROR_CLASS_BY_CODE: Record<string, new (...args: never[]) => Error & { code: string }> = {
+  REF_FILE_NOT_FOUND: ComposeLoadError as never,
+  UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError as never,
+};
+
+describe('current render — a load/registry gap is a surfaced ERROR, never silent', () => {
   for (const c of cases.filter((x) => x.expectError)) {
     test(c.name, () => {
       let thrown: unknown;
@@ -64,10 +73,10 @@ describe('current render — unresolved $ref is a LOAD ERROR, never silent', () 
       } catch (e) {
         thrown = e;
       }
-      expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(
-        ComposeLoadError
-      );
-      expect((thrown as ComposeLoadError).code).toStrictEqual(c.expectError!.code);
+      const expectedClass = ERROR_CLASS_BY_CODE[c.expectError!.code];
+      expect(expectedClass, `${c.name}: unknown error code ${c.expectError!.code}`).toBeTruthy();
+      expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(expectedClass);
+      expect((thrown as { code: string }).code).toStrictEqual(c.expectError!.code);
     });
   }
 });
@@ -78,17 +87,16 @@ describe('current render — unresolved $ref is a LOAD ERROR, never silent', () 
 // ("if"/"when") so label/text prose never false-positives.
 const FORBIDDEN_LITERAL = ['display_switch', 'display_target', 'show_if'];
 const FORBIDDEN_KEYSHAPE = [/"if"/, /"when"/];
-// The normalizer's exact uniqid mask range (N1). Every generated token in raw
-// output MUST fall inside this range; a token of any other length/charset would
-// survive normalization and break parity — that is the leak this catches.
-const UNIQID_MASK_RANGE = /__[0-9a-f]{11,16}__/g;
+// R4 magic-token guard. CRUDUI emits NO `__<hex>__` token (row identity is the
+// explicit position index / hidden data key; element ids are path-derived). Any
+// `__<hex>__` residue in raw output is a magic-token regression — there is no
+// longer a normalizer mask to hide it.
 const ANY_UNDERSCORE_TOKEN = /__[0-9a-f]+__/;
 
 describe('current render — eval is never used (no legacy condition meta keys leak)', () => {
-  // Operates on the RAW render output (pre-normalization). The earlier version
-  // inspected the already-normalized fixture string (c.expected_html), where the
-  // uniqid is masked to __UNIQID__ and any leak is already erased — it asserted
-  // nothing. This runs the real generator and checks the bytes it actually emits.
+  // Operates on the RAW render output (pre-normalization) — the bytes the
+  // generator actually emits, where a forbidden meta key or a magic token would
+  // still be visible (there is no normalizer mask to hide one).
   for (const c of cases.filter((x) => x.expected_html)) {
     test(`${c.name} — no forbidden meta-key markup`, () => {
       const raw = render(c);
@@ -101,18 +109,16 @@ describe('current render — eval is never used (no legacy condition meta keys l
         expect(raw, `${c.name}: ${re} leaked into raw output`).not.toMatch(re);
       }
 
-      // 2: every generated uniqid token is inside the normalizer mask range;
-      // after masking those, no underscore-token residue survives (a residue is
-      // an out-of-range token that would leak past normalization).
-      const masked = raw.replace(UNIQID_MASK_RANGE, '__UNIQID__');
-      expect(masked, `${c.name}: out-of-range uniqid token leaked`).not.toMatch(
+      // 2: R4 — NO magic `__<hex>__` token is emitted at all. Row identity is the
+      // explicit position index / hidden data key; element ids are path-derived.
+      expect(raw, `${c.name}: magic __<hex>__ token leaked into raw output`).not.toMatch(
         ANY_UNDERSCORE_TOKEN
       );
     });
   }
 
   // 3: G4 data identity — a real row id (e.g. people.p1) is preserved verbatim
-  // as data-uniqid in the RAW output, never replaced by a generated position
+  // as data-uniqid in the RAW output, never replaced by a synthesized position
   // token (no __13hex__ position-id leakage; README coverage line).
   test('multiple-group-rows — real data row id survives unmasked (G4)', () => {
     const c = cases.find((x) => x.name === 'multiple-group-rows');
