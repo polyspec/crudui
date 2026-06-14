@@ -32,6 +32,21 @@ import type {
   TranslateNote,
   IrreversibleReason,
 } from './types';
+import { KEY_MAPPINGS } from './types';
+
+/**
+ * The set of R7 reasons KEY_MAPPINGS declares irreversible — the canonical
+ * registry. The translator CONSUMES this table: every reason it records via
+ * `note()` must be a reason the table marks `reversible:false`. This makes
+ * KEY_MAPPINGS the single truth for the reason vocabulary (not doc-only) — a
+ * reason emitted here that the table does not list as irreversible is a wiring
+ * bug, caught at the call site rather than silently shipped.
+ */
+const IRREVERSIBLE_REASONS: ReadonlySet<IrreversibleReason> = new Set(
+  KEY_MAPPINGS.filter((m) => !m.reversible && m.reason !== undefined).map(
+    (m) => m.reason as IrreversibleReason
+  )
+);
 
 /** First-class keys passed through verbatim (the analysis passthrough set). */
 const PASSTHROUGH = new Set([
@@ -773,5 +788,12 @@ function note(
   reason: IrreversibleReason,
   detail: string
 ): void {
+  // Single truth: the reason must be one KEY_MAPPINGS marks irreversible. The
+  // translator consults the table here — an unregistered reason is a wiring bug.
+  if (!IRREVERSIBLE_REASONS.has(reason)) {
+    throw new Error(
+      `translator emitted reason "${reason}" not declared reversible:false in KEY_MAPPINGS (single-truth violation) at ${path.join('.')}`
+    );
+  }
   notes.push({ path: path.join('.'), legacyKey, reason, detail });
 }

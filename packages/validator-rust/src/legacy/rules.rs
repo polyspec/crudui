@@ -132,10 +132,7 @@ fn rule_min(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext
         Ok(n) => n,
         Err(_) => return None,
     };
-    let num = match to_number(value) {
-        Some(n) => n,
-        None => return None,
-    };
+    let num = to_number(value)?;
     if num < min_val {
         return Some(format!("Please enter a value greater than or equal to {}.", params[0]));
     }
@@ -150,10 +147,7 @@ fn rule_max(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext
         Ok(n) => n,
         Err(_) => return None,
     };
-    let num = match to_number(value) {
-        Some(n) => n,
-        None => return None,
-    };
+    let num = to_number(value)?;
     if num > max_val {
         return Some(format!("Please enter a value less than or equal to {}.", params[0]));
     }
@@ -228,8 +222,8 @@ fn rule_unique(value: &Value, _p: &[String], all_data: &Value, ctx: &ValidationC
     };
 
     let current_key = unique_comparison_key(value);
-    for i in 0..idx.min(parent_array.len()) {
-        let item = match &parent_array[i] {
+    for entry in parent_array.iter().take(idx) {
+        let item = match entry {
             Value::Object(o) => o,
             _ => continue,
         };
@@ -401,20 +395,15 @@ fn rule_end_date(value: &Value, params: &[String], all_data: &Value, ctx: &Valid
     if is_empty(value) || params.is_empty() {
         return None;
     }
-    let end_date = match parse_date(&to_string(value)) {
-        Some(d) => d,
-        None => return None, // invalid format -> let date rule handle it
-    };
+    // invalid format -> let date rule handle it
+    let end_date = parse_date(&to_string(value))?;
     let start_date_path = &params[0];
     let start_value = get_value_by_path(all_data, start_date_path, ctx.current_path);
     let start_value = match start_value {
         Some(v) if !is_empty(v) => v,
         _ => return None,
     };
-    let start_date = match parse_date(&to_string(start_value)) {
-        Some(d) => d,
-        None => return None,
-    };
+    let start_date = parse_date(&to_string(start_value))?;
     if end_date < start_date {
         return Some("End date must be after the start date.".to_string());
     }
@@ -496,10 +485,7 @@ fn rule_step(value: &Value, params: &[String], _d: &Value, _c: &ValidationContex
     if step <= 0.0 {
         return None;
     }
-    let num = match to_float64(value) {
-        Some(n) => n,
-        None => return None,
-    };
+    let num = to_float64(value)?;
 
     let decimal_places = get_decimal_places(num).max(get_decimal_places(step));
     let multiplier = 10f64.powi(decimal_places as i32);
@@ -631,9 +617,7 @@ fn parse_url(s: &str) -> Option<(String, String)> {
         let rest = &s[scheme_end + 1..];
         if let Some(after) = rest.strip_prefix("//") {
             // authority ends at first '/', '?', or '#'
-            let host_end = after
-                .find(|c| c == '/' || c == '?' || c == '#')
-                .unwrap_or(after.len());
+            let host_end = after.find(['/', '?', '#']).unwrap_or(after.len());
             let authority = &after[..host_end];
             // strip userinfo
             let host = authority.rsplit('@').next().unwrap_or(authority);

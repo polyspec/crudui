@@ -53,10 +53,7 @@ pub fn evaluate_ternary_string(
     }
     let question_pos = question_pos.unwrap();
 
-    let colon_pos = match find_ternary_operator(expression, b':', question_pos + 1) {
-        Some(p) => p,
-        None => return None,
-    };
+    let colon_pos = find_ternary_operator(expression, b':', question_pos + 1)?;
 
     let condition = expression[..question_pos].trim();
     let true_value = expression[question_pos + 1..colon_pos].trim();

@@ -143,4 +143,10 @@ describe('current forbidden meta keys (global rejection contract)', () => {
     expect(FORBIDDEN_META_KEY_PATTERN.test('xnote')).toBe(true);
     expect(FORBIDDEN_META_KEY_PATTERN.test('class')).toBe(false);
   });
+
+  it('a bare `x` is NOT a comment — pattern matches runtime isXCommentKey (length > 1)', () => {
+    // The single authority is forbidden-scan.ts isXCommentKey (x + ≥1 char). A
+    // lone `x` is a real one-char field name, so the pattern must reject it too.
+    expect(FORBIDDEN_META_KEY_PATTERN.test('x')).toBe(false);
+  });
 });

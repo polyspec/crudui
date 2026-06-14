@@ -553,5 +553,11 @@ export type ForbiddenMetaKey = (typeof FORBIDDEN_META_KEYS)[number];
  * Pattern for the forbidden `x{key}` comment family (x-strip premise above).
  * The meta-schema strips matches before canonical validation; tooling rejects
  * any key matching this in a canonical document.
+ *
+ * `x` + at least one more char (`/^x[\s\S]/`) — NOT a bare `x`. This matches the
+ * runtime authority `forbidden-scan.ts isXCommentKey` (`length > 1`) exactly,
+ * including keys with an embedded newline (`.` excludes `\n`; `[\s\S]` does not):
+ * a lone `x` is a real one-char field name, not a disabled comment. The metaschema
+ * `ForbiddenKeyNames` pattern uses the same `^x[\s\S]` — one truth, three surfaces.
  */
-export const FORBIDDEN_META_KEY_PATTERN = /^x/;
+export const FORBIDDEN_META_KEY_PATTERN = /^x[\s\S]/;

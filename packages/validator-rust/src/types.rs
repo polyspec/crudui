@@ -529,8 +529,9 @@ pub struct LangSpec {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Items {
-    /// 동적 소스 `{model, method, table, relations}`.
-    Dynamic(ItemsSource),
+    /// 동적 소스 `{model, method, table, relations}`. `ItemsSource` 가 커서
+    /// (≈360B) variant 크기차가 크다 — Box 로 간접화(large_enum_variant).
+    Dynamic(Box<ItemsSource>),
     /// 정적 배열 | 정적 value→label 맵(선언 순서 선택지, G3).
     Static(Value),
 }
@@ -554,7 +555,7 @@ impl<'de> Deserialize<'de> for Items {
                     && map.keys().all(|k| ITEMS_DYNAMIC_KEYS.contains(&k.as_str()));
                 if all_dynamic {
                     let source = ItemsSource::deserialize(value).map_err(de::Error::custom)?;
-                    Ok(Items::Dynamic(source))
+                    Ok(Items::Dynamic(Box::new(source)))
                 } else {
                     // 정적 value→label 맵(G3): key=값, value=라벨(string|LangMap|null).
                     Ok(Items::Static(value))

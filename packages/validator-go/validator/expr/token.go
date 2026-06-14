@@ -26,6 +26,11 @@ package expr
 // method calls, regex, assignment =, bitwise, root path /. Do not add them.
 type TokenType string
 
+// The Token* constants enumerate every TokenType the lexer emits
+// (EXPRESSION-GRAMMAR §1). Their string values are the canonical fixture token
+// type names and are byte-compatible with the JS reference. TokenWhitespace and
+// TokenInvalid are lexer-internal: WHITESPACE is dropped before the token slice
+// and INVALID marks one unrecognized character.
 const (
 	TokenString     TokenType = "STRING"
 	TokenNumber     TokenType = "NUMBER"
