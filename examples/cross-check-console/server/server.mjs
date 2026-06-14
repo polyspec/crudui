@@ -28,7 +28,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
 
 import { getEngine } from './engine.mjs';
-import { validateAll } from './validate-runner.mjs';
+import { validateAll, validateAllList } from './validate-runner.mjs';
 import { renderAll, renderAllList } from './render-runner.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -178,6 +178,40 @@ export async function handler(req, res) {
     }
   }
 
+  // ---- POST /api/validate-list --------------------------------------------
+  // The validate sister of /api/validate (SPEC §9): a list-spec STRUCTURE fans
+  // out across the four CRUDUI CLIs in `mode:list` (compose → forbidden-scan; no
+  // DATA pass — a list carries no rows). Same HTTP contract as /api/validate —
+  // a LOAD failure / valid:false is a result surface (200), only a real fan-out
+  // fault is 5xx. The form validate path above is untouched (additive).
+  if (pathname === '/api/validate-list' && req.method === 'POST') {
+    let body;
+    try {
+      body = await readJsonBody(req);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    let listSpec;
+    try {
+      // The list-spec arrives as a YAML string (the editor) or a parsed object;
+      // `listSpec` is the canonical key, `spec` is accepted as an alias.
+      listSpec = coerceSpec(body.listSpec ?? body.spec);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    try {
+      const out = await validateAllList({
+        spec: listSpec,
+        files: body.files ?? {},
+        basepath: body.basepath ?? '',
+      });
+      // A LOAD failure / valid:false is NOT an HTTP error: always 200.
+      return sendJson(res, 200, out);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'Validate-list fan-out failed: ' + e.message });
+    }
+  }
+
   // ---- POST /api/render ---------------------------------------------------
   if (pathname === '/api/render' && req.method === 'POST') {
     let body;
@@ -270,7 +304,8 @@ function startServer() {
     }
     process.stdout.write(`\nCross-Check Console gateway on http://localhost:${PORT}\n`);
     process.stdout.write('  GET  /                 - console (static client/)\n');
-    process.stdout.write('  POST /api/validate     - 4-language current validate fan-out\n');
+    process.stdout.write('  POST /api/validate     - 4-language current form-spec validate fan-out\n');
+    process.stdout.write('  POST /api/validate-list - 4-language current list-spec validate fan-out\n');
     process.stdout.write('  POST /api/render       - 3-framework current form SSR\n');
     process.stdout.write('  POST /api/render-list  - 3-framework current list SSR\n');
     process.stdout.write('  GET  /health           - liveness probe\n');
