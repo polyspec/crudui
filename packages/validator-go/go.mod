@@ -1,3 +1,3 @@
-module github.com/yejune/form-spec/packages/validator-go
+module github.com/polyspec/polyspec/packages/validator-go
 
 go 1.21

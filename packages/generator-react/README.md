@@ -1,11 +1,11 @@
-# @form-spec/generator-react
+# @polyspec/generator-react
 
 React form builder for form-spec definitions. Two surfaces:
 
 - v1 (`src/index.ts`) — `FormBuilder` and the legacy field/group components,
   byte-parity with the Limepie PHP `Generator::write()` reference fixtures.
 - v2 (`src/v2/index.ts`) — the REFERENCE adapter for the v2 pipeline: compose →
-  evaluate (shared `@form-spec/generator-core`) → JSX SSR. Every node is a real
+  evaluate (shared `@polyspec/generator-core`) → JSX SSR. Every node is a real
   JSX element (no string-builder, no `dangerouslySetInnerHTML` echo of completed
   HTML). It is the parity baseline the Vue/Svelte adapters are checked against.
 
@@ -24,7 +24,7 @@ React form builder for form-spec definitions. Two surfaces:
 ## v1 usage
 
 ```tsx
-import { FormBuilder } from '@form-spec/generator-react';
+import { FormBuilder } from '@polyspec/generator-react';
 
 <FormBuilder spec={spec} data={{}} language="ko" />
 ```

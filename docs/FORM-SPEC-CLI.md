@@ -2,7 +2,7 @@
 
 `form-spec` CLI 는 자연어 → v2 폼 스펙 작성 루프의 도구층이다. 자체 엔진을 갖지 않는다 — 코드/스키마 단일진실을 import/parse 하거나, 콘솔의 4언어 게이트웨이를 호출하는 얇은 래퍼다. 검증·렌더 로직을 CLI 에 재구현하지 마라.
 
-- 패키지: `packages/form-spec-cli` (pkg 명 `@form-spec/cli`, bin: `form-spec`)
+- 패키지: `packages/form-spec-cli` (pkg 명 `@polyspec/cli`, bin: `form-spec`)
 - 실행: `tsx` 로더로 TS 소스 직접 실행 (`validate-v2.mjs` 와 동일 방식, 별도 빌드 없음).
 
 **구현 vs 로드맵 (정직 분리)**. 이 문서는 두 상태를 섞지 않는다.
@@ -36,7 +36,7 @@
 
 | 명령 | 한 줄 | 출처 | 구현 상태 |
 |---|---|---|---|
-| `describe` | 코드/스키마 통합 카탈로그 산출 (form + list capability 포함) | generator-core·validator-js·schema JSON in-process | **구현됨** (`src/describe.ts`) |
+| `describe` | 코드/스키마 통합 카탈로그 산출 (form + list capability 포함) | generator-core·validator-ts·schema JSON in-process | **구현됨** (`src/describe.ts`) |
 | `check` | 메타스키마 + forbidden-scan + leaf-type 카탈로그 정적 검증 | ajv(schema JSON) + `scanForbiddenKeys` + `WIDGET_KINDS` | **구현됨** (`src/check.ts`) |
 | `explain` | 스펙 → 자연어 역검증 | describe 분류·규칙 메타 | **구현됨** (`src/explain.ts`) |
 | `list-widgets` | describe 위젯 섹션의 단축 뷰 | describe 위젯 섹션 | **구현됨** (describe 파생, bin 인라인) |
@@ -59,12 +59,12 @@
 
 | 항목 | 출처 |
 |---|---|
-| 위젯 카탈로그 (kind·alias·layout) | `packages/generator-core/src/widget.ts` REGISTRY 키 + 각 evaluator 의 `layout`. 카운트=`WIDGET_COUNT`, 존재판정=`hasWidget` (둘 다 `@form-spec/generator-core` export) |
+| 위젯 카탈로그 (kind·alias·layout) | `packages/generator-core/src/widget.ts` REGISTRY 키 + 각 evaluator 의 `layout`. 카운트=`WIDGET_COUNT`, 존재판정=`hasWidget` (둘 다 `@polyspec/generator-core` export) |
 | layout 패밀리 enum | `widget.ts` `WidgetModel.layout` union: `input-group` `bare` `host-script` `btn-group` `file` `display` `search` `button` |
-| 검증 규칙 목록 | `packages/validator-js/src/rules/index.ts` `builtInRules` Map. 런타임 열거=`getRuleNames()` |
-| 규칙 분류 (파라미터 의미) | `packages/validator-js/src/v2/validate/validator.ts` `ARRAY_LEVEL_RULES` `PATH_REFERENCE_RULES` `LITERAL_PARAM_RULES` `REGEX_PARAM_RULES` `MEMBERSHIP_PARAM_RULES` + `type:number` 암묵 number 규칙 |
+| 검증 규칙 목록 | `packages/validator-ts/src/rules/index.ts` `builtInRules` Map. 런타임 열거=`getRuleNames()` |
+| 규칙 분류 (파라미터 의미) | `packages/validator-ts/src/v2/validate/validator.ts` `ARRAY_LEVEL_RULES` `PATH_REFERENCE_RULES` `LITERAL_PARAM_RULES` `REGEX_PARAM_RULES` `MEMBERSHIP_PARAM_RULES` + `type:number` 암묵 number 규칙 |
 | 슬롯/구조/버킷 | `schema/form-spec-v2.schema.json` definitions(`Field`·`Validate`·`Design`·`Behavior`·`Options`·`Items`·`ItemsSource`·`ItemsModel`·`Multiple`·`Lang`·`Properties`)를 JSON.parse |
-| design 노드 이름 | `packages/validator-js/src/v2/types.ts` `DesignNodeName` union(`show`/`class`/`style`/`label`/`wrapper`/`group`/`prepend`) + schema `Design` |
+| design 노드 이름 | `packages/validator-ts/src/v2/types.ts` `DesignNodeName` union(`show`/`class`/`style`/`label`/`wrapper`/`group`/`prepend`) + schema `Design` |
 | 금지 메타키 (열거+패턴) | `types.ts` `FORBIDDEN_META_KEYS` + `FORBIDDEN_META_KEY_PATTERN`(`/^x[\s\S]/`). 런타임 동기화=`v2/forbidden-scan.ts`. 메타스키마 거울=schema `ForbiddenKeyNames` |
 | 표현식 문법 | `docs/EXPRESSION-GRAMMAR.md` (§1 토큰표/§2 EBNF/§3 우선순위/§6 truthy/§10 비지원) — 산문 단일진실 인용 |
 | 분류 규칙 | `docs/SPEC-V2.md` §3 (A x주석 / B 1급만 1급 / C 종속격리 + 공통역할분배) 인용 |
@@ -133,7 +133,7 @@ form-spec describe --md
 세 게이트, 전부 단일진실에서(재구현 규칙 0):
 
 1. **메타스키마** — ajv vs `schema/form-spec-v2.schema.json` (`additionalProperties:false`, `required:[type]`). 1급외 키 / 미등록 슬롯키 / `ForbiddenKeyNames` 적발.
-2. **forbidden-scan** — `scanForbiddenKeys` (validator-js/v2/forbidden-scan.ts), 임의 깊이. 메타스키마가 거울로 가진 런타임 백스톱.
+2. **forbidden-scan** — `scanForbiddenKeys` (validator-ts/v2/forbidden-scan.ts), 임의 깊이. 메타스키마가 거울로 가진 런타임 백스톱.
 3. **leaf-type 카탈로그** — spec 을 compose 한 뒤 필드 트리를 걷고, `properties` 없는 LEAF 필드의 `type` 이 등록된 위젯 kind(`generator-core` `WIDGET_KINDS`)가 아니면 거부. 메타스키마는 `Field.type` 을 무제약 string 으로 모델링하므로 발명된 leaf 타입(`type: checkbox`)은 게이트 1·2 를 통과한다 — 이 게이트가 "describe 카탈로그에서 type 선택" 규칙을 강제하는 유일한 자리. `properties` 를 가진 컨테이너 필드는 면제(SPEC-V2 §3).
 
 값 검증은 하지 않는다 — 그건 `validate`(로드맵)다.
@@ -153,11 +153,11 @@ form-spec check ./contact.yml
 
 ### 2.3 `validate <spec> <data> [--lang js|php|go|rust|all]` (로드맵 — 미구현)
 
-> 상태: `src/validate.ts` 없음, `bin/form-spec.mjs` 미등록. 지금 `form-spec validate ...` 는 `unknown subcommand`(exit 2). 아래는 확정 설계다. 콘솔의 4언어 게이트웨이(`validate-runner.mjs`)와 4언어 v2 CLI(`validator-js/bin`·`php/bin`·`go/cmd/validate-v2`·`rust/src/bin`)는 이미 구현·동작하지만, 그것을 호출하는 form-spec CLI 래퍼는 아직 없다.
+> 상태: `src/validate.ts` 없음, `bin/form-spec.mjs` 미등록. 지금 `form-spec validate ...` 는 `unknown subcommand`(exit 2). 아래는 확정 설계다. 콘솔의 4언어 게이트웨이(`validate-runner.mjs`)와 4언어 v2 CLI(`validator-ts/bin`·`php/bin`·`go/cmd/validate-v2`·`rust/src/bin`)는 이미 구현·동작하지만, 그것을 호출하는 form-spec CLI 래퍼는 아직 없다.
 
 값 검증 (규칙 의미 + 표현식 평가). 자체 엔진 0 — 콘솔 `validate-runner.mjs validateAll` 을 재사용한다. 그 러너는 4언어를 모두 spawnSync CLI 로 돌린다(어느 언어도 in-process 특권 없음):
 
-- JS: `node --import tsx packages/validator-js/bin/validate-v2.mjs` (stdin JSON)
+- JS: `node --import tsx packages/validator-ts/bin/validate-v2.mjs` (stdin JSON)
 - PHP: `php packages/validator-php/bin/validate-v2.php`
 - Go: `packages/validator-go/validate-v2` (컴파일)
 - Rust: `packages/validator-rust/target/release/validate-v2` (컴파일)
@@ -251,7 +251,7 @@ form-spec list-widgets --json
 1. **위젯** — `import { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL } from '../../generator-core/src/widget.ts'`. `WIDGET_CANONICAL[key]` 로 alias 그룹핑(canonical-first), 각 키→layout 은 `WIDGET_LAYOUTS`.
 2. **규칙** — `getRuleNames()` + 분류 상수(`ARRAY_LEVEL_RULES`/`PATH_REFERENCE_RULES`/`LITERAL_PARAM_RULES`/`REGEX_PARAM_RULES`/`MEMBERSHIP_PARAM_RULES`)를 `validator.ts` 에서 import. `pattern` 은 `match` 의 alias.
 3. **슬롯/구조/버킷** — `JSON.parse(schema/form-spec-v2.schema.json)` → `Field.properties`(1급), `Validate`/`Design`/`Behavior`/`Options`/`Items`/`ItemsSource`/`ItemsModel`/`Multiple`/`Lang` definitions, `DesignNode`, `ForbiddenKeyNames` enum.
-4. **금지키** — `import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from '../../validator-js/src/v2/types.ts'` + `scanForbiddenKeys`. types.ts enum ≡ schema enum ≡ 런타임 scan 3중 cross-check — 불일치 시 `crossCheckOk:false`.
+4. **금지키** — `import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from '../../validator-ts/src/v2/types.ts'` + `scanForbiddenKeys`. types.ts enum ≡ schema enum ≡ 런타임 scan 3중 cross-check — 불일치 시 `crossCheckOk:false`.
 5. **list** — `import { CELL_FORMATS, CELL_FORMAT_DEFAULT } from '../../generator-core/src/cell.ts'` + schema `List`/`Column`/`CellFormat`/`Pagination`/`Sort`/`ListAction` definitions parse. cell.ts 카탈로그 ≡ schema CellFormat cross-check → `cellCrossCheckOk`.
 6. **문법** — `EXPRESSION-GRAMMAR.md` 를 § 번호로 정식 인용(파싱).
 7. **분류** — `SPEC-V2.md` §3 A/B/C 규칙 인용.

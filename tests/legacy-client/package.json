@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/legacy-client-gate",
+  "name": "@polyspec/legacy-client-gate",
   "version": "1.0.0",
   "description": "Gate comparing the legacy jQuery client runtime (dist.validate.js) against the new validators (client<->server idempotency)",
   "private": true,

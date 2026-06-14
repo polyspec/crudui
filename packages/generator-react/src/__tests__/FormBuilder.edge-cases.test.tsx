@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormBuilder } from '../components/FormBuilder';
-import type { Spec } from '@form-spec/validator';
+import type { Spec } from '@polyspec/validator';
 
 // ============================================================================
 // Edge Cases - Spec Handling

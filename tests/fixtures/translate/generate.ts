@@ -33,8 +33,8 @@ import {
   translateV1ToV2,
   translateV2ToV1,
   deepEqual,
-} from '../../../packages/validator-js/src/v2/translate/index';
-import { scanForbiddenKeys } from '../../../packages/validator-js/src/v2/forbidden-scan';
+} from '../../../packages/validator-ts/src/v2/translate/index';
+import { scanForbiddenKeys } from '../../../packages/validator-ts/src/v2/forbidden-scan';
 
 interface CaseSpec {
   name: string;

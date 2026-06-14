@@ -2,10 +2,10 @@
  * v2 generator entry (Vue) — compose → evaluate (shared core) → vnode SSR.
  *
  * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) v2 spec → (2) v2 compose (validator-js composeProperties: expand
+ *   (1) v2 spec → (2) v2 compose (validator-ts composeProperties: expand
  *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
  *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
- *   evaluation (framework-agnostic core: @form-spec/generator-core) → (4) Vue 3
+ *   evaluation (framework-agnostic core: @polyspec/generator-core) → (4) Vue 3
  *   vnode SSR via @vue/server-renderer renderToString.
  *
  * The evaluation runs ONCE in the shared core (buildForm returns a markup-free
@@ -15,32 +15,32 @@
  * (the leaf control bytes go through the container's innerHTML domProp because
  * @vue/server-renderer hardcodes empty/boolean attribute coercion the parity
  * fixture forbids; same boundary mechanism as React's RAW/script slots). compose
- * + expr are reused from the core (validator-js underneath); v1 generator code is
+ * + expr are reused from the core (validator-ts underneath); v1 generator code is
  * never touched; eval is never called.
  */
 
-import { buildForm, type BuildFormOptions } from '@form-spec/generator-core';
-import type { Language, UnsupportedMode } from '@form-spec/generator-core';
-import { buildList, type BuildListOptions } from '@form-spec/generator-core';
+import { buildForm, type BuildFormOptions } from '@polyspec/generator-core';
+import type { Language, UnsupportedMode } from '@polyspec/generator-core';
+import { buildList, type BuildListOptions } from '@polyspec/generator-core';
 
-export { ComposeLoadError } from '@form-spec/validator';
-export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
-export { resolveDesign } from '@form-spec/generator-core';
-export { evalShow, evalAppearance, makeContext } from '@form-spec/generator-core';
-export { makeTranslate } from '@form-spec/generator-core';
-export type { Language } from '@form-spec/generator-core';
-export type { UnsupportedMode } from '@form-spec/generator-core';
+export { ComposeLoadError } from '@polyspec/validator';
+export { UnsupportedFieldTypeError } from '@polyspec/generator-core';
+export { resolveDesign } from '@polyspec/generator-core';
+export { evalShow, evalAppearance, makeContext } from '@polyspec/generator-core';
+export { makeTranslate } from '@polyspec/generator-core';
+export type { Language } from '@polyspec/generator-core';
+export type { UnsupportedMode } from '@polyspec/generator-core';
 
 // Core + components (the shared evaluation + the Vue adapter surfaces).
-export { buildForm } from '@form-spec/generator-core';
-export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
+export { buildForm } from '@polyspec/generator-core';
+export type { FieldViewModel, WidgetModel } from '@polyspec/generator-core';
 export { FormV2 } from './components/FormV2';
 export { fieldVNode } from './components/Field';
 export { Widget } from './components/Widget';
 
 // list-spec (read sister) — buildList view model + the Vue ListV2 adapter
 // (additive; the form/write surfaces above are untouched). SPEC-V2 §9.
-export { buildList } from '@form-spec/generator-core';
+export { buildList } from '@polyspec/generator-core';
 export type {
   ListViewModel,
   ColumnVM,
@@ -50,7 +50,7 @@ export type {
   SortVM,
   ActionVM,
   CellDisplay,
-} from '@form-spec/generator-core';
+} from '@polyspec/generator-core';
 export { ListV2 } from './components/ListV2';
 export type { ListLayout } from './components/ListV2';
 

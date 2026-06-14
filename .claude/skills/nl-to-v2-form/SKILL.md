@@ -136,5 +136,5 @@ properties:
 | `form-spec scaffold [--type <widget>]` | describe 카탈로그 기반 최소 유효 골격(발명 0). |
 | `form-spec list-widgets [--json]` | describe 위젯 섹션의 얇은 뷰. |
 
-출처 단일진실: 카탈로그=코드(`packages/generator-core`·`packages/validator-js`·`schema/form-spec-v2.schema.json`),
+출처 단일진실: 카탈로그=코드(`packages/generator-core`·`packages/validator-ts`·`schema/form-spec-v2.schema.json`),
 분류=`docs/SPEC-V2.md §3`, 문법=`docs/EXPRESSION-GRAMMAR.md`. 이 파일은 절차와 매핑만 — 카탈로그는 describe가 읽는다.

@@ -15,7 +15,7 @@
   dispatcher via widgetRootRaw; this component renders nothing for them.
 -->
 <script lang="ts">
-  import type { WidgetModel } from '@form-spec/generator-core';
+  import type { WidgetModel } from '@polyspec/generator-core';
   import { inputGroupBody, fileGroupBody, isUnsupported, type AnyWidget } from './widget';
 
   let { w }: { w: AnyWidget } = $props();

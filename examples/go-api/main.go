@@ -27,7 +27,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator"
+	"github.com/polyspec/polyspec/packages/validator-go/validator"
 )
 
 // Config holds server configuration

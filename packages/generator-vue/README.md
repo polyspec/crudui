@@ -1,10 +1,10 @@
-# @form-spec/generator-vue
+# @polyspec/generator-vue
 
 Vue 3 form builder for form-spec YAML definitions. Renders byte-parity output
 with the legacy Limepie PHP `Generator::write()` (the reference fixtures under
 `tests/fixtures/reference-html` are the single source of truth).
 
-This package is the Vue counterpart of `@form-spec/generator-react`. It uses
+This package is the Vue counterpart of `@polyspec/generator-react`. It uses
 plain `h()` render functions (no SFC `<style scoped>`), so SSR emits no
 `data-v-*` scoped-style attributes that would break parity normalization.
 
@@ -14,7 +14,7 @@ the v2 adapter (`src/v2`).
 ## v2 (compose → core → vnode SSR)
 
 The v2 adapter runs the four mandated stages — compose → evaluate (shared
-`@form-spec/generator-core`) → Vue 3 vnode SSR — and is parity-checked against
+`@polyspec/generator-core`) → Vue 3 vnode SSR — and is parity-checked against
 the React reference.
 
 - `renderFormV2SSR(rootSpec, options)` → SSR HTML of the form CONTENT.
@@ -35,7 +35,7 @@ v2 conformance: `test/v2-render.conformance.test.mjs`,
 ```ts
 import { createSSRApp, h } from 'vue';
 import { renderToString } from '@vue/server-renderer';
-import { FormBuilder } from '@form-spec/generator-vue';
+import { FormBuilder } from '@polyspec/generator-vue';
 
 const app = createSSRApp({
   render: () => h(FormBuilder, { spec, data: {}, language: 'ko' }),

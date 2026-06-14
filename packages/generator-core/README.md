@@ -1,9 +1,9 @@
-# @form-spec/generator-core
+# @polyspec/generator-core
 
 Framework-agnostic v2 evaluation core — the single source of truth shared by the
 React/Vue/Svelte adapters. It runs the four mandated stages WITHOUT emitting
 markup, then hands a markup-free view-model tree to each adapter. compose + expr
-are reused from `@form-spec/validator`; eval is never called.
+are reused from `@polyspec/validator`; eval is never called.
 
 Pipeline: (1) v2 spec → (2) compose (`$ref`/`$patch` expansion; unresolved →
 `ComposeLoadError`) → (3) resolve `design` slots + condition maps via the expr

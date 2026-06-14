@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import type { ButtonSpec } from '@form-spec/validator';
+import type { ButtonSpec } from '@polyspec/validator';
 import { useI18n } from '../../context/I18nContext';
 import type { MultiLangText } from '../../types';
 

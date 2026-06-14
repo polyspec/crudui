@@ -11,7 +11,7 @@ COPY examples/go-api /app/go-api
 
 # Update go.mod to use local validator path in container
 WORKDIR /app/go-api
-RUN go mod edit -replace github.com/yejune/form-spec/packages/validator-go=../validator
+RUN go mod edit -replace github.com/polyspec/polyspec/packages/validator-go=../validator
 
 # Download dependencies
 RUN go mod download

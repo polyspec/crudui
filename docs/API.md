@@ -9,7 +9,7 @@ form-spec 검증기의 4개 언어 구현(JavaScript/TypeScript, PHP, Go, Rust) 
 ## 목차
 
 - [공통 계약](#공통-계약)
-- [JavaScript/TypeScript (`@form-spec/validator`)](#javascripttypescript-form-specvalidator)
+- [JavaScript/TypeScript (`@polyspec/validator`)](#javascripttypescript-form-specvalidator)
 - [PHP (`form-spec/validator`)](#php-form-specvalidator)
 - [Go (`validator` 패키지)](#go-validator-패키지)
 - [Rust (`formspec-validator` 크레이트)](#rust-formspec-validator-크레이트)
@@ -36,15 +36,15 @@ form-spec 검증기의 4개 언어 구현(JavaScript/TypeScript, PHP, Go, Rust) 
 
 ---
 
-## JavaScript/TypeScript (`@form-spec/validator`)
+## JavaScript/TypeScript (`@polyspec/validator`)
 
-출처: `packages/validator-js/src/Validator.ts`, `packages/validator-js/src/types.ts`,
-`packages/validator-js/src/index.ts`
+출처: `packages/validator-ts/src/Validator.ts`, `packages/validator-ts/src/types.ts`,
+`packages/validator-ts/src/index.ts`
 
 ### Validator 클래스
 
 ```typescript
-import { Validator, createValidator } from '@form-spec/validator';
+import { Validator, createValidator } from '@polyspec/validator';
 
 class Validator {
   constructor(spec: Spec, options?: ValidatorOptions);
@@ -139,11 +139,11 @@ interface RuleDefinition {
 
 ### 전역 규칙 레지스트리
 
-출처: `packages/validator-js/src/rules/index.ts`
+출처: `packages/validator-ts/src/rules/index.ts`
 
 ```typescript
 import { registerRule, unregisterRule, hasRule, getRule, getRuleNames, clearCustomRules }
-  from '@form-spec/validator';
+  from '@polyspec/validator';
 
 registerRule(name: string, rule: RuleDefinition | RuleFn): void;  // 전역 등록 (내장 규칙 오버라이드 가능)
 unregisterRule(name: string): boolean;
@@ -157,22 +157,22 @@ clearCustomRules(): void;
 
 ### 조건식 파서 / 경로 해석기 export
 
-출처: `packages/validator-js/src/index.ts`
+출처: `packages/validator-ts/src/index.ts`
 
 ```typescript
 // 파서
 import { Lexer, Parser, ParseError, parseCondition, isConditionExpression,
          clearConditionCache, getConditionCacheStats,
-         setConditionCache, getConditionCache } from '@form-spec/validator';
+         setConditionCache, getConditionCache } from '@polyspec/validator';
 
 // 캐시
-import { ConditionCache, getDefaultCache, resetDefaultCache } from '@form-spec/validator';
+import { ConditionCache, getDefaultCache, resetDefaultCache } from '@polyspec/validator';
 
 // 경로 해석
 import { resolvePathSegments, getValueByPath, setValueByPath,
          resolveWildcardPath, hasWildcard, replaceWildcardWithIndex,
          evaluateCondition, parsePathString, pathToString,
-         getParentPath, getFieldName, isChildPath, getRelativePath } from '@form-spec/validator';
+         getParentPath, getFieldName, isChildPath, getRelativePath } from '@polyspec/validator';
 ```
 
 상세는 [CONDITION-PARSER.md](./CONDITION-PARSER.md) 참조.
@@ -180,7 +180,7 @@ import { resolvePathSegments, getValueByPath, setValueByPath,
 ### 사용 예
 
 ```typescript
-import { Validator } from '@form-spec/validator';
+import { Validator } from '@polyspec/validator';
 
 const spec = {
   type: 'group',
@@ -299,9 +299,9 @@ $result->getError('email');      // ['field' => 'email', 'rule' => 'email', 'mes
 ## Go (`validator` 패키지)
 
 출처: `packages/validator-go/validator/validator.go`, `types.go`, `spec.go`
-모듈 경로: `github.com/yejune/form-spec/packages/validator-go`
+모듈 경로: `github.com/polyspec/polyspec/packages/validator-go`
 (`packages/validator-go/go.mod`, go 1.21).
-import 경로: `github.com/yejune/form-spec/packages/validator-go/validator`.
+import 경로: `github.com/polyspec/polyspec/packages/validator-go/validator`.
 
 ### 스펙 파싱
 
@@ -383,7 +383,7 @@ type ValidationContext struct {
 ### 사용 예
 
 ```go
-import "github.com/yejune/form-spec/packages/validator-go/validator"
+import "github.com/polyspec/polyspec/packages/validator-go/validator"
 
 parsed, err := validator.ParseSpec(specJSON) // 정본 type/properties JSON
 if err != nil { ... }

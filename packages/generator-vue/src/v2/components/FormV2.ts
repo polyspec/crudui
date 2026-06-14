@@ -10,7 +10,7 @@
  */
 
 import { h, type VNode } from 'vue';
-import type { FieldViewModel } from '@form-spec/generator-core';
+import type { FieldViewModel } from '@polyspec/generator-core';
 import { fieldVNode } from './Field';
 
 /** Build the `.form-group` envelope vnode around the top-level fields. */

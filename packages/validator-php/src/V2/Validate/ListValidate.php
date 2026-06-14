@@ -13,7 +13,7 @@ use FormSpec\Validator\V2\ForbiddenScan;
 
 /**
  * v2 list-spec validation entry point — SPEC-V2 §9 read sister. Byte-for-byte
- * port of validator-js/src/v2/validate-list/index.ts (validateListV2).
+ * port of validator-ts/src/v2/validate-list/index.ts (validateListV2).
  *
  * The read sister of Validate::run (validateV2). A list-spec describes the SAME
  * domain as a form-spec, shown as a list instead of accepted as input. It shares

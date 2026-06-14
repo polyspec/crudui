@@ -2,12 +2,12 @@
 
 form-spec의 폼 정의(YAML/JSON) 형식 명세. 같은 스펙 하나로
 React/Vue/Svelte 렌더링(generator-react/vue/svelte)과
-4개 언어 서버 검증(validator-js/php/go/rust)을 수행한다.
+4개 언어 서버 검증(validator-ts/php/go/rust)을 수행한다.
 
 타입 정의 출처(아래 React 경로가 렌더러 확장의 정본 — Vue/Svelte 가 동일
 필드 모델을 공유한다):
 
-- 검증기 공통: `packages/validator-js/src/types.ts` (`Spec`, `FieldSpec`,
+- 검증기 공통: `packages/validator-ts/src/types.ts` (`Spec`, `FieldSpec`,
   `RulesSpec`, `MessagesSpec`, `ActionSpec`, `ButtonSpec`, `ItemsSourceSpec`)
 - 렌더러 확장: `packages/generator-react/src/types.ts` (`ReactFieldSpec`,
   `MultiLangText`, `Language`)
@@ -53,7 +53,7 @@ properties:              # 필수: 필드명 → FieldSpec
       required: true
 ```
 
-출처: `packages/validator-js/src/types.ts:12-22` (`Spec` 인터페이스).
+출처: `packages/validator-ts/src/types.ts:12-22` (`Spec` 인터페이스).
 
 | 속성 | 타입 | 필수 | 설명 |
 |------|------|------|------|

@@ -7,8 +7,8 @@
  */
 
 import type { InjectionKey } from 'vue';
-import { parseCondition, evaluateCondition } from '@form-spec/validator';
-import type { Spec, PathContext } from '@form-spec/validator';
+import { parseCondition, evaluateCondition } from '@polyspec/validator';
+import type { Spec, PathContext } from '@polyspec/validator';
 import type { FormData, FormValue, MultiLangText, RenderContext } from './types';
 import { getValueByPath, parsePathString } from './utils/path';
 import { applyDisplaySwitchTransform } from './hooks/legacyDisplay';

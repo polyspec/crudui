@@ -1,6 +1,6 @@
 # Form-Spec
 
-[![CI](https://github.com/yejune/form-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/yejune/form-spec/actions/workflows/ci.yml)
+[![CI](https://github.com/polyspec/polyspec/actions/workflows/ci.yml/badge.svg)](https://github.com/polyspec/polyspec/actions/workflows/ci.yml)
 
 YAML 기반 폼 생성 및 검증 시스템 — **다중 언어(4) · 다중 프레임워크(3)**.
 
@@ -36,7 +36,7 @@ flowchart TD
     spec["YAML 폼 스펙 · 한 파일<br/>type: group / properties<br/><b>단일 진실</b>"]
     spec --> V["검증 (멱등)"]
     spec --> R["렌더 (parity)"]
-    V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
+    V --> VL["validator-ts (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
     R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
     VL -->|"공유 픽스처 1074"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
     RL -->|"SSR · 정규화 비교"| G["tests/fixtures/reference-html/*<br/>(Limepie 기준 HTML, 7/7 parity)"]
@@ -55,15 +55,15 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 
 | 경로 | 패키지명 | 설명 |
 |------|----------|------|
-| [`packages/validator-js`](./packages/validator-js) | `@form-spec/validator` | TypeScript 검증 라이브러리 |
+| [`packages/validator-ts`](./packages/validator-ts) | `@polyspec/validator` | TypeScript 검증 라이브러리 |
 | [`packages/validator-php`](./packages/validator-php) | `form-spec/validator` | PHP 검증 라이브러리 (PHP ^8.2, PHPUnit) |
-| [`packages/validator-go`](./packages/validator-go) | `github.com/yejune/form-spec/packages/validator-go` | Go 검증 라이브러리 |
+| [`packages/validator-go`](./packages/validator-go) | `github.com/polyspec/polyspec/packages/validator-go` | Go 검증 라이브러리 |
 | [`packages/validator-rust`](./packages/validator-rust) | `formspec-validator` (crate) | Rust 검증 라이브러리 + `validate` CLI |
-| [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 — 기준 HTML 7/7 parity |
-| [`packages/generator-vue`](./packages/generator-vue) | `@form-spec/generator-vue` | Vue 3 폼 빌더 — 기준 HTML 7/7 parity |
-| [`packages/generator-svelte`](./packages/generator-svelte) | `@form-spec/generator-svelte` | Svelte 폼 빌더 — 기준 HTML 7/7 parity |
-| [`packages/generator-core`](./packages/generator-core) | `@form-spec/generator-core` | 프레임워크 무관 v2 코어 — `buildForm`/`buildList`(합성→평가→viewmodel). React/Vue/Svelte 어댑터가 공유 |
-| [`packages/form-spec-cli`](./packages/form-spec-cli) | `@form-spec/cli` | 오케스트레이터 CLI(`form-spec`) — `describe`/`check`/`explain`/`list-widgets`. 코드·스키마 단일진실을 얇게 래핑(자체 카탈로그 0) |
+| [`packages/generator-react`](./packages/generator-react) | `@polyspec/generator-react` | React 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-vue`](./packages/generator-vue) | `@polyspec/generator-vue` | Vue 3 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-svelte`](./packages/generator-svelte) | `@polyspec/generator-svelte` | Svelte 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-core`](./packages/generator-core) | `@polyspec/generator-core` | 프레임워크 무관 v2 코어 — `buildForm`/`buildList`(합성→평가→viewmodel). React/Vue/Svelte 어댑터가 공유 |
+| [`packages/form-spec-cli`](./packages/form-spec-cli) | `@polyspec/cli` | 오케스트레이터 CLI(`form-spec`) — `describe`/`check`/`explain`/`list-widgets`. 코드·스키마 단일진실을 얇게 래핑(자체 카탈로그 0) |
 | [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Limepie PHP 사본 (기준 HTML 파이프라인용) |
 
 ## Quick Start
@@ -72,7 +72,7 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 
 ```bash
 npm install        # 루트에서: 워크스페이스 일괄 설치
-npm run build      # validator-js + generator-react/vue/svelte 빌드
+npm run build      # validator-ts + generator-react/vue/svelte 빌드
 ```
 
 검증기 PHP/Go/Rust는 각 언어 툴체인으로 빌드한다(아래 각 절 참조).
@@ -105,7 +105,7 @@ properties:
 **JavaScript / TypeScript**
 
 ```typescript
-import { Validator } from '@form-spec/validator';
+import { Validator } from '@polyspec/validator';
 
 const validator = new Validator(spec);            // spec: 파싱된 객체
 const result = validator.validate(formData);
@@ -126,7 +126,7 @@ $result->getErrors();                             // 경로 키 에러 배열
 **Go**
 
 ```go
-import "github.com/yejune/form-spec/packages/validator-go/validator"
+import "github.com/polyspec/polyspec/packages/validator-go/validator"
 
 parsed, _ := validator.ParseSpec(specJSON)        // 정본 type/properties JSON
 v := validator.NewValidator(parsed.Spec)
@@ -156,7 +156,7 @@ echo '{"spec":{...},"input":{...}}' | ./target/release/validate
 `{valid, errors}` (compose → forbidden-scan → validate). `mode:"list"`는 list-spec
 구조 검증(compose + forbidden-scan, 행 데이터 제외)이다. 미해결 `$ref`/`$patch`/
 금지키는 `valid:false`가 아니라 `{error, code}` 로드 실패로 구분 보고한다. 진입점은
-`packages/validator-js/bin/validate-v2.mjs` · `packages/validator-php/bin/validate-v2.php` ·
+`packages/validator-ts/bin/validate-v2.mjs` · `packages/validator-php/bin/validate-v2.php` ·
 `packages/validator-go/cmd/validate-v2` · `packages/validator-rust/src/bin/validate-v2.rs`.
 
 ### 폼 빌더 (렌더러)
@@ -166,7 +166,7 @@ echo '{"spec":{...},"input":{...}}' | ./target/release/validate
 **React**
 
 ```tsx
-import { FormBuilder } from '@form-spec/generator-react';
+import { FormBuilder } from '@polyspec/generator-react';
 
 function App() {
   return (
@@ -184,7 +184,7 @@ function App() {
 ```ts
 import { createSSRApp, h } from 'vue';
 import { renderToString } from '@vue/server-renderer';
-import { FormBuilder } from '@form-spec/generator-vue';
+import { FormBuilder } from '@polyspec/generator-vue';
 
 const app = createSSRApp({
   render: () => h(FormBuilder, { spec, data: {}, language: 'ko' }),
@@ -196,7 +196,7 @@ const html = await renderToString(app);
 
 ```svelte
 <script>
-  import { FormBuilder } from '@form-spec/generator-svelte';
+  import { FormBuilder } from '@polyspec/generator-svelte';
   export let spec;
 </script>
 
@@ -207,7 +207,7 @@ API 상세는 [docs/API.md](./docs/API.md) 참조.
 
 ## form-spec CLI
 
-`@form-spec/cli`(`form-spec`)는 코드·스키마 단일진실 위에 얇게 얹힌 오케스트레이터다 —
+`@polyspec/cli`(`form-spec`)는 코드·스키마 단일진실 위에 얇게 얹힌 오케스트레이터다 —
 손으로 베낀 카탈로그가 없다. 현재 구현된 서브커맨드는 네 개다.
 
 ```bash
@@ -225,7 +225,7 @@ form-spec list-widgets [--json]     # 위젯 kind + layout + alias
 
 form-spec이 입력(write)이면 list-spec은 그 read 자매다 — 같은 양식을 재사용해 목록을
 선언한다(루트 `columns` + `rows` 주입). DB에 접속하지 않는다: 행 데이터는 호출자가
-주입하므로 데이터 소스와 무관하다. `@form-spec/generator-core`의 `buildList`(+ read 셀
+주입하므로 데이터 소스와 무관하다. `@polyspec/generator-core`의 `buildList`(+ read 셀
 렌더러)가 form-spec의 `buildForm`과 같은 패턴(합성 → 표현식·조건맵 평가 → viewmodel)을
 공유하고, React/Vue/Svelte 세 프레임워크의 `ListV2`가 동일 viewmodel을 SSR parity로
 렌더한다. 구조 검증은 네 언어 `validate-v2` CLI의 `mode:"list"`(compose + forbidden-scan,
@@ -253,7 +253,7 @@ CORS·OPTIONS 프리플라이트 지원. 자세한 포트·기동법은
 npm test                                   # = node tests/runner/compare-all.js
 
 # 언어별 단일 게이트
-cd packages/validator-js   && npm test      # vitest    — 동일 1074 conformance
+cd packages/validator-ts   && npm test      # vitest    — 동일 1074 conformance
 cd packages/validator-php  && composer test # PHPUnit   — 동일 1074 conformance
 cd packages/validator-go   && go test ./...
 cd packages/validator-rust && cargo test    # cargo     — 동일 1074 conformance
@@ -334,8 +334,8 @@ PORT=4000 node server.mjs    # 게이트웨이 기동 (기본 4000)
 ## Development
 
 ```bash
-npm run build      # validator-js + generator-react/vue/svelte 빌드
-npm run lint       # eslint (validator-js, generator-react)
+npm run build      # validator-ts + generator-react/vue/svelte 빌드
+npm run lint       # eslint (validator-ts, generator-react)
 npm test           # 크로스언어 게이트
 make docs          # 문서 생성 (멱등)
 ```

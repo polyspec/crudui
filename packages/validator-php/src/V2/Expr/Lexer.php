@@ -9,7 +9,7 @@ namespace FormSpec\Validator\V2\Expr;
  *
  * Turns a condition string into a Token[] ending in EOF. WHITESPACE is consumed
  * but never emitted. The token order, multi-char operator precedence, multi-dot
- * handling, string escapes, and number rules mirror validator-js Lexer exactly,
+ * handling, string escapes, and number rules mirror validator-ts Lexer exactly,
  * because the shared fixture's `tokens` array is byte-compared across 4 languages.
  *
  * NO regex-split / no string-split evaluation anywhere (GRAMMAR §10): this is a

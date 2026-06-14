@@ -1,7 +1,7 @@
 # parity — React SSR ↔ Limepie PHP 기준 HTML 자동 비교 하네스
 
 `tests/fixtures/reference-html/*.html`(legacy Limepie PHP 출력, 단일진실)과
-`@form-spec/generator-react` FormBuilder 의 SSR 출력(`react-dom/server`
+`@polyspec/generator-react` FormBuilder 의 SSR 출력(`react-dom/server`
 `renderToStaticMarkup`)을 정규화 후 비교한다.
 
 - **GREEN 이 기대 상태다 (7/7, 50/50 필드 + chrome).** Phase C 수렴 완료 —

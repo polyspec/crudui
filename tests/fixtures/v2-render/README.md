@@ -7,9 +7,9 @@ case's `expected_html` AFTER passing through the shared normalizer
 regenerate it (see Generation).
 
 The pipeline under test is the four mandated stages: v2 spec → v2 compose
-(`validator-js` v2 compose: expand `$ref`/`$patch` into a single spec) → design
+(`validator-ts` v2 compose: expand `$ref`/`$patch` into a single spec) → design
 slot + condition-map render (the SAME expr engine the v2 validator uses) → SSR
-HTML. The compose and expr engines are REUSED from `validator-js` (no duplicate
+HTML. The compose and expr engines are REUSED from `validator-ts` (no duplicate
 implementation); no v1 meta key (`display_switch`/`display_target`/
 `element_class`/`group_class`/`wrapper_class`/…) and no `eval` are involved.
 

@@ -22,11 +22,11 @@ import yaml from 'js-yaml';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
-import { translateV1ToV2 } from '../packages/validator-js/src/v2/translate/index';
-import { scanForbiddenKeys } from '../packages/validator-js/src/v2/forbidden-scan';
-import { validateV2 } from '../packages/validator-js/src/v2/validate/index';
-import { ComposeLoadError } from '../packages/validator-js/src/v2/compose/index';
-import type { FileLoader } from '../packages/validator-js/src/v2/compose/index';
+import { translateV1ToV2 } from '../packages/validator-ts/src/v2/translate/index';
+import { scanForbiddenKeys } from '../packages/validator-ts/src/v2/forbidden-scan';
+import { validateV2 } from '../packages/validator-ts/src/v2/validate/index';
+import { ComposeLoadError } from '../packages/validator-ts/src/v2/compose/index';
+import type { FileLoader } from '../packages/validator-ts/src/v2/compose/index';
 
 const CORPUS = '/Users/max/Abyss/Workspace/blue/app';
 const REPO = path.resolve(import.meta.dirname, '..');

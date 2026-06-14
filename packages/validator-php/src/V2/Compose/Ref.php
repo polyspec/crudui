@@ -7,7 +7,7 @@ namespace FormSpec\Validator\V2\Compose;
 /**
  * $ref resolution — base inheritance, resolved before anything else (SPEC-V2 §5;
  * v1 ReferenceResolver.php). Byte-for-byte port of
- * validator-js/src/v2/compose/ref.ts.
+ * validator-ts/src/v2/compose/ref.ts.
  *
  * Semantics ported from v1 (single source of truth):
  *   (1) value = a single string OR a list of strings — a list resolves each path

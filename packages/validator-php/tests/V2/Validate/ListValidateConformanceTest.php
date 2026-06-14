@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * v2 list-spec validation conformance (SPEC-V2 §9) — the read sister of
  * ValidateConformanceTest, isomorphic with the JS reference
- * validator-js/src/v2/validate-list/validate-list.conformance.test.ts.
+ * validator-ts/src/v2/validate-list/validate-list.conformance.test.ts.
  *
  * It pins the four-language STRUCTURE gate for a list-spec: compose ($ref/$patch
  * on the columns map and a { $ref, $patch } search overlay) + forbidden-scan over

@@ -2,10 +2,10 @@
  * v2 generator expression bridge — REUSE, do not reimplement.
  *
  * The condition parser (ConditionParser) and evaluator (PathResolver) are the
- * SAME surfaces the v2 validator consumes (validator-js/src/parser/*). This file
+ * SAME surfaces the v2 validator consumes (validator-ts/src/parser/*). This file
  * is a thin dispatcher that ports the validator's `resolveRuleValue` /
  * `resolveConditionMap` / `tryEvaluateTernary` patterns
- * (validator-js/src/v2/validate/validator.ts:519,543,578) so the generator
+ * (validator-ts/src/v2/validate/validator.ts:519,543,578) so the generator
  * derives `design.show`/`design.class`/`design.style` from the SAME AST and the
  * SAME evaluation as the validator. One engine, two consumers — 4-language /
  * 3-framework idempotence is anchored on tests/fixtures/expr/cases.json.
@@ -24,12 +24,12 @@ import {
   evaluateCondition,
   evaluateExpressionValue,
   type PathContext,
-} from '@form-spec/validator';
+} from '@polyspec/validator';
 
 /**
  * A v2 `Evaluated<V>` value as seen at render: a literal, an Expression string,
  * or a declaration-ordered ConditionMap (plain object). Mirrors
- * validator-js/src/v2/types.ts:73.
+ * validator-ts/src/v2/types.ts:73.
  */
 export type Evaluated<V = unknown> = V | string | Record<string, unknown>;
 

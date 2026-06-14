@@ -2,9 +2,9 @@
  * Form-spec Vue Types (trimmed port of the React type surface).
  */
 
-import type { Spec } from '@form-spec/validator';
+import type { Spec } from '@polyspec/validator';
 
-export type { Spec } from '@form-spec/validator';
+export type { Spec } from '@polyspec/validator';
 
 /** Supported UI language codes used for label/message resolution. */
 export type Language = 'ko' | 'en' | 'ja' | 'zh';

@@ -4,7 +4,7 @@
  * Three gates, all from the single-source-of-truth (no re-implemented rule):
  *   1. ajv against schema/form-spec-v2.schema.json (additionalProperties:false →
  *      rejects non-first-class keys, unregistered slot keys, ForbiddenKeyNames).
- *   2. scanForbiddenKeys (validator-js/v2/forbidden-scan.ts) — the runtime
+ *   2. scanForbiddenKeys (validator-ts/v2/forbidden-scan.ts) — the runtime
  *      backstop that the meta-schema mirrors, walked to arbitrary depth.
  *   3. leaf-type catalog — compose the spec, walk the field tree, and reject any
  *      LEAF field (no `properties`) whose `type` is not a registered widget kind
@@ -28,8 +28,8 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import yaml from 'js-yaml';
 
-import { scanForbiddenKeys } from '../../validator-js/src/v2/forbidden-scan.ts';
-import { composeSpec, MemoryLoader } from '../../validator-js/src/v2/compose/index.ts';
+import { scanForbiddenKeys } from '../../validator-ts/src/v2/forbidden-scan.ts';
+import { composeSpec, MemoryLoader } from '../../validator-ts/src/v2/compose/index.ts';
 // Live widget registry (drift 0): the same key set `describe`/`list-widgets`
 // surface. Imported, never re-declared as a static enum.
 import { WIDGET_KINDS } from '../../generator-core/src/widget.ts';

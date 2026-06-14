@@ -76,7 +76,7 @@ Only real server faults use 4xx/5xx with `{ error }`.
 ## Run
 
 The Go and Rust v2 validators are subprocess CLIs that must be compiled first.
-The JS v2 validate CLI (`packages/validator-js/bin/validate-v2.mjs`) runs the
+The JS v2 validate CLI (`packages/validator-ts/bin/validate-v2.mjs`) runs the
 TypeScript v2 source through the `tsx` loader (`node --import tsx`) — no separate
 build, but `tsx` must be installed (it is a workspace devDependency; run
 `npm install` at the repo root once). The three generators load from TypeScript

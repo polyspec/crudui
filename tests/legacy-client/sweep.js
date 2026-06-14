@@ -1,10 +1,10 @@
-// Sweep every suite through the adapter vs validator-js; print per-suite and
+// Sweep every suite through the adapter vs validator-ts; print per-suite and
 // total match/mismatch/skip. Used for adapter development; the real gate is
 // gate.test (vitest) and gate.js.
 const fs = require('fs');
 const path = require('path');
 const { runLegacyCase } = require('./adapter');
-const v = require(path.join(__dirname, '..', '..', 'packages', 'validator-js', 'dist', 'index.js'));
+const v = require(path.join(__dirname, '..', '..', 'packages', 'validator-ts', 'dist', 'index.js'));
 const CASES_DIR = path.join(__dirname, '..', 'cases');
 
 function convertSpec(spec) {

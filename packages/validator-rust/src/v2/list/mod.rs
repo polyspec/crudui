@@ -20,7 +20,7 @@
 //! `additionalProperties:false`, `required:columns`, `enum` sort.dir/pagination
 //! .mode, `anyOf` CellFormat polymorphism). The 4-language engine does NOT do
 //! JSON-Schema validation (SPEC-V2 §8); those remain the META-SCHEMA's job (ajv,
-//! `packages/validator-js/src/v2/list-metaschema.conformance.test.ts`), exactly as
+//! `packages/validator-ts/src/v2/list-metaschema.conformance.test.ts`), exactly as
 //! for form. This module invents NOTHING — it re-runs compose + forbidden-scan.
 //!
 //! Reuses `crate::v2::compose` and `crate::v2::forbidden_scan` verbatim; the

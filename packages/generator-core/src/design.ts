@@ -1,7 +1,7 @@
 /**
  * v2 design-slot resolver — appearance = visibility (`show`) + per-DOM-node
  * appearance map (R8). SPEC-V2 §3 common-role distribution; mirrors
- * validator-js/src/v2/types.ts:258 DesignSlot.
+ * validator-ts/src/v2/types.ts:258 DesignSlot.
  *
  * The v1 scattered meta keys (element_class/label_class/group_class/
  * wrapper_class/prepend_class/display_switch/display_target/style) are absorbed
@@ -19,7 +19,7 @@
  * literal, expression, or condition map. eval is never called.
  */
 
-import type { PathContext } from '@form-spec/validator';
+import type { PathContext } from '@polyspec/validator';
 import { evalShow, evalAppearance } from './expr';
 
 /** Resolved class+style for one DOM node. */

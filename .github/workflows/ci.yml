@@ -7,7 +7,7 @@
 # README CI badge (add by hand into README.md later — this workflow does not
 # touch README.md):
 #
-#   ![CI](https://github.com/yejune/form-spec/actions/workflows/ci.yml/badge.svg)
+#   ![CI](https://github.com/polyspec/polyspec/actions/workflows/ci.yml/badge.svg)
 #
 # Gate -> job map:
 #   cross-language   node tests/runner/compare-all.js          (JS/PHP/Go/Rust, 1074 cases)
@@ -17,7 +17,7 @@
 #   docs-coverage    make docs-check                           (libs + servers, 4 langs)
 #
 # v2 gate -> job map (R7: runs alongside the v1 gates above, never replaces them):
-#   v2-validator-js     npm run test:v2 -w validator-js       (vitest run src/v2; incl. validate-cli)
+#   v2-validator-ts     npm run test:v2 -w validator-ts       (vitest run src/v2; incl. validate-cli)
 #   v2-validator-php    composer test:v2                      (phpunit tests/V2; incl. ValidateCliTest)
 #   v2-validator-go     go test ./validator/v2/... ./cmd/validate-v2
 #   v2-validator-rust   cargo test --test {expr,compose,validate,spec_validity,list_validity,validate_v2_cli}_conformance
@@ -40,7 +40,7 @@
 # (compose+forbidden-scan, asserted bit-for-bit by JS/PHP/Go/Rust list-validity
 # conformance — the 4-language structure gate) and `expect`/`reason` (JSON-Schema
 # shape, asserted by the JS ajv list meta-schema). The engine cases ride the four
-# v2-validator-{js,php,go,rust} jobs; the meta-schema rides v2-validator-js.
+# v2-validator-{js,php,go,rust} jobs; the meta-schema rides v2-validator-ts.
 #
 # Toolchain pinning rationale:
 #   - dist/ and target/ are gitignored, so cross-language must build the JS
@@ -69,9 +69,9 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # build-lint — root workspace build (validator-js + 3 generators) and lint.
+  # build-lint — root workspace build (validator-ts + 3 generators) and lint.
   # `npm run build` => build:validator + build:generators (react/vue/svelte).
-  # `npm run lint`  => eslint over validator-js/src + generator-react/src.
+  # `npm run lint`  => eslint over validator-ts/src + generator-react/src.
   # ---------------------------------------------------------------------------
   build-lint:
     name: build + lint
@@ -88,7 +88,7 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
-      - name: Build (validator-js + generator-react/vue/svelte)
+      - name: Build (validator-ts + generator-react/vue/svelte)
         run: npm run build
 
       - name: Lint
@@ -152,7 +152,7 @@ jobs:
   # red/green per language and let unrelated toolchains cache independently.
   # ---------------------------------------------------------------------------
   validator-unit-js:
-    name: unit · validator-js (vitest)
+    name: unit · validator-ts (vitest)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -165,7 +165,7 @@ jobs:
         run: npm i -g npm@11.17.0 && npm ci
       - name: Test
         run: npm test
-        working-directory: packages/validator-js
+        working-directory: packages/validator-ts
 
   validator-unit-php:
     name: unit · validator-php (phpunit)
@@ -215,7 +215,7 @@ jobs:
   # parity — HTML parity across the three frameworks. All SSR (vitest), no
   # browser/puppeteer needed. React parity lives in tests/parity (own lockfile
   # => own npm install). Vue/Svelte parity run from their packages, so they
-  # need the root workspace build (the generators import @form-spec/validator)
+  # need the root workspace build (the generators import @polyspec/validator)
   # plus their built dist.
   # ---------------------------------------------------------------------------
   parity:
@@ -305,13 +305,13 @@ jobs:
   # ===========================================================================
 
   # ---------------------------------------------------------------------------
-  # v2-validator-js — vitest over src/v2 only (expr/compose/validate/forbidden-
+  # v2-validator-ts — vitest over src/v2 only (expr/compose/validate/forbidden-
   # scan conformance + types roundtrip). `npm run test:v2` == `vitest run
   # src/v2`. Loads the shared fixtures expr(114)/compose(20)/validate(28)/
   # spec-validity(15) as the JS reference engine.
   # ---------------------------------------------------------------------------
-  v2-validator-js:
-    name: v2 · validator-js (vitest src/v2)
+  v2-validator-ts:
+    name: v2 · validator-ts (vitest src/v2)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -324,7 +324,7 @@ jobs:
         run: npm i -g npm@11.17.0 && npm ci
       - name: v2 conformance (vitest src/v2)
         run: npm run test:v2
-        working-directory: packages/validator-js
+        working-directory: packages/validator-ts
 
   # ---------------------------------------------------------------------------
   # v2-validator-php — phpunit over tests/V2 only. vendor/ is committed, so no
@@ -403,9 +403,9 @@ jobs:
   # tests/fixtures/v2-render) and the LIST render (v2-list-render,
   # tests/fixtures/v2-list-render — SPEC §9, the read sister). Every framework
   # must reproduce the React reference's normalized expected_html after the shared
-  # normalizer. The list meta-schema gate (SPEC §9.4) rides the v2-validator-js
+  # normalizer. The list meta-schema gate (SPEC §9.4) rides the v2-validator-ts
   # job (vitest run src/v2 picks up list-metaschema.conformance.test.ts).
-  # Generators import @form-spec/validator (dist), so the validator is built first.
+  # Generators import @polyspec/validator (dist), so the validator is built first.
   # ---------------------------------------------------------------------------
   v2-render:
     name: v2 render (React/Vue/Svelte SSR — form + list)
@@ -422,7 +422,7 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
-      - name: Build JS validator (generators import @form-spec/validator)
+      - name: Build JS validator (generators import @polyspec/validator)
         run: npm run build:validator
 
       - name: React v2 render
@@ -487,7 +487,7 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
-      - name: Build JS validator (render engine imports @form-spec/validator)
+      - name: Build JS validator (render engine imports @polyspec/validator)
         run: npm run build:validator
 
       - name: Build Go + Rust validate-v2 CLIs (gateway spawns them)
@@ -505,8 +505,8 @@ jobs:
   # drift-0 projection of cell.ts CELL_RENDERERS + the meta-schema (a renderer
   # added in cell.ts surfaces in describe, describe.ts untouched).
   # describe/check/explain are JS-only: the tests import
-  # generator-core and validator-js TS SOURCE directly (../../generator-core/src,
-  # ../../validator-js/src) and vitest transpiles on the fly, so NO dist build is
+  # generator-core and validator-ts TS SOURCE directly (../../generator-core/src,
+  # ../../validator-ts/src) and vitest transpiles on the fly, so NO dist build is
   # needed — no go/rust/php toolchain, no build step. `npm test` == `vitest run`.
   # Mirrors cross-check-console: the toolchain layer gets the same idempotent CI
   # gate the console layer already has.

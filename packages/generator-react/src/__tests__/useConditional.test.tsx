@@ -11,7 +11,7 @@ import { render, screen } from '@testing-library/react';
 import { useConditional, checkFieldVisibility } from '../hooks/useConditional';
 import { FormContextProvider } from '../context/FormContext';
 import { I18nContextProvider } from '../context/I18nContext';
-import type { Spec } from '@form-spec/validator';
+import type { Spec } from '@polyspec/validator';
 import type { FormData, AllOfCondition } from '../types';
 
 // ============================================================================

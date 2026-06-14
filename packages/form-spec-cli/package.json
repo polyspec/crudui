@@ -1,8 +1,8 @@
 {
-  "name": "@form-spec/cli",
+  "name": "@polyspec/cli",
   "version": "1.0.0",
   "private": true,
-  "description": "form-spec orchestrator CLI — describe/check/validate/render/explain/scaffold/list-widgets. Thin wrapper that imports/parses the code single-source-of-truth (generator-core registry, validator-js rules, schema JSON, forbidden-scan, grammar docs). Holds no hand-copied catalog.",
+  "description": "form-spec orchestrator CLI — describe/check/validate/render/explain/scaffold/list-widgets. Thin wrapper that imports/parses the code single-source-of-truth (generator-core registry, validator-ts rules, schema JSON, forbidden-scan, grammar docs). Holds no hand-copied catalog.",
   "type": "module",
   "bin": {
     "form-spec": "bin/form-spec.mjs"
@@ -16,8 +16,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@form-spec/generator-core": "file:../generator-core",
-    "@form-spec/validator": "file:../validator-js"
+    "@polyspec/generator-core": "file:../generator-core",
+    "@polyspec/validator": "file:../validator-ts"
   },
   "devDependencies": {
     "ajv": "^8.20.0",

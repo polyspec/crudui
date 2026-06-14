@@ -25,8 +25,8 @@
  */
 
 import { h, type VNode } from 'vue';
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@form-spec/generator-core';
-import type { UnsupportedVM } from '@form-spec/generator-core';
+import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/generator-core';
+import type { UnsupportedVM } from '@polyspec/generator-core';
 import { plainProps } from './attrs';
 import {
   rawVoid,

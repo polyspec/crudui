@@ -1,8 +1,8 @@
-# @form-spec/generator-svelte
+# @polyspec/generator-svelte
 
 Svelte form builder for [form-spec](../../README.md) YAML definitions. Renders
 the same Limepie-compatible markup as
-[`@form-spec/generator-react`](../generator-react) and is verified byte-for-byte
+[`@polyspec/generator-react`](../generator-react) and is verified byte-for-byte
 against the shared reference HTML fixtures.
 
 ## Status
@@ -14,7 +14,7 @@ adapter (`src/v2`).
 ## v2 (compose → core → .svelte SSR)
 
 The v2 adapter runs the four mandated stages — compose → evaluate (shared
-`@form-spec/generator-core`) → Svelte 5 SSR — and is parity-checked against the
+`@polyspec/generator-core`) → Svelte 5 SSR — and is parity-checked against the
 React reference.
 
 - `renderFormV2(rootSpec, options)` / `renderFormV2String(...)` → SSR HTML of the
@@ -33,7 +33,7 @@ v2 conformance: `test/v2-render.conformance.test.mjs`,
 
 ```svelte
 <script>
-  import { FormBuilder } from '@form-spec/generator-svelte';
+  import { FormBuilder } from '@polyspec/generator-svelte';
 
   const spec = {
     type: 'group',

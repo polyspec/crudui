@@ -7,7 +7,7 @@ must reproduce `expected_html` AFTER the shared normalizer
 
 `list` is the read sister of `form-spec` (`create = write`): it shares the v2
 engine 100% (compose / expression / i18n / design node maps). The ONE new surface
-is the read cell renderer (`@form-spec/generator-core` `cell.ts`). DB-agnostic:
+is the read cell renderer (`@polyspec/generator-core` `cell.ts`). DB-agnostic:
 `rows` are INJECTED in the fixture; `search` / `sort` / `pagination` are DECLARED
 only — the server applies the real query, the spec declares (SPEC §6 R1, §9.1).
 

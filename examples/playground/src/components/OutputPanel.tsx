@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import yaml from 'js-yaml';
-import type { FormData, FormErrors } from '@form-spec/generator-react';
+import type { FormData, FormErrors } from '@polyspec/generator-react';
 import { BackendComparison } from './BackendComparison';
 
 interface OutputPanelProps {

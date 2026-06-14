@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/generator-svelte",
+  "name": "@polyspec/generator-svelte",
   "version": "1.0.0",
   "description": "Svelte form builder component library based on form-spec YAML definitions",
   "type": "module",
@@ -37,8 +37,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@form-spec/generator-core": "file:../generator-core",
-    "@form-spec/validator": "file:../validator-js",
+    "@polyspec/generator-core": "file:../generator-core",
+    "@polyspec/validator": "file:../validator-ts",
     "yaml": "^2.3.0"
   },
   "devDependencies": {

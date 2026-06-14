@@ -177,7 +177,7 @@ CLI 위임 아님 — `schema/form-spec-v2.schema.json` 원본을 그대로 반�
 
 ## 4. 재사용 관계 (단일진실 위임)
 
-- `formspec.describe`/`check`/`explain` (구현됨) → CLI → 코드/스키마 단일진실 in-process import/parse (`generator-core` WIDGET_*·`cell.ts CELL_FORMATS`·`validator-js` getRuleNames·`scanForbiddenKeys`·`FORBIDDEN_META_KEYS`·schema JSON). 수기 카탈로그 0.
+- `formspec.describe`/`check`/`explain` (구현됨) → CLI → 코드/스키마 단일진실 in-process import/parse (`generator-core` WIDGET_*·`cell.ts CELL_FORMATS`·`validator-ts` getRuleNames·`scanForbiddenKeys`·`FORBIDDEN_META_KEYS`·schema JSON). 수기 카탈로그 0.
 - `formspec.validate`/`render` (로드맵) → CLI(미구현) → 콘솔 `validate-runner.mjs`/`render-runner.mjs`. 검증·렌더 로직 재구현 0. 콘솔 백엔드는 구현·동작, CLI 래퍼만 미구현.
 - `formspec.schema` → schema JSON 원본 (describe 의 파생 출처).
 - SKILL.md(`nl-to-v2-form`)는 휘발성 카탈로그를 보유하지 않고 `formspec.describe`(또는 `form-spec describe`)에 위임한다 — 코드보다 권위 있는 목록은 없다.

@@ -1,13 +1,13 @@
 /**
  * useValidation Hook Tests
  *
- * Tests the validation hook integration with @form-spec/validator
+ * Tests the validation hook integration with @polyspec/validator
  */
 
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useValidation } from '../hooks/useValidation';
-import type { Spec } from '@form-spec/validator';
+import type { Spec } from '@polyspec/validator';
 
 const testSpec: Spec = {
   type: 'group',

@@ -6,7 +6,7 @@ namespace FormSpec\Validator\V2\Compose;
 
 /**
  * $patch application — add / remove / replace over the $ref base (SPEC-V2 §5).
- * Byte-for-byte port of validator-js/src/v2/compose/patch.ts.
+ * Byte-for-byte port of validator-ts/src/v2/compose/patch.ts.
  *
  * Absorbs the legacy v1 directives $after/$before/$merge/$change/$remove
  * (the analysis legacy_mapping):

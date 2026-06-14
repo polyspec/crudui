@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * gen-schema.mjs — generate schema/form-spec.schema.json from validator-js types.
+ * gen-schema.mjs — generate schema/form-spec.schema.json from validator-ts types.
  *
- * Source of truth: packages/validator-js/src/types.ts (the `Spec` interface).
+ * Source of truth: packages/validator-ts/src/types.ts (the `Spec` interface).
  * Generator: ts-json-schema-generator (reads TSDoc, emits JSON Schema draft-07).
  *
  * After generation the schema is:
@@ -22,7 +22,7 @@ import addFormats from 'ajv-formats';
 import yaml from 'js-yaml';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const TYPES = join(ROOT, 'packages', 'validator-js', 'src', 'types.ts');
+const TYPES = join(ROOT, 'packages', 'validator-ts', 'src', 'types.ts');
 const SCHEMA_DIR = join(ROOT, 'schema');
 const SCHEMA_FILE = join(SCHEMA_DIR, 'form-spec.schema.json');
 
@@ -33,13 +33,13 @@ function log(m) {
 mkdirSync(SCHEMA_DIR, { recursive: true });
 
 // 1. Generate JSON Schema from the Spec interface.
-log('generating JSON Schema from validator-js Spec type...');
+log('generating JSON Schema from validator-ts Spec type...');
 const args = [
   'ts-json-schema-generator',
   '--path', TYPES,
   '--type', 'Spec',
-  '--id', 'https://github.com/yejune/form-spec/schema/form-spec.schema.json',
-  '--tsconfig', join(ROOT, 'packages', 'validator-js', 'tsconfig.json'),
+  '--id', 'https://github.com/polyspec/polyspec/schema/form-spec.schema.json',
+  '--tsconfig', join(ROOT, 'packages', 'validator-ts', 'tsconfig.json'),
   // unstable=false keeps definition ordering stable across runs (idempotent output)
   '--no-top-ref',
   '--expose', 'all',

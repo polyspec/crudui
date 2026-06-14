@@ -13,8 +13,8 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react';
-import { Validator, parseCondition, evaluateCondition } from '@form-spec/validator';
-import type { Spec, FieldSpec, PathContext } from '@form-spec/validator';
+import { Validator, parseCondition, evaluateCondition } from '@polyspec/validator';
+import type { Spec, FieldSpec, PathContext } from '@polyspec/validator';
 import type {
   FormContextValue,
   FormData,

@@ -10,7 +10,7 @@
 규칙) 등 **평가되는 모든 값**에 적용된다. `behavior`의 스크립트(`onchange` 등)는
 표현식이 아니라 불투명 클라 JS이므로 이 엔진을 거치지 않는다(SPEC-V2 §4).
 
-기존 자산: `validator-js/src/parser/ConditionParser.ts`(lexer+AST)·`PathResolver.ts`
+기존 자산: `validator-ts/src/parser/ConditionParser.ts`(lexer+AST)·`PathResolver.ts`
 (평가), Go `condition_parser.go`·Rust `parser.rs`는 AST 보유. **PHP `ConditionParser.php`는
 현재 문자열 split/정규식이라 이 명세의 통일 대상이다**(AST 신규 포팅 필요). 이 명세는
 JS/Go/Rust 토큰/AST를 정식화하고 PHP를 여기에 수렴시키며, v2(값 반환·조건맵)로 확장한다.

@@ -9,7 +9,7 @@ import (
 
 // Evaluator walks an AST against form data (GRAMMAR §5/§6/§7, JS PathResolver
 // parity). The shared 4-language fixture is generated from the JS reference
-// engine, so this evaluator mirrors validator-js PathResolver function for
+// engine, so this evaluator mirrors validator-ts PathResolver function for
 // function:
 //
 //   - Evaluate(node)      → bool  (JS evaluateCondition): isTruthy of the

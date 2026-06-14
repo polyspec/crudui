@@ -4,10 +4,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files for dependency installation
-# First, copy the validator-js package
-COPY packages/validator-js/package*.json ./packages/validator-js/
-COPY packages/validator-js/tsconfig.json ./packages/validator-js/
-COPY packages/validator-js/src ./packages/validator-js/src/
+# First, copy the validator-ts package
+COPY packages/validator-ts/package*.json ./packages/validator-ts/
+COPY packages/validator-ts/tsconfig.json ./packages/validator-ts/
+COPY packages/validator-ts/src ./packages/validator-ts/src/
 
 # Copy the generator-react package
 COPY packages/generator-react/package*.json ./packages/generator-react/
@@ -21,11 +21,11 @@ COPY examples/demo-app/vite.config.ts ./examples/demo-app/
 COPY examples/demo-app/index.html ./examples/demo-app/
 COPY examples/demo-app/src ./examples/demo-app/src/
 
-# Build @form-spec/validator
-WORKDIR /app/packages/validator-js
+# Build @polyspec/validator
+WORKDIR /app/packages/validator-ts
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 
-# Build @form-spec/generator-react (depends on file:../validator-js)
+# Build @polyspec/generator-react (depends on file:../validator-ts)
 WORKDIR /app/packages/generator-react
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 

@@ -6,11 +6,11 @@
  * It IMPORTS the live build/runtime objects and PARSES the meta-schema; it never
  * hand-copies a catalog. Every value here is read from:
  *   - generator-core REGISTRY  → widget kinds + per-kind layout (import)
- *   - validator-js rules        → rule names (import getRuleNames)
- *   - validator-js validator.ts → rule param-class tables (import)
+ *   - validator-ts rules        → rule names (import getRuleNames)
+ *   - validator-ts validator.ts → rule param-class tables (import)
  *   - schema/form-spec-v2.json  → slots / nodes / buckets / forbidden enum (parse)
- *   - validator-js types.ts     → FORBIDDEN_META_KEYS + pattern (import)
- *   - validator-js forbidden    → runtime forbidden scan (import — cross-check)
+ *   - validator-ts types.ts     → FORBIDDEN_META_KEYS + pattern (import)
+ *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
  *   - schema/form-spec-v2.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - EXPRESSION-GRAMMAR.md      → tokens / precedence / truthy / unsupported (parse)
@@ -38,19 +38,19 @@ import {
   CELL_FORMATS,
   CELL_FORMAT_DEFAULT,
 } from '../../generator-core/src/cell.ts';
-import { getRuleNames } from '../../validator-js/src/rules/index.ts';
+import { getRuleNames } from '../../validator-ts/src/rules/index.ts';
 import {
   ARRAY_LEVEL_RULES,
   PATH_REFERENCE_RULES,
   LITERAL_PARAM_RULES,
   REGEX_PARAM_RULES,
   MEMBERSHIP_PARAM_RULES,
-} from '../../validator-js/src/v2/validate/validator.ts';
+} from '../../validator-ts/src/v2/validate/validator.ts';
 import {
   FORBIDDEN_META_KEYS,
   FORBIDDEN_META_KEY_PATTERN,
-} from '../../validator-js/src/v2/types.ts';
-import { scanForbiddenKeys } from '../../validator-js/src/v2/forbidden-scan.ts';
+} from '../../validator-ts/src/v2/types.ts';
+import { scanForbiddenKeys } from '../../validator-ts/src/v2/forbidden-scan.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
@@ -247,7 +247,7 @@ function collectRules(): RuleEntry[] {
     if (MEMBERSHIP_PARAM_RULES.includes(name)) tags.push('membership-param');
     return tags;
   };
-  // pattern is the registered alias of match (validator-js rules/index.ts).
+  // pattern is the registered alias of match (validator-ts rules/index.ts).
   const aliases: Record<string, string> = { pattern: 'match' };
   return names
     .map((name) => {
@@ -540,11 +540,11 @@ export function describe(): DescribeResult {
       ruleCount: rules.length,
       sources: {
         widgets: 'packages/generator-core/src/widget.ts (REGISTRY)',
-        rules: 'packages/validator-js/src/rules/index.ts (builtInRules)',
-        ruleParamClass: 'packages/validator-js/src/v2/validate/validator.ts',
+        rules: 'packages/validator-ts/src/rules/index.ts (builtInRules)',
+        ruleParamClass: 'packages/validator-ts/src/v2/validate/validator.ts',
         slots: 'schema/form-spec-v2.schema.json (definitions)',
-        forbiddenKeys: 'packages/validator-js/src/v2/types.ts (FORBIDDEN_META_KEYS)',
-        forbiddenScan: 'packages/validator-js/src/v2/forbidden-scan.ts',
+        forbiddenKeys: 'packages/validator-ts/src/v2/types.ts (FORBIDDEN_META_KEYS)',
+        forbiddenScan: 'packages/validator-ts/src/v2/forbidden-scan.ts',
         grammar: 'docs/EXPRESSION-GRAMMAR.md',
         classification: 'docs/SPEC-V2.md §3',
         listCellFormats: 'packages/generator-core/src/cell.ts (CELL_RENDERERS)',

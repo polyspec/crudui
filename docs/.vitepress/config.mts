@@ -84,7 +84,7 @@ export default withMermaid(defineConfig({
         collapsed: true,
         items: [
           { text: '개요', link: '/api/' },
-          { text: 'validator-js (TS)', link: '/api/validator-js/' },
+          { text: 'validator-ts (TS)', link: '/api/validator-ts/' },
           { text: 'generator-react (TS)', link: '/api/generator-react/' },
           { text: 'generator-vue (TS)', link: '/api/generator-vue/' },
           { text: 'generator-svelte (TS)', link: '/api/generator-svelte/' },
@@ -95,7 +95,7 @@ export default withMermaid(defineConfig({
       },
     ],
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/yejune/form-spec' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/polyspec/polyspec' }],
 
     docFooter: { prev: false, next: false },
   },

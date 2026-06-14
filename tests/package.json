@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/validator-tests",
+  "name": "@polyspec/validator-tests",
   "version": "1.0.0",
   "private": true,
   "description": "Cross-language validation test runner for form-spec validators",

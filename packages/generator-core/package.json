@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/generator-core",
+  "name": "@polyspec/generator-core",
   "version": "1.0.0",
   "description": "Framework-agnostic v2 evaluation core (compose + evaluate, markup 0) shared by every form-spec generator adapter (React/Vue/Svelte)",
   "main": "dist/index.js",
@@ -36,7 +36,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@form-spec/validator": "file:../validator-js"
+    "@polyspec/validator": "file:../validator-ts"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

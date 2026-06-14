@@ -1,8 +1,8 @@
 /**
- * @form-spec/generator-svelte
+ * @polyspec/generator-svelte
  *
  * Svelte form builder component library based on form-spec YAML definitions.
- * Renders the same Limepie-compatible markup as @form-spec/generator-react
+ * Renders the same Limepie-compatible markup as @polyspec/generator-react
  * (reference-html parity).
  */
 

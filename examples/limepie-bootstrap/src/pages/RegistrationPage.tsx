@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormBuilder } from '@form-spec/generator-react';
+import { FormBuilder } from '@polyspec/generator-react';
 import registrationSpec from '../specs/registration.yaml?raw';
 
 interface RegistrationPageProps {

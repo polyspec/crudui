@@ -1,12 +1,12 @@
 /**
  * useValidation Hook
  *
- * Hook for form validation using @form-spec/validator
+ * Hook for form validation using @polyspec/validator
  */
 
 import { useCallback, useMemo } from 'react';
-import { Validator, getRule } from '@form-spec/validator';
-import type { Spec, ValidationContext } from '@form-spec/validator';
+import { Validator, getRule } from '@polyspec/validator';
+import type { Spec, ValidationContext } from '@polyspec/validator';
 import type { FormData, FormErrors, FormValue, UseValidationReturn } from '../types';
 import { parsePathString } from '../utils/path';
 

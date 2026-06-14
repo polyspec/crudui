@@ -19,8 +19,8 @@
  */
 
 import * as React from 'react';
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@form-spec/generator-core';
-import type { UnsupportedVM } from '@form-spec/generator-core';
+import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/generator-core';
+import type { UnsupportedVM } from '@polyspec/generator-core';
 import { inputProps, plainProps } from './attrs';
 import {
   hasEventAttr,

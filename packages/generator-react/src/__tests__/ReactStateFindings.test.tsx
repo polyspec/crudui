@@ -37,7 +37,7 @@ import {
   applyDisplaySwitchTransform,
   displayTokenForSeed,
 } from '../hooks/legacyDisplay';
-import type { Spec } from '@form-spec/validator';
+import type { Spec } from '@polyspec/validator';
 
 // ============================================================================
 // F1 — validator recreated on spec swap

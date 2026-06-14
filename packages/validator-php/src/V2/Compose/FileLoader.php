@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FormSpec\Validator\V2\Compose;
 
 /**
- * File loader for $ref resolution. Port of validator-js/src/v2/compose/loader.ts.
+ * File loader for $ref resolution. Port of validator-ts/src/v2/compose/loader.ts.
  *
  * $ref loads external YAML files (v1 ReferenceResolver: yml_parse_file). The
  * compose engine never touches the filesystem directly — it goes through a

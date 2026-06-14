@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import type { FormData } from '@form-spec/generator-react';
+import type { FormData } from '@polyspec/generator-react';
 
 /** Canonical validation error shape returned by every backend. */
 interface ValidationError {

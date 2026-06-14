@@ -1,11 +1,11 @@
 /**
- * @form-spec/generator-react
+ * @polyspec/generator-react
  *
  * React form builder component library based on form-spec YAML definitions
  *
  * @example
  * ```tsx
- * import { FormBuilder } from '@form-spec/generator-react';
+ * import { FormBuilder } from '@polyspec/generator-react';
  *
  * const yamlSpec = `
  * type: group

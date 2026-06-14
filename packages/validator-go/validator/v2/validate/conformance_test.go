@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/v2/compose"
+	"github.com/polyspec/polyspec/packages/validator-go/validator/v2/compose"
 )
 
 // v2 validate-engine conformance (SPEC-V2 §2 G5 → §3 → §2 G1).

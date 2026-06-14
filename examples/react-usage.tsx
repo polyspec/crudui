@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { FormBuilder } from '@form-spec/generator-react';
-import type { FormData, FormErrors, Language, FieldComponentProps } from '@form-spec/generator-react';
+import { FormBuilder } from '@polyspec/generator-react';
+import type { FormData, FormErrors, Language, FieldComponentProps } from '@polyspec/generator-react';
 
 // =============================================================================
 // Basic Usage

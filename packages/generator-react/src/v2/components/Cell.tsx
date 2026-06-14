@@ -17,7 +17,7 @@
  */
 
 import * as React from 'react';
-import type { CellVM } from '@form-spec/generator-core';
+import type { CellVM } from '@polyspec/generator-core';
 import { styleObject } from './attrs';
 
 /** Render the inner display payload of one cell (no `<td>`/`<span>` host). */

@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator"
+	"github.com/polyspec/polyspec/packages/validator-go/validator"
 )
 
 type report struct {

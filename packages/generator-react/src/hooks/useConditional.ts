@@ -6,8 +6,8 @@
  */
 
 import { useCallback } from 'react';
-import { parseCondition, evaluateCondition } from '@form-spec/validator';
-import type { PathContext } from '@form-spec/validator';
+import { parseCondition, evaluateCondition } from '@polyspec/validator';
+import type { PathContext } from '@polyspec/validator';
 import type {
   FormData,
   FormValue,

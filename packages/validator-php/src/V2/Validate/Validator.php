@@ -31,7 +31,7 @@ use FormSpec\Validator\V2\Expr\ConditionMap;
 use FormSpec\Validator\V2\Expr\Expression;
 
 /**
- * v2 form validator — SPEC-V2 §2 G5→§3→§2 G1. Port of validator-js
+ * v2 form validator — SPEC-V2 §2 G5→§3→§2 G1. Port of validator-ts
  * src/v2/validate/validator.ts (ValidatorV2), function-for-function.
  *
  * This is the THIRD pass of the v2 pipeline. It consumes a v2 field model (the

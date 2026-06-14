@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@form-spec/generator-react': path.resolve(__dirname, '../../packages/generator-react/src'),
+      '@polyspec/generator-react': path.resolve(__dirname, '../../packages/generator-react/src'),
     },
   },
   optimizeDeps: {

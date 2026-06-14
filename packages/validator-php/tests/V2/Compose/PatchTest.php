@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * v1-parity unit tests for the $patch deep-merge / deep-remove semantics
  * (ArrayUtil::mergeDeep = arr::drupal_array_merge_deep_array; arr::remove). Port
- * of validator-js/src/v2/compose/patch.test.ts.
+ * of validator-ts/src/v2/compose/patch.test.ts.
  *
  * cases.json (the shared 4-language fixture) covers the SPEC §5 surface; these
  * tests pin the merge/remove RULES the fixture does not separately isolate:

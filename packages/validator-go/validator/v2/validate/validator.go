@@ -5,7 +5,7 @@ package validate
 // Operates on a COMPOSED properties tree (*compose.OMap, declaration order
 // preserved — composition keys already eliminated) and the decoded form data
 // (map[string]any / []any / scalars from encoding/json). The traversal mirrors the
-// JS ValidatorV2 (validator-js/src/v2/validate/validator.ts) field for field; the
+// JS ValidatorV2 (validator-ts/src/v2/validate/validator.ts) field for field; the
 // rule-value resolution mirrors its resolveRuleValue / resolveConditionMap /
 // tryEvaluateTernary (G1 — the condition is the value's expression, never a
 // separate if/when key).
@@ -18,8 +18,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/v2/compose"
-	"github.com/yejune/form-spec/packages/validator-go/validator/v2/expr"
+	"github.com/polyspec/polyspec/packages/validator-go/validator/v2/compose"
+	"github.com/polyspec/polyspec/packages/validator-go/validator/v2/expr"
 )
 
 // arrayLevelRules apply to the whole array of a multiple field; the rest apply to

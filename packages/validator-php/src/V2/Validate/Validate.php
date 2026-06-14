@@ -10,7 +10,7 @@ use FormSpec\Validator\V2\Compose\MemoryLoader;
 use FormSpec\Validator\V2\ForbiddenScan;
 
 /**
- * v2 validation entry point — SPEC-V2 §2 pipeline. Port of validator-js
+ * v2 validation entry point — SPEC-V2 §2 pipeline. Port of validator-ts
  * src/v2/validate/index.ts (validateV2).
  *
  * Wires the three v2 passes in order (G5 compose first → §3 traversal → §2 G1

@@ -109,7 +109,7 @@ export function HomePage({ language }: HomePageProps) {
       <section className="usage">
         <h2>{language === 'ko' ? '사용법' : 'Usage'}</h2>
         <pre>
-{`import { FormBuilder } from '@form-spec/generator-react';
+{`import { FormBuilder } from '@polyspec/generator-react';
 
 const yamlSpec = \`
 type: group

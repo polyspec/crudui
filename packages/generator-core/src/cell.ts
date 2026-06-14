@@ -21,7 +21,7 @@
  * never called.
  */
 
-import type { PathContext } from '@form-spec/validator';
+import type { PathContext } from '@polyspec/validator';
 import { evalAppearance } from './expr';
 import type { Translate, LocalizedText } from './content';
 import { getValueByPath } from './util';

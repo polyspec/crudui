@@ -6,7 +6,7 @@
 // $ref / $patch into a single spec. It does NOT touch the v1 validator (R7
 // parallel run) and it does NOT re-implement the expression engine — it CALLS the
 // existing engine (validator-go/validator/v2/expr) for conditional rule values.
-// The rule semantics mirror the JS reference (validator-js/src/rules) byte for
+// The rule semantics mirror the JS reference (validator-ts/src/rules) byte for
 // byte; the shared 4-language fixture tests/fixtures/validate/cases.json is the
 // single truth, generated from the JS engine.
 //

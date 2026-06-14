@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormBuilder } from '@form-spec/generator-react';
+import { FormBuilder } from '@polyspec/generator-react';
 import contactSpec from '../specs/contact.yaml?raw';
 
 interface ContactPageProps {

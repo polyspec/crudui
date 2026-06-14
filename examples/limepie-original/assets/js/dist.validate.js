@@ -1217,7 +1217,7 @@ $.extend($.validator, {
                     // must reject a non-numeric value whether or not a `number`
                     // rule is declared, and that check must run BEFORE min/max so
                     // the reported rule is `number`. Matches the new validators
-                    // (validator-js Validator.ts:629-652 implicit number branch).
+                    // (validator-ts Validator.ts:629-652 implicit number branch).
                     // Inject `number: true` first when no explicit number rule
                     // exists; build a fresh spec/rules object so the source spec
                     // is never mutated.
@@ -1345,7 +1345,7 @@ $.extend($.validator, {
             } else if (value) {
                 // Trim before the emptiness check: a whitespace-only string is an
                 // empty value, not a present one. Matches the new validators
-                // (validator-js required.ts:18 `value.trim() === ''`) so the
+                // (validator-ts required.ts:18 `value.trim() === ''`) so the
                 // browser runtime never accepts " " / "\t" / "\n" where the
                 // server rejects it. Non-string values keep their own length.
                 if (typeof value === "string") {
@@ -1475,7 +1475,7 @@ $.extend($.validator, {
                     // A non-numeric threshold (NaN after Number()) makes the rule
                     // inapplicable: skip it (pass) instead of doing a string
                     // comparison like "5" >= "xyz". Matches the new validators
-                    // (validator-js min.ts:58-61 `Number(ruleParam)` isNaN -> null).
+                    // (validator-ts min.ts:58-61 `Number(ruleParam)` isNaN -> null).
                     if (isNaN(Number(param))) {
                         return true;
                     }
@@ -1531,7 +1531,7 @@ $.extend($.validator, {
                 default:
                     // A non-numeric threshold (NaN after Number()) makes the rule
                     // inapplicable: skip it (pass) instead of doing a string
-                    // comparison. Matches the new validators (validator-js
+                    // comparison. Matches the new validators (validator-ts
                     // max.ts:28-31 `Number(ruleParam)` isNaN -> null).
                     if (isNaN(Number(param))) {
                         return true;

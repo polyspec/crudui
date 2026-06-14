@@ -19,7 +19,7 @@
   component RECOMPUTES NOTHING. eval is never called.
 -->
 <script lang="ts">
-  import type { ListViewModel } from '@form-spec/generator-core';
+  import type { ListViewModel } from '@polyspec/generator-core';
   import {
     headerClass,
     headerStyle,
@@ -47,7 +47,7 @@
 <!-- One cell's DISPLAY, dispatched on the core CellDisplay union. A plain string
      (text/date/number/choice-label) renders as escaped text; the structured
      variants render real elements; ONLY `html` passes through `{@html}`. -->
-{#snippet cellDisplay(d: import('@form-spec/generator-core').CellDisplay)}
+{#snippet cellDisplay(d: import('@polyspec/generator-core').CellDisplay)}
   {#if typeof d === 'string'}
     {d}
   {:else if d.kind === 'badge'}

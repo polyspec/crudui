@@ -13,7 +13,7 @@
  * non-SSR surfaces stay usable without the SSR peer; SSR is opt-in.
  */
 
-import { buildList, type BuildListOptions } from '@form-spec/generator-core';
+import { buildList, type BuildListOptions } from '@polyspec/generator-core';
 import { ListV2, type ListLayout } from './components/ListV2';
 
 /** Options for a v2 list SSR render. */

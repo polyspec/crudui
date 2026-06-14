@@ -6,7 +6,7 @@
   "hideGenerator": true,
   "gitRevision": "main",
   "disableGit": true,
-  "sourceLinkTemplate": "https://github.com/yejune/form-spec/blob/main/{path}#L{line}",
+  "sourceLinkTemplate": "https://github.com/polyspec/polyspec/blob/main/{path}#L{line}",
   "includeVersion": false,
   "excludePrivate": true,
   "excludeInternal": true,

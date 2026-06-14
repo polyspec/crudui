@@ -12,7 +12,7 @@
 | PHP 단일 러너 | `tests/runner/run-php.php` | `cd tests && npm run run:php` | 1074 | PHP 검증기 단독 pass/fail |
 | Go 브리지 | `tests/runner/go/run_test.go` | `cd tests/runner/go && go test ./...` | 1074 | Go 검증기 단독 pass/fail |
 | Rust conformance | `packages/validator-rust/tests/conformance.rs` | `cd packages/validator-rust && cargo test --release` | 1074 | Rust 검증기 단독 pass/fail |
-| vitest 브리지 | `packages/validator-js/src/__tests__/conformance.test.ts` | `cd packages/validator-js && npx vitest run` | 1074 | JS 검증기 (vitest 리포팅) |
+| vitest 브리지 | `packages/validator-ts/src/__tests__/conformance.test.ts` | `cd packages/validator-ts && npx vitest run` | 1074 | JS 검증기 (vitest 리포팅) |
 | PHPUnit 브리지 | `packages/validator-php/tests/ConformanceTest.php` | `cd packages/validator-php && ./vendor/bin/phpunit` | 1074 | PHP 검증기 (PHPUnit data provider) |
 | Go 내부 테스트 | `packages/validator-go/validator/validator_test.go` | `cd packages/validator-go && go test ./...` | — | Go 내부 단위 테스트 |
 | HTML parity (React) | `tests/parity/parity.test.mjs` | `cd tests/parity && npm test` | 기준 HTML 7종 | React SSR ↔ Limepie 기준 HTML (7/7) |
@@ -42,9 +42,9 @@ legacy 클라이언트 비교는 문서화 gap 0·회귀 0 이다.
 ```
 form-spec/
 ├── packages/
-│   ├── validator-js/        # TS 검증기 (vitest 브리지, benchmarks/ 포함)
+│   ├── validator-ts/        # TS 검증기 (vitest 브리지, benchmarks/ 포함)
 │   ├── validator-php/       # PHP 검증기 (PHP ^8.2, PHPUnit 브리지)
-│   ├── validator-go/        # Go 검증기 (모듈명 github.com/yejune/form-spec/packages/validator-go)
+│   ├── validator-go/        # Go 검증기 (모듈명 github.com/polyspec/polyspec/packages/validator-go)
 │   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator, cargo test 브리지)
 │   ├── generator-react/     # React 폼 생성기 (vitest, 기준 HTML 7/7 parity)
 │   ├── generator-vue/       # Vue 3 폼 생성기 (vitest, test/parity.test.mjs 7/7)
@@ -94,7 +94,7 @@ node runner/compare-all.js --verbose          # 전체 결과 출력
 
 언어별 실행 방식 (`tests/runner/compare-all.js` 기준):
 
-- **JS**: `packages/validator-js/dist/index.js` 를 직접 require (없으면 ts-node 로 src).
+- **JS**: `packages/validator-ts/dist/index.js` 를 직접 require (없으면 ts-node 로 src).
 - **PHP**: 케이스마다 `runner/validate-case.php` 워커를 서브프로세스로 실행.
 - **Go**: `packages/validator-go/validate` CLI 바이너리 실행 (없으면
   `go build -o validate ./cmd/validate` 로 자동 빌드).
@@ -148,8 +148,8 @@ go test ./...      # Go 브리지 (tests/cases/*.json 을 읽음)
 만들지 마라 — 구현을 고쳐라.
 
 ```bash
-# JS — vitest (packages/validator-js/src/__tests__/conformance.test.ts)
-cd packages/validator-js
+# JS — vitest (packages/validator-ts/src/__tests__/conformance.test.ts)
+cd packages/validator-ts
 npx vitest run            # npm test 는 watch 모드로 열린다
 
 # PHP — PHPUnit (packages/validator-php/tests/ConformanceTest.php)
@@ -169,7 +169,7 @@ cargo test --release      # ../../tests/cases/*.json 을 읽어 1074 케이스 �
 
 이 밖에 언어별 전용 테스트:
 
-- `packages/validator-js/benchmarks/` — 성능 벤치마크 (`npm run bench`).
+- `packages/validator-ts/benchmarks/` — 성능 벤치마크 (`npm run bench`).
 - `packages/validator-go/validator/validator_test.go` — Go 내부 단위 테스트.
 - `packages/generator-react` — 컴포넌트 테스트 (`npm test`, vitest, 353 테스트).
 - `packages/generator-vue` — 컴포넌트 + parity 테스트 (`npm test`, vitest, 7 테스트).

@@ -2,10 +2,10 @@
  * v2 generator entry (Svelte) — compose → evaluate (shared core) → .svelte SSR.
  *
  * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) v2 spec → (2) v2 compose (validator-js composeProperties: expand
+ *   (1) v2 spec → (2) v2 compose (validator-ts composeProperties: expand
  *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
  *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
- *   evaluation (framework-agnostic core: @form-spec/generator-core) → (4) Svelte
+ *   evaluation (framework-agnostic core: @polyspec/generator-core) → (4) Svelte
  *   5 SSR via svelte/server render().
  *
  * The evaluation runs ONCE in the shared core (buildForm returns a markup-free
@@ -15,34 +15,34 @@
  * a real `.svelte` element (the leaf control bytes go through the container's
  * `{@html}` directive because svelte/server coerces empty/boolean attributes the
  * parity fixture forbids; the same control-granularity boundary the Vue adapter
- * uses). compose + expr are reused from the core (validator-js underneath); v1
+ * uses). compose + expr are reused from the core (validator-ts underneath); v1
  * generator code is never touched; eval is never called.
  */
 
 import { render } from 'svelte/server';
-import { buildForm, buildList, type BuildFormOptions, type BuildListOptions } from '@form-spec/generator-core';
-import type { Language, UnsupportedMode } from '@form-spec/generator-core';
+import { buildForm, buildList, type BuildFormOptions, type BuildListOptions } from '@polyspec/generator-core';
+import type { Language, UnsupportedMode } from '@polyspec/generator-core';
 import FormV2 from './components/FormV2.svelte';
 import ListV2 from './components/ListV2.svelte';
 
-export { ComposeLoadError } from '@form-spec/validator';
-export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
-export { resolveDesign } from '@form-spec/generator-core';
-export { evalShow, evalAppearance, makeContext } from '@form-spec/generator-core';
-export { makeTranslate } from '@form-spec/generator-core';
-export type { Language } from '@form-spec/generator-core';
-export type { UnsupportedMode } from '@form-spec/generator-core';
+export { ComposeLoadError } from '@polyspec/validator';
+export { UnsupportedFieldTypeError } from '@polyspec/generator-core';
+export { resolveDesign } from '@polyspec/generator-core';
+export { evalShow, evalAppearance, makeContext } from '@polyspec/generator-core';
+export { makeTranslate } from '@polyspec/generator-core';
+export type { Language } from '@polyspec/generator-core';
+export type { UnsupportedMode } from '@polyspec/generator-core';
 
 // Core + components (the shared evaluation + the Svelte adapter surfaces).
-export { buildForm } from '@form-spec/generator-core';
-export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
+export { buildForm } from '@polyspec/generator-core';
+export type { FieldViewModel, WidgetModel } from '@polyspec/generator-core';
 export { default as FormV2 } from './components/FormV2.svelte';
 export { default as Field } from './components/Field.svelte';
 export { default as Widget } from './components/Widget.svelte';
 
 // list-spec (read sister) — buildList view model + the ListV2 .svelte renderer
 // (additive; the form/write surfaces above are untouched). SPEC-V2 §9.
-export { buildList } from '@form-spec/generator-core';
+export { buildList } from '@polyspec/generator-core';
 export type {
   ListViewModel,
   ColumnVM,
@@ -52,7 +52,7 @@ export type {
   SortVM,
   ActionVM,
   CellDisplay,
-} from '@form-spec/generator-core';
+} from '@polyspec/generator-core';
 export { default as ListV2 } from './components/ListV2.svelte';
 
 /** Options for a v2 form render. */

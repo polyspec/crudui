@@ -1,5 +1,5 @@
 /**
- * @form-spec/generator-vue
+ * @polyspec/generator-vue
  *
  * Vue 3 form builder component library based on form-spec YAML definitions,
  * byte-parity with the legacy Limepie PHP Generator output.
@@ -8,7 +8,7 @@
  * ```ts
  * import { createSSRApp, h } from 'vue';
  * import { renderToString } from '@vue/server-renderer';
- * import { FormBuilder } from '@form-spec/generator-vue';
+ * import { FormBuilder } from '@polyspec/generator-vue';
  *
  * const app = createSSRApp({ render: () => h(FormBuilder, { spec, data: {}, language: 'ko' }) });
  * const html = await renderToString(app);

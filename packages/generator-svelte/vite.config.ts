@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['svelte', 'svelte/server', 'svelte/internal', 'yaml', '@form-spec/validator'],
+      external: ['svelte', 'svelte/server', 'svelte/internal', 'yaml', '@polyspec/validator'],
     },
   },
 });

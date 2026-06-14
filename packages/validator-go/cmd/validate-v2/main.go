@@ -31,8 +31,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/v2/compose"
-	"github.com/yejune/form-spec/packages/validator-go/validator/v2/validate"
+	"github.com/polyspec/polyspec/packages/validator-go/validator/v2/compose"
+	"github.com/polyspec/polyspec/packages/validator-go/validator/v2/validate"
 )
 
 // request is the stdin envelope. spec and data stay raw so the v2 entry point

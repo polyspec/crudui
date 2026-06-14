@@ -20,7 +20,7 @@ import type {
   ActionVM,
   ResolvedNode,
   ListViewModel,
-} from '@form-spec/generator-core';
+} from '@polyspec/generator-core';
 
 /** Join base class + a design node's class into one className ('' → undefined). */
 export function nodeClass(base: string, node: ResolvedNode | undefined): string | undefined {

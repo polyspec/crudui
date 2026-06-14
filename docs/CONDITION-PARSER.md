@@ -2,16 +2,16 @@
 
 form-spec 조건식의 문법과 평가 의미론.
 
-**참조 구현(reference implementation)은 validator-js다**:
+**참조 구현(reference implementation)은 validator-ts다**:
 
-- 파서(lexer + AST): `packages/validator-js/src/parser/ConditionParser.ts`
-- 경로 해석·평가기: `packages/validator-js/src/parser/PathResolver.ts`
+- 파서(lexer + AST): `packages/validator-ts/src/parser/ConditionParser.ts`
+- 경로 해석·평가기: `packages/validator-ts/src/parser/PathResolver.ts`
 
 Go(`packages/validator-go/validator/condition_parser.go`, `path_resolver.go`,
 `ternary.go`), PHP(`packages/validator-php/src/ConditionParser.php`,
 `PathResolver.php`), Rust(`packages/validator-rust/src/condition_parser.rs`,
 `ternary.rs`)는 동일 동작의 포팅이며, 1074케이스 크로스언어 테스트로
-일치가 검증된다. 이 문서와 구현이 다르면 구현(validator-js)이 정답이다.
+일치가 검증된다. 이 문서와 구현이 다르면 구현(validator-ts)이 정답이다.
 
 ## 목차
 
@@ -99,7 +99,7 @@ Go `condition_parser.go` `parseTernaryExpression`).
 
 ## 토큰
 
-JS `TokenType` enum (`packages/validator-js/src/types.ts:217-262`),
+JS `TokenType` enum (`packages/validator-ts/src/types.ts:217-262`),
 Go `TokenType` 상수(`validator/types.go:59-91`)와 1:1 대응.
 
 | 분류 | 토큰 |
@@ -132,7 +132,7 @@ Go `TokenType` 상수(`validator/types.go:59-91`)와 1:1 대응.
 
 ## 경로 해석 의미론
 
-출처: `packages/validator-js/src/parser/PathResolver.ts` `resolvePathSegments`
+출처: `packages/validator-ts/src/parser/PathResolver.ts` `resolvePathSegments`
 (`PathResolver.ts:29-88`), Go `path_resolver.go` `resolveRelativePath`,
 PHP `PathResolver::resolveRelativePath`.
 
@@ -277,7 +277,7 @@ PHP `Validator::looksLikeCondition`, Go `ternary.go` `IsConditionExpression`이 
 
 파싱된 AST는 표현식 문자열을 키로 캐시된다.
 
-- JS: `ConditionCache` (`packages/validator-js/src/parser/ConditionCache.ts`),
+- JS: `ConditionCache` (`packages/validator-ts/src/parser/ConditionCache.ts`),
   `parseCondition()`이 기본 캐시 사용. `clearConditionCache()`,
   `getConditionCacheStats()`, `setConditionCache()`, `getConditionCache()` 제공.
 - Go: `ConditionParser` 내부 캐시 (`condition_parser.go` `Parse`).

@@ -1,6 +1,6 @@
 # Node.js/Express Form Validation API Example
 
-A REST API example demonstrating form validation using `@form-spec/validator`.
+A REST API example demonstrating form validation using `@polyspec/validator`.
 
 ## Quick Start
 

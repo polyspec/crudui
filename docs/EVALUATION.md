@@ -10,9 +10,9 @@
 >   [TESTING.md](./TESTING.md) 참조. 검증 의미론의 단일 진실은 "논리적 올바름"이다
 >   ([VALIDATION-RULES.md](./VALIDATION-RULES.md) "검증 의미론 원칙").
 > - **조건식 캐싱 구현 완료** — LRU 캐시
->   (`packages/validator-js/src/parser/ConditionCache.ts`). §3.4 의
+>   (`packages/validator-ts/src/parser/ConditionCache.ts`). §3.4 의
 >   '구현 없음' 서술은 더 이상 사실이 아니다.
-> - **벤치마크 존재** — `packages/validator-js/benchmarks/`
+> - **벤치마크 존재** — `packages/validator-ts/benchmarks/`
 >   (parsing.bench.ts, validation.bench.ts).
 > - **기준 HTML 파이프라인 구축** — legacy Limepie 출력(기준 HTML 7종,
 >   `tests/fixtures/reference-html/`)을 단일진실로 하는 재생성 파이프라인
@@ -20,7 +20,7 @@
 >   Vue/Svelte 는 각 패키지 `packages/<pkg>/test/parity.test.mjs`. 세 프레임워크
 >   generator 모두 기준 HTML 7종에 7/7 parity GREEN (필드 50/50 + chrome, canonical 일치).
 > - 빌트인 규칙 수는 **24개 등록명(23개 구현 + pattern/match 별칭)** 이다
->   (`packages/validator-js/src/rules/index.ts`) — 본문 '25+' 표기는 과거 수치.
+>   (`packages/validator-ts/src/rules/index.ts`) — 본문 '25+' 표기는 과거 수치.
 
 ## 1. 프로젝트 개요
 
@@ -62,13 +62,13 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 ### 3.1 생태계 — 검증기 4언어 + 렌더러 3프레임워크 완성
 | 패키지 | 상태 |
 |--------|------|
-| @form-spec/validator (JS) | v1.0.0 완성 |
+| @polyspec/validator (JS) | v1.0.0 완성 |
 | validator-php | 완성 (PHP ^8.2) |
 | validator-go | 완성 |
 | validator-rust (formspec-validator) | 완성 |
-| @form-spec/generator-react | 완성 — 기준 HTML 7/7 parity (353 테스트) |
-| @form-spec/generator-vue | 완성 — 기준 HTML 7/7 parity (@vue/server-renderer SSR) |
-| @form-spec/generator-svelte | 완성 — 기준 HTML 7/7 parity (Svelte 5 SSR) |
+| @polyspec/generator-react | 완성 — 기준 HTML 7/7 parity (353 테스트) |
+| @polyspec/generator-vue | 완성 — 기준 HTML 7/7 parity (@vue/server-renderer SSR) |
+| @polyspec/generator-svelte | 완성 — 기준 HTML 7/7 parity (Svelte 5 SSR) |
 
 검증기는 4개 언어(JS/PHP/Go/Rust) 모두 완성됐다. 렌더러는 React/Vue/Svelte 3개
 프레임워크 generator 가 전부 실제 구현이며, 동일 Limepie 기준 HTML 7종에 각각
@@ -80,7 +80,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 
 조건식 평가 실패 시 기본 동작은 여전히 `false` 폴백이지만, `debug` 옵션을 켜면
 표현식·경로·에러를 `console.warn` 으로 남긴다
-(`packages/validator-js/src/Validator.ts` `evaluateCondition`, 776-791행).
+(`packages/validator-ts/src/Validator.ts` `evaluateCondition`, 776-791행).
 기본(debug off)에서는 silent 폴백이 유지된다.
 
 ### 3.3 문서화 부족
@@ -90,9 +90,9 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 
 ### 3.4 성능 최적화 — 해소됨
 - ~~조건식 캐싱 타입만 정의 (CachedCondition), 구현 없음~~ → LRU 캐시 구현 완료
-  (`packages/validator-js/src/parser/ConditionCache.ts` — Map + 이중 연결 리스트,
+  (`packages/validator-ts/src/parser/ConditionCache.ts` — Map + 이중 연결 리스트,
   O(1) lookup/eviction, 히트율 통계)
-- ~~대규모 폼 벤치마킹 없음~~ → `packages/validator-js/benchmarks/` 추가
+- ~~대규모 폼 벤치마킹 없음~~ → `packages/validator-ts/benchmarks/` 추가
   (`npm run bench`)
 
 ### 3.5 커뮤니티/인지도 부재
@@ -107,7 +107,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 ### 즉시 (High Priority)
 1. npm 패키지 발행 (미완)
 2. 에러 로깅 개선 (부분 완료 — debug 옵션 로깅, §3.2 참조)
-3. ~~기본 벤치마크 추가~~ (완료 — `packages/validator-js/benchmarks/`)
+3. ~~기본 벤치마크 추가~~ (완료 — `packages/validator-ts/benchmarks/`)
 
 ### 중기 (Medium Priority)
 1. ~~추가 렌더러(Vue/Svelte)~~ (완료 — `generator-vue`/`generator-svelte`,
@@ -222,7 +222,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 > #3 조건식 캐싱(`ConditionCache.ts`), #4 벤치마크(`benchmarks/`),
 > vitest 커버리지 설정(`vitest.config.ts`). 단위 테스트 강화(#5-8)는 이후
 > 1074케이스 크로스 언어 conformance 브리지 체계로 대체되었다
-> (`packages/validator-js/src/__tests__/conformance.test.ts`). CI 설정도 완료
+> (`packages/validator-ts/src/__tests__/conformance.test.ts`). CI 설정도 완료
 > (`.github/workflows/ci.yml` 8잡 + `.github/dependabot.yml` 주간 갱신).
 
 ### 브랜치: `feature/quality-improvements`
@@ -231,14 +231,14 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 
 | # | 작업 | 파일 | 담당 |
 |---|------|------|------|
-| 1 | 에러 처리 개선 - Validator | `packages/validator-js/src/Validator.ts` | Agent 1 |
-| 2 | 에러 처리 개선 - ConditionParser | `packages/validator-js/src/parser/ConditionParser.ts` | Agent 2 |
-| 3 | 조건식 캐싱 구현 | `packages/validator-js/src/parser/ConditionCache.ts` (신규) | Agent 3 |
-| 4 | 벤치마크 추가 | `packages/validator-js/benchmarks/` (신규) | Agent 4 |
-| 5 | Validator 단위 테스트 강화 | `packages/validator-js/src/__tests__/` | Agent 5 |
-| 6 | ConditionParser 테스트 강화 | `packages/validator-js/src/__tests__/` | Agent 6 |
-| 7 | PathResolver 테스트 강화 | `packages/validator-js/src/__tests__/` | Agent 7 |
-| 8 | Rules 테스트 강화 | `packages/validator-js/src/__tests__/` | Agent 8 |
+| 1 | 에러 처리 개선 - Validator | `packages/validator-ts/src/Validator.ts` | Agent 1 |
+| 2 | 에러 처리 개선 - ConditionParser | `packages/validator-ts/src/parser/ConditionParser.ts` | Agent 2 |
+| 3 | 조건식 캐싱 구현 | `packages/validator-ts/src/parser/ConditionCache.ts` (신규) | Agent 3 |
+| 4 | 벤치마크 추가 | `packages/validator-ts/benchmarks/` (신규) | Agent 4 |
+| 5 | Validator 단위 테스트 강화 | `packages/validator-ts/src/__tests__/` | Agent 5 |
+| 6 | ConditionParser 테스트 강화 | `packages/validator-ts/src/__tests__/` | Agent 6 |
+| 7 | PathResolver 테스트 강화 | `packages/validator-ts/src/__tests__/` | Agent 7 |
+| 8 | Rules 테스트 강화 | `packages/validator-ts/src/__tests__/` | Agent 8 |
 | 9 | generator-react 테스트 강화 | `packages/generator-react/src/__tests__/` | Agent 9 |
 | 10 | 통합 테스트 및 커버리지 설정 | `vitest.config.ts`, CI 설정 | Agent 10 |
 
@@ -289,14 +289,14 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 
 | Agent | 작업 | 파일 |
 |-------|------|------|
-| 1 | 에러 처리 개선 - Validator | `validator-js/src/Validator.ts` |
-| 2 | 에러 처리 개선 - ConditionParser | `validator-js/src/parser/ConditionParser.ts` |
-| 3 | 조건식 캐싱 구현 | `validator-js/src/parser/ConditionCache.ts` |
-| 4 | 벤치마크 추가 | `validator-js/benchmarks/` |
-| 5 | Validator 테스트 강화 | `validator-js/src/__tests__/Validator.test.ts` |
-| 6 | ConditionParser 테스트 강화 | `validator-js/src/__tests__/ConditionParser.test.ts` |
-| 7 | PathResolver 테스트 강화 | `validator-js/src/__tests__/PathResolver.test.ts` |
-| 8 | Rules 테스트 강화 | `validator-js/src/__tests__/rules/` |
+| 1 | 에러 처리 개선 - Validator | `validator-ts/src/Validator.ts` |
+| 2 | 에러 처리 개선 - ConditionParser | `validator-ts/src/parser/ConditionParser.ts` |
+| 3 | 조건식 캐싱 구현 | `validator-ts/src/parser/ConditionCache.ts` |
+| 4 | 벤치마크 추가 | `validator-ts/benchmarks/` |
+| 5 | Validator 테스트 강화 | `validator-ts/src/__tests__/Validator.test.ts` |
+| 6 | ConditionParser 테스트 강화 | `validator-ts/src/__tests__/ConditionParser.test.ts` |
+| 7 | PathResolver 테스트 강화 | `validator-ts/src/__tests__/PathResolver.test.ts` |
+| 8 | Rules 테스트 강화 | `validator-ts/src/__tests__/rules/` |
 | 9 | generator-react 테스트 강화 | `generator-react/src/__tests__/` |
 | 10 | 커버리지 설정 + 평가보고서 docs 복사 | `vitest.config.ts`, `docs/EVALUATION.md` |
 

@@ -1,13 +1,13 @@
 /**
  * Integration Test: FormBuilder + Validator
  *
- * Verifies that the React FormBuilder correctly integrates with @form-spec/validator
+ * Verifies that the React FormBuilder correctly integrates with @polyspec/validator
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { Validator, createValidator } from '@form-spec/validator';
+import { Validator, createValidator } from '@polyspec/validator';
 import { useValidation } from '../hooks/useValidation';
-import type { Spec } from '@form-spec/validator';
+import type { Spec } from '@polyspec/validator';
 
 // Test spec for validation
 const testSpec: Spec = {

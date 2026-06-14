@@ -2,11 +2,11 @@
 
 Compares the **legacy jQuery browser runtime**
 `examples/limepie-original/assets/js/dist.validate.js` against the **new
-validators** (`packages/validator-js`; PHP/Go/Rust already agree with it per
+validators** (`packages/validator-ts`; PHP/Go/Rust already agree with it per
 `tests/runner/compare-all.js`).
 
 This is the axis `compare-all.js` deliberately excludes. compare-all treats
-`validator-js` as the client replacement and never runs `dist.validate.js`. If
+`validator-ts` as the client replacement and never runs `dist.validate.js`. If
 a legacy form still validates in the browser with `dist.validate.js`, the
 browser verdict and the server verdict are not guaranteed to agree. This gate
 measures that agreement, per case, over `tests/cases/*.json`.

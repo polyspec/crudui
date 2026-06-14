@@ -18,7 +18,7 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { FormBuilder } from '../components/FormBuilder';
-import type { Spec } from '@form-spec/validator';
+import type { Spec } from '@polyspec/validator';
 
 describe('DummyField legacy markup', () => {
   it('renders the single legacy div with element_class/element_style and the default value', () => {

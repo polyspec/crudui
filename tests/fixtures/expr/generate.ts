@@ -9,12 +9,12 @@
  * value  = evaluateExpressionValue(ast, ctx)   (ternary returns its branch value)
  * truthy = evaluateCondition(ast, ctx)          (boolean evaluate())
  */
-import { Lexer, Parser } from '/Users/max/ai/gui/form-spec/packages/validator-js/src/parser/ConditionParser';
+import { Lexer, Parser } from '/Users/max/ai/gui/form-spec/packages/validator-ts/src/parser/ConditionParser';
 import {
   evaluateCondition,
   evaluateExpressionValue,
-} from '/Users/max/ai/gui/form-spec/packages/validator-js/src/parser/PathResolver';
-import type { PathContext } from '/Users/max/ai/gui/form-spec/packages/validator-js/src/types';
+} from '/Users/max/ai/gui/form-spec/packages/validator-ts/src/parser/PathResolver';
+import type { PathContext } from '/Users/max/ai/gui/form-spec/packages/validator-ts/src/types';
 
 // ---------------------------------------------------------------------------
 // Serialization helpers (drop `position`, keep JS-actual field names)

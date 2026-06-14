@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { Validator } from '@form-spec/validator';
+ * import { Validator } from '@polyspec/validator';
  *
  * const spec = {
  *   type: 'group',

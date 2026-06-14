@@ -2,7 +2,7 @@
  * v2 generator entry (REFERENCE) — compose → evaluate (core) → JSX SSR.
  *
  * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) v2 spec → (2) v2 compose (validator-js composeProperties: expand
+ *   (1) v2 spec → (2) v2 compose (validator-ts composeProperties: expand
  *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
  *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
  *   evaluation (framework-agnostic core: ./core) → (4) JSX SSR via
@@ -13,7 +13,7 @@
  * serializes with `renderToStaticMarkup`. There is NO string-builder and NO
  * dangerouslySetInnerHTML echo of completed HTML — every node is a JSX element
  * (the only RAW passthrough sites are the sanctioned dummy/image-viewer display
- * html and the script/style chrome). compose + expr are reused from validator-js;
+ * html and the script/style chrome). compose + expr are reused from validator-ts;
  * v1 generator code is never touched; eval is never called.
  */
 
@@ -24,30 +24,30 @@ import {
   buildList,
   type BuildFormOptions,
   type BuildListOptions,
-} from '@form-spec/generator-core';
+} from '@polyspec/generator-core';
 import { FormV2 } from './components/FormV2';
 import { ListV2 } from './components/ListV2';
-import type { Language } from '@form-spec/generator-core';
-import type { UnsupportedMode } from '@form-spec/generator-core';
+import type { Language } from '@polyspec/generator-core';
+import type { UnsupportedMode } from '@polyspec/generator-core';
 
-export { ComposeLoadError } from '@form-spec/validator';
-export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
-export { resolveDesign } from '@form-spec/generator-core';
-export { evalShow, evalAppearance, makeContext } from '@form-spec/generator-core';
-export { makeTranslate } from '@form-spec/generator-core';
-export type { Language } from '@form-spec/generator-core';
-export type { UnsupportedMode } from '@form-spec/generator-core';
+export { ComposeLoadError } from '@polyspec/validator';
+export { UnsupportedFieldTypeError } from '@polyspec/generator-core';
+export { resolveDesign } from '@polyspec/generator-core';
+export { evalShow, evalAppearance, makeContext } from '@polyspec/generator-core';
+export { makeTranslate } from '@polyspec/generator-core';
+export type { Language } from '@polyspec/generator-core';
+export type { UnsupportedMode } from '@polyspec/generator-core';
 
 // Core + components (the shared evaluation + the React adapter surfaces).
-export { buildForm } from '@form-spec/generator-core';
-export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
+export { buildForm } from '@polyspec/generator-core';
+export type { FieldViewModel, WidgetModel } from '@polyspec/generator-core';
 export { FormV2 } from './components/FormV2';
 export { Field } from './components/Field';
 export { Widget } from './components/Widget';
 
 // list-spec (read sister) — buildList + the list/cell React surfaces (additive;
 // the form surfaces above are untouched). SPEC-V2 §9.
-export { buildList } from '@form-spec/generator-core';
+export { buildList } from '@polyspec/generator-core';
 export type {
   ListViewModel,
   ColumnVM,
@@ -57,7 +57,7 @@ export type {
   SortVM,
   ActionVM,
   CellDisplay,
-} from '@form-spec/generator-core';
+} from '@polyspec/generator-core';
 export { ListV2 } from './components/ListV2';
 export { Cell } from './components/Cell';
 

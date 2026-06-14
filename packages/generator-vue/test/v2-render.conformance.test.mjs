@@ -13,7 +13,7 @@
  * assertions or fixtures; fix the Vue generator if it disagrees.
  *
  * The v2 generator is loaded from TypeScript source via the package's createRequire
- * realm + tsx (Vitest transforms TS); the validator is the linked @form-spec/validator.
+ * realm + tsx (Vitest transforms TS); the validator is the linked @polyspec/validator.
  */
 
 import fs from 'node:fs';

@@ -1,7 +1,7 @@
 package validate
 
 // Rule registry — a self-contained port of the JS reference rules
-// (validator-js/src/rules). v2 does NOT import the v1 validator rules (R7
+// (validator-ts/src/rules). v2 does NOT import the v1 validator rules (R7
 // isolation); the semantics and default messages mirror the JS engine, which is
 // the source the shared 4-language fixture is generated from.
 //
@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/v2/compose"
+	"github.com/polyspec/polyspec/packages/validator-go/validator/v2/compose"
 )
 
 // ruleContext carries the data a rule needs beyond value + param.

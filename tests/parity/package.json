@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/parity-tests",
+  "name": "@polyspec/parity-tests",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "capture": "node capture-react.mjs"
   },
   "dependencies": {
-    "@form-spec/generator-react": "file:../../packages/generator-react",
+    "@polyspec/generator-react": "file:../../packages/generator-react",
     "js-yaml": "^4.1.0",
     "parse5": "^8.0.1",
     "react": "^19.2.7",

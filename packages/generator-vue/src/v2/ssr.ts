@@ -14,7 +14,7 @@
  * non-SSR surfaces stay usable without the SSR peer; SSR is opt-in.
  */
 
-import { buildForm } from '@form-spec/generator-core';
+import { buildForm } from '@polyspec/generator-core';
 import type { RenderFormOptions } from './index';
 import { FormV2 } from './components/FormV2';
 

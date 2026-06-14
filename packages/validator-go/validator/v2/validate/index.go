@@ -16,8 +16,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	v2 "github.com/yejune/form-spec/packages/validator-go/validator/v2"
-	"github.com/yejune/form-spec/packages/validator-go/validator/v2/compose"
+	v2 "github.com/polyspec/polyspec/packages/validator-go/validator/v2"
+	"github.com/polyspec/polyspec/packages/validator-go/validator/v2/compose"
 )
 
 // FileSet is a virtual file set $ref resolves against ({ key: doc }).
