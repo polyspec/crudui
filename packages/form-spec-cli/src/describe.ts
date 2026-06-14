@@ -11,6 +11,8 @@
  *   - schema/form-spec-v2.json  → slots / nodes / buckets / forbidden enum (parse)
  *   - validator-js types.ts     → FORBIDDEN_META_KEYS + pattern (import)
  *   - validator-js forbidden    → runtime forbidden scan (import — cross-check)
+ *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
+ *   - schema/form-spec-v2.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - EXPRESSION-GRAMMAR.md      → tokens / precedence / truthy / unsupported (parse)
  *   - SPEC-V2.md §3             → classification rules (parse)
  *
@@ -32,6 +34,10 @@ import {
   WIDGET_LAYOUTS,
   WIDGET_CANONICAL,
 } from '../../generator-core/src/widget.ts';
+import {
+  CELL_FORMATS,
+  CELL_FORMAT_DEFAULT,
+} from '../../generator-core/src/cell.ts';
 import { getRuleNames } from '../../validator-js/src/rules/index.ts';
 import {
   ARRAY_LEVEL_RULES,
@@ -124,6 +130,35 @@ export interface DescribeResult {
     /** widget kind → applicable role slots / buckets (derived join). */
     columns: string[];
     note: string;
+  };
+  /** list-spec (read sister) capability — SPEC-V2 §9. Additive; sits beside widgets/rules/slots. */
+  list: {
+    /** Entry definition the meta-schema validates a list against (#/definitions/List). */
+    entry: string;
+    /** read-cell format catalog (cell.ts CELL_RENDERERS keys, cross-checked vs schema CellFormat). */
+    cellFormats: Array<{
+      /** Catalog type (SPEC §9.2). */
+      type: string;
+      /** true when this renderer type is the unknown/absent fallback. */
+      isDefault: boolean;
+    }>;
+    /**
+     * Dependent keys the meta-schema's CellFormat documents — ONE open bucket
+     * shared across types (type-isolated per object, not attributed per type).
+     */
+    cellFormatSchemaKeys: string[];
+    /** true when cell.ts catalog and schema CellFormat agree on no fabricated/missing surface. */
+    cellCrossCheckOk: boolean;
+    /** List first-class structure — the columns/search/sort/pagination/actions/empty/design slots. */
+    structure: {
+      /** First-class List keys (schema List.properties, minus $ref/$patch). */
+      firstClass: string[];
+      column: { firstClass: string[] };
+      pagination: { keys: string[]; modes: string[] };
+      sort: { keys: string[]; dirs: string[] };
+      action: { objectKeys: string[]; shapes: string[] };
+      search: { shapes: string[] };
+    };
   };
 }
 
@@ -325,6 +360,103 @@ function collectClassification(schema: SchemaDoc): DescribeResult['classificatio
 }
 
 // ---------------------------------------------------------------------------
+// list capability (SPEC-V2 §9 — read sister)
+//   cell catalog: cell.ts CELL_FORMATS (renderer keys) × meta-schema CellFormat
+//   list structure: meta-schema List/Column/CellFormat/Pagination/Sort/ListAction
+// No hand-written catalog — every value is a projection of code or the schema.
+// ---------------------------------------------------------------------------
+
+/** anyOf members of CellFormat: the object member carries the dependent-key shape. */
+function cellFormatSchemaShape(schema: SchemaDoc): {
+  keys: string[];
+  /** declared `type` values, if the schema enumerates them (it does not — open). */
+  typeProp: any;
+} {
+  const obj = objectMember(schema.definitions.CellFormat);
+  const props = obj?.properties ?? {};
+  return { keys: Object.keys(props), typeProp: props.type };
+}
+
+/** anyOf shape labels for a polymorphic definition (boolean / inline form / $ref). */
+function anyOfShapes(def: any, refLabels: Record<string, string>): string[] {
+  const out: string[] = [];
+  for (const m of def?.anyOf ?? []) {
+    if (m.type === 'boolean') out.push('false|true (off|default)');
+    else if (m.type === 'object' && m.properties?.$ref) out.push('$ref base + $patch');
+    else if (typeof m.$ref === 'string') {
+      const name = m.$ref.replace('#/definitions/', '');
+      out.push(refLabels[name] ?? name);
+    } else if (m.type === 'object') out.push('inline object');
+    else if (m.type === 'array') out.push('array');
+    else if (typeof m.type === 'string') out.push(m.type);
+  }
+  return out;
+}
+
+function collectList(schema: SchemaDoc): DescribeResult['list'] {
+  // cell format catalog — cell.ts renderers are the SOT for what renders; the
+  // meta-schema CellFormat documents the dependent keys. Cross-check: every
+  // renderer type is a string (no fabrication) and the schema documents `type`
+  // (the dispatch key) as an open string field, matching cell.ts's open dispatch.
+  const { keys: cellSchemaKeys, typeProp } = cellFormatSchemaShape(schema);
+  const cellFormats = [...CELL_FORMATS]
+    .sort((a, b) => a.localeCompare(b))
+    .map((type) => ({
+      type,
+      isDefault: type === CELL_FORMAT_DEFAULT,
+    }));
+  // The catalog is non-trivial AND the schema's dispatch key `type` is an open
+  // string (cell.ts dispatches by the same open key, falling back to text).
+  const cellCrossCheckOk =
+    CELL_FORMATS.length > 0 &&
+    CELL_FORMATS.includes(CELL_FORMAT_DEFAULT) &&
+    typeProp?.type === 'string';
+
+  // list structure — parsed from the meta-schema List family definitions.
+  const listFirstClass = Object.keys(schema.definitions.List?.properties ?? {}).filter(
+    (k) => k !== '$ref' && k !== '$patch'
+  );
+  const columnFirstClass = Object.keys(schema.definitions.Column?.properties ?? {}).filter(
+    (k) => k !== '$ref' && k !== '$patch'
+  );
+
+  const paginationObj = objectMember(schema.definitions.Pagination);
+  const paginationKeys = paginationObj ? Object.keys(paginationObj.properties ?? {}) : [];
+  const paginationModes: string[] = paginationObj?.properties?.mode?.enum ?? [];
+
+  const sortKeys = propKeys(schema.definitions.Sort);
+  const sortDirs: string[] = schema.definitions.Sort?.properties?.dir?.enum ?? [];
+
+  // ListAction is polymorphic: a behavior-script string OR a {label, format, …} object.
+  const actionObjMember = (schema.definitions.ListAction?.anyOf ?? []).find(
+    (m: any) => m.type === 'object'
+  );
+  const actionObjectKeys = actionObjMember ? Object.keys(actionObjMember.properties ?? {}) : [];
+  const actionShapes = anyOfShapes(schema.definitions.ListAction, {
+    BehaviorAction: 'behavior script (string|object)',
+  });
+
+  const searchShapes = anyOfShapes(schema.definitions.List?.properties?.search, {
+    Field: 'inline form (Field)',
+  });
+
+  return {
+    entry: '#/definitions/List',
+    cellFormats,
+    cellFormatSchemaKeys: cellSchemaKeys,
+    cellCrossCheckOk,
+    structure: {
+      firstClass: listFirstClass,
+      column: { firstClass: columnFirstClass },
+      pagination: { keys: paginationKeys, modes: paginationModes },
+      sort: { keys: sortKeys, dirs: sortDirs },
+      action: { objectKeys: actionObjectKeys, shapes: actionShapes },
+      search: { shapes: searchShapes },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // assemble
 // ---------------------------------------------------------------------------
 
@@ -399,6 +531,7 @@ export function describe(): DescribeResult {
 
   const grammar = collectGrammar();
   const classification = collectClassification(schema);
+  const list = collectList(schema);
 
   return {
     meta: {
@@ -414,6 +547,8 @@ export function describe(): DescribeResult {
         forbiddenScan: 'packages/validator-js/src/v2/forbidden-scan.ts',
         grammar: 'docs/EXPRESSION-GRAMMAR.md',
         classification: 'docs/SPEC-V2.md §3',
+        listCellFormats: 'packages/generator-core/src/cell.ts (CELL_RENDERERS)',
+        listStructure: 'schema/form-spec-v2.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
       },
     },
     widgets,
@@ -448,6 +583,7 @@ export function describe(): DescribeResult {
         'multiple → any repeatable field, lang → any value-bearing field. ' +
         'options is type-defined (open bucket), so a kind admits its own type-specific keys.',
     },
+    list,
   };
 }
 
@@ -561,6 +697,34 @@ export function renderMarkdown(r: DescribeResult): string {
   push(`Columns: ${r.matrix.columns.map((c) => `\`${c}\``).join(', ')}`);
   push();
   push(r.matrix.note);
+  push();
+
+  push(`## List capability (read sister — SPEC-V2 §9)`);
+  push();
+  push(`Entry definition: \`${r.list.entry}\` (validated separately from \`Field\`; additive).`);
+  push(`Cell-format cross-check (cell.ts catalog ≡ schema CellFormat): **${r.list.cellCrossCheckOk ? 'OK' : 'FAIL'}**`);
+  push();
+  push(`### Read-cell formats (SPEC §9.2 catalog — cell.ts CELL_RENDERERS)`);
+  push();
+  push(`| format type | default |`);
+  push(`|---|---|`);
+  for (const f of r.list.cellFormats) {
+    push(`| \`${f.type}\` | ${f.isDefault ? 'yes' : '—'} |`);
+  }
+  push();
+  push(
+    `Dependent keys (one open bucket per format object, type-isolated — SPEC §9.2): ` +
+      `${r.list.cellFormatSchemaKeys.map((k) => `\`${k}\``).join(', ')}`
+  );
+  push();
+  push(`### List structure`);
+  push();
+  push(`First-class (top-level) keys: ${r.list.structure.firstClass.map((k) => `\`${k}\``).join(', ')}`);
+  push(`- **column** first-class: ${r.list.structure.column.firstClass.map((k) => `\`${k}\``).join(', ')}`);
+  push(`- **pagination** keys: ${r.list.structure.pagination.keys.map((k) => `\`${k}\``).join(', ')}; modes: ${r.list.structure.pagination.modes.map((k) => `\`${k}\``).join(', ')}`);
+  push(`- **sort** keys: ${r.list.structure.sort.keys.map((k) => `\`${k}\``).join(', ')}; dirs: ${r.list.structure.sort.dirs.map((k) => `\`${k}\``).join(', ')}`);
+  push(`- **actions** shapes: ${r.list.structure.action.shapes.join(' | ')}; object keys: ${r.list.structure.action.objectKeys.map((k) => `\`${k}\``).join(', ')}`);
+  push(`- **search** shapes: ${r.list.structure.search.shapes.join(' | ')}`);
   push();
 
   return L.join('\n');
