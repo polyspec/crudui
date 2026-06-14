@@ -17,11 +17,12 @@
 #   docs-coverage    make docs-check                           (libs + servers, 4 langs)
 #
 # current gate -> job map (R7: runs alongside the legacy gates above, never replaces them):
-#   validator-current-js    npm run test:current -w validator-js        (vitest run src)
-#   validator-current-php   composer test:current                       (phpunit tests)
-#   validator-current-go    go test ./validator/...
-#   validator-current-rust  cargo test --test {expr,compose,validate,spec_validity}_conformance
-#   form-render          React/Vue/Svelte current SSR conformance    (npm run test:current per pkg)
+#   validator-current-js     npm run test:current -w validator-js       (vitest run src; incl. validate-cli)
+#   validator-current-php    composer test:current                      (phpunit tests; incl. ValidateCliTest)
+#   validator-current-go     go test ./validator/... ./cmd/validate
+#   validator-current-rust   cargo test --test {expr,compose,validate,spec_validity,validate_cli}_conformance
+#   form-render           React/Vue/Svelte current SSR conformance   (npm run test:current per pkg)
+#   cross-check-console gateway verdict units + 4-lang fan-out + HTTP boundary (npm test in server)
 #
 # current shared 4-language fixtures (tests/fixtures/*/cases.json), each loaded by
 # every engine that consumes it and asserted bit-for-bit:
@@ -338,10 +339,11 @@ jobs:
   # validator-current-go — go test over the current package tree only. expr/compose/
   # validate conformance + forbidden-scan + types roundtrip live under
   # validator/...; legacy tests (validator/validator_test.go) are excluded by
-  # the package path.
+  # the package path. cmd/validate is OUTSIDE that glob, so the validate
+  # CLI boundary test (main_test.go) is added explicitly.
   # ---------------------------------------------------------------------------
   validator-current-go:
-    name: current · validator-go (go test ./validator/...)
+    name: current · validator-go (go test ./validator/... + CLI)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -350,17 +352,18 @@ jobs:
         with:
           go-version: '1.26'
           cache-dependency-path: packages/validator-go/go.mod
-      - name: current conformance (go test ./validator/...)
-        run: go test ./validator/...
+      - name: current conformance (go test ./validator/... + validate CLI)
+        run: go test ./validator/... ./cmd/validate
         working-directory: packages/validator-go
 
   # ---------------------------------------------------------------------------
-  # validator-current-rust — the four current conformance integration tests by name
-  # (expr/compose/validate/spec-validity). Targeting them with --test excludes
-  # the legacy tests/conformance.rs while gating each shared fixture.
+  # validator-current-rust — the current conformance integration tests by name
+  # (expr/compose/validate/spec-validity) plus the validate CLI boundary test.
+  # Targeting them with --test excludes the legacy tests/conformance.rs while gating
+  # each shared fixture.
   # ---------------------------------------------------------------------------
   validator-current-rust:
-    name: current · validator-rust (cargo test current conformance)
+    name: current · validator-rust (cargo test current conformance + CLI)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -370,13 +373,14 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: packages/validator-rust
-      - name: current conformance (expr/compose/validate/spec-validity)
+      - name: current conformance (expr/compose/validate/spec-validity + validate CLI)
         run: >
           cargo test
           --test expr_conformance
           --test compose_conformance
           --test validate_conformance
           --test spec_validity_conformance
+          --test validate_cli_conformance
         working-directory: packages/validator-rust
 
   # ---------------------------------------------------------------------------
@@ -414,3 +418,60 @@ jobs:
       - name: Svelte current render
         run: npm run test:current
         working-directory: packages/generator-svelte
+
+  # ---------------------------------------------------------------------------
+  # cross-check-console — the gateway's own conformance: the verdict pure
+  # functions (compareIdempotency / compareParity, incl. tamper RED cases) AND
+  # the real fan-outs (validateAll spawns the four current CLIs; renderAll boots the
+  # Vite SSR engine for React/Svelte/Vue) AND the HTTP boundary (coerceSpec
+  # YAML/object, client fault = 4xx, validation failure = 200 result surface,
+  # CORS, /health). The real validate fan-out needs the compiled Go/Rust CLIs,
+  # so all four toolchains are set up (same as the cross-language job) and
+  # build:cli runs before the gateway tests. `npm test` resolves vitest from the
+  # root workspace node_modules (no separate lockfile).
+  # ---------------------------------------------------------------------------
+  cross-check-console:
+    name: current · cross-check-console gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache-dependency-path: packages/validator-go/go.mod
+
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/validator-rust
+
+      - name: Install workspace deps
+        run: npm i -g npm@11.17.0 && npm ci
+
+      - name: Build JS validator (render engine imports @form-spec/validator)
+        run: npm run build:validator
+
+      - name: Build Go + Rust validate CLIs (gateway spawns them)
+        run: npm run build:cli
+        working-directory: examples/cross-check-console/server
+
+      - name: Gateway conformance (verdict units + fan-out + HTTP boundary)
+        run: npm test
+        working-directory: examples/cross-check-console/server
