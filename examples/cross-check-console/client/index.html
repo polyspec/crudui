@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cross-Check Console — form-spec</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <!--
+      js-yaml is loaded as an ESM module. The gateway server serves this client
+      statically; when offline, drop a local copy at ./vendor/js-yaml.mjs and the
+      importmap below will pick it up first. No build step is required.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "js-yaml": "https://esm.sh/js-yaml@4.1.0"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <noscript>This console requires JavaScript.</noscript>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
