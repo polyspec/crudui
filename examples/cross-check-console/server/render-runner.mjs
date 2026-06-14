@@ -44,6 +44,59 @@ export async function renderAll(req) {
 }
 
 /**
+ * Strip React 19's SSR resource-hint hoists (`<link rel="preload" as="image">`
+ * emitted for an `<img src>`). A React-renderer artifact, not list markup (Vue/
+ * Svelte SSR do not emit them) — the conformance gate strips the SAME bytes, so
+ * the gateway must too for the React list output to match its sisters.
+ */
+function stripReactFloats(html) {
+  return html.replace(/<link\b[^>]*\brel="preload"[^>]*>/g, '');
+}
+
+/**
+ * Render one LIST request across React / Svelte / Vue in parallel — the read
+ * sister of `renderAll` (SPEC §9). The list entries carry an ASYMMETRIC layout
+ * option (React `layout:'card'`, Vue `layout:'cards'`, Svelte `mode:'card'`); the
+ * call sites below map the single fixture-shaped `options.layout` to each
+ * framework's own key, exactly as the three list-render conformance tests do,
+ * so the three normalized outputs collapse to one parity key. `rows` are INJECTED
+ * (DB-agnostic); search/sort/pagination are declared only.
+ *
+ * @param {object} listSpec the list-spec (columns map; $ref/$patch composable)
+ * @param {Array<object>} rows injected display rows
+ * @param {object} options { language, data, pageMeta, files, basepath, layout }
+ * @returns {Promise<{results: object[], parity: boolean, mismatch: object|null}>}
+ */
+export async function renderAllList(listSpec, rows = [], options = {}) {
+  const engine = await getEngine();
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const { layout, ...rest } = options ?? {};
+
+  // Per-framework option shapes (the conformance gate's exact mapping).
+  const reactOpts = layout ? { ...rest, layout } : rest;
+  const svelteOpts = layout ? { ...rest, mode: layout } : rest;
+  const vueOpts = layout
+    ? { ...rest, layout: layout === 'card' ? 'cards' : layout }
+    : rest;
+
+  const [react, svelte, vue] = await Promise.all([
+    renderOne(engine, 'react', () =>
+      stripReactFloats(engine.renderListReact(listSpec, safeRows, reactOpts))
+    ),
+    renderOne(engine, 'svelte', () =>
+      engine.renderListSvelte(listSpec, safeRows, svelteOpts)
+    ),
+    renderOne(engine, 'vue', () =>
+      engine.renderListVue(listSpec, safeRows, vueOpts)
+    ),
+  ]);
+
+  const results = [react, svelte, vue];
+  const { parity, mismatch } = compareParity(results, engine.normalizeHtml);
+  return { results, parity, mismatch };
+}
+
+/**
  * Run one framework's render fn (sync or async), normalize, and classify any
  * thrown error to a stable code via the framework's error classes.
  */
