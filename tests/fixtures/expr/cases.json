@@ -1,0 +1,3102 @@
+[
+  {
+    "name": "path-sibling-truthy",
+    "expr": ".x",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "x"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "x": 1,
+          "self": 0
+        },
+        "currentPath": [
+          "self"
+        ],
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "x": 0,
+          "self": 0
+        },
+        "currentPath": [
+          "self"
+        ],
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {
+          "self": 0
+        },
+        "currentPath": [
+          "self"
+        ],
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "path-parent-up",
+    "expr": "..x",
+    "tokens": [
+      {
+        "type": "DOT_DOT",
+        "value": "..",
+        "literal": 2
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 1,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "x"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "x": "on",
+          "group": {
+            "self": 1
+          }
+        },
+        "currentPath": [
+          "group",
+          "self"
+        ],
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "group": {
+            "self": 1
+          }
+        },
+        "currentPath": [
+          "group",
+          "self"
+        ],
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "path-wildcard-array",
+    "expr": "items.*.y",
+    "tokens": [
+      {
+        "type": "IDENTIFIER",
+        "value": "items",
+        "literal": "items"
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "ASTERISK",
+        "value": "*",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "y",
+        "literal": "y"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": false,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "items"
+        },
+        {
+          "type": "wildcard"
+        },
+        {
+          "type": "identifier",
+          "value": "y"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "items": [
+            {
+              "y": 0
+            },
+            {
+              "y": 5
+            }
+          ]
+        },
+        "currentPath": [
+          "items",
+          "0",
+          "self"
+        ],
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {
+          "items": [
+            {
+              "y": 0
+            },
+            {
+              "y": 0
+            }
+          ]
+        },
+        "currentPath": [
+          "items",
+          "1",
+          "self"
+        ],
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "path-wildcard-compare",
+    "expr": "items.*.is_close == 0",
+    "tokens": [
+      {
+        "type": "IDENTIFIER",
+        "value": "items",
+        "literal": "items"
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "ASTERISK",
+        "value": "*",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "is_close",
+        "literal": "is_close"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "0",
+        "literal": 0
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": false,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "items"
+          },
+          {
+            "type": "wildcard"
+          },
+          {
+            "type": "identifier",
+            "value": "is_close"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "number",
+        "value": 0
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "items": [
+            {
+              "is_close": 0
+            },
+            {
+              "is_close": 1
+            }
+          ]
+        },
+        "currentPath": [
+          "items",
+          "0",
+          "self"
+        ],
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "items": [
+            {
+              "is_close": 1
+            },
+            {
+              "is_close": 1
+            }
+          ]
+        },
+        "currentPath": [
+          "items",
+          "1",
+          "self"
+        ],
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-eq-string",
+    "expr": ".country == 'US'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "country",
+        "literal": "country"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'US'",
+        "literal": "US"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "country"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "US"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "country": "US"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "country": "CA"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-eq-unquoted-ident",
+    "expr": ".status == draft",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "status",
+        "literal": "status"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "draft",
+        "literal": "draft"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "status"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "draft"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "status": "draft"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "status": "final"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-ne",
+    "expr": ".type != 'a'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "type",
+        "literal": "type"
+      },
+      {
+        "type": "NE",
+        "value": "!=",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'a'",
+        "literal": "a"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "!=",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "type"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "a"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "type": "b"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "type": "a"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-gt",
+    "expr": ".age > 18",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "age",
+        "literal": "age"
+      },
+      {
+        "type": "GT",
+        "value": ">",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "18",
+        "literal": 18
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": ">",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "age"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "number",
+        "value": 18
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "age": 21
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "age": 18
+        },
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {
+          "age": 5
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-ge-le",
+    "expr": ".n >= 10",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "n",
+        "literal": "n"
+      },
+      {
+        "type": "GE",
+        "value": ">=",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "10",
+        "literal": 10
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": ">=",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "n"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "number",
+        "value": 10
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "n": 10
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "n": 9
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-lt-coerce-string",
+    "expr": ".score < 50",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "score",
+        "literal": "score"
+      },
+      {
+        "type": "LT",
+        "value": "<",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "50",
+        "literal": 50
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "<",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "score"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "number",
+        "value": 50
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "score": "30"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "score": "90"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "in-number-list",
+    "expr": ".is_display in 2,3",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "is_display",
+        "literal": "is_display"
+      },
+      {
+        "type": "IN",
+        "value": "in",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "2",
+        "literal": 2
+      },
+      {
+        "type": "COMMA",
+        "value": ",",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "3",
+        "literal": 3
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "In",
+      "negated": false,
+      "value": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "is_display"
+          }
+        ]
+      },
+      "list": [
+        {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 2
+        },
+        {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 3
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "is_display": 2
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "is_display": 3
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "is_display": 1
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "in-bracket-ident-list",
+    "expr": ".country in [US, CA, UK]",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "country",
+        "literal": "country"
+      },
+      {
+        "type": "IN",
+        "value": "in",
+        "literal": null
+      },
+      {
+        "type": "LBRACKET",
+        "value": "[",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "US",
+        "literal": "US"
+      },
+      {
+        "type": "COMMA",
+        "value": ",",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "CA",
+        "literal": "CA"
+      },
+      {
+        "type": "COMMA",
+        "value": ",",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "UK",
+        "literal": "UK"
+      },
+      {
+        "type": "RBRACKET",
+        "value": "]",
+        "literal": null
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "In",
+      "negated": false,
+      "value": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "country"
+          }
+        ]
+      },
+      "list": [
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "US"
+        },
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "CA"
+        },
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "UK"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "country": "CA"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "country": "FR"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "not-in-list",
+    "expr": ".role not in admin,root",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "role",
+        "literal": "role"
+      },
+      {
+        "type": "NOT_IN",
+        "value": "not in",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "admin",
+        "literal": "admin"
+      },
+      {
+        "type": "COMMA",
+        "value": ",",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "root",
+        "literal": "root"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "In",
+      "negated": true,
+      "value": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "role"
+          }
+        ]
+      },
+      "list": [
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "admin"
+        },
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "root"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "role": "user"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "role": "admin"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "logic-and",
+    "expr": ".a == 'x' && .b > 5",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "a",
+        "literal": "a"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'x'",
+        "literal": "x"
+      },
+      {
+        "type": "AND",
+        "value": "&&",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "b",
+        "literal": "b"
+      },
+      {
+        "type": "GT",
+        "value": ">",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "5",
+        "literal": 5
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "&&",
+      "left": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "a"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "x"
+        }
+      },
+      "right": {
+        "type": "Binary",
+        "operator": ">",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "b"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 5
+        }
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "a": "x",
+          "b": 6
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": "x",
+          "b": 5
+        },
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {
+          "a": "y",
+          "b": 6
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "logic-or",
+    "expr": ".a == 1 || .b == 1",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "a",
+        "literal": "a"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "OR",
+        "value": "||",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "b",
+        "literal": "b"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "||",
+      "left": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "a"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 1
+        }
+      },
+      "right": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "b"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 1
+        }
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "a": 1,
+          "b": 0
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": 0,
+          "b": 1
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": 0,
+          "b": 0
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "logic-not",
+    "expr": "!.flag",
+    "tokens": [
+      {
+        "type": "NOT",
+        "value": "!",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "flag",
+        "literal": "flag"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Unary",
+      "operator": "!",
+      "operand": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "flag"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "flag": false
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "flag": true
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "logic-not-group",
+    "expr": "!(.a == 1 || .b == 1)",
+    "tokens": [
+      {
+        "type": "NOT",
+        "value": "!",
+        "literal": null
+      },
+      {
+        "type": "LPAREN",
+        "value": "(",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "a",
+        "literal": "a"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "OR",
+        "value": "||",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "b",
+        "literal": "b"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "RPAREN",
+        "value": ")",
+        "literal": null
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Unary",
+      "operator": "!",
+      "operand": {
+        "type": "Group",
+        "expression": {
+          "type": "Binary",
+          "operator": "||",
+          "left": {
+            "type": "Binary",
+            "operator": "==",
+            "left": {
+              "type": "Path",
+              "relative": true,
+              "levelsUp": 0,
+              "segments": [
+                {
+                  "type": "identifier",
+                  "value": "a"
+                }
+              ]
+            },
+            "right": {
+              "type": "Literal",
+              "valueType": "number",
+              "value": 1
+            }
+          },
+          "right": {
+            "type": "Binary",
+            "operator": "==",
+            "left": {
+              "type": "Path",
+              "relative": true,
+              "levelsUp": 0,
+              "segments": [
+                {
+                  "type": "identifier",
+                  "value": "b"
+                }
+              ]
+            },
+            "right": {
+              "type": "Literal",
+              "valueType": "number",
+              "value": 1
+            }
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "a": 0,
+          "b": 0
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": 1,
+          "b": 0
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "precedence-and-or-mix",
+    "expr": ".a == 1 || .b == 1 && .c == 1",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "a",
+        "literal": "a"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "OR",
+        "value": "||",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "b",
+        "literal": "b"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "AND",
+        "value": "&&",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "c",
+        "literal": "c"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "||",
+      "left": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "a"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 1
+        }
+      },
+      "right": {
+        "type": "Binary",
+        "operator": "&&",
+        "left": {
+          "type": "Binary",
+          "operator": "==",
+          "left": {
+            "type": "Path",
+            "relative": true,
+            "levelsUp": 0,
+            "segments": [
+              {
+                "type": "identifier",
+                "value": "b"
+              }
+            ]
+          },
+          "right": {
+            "type": "Literal",
+            "valueType": "number",
+            "value": 1
+          }
+        },
+        "right": {
+          "type": "Binary",
+          "operator": "==",
+          "left": {
+            "type": "Path",
+            "relative": true,
+            "levelsUp": 0,
+            "segments": [
+              {
+                "type": "identifier",
+                "value": "c"
+              }
+            ]
+          },
+          "right": {
+            "type": "Literal",
+            "valueType": "number",
+            "value": 1
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "a": 1,
+          "b": 0,
+          "c": 0
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": 0,
+          "b": 1,
+          "c": 1
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "precedence-group-overrides",
+    "expr": "(.a == 1 || .b == 1) && .c == 1",
+    "tokens": [
+      {
+        "type": "LPAREN",
+        "value": "(",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "a",
+        "literal": "a"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "OR",
+        "value": "||",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "b",
+        "literal": "b"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "RPAREN",
+        "value": ")",
+        "literal": null
+      },
+      {
+        "type": "AND",
+        "value": "&&",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "c",
+        "literal": "c"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "&&",
+      "left": {
+        "type": "Group",
+        "expression": {
+          "type": "Binary",
+          "operator": "||",
+          "left": {
+            "type": "Binary",
+            "operator": "==",
+            "left": {
+              "type": "Path",
+              "relative": true,
+              "levelsUp": 0,
+              "segments": [
+                {
+                  "type": "identifier",
+                  "value": "a"
+                }
+              ]
+            },
+            "right": {
+              "type": "Literal",
+              "valueType": "number",
+              "value": 1
+            }
+          },
+          "right": {
+            "type": "Binary",
+            "operator": "==",
+            "left": {
+              "type": "Path",
+              "relative": true,
+              "levelsUp": 0,
+              "segments": [
+                {
+                  "type": "identifier",
+                  "value": "b"
+                }
+              ]
+            },
+            "right": {
+              "type": "Literal",
+              "valueType": "number",
+              "value": 1
+            }
+          }
+        }
+      },
+      "right": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "c"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 1
+        }
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "a": 1,
+          "b": 0,
+          "c": 1
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": 1,
+          "b": 0,
+          "c": 0
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "precedence-not-vs-and",
+    "expr": "!.a && .b",
+    "tokens": [
+      {
+        "type": "NOT",
+        "value": "!",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "a",
+        "literal": "a"
+      },
+      {
+        "type": "AND",
+        "value": "&&",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "b",
+        "literal": "b"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "&&",
+      "left": {
+        "type": "Unary",
+        "operator": "!",
+        "operand": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "a"
+            }
+          ]
+        }
+      },
+      "right": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "b"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "a": false,
+          "b": true
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": true,
+          "b": true
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "ternary-value-string",
+    "expr": ".status == 'active' ? 'text-success' : 'text-muted'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "status",
+        "literal": "status"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'active'",
+        "literal": "active"
+      },
+      {
+        "type": "QUESTION",
+        "value": "?",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'text-success'",
+        "literal": "text-success"
+      },
+      {
+        "type": "COLON",
+        "value": ":",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'text-muted'",
+        "literal": "text-muted"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Ternary",
+      "condition": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "status"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "active"
+        }
+      },
+      "trueValue": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "text-success"
+      },
+      "falseValue": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "text-muted"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "status": "active"
+        },
+        "value": "text-success",
+        "truthy": true
+      },
+      {
+        "data": {
+          "status": "off"
+        },
+        "value": "text-muted",
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "ternary-value-number",
+    "expr": ".big ? 100 : 0",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "big",
+        "literal": "big"
+      },
+      {
+        "type": "QUESTION",
+        "value": "?",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "100",
+        "literal": 100
+      },
+      {
+        "type": "COLON",
+        "value": ":",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "0",
+        "literal": 0
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Ternary",
+      "condition": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "big"
+          }
+        ]
+      },
+      "trueValue": {
+        "type": "Literal",
+        "valueType": "number",
+        "value": 100
+      },
+      "falseValue": {
+        "type": "Literal",
+        "valueType": "number",
+        "value": 0
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "big": true
+        },
+        "value": 100,
+        "truthy": true
+      },
+      {
+        "data": {
+          "big": false
+        },
+        "value": 0,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "ternary-value-null",
+    "expr": ".show == 1 ? 'visible' : null",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "show",
+        "literal": "show"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "QUESTION",
+        "value": "?",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'visible'",
+        "literal": "visible"
+      },
+      {
+        "type": "COLON",
+        "value": ":",
+        "literal": null
+      },
+      {
+        "type": "NULL",
+        "value": "null",
+        "literal": null
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Ternary",
+      "condition": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "show"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 1
+        }
+      },
+      "trueValue": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "visible"
+      },
+      "falseValue": {
+        "type": "Literal",
+        "valueType": "null",
+        "value": null
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "show": 1
+        },
+        "value": "visible",
+        "truthy": true
+      },
+      {
+        "data": {
+          "show": 0
+        },
+        "value": null,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "ternary-nested-right-assoc",
+    "expr": ".level == 1 ? 'a' : .level == 2 ? 'b' : 'c'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "level",
+        "literal": "level"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "1",
+        "literal": 1
+      },
+      {
+        "type": "QUESTION",
+        "value": "?",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'a'",
+        "literal": "a"
+      },
+      {
+        "type": "COLON",
+        "value": ":",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "level",
+        "literal": "level"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "NUMBER",
+        "value": "2",
+        "literal": 2
+      },
+      {
+        "type": "QUESTION",
+        "value": "?",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'b'",
+        "literal": "b"
+      },
+      {
+        "type": "COLON",
+        "value": ":",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'c'",
+        "literal": "c"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Ternary",
+      "condition": {
+        "type": "Binary",
+        "operator": "==",
+        "left": {
+          "type": "Path",
+          "relative": true,
+          "levelsUp": 0,
+          "segments": [
+            {
+              "type": "identifier",
+              "value": "level"
+            }
+          ]
+        },
+        "right": {
+          "type": "Literal",
+          "valueType": "number",
+          "value": 1
+        }
+      },
+      "trueValue": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "a"
+      },
+      "falseValue": {
+        "type": "Ternary",
+        "condition": {
+          "type": "Binary",
+          "operator": "==",
+          "left": {
+            "type": "Path",
+            "relative": true,
+            "levelsUp": 0,
+            "segments": [
+              {
+                "type": "identifier",
+                "value": "level"
+              }
+            ]
+          },
+          "right": {
+            "type": "Literal",
+            "valueType": "number",
+            "value": 2
+          }
+        },
+        "trueValue": {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "b"
+        },
+        "falseValue": {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "c"
+        }
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "level": 1
+        },
+        "value": "a",
+        "truthy": true
+      },
+      {
+        "data": {
+          "level": 2
+        },
+        "value": "b",
+        "truthy": true
+      },
+      {
+        "data": {
+          "level": 3
+        },
+        "value": "c",
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "path-vs-path-lt",
+    "expr": ".a < .b",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "a",
+        "literal": "a"
+      },
+      {
+        "type": "LT",
+        "value": "<",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "b",
+        "literal": "b"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "<",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "a"
+          }
+        ]
+      },
+      "right": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "b"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "a": 1,
+          "b": 2
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "a": 2,
+          "b": 2
+        },
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {
+          "a": 3,
+          "b": 2
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "path-vs-path-eq",
+    "expr": ".password == .password_confirm",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "password",
+        "literal": "password"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "password_confirm",
+        "literal": "password_confirm"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "password"
+          }
+        ]
+      },
+      "right": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "password_confirm"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "password": "pw",
+          "password_confirm": "pw"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "password": "pw",
+          "password_confirm": "no"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "path-vs-path-ge",
+    "expr": ".max >= .min",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "max",
+        "literal": "max"
+      },
+      {
+        "type": "GE",
+        "value": ">=",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "min",
+        "literal": "min"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": ">=",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "max"
+          }
+        ]
+      },
+      "right": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "min"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "max": 10,
+          "min": 5
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "max": 5,
+          "min": 10
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "condmap-key-active",
+    "expr": ".status == 'active'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "status",
+        "literal": "status"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'active'",
+        "literal": "active"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "status"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "active"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "status": "active"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "status": "pending"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "condmap-key-pending",
+    "expr": ".status == 'pending'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "status",
+        "literal": "status"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'pending'",
+        "literal": "pending"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "status"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "pending"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "status": "pending"
+        },
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "status": "active"
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "condmap-default-key-true",
+    "expr": "true",
+    "tokens": [
+      {
+        "type": "BOOLEAN",
+        "value": "true",
+        "literal": true
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Literal",
+      "valueType": "boolean",
+      "value": true
+    },
+    "cases": [
+      {
+        "data": {},
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "status": "active"
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "truthy-null",
+    "expr": ".v",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "v",
+        "literal": "v"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "v"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "v": null
+        },
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {},
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "truthy-zero",
+    "expr": ".v",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "v",
+        "literal": "v"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "v"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "v": 0
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "truthy-empty-string",
+    "expr": ".v",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "v",
+        "literal": "v"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "v"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "v": ""
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "truthy-empty-array",
+    "expr": ".v",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "v",
+        "literal": "v"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "v"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "v": []
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "truthy-empty-object",
+    "expr": ".v",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "v",
+        "literal": "v"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "v"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "v": {}
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "truthy-nonempty-string",
+    "expr": ".v",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "v",
+        "literal": "v"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Path",
+      "relative": true,
+      "levelsUp": 0,
+      "segments": [
+        {
+          "type": "identifier",
+          "value": "v"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "v": "hello"
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "literal-bool-true",
+    "expr": "true",
+    "tokens": [
+      {
+        "type": "BOOLEAN",
+        "value": "true",
+        "literal": true
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Literal",
+      "valueType": "boolean",
+      "value": true
+    },
+    "cases": [
+      {
+        "data": {},
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "literal-bool-false",
+    "expr": "false",
+    "tokens": [
+      {
+        "type": "BOOLEAN",
+        "value": "false",
+        "literal": false
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Literal",
+      "valueType": "boolean",
+      "value": false
+    },
+    "cases": [
+      {
+        "data": {},
+        "value": false,
+        "truthy": false
+      }
+    ]
+  }
+]
