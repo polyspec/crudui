@@ -23,6 +23,7 @@
 #   v2-validator-rust   cargo test --test {expr,compose,validate,spec_validity,validate_v2_cli}_conformance
 #   v2-render           React/Vue/Svelte v2 SSR conformance   (npm run test:v2 per pkg)
 #   cross-check-console gateway verdict units + 4-lang fan-out + HTTP boundary (npm test in server)
+#   form-spec-cli       npm test -w form-spec-cli             (vitest run; drift/check-catalog/explain, 23 cases)
 #
 # v2 shared 4-language fixtures (tests/fixtures/*/cases.json), each loaded by
 # every engine that consumes it and asserted bit-for-bit:
@@ -475,3 +476,32 @@ jobs:
       - name: Gateway conformance (verdict units + fan-out + HTTP boundary)
         run: npm test
         working-directory: examples/cross-check-console/server
+
+  # ---------------------------------------------------------------------------
+  # form-spec-cli — the toolchain's own conformance: the orchestrator CLI's
+  # drift-0 / catalog / explain projections (test/{drift,check-catalog,explain}
+  # .test.ts, 23 cases). describe/check/explain are JS-only: the tests import
+  # generator-core and validator-js TS SOURCE directly (../../generator-core/src,
+  # ../../validator-js/src) and vitest transpiles on the fly, so NO dist build is
+  # needed — no go/rust/php toolchain, no build step. `npm test` == `vitest run`.
+  # Mirrors cross-check-console: the toolchain layer gets the same idempotent CI
+  # gate the console layer already has.
+  # ---------------------------------------------------------------------------
+  form-spec-cli:
+    name: v2 · form-spec-cli (describe/check/explain)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install workspace deps
+        run: npm i -g npm@11.17.0 && npm ci
+
+      - name: CLI conformance (drift/check-catalog/explain, 23 cases)
+        run: npm test
+        working-directory: packages/form-spec-cli
