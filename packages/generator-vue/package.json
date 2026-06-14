@@ -2,8 +2,16 @@
   "name": "@form-spec/generator-vue",
   "version": "0.0.1",
   "description": "Vue 3 form builder component library based on form-spec YAML definitions (PHP Legacy parity)",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
     "./package.json": "./package.json",
     "./legacy": {
       "types": "./dist/legacy/index.d.ts",
@@ -16,8 +24,8 @@
     "src"
   ],
   "scripts": {
-    "build": "tsup src/legacy/index.ts --format cjs,esm --dts --clean --external vue",
-    "dev": "tsup src/legacy/index.ts --format cjs,esm --dts --watch --external vue",
+    "build": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --dts --clean --external vue",
+    "dev": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --dts --watch --external vue",
     "test": "vitest run"
   },
   "keywords": [
