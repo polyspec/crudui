@@ -1,11 +1,18 @@
 /**
  * Cross-Check Console — client entry.
  *
- * Single-page, no-build vanilla ES module. Drives two gateway endpoints:
- *   POST /api/validate {spec, data, files?, basepath?} → 4-language CRUDUI validation
- *   POST /api/render   {spec, data, options}           → 3-framework CRUDUI SSR
+ * Single-page, no-build vanilla ES module. Two tabs over three gateway endpoints:
+ *   form tab
+ *     POST /api/validate    {spec, data, files?, basepath?} → 4-language CRUDUI validation
+ *     POST /api/render      {spec, data, options}           → 3-framework CRUDUI form SSR
+ *   list tab
+ *     POST /api/render-list {listSpec, rows, options}        → 3-framework CRUDUI list SSR
+ *     POST /api/render      {spec:<listSpec.search>, ...}    → the SAME form SSR,
+ *       reused to render the list-spec's embedded search form ABOVE the list. The
+ *       search slot IS a form-spec; the list tab proves it round-trips through the
+ *       form endpoint unchanged.
  *
- * Both endpoints always return HTTP 200 (the {error} envelope is server-only);
+ * Every endpoint always returns HTTP 200 (the {error} envelope is server-only);
  * a failed VALIDATION is data, not an HTTP error. The console computes
  * idempotent (4 langs agree) and parity (3 frameworks agree) itself, then
  * exposes the raw server response so its OWN judgement can be re-checked.
@@ -15,7 +22,8 @@
 
 import yaml from 'js-yaml';
 import { examples, defaultExampleId } from './examples.js';
-import { docSections } from './doc.js';
+import { listExamples, defaultListExampleId } from './examples.js';
+import { docSections, listDocSections } from './doc.js';
 
 // Gateway base. Same origin when the gateway serves this client statically;
 // override with ?api=http://host:port for split deploys.
@@ -41,6 +49,7 @@ const FW_COLOR = {
 // ---------------------------------------------------------------------------
 
 const state = {
+  tab: 'form', // 'form' | 'list'
   specText: '',
   dataText: '{}',
   language: 'ko', // options.language
@@ -51,6 +60,14 @@ const state = {
   validate: null, // last /api/validate response
   render: null, // last /api/render response
   lastError: null, // network/transport error string
+
+  // ---- list tab (parallel to the form tab; never crosses into it) ----
+  listSpecText: '', // list-spec YAML (columns + optional embedded search form)
+  rowsText: '[]', // injected display rows (JSON array)
+  listRunning: false,
+  listRender: null, // last /api/render-list response
+  searchRender: null, // last /api/render of listSpec.search (form reuse)
+  listError: null, // network/transport error string (list tab)
 };
 
 // Apply the default example up front so the console is non-empty on first paint.
@@ -60,6 +77,10 @@ const state = {
   state.dataText = ex.data;
   state.language = ex.options.language;
   state.unsupported = ex.options.unsupported;
+
+  const lex = listExamples.find((e) => e.id === defaultListExampleId) || listExamples[0];
+  state.listSpecText = lex.spec;
+  state.rowsText = lex.rows;
 })();
 
 // ---------------------------------------------------------------------------
@@ -88,6 +109,49 @@ function parseData() {
   } catch (e) {
     return { ok: false, error: e.message || String(e) };
   }
+}
+
+/** Parse the list-spec YAML. Returns { ok, value?, error? }. */
+function parseListSpec() {
+  try {
+    const value = yaml.load(state.listSpecText);
+    if (value === null || value === undefined) {
+      return { ok: false, error: 'empty document' };
+    }
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      return { ok: false, error: 'list-spec must be an object' };
+    }
+    return { ok: true, value };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+/** Parse the injected rows JSON. Must be an array. Returns { ok, value?, error? }. */
+function parseRows() {
+  const text = state.rowsText.trim();
+  if (text === '') return { ok: true, value: [] };
+  try {
+    const v = JSON.parse(text);
+    if (!Array.isArray(v)) return { ok: false, error: 'rows must be a JSON array' };
+    return { ok: true, value: v };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+/**
+ * Pull the embedded search form-spec out of a parsed list-spec. The `search`
+ * slot IS a form-spec; the list renderers ignore it (they read only columns/
+ * sort/pagination/empty/actions), so the SAME spec object is what the form
+ * endpoint receives — that round-trip is the reuse this tab demonstrates.
+ * Returns the form-spec object or null when no search slot is declared.
+ */
+function extractSearchSpec(listSpecValue) {
+  if (!listSpecValue || typeof listSpecValue !== 'object') return null;
+  const s = listSpecValue.search;
+  if (!s || typeof s !== 'object' || Array.isArray(s)) return null;
+  return s;
 }
 
 // ---------------------------------------------------------------------------
@@ -222,6 +286,54 @@ async function runAll() {
   }
 }
 
+/**
+ * List tab runner. Fires the list render AND — when the list-spec declares a
+ * `search` slot — the form render of that slot in parallel, so the embedded
+ * search form (rendered by the SAME /api/render the form tab uses) shows above
+ * the list matrix. A list-spec with no search slot still renders the list.
+ */
+async function runList() {
+  const listSpec = parseListSpec();
+  const rows = parseRows();
+  if (!listSpec.ok || !rows.ok) return; // run button disabled in this case anyway
+
+  state.listRunning = true;
+  state.listError = null;
+  state.listRender = null;
+  state.searchRender = null;
+  render();
+
+  const options = { language: state.language };
+  const searchSpec = extractSearchSpec(listSpec.value);
+  try {
+    const calls = [
+      postJson('/api/render-list', {
+        listSpec: listSpec.value,
+        rows: rows.value,
+        options,
+      }),
+    ];
+    // Reuse the form endpoint for the embedded search form-spec, unchanged.
+    if (searchSpec) {
+      calls.push(
+        postJson('/api/render', {
+          spec: searchSpec,
+          data: {},
+          options: { language: state.language, unsupported: state.unsupported },
+        })
+      );
+    }
+    const [listRes, searchRes] = await Promise.all(calls);
+    state.listRender = listRes;
+    state.searchRender = searchRes ?? null;
+  } catch (e) {
+    state.listError = e.message || String(e);
+  } finally {
+    state.listRunning = false;
+    render();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Fixture export — current (spec,data,options,results) → cases.json shapes.
 // validate case: {name,note,spec,data,expected:{valid,errors}}
@@ -281,6 +393,47 @@ function downloadFixture() {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * List fixture export — current (listSpec, rows, options, results) → the
+ * tests/fixtures/list-render/cases.json shape, one case per framework:
+ *   { name, note, spec, rows, options, expected_html | expected_error }.
+ * `spec` carries the list-spec verbatim (including a `search` slot if present);
+ * the list conformance reader ignores that slot exactly as the live renderers do.
+ */
+function buildListFixtureExport() {
+  const listSpec = parseListSpec();
+  const rows = parseRows();
+  const specObj = listSpec.ok ? listSpec.value : null;
+  const rowsArr = rows.ok ? rows.value : [];
+  const name = (document.getElementById('list-export-name')?.value || 'live-list-case').trim();
+
+  const out = {};
+  if (state.listRender && Array.isArray(state.listRender.results)) {
+    out.render = state.listRender.results.map((r) => ({
+      name: `${name}--${r.fw}`,
+      note: `exported from cross-check console (list, fw=${r.fw}, parity=${state.listRender.parity})`,
+      spec: specObj,
+      rows: rowsArr,
+      options: { language: state.language },
+      ...(r.error ? { expected_error: r.error } : { expected_html: r.normalized ?? '' }),
+    }));
+  }
+  return out;
+}
+
+function downloadListFixture() {
+  const payload = buildListFixtureExport();
+  const name = (document.getElementById('list-export-name')?.value || 'live-list-case').trim();
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${name}.list.cases.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ---------------------------------------------------------------------------
 // Rendering (vanilla DOM). render() rebuilds from state; editors keep their
 // own DOM value so we patch only the result/matrix regions to avoid clobbering
@@ -302,6 +455,7 @@ let mounted = false;
 function render() {
   if (!mounted) {
     mountShell();
+    applyTabVisibility();
     mounted = true;
   }
   renderHeaderState();
@@ -313,16 +467,24 @@ function mountShell() {
   root.innerHTML = `
     <header class="cc-header">
       <h1>Cross-Check Console <span class="cc-sub">form-spec</span></h1>
+      <nav class="cc-tabs" role="tablist" aria-label="view">
+        <button id="tab-form" class="cc-tab" role="tab">form</button>
+        <button id="tab-list" class="cc-tab" role="tab">list</button>
+      </nav>
       <div class="cc-controls">
-        <label class="cc-field">
+        <label class="cc-field" data-tab="form">
           예제
           <select id="example-select"></select>
+        </label>
+        <label class="cc-field" data-tab="list">
+          list 예제
+          <select id="list-example-select"></select>
         </label>
         <div class="cc-toggle" role="group" aria-label="language">
           <button id="lang-ko">KO</button>
           <button id="lang-en">EN</button>
         </div>
-        <label class="cc-field">
+        <label class="cc-field" data-tab="form">
           unsupported
           <select id="unsupported-select">
             <option value="throw">throw</option>
@@ -333,14 +495,14 @@ function mountShell() {
           <input type="checkbox" id="raw-toggle" /> raw
         </label>
         <button id="doc-btn" class="cc-btn cc-btn-ghost">스펙 문법 doc</button>
-        <button id="export-btn" class="cc-btn cc-btn-secondary">픽스처 export</button>
+        <button id="export-btn" class="cc-btn cc-btn-secondary" data-tab="form">픽스처 export</button>
       </div>
     </header>
 
     <div class="cc-body">
       <aside id="doc-panel" class="cc-doc" hidden></aside>
 
-      <main class="cc-main">
+      <main class="cc-main" id="main-form" data-tab-panel="form">
         <section class="cc-inputs">
           <div class="cc-editor">
             <div class="cc-editor-head">
@@ -370,10 +532,42 @@ function mountShell() {
           <div id="render-matrix" class="cc-matrix"></div>
         </section>
       </main>
+
+      <main class="cc-main" id="main-list" data-tab-panel="list" hidden>
+        <section class="cc-inputs">
+          <div class="cc-editor">
+            <div class="cc-editor-head">
+              <h2>list-spec (YAML)</h2>
+              <span id="list-spec-badge" class="cc-badge"></span>
+            </div>
+            <textarea id="list-spec-input" spellcheck="false"></textarea>
+          </div>
+          <div class="cc-editor">
+            <div class="cc-editor-head">
+              <h2>rows (JSON 배열, 주입)</h2>
+              <span id="rows-badge" class="cc-badge"></span>
+            </div>
+            <textarea id="rows-input" spellcheck="false"></textarea>
+          </div>
+          <div class="cc-run-row">
+            <button id="list-run-btn" class="cc-btn cc-btn-primary">list 렌더 실행</button>
+            <div class="cc-export-inline">
+              <input id="list-export-name" placeholder="export 케이스 이름" value="live-list-case" />
+            </div>
+            <button id="list-export-btn" class="cc-btn cc-btn-secondary">픽스처 export</button>
+            <span id="list-run-error" class="cc-run-error"></span>
+          </div>
+        </section>
+
+        <section class="cc-matrices">
+          <div id="search-matrix" class="cc-matrix"></div>
+          <div id="list-render-matrix" class="cc-matrix"></div>
+        </section>
+      </main>
     </div>
   `;
 
-  // Populate example select.
+  // Populate form example select.
   const sel = document.getElementById('example-select');
   for (const ex of examples) {
     const opt = document.createElement('option');
@@ -383,24 +577,29 @@ function mountShell() {
   }
   sel.value = defaultExampleId;
 
+  // Populate list example select.
+  const listSel = document.getElementById('list-example-select');
+  for (const ex of listExamples) {
+    const opt = document.createElement('option');
+    opt.value = ex.id;
+    opt.textContent = ex.name;
+    listSel.appendChild(opt);
+  }
+  listSel.value = defaultListExampleId;
+
   // Editors.
   const specInput = document.getElementById('spec-input');
   const dataInput = document.getElementById('data-input');
   specInput.value = state.specText;
   dataInput.value = state.dataText;
 
-  // Doc panel content.
-  const doc = document.getElementById('doc-panel');
-  doc.innerHTML =
-    '<h2>스펙 문법 요약</h2>' +
-    docSections
-      .map(
-        (s) =>
-          `<div class="cc-doc-section"><h3>${esc(s.title)}</h3><p>${esc(
-            s.body
-          )}</p></div>`
-      )
-      .join('');
+  const listSpecInput = document.getElementById('list-spec-input');
+  const rowsInput = document.getElementById('rows-input');
+  listSpecInput.value = state.listSpecText;
+  rowsInput.value = state.rowsText;
+
+  // Doc panel content (renderDocPanel re-fills per active tab).
+  renderDocPanel();
 
   // Wire events.
   sel.addEventListener('change', (e) => {
@@ -429,6 +628,30 @@ function mountShell() {
     renderHeaderState();
   });
 
+  // List example select.
+  listSel.addEventListener('change', (e) => {
+    const ex = listExamples.find((x) => x.id === e.target.value);
+    if (!ex) return;
+    state.listSpecText = ex.spec;
+    state.rowsText = ex.rows;
+    state.listRender = null;
+    state.searchRender = null;
+    state.listError = null;
+    listSpecInput.value = ex.spec;
+    rowsInput.value = ex.rows;
+    renderHeaderState();
+    renderResults();
+  });
+
+  listSpecInput.addEventListener('input', (e) => {
+    state.listSpecText = e.target.value;
+    renderHeaderState();
+  });
+  rowsInput.addEventListener('input', (e) => {
+    state.rowsText = e.target.value;
+    renderHeaderState();
+  });
+
   document.getElementById('lang-ko').addEventListener('click', () => {
     state.language = 'ko';
     renderHeaderState();
@@ -451,6 +674,53 @@ function mountShell() {
   });
   document.getElementById('export-btn').addEventListener('click', downloadFixture);
   document.getElementById('run-btn').addEventListener('click', runAll);
+
+  document.getElementById('list-export-btn').addEventListener('click', downloadListFixture);
+  document.getElementById('list-run-btn').addEventListener('click', runList);
+
+  // Tab switch — the two panels never share DOM; switching only toggles which
+  // <main> is visible and re-themes the per-tab header controls and doc panel.
+  document.getElementById('tab-form').addEventListener('click', () => setTab('form'));
+  document.getElementById('tab-list').addEventListener('click', () => setTab('list'));
+}
+
+/** Switch the active tab and re-render the shell's tab-scoped chrome. */
+function setTab(tab) {
+  if (state.tab === tab) return;
+  state.tab = tab;
+  applyTabVisibility();
+  renderDocPanel();
+  renderHeaderState();
+  renderResults();
+}
+
+/** Show the active <main>, hide the other, and gate per-tab header controls. */
+function applyTabVisibility() {
+  document.getElementById('tab-form').classList.toggle('active', state.tab === 'form');
+  document.getElementById('tab-list').classList.toggle('active', state.tab === 'list');
+  document.getElementById('main-form').hidden = state.tab !== 'form';
+  document.getElementById('main-list').hidden = state.tab !== 'list';
+  for (const el of document.querySelectorAll('[data-tab]')) {
+    el.hidden = el.getAttribute('data-tab') !== state.tab;
+  }
+}
+
+/** Fill the doc panel with the active tab's sections (form vs list syntax). */
+function renderDocPanel() {
+  const doc = document.getElementById('doc-panel');
+  if (!doc) return;
+  const sections = state.tab === 'list' ? listDocSections : docSections;
+  const heading = state.tab === 'list' ? 'list-spec 문법 요약' : '스펙 문법 요약';
+  doc.innerHTML =
+    `<h2>${esc(heading)}</h2>` +
+    sections
+      .map(
+        (s) =>
+          `<div class="cc-doc-section"><h3>${esc(s.title)}</h3><p>${esc(
+            s.body
+          )}</p></div>`
+      )
+      .join('');
 }
 
 function renderHeaderState() {
@@ -474,6 +744,25 @@ function renderHeaderState() {
   // Export needs at least one set of results.
   const exportBtn = document.getElementById('export-btn');
   exportBtn.disabled = !(state.validate || state.render);
+
+  // ---- list tab badges + run/export gating ----
+  const listSpec = parseListSpec();
+  const rows = parseRows();
+  setBadge(
+    document.getElementById('list-spec-badge'),
+    listSpec.ok,
+    listSpec.ok ? 'YAML OK' : `YAML 파싱 실패: ${listSpec.error}`
+  );
+  setBadge(
+    document.getElementById('rows-badge'),
+    rows.ok,
+    rows.ok ? `JSON OK (${rows.value.length} rows)` : `JSON 파싱 실패: ${rows.error}`
+  );
+  const listRunnable = listSpec.ok && rows.ok && !state.listRunning;
+  const listRunBtn = document.getElementById('list-run-btn');
+  listRunBtn.disabled = !listRunnable;
+  listRunBtn.textContent = state.listRunning ? '실행 중...' : 'list 렌더 실행';
+  document.getElementById('list-export-btn').disabled = !state.listRender;
 }
 
 function setBadge(el, ok, text) {
@@ -483,13 +772,19 @@ function setBadge(el, ok, text) {
 
 function renderResults() {
   renderRunError();
+  // Both tabs' matrices are patched; only the active <main> is visible, so the
+  // hidden tab's matrices simply sit idle off-screen (no cross-tab interference).
   renderValidateMatrix();
   renderRenderMatrix();
+  renderSearchMatrix();
+  renderListRenderMatrix();
 }
 
 function renderRunError() {
-  const el = document.getElementById('run-error');
-  el.textContent = state.lastError ? `게이트웨이 오류: ${state.lastError}` : '';
+  const formEl = document.getElementById('run-error');
+  if (formEl) formEl.textContent = state.lastError ? `게이트웨이 오류: ${state.lastError}` : '';
+  const listEl = document.getElementById('list-run-error');
+  if (listEl) listEl.textContent = state.listError ? `게이트웨이 오류: ${state.listError}` : '';
 }
 
 // --- Validate matrix (4 langs) -------------------------------------------
@@ -610,14 +905,25 @@ function validateMismatchPanel(results, groups) {
 // --- Render matrix (3 frameworks) ----------------------------------------
 
 function renderRenderMatrix() {
-  const host = document.getElementById('render-matrix');
-  const r = state.render;
+  renderFwMatrix(
+    document.getElementById('render-matrix'),
+    state.render,
+    '렌더 매트릭스 (react / vue / svelte)'
+  );
+}
+
+/**
+ * Generic 3-framework parity matrix used by every SSR endpoint (form render,
+ * list render, AND the list-tab's reused search-form render). It recomputes
+ * parity from the raw entries (computeParity), paints divergent columns red,
+ * draws the per-framework mismatch diff, and wires the preview/source toggle —
+ * identical surface for form and list so the two tabs read symmetrically.
+ */
+function renderFwMatrix(host, r, title) {
+  if (!host) return;
 
   if (!r) {
-    host.innerHTML = sectionHead(
-      '렌더 매트릭스 (react / vue / svelte)',
-      idleBadge()
-    );
+    host.innerHTML = sectionHead(title, idleBadge());
     return;
   }
 
@@ -648,11 +954,11 @@ function renderRenderMatrix() {
   if (parity === false) mismatchPanel = renderMismatchPanel(results);
 
   host.innerHTML =
-    sectionHead('렌더 매트릭스 (react / vue / svelte)', badge) +
+    sectionHead(title, badge) +
     `<div class="cc-grid cc-grid-3">${cols}</div>` +
     mismatchPanel;
 
-  // Attach source/preview toggles per cell after DOM insert.
+  // Attach source/preview toggles per cell after DOM insert (scoped to host).
   for (const fw of RENDER_FWS) {
     const btn = host.querySelector(`[data-toggle-src="${fw}"]`);
     if (btn) {
@@ -666,6 +972,42 @@ function renderRenderMatrix() {
       });
     }
   }
+}
+
+// --- List tab matrices ----------------------------------------------------
+
+/**
+ * Search form matrix — the embedded `search` form-spec rendered through the
+ * SAME /api/render the form tab uses. It sits ABOVE the list so the form-spec
+ * reuse is visible: one spec object, the form endpoint, three frameworks in
+ * parity. When the list-spec declares no `search` slot, the matrix shows an
+ * idle note rather than a phantom result.
+ */
+function renderSearchMatrix() {
+  const host = document.getElementById('search-matrix');
+  if (!host) return;
+  const listSpec = parseListSpec();
+  const hasSearch = listSpec.ok && !!extractSearchSpec(listSpec.value);
+  const title = '검색폼 매트릭스 — list-spec.search 를 /api/render(form) 로 재사용';
+  if (!state.searchRender) {
+    host.innerHTML = sectionHead(
+      title,
+      hasSearch
+        ? idleBadge()
+        : `<span class="cc-badge idle">이 list-spec 에는 search 슬롯이 없음</span>`
+    );
+    return;
+  }
+  renderFwMatrix(host, state.searchRender, title);
+}
+
+/** List render matrix — the 3-framework CRUDUI list SSR fan-out (/api/render-list). */
+function renderListRenderMatrix() {
+  renderFwMatrix(
+    document.getElementById('list-render-matrix'),
+    state.listRender,
+    'list 렌더 매트릭스 (react / vue / svelte)'
+  );
 }
 
 function renderColumn(fw, entry, divergent) {

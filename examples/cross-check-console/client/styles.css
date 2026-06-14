@@ -57,6 +57,36 @@ body {
   gap: 12px;
   flex-wrap: wrap;
 }
+
+/* ---- tab nav (form | list) ---- */
+.cc-tabs {
+  display: inline-flex;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  background: var(--panel2);
+}
+.cc-tab {
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  border-radius: 6px;
+  padding: 5px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.cc-tab:hover { color: var(--text); }
+.cc-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+/* The [hidden] attribute drives tab gating; flex children need it forced. */
+.cc-field[hidden],
+.cc-btn[hidden] { display: none !important; }
 .cc-field {
   display: flex;
   align-items: center;
