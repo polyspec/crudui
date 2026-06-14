@@ -1,0 +1,205 @@
+[
+  {
+    "name": "ok-minimal-columns",
+    "note": "the smallest valid list-spec — required columns map with one text column.",
+    "expect": "ok",
+    "spec": {
+      "columns": {
+        "name": { "field": ".name", "label": { "ko": "이름", "en": "Name" } }
+      }
+    }
+  },
+  {
+    "name": "ok-catalog-formats",
+    "note": "every §9.2 cell format passes (date/number/badge/link/choice-label/bool/image/html).",
+    "expect": "ok",
+    "spec": {
+      "columns": {
+        "joined": { "field": ".joined", "format": { "type": "date", "pattern": "YYYY-MM-DD" } },
+        "score": { "field": ".score", "format": { "type": "number", "decimals": 2, "thousands": true, "prefix": { "en": "$" } } },
+        "status": { "field": ".status", "format": { "type": "badge", "map": { "active": "success", "blocked": { "ko": "차단", "en": "Blocked" } } } },
+        "name": { "field": ".name", "format": { "type": "link", "href": "/user/.id", "target": "_blank", "text": { "en": "Open" } } },
+        "grade": { "field": ".grade", "format": { "type": "choice-label", "items": { "A": "Apple", "B": { "ko": "바나나", "en": "Banana" } } } },
+        "admin": { "field": ".admin", "format": { "type": "bool", "as": "check", "true": { "en": "Yes" }, "false": { "en": "No" } } },
+        "avatar": { "field": ".avatar", "format": { "type": "image", "width": 40, "height": 40, "alt": "avatar .name" } },
+        "bio": { "field": ".bio", "format": { "type": "html" } }
+      }
+    }
+  },
+  {
+    "name": "ok-shorthand-and-boolean-format",
+    "note": "CellFormat polymorphism — a bare type string and a boolean both validate.",
+    "expect": "ok",
+    "spec": {
+      "columns": {
+        "a": { "field": ".a", "format": "date" },
+        "b": { "field": ".b", "format": false },
+        "c": { "field": ".c", "format": true }
+      }
+    }
+  },
+  {
+    "name": "ok-sortable-sort-pagination-actions-empty-design",
+    "note": "the read-structure 1급 slots all validate together (sort/pagination/actions/empty/design).",
+    "expect": "ok",
+    "spec": {
+      "columns": {
+        "name": { "field": ".name", "label": "Name", "sortable": true, "design": { "class": "text-right", "style": "width: 40%" } },
+        "score": { "field": ".score", "sortable": ".admin" }
+      },
+      "sort": { "field": ".name", "dir": "asc" },
+      "pagination": { "per_page": 20, "mode": "pages" },
+      "actions": {
+        "edit": { "label": { "en": "Edit" }, "format": { "type": "link", "href": "/edit" } },
+        "remove": "confirmDelete(this)"
+      },
+      "empty": { "ko": "데이터 없음", "en": "No data" },
+      "design": { "show": ".admin", "class": "list-bordered" }
+    }
+  },
+  {
+    "name": "ok-compose-ref-patch-columns",
+    "note": "$ref/$patch compose entry on the columns map (the SAME engine as form-spec).",
+    "expect": "ok",
+    "spec": {
+      "columns": {
+        "$ref": "base-columns.yml",
+        "$patch": { "extra": { "field": ".extra", "label": "Extra" } }
+      }
+    }
+  },
+  {
+    "name": "ok-search-form-ref",
+    "note": "search is input → a form-spec reference ($ref base + $patch overlay).",
+    "expect": "ok",
+    "spec": {
+      "columns": { "name": { "field": ".name" } },
+      "search": { "$ref": "search-form.yml", "$patch": { "add": {} } }
+    }
+  },
+
+  {
+    "name": "red-missing-columns",
+    "note": "RED — columns is required; a list-spec without it is rejected.",
+    "expect": "fail",
+    "reason": "required",
+    "spec": { "sort": { "field": ".name", "dir": "asc" } }
+  },
+  {
+    "name": "red-forbidden-column-key",
+    "note": "RED — a forbidden condition meta-key as a COLUMN key is rejected (ForbiddenKeyNames).",
+    "expect": "fail",
+    "reason": "propertyNames",
+    "spec": {
+      "columns": {
+        "name": { "field": ".name" },
+        "display_switch": { "field": ".x" }
+      }
+    }
+  },
+  {
+    "name": "red-x-prefixed-column-key",
+    "note": "RED — an x-prefixed comment-residue key as a COLUMN key is rejected (ForbiddenKeyNames pattern).",
+    "expect": "fail",
+    "reason": "propertyNames",
+    "spec": {
+      "columns": {
+        "name": { "field": ".name" },
+        "xclass": { "field": ".x" }
+      }
+    }
+  },
+  {
+    "name": "red-unknown-column-key",
+    "note": "RED — a Column carries an out-of-1급 key (additionalProperties:false) — e.g. a stray condition key.",
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "spec": {
+      "columns": {
+        "name": { "field": ".name", "show_if": ".admin" }
+      }
+    }
+  },
+  {
+    "name": "red-forbidden-key-in-format-options",
+    "note": "RED — a forbidden meta-key one level below the open CellFormat options bucket is rejected.",
+    "expect": "fail",
+    "reason": "propertyNames",
+    "spec": {
+      "columns": {
+        "name": { "field": ".name", "format": { "type": "badge", "if": ".admin" } }
+      }
+    }
+  },
+  {
+    "name": "red-bad-sort-dir",
+    "note": "RED — sort.dir is an enum (asc|desc); an unregistered value is rejected.",
+    "expect": "fail",
+    "reason": "enum",
+    "spec": {
+      "columns": { "name": { "field": ".name" } },
+      "sort": { "field": ".name", "dir": "sideways" }
+    }
+  },
+  {
+    "name": "red-unknown-sort-key",
+    "note": "RED — Sort is closed (field/dir only); an extra key is rejected.",
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "spec": {
+      "columns": { "name": { "field": ".name" } },
+      "sort": { "field": ".name", "dir": "asc", "nulls": "last" }
+    }
+  },
+  {
+    "name": "red-unknown-pagination-key",
+    "note": "RED — Pagination is closed (per_page/mode only); an extra key is rejected.",
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "spec": {
+      "columns": { "name": { "field": ".name" } },
+      "pagination": { "per_page": 20, "limit": 99 }
+    }
+  },
+  {
+    "name": "red-bad-pagination-mode",
+    "note": "RED — pagination.mode is an enum (pages|offset|cursor|none); an unregistered value is rejected.",
+    "expect": "fail",
+    "reason": "enum",
+    "spec": {
+      "columns": { "name": { "field": ".name" } },
+      "pagination": { "mode": "infinite" }
+    }
+  },
+  {
+    "name": "red-unknown-list-top-key",
+    "note": "RED — List is closed at the top (additionalProperties:false); a stray top key is rejected.",
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "spec": {
+      "columns": { "name": { "field": ".name" } },
+      "limit": 10
+    }
+  },
+  {
+    "name": "red-unknown-action-key",
+    "note": "RED — a ListAction object is closed; an out-of-1급 action key is rejected.",
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "spec": {
+      "columns": { "name": { "field": ".name" } },
+      "actions": { "edit": { "label": "Edit", "onclick": "x()" } }
+    }
+  },
+  {
+    "name": "red-malformed-format-value",
+    "note": "RED — a CellFormat is polymorphic boolean|string|{object}; an array (an unregistered format SHAPE) is rejected by anyOf.",
+    "expect": "fail",
+    "reason": "anyOf",
+    "spec": {
+      "columns": {
+        "name": { "field": ".name", "format": ["date"] }
+      }
+    }
+  }
+]
