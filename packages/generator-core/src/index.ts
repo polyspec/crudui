@@ -20,7 +20,7 @@ import {
   MemoryLoader,
   type FileLoader,
 } from '@form-spec/validator';
-import { makeTranslate, type Language } from '../content';
+import { makeTranslate, type Language } from './content';
 import {
   buildField,
   type BuildState,
@@ -32,6 +32,16 @@ export type { FieldViewModel, UnsupportedMode, RowVM, LangChildVM, UnsupportedVM
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';
 export { WIDGET_COUNT, hasWidget } from './widget';
 export { buildField } from './viewmodel';
+
+// Shared framework-agnostic surfaces (the single source every adapter consumes).
+export { ComposeLoadError } from '@form-spec/validator';
+export { UnsupportedFieldTypeError } from './errors';
+export { resolveDesign } from './design';
+export type { ResolvedDesign, ResolvedNode } from './design';
+export { evalShow, evalAppearance, makeContext } from './expr';
+export type { Evaluated } from './expr';
+export { makeTranslate } from './content';
+export type { Language, LocalizedText, Translate } from './content';
 
 /** Options for building a v2 form view model. */
 export interface BuildFormOptions {

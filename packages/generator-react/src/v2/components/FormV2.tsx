@@ -10,7 +10,7 @@
  */
 
 import * as React from 'react';
-import type { FieldViewModel } from '../core';
+import type { FieldViewModel } from '@form-spec/generator-core';
 import { Field } from './Field';
 
 /** Props for the v2 form: the core-built top-level field view models. */
