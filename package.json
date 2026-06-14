@@ -15,7 +15,7 @@
   "scripts": {
     "build": "npm run build:validator && npm run build:generators",
     "build:validator": "npm run build -w @form-spec/validator",
-    "build:generators": "npm run build -w @form-spec/generator-react && npm run build -w @form-spec/generator-vue && npm run build -w @form-spec/generator-svelte",
+    "build:generators": "npm run build -w @form-spec/generator-core && npm run build -w @form-spec/generator-react && npm run build -w @form-spec/generator-vue && npm run build -w @form-spec/generator-svelte",
     "test": "node tests/runner/compare-all.js",
     "lint": "eslint packages/validator-js/src packages/generator-react/src",
     "lint:fix": "eslint packages/validator-js/src packages/generator-react/src --fix",
