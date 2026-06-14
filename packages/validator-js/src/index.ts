@@ -1,5 +1,6 @@
 /** CRUDUI validation and shared rule APIs. */
 export * from './schema';
+export * from './compose/index';
 export * from './types';
 // Parser exports
 export {
