@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [svelte()],
   build: {
     lib: {
-      entry: { 'legacy/index': path.resolve(__dirname, 'src/legacy/index.ts') },
+      entry: { index: path.resolve(__dirname, 'src/index.ts'), 'legacy/index': path.resolve(__dirname, 'src/legacy/index.ts') },
       formats: ['es'],
       fileName: (_format, entryName) => `${entryName}.js`,
     },
