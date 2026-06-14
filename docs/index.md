@@ -22,7 +22,7 @@ features:
   - title: 멀티프레임워크 렌더러
     details: React / Vue 3 / Svelte 5 가 Limepie 기준 HTML 과 byte-parity(7/7) 로 폼을 렌더링한다.
   - title: 조건식 엔진
-    details: display_switch / display_target 조건부 표시, lexer + AST 기반 조건식 파서를 4개 언어가 동일하게 구현.
+    details: display_switch / display_target 조건부 표시, lexer + AST 기반 조건식 파서 (JS/Go/Rust; PHP는 AST 통일 진행 중).
   - title: 기계가독 스펙
     details: validator-js 타입에서 생성한 JSON Schema(draft-07) 로 에디터 자동완성·검증. 자동생성 멀티언어 API 문서 포함.
 ---

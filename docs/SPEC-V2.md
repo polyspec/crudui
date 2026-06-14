@@ -1,273 +1,221 @@
-# Form-Spec v2 설계 명세
+# Form-Spec v2 명세
 
-> v1은 legacy Limepie를 포팅해 멱등성과 parity를 확보했다. v2는 그 위에서 문법
-> 자체를 다시 세운다. 목적은 세 가지뿐이다: **복잡도 감소, 학습 곡선 감소,
-> 일관된 규칙 수립.** legacy를 버리지 않고 보완하여 "진짜 1.0"을 만든다.
+> 하나의 YAML로 4개 언어(JS/PHP/Go/Rust)가 동일하게 검증하고 3개 프레임워크
+> (React/Vue/Svelte)가 동일하게 렌더하는, **조건을 값에 녹이고 역할로 가른**
+> 선언적 폼 스펙. legacy(Limepie)를 발판 삼아 초월한다.
 
-## 0. 이 문서의 지위
+이 문서는 v2의 **헌법**이다. 표현식 엔진 상세는 [EXPRESSION-GRAMMAR.md](./EXPRESSION-GRAMMAR.md),
+검증 의미론은 [VALIDATION-RULES.md](./VALIDATION-RULES.md)를 따른다. 어댑터·오라클은
+안정 확보까지의 **과도기 도구**이며 결국 레거시를 폐기한다(R7).
 
-이 문서는 v2 문법의 **헌법**이다. 아래 설계 원칙(R1~R7)이 단일 진실이며, 모든
-필드 키·네임스페이스·동작은 이 원칙에서 도출된다. 원칙과 충돌하는 문법은 v2에
-존재할 수 없다. 원칙 자체가 틀렸다고 판단되면 문법을 고치지 말고 원칙을 먼저
-정정한다.
+## 0. 골 (달성하면 끝나는 상태)
 
-v1 명세는 [SPEC.md](./SPEC.md), 검증 의미론은
-[VALIDATION-RULES.md](./VALIDATION-RULES.md)의 "검증 의미론 원칙"이다. v2는 이
-의미론을 그대로 계승한다(무엇을 검증하는가는 불변, 어떻게 선언하는가만 바뀐다).
+골은 **상태**다. R1~R8·G1~G5·표현식 엔진·슬롯·분류 규칙은 골에 봉사하는 **수단**이지
+골이 아니다 — 둘을 섞으면 수단을 만지다 골을 잃는다. 모든 결정은 "이 7골 중 무엇에
+봉사하는가"로 검증한다. 어디에도 봉사하지 않으면 만들지 않는다.
 
-**이 문서의 범위**: v2의 핵심 골격(역할 분리, `display` 통합, 행 정체성 모델)과
-설계 원칙을 확정한다. 데이터 바인딩(`model`/`store_object` 등)과 다국어(i18n)
-상세 문법은 이 골격 위에서 별도 후속 명세로 다룬다. 후속 명세도 R1~R7을 따른다.
+**북극성.** 하나의 YAML 폼 스펙이 4언어에서 동일하게 검증되고 3프레임워크에서 동일
+하게 렌더되며, legacy Limepie를 기능·구조 양면에서 초월하고 결국 대체한다 — 원칙으로
+자기설명되어 설명 없이 읽힌다.
 
-## 1. 설계 원칙 (규칙)
-
-**R1 — 역할 분리 (한 키는 한 역할).**
-한 속성은 구조·검증·표현·동작·조건 중 정확히 하나의 역할만 가진다. 한 필드
-객체에 이들을 평면으로 섞지 않는다. 역할은 네임스페이스로 가른다. v1의 평면
-구조(`type`+`class`+`rules`+`onchange`+`display_target`이 동급으로 나열)는
-역할 경계가 없어 폐기한다.
-
-**R2 — 단일 진실 (한 개념은 한 곳).**
-같은 개념을 표현하는 키가 둘 이상이면 하나로 합친다. v1의 조건부 표시는
-`display_switch`/`display_target`/`display_target_condition_class`/
-`display_target_condition_style`/`all_of`/`any_of`로 6갈래 흩어져 있다. v2는
-이를 단일 `display`로 통합한다.
-
-**R3 — 정체성·직렬화·UI추적의 분리.**
-반복(multiple) 행의 세 가지 책임은 서로 다른 메커니즘이 담당한다.
-어느 하나를 다른 것에 끼워넣는 편법을 금지한다.
-- 직렬화는 배열 인덱스가 담당한다.
-- 행 정체성(기존/신규 판별)은 데이터의 예약 필드가 담당한다.
-- 클라이언트 UI 행 추적은 프레임워크의 리스트 키가 담당한다.
-v1은 이 셋을 폼 name의 `__13hex__` 한 자리에 모두 욱여넣었다. 이는 jQuery 시대의
-편법이며 R1·R4를 동시에 위반한다. v2에서 폐지한다.
-
-**R4 — 매직 토큰 금지.**
-학습 없이 읽을 수 없는 토큰을 스펙·데이터·name에 두지 않는다. 13자리 hex
-uniqid, `Math.random` 생성 키, `{13}` 정규식, "키 보존 삭제" 같은 암묵 규칙을
-전부 제거한다. 모든 식별자는 명시적이고 의미를 가진다.
-
-**R5 — 표준 관행 우선.**
-배열은 배열로 직렬화하고, 기존/신규 레코드는 id 유무로 구분한다(REST·DB의
-보편 관행). 자체 발명은 표준 관행으로 풀리지 않을 때만 한다.
-
-**R6 — 멱등·parity 불변 (기준 사수).**
-v2도 4개 언어(JS/PHP/Go/Rust) 검증 멱등성과 3개 프레임워크(React/Vue/Svelte)
-렌더 parity를 게이트로 강제한다. 기준을 달성하지 못한다고 기준을 낮추지 않는다.
-기준 자체가 틀렸으면 정정한다.
-
-**R7 — legacy 보완 (대체가 아닌 초월).**
-v1은 v2 어댑터로 무손실 변환한다. v1 스펙·데이터·게이트는 그대로 유지된다.
-v2는 v1을 깨지 않고 그 위로 올라선다.
-
-## 2. 스키마 구조
-
-최상위에는 **콘텐츠와 구조**만 둔다. 나머지는 역할별 네임스페이스로 가른다.
-
-```yaml
-<field-key>:
-  # ── 구조·콘텐츠 (최상위) ──
-  type: email                 # 구조: 필드 타입
-  label: Email                # 콘텐츠: 라벨 (다국어 가능)
-  description: ...            # 콘텐츠: 설명
-  default: ""                 # 데이터: 기본값
-  properties: { ... }         # 구조: 자식 필드 (group)
-  items: { ... }              # 구조: 선택지 (select/radio/checkbox)
-  multiple: true              # 구조: 반복 그룹 (배열)
-
-  # ── 검증 (validate 네임스페이스) ──
-  validate:
-    required: true
-    email: true
-    messages:
-      required: 이메일을 입력하세요
-
-  # ── 표현 (design 네임스페이스) ──
-  design:
-    class: form-control
-    prepend: "@"
-    size: lg
-
-  # ── 동작 (behavior 네임스페이스) ──
-  behavior:
-    autocomplete: email
-    onchange: "..."           # 스크립트는 behavior 안에서만
-
-  # ── 조건부 표시 (display 네임스페이스, 통합) ──
-  display:
-    if: ".subscribe == true"  # 표시 여부 (안 맞으면 숨김 + 검증 스킵)
-```
-
-네임스페이스는 넷이다. 더 늘리지 않는다(R1을 지키되 R4의 복잡도 한도 안에서).
-
-| 네임스페이스 | 역할 | 누가 읽나 |
+| 골 | 정의 | 달성 판정 |
 |---|---|---|
-| (최상위) | 구조·콘텐츠·데이터 | 검증기 + 생성기 공통 |
-| `validate` | 검증 규칙 + 실패 메시지 | 검증기 |
-| `design` | 표현·스타일 | 생성기 |
-| `behavior` | 동작·스크립트·상태 | 생성기 |
-| `display` | 조건부 표시 | 검증기(스킵) + 생성기(숨김) |
+| **G-A 단일 진실** | 폼의 모든 측면(구조·콘텐츠·검증·표시·외형·동작·다국어·타입옵션·합성)이 한 YAML에서 도출. 같은 개념 한 곳, 조건부 이중화 없음. | 코드에 숨은 폼 로직 0, 조건 전용 메타키 0 |
+| **G-B 4언어 검증 멱등** | JS/PHP/Go/Rust가 같은 (스펙, 데이터) → 비트 동일한 결과(valid+errors). 표현식 토큰열/AST/평가값도 4언어 동일. | 공유 픽스처(현 1074 + v2 신규) 4언어 GREEN |
+| **G-C 3프레임워크 렌더 parity** | React/Vue/Svelte가 같은 스펙 → 정규화 후 동일 HTML. | reference-html parity(현 7/7 → 코퍼스 확대) GREEN |
+| **G-D 조건을 값에** | `if`/`when`/`show_if`류 메타키 박멸 — 조건은 값의 표현식/조건맵. 4언어 동일 제한 DSL(eval 금지) + 정식 토크나이저·파서·평가기. | 조건 전용 키 0, 표현식 픽스처 4언어 GREEN |
+| **G-E 역할로 가른 자기설명** | 한 속성 한 역할. 개별 매핑이 아니라 규칙(x주석 / 1급-하위 / 종속 격리 / 공통 역할 분배)으로 자동 분류. 매직 토큰·위치 의존 정체성 0. | 새 키도 규칙만으로 자리 결정, 주석 없이 구조로 읽힘 |
+| **G-F legacy 초월·대체** | 기능 v1 ⊂ v2(+합성·다국어 메시지·동적 옵션·검증 확장점), 구조는 v1보다 깨끗. 어댑터·번역기·오라클은 과도기 — 안정 후 v1 폐기. v2를 번역 가능성으로 제약하지 않음. | 실운영 577 스펙이 v2로 표현·검증, 안정 후 v1 의존 0 |
+| **G-G 게이트 영구 강제** | 멱등·parity는 측정·게이트, 미달이라고 기준을 낮추지 않음(정당한 약화만). v2 자체 게이트(영구) + v1 오라클(과도기)이 정답 자동 생성. | CI가 멱등·parity·표현식 픽스처를 차단 |
 
-## 3. 네임스페이스 매핑 (v1 전수조사 → v2 위치)
+다국어·합성·표현식 엔진·슬롯은 별도 골이 아니라 G-A/G-D/G-F 안의 수단이다. 골이
+**아닌** 것(경계)은 §8.
 
-| v1 속성 | v2 위치 |
-|---|---|
-| `type` `label` `description` `placeholder` `default` `properties` `items` `name` `key` | 최상위 (콘텐츠·구조) |
-| `multiple`('only' 포함) | 최상위 `multiple: true` ('only'는 §5에서 폐지) |
-| `rules` {27개} | `validate` |
-| `messages` | `validate.messages` |
-| `class` `style` `element_class` `element_style` `input_class` `wrapper_class` `label_class` `group_class` `group_style` `prepend` `append` `prepend_class` `append_class` `button_class` `variant` `size` `icon` `icon_position` `rows` `height` `zoom` `show_labels` `on_label` `sortable_button` | `design` |
-| `onchange` `onclick` `onload` `event` `dynamic_onchange` `init_script` `autofocus` `autocomplete` `readonly` `disabled` `disableds` | `behavior` |
-| `display_switch` `display_target` `display_target_condition_class` `display_target_condition_style` `all_of` `any_of` `lang` | `display` (§4) |
-| `store_object` `value_field` `thumbnail_field` `target_fields` `api_server` `items.model` | 최상위(데이터 바인딩) — 세부는 후속 절 |
+## 1. 설계 원칙 (R1~R8 — 헌법)
 
-`design`의 다수 `*_class`(요소/래퍼/라벨/그룹)는 평면 나열 대신 대상별로 정돈한다:
-`design.class`(요소), `design.wrapper.class`, `design.label.class`, `design.group.class`.
-이는 R4(매직·암묵 금지)에 따라 "어디에 붙는 클래스인가"를 키 이름으로 드러낸다.
+- **R1 역할 분리.** 한 속성은 한 역할만. 역할은 슬롯으로 가른다: 최상위(구조·콘텐츠),
+  `validate`(검증), `design`(보임새=표시+스타일), `behavior`(동작). 조건은 별도 역할이
+  아니라 값의 표현식이다(G1).
+- **R2 단일 진실.** 같은 개념은 한 곳. 단 "한 개념"을 정확히 가른다 — 조건부는 별도
+  키가 아니라 값 자체의 표현식으로 표현해 "무조건 키 + 조건부 키" 이중화를 없앤다.
+- **R3 위치 독립 정체성.** 반복 행의 정체성은 위치가 아니라 데이터 `id`가 진다. 직렬화
+  인덱스는 클라가 자동으로 매기는 산물이고, 정체성(id)이 불변이라 외부 참조·멱등이 안전.
+- **R4 매직 토큰 금지.** 학습 없이 못 읽는 토큰(13hex uniqid, `_` 같은 관례 기호)을
+  스펙·데이터에 두지 않는다. 모든 식별자는 명시적·의미적.
+- **R5 표준 관행 우선.** 반복은 배열, 기존/신규는 `id` 유무, 타입 옵션은 `options`,
+  합성은 `$ref`/`$patch`. 자체 발명은 표준으로 안 풀릴 때만.
+- **R6 멱등·parity 불변.** 4언어 검증 멱등 + 3프레임워크 렌더 parity를 게이트로 강제.
+  기준을 달성 못 한다고 낮추지 않는다. 기준이 틀렸으면 정정한다.
+- **R7 legacy 초월.** 어댑터·오라클은 과도기 도구다 — 결국 레거시를 폐기한다. **v2를
+  번역 가능성으로 제약하지 않는다**: v2가 v1을 초월하는 부분은 번역 불가가 정상이고
+  그게 가치다. 번역기를 위해 v2를 희생하지 않는다. v2는 v1 없이 자기 명세·게이트로 성립.
+- **R8 자기설명 (self-documenting).** 주석 없이 키 이름과 구조만으로 의미가 드러나야
+  한다. 같은 역할=같은 슬롯, 같은 값=같은 표현, 한 규칙이 한 번 보면 유추된다.
 
-## 4. 조건부 표시 단일화 (`display`)
+## 2. 필드 구조 — 다섯 결정 (G1~G5)
 
-v1의 6갈래를 하나로 통합한다.
+**G1 — 조건은 값이다.** 모든 평가값은 표현식 또는 조건맵이다. 별도 `if`/`when`/
+`show_if` 키가 없다.
+```yaml
+show:     ".subscribe"                     # 단순: 표현식
+class:                                      # 다분기: 조건맵 (위→아래 첫 참, true=기본)
+  ".status == 'active'": text-success
+  true: form-control
+```
+엔진은 제한 DSL(경로 `.`/`..`/`*`, 비교, 논리, `in`, ternary) + 정식 토크나이저/
+파서/평가기, **4언어 동일, `eval` 금지**(EXPRESSION-GRAMMAR.md). 임의 JS는 평가하지
+않고 `behavior`로 불투명 전달한다.
+
+**G2 — 역할 슬롯 + 타입 옵션 + 다형.**
+```yaml
+email:
+  type: email                              # 정체성
+  label: { ko: 이메일, en: Email }         # 콘텐츠 (다국어, G3)
+  prepend: "@"                             # 콘텐츠 (텍스트)
+  validate: { required: ".subscribe", email: true }   # 검증
+  design:                                  # 보임새 = 표시 + 스타일
+    show: ".subscribe"
+    class: { ".vip": gold, true: plain }
+  behavior: { onchange: "..." }            # 동작 (불투명 스크립트)
+  options: { ... }                         # 타입 종속 (그 타입이 정의)
+  lang: { mode: append, only: [ko, en] }   # 다국어 입력 (값이 언어별, G3)
+```
+역할 슬롯(`validate`·`design`·`behavior`·`options`)·구조 키(`lang` 등)는 **다형**
+이다: `false`(끔/없음) | `{객체}`(설정) | `true`(기본, `{}`의 축약). `behavior: false`
+로 합성 상속을 무효화한다. 1급은 핵심 공통뿐이고, 1급 아닌 세부는 무조건 그 상위
+하위로 내린다(§3 규칙 B·C).
+
+**G3 — 다국어는 두 축.** (1) **콘텐츠 번역**: label/description/help/messages·정적
+`items` 라벨이 언어별이면 언어맵 `{ ko: …, en: … }`(스펙 작성자의 번역). 즉 `items`
+값은 라벨 string 또는 언어맵(예 `{ 0: {ko: 미사용, en: Off}, 1: {ko: 사용, en: On} }`).
+빈 콘텐츠는 생략하거나 `null`(없는 것과 동일 — 검증·렌더에 무영향). (2) **입력 다국어**:
+필드 값 자체가 언어별이면 `lang`(`multiple`과 같은 구조 차원 — 필드를 언어별 입력
+그룹으로 확장). lang 종속 세부(언어 그룹 외형 `frame`/`title`/`group_class` 포함)는
+모두 `lang` 하위로 격리한다(§3 C).
+
+**G4 — 반복 행은 인덱스 배열 + 숨긴 id.** `multiple: true`. **위치(직렬화)는 클라가
+자동, 정체성은 숨긴 `id`**(기존=서버 PK, 신규=없음). 매직 키 없음. 순서는 배열 순서.
+서버는 인덱스를 정체성으로 쓰지 않고 `id`로 기존/신규를 가른다. 삭제는 컬렉션
+동기화(원본 id − 제출 id). (레거시 `seqtokey`/`__13hex__` 인코딩은 실측 검증 후 폐기.)
+
+**G5 — 스펙은 합성된다.** `$ref`(베이스 상속) + `$patch`(추가·병합·제거). 파서가
+가장 먼저 합성을 펼쳐 단일 스펙으로 만든 뒤 필드 층을 적용한다 — 합성 없이는 `$ref`
+쓰는 스펙을 로드조차 못 한다.
+
+## 3. 분류 규칙 (개별 매핑이 아니라 규칙)
+
+**A. `x` 접두는 주석.** `xclass`·`xstyle`·`x{key}`는 임시 비활성 주석이다 — 파서가
+무시한다(스펙 의미 없음).
+
+**B. 1급만 1급. 나머지는 무조건 하위로.** 1급(최상위)은 핵심 공통뿐이다: 구조·정체성
+(`type` `name` `default` `properties` `items` `multiple` `lang`) + 콘텐츠(`label`
+`description` `placeholder` `prepend` `append` `help`) + 역할 슬롯(`validate` `design`
+`behavior` `options`). 1급 자격(모든 필드의 핵심)이 없는 **모든 세부는 하위로** 내린다
+— 최상위를 함부로 늘리지 않는다.
+
+**C. 하위 분류 규칙.**
+
+**종속 격리** — 키가 특정 대상에만 의미 있으면 그 대상 하위로 캡슐화한다(대상을 끄면
+함께 사라진다). 외형·동작이라도 종속이면 역할 슬롯이 아니라 대상 하위다:
+- **타입 종속** → `options` (`keyword_min_length`·`marker_draggable`·`zoom`·
+  `geometry_type`·`max_tags`·`checkbox_label`·`on_label`…). 컨테이너 타입(`group`·
+  `multiple`)의 chrome(`collapse`·`expend`·`view_total`·`stepper`·`blank_message`)과
+  타입 종속 스크립트·콜백(`callback`=select2, `event`=datetime 설정)도 여기 — 특정
+  타입에만 존재하므로. 그 타입이 정의·검증, 코어 불관여(표준: JSONForms `options`/
+  Formily `x-component-props`/rjsf `ui:options`). 새 위젯이 와도 코어 불변.
+- **`multiple`(반복) 종속** → `multiple` 하위 (`max`·`copy`·`sortable`·추가/삭제
+  버튼·버튼 라벨·`onclick` ← 레거시 `multiple_max`·`sortable*`·`add_buttons`·
+  `remove_list_button`·`list_button_text`·`multiple_button_onclick`)
+- **`lang`(다국어 입력) 종속** → `lang` 하위 (`mode`·`only`·`name`·`key`·`frame`·
+  `title`·`group_class`. `only`는 언어 allowlist `[ko, en]` 또는 언어별 오버라이드 맵
+  `{ja: {validate: …}}` 양형 ← 레거시 `lang:append`·`langs`·`lang_name`·`lang_key`·
+  `remove_lang_frame`·`remove_lang_title`·`lang_group_class`)
+- **동적 선택지 소스** → `items` 하위 (`items`는 정적 배열이거나 `{model, method,
+  table, relations, …}` 동적 소스 — 다형. 레거시에 흩어졌던 것을 `items`로 모음)
+
+대상이 스칼라면(`type`) 전용 슬롯(`options`), 대상이 구조면(`multiple`/`lang`/`items`)
+그 구조 하위 — 한 원리의 두 표면이다.
+
+**공통 역할 분배** — 모든 필드 공통(독립)은 역할 슬롯으로:
+- **검증** → `validate`
+- **보임새** → `design` = **표시 + DOM 노드별 외형 맵**. `design.show`=표시 조건,
+  `design.class`/`style`=주 노드(입력), `design.{label|wrapper|group|prepend}.class`/
+  `style`=각 노드. 어느 노드 스타일인지 키로 드러난다(R8). 레거시 `element_class`·
+  `label_class`·`group_class`·`input_class`·`wrapper_class`·`prepend_class`를 흡수.
+- **동작(모든 타입 공통 스크립트)** → `behavior` (`onchange`·`onclick`·`onload`)
+
+**합성** → `$ref`/`$patch`
+**라벨** → 수식 대상 곁(인접): 필드 라벨→최상위, 동작 라벨→`behavior.{action}.label`
+**콘텐츠 번역**(`label: {ko, en}`)은 콘텐츠 자체(G3)이지 분류 대상이 아니다.
+
+## 4. 표현식 엔진 (요약 — 상세는 EXPRESSION-GRAMMAR.md)
+
+정식 파이프라인(토크나이저→파서→평가기), 4언어 동일, `eval` 금지. 제한 DSL: 경로
+`.x`/`..x`/`*`/`[a,b]`, 비교 `== != > >= < <=`, 논리 `&& || !`, `in`/`not in`,
+ternary `?:`(값 반환), 괄호, 리터럴. 산술·함수·메서드·정규식은 미지원(의도). 평가되는
+값(표시·조건·외형·검증)에만 적용하고, `behavior` 스크립트는 불투명 전달한다.
+
+## 5. 합성 (G5 상세)
 
 ```yaml
-display:
-  if: "<조건식>"            # 표시 여부. 거짓이면 숨김 + 검증 스킵.
-  class: "<조건식 또는 값맵>" # 조건부 클래스
-  style: "<조건식 또는 값맵>" # 조건부 스타일
+properties:
+  $ref: Base.yml                  # 상속
+  $patch:                         # 변경 (추가·병합·제거)
+    "field.validate.required": ".other"   # 깊은 경로 설정
 ```
+`$ref`(파일/경로 상속) + `$patch`(JSON Patch식 add/remove/replace). 해석 순서:
+`$ref` → `$patch` → 단일 스펙 → 필드 층. (레거시 `$after`/`$before`/`$merge`/
+`$remove`는 `$patch`로 흡수.)
 
-- `if` ← `display_switch`(자기 조건) + `display_target`(타깃 값 기반)을 하나의
-  조건식으로 통합. 조건식은 v1의 lexer+AST 파서를 그대로 쓴다(상대 경로 `.x`/`..x`,
-  와일드카드 `*`, ternary, `and`/`or`/`not`). v1의 `all_of`/`any_of`는 `and`/`or`로,
-  `oneof`가 필요하면 배타 조건을 `and`/`not` 조합으로 표현한다(별도 키 신설 금지).
-- `class` ← `display_target_condition_class`. `style` ← `display_target_condition_style`.
-- `lang`(다국어 필드 확장)은 표시 조건이 아니라 콘텐츠 확장이므로 `display`가
-  아닌 별도 처리로 분리한다(후속 절).
+## 6. 검증 게이트 (R6, R7)
 
-숨김 시 검증 스킵은 v1의 검증 의미론을 그대로 따른다(VALIDATION-RULES.md).
+**금지키 차단 메커니즘** (G-A·G-D 실현): 조건 전용 메타키(`display_switch`·
+`display_target`·`if`·`when`·`show_if`·`_` 등)와 매직 토큰의 전역 거부는 두 층이 함께
+강제한다 — 메타스키마 `propertyNames`(선언적, 모든 열린 버킷에 재사용)와 **4언어 검증
+패스의 재귀 금지키 스캔**(런타임, 임의 깊이). 타입/파서는 금지키 가드를 지지 않고 **모든
+키를 보존**한다(round-trip, silent drop 금지) — 차단은 검증의 책임이다(R1 표현/검증
+분리). 타입 구조체로 깊은 중첩 키를 막으려 하면 누락·doc 과장이 생긴다(실측 교훈).
+조건맵 기본키 `true` 강제·`_` 거부도 같은 검증 패스가 수행한다.
 
-## 5. 반복(multiple)과 행 정체성 — `__13hex__` 폐지
+- **v2 자체 게이트 (영구 기준)**: EXPRESSION-GRAMMAR 명세 픽스처(토큰/AST/값) + 4언어
+  멱등 + 3프레임워크 parity + v2 신규(값 반환·조건맵·경로비교) 직접 픽스처. v1 없이 성립.
+- **v1 엔진 오라클 (과도기 보조)**: 실운영 v1 스펙을 v1 엔진(기준)과 v2 번역→v2 엔진
+  으로 교차검증(v1 호환 범위). 번역기 왕복 무손실(`v1→v2→v1`=원본)로 번역 검증. v1
+  엔진이 멱등으로 신뢰되어 실스펙 정답을 자동 생성한다. **안정 후 오라클·번역기 폐기**.
+- **게이트 코퍼스**: 자작 예시가 아니라 실운영 스펙(blue/app 577종)에서 추출한다.
 
-### 5.1 v1 메커니즘과 그 대가
+## 7. 구현 상태 + 로드맵 (골 게이트 연결)
 
-v1은 행의 정체성을 폼 name의 **키 형태**로 인코딩했다.
-- 기존 행(DB에서 로드): 숫자 온리 키 — 그 숫자가 곧 레코드 PK. `items[42][name]`.
-- 신규 행(+ 버튼): 문자열+숫자 uniqid 키. `items[__a1b2c3__][name]`.
-- 서버: 숫자 키 → UPDATE(그 PK), uniqid 키 → INSERT.
+**현 form-spec은 legacy v1 포트다**(감사 실측). 1074/1074·7/7 GREEN은 v1 의미론의
+증거이지 v2 달성이 아니다 — parity 게이트는 legacy 행동을 핀해 G-A/G-F와 오히려
+역방향이다. v2 구현 갭(각각 골 게이트로 강제):
 
-키 하나로 "기존/신규 + 어느 PK"를 동시에 판별하는 영리한 설계다. 그러나 대가가
-크다. **신규 행이 문자열 키라 데이터가 배열이 아니라 객체가 된다**
-(`{ "42": {...}, "__hex__": {...} }`). 이 객체 키 구조가 4개 언어에서 다르게
-처리되어 객체키 멱등 갭(에러 경로 PHP `rows.v` vs JS/Go/Rust `rows.__uid__.v`)을
-낳았고, v1에서는 이를 PHP 수정으로 메웠다. 즉 **v1의 키-정체성 방식은 그 갭의
-원인**이다. R1·R3(키 하나가 직렬화·정체성·UI추적 3역할)과 R4(uniqid 매직)를
-동시에 위반한다.
+- 역할 슬롯(`validate`/`design`/`behavior`/`options`) 미소비 — 스키마·검증기 4·
+  generator 3 전부 v1 `rules`/외형키 모델 (G-A·G-B)
+- 조건 전용 메타키(`display_switch`/`display_target`) 스키마+4언어 검증기 전역 잔존
+  — G1 위반 (G-A·G-D)
+- 조건맵 평가기 0건, `$ref`/`$patch` 합성 0건 — 미해결 `$ref`가 `valid:true` 오검증 (G-D·G-F)
+- 표현식 토큰열/AST 공유 픽스처 0건 — "4언어 동일" 축 측정 불가 (G-B·G-D·G-G)
+- 실운영 577 코퍼스 wiring 0 — 판정 분모 미확보 (G-F)
+- 매직토큰 `__13hex__` 잔존 (R4·G4), PHP 표현식만 문자열 split (Go/Rust/JS는 AST) (G-D)
 
-### 5.2 v2 — 세 책임의 분리
+**구현 순서**(의존성): 정규 스키마 확정 → 표현엔진 통일(PHP AST 신규) → 조건맵·합성
+→ 검증기 v2 슬롯 소비 → 표시로직 코드→스펙 이전 → v1→v2 번역기 → 577 반입 →
+토큰/AST·v2신규 픽스처 → 영구 게이트.
 
-R3·R4·R5에 따라 정체성을 키에서 데이터로 빼낸다. 그 결과 데이터가 배열이 되고,
-객체키 갭의 **원인 자체가 사라진다**(증상 패치가 아니라 원인 제거).
+**표현식 4언어 토큰/AST 멱등 숙제**: PHP는 v2 AST 엔진으로 JS와 38케이스 일치(완료).
+Go/Rust는 IDENTIFIER(비ASCII 허용)·STRING literal 직렬화·지수표기·`position` 필드에서
+JS와 차이 — 공유 픽스처(`tests/fixtures/expr`)로 4언어를 JS 기준에 정합해야 토큰/AST
+멱등이 성립한다. truthy 경계(`"0"`/`"false"` 문자열, 빈 객체)도 픽스처로 4언어 확정.
 
-| 책임 | v1 (편법) | v2 |
-|---|---|---|
-| 직렬화 | `items[42][name]` / `items[__hex__][name]` | `items[0][name]` — 배열 인덱스(순번) |
-| 행 정체성 | 키 형태(숫자=기존, 문자열=신규) | 데이터 예약 필드 `id` — 기존 행은 PK 보유, 신규 행은 없음 |
-| 클라 UI 추적 | name의 uniqid | 프레임워크 리스트 키 (generator 내부, 스펙·데이터에 노출 안 됨) |
+**설계 숙제 (미해결)**: 최복잡 케이스(PeopleUnitPrice)의 요일 7반복·display 6반복·
+`$patch` 깊은 경로가 verbose하다. 그룹 단위 `show` 상속·와일드카드 `$patch`로 줄일지
+미확정. v2도 복잡 케이스를 마법으로 단순화하지 못한다 — 가치는 규칙 일관·매직 제거·
+역할 분리다.
 
-**제출 데이터 형태:**
-```jsonc
-// v1: 객체 + 키-인코딩 정체성
-{ "items": { "42": { "name": "..." }, "__a1b2c3def45__": { "name": "..." } } }
-// v2: 배열 + 데이터 id
-{ "items": [ { "id": 42, "name": "..." },   // 기존 행: id 보유 → UPDATE
-             { "name": "..." } ] }          // 신규 행: id 없음 → INSERT
-```
+## 8. 비목표 (YAGNI)
 
-### 5.3 +/−/수정/이동/삭제 동작
-
-질문의 핵심: **시퀀스 인덱스를 쓰면 기존 행과 +/−로 바뀌는 행을 어떻게
-구분하는가.** v2의 답은 "키(인덱스)는 정체성을 갖지 않는다"이다.
-
-- **+추가**: 배열에 행을 푸시한다. `id` 없음 = 신규. 클라이언트는 로컬 리스트 키를
-  부여한다(제출되지 않음).
-- **수정**: 기존 행을 편집한다. `id`는 유지된다.
-- **이동**: 인덱스 순서만 바뀐다. `id`와 리스트 키가 행을 따라간다.
-- **−삭제**: 배열에서 제거한다. multiple 그룹은 **컬렉션 전체를 제출**하므로,
-  서버는 `원본 id 집합 − 제출 id 집합 = 삭제 대상`으로 판별한다(Rails nested
-  attributes · Prisma `set`의 표준 동기화 의미론). 키 보존 같은 편법이 필요 없다.
-
-인덱스는 제출 시점에 순서대로 재계산되지만, 기존 행의 정체성은 `id`가, 클라
-UI 추적은 리스트 키가 운반하므로 인덱스 변동이 무엇도 깨뜨리지 않는다. 신규 행은
-모두 `id`가 없으므로 서로 구분할 필요가 없다(전부 INSERT).
-
-### 5.4 제거되는 것
-
-`__13hex__` name 키, `Math.random`/카운터 uniqid 생성, `{13}` 정규식, "키 보존
-삭제" 의미론, 숫자/문자열 키 분기, `multiple: 'only'`(객체 키 모드)가 전부
-사라진다. `multiple`은 `true`만 남으며 데이터는 **항상 배열**이다. 객체키 멱등
-갭은 v2 데이터 모델에 존재할 수 없다.
-
-## 6. 예시 (v1 → v2)
-
-```yaml
-# ── v1 ──
-contacts[]:
-  type: group
-  multiple: true
-  class: "border p-3"
-  rules: { mincount: 1 }
-  display_target: ".has_contact"
-  display_target_condition_style: { "1": "display:block", "0": "display:none" }
-  properties:
-    email:
-      type: email
-      class: form-control
-      prepend: "@"
-      rules: { required: true, email: true }
-      messages: { required: 이메일 필수 }
-      onchange: "validate_email()"
-
-# ── v2 ──
-contacts:
-  type: group
-  multiple: true
-  validate: { mincount: 1 }
-  design: { wrapper: { class: "border p-3" } }
-  display: { if: ".has_contact" }
-  properties:
-    email:
-      type: email
-      validate:
-        required: true
-        email: true
-        messages: { required: 이메일 필수 }
-      design: { class: form-control, prepend: "@" }
-      behavior: { onchange: "validate_email()" }
-```
-
-## 7. 마이그레이션 (v1 ↔ v2 어댑터)
-
-R7에 따라 v1을 깨지 않는다.
-- **v1 → v2 스펙 어댑터**: v1 평면 스펙을 §3 매핑대로 네임스페이스로 재배치하는
-  무손실 변환기. legacy 스펙 자산을 자동 변환한다.
-- **데이터 어댑터**: v1 객체+uniqid 데이터 ↔ v2 배열+id 데이터 양방향 변환.
-  기존 uniqid는 v2의 `id`로 승격(또는 신규 매핑 테이블).
-- v1 게이트(compare-all 1074, parity, legacy-client)는 그대로 유지된다. v2는
-  별도 게이트를 추가하며 v1을 대체하지 않는다.
-
-## 8. v2 게이트 (R6)
-
-v2도 동일한 기준으로 강제한다.
-- 4언어 검증 멱등성: v2 스펙·데이터를 JS/PHP/Go/Rust가 동일 판정.
-- 3프레임워크 렌더 parity: v2 스펙을 React/Vue/Svelte가 동일 HTML로.
-- v1↔v2 어댑터 왕복 무손실: v1 → v2 → v1 변환이 원본과 일치.
-- 검증 의미론 원칙(VALIDATION-RULES.md) 계승: required trim, type:number 유한수,
-  무효 파라미터 skip, 객체키 카운트 등은 v2에서도 불변.
-
-## 9. 비목표 (YAGNI)
-
-- JSON Schema 채택 안 함: verbose하고 학습 곡선이 높아 목적(복잡도·학습곡선
-  감소)에 반한다. "표준"은 일관된 규칙으로 달성하지 표준 스키마 언어 도입으로
-  달성하지 않는다.
-- 네임스페이스 5개 이상으로 쪼개지 않는다(R1과 R4의 균형).
-- `oneof` 등 신규 조건 키 추가 안 함: 조건식 `and`/`or`/`not`으로 충분하다(R2).
+- JSON Schema 미채택(verbose·학습곡선↑). "표준"은 일관 규칙으로 달성.
+- 역할 슬롯은 넷(`validate`/`design`/`behavior`/`options`) + 최상위. 더 늘리지 않는다
+  — 종속 키는 의존 대상 하위로 격리(타입→`options`, 다국어 입력→`lang`), `x{key}`는 주석.
+- 표현식에 산술·함수 미추가(필요 시 4언어 동일 구현·픽스처 갖춘 뒤에만).
