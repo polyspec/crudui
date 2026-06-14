@@ -14,7 +14,7 @@
  * for the handful of behavior-bearing fields.
  */
 
-import type { Attrs } from '../core';
+import type { Attrs } from '@form-spec/generator-core';
 
 function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
