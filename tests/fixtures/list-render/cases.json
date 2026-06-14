@@ -1,0 +1,798 @@
+[
+  {
+    "name": "basic-columns",
+    "note": "plain text columns + i18n headers; two injected rows → table body.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": {
+            "ko": "이름",
+            "en": "Name"
+          }
+        },
+        "status": {
+          "field": ".status",
+          "label": {
+            "ko": "상태",
+            "en": "Status"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-date",
+    "note": "date format → pattern applied to the cell value (§9.2).",
+    "spec": {
+      "columns": {
+        "joined": {
+          "field": ".joined",
+          "label": "Joined",
+          "format": {
+            "type": "date",
+            "pattern": "YYYY-MM-DD"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".joined\"><span class=\"list-th-label\">Joined</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-date\">2026-01-02</td></tr><tr><td class=\"list-td list-td-date\">2026-03-15</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-number",
+    "note": "number format → decimals + thousands + i18n prefix affix (§9.2).",
+    "spec": {
+      "columns": {
+        "score": {
+          "field": ".score",
+          "label": "Score",
+          "format": {
+            "type": "number",
+            "decimals": 2,
+            "thousands": true,
+            "prefix": {
+              "en": "$"
+            }
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".score\"><span class=\"list-th-label\">Score</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-number\">$1,234,567.50</td></tr><tr><td class=\"list-td list-td-number\">$42.00</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-badge",
+    "note": "badge format → span.badge.badge-<variant> from the value→variant map (§9.2).",
+    "spec": {
+      "columns": {
+        "status": {
+          "field": ".status",
+          "label": "Status",
+          "format": {
+            "type": "badge",
+            "map": {
+              "active": "success",
+              "blocked": "danger"
+            }
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-badge\"><span class=\"badge badge-success\">active</span></td></tr><tr><td class=\"list-td list-td-badge\"><span class=\"badge badge-danger\">blocked</span></td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-choice-label",
+    "note": "choice-label format → static code→label lookup (§9.2).",
+    "spec": {
+      "columns": {
+        "grade": {
+          "field": ".grade",
+          "label": "Grade",
+          "format": {
+            "type": "choice-label",
+            "items": {
+              "A": "Apple",
+              "B": "Banana"
+            }
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "grade": "A"
+      },
+      {
+        "grade": "B"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".grade\"><span class=\"list-th-label\">Grade</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-choice-label\">Apple</td></tr><tr><td class=\"list-td list-td-choice-label\">Banana</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-link",
+    "note": "link format → <a> with .field-interpolated href + target (§9.2).",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name",
+          "format": {
+            "type": "link",
+            "href": "/user/.id",
+            "target": "_blank"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-link\"><a href=\"/user/1\" target=\"_blank\">Ada</a></td></tr><tr><td class=\"list-td list-td-link\"><a href=\"/user/2\" target=\"_blank\">Lin</a></td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-bool",
+    "note": "bool format as=check → glyph host carrying the i18n label (§9.2).",
+    "spec": {
+      "columns": {
+        "admin": {
+          "field": ".admin",
+          "label": "Admin",
+          "format": {
+            "type": "bool",
+            "true": "Yes",
+            "false": "No",
+            "as": "check"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".admin\"><span class=\"list-th-label\">Admin</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-bool\"><span aria-label=\"Yes\" class=\"bool-check\">✔</span></td></tr><tr><td class=\"list-td list-td-bool\"><span aria-label=\"No\" class=\"bool-check\">✘</span></td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-image",
+    "note": "image format → <img> with src + interpolated alt + size (§9.2).",
+    "spec": {
+      "columns": {
+        "avatar": {
+          "field": ".avatar",
+          "label": "Avatar",
+          "format": {
+            "type": "image",
+            "width": 40,
+            "height": 40,
+            "alt": "avatar .name"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".avatar\"><span class=\"list-th-label\">Avatar</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-image\"><img alt=\"avatar Ada\" height=\"40\" src=\"/img/ada.png\" width=\"40\"></td></tr><tr><td class=\"list-td list-td-image\"><img alt=\"avatar Lin\" height=\"40\" src=\"/img/lin.png\" width=\"40\"></td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-html",
+    "note": "html format → the ONE sanctioned raw passthrough (verbatim, no wrapper) (§9.2).",
+    "spec": {
+      "columns": {
+        "bio": {
+          "field": ".bio",
+          "label": "Bio",
+          "format": {
+            "type": "html"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "bio": "<b data-x=\"1\">bold</b>"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".bio\"><span class=\"list-th-label\">Bio</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-html\"><b data-x=\"1\">bold</b></td></tr></tbody></table></div>"
+  },
+  {
+    "name": "column-show-expr-hidden",
+    "note": "design.show '.admin' falsy → the column is dropped from header AND every row (G1).",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        },
+        "secret": {
+          "field": ".secret",
+          "label": "Secret",
+          "design": {
+            "show": ".admin"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada",
+        "secret": "TOPSECRET"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "data": {
+        "admin": false
+      }
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "column-show-expr-visible",
+    "note": "design.show '.admin' truthy → the column is kept (G1).",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        },
+        "secret": {
+          "field": ".secret",
+          "label": "Secret",
+          "design": {
+            "show": ".admin"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada",
+        "secret": "visible"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "data": {
+        "admin": true
+      }
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th><th class=\"list-th\" data-field=\".secret\"><span class=\"list-th-label\">Secret</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">visible</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "i18n-header-ko",
+    "note": "i18n header resolves to ko under language:ko.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": {
+            "ko": "이름",
+            "en": "Name"
+          }
+        },
+        "status": {
+          "field": ".status",
+          "label": {
+            "ko": "상태",
+            "en": "Status"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">이름</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">상태</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "i18n-header-en",
+    "note": "i18n header resolves to en under language:en (same spec as -ko).",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": {
+            "ko": "이름",
+            "en": "Name"
+          }
+        },
+        "status": {
+          "field": ".status",
+          "label": {
+            "ko": "상태",
+            "en": "Status"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "sort-display",
+    "note": "sortable column + declared sort → data-sortable + data-sort-dir on the matching <th>.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name",
+          "sortable": true
+        },
+        "status": {
+          "field": ".status",
+          "label": "Status"
+        }
+      },
+      "sort": {
+        "field": ".name",
+        "dir": "asc"
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\" data-sort-dir=\"asc\" data-sortable=\"true\"><span class=\"list-th-label\">Name</span><span class=\"list-sort\">↕</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "pagination-display",
+    "note": "pagination declared + injected page/total meta → <nav class=list-pagination> data attrs.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 20,
+        "mode": "pages"
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "pageMeta": {
+        "page": 2,
+        "total": 99
+      }
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr><tr><td class=\"list-td list-td-text\">Lin</td></tr></tbody></table><nav class=\"list-pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"99\"></nav></div>"
+  },
+  {
+    "name": "design-column-class-style",
+    "note": "column design class/style reaches the <th> verbatim (form-spec design reuse).",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name",
+          "design": {
+            "class": "text-right",
+            "style": "width: 40%"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th text-right\" data-field=\".name\" style=\"width: 40%\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text text-right\" style=\"width: 40%\">Ada</td></tr><tr><td class=\"list-td list-td-text text-right\" style=\"width: 40%\">Lin</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "empty-message",
+    "note": "no rows → the translated empty message, no <table>.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      },
+      "empty": {
+        "ko": "데이터 없음",
+        "en": "No data"
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><div class=\"list-empty\">No data</div></div>"
+  },
+  {
+    "name": "actions-toolbar",
+    "note": "link-format action → <a>; bare behavior action → <button> with the verbatim on* script.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": {
+            "en": "Edit"
+          },
+          "format": {
+            "type": "link",
+            "href": "/edit"
+          }
+        },
+        "remove": "confirmDelete(this)"
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"list-view\"><div class=\"list-actions\"><span class=\"list-action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span><span class=\"list-action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span></div><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "card-layout",
+    "note": "card layout → one .list-card article per row with label:value pairs, no <table>.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": {
+            "en": "Name"
+          }
+        },
+        "status": {
+          "field": ".status",
+          "label": {
+            "en": "Status"
+          },
+          "format": {
+            "type": "badge",
+            "map": {
+              "active": "success",
+              "blocked": "danger"
+            }
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "layout": "card"
+    },
+    "expected_html": "<div class=\"list-view\"><div class=\"list-cards\"><article class=\"list-card\"><div class=\"list-td list-td-text\"><span class=\"list-card-label\">Name</span><span class=\"list-card-value\">Ada</span></div><div class=\"list-td list-td-badge\"><span class=\"list-card-label\">Status</span><span class=\"list-card-value\"><span class=\"badge badge-success\">active</span></span></div></article><article class=\"list-card\"><div class=\"list-td list-td-text\"><span class=\"list-card-label\">Name</span><span class=\"list-card-value\">Lin</span></div><div class=\"list-td list-td-badge\"><span class=\"list-card-label\">Status</span><span class=\"list-card-value\"><span class=\"badge badge-danger\">blocked</span></span></div></article></div></div>"
+  },
+  {
+    "name": "compose-ref-patch",
+    "note": "$ref base columns + $patch overlay (the SAME compose engine as form-spec).",
+    "spec": {
+      "columns": {
+        "$ref": "base-columns.yml",
+        "$patch": {
+          "extra": {
+            "field": ".extra",
+            "label": "Extra"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 7,
+        "extra": "E"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "files": {
+        "base-columns.yml": {
+          "properties": {
+            "id": {
+              "field": ".id",
+              "label": "ID",
+              "sortable": true
+            }
+          }
+        }
+      }
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".id\" data-sortable=\"true\"><span class=\"list-th-label\">ID</span><span class=\"list-sort\">↕</span></th><th class=\"list-th\" data-field=\".extra\"><span class=\"list-th-label\">Extra</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">7</td><td class=\"list-td list-td-text\">E</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "unresolved-ref-error",
+    "note": "unresolved $ref → ComposeLoadError (render FAILS, never valid).",
+    "spec": {
+      "columns": {
+        "$ref": "missing.yml"
+      }
+    },
+    "rows": [],
+    "options": {
+      "files": {}
+    },
+    "expectError": {
+      "code": "REF_FILE_NOT_FOUND"
+    }
+  }
+]

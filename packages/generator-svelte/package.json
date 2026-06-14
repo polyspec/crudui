@@ -26,7 +26,8 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "test:current": "vitest run test/form-render.conformance.test.mjs",
+    "test:current": "vitest run test/form-render.conformance.test.mjs test/list-render.conformance.test.mjs",
+    "test:list": "vitest run test/list-render.conformance.test.mjs",
     "test:watch": "vitest"
   },
   "keywords": [
