@@ -21,6 +21,7 @@
 
 import { buildForm, type BuildFormOptions } from '@form-spec/generator-core';
 import type { Language, UnsupportedMode } from '@form-spec/generator-core';
+import { buildList, type BuildListOptions } from '@form-spec/generator-core';
 
 export { ComposeLoadError } from '@form-spec/validator';
 export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
@@ -37,6 +38,22 @@ export { Form } from './components/Form';
 export { fieldVNode } from './components/Field';
 export { Widget } from './components/Widget';
 
+// list-spec (read sister) — buildList view model + the Vue List adapter
+// (additive; the form/write surfaces above are untouched). schema §9.
+export { buildList } from '@form-spec/generator-core';
+export type {
+  ListViewModel,
+  ColumnVM,
+  CellVM,
+  ListRowVM,
+  PaginationVM,
+  SortVM,
+  ActionVM,
+  CellDisplay,
+} from '@form-spec/generator-core';
+export { List } from './components/List';
+export type { ListLayout } from './components/List';
+
 /** Options for a CRUDUI form render. */
 export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
   /** Form data (the expr engine's formData + value source). */
@@ -50,3 +67,16 @@ export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | '
 
 
 export { renderFormSSR } from './ssr';
+
+/** Options for a CRUDUI list view-model build (re-exported shape; rows are injected). */
+export type ListOptions = BuildListOptions;
+
+/**
+ * Build the `ListViewModel` for a CRUDUI list-spec via the shared core. `rows` are
+ * INJECTED display rows (no DB access); search/sort/pagination are declared only
+ * (the server applies them). Throws `ComposeLoadError` on an unresolved `$ref`.
+ */
+
+
+export { renderListSSR } from './listSsr';
+export type { RenderListOptions } from './listSsr';
