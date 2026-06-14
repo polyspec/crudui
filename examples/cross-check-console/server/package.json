@@ -1,0 +1,20 @@
+{
+  "name": "form-spec-cross-check-console",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Cross-check gateway: 4-language current validate fan-out + 3-framework current SSR + static console",
+  "main": "server.mjs",
+  "scripts": {
+    "build:go": "cd ../../../packages/validator-go && go build -o validate ./cmd/validate",
+    "build:rust": "cd ../../../packages/validator-rust && cargo build --release --bin validate",
+    "check:js-cli": "echo '{\"spec\":{\"type\":\"group\",\"properties\":{}},\"data\":{}}' | node --import tsx ../../../packages/validator-js/bin/validate.mjs",
+    "build:cli": "npm run build:go && npm run build:rust",
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "vitest run --root . --dir ."
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
