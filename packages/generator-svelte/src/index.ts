@@ -24,12 +24,16 @@ import type { FileLoader } from '@form-spec/validator';
 import Form, { buildFormHtml, type FormProps } from './Form.svelte';
 import type { Language } from './content';
 
+import type { UnsupportedMode } from './render';
+
 export { ComposeLoadError } from '@form-spec/validator';
+export { UnsupportedFieldTypeError } from './errors';
 export { renderField } from './render';
 export { resolveDesign } from './design';
 export { evalShow, evalAppearance, makeContext } from './expr';
 export { makeTranslate } from './content';
 export type { Language } from './content';
+export type { UnsupportedMode } from './render';
 export { default as Form, buildFormHtml } from './Form.svelte';
 export type { FormProps } from './Form.svelte';
 
@@ -47,6 +51,11 @@ export interface RenderFormOptions {
   loader?: FileLoader;
   /** Basepath for relative $ref. */
   basepath?: string;
+  /**
+   * Unsupported field-type handling (default 'throw' — un-ported types are RED,
+   * never silent). 'marker' emits a grep-able data-unsupported-type div instead.
+   */
+  unsupported?: UnsupportedMode;
 }
 
 /**
@@ -78,11 +87,13 @@ export function renderForm(
     files: options.files,
     loader: options.loader,
     basepath: options.basepath,
+    unsupported: options.unsupported,
   };
 
   // svelte/server render() runs the four stages inside the component. A
-  // ComposeLoadError thrown during compose propagates out unchanged (an
-  // unresolved $ref is a load error, never valid:true).
+  // ComposeLoadError (unresolved $ref) or UnsupportedFieldTypeError (un-ported
+  // type, default-throw mode) propagates out unchanged — a render gap is a
+  // surfaced error, never valid:true / never silent.
   const { body } = render(Form, { props });
   return stripSsrScaffolding(body);
 }
@@ -103,5 +114,6 @@ export function renderFormString(
     files: options.files,
     loader: options.loader,
     basepath: options.basepath,
+    unsupported: options.unsupported,
   });
 }

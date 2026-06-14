@@ -48,11 +48,12 @@ render throws `ComposeLoadError` with the recorded `code`.
 The normalizer erases what is NOT load-bearing across frameworks while keeping
 the load-bearing structure (tag tree, attribute presence + values, text):
 
-- **N1 uniqid mask** — every generated Limepie token `__<11..16 hex>__` →
-  `__UNIQID__`, wherever it appears (`data-uniqid`, and placeholder/array row
-  keys inside `name="...[__hex__]"`). Only token LENGTH is contractual; the value
-  is a per-render counter. Real data row ids (e.g. `p1`, a server PK / G4 data
-  identity) are NOT this shape and survive unmasked.
+- **(no uniqid mask)** — row identity is now EXPLICIT and deterministic (G4): the
+  client serialization index (`#N` → `data-uniqid="N"`, `name="...[N]"`) for
+  new/array rows, the hidden data key (server PK, e.g. `p1`) for object-keyed
+  rows, and a path-derived `elementId` for single fields/widgets. Those are
+  byte-identical across React/Vue/Svelte, so nothing is masked. There is no
+  magic random `__<hex>__` token anymore.
 - **N2 attribute order** — attributes within a tag are sorted by name.
 - **N3 empty-value attrs** — `x=""` is kept (presence is load-bearing).
 - **N4 empty class/style** — `class=""` and `style=""` are dropped (no-op chrome).
@@ -60,7 +61,12 @@ the load-bearing structure (tag tree, attribute presence + values, text):
   collapse to one space; leading/trailing trimmed.
 - **N6 self-closing** — ` />` / `/>` normalize to `>`.
 
-## Coverage (22 cases)
+## Coverage (92 cases)
+
+The 22 design/compose/multiple/lang scenarios below are the `generate.ts` base;
+`gen-cases.mts` appends per-type regression + new-widget cases (incl.
+switcher/checkbox/email).
+
 
 - `design.show` expression (truthy → shown, falsy → wrapper `display: none` with
   DOM kept — the legacy non-removal contract).
@@ -78,8 +84,9 @@ the load-bearing structure (tag tree, attribute presence + values, text):
 - `multiple: { max, sortable, copy }` bucket → `data-multiple-max`, move-up/down,
   copy + `btn-delete` (canonical keys only; legacy `multiple_max`/`sortable`/
   `multiple_copy` are NOT recognition keys).
-- `multiple` group rows: real data id preserved (G4), no `__13hex__` position id
-  leakage.
+- `multiple` group rows: real data id preserved as `data-uniqid` (G4 hidden
+  server PK); array/new rows carry the explicit `#N` position index (no
+  `__13hex__` magic-token position id).
 - `lang: true` (default ko/en/ja/zh language children + lang-code prepend span);
   `lang: { only, title, frame:false }` bucket.
 - group nested `properties` (recursive children).
@@ -93,16 +100,19 @@ the load-bearing structure (tag tree, attribute presence + values, text):
 ## Generation
 
 `expected_html` is the React CRUDUI reference generator's real output — never
-hand-written. Regenerate:
+hand-written. Regenerate (two steps: base, then appended widget cases):
 
 ```sh
 # from repo root
 node_modules/.bin/tsx tests/fixtures/form-render/generate.ts > tests/fixtures/form-render/cases.json
+node_modules/.bin/tsx tests/fixtures/form-render/gen-cases.mts
 ```
 
 `generate.ts` imports `renderForm` from
-`packages/generator-react/src/index.ts`, renders every scenario, normalizes
-with `normalize.mjs`, and dumps the JSON. The conformance test
+`packages/generator-react/src/index.ts`, renders every base scenario,
+normalizes with `normalize.mjs`, and dumps the JSON; `gen-cases.mts` appends the
+per-type + new-widget cases (keeping existing ones byte-for-byte). The
+conformance test
 (`packages/generator-react/src/__tests__/form-render.conformance.test.ts`)
 re-verifies the React engine against the dumped fixture.
 ```

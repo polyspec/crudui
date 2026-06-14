@@ -197,7 +197,12 @@ properties:
 - 조건맵 평가기 0건, `$ref`/`$patch` 합성 0건 — 미해결 `$ref`가 `valid:true` 오검증 (G-D·G-F)
 - 표현식 토큰열/AST 공유 픽스처 0건 — "4언어 동일" 축 측정 불가 (G-B·G-D·G-G)
 - 실운영 577 코퍼스 wiring 0 — 판정 분모 미확보 (G-F)
-- 매직토큰 `__13hex__` 잔존 (R4·G4), PHP 표현식만 문자열 split (Go/Rust/JS는 AST) (G-D)
+- 매직토큰 `__13hex__` 해소 (R4·G4): CRUDUI generator 3종(react/vue/svelte)이 반복 행을
+  명시적 위치 인덱스(`#N`→`data-uniqid="N"`·`name="…[N]"`, data-name/rule-name은 `[]`로
+  collapse)로 식별하고 기존 행은 숨긴 데이터 id(서버 PK = 객체 키)를 보존한다. 단일
+  필드·위젯 id는 경로 파생 결정값(`elementId`). 랜덤 `__<hex>__` 토큰 0, normalize.mjs
+  uniqid 마스크 제거(3프레임워크 정규화 후 동일 HTML). 공유 픽스처 재생성 완료.
+- PHP 표현식만 문자열 split (Go/Rust/JS는 AST) (G-D)
 
 **구현 순서**(의존성): 정규 스키마 확정 → 표현엔진 통일(PHP AST 신규) → 조건맵·합성
 → 검증기 CRUDUI 슬롯 소비 → 표시로직 코드→스펙 이전 → legacy→CRUDUI 번역기 → 577 반입 →
