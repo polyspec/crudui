@@ -33,9 +33,9 @@ import {
   ruleNameForPath,
   styleString,
   toBracketNotationWithPrefix,
-} from '../util';
-import type { ResolvedDesign } from '../design';
-import type { Translate } from '../content';
+} from './util';
+import type { ResolvedDesign } from './design';
+import type { Translate } from './content';
 
 /** Inputs every widget evaluator needs for one leaf field. */
 export interface WidgetCtx {

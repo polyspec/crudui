@@ -1,0 +1,58 @@
+{
+  "name": "@form-spec/generator-core",
+  "version": "0.0.1",
+  "description": "Framework-agnostic current evaluation core (compose + evaluate, markup 0) shared by every form-spec generator adapter (React/Vue/Svelte)",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "form",
+    "form-builder",
+    "yaml",
+    "spec",
+    "validation",
+    "legacy"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@form-spec/validator": "file:../validator-js"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "eslint": "^10.5.0",
+    "tsup": "^8.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  }
+}

@@ -19,22 +19,22 @@
 
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { buildForm, type BuildFormOptions } from './core';
+import { buildForm, type BuildFormOptions } from '@form-spec/generator-core';
 import { Form } from './components/Form';
-import type { Language } from './content';
-import type { UnsupportedMode } from './core';
+import type { Language } from '@form-spec/generator-core';
+import type { UnsupportedMode } from '@form-spec/generator-core';
 
 export { ComposeLoadError } from '@form-spec/validator';
-export { UnsupportedFieldTypeError } from './errors';
-export { resolveDesign } from './design';
-export { evalShow, evalAppearance, makeContext } from './expr';
-export { makeTranslate } from './content';
-export type { Language } from './content';
-export type { UnsupportedMode } from './core';
+export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
+export { resolveDesign } from '@form-spec/generator-core';
+export { evalShow, evalAppearance, makeContext } from '@form-spec/generator-core';
+export { makeTranslate } from '@form-spec/generator-core';
+export type { Language } from '@form-spec/generator-core';
+export type { UnsupportedMode } from '@form-spec/generator-core';
 
 // Core + components (the shared evaluation + the React adapter surfaces).
-export { buildForm } from './core';
-export type { FieldViewModel, WidgetModel } from './core';
+export { buildForm } from '@form-spec/generator-core';
+export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
 export { Form } from './components/Form';
 export { Field } from './components/Field';
 export { Widget } from './components/Widget';

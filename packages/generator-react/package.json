@@ -53,6 +53,7 @@
     "react-dom": ">=17.0.0"
   },
   "dependencies": {
+    "@form-spec/generator-core": "file:../generator-core",
     "@form-spec/validator": "file:../validator-js",
     "lucide-react": "^1.18.0",
     "yaml": "^2.3.0"
