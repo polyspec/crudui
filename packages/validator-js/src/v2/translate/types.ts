@@ -69,9 +69,22 @@ export type IrreversibleReason =
 
 /**
  * The full translator key table — every legacy key family the analysis lists,
- * tagged with reversibility and (when irreversible) the R7 reason. This is the
- * documentation/tooling surface; the actual rewrite logic in `v1tov2.ts` /
- * `v2tov1.ts` consults these flags. Order follows the analysis `key_mappings`.
+ * tagged with reversibility and (when irreversible) the R7 reason. Order follows
+ * the analysis `key_mappings`.
+ *
+ * What ACTUALLY consumes this table (single truth, no over-claim):
+ *   - `v1tov2.ts` consults it as the authoritative R7-reason registry: every
+ *     reason the forward translator records (`note()`) must be a row the table
+ *     marks `reversible:false` — an unregistered reason throws.
+ *   - the round-trip gate (`index.ts roundtripV1`) splits cases by whether the
+ *     forward pass logged any such reason (reversible = empty note log).
+ *   - `translate.unit.test.ts` asserts table integrity (every irreversible row
+ *     carries a reason, every reversible row omits it).
+ *
+ * What does NOT read it: the per-key REWRITE/INVERSE logic in `v1tov2.ts` /
+ * `v2tov1.ts` is driven by value-and-context-dependent maps (DESIGN_NODE_MAP,
+ * LANG_KEY_MAP, …), not by the table's human-label `v1` column — the table is
+ * the reason vocabulary, not the rewrite dispatch.
  */
 export interface KeyMapping {
   /** The legacy key family (or a short label for distributed/plural families). */
@@ -116,6 +129,7 @@ export const KEY_MAPPINGS: readonly KeyMapping[] = [
   { v1: 'prepend_class', v2: 'design.prepend.class', reversible: true },
   { v1: 'element_class', v2: 'design.class', reversible: true },
   { v1: 'fieldset_class / button_class / append_class / header_class', v2: 'design.{node}.class — node NOT enumerated', reversible: false, reason: 'NODE_NOT_ENUMERATED' },
+  { v1: 'class / style : null (empty appearance)', v2: '— dropped (Design.{class,style} is string|ConditionMap, never null)', reversible: false, reason: 'DESIGN_NULL_DROP' },
 
   // -- behavior (opaque scripts) --
   { v1: 'onchange / onclick / onload (script)', v2: 'behavior.onchange / .onclick / .onload', reversible: true },
@@ -149,6 +163,8 @@ export const KEY_MAPPINGS: readonly KeyMapping[] = [
   // -- items (static + dynamic source) --
   { v1: 'items (static map/array)', v2: 'items (polymorphic)', reversible: true },
   { v1: 'items dynamic source (model/method/table/relations)', v2: 'items.{model,method,table,relations}', reversible: true },
+  { v1: 'items : null / empty items', v2: '— dropped (Items is array|source|label-map, never null)', reversible: false, reason: 'ITEMS_NULL_DROP' },
+  { v1: 'items numeric/non-string label', v2: 'items label stringified (ItemLabel is string|LangMap|null, never a number)', reversible: false, reason: 'ITEM_LABEL_STRINGIFY' },
 
   // -- options (type-dependent open bucket) --
   { v1: 'type-dependent keys (readonly/value/href/accept/rows/width/height/…)', v2: 'options.{key}', reversible: true },
@@ -165,6 +181,7 @@ export const KEY_MAPPINGS: readonly KeyMapping[] = [
 
   // -- structure inference --
   { v1: 'properties present, type absent', v2: 'type: group (injected — Field.required=[type])', reversible: false, reason: 'TYPE_GROUP_INJECTED' },
+  { v1: 'properties : null / empty (no children)', v2: 'type: group + properties:{} (empty group, not a typeless options node)', reversible: false, reason: 'EMPTY_PROPERTIES_GROUP' },
 
   // -- items dynamic source vs HTTP verb --
   { v1: 'method (lone, no model/table/relations/items sibling)', v2: 'options.method (form/field HTTP verb, NOT items source)', reversible: true },

@@ -205,7 +205,7 @@ impl ValidatorV2 {
                     continue;
                 }
                 if let Some(message) =
-                    self.run_rule(rule_name, rule_value, values, field_path, field, messages, all_data)
+                    self.run_rule(rule_name, rule_value, values, field_path, messages, all_data)
                 {
                     errors.push(ValidationError {
                         path: path_to_string(field_path),
@@ -251,7 +251,7 @@ impl ValidatorV2 {
                 continue;
             }
             if let Some(message) =
-                self.run_rule(rule_name, rule_value, value, item_path, field, messages, all_data)
+                self.run_rule(rule_name, rule_value, value, item_path, messages, all_data)
             {
                 errors.push(ValidationError {
                     path: path_to_string(item_path),
@@ -286,7 +286,7 @@ impl ValidatorV2 {
         };
         for (rule_name, rule_value) in rules {
             if let Some(message) =
-                self.run_rule(rule_name, rule_value, value, field_path, field, messages, all_data)
+                self.run_rule(rule_name, rule_value, value, field_path, messages, all_data)
             {
                 errors.push(ValidationError {
                     path: path_to_string(field_path),
@@ -320,7 +320,7 @@ impl ValidatorV2 {
             return false;
         }
         if let Some(message) =
-            self.run_rule("number", &Value::Bool(true), value, path, field, messages, all_data)
+            self.run_rule("number", &Value::Bool(true), value, path, messages, all_data)
         {
             errors.push(ValidationError {
                 path: path_to_string(path),
@@ -340,14 +340,12 @@ impl ValidatorV2 {
 
     /// Run one rule: resolve its (possibly conditional) value to an effective
     /// param, skip on false/null, else call the rule. Returns the error or None.
-    #[allow(clippy::too_many_arguments)]
     fn run_rule(
         &self,
         rule_name: &str,
         rule_value: &Value,
         value: &Value,
         current_path: &[String],
-        field: &Value,
         messages: Option<&Value>,
         all_data: &Value,
     ) -> Option<String> {
@@ -358,12 +356,9 @@ impl ValidatorV2 {
             return None;
         }
 
-        let rule_fn = match get_rule(rule_name) {
-            Some(f) => f,
-            None => return None, // unregistered rule: no error
-        };
+        // unregistered rule: no error
+        let rule_fn = get_rule(rule_name)?;
 
-        let _ = field;
         let ctx = RuleContext {
             value,
             rule_param: &effective,
@@ -451,9 +446,7 @@ impl ValidatorV2 {
         if !is_condition_expression(condition) {
             return None;
         }
-        if parse_condition_ok(condition).is_none() {
-            return None;
-        }
+        parse_condition_ok(condition)?;
 
         let condition_result = evaluate_condition(condition, all_data, current_path);
         let branch = if condition_result {

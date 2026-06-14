@@ -10,6 +10,11 @@
 //! (`packages/validator-js/src/v2/compose`); the shared 4-language fixture
 //! `tests/fixtures/compose/cases.json` is the single source of truth.
 
+// Intentional: `compose/compose.rs` mirrors the JS reference layout
+// (`packages/validator-js/src/v2/compose/compose`), the byte-for-byte parity
+// source. Renaming would diverge the two engines' file maps; the re-exports
+// below flatten the path for callers (`compose::compose_spec`).
+#[allow(clippy::module_inception)]
 pub mod compose;
 pub mod errors;
 pub mod loader;

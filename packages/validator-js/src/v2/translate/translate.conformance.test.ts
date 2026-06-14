@@ -137,6 +137,82 @@ describe('R7 transcend set: irreversible cases are OUTSIDE the gate, with a reas
   });
 });
 
+describe('meta-schema NEGATIVE regression: forbidden meta keys are rejected (valid:false)', () => {
+  // Each spec is a valid v2 Field with ONE forbidden meta key injected. The Ajv
+  // meta-schema must reject every one — proving the canonical model does NOT
+  // recognize condition-only meta keys / legacy patch directives / x{key} (R2/R4).
+  // This is the static twin of the runtime forbidden-scan: if any of these passes
+  // Ajv, the constitution leaked a meta key and the negative gate has no teeth.
+  const pollutedSpecs: { name: string; spec: Record<string, unknown> }[] = [
+    {
+      name: 'display_switch at field top level',
+      spec: { type: 'text', display_switch: { 1: ['x'] } },
+    },
+    {
+      name: 'display_target at field top level',
+      spec: { type: 'text', display_target: '.a' },
+    },
+    {
+      name: '$after composition directive (must be $patch)',
+      spec: { type: 'text', $after: { foo: { type: 'text' } } },
+    },
+    {
+      name: '$before composition directive',
+      spec: { type: 'text', $before: { foo: { type: 'text' } } },
+    },
+    {
+      name: '$merge composition directive',
+      spec: { type: 'text', $merge: { foo: 1 } },
+    },
+    {
+      name: '$remove composition directive',
+      spec: { type: 'group', properties: { $remove: ['old'] } },
+    },
+    {
+      name: 'if condition-only meta key under options bucket',
+      spec: { type: 'text', options: { if: '.a==1' } },
+    },
+    {
+      name: 'when condition-only meta key under options bucket',
+      spec: { type: 'text', options: { when: '.a' } },
+    },
+    {
+      name: 'show_if condition-only meta key under options bucket',
+      spec: { type: 'text', options: { show_if: true } },
+    },
+    {
+      name: 'x{key} comment residue (xclass) at field top level',
+      spec: { type: 'text', xclass: 'old' },
+    },
+    {
+      name: 'x{key} comment residue (xnote) under properties map',
+      spec: { type: 'group', properties: { xnote: { type: 'text' } } },
+    },
+    {
+      name: 'seqtokey legacy magic encoding under options',
+      spec: { type: 'text', options: { seqtokey: 1 } },
+    },
+    {
+      name: 'magic-symbol meta key "_" under validate slot',
+      spec: { type: 'text', validate: { _: true } },
+    },
+  ];
+
+  for (const { name, spec } of pollutedSpecs) {
+    test(`${name}: Ajv rejects (valid:false)`, () => {
+      const ok = validateSchema(spec);
+      expect(
+        ok,
+        `meta-schema accepted a forbidden meta key — leak: ${JSON.stringify(spec)}`
+      ).toBe(false);
+    });
+  }
+
+  test('control: the un-polluted base spec IS accepted (gate is not a blanket reject)', () => {
+    expect(validateSchema({ type: 'text', options: { rows: 3 } })).toBe(true);
+  });
+});
+
 describe('v1→v2 translator — every fixture case declares a verdict', () => {
   test('no case is silently missing its roundtrip verdict', () => {
     for (const c of cases) {
