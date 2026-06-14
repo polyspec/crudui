@@ -9,8 +9,15 @@
 //
 // Protocol (gateway subprocess contract):
 //
-//	stdin   {"spec": <object>, "data": <object>, "files"?: {key: <object>}, "basepath"?: <string>}
+//	stdin   {"spec": <object>, "data": <object>, "files"?: {key: <object>}, "basepath"?: <string>, "mode"?: "form"|"list"}
 //	stdout  {"valid": <bool>, "errors": [ {path, field, rule, message, value}, … ]}
+//
+// mode selects the validation entry (default "form"):
+//   - "form" — ValidateJSON (compose → forbidden-scan → DATA validate). data is read.
+//   - "list" — ValidateListJSON (compose → forbidden-scan ONLY; schema §9). A
+//     list carries no rows, so there is no DATA pass and `data` is ignored. The
+//     SAME load wire applies (an unresolved $ref / forbidden meta key is a fatal
+//     load envelope). The form path is untouched — list is an additive branch.
 //
 // A compose LOAD failure (unresolved $ref / $patch / forbidden meta key) is NOT
 // valid:false — it is reported as a fatal {"error": …} envelope on stdout. The
@@ -36,6 +43,9 @@ type request struct {
 	Data     json.RawMessage            `json:"data"`
 	Files    map[string]json.RawMessage `json:"files"`
 	Basepath string                     `json:"basepath"`
+	// Mode selects the validation entry: "form" (default) | "list". An unknown mode
+	// is a bad request (fatal {error}), never a silent fallback.
+	Mode string `json:"mode"`
 }
 
 func main() {
@@ -56,7 +66,18 @@ func main() {
 		files[k] = []byte(raw)
 	}
 
-	result, err := validate.ValidateJSON(req.Spec, req.Data, files, req.Basepath)
+	// Mode dispatch (default form). list runs compose → forbidden-scan only (no
+	// DATA pass, schema §9): a list carries no rows. The form path is unchanged.
+	var result validate.ValidationResult
+	switch req.Mode {
+	case "", "form":
+		result, err = validate.ValidateJSON(req.Spec, req.Data, files, req.Basepath)
+	case "list":
+		result, err = validate.ValidateListJSON(req.Spec, files, req.Basepath)
+	default:
+		fatal(fmt.Sprintf("unknown mode %q (want \"form\" | \"list\")", req.Mode))
+		return
+	}
 	if err != nil {
 		// A compose LOAD failure (ComposeLoadError) or a decode failure is NOT a
 		// validation result. Report it as a fatal {error} envelope — never

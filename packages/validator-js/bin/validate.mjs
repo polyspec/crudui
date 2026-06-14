@@ -12,13 +12,21 @@
  * `src/bin/validate.rs`; the gateway spawns it with spawnSync, encoding
  * utf-8, the request piped on stdin, a 10s timeout):
  *
- *   stdin  : {"spec": <object>, "data": <object>, "files"?: {key:<object>}, "basepath"?: <string>}
+ *   stdin  : {"spec": <object>, "data": <object>, "files"?: {key:<object>}, "basepath"?: <string>, "mode"?: "form"|"list"}
  *   stdout : {"valid": <bool>, "errors": [{path, field, rule, message, value}, ...]}
  *
  * `spec` arrives already decoded (the gateway parses YAML; this CLI sees a plain
- * object). It runs the full CRUDUI pipeline `validate` — compose (G5) →
- * forbidden-scan (§6) → validate (§3 + §2 G1). This is a THIN wrapper: it adds
- * no validation logic and never touches the legacy Validator (R7 parallel run).
+ * object). Two modes (default "form"):
+ *   - form: the full CRUDUI pipeline `validate` — compose (G5) → forbidden-scan
+ *     (§6) → validate (§3 + §2 G1) of `data` (the form rows).
+ *   - list: the read sister `validateList` (SPEC §9) — compose (columns/search
+ *     $ref/$patch) → forbidden-scan over the list tree. It validates NO rows (a
+ *     list has no data; rows are injected, DB-agnostic), so `data` is ignored and
+ *     a clean load is {"valid":true,"errors":[]}. The "schema shape" half
+ *     (1급 closed / enum / required / CellFormat polymorphism) stays with the
+ *     meta-schema, not this engine.
+ * This is a THIN wrapper: it adds no validation logic and never touches the legacy
+ * Validator (R7 parallel run).
  *
  * Failure surfaces (mirrors the Rust wrapper exactly — exit 1, {error,code}):
  *   - A ComposeLoadError (unresolved $ref/$patch, or a forbidden meta key in the
@@ -35,6 +43,7 @@
  */
 
 import { validate, ComposeLoadError } from '../src/validate/index.ts';
+import { validateList } from '../src/validate-list/index.ts';
 
 /** Emit one JSON line to stdout, then exit with the given code. */
 function emit(obj, code) {
@@ -80,7 +89,11 @@ async function main() {
     emit({ error: "Request `spec` must be an object" }, 1);
   }
 
-  // `data` defaults to {} (JS validate `data ?? {}`).
+  // `mode` selects the entry: "form" (default) validates `data`; "list" validates
+  // a list-spec STRUCTURE (compose + forbidden-scan) and ignores rows (SPEC §9).
+  const mode = req.mode === 'list' ? 'list' : 'form';
+
+  // `data` defaults to {} (JS validate `data ?? {}`). Ignored in list mode.
   const data = req.data && typeof req.data === 'object' && !Array.isArray(req.data) ? req.data : {};
 
   // Optional virtual file set + basepath for $ref resolution. The gateway sends
@@ -97,7 +110,7 @@ async function main() {
 
   let result;
   try {
-    result = validate(spec, data, opts);
+    result = mode === 'list' ? validateList(spec, opts) : validate(spec, data, opts);
   } catch (e) {
     // ComposeLoadError is a LOAD failure (unresolved $ref / forbidden key), NOT
     // a validation failure. Surface { error, code } — never valid:false.
