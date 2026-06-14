@@ -48,3 +48,6 @@ schema/form-spec.schema.json
 # phpDocumentor phar + cache (large, environment-local)
 tools/bin/phpDocumentor.phar
 tools/bin/.phpdoc-cache/
+# v2 corpus measurement artifacts (reproducible via scripts/corpus-v2-run.mts against blue/app)
+scripts/corpus-v2-result.json
+scripts/corpus-v2-classified.json
