@@ -1,6 +1,6 @@
 # @crudui/generator-react
 
-React form builder for form-spec definitions. Two surfaces:
+React form builder for crudui definitions. Two surfaces:
 
 - legacy (`src/index.ts`) — `FormBuilder` and the legacy field/group components,
   byte-parity with the Limepie PHP `Generator::write()` reference fixtures.

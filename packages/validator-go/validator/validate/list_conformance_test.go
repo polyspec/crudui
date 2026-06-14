@@ -7,7 +7,7 @@ package validate
 // surface (schema §9.4). It is read by TWO gates with DISJOINT ownership, and
 // this test asserts ONLY the gate the 4-language engine owns:
 //
-//	(A) the meta-schema gate (ajv, schema/form-spec-model.schema.json
+//	(A) the meta-schema gate (ajv, schema/crudui-model.schema.json
 //	    #/definitions/List; validator-ts list-metaschema.conformance.test.ts) owns
 //	    the "schema-shape" verdicts — required:columns, additionalProperties:false
 //	    (1급 closure), the sort.dir / pagination.mode enums, and the CellFormat

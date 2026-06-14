@@ -3,7 +3,7 @@
  *
  * Drives the jQuery-validator-style legacy runtime
  *   examples/limepie-original/assets/js/dist.validate.js
- * under jsdom + jQuery, feeding it a form-spec test {spec, input} and
+ * under jsdom + jQuery, feeding it a crudui test {spec, input} and
  * extracting {valid, error, field} in the same shape compare-all.js uses
  * for the new validators (validator-ts/php/go/rust).
  *

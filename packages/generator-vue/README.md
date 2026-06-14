@@ -1,6 +1,6 @@
 # @crudui/generator-vue
 
-Vue 3 form builder for form-spec YAML definitions. Renders byte-parity output
+Vue 3 form builder for crudui YAML definitions. Renders byte-parity output
 with the legacy Limepie PHP `Generator::write()` (the reference fixtures under
 `tests/fixtures/reference-html` are the single source of truth).
 

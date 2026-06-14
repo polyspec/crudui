@@ -2,7 +2,7 @@
 //!
 //! Two modes, switched by stdin `mode` (default `"form"`):
 //!
-//!   form (default) — DATA validation of a form-spec:
+//!   form (default) — DATA validation of a crudui:
 //!     stdin  : `{ "spec": {…}, "data": {…}, "files"?: {…}, "basepath"?: "…" }`
 //!     stdout : `{ "valid": bool, "errors": [{ path, field, rule, message, value }] }`
 //!     Reuses `CRUDUI::validate::validate` (compose → forbidden-scan → validate).
@@ -30,8 +30,8 @@ use std::io::{self, Read, Write};
 
 use serde_json::{Map, Value};
 
-use formspec_validator::list::{validate_list, ValidateListOptions};
-use formspec_validator::validate::{validate, ValidateOptions, ValidationResult};
+use crudui_validator::list::{validate_list, ValidateListOptions};
+use crudui_validator::validate::{validate, ValidateOptions, ValidationResult};
 
 fn main() {
     let mut input_bytes = String::new();

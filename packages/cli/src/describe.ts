@@ -1,5 +1,5 @@
 /**
- * `form-spec describe` — the bridge between the CODE single-source-of-truth and
+ * `crudui describe` — the bridge between the CODE single-source-of-truth and
  * the SKILL/MCP procedure layer (architecture: 3-layer split, describe is the
  * leg of layers 1·2).
  *
@@ -8,11 +8,11 @@
  *   - generator-core REGISTRY  → widget kinds + per-kind layout (import)
  *   - validator-ts rules        → rule names (import getRuleNames)
  *   - validator-ts validator.ts → rule param-class tables (import)
- *   - schema/form-spec.json  → slots / nodes / buckets / forbidden enum (parse)
+ *   - schema/crudui.json  → slots / nodes / buckets / forbidden enum (parse)
  *   - validator-ts types.ts     → FORBIDDEN_META_KEYS + pattern (import)
  *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
- *   - schema/form-spec.json   → list definitions (List/Column/CellFormat/…) (parse)
+ *   - schema/crudui.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - EXPRESSION-GRAMMAR.md      → tokens / precedence / truthy / unsupported (parse)
  *   - spec/schema.md §3             → classification rules (parse)
  *
@@ -54,7 +54,7 @@ import { scanForbiddenKeys } from '../../validator-ts/src/forbidden-scan.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
-const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/form-spec.schema.json');
+const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/crudui.schema.json');
 const GRAMMAR_PATH = resolve(REPO_ROOT, 'docs/EXPRESSION-GRAMMAR.md');
 const SCHEMA_DOC_PATH = resolve(REPO_ROOT, 'docs/spec/schema.md');
 
@@ -535,20 +535,20 @@ export function describe(): DescribeResult {
 
   return {
     meta: {
-      schema: schema.$id ?? 'form-spec',
+      schema: schema.$id ?? 'crudui',
       widgetCount: WIDGET_COUNT,
       ruleCount: rules.length,
       sources: {
         widgets: 'packages/generator-core/src/widget.ts (REGISTRY)',
         rules: 'packages/validator-ts/src/rules/index.ts (builtInRules)',
         ruleParamClass: 'packages/validator-ts/src/validate/validator.ts',
-        slots: 'schema/form-spec.schema.json (definitions)',
+        slots: 'schema/crudui.schema.json (definitions)',
         forbiddenKeys: 'packages/validator-ts/src/schema.ts (FORBIDDEN_META_KEYS)',
         forbiddenScan: 'packages/validator-ts/src/forbidden-scan.ts',
         grammar: 'docs/EXPRESSION-GRAMMAR.md',
         classification: 'docs/spec/schema.md §3',
         listCellFormats: 'packages/generator-core/src/cell.ts (CELL_RENDERERS)',
-        listStructure: 'schema/form-spec.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
+        listStructure: 'schema/crudui.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
       },
     },
     widgets,
@@ -599,7 +599,7 @@ export function renderMarkdown(r: DescribeResult): string {
   const L: string[] = [];
   const push = (s = '') => L.push(s);
 
-  push(`# form-spec capabilities (describe)`);
+  push(`# crudui capabilities (describe)`);
   push();
   push(`> Generated from CODE single-source-of-truth. Hand-copied catalog: 0.`);
   push();

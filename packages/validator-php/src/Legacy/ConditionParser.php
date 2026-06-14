@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Legacy;
+namespace CRUDUI\Validator\Legacy;
 
-use FormSpec\Validator\PathResolver;
+use CRUDUI\Validator\PathResolver;
 
 /**
  * Parses and evaluates condition expressions.

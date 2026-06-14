@@ -1,14 +1,14 @@
 [package]
-name = "formspec-bench"
+name = "crudui-bench"
 version = "0.0.1"
 edition = "2021"
 
 [[bin]]
-name = "formspec-bench"
+name = "crudui-bench"
 path = "main.rs"
 
 [dependencies]
-formspec-validator = { path = "../../../packages/validator-rust" }
+crudui-validator = { path = "../../../packages/validator-rust" }
 serde_json = { version = "1", features = ["preserve_order"] }
 
 # Always build the bench optimized — an unoptimized debug build would measure

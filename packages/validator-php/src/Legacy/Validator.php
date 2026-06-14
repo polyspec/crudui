@@ -2,37 +2,37 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Legacy;
+namespace CRUDUI\Validator\Legacy;
 
-use FormSpec\Validator\PathResolver;
+use CRUDUI\Validator\PathResolver;
 
-use FormSpec\Validator\Rules\RuleInterface;
-use FormSpec\Validator\Rules\Required;
-use FormSpec\Validator\Rules\Email;
-use FormSpec\Validator\Rules\MinLength;
-use FormSpec\Validator\Rules\MaxLength;
-use FormSpec\Validator\Rules\Min;
-use FormSpec\Validator\Rules\Max;
-use FormSpec\Validator\Rules\Pattern;
-use FormSpec\Validator\Rules\Unique;
-use FormSpec\Validator\Rules\In;
-use FormSpec\Validator\Rules\Range;
-use FormSpec\Validator\Rules\RangeLength;
-use FormSpec\Validator\Rules\Number;
-use FormSpec\Validator\Rules\Digits;
-use FormSpec\Validator\Rules\EqualTo;
-use FormSpec\Validator\Rules\NotEqual;
-use FormSpec\Validator\Rules\Date;
-use FormSpec\Validator\Rules\DateISO;
-use FormSpec\Validator\Rules\EndDate;
-use FormSpec\Validator\Rules\Url;
-use FormSpec\Validator\Rules\Accept;
-use FormSpec\Validator\Rules\MinCount;
-use FormSpec\Validator\Rules\MaxCount;
-use FormSpec\Validator\Rules\Step;
+use CRUDUI\Validator\Rules\RuleInterface;
+use CRUDUI\Validator\Rules\Required;
+use CRUDUI\Validator\Rules\Email;
+use CRUDUI\Validator\Rules\MinLength;
+use CRUDUI\Validator\Rules\MaxLength;
+use CRUDUI\Validator\Rules\Min;
+use CRUDUI\Validator\Rules\Max;
+use CRUDUI\Validator\Rules\Pattern;
+use CRUDUI\Validator\Rules\Unique;
+use CRUDUI\Validator\Rules\In;
+use CRUDUI\Validator\Rules\Range;
+use CRUDUI\Validator\Rules\RangeLength;
+use CRUDUI\Validator\Rules\Number;
+use CRUDUI\Validator\Rules\Digits;
+use CRUDUI\Validator\Rules\EqualTo;
+use CRUDUI\Validator\Rules\NotEqual;
+use CRUDUI\Validator\Rules\Date;
+use CRUDUI\Validator\Rules\DateISO;
+use CRUDUI\Validator\Rules\EndDate;
+use CRUDUI\Validator\Rules\Url;
+use CRUDUI\Validator\Rules\Accept;
+use CRUDUI\Validator\Rules\MinCount;
+use CRUDUI\Validator\Rules\MaxCount;
+use CRUDUI\Validator\Rules\Step;
 
 /**
- * Core validator class for form-spec system.
+ * Core validator class for crudui system.
  * Validates form data against YAML specifications.
  */
 class Validator

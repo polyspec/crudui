@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Expr;
+namespace CRUDUI\Validator\Expr;
 
 /**
  * A single lexical token. `value` is the raw source text; `literal` is the

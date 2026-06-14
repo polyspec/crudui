@@ -1,6 +1,6 @@
 # Validator API Reference
 
-form-spec 검증기의 4개 언어 구현(JavaScript/TypeScript, PHP, Go, Rust) 공개 API 레퍼런스.
+crudui 검증기의 4개 언어 구현(JavaScript/TypeScript, PHP, Go, Rust) 공개 API 레퍼런스.
 모든 시그니처는 실제 소스 코드에서 추출했다 — 각 절에 출처 파일을 명기한다.
 
 4개 구현은 동일한 스펙·데이터에 대해 동일한 검증 결과를 내도록
@@ -9,10 +9,10 @@ form-spec 검증기의 4개 언어 구현(JavaScript/TypeScript, PHP, Go, Rust) 
 ## 목차
 
 - [공통 계약](#공통-계약)
-- [JavaScript/TypeScript (`@crudui/validator`)](#javascripttypescript-form-specvalidator)
-- [PHP (`form-spec/validator`)](#php-form-specvalidator)
+- [JavaScript/TypeScript (`@crudui/validator`)](#javascripttypescript-cruduivalidator)
+- [PHP (`crudui/validator`)](#php-cruduivalidator)
 - [Go (`validator` 패키지)](#go-validator-패키지)
-- [Rust (`formspec-validator` 크레이트)](#rust-formspec-validator-크레이트)
+- [Rust (`crudui-validator` 크레이트)](#rust-crudui-validator-크레이트)
 - [언어별 에러 형식 차이](#언어별-에러-형식-차이)
 - [백엔드 HTTP API 계약](#백엔드-http-api-계약)
 
@@ -206,7 +206,7 @@ result.errors;  // [{ path: 'email', field: 'email', rule: 'required', message: 
 
 ---
 
-## PHP (`form-spec/validator`)
+## PHP (`crudui/validator`)
 
 출처: `packages/validator-php/src/Legacy/Validator.php`, `packages/validator-php/src/Legacy/ValidationResult.php`
 요구사항: PHP `^8.2` (`packages/validator-php/composer.json`)
@@ -216,7 +216,7 @@ result.errors;  // [{ path: 'email', field: 'email', rule: 'required', message: 
 ```php
 <?php
 
-namespace FormSpec\Validator;
+namespace CRUDUI\Validator;
 
 class Validator
 {
@@ -260,7 +260,7 @@ class ValidationResult
 ### 사용 예
 
 ```php
-use FormSpec\Validator\Validator;
+use CRUDUI\Validator\Validator;
 
 $spec = [
     'type' => 'group',
@@ -281,11 +281,11 @@ $result->getError('email');      // ['field' => 'email', 'rule' => 'email', 'mes
 
 ### 보조 클래스
 
-- `FormSpec\Validator\ConditionParser` — 조건식 평가
+- `CRUDUI\Validator\ConditionParser` — 조건식 평가
   (`evaluate(string $expression, string $currentPath, array $allData, bool $fromGroup = false): bool`,
   `evaluateTernary(string $expression, string $currentPath, array $allData): mixed`).
   출처: `packages/validator-php/src/Legacy/ConditionParser.php`
-- `FormSpec\Validator\PathResolver` — 경로 해석
+- `CRUDUI\Validator\PathResolver` — 경로 해석
   (`resolve()`, `resolveExpression()`, `getValueByPath()`, `bracketToDot()`, `dotToBracket()` 등).
   출처: `packages/validator-php/src/PathResolver.php`
 
@@ -310,7 +310,7 @@ Go 검증기의 내부 `Spec`은 필드 슬라이스 구조다. 기준(canonical
 선언 순서가 보존된다.
 
 ```go
-// ParseSpec parses a canonical form-spec JSON document
+// ParseSpec parses a canonical crudui JSON document
 // (type/properties/rules format) into a validator Spec.
 func ParseSpec(data []byte) (ParsedSpec, error)
 
@@ -400,10 +400,10 @@ result.Errors[0].Field  // "items.0.code"
 
 ---
 
-## Rust (`formspec-validator` 크레이트)
+## Rust (`crudui-validator` 크레이트)
 
 출처: `packages/validator-rust/src/legacy/mod.rs`, `validator.rs`, `spec.rs`, `types.rs`
-크레이트: `formspec-validator` (`packages/validator-rust/Cargo.toml`).
+크레이트: `crudui-validator` (`packages/validator-rust/Cargo.toml`).
 deps: `serde`, `serde_json`(`preserve_order`), `regex`. lib + `validate` 바이너리.
 
 Go 검증기를 1:1 포팅한 독립 크레이트다. 동일 기준 JSON 스펙
@@ -413,7 +413,7 @@ Go 검증기를 1:1 포팅한 독립 크레이트다. 동일 기준 JSON 스펙
 ### 스펙 파싱 / 검증
 
 ```rust
-use formspec_validator::{parse_spec, ParsedSpec, Validator};
+use crudui_validator::{parse_spec, ParsedSpec, Validator};
 use serde_json::Value;
 
 // 기준 type/properties JSON Value 를 파싱

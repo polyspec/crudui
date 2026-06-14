@@ -1,5 +1,5 @@
 /**
- * `form-spec explain` — spec → natural-language back-check (SKILL §1g loop exit).
+ * `crudui explain` — spec → natural-language back-check (SKILL §1g loop exit).
  *
  * explain reverses a composed spec into prose so the author can diff it against
  * the source 기획서. It invents no interpretation rules: every sentence is built

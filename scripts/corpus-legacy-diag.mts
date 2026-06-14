@@ -8,7 +8,7 @@ import { translateFromLegacy } from '../packages/validator-ts/src/legacy/transla
 
 const CORPUS = '/Users/max/Abyss/Workspace/blue/app';
 const REPO = path.resolve(import.meta.dirname, '..');
-const schema = JSON.parse(fs.readFileSync(path.join(REPO, 'schema/form-spec.schema.json'), 'utf8'));
+const schema = JSON.parse(fs.readFileSync(path.join(REPO, 'schema/crudui.schema.json'), 'utf8'));
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
 const vs = ajv.compile(schema);

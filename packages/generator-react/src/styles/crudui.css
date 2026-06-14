@@ -1,5 +1,5 @@
 /**
- * Form-Spec Core Styles
+ * CRUDUI Core Styles
  * Limepie 호환 Bootstrap 5 폼 스타일
  */
 
@@ -16,7 +16,7 @@
 }
 
 /* Form Container */
-.form-spec-container {
+.crudui-container {
   font-size: 0.875rem;
 }
 

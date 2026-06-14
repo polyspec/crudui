@@ -7,7 +7,7 @@
 
 require_once __DIR__ . '/../packages/validator-php/vendor/autoload.php';
 
-use FormSpec\Validator\Legacy\Validator;
+use CRUDUI\Validator\Legacy\Validator;
 
 // Load test cases
 $testCasesPath = __DIR__ . '/cases/productnft.json';

@@ -1,7 +1,7 @@
 {
-  "$id": "https://github.com/crudui/crudui/schema/form-spec.schema.json",
+  "$id": "https://github.com/crudui/crudui/schema/crudui.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Form-Spec 메타스키마",
+  "title": "CRUDUI 메타스키마",
   "description": "current 폼 스펙(spec/schema.md 헌법)을 검증하는 메타스키마. 역할 슬롯(validate/design/behavior/options)·구조 키(type/name/default/properties/items/multiple/lang)·콘텐츠·조건맵·$ref/$patch 합성 모델을 강제하고, 조건 전용 메타키와 레거시 매직 토큰을 전역 거부한다. 이 파일은 current 스펙을 검증하는 메타스키마이며 current 스펙 형식 자체가 아니다 — SPEC §8 'JSON Schema 미채택'은 스펙 형식 선택에 관한 것이고 여기서 검증 도구로 쓰는 것과 무관하다.",
   "$comment": "전제: 파서가 먼저 합성($ref→$patch)을 펼치고 x{key} 주석을 strip 한 canonical 스펙을 만든 뒤 이 메타스키마가 검증한다(R3.A·G5). x{key}·xclass·xstyle 은 임시 비활성 주석이라 canonical 에는 남지 않는다 — 메타스키마는 이를 거부하되(ForbiddenKeyNames 의 ^x 패턴), 거부 이유는 'strip 이후엔 존재하면 안 되는 주석 잔재'다. 정규 current 키만 인식키로 등재한다 — 레거시 이름(multiple_max·lang:append·sortable* 등)과 매직 토큰(`*`·`:`)은 유효키가 아니다(R2·R4). 레거시→정규 매핑은 번역기의 책임이지 스키마의 인식 대상이 아니다.",
   "$ref": "#/definitions/Field",

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Expr;
+namespace CRUDUI\Validator\Expr;
 
 /**
  * Raised by Lexer/Parser on malformed input. Carries the human message only;

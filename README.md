@@ -1,4 +1,4 @@
-# Form-Spec
+# CRUDUI
 
 [![CI](https://github.com/crudui/crudui/actions/workflows/ci.yml/badge.svg)](https://github.com/crudui/crudui/actions/workflows/ci.yml)
 
@@ -23,7 +23,7 @@ YAML 기반 폼 생성 및 검증 시스템 — **다중 언어(4) · 다중 프
 
 ## 왜 필요한가
 
-폼 검증은 보통 클라이언트와 서버에 따로 구현되어 규칙이 어긋난다. Form-Spec은
+폼 검증은 보통 클라이언트와 서버에 따로 구현되어 규칙이 어긋난다. CRUDUI은
 규칙을 YAML 스펙 한 곳에 선언하고, 그 스펙을 모든 런타임이 동일하게 해석하게
 만들어 "클라이언트는 통과했는데 서버는 거부"하는 불일치를 구조적으로 없앤다.
 legacy Limepie PHP 폼 시스템과의 출력 호환을 유지하므로 기존 자산을 깨지 않고
@@ -56,14 +56,14 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 | 경로 | 패키지명 | 설명 |
 |------|----------|------|
 | [`packages/validator-ts`](./packages/validator-ts) | `@crudui/validator` | TypeScript 검증 라이브러리 |
-| [`packages/validator-php`](./packages/validator-php) | `form-spec/validator` | PHP 검증 라이브러리 (PHP ^8.2, PHPUnit) |
+| [`packages/validator-php`](./packages/validator-php) | `crudui/validator` | PHP 검증 라이브러리 (PHP ^8.2, PHPUnit) |
 | [`packages/validator-go`](./packages/validator-go) | `github.com/crudui/crudui/packages/validator-go` | Go 검증 라이브러리 |
-| [`packages/validator-rust`](./packages/validator-rust) | `formspec-validator` (crate) | Rust 검증 라이브러리 + `validate` CLI |
+| [`packages/validator-rust`](./packages/validator-rust) | `crudui-validator` (crate) | Rust 검증 라이브러리 + `validate` CLI |
 | [`packages/generator-react`](./packages/generator-react) | `@crudui/generator-react` | React 폼 빌더 — 기준 HTML 7/7 parity |
 | [`packages/generator-vue`](./packages/generator-vue) | `@crudui/generator-vue` | Vue 3 폼 빌더 — 기준 HTML 7/7 parity |
 | [`packages/generator-svelte`](./packages/generator-svelte) | `@crudui/generator-svelte` | Svelte 폼 빌더 — 기준 HTML 7/7 parity |
 | [`packages/generator-core`](./packages/generator-core) | `@crudui/generator-core` | 프레임워크 무관 CRUDUI 코어 — `buildForm`/`buildList`(합성→평가→viewmodel). React/Vue/Svelte 어댑터가 공유 |
-| [`packages/form-spec-cli`](./packages/form-spec-cli) | `@crudui/cli` | 오케스트레이터 CLI(`form-spec`) — `describe`/`check`/`explain`/`list-widgets`. 코드·스키마 단일진실을 얇게 래핑(자체 카탈로그 0) |
+| [`packages/cli`](./packages/cli) | `@crudui/cli` | 오케스트레이터 CLI(`crudui`) — `describe`/`check`/`explain`/`list-widgets`. 코드·스키마 단일진실을 얇게 래핑(자체 카탈로그 0) |
 | [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Limepie PHP 사본 (기준 HTML 파이프라인용) |
 
 ## Quick Start
@@ -115,7 +115,7 @@ const result = validator.validate(formData);
 **PHP** (^8.2)
 
 ```php
-use FormSpec\Validator\Validator;
+use CRUDUI\Validator\Validator;
 
 $validator = new Validator($spec);                // $spec: type/properties 배열
 $result = $validator->validate($data);            // ValidationResult
@@ -133,10 +133,10 @@ v := validator.NewValidator(parsed.Spec)
 result := v.Validate(data)                        // result.IsValid, result.Errors
 ```
 
-**Rust** (`formspec-validator` 크레이트)
+**Rust** (`crudui-validator` 크레이트)
 
 ```rust
-use formspec_validator::{parse_spec, Validator};
+use crudui_validator::{parse_spec, Validator};
 
 let parsed = parse_spec(&spec_json)?;             // serde_json::Value
 let mut v = Validator::new(parsed.spec);
@@ -205,21 +205,21 @@ const html = await renderToString(app);
 
 API 상세는 [docs/API.md](./docs/API.md) 참조.
 
-## form-spec CLI
+## crudui CLI
 
-`@crudui/cli`(`form-spec`)는 코드·스키마 단일진실 위에 얇게 얹힌 오케스트레이터다 —
+`@crudui/cli`(`crudui`)는 코드·스키마 단일진실 위에 얇게 얹힌 오케스트레이터다 —
 손으로 베낀 카탈로그가 없다. 현재 구현된 서브커맨드는 네 개다.
 
 ```bash
-form-spec describe [--json|--md]    # 코드·스키마 import·parse → 통합 capability (위젯·규칙·list 포함, drift 0)
-form-spec check <spec.{yml,json}>   # 메타스키마(ajv) + forbidden-scan + type 카탈로그 정합
-form-spec explain <spec> [--lang ko|en]  # 스펙 → 자연어 역검증
-form-spec list-widgets [--json]     # 위젯 kind + layout + alias
+crudui describe [--json|--md]    # 코드·스키마 import·parse → 통합 capability (위젯·규칙·list 포함, drift 0)
+crudui check <spec.{yml,json}>   # 메타스키마(ajv) + forbidden-scan + type 카탈로그 정합
+crudui explain <spec> [--lang ko|en]  # 스펙 → 자연어 역검증
+crudui list-widgets [--json]     # 위젯 kind + layout + alias
 ```
 
 `validate`/`render`/`scaffold`는 로드맵이며 아직 미구현이다. 설계·위임 구조는
-[docs/FORM-SPEC-CLI.md](./docs/FORM-SPEC-CLI.md), MCP 노출은
-[docs/FORM-SPEC-MCP.md](./docs/FORM-SPEC-MCP.md) 참조.
+[docs/CRUDUI-CLI.md](./docs/CRUDUI-CLI.md), MCP 노출은
+[docs/CRUDUI-MCP.md](./docs/CRUDUI-MCP.md) 참조.
 
 ## list-spec (read 자매)
 
@@ -299,8 +299,8 @@ make docs-clean    # 생성물 제거
 - [Validation Rules](./docs/VALIDATION-RULES.md) — 등록 규칙·기본 메시지·미구현 목록
 - [Condition Parser](./docs/CONDITION-PARSER.md) — 조건식 문법·경로 해석
 - [Display Conditions](./docs/DISPLAY-CONDITIONS.md) — 조건부 표시·검증 스킵
-- [form-spec CLI](./docs/FORM-SPEC-CLI.md) — 오케스트레이터 CLI 설계·위임 구조
-- [form-spec MCP](./docs/FORM-SPEC-MCP.md) — CLI capability의 MCP 노출
+- [crudui CLI](./docs/CRUDUI-CLI.md) — 오케스트레이터 CLI 설계·위임 구조
+- [crudui MCP](./docs/CRUDUI-MCP.md) — CLI capability의 MCP 노출
 - [Testing](./docs/TESTING.md) — 게이트 체계·기준 재생성
 
 자연어 기획서를 검증 통과하는 CRUDUI 스펙으로 변환하는 `nl-to-form` skill이

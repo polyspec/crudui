@@ -3,7 +3,7 @@ rust/target/
 
 # Go build cache for the bench module (go run compiles into the shared cache,
 # but keep any stray local binary out too).
-go/formspec-bench
+go/crudui-bench
 
 # Last-run results are machine-dependent; regenerate with `make bench`.
 results.md

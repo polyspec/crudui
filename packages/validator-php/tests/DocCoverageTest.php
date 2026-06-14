@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests;
+namespace CRUDUI\Validator\Tests;
 
 use PHPUnit\Framework\TestCase;
 
@@ -26,7 +26,7 @@ final class DocCoverageTest extends TestCase
         $srcDir = realpath(__DIR__ . '/../src');
         self::assertNotFalse($srcDir, 'validator-php src directory not found');
 
-        $gaps = formspec_php_doc_gaps($srcDir);
+        $gaps = crudui_php_doc_gaps($srcDir);
 
         self::assertSame(
             [],

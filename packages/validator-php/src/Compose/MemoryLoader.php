@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Compose;
+namespace CRUDUI\Validator\Compose;
 
 /**
  * In-memory loader over a fixed { key: doc } map. Port of the JS MemoryLoader.
