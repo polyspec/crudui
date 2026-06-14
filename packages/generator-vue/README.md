@@ -8,6 +8,28 @@ This package is the Vue counterpart of `@form-spec/generator-react`. It uses
 plain `h()` render functions (no SFC `<style scoped>`), so SSR emits no
 `data-v-*` scoped-style attributes that would break parity normalization.
 
+Two surfaces: legacy `FormBuilder` (Limepie `Generator::write()` parity, below) and
+the CRUDUI adapter (`src`).
+
+## CRUDUI (compose → core → vnode SSR)
+
+The CRUDUI adapter runs the four mandated stages — compose → evaluate (shared
+`@form-spec/generator-core`) → Vue 3 vnode SSR — and is parity-checked against
+the React reference.
+
+- `renderFormSSR(rootSpec, options)` → SSR HTML of the form CONTENT.
+- `buildForm(rootSpec, options)` → `FieldViewModel[]` (no markup).
+- `renderListSSR(listSpec, rows, options)` → SSR HTML of a list (SPEC §9, read
+  sister). `rows` are INJECTED (DB-agnostic); cells are DISPLAY values, never
+  inputs. `options.mode` is `'table'` (default) or `'card'`.
+- `buildList(listSpec, rows, options)` → `ListViewModel`.
+- Components: `Form`, `Widget`, `List`; `fieldVNode`. Throws
+  `ComposeLoadError` on an unresolved `$ref`, `UnsupportedFieldTypeError` on an
+  un-ported type.
+
+CRUDUI conformance: `test/form-render.conformance.test.mjs`,
+`test/list-render.conformance.test.mjs` (run with `npx vitest run`).
+
 ## Usage (SSR)
 
 ```ts
