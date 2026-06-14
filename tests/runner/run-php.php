@@ -12,8 +12,8 @@ declare(strict_types=1);
 // Autoload validator classes
 require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 
-use FormSpec\Validator\Legacy\Validator;
-use FormSpec\Validator\Legacy\ValidationResult;
+use CRUDUI\Validator\Legacy\Validator;
+use CRUDUI\Validator\Legacy\ValidationResult;
 
 // ANSI color codes
 class Colors

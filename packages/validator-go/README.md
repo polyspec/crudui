@@ -1,6 +1,6 @@
 # validator-go
 
-Go validator for the form-spec system. Ships the legacy validator (`cmd/validate`)
+Go validator for the crudui system. Ships the legacy validator (`cmd/validate`)
 and the CRUDUI engine (`validator`: compose → forbidden-scan → validate), kept in
 conformance lockstep with the JS/PHP/Rust implementations. The legacy model is never
 touched by CRUDUI (R7 parallel run).

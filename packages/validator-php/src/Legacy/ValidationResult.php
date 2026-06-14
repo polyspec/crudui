@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Legacy;
+namespace CRUDUI\Validator\Legacy;
 
 /**
  * Represents the result of a validation operation.

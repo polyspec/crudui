@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Validate;
+namespace CRUDUI\Validator\Validate;
 
-use FormSpec\Validator\Compose\Compose;
-use FormSpec\Validator\Compose\FileLoader;
-use FormSpec\Validator\Compose\MemoryLoader;
-use FormSpec\Validator\ForbiddenScan;
+use CRUDUI\Validator\Compose\Compose;
+use CRUDUI\Validator\Compose\FileLoader;
+use CRUDUI\Validator\Compose\MemoryLoader;
+use CRUDUI\Validator\ForbiddenScan;
 
 /**
  * CRUDUI validation entry point — schema §2 pipeline. Port of validator-ts
@@ -49,7 +49,7 @@ final class Validate
      * @param FileLoader|null $loader a custom loader (overrides $files)
      * @param string $basepath basepath for relative $ref resolution
      *
-     * @throws \FormSpec\Validator\Compose\ComposeLoadError when composition cannot be resolved
+     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when composition cannot be resolved
      */
     public static function run(
         array $spec,

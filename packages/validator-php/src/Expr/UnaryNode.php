@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Expr;
+namespace CRUDUI\Validator\Expr;
 
 /**
  * Unary logical negation: ! operand.

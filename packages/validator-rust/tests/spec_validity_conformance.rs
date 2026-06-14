@@ -16,7 +16,7 @@
 //!   { name, note, spec, files?, expect: "ok" }
 //!   { name, note, spec, files?, expect: { error_code, at_path } }
 
-use formspec_validator::validate::{validate, ValidateOptions};
+use crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 

@@ -1,5 +1,5 @@
 /**
- * Form-spec Vue Types (trimmed port of the React type surface).
+ * CRUDUI Vue Types (trimmed port of the React type surface).
  */
 
 import type { Spec } from '@crudui/validator/legacy';

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Rules;
+namespace CRUDUI\Validator\Rules;
 
 /**
  * Regular expression pattern matching validation rule.

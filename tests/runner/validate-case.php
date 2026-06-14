@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 
-use FormSpec\Validator\Legacy\Validator;
+use CRUDUI\Validator\Legacy\Validator;
 
 $raw = stream_get_contents(STDIN);
 if ($raw === false || trim($raw) === '') {

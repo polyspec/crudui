@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests\Compose;
+namespace CRUDUI\Validator\Tests\Compose;
 
-use FormSpec\Validator\Compose\Compose;
-use FormSpec\Validator\Compose\ComposeLoadError;
-use FormSpec\Validator\Compose\MemoryLoader;
-use FormSpec\Validator\Compose\Ref;
+use CRUDUI\Validator\Compose\Compose;
+use CRUDUI\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Compose\MemoryLoader;
+use CRUDUI\Validator\Compose\Ref;
 use PHPUnit\Framework\TestCase;
 
 /**

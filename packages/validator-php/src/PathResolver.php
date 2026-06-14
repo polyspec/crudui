@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator;
+namespace CRUDUI\Validator;
 
 /**
  * Resolves field paths in form data.

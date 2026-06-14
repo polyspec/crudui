@@ -1,7 +1,7 @@
 /**
  * @crudui/generator-svelte
  *
- * Svelte form builder component library based on form-spec YAML definitions.
+ * Svelte form builder component library based on crudui YAML definitions.
  * Renders the same legacy markup as @crudui/generator-react.
  */
 

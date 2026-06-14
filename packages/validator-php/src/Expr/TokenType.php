@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Expr;
+namespace CRUDUI\Validator\Expr;
 
 /**
  * Token type tags (EXPRESSION-GRAMMAR §1, JS types.ts TokenType parity).

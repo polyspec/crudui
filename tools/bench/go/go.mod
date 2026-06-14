@@ -1,4 +1,4 @@
-module formspec-bench
+module github.com/polyspec/crudui/tools/bench/go
 
 go 1.21
 

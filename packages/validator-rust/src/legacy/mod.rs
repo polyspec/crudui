@@ -1,4 +1,4 @@
-//! formspec-validator: Rust port of the form-spec multi-language validator.
+//! crudui-validator: Rust port of the crudui multi-language validator.
 //! Replicates the JS/PHP/Go reference validators exactly (shared fixtures are
 //! the single source of truth). Go's validator package is the primary blueprint.
 

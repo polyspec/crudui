@@ -1,4 +1,4 @@
-//! Spec parsing: canonical form-spec JSON (type/properties/rules) -> Spec.
+//! Spec parsing: canonical crudui JSON (type/properties/rules) -> Spec.
 //! Ports validator-go/validator/spec.go. Property and rule declaration order
 //! is preserved because serde_json is built with the preserve_order feature,
 //! so Map iteration follows insertion order.
@@ -6,7 +6,7 @@
 use crate::legacy::types::{CustomRule, Field, Spec};
 use serde_json::{Map, Value};
 
-/// ParsedSpec is the result of parsing a canonical form-spec document.
+/// ParsedSpec is the result of parsing a canonical crudui document.
 /// is_group reports whether the root was a group spec with properties;
 /// non-group specs are wrapped into a single field named "value".
 pub struct ParsedSpec {
@@ -16,7 +16,7 @@ pub struct ParsedSpec {
     pub is_group: bool,
 }
 
-/// parse_spec parses a canonical form-spec JSON value into a Spec.
+/// parse_spec parses a canonical crudui JSON value into a Spec.
 pub fn parse_spec(root: &Value) -> ParsedSpec {
     let obj = match root.as_object() {
         Some(o) => o,

@@ -483,7 +483,7 @@ function render() {
 function mountShell() {
   root.innerHTML = `
     <header class="cc-header">
-      <h1>Cross-Check Console <span class="cc-sub">form-spec</span></h1>
+      <h1>Cross-Check Console <span class="cc-sub">crudui</span></h1>
       <nav class="cc-tabs" role="tablist" aria-label="view">
         <button id="tab-form" class="cc-tab" role="tab">form</button>
         <button id="tab-list" class="cc-tab" role="tab">list</button>

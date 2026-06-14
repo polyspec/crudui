@@ -1,7 +1,7 @@
 /**
  * @crudui/generator-react
  *
- * React form builder component library based on form-spec YAML definitions
+ * React form builder component library based on crudui YAML definitions
  *
  * @example
  * ```tsx

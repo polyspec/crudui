@@ -1,6 +1,6 @@
 # @crudui/generator-vue
 
-Vue 3 form builder for form-spec YAML definitions. Renders byte-parity output
+Vue 3 form builder for crudui YAML definitions. Renders byte-parity output
 with the legacy markup of the React generator.
 
 This package is the Vue counterpart of `@crudui/generator-react`. It uses

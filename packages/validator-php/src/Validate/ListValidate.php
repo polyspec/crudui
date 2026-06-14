@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Validate;
+namespace CRUDUI\Validator\Validate;
 
-use FormSpec\Validator\Compose\Compose;
-use FormSpec\Validator\Compose\FileLoader;
-use FormSpec\Validator\Compose\MemoryLoader;
-use FormSpec\Validator\Compose\Patch;
-use FormSpec\Validator\Compose\Ref;
-use FormSpec\Validator\ForbiddenScan;
+use CRUDUI\Validator\Compose\Compose;
+use CRUDUI\Validator\Compose\FileLoader;
+use CRUDUI\Validator\Compose\MemoryLoader;
+use CRUDUI\Validator\Compose\Patch;
+use CRUDUI\Validator\Compose\Ref;
+use CRUDUI\Validator\ForbiddenScan;
 
 /**
  * CRUDUI list-spec validation entry point — schema §9 read sister. Byte-for-byte
@@ -70,7 +70,7 @@ final class ListValidate
      * @param FileLoader|null $loader a custom loader (overrides $files)
      * @param string $basepath basepath for relative $ref resolution
      *
-     * @throws \FormSpec\Validator\Compose\ComposeLoadError when composition cannot be resolved OR a forbidden meta key survives into the composed list tree
+     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when composition cannot be resolved OR a forbidden meta key survives into the composed list tree
      */
     public static function run(
         array $spec,

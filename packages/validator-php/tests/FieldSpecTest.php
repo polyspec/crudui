@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests;
+namespace CRUDUI\Validator\Tests;
 
-use FormSpec\Validator\FieldSpec;
+use CRUDUI\Validator\FieldSpec;
 use PHPUnit\Framework\TestCase;
 
 /**

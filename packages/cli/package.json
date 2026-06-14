@@ -2,17 +2,17 @@
   "name": "@crudui/cli",
   "version": "0.0.1",
   "private": true,
-  "description": "form-spec orchestrator CLI — describe/check/validate/render/explain/scaffold/list-widgets. Thin wrapper that imports/parses the code single-source-of-truth (generator-core registry, validator-ts rules, schema JSON, forbidden-scan, grammar docs). Holds no hand-copied catalog.",
+  "description": "crudui orchestrator CLI — describe/check/validate/render/explain/scaffold/list-widgets. Thin wrapper that imports/parses the code single-source-of-truth (generator-core registry, validator-ts rules, schema JSON, forbidden-scan, grammar docs). Holds no hand-copied catalog.",
   "type": "module",
   "bin": {
-    "form-spec": "bin/form-spec.mjs"
+    "crudui": "bin/crudui.mjs"
   },
   "files": [
     "bin",
     "src"
   ],
   "scripts": {
-    "describe": "node --import tsx bin/form-spec.mjs describe",
+    "describe": "node --import tsx bin/crudui.mjs describe",
     "test": "vitest run"
   },
   "dependencies": {

@@ -1,7 +1,7 @@
 //! rust-api: a Rust HTTP API server for form validation.
 //!
 //! This example mirrors examples/go-api: it loads form specs from YAML files
-//! and validates form data with the shared `formspec-validator` crate.
+//! and validates form data with the shared `crudui-validator` crate.
 //!
 //! Canonical API contract (shared by node-api / php-api / go-api / rust-api):
 //!
@@ -24,7 +24,7 @@ use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::thread;
 
-use formspec_validator::{parse_spec, Validator};
+use crudui_validator::legacy::{parse_spec, Validator};
 use serde_json::{json, Value};
 
 /// Config holds server configuration resolved from the environment.
@@ -355,7 +355,7 @@ fn load_spec_raw(specs_dir: &Path, name: &str) -> Option<Value> {
     None
 }
 
-/// is_valid_spec_shape reports whether a raw spec has the canonical form-spec
+/// is_valid_spec_shape reports whether a raw spec has the canonical crudui
 /// shape: a group whose `properties` is an object. Mirrors go-api.
 fn is_valid_spec_shape(raw: &Value) -> bool {
     let obj = match raw.as_object() {

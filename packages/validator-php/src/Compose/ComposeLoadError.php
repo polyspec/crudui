@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Compose;
+namespace CRUDUI\Validator\Compose;
 
 /**
  * Composition load failure (schema §5, §7; unresolved_behavior). Port of the JS

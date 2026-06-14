@@ -28,7 +28,7 @@ declare(strict_types=1);
  * @param string $file absolute path to a PHP source file
  * @return string[] undocumented function names (empty when all documented)
  */
-function formspec_php_server_doc_gaps(string $file): array
+function crudui_php_server_doc_gaps(string $file): array
 {
     $code = file_get_contents($file);
     if ($code === false) {
@@ -76,7 +76,7 @@ function formspec_php_server_doc_gaps(string $file): array
  *
  * @return string[] absolute paths that exist
  */
-function formspec_php_server_files(): array
+function crudui_php_server_files(): array
 {
     $dir = realpath(__DIR__ . '/../examples/php-api');
     if ($dir === false) {
@@ -94,7 +94,7 @@ function formspec_php_server_files(): array
 
 // --- run (only when invoked directly as a CLI) ---
 if (PHP_SAPI === 'cli' && isset($argv[0]) && realpath($argv[0]) === realpath(__FILE__)) {
-    $files = formspec_php_server_files();
+    $files = crudui_php_server_files();
     if (count($files) === 0) {
         fwrite(STDERR, "[php-server-doc-coverage] no php-api router files found\n");
         exit(2);
@@ -102,7 +102,7 @@ if (PHP_SAPI === 'cli' && isset($argv[0]) && realpath($argv[0]) === realpath(__F
 
     $gaps = [];
     foreach ($files as $file) {
-        $gaps = array_merge($gaps, formspec_php_server_doc_gaps($file));
+        $gaps = array_merge($gaps, crudui_php_server_doc_gaps($file));
     }
     sort($gaps);
 

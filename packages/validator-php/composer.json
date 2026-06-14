@@ -1,12 +1,12 @@
 {
-    "name": "form-spec/validator",
-    "description": "PHP validator for form-spec system - validates form data against YAML specifications",
+    "name": "crudui/validator",
+    "description": "PHP validator for crudui system - validates form data against YAML specifications",
     "type": "library",
     "license": "MIT",
     "version": "0.0.1",
     "authors": [
         {
-            "name": "Form Spec Team"
+            "name": "CRUDUI Team"
         }
     ],
     "require": {
@@ -17,12 +17,12 @@
     },
     "autoload": {
         "psr-4": {
-            "FormSpec\\Validator\\": "src/"
+            "CRUDUI\\Validator\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "FormSpec\\Validator\\Tests\\": "tests/"
+            "CRUDUI\\Validator\\Tests\\": "tests/"
         }
     },
     "scripts": {

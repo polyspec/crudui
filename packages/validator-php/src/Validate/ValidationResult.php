@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Validate;
+namespace CRUDUI\Validator\Validate;
 
 /**
  * CRUDUI validation result — { valid, errors } (schema G-B). Port of the JS

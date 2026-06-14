@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests\Expr;
+namespace CRUDUI\Validator\Tests\Expr;
 
-use FormSpec\Validator\Expr\ConditionMap;
-use FormSpec\Validator\Expr\Evaluator;
-use FormSpec\Validator\Expr\Expression;
-use FormSpec\Validator\Expr\Node;
+use CRUDUI\Validator\Expr\ConditionMap;
+use CRUDUI\Validator\Expr\Evaluator;
+use CRUDUI\Validator\Expr\Expression;
+use CRUDUI\Validator\Expr\Node;
 use PHPUnit\Framework\TestCase;
 
 /**

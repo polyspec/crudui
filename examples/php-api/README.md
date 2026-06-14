@@ -1,6 +1,6 @@
 # PHP API Example
 
-PHP API example demonstrating form-spec validation with Laravel integration patterns.
+PHP API example demonstrating crudui validation with Laravel integration patterns.
 
 ## Setup
 
@@ -162,14 +162,14 @@ Add to `config/app.php`:
 ```php
 'providers' => [
     // ...
-    Polyspec\Crudui\Examples\PhpApi\FormSpecServiceProvider::class,
+    Polyspec\Crudui\Examples\PhpApi\CRUDUIServiceProvider::class,
 ],
 ```
 
 ### 2. Publish Configuration
 
 ```bash
-php artisan vendor:publish --tag=formspec-config
+php artisan vendor:publish --tag=crudui-config
 ```
 
 ### 3. Create Specifications
@@ -197,7 +197,7 @@ class UserController extends Controller
 {
     public function register(Request $request): JsonResponse
     {
-        $adapter = app('formspec.adapter');
+        $adapter = app('crudui.adapter');
         $result = $adapter->validate('user-registration', $request->all());
 
         if (!$result->isValid()) {
@@ -213,7 +213,7 @@ class UserController extends Controller
 
     public function validateField(Request $request): JsonResponse
     {
-        $adapter = app('formspec.adapter');
+        $adapter = app('crudui.adapter');
         $error = $adapter->validateField(
             $request->input('spec'),
             $request->input('path'),
@@ -236,9 +236,9 @@ class UserController extends Controller
 
 namespace Polyspec\Crudui\Examples\PhpApi\Http\Requests;
 
-use Polyspec\Crudui\Examples\PhpApi\FormSpecRequest;
+use Polyspec\Crudui\Examples\PhpApi\CRUDUIRequest;
 
-class UserRegistrationRequest extends FormSpecRequest
+class UserRegistrationRequest extends CRUDUIRequest
 {
     protected function getSpecName(): string
     {
@@ -289,7 +289,7 @@ php-api/
 ├── test-api.php              # Test script
 ├── README.md                 # This file
 ├── config/
-│   └── formspec.php          # Laravel config
+│   └── crudui.php          # Laravel config
 ├── specs/
 │   ├── user-registration.yml # User registration form spec
 │   └── product-form.yml      # Product form spec
