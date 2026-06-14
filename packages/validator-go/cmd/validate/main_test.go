@@ -31,12 +31,12 @@ import (
 )
 
 type cliCase struct {
-	Name            string          `json:"name"`
-	Spec            json.RawMessage `json:"spec"`
-	Data            json.RawMessage `json:"data"`
-	Files           json.RawMessage `json:"files"`
-	Basepath        string          `json:"basepath"`
-	Expected        *struct {
+	Name     string          `json:"name"`
+	Spec     json.RawMessage `json:"spec"`
+	Data     json.RawMessage `json:"data"`
+	Files    json.RawMessage `json:"files"`
+	Basepath string          `json:"basepath"`
+	Expected *struct {
 		Valid  bool              `json:"valid"`
 		Errors []json.RawMessage `json:"errors"`
 	} `json:"expected"`
@@ -224,6 +224,143 @@ func TestCliBoundaryMatchesFixture(t *testing.T) {
 				t.Errorf("errors mismatch\n want: %v\n  got: %v", wantErrs, gotErrs)
 			}
 		})
+	}
+}
+
+// listRequest builds a {"spec", "files", "basepath", "mode":"list"} request. A
+// list carries no rows, so "data" is omitted (the list entry ignores it).
+func listRequest(t *testing.T, specJSON string, files map[string]string) []byte {
+	t.Helper()
+	fm := map[string]json.RawMessage{}
+	for k, v := range files {
+		fm[k] = json.RawMessage(v)
+	}
+	fb, _ := json.Marshal(fm)
+	req := map[string]json.RawMessage{
+		"spec":     json.RawMessage(specJSON),
+		"files":    fb,
+		"basepath": json.RawMessage(`""`),
+		"mode":     json.RawMessage(`"list"`),
+	}
+	b, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal list request: %v", err)
+	}
+	return b
+}
+
+// TestCliListModeCleanIsValid: mode:list over a clean list-spec returns the
+// {valid:true, errors:[]} result shape (no rows → no DATA pass → no field errors),
+// exit 0 — identical wire to a clean form result.
+func TestCliListModeCleanIsValid(t *testing.T) {
+	run := runCli(t, listRequest(t, `{"columns":{"name":{"field":".name","label":"Name"}}}`, nil))
+	if run.exit != 0 {
+		t.Fatalf("clean list exit: want 0, got %d (stderr: %s)", run.exit, run.stderr)
+	}
+	var out map[string]any
+	if err := json.Unmarshal(run.stdout, &out); err != nil {
+		t.Fatalf("list result stdout not JSON: %q (%v)", run.stdout, err)
+	}
+	if len(out) != 2 {
+		t.Fatalf("list stdout must carry exactly {valid, errors}, got keys %v", keysOf(out))
+	}
+	if v, _ := out["valid"].(bool); !v {
+		t.Fatalf("clean list must be valid:true, got %s", run.stdout)
+	}
+	errs, ok := out["errors"].([]any)
+	if !ok || len(errs) != 0 {
+		t.Fatalf("clean list must carry an empty errors array, got %s", run.stdout)
+	}
+}
+
+// TestCliListModeForbiddenKeyLoadWire: mode:list over a list-spec carrying a §6
+// forbidden meta key routes onto the SAME Go LOAD wire the form path uses — exit
+// 1, stdout {error, code: FORBIDDEN_META_KEY, trace}, NO "valid" key.
+func TestCliListModeForbiddenKeyLoadWire(t *testing.T) {
+	run := runCli(t, listRequest(t, `{"columns":{"name":{"field":".name"},"display_switch":{"field":".x"}}}`, nil))
+	if run.exit != 1 {
+		t.Fatalf("forbidden-key list exit: want 1, got %d (stderr: %s)", run.exit, run.stderr)
+	}
+	var out map[string]any
+	if err := json.Unmarshal(run.stdout, &out); err != nil {
+		t.Fatalf("LOAD stdout not JSON: %q (%v)", run.stdout, err)
+	}
+	if _, hasValid := out["valid"]; hasValid {
+		t.Fatalf("LOAD failure must not carry a \"valid\" key: %s", run.stdout)
+	}
+	if got, _ := out["code"].(string); got != "FORBIDDEN_META_KEY" {
+		t.Fatalf("LOAD code: want FORBIDDEN_META_KEY, got %v", out["code"])
+	}
+	if msg, _ := out["error"].(string); msg == "" {
+		t.Fatalf("LOAD failure must carry a non-empty error message: %s", run.stdout)
+	}
+	if _, hasTrace := out["trace"]; !hasTrace {
+		t.Fatalf("LOAD failure must carry a trace: %s", run.stdout)
+	}
+}
+
+// TestCliListModeUnresolvedRefLoadWire: an unresolved $ref in a list is a LOAD
+// failure (never a silent empty table) — exit 1, {error, code, trace}, no "valid".
+func TestCliListModeUnresolvedRefLoadWire(t *testing.T) {
+	run := runCli(t, listRequest(t, `{"columns":{"$ref":"missing-columns.yml"}}`, nil))
+	if run.exit != 1 {
+		t.Fatalf("unresolved-$ref list exit: want 1, got %d (stderr: %s)", run.exit, run.stderr)
+	}
+	var out map[string]any
+	if err := json.Unmarshal(run.stdout, &out); err != nil {
+		t.Fatalf("LOAD stdout not JSON: %q (%v)", run.stdout, err)
+	}
+	if _, hasValid := out["valid"]; hasValid {
+		t.Fatalf("LOAD failure must not carry a \"valid\" key: %s", run.stdout)
+	}
+	if got, _ := out["code"].(string); got != "REF_FILE_NOT_FOUND" {
+		t.Fatalf("LOAD code: want REF_FILE_NOT_FOUND, got %v", out["code"])
+	}
+}
+
+// TestCliListModeRefResolvesAndScansClean: a list whose columns $ref points at a
+// supplied clean file composes + scans clean through the CLI (compose reuse wire).
+func TestCliListModeRefResolvesAndScansClean(t *testing.T) {
+	run := runCli(t, listRequest(t,
+		`{"columns":{"$ref":"base.yml","$patch":{"extra":{"field":".extra"}}}}`,
+		map[string]string{"base.yml": `{"properties":{"id":{"field":".id"}}}`},
+	))
+	if run.exit != 0 {
+		t.Fatalf("resolved-$ref list exit: want 0, got %d (stderr: %s)", run.exit, run.stderr)
+	}
+	var out map[string]any
+	if err := json.Unmarshal(run.stdout, &out); err != nil {
+		t.Fatalf("result stdout not JSON: %q (%v)", run.stdout, err)
+	}
+	if v, _ := out["valid"].(bool); !v {
+		t.Fatalf("resolved+clean list must be valid:true, got %s", run.stdout)
+	}
+}
+
+// TestCliUnknownModeIsBadRequest: an unknown mode is a bad request — exit 1,
+// {error} with NO "code" (it is not a compose load failure), NO "valid".
+func TestCliUnknownModeIsBadRequest(t *testing.T) {
+	req := map[string]json.RawMessage{
+		"spec": json.RawMessage(`{"columns":{"name":{"field":".name"}}}`),
+		"mode": json.RawMessage(`"grid"`),
+	}
+	b, _ := json.Marshal(req)
+	run := runCli(t, b)
+	if run.exit != 1 {
+		t.Fatalf("unknown mode exit: want 1, got %d (stderr: %s)", run.exit, run.stderr)
+	}
+	var out map[string]any
+	if err := json.Unmarshal(run.stdout, &out); err != nil {
+		t.Fatalf("unknown-mode stdout not JSON: %q (%v)", run.stdout, err)
+	}
+	if _, ok := out["error"]; !ok {
+		t.Fatalf("unknown mode must carry an {error}: %s", run.stdout)
+	}
+	if _, ok := out["valid"]; ok {
+		t.Fatalf("unknown mode must not carry \"valid\": %s", run.stdout)
+	}
+	if _, ok := out["code"]; ok {
+		t.Fatalf("unknown mode is a bad request, not a compose load failure — must carry no \"code\": %s", run.stdout)
 	}
 }
 

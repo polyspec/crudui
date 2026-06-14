@@ -3,6 +3,7 @@
     "name": "ok-minimal-columns",
     "note": "the smallest valid list-spec — required columns map with one text column.",
     "expect": "ok",
+    "engine": "pass",
     "spec": {
       "columns": {
         "name": { "field": ".name", "label": { "ko": "이름", "en": "Name" } }
@@ -13,6 +14,7 @@
     "name": "ok-catalog-formats",
     "note": "every §9.2 cell format passes (date/number/badge/link/choice-label/bool/image/html).",
     "expect": "ok",
+    "engine": "pass",
     "spec": {
       "columns": {
         "joined": { "field": ".joined", "format": { "type": "date", "pattern": "YYYY-MM-DD" } },
@@ -30,6 +32,7 @@
     "name": "ok-shorthand-and-boolean-format",
     "note": "CellFormat polymorphism — a bare type string and a boolean both validate.",
     "expect": "ok",
+    "engine": "pass",
     "spec": {
       "columns": {
         "a": { "field": ".a", "format": "date" },
@@ -42,6 +45,7 @@
     "name": "ok-sortable-sort-pagination-actions-empty-design",
     "note": "the read-structure 1급 slots all validate together (sort/pagination/actions/empty/design).",
     "expect": "ok",
+    "engine": "pass",
     "spec": {
       "columns": {
         "name": { "field": ".name", "label": "Name", "sortable": true, "design": { "class": "text-right", "style": "width: 40%" } },
@@ -59,8 +63,17 @@
   },
   {
     "name": "ok-compose-ref-patch-columns",
-    "note": "$ref/$patch compose entry on the columns map (the SAME engine as form-spec).",
+    "note": "$ref/$patch compose entry on the columns map (the SAME engine as form-spec). files resolve the base for the four-language engine; ajv ignores files and reads only spec.",
     "expect": "ok",
+    "engine": "pass",
+    "files": {
+      "base-columns.yml": {
+        "properties": {
+          "name": { "field": ".name", "label": "Name" },
+          "joined": { "field": ".joined", "format": { "type": "date" } }
+        }
+      }
+    },
     "spec": {
       "columns": {
         "$ref": "base-columns.yml",
@@ -70,26 +83,36 @@
   },
   {
     "name": "ok-search-form-ref",
-    "note": "search is input → a form-spec reference ($ref base + $patch overlay).",
+    "note": "search is input → a form-spec reference ($ref base + $patch overlay). files resolve the base form for the engine; ajv ignores files and reads only spec.",
     "expect": "ok",
+    "engine": "pass",
+    "files": {
+      "search-form.yml": {
+        "properties": {
+          "q": { "label": "Query" }
+        }
+      }
+    },
     "spec": {
       "columns": { "name": { "field": ".name" } },
-      "search": { "$ref": "search-form.yml", "$patch": { "add": {} } }
+      "search": { "$ref": "search-form.yml", "$patch": { "add": { "label": "Add filter" } } }
     }
   },
 
   {
     "name": "red-missing-columns",
-    "note": "RED — columns is required; a list-spec without it is rejected.",
+    "note": "RED — columns is required; a list-spec without it is rejected. The 'required' shape check is meta-schema-only; the four-language engine (compose + forbidden-scan) has no shape opinion, so it passes (engine: pass).",
     "expect": "fail",
     "reason": "required",
+    "engine": "pass",
     "spec": { "sort": { "field": ".name", "dir": "asc" } }
   },
   {
     "name": "red-forbidden-column-key",
-    "note": "RED — a forbidden condition meta-key as a COLUMN key is rejected (ForbiddenKeyNames).",
+    "note": "RED — a forbidden condition meta-key as a COLUMN key is rejected (ForbiddenKeyNames). The four-language engine catches this too: forbidden-scan rejects the key as a LOAD failure.",
     "expect": "fail",
     "reason": "propertyNames",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.display_switch" },
     "spec": {
       "columns": {
         "name": { "field": ".name" },
@@ -99,9 +122,10 @@
   },
   {
     "name": "red-x-prefixed-column-key",
-    "note": "RED — an x-prefixed comment-residue key as a COLUMN key is rejected (ForbiddenKeyNames pattern).",
+    "note": "RED — an x-prefixed comment-residue key as a COLUMN key is rejected (ForbiddenKeyNames pattern). The four-language engine catches this too: forbidden-scan rejects any surviving x{key}.",
     "expect": "fail",
     "reason": "propertyNames",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.xclass" },
     "spec": {
       "columns": {
         "name": { "field": ".name" },
@@ -111,9 +135,10 @@
   },
   {
     "name": "red-unknown-column-key",
-    "note": "RED — a Column carries an out-of-1급 key (additionalProperties:false) — e.g. a stray condition key.",
+    "note": "RED — a Column carries an out-of-1급 key (additionalProperties:false) — here a stray condition key. ajv rejects it as additionalProperties; show_if is ALSO a forbidden meta key, so the four-language engine catches it via forbidden-scan (a LOAD failure).",
     "expect": "fail",
     "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.name.show_if" },
     "spec": {
       "columns": {
         "name": { "field": ".name", "show_if": ".admin" }
@@ -122,9 +147,10 @@
   },
   {
     "name": "red-forbidden-key-in-format-options",
-    "note": "RED — a forbidden meta-key one level below the open CellFormat options bucket is rejected.",
+    "note": "RED — a forbidden meta-key one level below the open CellFormat options bucket is rejected. The four-language engine catches this too: forbidden-scan descends into the format bucket and rejects 'if' (a LOAD failure).",
     "expect": "fail",
     "reason": "propertyNames",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.name.format.if" },
     "spec": {
       "columns": {
         "name": { "field": ".name", "format": { "type": "badge", "if": ".admin" } }
@@ -133,9 +159,10 @@
   },
   {
     "name": "red-bad-sort-dir",
-    "note": "RED — sort.dir is an enum (asc|desc); an unregistered value is rejected.",
+    "note": "RED — sort.dir is an enum (asc|desc); an unregistered value is rejected. Enum shape is meta-schema-only; the four-language engine has no enum opinion (engine: pass).",
     "expect": "fail",
     "reason": "enum",
+    "engine": "pass",
     "spec": {
       "columns": { "name": { "field": ".name" } },
       "sort": { "field": ".name", "dir": "sideways" }
@@ -143,9 +170,10 @@
   },
   {
     "name": "red-unknown-sort-key",
-    "note": "RED — Sort is closed (field/dir only); an extra key is rejected.",
+    "note": "RED — Sort is closed (field/dir only); an extra key is rejected. additionalProperties closure is meta-schema-only; 'nulls' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
     "expect": "fail",
     "reason": "additionalProperties",
+    "engine": "pass",
     "spec": {
       "columns": { "name": { "field": ".name" } },
       "sort": { "field": ".name", "dir": "asc", "nulls": "last" }
@@ -153,9 +181,10 @@
   },
   {
     "name": "red-unknown-pagination-key",
-    "note": "RED — Pagination is closed (per_page/mode only); an extra key is rejected.",
+    "note": "RED — Pagination is closed (per_page/mode only); an extra key is rejected. additionalProperties closure is meta-schema-only; 'limit' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
     "expect": "fail",
     "reason": "additionalProperties",
+    "engine": "pass",
     "spec": {
       "columns": { "name": { "field": ".name" } },
       "pagination": { "per_page": 20, "limit": 99 }
@@ -163,9 +192,10 @@
   },
   {
     "name": "red-bad-pagination-mode",
-    "note": "RED — pagination.mode is an enum (pages|offset|cursor|none); an unregistered value is rejected.",
+    "note": "RED — pagination.mode is an enum (pages|offset|cursor|none); an unregistered value is rejected. Enum shape is meta-schema-only; the four-language engine has no enum opinion (engine: pass).",
     "expect": "fail",
     "reason": "enum",
+    "engine": "pass",
     "spec": {
       "columns": { "name": { "field": ".name" } },
       "pagination": { "mode": "infinite" }
@@ -173,9 +203,10 @@
   },
   {
     "name": "red-unknown-list-top-key",
-    "note": "RED — List is closed at the top (additionalProperties:false); a stray top key is rejected.",
+    "note": "RED — List is closed at the top (additionalProperties:false); a stray top key is rejected. Top-level closure is meta-schema-only; 'limit' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
     "expect": "fail",
     "reason": "additionalProperties",
+    "engine": "pass",
     "spec": {
       "columns": { "name": { "field": ".name" } },
       "limit": 10
@@ -183,9 +214,10 @@
   },
   {
     "name": "red-unknown-action-key",
-    "note": "RED — a ListAction object is closed; an out-of-1급 action key is rejected.",
+    "note": "RED — a ListAction object is closed; an out-of-1급 action key is rejected. additionalProperties closure is meta-schema-only; 'onclick' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
     "expect": "fail",
     "reason": "additionalProperties",
+    "engine": "pass",
     "spec": {
       "columns": { "name": { "field": ".name" } },
       "actions": { "edit": { "label": "Edit", "onclick": "x()" } }
@@ -193,9 +225,10 @@
   },
   {
     "name": "red-malformed-format-value",
-    "note": "RED — a CellFormat is polymorphic boolean|string|{object}; an array (an unregistered format SHAPE) is rejected by anyOf.",
+    "note": "RED — a CellFormat is polymorphic boolean|string|{object}; an array (an unregistered format SHAPE) is rejected by anyOf. CellFormat polymorphism is meta-schema-only; the array carries no forbidden key, so the four-language engine passes (engine: pass).",
     "expect": "fail",
     "reason": "anyOf",
+    "engine": "pass",
     "spec": {
       "columns": {
         "name": { "field": ".name", "format": ["date"] }
