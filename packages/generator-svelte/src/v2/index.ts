@@ -1,56 +1,50 @@
 /**
- * v2 generator entry (Svelte) — compose then render via Svelte 5 SSR.
+ * v2 generator entry (Svelte) — compose → evaluate (shared core) → .svelte SSR.
  *
  * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) v2 spec → (2) v2 compose (validator-js v2 compose: expand $ref/$patch
- *   into a single, composition-free spec; an unresolved $ref is a
- *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map render
- *   (shared expr engine) → (4) SSR HTML.
+ *   (1) v2 spec → (2) v2 compose (validator-js composeProperties: expand
+ *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
+ *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
+ *   evaluation (framework-agnostic core: @form-spec/generator-core) → (4) Svelte
+ *   5 SSR via svelte/server render().
  *
- * The compose engine and the expr engine are REUSED from validator-js (no
- * duplicate implementation). This module never touches v1 generator code
- * (R7 parallel run) and never calls `eval`.
- *
- * `renderFormV2` runs the v2 `FormV2.svelte` component through `svelte/server`
- * render() — the mandated Svelte 5 SSR path — then strips the SSR scaffolding
- * (the `<!--[--> … <!--]-->` fragment markers and any hydration comments) so the
- * payload is the bare form-content envelope. After the shared normalizer that
- * payload is identical to the React/Vue v2 references (3-framework parity gate,
- * tests/fixtures/v2-render).
+ * The evaluation runs ONCE in the shared core (buildForm returns a markup-free
+ * FieldViewModel[] tree); the Svelte adapter builds a real `FormV2.svelte`
+ * element tree from it and serializes with svelte/server render(). There is NO
+ * string-builder and NO completed-form `{@html}` echo — every structural node is
+ * a real `.svelte` element (the leaf control bytes go through the container's
+ * `{@html}` directive because svelte/server coerces empty/boolean attributes the
+ * parity fixture forbids; the same control-granularity boundary the Vue adapter
+ * uses). compose + expr are reused from the core (validator-js underneath); v1
+ * generator code is never touched; eval is never called.
  */
 
 import { render } from 'svelte/server';
-import type { FileLoader } from '@form-spec/validator';
-import FormV2, { buildFormHtml, type FormV2Props } from './FormV2.svelte';
-import type { Language } from './content';
-
-import type { UnsupportedMode } from './render';
+import { buildForm, type BuildFormOptions } from '@form-spec/generator-core';
+import type { Language, UnsupportedMode } from '@form-spec/generator-core';
+import FormV2 from './components/FormV2.svelte';
 
 export { ComposeLoadError } from '@form-spec/validator';
-export { UnsupportedFieldTypeError } from './errors';
-export { renderField } from './render';
-export { resolveDesign } from './design';
-export { evalShow, evalAppearance, makeContext } from './expr';
-export { makeTranslate } from './content';
-export type { Language } from './content';
-export type { UnsupportedMode } from './render';
-export { default as FormV2, buildFormHtml } from './FormV2.svelte';
-export type { FormV2Props } from './FormV2.svelte';
+export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
+export { resolveDesign } from '@form-spec/generator-core';
+export { evalShow, evalAppearance, makeContext } from '@form-spec/generator-core';
+export { makeTranslate } from '@form-spec/generator-core';
+export type { Language } from '@form-spec/generator-core';
+export type { UnsupportedMode } from '@form-spec/generator-core';
+
+// Core + components (the shared evaluation + the Svelte adapter surfaces).
+export { buildForm } from '@form-spec/generator-core';
+export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
+export { default as FormV2 } from './components/FormV2.svelte';
+export { default as Field } from './components/Field.svelte';
+export { default as Widget } from './components/Widget.svelte';
 
 /** Options for a v2 form render. */
-export interface RenderFormOptions {
+export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
   /** Form data (the expr engine's formData + value source). */
   data?: Record<string, unknown>;
   /** Active content language (default 'ko'). */
   language?: Language;
-  /** Name/id prefix. */
-  keyPrefix?: string;
-  /** $ref file set for composition (virtual in-memory loader). */
-  files?: Record<string, Record<string, unknown>>;
-  /** A custom loader (overrides `files`). */
-  loader?: FileLoader;
-  /** Basepath for relative $ref. */
-  basepath?: string;
   /**
    * Unsupported field-type handling (default 'throw' — un-ported types are RED,
    * never silent). 'marker' emits a grep-able data-unsupported-type div instead.
@@ -59,10 +53,25 @@ export interface RenderFormOptions {
 }
 
 /**
- * Strip Svelte 5 SSR scaffolding from a rendered body: the outer fragment
- * markers (`<!--[-->` / `<!--]-->`) and every remaining HTML comment (component
- * hash markers, anchor comments). The `{@html}` payload itself carries no
- * comments, so this yields exactly the form-content envelope.
+ * Build the top-level `FieldViewModel[]` for a v2 form via the shared core. The
+ * root spec must be a group with `properties`; composition is expanded first.
+ *
+ * Throws `ComposeLoadError` on an unresolved `$ref` (a load error, never silent),
+ * and `UnsupportedFieldTypeError` on an un-ported type (default-throw mode).
+ */
+export function buildFormV2(
+  rootSpec: Record<string, unknown>,
+  options: RenderFormOptions = {}
+) {
+  return buildForm(rootSpec, options);
+}
+
+/**
+ * Strip Svelte 5 SSR scaffolding from a rendered body: the outer fragment markers
+ * (`<!--[-->` / `<!--]-->`), the per-`{@html}` anchor comments, and every other
+ * hydration comment. The shared normalizer also strips comments (N7); doing it
+ * here keeps the RAW (pre-normalization) output a clean form-content envelope so
+ * the eval/magic-token guards inspect only generator bytes.
  */
 function stripSsrScaffolding(body: string): string {
   return body.replace(/<!--[\s\S]*?-->/g, '').trim();
@@ -70,50 +79,34 @@ function stripSsrScaffolding(body: string): string {
 
 /**
  * Render a v2 form's CONTENT (the field list, no `<form>` wrapper) through Svelte
- * 5 SSR. The root spec must be a group with `properties`; composition is
- * expanded first.
+ * 5 SSR. The root spec must be a group with `properties`; composition is expanded
+ * first.
  *
- * Throws `ComposeLoadError` on an unresolved `$ref` (a load error, never silent).
+ * Throws `ComposeLoadError` on an unresolved `$ref` (raised by buildForm before
+ * any Svelte work — a load error, never silent), and `UnsupportedFieldTypeError`
+ * on an un-ported field type (default-throw mode).
  */
 export function renderFormV2(
   rootSpec: Record<string, unknown>,
   options: RenderFormOptions = {}
 ): string {
-  const props: FormV2Props = {
-    spec: rootSpec,
-    data: options.data,
-    language: options.language,
-    keyPrefix: options.keyPrefix,
-    files: options.files,
-    loader: options.loader,
-    basepath: options.basepath,
-    unsupported: options.unsupported,
-  };
-
-  // svelte/server render() runs the four stages inside the component. A
-  // ComposeLoadError (unresolved $ref) or UnsupportedFieldTypeError (un-ported
-  // type, default-throw mode) propagates out unchanged — a render gap is a
-  // surfaced error, never valid:true / never silent.
-  const { body } = render(FormV2, { props });
+  // Stages 1–4 (compose + design/expr + i18n + tree) → markup-free view model.
+  const fields = buildForm(rootSpec, options);
+  // Genuine Svelte 5 SSR of a REAL .svelte tree (FormV2 → Field → Widget), not a
+  // completed-form {@html} echo.
+  const { body } = render(FormV2, { props: { fields } });
   return stripSsrScaffolding(body);
 }
 
 /**
- * String-only renderer (no SSR scaffolding round-trip). Identical output to
- * `renderFormV2`; useful where the Svelte server runtime is not desired.
+ * String alias of `renderFormV2` (kept as a public export for callers that hold
+ * the older name). Svelte's render() is synchronous, so there is no separate
+ * string path — both go through buildForm → svelte/server render() and yield the
+ * identical envelope.
  */
 export function renderFormV2String(
   rootSpec: Record<string, unknown>,
   options: RenderFormOptions = {}
 ): string {
-  return buildFormHtml({
-    spec: rootSpec,
-    data: options.data,
-    language: options.language,
-    keyPrefix: options.keyPrefix,
-    files: options.files,
-    loader: options.loader,
-    basepath: options.basepath,
-    unsupported: options.unsupported,
-  });
+  return renderFormV2(rootSpec, options);
 }

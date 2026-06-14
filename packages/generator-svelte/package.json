@@ -36,6 +36,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@form-spec/generator-core": "file:../generator-core",
     "@form-spec/validator": "file:../validator-js",
     "yaml": "^2.3.0"
   },
