@@ -1,0 +1,90 @@
+package compose
+
+// File loader for $ref resolution (port of loader.ts).
+//
+// $ref loads external YAML files (v1 ReferenceResolver: yml_parse_file). The
+// compose engine never touches the filesystem directly — it goes through a
+// FileLoader, so the shared fixtures supply a virtual in-memory file set while
+// production wires a real disk + YAML loader. One engine, two backends —
+// identical semantics.
+//
+// Path normalization mirrors v1 ReferenceResolver:
+//   - absolute (/…) paths pass through unchanged
+//   - relative paths get the basepath prefix (basepath + "/" + path)
+//
+// The loader receives the ALREADY-normalized absolute key, so cycle detection
+// and the fixture map key on one canonical identifier.
+
+// FileLoader resolves a normalized file key to its parsed document. Load returns
+// a *ComposeLoadError with code RefFileNotFound when the key is absent — the
+// engine relies on that exact code (an unresolved $ref is a load error, never
+// valid:true).
+type FileLoader interface {
+	// Normalize resolves path against basepath to the canonical key the map uses.
+	Normalize(path, basepath string) string
+	// Load returns the parsed document at the canonical key, or a NOT_FOUND error.
+	Load(key string) (*OMap, error)
+}
+
+// MemoryLoader is an in-memory loader over a fixed { key: doc } map. Shared
+// fixtures pass a file set here; the engine resolves $ref against it with no disk
+// access. Keys are the normalized identifiers (Normalize output).
+type MemoryLoader struct {
+	files map[string]*OMap
+}
+
+// NewMemoryLoader builds a MemoryLoader from a { key: doc } map. Each doc must be
+// an *OMap (a parsed object). A defensive clone is taken on Load so resolution
+// never mutates the source set.
+func NewMemoryLoader(files map[string]*OMap) *MemoryLoader {
+	cp := make(map[string]*OMap, len(files))
+	for k, v := range files {
+		cp[k] = v
+	}
+	return &MemoryLoader{files: cp}
+}
+
+// Normalize: absolute path passes through; relative path is prefixed by basepath
+// (v1 parity).
+func (l *MemoryLoader) Normalize(path, basepath string) string {
+	if len(path) > 0 && path[0] == '/' {
+		return path
+	}
+	if basepath != "" {
+		return basepath + "/" + path
+	}
+	return path
+}
+
+// Load returns a defensive deep clone of the parsed doc at key, or a
+// RefFileNotFound load error.
+func (l *MemoryLoader) Load(key string) (*OMap, error) {
+	doc, ok := l.files[key]
+	if !ok {
+		return nil, newLoadError(RefFileNotFound, "$ref file not found: "+key, key)
+	}
+	// Defensive deep clone so resolution never mutates the source file set
+	// (mirrors structuredClone(doc) on the JS side).
+	cloned, _ := deepClone(doc).(*OMap)
+	return cloned, nil
+}
+
+// deepClone deep-copies a value tree of *OMap / []any / scalars.
+func deepClone(v any) any {
+	switch x := v.(type) {
+	case *OMap:
+		out := NewOMap()
+		for _, k := range x.keys {
+			out.Set(k, deepClone(x.values[k]))
+		}
+		return out
+	case []any:
+		out := make([]any, len(x))
+		for i, e := range x {
+			out[i] = deepClone(e)
+		}
+		return out
+	default:
+		return v
+	}
+}
