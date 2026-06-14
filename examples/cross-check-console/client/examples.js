@@ -121,3 +121,122 @@ properties:
 ];
 
 export const defaultExampleId = 'basic';
+
+// ---------------------------------------------------------------------------
+// List-spec examples for the list tab.
+//
+// Sourced from tests/fixtures/v2-list-render/cases.json (basic-columns,
+// format-date/number/badge/bool, column-show-expr, i18n-header) and flowed
+// through POST /api/render-list. `rows` are INJECTED — the list spec declares
+// columns/format/search/pagination, never a DB. The `search` slot IS a
+// form-spec; the list tab renders it through the form endpoint (/api/render)
+// to prove the form-spec round-trips unchanged. The list renderers ignore the
+// `search` slot (they read only columns/sort/pagination/empty/actions), so the
+// SAME spec object is what the form endpoint receives.
+//
+// Do NOT invent column/format shapes here — quote the fixtures.
+// ---------------------------------------------------------------------------
+
+/** @typedef {{ id: string, name: string, note: string, spec: string, rows: string }} ListExample */
+
+/** The injected display rows shared by both list examples (the fixture rows). */
+const LIST_ROWS = `[
+  { "id": 1, "name": "Ada", "status": "active",  "joined": "2026-01-02T09:00:00", "score": 1234567.5, "admin": 1, "avatar": "/img/ada.png", "secret": "X-1" },
+  { "id": 2, "name": "Lin", "status": "blocked", "joined": "2026-03-15T12:00:00", "score": 42,         "admin": 0, "avatar": "/img/lin.png", "secret": "X-2" }
+]`;
+
+/** @type {ListExample[]} */
+export const listExamples = [
+  {
+    id: 'list-basic',
+    name: 'list basic — columns + date/number/badge format',
+    note: 'v2-list-render basic-columns + format-date(YYYY-MM-DD) + format-number(decimals/thousands/$prefix) + format-badge(map). rows injected; 3 frameworks render the SAME normalized table → parity.',
+    spec: `columns:
+  name:
+    field: .name
+    label:
+      ko: 이름
+      en: Name
+  status:
+    field: .status
+    label:
+      ko: 상태
+      en: Status
+    format:
+      type: badge
+      map:
+        active: success
+        blocked: danger
+  joined:
+    field: .joined
+    label: Joined
+    format:
+      type: date
+      pattern: YYYY-MM-DD
+  score:
+    field: .score
+    label: Score
+    format:
+      type: number
+      decimals: 2
+      thousands: true
+      prefix:
+        en: $`,
+    rows: LIST_ROWS,
+  },
+  {
+    id: 'list-search-conditional',
+    name: 'list search — i18n header + conditional column + embedded search form',
+    note: 'design.show ".admin" hides the secret column when row.admin falsy (column-show-expr). i18n header (label.ko/en) follows the KO/EN toggle. The `search` slot is a form-spec rendered via /api/render(form) ABOVE the list — form-spec reuse, proven live.',
+    spec: `# search IS a form-spec; the list tab renders it through /api/render (form),
+# the SAME endpoint the form tab uses. The list renderers ignore this slot.
+search:
+  type: group
+  properties:
+    keyword:
+      type: text
+      label:
+        ko: 검색어
+        en: Keyword
+    status:
+      type: select
+      label:
+        ko: 상태
+        en: Status
+      options:
+        active:
+          ko: 활성
+          en: Active
+        blocked:
+          ko: 차단
+          en: Blocked
+columns:
+  name:
+    field: .name
+    label:
+      ko: 이름
+      en: Name
+  admin:
+    field: .admin
+    label:
+      ko: 관리자
+      en: Admin
+    format:
+      type: bool
+      "true": "Yes"
+      "false": "No"
+      as: check
+  secret:
+    field: .secret
+    label:
+      ko: 비밀
+      en: Secret
+    design:
+      show: .admin
+pagination:
+  perPage: 20`,
+    rows: LIST_ROWS,
+  },
+];
+
+export const defaultListExampleId = 'list-basic';
