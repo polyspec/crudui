@@ -10,11 +10,27 @@
 #   ![CI](https://github.com/yejune/form-spec/actions/workflows/ci.yml/badge.svg)
 #
 # Gate -> job map:
-#   cross-language   node tests/runner/compare-all.js          (JS/PHP/Go/Rust, 1013 cases)
+#   cross-language   node tests/runner/compare-all.js          (JS/PHP/Go/Rust, 1074 cases)
 #   validator-unit   per-language unit tests (js/php/go/rust)
 #   build-lint       npm run build  +  npm run lint
 #   parity           React / Vue / Svelte HTML parity (SSR, no browser)
 #   docs-coverage    make docs-check                           (libs + servers, 4 langs)
+#
+# current gate -> job map (R7: runs alongside the legacy gates above, never replaces them):
+#   validator-current-js    npm run test:current -w validator-js        (vitest run src)
+#   validator-current-php   composer test:current                       (phpunit tests)
+#   validator-current-go    go test ./validator/...
+#   validator-current-rust  cargo test --test {expr,compose,validate,spec_validity}_conformance
+#   form-render          React/Vue/Svelte current SSR conformance    (npm run test:current per pkg)
+#
+# current shared 4-language fixtures (tests/fixtures/*/cases.json), each loaded by
+# every engine that consumes it and asserted bit-for-bit:
+#   expr           114 (38 specs x lexer/parser/eval)  JS/PHP/Go/Rust
+#   compose         20                                  JS/PHP/Go/Rust
+#   validate        28                                  JS/PHP/Go/Rust
+#   spec-validity   15 (recursive forbidden-scan)       JS/PHP/Go/Rust
+#   form-render       22 (SSR HTML)                        React/Vue/Svelte
+# A current regression turns the matching job red via the test runner exit code.
 #
 # Toolchain pinning rationale:
 #   - dist/ and target/ are gitignored, so cross-language must build the JS
@@ -70,12 +86,12 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # cross-language — the idempotency gate. Same spec + same data must produce
-  # identical results across JS, PHP, Go, Rust over all 1013 cases.
+  # identical results across JS, PHP, Go, Rust over all 1074 cases.
   # Needs ALL FOUR toolchains. The JS validator dist and the Rust release
   # binary are built first (both gitignored; compare-all expects them present).
   # ---------------------------------------------------------------------------
   cross-language:
-    name: cross-language idempotency (1013)
+    name: cross-language idempotency (1074)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -116,7 +132,7 @@ jobs:
         run: cargo build --release --bin validate
         working-directory: packages/validator-rust
 
-      - name: Cross-language compare (JS/PHP/Go/Rust, 1013 cases)
+      - name: Cross-language compare (JS/PHP/Go/Rust, 1074 cases)
         run: node tests/runner/compare-all.js
 
   # ---------------------------------------------------------------------------
@@ -269,3 +285,132 @@ jobs:
 
       - name: Doc-coverage gate (libs + servers, 4 langs)
         run: make docs-check
+
+  # ===========================================================================
+  # current gates (R7). These run in parallel with the legacy jobs above and gate the current
+  # core: the 4-language validation pipeline (expr/compose/validate/forbidden-
+  # scan) and the 3-framework current SSR generators. Each job invokes a real,
+  # repo-verified test command; a current regression turns the job red via the
+  # runner's exit code. None of these touch the legacy jobs, scripts, or files.
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # validator-current-js — vitest over src only (expr/compose/validate/forbidden-
+  # scan conformance + types roundtrip). `npm run test:current` == `vitest run
+  # src`. Loads the shared fixtures expr(114)/compose(20)/validate(28)/
+  # spec-validity(15) as the JS reference engine.
+  # ---------------------------------------------------------------------------
+  validator-current-js:
+    name: current · validator-js (vitest src)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install workspace deps
+        run: npm i -g npm@11.17.0 && npm ci
+      - name: current conformance (vitest src)
+        run: npm run test:current
+        working-directory: packages/validator-js
+
+  # ---------------------------------------------------------------------------
+  # validator-current-php — phpunit over tests only. vendor/ is committed, so no
+  # composer install is needed; `composer test:current` == `phpunit tests`.
+  # ---------------------------------------------------------------------------
+  validator-current-php:
+    name: current · validator-php (phpunit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
+      - name: current conformance (phpunit tests)
+        run: composer test:current
+        working-directory: packages/validator-php
+
+  # ---------------------------------------------------------------------------
+  # validator-current-go — go test over the current package tree only. expr/compose/
+  # validate conformance + forbidden-scan + types roundtrip live under
+  # validator/...; legacy tests (validator/validator_test.go) are excluded by
+  # the package path.
+  # ---------------------------------------------------------------------------
+  validator-current-go:
+    name: current · validator-go (go test ./validator/...)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache-dependency-path: packages/validator-go/go.mod
+      - name: current conformance (go test ./validator/...)
+        run: go test ./validator/...
+        working-directory: packages/validator-go
+
+  # ---------------------------------------------------------------------------
+  # validator-current-rust — the four current conformance integration tests by name
+  # (expr/compose/validate/spec-validity). Targeting them with --test excludes
+  # the legacy tests/conformance.rs while gating each shared fixture.
+  # ---------------------------------------------------------------------------
+  validator-current-rust:
+    name: current · validator-rust (cargo test current conformance)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/validator-rust
+      - name: current conformance (expr/compose/validate/spec-validity)
+        run: >
+          cargo test
+          --test expr_conformance
+          --test compose_conformance
+          --test validate_conformance
+          --test spec_validity_conformance
+        working-directory: packages/validator-rust
+
+  # ---------------------------------------------------------------------------
+  # form-render — the 3-framework current SSR conformance (22 shared form-render cases
+  # each). `npm run test:current` per package runs only the form-render conformance
+  # file. Generators import @form-spec/validator (dist), so the validator is
+  # built first — same dependency the legacy parity job has.
+  # ---------------------------------------------------------------------------
+  form-render:
+    name: current render (React/Vue/Svelte SSR)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install workspace deps
+        run: npm i -g npm@11.17.0 && npm ci
+
+      - name: Build JS validator (generators import @form-spec/validator)
+        run: npm run build:validator
+
+      - name: React current render
+        run: npm run test:current
+        working-directory: packages/generator-react
+
+      - name: Vue current render
+        run: npm run test:current
+        working-directory: packages/generator-vue
+
+      - name: Svelte current render
+        run: npm run test:current
+        working-directory: packages/generator-svelte
