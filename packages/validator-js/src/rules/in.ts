@@ -9,6 +9,28 @@ import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
 
 /**
+ * Whether an object param is a static value→label content map (SPEC §2 G3): a
+ * plain object whose entry values are display labels — strings, or LangMap
+ * objects `{ ko, en }`, or `null` (empty label). For such a map the option VALUE
+ * is the KEY and the label is display-only, so membership is checked against the
+ * keys, never the (possibly multilingual) labels. A `null` label slot has no
+ * effect. An object that carries any non-label value (a number, boolean, array)
+ * is NOT a content map — it keeps the legacy values-flatten behavior.
+ */
+function isValueLabelMap(obj: Record<string, unknown>): boolean {
+  const entries = Object.values(obj);
+  if (entries.length === 0) {
+    return false;
+  }
+  return entries.every(
+    (v) =>
+      v === null ||
+      typeof v === 'string' ||
+      (typeof v === 'object' && !Array.isArray(v))
+  );
+}
+
+/**
  * Flatten a nested array/string param into a flat list of allowed values
  */
 export function flattenInValues(param: unknown): unknown[] {
@@ -17,8 +39,14 @@ export function flattenInValues(param: unknown): unknown[] {
       return param.split(',').map((v) => v.trim());
     }
     if (param !== null && typeof param === 'object') {
-      // Object params (e.g., items maps) - use values, flattened
-      return flattenInValues(Object.values(param));
+      const obj = param as Record<string, unknown>;
+      // Static value→label content map (G3): the option value is the KEY; the
+      // label (string | LangMap | null) is display-only and never a member.
+      if (isValueLabelMap(obj)) {
+        return Object.keys(obj);
+      }
+      // Other object params - use values, flattened.
+      return flattenInValues(Object.values(obj));
     }
     return [param];
   }

@@ -1,0 +1,1214 @@
+[
+  {
+    "name": "conditional-required-true",
+    "note": "required:'.subscribe' fires when subscribe is truthy and value empty",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "subscribe": {
+          "type": "checkbox"
+        },
+        "email": {
+          "type": "email",
+          "validate": {
+            "required": ".subscribe"
+          }
+        }
+      }
+    },
+    "data": {
+      "subscribe": true,
+      "email": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "email",
+          "field": "email",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "conditional-required-false",
+    "note": "required:'.subscribe' is disabled when subscribe is falsy",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "subscribe": {
+          "type": "checkbox"
+        },
+        "email": {
+          "type": "email",
+          "validate": {
+            "required": ".subscribe"
+          }
+        }
+      }
+    },
+    "data": {
+      "subscribe": false,
+      "email": ""
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "condition-map-min-vip",
+    "note": "min:{'.vip':10, true:1} → first-truthy key picks 10 for a VIP",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "vip": {
+          "type": "checkbox"
+        },
+        "qty": {
+          "type": "number",
+          "validate": {
+            "min": {
+              ".vip": 10,
+              "true": 1
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "vip": true,
+      "qty": 5
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "qty",
+          "field": "qty",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 10.",
+          "value": 5
+        }
+      ]
+    }
+  },
+  {
+    "name": "condition-map-min-default",
+    "note": "min:{'.vip':10, true:1} → default key picks 1 for a non-VIP",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "vip": {
+          "type": "checkbox"
+        },
+        "qty": {
+          "type": "number",
+          "validate": {
+            "min": {
+              ".vip": 10,
+              "true": 1
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "vip": false,
+      "qty": 5
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "ternary-min-premium",
+    "note": "min:'.is_premium == 1 ? 10 : 1' evaluates the branch to 10",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "is_premium": {
+          "type": "number"
+        },
+        "quantity": {
+          "type": "number",
+          "validate": {
+            "min": ".is_premium == 1 ? 10 : 1"
+          }
+        }
+      }
+    },
+    "data": {
+      "is_premium": 1,
+      "quantity": 5
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "quantity",
+          "field": "quantity",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 10.",
+          "value": 5
+        }
+      ]
+    }
+  },
+  {
+    "name": "ternary-min-nonpremium",
+    "note": "min ternary evaluates to 1 when is_premium != 1",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "is_premium": {
+          "type": "number"
+        },
+        "quantity": {
+          "type": "number",
+          "validate": {
+            "min": ".is_premium == 1 ? 10 : 1"
+          }
+        }
+      }
+    },
+    "data": {
+      "is_premium": 0,
+      "quantity": 5
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "compose-ref-patch-email",
+    "note": "$ref base (required) + $patch adds email rule; \"bad\" fails email",
+    "spec": {
+      "$ref": "Base.yml",
+      "$patch": {
+        "email.validate.email": true
+      }
+    },
+    "files": {
+      "Base.yml": {
+        "properties": {
+          "email": {
+            "type": "email",
+            "validate": {
+              "required": true
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "email": "bad"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "email",
+          "field": "email",
+          "rule": "email",
+          "message": "Please enter a valid email address.",
+          "value": "bad"
+        }
+      ]
+    }
+  },
+  {
+    "name": "compose-unresolved-ref-load-error",
+    "note": "missing $ref file is a ComposeLoadError, not valid:true (873 lock)",
+    "spec": {
+      "$ref": "Missing.yml"
+    },
+    "data": {},
+    "expectLoadError": {
+      "code": "REF_FILE_NOT_FOUND"
+    }
+  },
+  {
+    "name": "nested-group-required",
+    "note": "addr.zip required fires for empty nested value",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "addr": {
+          "type": "group",
+          "properties": {
+            "zip": {
+              "validate": {
+                "required": true,
+                "digits": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "addr": {
+        "zip": ""
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "addr.zip",
+          "field": "zip",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "nested-group-digits",
+    "note": "addr.zip passes required, then digits fires for \"abc\"",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "addr": {
+          "type": "group",
+          "properties": {
+            "zip": {
+              "validate": {
+                "required": true,
+                "digits": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "addr": {
+        "zip": "abc"
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "addr.zip",
+          "field": "zip",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": "abc"
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-array-level-unique",
+    "note": "two equal tags meet mincount:2, then array-level unique fires",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "multiple": true,
+          "validate": {
+            "mincount": 2,
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "tags": [
+        "a",
+        "a"
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "tags",
+          "field": "tags",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": [
+            "a",
+            "a"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-array-level-mincount",
+    "note": "tags has one element → mincount:2 fires",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "multiple": true,
+          "validate": {
+            "mincount": 2,
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "tags": [
+        "a"
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "tags",
+          "field": "tags",
+          "rule": "mincount",
+          "message": "Please select at least 2 items.",
+          "value": [
+            "a"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-group-index-path",
+    "note": "second item empty code → error path items.1.code",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "code": {
+              "validate": {
+                "required": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": [
+        {
+          "code": "x"
+        },
+        {
+          "code": ""
+        }
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "items.1.code",
+          "field": "code",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "object-key-multiple-sorted-path",
+    "note": "object keys sorted → first error rows.__a__.v before rows.__b__.v",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "v": {
+              "validate": {
+                "required": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__b__": {
+          "v": ""
+        },
+        "__a__": {
+          "v": ""
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "rows.__a__.v",
+          "field": "v",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "rows.__b__.v",
+          "field": "v",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "type-number-implicit",
+    "note": "type:number runs implicit number first → \"Infinity\" is rule:number",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "age": {
+          "type": "number",
+          "validate": {
+            "min": 0
+          }
+        }
+      }
+    },
+    "data": {
+      "age": "Infinity"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "age",
+          "field": "age",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "Infinity"
+        }
+      ]
+    }
+  },
+  {
+    "name": "unique-filter-condition-pass",
+    "note": "unique:'.active == 1' filters; duplicate among inactive items passes",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "active": {
+              "type": "number"
+            },
+            "code": {
+              "validate": {
+                "unique": ".active == 1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": [
+        {
+          "active": 0,
+          "code": "dup"
+        },
+        {
+          "active": 0,
+          "code": "dup"
+        }
+      ]
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-filter-condition-fail",
+    "note": "unique:'.active == 1' fires for a duplicate among active items",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "active": {
+              "type": "number"
+            },
+            "code": {
+              "validate": {
+                "unique": ".active == 1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": [
+        {
+          "active": 1,
+          "code": "dup"
+        },
+        {
+          "active": 1,
+          "code": "dup"
+        }
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "rows.1.code",
+          "field": "code",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": "dup"
+        }
+      ]
+    }
+  },
+  {
+    "name": "match-regex-verbatim",
+    "note": "match regex preserved verbatim; \"ftp://x\" fails ^https?://.+",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "url": {
+          "type": "text",
+          "validate": {
+            "match": "^https?://.+"
+          }
+        }
+      }
+    },
+    "data": {
+      "url": "ftp://x"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "url",
+          "field": "url",
+          "rule": "match",
+          "message": "Please enter a valid format.",
+          "value": "ftp://x"
+        }
+      ]
+    }
+  },
+  {
+    "name": "accept-literal-verbatim",
+    "note": "accept \".jpg,.png\" literal param; a .gif file fails",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "photo": {
+          "type": "file",
+          "validate": {
+            "accept": ".jpg,.png"
+          }
+        }
+      }
+    },
+    "data": {
+      "photo": "snapshot.gif"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "photo",
+          "field": "photo",
+          "rule": "accept",
+          "message": "Please upload a file with a valid format.",
+          "value": "snapshot.gif"
+        }
+      ]
+    }
+  },
+  {
+    "name": "design-show-does-not-skip",
+    "note": "design.show hidden field still validates (R1 — visibility != validation)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "x": {
+          "type": "text",
+          "design": {
+            "show": ".flag"
+          },
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "flag": false,
+      "x": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "x",
+          "field": "x",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "first-error-per-field",
+    "note": "required+email; empty value → only required (email not reached)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "email",
+          "validate": {
+            "required": true,
+            "email": true
+          }
+        }
+      }
+    },
+    "data": {
+      "email": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "email",
+          "field": "email",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "empty-skips-email",
+    "note": "email rule only (no required); empty value passes (blank skip)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "email",
+          "validate": {
+            "email": true
+          }
+        }
+      }
+    },
+    "data": {
+      "email": ""
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "message-override-required",
+    "note": "field messages.required overrides the default message",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text",
+          "validate": {
+            "required": true
+          },
+          "messages": {
+            "required": "Name please"
+          }
+        }
+      }
+    },
+    "data": {
+      "name": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "name",
+          "field": "name",
+          "rule": "required",
+          "message": "Name please",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "unregistered-rule-skipped",
+    "note": "an unknown rule name produces no error; the field is valid",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "x": {
+          "type": "text",
+          "validate": {
+            "no_such_rule": true
+          }
+        }
+      }
+    },
+    "data": {
+      "x": "anything"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "validate-slot-off",
+    "note": "validate:false turns the slot off; empty value still valid",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "x": {
+          "type": "text",
+          "validate": false
+        }
+      }
+    },
+    "data": {
+      "x": ""
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "equalto-mismatch",
+    "note": "equalTo:'.password' compares to sibling; mismatch fires",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "password": {
+          "type": "text"
+        },
+        "confirm": {
+          "type": "text",
+          "validate": {
+            "equalTo": ".password"
+          }
+        }
+      }
+    },
+    "data": {
+      "password": "secret",
+      "confirm": "other"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "confirm",
+          "field": "confirm",
+          "rule": "equalTo",
+          "message": "Please enter the same value again.",
+          "value": "other"
+        }
+      ]
+    }
+  },
+  {
+    "name": "equalto-match",
+    "note": "equalTo:'.password' passes when the values match",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "password": {
+          "type": "text"
+        },
+        "confirm": {
+          "type": "text",
+          "validate": {
+            "equalTo": ".password"
+          }
+        }
+      }
+    },
+    "data": {
+      "password": "secret",
+      "confirm": "secret"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "conditional-required-in-list",
+    "note": "required:'.is_display in 2,3' fires only for matching is_display",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "is_display": {
+          "type": "number"
+        },
+        "memo": {
+          "type": "text",
+          "validate": {
+            "required": ".is_display in 2,3"
+          }
+        }
+      }
+    },
+    "data": {
+      "is_display": 2,
+      "memo": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "memo",
+          "field": "memo",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "items-langmap-in-membership-valid",
+    "note": "in: value→label map with {ko,en} labels — value '1' is a key, valid (label not a member)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "toggle": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "0": {
+                "ko": "미사용",
+                "en": "Off"
+              },
+              "1": {
+                "ko": "사용",
+                "en": "On"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "toggle": "1"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "items-langmap-in-membership-invalid",
+    "note": "in: value→label map with {ko,en} labels — value '미사용' (a label, not a key) fails",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "toggle": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "0": {
+                "ko": "미사용",
+                "en": "Off"
+              },
+              "1": {
+                "ko": "사용",
+                "en": "On"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "toggle": "미사용"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "toggle",
+          "field": "toggle",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "미사용"
+        }
+      ]
+    }
+  },
+  {
+    "name": "items-string-label-in-membership-valid",
+    "note": "in: value→label map with string labels — value '2' is a key, valid",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "grade": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "1": "Bronze",
+              "2": "Silver",
+              "3": "Gold"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "grade": "2"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "items-langmap-null-label-membership",
+    "note": "in: value→label map where key '2' has a null label — '2' is still a valid member (null label no effect)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "opt": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "1": {
+                "ko": "하나",
+                "en": "One"
+              },
+              "2": null,
+              "3": {
+                "ko": "셋",
+                "en": "Three"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "opt": "2"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "null-content-no-validate-effect",
+    "note": "label:null and a null LangMap slot have no effect — required still fires on empty value",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "nickname": {
+          "type": "text",
+          "label": null,
+          "description": {
+            "ko": "별명",
+            "en": null
+          },
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "nickname": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "nickname",
+          "field": "nickname",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "items-langmap-4lang-membership-valid",
+    "note": "G3 — in: value→label map with 4-language labels {ko,en,ja,zh}; value '1' is a key, valid (a 4-lang label is display-only, never a member)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "toggle": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "0": { "ko": "미사용", "en": "Off", "ja": "オフ", "zh": "关闭" },
+              "1": { "ko": "사용", "en": "On", "ja": "オン", "zh": "开启" }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "toggle": "1"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "items-langmap-4lang-membership-invalid",
+    "note": "G3 — in: 4-language value→label map; value 'オン' (a ja label, not a key) fails — the label is never a member in any of the 4 languages",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "toggle": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "0": { "ko": "미사용", "en": "Off", "ja": "オフ", "zh": "关闭" },
+              "1": { "ko": "사용", "en": "On", "ja": "オン", "zh": "开启" }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "toggle": "オン"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "toggle",
+          "field": "toggle",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "オン"
+        }
+      ]
+    }
+  },
+  {
+    "name": "items-4lang-null-label-slot-membership",
+    "note": "G3 — in: 4-language map where key '2' has a partial-null label slot ({ko,en,ja:null,zh}) and key '4' has a fully null label; both keys stay valid members (a null label slot has no membership effect)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "opt": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "1": { "ko": "하나", "en": "One", "ja": "一", "zh": "一" },
+              "2": { "ko": "둘", "en": "Two", "ja": null, "zh": "二" },
+              "3": { "ko": "셋", "en": "Three", "ja": "三", "zh": "三" },
+              "4": null
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "opt": "2"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "items-4lang-fully-null-label-membership",
+    "note": "G3 — the fully null label key '4' of the same 4-language map is still a valid member (null content == absent, no validate effect)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "opt": {
+          "type": "select",
+          "validate": {
+            "in": {
+              "1": { "ko": "하나", "en": "One", "ja": "一", "zh": "一" },
+              "2": { "ko": "둘", "en": "Two", "ja": null, "zh": "二" },
+              "3": { "ko": "셋", "en": "Three", "ja": "三", "zh": "三" },
+              "4": null
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "opt": "4"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "null-content-4lang-no-validate-effect",
+    "note": "G3 — label:null plus a 4-language content map with a null slot ({ko,en,ja:null,zh}) have no validate effect; required still fires on an empty value",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "nickname": {
+          "type": "text",
+          "label": null,
+          "description": { "ko": "별명", "en": "Nickname", "ja": null, "zh": "昵称" },
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "nickname": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "nickname",
+          "field": "nickname",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  }
+]
