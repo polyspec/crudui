@@ -19,6 +19,14 @@
  *   - generator-vue    src/ssr.ts   → renderFormSSR  (async)
  *   - tests/fixtures/form-render/normalize.mjs → normalizeHtml (shared parity key)
  *
+ * The LIST sister loads alongside (additive; the form entries above are untouched,
+ * SPEC §9). The same THREE module graphs already SSR-load expose a list entry, so
+ * loading them costs no extra ssrLoadModule:
+ *
+ *   - generator-react  src/index.ts   → renderList    (sync)
+ *   - generator-svelte src/index.ts   → renderList    (sync)
+ *   - generator-vue    src/listSsr.ts → renderListSSR (async)
+ *
  * Reusing ssrLoadModule means the bytes the console renders are byte-identical to
  * the bytes the conformance tests assert (same module graph, same functions).
  *
@@ -45,6 +53,9 @@ let enginePromise = null;
  *   renderReact: Function,
  *   renderSvelte: Function,
  *   renderVue: Function,
+ *   renderListReact: Function,
+ *   renderListSvelte: Function,
+ *   renderListVue: Function,
  *   normalizeHtml: Function,
  *   errorClasses: { react: object, svelte: object, vue: object },
  *   close: Function,
@@ -87,10 +98,11 @@ async function bootEngine() {
     plugins: [svelte()],
   });
 
-  const [reactMod, svelteMod, vueMod, normMod] = await Promise.all([
+  const [reactMod, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-react/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-svelte/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/ssr.ts')),
+    vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/listSsr.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'tests/fixtures/form-render/normalize.mjs')),
   ]);
 
@@ -98,6 +110,11 @@ async function bootEngine() {
     renderReact: reactMod.renderForm,
     renderSvelte: svelteMod.renderForm,
     renderVue: vueMod.renderFormSSR,
+    // list sister (read) — the SAME react/svelte index modules expose renderList;
+    // Vue's list SSR lives in its own listSsr entry. Symmetric to the form trio.
+    renderListReact: reactMod.renderList,
+    renderListSvelte: svelteMod.renderList,
+    renderListVue: vueListMod.renderListSSR,
     normalizeHtml: normMod.normalizeHtml,
     // Error classes for surfacing render failures with a stable `code` (the same
     // ERROR_CLASS_BY_CODE keys the conformance tests use).
