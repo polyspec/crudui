@@ -1,0 +1,492 @@
+/**
+ * v1→v2 translator shared-fixture generator (SPEC §6 round-trip gate).
+ *
+ * Produces `cases.json`: one case per analysis `fixture_ideas` entry. Each case
+ * is the v1 input, the translator's REAL v2 output (never hand-written), the
+ * irreversibility note log, and the round-trip verdict. The other engines (PHP /
+ * Go / Rust) load the SAME `cases.json` and must reproduce it bit-for-bit
+ * (4-language idempotence).
+ *
+ * Two case families (the analysis roundtrip_rule split):
+ *   - reversible cases: `v1 → v2 → v1` MUST equal the original bit-for-bit. The
+ *     fixture records `roundtrip: { reversible:true, lossless:true }`.
+ *   - irreversible (R7 transcend) cases: at least one absorption fires; the
+ *     round-trip is OUTSIDE the gate. The fixture records the note(s) and
+ *     `roundtrip: { reversible:false }` — losslessness is NOT asserted (we do not
+ *     sacrifice v2 for the translator).
+ *
+ * Every emitted v2 spec is also asserted to carry ZERO forbidden meta keys (the
+ * recursive forbidden-scan over the translated properties) — the translator must
+ * never emit a meta key.
+ *
+ * Regenerate (from repo root):
+ *   node_modules/.bin/tsx tests/fixtures/translate/generate.ts > tests/fixtures/translate/cases.json
+ */
+
+import {
+  translateV1ToV2,
+  translateV2ToV1,
+  deepEqual,
+} from '../../../packages/validator-js/src/v2/translate/index';
+import { scanForbiddenKeys } from '../../../packages/validator-js/src/v2/forbidden-scan';
+
+interface CaseSpec {
+  name: string;
+  note: string;
+  v1: Record<string, unknown>;
+  /** Expected reversibility (asserted against the real translator). */
+  reversible: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Cases — one per analysis fixture_ideas entry (single truth).
+// ---------------------------------------------------------------------------
+
+const SPECS: CaseSpec[] = [
+  // 1. display_target simple, sibling items map (reversible 1:1 target).
+  {
+    name: 'display-target-simple',
+    note: "b.display_target_condition_style → b.design.show {'.a==1':true, true:false}; sibling items map preserved; round-trips 1:1.",
+    v1: {
+      type: 'group',
+      properties: {
+        a: { type: 'choice', items: { 0: '아니오', 1: '예' } },
+        b: {
+          type: 'text',
+          display_target: '.a',
+          display_target_condition_style: { 1: 'display:block', 0: 'display:none' },
+        },
+      },
+    },
+    reversible: true,
+  },
+
+  // 1b. display_target ISOLATED on a leaf (reversible, no sibling items noise).
+  {
+    name: 'display-target-condition-style-leaf',
+    note: "Single field: display_target + condition_style → design.show boolean condition map; v1→v2→v1 lossless.",
+    v1: {
+      type: 'text',
+      display_target: '.is_season_price',
+      display_target_condition_style: { 1: 'display:block', 0: 'display:none' },
+    },
+    reversible: true,
+  },
+
+  // 2. display_switch annihilation (irreversible).
+  {
+    name: 'display-switch-annihilation',
+    note: 'is_company.display_switch distributes to company_name/individual_name design.show; switch/onchange/ready annihilated (irreversible).',
+    v1: {
+      type: 'group',
+      properties: {
+        is_company: {
+          type: 'choice',
+          display_switch: { 1: ['company_name'], 0: ['individual_name'] },
+          onchange: 'recalc()',
+        },
+        company_name: { type: 'text' },
+        individual_name: { type: 'text' },
+      },
+    },
+    reversible: false,
+  },
+
+  // 3. appearance node map (reversible).
+  {
+    name: 'design-node-map',
+    note: 'class/label_class/group_class/wrapper_class/prepend_class → design node map; round-trips.',
+    v1: {
+      type: 'text',
+      class: 'form-control',
+      label_class: 'fw-bold',
+      group_class: 'row',
+      wrapper_class: 'w',
+      prepend_class: 'p',
+    },
+    reversible: true,
+  },
+
+  // 4. validate reversible (named + index rules).
+  {
+    name: 'validate-mixed-rules',
+    note: 'rules{required,minlength,maxlength,match,email} → validate; named + index rules round-trip.',
+    v1: {
+      type: 'text',
+      rules: { required: true, minlength: 2, maxlength: 10, match: '/^[0-9]+$/', email: true },
+    },
+    reversible: true,
+  },
+
+  // 5. conditional required (expression passthrough, reversible).
+  {
+    name: 'conditional-required-expression',
+    note: "rules.required expression → validate.required identical string (G1 passthrough); round-trips.",
+    v1: {
+      type: 'text',
+      rules: { required: 'rooms.*.peoples.*.is_season_price && .choice_yoil_price == 1' },
+    },
+    reversible: true,
+  },
+
+  // 6. behavior opaque passthrough (reversible). Scripts are opaque strings —
+  //    the v2 BehaviorAction is string | {label,script}, never a bare boolean.
+  {
+    name: 'behavior-opaque',
+    note: 'onchange/onclick/onload → behavior; opaque script strings round-trip (BehaviorAction = string|{label,script}).',
+    v1: {
+      type: 'text',
+      onchange: 'console.log(1)',
+      onclick: 'f()',
+      onload: 'init()',
+    },
+    reversible: true,
+  },
+
+  // 7. lang dimension (reversible).
+  {
+    name: 'lang-dimension',
+    note: 'lang:append + langs + lang_name + remove_lang_title + lang_group_class → lang bucket; round-trips.',
+    v1: {
+      type: 'text',
+      lang: 'append',
+      langs: ['ko', 'en'],
+      lang_name: '언어팩',
+      remove_lang_title: true,
+      lang_group_class: 'g',
+    },
+    reversible: true,
+  },
+
+  // 8. multiple dimension (reversible canonical keys).
+  {
+    name: 'multiple-dimension',
+    note: 'multiple/multiple_max/sortable/add_buttons/multiple_button_onclick → multiple bucket; round-trips.',
+    v1: {
+      type: 'text',
+      multiple: true,
+      multiple_max: 5,
+      sortable: true,
+      add_buttons: true,
+      multiple_button_onclick: 'g()',
+    },
+    reversible: true,
+  },
+
+  // 9. composition $merge/$remove → $patch (irreversible).
+  {
+    name: 'compose-patch-absorption',
+    note: 'properties.$ref reversible; $change/$remove absorbed into $patch (op identity lost, irreversible).',
+    v1: {
+      type: 'group',
+      properties: {
+        $ref: 'Base.yml',
+        $change: { 'price.rules.required': '.x == 1' },
+        $remove: ['old'],
+      },
+    },
+    reversible: false,
+  },
+
+  // 10. options type-dependent (reversible).
+  {
+    name: 'options-type-dependent',
+    note: 'image type keys (width/height/ratio/cover/fileserver) → options; core uninvolved; round-trips.',
+    v1: {
+      type: 'image',
+      width: 300,
+      height: 200,
+      ratio: '1:1',
+      cover: true,
+      fileserver: 's3',
+    },
+    reversible: true,
+  },
+
+  // 11. x{key} strip (irreversible, zero x* in canonical).
+  {
+    name: 'xkey-strip',
+    note: 'xclass/xstyle/xonchange stripped; design.class kept; canonical has zero x* (irreversible).',
+    v1: {
+      type: 'text',
+      class: 'a',
+      xclass: 'old',
+      xstyle: 'q',
+      xonchange: 'z',
+    },
+    reversible: false,
+  },
+
+  // 12. items polymorphic — static map (reversible).
+  {
+    name: 'items-static',
+    note: 'static items value→label map preserved; round-trips.',
+    v1: {
+      type: 'choice',
+      items: { 0: '개인', 1: '기업' },
+    },
+    reversible: true,
+  },
+
+  // 12b. items dynamic source (reversible).
+  {
+    name: 'items-dynamic-source',
+    note: 'scattered model/method/table dynamic-source keys reclaimed under items; round-trips.',
+    v1: {
+      type: 'select',
+      model: 'Foo',
+      method: 'bar',
+      table: 't',
+    },
+    reversible: true,
+  },
+
+  // 13. messages gap (irreversible — out of scope, no v2 slot).
+  {
+    name: 'messages-gap',
+    note: 'rules.required converts; messages has NO v2 slot — reported as a gap (no new decision, irreversible).',
+    v1: {
+      type: 'text',
+      rules: { required: true },
+      messages: { ko: { required: '* 필수' } },
+    },
+    reversible: false,
+  },
+
+  // 14. multiple:only fold (irreversible).
+  {
+    name: 'multiple-only-fold',
+    note: 'multiple:only folded into multiple:true (mode lost, irreversible).',
+    v1: {
+      type: 'text',
+      multiple: 'only',
+    },
+    reversible: false,
+  },
+
+  // 15. SPEC-unenumerated node class (irreversible — node not named).
+  {
+    name: 'node-not-enumerated',
+    note: 'fieldset_class targets a node the SPEC map does not enumerate (out of scope, irreversible).',
+    v1: {
+      type: 'group',
+      fieldset_class: 'border',
+      properties: { a: { type: 'text' } },
+    },
+    reversible: false,
+  },
+
+  // 16. PeopleUnitPrice-flavored verbose case (irreversible by display_switch + $change).
+  {
+    name: 'verbose-people-unit-price',
+    note: 'Mixed display_switch fan + $change deep paths — verbose stays verbose (SPEC §7: v2 does not magic-simplify); irreversible.',
+    v1: {
+      type: 'group',
+      properties: {
+        choice_yoil_price: {
+          type: 'choice',
+          display_switch: { 1: ['mon_price', 'tue_price'], 0: [] },
+        },
+        mon_price: { type: 'number' },
+        tue_price: { type: 'number' },
+        $change: { 'mon_price.rules.required': '.choice_yoil_price == 1' },
+      },
+    },
+    reversible: false,
+  },
+
+  // 17. fully-reversible passthrough (the bit-identity baseline).
+  {
+    name: 'passthrough-first-class',
+    note: 'label/description/placeholder/name/type/default passthrough unchanged; round-trips.',
+    v1: {
+      type: 'text',
+      name: 'email',
+      label: { ko: '이메일', en: 'Email' },
+      description: '설명',
+      placeholder: 'you@example.com',
+      default: '',
+    },
+    reversible: true,
+  },
+
+  // 18. BUG 1 — property-bearing node without type → inject type:group
+  //     (Field.required=[type]). Root and nested group both gain type:group.
+  {
+    name: 'bug1-type-group-injected',
+    note: 'BUG1: root + nested group carry properties but no type → type:group injected so Field.required=[type] holds (adds a key absent in v1 → out of gate).',
+    v1: {
+      properties: {
+        addr: {
+          properties: {
+            zip: { type: 'text' },
+          },
+        },
+        name: { type: 'text' },
+      },
+    },
+    reversible: false,
+  },
+
+  // 19. BUG 2 — display_target_condition_class:null must NOT clobber the
+  //     original design.class (class/input_class survives).
+  {
+    name: 'bug2-condition-class-null-preserves-class',
+    note: 'BUG2: display_target_condition_class:null → no condition map built; original class is preserved in design.class (not clobbered to {}).',
+    v1: {
+      type: 'text',
+      class: 'form-control',
+      display_target: '.a',
+      display_target_condition_class: null,
+    },
+    reversible: false,
+  },
+
+  // 20. BUG 3 — x{key} FIELD NAME (xbanners[]) in a properties map is stripped
+  //     like an x-comment value key.
+  {
+    name: 'bug3-xkey-field-name-strip',
+    note: 'BUG3: x-prefixed field names (xbanners[], xnote) stripped from properties; real siblings survive (irreversible).',
+    v1: {
+      type: 'group',
+      properties: {
+        'xbanners[]': { type: 'text' },
+        xnote: { type: 'text' },
+        banners: { type: 'text' },
+      },
+    },
+    reversible: false,
+  },
+
+  // 21. BUG 4 — nested v1 field spec inside $patch/$change is recursively
+  //     translated; no legacy/forbidden key (display_target) leaks verbatim.
+  {
+    name: 'bug4-patch-nested-recursive-translate',
+    note: 'BUG4: $change payload carries a nested v1 field spec (display_target/class) → recursively translated to design.show/design.class; no forbidden key leaks.',
+    v1: {
+      type: 'group',
+      properties: {
+        $change: {
+          'rooms.0': {
+            type: 'text',
+            class: 'c',
+            display_target: '.a',
+            display_target_condition_style: { 1: 'display:block', 0: 'display:none' },
+          },
+        },
+      },
+    },
+    reversible: false,
+  },
+
+  // 22. BUG 5 — boolean behavior flag (onload:true) is NOT a v2 BehaviorAction
+  //     (string|{label,script}); the flag is dropped, real scripts survive.
+  {
+    name: 'bug5-behavior-boolean-flag-normalize',
+    note: 'BUG5: onload:true boolean flag dropped (BehaviorAction is string|{label,script}); onchange script string survives in behavior.',
+    v1: {
+      type: 'text',
+      onload: true,
+      onchange: 'recalc()',
+    },
+    reversible: false,
+  },
+
+  // 23. BUG 6 — a lone form/field-level method (HTTP verb) is NOT an items
+  //     dynamic source; it lands in options. With a model anchor it IS a source.
+  {
+    name: 'bug6-method-http-verb-not-items-source',
+    note: 'BUG6: lone method (no model/table/relations/items sibling) is a form/field HTTP verb → options.method, NOT items.method.',
+    v1: {
+      type: 'text',
+      method: 'post',
+    },
+    reversible: true,
+  },
+  {
+    name: 'bug6-method-with-model-is-items-source',
+    note: 'BUG6: method alongside a model anchor IS an items dynamic source → items.{model,method}.',
+    v1: {
+      type: 'select',
+      model: 'Foo',
+      method: 'bar',
+    },
+    reversible: true,
+  },
+
+  // 24. BUG 7 — empty Content (description:null) is dropped (= absent key); no
+  //     empty content node is emitted.
+  {
+    name: 'bug7-content-null-drop',
+    note: 'BUG7: description:null / help:null dropped (empty content = no key); real label survives.',
+    v1: {
+      type: 'text',
+      label: '이름',
+      description: null,
+      help: null,
+    },
+    reversible: false,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Run the JS reference translator for real; emit cases + assert invariants.
+// ---------------------------------------------------------------------------
+
+interface OutCase {
+  name: string;
+  note: string;
+  v1: Record<string, unknown>;
+  v2: Record<string, unknown>;
+  notes: { path: string; v1Key: string; reason: string; detail: string }[];
+  roundtrip: { reversible: boolean; lossless?: boolean; back?: Record<string, unknown> };
+}
+
+const out: OutCase[] = SPECS.map((c) => {
+  const { v2, notes } = translateV1ToV2(c.v1);
+
+  // INVARIANT 1: the translated output carries ZERO forbidden meta keys at any
+  // depth. The translator must never emit a meta key (the whole point of v2).
+  scanForbiddenKeys(v2, [c.name]);
+
+  const reversible = notes.length === 0;
+
+  // INVARIANT 2: the declared reversibility matches the real note log.
+  if (reversible !== c.reversible) {
+    throw new Error(
+      `${c.name}: declared reversible=${c.reversible} but translator logged ${notes.length} note(s) (reversible=${reversible}). Notes: ${JSON.stringify(notes)}`
+    );
+  }
+
+  const oc: OutCase = {
+    name: c.name,
+    note: c.note,
+    v1: c.v1,
+    v2,
+    notes,
+    roundtrip: { reversible },
+  };
+
+  if (reversible) {
+    // INVARIANT 3 (the SPEC §6 gate): v1→v2→v1 = original bit-for-bit.
+    const back = translateV2ToV1(v2);
+    const lossless = deepEqual(c.v1, back);
+    if (!lossless) {
+      throw new Error(
+        `${c.name}: reversible case is NOT lossless. back=${JSON.stringify(back)} vs v1=${JSON.stringify(c.v1)}`
+      );
+    }
+    oc.roundtrip.lossless = true;
+    oc.roundtrip.back = back;
+  }
+
+  return oc;
+});
+
+const losslessCount = out.filter((c) => c.roundtrip.reversible).length;
+const transcendCount = out.length - losslessCount;
+process.stderr.write(
+  `translate fixtures: ${out.length} cases — ${losslessCount} reversible (lossless round-trip), ${transcendCount} R7-transcend (out of gate)\n`
+);
+
+process.stdout.write(JSON.stringify(out, null, 2) + '\n');

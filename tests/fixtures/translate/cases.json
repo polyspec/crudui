@@ -1,0 +1,1285 @@
+[
+  {
+    "name": "display-target-simple",
+    "note": "b.display_target_condition_style → b.design.show {'.a==1':true, true:false}; sibling items map preserved; round-trips 1:1.",
+    "v1": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "choice",
+          "items": {
+            "0": "아니오",
+            "1": "예"
+          }
+        },
+        "b": {
+          "type": "text",
+          "display_target": ".a",
+          "display_target_condition_style": {
+            "0": "display:none",
+            "1": "display:block"
+          }
+        }
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "choice",
+          "items": {
+            "0": "아니오",
+            "1": "예"
+          }
+        },
+        "b": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".a==0": false,
+              ".a==1": true,
+              "true": false
+            }
+          }
+        }
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "group",
+        "properties": {
+          "a": {
+            "type": "choice",
+            "items": {
+              "0": "아니오",
+              "1": "예"
+            }
+          },
+          "b": {
+            "type": "text",
+            "display_target": ".a",
+            "display_target_condition_style": {
+              "0": "display:none",
+              "1": "display:block"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "display-target-condition-style-leaf",
+    "note": "Single field: display_target + condition_style → design.show boolean condition map; v1→v2→v1 lossless.",
+    "v1": {
+      "type": "text",
+      "display_target": ".is_season_price",
+      "display_target_condition_style": {
+        "0": "display:none",
+        "1": "display:block"
+      }
+    },
+    "v2": {
+      "type": "text",
+      "design": {
+        "show": {
+          ".is_season_price==0": false,
+          ".is_season_price==1": true,
+          "true": false
+        }
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "display_target": ".is_season_price",
+        "display_target_condition_style": {
+          "0": "display:none",
+          "1": "display:block"
+        }
+      }
+    }
+  },
+  {
+    "name": "display-switch-annihilation",
+    "note": "is_company.display_switch distributes to company_name/individual_name design.show; switch/onchange/ready annihilated (irreversible).",
+    "v1": {
+      "type": "group",
+      "properties": {
+        "is_company": {
+          "type": "choice",
+          "display_switch": {
+            "0": [
+              "individual_name"
+            ],
+            "1": [
+              "company_name"
+            ]
+          },
+          "onchange": "recalc()"
+        },
+        "company_name": {
+          "type": "text"
+        },
+        "individual_name": {
+          "type": "text"
+        }
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "is_company": {
+          "type": "choice",
+          "behavior": {
+            "onchange": "recalc()"
+          }
+        },
+        "company_name": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".is_company==1": true,
+              "true": false
+            }
+          }
+        },
+        "individual_name": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".is_company==0": true,
+              "true": false
+            }
+          }
+        }
+      }
+    },
+    "notes": [
+      {
+        "path": "properties.is_company",
+        "v1Key": "display_switch",
+        "reason": "DISPLAY_SWITCH_ANNIHILATION",
+        "detail": "display_switch on \"is_company\" distributed to target design.show (synthesized JS / uniqueClassId / ready annihilated)"
+      },
+      {
+        "path": "properties.is_company",
+        "v1Key": "display_switch",
+        "reason": "DISPLAY_SWITCH_ANNIHILATION",
+        "detail": "display_switch source key annihilated; effect distributed to target design.show"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "design-node-map",
+    "note": "class/label_class/group_class/wrapper_class/prepend_class → design node map; round-trips.",
+    "v1": {
+      "type": "text",
+      "class": "form-control",
+      "label_class": "fw-bold",
+      "group_class": "row",
+      "wrapper_class": "w",
+      "prepend_class": "p"
+    },
+    "v2": {
+      "type": "text",
+      "design": {
+        "class": "form-control",
+        "label": {
+          "class": "fw-bold"
+        },
+        "group": {
+          "class": "row"
+        },
+        "wrapper": {
+          "class": "w"
+        },
+        "prepend": {
+          "class": "p"
+        }
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "class": "form-control",
+        "label_class": "fw-bold",
+        "group_class": "row",
+        "wrapper_class": "w",
+        "prepend_class": "p"
+      }
+    }
+  },
+  {
+    "name": "validate-mixed-rules",
+    "note": "rules{required,minlength,maxlength,match,email} → validate; named + index rules round-trip.",
+    "v1": {
+      "type": "text",
+      "rules": {
+        "required": true,
+        "minlength": 2,
+        "maxlength": 10,
+        "match": "/^[0-9]+$/",
+        "email": true
+      }
+    },
+    "v2": {
+      "type": "text",
+      "validate": {
+        "required": true,
+        "minlength": 2,
+        "maxlength": 10,
+        "match": "/^[0-9]+$/",
+        "email": true
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "rules": {
+          "required": true,
+          "minlength": 2,
+          "maxlength": 10,
+          "match": "/^[0-9]+$/",
+          "email": true
+        }
+      }
+    }
+  },
+  {
+    "name": "conditional-required-expression",
+    "note": "rules.required expression → validate.required identical string (G1 passthrough); round-trips.",
+    "v1": {
+      "type": "text",
+      "rules": {
+        "required": "rooms.*.peoples.*.is_season_price && .choice_yoil_price == 1"
+      }
+    },
+    "v2": {
+      "type": "text",
+      "validate": {
+        "required": "rooms.*.peoples.*.is_season_price && .choice_yoil_price == 1"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "rules": {
+          "required": "rooms.*.peoples.*.is_season_price && .choice_yoil_price == 1"
+        }
+      }
+    }
+  },
+  {
+    "name": "behavior-opaque",
+    "note": "onchange/onclick/onload → behavior; opaque script strings round-trip (BehaviorAction = string|{label,script}).",
+    "v1": {
+      "type": "text",
+      "onchange": "console.log(1)",
+      "onclick": "f()",
+      "onload": "init()"
+    },
+    "v2": {
+      "type": "text",
+      "behavior": {
+        "onchange": "console.log(1)",
+        "onclick": "f()",
+        "onload": "init()"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "onchange": "console.log(1)",
+        "onclick": "f()",
+        "onload": "init()"
+      }
+    }
+  },
+  {
+    "name": "lang-dimension",
+    "note": "lang:append + langs + lang_name + remove_lang_title + lang_group_class → lang bucket; round-trips.",
+    "v1": {
+      "type": "text",
+      "lang": "append",
+      "langs": [
+        "ko",
+        "en"
+      ],
+      "lang_name": "언어팩",
+      "remove_lang_title": true,
+      "lang_group_class": "g"
+    },
+    "v2": {
+      "type": "text",
+      "lang": {
+        "mode": "append",
+        "only": [
+          "ko",
+          "en"
+        ],
+        "name": "언어팩",
+        "title": false,
+        "group_class": "g"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "lang": "append",
+        "langs": [
+          "ko",
+          "en"
+        ],
+        "lang_name": "언어팩",
+        "remove_lang_title": true,
+        "lang_group_class": "g"
+      }
+    }
+  },
+  {
+    "name": "multiple-dimension",
+    "note": "multiple/multiple_max/sortable/add_buttons/multiple_button_onclick → multiple bucket; round-trips.",
+    "v1": {
+      "type": "text",
+      "multiple": true,
+      "multiple_max": 5,
+      "sortable": true,
+      "add_buttons": true,
+      "multiple_button_onclick": "g()"
+    },
+    "v2": {
+      "type": "text",
+      "multiple": {
+        "max": 5,
+        "sortable": true,
+        "copy": true,
+        "onclick": "g()"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "multiple": true,
+        "multiple_max": 5,
+        "sortable": true,
+        "add_buttons": true,
+        "multiple_button_onclick": "g()"
+      }
+    }
+  },
+  {
+    "name": "compose-patch-absorption",
+    "note": "properties.$ref reversible; $change/$remove absorbed into $patch (op identity lost, irreversible).",
+    "v1": {
+      "type": "group",
+      "properties": {
+        "$ref": "Base.yml",
+        "$change": {
+          "price.rules.required": ".x == 1"
+        },
+        "$remove": [
+          "old"
+        ]
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "$ref": "Base.yml",
+        "$patch": {
+          "price.rules.required": ".x == 1",
+          "remove": [
+            "old"
+          ]
+        }
+      }
+    },
+    "notes": [
+      {
+        "path": "properties",
+        "v1Key": "$change",
+        "reason": "PATCH_ABSORPTION",
+        "detail": "legacy \"$change\" absorbed into $patch (position/op identity lost)"
+      },
+      {
+        "path": "properties",
+        "v1Key": "$remove",
+        "reason": "PATCH_ABSORPTION",
+        "detail": "legacy \"$remove\" absorbed into $patch (position/op identity lost)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "options-type-dependent",
+    "note": "image type keys (width/height/ratio/cover/fileserver) → options; core uninvolved; round-trips.",
+    "v1": {
+      "type": "image",
+      "width": 300,
+      "height": 200,
+      "ratio": "1:1",
+      "cover": true,
+      "fileserver": "s3"
+    },
+    "v2": {
+      "type": "image",
+      "options": {
+        "width": 300,
+        "height": 200,
+        "ratio": "1:1",
+        "cover": true,
+        "fileserver": "s3"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "image",
+        "width": 300,
+        "height": 200,
+        "ratio": "1:1",
+        "cover": true,
+        "fileserver": "s3"
+      }
+    }
+  },
+  {
+    "name": "xkey-strip",
+    "note": "xclass/xstyle/xonchange stripped; design.class kept; canonical has zero x* (irreversible).",
+    "v1": {
+      "type": "text",
+      "class": "a",
+      "xclass": "old",
+      "xstyle": "q",
+      "xonchange": "z"
+    },
+    "v2": {
+      "type": "text",
+      "design": {
+        "class": "a"
+      }
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "xclass",
+        "reason": "XKEY_STRIP",
+        "detail": "x-comment \"xclass\" stripped"
+      },
+      {
+        "path": "",
+        "v1Key": "xstyle",
+        "reason": "XKEY_STRIP",
+        "detail": "x-comment \"xstyle\" stripped"
+      },
+      {
+        "path": "",
+        "v1Key": "xonchange",
+        "reason": "XKEY_STRIP",
+        "detail": "x-comment \"xonchange\" stripped"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "items-static",
+    "note": "static items value→label map preserved; round-trips.",
+    "v1": {
+      "type": "choice",
+      "items": {
+        "0": "개인",
+        "1": "기업"
+      }
+    },
+    "v2": {
+      "type": "choice",
+      "items": {
+        "0": "개인",
+        "1": "기업"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "choice",
+        "items": {
+          "0": "개인",
+          "1": "기업"
+        }
+      }
+    }
+  },
+  {
+    "name": "items-dynamic-source",
+    "note": "scattered model/method/table dynamic-source keys reclaimed under items; round-trips.",
+    "v1": {
+      "type": "select",
+      "model": "Foo",
+      "method": "bar",
+      "table": "t"
+    },
+    "v2": {
+      "type": "select",
+      "items": {
+        "model": "Foo",
+        "method": "bar",
+        "table": "t"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "select",
+        "model": "Foo",
+        "method": "bar",
+        "table": "t"
+      }
+    }
+  },
+  {
+    "name": "messages-gap",
+    "note": "rules.required converts; messages has NO v2 slot — reported as a gap (no new decision, irreversible).",
+    "v1": {
+      "type": "text",
+      "rules": {
+        "required": true
+      },
+      "messages": {
+        "ko": {
+          "required": "* 필수"
+        }
+      }
+    },
+    "v2": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "messages",
+        "reason": "MESSAGES_NO_SLOT",
+        "detail": "per-rule/per-language messages have no v2 slot (gap, out of scope)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "multiple-only-fold",
+    "note": "multiple:only folded into multiple:true (mode lost, irreversible).",
+    "v1": {
+      "type": "text",
+      "multiple": "only"
+    },
+    "v2": {
+      "type": "text",
+      "multiple": true
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "multiple:only",
+        "reason": "MULTIPLE_ONLY_FOLD",
+        "detail": "multiple:only folded into multiple:true (mode lost)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "node-not-enumerated",
+    "note": "fieldset_class targets a node the SPEC map does not enumerate (out of scope, irreversible).",
+    "v1": {
+      "type": "group",
+      "fieldset_class": "border",
+      "properties": {
+        "a": {
+          "type": "text"
+        }
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text"
+        }
+      },
+      "options": {
+        "fieldset_class": "border"
+      }
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "fieldset_class",
+        "reason": "NODE_NOT_ENUMERATED",
+        "detail": "\"fieldset_class\" targets a node the SPEC node map does not enumerate (out of scope)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "verbose-people-unit-price",
+    "note": "Mixed display_switch fan + $change deep paths — verbose stays verbose (SPEC §7: v2 does not magic-simplify); irreversible.",
+    "v1": {
+      "type": "group",
+      "properties": {
+        "choice_yoil_price": {
+          "type": "choice",
+          "display_switch": {
+            "0": [],
+            "1": [
+              "mon_price",
+              "tue_price"
+            ]
+          }
+        },
+        "mon_price": {
+          "type": "number"
+        },
+        "tue_price": {
+          "type": "number"
+        },
+        "$change": {
+          "mon_price.rules.required": ".choice_yoil_price == 1"
+        }
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "choice_yoil_price": {
+          "type": "choice"
+        },
+        "mon_price": {
+          "type": "number",
+          "design": {
+            "show": {
+              ".choice_yoil_price==1": true,
+              "true": false
+            }
+          }
+        },
+        "tue_price": {
+          "type": "number",
+          "design": {
+            "show": {
+              ".choice_yoil_price==1": true,
+              "true": false
+            }
+          }
+        },
+        "$patch": {
+          "mon_price.rules.required": ".choice_yoil_price == 1"
+        }
+      }
+    },
+    "notes": [
+      {
+        "path": "properties.choice_yoil_price",
+        "v1Key": "display_switch",
+        "reason": "DISPLAY_SWITCH_ANNIHILATION",
+        "detail": "display_switch on \"choice_yoil_price\" distributed to target design.show (synthesized JS / uniqueClassId / ready annihilated)"
+      },
+      {
+        "path": "properties.choice_yoil_price",
+        "v1Key": "display_switch",
+        "reason": "DISPLAY_SWITCH_ANNIHILATION",
+        "detail": "display_switch source key annihilated; effect distributed to target design.show"
+      },
+      {
+        "path": "properties",
+        "v1Key": "$change",
+        "reason": "PATCH_ABSORPTION",
+        "detail": "legacy \"$change\" absorbed into $patch (position/op identity lost)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "passthrough-first-class",
+    "note": "label/description/placeholder/name/type/default passthrough unchanged; round-trips.",
+    "v1": {
+      "type": "text",
+      "name": "email",
+      "label": {
+        "ko": "이메일",
+        "en": "Email"
+      },
+      "description": "설명",
+      "placeholder": "you@example.com",
+      "default": ""
+    },
+    "v2": {
+      "type": "text",
+      "name": "email",
+      "label": {
+        "ko": "이메일",
+        "en": "Email"
+      },
+      "description": "설명",
+      "placeholder": "you@example.com",
+      "default": ""
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "name": "email",
+        "label": {
+          "ko": "이메일",
+          "en": "Email"
+        },
+        "description": "설명",
+        "placeholder": "you@example.com",
+        "default": ""
+      }
+    }
+  },
+  {
+    "name": "bug1-type-group-injected",
+    "note": "BUG1: root + nested group carry properties but no type → type:group injected so Field.required=[type] holds (adds a key absent in v1 → out of gate).",
+    "v1": {
+      "properties": {
+        "addr": {
+          "properties": {
+            "zip": {
+              "type": "text"
+            }
+          }
+        },
+        "name": {
+          "type": "text"
+        }
+      }
+    },
+    "v2": {
+      "properties": {
+        "addr": {
+          "properties": {
+            "zip": {
+              "type": "text"
+            }
+          },
+          "type": "group"
+        },
+        "name": {
+          "type": "text"
+        }
+      },
+      "type": "group"
+    },
+    "notes": [
+      {
+        "path": "properties.addr",
+        "v1Key": "type",
+        "reason": "TYPE_GROUP_INJECTED",
+        "detail": "properties present without type — type:group injected (Field.required=[type]); adds a key absent in v1"
+      },
+      {
+        "path": "",
+        "v1Key": "type",
+        "reason": "TYPE_GROUP_INJECTED",
+        "detail": "properties present without type — type:group injected (Field.required=[type]); adds a key absent in v1"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug2-condition-class-null-preserves-class",
+    "note": "BUG2: display_target_condition_class:null → no condition map built; original class is preserved in design.class (not clobbered to {}).",
+    "v1": {
+      "type": "text",
+      "class": "form-control",
+      "display_target": ".a",
+      "display_target_condition_class": null
+    },
+    "v2": {
+      "type": "text",
+      "design": {
+        "class": "form-control",
+        "show": ".a"
+      }
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "display_target_condition_class",
+        "reason": "CONDITION_CLASS_NULL_DROP",
+        "detail": "empty \"display_target_condition_class:null\" dropped — no class condition built, original design.class preserved"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug3-xkey-field-name-strip",
+    "note": "BUG3: x-prefixed field names (xbanners[], xnote) stripped from properties; real siblings survive (irreversible).",
+    "v1": {
+      "type": "group",
+      "properties": {
+        "xbanners[]": {
+          "type": "text"
+        },
+        "xnote": {
+          "type": "text"
+        },
+        "banners": {
+          "type": "text"
+        }
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "banners": {
+          "type": "text"
+        }
+      }
+    },
+    "notes": [
+      {
+        "path": "properties",
+        "v1Key": "xbanners[]",
+        "reason": "XKEY_STRIP",
+        "detail": "x-comment field \"xbanners[]\" stripped"
+      },
+      {
+        "path": "properties",
+        "v1Key": "xnote",
+        "reason": "XKEY_STRIP",
+        "detail": "x-comment field \"xnote\" stripped"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug4-patch-nested-recursive-translate",
+    "note": "BUG4: $change payload carries a nested v1 field spec (display_target/class) → recursively translated to design.show/design.class; no forbidden key leaks.",
+    "v1": {
+      "type": "group",
+      "properties": {
+        "$change": {
+          "rooms.0": {
+            "type": "text",
+            "class": "c",
+            "display_target": ".a",
+            "display_target_condition_style": {
+              "0": "display:none",
+              "1": "display:block"
+            }
+          }
+        }
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "$patch": {
+          "rooms.0": {
+            "type": "text",
+            "design": {
+              "class": "c",
+              "show": {
+                ".a==0": false,
+                ".a==1": true,
+                "true": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "notes": [
+      {
+        "path": "properties",
+        "v1Key": "$change",
+        "reason": "PATCH_ABSORPTION",
+        "detail": "legacy \"$change\" absorbed into $patch (position/op identity lost)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug5-behavior-boolean-flag-normalize",
+    "note": "BUG5: onload:true boolean flag dropped (BehaviorAction is string|{label,script}); onchange script string survives in behavior.",
+    "v1": {
+      "type": "text",
+      "onload": true,
+      "onchange": "recalc()"
+    },
+    "v2": {
+      "type": "text",
+      "behavior": {
+        "onchange": "recalc()"
+      }
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "onload",
+        "reason": "BEHAVIOR_FLAG_NORMALIZE",
+        "detail": "boolean behavior flag \"onload:true\" dropped (v2 BehaviorAction is string|{label,script}, not a flag)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug6-method-http-verb-not-items-source",
+    "note": "BUG6: lone method (no model/table/relations/items sibling) is a form/field HTTP verb → options.method, NOT items.method.",
+    "v1": {
+      "type": "text",
+      "method": "post"
+    },
+    "v2": {
+      "type": "text",
+      "options": {
+        "method": "post"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "text",
+        "method": "post"
+      }
+    }
+  },
+  {
+    "name": "bug6-method-with-model-is-items-source",
+    "note": "BUG6: method alongside a model anchor IS an items dynamic source → items.{model,method}.",
+    "v1": {
+      "type": "select",
+      "model": "Foo",
+      "method": "bar"
+    },
+    "v2": {
+      "type": "select",
+      "items": {
+        "model": "Foo",
+        "method": "bar"
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "select",
+        "model": "Foo",
+        "method": "bar"
+      }
+    }
+  },
+  {
+    "name": "bug7-content-null-drop",
+    "note": "BUG7: description:null / help:null dropped (empty content = no key); real label survives.",
+    "v1": {
+      "type": "text",
+      "label": "이름",
+      "description": null,
+      "help": null
+    },
+    "v2": {
+      "type": "text",
+      "label": "이름"
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "description",
+        "reason": "CONTENT_NULL_DROP",
+        "detail": "empty content \"description:null\" dropped (no empty content node)"
+      },
+      {
+        "path": "",
+        "v1Key": "help",
+        "reason": "CONTENT_NULL_DROP",
+        "detail": "empty content \"help:null\" dropped (no empty content node)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug-items-null-drop",
+    "note": "items:null (a fully commented-out v1 items: block) dropped — Items is array|source|label-map, never null; an empty items carries no membership.",
+    "v1": {
+      "type": "multichoice",
+      "label": "구성 요소",
+      "items": null
+    },
+    "v2": {
+      "type": "multichoice",
+      "label": "구성 요소"
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "items",
+        "reason": "ITEMS_NULL_DROP",
+        "detail": "empty \"items:null\" dropped (Items is array|source|label-map, never null)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug-items-empty-drop",
+    "note": "items:{} (empty map) dropped — same as no items key.",
+    "v1": {
+      "type": "choice",
+      "items": {}
+    },
+    "v2": {
+      "type": "choice"
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "items",
+        "reason": "ITEMS_NULL_DROP",
+        "detail": "empty \"items:empty\" dropped (Items is array|source|label-map, never null)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug-reserved-key-field-name-stepper",
+    "note": "a reserved key (items) used as a properties FIELD NAME is a normal field, not a dynamic-source/choice construct; its value-map body lands in options and type:group is injected (Stepper items:{1:기본,…}).",
+    "v1": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "1": "기본",
+          "2": "객실",
+          "3": "확인"
+        }
+      }
+    },
+    "v2": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "options": {
+            "1": "기본",
+            "2": "객실",
+            "3": "확인"
+          },
+          "type": "group"
+        }
+      }
+    },
+    "notes": [
+      {
+        "path": "properties.items",
+        "v1Key": "type",
+        "reason": "TYPE_GROUP_INJECTED",
+        "detail": "field-position node without type — type:group injected (Field.required=[type]); adds a key absent in v1"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug-reserved-key-field-name-excel",
+    "note": "a reserved key (table) used as a properties FIELD NAME is a normal field; its value→spec body lands in options and type:group is injected at the field and the typeless root (Excel table:{5:{…}}).",
+    "v1": {
+      "properties": {
+        "table": {
+          "5": {
+            "exist": {
+              "target": "excel_product"
+            },
+            "not": {
+              "target": "excel_product_item"
+            }
+          }
+        }
+      }
+    },
+    "v2": {
+      "properties": {
+        "table": {
+          "options": {
+            "5": {
+              "exist": {
+                "target": "excel_product"
+              },
+              "not": {
+                "target": "excel_product_item"
+              }
+            }
+          },
+          "type": "group"
+        }
+      },
+      "type": "group"
+    },
+    "notes": [
+      {
+        "path": "properties.table",
+        "v1Key": "type",
+        "reason": "TYPE_GROUP_INJECTED",
+        "detail": "field-position node without type — type:group injected (Field.required=[type]); adds a key absent in v1"
+      },
+      {
+        "path": "",
+        "v1Key": "type",
+        "reason": "TYPE_GROUP_INJECTED",
+        "detail": "properties present without type — type:group injected (Field.required=[type]); adds a key absent in v1"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug-design-class-null-drop",
+    "note": "class:null (empty appearance) dropped — Design.class is string|ConditionMap, never null; the emptied design slot is pruned.",
+    "v1": {
+      "type": "text",
+      "class": null
+    },
+    "v2": {
+      "type": "text"
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "class",
+        "reason": "DESIGN_NULL_DROP",
+        "detail": "empty appearance \"class:null\" dropped (Design.class is string|ConditionMap, never null)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug-empty-properties-group",
+    "note": "empty properties:null normalized to an empty group {type:group, properties:{}} — not a typeless options:{properties:null} node.",
+    "v1": {
+      "properties": null
+    },
+    "v2": {
+      "properties": {},
+      "type": "group"
+    },
+    "notes": [
+      {
+        "path": "",
+        "v1Key": "properties",
+        "reason": "EMPTY_PROPERTIES_GROUP",
+        "detail": "empty \"properties:null\" normalized to an empty group {type:group, properties:{}}"
+      },
+      {
+        "path": "",
+        "v1Key": "type",
+        "reason": "TYPE_GROUP_INJECTED",
+        "detail": "properties present without type — type:group injected (Field.required=[type]); adds a key absent in v1"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  },
+  {
+    "name": "bug-item-label-numeric-stringify",
+    "note": "a numeric item label (404:404) stringified to \"404\" (G3) — ItemLabel is string|LangMap|null, never a number.",
+    "v1": {
+      "type": "choice",
+      "default": 307,
+      "items": {
+        "301": "301 (Moved Permanently)",
+        "307": "307 (Temporary Redirect)",
+        "404": 404
+      }
+    },
+    "v2": {
+      "type": "choice",
+      "default": 307,
+      "items": {
+        "301": "301 (Moved Permanently)",
+        "307": "307 (Temporary Redirect)",
+        "404": "404"
+      }
+    },
+    "notes": [
+      {
+        "path": "items",
+        "v1Key": "404",
+        "reason": "ITEM_LABEL_STRINGIFY",
+        "detail": "item label \"404:404\" stringified to \"404\" (ItemLabel is string|LangMap|null, never a number)"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
+  }
+]
