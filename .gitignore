@@ -13,6 +13,8 @@ target/
 
 # Compiled example Go server binaries
 examples/go-api/go-api
+# Compiled v2 validator Go CLI binary (built by cross-check-console build step)
+packages/validator-go/validate-v2
 
 # IDE
 .idea/

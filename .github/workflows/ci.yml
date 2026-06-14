@@ -17,11 +17,12 @@
 #   docs-coverage    make docs-check                           (libs + servers, 4 langs)
 #
 # v2 gate -> job map (R7: runs alongside the v1 gates above, never replaces them):
-#   v2-validator-js    npm run test:v2 -w validator-js        (vitest run src/v2)
-#   v2-validator-php   composer test:v2                       (phpunit tests/V2)
-#   v2-validator-go    go test ./validator/v2/...
-#   v2-validator-rust  cargo test --test {expr,compose,validate,spec_validity}_conformance
-#   v2-render          React/Vue/Svelte v2 SSR conformance    (npm run test:v2 per pkg)
+#   v2-validator-js     npm run test:v2 -w validator-js       (vitest run src/v2; incl. validate-cli)
+#   v2-validator-php    composer test:v2                      (phpunit tests/V2; incl. ValidateCliTest)
+#   v2-validator-go     go test ./validator/v2/... ./cmd/validate-v2
+#   v2-validator-rust   cargo test --test {expr,compose,validate,spec_validity,validate_v2_cli}_conformance
+#   v2-render           React/Vue/Svelte v2 SSR conformance   (npm run test:v2 per pkg)
+#   cross-check-console gateway verdict units + 4-lang fan-out + HTTP boundary (npm test in server)
 #
 # v2 shared 4-language fixtures (tests/fixtures/*/cases.json), each loaded by
 # every engine that consumes it and asserted bit-for-bit:
@@ -338,10 +339,11 @@ jobs:
   # v2-validator-go — go test over the v2 package tree only. expr/compose/
   # validate conformance + forbidden-scan + types roundtrip live under
   # validator/v2/...; v1 tests (validator/validator_test.go) are excluded by
-  # the package path.
+  # the package path. cmd/validate-v2 is OUTSIDE that glob, so the validate-v2
+  # CLI boundary test (main_test.go) is added explicitly.
   # ---------------------------------------------------------------------------
   v2-validator-go:
-    name: v2 · validator-go (go test ./validator/v2/...)
+    name: v2 · validator-go (go test ./validator/v2/... + CLI)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -350,17 +352,18 @@ jobs:
         with:
           go-version: '1.26'
           cache-dependency-path: packages/validator-go/go.mod
-      - name: v2 conformance (go test ./validator/v2/...)
-        run: go test ./validator/v2/...
+      - name: v2 conformance (go test ./validator/v2/... + validate-v2 CLI)
+        run: go test ./validator/v2/... ./cmd/validate-v2
         working-directory: packages/validator-go
 
   # ---------------------------------------------------------------------------
-  # v2-validator-rust — the four v2 conformance integration tests by name
-  # (expr/compose/validate/spec-validity). Targeting them with --test excludes
-  # the v1 tests/conformance.rs while gating each shared fixture.
+  # v2-validator-rust — the v2 conformance integration tests by name
+  # (expr/compose/validate/spec-validity) plus the validate-v2 CLI boundary test.
+  # Targeting them with --test excludes the v1 tests/conformance.rs while gating
+  # each shared fixture.
   # ---------------------------------------------------------------------------
   v2-validator-rust:
-    name: v2 · validator-rust (cargo test v2 conformance)
+    name: v2 · validator-rust (cargo test v2 conformance + CLI)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -370,13 +373,14 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: packages/validator-rust
-      - name: v2 conformance (expr/compose/validate/spec-validity)
+      - name: v2 conformance (expr/compose/validate/spec-validity + validate-v2 CLI)
         run: >
           cargo test
           --test expr_conformance
           --test compose_conformance
           --test validate_conformance
           --test spec_validity_conformance
+          --test validate_v2_cli_conformance
         working-directory: packages/validator-rust
 
   # ---------------------------------------------------------------------------
@@ -414,3 +418,60 @@ jobs:
       - name: Svelte v2 render
         run: npm run test:v2
         working-directory: packages/generator-svelte
+
+  # ---------------------------------------------------------------------------
+  # cross-check-console — the gateway's own conformance: the verdict pure
+  # functions (compareIdempotency / compareParity, incl. tamper RED cases) AND
+  # the real fan-outs (validateAll spawns the four v2 CLIs; renderAll boots the
+  # Vite SSR engine for React/Svelte/Vue) AND the HTTP boundary (coerceSpec
+  # YAML/object, client fault = 4xx, validation failure = 200 result surface,
+  # CORS, /health). The real validate fan-out needs the compiled Go/Rust CLIs,
+  # so all four toolchains are set up (same as the cross-language job) and
+  # build:cli runs before the gateway tests. `npm test` resolves vitest from the
+  # root workspace node_modules (no separate lockfile).
+  # ---------------------------------------------------------------------------
+  cross-check-console:
+    name: v2 · cross-check-console gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache-dependency-path: packages/validator-go/go.mod
+
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/validator-rust
+
+      - name: Install workspace deps
+        run: npm i -g npm@11.17.0 && npm ci
+
+      - name: Build JS validator (render engine imports @form-spec/validator)
+        run: npm run build:validator
+
+      - name: Build Go + Rust validate-v2 CLIs (gateway spawns them)
+        run: npm run build:cli
+        working-directory: examples/cross-check-console/server
+
+      - name: Gateway conformance (verdict units + fan-out + HTTP boundary)
+        run: npm test
+        working-directory: examples/cross-check-console/server
