@@ -4,7 +4,14 @@
  * (limepieParity.ts) that the Svelte reference render uses, so the v2 envelope
  * is bit-identical to the proven v1 output after normalization. NO v1 meta key
  * is read here; these are pure structural primitives (escaping, name/id
- * derivation, php-string casts, deterministic uniqid, value lookup).
+ * derivation, php-string casts, explicit position-index identity, value lookup).
+ *
+ * G4 (SPEC §4): a repeated row's POSITION is the client-assigned serialization
+ * index (deterministic, explicit), and its IDENTITY is the hidden data `id`
+ * (server PK = the object key; new rows = none). No magic random token. The
+ * position-index path segment is the readable marker `#N` (parsePathString keeps
+ * it as one segment); it is the position, never a name, and collapses to `[]` in
+ * data-name/data-rule-name (the rule applies to every row).
  */
 
 /** HTML attribute-value escaping. */
@@ -40,22 +47,37 @@ export function applyDefaultString(value: unknown, def: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// deterministic uniqid (token LENGTH is contractual; value is masked by the
-// normalizer — see fixtures README)
+// explicit position-index identity (G4: position = client index, no magic token)
 // ---------------------------------------------------------------------------
 
-let uniqidCounter = 0;
-const UNIQID_SEED = 0x1000000000000;
-
-/** Deterministic Limepie-shaped uniqid: `__[13 hex]__`. */
-export function generateUniqid(): string {
-  const id = (UNIQID_SEED + uniqidCounter++).toString(16);
-  return `__${id}__`;
+/**
+ * Path segment for a repeated row at the given serialization index (G4 position).
+ * `#N` is explicit and deterministic; parsePathString keeps it as one segment.
+ * It is recognized by isPositionSegment() and collapses to the bracket index in
+ * the submitted name and to `[]` in data-name/data-rule-name.
+ */
+export function positionSegment(index: number): string {
+  return `#${index}`;
 }
 
-/** Reset the uniqid counter between renders for stable ids. */
-export function resetUniqid(): void {
-  uniqidCounter = 0;
+/** True when a path segment is an explicit position index (`#N`). */
+export function isPositionSegment(seg: string): boolean {
+  return /^#\d+$/.test(seg);
+}
+
+/** Bracket index for a position segment (`#3` → `3`); identity passthrough else. */
+export function bracketIndexForSegment(seg: string): string {
+  return isPositionSegment(seg) ? seg.slice(1) : seg;
+}
+
+/**
+ * Deterministic element id from a field path (DOM-id uniqueness without a magic
+ * token). The path is unique per field, so cleanStr(path) is a stable id that is
+ * identical across frameworks — no per-render counter, no normalizer mask needed.
+ */
+export function elementId(prefix: string, path: string): string {
+  const base = cleanStr(path).replace(/[^A-Za-z0-9_-]/g, '-');
+  return prefix ? `${prefix}-${base}` : base;
 }
 
 // ---------------------------------------------------------------------------
@@ -95,19 +117,28 @@ export function parsePathString(path: string): string[] {
   return segments;
 }
 
-/** Read the value at a dot/bracket path. */
+/** Read the value at a dot/bracket path. A `#N` position segment reads index N. */
 export function getValueByPath(obj: unknown, path: string): unknown {
   const segments = parsePathString(path);
   let current: unknown = obj;
   for (const segment of segments) {
     if (current === null || current === undefined) return undefined;
     if (typeof current === 'object') {
-      current = (current as Record<string, unknown>)[segment];
+      current = (current as Record<string, unknown>)[bracketIndexForSegment(segment)];
     } else {
       return undefined;
     }
   }
   return current;
+}
+
+/**
+ * Position-resolved path segments for the expr engine context: every `#N`
+ * position marker becomes the numeric index N (the validator's PathResolver
+ * walks real array indices, never the name-only marker). Real keys pass through.
+ */
+export function valuePathSegments(path: string): string[] {
+  return parsePathString(path).map(bracketIndexForSegment);
 }
 
 /** Convert dot path → bracket notation with optional key prefix. */
@@ -116,11 +147,26 @@ export function toBracketNotationWithPrefix(path: string, keyPrefix?: string): s
   const segments = parsePathString(path);
   if (keyPrefix) segments.unshift(keyPrefix);
   if (segments.length === 0) return '';
-  if (segments.length === 1) return segments[0]!;
-  return segments[0] + segments.slice(1).map((s) => `[${s}]`).join('');
+  if (segments.length === 1) return bracketIndexForSegment(segments[0]!);
+  return (
+    bracketIndexForSegment(segments[0]!) +
+    segments.slice(1).map((s) => `[${bracketIndexForSegment(s)}]`).join('')
+  );
 }
 
-const UNIQUE_KEY_SEGMENT = /^__[a-z0-9]{13,14}__$/;
+/**
+ * \Limepie\clean_str(): str_replace(['[]','][','[',']'], ['','-','-','-']).
+ * Used to derive deterministic element ids from bracket-notation names
+ * (choice/multichoice/search) — paired with elementId() (path-derived, stable
+ * across frameworks). No random token, no normalizer mask.
+ */
+export function cleanStr(s: string): string {
+  return s
+    .split('[]').join('')
+    .split('][').join('-')
+    .split('[').join('-')
+    .split(']').join('-');
+}
 
 function pathSegmentsLoose(path: string): string[] {
   return path
@@ -129,7 +175,7 @@ function pathSegmentsLoose(path: string): string[] {
     .filter((s) => s !== '');
 }
 
-/** Leaf data-name for a dot path. */
+/** Leaf data-name for a dot path. A row position index collapses to `name[]`. */
 export function leafName(path: string): string {
   let suffix = '';
   let p = path;
@@ -139,7 +185,7 @@ export function leafName(path: string): string {
   }
   const segments = pathSegmentsLoose(p);
   const last = segments[segments.length - 1] ?? p;
-  if (UNIQUE_KEY_SEGMENT.test(last)) {
+  if (isPositionSegment(last)) {
     return (segments[segments.length - 2] ?? '') + '[]';
   }
   return last + suffix;
@@ -159,7 +205,7 @@ export function ruleNameForPath(path: string): string {
     segments[0] +
     segments
       .slice(1)
-      .map((s) => (UNIQUE_KEY_SEGMENT.test(s) ? '[]' : `[${s}]`))
+      .map((s) => (isPositionSegment(s) ? '[]' : `[${s}]`))
       .join('') +
     suffix
   );
