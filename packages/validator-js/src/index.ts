@@ -2,6 +2,8 @@
 export * from './schema';
 export * from './compose/index';
 export * from './types';
+export { validate, Validator, default } from './validate/index';
+export type { ValidateOptions } from './validate/index';
 // Parser exports
 export {
   Lexer,
