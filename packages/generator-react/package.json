@@ -2,7 +2,15 @@
   "name": "@form-spec/generator-react",
   "version": "0.0.1",
   "description": "React form builder component library based on form-spec YAML definitions",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json",
     "./legacy": {
@@ -19,9 +27,9 @@
     "src"
   ],
   "scripts": {
-    "build": "tsup src/legacy/index.ts --format cjs,esm --dts --clean --external react --external react-dom && npm run build:css",
+    "build": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --dts --clean --external react --external react-dom && npm run build:css",
     "build:css": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/styles/form-spec.css','dist/styles.css')\"",
-    "dev": "tsup src/legacy/index.ts --format cjs,esm --dts --watch --external react --external react-dom",
+    "dev": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --dts --watch --external react --external react-dom",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src",
