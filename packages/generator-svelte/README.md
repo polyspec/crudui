@@ -7,8 +7,27 @@ against the shared reference HTML fixtures.
 
 ## Status
 
-Implemented. Reference parity: 7/7 fixtures, 50/50 fields, chrome match (see
-`test/parity.test.mjs`).
+Implemented. Two surfaces: v1 `FormBuilder` (Limepie parity, below — 7/7
+fixtures, 50/50 fields, chrome match, see `test/parity.test.mjs`) and the v2
+adapter (`src/v2`).
+
+## v2 (compose → core → .svelte SSR)
+
+The v2 adapter runs the four mandated stages — compose → evaluate (shared
+`@form-spec/generator-core`) → Svelte 5 SSR — and is parity-checked against the
+React reference.
+
+- `renderFormV2(rootSpec, options)` / `renderFormV2String(...)` → SSR HTML of the
+  form CONTENT (no `<form>` wrapper).
+- `buildFormV2(rootSpec, options)` → `FieldViewModel[]` (no markup).
+- `renderListV2(listSpec, rows, options)` → SSR HTML of a list (SPEC §9, read
+  sister). `rows` are INJECTED (DB-agnostic); cells are DISPLAY values, never
+  inputs. `options.mode` is `'table'` (default) or `'card'`.
+- Components: `FormV2`, `Field`, `Widget`, `ListV2`. Throws `ComposeLoadError`
+  on an unresolved `$ref`, `UnsupportedFieldTypeError` on an un-ported type.
+
+v2 conformance: `test/v2-render.conformance.test.mjs`,
+`test/v2-list-render.conformance.test.mjs` (run with `npx vitest run`).
 
 ## Usage
 

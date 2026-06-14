@@ -8,6 +8,28 @@ This package is the Vue counterpart of `@form-spec/generator-react`. It uses
 plain `h()` render functions (no SFC `<style scoped>`), so SSR emits no
 `data-v-*` scoped-style attributes that would break parity normalization.
 
+Two surfaces: v1 `FormBuilder` (Limepie `Generator::write()` parity, below) and
+the v2 adapter (`src/v2`).
+
+## v2 (compose → core → vnode SSR)
+
+The v2 adapter runs the four mandated stages — compose → evaluate (shared
+`@form-spec/generator-core`) → Vue 3 vnode SSR — and is parity-checked against
+the React reference.
+
+- `renderFormV2SSR(rootSpec, options)` → SSR HTML of the form CONTENT.
+- `buildFormV2(rootSpec, options)` → `FieldViewModel[]` (no markup).
+- `renderListV2SSR(listSpec, rows, options)` → SSR HTML of a list (SPEC §9, read
+  sister). `rows` are INJECTED (DB-agnostic); cells are DISPLAY values, never
+  inputs. `options.mode` is `'table'` (default) or `'card'`.
+- `buildListV2(listSpec, rows, options)` → `ListViewModel`.
+- Components: `FormV2`, `Widget`, `ListV2`; `fieldVNode`. Throws
+  `ComposeLoadError` on an unresolved `$ref`, `UnsupportedFieldTypeError` on an
+  un-ported type.
+
+v2 conformance: `test/v2-render.conformance.test.mjs`,
+`test/v2-list-render.conformance.test.mjs` (run with `npx vitest run`).
+
 ## Usage (SSR)
 
 ```ts
