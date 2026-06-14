@@ -1,7 +1,7 @@
 /**
  * Form Validator
  *
- * Core validation class for form-spec validation
+ * Core validation class for crudui validation
  */
 
 import {
@@ -139,7 +139,7 @@ function parseTernaryBranchValue(raw: string): unknown {
 const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
 
 /**
- * Validator class for form-spec validation
+ * Validator class for crudui validation
  */
 export class Validator {
   private spec: Spec;
@@ -808,7 +808,7 @@ export class Validator {
     } catch (error) {
       if (this.options.debug) {
         console.warn(
-          `[Form-Spec] Failed to evaluate condition: "${expression}"`,
+          `[CRUDUI] Failed to evaluate condition: "${expression}"`,
           `\n  Path: ${pathToString(context.currentPath)}`,
           `\n  Error:`,
           error
@@ -830,7 +830,7 @@ export class Validator {
     } catch (error) {
       if (this.options.debug) {
         console.warn(
-          `[Form-Spec] Failed to evaluate expression: "${expression}"`,
+          `[CRUDUI] Failed to evaluate expression: "${expression}"`,
           `\n  Path: ${pathToString(context.currentPath)}`,
           `\n  Error:`,
           error

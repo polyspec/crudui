@@ -10,7 +10,7 @@
 //! Build/run with `cargo run --release` (debug codegen would mismeasure).
 //! Args: --iters N, --warmup N, --spec NAME, --fixtures DIR.
 
-use formspec_validator::{convert_input, parse_spec, Validator};
+use crudui_validator::legacy::{convert_input, parse_spec, Validator};
 use serde_json::Value;
 use std::fs;
 use std::path::Path;

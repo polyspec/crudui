@@ -1,7 +1,7 @@
 /**
  * @crudui/generator-vue
  *
- * Vue 3 form builder component library based on form-spec YAML definitions,
+ * Vue 3 form builder component library based on crudui YAML definitions,
  * rendering the legacy form markup.
  *
  * @example

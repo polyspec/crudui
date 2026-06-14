@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator;
+namespace CRUDUI\Validator;
 
 /**
  * CRUDUI canonical FieldSpec model. SINGLE SOURCE OF TRUTH (SPEC §3).
  *
- * This is the CRUDUI NEW model. legacy (FormSpec\Validator\*) stays untouched and runs
+ * This is the CRUDUI NEW model. legacy (CRUDUI\Validator\*) stays untouched and runs
  * in parallel until CRUDUI is stable (R7). This class mechanizes the canonical CRUDUI
  * model ONLY — it never mirrors a legacy shape.
  *

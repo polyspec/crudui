@@ -1,6 +1,6 @@
-# formspec-validator (Rust)
+# crudui-validator (Rust)
 
-Rust validator for the form-spec system. Ships the legacy binary (`validate`) and the
+Rust validator for the crudui system. Ships the legacy binary (`validate`) and the
 CRUDUI engine (compose → forbidden-scan → validate), kept in conformance lockstep
 with the JS/PHP/Go implementations. The legacy model is never touched by CRUDUI (R7
 parallel run).

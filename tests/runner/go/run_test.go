@@ -1,4 +1,4 @@
-// Package runner provides Go test runner for form-spec validation.
+// Package runner provides Go test runner for crudui validation.
 // It loads test cases from tests/cases/*.json and validates using validator/go.
 // Run with: go test ./... from this directory.
 package runner

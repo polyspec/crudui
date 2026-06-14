@@ -1,5 +1,5 @@
 /**
- * Form-spec Validator Type Definitions
+ * CRUDUI Validator Type Definitions
  */
 
 // ============================================================================

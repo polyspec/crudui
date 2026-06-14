@@ -1,7 +1,7 @@
 /**
- * Form-spec Validator
+ * CRUDUI Validator
  *
- * A TypeScript/JavaScript validation library for form-spec YAML definitions.
+ * A TypeScript/JavaScript validation library for crudui YAML definitions.
  * Works in both browser and Node.js environments.
  *
  * @example

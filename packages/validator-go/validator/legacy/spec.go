@@ -2,7 +2,7 @@ package legacy
 
 import "strings"
 
-// ParsedSpec is the result of parsing a canonical form-spec JSON document.
+// ParsedSpec is the result of parsing a canonical crudui JSON document.
 // IsGroup reports whether the document root was a group spec with properties;
 // non-group specs are wrapped into a single field named "value".
 type ParsedSpec struct {
@@ -10,7 +10,7 @@ type ParsedSpec struct {
 	IsGroup bool
 }
 
-// ParseSpec parses a canonical form-spec JSON document
+// ParseSpec parses a canonical crudui JSON document
 // (type/properties/rules format) into a validator Spec.
 // Property and rule declaration order is preserved.
 func ParseSpec(data []byte) (ParsedSpec, error) {

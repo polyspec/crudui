@@ -1,7 +1,7 @@
 {
   "name": "@crudui/generator-core",
   "version": "0.0.1",
-  "description": "Framework-agnostic current evaluation core (compose + evaluate, markup 0) shared by every form-spec generator adapter (React/Vue/Svelte)",
+  "description": "Framework-agnostic current evaluation core (compose + evaluate, markup 0) shared by every crudui generator adapter (React/Vue/Svelte)",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

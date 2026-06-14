@@ -2,33 +2,33 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Validate;
+namespace CRUDUI\Validator\Validate;
 
-use FormSpec\Validator\Rules\Required;
-use FormSpec\Validator\Rules\Email;
-use FormSpec\Validator\Rules\MinLength;
-use FormSpec\Validator\Rules\MaxLength;
-use FormSpec\Validator\Rules\Min;
-use FormSpec\Validator\Rules\Max;
-use FormSpec\Validator\Rules\Pattern;
-use FormSpec\Validator\Rules\In;
-use FormSpec\Validator\Rules\Range;
-use FormSpec\Validator\Rules\RangeLength;
-use FormSpec\Validator\Rules\Number;
-use FormSpec\Validator\Rules\Digits;
-use FormSpec\Validator\Rules\EqualTo;
-use FormSpec\Validator\Rules\NotEqual;
-use FormSpec\Validator\Rules\Date;
-use FormSpec\Validator\Rules\DateISO;
-use FormSpec\Validator\Rules\EndDate;
-use FormSpec\Validator\Rules\Url;
-use FormSpec\Validator\Rules\Accept;
-use FormSpec\Validator\Rules\MinCount;
-use FormSpec\Validator\Rules\MaxCount;
-use FormSpec\Validator\Rules\Step;
-use FormSpec\Validator\Rules\RuleInterface;
-use FormSpec\Validator\Expr\ConditionMap;
-use FormSpec\Validator\Expr\Expression;
+use CRUDUI\Validator\Rules\Required;
+use CRUDUI\Validator\Rules\Email;
+use CRUDUI\Validator\Rules\MinLength;
+use CRUDUI\Validator\Rules\MaxLength;
+use CRUDUI\Validator\Rules\Min;
+use CRUDUI\Validator\Rules\Max;
+use CRUDUI\Validator\Rules\Pattern;
+use CRUDUI\Validator\Rules\In;
+use CRUDUI\Validator\Rules\Range;
+use CRUDUI\Validator\Rules\RangeLength;
+use CRUDUI\Validator\Rules\Number;
+use CRUDUI\Validator\Rules\Digits;
+use CRUDUI\Validator\Rules\EqualTo;
+use CRUDUI\Validator\Rules\NotEqual;
+use CRUDUI\Validator\Rules\Date;
+use CRUDUI\Validator\Rules\DateISO;
+use CRUDUI\Validator\Rules\EndDate;
+use CRUDUI\Validator\Rules\Url;
+use CRUDUI\Validator\Rules\Accept;
+use CRUDUI\Validator\Rules\MinCount;
+use CRUDUI\Validator\Rules\MaxCount;
+use CRUDUI\Validator\Rules\Step;
+use CRUDUI\Validator\Rules\RuleInterface;
+use CRUDUI\Validator\Expr\ConditionMap;
+use CRUDUI\Validator\Expr\Expression;
 
 /**
  * CRUDUI form validator — schema §2 G5→§3→§2 G1. Port of validator-ts
@@ -39,8 +39,8 @@ use FormSpec\Validator\Expr\Expression;
  * expanded $ref/$patch into a single spec (Validate::run runs compose first).
  * It does NOT touch the legacy Validator (R7 parallel run) and it does NOT
  * re-implement the rule semantics or the expression engine — it CALLS the
- * existing legacy rule instances (FormSpec\Validator\Rules) and the existing CRUDUI
- * expression engine (FormSpec\Validator\Expr). The only CRUDUI-new logic here is:
+ * existing legacy rule instances (CRUDUI\Validator\Rules) and the existing CRUDUI
+ * expression engine (CRUDUI\Validator\Expr). The only CRUDUI-new logic here is:
  *   (a) reading the `validate` slot instead of the legacy `rules` key,
  *   (b) evaluating a rule value that is an expression OR a condition map (G1 —
  *       the condition is the value's expression, never a separate if/when key),

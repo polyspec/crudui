@@ -1,11 +1,11 @@
 {
-    "name": "form-spec/php-api-example",
-    "description": "PHP API example for form-spec validation system",
+    "name": "crudui/php-api-example",
+    "description": "PHP API example for crudui validation system",
     "type": "project",
     "license": "MIT",
     "require": {
         "php": ">=8.0",
-        "form-spec/validator": "^1.0",
+        "crudui/validator": "^1.0",
         "symfony/yaml": "^6.0 || ^7.0"
     },
     "repositories": [

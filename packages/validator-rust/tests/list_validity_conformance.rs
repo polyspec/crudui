@@ -1,5 +1,5 @@
 //! CRUDUI list-spec STRUCTURAL conformance (schema §9) — the read sister of the
-//! form-spec load-path conformance.
+//! crudui load-path conformance.
 //!
 //! Single truth = the shared fixture tests/fixtures/list-validity/cases.json,
 //! the SAME file the JS meta-schema gate reads
@@ -28,7 +28,7 @@
 
 use std::path::{Path, PathBuf};
 
-use formspec_validator::list::{validate_list, ValidateListOptions};
+use crudui_validator::list::{validate_list, ValidateListOptions};
 use serde_json::Value;
 
 fn fixture_path() -> PathBuf {

@@ -11,8 +11,8 @@ path = "src/main.rs"
 [dependencies]
 # Shared Rust validator crate, used by path so the binary always tracks the
 # in-repo source of truth. Mirrors go-api's local validator-go dependency.
-formspec-validator = { path = "../../packages/validator-rust" }
-# serde_json drives the canonical form-spec Value shape. preserve_order keeps
+crudui-validator = { path = "../../packages/validator-rust" }
+# serde_json drives the canonical crudui Value shape. preserve_order keeps
 # property/rule declaration order, matching the other three backends.
 serde_json = { version = "1", features = ["preserve_order"] }
 # serde_yaml parses YAML specs into the same Value tree. Specs are plain

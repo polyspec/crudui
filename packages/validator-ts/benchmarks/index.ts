@@ -1,5 +1,5 @@
 /**
- * Form-Spec Validator Benchmark Runner
+ * CRUDUI Validator Benchmark Runner
  *
  * Measures performance of:
  * 1. LargeForm.yml (1,318 lines) form validation
@@ -200,7 +200,7 @@ export function printComparison(
  */
 async function main(): Promise<void> {
   console.log(`\n${colors.bold}${colors.blue}${'='.repeat(60)}${colors.reset}`);
-  console.log(`${colors.bold}${colors.blue}  Form-Spec Validator Benchmarks${colors.reset}`);
+  console.log(`${colors.bold}${colors.blue}  CRUDUI Validator Benchmarks${colors.reset}`);
   console.log(`${colors.bold}${colors.blue}${'='.repeat(60)}${colors.reset}\n`);
 
   console.log(`${colors.dim}Node.js ${process.version}${colors.reset}`);

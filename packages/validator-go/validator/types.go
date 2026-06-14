@@ -1,5 +1,5 @@
 // Package CRUDUI is the canonical (SPEC-mechanized, single-truth) Go model of the
-// form-spec field. It is the CRUDUI successor to the stable legacy validator package.
+// crudui field. It is the CRUDUI successor to the stable legacy validator package.
 //
 // CRUDUI runs in parallel with legacy (R7). Do not fold legacy into this package; legacy stays
 // until CRUDUI stabilizes. Nothing here imports legacy, and legacy imports nothing here.

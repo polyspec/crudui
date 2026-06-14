@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Expr;
+namespace CRUDUI\Validator\Expr;
 
 /**
  * CRUDUI expression evaluator (EXPRESSION-GRAMMAR §5/§6/§7, JS PathResolver parity).

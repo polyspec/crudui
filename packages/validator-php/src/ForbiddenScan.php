@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator;
+namespace CRUDUI\Validator;
 
-use FormSpec\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Compose\ComposeLoadError;
 
 /**
  * Recursive forbidden meta-key scan (schema §6) — the runtime half of the

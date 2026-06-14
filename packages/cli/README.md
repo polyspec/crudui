@@ -1,13 +1,13 @@
 # @crudui/cli
 
-form-spec orchestrator CLI. A thin wrapper over the code/schema single source of
+crudui orchestrator CLI. A thin wrapper over the code/schema single source of
 truth (generator-core registry, validator-ts rules, schema JSON, forbidden-scan,
 grammar docs) — it holds no hand-copied catalog. Runs through the tsx loader so
 the `.ts` sources import directly (no separate build), exactly like
 `validator-ts/bin/validate.mjs`.
 
 ```
-node --import tsx bin/form-spec.mjs <subcommand>
+node --import tsx bin/crudui.mjs <subcommand>
 ```
 
 ## Subcommands (implemented)

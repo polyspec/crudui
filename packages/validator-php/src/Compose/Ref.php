@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Compose;
+namespace CRUDUI\Validator\Compose;
 
 /**
  * $ref resolution — base inheritance, resolved before anything else (schema §5;

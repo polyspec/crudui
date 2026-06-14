@@ -26,7 +26,7 @@ package validate
 // The "schema-shape" gates a list does NOT run here — additionalProperties:false
 // (1급 closure), required:columns, the sort.dir / pagination.mode enums, and the
 // CellFormat anyOf polymorphism — live ONLY in the meta-schema (ajv,
-// schema/form-spec-model.schema.json #/definitions/List, exercised by
+// schema/crudui-model.schema.json #/definitions/List, exercised by
 // validator-ts/src/list-metaschema.conformance.test.ts), exactly as for a form.
 // This entry invents NO new structural rule; it reuses the form's pass 1 + pass 2.
 //

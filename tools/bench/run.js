@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * run.js — benchmark orchestrator for the four form-spec validators.
+ * run.js — benchmark orchestrator for the four crudui validators.
  *
  * Runs each language's in-process driver (bench-js.js, bench-php.php,
  * tools/bench/go, tools/bench/rust) on the SAME spec+input fixtures, collects
@@ -186,7 +186,7 @@ function writeResultsMd(table, args, langs, meta) {
   lines.push('# Validator benchmark results');
   lines.push('');
   lines.push(
-    'Throughput of the four form-spec validators (JS / PHP / Go / Rust) on an'
+    'Throughput of the four crudui validators (JS / PHP / Go / Rust) on an'
   );
   lines.push(
     'identical, cross-language-agreed workload. Each backend builds the'

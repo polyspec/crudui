@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Compose;
+namespace CRUDUI\Validator\Compose;
 
 /**
  * Composition orchestrator (schema §5, G5) — the parser's FIRST pass.

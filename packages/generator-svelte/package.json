@@ -1,7 +1,7 @@
 {
   "name": "@crudui/generator-svelte",
   "version": "0.0.1",
-  "description": "Svelte form builder component library based on form-spec YAML definitions",
+  "description": "Svelte form builder component library based on crudui YAML definitions",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",

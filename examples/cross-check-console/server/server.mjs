@@ -304,7 +304,7 @@ function startServer() {
     }
     process.stdout.write(`\nCross-Check Console gateway on http://localhost:${PORT}\n`);
     process.stdout.write('  GET  /                 - console (static client/)\n');
-    process.stdout.write('  POST /api/validate     - 4-language current form-spec validate fan-out\n');
+    process.stdout.write('  POST /api/validate     - 4-language current crudui validate fan-out\n');
     process.stdout.write('  POST /api/validate-list - 4-language current list-spec validate fan-out\n');
     process.stdout.write('  POST /api/render       - 3-framework current form SSR\n');
     process.stdout.write('  POST /api/render-list  - 3-framework current list SSR\n');

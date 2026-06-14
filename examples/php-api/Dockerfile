@@ -1,12 +1,12 @@
-# PHP API Dockerfile for FormSpec Validation API
+# PHP API Dockerfile for CRUDUI Validation API
 #
 # Build from project root:
-#   docker build -f examples/php-api/Dockerfile -t formspec-php-api .
+#   docker build -f examples/php-api/Dockerfile -t crudui-php-api .
 #
 # The validator lives at packages/validator-php (composer path repository).
 #
 # Run:
-#   docker run -p 8080:80 formspec-php-api
+#   docker run -p 8080:80 crudui-php-api
 
 FROM php:8.2-apache
 
