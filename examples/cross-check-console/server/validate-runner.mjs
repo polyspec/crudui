@@ -55,7 +55,35 @@ export async function validateAll(req) {
     files: req.files ?? {},
     basepath: req.basepath ?? '',
   };
+  return fanOut(payload);
+}
 
+/**
+ * Validate one LIST request across all four languages in parallel — the read
+ * sister of `validateAll` (SPEC §9). The four v2 CLIs route the SAME wire on
+ * `mode:"list"`: compose (columns/search $ref/$patch) → forbidden-scan over the
+ * list tree. A list carries NO rows (they are injected, DB-agnostic), so there
+ * is no DATA pass and `data` is omitted entirely. A clean load is
+ * { valid:true, errors:[] }; an unresolved $ref / $patch or a forbidden meta key
+ * surfaces as the SAME loadError envelope the form path uses, so the four agree
+ * on a LOAD failure as much as on a clean structure. The form `validateAll` path
+ * is untouched — this is an additive branch over one shared `runCli`.
+ *
+ * @param {object} req { spec, files?, basepath? }
+ * @returns {Promise<{results: object[], idempotent: boolean|null, mismatch: object|null}>}
+ */
+export async function validateAllList(req) {
+  const payload = {
+    spec: req.spec,
+    files: req.files ?? {},
+    basepath: req.basepath ?? '',
+    mode: 'list',
+  };
+  return fanOut(payload);
+}
+
+/** Spawn the four v2 validate CLIs on one payload and reduce to a verdict. */
+async function fanOut(payload) {
   const [js, php, go, rust] = await Promise.all([
     Promise.resolve(runJs(payload)),
     Promise.resolve(runPhp(payload)),

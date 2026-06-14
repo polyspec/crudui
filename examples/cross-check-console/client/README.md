@@ -16,6 +16,10 @@ judgement can be re-checked.
   validation (`js` / `php` / `go` / `rust`). Each entry:
   `{lang, ok, valid, errors[{path,field,rule,message,value}], ms, loadError}`.
   `loadError` (unresolved `$ref`, forbidden key) is distinct from `valid:false`.
+- `POST /api/validate-list` `{listSpec, files?, basepath?}` → 4-language v2 list
+  STRUCTURE validation (compose → forbidden-scan; no rows — a list has no data).
+  The validate sister of `/api/validate`: same per-entry envelope, a forbidden
+  meta key surfaces as the SAME `loadError`, a clean structure is `valid:true`.
 - `POST /api/render` `{spec, data, options}` → 3-framework v2 SSR
   (`react` / `vue` / `svelte`). Each entry:
   `{fw, ok, html, normalized, ms, error}`. `error` carries
