@@ -20,9 +20,9 @@
 #   validator-current-js     npm run test:current -w validator-js       (vitest run src; incl. validate-cli)
 #   validator-current-php    composer test:current                      (phpunit tests; incl. ValidateCliTest)
 #   validator-current-go     go test ./validator/... ./cmd/validate
-#   validator-current-rust   cargo test --test {expr,compose,validate,spec_validity,validate_cli}_conformance
+#   validator-current-rust   cargo test --test {expr,compose,validate,spec_validity,list_validity,validate_cli}_conformance
 #   form-render           React/Vue/Svelte current SSR conformance   (npm run test:current per pkg)
-#   cross-check-console gateway verdict units + 4-lang fan-out + HTTP boundary + list parity (npm test in server)
+#   cross-check-console gateway verdict units + 4-lang fan-out (validate + list validate, incl. list tamper RED) + HTTP boundary + list parity (npm test in server)
 #   form-spec-cli       npm test -w form-spec-cli             (vitest run; drift/check-catalog/explain/list-describe)
 #
 # current shared 4-language fixtures (tests/fixtures/*/cases.json), each loaded by
@@ -33,8 +33,14 @@
 #   spec-validity   15 (recursive forbidden-scan)       JS/PHP/Go/Rust
 #   form-render       22 (SSR HTML)                        React/Vue/Svelte
 #   list-render  20 (list SSR HTML, SPEC §9)          React/Vue/Svelte
-#   list-validity 18 (list meta-schema, SPEC §9.4)    JS (ajv #/definitions/List)
+#   list-validity 18 (list structure, SPEC §9)        JS/PHP/Go/Rust (engine: compose+forbidden-scan) + JS (ajv #/definitions/List)
 # A current regression turns the matching job red via the test runner exit code.
+#
+# list-validity carries two expectation channels in one file: `engine`
+# (compose+forbidden-scan, asserted bit-for-bit by JS/PHP/Go/Rust list-validity
+# conformance — the 4-language structure gate) and `expect`/`reason` (JSON-Schema
+# shape, asserted by the JS ajv list meta-schema). The engine cases ride the four
+# validator-current-{js,php,go,rust} jobs; the meta-schema rides validator-current-js.
 #
 # Toolchain pinning rationale:
 #   - dist/ and target/ are gitignored, so cross-language must build the JS
@@ -361,9 +367,13 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # validator-current-rust — the current conformance integration tests by name
-  # (expr/compose/validate/spec-validity) plus the validate CLI boundary test.
-  # Targeting them with --test excludes the legacy tests/conformance.rs while gating
-  # each shared fixture.
+  # (expr/compose/validate/spec-validity/list-validity) plus the validate CLI
+  # boundary test. Targeting them with --test excludes the legacy tests/conformance.rs
+  # while gating each shared fixture. Rust selects integration tests by file (no
+  # glob), so the list-validity gate (tests/list_validity_conformance.rs, SPEC §9 —
+  # the SAME tests/fixtures/list-validity/cases.json the JS/PHP/Go engines load)
+  # is named explicitly; omitting it would silently drop the Rust half of the
+  # 4-language list contract from this gate.
   # ---------------------------------------------------------------------------
   validator-current-rust:
     name: current · validator-rust (cargo test current conformance + CLI)
@@ -376,13 +386,14 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: packages/validator-rust
-      - name: current conformance (expr/compose/validate/spec-validity + validate CLI)
+      - name: current conformance (expr/compose/validate/spec-validity/list-validity + validate CLI)
         run: >
           cargo test
           --test expr_conformance
           --test compose_conformance
           --test validate_conformance
           --test spec_validity_conformance
+          --test list_validity_conformance
           --test validate_cli_conformance
         working-directory: packages/validator-rust
 
@@ -429,9 +440,12 @@ jobs:
   # ---------------------------------------------------------------------------
   # cross-check-console — the gateway's own conformance: the verdict pure
   # functions (compareIdempotency / compareParity, incl. tamper RED cases) AND
-  # the real fan-outs (validateAll spawns the four current CLIs; renderAll + the LIST
-  # sister renderAllList boot the Vite SSR engine for React/Svelte/Vue, the list
-  # fan-out re-rendering every list-render fixture case) AND the HTTP boundary
+  # the real fan-outs (validateAll + the LIST sister validateAllList spawn the four
+  # current CLIs — validateAllList runs mode:list over every list-validity fixture
+  # case and carries its own tamper RED: a forged single-language list verdict →
+  # idempotent:false with that language isolated; renderAll + the LIST sister
+  # renderAllList boot the Vite SSR engine for React/Svelte/Vue, the list fan-out
+  # re-rendering every list-render fixture case) AND the HTTP boundary
   # (coerceSpec YAML/object, client fault = 4xx, validation failure = 200 result
   # surface, CORS, /health). The real validate fan-out needs the compiled Go/Rust CLIs,
   # so all four toolchains are set up (same as the cross-language job) and
