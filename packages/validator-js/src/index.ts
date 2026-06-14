@@ -1,4 +1,5 @@
 /** CRUDUI validation and shared rule APIs. */
+export * from './schema';
 export * from './types';
 // Parser exports
 export {
@@ -31,6 +32,7 @@ export {
   hasWildcard,
   replaceWildcardWithIndex,
   evaluateCondition,
+  evaluateExpressionValue,
   parsePathString,
   pathToString,
   getParentPath,
@@ -65,4 +67,3 @@ export {
   areAllUnique,
 } from './rules/index';
 
-// Default export
