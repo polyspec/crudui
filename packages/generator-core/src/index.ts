@@ -56,11 +56,18 @@ export type {
   ActionVM,
   BuildListOptions,
 } from './list';
-export { renderCell, normalizeFormat } from './cell';
+export {
+  renderCell,
+  normalizeFormat,
+  CELL_RENDERERS,
+  CELL_FORMATS,
+  CELL_FORMAT_DEFAULT,
+} from './cell';
 export type {
   CellFormatModel,
   CellDisplay,
   CellRenderCtx,
+  CellRenderer,
   BadgeDisplay,
   LinkDisplay,
   ImageDisplay,
