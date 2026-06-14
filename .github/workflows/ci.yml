@@ -32,6 +32,8 @@
 #   validate        28                                  JS/PHP/Go/Rust
 #   spec-validity   15 (recursive forbidden-scan)       JS/PHP/Go/Rust
 #   form-render       22 (SSR HTML)                        React/Vue/Svelte
+#   list-render  20 (list SSR HTML, SPEC §9)          React/Vue/Svelte
+#   list-validity 18 (list meta-schema, SPEC §9.4)    JS (ajv #/definitions/List)
 # A current regression turns the matching job red via the test runner exit code.
 #
 # Toolchain pinning rationale:
@@ -385,13 +387,17 @@ jobs:
         working-directory: packages/validator-rust
 
   # ---------------------------------------------------------------------------
-  # form-render — the 3-framework current SSR conformance (22 shared form-render cases
-  # each). `npm run test:current` per package runs only the form-render conformance
-  # file. Generators import @form-spec/validator (dist), so the validator is
-  # built first — same dependency the legacy parity job has.
+  # form-render — the 3-framework current SSR conformance. `npm run test:current` per package
+  # runs BOTH shared-fixture conformance files: the form render (form-render,
+  # tests/fixtures/form-render) and the LIST render (list-render,
+  # tests/fixtures/list-render — SPEC §9, the read sister). Every framework
+  # must reproduce the React reference's normalized expected_html after the shared
+  # normalizer. The list meta-schema gate (SPEC §9.4) rides the validator-current-js
+  # job (vitest run src picks up list-metaschema.conformance.test.ts).
+  # Generators import @form-spec/validator (dist), so the validator is built first.
   # ---------------------------------------------------------------------------
   form-render:
-    name: current render (React/Vue/Svelte SSR)
+    name: current render (React/Vue/Svelte SSR — form + list)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
