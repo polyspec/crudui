@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Form-Spec
+  name: CRUDUI
   text: YAML 기반 폼 정의 시스템
   tagline: 하나의 스펙으로 4개 언어가 동일한 검증 결과(멱등성)를 보장하고, 3개 프레임워크로 폼을 렌더링한다.
   actions:
@@ -24,14 +24,14 @@ features:
   - title: CRUDUI 표현식 엔진
     details: 조건을 값에 녹인다 — 제한 DSL(eval 금지)을 4언어가 같은 토큰열·같은 AST·같은 값으로 평가(멱등). 조건맵으로 분기, 조건 전용 메타키 0. (schema §6 은 display_switch/display_target 등 조건 전용 메타키를 금지한다.)
   - title: CRUDUI 도구체인
-    details: form-spec CLI(describe/check/explain/list-widgets) · MCP · 크로스-검증 콘솔(4언어 검증 × 3프레임워크 SSR) · nl-to-form 스킬. 모두 코드/스키마 단일진실에 위임한다.
+    details: crudui CLI(describe/check/explain/list-widgets) · MCP · 크로스-검증 콘솔(4언어 검증 × 3프레임워크 SSR) · nl-to-form 스킬. 모두 코드/스키마 단일진실에 위임한다.
   - title: 기계가독 스펙
     details: validator-ts 타입에서 생성한 JSON Schema(draft-07) 로 에디터 자동완성·검증. 자동생성 멀티언어 API 문서 포함.
 ---
 
 ## 개요
 
-Form-Spec 은 YAML 한 벌로 폼의 구조·검증 규칙·조건부 표시를 정의하고, 이를
+CRUDUI 은 YAML 한 벌로 폼의 구조·검증 규칙·조건부 표시를 정의하고, 이를
 여러 언어의 검증기와 여러 프레임워크의 렌더러가 **동일하게** 해석하는 시스템이다.
 
 ## 아키텍처
@@ -50,21 +50,21 @@ flowchart TD
 | 영역 | 패키지 | 비고 |
 |------|--------|------|
 | 검증기 | `validator-ts` (`@crudui/validator`) | TypeScript, 브라우저·Node |
-| 검증기 | `validator-php` (`form-spec/validator`) | PHP ^8.2 |
+| 검증기 | `validator-php` (`crudui/validator`) | PHP ^8.2 |
 | 검증기 | `validator-go` | `github.com/crudui/crudui/packages/validator-go` |
-| 검증기 | `validator-rust` (`formspec-validator`) | Rust 크레이트 |
+| 검증기 | `validator-rust` (`crudui-validator`) | Rust 크레이트 |
 | 렌더 코어 | `generator-core` (`@crudui/generator-core`) | 프레임워크 무관 buildForm/buildList |
 | 렌더러 | `generator-react` (`@crudui/generator-react`) | 기준 HTML 7/7 parity, list List |
 | 렌더러 | `generator-vue` (`@crudui/generator-vue`) | SSR, 기준 HTML 7/7 parity, list List |
 | 렌더러 | `generator-svelte` (`@crudui/generator-svelte`) | SSR, 기준 HTML 7/7 parity, list List |
-| 도구 | `form-spec-cli` (`@crudui/cli`, bin `form-spec`) | describe/check/explain/list-widgets |
+| 도구 | `cli` (`@crudui/cli`, bin `crudui`) | describe/check/explain/list-widgets |
 
 ## 빠른 링크
 
 - [문서 색인](/README) — 전체 문서 목차
 - [schema (헌법)](/schema) — CRUDUI 단일 진실 · 역할 슬롯 · 조건맵 · 합성 · 금지키 게이트(§6) · list-spec(§9)
 - [표현식 문법](/EXPRESSION-GRAMMAR) — 4언어 표현식 엔진 단일 진실 (토큰/AST/값 멱등, eval 금지)
-- [form-spec CLI](/FORM-SPEC-CLI) · [form-spec MCP](/FORM-SPEC-MCP) — CRUDUI 작성 도구층
+- [crudui CLI](/CRUDUI-CLI) · [crudui MCP](/CRUDUI-MCP) — CRUDUI 작성 도구층
 - 크로스-검증 콘솔 `examples/cross-check-console` — 4언어 검증 × 3프레임워크 SSR · list 탭
 - [YAML 스펙 형식](/SPEC) — 스펙 작성법 (legacy 호환)
 - [검증 규칙](/VALIDATION-RULES) — 규칙 레퍼런스

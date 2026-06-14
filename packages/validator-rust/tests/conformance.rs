@@ -3,7 +3,7 @@
 //! valid/error/field against the expected outcome.
 //! Models validator-go tests/runner/go/run_test.go.
 
-use formspec_validator::run_validation;
+use crudui_validator::legacy::run_validation;
 use serde_json::Value;
 use std::fs;
 use std::path::{Path, PathBuf};

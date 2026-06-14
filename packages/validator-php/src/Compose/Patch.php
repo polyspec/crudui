@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Compose;
+namespace CRUDUI\Validator\Compose;
 
 /**
  * $patch application — add / remove / replace over the $ref base (schema §5).

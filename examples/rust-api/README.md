@@ -1,7 +1,7 @@
 # Rust HTTP API Form Validation Example
 
 A REST API server demonstrating form validation with the shared
-`formspec-validator` crate. Mirrors `examples/go-api`: same endpoints, same
+`crudui-validator` crate. Mirrors `examples/go-api`: same endpoints, same
 canonical contract, same specs.
 
 ## Quick Start
@@ -141,7 +141,7 @@ make test           # Build-check
 ## Adding Custom Specs
 
 Drop a YAML file into `specs/`. The filename (without `.yaml`/`.yml`) becomes
-the spec name. Specs are the canonical form-spec shape: a `group` with a
+the spec name. Specs are the canonical crudui shape: a `group` with a
 `properties` object.
 
 ```yaml

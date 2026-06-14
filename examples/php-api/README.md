@@ -1,6 +1,6 @@
 # PHP API Example
 
-PHP API example demonstrating form-spec validation with Legacy and Laravel integration patterns.
+PHP API example demonstrating crudui validation with Legacy and Laravel integration patterns.
 
 ## Setup
 
@@ -169,7 +169,7 @@ class MyController extends \Legacy\Controller
     public function postAction(): array
     {
         // Validate form data
-        $result = $this->validateFormSpec('user-registration', $this->getPost());
+        $result = $this->validateCRUDUI('user-registration', $this->getPost());
 
         if (!$result->isValid()) {
             return [
@@ -238,14 +238,14 @@ Add to `config/app.php`:
 ```php
 'providers' => [
     // ...
-    App\FormSpecServiceProvider::class,
+    App\CRUDUIServiceProvider::class,
 ],
 ```
 
 ### 2. Publish Configuration
 
 ```bash
-php artisan vendor:publish --tag=formspec-config
+php artisan vendor:publish --tag=crudui-config
 ```
 
 ### 3. Create Specifications
@@ -273,7 +273,7 @@ class UserController extends Controller
 {
     public function register(Request $request): JsonResponse
     {
-        $adapter = app('formspec.adapter');
+        $adapter = app('crudui.adapter');
         $result = $adapter->validate('user-registration', $request->all());
 
         if (!$result->isValid()) {
@@ -289,7 +289,7 @@ class UserController extends Controller
 
     public function validateField(Request $request): JsonResponse
     {
-        $adapter = app('formspec.adapter');
+        $adapter = app('crudui.adapter');
         $error = $adapter->validateField(
             $request->input('spec'),
             $request->input('path'),
@@ -312,9 +312,9 @@ class UserController extends Controller
 
 namespace App\Http\Requests;
 
-use App\FormSpecRequest;
+use App\CRUDUIRequest;
 
-class UserRegistrationRequest extends FormSpecRequest
+class UserRegistrationRequest extends CRUDUIRequest
 {
     protected function getSpecName(): string
     {
@@ -365,7 +365,7 @@ php-api/
 ├── test-api.php              # Test script
 ├── README.md                 # This file
 ├── config/
-│   └── formspec.php          # Laravel config
+│   └── crudui.php          # Laravel config
 ├── specs/
 │   ├── user-registration.yml # User registration form spec
 │   └── product-form.yml      # Product form spec

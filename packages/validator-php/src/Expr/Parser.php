@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Expr;
+namespace CRUDUI\Validator\Expr;
 
 /**
  * CRUDUI expression parser: Token[] -> AST (EXPRESSION-GRAMMAR §3/§4, JS Parser parity).

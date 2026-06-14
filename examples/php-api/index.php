@@ -11,7 +11,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
 $documentation = [
-    'name' => 'FormSpec Validation API',
+    'name' => 'CRUDUI Validation API',
     'version' => '1.0.0',
     'description' => 'PHP API for validating form data against YAML specifications',
     'endpoints' => [

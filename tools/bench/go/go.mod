@@ -1,4 +1,4 @@
-module formspec-bench
+module crudui-bench
 
 go 1.21
 

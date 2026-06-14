@@ -9,7 +9,7 @@
 //! Never weaken an assertion to turn red green; fix the engine, the fixture, or
 //! both at their shared source — not this test.
 
-use formspec_validator::expr::Expression;
+use crudui_validator::expr::Expression;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
@@ -180,7 +180,7 @@ fn evaluation_matches_fixture() {
 
 #[test]
 fn condition_map_resolves_in_declaration_order() {
-    use formspec_validator::expr::condition_map;
+    use crudui_validator::expr::condition_map;
 
     let entries = vec![
         (".tier == 'gold'".to_string(), Value::from("premium")),
@@ -212,7 +212,7 @@ fn condition_map_resolves_in_declaration_order() {
 
 #[test]
 fn condition_map_default_does_not_short_circuit() {
-    use formspec_validator::expr::condition_map;
+    use crudui_validator::expr::condition_map;
 
     let entries = vec![
         ("true".to_string(), Value::from("fallback")),

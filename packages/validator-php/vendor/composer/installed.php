@@ -1,6 +1,6 @@
 <?php return array(
     'root' => array(
-        'name' => 'form-spec/validator',
+        'name' => 'crudui/validator',
         'pretty_version' => '1.0.0',
         'version' => '1.0.0.0',
         'reference' => null,
@@ -10,7 +10,7 @@
         'dev' => true,
     ),
     'versions' => array(
-        'form-spec/validator' => array(
+        'crudui/validator' => array(
             'pretty_version' => '1.0.0',
             'version' => '1.0.0.0',
             'reference' => null,

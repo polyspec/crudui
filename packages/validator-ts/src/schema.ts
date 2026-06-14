@@ -1,5 +1,5 @@
 /**
- * Form-spec CRUDUI Field Type Definitions (canonical, reference)
+ * CRUDUI Field Type Definitions (canonical, reference)
  *
  * Single source of truth for the CRUDUI field model, mechanized from spec/schema.md
  * (the CRUDUI constitution) and EXPRESSION-GRAMMAR.md (the expression engine).

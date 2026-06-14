@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests\Compose;
+namespace CRUDUI\Validator\Tests\Compose;
 
-use FormSpec\Validator\Compose\ComposeLoadError;
-use FormSpec\Validator\Compose\Patch;
+use CRUDUI\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Compose\Patch;
 use PHPUnit\Framework\TestCase;
 
 /**

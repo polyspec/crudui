@@ -1,9 +1,9 @@
 <?php
 /**
- * FormSpec Configuration for Laravel
+ * CRUDUI Configuration for Laravel
  *
  * Publish this file using:
- *   php artisan vendor:publish --tag=formspec-config
+ *   php artisan vendor:publish --tag=crudui-config
  */
 
 return [

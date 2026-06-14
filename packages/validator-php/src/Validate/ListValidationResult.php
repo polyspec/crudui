@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Validate;
+namespace CRUDUI\Validator\Validate;
 
 /**
  * CRUDUI list-spec validation result — { valid, errors } (schema §9). Read sister of

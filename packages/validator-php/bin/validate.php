@@ -11,7 +11,7 @@
  *   stdout: {"valid": bool, "errors": [<error record>, ...]}
  *
  * `spec` is already a decoded object/JSON (no YAML, no file path). It runs the
- * full CRUDUI pipeline FormSpec\Validator\Validate\Validate::run — compose (G5)
+ * full CRUDUI pipeline CRUDUI\Validator\Validate\Validate::run — compose (G5)
  * → ForbiddenScan (§6) → Validate (§3 + §2 G1). This is a thin wrapper: it adds
  * no validation logic and never touches the legacy Validator (R7 parallel run).
  *
@@ -32,9 +32,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use FormSpec\Validator\Validate\Validate;
-use FormSpec\Validator\Validate\ListValidate;
-use FormSpec\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Validate\Validate;
+use CRUDUI\Validator\Validate\ListValidate;
+use CRUDUI\Validator\Compose\ComposeLoadError;
 
 $raw = stream_get_contents(STDIN);
 if ($raw === false || trim($raw) === '') {

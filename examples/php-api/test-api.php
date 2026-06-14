@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use FormSpec\Validator\Legacy\Validator;
+use CRUDUI\Validator\Legacy\Validator;
 use Symfony\Component\Yaml\Yaml;
 
-echo "=== FormSpec PHP API Test ===\n\n";
+echo "=== CRUDUI PHP API Test ===\n\n";
 
 // Test 1: Valid user registration
 echo "Test 1: Valid user registration\n";

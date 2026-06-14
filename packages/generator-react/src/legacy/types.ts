@@ -1,5 +1,5 @@
 /**
- * Form-spec React Types
+ * CRUDUI React Types
  */
 
 import type { ReactNode, ChangeEvent, FocusEvent } from 'react';

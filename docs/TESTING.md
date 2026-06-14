@@ -1,4 +1,4 @@
-# Form-Spec 테스트 가이드
+# CRUDUI 테스트 가이드
 
 이 문서는 실제 저장소에 존재하는 테스트 게이트와 실행 방법을 기술한다.
 모든 명령은 검증된 것만 수록한다 — 추측으로 명령을 추가하지 마라.
@@ -40,12 +40,12 @@ legacy 클라이언트 비교는 문서화 gap 0·회귀 0 이다.
 ## 디렉터리 구조
 
 ```
-form-spec/
+crudui/
 ├── packages/
 │   ├── validator-ts/        # TS 검증기 (vitest 브리지, benchmarks/ 포함)
 │   ├── validator-php/       # PHP 검증기 (PHP ^8.2, PHPUnit 브리지)
 │   ├── validator-go/        # Go 검증기 (모듈명 github.com/crudui/crudui/packages/validator-go)
-│   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator, cargo test 브리지)
+│   ├── validator-rust/      # Rust 검증기 (크레이트 crudui-validator, cargo test 브리지)
 │   ├── generator-react/     # React 폼 생성기 (vitest, 기준 HTML 7/7 parity)
 │   ├── generator-vue/       # Vue 3 폼 생성기 (vitest, test/parity.test.mjs 7/7)
 │   ├── generator-svelte/    # Svelte 5 폼 생성기 (vitest, test/parity.test.mjs 7/7)

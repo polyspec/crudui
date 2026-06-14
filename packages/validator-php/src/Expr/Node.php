@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Expr;
+namespace CRUDUI\Validator\Expr;
 
 /**
  * Base for every CRUDUI expression AST node (EXPRESSION-GRAMMAR §4).
@@ -13,7 +13,7 @@ namespace FormSpec\Validator\Expr;
  * no position, so the 4-language AST contract excludes it; including it would
  * break cross-language fixture equality.
  *
- * CRUDUI-only. Never reuse legacy FormSpec\Validator\Legacy\ConditionParser (R7 parallel run).
+ * CRUDUI-only. Never reuse legacy CRUDUI\Validator\Legacy\ConditionParser (R7 parallel run).
  */
 abstract class Node
 {

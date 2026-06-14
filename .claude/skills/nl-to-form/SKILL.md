@@ -1,19 +1,19 @@
 ---
 name: nl-to-form
-description: 자연어 기획서/구술을 검증 통과하는 form-spec CRUDUI 스펙으로 변환한다. 사용자가 폼 설계서·필드 목록·요구사항을 주고 CRUDUI 스펙(YAML/JSON)을 요청할 때, 또는 기존 CRUDUI 스펙을 자연어 의도와 대조·수정할 때 사용한다.
+description: 자연어 기획서/구술을 검증 통과하는 CRUDUI 스펙으로 변환한다. 사용자가 폼 설계서·필드 목록·요구사항을 주고 CRUDUI 스펙(YAML/JSON)을 요청할 때, 또는 기존 CRUDUI 스펙을 자연어 의도와 대조·수정할 때 사용한다.
 ---
 
 # 자연어 → CRUDUI form 생성
 
-자연어 기획서/구술을 `form-spec check` + `validate`를 통과하는 form-spec CRUDUI 스펙으로 만든다.
+자연어 기획서/구술을 `crudui check` + `validate`를 통과하는 CRUDUI 스펙으로 만든다.
 
 ## 0. 카탈로그는 코드가 가진다 — 여기 적지 마라 (강제)
 
 위젯·layout·검증규칙·역할슬롯·구조버킷·금지키·표현식문법을 이 파일에 나열하지 마라. 항상
-`form-spec describe`를 먼저 호출해 **현재** 카탈로그를 읽어라.
+`crudui describe`를 먼저 호출해 **현재** 카탈로그를 읽어라.
 
-- 기계용: `form-spec describe --json` → `{ widgetCount, widgets[], layouts[], rules[], slots, buckets, forbiddenKeys, grammar, classification }`.
-- 사람용: `form-spec describe --md`.
+- 기계용: `crudui describe --json` → `{ widgetCount, widgets[], layouts[], rules[], slots, buckets, forbiddenKeys, grammar, classification }`.
+- 사람용: `crudui describe --md`.
 
 이 파일의 어떤 목록도 코드보다 권위 없다. describe가 비거나 실패하면 멈추고 보고하라 —
 기억으로 위젯·규칙·슬롯을 지어내지 마라. 코드가 단일진실, describe가 그 다리다. 위젯·규칙·
@@ -33,15 +33,15 @@ b. **분류** — describe의 `classification`(출처: `docs/spec/schema.md §3`
 c. **초안** — `type`은 describe `widgets`에 있는 것만 쓴다(없는 type 발명 금지). 슬롯 키는
    describe `slots`/`buckets`에 있는 것만. 역할 슬롯은 다형이다: `false`(끔) | `{객체}` | `true`(`{}` 축약).
 
-d. **check** — `form-spec check <spec>`. 메타스키마(`additionalProperties: false`) + forbidden-scan.
+d. **check** — `crudui check <spec>`. 메타스키마(`additionalProperties: false`) + forbidden-scan.
    1급 외 키·금지키·미등록 슬롯키를 잡는다. RED면 c로 돌아가 고친다 — 표준을 낮춰 우회하지 마라.
 
-e. **validate** — `form-spec validate <spec> <data> --lang all`. 4언어로 규칙 의미·표현식 평가를
+e. **validate** — `crudui validate <spec> <data> --lang all`. 4언어로 규칙 의미·표현식 평가를
    검증한다. mismatch(언어 간 불일치)나 비멱등이면 스펙이 틀린 것이다 — 고친다.
 
-f. **미리보기** — `form-spec render <spec> --fw all` 또는 cross-check 콘솔. 3프레임워크 parity 확인.
+f. **미리보기** — `crudui render <spec> --fw all` 또는 cross-check 콘솔. 3프레임워크 parity 확인.
 
-g. **explain 역검증** — `form-spec explain <spec>`로 스펙을 자연어로 되돌려 기획서와 대조한다.
+g. **explain 역검증** — `crudui explain <spec>`로 스펙을 자연어로 되돌려 기획서와 대조한다.
    누락·오해를 발견하면 a로 돌아간다. 종료 판정은 explain ↔ 기획서 일치까지다.
 
 ## 2. 자연어 → CRUDUI 슬롯 매핑
@@ -128,13 +128,13 @@ properties:
 
 | 명령 | 용도 |
 |---|---|
-| `form-spec describe [--json\|--md]` | 코드/스키마 통합 카탈로그(위젯·layout·규칙·슬롯·노드·버킷·금지키·문법·분류). 초안 전 필수. |
-| `form-spec check <spec>` | 메타스키마 + forbidden-scan. 1급 외 키·금지키·미등록 슬롯키 적발. |
-| `form-spec validate <spec> <data> [--lang js\|php\|go\|rust\|all]` | 값 검증(규칙·표현식), 4언어 parity. |
-| `form-spec render <spec> [--fw react\|svelte\|vue\|all]` | SSR 미리보기, 프레임워크 parity. |
-| `form-spec explain <spec> [--lang ko\|en]` | 스펙 → 자연어 역검증. 기획서 대조용. |
-| `form-spec scaffold [--type <widget>]` | describe 카탈로그 기반 최소 유효 골격(발명 0). |
-| `form-spec list-widgets [--json]` | describe 위젯 섹션의 얇은 뷰. |
+| `crudui describe [--json\|--md]` | 코드/스키마 통합 카탈로그(위젯·layout·규칙·슬롯·노드·버킷·금지키·문법·분류). 초안 전 필수. |
+| `crudui check <spec>` | 메타스키마 + forbidden-scan. 1급 외 키·금지키·미등록 슬롯키 적발. |
+| `crudui validate <spec> <data> [--lang js\|php\|go\|rust\|all]` | 값 검증(규칙·표현식), 4언어 parity. |
+| `crudui render <spec> [--fw react\|svelte\|vue\|all]` | SSR 미리보기, 프레임워크 parity. |
+| `crudui explain <spec> [--lang ko\|en]` | 스펙 → 자연어 역검증. 기획서 대조용. |
+| `crudui scaffold [--type <widget>]` | describe 카탈로그 기반 최소 유효 골격(발명 0). |
+| `crudui list-widgets [--json]` | describe 위젯 섹션의 얇은 뷰. |
 
-출처 단일진실: 카탈로그=코드(`packages/generator-core`·`packages/validator-ts`·`schema/form-spec.schema.json`),
+출처 단일진실: 카탈로그=코드(`packages/generator-core`·`packages/validator-ts`·`schema/crudui.schema.json`),
 분류=`docs/spec/schema.md §3`, 문법=`docs/EXPRESSION-GRAMMAR.md`. 이 파일은 절차와 매핑만 — 카탈로그는 describe가 읽는다.
