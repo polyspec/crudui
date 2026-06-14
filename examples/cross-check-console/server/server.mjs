@@ -29,7 +29,7 @@ import yaml from 'js-yaml';
 
 import { getEngine } from './engine.mjs';
 import { validateAll } from './validate-runner.mjs';
-import { renderAll } from './render-runner.mjs';
+import { renderAll, renderAllList } from './render-runner.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_DIR = path.resolve(HERE, '../client');
@@ -204,6 +204,38 @@ export async function handler(req, res) {
     }
   }
 
+  // ---- POST /api/render-list ----------------------------------------------
+  // The read sister of /api/render (SPEC §9): a list-spec + INJECTED rows fan out
+  // across the three v2 ListV2 SSR entries. Same HTTP contract as /api/render —
+  // a render error (REF_FILE_NOT_FOUND) is a result surface (200), only a real
+  // fan-out fault is 5xx. The form render path above is untouched (additive).
+  if (pathname === '/api/render-list' && req.method === 'POST') {
+    let body;
+    try {
+      body = await readJsonBody(req);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    let listSpec;
+    try {
+      // The list-spec arrives as a YAML string (the editor) or a parsed object;
+      // `listSpec` is the canonical key, `spec` is accepted as an alias.
+      listSpec = coerceSpec(body.listSpec ?? body.spec);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    const rows = Array.isArray(body.rows) ? body.rows : [];
+    const options = body.options && typeof body.options === 'object' ? body.options : {};
+    try {
+      const out = await renderAllList(listSpec, rows, options);
+      // A render error (REF_FILE_NOT_FOUND) is a result surface, NOT an HTTP
+      // error: always 200.
+      return sendJson(res, 200, out);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'Render-list fan-out failed: ' + e.message });
+    }
+  }
+
   // ---- GET /health --------------------------------------------------------
   if (pathname === '/health' && req.method === 'GET') {
     return sendJson(res, 200, { status: 'ok', timestamp: new Date().toISOString() });
@@ -239,7 +271,8 @@ function startServer() {
     process.stdout.write(`\nCross-Check Console gateway on http://localhost:${PORT}\n`);
     process.stdout.write('  GET  /                 - console (static client/)\n');
     process.stdout.write('  POST /api/validate     - 4-language v2 validate fan-out\n');
-    process.stdout.write('  POST /api/render       - 3-framework v2 SSR\n');
+    process.stdout.write('  POST /api/render       - 3-framework v2 form SSR\n');
+    process.stdout.write('  POST /api/render-list  - 3-framework v2 list SSR\n');
     process.stdout.write('  GET  /health           - liveness probe\n');
   });
   return server;
