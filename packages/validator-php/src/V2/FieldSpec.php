@@ -198,6 +198,14 @@ final class FieldSpec
      * - lang     -> directly under the `lang` structural key.
      * - items    -> directly under `items` (polymorphic option source).
      *
+     * The `items` dynamic-source keys are STRUCTURE ONLY (the type fixes the
+     * declared shape; the runtime loads options). The real corpus shape
+     * (`type: search`) is `model` (a name string OR a nested
+     * {table, relations, keys} relational query) + a sibling `api_server` (a
+     * runtime HTTP-endpoint fn reference) + a placeholder static `items` — all
+     * three coexist under `items` and are preserved verbatim; none is resolved
+     * here. Runtime resolution is out of scope (SPEC §6 R1).
+     *
      * @var array<string, array{location: string, keys: list<string>}>
      */
     public const DEPENDENCY_BUCKETS = [
@@ -215,7 +223,7 @@ final class FieldSpec
         ],
         'items' => [
             'location' => 'items',
-            'keys'     => ['model', 'method', 'table', 'relations'],
+            'keys'     => ['model', 'method', 'table', 'relations', 'api_server', 'items'],
         ],
     ];
 
@@ -422,8 +430,11 @@ final class FieldSpec
      * (the membership target); the label is display-only and never a membership
      * value, so a LangMap label and a null label have no membership effect.
      *
-     * Lists (static arrays) and dynamic sources ({model,method,table,relations})
-     * are NOT value→label maps.
+     * Lists (static arrays) and dynamic sources (a `model`/`method`/`table`/
+     * `relations`/`api_server`/`items` source descriptor — where `model` may be a
+     * name string OR a nested {table, relations, keys} query, `api_server` is a
+     * runtime HTTP-endpoint fn reference, and `items` is the placeholder static
+     * choices that coexist) are NOT value→label maps.
      *
      * @param mixed $items
      */
@@ -432,8 +443,40 @@ final class FieldSpec
         if (!is_array($items) || $items === [] || array_is_list($items)) {
             return false;
         }
+        // A dynamic source descriptor (any dynamic-source key present) is NOT a
+        // value→label map — its values are a source query / endpoint fn /
+        // placeholder, not display labels. Mirrors the 4-language discriminator.
+        if (self::isDynamicItemsSource($items)) {
+            return false;
+        }
         foreach ($items as $label) {
             if ($label !== null && !is_string($label) && !is_array($label)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether a decoded `items` value is a dynamic source descriptor: a non-empty
+     * string-keyed map whose keys are ALL dynamic-source keys
+     * (model/method/table/relations/api_server/items, the placeholder included).
+     * A value→label map's keys are option values, never the source key set, so
+     * the two never collide in practice. STRUCTURE ONLY — the runtime runs the
+     * `model` query and calls `api_server`; this predicate only classifies the
+     * shape (it never resolves the source). Mirrors the JS / Go / Rust
+     * "all keys ∈ source set" discriminator exactly.
+     *
+     * @param mixed $items
+     */
+    public static function isDynamicItemsSource(mixed $items): bool
+    {
+        if (!is_array($items) || $items === [] || array_is_list($items)) {
+            return false;
+        }
+        $sourceKeys = self::DEPENDENCY_BUCKETS['items']['keys'];
+        foreach (array_keys($items) as $key) {
+            if (!in_array($key, $sourceKeys, true)) {
                 return false;
             }
         }

@@ -574,6 +574,94 @@
     }
   },
   {
+    "name": "items-dynamic-source-api-server-placeholder",
+    "note": "real corpus type:search shape — api_server (runtime HTTP fn) + placeholder static items:[] coexist under items; round-trips. Structure only; api_server is preserved verbatim, never called.",
+    "v1": {
+      "type": "search",
+      "items": [],
+      "api_server": "function() {\n  return '../search_product_brand';\n}\n"
+    },
+    "v2": {
+      "type": "search",
+      "items": {
+        "api_server": "function() {\n  return '../search_product_brand';\n}\n",
+        "items": []
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "search",
+        "api_server": "function() {\n  return '../search_product_brand';\n}\n",
+        "items": []
+      }
+    }
+  },
+  {
+    "name": "items-dynamic-source-nested-model",
+    "note": "real corpus type:search shape — nested model {table,relations,keys} relational query + sibling api_server + placeholder items map, all reclaimed under items; round-trips. Structure only; the runtime runs the query and calls api_server.",
+    "v1": {
+      "type": "search",
+      "model": {
+        "table": "service_member",
+        "relations": [
+          { "table": "user", "left": "user_seq", "right": "seq" }
+        ],
+        "keys": [
+          { "table": "service_member", "field": "seq", "append": ". " },
+          { "table": "user", "field": "aes_hex_email", "prepend": " (", "append": ")" }
+        ]
+      },
+      "api_server": "function() {\n  return '/admin/user/search';\n}\n",
+      "items": {
+        "": "선택하세요"
+      }
+    },
+    "v2": {
+      "type": "search",
+      "items": {
+        "model": {
+          "table": "service_member",
+          "relations": [
+            { "table": "user", "left": "user_seq", "right": "seq" }
+          ],
+          "keys": [
+            { "table": "service_member", "field": "seq", "append": ". " },
+            { "table": "user", "field": "aes_hex_email", "prepend": " (", "append": ")" }
+          ]
+        },
+        "api_server": "function() {\n  return '/admin/user/search';\n}\n",
+        "items": {
+          "": "선택하세요"
+        }
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "search",
+        "model": {
+          "table": "service_member",
+          "relations": [
+            { "table": "user", "left": "user_seq", "right": "seq" }
+          ],
+          "keys": [
+            { "table": "service_member", "field": "seq", "append": ". " },
+            { "table": "user", "field": "aes_hex_email", "prepend": " (", "append": ")" }
+          ]
+        },
+        "api_server": "function() {\n  return '/admin/user/search';\n}\n",
+        "items": {
+          "": "선택하세요"
+        }
+      }
+    }
+  },
+  {
     "name": "messages-gap",
     "note": "rules.required converts; messages has NO v2 slot — reported as a gap (no new decision, irreversible).",
     "v1": {

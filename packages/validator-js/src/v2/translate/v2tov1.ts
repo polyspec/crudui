@@ -52,7 +52,7 @@ const MULTIPLE_SUB_TO_V1: Record<string, string> = {
   onclick: 'multiple_button_onclick',
 };
 
-const ITEMS_SOURCE_KEYS = new Set(['model', 'method', 'table', 'relations']);
+const ITEMS_SOURCE_KEYS = new Set(['model', 'method', 'table', 'relations', 'api_server']);
 
 /** Reverse-translate a v2 ROOT spec → v1 (reversible keys only). */
 export function translateV2ToV1(v2: V2Spec): V1Spec {
@@ -285,10 +285,21 @@ function reverseItems(value: unknown, out: V1Spec): void {
   if (isObject(value)) {
     const it = value as Record<string, unknown>;
     const keys = Object.keys(it);
-    const allSource = keys.length > 0 && keys.every((k) => ITEMS_SOURCE_KEYS.has(k));
-    if (allSource) {
-      // Dynamic source keys were scattered at top level in v1.
-      for (const k of keys) out[k] = it[k];
+    // A dynamic source: every key is a source key, OR source keys plus a nested
+    // `items` placeholder (the real corpus shape). Scatter the source keys back
+    // to siblings and restore the placeholder as the sibling `items`.
+    const isSource =
+      keys.length > 0 &&
+      keys.some((k) => ITEMS_SOURCE_KEYS.has(k)) &&
+      keys.every((k) => ITEMS_SOURCE_KEYS.has(k) || k === 'items');
+    if (isSource) {
+      for (const k of keys) {
+        if (k === 'items') {
+          out.items = it[k]; // placeholder static items → sibling items
+        } else {
+          out[k] = it[k]; // model/method/table/relations/api_server → siblings
+        }
+      }
     } else {
       out.items = value;
     }

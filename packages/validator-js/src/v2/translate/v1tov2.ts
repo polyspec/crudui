@@ -96,8 +96,13 @@ const MULTIPLE_KEY_MAP: Record<string, 'max' | 'copy' | 'sortable' | 'onclick'> 
   sortable_onchange: 'onclick',
 };
 
-/** v1 dynamic items-source keys reclaimed under `items`. */
-const ITEMS_SOURCE_KEYS = new Set(['model', 'method', 'table', 'relations']);
+/**
+ * v1 dynamic items-source keys reclaimed under `items`. `model` may be a name
+ * string OR a nested `{ table, relations, keys }` query (the real corpus shape);
+ * `api_server` is the runtime HTTP-endpoint fn reference (sibling of model). All
+ * are PRESERVED verbatim — structure only, runtime resolution out of scope.
+ */
+const ITEMS_SOURCE_KEYS = new Set(['model', 'method', 'table', 'relations', 'api_server']);
 
 /** items-source keys that unambiguously mark a dynamic source (never an HTTP verb). */
 const ITEMS_SOURCE_ANCHORS = new Set(['model', 'table', 'relations']);
@@ -107,11 +112,13 @@ const ITEMS_SOURCE_ANCHORS = new Set(['model', 'table', 'relations']);
  * THIS field. `model`/`table`/`relations` always are. A lone `method` is
  * ambiguous (Bug 6): a form/field-level `method` is an HTTP verb, NOT an items
  * source — it is only a source method when an anchor source key or an explicit
- * `items` rides alongside it.
+ * `items` rides alongside it. `api_server` is the same: in the corpus it only
+ * ever appears with an anchor or a placeholder `items` (the `type: search`
+ * source); a lone `api_server` is not reclaimed.
  */
 function isItemsSourceKey(key: string, v1: V1Spec): boolean {
   if (ITEMS_SOURCE_ANCHORS.has(key)) return true;
-  if (key === 'method') {
+  if (key === 'method' || key === 'api_server') {
     return (
       'items' in v1 ||
       Object.keys(v1).some((k) => ITEMS_SOURCE_ANCHORS.has(k))
@@ -161,6 +168,15 @@ function translateSpec(v1: V1Spec, path: string[], notes: TranslateNote[]): V2Sp
   const multiple: Record<string, unknown> = {};
   const patch: Record<string, unknown> = {};
   let multipleFlag: boolean | undefined;
+  // Dynamic items-source accumulator (model/method/table/relations/api_server)
+  // and the static `items` value. A dynamic source and a placeholder static
+  // `items` coexist (real corpus shape) — the static value nests under
+  // `items.items`, the source descriptor wraps it. Combined after the loop so
+  // the `items` key and scattered source keys never clobber each other (the
+  // declaration-order bug).
+  const itemsSource: Record<string, unknown> = {};
+  let staticItems: unknown;
+  let staticItemsSet = false;
 
   for (const key of Object.keys(v1)) {
     const value = v1[key];
@@ -373,21 +389,25 @@ function translateSpec(v1: V1Spec, path: string[], notes: TranslateNote[]): V2Sp
 
     // -- items (static or dynamic source) --
     if (key === 'items') {
-      // Bug: items:null / empty items — Items is array|source|label-map, never
-      // null and never the empty {} that a fully-commented-out v1 `items:` block
-      // parses to. An empty items carries no membership, so it is the same as the
-      // key being absent — drop it (mirrors the content-null drop).
-      if (value === null || isEmpty(value)) {
+      // Bug: items:null — Items is array|source|label-map, never null and never
+      // the empty {} a fully-commented-out v1 `items:` block parses to. Drop a
+      // null/empty-object placeholder (no membership, same as absent). But an
+      // EMPTY ARRAY `items: []` is a real placeholder of a dynamic source (the
+      // 52-file `type: search` shape) — keep it so it nests under the source.
+      if (value === null || (isEmpty(value) && !Array.isArray(value))) {
         note(notes, path, key, 'ITEMS_NULL_DROP', `empty "items:${value === null ? 'null' : 'empty'}" dropped (Items is array|source|label-map, never null)`);
         continue;
       }
-      out.items = normalizeItems(value, [...path, 'items'], notes);
+      // Hold the static value; combined with any dynamic source after the loop.
+      staticItems = normalizeItems(value, [...path, 'items'], notes);
+      staticItemsSet = true;
       continue;
     }
     if (ITEMS_SOURCE_KEYS.has(key) && isItemsSourceKey(key, v1)) {
-      // A scattered dynamic-source key → reclaim under items.
-      if (!isObject(out.items)) out.items = {};
-      (out.items as Record<string, unknown>)[key] = value;
+      // A scattered dynamic-source key → accumulate into the source descriptor.
+      // model may be a name string OR a nested {table,relations,keys} query;
+      // api_server is the runtime HTTP fn reference — both preserved verbatim.
+      itemsSource[key] = value;
       continue;
     }
 
@@ -397,6 +417,25 @@ function translateSpec(v1: V1Spec, path: string[], notes: TranslateNote[]): V2Sp
 
   // Resolve held display_target (+condition) when no _style/_class consumed it.
   finalizeDisplayTarget(design, path, notes);
+
+  // Combine the dynamic items-source and the static `items` placeholder. A
+  // dynamic source wraps the placeholder under `items.items`, so the two coexist
+  // (real corpus shape) without one clobbering the other. With no source keys,
+  // the static value is the whole `items`. The static value is held to the end
+  // so a placeholder `items: []` declared before or after the source keys lands
+  // the same way (declaration order no longer decides).
+  if (Object.keys(itemsSource).length > 0) {
+    if (staticItemsSet) itemsSource.items = staticItems;
+    out.items = itemsSource;
+  } else if (staticItemsSet) {
+    // A bare `items: []` with no dynamic source carries no membership — drop it
+    // (same as the empty-object placeholder). A non-empty static value stays.
+    if (Array.isArray(staticItems) && staticItems.length === 0) {
+      note(notes, path, 'items', 'ITEMS_NULL_DROP', 'empty "items:[]" dropped (no dynamic source; empty array carries no membership)');
+    } else {
+      out.items = staticItems;
+    }
+  }
 
   // Attach accumulated slots/buckets (omit empties — keeps output minimal & clean).
   attachSlot(out, 'validate', validate);

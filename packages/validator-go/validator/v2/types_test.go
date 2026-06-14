@@ -76,6 +76,13 @@ func TestRoundTripSlotPolymorphism(t *testing.T) {
 func TestRoundTripItemsPolymorphism(t *testing.T) {
 	roundTrip(t, `{"items":["a","b","c"]}`)
 	roundTrip(t, `{"items":{"model":"User","method":"all","table":"users","relations":"role"}}`)
+	// Real corpus dynamic source (type: search): api_server (runtime HTTP fn) +
+	// placeholder static items coexist under items. Structure only; preserved
+	// verbatim, never resolved.
+	roundTrip(t, `{"type":"search","items":{"api_server":"function() { return '../search'; }","items":[]}}`)
+	// Real corpus nested model {table,relations,keys} + sibling api_server +
+	// placeholder value→label items, all under items.
+	roundTrip(t, `{"type":"search","items":{"model":{"table":"service_member","relations":[{"table":"user","left":"user_seq","right":"seq"}],"keys":[{"table":"service_member","field":"seq","append":". "}]},"api_server":"function() { return '/admin/user/search'; }","items":{"":"선택하세요"}}}`)
 }
 
 func TestRoundTripOptionsExtra(t *testing.T) {

@@ -134,8 +134,10 @@ export interface FieldSpecV2 {
    */
   items?: ItemsV2;
   /**
-   * Structure — repeated rows. `true` = index array + hidden id (G4). A
-   * dependency-isolation bucket and first-class.
+   * Structure — repeated rows (`true` = on). A dependency-isolation bucket and
+   * first-class. Row identity at RUNTIME is a server PK carried in the submitted
+   * data, not a build-time spec field — `MultipleSettings` has no `id` key. See
+   * `MultipleV2`.
    */
   multiple?: MultipleV2;
   /**
@@ -370,18 +372,67 @@ export interface OptionsSlot {
 // ============================================================================
 
 /**
+ * Nested model descriptor of a dynamic source (`items.model` second shape): the
+ * source is a relational query, not a single model name. Mirrors the real corpus
+ * shape (`model: { table, relations, keys }`). Structure only — this fixes the
+ * declared shape of a query descriptor; building the query and running it is the
+ * runtime's job, out of scope here (SPEC §6 R1: types preserve, validation
+ * blocks; never model runtime resolution into the type).
+ */
+export interface ItemsModel {
+  /** Primary table the rows are drawn from. */
+  table?: string;
+  /** Join/relation descriptors (each row links a related table to a column pair). */
+  relations?: unknown[];
+  /** Display-key descriptors (which fields compose each row's option label). */
+  keys?: unknown[];
+  /** Index signature — any further source-query descriptor key (preserved, never dropped). */
+  [key: string]: unknown;
+}
+
+/**
  * Dynamic option source (dependency isolation: dynamic items → `items` sub).
- * Replaces option keys that legacy scattered elsewhere.
+ * Collects the source descriptor that legacy scattered as field siblings.
+ *
+ * STRUCTURE ONLY. This type fixes the declared shape of a dynamic source; it
+ * does NOT load options. The single real corpus shape (`type: search`) is a
+ * `model` (a name string OR a nested `{ table, relations, keys }` query) plus a
+ * sibling `api_server` (a runtime HTTP-endpoint function reference) plus a
+ * placeholder static `items`. None of `model`/`api_server`/`items` is resolved
+ * here — the runtime calls `api_server`, runs the `model` query, and replaces
+ * the placeholder. Runtime resolution is out of scope (SPEC §6 R1).
  */
 export interface ItemsSource {
-  /** Data model the options are loaded from. */
-  model?: string;
+  /**
+   * Data model the options are loaded from. Either a model-name string OR a
+   * nested `{ table, relations, keys }` relational query (the real corpus shape).
+   */
+  model?: string | ItemsModel;
   /** Method on the model invoked to fetch option rows. */
   method?: string;
-  /** Table the options are loaded from. */
+  /** Table the options are loaded from (top-level shorthand of `model.table`). */
   table?: string;
   /** Relation descriptors used when loading options. */
   relations?: unknown;
+  /**
+   * Runtime HTTP-endpoint function reference (an opaque source-callback string,
+   * e.g. `"function() { return '/admin/user/search'; }"`). Preserved verbatim;
+   * the engine never calls it — invoking the endpoint is runtime, out of scope.
+   */
+  api_server?: string;
+  /**
+   * Placeholder static `items` that coexists with the dynamic source: the
+   * pre-fetch choices the UI shows before `api_server`/`model` resolve (often the
+   * empty `[]` or a single `{ "": "선택하세요" }` prompt). A static array or a
+   * value→label map; the runtime replaces it with the fetched rows.
+   */
+  items?: StaticItem[] | ItemLabelMap;
+  /**
+   * Index signature — any further source descriptor key (preserved, never
+   * dropped; a forbidden meta key is rejected by the schema layer one level
+   * below the bucket, not by widening this type — SPEC §6 R1).
+   */
+  [key: string]: unknown;
 }
 
 /**
@@ -420,8 +471,16 @@ export type StaticItem =
 
 /**
  * Repeated-row settings (dependency isolation: multiple-dependent → `multiple`
- * sub). When the value is `true`, it is the bare default (index array + hidden
- * id, G4). An object carries the repetition settings.
+ * sub). `true` is the bare default (repetition on, no settings); an object
+ * carries the repetition settings.
+ *
+ * Row identity (G4) is NOT a `multiple` field. At RUNTIME a repeated row's
+ * identity is a hidden server PK carried in the SUBMITTED DATA (an existing row
+ * has one, a new row has none); serialization order is the array order. The
+ * current build-time model has no `id` field and no id-emitting code — row
+ * identity lives in the data layer the server reconciles, not in this spec.
+ * (The data-layer id is exactly why a translator drops the legacy
+ * `seqtokey`/`__13hex__` synthesized id keys — they were never spec fields.)
  *
  * The named keys are the canonical `dependency_buckets.multiple.keys`
  * (`max`/`copy`/`sortable`/`onclick`). Legacy names are NOT recognition keys
