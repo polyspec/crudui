@@ -1,0 +1,178 @@
+/**
+ * v2 list-spec validation entry point (reference) — SPEC-V2 §9 read sister.
+ *
+ * The read sister of `validate/index.ts` (validateV2). A list-spec describes the
+ * SAME domain as a form-spec, shown as a list instead of accepted as input. It
+ * shares the v2 engine 100%: expression / i18n / design / composition ($ref/
+ * $patch) / forbidden-key scan run the SAME code that form-spec runs. Nothing
+ * here re-implements them.
+ *
+ * Pass model — list reuses form-spec passes 1 and 2, and STOPS:
+ *
+ *   1. compose (G5, structure) — `$ref`/`$patch` on the `columns` map are the
+ *      composition entry point (the read mirror of form-spec `properties`); they
+ *      expand through `composeProperties` — the SAME engine. `search` is INPUT, a
+ *      form-spec reference (SPEC §9.1), so a `{ $ref, $patch }` search overlay
+ *      expands through the SAME compose primitives. An unresolved composition
+ *      throws `ComposeLoadError` HERE (a LOAD failure, NOT `valid:false`) — the
+ *      spec never comes into existence.
+ *   2. forbidden-scan (§6, structure) — `scanForbiddenKeys` walks the COMPOSED
+ *      list tree (columns / each Column / format options bucket / actions / sort /
+ *      pagination / design / search) to arbitrary depth and rejects any forbidden
+ *      meta key (`display_switch`/`if`/`when`/`show_if`/`_`/`x{key}`…) as a LOAD
+ *      failure (code `FORBIDDEN_META_KEY`, dotted trace). Pure structure — no data.
+ *
+ * Pass 3 (DATA validate) does NOT apply: a list has no `data` (rows are INJECTED,
+ * DB-agnostic — SPEC §9). There is no value to evaluate a `validate` slot against.
+ * So this function NEVER validates rows.
+ *
+ * The "schema shape" checks — `additionalProperties:false` (1급 closed),
+ * `required: columns`, the `sort.dir`/`pagination.mode` enums, and the polymorphic
+ * `CellFormat` (anyOf) — are NOT this engine's job. The four-language v2 engines
+ * do not perform JSON-Schema-style shape validation (SPEC §8: JSON Schema is not
+ * adopted). Those live ONLY in the meta-schema (ajv, list-metaschema.conformance.
+ * test.ts). This entry owns exactly the cross-language structure gate: compose +
+ * forbidden-scan. No new invention.
+ *
+ * This NEVER touches form-spec `validateV2` (R7 parallel run): it is a sibling
+ * entry that reuses the shared compose/forbidden-scan modules.
+ */
+
+import {
+  composeProperties,
+  resolveRef,
+  applyPatch,
+  MemoryLoader,
+} from '../compose/index';
+import type { FileLoader } from '../compose/index';
+import type { ValidationResult } from '../../types';
+import { scanForbiddenKeys } from '../forbidden-scan';
+
+export { ComposeLoadError } from '../compose/index';
+
+/** A virtual file set `$ref` resolves against (`{ key: doc }`). */
+export type FileSet = Record<string, Record<string, unknown>>;
+
+/** Options for a v2 list validation run (mirrors `ValidateV2Options`). */
+export interface ValidateListV2Options {
+  /** Virtual file set for `$ref` resolution (default: empty — no `$ref`). */
+  files?: FileSet;
+  /** A custom loader (overrides `files`). */
+  loader?: FileLoader;
+  /** Basepath for relative `$ref` resolution. */
+  basepath?: string;
+}
+
+/** Whether `v` is a plain (non-array) object. */
+function isObject(v: unknown): v is Record<string, unknown> {
+  return v !== null && typeof v === 'object' && !Array.isArray(v);
+}
+
+/**
+ * Validate a v2 list-spec STRUCTURE. The spec's `columns` map (and a `{ $ref,
+ * $patch }` `search` overlay) may carry composition; it is expanded first via the
+ * compose pass — the SAME engine form-spec uses. An unresolved composition throws
+ * `ComposeLoadError` (caller distinguishes a LOAD failure from `valid:false`). A
+ * forbidden meta key anywhere in the composed list tree is likewise a LOAD
+ * failure. NO rows/data are validated (SPEC §9: rows are injected).
+ *
+ * @param spec a v2 list root spec (`{ columns, search?, sort?, pagination?,
+ *   actions?, empty?, design?, $ref?, $patch? }`; columns may use composition).
+ * @param options compose loader / file set / basepath.
+ * @returns `{ valid: true, errors: [] }` when the structure loads cleanly.
+ * @throws {ComposeLoadError} when composition cannot be resolved OR a forbidden
+ *   meta key survives into the composed list tree.
+ */
+export function validateListV2(
+  spec: Record<string, unknown>,
+  options: ValidateListV2Options = {}
+): ValidationResult {
+  const loader: FileLoader =
+    options.loader ?? new MemoryLoader(options.files ?? {});
+  const opts = options.basepath ? { basepath: options.basepath } : {};
+
+  // Pass 1 (G5): compose. Build the composed list tree the forbidden-scan walks.
+  //
+  // List-root $ref/$patch (G5: a base list-spec inheritance) is applied first,
+  // through the SAME resolveRef/applyPatch primitives form-spec uses. The base
+  // file exposes its list under a `properties` layer (the v1 detectKey
+  // convention resolveRef enforces). An unresolved root $ref throws here.
+  let composed: Record<string, unknown> = composeListRoot(spec, loader, opts);
+
+  // columns is the composition ENTRY POINT (read mirror of form-spec
+  // `properties`): $ref/$patch on the columns map expand through composeProperties
+  // — the SAME engine. An unresolved columns $ref throws ComposeLoadError.
+  if (isObject(composed.columns)) {
+    composed = {
+      ...composed,
+      columns: composeProperties(
+        composed.columns as Record<string, unknown>,
+        loader,
+        opts
+      ),
+    };
+  }
+
+  // search is INPUT — a form-spec reference (SPEC §9.1). A `{ $ref, $patch }`
+  // search overlay expands through the SAME compose primitives; its expanded
+  // sub-form then rides the SAME forbidden-scan below (no separate invention).
+  if (isObject(composed.search) && ('$ref' in composed.search || '$patch' in composed.search)) {
+    composed = {
+      ...composed,
+      search: composeProperties(
+        composed.search as Record<string, unknown>,
+        loader,
+        opts
+      ),
+    };
+  }
+
+  // Pass 2 (§6): forbidden-scan over the WHOLE composed list tree to arbitrary
+  // depth. A hit (a condition-only/legacy/magic meta key or an `x{key}` residue
+  // anywhere — a forbidden COLUMN key, a `show_if` on a Column, an `if` one level
+  // below the open CellFormat options bucket, …) is a LOAD failure, never
+  // `valid:false`. The trace points at the shallowest offending key.
+  scanForbiddenKeys(composed, []);
+
+  // Structure loaded clean. No rows → no data validation (SPEC §9). The
+  // "schema shape" checks are the meta-schema's job, not this engine's.
+  return { valid: true, errors: [] };
+}
+
+/**
+ * Apply a list-root `$ref`/`$patch` (G5: base list-spec inheritance), reusing the
+ * SAME resolveRef/applyPatch primitives form-spec compose uses. When the root has
+ * no composition keys the spec is returned unchanged (a shallow copy). The base
+ * file is resolved through resolveRef (the v1 detectKey `properties`-layer
+ * convention) so a missing/malformed base is a LOAD failure here.
+ */
+function composeListRoot(
+  spec: Record<string, unknown>,
+  loader: FileLoader,
+  opts: { basepath?: string }
+): Record<string, unknown> {
+  if (!('$ref' in spec) && !('$patch' in spec)) {
+    return { ...spec };
+  }
+  const basepath = opts.basepath ?? '';
+  let base: Record<string, unknown> = {};
+  let patch: unknown;
+  const own: Record<string, unknown> = {};
+  for (const k of Object.keys(spec)) {
+    if (k === '$ref') {
+      base = { ...own, ...resolveRef(spec[k], basepath, loader) };
+      for (const ok of Object.keys(own)) delete own[ok];
+    } else if (k === '$patch') {
+      patch = spec[k];
+    } else {
+      own[k] = spec[k];
+    }
+  }
+  let resolved: Record<string, unknown> = { ...base, ...own };
+  if (patch !== undefined) {
+    resolved = applyPatch(resolved, patch);
+  }
+  return resolved;
+}
+
+export default validateListV2;

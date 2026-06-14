@@ -1,17 +1,27 @@
 //! v2 validate CLI — gateway subprocess (cross-check-console / compare-all).
 //!
-//! Contract (mirrors JS `validateV2`, Go `validate.Validate`):
-//!   stdin  : `{ "spec": {…}, "data": {…}, "files"?: {…}, "basepath"?: "…" }`
-//!   stdout : `{ "valid": bool, "errors": [{ path, field, rule, message, value }] }`
+//! Two modes, switched by stdin `mode` (default `"form"`):
 //!
-//! Reuses the v2 pipeline verbatim (`v2::validate::validate_v2`:
-//! compose → forbidden-scan → validate). It re-implements nothing and never
-//! touches the v1 model (`crate::validator`, R7 parallel run).
+//!   form (default) — DATA validation of a form-spec:
+//!     stdin  : `{ "spec": {…}, "data": {…}, "files"?: {…}, "basepath"?: "…" }`
+//!     stdout : `{ "valid": bool, "errors": [{ path, field, rule, message, value }] }`
+//!     Reuses `v2::validate::validate_v2` (compose → forbidden-scan → validate).
 //!
-//! Error envelope (always exit 1, never a `valid:false` masquerade):
-//!   - stdin/JSON parse failure → `{ "error": "…" }`
-//!   - composition LOAD failure (`ComposeLoadError`, e.g. unresolved `$ref`) →
-//!     `{ "error": "…", "code": "…" }` — a LOAD failure is NOT `valid:false`.
+//!   list — STRUCTURAL validation of a list-spec (SPEC-V2 §9). A list has no data
+//!     (rows are injected, §9.1), so only the load path's first two passes apply:
+//!     stdin  : `{ "mode": "list", "spec": {…}, "files"?: {…}, "basepath"?: "…" }`
+//!     stdout : `{ "valid": true, "errors": [] }` on a clean structure.
+//!     Reuses `v2::list::validate_list` (compose → forbidden-scan), NOT a new gate.
+//!
+//! Both modes re-implement nothing and never touch the v1 model
+//! (`crate::validator`, R7 parallel run).
+//!
+//! Error envelope (never a `valid:false` masquerade):
+//!   - stdin/JSON parse / missing spec → exit 1, `{ "error": "…" }`
+//!   - composition LOAD failure (`ComposeLoadError`, e.g. unresolved `$ref`, OR a
+//!     forbidden meta key) → exit 2, `{ "error": "…", "code": "…", "at": "…" }`.
+//!     A LOAD failure is NOT `valid:false`; `at` is the dotted trace to the
+//!     offending node (empty when the error carries no trace).
 //!
 //! Distinct exit codes let the gateway tell a bad request from a load failure
 //! without parsing the message.
@@ -20,6 +30,7 @@ use std::io::{self, Read, Write};
 
 use serde_json::{Map, Value};
 
+use formspec_validator::v2::list::{validate_list, ValidateListOptions};
 use formspec_validator::v2::validate::{validate_v2, ValidateV2Options, ValidationResult};
 
 fn main() {
@@ -37,11 +48,6 @@ fn main() {
     if !spec.is_object() {
         fail_request("Missing or non-object 'spec'");
     }
-    // `data` defaults to an empty object (JS `data ?? {}`).
-    let data = req
-        .get("data")
-        .cloned()
-        .unwrap_or_else(|| Value::Object(Map::new()));
 
     let files = req
         .get("files")
@@ -51,6 +57,33 @@ fn main() {
         .get("basepath")
         .and_then(Value::as_str)
         .map(str::to_string);
+
+    // mode: "form" (default, DATA validate) | "list" (structural compose+scan).
+    let mode = req.get("mode").and_then(Value::as_str).unwrap_or("form");
+
+    if mode == "list" {
+        let options = ValidateListOptions {
+            files,
+            loader: None,
+            basepath,
+        };
+        match validate_list(&spec, &options) {
+            // A list has no data: a clean structure is unconditionally valid.
+            Ok(()) => emit_result(&ValidationResult {
+                valid: true,
+                errors: Vec::new(),
+            }),
+            // ComposeLoadError (unresolved $ref OR forbidden meta key) is a LOAD
+            // failure, never a validation result. Carry the dotted trace in `at`.
+            Err(err) => fail_load(&err.to_string(), err.code.as_str(), &err.trace.join(".")),
+        }
+    }
+
+    // `data` defaults to an empty object (JS `data ?? {}`).
+    let data = req
+        .get("data")
+        .cloned()
+        .unwrap_or_else(|| Value::Object(Map::new()));
 
     let options = ValidateV2Options {
         files,
@@ -62,7 +95,7 @@ fn main() {
         Ok(result) => emit_result(&result),
         // ComposeLoadError is a LOAD failure (e.g. unresolved $ref), NOT a
         // validation failure. Surface it as an error envelope, never valid:false.
-        Err(err) => fail_load(&err.to_string(), err.code.as_str()),
+        Err(err) => fail_load(&err.to_string(), err.code.as_str(), &err.trace.join(".")),
     }
 }
 
@@ -84,9 +117,10 @@ fn fail_request(msg: &str) -> ! {
     std::process::exit(1);
 }
 
-/// Composition LOAD failure. Exit 2 (distinct from a bad request).
-fn fail_load(msg: &str, code: &str) -> ! {
-    let obj = serde_json::json!({ "error": msg, "code": code });
+/// Composition LOAD failure. Exit 2 (distinct from a bad request). `at` is the
+/// dotted trace to the offending node (empty when the error carries no trace).
+fn fail_load(msg: &str, code: &str, at: &str) -> ! {
+    let obj = serde_json::json!({ "error": msg, "code": code, "at": at });
     write_line(&obj);
     std::process::exit(2);
 }

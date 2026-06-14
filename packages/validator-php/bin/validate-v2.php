@@ -33,6 +33,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use FormSpec\Validator\V2\Validate\Validate;
+use FormSpec\Validator\V2\Validate\ListValidate;
 use FormSpec\Validator\V2\Compose\ComposeLoadError;
 
 $raw = stream_get_contents(STDIN);
@@ -51,6 +52,18 @@ $spec = $request['spec'];
 if (!is_array($spec)) {
     fwrite(STDERR, "Request `spec` must be an object\n");
     exit(1);
+}
+
+// Mode select: the default (absent or "form") runs the full form pipeline
+// (compose → forbidden → validate). "list" runs the read sister — the
+// four-language list STRUCTURE gate (compose → forbidden-scan, SPEC §9). list
+// carries no data (rows are injected), so the list mode ignores `data`; the
+// "schema shape" half (required/enum/additionalProperties/anyOf) stays with the
+// meta-schema, not this engine. Form mode is untouched: a request with no `mode`
+// behaves exactly as before.
+$mode = $request['mode'] ?? 'form';
+if (!is_string($mode)) {
+    $mode = 'form';
 }
 
 $data = $request['data'] ?? [];
@@ -72,8 +85,17 @@ if (!is_string($basepath)) {
 }
 
 try {
-    $result = Validate::run($spec, $data, $files, null, $basepath);
-    $output = ['valid' => $result->valid, 'errors' => $result->errors];
+    if ($mode === 'list') {
+        // Read sister — the four-language list structure gate (compose +
+        // forbidden-scan, SPEC §9). No data pass (rows are injected). A clean load
+        // is { valid:true, errors:[] }; a forbidden meta key / unresolved $ref is a
+        // ComposeLoadError, surfaced on the shared LOAD wire below.
+        $listResult = ListValidate::run($spec, $files, null, $basepath);
+        $output = ['valid' => $listResult->valid, 'errors' => $listResult->errors];
+    } else {
+        $result = Validate::run($spec, $data, $files, null, $basepath);
+        $output = ['valid' => $result->valid, 'errors' => $result->errors];
+    }
 } catch (ComposeLoadError $e) {
     // LOAD failure (unresolved composition / forbidden key) — never valid:true.
     // Reported on stdout (exit 0) as a synthetic `compose` error so the gateway
