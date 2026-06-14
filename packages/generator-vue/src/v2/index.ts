@@ -21,6 +21,7 @@
 
 import { buildForm, type BuildFormOptions } from '@form-spec/generator-core';
 import type { Language, UnsupportedMode } from '@form-spec/generator-core';
+import { buildList, type BuildListOptions } from '@form-spec/generator-core';
 
 export { ComposeLoadError } from '@form-spec/validator';
 export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
@@ -36,6 +37,22 @@ export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
 export { FormV2 } from './components/FormV2';
 export { fieldVNode } from './components/Field';
 export { Widget } from './components/Widget';
+
+// list-spec (read sister) — buildList view model + the Vue ListV2 adapter
+// (additive; the form/write surfaces above are untouched). SPEC-V2 §9.
+export { buildList } from '@form-spec/generator-core';
+export type {
+  ListViewModel,
+  ColumnVM,
+  CellVM,
+  ListRowVM,
+  PaginationVM,
+  SortVM,
+  ActionVM,
+  CellDisplay,
+} from '@form-spec/generator-core';
+export { ListV2 } from './components/ListV2';
+export type { ListLayout } from './components/ListV2';
 
 /** Options for a v2 form render. */
 export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
@@ -62,3 +79,22 @@ export function buildFormV2(
 }
 
 export { renderFormV2SSR } from './ssr';
+
+/** Options for a v2 list view-model build (re-exported shape; rows are injected). */
+export type ListOptions = BuildListOptions;
+
+/**
+ * Build the `ListViewModel` for a v2 list-spec via the shared core. `rows` are
+ * INJECTED display rows (no DB access); search/sort/pagination are declared only
+ * (the server applies them). Throws `ComposeLoadError` on an unresolved `$ref`.
+ */
+export function buildListV2(
+  listSpec: Record<string, unknown>,
+  rows: Array<Record<string, unknown>> = [],
+  options: BuildListOptions = {}
+) {
+  return buildList(listSpec, rows, options);
+}
+
+export { renderListV2SSR } from './listSsr';
+export type { RenderListOptions } from './listSsr';
