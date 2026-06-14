@@ -27,7 +27,26 @@
  *     load-bearing stub/fallback signal is the `data-source-*` /
  *     `data-unsupported-type` ATTRIBUTE on a real element, which survives N2–N4).
  *     Comments are not byte-stable across frameworks, so they are not compared.
+ *  N8 CSS declaration spacing: inside a `style="..."` value, declarations are
+ *     canonicalized to `prop: val; prop: val` (one space after `:`, `; ` between
+ *     declarations, no trailing `;`). This is a cross-framework no-op — the CSS is
+ *     identical — that absorbs each SSR engine's serializer spacing (React object
+ *     style emits `prop:val`; the string builders emit `prop: val`).
  */
+
+/** N8: canonicalize a CSS declaration list to `prop: val; prop: val`. */
+function canonicalStyle(value) {
+  const decls = [];
+  for (const decl of value.split(';')) {
+    const idx = decl.indexOf(':');
+    if (idx === -1) continue;
+    const prop = decl.slice(0, idx).trim();
+    const val = decl.slice(idx + 1).trim();
+    if (!prop || !val) continue;
+    decls.push(`${prop}: ${val}`);
+  }
+  return decls.join('; ');
+}
 
 /** Parse a tag's attributes into a sorted, re-serialized attribute string. */
 function sortAttributes(tagBody) {
@@ -48,10 +67,15 @@ function sortAttributes(tagBody) {
   while ((m = attrRe.exec(rest)) !== null) {
     if (m[0].trim() === '') continue;
     const key = m[1];
-    const val = m[2];
+    let val = m[2];
     // N4: drop empty class/style.
     if ((key === 'class' || key === 'style') && (val === undefined || val === '')) {
       continue;
+    }
+    // N8: canonicalize CSS declaration spacing inside a style="..." value.
+    if (key === 'style' && val !== undefined) {
+      val = canonicalStyle(val);
+      if (val === '') continue;
     }
     attrs.push(val === undefined ? key : `${key}="${val}"`);
   }
