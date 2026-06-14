@@ -28,12 +28,12 @@ import {
   toBracketNotationWithPrefix,
   valuePathSegments,
   wrapperLayerName,
-} from '../util';
-import { resolveDesign, type ResolvedDesign } from '../design';
-import { makeContext } from '../expr';
-import { UnsupportedFieldTypeError } from '../errors';
-import type { Translate } from '../content';
-import { evalWidget, hasWidget, type WidgetCtx, type WidgetModel } from './widget';
+} from './util';
+import { resolveDesign, type ResolvedDesign } from './design';
+import { makeContext } from './expr';
+import { UnsupportedFieldTypeError } from './errors';
+import type { Translate } from './content';
+import { evalWidget, type WidgetCtx, type WidgetModel } from './widget';
 
 /** Behavior when a field `type` has no registered widget. */
 export type UnsupportedMode = 'throw' | 'marker';

@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { FieldViewModel, RowVM, WidgetModel, UnsupportedVM } from '../core';
+import type { FieldViewModel, RowVM, WidgetModel, UnsupportedVM } from '@form-spec/generator-core';
 import { Widget, widgetRootRaw } from './Widget';
 import { styleObject } from './attrs';
 
