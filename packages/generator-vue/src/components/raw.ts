@@ -26,11 +26,6 @@ function escText(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/** True when an attr bag carries any opaque on-event attribute. */
-export function hasEventAttr(attrs: Attrs): boolean {
-  return Object.keys(attrs).some((k) => /^on[a-z]/.test(k));
-}
-
 /** Serialize an attr bag to ` k="v"` pairs (alphabetical order is the gate's job). */
 export function serializeAttrs(attrs: Attrs): string {
   let out = '';
