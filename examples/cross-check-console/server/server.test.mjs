@@ -93,6 +93,18 @@ describe('HTTP boundary — client input faults are 4xx { error }', () => {
     expect(res.status).toBe(400);
     expect((await res.json()).error).toMatch(/YAML/i);
   });
+
+  test('validate-list endpoint shares the same 400 contract (malformed YAML list-spec)', async () => {
+    const res = await postRaw('/api/validate-list', JSON.stringify({ listSpec: '[a, b' }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/YAML/i);
+  });
+
+  test('validate-list missing spec → 400 { error }', async () => {
+    const res = await postRaw('/api/validate-list', JSON.stringify({ files: {} }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/spec/i);
+  });
 });
 
 describe('HTTP boundary — CORS + /health', () => {
@@ -133,5 +145,35 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
     expect(failed.map((r) => `${r.lang}:${r.error}`)).toEqual([]);
     expect(body.idempotent, JSON.stringify(body.mismatch)).toBe(true);
     expect(body.results.every((r) => r.valid === false)).toBe(true);
+  }, 60000);
+
+  // The validate sister of /api/validate (SPEC §9). A list-spec carrying a §6
+  // forbidden meta key is a LOAD failure, NOT an HTTP error: still 200, with the
+  // SAME loadError code on all four engines (idempotent). Requires Go/Rust.
+  test('list-spec with a forbidden meta key → 200, loadError code on all four, idempotent:true', async () => {
+    const listSpec = {
+      columns: { name: { field: '.name' }, display_switch: { field: '.x' } },
+    };
+    const res = await postRaw('/api/validate-list', JSON.stringify({ listSpec }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const failed = body.results.filter((r) => !r.ok);
+    expect(failed.map((r) => `${r.lang}:${r.error}`)).toEqual([]);
+    expect(body.idempotent, JSON.stringify(body.mismatch)).toBe(true);
+    expect(body.results.every((r) => r.loadError && r.loadError.code === 'FORBIDDEN_META_KEY')).toBe(true);
+    expect(body.results.every((r) => r.valid === false)).toBe(true);
+  }, 60000);
+
+  // A clean list-spec → 200, valid:true on all four (idempotent). `data` on the
+  // request is ignored — a list has no rows (mode:list runs no DATA pass).
+  test('clean list-spec → 200, valid:true on all four, idempotent:true', async () => {
+    const listSpec = { columns: { name: { field: '.name', label: 'Name' } } };
+    const res = await postRaw('/api/validate-list', JSON.stringify({ listSpec, data: { ignored: true } }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const failed = body.results.filter((r) => !r.ok);
+    expect(failed.map((r) => `${r.lang}:${r.error}`)).toEqual([]);
+    expect(body.idempotent, JSON.stringify(body.mismatch)).toBe(true);
+    expect(body.results.every((r) => r.valid === true)).toBe(true);
   }, 60000);
 });
