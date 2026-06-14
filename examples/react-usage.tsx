@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { FormBuilder } from '@form-spec/generator-react/legacy';
-import type { FormData, FormErrors, Language, FieldComponentProps } from '@form-spec/generator-react/legacy';
+import { FormBuilder } from '@crudui/generator-react/legacy';
+import type { FormData, FormErrors, Language, FieldComponentProps } from '@crudui/generator-react/legacy';
 
 // =============================================================================
 // Basic Usage

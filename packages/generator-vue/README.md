@@ -1,9 +1,9 @@
-# @form-spec/generator-vue
+# @crudui/generator-vue
 
 Vue 3 form builder for form-spec YAML definitions. Renders byte-parity output
 with the legacy markup of the React generator.
 
-This package is the Vue counterpart of `@form-spec/generator-react`. It uses
+This package is the Vue counterpart of `@crudui/generator-react`. It uses
 plain `h()` render functions (no SFC `<style scoped>`), so SSR emits no
 `data-v-*` scoped-style attributes that would break parity normalization.
 
@@ -13,7 +13,7 @@ the CRUDUI adapter (`src`).
 ## CRUDUI (compose → core → vnode SSR)
 
 The CRUDUI adapter runs the four mandated stages — compose → evaluate (shared
-`@form-spec/generator-core`) → Vue 3 vnode SSR — and is parity-checked against
+`@crudui/generator-core`) → Vue 3 vnode SSR — and is parity-checked against
 the React reference.
 
 - `renderFormSSR(rootSpec, options)` → SSR HTML of the form CONTENT.
@@ -34,7 +34,7 @@ CRUDUI conformance: `test/form-render.conformance.test.mjs`,
 ```ts
 import { createSSRApp, h } from 'vue';
 import { renderToString } from '@vue/server-renderer';
-import { FormBuilder } from '@form-spec/generator-vue';
+import { FormBuilder } from '@crudui/generator-vue';
 
 const app = createSSRApp({
   render: () => h(FormBuilder, { spec, data: {}, language: 'ko' }),

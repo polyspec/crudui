@@ -76,7 +76,7 @@ Only real server faults use 4xx/5xx with `{ error }`.
 ## Run
 
 The Go and Rust CRUDUI validators are subprocess CLIs that must be compiled first.
-The JS CRUDUI validate CLI (`packages/validator-js/bin/validate.mjs`) runs the
+The JS CRUDUI validate CLI (`packages/validator-ts/bin/validate.mjs`) runs the
 TypeScript CRUDUI source through the `tsx` loader (`node --import tsx`) — no separate
 build, but `tsx` must be installed (it is a workspace devDependency; run
 `npm install` at the repo root once). The three generators load from TypeScript

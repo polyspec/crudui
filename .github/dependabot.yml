@@ -11,7 +11,7 @@ updates:
       actions:
         patterns: ['*']
 
-  # Root npm workspace (validator-js + generators resolve through here).
+  # Root npm workspace (validator-ts + generators resolve through here).
   - package-ecosystem: npm
     directory: /
     schedule:

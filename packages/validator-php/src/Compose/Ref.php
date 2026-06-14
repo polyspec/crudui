@@ -7,7 +7,7 @@ namespace FormSpec\Validator\Compose;
 /**
  * $ref resolution — base inheritance, resolved before anything else (schema §5;
  * Byte-for-byte port of
- * validator-js/src/compose/ref.ts.
+ * validator-ts/src/compose/ref.ts.
  *
  * Semantics (single source of truth):
  *   (1) value = a single string OR a list of strings — a list resolves each path

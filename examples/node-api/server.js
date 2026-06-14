@@ -1,7 +1,7 @@
 /**
  * Node.js/Express API Example
  *
- * Demonstrates form validation using @form-spec/validator.
+ * Demonstrates form validation using @crudui/validator.
  *
  * Canonical API contract (shared by node-api / php-api / go-api):
  *   GET  /api/specs        -> 200 {"specs": ["contact", ...]}
@@ -16,7 +16,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const { Validator } = require('@form-spec/validator');
+const { Validator } = require('@crudui/validator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

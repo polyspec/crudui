@@ -20,7 +20,7 @@ import type {
   RowVM,
   WidgetModel,
   UnsupportedVM,
-} from '@form-spec/generator-core';
+} from '@crudui/generator-core';
 import { Widget, widgetRootRaw } from './Widget';
 
 type AnyWidget = WidgetModel | UnsupportedVM;

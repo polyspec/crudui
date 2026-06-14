@@ -13,7 +13,7 @@ use FormSpec\Validator\ForbiddenScan;
 
 /**
  * CRUDUI list-spec validation entry point — schema §9 read sister. Byte-for-byte
- * port of validator-js/src/validate-list/index.ts (validateList).
+ * port of validator-ts/src/validate-list/index.ts (validateList).
  *
  * The read sister of Validate::run (validate). A list-spec describes the SAME
  * domain as a form-spec, shown as a list instead of accepted as input. It shares

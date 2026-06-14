@@ -6,8 +6,8 @@
  */
 
 import { useCallback } from 'react';
-import { parseCondition, evaluateCondition } from '@form-spec/validator/legacy';
-import type { PathContext } from '@form-spec/validator/legacy';
+import { parseCondition, evaluateCondition } from '@crudui/validator/legacy';
+import type { PathContext } from '@crudui/validator/legacy';
 import type {
   FormData,
   FormValue,

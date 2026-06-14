@@ -79,7 +79,7 @@ branch value.
 ## Generation
 
 Expected values are produced by running the JS reference engine for real
-(`packages/validator-js/src/parser/{ConditionParser,PathResolver}.ts`) — not
+(`packages/validator-ts/src/parser/{ConditionParser,PathResolver}.ts`) — not
 hand-written. Regenerate:
 
 ```sh
@@ -88,7 +88,7 @@ node_modules/.bin/tsx tests/fixtures/expr/generate.ts > tests/fixtures/expr/case
 ```
 
 `generate.ts` imports `Lexer` / `Parser` / `evaluateCondition` /
-`evaluateExpressionValue` directly from the validator-js source, runs every case,
+`evaluateExpressionValue` directly from the validator-ts source, runs every case,
 strips `position`, and dumps the JSON.
 
 ## Spec-vs-engine mismatches (recorded — spec wins)

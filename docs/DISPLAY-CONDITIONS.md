@@ -6,7 +6,7 @@
 
 검증기 구현 출처:
 
-- JS: `packages/validator-js/src/legacy/Validator.ts` `shouldValidateField()` (L395-448)
+- JS: `packages/validator-ts/src/legacy/Validator.ts` `shouldValidateField()` (L395-448)
 - PHP: `packages/validator-php/src/Legacy/Validator.php` `shouldValidateField()` (L441-473)
 - Go: `packages/validator-go/validator/legacy/validator.go` `shouldDisplay()` (L361-407)
 - Rust: `packages/validator-rust/src/legacy/validator.rs` `should_display()` (L421-)

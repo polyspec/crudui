@@ -3,7 +3,7 @@
 //!
 //! Single truth = the shared fixture tests/fixtures/list-validity/cases.json,
 //! the SAME file the JS meta-schema gate reads
-//! (`packages/validator-js/src/list-metaschema.conformance.test.ts`). That
+//! (`packages/validator-ts/src/list-metaschema.conformance.test.ts`). That
 //! fixture carries TWO independent expectation channels, one per gate:
 //!
 //!   - `expect` / `reason` — the META-SCHEMA (ajv) channel: a list-spec's

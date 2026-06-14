@@ -13,7 +13,7 @@
  *   scaffold [--type <w>]     describe-catalog-based minimal valid skeleton
  *
  * Run via the tsx loader so the .ts single-source-of-truth imports directly,
- * exactly like packages/validator-js/bin/validate.mjs (no separate build).
+ * exactly like packages/validator-ts/bin/validate.mjs (no separate build).
  * `bin/form-spec` (no ext) re-execs this through `node --import tsx`.
  */
 

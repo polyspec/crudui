@@ -20,7 +20,7 @@
  * RAW, script/style chrome, behavior on* attrs) pass through `{@html}`.
  */
 
-import type { Attrs } from '@form-spec/generator-core';
+import type { Attrs } from '@crudui/generator-core';
 
 function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');

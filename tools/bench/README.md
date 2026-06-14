@@ -99,7 +99,7 @@ timed path). `make bench` regenerates them first.
 
 ## Prerequisites
 
-- `node` (validator-js `dist/` built: `cd packages/validator-js && npm run build`)
+- `node` (validator-ts `dist/` built: `cd packages/validator-ts && npm run build`)
 - `php` with `packages/validator-php/vendor` installed (`composer install`)
 - `go`
 - `cargo` (on `$HOME/.cargo/bin`; `make bench` prepends it to `PATH`)

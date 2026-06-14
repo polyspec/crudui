@@ -10,7 +10,7 @@
 
 1. `tests/runner/compare-all.js` — 크로스 언어 비교 (JS/PHP/Go/Rust 결과 일치)
 2. `tests/runner/run-js.ts` / `run-php.php` / `runner/go` — 단일 언어 기대값 검사
-3. `packages/validator-js/src/__tests__/conformance.test.ts` — vitest 브리지
+3. `packages/validator-ts/src/__tests__/conformance.test.ts` — vitest 브리지
 4. `packages/validator-php/tests/ConformanceTest.php` — PHPUnit 브리지
 5. `packages/validator-rust/tests/conformance.rs` — cargo test 브리지
 
@@ -122,7 +122,7 @@
 ## 규칙 커버리지
 
 4개 언어 공통 구현 규칙은 24개 등록명(23개 구현 + `pattern` = `match` 별칭)이다.
-출처: `packages/validator-js/src/rules/index.ts`,
+출처: `packages/validator-ts/src/rules/index.ts`,
 `packages/validator-go/validator/legacy/rules.go` `DefaultRules()`,
 `packages/validator-php/src/Rules/` + `Validator.php` 의 pattern/match 별칭.
 

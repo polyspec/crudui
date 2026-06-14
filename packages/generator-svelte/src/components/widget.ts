@@ -14,8 +14,8 @@
  * display RAW, script/style chrome, and behavior on* attrs pass through `{@html}`.
  */
 
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@form-spec/generator-core';
-import type { UnsupportedVM } from '@form-spec/generator-core';
+import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
+import type { UnsupportedVM } from '@crudui/generator-core';
 import { rawVoid, rawElement, rawOptions, serializeAttrs, escAttr, escText } from './raw';
 
 export type AnyWidget = WidgetModel | UnsupportedVM;

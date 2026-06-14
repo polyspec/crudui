@@ -33,12 +33,12 @@ const colors = {
 
 // Paths
 const CASES_DIR = path.join(__dirname, '..', 'cases');
-const JS_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-js');
+const JS_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-ts');
 const PHP_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-php');
 const GO_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-go');
 const RUST_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-rust');
 
-// Tier definitions. Client tier = validator-js (the core that runs in the
+// Tier definitions. Client tier = validator-ts (the core that runs in the
 // browser). Server tier = validator-php/go/rust (the backends). Idempotency's
 // purpose: "passes in browser == passes on server" (client<->server agreement)
 // AND "any backend agrees" (server-side agreement).

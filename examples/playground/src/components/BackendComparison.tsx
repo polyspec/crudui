@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import type { FormData } from '@form-spec/generator-react/legacy';
+import type { FormData } from '@crudui/generator-react/legacy';
 
 /** Canonical validation error shape returned by every backend. */
 interface ValidationError {

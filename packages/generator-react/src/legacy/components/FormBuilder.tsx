@@ -6,7 +6,7 @@
 
 import React, { useCallback, useMemo, type FormEvent } from 'react';
 import yaml from 'yaml';
-import type { Spec } from '@form-spec/validator/legacy';
+import type { Spec } from '@crudui/validator/legacy';
 import { FormContextProvider, useFormContext } from '../context/FormContext';
 import { I18nContextProvider, useI18n } from '../context/I18nContext';
 import { FormField } from './FormField';

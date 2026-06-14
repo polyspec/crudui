@@ -2,9 +2,9 @@
  * Form-spec Vue Types (trimmed port of the React type surface).
  */
 
-import type { Spec } from '@form-spec/validator/legacy';
+import type { Spec } from '@crudui/validator/legacy';
 
-export type { Spec } from '@form-spec/validator/legacy';
+export type { Spec } from '@crudui/validator/legacy';
 
 /** Supported UI language codes used for label/message resolution. */
 export type Language = 'ko' | 'en' | 'ja' | 'zh';

@@ -3,10 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy validator-js package
-COPY packages/validator-js/package*.json ./packages/validator-js/
-COPY packages/validator-js/tsconfig.json ./packages/validator-js/
-COPY packages/validator-js/src ./packages/validator-js/src/
+# Copy validator-ts package
+COPY packages/validator-ts/package*.json ./packages/validator-ts/
+COPY packages/validator-ts/tsconfig.json ./packages/validator-ts/
+COPY packages/validator-ts/src ./packages/validator-ts/src/
 
 # Copy generator-react package (vite alias resolves its src/ directly)
 COPY packages/generator-react/package*.json ./packages/generator-react/
@@ -22,11 +22,11 @@ COPY examples/playground/index.html ./examples/playground/
 COPY examples/playground/src ./examples/playground/src/
 COPY examples/playground/public ./examples/playground/public/
 
-# Build validator-js
-WORKDIR /app/packages/validator-js
+# Build validator-ts
+WORKDIR /app/packages/validator-ts
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 
-# Build generator-react package (depends on file:../validator-js)
+# Build generator-react package (depends on file:../validator-ts)
 WORKDIR /app/packages/generator-react
 RUN rm -rf node_modules package-lock.json && npm install && npm run build
 

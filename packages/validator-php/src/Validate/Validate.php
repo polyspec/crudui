@@ -10,7 +10,7 @@ use FormSpec\Validator\Compose\MemoryLoader;
 use FormSpec\Validator\ForbiddenScan;
 
 /**
- * CRUDUI validation entry point — schema §2 pipeline. Port of validator-js
+ * CRUDUI validation entry point — schema §2 pipeline. Port of validator-ts
  * src/validate/index.ts (validate).
  *
  * Wires the three CRUDUI passes in order (G5 compose first → §3 traversal → §2 G1

@@ -1,8 +1,8 @@
 /**
- * @form-spec/generator-svelte
+ * @crudui/generator-svelte
  *
  * Svelte form builder component library based on form-spec YAML definitions.
- * Renders the same legacy markup as @form-spec/generator-react.
+ * Renders the same legacy markup as @crudui/generator-react.
  */
 
 export { default as FormBuilder, buildFormContent } from './components/FormBuilder.svelte';

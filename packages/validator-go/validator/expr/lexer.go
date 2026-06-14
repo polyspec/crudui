@@ -5,7 +5,7 @@ import "strconv"
 // Lexer turns a condition string into a []Token ending in EOF (GRAMMAR §1, JS
 // Lexer parity). WHITESPACE is consumed but never emitted. The token order,
 // multi-char operator precedence, multi-dot handling, string escapes, and
-// number rules mirror validator-js exactly, because the shared fixture's tokens
+// number rules mirror validator-ts exactly, because the shared fixture's tokens
 // array is byte-compared across 4 languages.
 //
 // Single forward scan over bytes — no regex split, no string split (GRAMMAR

@@ -3,7 +3,7 @@
  *
  * The single source of truth shared by every framework adapter (React/Vue/
  * Svelte). It runs the four mandated stages WITHOUT emitting markup:
- *   (1) CRUDUI spec → (2) CRUDUI compose (validator-js composeProperties: expand
+ *   (1) CRUDUI spec → (2) CRUDUI compose (validator-ts composeProperties: expand
  *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
  *   ComposeLoadError, never a render) → (3) resolve `design` slots + condition
  *   maps via the shared expr engine + resolve i18n CONTENT via t() → (4) build a
@@ -12,14 +12,14 @@
  *
  * The adapter takes the returned `FieldViewModel[]` and assembles the element
  * tree (JSX / h() / .svelte) — it recomputes nothing. compose + expr are reused
- * from validator-js; the evaluation lives here, once. eval is never called.
+ * from validator-ts; the evaluation lives here, once. eval is never called.
  */
 
 import {
   composeProperties,
   MemoryLoader,
   type FileLoader,
-} from '@form-spec/validator';
+} from '@crudui/validator';
 import { makeTranslate, type Language } from './content';
 import {
   buildField,
@@ -34,7 +34,7 @@ export { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL, hasWidget
 export { buildField } from './viewmodel';
 
 // Shared framework-agnostic surfaces (the single source every adapter consumes).
-export { ComposeLoadError } from '@form-spec/validator';
+export { ComposeLoadError } from '@crudui/validator';
 export { UnsupportedFieldTypeError } from './errors';
 export { resolveDesign } from './design';
 export type { ResolvedDesign, ResolvedNode } from './design';

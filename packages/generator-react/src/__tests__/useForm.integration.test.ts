@@ -1,13 +1,13 @@
 /**
  * useForm Hook Integration Tests
  *
- * Tests the useForm hook integration with @form-spec/validator
+ * Tests the useForm hook integration with @crudui/validator
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useForm } from '../legacy/hooks/useForm';
-import type { Spec } from '@form-spec/validator/legacy';
+import type { Spec } from '@crudui/validator/legacy';
 
 // Test specification with various field types and validation rules
 const testSpec: Spec = {
