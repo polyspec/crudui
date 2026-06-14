@@ -3,9 +3,15 @@
  *
  * Produces `cases.json`: one case per analysis `fixture_ideas` entry. Each case
  * is the legacy input, the translator's REAL CRUDUI output (never hand-written), the
- * irreversibility note log, and the round-trip verdict. The other engines (PHP /
- * Go / Rust) load the SAME `cases.json` and must reproduce it bit-for-bit
- * (4-language idempotence).
+ * irreversibility note log, and the round-trip verdict.
+ *
+ * SCOPE — this translator is a JS-only, build-time, R7-transitional tool. It is
+ * NOT one of the 4-language runtimes: the bit-for-bit 4-language idempotence
+ * guarantee (PHP/Go/Rust/JS reproducing the same result) covers only VALIDATION
+ * and RENDER. Legacy legacy→CRUDUI migration is a one-way JS-only step run during the R7
+ * transition, not a per-language runtime contract. `cases.json` is the JS
+ * translator's frozen output (the cross-language fixtures it feeds are the
+ * already-migrated CRUDUI specs, validated/rendered by all four engines).
  *
  * Two case families (the analysis roundtrip_rule split):
  *   - reversible cases: `legacy → CRUDUI → legacy` MUST equal the original bit-for-bit. The
