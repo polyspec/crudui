@@ -1,5 +1,5 @@
 /**
- * capture-svelte.mjs — SSR capture of the @form-spec/generator-svelte
+ * capture-svelte.mjs — SSR capture of the @crudui/generator-svelte
  * FormBuilder. Renders a YAML form spec with `svelte/server` render() and
  * returns the form CONTENT (the outer <form class="form-builder" novalidate>
  * wrapper stripped — the legacy Legacy Generator::write() returns form

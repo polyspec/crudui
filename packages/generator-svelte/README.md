@@ -1,8 +1,8 @@
-# @form-spec/generator-svelte
+# @crudui/generator-svelte
 
 Svelte form builder for [form-spec](../../README.md) YAML definitions. Renders
 the same Legacy-compatible markup as
-[`@form-spec/generator-react`](../generator-react) and is verified byte-for-byte
+[`@crudui/generator-react`](../generator-react) and is verified byte-for-byte
 against the shared reference HTML fixtures.
 
 ## Status
@@ -14,7 +14,7 @@ adapter (`src`).
 ## CRUDUI (compose → core → .svelte SSR)
 
 The CRUDUI adapter runs the four mandated stages — compose → evaluate (shared
-`@form-spec/generator-core`) → Svelte 5 SSR — and is parity-checked against the
+`@crudui/generator-core`) → Svelte 5 SSR — and is parity-checked against the
 React reference.
 
 - `renderForm(rootSpec, options)` / `renderFormString(...)` → SSR HTML of the
@@ -33,7 +33,7 @@ CRUDUI conformance: `test/form-render.conformance.test.mjs`,
 
 ```svelte
 <script>
-  import { FormBuilder } from '@form-spec/generator-svelte';
+  import { FormBuilder } from '@crudui/generator-svelte';
 
   const spec = {
     type: 'group',

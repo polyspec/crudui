@@ -13,7 +13,7 @@
  * non-SSR surfaces stay usable without the SSR peer; SSR is opt-in.
  */
 
-import { buildList, type BuildListOptions } from '@form-spec/generator-core';
+import { buildList, type BuildListOptions } from '@crudui/generator-core';
 import { List, type ListLayout } from './components/List';
 
 /** Options for a CRUDUI list SSR render. */

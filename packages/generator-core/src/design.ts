@@ -1,7 +1,7 @@
 /**
  * CRUDUI design-slot resolver — appearance = visibility (`show`) + per-DOM-node
  * appearance map (R8). schema §3 common-role distribution; mirrors
- * validator-js/src/schema.ts:258 DesignSlot.
+ * validator-ts/src/schema.ts:258 DesignSlot.
  *
  * The legacy scattered meta keys (element_class/label_class/group_class/
  * wrapper_class/prepend_class/display_switch/display_target/style) are absorbed
@@ -19,7 +19,7 @@
  * literal, expression, or condition map. eval is never called.
  */
 
-import type { PathContext } from '@form-spec/validator';
+import type { PathContext } from '@crudui/validator';
 import { evalShow, evalAppearance } from './expr';
 
 /** Resolved class+style for one DOM node. */

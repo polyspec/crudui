@@ -17,7 +17,7 @@ export type {
   MessagesSpec,
   ValidationResult,
   ValidationError,
-} from '@form-spec/validator/legacy';
+} from '@crudui/validator/legacy';
 
 // ============================================================================
 // Language Types
@@ -75,7 +75,7 @@ export type FormErrors = Record<string, string>;
  */
 export interface FormBuilderProps {
   /** Form specification (YAML string or parsed object) */
-  spec: string | import('@form-spec/validator/legacy').Spec;
+  spec: string | import('@crudui/validator/legacy').Spec;
   /** Initial form data */
   data?: FormData;
   /** Current language */
@@ -125,9 +125,9 @@ export interface ReactFieldSpec {
 
   // Validation
   /** Validation rules applied to the field value */
-  rules?: import('@form-spec/validator/legacy').RulesSpec;
+  rules?: import('@crudui/validator/legacy').RulesSpec;
   /** Custom validation messages keyed by rule name */
-  messages?: import('@form-spec/validator/legacy').MessagesSpec;
+  messages?: import('@crudui/validator/legacy').MessagesSpec;
 
   // Conditional display (boolean = unconditional on/off, string = condition expression)
   /** Show/hide condition: boolean toggles unconditionally, string is a condition expression */
@@ -150,7 +150,7 @@ export interface ReactFieldSpec {
   items?:
     | Record<string, string>
     | Array<[string | number, unknown]>
-    | import('@form-spec/validator/legacy').ItemsSourceSpec;
+    | import('@crudui/validator/legacy').ItemsSourceSpec;
 
   // CSS classes
   /** Extra CSS classes applied to the input element */
@@ -282,7 +282,7 @@ export interface WrapperRenderProps {
   /** Rendered form fields to place inside the custom wrapper */
   children: ReactNode;
   /** Full form specification being rendered */
-  spec: import('@form-spec/validator/legacy').Spec;
+  spec: import('@crudui/validator/legacy').Spec;
   /** Submit handler to wire onto the wrapping `<form>` element */
   onSubmit: (e: React.FormEvent) => void;
 }
@@ -292,7 +292,7 @@ export interface WrapperRenderProps {
  */
 export interface ButtonsRenderProps {
   /** Full form specification being rendered */
-  spec: import('@form-spec/validator/legacy').Spec;
+  spec: import('@crudui/validator/legacy').Spec;
   /** Whether a submit is currently in flight */
   isSubmitting: boolean;
   /** Whether the form currently passes validation */
@@ -308,7 +308,7 @@ export interface ButtonsRenderProps {
  */
 export interface FormContextValue {
   /** Full form specification */
-  spec: import('@form-spec/validator/legacy').Spec;
+  spec: import('@crudui/validator/legacy').Spec;
   /** Current form data */
   data: FormData;
   /** Current errors */

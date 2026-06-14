@@ -17,7 +17,7 @@
 
 import { defineComponent, h, provide, type PropType, type VNode } from 'vue';
 import yaml from 'yaml';
-import type { Spec } from '@form-spec/validator/legacy';
+import type { Spec } from '@crudui/validator/legacy';
 import type { FormData } from '../types';
 import { RENDER_CONTEXT_KEY, createRenderContext } from '../context';
 import { resetUniqid } from '../utils/dataAttributes';

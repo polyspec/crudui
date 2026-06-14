@@ -24,7 +24,7 @@ import type {
   ColumnVM,
   ActionVM,
   ListRowVM,
-} from '@form-spec/generator-core';
+} from '@crudui/generator-core';
 import { Cell } from './Cell';
 import { styleObject } from './attrs';
 import { escAttr, escText } from './raw';

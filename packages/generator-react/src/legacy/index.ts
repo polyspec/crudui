@@ -1,11 +1,11 @@
 /**
- * @form-spec/generator-react
+ * @crudui/generator-react
  *
  * React form builder component library based on form-spec YAML definitions
  *
  * @example
  * ```tsx
- * import { FormBuilder } from '@form-spec/generator-react/legacy';
+ * import { FormBuilder } from '@crudui/generator-react/legacy';
  *
  * const yamlSpec = `
  * type: group

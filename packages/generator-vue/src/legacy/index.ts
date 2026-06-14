@@ -1,5 +1,5 @@
 /**
- * @form-spec/generator-vue
+ * @crudui/generator-vue
  *
  * Vue 3 form builder component library based on form-spec YAML definitions,
  * byte-parity with the legacy Legacy PHP Generator output.
@@ -8,7 +8,7 @@
  * ```ts
  * import { createSSRApp, h } from 'vue';
  * import { renderToString } from '@vue/server-renderer';
- * import { FormBuilder } from '@form-spec/generator-vue/legacy';
+ * import { FormBuilder } from '@crudui/generator-vue/legacy';
  *
  * const app = createSSRApp({ render: () => h(FormBuilder, { spec, data: {}, language: 'ko' }) });
  * const html = await renderToString(app);

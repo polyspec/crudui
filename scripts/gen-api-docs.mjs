@@ -3,7 +3,7 @@
  * gen-api-docs.mjs — multi-language API doc generator (idempotent).
  *
  * Emits, into docs/api/, markdown API references for:
- *   - TypeScript: validator-js, generator-react, generator-vue, generator-svelte
+ *   - TypeScript: validator-ts, generator-react, generator-vue, generator-svelte
  *     (typedoc + typedoc-plugin-markdown, deterministic)
  *   - Go: validator-go (go doc -all captured to docs/api/go.md)
  *   - Rust: validator-rust (cargo doc --no-deps to target/doc; pointer note in docs/api/rust.md)
@@ -37,22 +37,22 @@ function warn(msg) {
 /** TypeScript packages: pkg dir name -> { entry, out, name } */
 const TS_PACKAGES = [
   {
-    pkg: 'validator-js',
+    pkg: 'validator-ts',
     entry: 'src/index.ts',
-    out: 'validator-js',
-    title: '@form-spec/validator (validator-js)',
+    out: 'validator-ts',
+    title: '@crudui/validator (validator-ts)',
   },
   {
     pkg: 'generator-react',
     entry: 'src/index.ts',
     out: 'generator-react',
-    title: '@form-spec/generator-react/legacy',
+    title: '@crudui/generator-react/legacy',
   },
   {
     pkg: 'generator-vue',
     entry: 'src/index.ts',
     out: 'generator-vue',
-    title: '@form-spec/generator-vue/legacy',
+    title: '@crudui/generator-vue/legacy',
   },
   {
     // svelte index.ts re-exports *.svelte which typedoc cannot parse; document the
@@ -62,7 +62,7 @@ const TS_PACKAGES = [
     entry: 'src/render.ts',
     extraEntries: ['src/fieldHtml.ts', 'src/i18n.ts', 'src/legacyDisplay.ts', 'src/legacyLang.ts', 'src/utils.ts'],
     out: 'generator-svelte',
-    title: '@form-spec/generator-svelte (TypeScript helpers)',
+    title: '@crudui/generator-svelte (TypeScript helpers)',
     tsconfig: join(ROOT, 'scripts', 'tsconfig.svelte-docs.json'),
   },
 ];
@@ -116,7 +116,7 @@ function genGo() {
   }
   const md =
     '# Go API — validator-go\n\n' +
-    'Module: `github.com/polyspec/crudui/packages/validator-go`\n\n' +
+    'Module: `github.com/crudui/crudui/packages/validator-go`\n\n' +
     'Captured from `go doc -all ./validator` (deterministic; no timestamps).\n\n' +
     '```text\n' +
     body.trimEnd() +

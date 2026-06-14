@@ -28,7 +28,7 @@ import { extname } from 'node:path';
 
 import yaml from 'js-yaml';
 
-import { composeSpec, MemoryLoader } from '../../validator-js/src/compose/index.ts';
+import { composeSpec, MemoryLoader } from '../../validator-ts/src/compose/index.ts';
 import { describe, type DescribeResult, type RuleEntry } from './describe.ts';
 
 export interface ExplainOptions {

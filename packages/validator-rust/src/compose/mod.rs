@@ -7,11 +7,11 @@
 //! bug). CRUDUI-NEW only: this never touches the legacy model or loader (R7 parallel run).
 //!
 //! Byte-for-byte parity with the JS reference engine
-//! (`packages/validator-js/src/compose`); the shared 4-language fixture
+//! (`packages/validator-ts/src/compose`); the shared 4-language fixture
 //! `tests/fixtures/compose/cases.json` is the single source of truth.
 
 // Intentional: `compose/compose.rs` mirrors the JS reference layout
-// (`packages/validator-js/src/compose/compose`), the byte-for-byte parity
+// (`packages/validator-ts/src/compose/compose`), the byte-for-byte parity
 // source. Renaming would diverge the two engines' file maps; the re-exports
 // below flatten the path for callers (`compose::compose_spec`).
 #[allow(clippy::module_inception)]

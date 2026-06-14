@@ -48,7 +48,7 @@ npm run spec:schema  # = node scripts/gen-schema.mjs
 
 | 언어 | 도구 | 출력 | 비고 |
 |------|------|------|------|
-| TypeScript | typedoc + typedoc-plugin-markdown | `docs/api/<pkg>/` (markdown, VitePress 통합) | validator-js, generator-react/vue/svelte |
+| TypeScript | typedoc + typedoc-plugin-markdown | `docs/api/<pkg>/` (markdown, VitePress 통합) | validator-ts, generator-react/vue/svelte |
 | Go | `go doc -all ./validator` 캡처 | `docs/api/go.md` | CI 친화적 텍스트 캡처 |
 | Rust | `cargo doc --no-deps` | `target/doc` (HTML, gitignored) + `docs/api/rust.md` 포인터 | cargo 는 `~/.cargo/bin` |
 | PHP | phpDocumentor (가능시) | `docs/api/php/` (HTML, gitignored) + `docs/api/php.md` | 미설치 시 skip 노트 |
@@ -62,10 +62,10 @@ phpDocumentor 가 환경에 없으면 PHP HTML 생성은 건너뛰고 `docs/api/
 
 ## JSON Schema
 
-`schema/form-spec.schema.json` 은 `packages/validator-js/src/types.ts` 의 `Spec`
+`schema/form-spec.schema.json` 은 `packages/validator-ts/src/types.ts` 의 `Spec`
 타입에서 생성한 draft-07 스키마다. 생성 후 Ajv 로 self-validate 하고
 `examples/shared-specs/*.yml` 로 스모크한다. 한계·에디터 연결법은
-[`schema/README.md`](https://github.com/polyspec/crudui/blob/main/schema/README.md).
+[`schema/README.md`](https://github.com/crudui/crudui/blob/main/schema/README.md).
 
 ## doc-coverage 게이트
 
@@ -88,6 +88,6 @@ php/rust). 미문서화 공개 심볼이 추가되면 해당 arm 이 RED 이고,
 `scripts/check-server-doc-coverage.mjs` (PHP 는 `scripts/php-server-doc-coverage.php`)
 로 검사한다.
 
-현 상태: Go·Rust·PHP·generator-svelte arm GREEN. validator-js / generator-react
+현 상태: Go·Rust·PHP·generator-svelte arm GREEN. validator-ts / generator-react
 / generator-vue 의 TSDoc 보강은 진행 중이라 해당 arm 은 RED 일 수 있다 — 미문서화
 public export 가 채워지면 GREEN 으로 전환된다.

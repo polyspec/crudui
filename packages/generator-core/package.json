@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/generator-core",
+  "name": "@crudui/generator-core",
   "version": "0.0.1",
   "description": "Framework-agnostic current evaluation core (compose + evaluate, markup 0) shared by every form-spec generator adapter (React/Vue/Svelte)",
   "main": "dist/index.js",
@@ -36,7 +36,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@form-spec/validator": "file:../validator-js"
+    "@crudui/validator": "file:../validator-ts"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

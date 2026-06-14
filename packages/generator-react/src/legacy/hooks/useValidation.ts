@@ -1,12 +1,12 @@
 /**
  * useValidation Hook
  *
- * Hook for form validation using @form-spec/validator
+ * Hook for form validation using @crudui/validator
  */
 
 import { useCallback, useMemo } from 'react';
-import { Validator, getRule } from '@form-spec/validator/legacy';
-import type { Spec, ValidationContext } from '@form-spec/validator/legacy';
+import { Validator, getRule } from '@crudui/validator/legacy';
+import type { Spec, ValidationContext } from '@crudui/validator/legacy';
 import type { FormData, FormErrors, FormValue, UseValidationReturn } from '../types';
 import { parsePathString } from '../utils/path';
 

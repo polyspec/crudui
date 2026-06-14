@@ -31,7 +31,7 @@
 import {
   validate,
   ComposeLoadError,
-} from '/path/to/ai/gui/form-spec/packages/validator-js/src/validate/index';
+} from '/path/to/ai/gui/form-spec/packages/validator-ts/src/validate/index';
 
 interface CaseSpec {
   name: string;

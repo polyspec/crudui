@@ -13,8 +13,8 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react';
-import { Validator, parseCondition, evaluateCondition } from '@form-spec/validator/legacy';
-import type { Spec, FieldSpec, PathContext } from '@form-spec/validator/legacy';
+import { Validator, parseCondition, evaluateCondition } from '@crudui/validator/legacy';
+import type { Spec, FieldSpec, PathContext } from '@crudui/validator/legacy';
 import type {
   FormContextValue,
   FormData,

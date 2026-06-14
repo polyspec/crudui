@@ -16,7 +16,7 @@
  */
 
 import type * as React from 'react';
-import type { Attrs } from '@form-spec/generator-core';
+import type { Attrs } from '@crudui/generator-core';
 
 /** Split a core attr bag into verbatim attrs + an uncontrolled `defaultValue`. */
 export function inputProps(attrs: Attrs): Record<string, unknown> {

@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { runGate } = require('./gate.js');
 
-describe('legacy legacy-client.validate.js vs new validator-js (client<->server idempotency)', () => {
+describe('legacy legacy-client.validate.js vs new validator-ts (client<->server idempotency)', () => {
   const r = runGate();
 
   it('drives the legacy runtime over a non-trivial slice of cases', () => {

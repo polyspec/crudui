@@ -6,7 +6,7 @@ namespace FormSpec\Validator\Compose;
 
 /**
  * Composition load failure (schema §5, §7; unresolved_behavior). Port of the JS
- * reference ComposeLoadError (validator-js/src/compose/errors.ts).
+ * reference ComposeLoadError (validator-ts/src/compose/errors.ts).
  *
  * Composition is a pre-processing pass that runs BEFORE validation/render: the
  * parser expands $ref/$patch into a single spec first (G5). An unresolved

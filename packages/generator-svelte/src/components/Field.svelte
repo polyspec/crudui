@@ -15,7 +15,7 @@
   `style` value verbatim (like Vue, no CSSProperties object). eval is never called.
 -->
 <script lang="ts">
-  import type { FieldViewModel } from '@form-spec/generator-core';
+  import type { FieldViewModel } from '@crudui/generator-core';
   import Widget from './Widget.svelte';
   import Self from './Field.svelte';
   import { widgetRootRaw, rowButtonsHtml } from './widget';

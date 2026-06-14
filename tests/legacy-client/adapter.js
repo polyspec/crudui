@@ -5,7 +5,7 @@
  *   examples/legacy-original/assets/js/legacy-client.validate.js
  * under jsdom + jQuery, feeding it a form-spec test {spec, input} and
  * extracting {valid, error, field} in the same shape compare-all.js uses
- * for the new validators (validator-js/php/go/rust).
+ * for the new validators (validator-ts/php/go/rust).
  *
  * WHY a synthesized DOM: the legacy runtime is DOM-coupled. check() reads the
  * live value via getValueByElement(element) (legacy-client.validate.js:261-332), looks

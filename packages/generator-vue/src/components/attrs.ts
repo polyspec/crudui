@@ -19,7 +19,7 @@
  * which render correctly as plain vnodes.
  */
 
-import type { Attrs } from '@form-spec/generator-core';
+import type { Attrs } from '@crudui/generator-core';
 
 /** Plain verbatim attrs for an element with no empty/boolean-attr hazard. */
 export function plainProps(attrs: Attrs): Record<string, unknown> {

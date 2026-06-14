@@ -3,7 +3,7 @@
  *
  * Drives the legacy browser runtime (examples/legacy-original/assets/js/
  * legacy-client.validate.js) under jsdom+jQuery via ./adapter and compares its
- * {valid,error} verdict, per case, against the new validator-js (the canonical
+ * {valid,error} verdict, per case, against the new validator-ts (the canonical
  * client replacement; PHP/Go/Rust already agree with it per
  * tests/runner/compare-all.js). The case `expected` is also recorded.
  *
@@ -12,9 +12,9 @@
  * stack?" — and where it does not, surfaces the exact client<->server gap.
  *
  * Verdict classes per case:
- *   match      legacy == validator-js
- *   gap        legacy != validator-js AND listed in known-gaps.js (documented)
- *   regression legacy != validator-js AND NOT documented  -> gate FAILS
+ *   match      legacy == validator-ts
+ *   gap        legacy != validator-ts AND listed in known-gaps.js (documented)
+ *   regression legacy != validator-ts AND NOT documented  -> gate FAILS
  *   excluded   legacy cannot be faithfully driven (array/file/display_switch/
  *              absolute-path-resolution/etc.) -> not compared
  *
@@ -26,7 +26,7 @@ const { runLegacyCase } = require('./adapter');
 const knownGaps = require('./known-gaps');
 
 const CASES_DIR = path.join(__dirname, '..', 'cases');
-const JS_VALIDATOR = path.join(__dirname, '..', '..', 'packages', 'validator-js', 'dist', 'index.js');
+const JS_VALIDATOR = path.join(__dirname, '..', '..', 'packages', 'validator-ts', 'dist', 'index.js');
 
 function loadJs() {
   // eslint-disable-next-line global-require, import/no-dynamic-require
@@ -153,7 +153,7 @@ if (require.main === module) {
   };
   console.log(`${C.bold}${C.cyan}Legacy-client vs new-validator gate${C.reset}`);
   console.log(`${C.gray}legacy: examples/legacy-original/assets/js/legacy-client.validate.js (jsdom+jQuery)${C.reset}`);
-  console.log(`${C.gray}new:    packages/validator-js/dist (PHP/Go/Rust agree per compare-all.js)${C.reset}\n`);
+  console.log(`${C.gray}new:    packages/validator-ts/dist (PHP/Go/Rust agree per compare-all.js)${C.reset}\n`);
 
   console.log(`Total cases:      ${r.total}`);
   console.log(`${C.green}Matched:          ${r.matched}${C.reset}`);

@@ -1,5 +1,5 @@
 /**
- * capture-vue.mjs — SSR capture of @form-spec/generator-vue FormBuilder.
+ * capture-vue.mjs — SSR capture of @crudui/generator-vue FormBuilder.
  *
  * Renders a YAML form spec with @vue/server-renderer renderToString and
  * returns the form CONTENT (outer <form> wrapper stripped — the legacy

@@ -1,5 +1,5 @@
 /**
- * Documented client(legacy legacy-client.validate.js) <-> server(new validator-js/php/
+ * Documented client(legacy legacy-client.validate.js) <-> server(new validator-ts/php/
  * go/rust) semantic divergences surfaced by this gate.
  *
  * Each entry is a real idempotency gap: the legacy browser runtime and the new
@@ -17,7 +17,7 @@
  * ---------------------------------------------------------------------------
  * The validation semantics are governed by docs/VALIDATION-RULES.md
  * "Validation Semantics Principles". Legacy defects are corrected, not
- * preserved: the new validators (validator-js/php/go/rust, 1044-case
+ * preserved: the new validators (validator-ts/php/go/rust, 1044-case
  * cross-language idempotency) are the reference, and legacy-client.validate.js is
  * patched toward them. Three legacy defects were corrected in
  * legacy-client.validate.js and removed from this list:
