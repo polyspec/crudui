@@ -43,6 +43,31 @@ export type { Evaluated } from './expr';
 export { makeTranslate } from './content';
 export type { Language, LocalizedText, Translate } from './content';
 
+// list-spec (read sister) — buildList + the read cell renderer (additive; the
+// form/write surfaces above are untouched). SPEC-V2 §9.
+export { buildList } from './list';
+export type {
+  ListViewModel,
+  ColumnVM,
+  CellVM,
+  RowVM as ListRowVM,
+  PaginationVM,
+  SortVM,
+  ActionVM,
+  BuildListOptions,
+} from './list';
+export { renderCell, normalizeFormat } from './cell';
+export type {
+  CellFormatModel,
+  CellDisplay,
+  CellRenderCtx,
+  BadgeDisplay,
+  LinkDisplay,
+  ImageDisplay,
+  BoolDisplay,
+  HtmlDisplay,
+} from './cell';
+
 /** Options for building a v2 form view model. */
 export interface BuildFormOptions {
   /** Form data (the expr engine's formData + value source). */
