@@ -51,3 +51,4 @@ tools/bin/.phpdoc-cache/
 # current corpus measurement artifacts (reproducible via scripts/corpus-legacy-run.mts against blue/app)
 scripts/corpus-legacy-result.json
 scripts/corpus-legacy-classified.json
+scripts/corpus-legacy-verify.json
