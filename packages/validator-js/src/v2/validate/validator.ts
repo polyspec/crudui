@@ -58,27 +58,27 @@ import {
  * Rules that apply to the whole array for a `multiple` field (the rest apply to
  * each element). VALIDATION-RULES §array-level.
  */
-const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
+export const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
 
 /**
  * Rules whose param is a field reference (relative path / filter condition) — it
  * is preserved verbatim and NOT evaluated as a condition expression. PATH-
  * REFERENCE-RULES.
  */
-const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique'];
+export const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique'];
 
 /**
  * Rules whose string param is a literal value, never a condition expression. An
  * `accept` param like `.jpg` would otherwise be misread as a relative field
  * reference. LITERAL-PARAM-RULES.
  */
-const LITERAL_PARAM_RULES = ['accept'];
+export const LITERAL_PARAM_RULES = ['accept'];
 
 /**
  * `match`/`pattern` carry a regex string preserved verbatim (it is not a
  * condition expression). SPEC-V2 §10: a regex exists only as a `match` argument.
  */
-const REGEX_PARAM_RULES = ['match', 'pattern'];
+export const REGEX_PARAM_RULES = ['match', 'pattern'];
 
 /**
  * Membership rules whose param is the allowed-value SET (an array, comma string,
@@ -88,7 +88,7 @@ const REGEX_PARAM_RULES = ['match', 'pattern'];
  * key-by-key as expressions. The rule's own flatten reads keys for a value→label
  * map (the label, possibly a LangMap or null, is display-only).
  */
-const MEMBERSHIP_PARAM_RULES = ['in'];
+export const MEMBERSHIP_PARAM_RULES = ['in'];
 
 // ---------------------------------------------------------------------------
 // v2 field shape (the subset this engine reads from a composed v2 field).
