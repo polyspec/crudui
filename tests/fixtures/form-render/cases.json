@@ -1,0 +1,578 @@
+[
+  {
+    "name": "design-show-expr-truthy",
+    "note": "design.show '.subscribe' truthy → input shown (visible envelope).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "email",
+          "label": {
+            "ko": "이메일",
+            "en": "Email"
+          },
+          "design": {
+            "show": ".subscribe"
+          }
+        }
+      }
+    },
+    "data": {
+      "subscribe": 1
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"email-layer\"><h6>이메일</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"email\" data-rule-name=\"email\" name=\"email\" type=\"email\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "design-show-expr-falsy",
+    "note": "design.show '.subscribe' falsy → wrapper carries display:none, DOM kept (legacy non-removal contract).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "email",
+          "label": {
+            "ko": "이메일",
+            "en": "Email"
+          },
+          "design": {
+            "show": ".subscribe"
+          }
+        }
+      }
+    },
+    "data": {
+      "subscribe": 0
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"email-layer\" style=\"display: none\"><h6>이메일</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"email\" data-rule-name=\"email\" name=\"email\" type=\"email\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "design-show-condmap-admin",
+    "note": "design.show condition map { '.role == \"admin\"': true, true: false } → admin shows; resolveConditionMap declaration order, true fallback last.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "panel": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".role == \"admin\"": true,
+              "true": false
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "role": "admin"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"panel-layer\"><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"panel\" data-rule-name=\"panel\" name=\"panel\" type=\"text\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "design-show-condmap-non-admin",
+    "note": "Same condition-map show; non-admin → true fallback (false) → wrapper display:none, DOM kept.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "panel": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".role == \"admin\"": true,
+              "true": false
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "role": "user"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"panel-layer\" style=\"display: none\"><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"panel\" data-rule-name=\"panel\" name=\"panel\" type=\"text\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "design-class-condmap-main",
+    "note": "design.class condition map on the main node → input class is the evaluated branch (eval forbidden; parseCondition path).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "status": {
+          "type": "text",
+          "design": {
+            "class": {
+              ".status == \"active\"": "text-success",
+              "true": "muted"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "status": "active"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"status-layer\"><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control text-success\" data-default=\"\" data-name=\"status\" data-rule-name=\"status\" name=\"status\" type=\"text\" value=\"active\"></div></div></div></div></div>"
+  },
+  {
+    "name": "design-class-ternary",
+    "note": "design.class ternary '.vip ? gold : plain' → tryEvaluateTernary value-return; regex-misread guard.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tier": {
+          "type": "text",
+          "design": {
+            "class": ".vip ? gold : plain"
+          }
+        }
+      }
+    },
+    "data": {
+      "vip": true
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"tier-layer\"><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control gold\" data-default=\"\" data-name=\"tier\" data-rule-name=\"tier\" name=\"tier\" type=\"text\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "design-node-map-4nodes",
+    "note": "design 4-node map (label/wrapper/group N/A on leaf/prepend) → each node carries its class; R8 key-visible target.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "amount": {
+          "type": "text",
+          "label": {
+            "ko": "금액"
+          },
+          "prepend": {
+            "ko": "₩"
+          },
+          "design": {
+            "label": {
+              "class": "fw-bold"
+            },
+            "wrapper": {
+              "class": "mb-3"
+            },
+            "prepend": {
+              "class": "text-muted"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper mb-3\" name=\"amount-layer\"><h6 class=\"fw-bold\">금액</h6><div class=\"form-element\"><div class=\"input-group-wrapper mb-3\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><span class=\"input-group-text text-muted\">₩</span><input class=\"valid-target form-control\" data-default=\"\" data-name=\"amount\" data-rule-name=\"amount\" name=\"amount\" type=\"text\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "design-false-slot-off",
+    "note": "design:false → slot off: no appearance, default envelope (show stays true).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "plain": {
+          "type": "text",
+          "label": {
+            "ko": "기본"
+          },
+          "design": false
+        }
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"plain-layer\"><h6>기본</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"plain\" data-rule-name=\"plain\" name=\"plain\" type=\"text\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "group-class-condmap-has-data",
+    "note": "legacy group_class exist/empty → design.group.class condition map { '.items': has-data, true: empty } → .form-group class branches on data.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "block": {
+          "type": "group",
+          "label": {
+            "ko": "블록"
+          },
+          "design": {
+            "group": {
+              "class": {
+                ".block.items": "has-data",
+                "true": "empty"
+              }
+            }
+          },
+          "properties": {
+            "items": {
+              "type": "text",
+              "label": {
+                "ko": "항목"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "block": {
+        "items": "x"
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"block-layer\"><h6>블록</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"form-group has-data\"><div class=\"form-element-wrapper\" name=\"block.items-layer\"><h6>항목</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"items\" data-rule-name=\"block[items]\" name=\"block[items]\" type=\"text\" value=\"x\"></div></div></div></div></div></div></div></div></div>"
+  },
+  {
+    "name": "group-class-condmap-empty",
+    "note": "Same group.class condition map; no data → empty branch.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "block": {
+          "type": "group",
+          "label": {
+            "ko": "블록"
+          },
+          "design": {
+            "group": {
+              "class": {
+                ".block.items": "has-data",
+                "true": "empty"
+              }
+            }
+          },
+          "properties": {
+            "items": {
+              "type": "text",
+              "label": {
+                "ko": "항목"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"block-layer\"><h6>블록</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"form-group empty\"><div class=\"form-element-wrapper\" name=\"block.items-layer\"><h6>항목</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"items\" data-rule-name=\"block[items]\" name=\"block[items]\" type=\"text\" value=\"\"></div></div></div></div></div></div></div></div></div>"
+  },
+  {
+    "name": "multiple-leaf-two-rows",
+    "note": "multiple:true + 2 data rows → 2 input-group-wrapper (2nd clone-element), plus/minus buttons.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "label": {
+            "ko": "태그"
+          },
+          "multiple": true
+        }
+      }
+    },
+    "data": {
+      "tags": [
+        "a",
+        "b"
+      ]
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"tags-layer\"><h6>태그</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" name=\"tags[__UNIQID__]\" type=\"text\" value=\"\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div><div class=\"input-group-wrapper clone-element\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" name=\"tags[__UNIQID__]\" type=\"text\" value=\"\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div></div></div></div>"
+  },
+  {
+    "name": "multiple-leaf-empty-placeholder",
+    "note": "multiple:true + empty data → a single placeholder row.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "label": {
+            "ko": "태그"
+          },
+          "multiple": true
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"tags-layer\"><h6>태그</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" name=\"tags[__UNIQID__]\" type=\"text\" value=\"\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div></div></div></div>"
+  },
+  {
+    "name": "multiple-settings-bucket",
+    "note": "multiple:{ max:5, sortable:true, copy:true } → data-multiple-max, move-up/down, copy + btn-delete (canonical keys only).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "text",
+          "label": {
+            "ko": "행"
+          },
+          "multiple": {
+            "max": 5,
+            "sortable": true,
+            "copy": true
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": [
+        "x"
+      ]
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"rows-layer\"><h6>행</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" name=\"rows[__UNIQID__]\" type=\"text\" value=\"\"></div><button class=\"btn btn-move-up\" type=\"button\"></button><button class=\"btn btn-move-down\" type=\"button\"></button><button class=\"btn btn-plus\" data-multiple-max=\"5\" type=\"button\"></button><button class=\"btn btn-copy\" type=\"button\"></button><button class=\"btn btn-minus btn-delete\" type=\"button\"></button></div></div></div></div>"
+  },
+  {
+    "name": "multiple-group-rows",
+    "note": "type:group + multiple:true + 1 row → form-group per row + row buttons (no __13hex__ position id leakage; data id is the row key).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "label": {
+            "ko": "사람"
+          },
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": {
+                "ko": "이름"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "people": {
+        "p1": {
+          "name": "Kim"
+        }
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"people-layer\"><h6>사람</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"p1\"><div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"people.p1.name-layer\"><h6>이름</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"name\" data-rule-name=\"people[p1][name]\" name=\"people[p1][name]\" type=\"text\" value=\"Kim\"></div></div></div></div></div><span class=\"btn-group input-group-btn\"><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></span></div></div></div></div>"
+  },
+  {
+    "name": "lang-default-langs",
+    "note": "lang:true → default ko/en/ja/zh language children, each a lang-code prepend span. Content label translation stays separate.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "title": {
+          "type": "text",
+          "label": {
+            "ko": "제목",
+            "en": "Title"
+          },
+          "lang": true
+        }
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"title-layer\"><h6>제목</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"lang-group\"><div class=\"lang-child\" data-lang=\"ko\"><span class=\"input-group-text lang-code\">ko</span><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"ko\" data-rule-name=\"title[ko]\" name=\"title[ko]\" type=\"text\" value=\"\"></div></div><div class=\"lang-child\" data-lang=\"en\"><span class=\"input-group-text lang-code\">en</span><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"en\" data-rule-name=\"title[en]\" name=\"title[en]\" type=\"text\" value=\"\"></div></div><div class=\"lang-child\" data-lang=\"ja\"><span class=\"input-group-text lang-code\">ja</span><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"ja\" data-rule-name=\"title[ja]\" name=\"title[ja]\" type=\"text\" value=\"\"></div></div><div class=\"lang-child\" data-lang=\"zh\"><span class=\"input-group-text lang-code\">zh</span><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"zh\" data-rule-name=\"title[zh]\" name=\"title[zh]\" type=\"text\" value=\"\"></div></div></div></div></div></div></div>"
+  },
+  {
+    "name": "lang-settings-only-frame-off",
+    "note": "lang:{ only:[ko,en], title:{ko:언어팩}, frame:false } → 2 languages, frame off (p-0 border-0), title applied.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "body": {
+          "type": "text",
+          "label": {
+            "ko": "본문"
+          },
+          "lang": {
+            "only": [
+              "ko",
+              "en"
+            ],
+            "title": {
+              "ko": "언어팩"
+            },
+            "frame": false
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"body-layer\"><h6>본문</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"lang-group p-0 border-0\"><div class=\"lang-title\">언어팩</div><div class=\"lang-child\" data-lang=\"ko\"><span class=\"input-group-text lang-code\">ko</span><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"ko\" data-rule-name=\"body[ko]\" name=\"body[ko]\" type=\"text\" value=\"\"></div></div><div class=\"lang-child\" data-lang=\"en\"><span class=\"input-group-text lang-code\">en</span><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"en\" data-rule-name=\"body[en]\" name=\"body[en]\" type=\"text\" value=\"\"></div></div></div></div></div></div></div>"
+  },
+  {
+    "name": "group-nested-properties",
+    "note": "type:group + properties:{a,b} → form-group envelope with 2 recursive children.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "addr": {
+          "type": "group",
+          "label": {
+            "ko": "주소"
+          },
+          "properties": {
+            "city": {
+              "type": "text",
+              "label": {
+                "ko": "도시"
+              }
+            },
+            "zip": {
+              "type": "text",
+              "label": {
+                "ko": "우편번호"
+              }
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"addr-layer\"><h6>주소</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"addr.city-layer\"><h6>도시</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"city\" data-rule-name=\"addr[city]\" name=\"addr[city]\" type=\"text\" value=\"\"></div></div></div></div><div class=\"form-element-wrapper\" name=\"addr.zip-layer\"><h6>우편번호</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"zip\" data-rule-name=\"addr[zip]\" name=\"addr[zip]\" type=\"text\" value=\"\"></div></div></div></div></div></div></div></div></div>"
+  },
+  {
+    "name": "compose-ref-patch",
+    "note": "$ref base + deep-path $patch → composed single spec rendered (compose runs first). Verifies the email field inherited from Base and the patched design.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "$ref": "Base.yml",
+        "$patch": {
+          "email.design.class": "patched"
+        }
+      }
+    },
+    "options": {
+      "files": {
+        "Base.yml": {
+          "properties": {
+            "email": {
+              "type": "email",
+              "label": {
+                "ko": "이메일"
+              }
+            }
+          }
+        }
+      },
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"email-layer\"><h6>이메일</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control patched\" data-default=\"\" data-name=\"email\" data-rule-name=\"email\" name=\"email\" type=\"email\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "compose-ref-unresolved-load-error",
+    "note": "Unresolved $ref → ComposeLoadError (render FAILS; not valid:true). The fixture records the error code, no expected_html.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "$ref": "Missing.yml"
+      }
+    },
+    "expectError": {
+      "code": "REF_FILE_NOT_FOUND"
+    }
+  },
+  {
+    "name": "content-langmap-with-show",
+    "note": "label LangMap {ko,en} + language=ko → h6 text 이메일; design.show expression applies independently (content axis vs appearance axis).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "email",
+          "label": {
+            "ko": "이메일",
+            "en": "Email"
+          },
+          "design": {
+            "show": ".subscribe"
+          }
+        }
+      }
+    },
+    "data": {
+      "subscribe": 1
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"email-layer\"><h6>이메일</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"email\" data-rule-name=\"email\" name=\"email\" type=\"email\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "content-langmap-en",
+    "note": "Same spec, language=en → h6 text Email (content translation switches with language).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "email",
+          "label": {
+            "ko": "이메일",
+            "en": "Email"
+          },
+          "design": {
+            "show": ".subscribe"
+          }
+        }
+      }
+    },
+    "data": {
+      "subscribe": 1
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"email-layer\"><h6>Email</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"email\" data-rule-name=\"email\" name=\"email\" type=\"email\" value=\"\"></div></div></div></div></div>"
+  },
+  {
+    "name": "behavior-opaque-passthrough",
+    "note": "behavior:{onchange:foo()} → onchange attr verbatim (expr engine NOT applied). design.show alone goes through expr — the contrast case.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "text",
+          "behavior": {
+            "onchange": "foo()"
+          },
+          "design": {
+            "show": ".x"
+          }
+        }
+      }
+    },
+    "data": {
+      "x": 1
+    },
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"field-layer\"><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__UNIQID__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"field\" data-rule-name=\"field\" name=\"field\" onchange=\"foo()\" type=\"text\" value=\"\"></div></div></div></div></div>"
+  }
+]
