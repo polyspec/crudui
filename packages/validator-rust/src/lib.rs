@@ -8,6 +8,7 @@ pub mod rules;
 pub mod spec;
 pub mod ternary;
 pub mod types;
+pub mod v2;
 pub mod validator;
 pub mod value;
 

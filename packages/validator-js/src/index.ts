@@ -105,6 +105,7 @@ export {
   hasWildcard,
   replaceWildcardWithIndex,
   evaluateCondition,
+  evaluateExpressionValue,
   parsePathString,
   pathToString,
   getParentPath,
@@ -138,6 +139,25 @@ export {
   getPattern,
   areAllUnique,
 } from './rules/index';
+
+// v2 composition engine (SPEC-V2 §5) — public so the v2 generators can run the
+// SAME compose pass (expand $ref/$patch into a single spec) the v2 validator
+// runs. One engine, every consumer.
+export {
+  composeProperties,
+  composeSpec,
+  resolveRef,
+  applyPatch,
+  MemoryLoader,
+  ComposeLoadError,
+} from './v2/compose/index';
+export type {
+  ComposeOptions,
+  Patch,
+  FileLoader,
+  LoadedDoc,
+  ComposeErrorCode,
+} from './v2/compose/index';
 
 // Default export
 export { Validator as default } from './Validator';

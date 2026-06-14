@@ -1,0 +1,199 @@
+package v2
+
+import (
+	"bytes"
+	"encoding/json"
+	"strings"
+	"testing"
+)
+
+// roundTrip parses JSON into a FieldSpec, re-serializes, and asserts byte
+// equality against the compacted input. It is the cross-language round-trip
+// contract: the 4 languages must parse → re-emit the same v2 JSON.
+func roundTrip(t *testing.T, in string) {
+	t.Helper()
+	var f FieldSpec
+	if err := json.Unmarshal([]byte(in), &f); err != nil {
+		t.Fatalf("unmarshal: %v\ninput: %s", err, in)
+	}
+	out, err := json.Marshal(&f)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	var want bytes.Buffer
+	if err := json.Compact(&want, []byte(in)); err != nil {
+		t.Fatalf("compact: %v", err)
+	}
+	if string(out) != want.String() {
+		t.Fatalf("round-trip mismatch\n want: %s\n got:  %s", want.String(), out)
+	}
+}
+
+func TestRoundTripTopLevelAndContent(t *testing.T) {
+	roundTrip(t, `{"type":"email","name":"contact","default":"a@b.c"}`)
+	roundTrip(t, `{"label":"Email","help":"plain"}`)
+	roundTrip(t, `{"label":{"ko":"이름","en":"Name"},"description":{"ko":"설명"}}`)
+	roundTrip(t, `{"placeholder":"enter","prepend":"$","append":"USD"}`)
+}
+
+func TestRoundTripPropertiesOrderPreserved(t *testing.T) {
+	in := `{"type":"group","properties":{"z":{"type":"text"},"a":{"type":"number"},"m":{"type":"email"}}}`
+	roundTrip(t, in)
+
+	var f FieldSpec
+	if err := json.Unmarshal([]byte(in), &f); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(f.Properties.Keys, ","); got != "z,a,m" {
+		t.Fatalf("declaration order lost: %s", got)
+	}
+}
+
+func TestRoundTripSlotPolymorphism(t *testing.T) {
+	// false | {} | true for each role slot and structure key.
+	roundTrip(t, `{"validate":false}`)
+	roundTrip(t, `{"validate":true}`)
+	roundTrip(t, `{"validate":{"required":true,"email":true,"match":".other"}}`)
+	roundTrip(t, `{"validate":{"required":".subscribe"}}`)
+
+	roundTrip(t, `{"design":false}`)
+	roundTrip(t, `{"design":true}`)
+	roundTrip(t, `{"design":{"show":".enabled","class":"col","style":"x","label":{"class":"lc"},"prepend":{"style":"ps"}}}`)
+
+	roundTrip(t, `{"behavior":false}`)
+	roundTrip(t, `{"behavior":true}`)
+	roundTrip(t, `{"behavior":{"onchange":"f()","onclick":"g()","onload":"h()"}}`)
+
+	roundTrip(t, `{"multiple":false}`)
+	roundTrip(t, `{"multiple":true}`)
+	roundTrip(t, `{"multiple":{"max":5,"copy":true,"sortable":true,"onclick":"add()"}}`)
+
+	roundTrip(t, `{"lang":false}`)
+	roundTrip(t, `{"lang":true}`)
+	roundTrip(t, `{"lang":{"mode":"append","only":["ko","en"],"name":"n","key":"k","frame":true,"title":"t","group_class":"g"}}`)
+}
+
+func TestRoundTripItemsPolymorphism(t *testing.T) {
+	roundTrip(t, `{"items":["a","b","c"]}`)
+	roundTrip(t, `{"items":{"model":"User","method":"all","table":"users","relations":"role"}}`)
+}
+
+func TestRoundTripOptionsExtra(t *testing.T) {
+	roundTrip(t, `{"options":false}`)
+	roundTrip(t, `{"options":true}`)
+	// Named keys only; map iteration over Extra would break byte equality, so
+	// Extra round-trip is asserted structurally below, not byte-for-byte.
+	roundTrip(t, `{"options":{"max_tags":3,"checkbox_label":"agree","stepper":true}}`)
+}
+
+func TestOptionsExtraStructuralRoundTrip(t *testing.T) {
+	in := `{"options":{"max_tags":3,"custom_widget_key":{"nested":1},"another":"v"}}`
+	var f FieldSpec
+	if err := json.Unmarshal([]byte(in), &f); err != nil {
+		t.Fatal(err)
+	}
+	if f.Options.Extra["another"] != "v" {
+		t.Fatalf("Extra not captured: %#v", f.Options.Extra)
+	}
+	if _, ok := f.Options.Extra["custom_widget_key"]; !ok {
+		t.Fatalf("nested Extra key dropped")
+	}
+	out, err := json.Marshal(&f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got FieldSpec
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Options.Extra["another"] != "v" || got.Options.MaxTags != float64(3) {
+		t.Fatalf("structural round-trip lost data: %#v", got.Options)
+	}
+}
+
+func TestRoundTripConditionMapOrder(t *testing.T) {
+	in := `{".vip":"gold",".member":"silver","true":"bronze"}`
+	var c ConditionMap
+	if err := json.Unmarshal([]byte(in), &c); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(c.Keys, "|"); got != ".vip|.member|true" {
+		t.Fatalf("condition order lost: %s", got)
+	}
+	out, err := json.Marshal(&c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(out) != in {
+		t.Fatalf("condition round-trip mismatch: %s", out)
+	}
+}
+
+func TestForbiddenMetaKeysRejectedAtTopLevel(t *testing.T) {
+	for _, k := range ForbiddenMetaKeys {
+		in := `{"` + k + `":true}`
+		var f FieldSpec
+		if err := json.Unmarshal([]byte(in), &f); err == nil {
+			t.Fatalf("top-level forbidden key %q accepted", k)
+		}
+	}
+}
+
+func TestForbiddenMetaKeysRejectedUnderOpenBucket(t *testing.T) {
+	// One level under options (the open Extra bucket) must still reject.
+	for _, k := range []string{"display_switch", "if", "when", "show_if", "$merge", "$after"} {
+		in := `{"options":{"` + k + `":1}}`
+		var f FieldSpec
+		if err := json.Unmarshal([]byte(in), &f); err == nil {
+			t.Fatalf("forbidden key %q accepted under options", k)
+		}
+	}
+}
+
+func TestForbiddenMetaKeysRejectedUnderTypedSlots(t *testing.T) {
+	cases := []string{
+		`{"validate":{"if":true}}`,
+		`{"design":{"display_target":"x"}}`,
+		`{"behavior":{"when":"y"}}`,
+		`{"multiple":{"$remove":1}}`,
+		`{"lang":{"show_if":1}}`,
+		`{"items":{"$before":1}}`,
+	}
+	for _, in := range cases {
+		var f FieldSpec
+		if err := json.Unmarshal([]byte(in), &f); err == nil {
+			t.Fatalf("forbidden key accepted: %s", in)
+		}
+	}
+}
+
+func TestXCommentKeyRejected(t *testing.T) {
+	for _, in := range []string{`{"xclass":"c"}`, `{"xstyle":"s"}`, `{"options":{"xfoo":1}}`} {
+		var f FieldSpec
+		if err := json.Unmarshal([]byte(in), &f); err == nil {
+			t.Fatalf("x-comment key accepted: %s", in)
+		}
+	}
+}
+
+func TestLegacyKeysNotRecognized(t *testing.T) {
+	// Legacy names must land in Extra (options) or be ignored elsewhere — never
+	// map onto a canonical field. Here multiple_max under multiple is simply not
+	// a Multiple field; it must not become Max.
+	in := `{"multiple":{"multiple_max":9}}`
+	var f FieldSpec
+	if err := json.Unmarshal([]byte(in), &f); err != nil {
+		t.Fatal(err)
+	}
+	if f.Multiple.Max != nil {
+		t.Fatalf("legacy multiple_max leaked into Max: %#v", f.Multiple.Max)
+	}
+}
+
+func TestNestedForbiddenKeyInPropertiesChild(t *testing.T) {
+	in := `{"properties":{"child":{"if":true}}}`
+	var f FieldSpec
+	if err := json.Unmarshal([]byte(in), &f); err == nil {
+		t.Fatalf("forbidden key in nested child accepted")
+	}
+}
