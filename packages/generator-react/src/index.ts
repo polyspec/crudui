@@ -1,7 +1,7 @@
 /**
  * @polyspec/generator-react
  *
- * React form builder component library based on form-spec YAML definitions
+ * React form builder component library based on polyspec YAML definitions
  *
  * @example
  * ```tsx

@@ -1,5 +1,5 @@
 /**
- * Form-spec Vue Types (trimmed port of the React type surface).
+ * Polyspec Vue Types (trimmed port of the React type surface).
  */
 
 import type { Spec } from '@polyspec/validator';

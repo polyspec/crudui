@@ -11,7 +11,7 @@
 //!   { name, input: { files?, entry, basepath?, kind? }, expected }    — success
 //!   { name, input: { files?, entry, basepath?, kind? }, expectError } — load error
 
-use formspec_validator::v2::compose::{
+use polyspec_validator::v2::compose::{
     compose_properties, compose_spec, ComposeOptions, MemoryLoader,
 };
 use serde_json::{Map, Value};

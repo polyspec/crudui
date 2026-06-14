@@ -3,7 +3,7 @@
 //! {"valid": bool, "error": <rule|null>, "field": <path|null>} to stdout.
 //! Ports validator-go/cmd/validate/main.go.
 
-use formspec_validator::run_validation;
+use polyspec_validator::run_validation;
 use serde_json::Value;
 use std::io::{self, Read, Write};
 

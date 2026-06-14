@@ -1,4 +1,4 @@
-module formspec-bench
+module polyspec-bench
 
 go 1.21
 

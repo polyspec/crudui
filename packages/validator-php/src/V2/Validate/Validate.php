@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Validate;
+namespace Polyspec\Validator\V2\Validate;
 
-use FormSpec\Validator\V2\Compose\Compose;
-use FormSpec\Validator\V2\Compose\FileLoader;
-use FormSpec\Validator\V2\Compose\MemoryLoader;
-use FormSpec\Validator\V2\ForbiddenScan;
+use Polyspec\Validator\V2\Compose\Compose;
+use Polyspec\Validator\V2\Compose\FileLoader;
+use Polyspec\Validator\V2\Compose\MemoryLoader;
+use Polyspec\Validator\V2\ForbiddenScan;
 
 /**
  * v2 validation entry point — SPEC-V2 §2 pipeline. Port of validator-ts
@@ -49,7 +49,7 @@ final class Validate
      * @param FileLoader|null $loader a custom loader (overrides $files)
      * @param string $basepath basepath for relative $ref resolution
      *
-     * @throws \FormSpec\Validator\V2\Compose\ComposeLoadError when composition cannot be resolved
+     * @throws \Polyspec\Validator\V2\Compose\ComposeLoadError when composition cannot be resolved
      */
     public static function run(
         array $spec,

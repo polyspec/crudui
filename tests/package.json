@@ -2,7 +2,7 @@
   "name": "@polyspec/validator-tests",
   "version": "1.0.0",
   "private": true,
-  "description": "Cross-language validation test runner for form-spec validators",
+  "description": "Cross-language validation test runner for polyspec validators",
   "type": "commonjs",
   "scripts": {
     "test": "node runner/compare-all.js",

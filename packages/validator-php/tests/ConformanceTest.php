@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests;
+namespace Polyspec\Validator\Tests;
 
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

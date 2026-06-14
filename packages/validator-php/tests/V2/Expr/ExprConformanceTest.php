@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests\V2\Expr;
+namespace Polyspec\Validator\Tests\V2\Expr;
 
-use FormSpec\Validator\V2\Expr\ConditionMap;
-use FormSpec\Validator\V2\Expr\Evaluator;
-use FormSpec\Validator\V2\Expr\Expression;
-use FormSpec\Validator\V2\Expr\Node;
+use Polyspec\Validator\V2\Expr\ConditionMap;
+use Polyspec\Validator\V2\Expr\Evaluator;
+use Polyspec\Validator\V2\Expr\Expression;
+use Polyspec\Validator\V2\Expr\Node;
 use PHPUnit\Framework\TestCase;
 
 /**

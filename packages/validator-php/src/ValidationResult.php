@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator;
+namespace Polyspec\Validator;
 
 /**
  * Represents the result of a validation operation.

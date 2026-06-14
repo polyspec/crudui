@@ -2,11 +2,11 @@
  * v2 list-spec meta-schema conformance (SPEC-V2 §9.4).
  *
  * The read sister of the form-spec meta-schema gate. The list definitions are
- * ADDITIVE to schema/form-spec-v2.schema.json — they do NOT touch the form-spec
+ * ADDITIVE to schema/polyspec-v2.schema.json — they do NOT touch the form-spec
  * Field entry point (the top `$ref` stays `#/definitions/Field`); a list-spec is
  * validated through a DIFFERENT entry, `#/definitions/List`. This test compiles
  * that entry with the SAME ajv config the CLI meta-schema gate uses
- * (form-spec-cli check.ts: `new Ajv({ strict:false, allErrors:true })` +
+ * (cli check.ts: `new Ajv({ strict:false, allErrors:true })` +
  * ajv-formats) and runs the shared fixture tests/fixtures/v2-list-validity.
  *
  * The §9.4 gate consistency:
@@ -32,7 +32,7 @@ import addFormats from 'ajv-formats';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../../../..');
-const SCHEMA_PATH = path.join(ROOT, 'schema/form-spec-v2.schema.json');
+const SCHEMA_PATH = path.join(ROOT, 'schema/polyspec-v2.schema.json');
 const FIXTURE = path.join(ROOT, 'tests/fixtures/v2-list-validity/cases.json');
 
 interface ListValidityCase {

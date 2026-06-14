@@ -2,7 +2,7 @@
 /**
  * Laravel Integration
  *
- * Service provider and helper classes for integrating form-spec validation
+ * Service provider and helper classes for integrating polyspec validation
  * into Laravel applications.
  */
 
@@ -10,31 +10,31 @@ declare(strict_types=1);
 
 namespace App;
 
-use FormSpec\Validator\Validator;
-use FormSpec\Validator\ValidationResult;
+use Polyspec\Validator\Validator;
+use Polyspec\Validator\ValidationResult;
 use Symfony\Component\Yaml\Yaml;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Validation\Validator as LaravelValidator;
 
 /**
- * Laravel Service Provider for FormSpec Validator
+ * Laravel Service Provider for Polyspec Validator
  *
  * Register in config/app.php:
  *   'providers' => [
- *       App\FormSpecServiceProvider::class,
+ *       App\PolyspecServiceProvider::class,
  *   ],
  *
  * Usage:
- *   $validator = app('formspec.validator', ['spec' => 'user-registration']);
+ *   $validator = app('polyspec.validator', ['spec' => 'user-registration']);
  *   $result = $validator->validate($request->all());
  */
-class FormSpecServiceProvider extends ServiceProvider
+class PolyspecServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         // Bind the validator factory
-        $this->app->bind('formspec.validator', function ($app, array $params) {
+        $this->app->bind('polyspec.validator', function ($app, array $params) {
             $specName = $params['spec'] ?? 'default';
             $specPath = $this->getSpecPath($specName);
             $spec = Yaml::parseFile($specPath);
@@ -42,9 +42,9 @@ class FormSpecServiceProvider extends ServiceProvider
         });
 
         // Bind the adapter for reusable validation
-        $this->app->singleton('formspec.adapter', function ($app) {
-            $specDir = config('formspec.spec_directory', resource_path('specs'));
-            return new FormSpecAdapter($specDir);
+        $this->app->singleton('polyspec.adapter', function ($app) {
+            $specDir = config('polyspec.spec_directory', resource_path('specs'));
+            return new PolyspecAdapter($specDir);
         });
     }
 
@@ -52,11 +52,11 @@ class FormSpecServiceProvider extends ServiceProvider
     {
         // Publish config file
         $this->publishes([
-            __DIR__ . '/../config/formspec.php' => config_path('formspec.php'),
-        ], 'formspec-config');
+            __DIR__ . '/../config/polyspec.php' => config_path('polyspec.php'),
+        ], 'polyspec-config');
 
         // Add custom validation rule
-        \Illuminate\Support\Facades\Validator::extend('formspec', function (
+        \Illuminate\Support\Facades\Validator::extend('polyspec', function (
             $attribute,
             $value,
             $parameters,
@@ -67,7 +67,7 @@ class FormSpecServiceProvider extends ServiceProvider
                 return false;
             }
 
-            $adapter = app('formspec.adapter');
+            $adapter = app('polyspec.adapter');
             $result = $adapter->validate($specName, $value);
             return $result->isValid();
         });
@@ -75,17 +75,17 @@ class FormSpecServiceProvider extends ServiceProvider
 
     private function getSpecPath(string $specName): string
     {
-        $specDir = config('formspec.spec_directory', resource_path('specs'));
+        $specDir = config('polyspec.spec_directory', resource_path('specs'));
         return "{$specDir}/{$specName}.yml";
     }
 }
 
 /**
- * FormSpec Adapter for Laravel
+ * Polyspec Adapter for Laravel
  *
  * Provides a clean interface for form validation in Laravel applications.
  */
-class FormSpecAdapter
+class PolyspecAdapter
 {
     private string $specDirectory;
     private array $validators = [];
@@ -132,17 +132,17 @@ class FormSpecAdapter
 /**
  * Example Laravel Controller
  *
- * Demonstrates how to use FormSpec validation in Laravel controllers.
+ * Demonstrates how to use Polyspec validation in Laravel controllers.
  */
 abstract class ExampleController
 {
     /**
-     * Example: User registration with FormSpec validation
+     * Example: User registration with Polyspec validation
      */
     public function register(Request $request): \Illuminate\Http\JsonResponse
     {
         // Method 1: Using the adapter directly
-        $adapter = app('formspec.adapter');
+        $adapter = app('polyspec.adapter');
         $result = $adapter->validate('user-registration', $request->all());
 
         if (!$result->isValid()) {
@@ -170,7 +170,7 @@ abstract class ExampleController
         $value = $request->input('value');
         $allData = $request->input('allData', []);
 
-        $adapter = app('formspec.adapter');
+        $adapter = app('polyspec.adapter');
         $error = $adapter->validateField($specName, $path, $value, $allData);
 
         return response()->json([
@@ -184,7 +184,7 @@ abstract class ExampleController
      */
     public function createProduct(Request $request): \Illuminate\Http\JsonResponse
     {
-        $adapter = app('formspec.adapter');
+        $adapter = app('polyspec.adapter');
 
         // Get validator and add custom rule
         $validator = $adapter->getValidator('product-form');
@@ -217,7 +217,7 @@ abstract class ExampleController
  * Create: php artisan make:request UserRegistrationRequest
  * Then extend or modify as shown below.
  */
-abstract class FormSpecRequest extends \Illuminate\Foundation\Http\FormRequest
+abstract class PolyspecRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Get the specification name for this request.
@@ -234,7 +234,7 @@ abstract class FormSpecRequest extends \Illuminate\Foundation\Http\FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     * Returns empty array since we use FormSpec validation.
+     * Returns empty array since we use Polyspec validation.
      */
     public function rules(): array
     {
@@ -246,7 +246,7 @@ abstract class FormSpecRequest extends \Illuminate\Foundation\Http\FormRequest
      */
     public function validateResolved(): void
     {
-        $adapter = app('formspec.adapter');
+        $adapter = app('polyspec.adapter');
         $result = $adapter->validate($this->getSpecName(), $this->all());
 
         if (!$result->isValid()) {
@@ -261,7 +261,7 @@ abstract class FormSpecRequest extends \Illuminate\Foundation\Http\FormRequest
     }
 
     /**
-     * Format FormSpec errors for Laravel response format.
+     * Format Polyspec errors for Laravel response format.
      */
     protected function formatErrors(array $errors): array
     {

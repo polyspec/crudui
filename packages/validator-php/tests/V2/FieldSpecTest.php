@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests\V2;
+namespace Polyspec\Validator\Tests\V2;
 
-use FormSpec\Validator\V2\FieldSpec;
+use Polyspec\Validator\V2\FieldSpec;
 use PHPUnit\Framework\TestCase;
 
 /**

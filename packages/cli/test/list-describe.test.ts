@@ -1,5 +1,5 @@
 /**
- * drift-0 proof for `form-spec describe`'s LIST capability (SPEC-V2 §9).
+ * drift-0 proof for `polyspec describe`'s LIST capability (SPEC-V2 §9).
  *
  * The list section is produced like the rest of describe — a pure projection of
  * the code single-source-of-truth + the parsed meta-schema, never a hand-copied
@@ -8,7 +8,7 @@
  *   - read-cell format catalog ← generator-core cell.ts `CELL_FORMATS`
  *     (= Object.keys(CELL_RENDERERS); the SAME map renderCell dispatches over)
  *   - list structure (columns/search/sort/pagination/actions/empty/design) ←
- *     schema/form-spec-v2.schema.json List/Column/CellFormat/Pagination/Sort/
+ *     schema/polyspec-v2.schema.json List/Column/CellFormat/Pagination/Sort/
  *     ListAction definitions, JSON.parse'd
  *
  * So a format added to cell.ts's renderer map, or a key changed in a List family
@@ -42,7 +42,7 @@ import {
 } from '../../generator-core/src/cell.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SCHEMA_PATH = resolve(HERE, '../../..', 'schema/form-spec-v2.schema.json');
+const SCHEMA_PATH = resolve(HERE, '../../..', 'schema/polyspec-v2.schema.json');
 const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
 
 descTest('describe.list is a drift-0 projection of cell.ts + the meta-schema', () => {

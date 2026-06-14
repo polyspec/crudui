@@ -1,6 +1,6 @@
 # validator-go
 
-Go validator for the form-spec system. Ships the v1 validator (`cmd/validate`)
+Go validator for the polyspec system. Ships the v1 validator (`cmd/validate`)
 and the v2 engine (`validator/v2`: compose → forbidden-scan → validate), kept in
 conformance lockstep with the JS/PHP/Rust implementations. The v1 model is never
 touched by v2 (R7 parallel run).

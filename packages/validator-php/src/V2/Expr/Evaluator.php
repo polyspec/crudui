@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Expr;
+namespace Polyspec\Validator\V2\Expr;
 
 /**
  * v2 expression evaluator (EXPRESSION-GRAMMAR §5/§6/§7, JS PathResolver parity).

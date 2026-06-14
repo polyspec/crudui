@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Expr;
+namespace Polyspec\Validator\V2\Expr;
 
 /**
  * Parenthesized group wrapping an inner expression. A group parses only down to

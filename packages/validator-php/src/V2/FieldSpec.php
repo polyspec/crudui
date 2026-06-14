@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2;
+namespace Polyspec\Validator\V2;
 
 /**
  * v2 canonical FieldSpec model. SINGLE SOURCE OF TRUTH (SPEC §3).
  *
- * This is the v2 NEW model. v1 (FormSpec\Validator\*) stays untouched and runs
+ * This is the v2 NEW model. v1 (Polyspec\Validator\*) stays untouched and runs
  * in parallel until v2 is stable (R7). This class mechanizes the canonical v2
  * model ONLY — it never mirrors a v1 shape.
  *

@@ -1,7 +1,7 @@
 {
   "name": "@polyspec/generator-svelte",
   "version": "1.0.0",
-  "description": "Svelte form builder component library based on form-spec YAML definitions",
+  "description": "Svelte form builder component library based on polyspec YAML definitions",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",

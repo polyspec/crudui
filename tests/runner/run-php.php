@@ -12,8 +12,8 @@ declare(strict_types=1);
 // Autoload validator classes
 require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 
-use FormSpec\Validator\Validator;
-use FormSpec\Validator\ValidationResult;
+use Polyspec\Validator\Validator;
+use Polyspec\Validator\ValidationResult;
 
 // ANSI color codes
 class Colors

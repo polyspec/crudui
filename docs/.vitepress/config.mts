@@ -1,13 +1,13 @@
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
-// VitePress site config for Form-Spec.
+// VitePress site config for Polyspec.
 // Idempotency: lastUpdated is disabled (it embeds git/file mtimes, which break
 // reproducible builds). The build output under .vitepress/dist is deterministic
 // for identical sources. withMermaid renders ```mermaid fences (the docs/index.md
 // architecture diagram) inside the VitePress site too.
 export default withMermaid(defineConfig({
-  title: 'Form-Spec',
+  title: 'Polyspec',
   description:
     'YAML 기반 폼 정의 시스템 — 멀티언어 검증기(JS/PHP/Go/Rust) + 멀티프레임워크 렌더러(React/Vue/Svelte)',
   lang: 'ko-KR',

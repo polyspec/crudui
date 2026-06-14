@@ -10,7 +10,7 @@
 //! errors are compared IN ORDER (declaration / traversal order), key by key:
 //! path, field, rule, message, value. A reorder is a failure.
 
-use formspec_validator::v2::validate::{validate_v2, ValidateV2Options};
+use polyspec_validator::v2::validate::{validate_v2, ValidateV2Options};
 use serde_json::{Map, Value};
 use std::path::{Path, PathBuf};
 
@@ -57,7 +57,7 @@ fn load_cases() -> Vec<Value> {
 }
 
 /// Build the `{ valid, errors }` value shape from a result for ordered comparison.
-fn result_to_value(result: &formspec_validator::v2::validate::ValidationResult) -> Value {
+fn result_to_value(result: &polyspec_validator::v2::validate::ValidationResult) -> Value {
     let errors: Vec<Value> = result.errors.iter().map(|e| e.to_value()).collect();
     let mut m = Map::new();
     m.insert("valid".to_string(), Value::Bool(result.valid));

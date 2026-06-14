@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../packages/validator-php/vendor/autoload.php';
 
-use FormSpec\Validator\Validator;
-use FormSpec\Validator\ValidationResult;
+use Polyspec\Validator\Validator;
+use Polyspec\Validator\ValidationResult;
 
 // =============================================================================
 // Basic Usage
@@ -603,7 +603,7 @@ function laravelIntegrationExample(): void
 
 namespace App\Http\Controllers;
 
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\Yaml\Yaml;
@@ -787,7 +787,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 use Symfony\Component\Yaml\Yaml;
 
 // Get request body

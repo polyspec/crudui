@@ -1,6 +1,6 @@
 # @polyspec/validator (JS/TS)
 
-form-spec validator for JavaScript/TypeScript. Ships the v1 `Validator` library
+polyspec validator for JavaScript/TypeScript. Ships the v1 `Validator` library
 (form data → `{ valid, errors }`) and the v2 engine (compose → forbidden-scan →
 validate) reused by `@polyspec/generator-core`.
 

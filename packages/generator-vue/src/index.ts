@@ -1,7 +1,7 @@
 /**
  * @polyspec/generator-vue
  *
- * Vue 3 form builder component library based on form-spec YAML definitions,
+ * Vue 3 form builder component library based on polyspec YAML definitions,
  * byte-parity with the legacy Limepie PHP Generator output.
  *
  * @example

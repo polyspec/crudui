@@ -11,7 +11,7 @@
  *   stdout: {"valid": bool, "errors": [<error record>, ...]}
  *
  * `spec` is already a decoded object/JSON (no YAML, no file path). It runs the
- * full v2 pipeline FormSpec\Validator\V2\Validate\Validate::run — compose (G5)
+ * full v2 pipeline Polyspec\Validator\V2\Validate\Validate::run — compose (G5)
  * → ForbiddenScan (§6) → Validate (§3 + §2 G1). This is a thin wrapper: it adds
  * no validation logic and never touches the v1 Validator (R7 parallel run).
  *
@@ -32,9 +32,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use FormSpec\Validator\V2\Validate\Validate;
-use FormSpec\Validator\V2\Validate\ListValidate;
-use FormSpec\Validator\V2\Compose\ComposeLoadError;
+use Polyspec\Validator\V2\Validate\Validate;
+use Polyspec\Validator\V2\Validate\ListValidate;
+use Polyspec\Validator\V2\Compose\ComposeLoadError;
 
 $raw = stream_get_contents(STDIN);
 if ($raw === false || trim($raw) === '') {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * form-spec — orchestrator CLI entry. A thin dispatcher over the code/schema
+ * polyspec — orchestrator CLI entry. A thin dispatcher over the code/schema
  * single-source-of-truth and the cross-check-console backends.
  *
  * Subcommands (architecture):
@@ -14,7 +14,7 @@
  *
  * Run via the tsx loader so the .ts single-source-of-truth imports directly,
  * exactly like packages/validator-ts/bin/validate-v2.mjs (no separate build).
- * `bin/form-spec` (no ext) re-execs this through `node --import tsx`.
+ * `bin/polyspec` (no ext) re-execs this through `node --import tsx`.
  */
 
 import process from 'node:process';
@@ -72,14 +72,14 @@ async function main() {
   }
 }
 
-const USAGE = `form-spec <subcommand>
+const USAGE = `polyspec <subcommand>
 
   describe [--json|--md]   unified capabilities from code/schema (default --json)
   list-widgets [--json]    widget kinds + layout + aliases
   check <spec.{yml,json}>  meta-schema + forbidden-scan
   explain <spec> [--lang ko|en]  spec → natural-language back-check
 
-Run through the tsx loader: node --import tsx bin/form-spec.mjs <subcommand>
+Run through the tsx loader: node --import tsx bin/polyspec.mjs <subcommand>
 `;
 
 main().catch((err) => {

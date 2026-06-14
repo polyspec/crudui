@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Expr;
+namespace Polyspec\Validator\V2\Expr;
 
 /**
  * v2 expression parser: Token[] -> AST (EXPRESSION-GRAMMAR §3/§4, JS Parser parity).

@@ -7,7 +7,7 @@
 
 require_once __DIR__ . '/../packages/validator-php/vendor/autoload.php';
 
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 
 // Load test cases
 $testCasesPath = __DIR__ . '/cases/productnft.json';

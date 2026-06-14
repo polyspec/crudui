@@ -1,5 +1,5 @@
 /**
- * `form-spec describe` — the bridge between the CODE single-source-of-truth and
+ * `polyspec describe` — the bridge between the CODE single-source-of-truth and
  * the SKILL/MCP procedure layer (architecture: 3-layer split, describe is the
  * leg of layers 1·2).
  *
@@ -8,11 +8,11 @@
  *   - generator-core REGISTRY  → widget kinds + per-kind layout (import)
  *   - validator-ts rules        → rule names (import getRuleNames)
  *   - validator-ts validator.ts → rule param-class tables (import)
- *   - schema/form-spec-v2.json  → slots / nodes / buckets / forbidden enum (parse)
+ *   - schema/polyspec-v2.json  → slots / nodes / buckets / forbidden enum (parse)
  *   - validator-ts types.ts     → FORBIDDEN_META_KEYS + pattern (import)
  *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
- *   - schema/form-spec-v2.json   → list definitions (List/Column/CellFormat/…) (parse)
+ *   - schema/polyspec-v2.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - EXPRESSION-GRAMMAR.md      → tokens / precedence / truthy / unsupported (parse)
  *   - SPEC-V2.md §3             → classification rules (parse)
  *
@@ -54,7 +54,7 @@ import { scanForbiddenKeys } from '../../validator-ts/src/v2/forbidden-scan.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
-const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/form-spec-v2.schema.json');
+const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/polyspec-v2.schema.json');
 const GRAMMAR_PATH = resolve(REPO_ROOT, 'docs/EXPRESSION-GRAMMAR.md');
 const SPEC_V2_PATH = resolve(REPO_ROOT, 'docs/SPEC-V2.md');
 
@@ -535,20 +535,20 @@ export function describe(): DescribeResult {
 
   return {
     meta: {
-      schema: schema.$id ?? 'form-spec-v2',
+      schema: schema.$id ?? 'polyspec-v2',
       widgetCount: WIDGET_COUNT,
       ruleCount: rules.length,
       sources: {
         widgets: 'packages/generator-core/src/widget.ts (REGISTRY)',
         rules: 'packages/validator-ts/src/rules/index.ts (builtInRules)',
         ruleParamClass: 'packages/validator-ts/src/v2/validate/validator.ts',
-        slots: 'schema/form-spec-v2.schema.json (definitions)',
+        slots: 'schema/polyspec-v2.schema.json (definitions)',
         forbiddenKeys: 'packages/validator-ts/src/v2/types.ts (FORBIDDEN_META_KEYS)',
         forbiddenScan: 'packages/validator-ts/src/v2/forbidden-scan.ts',
         grammar: 'docs/EXPRESSION-GRAMMAR.md',
         classification: 'docs/SPEC-V2.md §3',
         listCellFormats: 'packages/generator-core/src/cell.ts (CELL_RENDERERS)',
-        listStructure: 'schema/form-spec-v2.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
+        listStructure: 'schema/polyspec-v2.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
       },
     },
     widgets,
@@ -599,7 +599,7 @@ export function renderMarkdown(r: DescribeResult): string {
   const L: string[] = [];
   const push = (s = '') => L.push(s);
 
-  push(`# form-spec capabilities (describe)`);
+  push(`# polyspec capabilities (describe)`);
   push();
   push(`> Generated from CODE single-source-of-truth. Hand-copied catalog: 0.`);
   push();

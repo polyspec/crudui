@@ -1,5 +1,5 @@
 //! v2 list-spec STRUCTURAL conformance (SPEC-V2 §9) — the read sister of the
-//! form-spec load-path conformance.
+//! polyspec load-path conformance.
 //!
 //! Single truth = the shared fixture tests/fixtures/v2-list-validity/cases.json,
 //! the SAME file the JS meta-schema gate reads
@@ -28,7 +28,7 @@
 
 use std::path::{Path, PathBuf};
 
-use formspec_validator::v2::list::{validate_list, ValidateListOptions};
+use polyspec_validator::v2::list::{validate_list, ValidateListOptions};
 use serde_json::Value;
 
 fn fixture_path() -> PathBuf {

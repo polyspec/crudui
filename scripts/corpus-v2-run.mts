@@ -3,7 +3,7 @@
  *
  * Corpus is READ-ONLY: /Users/max/Abyss/Workspace/blue/app — only Spec/*.yml are
  * read. Nothing in the corpus is created or modified. This script lives in the
- * form-spec repo.
+ * polyspec repo.
  *
  * Pipeline per spec:
  *   load    — read + js-yaml parse the v1 spec file
@@ -30,7 +30,7 @@ import type { FileLoader } from '../packages/validator-ts/src/v2/compose/index';
 
 const CORPUS = '/Users/max/Abyss/Workspace/blue/app';
 const REPO = path.resolve(import.meta.dirname, '..');
-const SCHEMA = path.join(REPO, 'schema/form-spec-v2.schema.json');
+const SCHEMA = path.join(REPO, 'schema/polyspec-v2.schema.json');
 
 // --- enumerate corpus form specs: every */Spec/*.{yml,yaml} ---
 const list = execSync(

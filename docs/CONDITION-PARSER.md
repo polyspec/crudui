@@ -1,6 +1,6 @@
 # 조건식 파서 (Condition Expression Parser) 명세서
 
-form-spec 조건식의 문법과 평가 의미론.
+polyspec 조건식의 문법과 평가 의미론.
 
 **참조 구현(reference implementation)은 validator-ts다**:
 

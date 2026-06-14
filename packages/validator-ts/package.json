@@ -1,7 +1,7 @@
 {
   "name": "@polyspec/validator",
   "version": "1.0.0",
-  "description": "Form validation library based on form-spec YAML definitions",
+  "description": "Form validation library based on polyspec YAML definitions",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

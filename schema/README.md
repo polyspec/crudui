@@ -1,11 +1,11 @@
-# Form-Spec JSON Schema
+# Polyspec JSON Schema
 
-`form-spec.schema.json` is the machine-readable JSON Schema (draft-07) for a
-form-spec definition. It is generated from the TypeScript source of truth
+`polyspec.schema.json` is the machine-readable JSON Schema (draft-07) for a
+polyspec definition. It is generated from the TypeScript source of truth
 `packages/validator-ts/src/types.ts` (the `Spec` interface) by
 `ts-json-schema-generator`.
 
-Do not hand-edit `form-spec.schema.json`. Regenerate it:
+Do not hand-edit `polyspec.schema.json`. Regenerate it:
 
 ```bash
 make docs-schema       # or: npm run spec:schema
@@ -22,7 +22,7 @@ Point your YAML editor at the schema so spec files get completion and validation
 In a YAML spec file (VS Code with the YAML extension), add a modeline:
 
 ```yaml
-# yaml-language-server: $schema=../../schema/form-spec.schema.json
+# yaml-language-server: $schema=../../schema/polyspec.schema.json
 type: group
 properties:
   email:
@@ -37,7 +37,7 @@ Or map it globally in `.vscode/settings.json`:
 ```json
 {
   "yaml.schemas": {
-    "./schema/form-spec.schema.json": ["examples/**/*.yml", "**/*.form.yml"]
+    "./schema/polyspec.schema.json": ["examples/**/*.yml", "**/*.form.yml"]
   }
 }
 ```
@@ -45,7 +45,7 @@ Or map it globally in `.vscode/settings.json`:
 For JSON specs, reference it inline:
 
 ```json
-{ "$schema": "./schema/form-spec.schema.json", "type": "group", "properties": {} }
+{ "$schema": "./schema/polyspec.schema.json", "type": "group", "properties": {} }
 ```
 
 ## Limitations

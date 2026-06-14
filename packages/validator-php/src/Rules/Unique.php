@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Rules;
+namespace Polyspec\Validator\Rules;
 
-use FormSpec\Validator\PathResolver;
+use Polyspec\Validator\PathResolver;
 
 /**
  * Unique values validation rule.

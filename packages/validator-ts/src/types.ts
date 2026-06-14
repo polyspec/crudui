@@ -1,5 +1,5 @@
 /**
- * Form-spec Validator Type Definitions
+ * Polyspec Validator Type Definitions
  */
 
 // ============================================================================

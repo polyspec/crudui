@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Load Composer autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 
 /**
  * Map validator errors (keyed by path) to the canonical wire format.
@@ -68,7 +68,7 @@ $toWireErrors = static function (array $errors): array {
 };
 
 /**
- * Check that a spec has the canonical form-spec shape: a group whose
+ * Check that a spec has the canonical polyspec shape: a group whose
  * `properties` is an associative array. Anything else (arbitrary keys, a
  * missing `properties`, a non-group type) is malformed.
  * Closure (not a named function): this file may run in the same process as

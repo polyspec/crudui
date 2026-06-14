@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Compose;
+namespace Polyspec\Validator\V2\Compose;
 
 /**
  * $ref resolution — base inheritance, resolved before anything else (SPEC-V2 §5;

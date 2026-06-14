@@ -14,12 +14,9 @@ class ComposerStaticInit5ae57ee0eb2a3b3cc181000bb26509b6
     public static $prefixLengthsPsr4 = array (
         'P' => 
         array (
+            'Polyspec\\Validator\\Tests\\' => 25,
+            'Polyspec\\Validator\\' => 19,
             'PhpParser\\' => 10,
-        ),
-        'F' => 
-        array (
-            'FormSpec\\Validator\\Tests\\' => 25,
-            'FormSpec\\Validator\\' => 19,
         ),
         'D' => 
         array (
@@ -28,17 +25,17 @@ class ComposerStaticInit5ae57ee0eb2a3b3cc181000bb26509b6
     );
 
     public static $prefixDirsPsr4 = array (
-        'PhpParser\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
-        ),
-        'FormSpec\\Validator\\Tests\\' => 
+        'Polyspec\\Validator\\Tests\\' => 
         array (
             0 => __DIR__ . '/../..' . '/tests',
         ),
-        'FormSpec\\Validator\\' => 
+        'Polyspec\\Validator\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'PhpParser\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
         ),
         'DeepCopy\\' => 
         array (

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Compose;
+namespace Polyspec\Validator\V2\Compose;
 
 /**
  * Composition load failure (SPEC-V2 §5, §7; unresolved_behavior). Port of the JS

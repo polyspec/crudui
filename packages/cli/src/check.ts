@@ -1,8 +1,8 @@
 /**
- * `form-spec check` — meta-schema validation + forbidden-scan + leaf-type catalog.
+ * `polyspec check` — meta-schema validation + forbidden-scan + leaf-type catalog.
  *
  * Three gates, all from the single-source-of-truth (no re-implemented rule):
- *   1. ajv against schema/form-spec-v2.schema.json (additionalProperties:false →
+ *   1. ajv against schema/polyspec-v2.schema.json (additionalProperties:false →
  *      rejects non-first-class keys, unregistered slot keys, ForbiddenKeyNames).
  *   2. scanForbiddenKeys (validator-ts/v2/forbidden-scan.ts) — the runtime
  *      backstop that the meta-schema mirrors, walked to arbitrary depth.
@@ -36,7 +36,7 @@ import { WIDGET_KINDS } from '../../generator-core/src/widget.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
-const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/form-spec-v2.schema.json');
+const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/polyspec-v2.schema.json');
 
 export interface CheckError {
   path: string;
@@ -100,7 +100,7 @@ function catalogErrors(field: Record<string, unknown>, path: string): CheckError
     out.push({
       path: path || '/',
       key: type,
-      reason: `unregistered leaf type: "${type}" is not a known widget kind (see \`form-spec describe\`)`,
+      reason: `unregistered leaf type: "${type}" is not a known widget kind (see \`polyspec describe\`)`,
     });
   }
   return out;

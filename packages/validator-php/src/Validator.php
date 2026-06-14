@@ -2,35 +2,35 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator;
+namespace Polyspec\Validator;
 
-use FormSpec\Validator\Rules\RuleInterface;
-use FormSpec\Validator\Rules\Required;
-use FormSpec\Validator\Rules\Email;
-use FormSpec\Validator\Rules\MinLength;
-use FormSpec\Validator\Rules\MaxLength;
-use FormSpec\Validator\Rules\Min;
-use FormSpec\Validator\Rules\Max;
-use FormSpec\Validator\Rules\Pattern;
-use FormSpec\Validator\Rules\Unique;
-use FormSpec\Validator\Rules\In;
-use FormSpec\Validator\Rules\Range;
-use FormSpec\Validator\Rules\RangeLength;
-use FormSpec\Validator\Rules\Number;
-use FormSpec\Validator\Rules\Digits;
-use FormSpec\Validator\Rules\EqualTo;
-use FormSpec\Validator\Rules\NotEqual;
-use FormSpec\Validator\Rules\Date;
-use FormSpec\Validator\Rules\DateISO;
-use FormSpec\Validator\Rules\EndDate;
-use FormSpec\Validator\Rules\Url;
-use FormSpec\Validator\Rules\Accept;
-use FormSpec\Validator\Rules\MinCount;
-use FormSpec\Validator\Rules\MaxCount;
-use FormSpec\Validator\Rules\Step;
+use Polyspec\Validator\Rules\RuleInterface;
+use Polyspec\Validator\Rules\Required;
+use Polyspec\Validator\Rules\Email;
+use Polyspec\Validator\Rules\MinLength;
+use Polyspec\Validator\Rules\MaxLength;
+use Polyspec\Validator\Rules\Min;
+use Polyspec\Validator\Rules\Max;
+use Polyspec\Validator\Rules\Pattern;
+use Polyspec\Validator\Rules\Unique;
+use Polyspec\Validator\Rules\In;
+use Polyspec\Validator\Rules\Range;
+use Polyspec\Validator\Rules\RangeLength;
+use Polyspec\Validator\Rules\Number;
+use Polyspec\Validator\Rules\Digits;
+use Polyspec\Validator\Rules\EqualTo;
+use Polyspec\Validator\Rules\NotEqual;
+use Polyspec\Validator\Rules\Date;
+use Polyspec\Validator\Rules\DateISO;
+use Polyspec\Validator\Rules\EndDate;
+use Polyspec\Validator\Rules\Url;
+use Polyspec\Validator\Rules\Accept;
+use Polyspec\Validator\Rules\MinCount;
+use Polyspec\Validator\Rules\MaxCount;
+use Polyspec\Validator\Rules\Step;
 
 /**
- * Core validator class for form-spec system.
+ * Core validator class for polyspec system.
  * Validates form data against YAML specifications.
  */
 class Validator

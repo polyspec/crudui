@@ -1,4 +1,4 @@
-# Form-Spec v2 명세
+# Polyspec v2 명세
 
 > 하나의 YAML로 4개 언어(JS/PHP/Go/Rust)가 동일하게 검증하고 3개 프레임워크
 > (React/Vue/Svelte)가 동일하게 렌더하는, **조건을 값에 녹이고 역할로 가른**
@@ -186,7 +186,7 @@ properties:
 
 ## 7. 구현 상태 + 로드맵 (골 게이트 연결)
 
-**현 form-spec은 legacy v1 포트다**(감사 실측). 1074/1074·7/7 GREEN은 v1 의미론의
+**현 polyspec은 legacy v1 포트다**(감사 실측). 1074/1074·7/7 GREEN은 v1 의미론의
 증거이지 v2 달성이 아니다 — parity 게이트는 legacy 행동을 핀해 G-A/G-F와 오히려
 역방향이다. v2 구현 갭(각각 골 게이트로 강제):
 
@@ -347,7 +347,7 @@ form-spec 의 `evalShow`/`evalAppearance`/`resolveDesign`/`makeTranslate` 를 **
 ### 9.4 검증 게이트 일관 (form-spec 불간섭)
 
 list-spec 메타스키마 정의는 form-spec 정의를 **건드리지 않는 additive** 다 — 같은
-`form-spec-v2.schema.json` 에 `List`/`Column`/`CellFormat`/`Pagination`/`Sort`/`ListAction`
+`polyspec-v2.schema.json` 에 `List`/`Column`/`CellFormat`/`Pagination`/`Sort`/`ListAction`
 definitions 를 추가하되 `Field` 외 진입점(`#/definitions/List`)으로 검증한다. 모든 열린
 버킷은 form-spec 과 **같은 `ForbiddenKeyNames`** 를 재사용하고(조건 전용 메타키·매직 토큰·
 주석 잔재 전역 거부), 1급은 `additionalProperties:false` 로 닫는다. `design`·`Items`·

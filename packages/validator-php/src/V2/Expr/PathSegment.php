@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Expr;
+namespace Polyspec\Validator\V2\Expr;
 
 /**
  * A single path segment: identifier (field name), wildcard (*), or index

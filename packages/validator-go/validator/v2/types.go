@@ -1,5 +1,5 @@
 // Package v2 is the canonical (SPEC-mechanized, single-truth) Go model of the
-// form-spec field. It is the v2 successor to the stable v1 validator package.
+// polyspec field. It is the v2 successor to the stable v1 validator package.
 //
 // v2 runs in parallel with v1 (R7). Do not fold v1 into this package; v1 stays
 // until v2 stabilizes. Nothing here imports v1, and v1 imports nothing here.

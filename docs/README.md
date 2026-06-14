@@ -1,4 +1,4 @@
-# Form-Spec 문서
+# Polyspec 문서
 
 YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, PHP, Go, Rust 에서
 동일한 검증 결과(멱등성)를 보장하고, React/Vue/Svelte 로 폼을 렌더링한다.
@@ -22,8 +22,8 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 
 | 문서 | 내용 |
 |------|------|
-| [FORM-SPEC-CLI.md](./FORM-SPEC-CLI.md) | `@polyspec/cli`(`form-spec`) — 구현: describe(--json/--md, drift 0, list capability 포함)·check(메타스키마+forbidden+type catalog)·explain(역검증)·list-widgets. 로드맵: validate·render·scaffold |
-| [FORM-SPEC-MCP.md](./FORM-SPEC-MCP.md) | LLM 도구 묶음 — 카탈로그 로드·정적 검증·값 검증·렌더·역검증. 모든 tool 은 CLI 에 위임(자체 엔진 0) |
+| [POLYSPEC-CLI.md](./POLYSPEC-CLI.md) | `@polyspec/cli`(`polyspec`) — 구현: describe(--json/--md, drift 0, list capability 포함)·check(메타스키마+forbidden+type catalog)·explain(역검증)·list-widgets. 로드맵: validate·render·scaffold |
+| [POLYSPEC-MCP.md](./POLYSPEC-MCP.md) | LLM 도구 묶음 — 카탈로그 로드·정적 검증·값 검증·렌더·역검증. 모든 tool 은 CLI 에 위임(자체 엔진 0) |
 | `examples/cross-check-console` | 4언어 validate-v2 CLI 검증 × 3프레임워크 SSR 렌더 크로스전송, 멱등/parity, raw, 픽스처 export, list 탭(`/api/render-list` 렌더 + `/api/validate-list` 4언어 검증) |
 | `.claude/skills/nl-to-v2-form` | 자연어 기획서/구술 → 검증 통과 v2 스펙 변환 스킬 |
 
@@ -60,18 +60,18 @@ YAML 기반 폼 정의 시스템. 하나의 스펙으로 JavaScript/TypeScript, 
 ## 저장소 구성
 
 ```
-form-spec/
+polyspec/
 ├── packages/
 │   ├── validator-ts/        # TS 검증기 (@polyspec/validator)
-│   ├── validator-php/       # PHP 검증기 (PHP ^8.2, FormSpec\Validator)
+│   ├── validator-php/       # PHP 검증기 (PHP ^8.2, Polyspec\Validator)
 │   ├── validator-go/        # Go 검증기 (모듈명 github.com/polyspec/polyspec/packages/validator-go)
-│   ├── validator-rust/      # Rust 검증기 (크레이트 formspec-validator)
+│   ├── validator-rust/      # Rust 검증기 (크레이트 polyspec-validator)
 │   ├── generator-core/      # 프레임워크 무관 코어 (@polyspec/generator-core) — buildForm/buildList
 │   ├── generator-react/     # React 폼 생성기 (@polyspec/generator-react) — 기준 HTML 7/7 parity
 │   ├── generator-vue/       # Vue 3 폼 생성기 (@polyspec/generator-vue, @vue/server-renderer SSR) — 기준 HTML 7/7 parity
 │   ├── generator-svelte/    # Svelte 5 폼 생성기 (@polyspec/generator-svelte, SSR) — 기준 HTML 7/7 parity
 │   ├── generator-legacy/    # legacy Limepie vendor 체크아웃 + web assets — 기준 HTML 파이프라인이 사용하는 기준 구현
-│   └── form-spec-cli/       # @polyspec/cli (bin: form-spec) — describe/check/explain/list-widgets, CLI 도구층
+│   └── cli/                 # @polyspec/cli (bin: polyspec) — describe/check/explain/list-widgets, CLI 도구층
 ├── tests/                   # 크로스 언어 픽스처(cases/), 기준 HTML(fixtures/), 러너(runner/), parity 하네스(parity/)
 ├── tools/
 │   └── limepie-baseline/    # Limepie 기준 HTML 재생성 파이프라인 (핀 커밋 강제)
@@ -110,7 +110,7 @@ const result = validator.validate({ email: '', password: '123' });
 ### PHP
 
 ```php
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 
 $validator = new Validator($spec);           // array $spec
 $result = $validator->validate($data);       // ValidationResult
@@ -128,7 +128,7 @@ result := v.Validate(data) // *ValidationResult
 ### Rust
 
 ```rust
-use formspec_validator::{parse_spec, Validator};
+use polyspec_validator::{parse_spec, Validator};
 
 let parsed = parse_spec(&spec_value);          // 정본 type/properties JSON Value
 let mut v = Validator::new(parsed.spec);

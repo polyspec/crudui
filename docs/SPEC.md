@@ -1,6 +1,6 @@
 # 폼 스펙 형식 명세서
 
-form-spec의 폼 정의(YAML/JSON) 형식 명세. 같은 스펙 하나로
+polyspec의 폼 정의(YAML/JSON) 형식 명세. 같은 스펙 하나로
 React/Vue/Svelte 렌더링(generator-react/vue/svelte)과
 4개 언어 서버 검증(validator-ts/php/go/rust)을 수행한다.
 

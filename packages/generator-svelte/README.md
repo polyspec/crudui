@@ -1,6 +1,6 @@
 # @polyspec/generator-svelte
 
-Svelte form builder for [form-spec](../../README.md) YAML definitions. Renders
+Svelte form builder for [polyspec](../../README.md) YAML definitions. Renders
 the same Limepie-compatible markup as
 [`@polyspec/generator-react`](../generator-react) and is verified byte-for-byte
 against the shared reference HTML fixtures.

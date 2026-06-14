@@ -15,7 +15,7 @@ import { applyDisplaySwitchTransform } from './hooks/legacyDisplay';
 import { applyLangAppendTransform } from './hooks/legacyLang';
 
 /** Vue provide/inject key that carries the {@link RenderContext} down the field tree. */
-export const RENDER_CONTEXT_KEY: InjectionKey<RenderContext> = Symbol('form-spec-render-ctx');
+export const RENDER_CONTEXT_KEY: InjectionKey<RenderContext> = Symbol('polyspec-render-ctx');
 
 const defaultMessages: Record<string, Record<string, string>> = {
   ko: {

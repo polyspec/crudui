@@ -4,15 +4,15 @@
  *
  * Provides integration patterns for existing Limepie PHP applications.
  * This adapter helps migrate from Limepie's built-in validation to
- * the form-spec validation system.
+ * the polyspec validation system.
  */
 
 declare(strict_types=1);
 
 namespace App;
 
-use FormSpec\Validator\Validator;
-use FormSpec\Validator\ValidationResult;
+use Polyspec\Validator\Validator;
+use Polyspec\Validator\ValidationResult;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -26,7 +26,7 @@ use Symfony\Component\Yaml\Yaml;
  *
  *       public function postAction(): array
  *       {
- *           $result = $this->validateFormSpec('product-form', $this->getPost());
+ *           $result = $this->validatePolyspec('product-form', $this->getPost());
  *           if (!$result->isValid()) {
  *               return $this->error($result->getErrors());
  *           }
@@ -43,7 +43,7 @@ trait LimepieValidationTrait
      * @param array $data Form data to validate
      * @param string|null $specDir Custom spec directory path
      */
-    protected function validateFormSpec(
+    protected function validatePolyspec(
         string $specName,
         array $data,
         ?string $specDir = null

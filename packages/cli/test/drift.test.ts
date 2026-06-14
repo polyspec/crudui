@@ -1,5 +1,5 @@
 /**
- * drift-0 proof for `form-spec describe`.
+ * drift-0 proof for `polyspec describe`.
  *
  * describe reads ONLY live code objects + the parsed schema; it copies no
  * catalog. These tests assert the projection identity — describe's output is a

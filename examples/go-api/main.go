@@ -145,7 +145,7 @@ func (s *Server) loadSpec(name string) (*CachedSpec, error) {
 	return cached, nil
 }
 
-// isValidSpecShape reports whether a raw spec has the canonical form-spec
+// isValidSpecShape reports whether a raw spec has the canonical polyspec
 // shape: a group whose `properties` is an object. Anything else (arbitrary
 // keys, a missing `properties`, a non-group type) is malformed and is rejected
 // with 400 instead of being passed to the validator.

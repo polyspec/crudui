@@ -1,6 +1,6 @@
-# formspec-validator (Rust)
+# polyspec-validator (Rust)
 
-Rust validator for the form-spec system. Ships the v1 binary (`validate`) and the
+Rust validator for the polyspec system. Ships the v1 binary (`validate`) and the
 v2 engine (compose → forbidden-scan → validate), kept in conformance lockstep
 with the JS/PHP/Go implementations. The v1 model is never touched by v2 (R7
 parallel run).

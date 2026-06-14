@@ -9,7 +9,7 @@
 //	mkdir /tmp/go-usage && cp go-usage.go /tmp/go-usage/main.go
 //	cd /tmp/go-usage
 //	go mod init example.com/go-usage
-//	go mod edit -replace github.com/polyspec/polyspec/packages/validator-go=/path/to/form-spec/packages/validator-go
+//	go mod edit -replace github.com/polyspec/polyspec/packages/validator-go=/path/to/polyspec/packages/validator-go
 //	go get gopkg.in/yaml.v3 && go mod tidy
 //	go run .
 //

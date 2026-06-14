@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Validate;
+namespace Polyspec\Validator\V2\Validate;
 
 /**
  * v2 list-spec validation result — { valid, errors } (SPEC-V2 §9). Read sister of

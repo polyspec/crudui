@@ -2,33 +2,33 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Validate;
+namespace Polyspec\Validator\V2\Validate;
 
-use FormSpec\Validator\Rules\Required;
-use FormSpec\Validator\Rules\Email;
-use FormSpec\Validator\Rules\MinLength;
-use FormSpec\Validator\Rules\MaxLength;
-use FormSpec\Validator\Rules\Min;
-use FormSpec\Validator\Rules\Max;
-use FormSpec\Validator\Rules\Pattern;
-use FormSpec\Validator\Rules\In;
-use FormSpec\Validator\Rules\Range;
-use FormSpec\Validator\Rules\RangeLength;
-use FormSpec\Validator\Rules\Number;
-use FormSpec\Validator\Rules\Digits;
-use FormSpec\Validator\Rules\EqualTo;
-use FormSpec\Validator\Rules\NotEqual;
-use FormSpec\Validator\Rules\Date;
-use FormSpec\Validator\Rules\DateISO;
-use FormSpec\Validator\Rules\EndDate;
-use FormSpec\Validator\Rules\Url;
-use FormSpec\Validator\Rules\Accept;
-use FormSpec\Validator\Rules\MinCount;
-use FormSpec\Validator\Rules\MaxCount;
-use FormSpec\Validator\Rules\Step;
-use FormSpec\Validator\Rules\RuleInterface;
-use FormSpec\Validator\V2\Expr\ConditionMap;
-use FormSpec\Validator\V2\Expr\Expression;
+use Polyspec\Validator\Rules\Required;
+use Polyspec\Validator\Rules\Email;
+use Polyspec\Validator\Rules\MinLength;
+use Polyspec\Validator\Rules\MaxLength;
+use Polyspec\Validator\Rules\Min;
+use Polyspec\Validator\Rules\Max;
+use Polyspec\Validator\Rules\Pattern;
+use Polyspec\Validator\Rules\In;
+use Polyspec\Validator\Rules\Range;
+use Polyspec\Validator\Rules\RangeLength;
+use Polyspec\Validator\Rules\Number;
+use Polyspec\Validator\Rules\Digits;
+use Polyspec\Validator\Rules\EqualTo;
+use Polyspec\Validator\Rules\NotEqual;
+use Polyspec\Validator\Rules\Date;
+use Polyspec\Validator\Rules\DateISO;
+use Polyspec\Validator\Rules\EndDate;
+use Polyspec\Validator\Rules\Url;
+use Polyspec\Validator\Rules\Accept;
+use Polyspec\Validator\Rules\MinCount;
+use Polyspec\Validator\Rules\MaxCount;
+use Polyspec\Validator\Rules\Step;
+use Polyspec\Validator\Rules\RuleInterface;
+use Polyspec\Validator\V2\Expr\ConditionMap;
+use Polyspec\Validator\V2\Expr\Expression;
 
 /**
  * v2 form validator — SPEC-V2 §2 G5→§3→§2 G1. Port of validator-ts
@@ -39,8 +39,8 @@ use FormSpec\Validator\V2\Expr\Expression;
  * expanded $ref/$patch into a single spec (Validate::run runs compose first).
  * It does NOT touch the v1 Validator (R7 parallel run) and it does NOT
  * re-implement the rule semantics or the expression engine — it CALLS the
- * existing v1 rule instances (FormSpec\Validator\Rules) and the existing v2
- * expression engine (FormSpec\Validator\V2\Expr). The only v2-new logic here is:
+ * existing v1 rule instances (Polyspec\Validator\Rules) and the existing v2
+ * expression engine (Polyspec\Validator\V2\Expr). The only v2-new logic here is:
  *   (a) reading the `validate` slot instead of the v1 `rules` key,
  *   (b) evaluating a rule value that is an expression OR a condition map (G1 —
  *       the condition is the value's expression, never a separate if/when key),

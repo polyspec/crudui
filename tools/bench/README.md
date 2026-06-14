@@ -1,6 +1,6 @@
 # Validator throughput benchmark (JS / PHP / Go / Rust)
 
-Runs the four form-spec validators over the **same spec + same input**, N times
+Runs the four polyspec validators over the **same spec + same input**, N times
 each, and reports throughput (ops/sec) and average latency (µs). Purpose: a
 defensible "which backend?" comparison — not an absolute speed claim.
 

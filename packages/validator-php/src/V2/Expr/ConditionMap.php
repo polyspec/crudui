@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Expr;
+namespace Polyspec\Validator\V2\Expr;
 
 /**
  * Condition-map resolver (EXPRESSION-GRAMMAR §8). A thin wrapper over the

@@ -8,7 +8,7 @@ import { translateV1ToV2 } from '../packages/validator-ts/src/v2/translate/index
 
 const CORPUS = '/Users/max/Abyss/Workspace/blue/app';
 const REPO = path.resolve(import.meta.dirname, '..');
-const schema = JSON.parse(fs.readFileSync(path.join(REPO, 'schema/form-spec-v2.schema.json'), 'utf8'));
+const schema = JSON.parse(fs.readFileSync(path.join(REPO, 'schema/polyspec-v2.schema.json'), 'utf8'));
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
 const vs = ajv.compile(schema);

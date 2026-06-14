@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Rules;
+namespace Polyspec\Validator\Rules;
 
 /**
  * Maximum value validation rule.

@@ -1,6 +1,6 @@
-# form-spec/validator (PHP)
+# polyspec/validator (PHP)
 
-PHP validator for the form-spec system. Ships the v1 validator (form data → spec
+PHP validator for the polyspec system. Ships the v1 validator (form data → spec
 verdict) and the v2 engine (compose → forbidden-scan → validate), kept in
 conformance lockstep with the JS/Go/Rust implementations.
 

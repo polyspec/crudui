@@ -4,7 +4,7 @@
 
 1. **수기 마크다운** — `docs/*.md` (스펙·검증·조건식·테스트 가이드). 직접 편집한다.
 2. **자동생성** — 멀티언어 API 레퍼런스(`docs/api/`)와 기계가독 JSON Schema
-   (`schema/form-spec.schema.json`). 소스 주석·타입에서 생성하며 직접 편집하지 않는다.
+   (`schema/polyspec.schema.json`). 소스 주석·타입에서 생성하며 직접 편집하지 않는다.
 
 사용자 진입점은 루트 **Makefile** 이다. npm scripts 는 하위 빌딩블록으로 둔다.
 
@@ -62,7 +62,7 @@ phpDocumentor 가 환경에 없으면 PHP HTML 생성은 건너뛰고 `docs/api/
 
 ## JSON Schema
 
-`schema/form-spec.schema.json` 은 `packages/validator-ts/src/types.ts` 의 `Spec`
+`schema/polyspec.schema.json` 은 `packages/validator-ts/src/types.ts` 의 `Spec`
 타입에서 생성한 draft-07 스키마다. 생성 후 Ajv 로 self-validate 하고
 `examples/shared-specs/*.yml` 로 스모크한다. 한계·에디터 연결법은
 [`schema/README.md`](https://github.com/polyspec/polyspec/blob/main/schema/README.md).

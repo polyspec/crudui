@@ -1,5 +1,5 @@
 /**
- * `form-spec check` — leaf-type catalog cross-check (the orchestrator gate that
+ * `polyspec check` — leaf-type catalog cross-check (the orchestrator gate that
  * the meta-schema cannot express).
  *
  * The meta-schema models `Field.type` as an unconstrained string, and the

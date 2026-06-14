@@ -2,7 +2,7 @@
 /**
  * php-doc-coverage.php — standalone PHP doc-coverage checker.
  *
- * Asserts that every public class and public method in FormSpec\Validator
+ * Asserts that every public class and public method in Polyspec\Validator
  * carries a docblock. Exits non-zero (RED) when any public symbol is
  * undocumented. Dependency-free: uses tokenizer + reflection over the source
  * tree, so it runs without composer/phpunit installed.
@@ -20,7 +20,7 @@ declare(strict_types=1);
  * @param string $srcDir absolute path to the package src directory
  * @return string[] undocumented public symbol descriptions (empty when all documented)
  */
-function formspec_php_doc_gaps(string $srcDir): array
+function polyspec_php_doc_gaps(string $srcDir): array
 {
     // Bootstrap the composer autoloader so dependent classes resolve regardless
     // of file order. Falls back gracefully if vendor is absent.
@@ -97,7 +97,7 @@ if (PHP_SAPI === 'cli' && isset($argv[0]) && realpath($argv[0]) === realpath(__F
         exit(2);
     }
 
-    $gaps = formspec_php_doc_gaps($srcDir);
+    $gaps = polyspec_php_doc_gaps($srcDir);
     if (count($gaps) > 0) {
         fwrite(STDERR, '[php-doc-coverage] RED: ' . count($gaps) . " undocumented public symbol(s):\n");
         foreach ($gaps as $g) {

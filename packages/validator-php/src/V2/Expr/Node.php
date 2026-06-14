@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Expr;
+namespace Polyspec\Validator\V2\Expr;
 
 /**
  * Base for every v2 expression AST node (EXPRESSION-GRAMMAR §4).
@@ -13,7 +13,7 @@ namespace FormSpec\Validator\V2\Expr;
  * no position, so the 4-language AST contract excludes it; including it would
  * break cross-language fixture equality.
  *
- * v2-only. Never reuse v1 FormSpec\Validator\ConditionParser (R7 parallel run).
+ * v2-only. Never reuse v1 Polyspec\Validator\ConditionParser (R7 parallel run).
  */
 abstract class Node
 {

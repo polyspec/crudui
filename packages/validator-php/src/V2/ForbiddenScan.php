@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2;
+namespace Polyspec\Validator\V2;
 
-use FormSpec\Validator\V2\Compose\ComposeLoadError;
+use Polyspec\Validator\V2\Compose\ComposeLoadError;
 
 /**
  * Recursive forbidden meta-key scan (SPEC-V2 §6) — the runtime half of the

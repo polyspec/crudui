@@ -38,7 +38,7 @@ const __dirname = path.dirname(__filename);
 // src/v2/translate -> repo root is five levels up.
 const ROOT = path.resolve(__dirname, '../../../../..');
 const FIXTURE = path.join(ROOT, 'tests/fixtures/translate/cases.json');
-const SCHEMA = path.join(ROOT, 'schema/form-spec-v2.schema.json');
+const SCHEMA = path.join(ROOT, 'schema/polyspec-v2.schema.json');
 
 interface FixtureCase {
   name: string;

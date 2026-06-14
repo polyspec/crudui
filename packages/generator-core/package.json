@@ -1,7 +1,7 @@
 {
   "name": "@polyspec/generator-core",
   "version": "1.0.0",
-  "description": "Framework-agnostic v2 evaluation core (compose + evaluate, markup 0) shared by every form-spec generator adapter (React/Vue/Svelte)",
+  "description": "Framework-agnostic v2 evaluation core (compose + evaluate, markup 0) shared by every polyspec generator adapter (React/Vue/Svelte)",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

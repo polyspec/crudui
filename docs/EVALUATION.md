@@ -1,4 +1,4 @@
-# Form-Spec 프로젝트 평가 보고서
+# Polyspec 프로젝트 평가 보고서
 
 > **현황 업데이트 (2026-06).** 이 보고서의 §3-§10 평가는 작성 시점 기준이며,
 > 아래 항목은 그 이후 실측으로 갱신되었다:
@@ -65,7 +65,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 | @polyspec/validator (JS) | v1.0.0 완성 |
 | validator-php | 완성 (PHP ^8.2) |
 | validator-go | 완성 |
-| validator-rust (formspec-validator) | 완성 |
+| validator-rust (polyspec-validator) | 완성 |
 | @polyspec/generator-react | 완성 — 기준 HTML 7/7 parity (353 테스트) |
 | @polyspec/generator-vue | 완성 — 기준 HTML 7/7 parity (@vue/server-renderer SSR) |
 | @polyspec/generator-svelte | 완성 — 기준 HTML 7/7 parity (Svelte 5 SSR) |
@@ -125,7 +125,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 ## 5. 대안 분석
 
 ### 5.1 JSON Forms (jsonforms.io)
-| 항목 | JSON Forms | Form-Spec |
+| 항목 | JSON Forms | Polyspec |
 |------|-----------|-----------|
 | 스키마 | JSON Schema 표준 | 자체 YAML 스펙 |
 | 프레임워크 | React, Vue, Angular | React, Vue, Svelte |
@@ -134,7 +134,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 | 커뮤니티 | 활성화 | 없음 |
 
 ### 5.2 Formily (alibaba)
-| 항목 | Formily | Form-Spec |
+| 항목 | Formily | Polyspec |
 |------|---------|-----------|
 | 스키마 | JSON Schema | 자체 YAML |
 | 성능 | 고성능 최적화 | 미검증 |
@@ -143,7 +143,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 | 한국어 문서 | 없음 | 있음 |
 
 ### 5.3 React Hook Form + Zod/Yup
-| 항목 | RHF + Zod | Form-Spec |
+| 항목 | RHF + Zod | Polyspec |
 |------|-----------|-----------|
 | 접근법 | 코드 기반 | 선언적 YAML |
 | 타입 안전성 | 최고 (Zod) | 좋음 |
@@ -182,7 +182,7 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 | JSON Forms | 없음 | 불가 | 중간 | **부적합** |
 | Formily | 없음 | 불가 | 높음 | **부적합** |
 | RHF + Zod | 수동 구현 | 보장 안됨 | 낮음 | **부적합** |
-| **Form-Spec** | JS/PHP/Go/Rust | 보장 | 높음 | **유일한 적합** |
+| **Polyspec** | JS/PHP/Go/Rust | 보장 | 높음 | **유일한 적합** |
 
 ### 결론: 대안 없음
 
@@ -272,11 +272,11 @@ YAML 기반 폼 정의 시스템으로, JavaScript/PHP/Go/Rust에서 동일한 �
 | # | 작업 | 설명 | 가치 |
 |---|------|------|------|
 | 11 | TypeScript 타입 생성 | YAML 스펙 → TS interface 자동 생성 | 타입 안전성 극대화 |
-| 12 | CLI 도구 | `form-spec validate`, `form-spec generate` | DX 향상 |
+| 12 | CLI 도구 | `polyspec validate`, `polyspec generate` | DX 향상 |
 | 13 | VS Code 확장 | YAML 스펙 자동완성, 문법 검사 | DX 향상 |
 | 14 | 문서 사이트 | VitePress/Docusaurus 기반 문서 | 채택률 향상 |
 
-~~OpenAPI 스키마 생성~~ - 제외 (Form-Spec이 OpenAPI보다 상위 개념, 변환 시 60% 정보 손실)
+~~OpenAPI 스키마 생성~~ - 제외 (Polyspec이 OpenAPI보다 상위 개념, 변환 시 60% 정보 손실)
 
 ---
 

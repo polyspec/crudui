@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Compose;
+namespace Polyspec\Validator\V2\Compose;
 
 /**
  * $patch application — add / remove / replace over the $ref base (SPEC-V2 §5).

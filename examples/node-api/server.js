@@ -91,7 +91,7 @@ function loadSpec(name) {
 }
 
 /**
- * Check that a spec has the canonical form-spec shape: a group whose
+ * Check that a spec has the canonical polyspec shape: a group whose
  * `properties` is a plain object. Anything else (arbitrary keys, a missing
  * `properties`, a non-group type) is malformed and must be rejected with 400.
  * @param {*} spec - The submitted spec

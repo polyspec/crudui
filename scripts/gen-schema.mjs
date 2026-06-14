@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * gen-schema.mjs — generate schema/form-spec.schema.json from validator-ts types.
+ * gen-schema.mjs — generate schema/polyspec.schema.json from validator-ts types.
  *
  * Source of truth: packages/validator-ts/src/types.ts (the `Spec` interface).
  * Generator: ts-json-schema-generator (reads TSDoc, emits JSON Schema draft-07).
@@ -10,7 +10,7 @@
  *   2. smoke-tested — example shared specs are loaded and validated against it.
  *
  * Idempotency: output is overwritten each run; the generator emits deterministic,
- * sorted output, so repeated runs produce byte-identical schema/form-spec.schema.json.
+ * sorted output, so repeated runs produce byte-identical schema/polyspec.schema.json.
  * types.ts is never modified — schema limits are noted, not patched in source.
  */
 import { execFileSync } from 'node:child_process';
@@ -24,7 +24,7 @@ import yaml from 'js-yaml';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TYPES = join(ROOT, 'packages', 'validator-ts', 'src', 'types.ts');
 const SCHEMA_DIR = join(ROOT, 'schema');
-const SCHEMA_FILE = join(SCHEMA_DIR, 'form-spec.schema.json');
+const SCHEMA_FILE = join(SCHEMA_DIR, 'polyspec.schema.json');
 
 function log(m) {
   process.stdout.write(`[gen-schema] ${m}\n`);
@@ -38,7 +38,7 @@ const args = [
   'ts-json-schema-generator',
   '--path', TYPES,
   '--type', 'Spec',
-  '--id', 'https://github.com/polyspec/polyspec/schema/form-spec.schema.json',
+  '--id', 'https://github.com/polyspec/polyspec/schema/polyspec.schema.json',
   '--tsconfig', join(ROOT, 'packages', 'validator-ts', 'tsconfig.json'),
   // unstable=false keeps definition ordering stable across runs (idempotent output)
   '--no-top-ref',

@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 use Symfony\Component\Yaml\Yaml;
 
 const SPECS_DIR = __DIR__ . '/specs';
@@ -91,7 +91,7 @@ function loadSpec(string $name): ?array
 }
 
 /**
- * Check that a spec has the canonical form-spec shape: a group whose
+ * Check that a spec has the canonical polyspec shape: a group whose
  * `properties` is an associative array. Anything else (arbitrary keys, a
  * missing `properties`, a non-group type) is malformed and is rejected with
  * 400 instead of being passed to the validator.

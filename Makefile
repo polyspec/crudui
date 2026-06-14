@@ -1,4 +1,4 @@
-# Form-Spec documentation pipeline.
+# Polyspec documentation pipeline.
 #
 # User entry point for all documentation generation. npm scripts, typedoc,
 # cargo doc, and go doc are building blocks invoked from here.
@@ -19,7 +19,7 @@ BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
 
 help: ## 타겟 설명
-	@echo "Form-Spec docs — make targets:"
+	@echo "Polyspec docs — make targets:"
 	@echo ""
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema + VitePress build)"
 	@echo "  make docs-api              멀티언어 API doc (typedoc 4종 + go doc + cargo doc + php 가능시)"
@@ -33,7 +33,7 @@ help: ## 타겟 설명
 	@echo "  make docs-check-servers    examples 서버 4종만 검사 (node/go/php/rust)"
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
 	@echo ""
-	@echo "Form-Spec validator benchmark — make targets:"
+	@echo "Polyspec validator benchmark — make targets:"
 	@echo ""
 	@echo "  make bench                 4언어(JS/PHP/Go/Rust) 처리량 비교 (ops/sec + avg µs 표 → tools/bench/results.md)"
 	@echo "  make bench-js              JS 검증기만 측정"
@@ -79,7 +79,7 @@ docs-check-servers: ## examples 서버 4종 doc-coverage (node/go/php/rust)
 docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api
 	rm -rf docs/.vitepress/dist docs/.vitepress/cache
-	rm -f schema/form-spec.schema.json
+	rm -f schema/polyspec.schema.json
 	rm -rf packages/validator-rust/target/doc
 	rm -rf tools/bin/.phpdoc-cache
 	@echo "[make] docs-clean: removed generated docs/api, dist, schema json, rustdoc, phpdoc cache"
@@ -91,18 +91,18 @@ docs-clean: ## 생성물 전부 제거
 docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 	@$(MAKE) docs-clean
 	@$(MAKE) docs-api docs-schema
-	@rm -rf /tmp/formspec-docs-run1 && mkdir -p /tmp/formspec-docs-run1
-	@cp -R docs/api /tmp/formspec-docs-run1/api
-	@cp schema/form-spec.schema.json /tmp/formspec-docs-run1/form-spec.schema.json
+	@rm -rf /tmp/polyspec-docs-run1 && mkdir -p /tmp/polyspec-docs-run1
+	@cp -R docs/api /tmp/polyspec-docs-run1/api
+	@cp schema/polyspec.schema.json /tmp/polyspec-docs-run1/polyspec.schema.json
 	@$(MAKE) docs-api docs-schema
-	@rm -rf /tmp/formspec-docs-run2 && mkdir -p /tmp/formspec-docs-run2
-	@cp -R docs/api /tmp/formspec-docs-run2/api
-	@cp schema/form-spec.schema.json /tmp/formspec-docs-run2/form-spec.schema.json
-	@if diff -r /tmp/formspec-docs-run1 /tmp/formspec-docs-run2 > /tmp/formspec-docs-diff.txt 2>&1; then \
+	@rm -rf /tmp/polyspec-docs-run2 && mkdir -p /tmp/polyspec-docs-run2
+	@cp -R docs/api /tmp/polyspec-docs-run2/api
+	@cp schema/polyspec.schema.json /tmp/polyspec-docs-run2/polyspec.schema.json
+	@if diff -r /tmp/polyspec-docs-run1 /tmp/polyspec-docs-run2 > /tmp/polyspec-docs-diff.txt 2>&1; then \
 		echo "[make] docs-verify-idempotent: OK — two runs produced identical deterministic output"; \
 	else \
 		echo "[make] docs-verify-idempotent: FAILED — outputs differ:"; \
-		cat /tmp/formspec-docs-diff.txt; \
+		cat /tmp/polyspec-docs-diff.txt; \
 		exit 1; \
 	fi
 

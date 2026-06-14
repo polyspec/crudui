@@ -1,7 +1,7 @@
 {
   "name": "@polyspec/generator-react",
   "version": "1.0.0",
-  "description": "React form builder component library based on form-spec YAML definitions",
+  "description": "React form builder component library based on polyspec YAML definitions",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --clean --external react --external react-dom && npm run build:css",
-    "build:css": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/styles/form-spec.css','dist/styles.css')\"",
+    "build:css": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/styles/polyspec.css','dist/styles.css')\"",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external react --external react-dom",
     "test": "vitest",
     "test:v2": "vitest run src/__tests__/v2-render.conformance.test.ts src/__tests__/v2-list-render.conformance.test.ts",

@@ -2,7 +2,7 @@
 //!
 //! Two modes, switched by stdin `mode` (default `"form"`):
 //!
-//!   form (default) — DATA validation of a form-spec:
+//!   form (default) — DATA validation of a polyspec:
 //!     stdin  : `{ "spec": {…}, "data": {…}, "files"?: {…}, "basepath"?: "…" }`
 //!     stdout : `{ "valid": bool, "errors": [{ path, field, rule, message, value }] }`
 //!     Reuses `v2::validate::validate_v2` (compose → forbidden-scan → validate).
@@ -30,8 +30,8 @@ use std::io::{self, Read, Write};
 
 use serde_json::{Map, Value};
 
-use formspec_validator::v2::list::{validate_list, ValidateListOptions};
-use formspec_validator::v2::validate::{validate_v2, ValidateV2Options, ValidationResult};
+use polyspec_validator::v2::list::{validate_list, ValidateListOptions};
+use polyspec_validator::v2::validate::{validate_v2, ValidateV2Options, ValidationResult};
 
 fn main() {
     let mut input_bytes = String::new();

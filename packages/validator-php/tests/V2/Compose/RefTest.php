@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\Tests\V2\Compose;
+namespace Polyspec\Validator\Tests\V2\Compose;
 
-use FormSpec\Validator\V2\Compose\Compose;
-use FormSpec\Validator\V2\Compose\ComposeLoadError;
-use FormSpec\Validator\V2\Compose\MemoryLoader;
-use FormSpec\Validator\V2\Compose\Ref;
+use Polyspec\Validator\V2\Compose\Compose;
+use Polyspec\Validator\V2\Compose\ComposeLoadError;
+use Polyspec\Validator\V2\Compose\MemoryLoader;
+use Polyspec\Validator\V2\Compose\Ref;
 use PHPUnit\Framework\TestCase;
 
 /**

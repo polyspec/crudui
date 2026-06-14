@@ -16,7 +16,7 @@
 //!   { name, note, spec, files?, expect: "ok" }
 //!   { name, note, spec, files?, expect: { error_code, at_path } }
 
-use formspec_validator::v2::validate::{validate_v2, ValidateV2Options};
+use polyspec_validator::v2::validate::{validate_v2, ValidateV2Options};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 

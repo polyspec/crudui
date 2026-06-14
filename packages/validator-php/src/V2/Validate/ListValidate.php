@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Validate;
+namespace Polyspec\Validator\V2\Validate;
 
-use FormSpec\Validator\V2\Compose\Compose;
-use FormSpec\Validator\V2\Compose\FileLoader;
-use FormSpec\Validator\V2\Compose\MemoryLoader;
-use FormSpec\Validator\V2\Compose\Patch;
-use FormSpec\Validator\V2\Compose\Ref;
-use FormSpec\Validator\V2\ForbiddenScan;
+use Polyspec\Validator\V2\Compose\Compose;
+use Polyspec\Validator\V2\Compose\FileLoader;
+use Polyspec\Validator\V2\Compose\MemoryLoader;
+use Polyspec\Validator\V2\Compose\Patch;
+use Polyspec\Validator\V2\Compose\Ref;
+use Polyspec\Validator\V2\ForbiddenScan;
 
 /**
  * v2 list-spec validation entry point — SPEC-V2 §9 read sister. Byte-for-byte
@@ -70,7 +70,7 @@ final class ListValidate
      * @param FileLoader|null $loader a custom loader (overrides $files)
      * @param string $basepath basepath for relative $ref resolution
      *
-     * @throws \FormSpec\Validator\V2\Compose\ComposeLoadError when composition cannot be resolved OR a forbidden meta key survives into the composed list tree
+     * @throws \Polyspec\Validator\V2\Compose\ComposeLoadError when composition cannot be resolved OR a forbidden meta key survives into the composed list tree
      */
     public static function run(
         array $spec,

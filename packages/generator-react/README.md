@@ -1,6 +1,6 @@
 # @polyspec/generator-react
 
-React form builder for form-spec definitions. Two surfaces:
+React form builder for polyspec definitions. Two surfaces:
 
 - v1 (`src/index.ts`) — `FormBuilder` and the legacy field/group components,
   byte-parity with the Limepie PHP `Generator::write()` reference fixtures.

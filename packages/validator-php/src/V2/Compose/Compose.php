@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FormSpec\Validator\V2\Compose;
+namespace Polyspec\Validator\V2\Compose;
 
 /**
  * Composition orchestrator (SPEC-V2 §5, G5) — the parser's FIRST pass.

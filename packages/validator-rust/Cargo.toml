@@ -1,10 +1,10 @@
 [package]
-name = "formspec-validator"
+name = "polyspec-validator"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "formspec_validator"
+name = "polyspec_validator"
 path = "src/lib.rs"
 
 [[bin]]

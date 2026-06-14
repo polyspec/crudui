@@ -1,5 +1,5 @@
 /**
- * `form-spec explain` — spec → natural-language back-check (SKILL §1g loop exit).
+ * `polyspec explain` — spec → natural-language back-check (SKILL §1g loop exit).
  *
  * The reverse leg of the nl→v2 loop: it turns a (composed) spec back into prose
  * so the author can diff the prose against the source 기획서 and catch a dropped

@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 
-use FormSpec\Validator\Validator;
+use Polyspec\Validator\Validator;
 
 $FIXTURES = __DIR__ . '/fixtures';
 

@@ -1,5 +1,5 @@
 /**
- * Form-spec v2 Field Type Definitions (canonical, reference)
+ * Polyspec v2 Field Type Definitions (canonical, reference)
  *
  * Single source of truth for the v2 field model, mechanized from SPEC-V2.md
  * (the v2 constitution) and EXPRESSION-GRAMMAR.md (the expression engine).
