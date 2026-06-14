@@ -38,6 +38,7 @@
     "vue": "^3.4.0"
   },
   "dependencies": {
+    "@form-spec/generator-core": "file:../generator-core",
     "@form-spec/validator": "file:../validator-js",
     "yaml": "^2.3.0"
   },

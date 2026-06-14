@@ -1,42 +1,44 @@
 /**
- * v2 Vue 3 SSR entry — emit the composed v2 form HTML through Vue's own server
- * renderer.
+ * v2 Vue 3 SSR entry — render the composed v2 form through Vue's own renderer.
  *
- * The four mandated stages run in renderFormV2 (compose → design/expr →
- * envelope), producing the verified Limepie envelope as an HTML STRING that is
- * byte-faithful to the React v2 reference. This module hands that string to Vue
- * 3's createStaticVNode (the same hoisted-static-content vnode Vue's compiler
- * emits) and serializes it with @vue/server-renderer renderToString — genuine
- * Vue 3 SSR. createStaticVNode preserves the markup verbatim (including
- * `value=""` / `data-default=""`), so the SSR output matches the shared parity
- * fixture after normalization across all three frameworks.
+ * The four mandated stages run in buildForm (compose → design/expr eval → i18n →
+ * FieldViewModel[] tree) in the shared core; the Vue adapter (FormV2) builds a
+ * REAL vnode tree from that view model, and @vue/server-renderer renderToString
+ * serializes it. This is genuine Vue 3 SSR of a real vnode tree — NOT a
+ * createStaticVNode echo of completed HTML. The leaf control bytes are injected
+ * through their container vnode's `innerHTML` domProp (the only raw path, forced
+ * by @vue/server-renderer's hardcoded empty/boolean attribute coercion); every
+ * structural node is a real vnode.
  *
- * `vue` and `@vue/server-renderer` are imported dynamically so the v2 string
- * entry (renderFormV2) stays usable without the SSR peer; SSR is opt-in.
+ * `vue` and `@vue/server-renderer` are imported dynamically so the package's
+ * non-SSR surfaces stay usable without the SSR peer; SSR is opt-in.
  */
 
-import { renderFormV2, type RenderFormOptions } from './index';
+import { buildForm } from '@form-spec/generator-core';
+import type { RenderFormOptions } from './index';
+import { FormV2 } from './components/FormV2';
 
 /**
  * Render a v2 form to its SSR HTML string via Vue 3's server renderer.
  *
- * Throws `ComposeLoadError` on an unresolved `$ref` (raised by renderFormV2
- * before any Vue work — a load error, never silent).
+ * Throws `ComposeLoadError` on an unresolved `$ref` (raised by buildForm before
+ * any Vue work — a load error, never silent), and `UnsupportedFieldTypeError` on
+ * an un-ported field type (default-throw mode).
  */
 export async function renderFormV2SSR(
   rootSpec: Record<string, unknown>,
   options: RenderFormOptions = {}
 ): Promise<string> {
-  // Stages 1–4: compose + design/expr + envelope → verified HTML string.
-  const html = renderFormV2(rootSpec, options);
+  // Stages 1–4 (compose + design/expr + i18n + tree) → markup-free view model.
+  const fields = buildForm(rootSpec, options);
 
-  // Genuine Vue 3 SSR: emit the verified markup as a static vnode (Vue's own
-  // hoisted-static mechanism) through @vue/server-renderer renderToString.
-  const { createSSRApp, createStaticVNode } = await import('vue');
+  // Genuine Vue 3 SSR of a REAL vnode tree (FormV2 → Field → Widget), not a
+  // createStaticVNode echo. Dynamic import keeps the SSR peer opt-in.
+  const { createSSRApp } = await import('vue');
   const { renderToString } = await import('@vue/server-renderer');
 
   const app = createSSRApp({
-    render: () => createStaticVNode(html, 1),
+    render: () => FormV2(fields),
   });
   return renderToString(app);
 }
