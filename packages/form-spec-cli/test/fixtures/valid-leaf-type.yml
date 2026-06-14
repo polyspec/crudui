@@ -1,0 +1,13 @@
+# Control — every leaf type is a registered WIDGET_KIND. `text` is canonical,
+# `radio` is a registered alias (choice). Both must pass the catalog cross-check.
+type: group
+properties:
+  nickname:
+    type: text
+    label: Nickname
+  gender:
+    type: radio
+    label: Gender
+    items:
+      m: Male
+      f: Female

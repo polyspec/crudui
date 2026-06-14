@@ -1,0 +1,12 @@
+# An invented leaf type buried under a nested container. The walk must descend
+# through every container's `properties` and catch a leaf at any depth — the gate
+# is depth-unbounded, like the forbidden-scan it sits beside.
+type: group
+properties:
+  contact:
+    type: group
+    properties:
+      phone:
+        type: text
+      method:
+        type: slider   # invented — not a registered widget kind

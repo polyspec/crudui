@@ -1,0 +1,14 @@
+# Control — registry ALIASES (not just canonical kinds) are admitted, proving
+# the gate reads the full WIDGET_KINDS key set (canonical + alias), not a
+# canonical-only projection. `dropdown`→select, `wysiwyg`→tinymce, `action`→button.
+type: group
+properties:
+  country:
+    type: dropdown
+    items:
+      kr: Korea
+      us: USA
+  body:
+    type: wysiwyg
+  submit:
+    type: action

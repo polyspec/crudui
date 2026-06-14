@@ -1,0 +1,10 @@
+# Invented leaf widget type. `checkbox` is NOT a registered WIDGET_KIND
+# (the real option widgets are choice/radio, multichoice/checkboxes). A leaf
+# field (no `properties`) carrying it must be rejected by `check` — the
+# meta-schema's Field.type is an unconstrained string, so only the catalog
+# cross-check can catch it.
+type: group
+properties:
+  agree:
+    type: checkbox
+    label: I agree
