@@ -29,7 +29,7 @@ function record(lang, ok, note) {
 }
 
 const TS_PACKAGES = [
-  { pkg: 'validator-js', entry: 'src/index.ts', tsconfig: 'packages/validator-js/tsconfig.json' },
+  { pkg: 'validator-ts', entry: 'src/index.ts', tsconfig: 'packages/validator-ts/tsconfig.json' },
   { pkg: 'generator-react', entry: 'src/index.ts', tsconfig: 'packages/generator-react/tsconfig.json' },
   { pkg: 'generator-vue', entry: 'src/index.ts', tsconfig: 'packages/generator-vue/tsconfig.json' },
   {

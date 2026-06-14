@@ -33,8 +33,8 @@ import {
   translateFromLegacy,
   translateToLegacy,
   deepEqual,
-} from '../../../packages/validator-js/src/legacy/translate/index';
-import { scanForbiddenKeys } from '../../../packages/validator-js/src/forbidden-scan';
+} from '../../../packages/validator-ts/src/legacy/translate/index';
+import { scanForbiddenKeys } from '../../../packages/validator-ts/src/forbidden-scan';
 
 interface CaseSpec {
   name: string;

@@ -11,7 +11,7 @@
 // The single truth is the shared 4-language fixture
 // tests/fixtures/expr/cases.json (already passing in JS and PHP). Tokens, AST
 // shape, and evaluated value/truthy are byte-compatible with the JS reference
-// (validator-js ConditionParser.ts + PathResolver.ts). AST serialization omits
+// (validator-ts ConditionParser.ts + PathResolver.ts). AST serialization omits
 // position (Rust holds none → the 4-language equivalence compares position-free
 // nodes).
 package expr

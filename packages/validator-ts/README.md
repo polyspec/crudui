@@ -1,8 +1,8 @@
-# @form-spec/validator (JS/TS)
+# @crudui/validator (JS/TS)
 
 form-spec validator for JavaScript/TypeScript. Ships the legacy `Validator` library
 (form data → `{ valid, errors }`) and the CRUDUI engine (compose → forbidden-scan →
-validate) reused by `@form-spec/generator-core`.
+validate) reused by `@crudui/generator-core`.
 
 ## CRUDUI entry points
 

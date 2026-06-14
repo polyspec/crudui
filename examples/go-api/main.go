@@ -27,7 +27,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	validator "github.com/polyspec/crudui/packages/validator-go/validator/legacy"
+	validator "github.com/crudui/crudui/packages/validator-go/validator/legacy"
 )
 
 // Config holds server configuration

@@ -5,7 +5,7 @@ form-spec 검증기에 **실제 등록된** 규칙의 목록과 동작 명세.
 
 레지스트리 출처:
 
-- JS: `packages/validator-js/src/rules/index.ts` (`builtInRules`)
+- JS: `packages/validator-ts/src/rules/index.ts` (`builtInRules`)
 - PHP: `packages/validator-php/src/Legacy/Validator.php` (`registerDefaultRules()`)
 - Go: `packages/validator-go/validator/legacy/rules.go` (`DefaultRules()`)
 - Rust: `packages/validator-rust/src/legacy/rules.rs` (`default_rules()`)
@@ -58,7 +58,7 @@ form-spec 검증기에 **실제 등록된** 규칙의 목록과 동작 명세.
 
 `pattern`과 `match`는 **동일 구현을 가리키는 별칭**이다. 4개 언어 모두 동일하다.
 
-- JS: `['pattern', matchRule]` — `packages/validator-js/src/rules/index.ts:44`
+- JS: `['pattern', matchRule]` — `packages/validator-ts/src/rules/index.ts:44`
 - PHP: `$this->rules['match'] = $patternRule; $this->rules['pattern'] = $patternRule;`
   — `packages/validator-php/src/Legacy/Validator.php:114-116`
 - Go: `"match": ruleMatch, "pattern": ruleMatch` — `packages/validator-go/validator/legacy/rules.go:25-26`
@@ -122,7 +122,7 @@ JS의 규칙별 `defaultMessage`는 전체 항목이 이 표와 일치하며
    mincount 위반인 경우 — `packages/validator-php/src/Legacy/Validator.php:370-375`,
    `tests/cases/multiple-fields.json`).
    숫자 `0`, 문자열 `'0'`, `false`는 빈 값이 아니다
-   (`packages/validator-js/src/rules/required.ts` `isEmpty`).
+   (`packages/validator-ts/src/rules/required.ts` `isEmpty`).
 3. **`false`/`null` 파라미터 = 규칙 비활성** — `required: false` 또는 조건식이
    false로 평가되면 해당 규칙을 건너뛴다.
 4. **미등록 규칙은 무시** — 알 수 없는 규칙명은 에러 없이 건너뛴다
@@ -142,7 +142,7 @@ JS의 규칙별 `defaultMessage`는 전체 항목이 이 표와 일치하며
 required, unique, mincount, maxcount
 ```
 
-- JS: `ARRAY_LEVEL_RULES` — `packages/validator-js/src/legacy/Validator.ts:132`
+- JS: `ARRAY_LEVEL_RULES` — `packages/validator-ts/src/legacy/Validator.ts:132`
 - PHP: `Validator::ARRAY_LEVEL_RULES` — `packages/validator-php/src/Legacy/Validator.php:42`
 - Go: `arrayLevelRules` — `packages/validator-go/validator/legacy/validator.go:30-35`
 - Rust: `array_level_rules()` — `packages/validator-rust/src/legacy/validator.rs:21`
@@ -152,7 +152,7 @@ required, unique, mincount, maxcount
 ## 검증 의미론 원칙 (Validation Semantics Principles)
 
 검증 의미론의 단일 진실은 **"논리적으로 올바른 동작"** 이며, 모든 구현
-(validator-js/php/go/rust)에 일관 적용한다.
+(validator-ts/php/go/rust)에 일관 적용한다.
 새 검증기 4언어는 이 원칙대로 구현돼 1074 케이스 교차언어 멱등이다.
 
 아래 원칙은 확정이다. 각 원칙은 새 검증기 구현이 출처다.
@@ -164,7 +164,7 @@ required, unique, mincount, maxcount
 
 - 근거: 공백만 통과는 보안 결함이다. "내용이 있다"가 아니라 "공백을 채웠다"를
   통과시키면 필수 입력 강제가 무력화된다.
-- 새 검증기 출처: `packages/validator-js/src/rules/required.ts:18`
+- 새 검증기 출처: `packages/validator-ts/src/rules/required.ts:18`
   (`value.trim() === ''`).
 
 ### 2. type:number — 암묵 number 검사
@@ -175,7 +175,7 @@ required, unique, mincount, maxcount
 
 - 근거: 숫자 필드가 비숫자를 받아들이면 후속 숫자 규칙(min/max)이 무의미한
   비교를 한다. 타입 자체가 암묵적 number 제약이다.
-- 새 검증기 출처: `packages/validator-js/src/legacy/Validator.ts:629-652`
+- 새 검증기 출처: `packages/validator-ts/src/legacy/Validator.ts:629-652`
   (`fieldSpec.type === 'number'` 이고 명시 `number` 규칙이 없으면 암묵 number를
   먼저 실행). 서버측 동치: `packages/validator-php/src/Legacy/Validator.php:288-304`,
   `packages/validator-go/validator/legacy/validator.go:205`.
@@ -187,8 +187,8 @@ min/max 등의 임계값(param)이 숫자로 파싱되지 않으면(`Number(para
 
 - 근거: 무효 임계값을 문자열 비교(`"5" >= "xyz"`)로 처리하면 결과가 타입 저글링
   부작용으로 결정된다. 적용 불가능한 규칙은 검증 결과를 좌우해선 안 된다.
-- 새 검증기 출처: `packages/validator-js/src/rules/min.ts:58-61`,
-  `packages/validator-js/src/rules/max.ts:28-31`
+- 새 검증기 출처: `packages/validator-ts/src/rules/min.ts:58-61`,
+  `packages/validator-ts/src/rules/max.ts:28-31`
   (`Number(ruleParam)`이 NaN이면 `null` 반환 = skip).
 
 ### 4. number 입력은 유한수여야 한다
@@ -200,7 +200,7 @@ min/max 등의 임계값(param)이 숫자로 파싱되지 않으면(`Number(para
 - 근거: 비유한 값은 산술·비교를 오염시킨다. 숫자 입력은 유한해야 후속 규칙이
   의미를 갖는다. `type:number` 암묵 number가 먼저 실행되므로 min/max보다 `number`가
   먼저 보고된다.
-- 새 검증기 출처: `packages/validator-js/src/rules/number.ts:18,34`
+- 새 검증기 출처: `packages/validator-ts/src/rules/number.ts:18,34`
   (`isFinite(value)` / `isFinite(num)`). 회귀 잠금: `tests/cases/number-nonfinite.json`.
 
 ### 5. 객체키 multiple group — 엔트리 카운트·에러 경로 보존
@@ -213,7 +213,7 @@ group-level mincount/maxcount는 엔트리 수를 `count(value)`로 센다(배�
 - 근거: legacy 필드 모델의 `[]`-suffix 반복 경로는 키를 보존해야
   한다. 키 정렬은 JSON 맵에 삽입 순서가 없는 Go/Rust/PHP와
   JS가 동일한 첫 에러를 내기 위한 필수 조건이다.
-- 새 검증기 출처: `packages/validator-js/src/legacy/Validator.ts:293-296`(객체 multiple
+- 새 검증기 출처: `packages/validator-ts/src/legacy/Validator.ts:293-296`(객체 multiple
   판정), `:327`(`Object.keys(objectValue).sort()` 로 결정적 순회).
 - 회귀 잠금: `tests/cases/count-object-key.json`(카운트), `object-key-multiple.json`
   (에러 경로 uniqid 보존).
@@ -229,7 +229,7 @@ group-level mincount/maxcount는 엔트리 수를 `count(value)`로 센다(배�
 
 ## 규칙 상세
 
-검증 동작은 JS 구현(`packages/validator-js/src/rules/*.ts`)을 기준으로 기술한다.
+검증 동작은 JS 구현(`packages/validator-ts/src/rules/*.ts`)을 기준으로 기술한다.
 PHP(`src/Rules/*.php`)·Go(`validator/rules.go`)·Rust(`packages/validator-rust/src/legacy/rules.rs`)는
 동일 동작의 포팅이며 크로스언어 테스트로 일치가 검증된다.
 
@@ -260,23 +260,23 @@ true일 때만 필수 적용 (예: `required: ".is_display == 2"`).
 
 - `equalTo: 필드참조` — 대상 필드 값과 일치해야 통과.
   상대 참조(`.x` = 형제, `..x` = 부모 그룹의 형제) 지원
-  (`packages/validator-js/src/rules/equalTo.ts` `resolveFieldParam`).
+  (`packages/validator-ts/src/rules/equalTo.ts` `resolveFieldParam`).
 - `notEqual` — 파라미터가 `.`로 시작하면 필드 참조로 해석해 그 값과,
   아니면 리터럴 값과 비교해서 **다르면** 통과
-  (`packages/validator-js/src/rules/notEqual.ts`).
+  (`packages/validator-ts/src/rules/notEqual.ts`).
 
 ### in
 
 허용 값 목록 검증. 파라미터는 배열(중첩 배열은 평탄화), 쉼표 구분 문자열,
 또는 객체(값 목록 사용). 비교는 문자열 정규화 + 숫자 동치를 허용하는
 느슨한 비교다 (`'1'`과 `1` 일치, boolean은 `'1'`/`'0'`으로 정규화 —
-`packages/validator-js/src/rules/in.ts`).
+`packages/validator-ts/src/rules/in.ts`).
 
 ### enddate
 
 현재 값(종료일)이 파라미터로 참조한 시작일 필드 값보다 **이전이면 실패**
 (같은 날짜는 통과 — `endDate < startDate`일 때만 에러,
-`packages/validator-js/src/rules/enddate.ts:70`). 상대 경로(`.start_dt`) 지원.
+`packages/validator-ts/src/rules/enddate.ts:70`). 상대 경로(`.start_dt`) 지원.
 어느 한쪽이 날짜로 파싱 불가능하면 건너뛴다 (`date` 규칙의 책임).
 
 ### mincount / maxcount
@@ -285,7 +285,7 @@ true일 때만 필수 적용 (예: `required: ".is_display == 2"`).
 
 ### unique
 
-두 가지 호출 모드 (`packages/validator-js/src/rules/unique.ts`):
+두 가지 호출 모드 (`packages/validator-ts/src/rules/unique.ts`):
 
 1. **배열 레벨**: 필드 값 자체가 배열 — 비어 있지 않은 원소가 모두 고유해야 한다.
 2. **항목 레벨**: 반복 그룹 안의 스칼라 필드 — **앞선** 형제 항목의 같은 필드와

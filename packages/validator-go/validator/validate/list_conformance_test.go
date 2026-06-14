@@ -8,7 +8,7 @@ package validate
 // this test asserts ONLY the gate the 4-language engine owns:
 //
 //	(A) the meta-schema gate (ajv, schema/form-spec-model.schema.json
-//	    #/definitions/List; validator-js list-metaschema.conformance.test.ts) owns
+//	    #/definitions/List; validator-ts list-metaschema.conformance.test.ts) owns
 //	    the "schema-shape" verdicts — required:columns, additionalProperties:false
 //	    (1급 closure), the sort.dir / pagination.mode enums, and the CellFormat
 //	    anyOf polymorphism. ajv does NOT resolve $ref; it treats $ref/$patch as
@@ -51,7 +51,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
 type listValidityCase struct {

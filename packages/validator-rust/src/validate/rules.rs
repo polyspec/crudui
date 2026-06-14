@@ -2,7 +2,7 @@
 //!
 //! Each rule is a function over a [`RuleContext`] returning the error message
 //! (`Some`) or `None` (pass). The rules mirror the JS reference engine
-//! (`packages/validator-js/src/rules/*`) function-for-function so the shared
+//! (`packages/validator-ts/src/rules/*`) function-for-function so the shared
 //! 4-language fixture (`tests/fixtures/validate/cases.json`) holds bit-for-bit:
 //! same skip-on-empty behaviour, same default messages with `{0}`/`{1}`
 //! substitution, same loose comparisons.

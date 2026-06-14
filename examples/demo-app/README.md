@@ -1,6 +1,6 @@
 # Form Builder Demo Application
 
-A demo React application that renders forms from YAML specifications using `@form-spec/generator-react`.
+A demo React application that renders forms from YAML specifications using `@crudui/generator-react`.
 
 ## Features
 
@@ -84,7 +84,7 @@ demo-app/
 ## Usage Example
 
 ```tsx
-import { FormBuilder } from '@form-spec/generator-react';
+import { FormBuilder } from '@crudui/generator-react';
 
 const yamlSpec = `
 type: group

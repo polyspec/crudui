@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/generator-svelte",
+  "name": "@crudui/generator-svelte",
   "version": "0.0.1",
   "description": "Svelte form builder component library based on form-spec YAML definitions",
   "type": "module",
@@ -42,8 +42,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@form-spec/generator-core": "file:../generator-core",
-    "@form-spec/validator": "file:../validator-js",
+    "@crudui/generator-core": "file:../generator-core",
+    "@crudui/validator": "file:../validator-ts",
     "yaml": "^2.3.0"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ package validator
 
 // Recursive forbidden meta-key scan (schema §6) — the runtime half of the
 // global rejection that the meta-schema's propertyNames enforces statically.
-// Byte-for-byte behavior parity with the JS reference (validator-js/src/
+// Byte-for-byte behavior parity with the JS reference (validator-ts/src/
 // forbidden-scan.ts).
 //
 // R1: the types/parser PRESERVE every key (round-trip), so blocking forbidden
@@ -30,7 +30,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
 // isXScanCommentKey reports whether key is an x{key} comment key for the scan: an

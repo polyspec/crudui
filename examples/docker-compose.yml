@@ -29,7 +29,7 @@ services:
     volumes:
       - ./shared-specs:/app/node-api/specs:ro
       - ./node-api/server.js:/app/node-api/server.js:ro
-      - ../packages/validator-js/dist:/app/packages/validator-js/dist:ro
+      - ../packages/validator-ts/dist:/app/packages/validator-ts/dist:ro
     networks:
       - form-generator-network
     labels:

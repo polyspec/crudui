@@ -2,7 +2,7 @@
 
 `form-spec.schema.json` is the machine-readable JSON Schema (draft-07) for a
 form-spec definition. It is generated from the TypeScript source of truth
-`packages/validator-js/src/types.ts` (the `Spec` interface) by
+`packages/validator-ts/src/types.ts` (the `Spec` interface) by
 `ts-json-schema-generator`.
 
 Do not hand-edit `form-spec.schema.json`. Regenerate it:

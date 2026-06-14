@@ -2,7 +2,7 @@
 //!
 //! The shared 4-language fixture (`tests/fixtures/expr/cases.json`) is generated
 //! from the JS reference engine and is the §9 contract all four engines pass, so
-//! this evaluator mirrors validator-js `PathResolver` function-for-function:
+//! this evaluator mirrors validator-ts `PathResolver` function-for-function:
 //!
 //!   - [`Evaluator::evaluate`] → bool (JS `evaluateCondition`): `Boolean` of the
 //!     resolved value for Path/Literal; logical short-circuit; comparison; in;

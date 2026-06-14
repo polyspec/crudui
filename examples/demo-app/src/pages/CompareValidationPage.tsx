@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import yaml from 'js-yaml';
-import { FormBuilder } from '@form-spec/generator-react/legacy';
+import { FormBuilder } from '@crudui/generator-react/legacy';
 import contactSpec from '../specs/contact.yaml?raw';
 
 // Canonical contract: backends receive the parsed spec object, never the raw YAML string.

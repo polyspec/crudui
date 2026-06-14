@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@form-spec/generator-react/legacy': path.resolve(__dirname, '../../packages/generator-react/src'),
+      '@crudui/generator-react/legacy': path.resolve(__dirname, '../../packages/generator-react/src'),
     },
   },
   optimizeDeps: {

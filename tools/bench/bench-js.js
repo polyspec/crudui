@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * bench-js.js — in-process throughput benchmark for validator-js.
+ * bench-js.js — in-process throughput benchmark for validator-ts.
  *
- * Loads the validator from packages/validator-js/dist (the same module the
+ * Loads the validator from packages/validator-ts/dist (the same module the
  * cross-language runner imports), builds the Validator once per spec, then
  * loops validate(input) N times. Process startup, module load, spec parse, and
  * fixture I/O all happen BEFORE timing — the measured window is validate-only.
@@ -22,7 +22,7 @@ const { Validator } = require(path.join(
   '..',
   '..',
   'packages',
-  'validator-js',
+  'validator-ts',
   'dist',
   'index.js'
 ));

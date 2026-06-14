@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import yaml from 'js-yaml';
-import type { FormData, FormErrors } from '@form-spec/generator-react/legacy';
+import type { FormData, FormErrors } from '@crudui/generator-react/legacy';
 import { BackendComparison } from './BackendComparison';
 
 interface OutputPanelProps {

@@ -6,7 +6,7 @@ namespace FormSpec\Validator\Compose;
 
 /**
  * Composition orchestrator (schema §5, G5) — the parser's FIRST pass.
- * Byte-for-byte port of validator-js/src/compose/compose.ts.
+ * Byte-for-byte port of validator-ts/src/compose/compose.ts.
  *
  * Resolution order (schema §5, verbatim):
  *   (1) $ref   — expand file/path base, recursively (nested $ref included) into a

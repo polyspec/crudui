@@ -11,7 +11,7 @@ import { render, screen } from '@testing-library/react';
 import { useConditional, checkFieldVisibility } from '../legacy/hooks/useConditional';
 import { FormContextProvider } from '../legacy/context/FormContext';
 import { I18nContextProvider } from '../legacy/context/I18nContext';
-import type { Spec } from '@form-spec/validator/legacy';
+import type { Spec } from '@crudui/validator/legacy';
 import type { FormData, AllOfCondition } from '../legacy/types';
 
 // ============================================================================

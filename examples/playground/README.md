@@ -1,6 +1,6 @@
 # Form Spec Playground
 
-An interactive web playground for testing and developing form specifications using the `@form-spec/generator-react` library.
+An interactive web playground for testing and developing form specifications using the `@crudui/generator-react` library.
 
 ## Features
 
@@ -20,7 +20,7 @@ An interactive web playground for testing and developing form specifications usi
 
 ### Installation
 
-1. First, build the `@form-spec/generator-react` library:
+1. First, build the `@crudui/generator-react` library:
 
 ```bash
 cd ../../packages/generator-react
@@ -70,7 +70,7 @@ The playground is divided into three panels:
 
 ### Writing Form Specs
 
-Form specs follow the YAML format used by `@form-spec/generator-react`. Here's a basic example:
+Form specs follow the YAML format used by `@crudui/generator-react`. Here's a basic example:
 
 ```yaml
 type: group
@@ -173,7 +173,7 @@ playground/
 - **React** - UI framework
 - **TypeScript** - Type safety
 - **Monaco Editor** - Code editor
-- **@form-spec/generator-react** - Form builder library
+- **@crudui/generator-react** - Form builder library
 - **yaml** - YAML parsing
 
 ## License

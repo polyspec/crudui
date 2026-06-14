@@ -37,7 +37,7 @@ import {
   applyDisplaySwitchTransform,
   displayTokenForSeed,
 } from '../legacy/hooks/legacyDisplay';
-import type { Spec } from '@form-spec/validator/legacy';
+import type { Spec } from '@crudui/validator/legacy';
 
 // ============================================================================
 // F1 — validator recreated on spec swap

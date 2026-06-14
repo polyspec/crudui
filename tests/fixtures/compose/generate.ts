@@ -26,7 +26,7 @@ import {
   composeSpec,
   MemoryLoader,
   ComposeLoadError,
-} from '../../../packages/validator-js/src/compose/index';
+} from '../../../packages/validator-ts/src/compose/index';
 
 interface CaseInput {
   files?: Record<string, Record<string, unknown>>;

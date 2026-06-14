@@ -1,13 +1,13 @@
 /**
  * useValidation Hook Tests
  *
- * Tests the validation hook integration with @form-spec/validator
+ * Tests the validation hook integration with @crudui/validator
  */
 
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useValidation } from '../legacy/hooks/useValidation';
-import type { Spec } from '@form-spec/validator/legacy';
+import type { Spec } from '@crudui/validator/legacy';
 
 const testSpec: Spec = {
   type: 'group',

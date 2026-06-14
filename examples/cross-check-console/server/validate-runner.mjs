@@ -7,7 +7,7 @@
  * makes a 4-language agreement evidence of engine equivalence, not an artifact
  * of one privileged call path:
  *
- *   JS  : node --import tsx packages/validator-js/bin/validate.mjs
+ *   JS  : node --import tsx packages/validator-ts/bin/validate.mjs
  *   PHP : php packages/validator-php/bin/validate.php       (cwd = pkg root)
  *   Go  : packages/validator-go/validate                    (compiled)
  *   Rust: packages/validator-rust/target/release/validate  (compiled)
@@ -32,7 +32,7 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { ROOT } from './engine.mjs';
 
-const JS_PKG = path.join(ROOT, 'packages/validator-js');
+const JS_PKG = path.join(ROOT, 'packages/validator-ts');
 const PHP_PKG = path.join(ROOT, 'packages/validator-php');
 const GO_PKG = path.join(ROOT, 'packages/validator-go');
 const RUST_PKG = path.join(ROOT, 'packages/validator-rust');

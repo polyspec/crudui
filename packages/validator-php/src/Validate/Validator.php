@@ -31,7 +31,7 @@ use FormSpec\Validator\Expr\ConditionMap;
 use FormSpec\Validator\Expr\Expression;
 
 /**
- * CRUDUI form validator — schema §2 G5→§3→§2 G1. Port of validator-js
+ * CRUDUI form validator — schema §2 G5→§3→§2 G1. Port of validator-ts
  * src/validate/validator.ts (Validator), function-for-function.
  *
  * This is the THIRD pass of the CRUDUI pipeline. It consumes a CRUDUI field model (the

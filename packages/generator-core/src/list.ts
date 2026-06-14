@@ -28,7 +28,7 @@ import {
   composeProperties,
   MemoryLoader,
   type FileLoader,
-} from '@form-spec/validator';
+} from '@crudui/validator';
 import { makeTranslate, type Language, type LocalizedText } from './content';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { evalShow, makeContext } from './expr';
