@@ -29,18 +29,24 @@
 import {
   escAttr,
   escText,
-  generateUniqid,
+  elementId,
   getValueByPath,
   joinClass,
   mergeStyle,
-  parsePathString,
+  positionSegment,
   styleString,
+  toBracketNotationWithPrefix,
+  valuePathSegments,
   wrapperLayerName,
 } from './util';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { makeContext } from './expr';
 import { getFieldEmitter, type FieldCtx } from './fields';
+import { UnsupportedFieldTypeError } from './errors';
 import type { Translate } from './content';
+
+/** Behavior when a field `type` has no registered emitter. */
+export type UnsupportedMode = 'throw' | 'marker';
 
 /** Per-render state threaded through the recursive renderer. */
 export interface RenderState {
@@ -50,6 +56,29 @@ export interface RenderState {
   keyPrefix?: string;
   /** Content translator (active language). */
   t: Translate;
+  /** Unsupported-type handling (default 'throw' — never silent). */
+  unsupported: UnsupportedMode;
+}
+
+/**
+ * Emit the inner markup for one leaf field. An unregistered type is NEVER
+ * swallowed: in 'throw' mode (default) it raises UnsupportedFieldTypeError (the
+ * standard stays RED until ported); in 'marker' mode it emits a grep-able
+ * `data-unsupported-type` div + HTML comment that survives normalization. All
+ * three leaf sites (leaf/multiple-leaf/lang-leaf) call THIS — there is no `: ''`
+ * fallback anywhere.
+ */
+function emitInner(fieldCtx: FieldCtx, mode: UnsupportedMode): string {
+  const t = String(fieldCtx.spec.type ?? '');
+  const emitter = getFieldEmitter(t);
+  if (emitter) return emitter(fieldCtx);
+  if (mode === 'throw') {
+    throw new UnsupportedFieldTypeError(t, fieldCtx.path);
+  }
+  return (
+    `<!-- unsupported-type: ${escAttr(t)} -->` +
+    `<div class="form-element-unsupported" data-unsupported-type="${escAttr(t)}"></div>`
+  );
 }
 
 type Spec = Record<string, unknown>;
@@ -191,13 +220,30 @@ function hasData(value: unknown): boolean {
   return String(value).length > 0;
 }
 
-function rowKeys(value: unknown): string[] {
-  if (Array.isArray(value) && value.length > 0) return value.map(() => generateUniqid());
+/**
+ * One repeated row's explicit identity (G4). `seg` is the path segment that
+ * builds the inner field path: a `#N` position index for new/array rows (it
+ * builds the bracket index in the submitted name and collapses to `[]` in
+ * data-name/data-rule-name; value lookup resolves `#N` to array index N), the
+ * real data key for object-keyed rows. `uniqid` is the `data-uniqid` value (the
+ * serialization index for position rows, the hidden server-PK key otherwise).
+ * No magic random token.
+ */
+interface RowIdentity {
+  seg: string;
+  uniqid: string;
+}
+
+function rowIdentities(value: unknown): RowIdentity[] {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.map((_, i) => ({ seg: positionSegment(i), uniqid: String(i) }));
+  }
   if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
     const keys = Object.keys(value as Record<string, unknown>);
-    if (keys.length > 0) return keys;
+    if (keys.length > 0) return keys.map((k) => ({ seg: k, uniqid: k }));
   }
-  return [generateUniqid()];
+  // Empty data → a single placeholder row at position 0.
+  return [{ seg: positionSegment(0), uniqid: '0' }];
 }
 
 // ---------------------------------------------------------------------------
@@ -212,7 +258,7 @@ export function renderField(
   state: RenderState
 ): string {
   const fieldType = String(spec.type ?? '');
-  const ctx = makeContext(parsePathString(path), state.data);
+  const ctx = makeContext(valuePathSegments(path), state.data);
   const design = resolveDesign(spec.design, ctx);
 
   if (fieldType === 'group') {
@@ -242,7 +288,7 @@ function renderLeaf(
 ): string {
   const fieldType = String(spec.type ?? '');
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
-  const uniqid = generateUniqid();
+  const uniqid = elementId('', path);
   const label = spec.label ? state.t(spec.label as never) : undefined;
 
   const fieldCtx: FieldCtx = {
@@ -271,8 +317,7 @@ function renderLeaf(
     );
   }
 
-  const emitter = getFieldEmitter(fieldType);
-  const innerHtml = emitter ? emitter(fieldCtx) : '';
+  const innerHtml = emitInner(fieldCtx, state.unsupported);
 
   return (
     openWrapper(design, wrapperName) +
@@ -306,11 +351,7 @@ function checkboxInner(ctx: FieldCtx): string {
 }
 
 function bracketNameFor(ctx: FieldCtx): string {
-  const segments = parsePathString(ctx.path);
-  if (ctx.keyPrefix) segments.unshift(ctx.keyPrefix);
-  if (segments.length === 0) return '';
-  if (segments.length === 1) return segments[0]!;
-  return segments[0] + segments.slice(1).map((s) => `[${s}]`).join('');
+  return toBracketNotationWithPrefix(ctx.path, ctx.keyPrefix);
 }
 
 // ---------------------------------------------------------------------------
@@ -329,13 +370,13 @@ function renderMultipleLeaf(
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
   const value = getValueByPath(state.data, path);
   const label = spec.label ? state.t(spec.label as never) : undefined;
-  const keys = rowKeys(value);
+  const identities = rowIdentities(value);
   const buttons = rowButtonsHtml(multiple);
 
   let rows = '';
-  keys.forEach((rowKey, rowIndex) => {
-    const rowPath = `${path}.${rowKey}`;
-    const rowCtx = makeContext(parsePathString(rowPath), state.data);
+  identities.forEach((row, rowIndex) => {
+    const rowPath = `${path}.${row.seg}`;
+    const rowCtx = makeContext(valuePathSegments(rowPath), state.data);
     const rowDesign = resolveDesign(spec.design, rowCtx);
     const fieldCtx: FieldCtx = {
       spec,
@@ -345,10 +386,9 @@ function renderMultipleLeaf(
       design: rowDesign,
       t: state.t,
     };
-    const emitter = getFieldEmitter(fieldType);
-    const inner = (emitter ? emitter(fieldCtx) : '') + buttons;
+    const inner = emitInner(fieldCtx, state.unsupported) + buttons;
     rows +=
-      `<div class="${escAttr(inputGroupWrapperClass(rowDesign, rowIndex))}" data-uniqid="${escAttr(rowKey)}">` +
+      `<div class="${escAttr(inputGroupWrapperClass(rowDesign, rowIndex))}" data-uniqid="${escAttr(row.uniqid)}">` +
       inner +
       `</div>`;
   });
@@ -376,7 +416,7 @@ function renderLangLeaf(
 ): string {
   const fieldType = String(spec.type ?? '');
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
-  const uniqid = generateUniqid();
+  const uniqid = elementId('', path);
   const label = spec.label ? state.t(spec.label as never) : undefined;
 
   // Language group chrome (frame off → p-0 border-0).
@@ -388,7 +428,7 @@ function renderLangLeaf(
   let childrenHtml = '';
   for (const code of lang.langs) {
     const langPath = `${path}.${code}`;
-    const langCtx = makeContext(parsePathString(langPath), state.data);
+    const langCtx = makeContext(valuePathSegments(langPath), state.data);
     const langDesign = resolveDesign(spec.design, langCtx);
     const fieldCtx: FieldCtx = {
       spec,
@@ -398,8 +438,7 @@ function renderLangLeaf(
       design: langDesign,
       t: state.t,
     };
-    const emitter = getFieldEmitter(fieldType);
-    const inner = emitter ? emitter(fieldCtx) : '';
+    const inner = emitInner(fieldCtx, state.unsupported);
     // Each language child carries a lang-code prepend span.
     childrenHtml +=
       `<div class="lang-child" data-lang="${escAttr(code)}">` +
@@ -438,7 +477,7 @@ function renderGroup(
   }
 
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
-  const uniqid = generateUniqid();
+  const uniqid = elementId('', path);
   const label = spec.label ? state.t(spec.label as never) : undefined;
   const groupValue = getValueByPath(state.data, path);
 
@@ -479,18 +518,15 @@ function renderMultipleGroup(
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
   const label = spec.label ? state.t(spec.label as never) : undefined;
   const value = getValueByPath(state.data, path);
-  const keys = rowKeys(value);
+  const identities = rowIdentities(value);
   const buttons = rowButtonsHtml(multiple);
   const props = spec.properties as Record<string, Spec> | undefined;
 
   let rowsHtml = '';
-  keys.forEach((rowKey, rowIndex) => {
-    const rowBase = `${path}.${rowKey}`;
-    const rowValue =
-      value !== null && typeof value === 'object' && !Array.isArray(value)
-        ? (value as Record<string, unknown>)[rowKey]
-        : undefined;
-    const rowCtx = makeContext(parsePathString(rowBase), state.data);
+  identities.forEach((row, rowIndex) => {
+    const rowBase = `${path}.${row.seg}`;
+    const rowValue = getValueByPath(value, row.seg);
+    const rowCtx = makeContext(valuePathSegments(rowBase), state.data);
     const rowDesign = resolveDesign(spec.design, rowCtx);
     const groupClass = joinClass('form-group', rowDesign.group.class);
 
@@ -502,7 +538,7 @@ function renderMultipleGroup(
     }
     void rowValue;
     rowsHtml +=
-      `<div class="${escAttr(inputGroupWrapperClass(rowDesign, rowIndex))}" data-uniqid="${escAttr(rowKey)}">` +
+      `<div class="${escAttr(inputGroupWrapperClass(rowDesign, rowIndex))}" data-uniqid="${escAttr(row.uniqid)}">` +
       `<div class="${escAttr(groupClass)}">${fieldsHtml}</div>` +
       `<span class="btn-group input-group-btn">${buttons}</span>` +
       `</div>`;
