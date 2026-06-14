@@ -62,6 +62,8 @@ npm workspaces 모노레포 (`package.json` `workspaces: ["packages/*"]`).
 | [`packages/generator-react`](./packages/generator-react) | `@form-spec/generator-react` | React 폼 빌더 — 기준 HTML 7/7 parity |
 | [`packages/generator-vue`](./packages/generator-vue) | `@form-spec/generator-vue` | Vue 3 폼 빌더 — 기준 HTML 7/7 parity |
 | [`packages/generator-svelte`](./packages/generator-svelte) | `@form-spec/generator-svelte` | Svelte 폼 빌더 — 기준 HTML 7/7 parity |
+| [`packages/generator-core`](./packages/generator-core) | `@form-spec/generator-core` | 프레임워크 무관 CRUDUI 코어 — `buildForm`/`buildList`(합성→평가→viewmodel). React/Vue/Svelte 어댑터가 공유 |
+| [`packages/form-spec-cli`](./packages/form-spec-cli) | `@form-spec/cli` | 오케스트레이터 CLI(`form-spec`) — `describe`/`check`/`explain`/`list-widgets`. 코드·스키마 단일진실을 얇게 래핑(자체 카탈로그 0) |
 | [`packages/generator-legacy`](./packages/generator-legacy) | — | legacy Legacy PHP 사본 (기준 HTML 파이프라인용) |
 
 ## Quick Start
@@ -149,6 +151,14 @@ cd packages/validator-rust && cargo build --release
 echo '{"spec":{...},"input":{...}}' | ./target/release/validate
 ```
 
+위 `validate`는 legacy CLI다. CRUDUI 파이프라인은 네 언어 모두 동형의 `validate` CLI를
+제공한다 — stdin JSON `{spec, data, files?, basepath?, mode?}` → stdout
+`{valid, errors}` (compose → forbidden-scan → validate). `mode:"list"`는 list-spec
+구조 검증(compose + forbidden-scan, 행 데이터 제외)이다. 미해결 `$ref`/`$patch`/
+금지키는 `valid:false`가 아니라 `{error, code}` 로드 실패로 구분 보고한다. 진입점은
+`packages/validator-js/bin/validate.mjs` · `packages/validator-php/bin/validate.php` ·
+`packages/validator-go/cmd/validate` · `packages/validator-rust/src/bin/validate.rs`.
+
 ### 폼 빌더 (렌더러)
 
 세 프레임워크가 같은 스펙에서 동일한 Legacy 호환 HTML을 생성한다.
@@ -194,6 +204,33 @@ const html = await renderToString(app);
 ```
 
 API 상세는 [docs/API.md](./docs/API.md) 참조.
+
+## form-spec CLI
+
+`@form-spec/cli`(`form-spec`)는 코드·스키마 단일진실 위에 얇게 얹힌 오케스트레이터다 —
+손으로 베낀 카탈로그가 없다. 현재 구현된 서브커맨드는 네 개다.
+
+```bash
+form-spec describe [--json|--md]    # 코드·스키마 import·parse → 통합 capability (위젯·규칙·list 포함, drift 0)
+form-spec check <spec.{yml,json}>   # 메타스키마(ajv) + forbidden-scan + type 카탈로그 정합
+form-spec explain <spec> [--lang ko|en]  # 스펙 → 자연어 역검증
+form-spec list-widgets [--json]     # 위젯 kind + layout + alias
+```
+
+`validate`/`render`/`scaffold`는 로드맵이며 아직 미구현이다. 설계·위임 구조는
+[docs/FORM-SPEC-CLI.md](./docs/FORM-SPEC-CLI.md), MCP 노출은
+[docs/FORM-SPEC-MCP.md](./docs/FORM-SPEC-MCP.md) 참조.
+
+## list-spec (read 자매)
+
+form-spec이 입력(write)이면 list-spec은 그 read 자매다 — 같은 양식을 재사용해 목록을
+선언한다(루트 `columns` + `rows` 주입). DB에 접속하지 않는다: 행 데이터는 호출자가
+주입하므로 데이터 소스와 무관하다. `@form-spec/generator-core`의 `buildList`(+ read 셀
+렌더러)가 form-spec의 `buildForm`과 같은 패턴(합성 → 표현식·조건맵 평가 → viewmodel)을
+공유하고, React/Vue/Svelte 세 프레임워크의 `List`가 동일 viewmodel을 SSR parity로
+렌더한다. 구조 검증은 네 언어 `validate` CLI의 `mode:"list"`(compose + forbidden-scan,
+정규화 멱등)로 한다. 콘솔의 list 탭에서 라이브로 교차 검증한다. 명세는
+[docs/spec/schema.md §9](./docs/spec/schema.md) 참조.
 
 ## 백엔드 API (기준 계약)
 
@@ -258,10 +295,16 @@ make docs-clean    # 생성물 제거
 
 - [API Reference](./docs/API.md) — 4개 언어 Validator API + HTTP API 계약
 - [Spec Format](./docs/spec/legacy-schema.md) — 폼 스펙 형식 명세
+- [Spec CRUDUI](./docs/spec/schema.md) — CRUDUI 명세(조건 내장·역할 분리, §9 list-spec 포함)
 - [Validation Rules](./docs/VALIDATION-RULES.md) — 등록 규칙·기본 메시지·미구현 목록
 - [Condition Parser](./docs/CONDITION-PARSER.md) — 조건식 문법·경로 해석
 - [Display Conditions](./docs/DISPLAY-CONDITIONS.md) — 조건부 표시·검증 스킵
+- [form-spec CLI](./docs/FORM-SPEC-CLI.md) — 오케스트레이터 CLI 설계·위임 구조
+- [form-spec MCP](./docs/FORM-SPEC-MCP.md) — CLI capability의 MCP 노출
 - [Testing](./docs/TESTING.md) — 게이트 체계·기준 재생성
+
+자연어 기획서를 검증 통과하는 CRUDUI 스펙으로 변환하는 `nl-to-form` skill이
+`.claude/skills/nl-to-form/`에 있다.
 
 ## Examples
 
@@ -271,6 +314,22 @@ make docs-clean    # 생성물 제거
 - [node-api](./examples/node-api/) / [php-api](./examples/php-api/) / [go-api](./examples/go-api/) / [rust-api](./examples/rust-api/) — 동일 계약의 검증 API 서버 (8011-8013, 8017)
 - [playground](./examples/playground/) — 실시간 스펙 편집기 (8014)
 - [legacy-original](./examples/legacy-original/) — legacy Legacy 원본 폼 시스템 (8015)
+
+[cross-check-console](./examples/cross-check-console/)는 단일 Node 게이트웨이로
+4언어 `validate` CLI 검증 × 3프레임워크 SSR 렌더를 라이브로 교차 검증한다.
+컨포먼스 게이트와 같은 CRUDUI 엔진을 다른 호출 스택(HTTP)으로 자유 입력에 돌려, 멱등성
+(`idempotent`)·렌더 parity(`parity`) 판정과 언어·프레임워크별 raw 바이트를 함께
+노출한다(판정 자체가 감사 가능). 발견한 발산은 픽스처로 export해 게이트에 영구 회귀로
+접는다. form 탭과 list 탭이 있고, 라우트는 `/api/validate`·`/api/validate-list`·
+`/api/render`·`/api/render-list`다.
+
+```bash
+cd examples/cross-check-console/server
+npm run build:cli            # Go + Rust CRUDUI CLI 컴파일 (고정 경로)
+PORT=4000 node server.mjs    # 게이트웨이 기동 (기본 4000)
+```
+
+기동·curl 스모크·레이아웃은 [examples/cross-check-console/README.md](./examples/cross-check-console/README.md) 참조.
 
 ## Development
 
