@@ -236,13 +236,16 @@ pub struct FieldSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub properties: Option<Map<String, Value>>,
 
-    /// 구조 — 선택지 소스. 정적 배열 | 동적 `{model,method,table,relations}`.
-    /// 종속 격리 버킷이자 1급(schema §3 C 동적 선택지 소스).
+    /// 구조 — 선택지 소스. 정적 배열 | 정적 value→label 맵 | 동적 소스. 실 코퍼스
+    /// 동적소스(type:search)는 model(string 또는 {table,relations,keys} 중첩) +
+    /// api_server(런타임 HTTP fn 참조) + placeholder 정적 items 공존 — items 하위로
+    /// 격리·보존, 런타임 해석은 범위 밖(SPEC §6 R1). 1급(schema §3 C).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Items>,
 
-    /// 구조 — 반복 행(`true`=인덱스 배열+숨긴 id, G4). 종속 격리 버킷이자 1급.
-    /// 다형: `false` | `{multiple 종속 키}` | `true`.
+    /// 구조 — 반복 행(`true`=켜짐). 종속 격리 버킷이자 1급. 다형: `false` |
+    /// `{multiple 종속 키}` | `true`. 행 정체성(G4)은 multiple 필드가 아니라 런타임에
+    /// 제출 데이터가 실어 나르는 숨은 서버 PK다(빌드타임 스펙 필드·id 키 없음).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub multiple: Option<Polymorphic<MultipleSpec>>,
 
@@ -461,6 +464,11 @@ pub struct OptionsSlot {
 /// `add_buttons`/`remove_list_button`/`list_button_text`→`copy`, `sortable*`→
 /// `sortable`, `multiple_button_onclick`→`onclick` 는 번역기 absorbs_legacy 의
 /// 책임이며 인식키가 아니다. sub_keys 외 확장은 `extra` 로 흡수(금지키 전역 차단).
+///
+/// 행 정체성(G4)은 `MultipleSpec` 필드가 아니다 — 런타임에 제출 데이터가 실어 나르는
+/// 숨은 서버 PK(기존 행=있음, 신규 행=없음)이고, 직렬화 순서가 배열 순서다. 빌드타임
+/// 모델에는 id 필드도 id 방출 코드도 없다(데이터 층 정체성, 서버가 동기화). 번역기가
+/// 레거시 seqtokey/__13hex__ 합성 id 키를 버리는 이유도 이것 — 애초에 스펙 필드가 아니다.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct MultipleSpec {
     /// 최대 행 수.
@@ -519,13 +527,15 @@ pub struct LangSpec {
 }
 
 /// `items` — 선택지 소스(다형, 정규 모델 target=items). 정적 배열 | 정적
-/// value→label 맵(G3) | 동적 `{model, method, table, relations}` 소스. 종속 격리
-/// 버킷이자 1급.
+/// value→label 맵(G3) | 동적 소스(`ItemsSource`). 종속 격리 버킷이자 1급.
 ///
 /// 정적 value→label 맵(SPEC §2 G3)은 key 가 옵션 값(멤버십 대상), 값이 표시용
 /// 라벨(string | LangMap | null)이다 — 라벨은 표시용이라 멤버십에 무관, 빈(null)
-/// 라벨은 무영향. 동적 소스와 구분은 key 집합으로 한다: 모든 key 가 동적 소스 key
-/// (`model`/`method`/`table`/`relations`)이면 동적, 아니면 정적 value→label 맵.
+/// 라벨은 무영향. 동적 소스(실 코퍼스 type:search)는 model(string 또는
+/// {table,relations,keys} 중첩) + api_server(런타임 HTTP fn 참조) + placeholder 정적
+/// items 가 공존한다 — 구조만 보존, 런타임 해석은 범위 밖. 동적/정적 구분은 key
+/// 집합으로 한다: 모든 key 가 동적 소스 key(`model`/`method`/`table`/`relations`/
+/// `api_server`/`items`)이면 동적, 아니면 정적 value→label 맵.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Items {
@@ -537,8 +547,16 @@ pub enum Items {
 }
 
 /// items 동적 소스 key 집합. 객체의 모든 key 가 이 집합이면 동적 소스, 아니면 정적
-/// value→label 맵으로 라우팅한다(untagged 의 Dynamic-우선 오분류 방지).
-const ITEMS_DYNAMIC_KEYS: &[&str] = &["model", "method", "table", "relations"];
+/// value→label 맵으로 라우팅한다(untagged 의 Dynamic-우선 오분류 방지). placeholder
+/// `items` 와 런타임 fn 참조 `api_server` 도 소스 디스크립터의 일부다(model 과 공존).
+const ITEMS_DYNAMIC_KEYS: &[&str] = &[
+    "model",
+    "method",
+    "table",
+    "relations",
+    "api_server",
+    "items",
+];
 
 impl<'de> Deserialize<'de> for Items {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -551,8 +569,8 @@ impl<'de> Deserialize<'de> for Items {
             Value::Array(_) => Ok(Items::Static(value)),
             // 객체: 모든 key 가 동적 소스 key 면 동적, 아니면 정적 value→label 맵.
             Value::Object(map) => {
-                let all_dynamic = !map.is_empty()
-                    && map.keys().all(|k| ITEMS_DYNAMIC_KEYS.contains(&k.as_str()));
+                let all_dynamic =
+                    !map.is_empty() && map.keys().all(|k| ITEMS_DYNAMIC_KEYS.contains(&k.as_str()));
                 if all_dynamic {
                     let source = ItemsSource::deserialize(value).map_err(de::Error::custom)?;
                     Ok(Items::Dynamic(Box::new(source)))
@@ -568,22 +586,37 @@ impl<'de> Deserialize<'de> for Items {
 }
 
 /// `items` 동적 소스(schema §3 C 동적 선택지 소스). 레거시에 흩어졌던 소스
-/// 디스크립터를 `items` 하위로 모음. 정규 sub_keys: `model`/`method`/`table`/
-/// `relations`. sub_keys 외는 `extra` 로 흡수(금지키 전역 차단).
+/// 디스크립터를 `items` 하위로 모음. 구조만 표현한다 — `model` 질의를 실행하거나
+/// `api_server` 엔드포인트를 호출하는 것은 런타임의 일이며 범위 밖이다(SPEC §6 R1).
+///
+/// 실 코퍼스 유일 동적소스(type:search)는 `model`(이름 string 또는 중첩
+/// `{table,relations,keys}` 관계형 질의) + 형제 `api_server`(런타임 HTTP fn 참조) +
+/// placeholder 정적 `items` 가 공존한다 — 셋 모두 `Value` 로 그대로 보존하며 엔진은
+/// 해석하지 않는다. sub_keys 외는 `extra` 로 흡수(금지키 전역 차단).
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct ItemsSource {
-    /// 데이터 모델/소스.
+    /// 데이터 모델/소스. 이름 string 또는 중첩 `{table,relations,keys}` 관계형 질의
+    /// (실 코퍼스 형태). 어느 쪽이든 보존만 — 질의 실행은 런타임(범위 밖).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub model: Option<Value>,
     /// 호출 메서드.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub method: Option<Value>,
-    /// 테이블.
+    /// 테이블(`model.table` 의 최상위 단축형).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub table: Option<Value>,
     /// 관계.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub relations: Option<Value>,
+    /// 런타임 HTTP 엔드포인트 fn 참조(불투명 소스 콜백 문자열). 그대로 보존하며
+    /// 엔진은 호출하지 않는다 — 엔드포인트 호출은 런타임(범위 밖).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_server: Option<Value>,
+    /// 동적 소스와 공존하는 placeholder 정적 items: 소스 해석 전 UI 가 보여줄 사전
+    /// 선택지(흔히 빈 [] 또는 단일 {"": "선택하세요"} 프롬프트). 정적 배열 또는
+    /// value→label 맵 — 런타임이 가져온 행으로 대체한다.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub items: Option<Value>,
     /// 명시 sub_keys 외 소스 디스크립터(흡수, 금지키 전역 차단).
     #[serde(flatten)]
     pub extra: ExtraMap,
@@ -708,6 +741,64 @@ mod tests {
         assert!(matches!(f.items, Some(Items::Static(_))));
     }
 
+    // 실 코퍼스 동적소스(type:search): api_server(런타임 HTTP fn) + placeholder 정적
+    // items 가 items 하위에 공존. 구조만 보존, 엔진은 해석하지 않음.
+    #[test]
+    fn items_dynamic_source_api_server_and_placeholder() {
+        let f = parse(
+            r#"{ "type": "search",
+                 "items": {
+                   "api_server": "function() { return '../search'; }",
+                   "items": []
+                 } }"#,
+        );
+        match f.items {
+            Some(Items::Dynamic(s)) => {
+                assert_eq!(
+                    s.api_server,
+                    Some(Value::String("function() { return '../search'; }".into()))
+                );
+                assert_eq!(s.items, Some(Value::Array(vec![])));
+            }
+            other => panic!("expected dynamic items, got {other:?}"),
+        }
+    }
+
+    // 실 코퍼스 동적소스: 중첩 model {table,relations,keys} + 형제 api_server +
+    // placeholder value→label items. model 은 중첩 객체로 보존된다.
+    #[test]
+    fn items_dynamic_source_nested_model() {
+        let f = parse(
+            r#"{ "type": "search",
+                 "items": {
+                   "model": { "table": "service_member",
+                              "relations": [ { "table": "user", "left": "user_seq", "right": "seq" } ],
+                              "keys": [ { "table": "service_member", "field": "seq", "append": ". " } ] },
+                   "api_server": "function() { return '/admin/user/search'; }",
+                   "items": { "": "선택하세요" }
+                 } }"#,
+        );
+        match f.items {
+            Some(Items::Dynamic(s)) => {
+                // model 은 중첩 객체(string 아님)로 보존.
+                match s.model {
+                    Some(Value::Object(m)) => {
+                        assert_eq!(
+                            m.get("table"),
+                            Some(&Value::String("service_member".into()))
+                        );
+                        assert!(m.get("relations").unwrap().is_array());
+                        assert!(m.get("keys").unwrap().is_array());
+                    }
+                    other => panic!("expected nested model object, got {other:?}"),
+                }
+                assert!(s.api_server.is_some());
+                assert!(s.items.is_some());
+            }
+            other => panic!("expected dynamic items, got {other:?}"),
+        }
+    }
+
     #[test]
     fn label_language_map() {
         let f = parse(r#"{ "type": "text", "label": { "ko": "이메일", "en": "Email" } }"#);
@@ -730,13 +821,16 @@ mod tests {
     fn forbidden_meta_keys_rejected_top_level() {
         let mut keys: Vec<String> = FORBIDDEN_META_KEYS.iter().map(|s| s.to_string()).collect();
         keys.push("xclassname".to_string()); // x{key} 주석
-        // 레거시 이름·매직 토큰도 정규 키가 아니므로 최상위에서 거부돼야 한다.
+                                             // 레거시 이름·매직 토큰도 정규 키가 아니므로 최상위에서 거부돼야 한다.
         keys.push("multiple_max".to_string());
         keys.push("langs".to_string());
         for k in keys {
             let json = format!(r#"{{ "type": "text", "{k}": true }}"#);
             let r: Result<FieldSpec, _> = serde_json::from_str(&json);
-            assert!(r.is_err(), "forbidden/non-canonical top key must be rejected: {k}");
+            assert!(
+                r.is_err(),
+                "forbidden/non-canonical top key must be rejected: {k}"
+            );
         }
     }
 
@@ -748,12 +842,18 @@ mod tests {
             // options 슬롯(열린 버킷) 본문
             let json = format!(r#"{{ "type": "text", "options": {{ "{k}": true }} }}"#);
             let r: Result<FieldSpec, _> = serde_json::from_str(&json);
-            assert!(r.is_err(), "forbidden key in options bucket must be rejected: {k}");
+            assert!(
+                r.is_err(),
+                "forbidden key in options bucket must be rejected: {k}"
+            );
 
             // multiple 종속 버킷 본문
             let json = format!(r#"{{ "type": "group", "multiple": {{ "{k}": true }} }}"#);
             let r: Result<FieldSpec, _> = serde_json::from_str(&json);
-            assert!(r.is_err(), "forbidden key in multiple bucket must be rejected: {k}");
+            assert!(
+                r.is_err(),
+                "forbidden key in multiple bucket must be rejected: {k}"
+            );
         }
         // x{key} 주석도 버킷 한 칸 아래에서 거부(canonical 단계엔 존재 불가).
         let json = r#"{ "type": "text", "options": { "xnote": "comment" } }"#;
@@ -767,7 +867,10 @@ mod tests {
         let f = parse(r#"{ "type": "widget", "options": { "future_widget_opt": 42 } }"#);
         match f.options {
             Some(Polymorphic::Config(o)) => {
-                assert_eq!(o.extra.as_map().get("future_widget_opt"), Some(&Value::from(42)));
+                assert_eq!(
+                    o.extra.as_map().get("future_widget_opt"),
+                    Some(&Value::from(42))
+                );
             }
             other => panic!("expected options config, got {other:?}"),
         }
@@ -781,6 +884,8 @@ mod tests {
             r#"{"type":"text","design":{"show":".s","class":{".vip":"gold","true":"plain"},"label":{"class":"lbl"}}}"#,
             r#"{"type":"group","multiple":{"max":5,"sortable":true},"properties":{"a":{"type":"text"},"b":{"type":"email"}}}"#,
             r#"{"type":"select","items":{"model":"User","method":"all"},"label":{"ko":"선택","en":"Select"}}"#,
+            r#"{"type":"search","items":{"api_server":"function() { return '../search'; }","items":[]}}"#,
+            r#"{"type":"search","items":{"model":{"table":"service_member","relations":[{"table":"user","left":"user_seq","right":"seq"}],"keys":[{"table":"service_member","field":"seq","append":". "}]},"api_server":"function() { return '/admin/user/search'; }","items":{"":"선택하세요"}}}"#,
             r#"{"type":"text","behavior":false,"lang":true}"#,
             r#"{"$ref":"Base.yml","$patch":{"field.validate.required":".other"}}"#,
             r#"{"type":"widget","options":{"future_widget_opt":42,"max_tags":3}}"#,
@@ -820,7 +925,10 @@ mod tests {
 
         // 재직렬화가 입력과 동일해야 한다(선언 순서 포함, drop 없음).
         let reser = serde_json::to_value(&spec).unwrap();
-        assert_eq!(reser, original, "DesignNode round-trip dropped/reordered keys");
+        assert_eq!(
+            reser, original,
+            "DesignNode round-trip dropped/reordered keys"
+        );
     }
 
     // 조건맵 선언 순서가 직렬화 후에도 보존돼야 한다(preserve_order).
@@ -829,6 +937,9 @@ mod tests {
         let src = r#"{"type":"text","design":{"class":{".a":"1",".b":"2","true":"d"}}}"#;
         let spec: FieldSpec = serde_json::from_str(src).unwrap();
         let out = serde_json::to_string(&spec).unwrap();
-        assert!(out.contains(r#"".a":"1",".b":"2","true":"d""#), "order lost: {out}");
+        assert!(
+            out.contains(r#"".a":"1",".b":"2","true":"d""#),
+            "order lost: {out}"
+        );
     }
 }
