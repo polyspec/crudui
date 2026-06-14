@@ -224,3 +224,132 @@ JS와 차이 — 공유 픽스처(`tests/fixtures/expr`)로 4언어를 JS 기준
 - 역할 슬롯은 넷(`validate`/`design`/`behavior`/`options`) + 최상위. 더 늘리지 않는다
   — 종속 키는 의존 대상 하위로 격리(타입→`options`, 다국어 입력→`lang`), `x{key}`는 주석.
 - 표현식에 산술·함수 미추가(필요 시 4언어 동일 구현·픽스처 갖춘 뒤에만).
+
+## 9. list-spec — read 자매 (form-spec 의 create 대칭)
+
+form-spec 은 **create**(입력=write)다. list-spec 은 그 **read** 자매다 — 같은 도메인을
+입력이 아니라 **목록으로 표시**한다. 둘은 별도 스펙이되 **CRUDUI 엔진을 100% 공유**한다:
+표현식(`design.show`/조건맵)·i18n(콘텐츠 번역)·`design` 노드맵·합성(`$ref`/`$patch`)·
+금지키 스캔은 form-spec 과 동일한 코드가 평가한다. 신규는 **read 셀 렌더러 하나**뿐이다
+(write 위젯의 대칭). list-spec 은 form-spec 을 발명으로 늘리지 않고 그 양식을 재사용한다.
+
+**DB 무관 — rows 주입.** list-spec 은 데이터베이스에 접속하지 않는다. 행 데이터(`rows`)는
+**주입**된다(빌더 인자). 검색·정렬·페이징의 실제 적용(쿼리·offset·필터)은 **서버의 책임**
+이고, list-spec 은 그 동작을 **선언만** 한다(SPEC §6 R1 의 read 대응: 스펙은 보존·선언,
+실행은 런타임·범위 밖). 데모/SSR 은 주입된 `rows` 에 클라에서 선언을 적용해 보여준다.
+
+### 9.1 구조 (form-spec §3 분류와 일관)
+
+list-spec 은 form-spec 의 §3 분류(A 주석 / B 1급만 1급 / C 종속 격리·공통 역할 분배)를
+그대로 따른다. 1급은 핵심 공통뿐이고, 표시 방법은 셀에 격리한다.
+
+```yaml
+# list-spec 루트 (form-spec 루트가 group/properties 이듯, list 는 columns/rows 주입)
+columns:                                  # 구조 — 표시 열 (form-spec 의 properties 대칭)
+  status:
+    field: ".status"                      # 구조 — 행에서 읽을 값 경로 (표현식, G1)
+    label: { ko: 상태, en: Status }       # 콘텐츠 — 열 헤더 (i18n, G3)
+    format:                               # 표시 방법 — read 셀 렌더러 (§9.2 카탈로그)
+      type: badge
+      map: { active: success, blocked: danger }
+    design:                               # 보임새 — 셀 노드 외형 (form-spec design 재사용)
+      show: ".admin"                      #   표시 조건 (표현식·조건맵)
+      class: { ".urgent": "text-danger", true: "" }
+    sortable: true                        # 구조 — 이 열로 정렬 허용 선언 (실 정렬=서버)
+search:                                   # 입력 — form-spec 참조 (목록 위 검색 폼)
+  $ref: UserSearchForm.yml                #   검색 UI 는 입력이므로 form-spec 그 자체
+sort:                                     # 구조 — 기본 정렬 선언 (서버가 적용)
+  field: ".created_at"
+  dir: desc
+pagination:                              # 구조 — 페이징 선언 (서버가 offset/limit 적용)
+  per_page: 20
+  mode: pages                            #   pages | offset | cursor | none
+actions:                                 # 구조 — 행/툴바 동작 (link 또는 behavior 스크립트)
+  edit:
+    label: { ko: 수정, en: Edit }
+    format: { type: link, href: "/user/edit/.id" }
+rows: []                                 # DB 무관 — 주입(빌더 인자). 스펙에 데이터 박지 않음
+empty:                                   # 콘텐츠 — 빈 목록 메시지 (i18n)
+  { ko: 데이터가 없습니다, en: No data }
+```
+
+**§3 와의 일관 (한 줄 매핑).**
+
+| list-spec 키 | §3 분류 | form-spec 대응 |
+|---|---|---|
+| `columns` (표시 열) | 구조·정체성 (1급) | `properties` (입력 필드 맵) |
+| `columns[].field` | 구조 — 값 경로(표현식, G1) | 필드 `name`/경로 |
+| `columns[].label` | 콘텐츠 — i18n 헤더(G3) | 필드 `label` |
+| `columns[].format` | **표시 방법** — read 셀 렌더러 | (write) `type`+`options` |
+| `columns[].design` | 보임새 — 셀 노드 외형 | `design` (그대로 재사용) |
+| `columns[].show` | 조건은 값(G1) — `design.show` 로 | `design.show` |
+| `columns[].sortable` | 구조 — 정렬 허용 선언 | (없음, read 고유) |
+| `search` | **입력** = form-spec 그 자체 | `$ref` 로 폼 참조 |
+| `sort`·`pagination` | 구조 — 동작 선언(서버 적용) | (없음, read 고유) |
+| `actions` | 구조 — 동작(link/behavior) | `behavior` 양식 재사용 |
+| `empty` | 콘텐츠 — i18n 메시지 | (form `blank_message` 대칭) |
+| `rows` | **DB 무관 주입** — 스펙 아님 | (write 의 제출 데이터 대칭) |
+
+핵심 원리: **컬럼=표시**(무엇을 보일지), **format=표시 방법**(어떻게 보일지 — write 의
+`type`+`options` 대칭이되 read 전용 셀 렌더러), **search=입력=form-spec**(검색은 값을
+입력받으므로 별도 발명 없이 form-spec 폼을 `$ref` 한다). `design`·표현식·i18n·합성·금지키는
+form-spec 과 **같은 슬롯·같은 엔진**이다. `sort`/`pagination` 만 read 구조 신규다.
+
+### 9.2 read 셀 format 카탈로그 (표시 방법)
+
+`format` 은 한 열의 값을 **어떻게 표시**할지 선언한다 — write 의 `type`+`options` 대칭
+이되 입력 위젯이 아니라 **read 셀 렌더러**다. `format` 은 `false`|`true`|문자열(단축형
+`type`)|`{객체}` 다형이다. `type` 별 종속 키는 write 의 `options` 격리 원리를 그대로 따라
+**`format` 객체 안에 격리**한다(타입을 바꾸면 함께 사라짐). 정규 카탈로그:
+
+| `format.type` | 표시 | 종속 키 | write 대응 |
+|---|---|---|---|
+| `text` | 평문(기본) | `truncate` | text/textarea |
+| `date` | 날짜·시각 포맷 | `pattern`(예 `YYYY-MM-DD`) | datetime |
+| `number` | 숫자 포맷 | `decimals`·`thousands`·`prefix`·`suffix` | number |
+| `badge` | 배지(값→스타일) | `map`(value→variant, i18n 라벨) | (표시 전용) |
+| `link` | 링크 | `href`(경로에 `.field` 보간)·`target`·`text` | (action) |
+| `choice-label` | 코드→라벨(멤버십 역) | `items`(form-spec `Items` 재사용·동적 model 보존) | select/choice |
+| `bool` | 불리언 표시 | `true`/`false` 라벨(i18n)·`as`(`text`\|`icon`\|`check`) | checkbox/switcher |
+| `image` | 썸네일 | `width`·`height`·`alt`(`.field` 보간) | image/cover/file |
+| `html` | 원시 HTML(escape 안 함) | — | dummy(display) |
+
+`map`(badge)·`items`(choice-label)·`true`/`false`(bool) 라벨은 **i18n 콘텐츠**(G3)이므로
+`{ ko, en }` 언어맵을 허용한다 — form-spec `LangMap`/`ItemLabel` 을 그대로 쓴다. `items` 는
+form-spec 의 `Items` 정의(정적 맵·정적 배열·동적 `{model,…}`)를 **재사용**한다 — 동적
+소스는 보존만(런타임 해석은 범위 밖). 셀의 표시 조건·외형은 별도 키가 아니라 열의 `design`
+(`show`/`class`/`style` + 노드맵)으로 — form-spec 과 **동일 슬롯·동일 엔진**(G1·R8).
+
+### 9.3 ListViewModel (3프레임워크 공유 read viewmodel)
+
+form-spec 이 `buildForm(spec) → FieldViewModel[]` 이듯, list-spec 은 `buildList(listSpec,
+rows, ctx) → ListViewModel` 이다. 핵심 셋 다 같은 패턴: 코어가 **합성→표현식/조건맵 평가→
+i18n 해석**을 한 번 수행해 **markup 0 의 viewmodel** 을 내고, React/Vue/Svelte 어댑터는
+그 viewmodel 로 element 트리를 조립할 뿐 아무것도 재계산하지 않는다(parity 게이트, G-C).
+
+```
+ListViewModel = {
+  columns: [{ field, label(해석됨), format(타입+종속), sortable, design(해석됨) }],
+  rows:    [{ cells: [{ format, value(원시), display(표시문자열/structured), design }] }],
+  pagination: { perPage, mode, page?, total? },   // 선언 + 주입 메타
+  sort: { field, dir },                            // 현 정렬 선언
+  actions: [...],                                  // 해석된 동작
+  empty: string                                    // 해석된 빈 메시지
+}
+```
+
+각 `cell.display` 는 §9.2 셀 렌더러가 `format` + `cell.value`(주입 `rows` 에서 `field`
+경로로 읽음)로 산출한 표시값이다 — `date`/`number`/`badge`/`choice-label`/`bool`/`link`/
+`image` 별로 문자열 또는 구조화 값(배지 variant·링크 href·이미지 src). 표현식·i18n·design 은
+form-spec 의 `evalShow`/`evalAppearance`/`resolveDesign`/`makeTranslate` 를 **그대로** 호출
+한다 — list-spec 의 신규 코드는 셀 렌더러뿐이고, 평가·번역·합성·게이트는 단일 엔진이다.
+
+### 9.4 검증 게이트 일관 (form-spec 불간섭)
+
+list-spec 메타스키마 정의는 form-spec 정의를 **건드리지 않는 additive** 다 — 같은
+`form-spec.schema.json` 에 `List`/`Column`/`CellFormat`/`Pagination`/`Sort`/`ListAction`
+definitions 를 추가하되 `Field` 외 진입점(`#/definitions/List`)으로 검증한다. 모든 열린
+버킷은 form-spec 과 **같은 `ForbiddenKeyNames`** 를 재사용하고(조건 전용 메타키·매직 토큰·
+주석 잔재 전역 거부), 1급은 `additionalProperties:false` 로 닫는다. `design`·`Items`·
+`Content`·`LangMap`·`ConditionMap`·`Behavior` 는 form-spec 정의를 `$ref` 로 **공유**한다 —
+read 자매가 같은 양식을 두 번 정의하지 않는다(단일 진실, G-A).
