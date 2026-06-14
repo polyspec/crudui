@@ -105,6 +105,7 @@ export {
   hasWildcard,
   replaceWildcardWithIndex,
   evaluateCondition,
+  evaluateExpressionValue,
   parsePathString,
   pathToString,
   getParentPath,
@@ -139,5 +140,4 @@ export {
   areAllUnique,
 } from '../rules/index';
 
-// Default export
 export { Validator as default } from './Validator';
