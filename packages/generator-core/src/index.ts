@@ -30,7 +30,7 @@ import {
 
 export type { FieldViewModel, UnsupportedMode, RowVM, LangChildVM, UnsupportedVM, BuildState } from './viewmodel';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';
-export { WIDGET_COUNT, hasWidget } from './widget';
+export { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL, hasWidget } from './widget';
 export { buildField } from './viewmodel';
 
 // Shared framework-agnostic surfaces (the single source every adapter consumes).

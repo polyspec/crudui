@@ -1094,6 +1094,72 @@ const REGISTRY: Record<string, Evaluator> = {
 /** Number of registered widget kinds (incl. aliases). */
 export const WIDGET_COUNT = Object.keys(REGISTRY).length;
 
+/**
+ * Registered widget keys (every type + alias) — the registry's key set, NOT a
+ * copied catalog. `describe`/`list-widgets` enumerate from THIS; adding a key to
+ * `REGISTRY` extends it with zero edits elsewhere (drift 0).
+ */
+export const WIDGET_KINDS: readonly string[] = Object.keys(REGISTRY);
+
+/**
+ * `kind → layout family`, derived by running each registry evaluator once with a
+ * neutral context and reading the `layout` it returns (a per-evaluator literal,
+ * input-independent). This is a projection of the registry, not a hand table:
+ * a new evaluator's layout is picked up automatically (drift 0).
+ */
+export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (() => {
+  const node = { class: '', style: '' };
+  const probeCtx: WidgetCtx = {
+    spec: { type: 'probe' },
+    value: undefined,
+    path: 'probe',
+    design: {
+      show: true,
+      main: { ...node },
+      label: { ...node },
+      wrapper: { ...node },
+      group: { ...node },
+      prepend: { ...node },
+    } as ResolvedDesign,
+    t: ((v: unknown) => (typeof v === 'string' ? v : '')) as unknown as Translate,
+  };
+  const out: Record<string, WidgetModel['layout']> = {};
+  for (const [kind, evaluator] of Object.entries(REGISTRY)) {
+    out[kind] = evaluator(probeCtx).layout;
+  }
+  return out;
+})();
+
+/**
+ * `registryKey → canonical kind`, where the canonical kind is the `kind` the
+ * evaluator itself emits. Two keys mapping to the same evaluator share a
+ * canonical kind, so this exposes alias groups WITHOUT reading the private
+ * REGISTRY references (e.g. `dropdown`/`selectbox` → `select`). A projection of
+ * the registry — new aliases surface automatically (drift 0).
+ */
+export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
+  const node = { class: '', style: '' };
+  const probeCtx: WidgetCtx = {
+    spec: { type: 'probe' },
+    value: undefined,
+    path: 'probe',
+    design: {
+      show: true,
+      main: { ...node },
+      label: { ...node },
+      wrapper: { ...node },
+      group: { ...node },
+      prepend: { ...node },
+    } as ResolvedDesign,
+    t: ((v: unknown) => (typeof v === 'string' ? v : '')) as unknown as Translate,
+  };
+  const out: Record<string, string> = {};
+  for (const [key, evaluator] of Object.entries(REGISTRY)) {
+    out[key] = evaluator(probeCtx).kind;
+  }
+  return out;
+})();
+
 /** Evaluate one leaf field to a markup-free WidgetModel, or undefined if unported. */
 export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefined {
   const ev = REGISTRY[type.toLowerCase()];
