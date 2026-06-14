@@ -1,0 +1,366 @@
+[
+  {
+    "name": "ok-plain-spec",
+    "note": "a clean current spec with role slots and nesting passes the forbidden-scan",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text",
+          "design": { "label": "Name" },
+          "validate": { "required": true, "maxlength": 80 }
+        },
+        "age": {
+          "type": "number",
+          "validate": { "required": false }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-conditional-required-expression",
+    "note": "G1 conditional requiredness is required:'<expr>', never an if/when key",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "kind": { "type": "text" },
+        "detail": {
+          "type": "text",
+          "validate": { "required": ".kind == 'other'" }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-condition-map-true-default-key",
+    "note": "a condition map with the literal 'true' default key is allowed (not forbidden)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tier": { "type": "text" },
+        "limit": {
+          "type": "number",
+          "validate": {
+            "max": { ".tier == 'pro'": 1000, "true": 10 }
+          }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-deep-nested-group-clean",
+    "note": "arbitrarily deep clean nesting (group in group in multiple) passes",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "outer": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "inner": {
+              "type": "group",
+              "properties": {
+                "leaf": {
+                  "type": "text",
+                  "options": { "items": ["a", "b"] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-static-items-langmap-labels",
+    "note": "G3 static value→label map with LangMap labels passes the scan (ko/en keys + value keys are not forbidden)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "toggle": {
+          "type": "select",
+          "label": { "ko": "사용 여부", "en": "Enabled" },
+          "items": {
+            "0": { "ko": "미사용", "en": "Off" },
+            "1": { "ko": "사용", "en": "On" }
+          }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-static-items-langmap-labels-4lang",
+    "note": "G3 static value→label map with 4-language LangMap labels {ko,en,ja,zh} passes the scan (language keys + value keys are not forbidden)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "toggle": {
+          "type": "select",
+          "label": { "ko": "사용 여부", "en": "Enabled", "ja": "有効", "zh": "启用" },
+          "items": {
+            "0": { "ko": "미사용", "en": "Off", "ja": "オフ", "zh": "关闭" },
+            "1": { "ko": "사용", "en": "On", "ja": "オン", "zh": "开启" }
+          }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-items-4lang-null-label-slot-and-null-content",
+    "note": "G3 — a 4-language items map with a partial-null label slot (ja:null) and a fully null label key, plus a 4-language content map with a null slot and label:null, all pass the scan with no effect",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "nickname": {
+          "type": "text",
+          "label": null,
+          "description": { "ko": "별명", "en": "Nickname", "ja": null, "zh": "昵称" },
+          "validate": { "required": true }
+        },
+        "grade": {
+          "type": "select",
+          "items": {
+            "1": { "ko": "동", "en": "Bronze", "ja": "ブロンズ", "zh": "青铜" },
+            "2": { "ko": "은", "en": "Silver", "ja": null, "zh": "白银" },
+            "3": null,
+            "4": { "ko": "금", "en": "Gold", "ja": "ゴールド", "zh": "黄金" }
+          }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-lang-only-per-language-override-map",
+    "note": "SPEC §3 C — lang.only as a per-language override map {ja:{validate},en:{validate}} (not just the [ko,en] allowlist) passes the scan; language-code keys and slot bodies are not forbidden",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "title": {
+          "type": "text",
+          "lang": {
+            "mode": "append",
+            "only": {
+              "ja": { "validate": { "required": true } },
+              "en": { "validate": { "required": false } }
+            }
+          }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "ok-null-content-and-null-label-slot",
+    "note": "G3 empty content as null (label:null) and a null LangMap slot pass the scan with no effect",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "nickname": {
+          "type": "text",
+          "label": null,
+          "description": { "ko": "별명", "en": null },
+          "validate": { "required": true }
+        },
+        "grade": {
+          "type": "select",
+          "items": { "1": "Bronze", "2": null, "3": { "ko": "금", "en": "Gold" } }
+        }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "err-top-level-if",
+    "note": "a forbidden key at the top of a field body is rejected",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "text",
+          "if": ".other == 1"
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.if" }
+  },
+  {
+    "name": "err-validate-required-nested-if",
+    "note": "if nested under validate.required (one below a slot body) is rejected",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "text",
+          "validate": {
+            "required": { "if": ".other == 1" }
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.validate.required.if" }
+  },
+  {
+    "name": "err-options-display-switch",
+    "note": "display_switch nested under an open bucket (options) body is rejected",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "choice": {
+          "type": "select",
+          "options": {
+            "items": ["x", "y"],
+            "display_switch": ".toggle"
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.choice.options.display_switch" }
+  },
+  {
+    "name": "err-design-label-nested-when",
+    "note": "when nested under design.label (deep design subtree) is rejected",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "text",
+          "design": {
+            "label": { "when": ".flag", "text": "Label" }
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.design.label.when" }
+  },
+  {
+    "name": "err-child-validate-show-if",
+    "note": "show_if under a deeply nested child's validate slot is rejected",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "parent": {
+          "type": "group",
+          "properties": {
+            "child": {
+              "type": "text",
+              "validate": {
+                "required": true,
+                "show_if": ".sibling != ''"
+              }
+            }
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.parent.properties.child.validate.show_if" }
+  },
+  {
+    "name": "err-magic-underscore-default-key",
+    "note": "the magic '_' default symbol (R4) is forbidden anywhere, here in a condition map",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "number",
+          "validate": {
+            "max": { ".tier == 'pro'": 1000, "_": 10 }
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.validate.max._" }
+  },
+  {
+    "name": "err-x-comment-survived",
+    "note": "an x{key} comment that survived x-strip is rejected (xstyle deep under design)",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "text",
+          "design": {
+            "wrapper": { "xstyle": "color:red" }
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.design.wrapper.xstyle" }
+  },
+  {
+    "name": "err-x-prefixed-arbitrary",
+    "note": "any x-prefixed key (not only xclass/xstyle) is rejected by the x{key} pattern",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "text",
+          "xnote": "author comment"
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.xnote" }
+  },
+  {
+    "name": "err-seqtokey-legacy",
+    "note": "the legacy seqtokey meta key is forbidden, here under a multiple settings body",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": { "seqtokey": true },
+          "properties": {
+            "cell": { "type": "text" }
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.rows.multiple.seqtokey" }
+  },
+  {
+    "name": "err-inside-array-element",
+    "note": "a forbidden key inside an array element (items sub-spec) is caught too",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "field": {
+          "type": "select",
+          "options": {
+            "items": [
+              { "value": "a", "label": "A" },
+              { "value": "b", "display_target": ".x" }
+            ]
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.options.items.1.display_target" }
+  },
+  {
+    "name": "err-after-compose-ref-base-leak",
+    "note": "a forbidden key inherited via $ref base is caught after compose expansion",
+    "spec": {
+      "$ref": "base.yml"
+    },
+    "files": {
+      "base.yml": {
+        "properties": {
+          "field": {
+            "type": "text",
+            "validate": {
+              "required": { "when": ".flag" }
+            }
+          }
+        }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.validate.required.when" }
+  }
+]
