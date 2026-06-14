@@ -19,8 +19,14 @@
 
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { buildForm, type BuildFormOptions } from '@form-spec/generator-core';
+import {
+  buildForm,
+  buildList,
+  type BuildFormOptions,
+  type BuildListOptions,
+} from '@form-spec/generator-core';
 import { Form } from './components/Form';
+import { List } from './components/List';
 import type { Language } from '@form-spec/generator-core';
 import type { UnsupportedMode } from '@form-spec/generator-core';
 
@@ -38,6 +44,22 @@ export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
 export { Form } from './components/Form';
 export { Field } from './components/Field';
 export { Widget } from './components/Widget';
+
+// list-spec (read sister) — buildList + the list/cell React surfaces (additive;
+// the form surfaces above are untouched). schema §9.
+export { buildList } from '@form-spec/generator-core';
+export type {
+  ListViewModel,
+  ColumnVM,
+  CellVM,
+  ListRowVM,
+  PaginationVM,
+  SortVM,
+  ActionVM,
+  CellDisplay,
+} from '@form-spec/generator-core';
+export { List } from './components/List';
+export { Cell } from './components/Cell';
 
 /** Options for a CRUDUI form render. */
 export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
@@ -62,5 +84,32 @@ export function renderForm(
 ): string {
   const fields = buildForm(rootSpec, options);
   const element = React.createElement(Form, { fields }) as React.ReactElement;
+  return renderToStaticMarkup(element as Parameters<typeof renderToStaticMarkup>[0]);
+}
+
+/** Options for a CRUDUI list render (the read sister of RenderFormOptions). */
+export interface RenderListOptions extends BuildListOptions {
+  /** Table (default) or card layout. */
+  layout?: 'table' | 'card';
+}
+
+/**
+ * Render a list spec + its INJECTED rows (SPEC §9, DB-agnostic) to SSR HTML —
+ * the read sister of `renderForm`. Composes the columns map ($ref/$patch),
+ * evaluates design/expression/i18n via the shared core (`buildList`), and
+ * serializes the resulting `<List>` table/card tree with
+ * `renderToStaticMarkup`. read-only: no input widget is emitted.
+ *
+ * Throws `ComposeLoadError` on an unresolved `$ref` (a load error, never a
+ * silent render).
+ */
+export function renderList(
+  listSpec: Record<string, unknown>,
+  rows: Array<Record<string, unknown>> = [],
+  options: RenderListOptions = {}
+): string {
+  const { layout, ...buildOpts } = options;
+  const vm = buildList(listSpec, rows, buildOpts);
+  const element = React.createElement(List, { vm, layout }) as React.ReactElement;
   return renderToStaticMarkup(element as Parameters<typeof renderToStaticMarkup>[0]);
 }

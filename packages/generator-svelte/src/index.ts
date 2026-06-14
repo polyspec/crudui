@@ -20,9 +20,10 @@
  */
 
 import { render } from 'svelte/server';
-import { buildForm, type BuildFormOptions } from '@form-spec/generator-core';
+import { buildForm, buildList, type BuildFormOptions, type BuildListOptions } from '@form-spec/generator-core';
 import type { Language, UnsupportedMode } from '@form-spec/generator-core';
 import Form from './components/Form.svelte';
+import List from './components/List.svelte';
 
 export { ComposeLoadError } from '@form-spec/validator';
 export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
@@ -38,6 +39,21 @@ export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
 export { default as Form } from './components/Form.svelte';
 export { default as Field } from './components/Field.svelte';
 export { default as Widget } from './components/Widget.svelte';
+
+// list-spec (read sister) — buildList view model + the List .svelte renderer
+// (additive; the form/write surfaces above are untouched). schema §9.
+export { buildList } from '@form-spec/generator-core';
+export type {
+  ListViewModel,
+  ColumnVM,
+  CellVM,
+  ListRowVM,
+  PaginationVM,
+  SortVM,
+  ActionVM,
+  CellDisplay,
+} from '@form-spec/generator-core';
+export { default as List } from './components/List.svelte';
 
 /** Options for a CRUDUI form render. */
 export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
@@ -97,4 +113,32 @@ export function renderFormString(
   options: RenderFormOptions = {}
 ): string {
   return renderForm(rootSpec, options);
+}
+
+/** Options for a CRUDUI list render (DB-agnostic: `rows` are the injected argument). */
+export interface RenderListOptions extends BuildListOptions {
+  /** Table (default) or stacked-card layout. */
+  mode?: 'table' | 'card';
+}
+
+/**
+ * Render a CRUDUI list's CONTENT (the table/cards, no page wrapper) through Svelte 5
+ * SSR — the read sister of `renderForm`. `rows` are INJECTED (DB-agnostic, SPEC
+ * §9); search/sort/pagination are declared only, their real application is the
+ * server's job. read-only: cells are DISPLAY values, never inputs.
+ *
+ * Throws `ComposeLoadError` on an unresolved `$ref` (raised by buildList before
+ * any Svelte work — a load error, never a silent render).
+ */
+export function renderList(
+  listSpec: Record<string, unknown>,
+  rows: Array<Record<string, unknown>> = [],
+  options: RenderListOptions = {}
+): string {
+  const { mode, ...buildOpts } = options;
+  // Stages 1–4 (compose + design/expr + i18n + read cells) → markup-free model.
+  const vm = buildList(listSpec, rows, buildOpts);
+  // Genuine Svelte 5 SSR of a REAL .svelte tree (List), not an {@html} echo.
+  const { body } = render(List, { props: { vm, mode: mode ?? 'table' } });
+  return stripSsrScaffolding(body);
 }
