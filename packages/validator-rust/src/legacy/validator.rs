@@ -326,7 +326,7 @@ impl Validator {
         if let Some(pattern) = &rule.pattern {
             if !pattern.is_empty() {
                 if let Some(match_rule) = self.rules.get("match") {
-                    if let Some(err) = match_rule(value, &[pattern.clone()], root_data, &ctx) {
+                    if let Some(err) = match_rule(value, std::slice::from_ref(pattern), root_data, &ctx) {
                         return Some(if !rule.message.is_empty() {
                             rule.message.clone()
                         } else {
@@ -483,10 +483,10 @@ impl Validator {
 
     fn resolve_field_reference(&mut self, reference: &str, field_path: &[String], root_data: &Value) -> Option<Value> {
         if reference.starts_with('.') {
-            return match self.condition_parser.evaluate_value(reference, root_data, field_path) {
-                Ok(v) => Some(v),
-                Err(_) => None,
-            };
+            return self
+                .condition_parser
+                .evaluate_value(reference, root_data, field_path)
+                .ok();
         }
 
         let segments: Vec<String> = reference.split('.').filter(|s| !s.is_empty()).map(str::to_string).collect();

@@ -18,9 +18,9 @@
 //!      drupal_array_merge_deep_array: both-array → deep merge, else latter wins).
 //!
 //!   2. Structured ops — explicit `add` / `remove` / `replace` keys:
-//!        add:     { "path.to.new": value, … }   — deep-merge value at path
-//!        replace: { "path.to.key": value, … }   — same merge rule (scalar override)
-//!        remove:  [ "path.to.key", … ] | { … }  — deep delete (legacy arr::remove)
+//!      - add:     `{ "path.to.new": value, … }`   — deep-merge value at path
+//!      - replace: `{ "path.to.key": value, … }`   — same merge rule (scalar override)
+//!      - remove:  `[ "path.to.key", … ] | { … }`  — deep delete (legacy arr::remove)
 //!
 //! Resolution order: base ($ref) first, then $patch overlays. add/replace
 //! deep-merge; remove deep-deletes; deep-path set splits then applies. An

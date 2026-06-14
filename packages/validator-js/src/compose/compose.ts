@@ -49,12 +49,10 @@ export function composeProperties(
   let base: Record<string, unknown> = {};
   let patch: unknown;
   const own: Record<string, unknown> = {};
-  let sawRef = false;
   let sawPatch = false;
 
   for (const k of Object.keys(properties)) {
     if (k === '$ref') {
-      sawRef = true;
       // $ref array_merges onto whatever was declared before it (legacy order).
       base = { ...own, ...resolveRef(properties[k], basepath, loader) };
       for (const ok of Object.keys(own)) delete own[ok];
@@ -80,8 +78,6 @@ export function composeProperties(
     }
   }
 
-  // Mark intent for callers that want to assert composition happened.
-  void sawRef;
   return result;
 }
 
@@ -96,7 +92,8 @@ export function composeSpec(
 ): Record<string, unknown> {
   const basepath = opts.basepath ?? '';
 
-  let resolved: Record<string, unknown> = spec;
+  // Each branch assigns `resolved` exactly once (no useless first write).
+  let resolved: Record<string, unknown>;
 
   // Field-level $ref / $patch (a field may inherit a whole base spec).
   if ('$ref' in spec || '$patch' in spec) {

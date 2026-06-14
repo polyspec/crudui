@@ -531,10 +531,7 @@ fn rule_min(ctx: &RuleContext) -> Option<String> {
         Some(n) if !n.is_nan() => n,
         _ => return None,
     };
-    let num = match to_number_input(ctx.value) {
-        Some(n) => n,
-        None => return None,
-    };
+    let num = to_number_input(ctx.value)?;
     if num < min {
         let msg = message_override(ctx.messages, "min")
             .unwrap_or("Please enter a value greater than or equal to {0}.")
@@ -555,10 +552,7 @@ fn rule_max(ctx: &RuleContext) -> Option<String> {
         Some(n) if !n.is_nan() => n,
         _ => return None,
     };
-    let num = match to_number_input(ctx.value) {
-        Some(n) => n,
-        None => return None,
-    };
+    let num = to_number_input(ctx.value)?;
     if num > max {
         let msg = message_override(ctx.messages, "max")
             .unwrap_or("Please enter a value less than or equal to {0}.")
@@ -583,10 +577,7 @@ fn rule_range(ctx: &RuleContext) -> Option<String> {
         (Some(a), Some(b)) if !a.is_nan() && !b.is_nan() => (a, b),
         _ => return None,
     };
-    let num = match to_number_input(ctx.value) {
-        Some(n) => n,
-        None => return None,
-    };
+    let num = to_number_input(ctx.value)?;
     if num < min || num > max {
         let msg = message_override(ctx.messages, "range")
             .map(str::to_string)
@@ -612,10 +603,7 @@ fn rule_step(ctx: &RuleContext) -> Option<String> {
         Some(n) if !n.is_nan() && n > 0.0 => n,
         _ => return None,
     };
-    let num = match to_number_input(ctx.value) {
-        Some(n) => n,
-        None => return None,
-    };
+    let num = to_number_input(ctx.value)?;
     if !is_valid_step(num, step, 0.0) {
         let msg = message_override(ctx.messages, "step")
             .map(str::to_string)
@@ -666,10 +654,8 @@ fn rule_match(ctx: &RuleContext) -> Option<String> {
         Value::String(s) => s.clone(),
         _ => return None,
     };
-    let regex = match compile_anchored(&pattern) {
-        Some(r) => r,
-        None => return None, // invalid pattern: skip (JS getPattern → null)
-    };
+    // invalid pattern: skip (JS getPattern → null)
+    let regex = compile_anchored(&pattern)?;
     let str_value = js_string(ctx.value);
     if !regex.is_match(&str_value) {
         // Message lookup: invoked rule name first (pattern/match alias), then
@@ -1016,10 +1002,7 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
         return None;
     }
     let end = match ctx.value {
-        Value::String(s) => match parse_date(s.trim()) {
-            Some(d) => d,
-            None => return None,
-        },
+        Value::String(s) => parse_date(s.trim())?,
         Value::Number(_) => 0,
         _ => return None,
     };
@@ -1036,10 +1019,7 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
         return None;
     }
     let start = match &start_value {
-        Value::String(s) => match parse_date(s.trim()) {
-            Some(d) => d,
-            None => return None,
-        },
+        Value::String(s) => parse_date(s.trim())?,
         Value::Number(_) => 0,
         _ => return None,
     };
@@ -1496,18 +1476,12 @@ fn starts_identifier_dot(s: &str) -> bool {
         Some((_, c)) if c.is_ascii_alphabetic() || c == '_' => {}
         _ => return false,
     }
-    let mut last_end = 1;
-    for (i, c) in chars {
+    for (_, c) in chars {
         if c.is_ascii_alphanumeric() || c == '_' {
-            last_end = i + c.len_utf8();
             continue;
         }
-        if c == '.' {
-            return true;
-        }
-        // Need the dot to come immediately after the identifier run.
-        let _ = last_end;
-        return false;
+        // The dot must come immediately after the identifier run.
+        return c == '.';
     }
     false
 }
