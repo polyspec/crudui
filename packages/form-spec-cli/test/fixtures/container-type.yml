@@ -1,0 +1,17 @@
+# Control — a container field carries `properties`, so it is exempt from the
+# leaf type check (SPEC-V2 §3: properties = container/group structure, not a
+# leaf widget). `group` is intentionally NOT a registered WIDGET_KIND; the
+# nested container `address` is also not — both pass because they own
+# `properties`. Only the leaf descendants (text) are catalog-checked.
+type: group
+properties:
+  address:
+    type: group
+    label: Address
+    properties:
+      city:
+        type: text
+        label: City
+      zip:
+        type: text
+        label: ZIP

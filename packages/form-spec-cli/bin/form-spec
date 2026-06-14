@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# form-spec launcher — runs the .mjs entry through the tsx loader so the .ts
+# single-source-of-truth imports directly (no separate build), exactly like the
+# cross-check-console gateway spawns validate-v2.mjs.
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec node --import tsx "$DIR/form-spec.mjs" "$@"
