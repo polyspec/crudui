@@ -1,6 +1,7 @@
 /** CRUDUI validation and shared rule APIs. */
 export * from './schema';
 export * from './compose/index';
+export * from './validate-list/index';
 export * from './types';
 export { validate, Validator, default } from './validate/index';
 export type { ValidateOptions } from './validate/index';
