@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process';
 import yaml from 'js-yaml';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import { translateFromLegacy } from '../packages/validator-js/src/legacy/translate/index';
+import { translateFromLegacy } from '../packages/validator-ts/src/legacy/translate/index';
 
 const CORPUS = '/Users/max/Abyss/Workspace/blue/app';
 const REPO = path.resolve(import.meta.dirname, '..');

@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  * self-cycle, three-node cycle, diamond-not-cycle, empty-path format error, and
  * the declaration-order rule (a sibling BEFORE $ref is overridden by the base; a
  * sibling AFTER $ref overrides the base). Port of
- * validator-js/src/compose/ref.test.ts.
+ * validator-ts/src/compose/ref.test.ts.
  */
 final class RefTest extends TestCase
 {

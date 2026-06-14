@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/generator-vue",
+  "name": "@crudui/generator-vue",
   "version": "0.0.1",
   "description": "Vue 3 form builder component library based on form-spec YAML definitions (PHP Limepie parity)",
   "main": "dist/index.cjs",
@@ -44,8 +44,8 @@
     "vue": "^3.4.0"
   },
   "dependencies": {
-    "@form-spec/generator-core": "file:../generator-core",
-    "@form-spec/validator": "file:../validator-js",
+    "@crudui/generator-core": "file:../generator-core",
+    "@crudui/validator": "file:../validator-ts",
     "yaml": "^2.3.0"
   },
   "devDependencies": {

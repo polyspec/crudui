@@ -6,7 +6,7 @@
 // ERROR (ComposeLoadError) — never valid:true (the legacy ProductNft.yml:873 bug).
 // CRUDUI-NEW only: this never touches the legacy model or loader (R7 parallel run).
 //
-// Byte-for-byte parity with the JS reference (validator-js/src/compose). Both
+// Byte-for-byte parity with the JS reference (validator-ts/src/compose). Both
 // load the SAME shared fixture tests/fixtures/compose/cases.json and must
 // reproduce it identically (G-B 4-language idempotence). interface{} is spelled
 // any (Go ≥ 1.18). No eval.

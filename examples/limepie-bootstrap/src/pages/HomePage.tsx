@@ -145,7 +145,7 @@ export function HomePage({ language }: HomePageProps) {
         <h2 className="h4 mb-4">Usage</h2>
         <div className="bg-dark text-light p-4 rounded">
           <pre className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-{`import { FormBuilder } from '@form-spec/generator-react/legacy';
+{`import { FormBuilder } from '@crudui/generator-react/legacy';
 import contactSpec from './specs/contact.yaml?raw';
 
 // Bootstrap 5 classes are automatically applied:

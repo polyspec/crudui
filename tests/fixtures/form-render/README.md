@@ -7,9 +7,9 @@ case's `expected_html` AFTER passing through the shared normalizer
 regenerate it (see Generation).
 
 The pipeline under test is the four mandated stages: CRUDUI spec → CRUDUI compose
-(`validator-js` CRUDUI compose: expand `$ref`/`$patch` into a single spec) → design
+(`validator-ts` CRUDUI compose: expand `$ref`/`$patch` into a single spec) → design
 slot + condition-map render (the SAME expr engine the CRUDUI validator uses) → SSR
-HTML. The compose and expr engines are REUSED from `validator-js` (no duplicate
+HTML. The compose and expr engines are REUSED from `validator-ts` (no duplicate
 implementation); no legacy meta key (`display_switch`/`display_target`/
 `element_class`/`group_class`/`wrapper_class`/…) and no `eval` are involved.
 

@@ -1,11 +1,11 @@
-# @form-spec/generator-react
+# @crudui/generator-react
 
 React form builder for form-spec definitions. Two surfaces:
 
 - legacy (`src/index.ts`) — `FormBuilder` and the legacy field/group components,
   byte-parity with the Limepie PHP `Generator::write()` reference fixtures.
 - CRUDUI (`src/index.ts`) — the REFERENCE adapter for the CRUDUI pipeline: compose →
-  evaluate (shared `@form-spec/generator-core`) → JSX SSR. Every node is a real
+  evaluate (shared `@crudui/generator-core`) → JSX SSR. Every node is a real
   JSX element (no string-builder, no `dangerouslySetInnerHTML` echo of completed
   HTML). It is the parity baseline the Vue/Svelte adapters are checked against.
 
@@ -24,7 +24,7 @@ React form builder for form-spec definitions. Two surfaces:
 ## legacy usage
 
 ```tsx
-import { FormBuilder } from '@form-spec/generator-react';
+import { FormBuilder } from '@crudui/generator-react';
 
 <FormBuilder spec={spec} data={{}} language="ko" />
 ```

@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/compose"
+	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
 // CRUDUI validate-engine conformance (schema §2 G5 → §3 → §2 G1).

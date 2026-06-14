@@ -1,5 +1,5 @@
 {
-  "$id": "https://github.com/yejune/form-spec/schema/form-spec.schema.json",
+  "$id": "https://github.com/crudui/crudui/schema/form-spec.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Form-Spec 메타스키마",
   "description": "current 폼 스펙(spec/schema.md 헌법)을 검증하는 메타스키마. 역할 슬롯(validate/design/behavior/options)·구조 키(type/name/default/properties/items/multiple/lang)·콘텐츠·조건맵·$ref/$patch 합성 모델을 강제하고, 조건 전용 메타키와 레거시 매직 토큰을 전역 거부한다. 이 파일은 current 스펙을 검증하는 메타스키마이며 current 스펙 형식 자체가 아니다 — SPEC §8 'JSON Schema 미채택'은 스펙 형식 선택에 관한 것이고 여기서 검증 도구로 쓰는 것과 무관하다.",

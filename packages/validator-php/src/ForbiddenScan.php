@@ -9,7 +9,7 @@ use FormSpec\Validator\Compose\ComposeLoadError;
 /**
  * Recursive forbidden meta-key scan (schema §6) — the runtime half of the
  * global rejection that the meta-schema's `propertyNames` enforces statically.
- * Byte-for-byte port of validator-js/src/forbidden-scan.ts.
+ * Byte-for-byte port of validator-ts/src/forbidden-scan.ts.
  *
  * R1: the types/parser PRESERVE every key (round-trip), so blocking forbidden
  * meta keys is the VALIDATION layer's job, not the model's. The direct audit

@@ -14,11 +14,11 @@
   },
   "scripts": {
     "build": "npm run build:validator && npm run build:generators",
-    "build:validator": "npm run build -w @form-spec/validator",
-    "build:generators": "npm run build -w @form-spec/generator-core && npm run build -w @form-spec/generator-react && npm run build -w @form-spec/generator-vue && npm run build -w @form-spec/generator-svelte",
+    "build:validator": "npm run build -w @crudui/validator",
+    "build:generators": "npm run build -w @crudui/generator-core && npm run build -w @crudui/generator-react && npm run build -w @crudui/generator-vue && npm run build -w @crudui/generator-svelte",
     "test": "node tests/runner/compare-all.js",
-    "lint": "eslint packages/validator-js/src packages/generator-react/src",
-    "lint:fix": "eslint packages/validator-js/src packages/generator-react/src --fix",
+    "lint": "eslint packages/validator-ts/src packages/generator-react/src",
+    "lint:fix": "eslint packages/validator-ts/src packages/generator-react/src --fix",
     "docs:api": "node scripts/gen-api-docs.mjs",
     "docs:build": "vitepress build docs",
     "docs:dev": "vitepress dev docs",
@@ -31,7 +31,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yejune/form-spec.git"
+    "url": "git+https://github.com/crudui/crudui.git"
   },
   "keywords": [
     "form",
@@ -45,9 +45,9 @@
   "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/yejune/form-spec/issues"
+    "url": "https://github.com/crudui/crudui/issues"
   },
-  "homepage": "https://github.com/yejune/form-spec#readme",
+  "homepage": "https://github.com/crudui/crudui#readme",
   "overrides": {
     "react": "^19.2.7",
     "react-dom": "^19.2.7"

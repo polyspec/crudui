@@ -31,8 +31,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/compose"
-	"github.com/yejune/form-spec/packages/validator-go/validator/validate"
+	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	"github.com/crudui/crudui/packages/validator-go/validator/validate"
 )
 
 // request is the stdin envelope. spec and data stay raw so the CRUDUI entry point

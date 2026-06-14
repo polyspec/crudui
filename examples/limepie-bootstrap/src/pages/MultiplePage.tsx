@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FormBuilder } from '@form-spec/generator-react/legacy';
+import { FormBuilder } from '@crudui/generator-react/legacy';
 
 interface MultiplePageProps {
   language: 'ko' | 'en';

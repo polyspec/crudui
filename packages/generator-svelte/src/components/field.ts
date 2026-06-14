@@ -6,7 +6,7 @@
  * envelope nodes carry. eval is never called; nothing is recomputed.
  */
 
-import type { FieldViewModel } from '@form-spec/generator-core';
+import type { FieldViewModel } from '@crudui/generator-core';
 
 /** form-element-wrapper class: base + design.wrapper.class. */
 export function wrapperClass(vm: FieldViewModel): string {

@@ -26,7 +26,7 @@ features:
   - title: CRUDUI 도구체인
     details: form-spec CLI(describe/check/explain/list-widgets) · MCP · 크로스-검증 콘솔(4언어 검증 × 3프레임워크 SSR) · nl-to-form 스킬. 모두 코드/스키마 단일진실에 위임한다.
   - title: 기계가독 스펙
-    details: validator-js 타입에서 생성한 JSON Schema(draft-07) 로 에디터 자동완성·검증. 자동생성 멀티언어 API 문서 포함.
+    details: validator-ts 타입에서 생성한 JSON Schema(draft-07) 로 에디터 자동완성·검증. 자동생성 멀티언어 API 문서 포함.
 ---
 
 ## 개요
@@ -41,7 +41,7 @@ flowchart TD
     spec["YAML 폼 스펙 · 한 파일<br/>type: group / properties<br/><b>단일 진실</b>"]
     spec --> V["검증 (멱등)"]
     spec --> R["렌더 (parity)"]
-    V --> VL["validator-js (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
+    V --> VL["validator-ts (TS)<br/>validator-php (PHP ^8.2)<br/>validator-go (Go)<br/>validator-rust (Rust)"]
     R --> RL["generator-react<br/>generator-vue<br/>generator-svelte"]
     VL -->|"공유 픽스처 1074"| CMP["tests/runner/compare-all.js<br/>(4언어 결과 일치)"]
     RL -->|"SSR · 정규화 비교"| G["tests/fixtures/reference-html/*<br/>(Limepie 기준 HTML, 7/7 parity)"]
@@ -49,15 +49,15 @@ flowchart TD
 
 | 영역 | 패키지 | 비고 |
 |------|--------|------|
-| 검증기 | `validator-js` (`@form-spec/validator`) | TypeScript, 브라우저·Node |
+| 검증기 | `validator-ts` (`@crudui/validator`) | TypeScript, 브라우저·Node |
 | 검증기 | `validator-php` (`form-spec/validator`) | PHP ^8.2 |
-| 검증기 | `validator-go` | `github.com/yejune/form-spec/packages/validator-go` |
+| 검증기 | `validator-go` | `github.com/crudui/crudui/packages/validator-go` |
 | 검증기 | `validator-rust` (`formspec-validator`) | Rust 크레이트 |
-| 렌더 코어 | `generator-core` (`@form-spec/generator-core`) | 프레임워크 무관 buildForm/buildList |
-| 렌더러 | `generator-react` (`@form-spec/generator-react`) | 기준 HTML 7/7 parity, list List |
-| 렌더러 | `generator-vue` (`@form-spec/generator-vue`) | SSR, 기준 HTML 7/7 parity, list List |
-| 렌더러 | `generator-svelte` (`@form-spec/generator-svelte`) | SSR, 기준 HTML 7/7 parity, list List |
-| 도구 | `form-spec-cli` (`@form-spec/cli`, bin `form-spec`) | describe/check/explain/list-widgets |
+| 렌더 코어 | `generator-core` (`@crudui/generator-core`) | 프레임워크 무관 buildForm/buildList |
+| 렌더러 | `generator-react` (`@crudui/generator-react`) | 기준 HTML 7/7 parity, list List |
+| 렌더러 | `generator-vue` (`@crudui/generator-vue`) | SSR, 기준 HTML 7/7 parity, list List |
+| 렌더러 | `generator-svelte` (`@crudui/generator-svelte`) | SSR, 기준 HTML 7/7 parity, list List |
+| 도구 | `form-spec-cli` (`@crudui/cli`, bin `form-spec`) | describe/check/explain/list-widgets |
 
 ## 빠른 링크
 
@@ -76,7 +76,7 @@ flowchart TD
 ## 검증기 빠른 시작
 
 ```typescript
-import { Validator } from '@form-spec/validator';
+import { Validator } from '@crudui/validator';
 
 const spec = {
   type: 'group',

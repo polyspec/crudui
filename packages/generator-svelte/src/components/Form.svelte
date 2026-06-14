@@ -9,7 +9,7 @@
   render() produces the Limepie envelope byte-compatibly after normalization.
 -->
 <script lang="ts">
-  import type { FieldViewModel } from '@form-spec/generator-core';
+  import type { FieldViewModel } from '@crudui/generator-core';
   import Field from './Field.svelte';
 
   let { fields }: { fields: FieldViewModel[] } = $props();

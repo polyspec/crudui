@@ -26,7 +26,7 @@ import {
   composeSpec,
   MemoryLoader,
   ComposeLoadError,
-} from '/Users/max/ai/gui/form-spec/packages/validator-js/src/compose/index';
+} from '/Users/max/ai/gui/form-spec/packages/validator-ts/src/compose/index';
 
 interface CaseInput {
   files?: Record<string, Record<string, unknown>>;

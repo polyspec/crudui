@@ -14,7 +14,7 @@
  * non-SSR surfaces stay usable without the SSR peer; SSR is opt-in.
  */
 
-import { buildForm } from '@form-spec/generator-core';
+import { buildForm } from '@crudui/generator-core';
 import type { RenderFormOptions } from './index';
 import { Form } from './components/Form';
 

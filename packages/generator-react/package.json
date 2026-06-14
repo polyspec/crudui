@@ -1,5 +1,5 @@
 {
-  "name": "@form-spec/generator-react",
+  "name": "@crudui/generator-react",
   "version": "0.0.1",
   "description": "React form builder component library based on form-spec YAML definitions",
   "main": "dist/index.js",
@@ -54,8 +54,8 @@
     "react-dom": ">=17.0.0"
   },
   "dependencies": {
-    "@form-spec/generator-core": "file:../generator-core",
-    "@form-spec/validator": "file:../validator-js",
+    "@crudui/generator-core": "file:../generator-core",
+    "@crudui/validator": "file:../validator-ts",
     "lucide-react": "^1.18.0",
     "yaml": "^2.3.0"
   },

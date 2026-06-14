@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/compose"
+	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
 type forbiddenScanCase struct {

@@ -10,9 +10,9 @@ const path = require('path');
 // Load the validator module
 let Validator;
 try {
-  Validator = require('../packages/validator-js/dist/legacy/index.js').Validator;
+  Validator = require('../packages/validator-ts/dist/legacy/index.js').Validator;
 } catch (e) {
-  console.error('Failed to load validator. Build the JS validator first with: cd packages/validator-js && npm run build');
+  console.error('Failed to load validator. Build the JS validator first with: cd packages/validator-ts && npm run build');
   process.exit(1);
 }
 

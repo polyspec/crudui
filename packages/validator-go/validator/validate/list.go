@@ -27,7 +27,7 @@ package validate
 // (1급 closure), required:columns, the sort.dir / pagination.mode enums, and the
 // CellFormat anyOf polymorphism — live ONLY in the meta-schema (ajv,
 // schema/form-spec-model.schema.json #/definitions/List, exercised by
-// validator-js/src/list-metaschema.conformance.test.ts), exactly as for a form.
+// validator-ts/src/list-metaschema.conformance.test.ts), exactly as for a form.
 // This entry invents NO new structural rule; it reuses the form's pass 1 + pass 2.
 //
 // Go ≥ 1.18: interface{} is spelled any. No eval.
@@ -35,8 +35,8 @@ package validate
 import (
 	"fmt"
 
-	model "github.com/yejune/form-spec/packages/validator-go/validator"
-	"github.com/yejune/form-spec/packages/validator-go/validator/compose"
+	model "github.com/crudui/crudui/packages/validator-go/validator"
+	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
 // ValidateList runs the two structural passes (compose → forbidden-scan) over a

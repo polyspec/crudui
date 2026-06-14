@@ -2,7 +2,7 @@
 //!
 //! Turns a condition string into a `Vec<Token>` ending in EOF. WHITESPACE is
 //! consumed but never emitted. The token order, multi-char operator precedence,
-//! multi-dot handling, string escapes, and number rules mirror validator-js
+//! multi-dot handling, string escapes, and number rules mirror validator-ts
 //! `Lexer` exactly, because the shared fixture's `tokens` array is byte-compared
 //! across 4 languages.
 //!

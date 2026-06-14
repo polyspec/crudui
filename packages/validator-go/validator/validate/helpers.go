@@ -4,7 +4,7 @@ package validate
 // resolution (the verbatim path-param rules equalTo / notEqual / unique / enddate
 // need it), the condition-expression heuristic, accept MIME/extension matching,
 // date parsing, and URL validation. All mirror the JS reference
-// (validator-js/src/parser/PathResolver, ConditionParser, rules/accept|date|url).
+// (validator-ts/src/parser/PathResolver, ConditionParser, rules/accept|date|url).
 //
 // Field-reference resolution is the ONE piece of path logic this package owns
 // directly: the CRUDUI expr engine resolves paths inside expressions, but a rule param
@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yejune/form-spec/packages/validator-go/validator/expr"
+	"github.com/crudui/crudui/packages/validator-go/validator/expr"
 )
 
 // parsePathString splits a dotted path string into non-empty segments (JS

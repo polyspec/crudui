@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: (_format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
-      external: ['svelte', 'svelte/server', 'svelte/internal', 'yaml', '@form-spec/validator'],
+      external: ['svelte', 'svelte/server', 'svelte/internal', 'yaml', '@crudui/validator'],
     },
   },
 });

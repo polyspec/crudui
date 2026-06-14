@@ -2,7 +2,7 @@
  * CRUDUI generator entry (REFERENCE) — compose → evaluate (core) → JSX SSR.
  *
  * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) CRUDUI spec → (2) CRUDUI compose (validator-js composeProperties: expand
+ *   (1) CRUDUI spec → (2) CRUDUI compose (validator-ts composeProperties: expand
  *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
  *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
  *   evaluation (framework-agnostic core: ./core) → (4) JSX SSR via
@@ -13,7 +13,7 @@
  * serializes with `renderToStaticMarkup`. There is NO string-builder and NO
  * dangerouslySetInnerHTML echo of completed HTML — every node is a JSX element
  * (the only RAW passthrough sites are the sanctioned dummy/image-viewer display
- * html and the script/style chrome). compose + expr are reused from validator-js;
+ * html and the script/style chrome). compose + expr are reused from validator-ts;
  * legacy generator code is never touched; eval is never called.
  */
 
@@ -24,30 +24,30 @@ import {
   buildList,
   type BuildFormOptions,
   type BuildListOptions,
-} from '@form-spec/generator-core';
+} from '@crudui/generator-core';
 import { Form } from './components/Form';
 import { List } from './components/List';
-import type { Language } from '@form-spec/generator-core';
-import type { UnsupportedMode } from '@form-spec/generator-core';
+import type { Language } from '@crudui/generator-core';
+import type { UnsupportedMode } from '@crudui/generator-core';
 
-export { ComposeLoadError } from '@form-spec/validator';
-export { UnsupportedFieldTypeError } from '@form-spec/generator-core';
-export { resolveDesign } from '@form-spec/generator-core';
-export { evalShow, evalAppearance, makeContext } from '@form-spec/generator-core';
-export { makeTranslate } from '@form-spec/generator-core';
-export type { Language } from '@form-spec/generator-core';
-export type { UnsupportedMode } from '@form-spec/generator-core';
+export { ComposeLoadError } from '@crudui/validator';
+export { UnsupportedFieldTypeError } from '@crudui/generator-core';
+export { resolveDesign } from '@crudui/generator-core';
+export { evalShow, evalAppearance, makeContext } from '@crudui/generator-core';
+export { makeTranslate } from '@crudui/generator-core';
+export type { Language } from '@crudui/generator-core';
+export type { UnsupportedMode } from '@crudui/generator-core';
 
 // Core + components (the shared evaluation + the React adapter surfaces).
-export { buildForm } from '@form-spec/generator-core';
-export type { FieldViewModel, WidgetModel } from '@form-spec/generator-core';
+export { buildForm } from '@crudui/generator-core';
+export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
 export { Form } from './components/Form';
 export { Field } from './components/Field';
 export { Widget } from './components/Widget';
 
 // list-spec (read sister) — buildList + the list/cell React surfaces (additive;
 // the form surfaces above are untouched). schema §9.
-export { buildList } from '@form-spec/generator-core';
+export { buildList } from '@crudui/generator-core';
 export type {
   ListViewModel,
   ColumnVM,
@@ -57,7 +57,7 @@ export type {
   SortVM,
   ActionVM,
   CellDisplay,
-} from '@form-spec/generator-core';
+} from '@crudui/generator-core';
 export { List } from './components/List';
 export { Cell } from './components/Cell';
 
