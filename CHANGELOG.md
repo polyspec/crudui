@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Focus during row operations
+
+Row button pointer activation preserves input focus. DOM synchronization restores
+text selection and ancestor scroll positions with `preventScroll`. Keyboard
+activation retains focus on an existing button. Generator builds and mounted DOM
+checks passed in React, Vue and Svelte. Real browser pointer checks are pending.
+Deployment: not deployed.
+
 ## 2026-09-07 — Compiled forms and 13-character row keys
 
 - Added immutable, JSON-cacheable form templates and separate data binding.

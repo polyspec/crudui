@@ -13,7 +13,14 @@ export interface FormConnection {
 /** Browser event delegation for all three adapters, including raw leaf controls. */
 export function connectForm(element: HTMLElement, session: FormSession): FormConnection {
   type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-  let focus: { name: string; start: number | null; end: number | null } | undefined;
+  let focus: {
+    active: HTMLElement;
+    name?: string;
+    start: number | null;
+    end: number | null;
+    direction?: 'forward' | 'backward' | 'none';
+    scroll: Array<{ element: HTMLElement; top: number; left: number }>;
+  } | undefined;
   const controls = () => Array.from(element.querySelectorAll<Control>('input[name],select[name],textarea[name]'));
   const pathOf = (name: string) => {
     const segments = parsePathString(name);
@@ -25,13 +32,33 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
     return segments.length ? segments.join('.') : undefined;
   };
   const captureFocus = () => {
-    const active = element.ownerDocument.activeElement as Control | null;
-    if (active && element.contains(active) && active.name) {
+    const active = element.ownerDocument.activeElement as (HTMLElement & {
+      name?: string; selectionStart?: number | null; selectionEnd?: number | null;
+      selectionDirection?: 'forward' | 'backward' | 'none' | null;
+    }) | null;
+    focus = undefined;
+    if (active && element.contains(active)) {
+      const scroll = [];
+      for (let parent = active.parentElement; parent; parent = parent.parentElement) {
+        scroll.push({ element: parent, top: parent.scrollTop, left: parent.scrollLeft });
+      }
       focus = {
+        active,
         name: active.name,
-        start: 'selectionStart' in active ? active.selectionStart : null,
-        end: 'selectionEnd' in active ? active.selectionEnd : null,
+        start: active.selectionStart ?? null,
+        end: active.selectionEnd ?? null,
+        direction: active.selectionDirection ?? undefined,
+        scroll,
       };
+    }
+  };
+  const onPointerDown = (event: PointerEvent) => {
+    const button = (event.target as Element)?.closest?.('button');
+    const active = element.ownerDocument.activeElement;
+    if (event.button !== 0 || !button || button.disabled || !element.contains(button) ||
+        !active?.matches('input,textarea,select') || !element.contains(active)) return;
+    if (['btn-plus', 'btn-copy', 'btn-minus', 'btn-move-up', 'btn-move-down'].some(cls => button.classList.contains(cls))) {
+      event.preventDefault();
     }
   };
   const fieldsByWrapper = () => {
@@ -136,10 +163,16 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
       }
     }
     if (focus) {
-      const control = controls().find(c => c.name === focus!.name);
+      const control = element.contains(focus.active) ? focus.active : controls().find(c => c.name === focus!.name);
       if (control) {
-        control.focus();
-        if (focus.start !== null && 'setSelectionRange' in control) control.setSelectionRange(focus.start, focus.end);
+        control.focus({ preventScroll: true });
+        if (focus.start !== null && 'setSelectionRange' in control) {
+          (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
+        }
+      }
+      for (const position of focus.scroll) {
+        position.element.scrollTop = position.top;
+        position.element.scrollLeft = position.left;
       }
       focus = undefined;
     }
@@ -148,6 +181,7 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
+  element.addEventListener('pointerdown', onPointerDown);
   sync();
   return {
     sync,
@@ -156,6 +190,7 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
+      element.removeEventListener('pointerdown', onPointerDown);
     },
   };
 }
