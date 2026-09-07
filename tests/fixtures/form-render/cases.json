@@ -374,7 +374,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"people-layer\"><h6>사람</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"p1\"><div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"people.p1.name-layer\"><h6>이름</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"people-p1-name\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"name\" data-rule-name=\"people[p1][name]\" name=\"people[p1][name]\" type=\"text\" value=\"Kim\"></div></div></div></div></div><span class=\"btn-group input-group-btn\"><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></span></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"people-layer\"><h6>사람</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"p1\"><div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"people.p1.name-layer\"><h6>이름</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"people-p1-name\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"name\" data-rule-name=\"people[][name]\" name=\"people[p1][name]\" type=\"text\" value=\"Kim\"></div></div></div></div></div><span class=\"btn-group input-group-btn\"><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></span></div></div></div></div>"
   },
   {
     "name": "lang-default-langs",
@@ -888,7 +888,7 @@
   },
   {
     "name": "checkbox-with-data",
-    "note": "checkbox with truthy value → input present (envelope is value-independent).",
+    "note": "checkbox with value 1 renders checked.",
     "spec": {
       "type": "group",
       "properties": {
@@ -906,7 +906,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"agree-layer\"><div class=\"checkbox\"><h6><div class=\"input-group-wrapper\" data-uniqid=\"agree\"><div><input class=\"valid-target\" name=\"agree\" type=\"checkbox\" value=\"1\"><span>동의</span></div></div></h6></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" name=\"agree-layer\"><div class=\"checkbox\"><h6><div class=\"input-group-wrapper\" data-uniqid=\"agree\"><div><input checked=\"\" class=\"valid-target\" name=\"agree\" type=\"checkbox\" value=\"1\"><span>동의</span></div></div></h6></div></div></div>"
   },
   {
     "name": "switcher-bare",

@@ -110,28 +110,29 @@ export const uniqueRule: RuleDefinition = {
 
     const errorMessage = messages?.unique ?? 'Values must be unique.';
 
-    if (Array.isArray(value)) {
+    if (Array.isArray(value) || (value !== null && typeof value === 'object')) {
       // Array-level validation: the field value is the array itself
+      const entries = Object.entries(value);
+      const elements = entries.map(([, element]) => element);
       let valuesToCheck: unknown[];
 
       if (isFilterCondition) {
         // Only elements whose item context passes the condition participate
         valuesToCheck = [];
-        for (let i = 0; i < value.length; i++) {
-          const itemPath = [...pathSegments, String(i)];
+        for (const [key, element] of entries) {
+          const itemPath = [...pathSegments, key];
           if (!itemPassesCondition(ruleParam as string, itemPath, allData)) {
             continue;
           }
-          const element = value[i];
           if (!isEmpty(element)) {
             valuesToCheck.push(element);
           }
         }
       } else if (typeof ruleParam === 'string') {
         // Param is a field name within array items
-        valuesToCheck = extractFieldValues(value, ruleParam);
+        valuesToCheck = extractFieldValues(elements, ruleParam);
       } else {
-        valuesToCheck = value.filter((v) => !isEmpty(v));
+        valuesToCheck = elements.filter((v) => !isEmpty(v));
       }
 
       if (valuesToCheck.length === 0) {

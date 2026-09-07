@@ -65,10 +65,13 @@ docs-preview: ## VitePress 미리보기 서버
 
 # docs-check now gates the library packages AND the examples/* API servers.
 # Either arm RED → non-zero exit. (docs-check-all is kept as an explicit alias.)
-docs-check: docs-check-libs docs-check-servers ## doc-coverage 게이트 (라이브러리 + 서버, 미문서화 → 비0 exit)
-	@echo "[make] docs-check: libraries + servers all GREEN"
+docs-check: docs-check-documents docs-check-libs docs-check-servers ## doc-coverage 게이트 (라이브러리 + 서버, 미문서화 → 비0 exit)
+	@echo "[make] docs-check: documents, libraries and servers passed"
 
 docs-check-all: docs-check ## docs-check 별칭 (라이브러리 + 서버)
+
+docs-check-documents:
+	node scripts/check-documents.mjs
 
 docs-check-libs: ## 라이브러리 packages/* doc-coverage
 	npm run docs:check

@@ -484,12 +484,26 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	errMsg := ctx.msg("unique", "Values must be unique.")
 
 	// Array-level.
-	if arr, ok := value.([]any); ok {
+	if isArray(value) || isObject(value) {
+		var arr []any
+		var keys []string
+		switch rows := value.(type) {
+		case []any:
+			arr = rows
+			for i := range rows {
+				keys = append(keys, strconv.Itoa(i))
+			}
+		case map[string]any:
+			keys = sortedKeys(rows)
+			for _, key := range keys {
+				arr = append(arr, rows[key])
+			}
+		}
 		var toCheck []any
 		switch {
 		case isFilter:
 			for i, el := range arr {
-				itemPath := append(append([]string{}, ctx.pathSegments...), strconv.Itoa(i))
+				itemPath := append(append([]string{}, ctx.pathSegments...), keys[i])
 				if !itemPassesCondition(paramStr, itemPath, ctx.formData) {
 					continue
 				}

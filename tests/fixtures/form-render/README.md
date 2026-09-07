@@ -48,14 +48,9 @@ render throws `ComposeLoadError` with the recorded `code`.
 The normalizer erases what is NOT load-bearing across frameworks while keeping
 the load-bearing structure (tag tree, attribute presence + values, text):
 
-- **(no uniqid mask)** — row identity is now EXPLICIT and deterministic (G4): the
-  client serialization index (`#N` → `data-uniqid="N"`, `name="...[N]"`) for
-  new/array rows, the hidden data key (server PK, e.g. `p1`) for object-keyed
-  rows, and a path-derived `elementId` for single fields/widgets. Those are
-  byte-identical across React/Vue/Svelte, so nothing is masked. There is no
-  magic random `__<hex>__` token anymore.
+- **Row identity** — row keys and input paths are compared without masking.
 - **N2 attribute order** — attributes within a tag are sorted by name.
-- **N3 empty-value attrs** — `x=""` is kept (presence is load-bearing).
+- **N3 boolean/empty-value attrs** — bare boolean attributes become `x=""`; attribute presence is preserved.
 - **N4 empty class/style** — `class=""` and `style=""` are dropped (no-op chrome).
 - **N5 whitespace** — whitespace between `>` and `<` is removed; inner runs
   collapse to one space; leading/trailing trimmed.

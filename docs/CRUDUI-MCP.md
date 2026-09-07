@@ -118,7 +118,7 @@ CLI `validate` 위임 → 콘솔 `validate-runner.mjs validateAll`. 4언어(JS/P
 
 > 위임 대상 CLI `render` 가 미구현(`src/render.ts` 없음, bin 미등록)이므로 이 tool 도 로드맵이다. 아래는 확정 설계 — 콘솔 백엔드(3프레임워크 render-runner)는 이미 동작한다.
 
-CLI `render` 위임 → 콘솔 `render-runner.mjs renderAll`. 세 프레임워크(React/Svelte/Vue)가 동일 공유 코어(`buildForm`)를 통과하고 어댑터는 직렬화만 한다.
+CLI `render` 위임 → 콘솔 `render-runner.mjs renderAll`. 세 프레임워크(React/Svelte/Vue)가 동일 공유 코어(`compileForm` + `bindForm`)를 통과하고 어댑터는 직렬화만 한다.
 
 **입력**:
 ```json

@@ -118,6 +118,7 @@ function CheckboxEnvelope({ vm }: { vm: FieldViewModel }): React.ReactElement {
                 name={vm.checkboxName}
                 type="checkbox"
                 value="1"
+                defaultChecked={vm.checkboxChecked}
               />
               <span>{vm.label}</span>
             </div>
@@ -183,8 +184,8 @@ function GroupField({ vm }: { vm: FieldViewModel }): React.ReactElement {
             className={vm.groupClass}
             {...(styleObject(vm.groupStyle) ? { style: styleObject(vm.groupStyle) } : {})}
           >
-            {(vm.children ?? []).map((c, i) => (
-              <Field key={i} vm={c} />
+            {(vm.children ?? []).map((c) => (
+              <Field key={c.path} vm={c} />
             ))}
           </div>
         </div>
@@ -208,9 +209,10 @@ function MultipleLeafField({ vm }: { vm: FieldViewModel }): React.ReactElement {
       <Label vm={vm} />
       <Description vm={vm} />
       <div className="form-element">
-        {(vm.rows ?? []).map((row, i) => (
-          <MultipleLeafRow key={i} row={row} vm={vm} />
+        {(vm.rows ?? []).map((row) => (
+          <MultipleLeafRow key={row.uniqid} row={row} vm={vm} />
         ))}
+        {vm.rows?.length === 0 ? <button type="button" className="btn btn-plus"> </button> : null}
       </div>
     </div>
   );
@@ -220,8 +222,8 @@ function MultipleGroupRow({ row, vm }: { row: RowVM; vm: FieldViewModel }): Reac
   return (
     <div className={row.wrapperClass} data-uniqid={row.uniqid}>
       <div className={row.groupClass}>
-        {(row.children ?? []).map((c, i) => (
-          <Field key={i} vm={c} />
+        {(row.children ?? []).map((c) => (
+          <Field key={c.path} vm={c} />
         ))}
       </div>
       <span className="btn-group input-group-btn">
@@ -237,9 +239,10 @@ function MultipleGroupField({ vm }: { vm: FieldViewModel }): React.ReactElement 
       <Label vm={vm} />
       <Description vm={vm} />
       <div className="form-element">
-        {(vm.rows ?? []).map((row, i) => (
-          <MultipleGroupRow key={i} row={row} vm={vm} />
+        {(vm.rows ?? []).map((row) => (
+          <MultipleGroupRow key={row.uniqid} row={row} vm={vm} />
         ))}
+        {vm.rows?.length === 0 ? <button type="button" className="btn btn-plus"> </button> : null}
       </div>
     </div>
   );

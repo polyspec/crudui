@@ -1,26 +1,7 @@
-/**
- * CRUDUI generator entry (Svelte) — compose → evaluate (shared core) → .svelte SSR.
- *
- * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) CRUDUI spec → (2) CRUDUI compose (validator-ts composeProperties: expand
- *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
- *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
- *   evaluation (framework-agnostic core: @crudui/generator-core) → (4) Svelte
- *   5 SSR via svelte/server render().
- *
- * The evaluation runs ONCE in the shared core (buildForm returns a markup-free
- * FieldViewModel[] tree); the Svelte adapter builds a real `Form.svelte`
- * element tree from it and serializes with svelte/server render(). There is NO
- * string-builder and NO completed-form `{@html}` echo — every structural node is
- * a real `.svelte` element (the leaf control bytes go through the container's
- * `{@html}` directive because svelte/server coerces empty/boolean attributes the
- * parity fixture forbids; the same control-granularity boundary the Vue adapter
- * uses). compose + expr are reused from the core (validator-ts underneath); legacy
- * generator code is never touched; eval is never called.
- */
+/** Form template binding, rendering and list rendering. */
 
 import { render } from 'svelte/server';
-import { buildForm, buildList, type BuildFormOptions, type BuildListOptions } from '@crudui/generator-core';
+import { bindForm, buildList, type BindFormOptions, type FormTemplate, type BuildListOptions } from '@crudui/generator-core';
 import type { Language, UnsupportedMode } from '@crudui/generator-core';
 import Form from './components/Form.svelte';
 import List from './components/List.svelte';
@@ -34,7 +15,6 @@ export type { Language } from '@crudui/generator-core';
 export type { UnsupportedMode } from '@crudui/generator-core';
 
 // Core + components (the shared evaluation + the Svelte adapter surfaces).
-export { buildForm } from '@crudui/generator-core';
 export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
 export { default as Form } from './components/Form.svelte';
 export { default as Field } from './components/Field.svelte';
@@ -56,7 +36,7 @@ export type {
 export { default as List } from './components/List.svelte';
 
 /** Options for a CRUDUI form render. */
-export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
+export interface RenderFormOptions extends Omit<BindFormOptions, 'language' | 'unsupported'> {
   /** Form data (the expr engine's formData + value source). */
   data?: Record<string, unknown>;
   /** Active content language (default 'ko'). */
@@ -82,38 +62,22 @@ function stripSsrScaffolding(body: string): string {
 }
 
 /**
- * Render a CRUDUI form's CONTENT (the field list, no `<form>` wrapper) through Svelte
- * 5 SSR. The root spec must be a group with `properties`; composition is expanded
- * first.
- *
- * Throws `ComposeLoadError` on an unresolved `$ref` (raised by buildForm before
- * any Svelte work — a load error, never silent), and `UnsupportedFieldTypeError`
- * on an un-ported field type (default-throw mode).
+ * Render a compiled template to form-content HTML without a form element.
+ * Throws UnsupportedFieldTypeError when a field type has no renderer.
  */
 export function renderForm(
-  rootSpec: Record<string, unknown>,
+  template: FormTemplate,
   options: RenderFormOptions = {}
 ): string {
-  // Stages 1–4 (compose + design/expr + i18n + tree) → markup-free view model.
-  const fields = buildForm(rootSpec, options);
+  // Evaluate record values and display conditions.
+  const fields = bindForm(template, options.data, options);
   // Genuine Svelte 5 SSR of a REAL .svelte tree (Form → Field → Widget), not a
   // completed-form {@html} echo.
   const { body } = render(Form, { props: { fields } });
   return stripSsrScaffolding(body);
 }
 
-/**
- * String alias of `renderForm` (kept as a public export for callers that hold
- * the older name). Svelte's render() is synchronous, so there is no separate
- * string path — both go through buildForm → svelte/server render() and yield the
- * identical envelope.
- */
-export function renderFormString(
-  rootSpec: Record<string, unknown>,
-  options: RenderFormOptions = {}
-): string {
-  return renderForm(rootSpec, options);
-}
+
 
 /** Options for a CRUDUI list render (DB-agnostic: `rows` are the injected argument). */
 export interface RenderListOptions extends BuildListOptions {
@@ -142,3 +106,7 @@ export function renderList(
   const { body } = render(List, { props: { vm, mode: mode ?? 'table' } });
   return stripSsrScaffolding(body);
 }
+
+export { default as FormSessionView } from './components/FormSessionView.svelte';
+export { compileForm, bindForm, createFormSession, createRowKey, sequenceRowKey } from '@crudui/generator-core';
+export type { FormTemplate, FormSession, FormSessionOptions } from '@crudui/generator-core';

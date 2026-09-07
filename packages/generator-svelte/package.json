@@ -25,10 +25,11 @@
   ],
   "scripts": {
     "build": "vite build",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:client",
     "test:current": "vitest run test/form-render.conformance.test.mjs test/list-render.conformance.test.mjs",
     "test:list": "vitest run test/list-render.conformance.test.mjs",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:client": "vitest run --config vitest.client.config.ts"
   },
   "keywords": [
     "svelte",

@@ -26,8 +26,10 @@
     "docs:check": "node scripts/check-doc-coverage.mjs",
     "docs:check:ts": "node scripts/check-doc-coverage.mjs ts",
     "docs:check:servers": "node scripts/check-server-doc-coverage.mjs",
-    "docs:check:all": "npm run docs:check && npm run docs:check:servers",
-    "spec:schema": "node scripts/gen-schema.mjs"
+    "docs:check:all": "npm run docs:check:documents && npm run docs:check && npm run docs:check:servers",
+    "spec:schema": "node scripts/gen-schema.mjs",
+    "test:forms": "npm run build:validator && npm run build:generators && npm test -w @crudui/generator-core -- --run && npm test -w @crudui/generator-react -- --run && npm test -w @crudui/generator-vue && npm test -w @crudui/generator-svelte",
+    "docs:check:documents": "node scripts/check-documents.mjs"
   },
   "repository": {
     "type": "git",

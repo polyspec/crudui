@@ -37,10 +37,10 @@ export function phpTruthy(s: string): boolean {
   return s !== '' && s !== '0';
 }
 
-/** Effective display value: default applies only when the value string is empty. */
+/** Apply a default only when input data is missing. */
 export function applyDefaultString(value: unknown, def: unknown): string {
   const v = phpString(value);
-  if (v.length === 0 && def !== undefined && def !== null && !Array.isArray(def)) {
+  if (value === undefined && def !== undefined && def !== null && !Array.isArray(def)) {
     return phpString(def);
   }
   return v;
@@ -176,7 +176,7 @@ function pathSegmentsLoose(path: string): string[] {
 }
 
 /** Leaf data-name for a dot path. A row position index collapses to `name[]`. */
-export function leafName(path: string): string {
+export function leafName(path: string, rowSegments: readonly number[] = []): string {
   let suffix = '';
   let p = path;
   if (p.endsWith('[]')) {
@@ -185,14 +185,14 @@ export function leafName(path: string): string {
   }
   const segments = pathSegmentsLoose(p);
   const last = segments[segments.length - 1] ?? p;
-  if (isPositionSegment(last)) {
+  if (isPositionSegment(last) || rowSegments.includes(segments.length - 1)) {
     return (segments[segments.length - 2] ?? '') + '[]';
   }
   return last + suffix;
 }
 
 /** data-rule-name for a dot path: bracket notation relative to the form root. */
-export function ruleNameForPath(path: string): string {
+export function ruleNameForPath(path: string, rowSegments: readonly number[] = []): string {
   let suffix = '';
   let p = path;
   if (p.endsWith('[]')) {
@@ -205,7 +205,7 @@ export function ruleNameForPath(path: string): string {
     segments[0] +
     segments
       .slice(1)
-      .map((s) => (isPositionSegment(s) ? '[]' : `[${s}]`))
+      .map((s, i) => (isPositionSegment(s) || rowSegments.includes(i + 1) ? '[]' : `[${s}]`))
       .join('') +
     suffix
   );

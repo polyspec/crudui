@@ -11,6 +11,7 @@ import React, {
   useCallback,
   useMemo,
   useRef,
+  useEffect,
   type ReactNode,
 } from 'react';
 import { Validator, parseCondition, evaluateCondition } from '@crudui/validator/legacy';
@@ -33,6 +34,7 @@ import { applyLangAppendTransform } from '../hooks/legacyLang';
  * Form context
  */
 const FormContext = createContext<FormContextValue | null>(null);
+const EMPTY_DATA: FormData = {};
 
 /**
  * Form context provider props
@@ -58,7 +60,7 @@ interface FormContextProviderProps {
 export function FormContextProvider({
   children,
   spec,
-  initialData = {},
+  initialData = EMPTY_DATA,
   disabled = false,
   readonly = false,
   customFields = {},
@@ -70,6 +72,14 @@ export function FormContextProvider({
   const [data, setData] = useState<FormData>(() => initialData);
   const [errors, setErrors] = useState<FormErrors>({});
   const registeredFields = useRef<Set<string>>(new Set());
+  const previousData = useRef(initialData);
+  useEffect(() => {
+    if (previousData.current !== initialData) {
+      previousData.current = initialData;
+      setData(initialData);
+      setErrors({});
+    }
+  }, [initialData]);
 
   // Create the validator from the ORIGINAL spec — the Phase B validator owns
   // display_switch/display_target validation semantics and must never see the
