@@ -2,6 +2,21 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Empty collection merge
+
+Merged the empty-collection correction into `main`, retaining stable row keys and
+focus handling. Empty collection Add buttons have an accessible label in React,
+Vue and Svelte. Six regression tests cover explicit empty values, missing data,
+visibility and nested row order. The tests use the current root group contract.
+
+The pinned correction source is included in `main` history, so preparing the
+comparison from a full clone does not require a separate branch.
+
+Verification: generator builds and 1,402 tests passed (core 25, React 689,
+Vue 342, Svelte 345 and Svelte client 1). The regression tests use `compileForm`
+and `bindForm`. Deployment: no package publication; the local comparison
+continues to use its existing pinned sources.
+
 ## 2026-09-07 — PHP, Go and Rust form persistence
 
 Added independent Go and Rust servers alongside PHP for native form and JSON

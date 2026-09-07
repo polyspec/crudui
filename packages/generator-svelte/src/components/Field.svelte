@@ -134,8 +134,7 @@
           </div>
         {/if}
       {:else}
-        <!-- svelte-ignore a11y_consider_explicit_label -->
-        <button type="button" class="btn btn-plus"> </button>
+        <button type="button" class="btn btn-plus" aria-label="+"> </button>
       {/each}
     </div>
   </div>
@@ -153,8 +152,7 @@
           <span class="btn-group input-group-btn">{#if vm.multiple}{@render rowButtons(vm.multiple)}{/if}</span>
         </div>
       {:else}
-        <!-- svelte-ignore a11y_consider_explicit_label -->
-        <button type="button" class="btn btn-plus"> </button>
+        <button type="button" class="btn btn-plus" aria-label="+"> </button>
       {/each}
     </div>
   </div>

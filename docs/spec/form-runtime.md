@@ -64,6 +64,7 @@ the current data or view. `multiple.min` and `multiple.max` constrain row count.
 Missing repeated data creates one editable row. Explicit `{}` means zero rows.
 Removing the last row leaves an add button. Adding a row does not restore deleted
 data. Default values apply only when input data is missing.
+Rendering rules are defined in [empty collections](empty-collections.md).
 
 ## Rendering and validation
 
