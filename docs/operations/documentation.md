@@ -31,7 +31,7 @@ must require an explicit input path. They must not depend on another project's
 checkout or a developer's home directory.
 
 Translation and link checks cover repository entry documents, generator package
-READMEs, feature status, and all documents under `docs/spec/`, `docs/operations/`
+READMEs, the form comparison example README, feature status, and all documents under `docs/spec/`, `docs/operations/`
 and `docs/plans/`. Older reference documents outside those directories are not
 included in translation coverage. The check compares code examples and status
 fields between translations; prose equivalence requires review.

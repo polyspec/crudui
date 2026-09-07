@@ -7,8 +7,47 @@
 Row button pointer activation preserves input focus. DOM synchronization restores
 text selection and ancestor scroll positions with `preventScroll`. Keyboard
 activation retains focus on an existing button. Generator builds and mounted DOM
-checks passed in React, Vue and Svelte. Real browser pointer checks are pending.
-Deployment: not deployed.
+checks passed in React, Vue and Svelte. Real browser pointer and keyboard checks
+passed in all three frameworks. Deployment: running in the local form comparison example;
+packages not published.
+
+## 2026-09-07 — Browser comparison and PHP persistence
+
+- Added an Apple container environment for React, Vue, Svelte and PHP at
+  `localhost:4317`, with exact original and current Git source snapshots.
+- Added a primary comparison using identical 13-character keyed data. The original
+  public functions use an example row controller and cached binding; the current
+  runtime uses its library session. Original library source remains unchanged.
+- Added original-public-function cache preparation with `composeProperties`,
+  serialized structure restoration and `buildField` binding. Both keyed adapters
+  read a composition reference once and reject further loading after preparation.
+- Added native PHP parsing, revision-specific validation, atomic JSON persistence,
+  parent ownership, scoped saved-key application, deletion and independent reload.
+  Invalid or truncated requests preserve stored records.
+- Added ID order `[5, 7, 1]`, insertion as ID 8 and subtree copying as ID 9.
+  Keyed JSON uses document member order without additional order or identity
+  fields. Editing document order changes stored and rendered order.
+- Separated populated row-operation fixtures from explicit empty-collection checks.
+  The comparison preserves empty-rendering failures without filtering generated rows.
+- Mounted each form before its initial PHP data request. Browser request inspection
+  checks that nested inputs exist before the request continues.
+- Retained the earlier hidden-field array diagnostic as a selectable example.
+  Its hidden fields and lack of cached binding are example configuration choices.
+- Added pointer, keyboard and checkbox checks, manual controls, data inspection,
+  downloadable results, raw error details and matching English/Korean documents.
+  Failure explanations identify example configuration and original renderer behavior.
+- The browser runner returns status 1 for any failed check, incomplete result or
+  browser error. Recorded diagnostic failures remain failures.
+
+Verification: in each framework, the current runtime passed 17/17 scenarios,
+original keyed binding passed 15/17, and the retained array diagnostic passed
+13/17. Original keyed failures both concern explicit empty-collection rendering.
+Cache binding passed in both keyed examples. All 27 interaction checks, nine
+mount-before-load checks and both PHP repository checks passed. No browser page
+errors occurred. The comparison runner returned status 1 for recorded failures.
+[Feature status](docs/features.md) records the current code's results.
+Deployment: local Apple container; packages not published and no remote deployment.
+The comparison artifacts and historical results remain available for review.
 
 ## 2026-09-07 — Compiled forms and 13-character row keys
 

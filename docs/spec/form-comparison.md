@@ -1,0 +1,116 @@
+# CRUDUI form comparison
+
+[한국어](form-comparison.ko.md).
+
+The primary comparison uses identical 13-character keyed data with the unchanged
+original source at `1e8702a` and the current runtime at `a96f8c3`. Both use the same
+company, store and department fields, native submission and stored records.
+The original-keyed example connects row operations and cached binding to the
+original public functions. This tests the original foundation; it does not
+establish a replacement for the 13-character identity rule.
+
+The earlier array diagnostic remains selectable for inspection. It adds hidden
+sequence fields and is not the primary comparison. Its source and results remain
+available until verification and review are complete.
+
+Acceptance excludes hidden sequence fields and auxiliary identity submissions.
+The current original-array example contains hidden sequence fields and therefore
+does not meet this requirement. Its diagnostic results cannot establish equivalent
+behavior under the accepted submission contract. All comparison artifacts remain
+available for inspection.
+
+The identity check requires zero hidden sequence controls and no submitted
+`company_seq`, `store_seq` or `department_seq` fields. A separate fixture stores
+IDs in the order `[5, 7, 1]`. Checks insert after 7, save a new ID, copy descendants,
+reorder and reload while retaining existing IDs and parent relationships.
+
+A separate keyed-input case gives both renderers the same keyed objects and a
+specification without hidden identity fields. It checks generated native names,
+PHP parsing, validation and document order. This case verifies the original
+renderer's existing keyed-data support, independently of the array controller's
+submission design. The original-keyed load, save, validate and reset endpoints
+use the keyed data contract, original PHP validator and an independent repository.
+
+Row-operation checks use a populated fixture for both keyed implementations so
+that empty rendering cannot prevent unrelated persistence checks. Separate exact
+and empty checks use the fixture with an empty department collection. Explicit
+empty values are not filled, filtered or replaced by the example controller.
+
+The original-keyed binding composes the structure with the original
+`composeProperties`, serializes and restores it, then binds data with the original
+`buildField` and `makeTranslate`. Each keyed adapter loads a composition reference
+once before mounting. Its loader rejects subsequent reads. Cache checks verify
+repeated data injection, immutable template content and one loader read, rather
+than requiring a particular session property. Added application binding is
+identified separately from the unchanged library source.
+Each frame mounts before requesting saved data from PHP, then injects the response.
+
+An Apple container serves React, Vue and Svelte browser builds and a PHP API.
+Library snapshots come from Git archives of the specified commits. The original
+library source remains unchanged. The retained array example controller connects its
+existing buttons to array insertion, deep copying, deletion and reordering. It
+reads current input values, clears declared sequence fields in copied subtrees,
+updates native input properties and conditions, and calls the original rendering
+interface with the resulting arrays. It preserves focus and scroll positions
+without remounting the form. The page
+identifies this added controller. Its behavior is not described as a feature
+already implemented in the original library. No 13-character keys are used in
+its form data or generated input names.
+
+The same browser checks exercise both versions. They inspect actual nested input
+names, current-value copying, independent descendants, ordering, data replacement,
+PHP transmission, persistence and reload. Failures in either version remain
+visible as failures. The absence of original button handlers alone is not evidence
+that its data structure cannot support row operations.
+
+Failure results distinguish added example configuration from original renderer
+behavior and original API support. Hidden sequence fields belong to the array
+example, not to a requirement of the original renderer. Empty rendering and exact
+persistence can fail from the same blank-row behavior and are not counted as two
+independent defects. Each failure displays a concise explanation and expandable
+raw assertion details. Explanations do not change check outcomes or exit status.
+
+The comparison implementations, source snapshots and running environment remain
+available throughout verification. Repository cleanup follows verification and
+review of its results. A completed test run does not mean all requirements passed.
+The browser runner exits with status 1 for any failed check, incomplete results
+or browser error. It preserves the actual results in its report.
+
+Each comparison variant/framework has an independent JSON repository. Company, store and
+department tables contain string sequences and zero-based positions. Child tables
+contain parent sequences. Save replaces the complete hierarchy in one locked,
+atomic file update. Existing IDs remain stable, new IDs increase, and deleted IDs
+are not reused. A saved child ID cannot be assigned to a different parent.
+Validation failure does not modify the repository. Load reconstructs arrays or
+keyed objects from the stored rows and parent IDs.
+
+The 13-character implementation uses native form submissions as its baseline.
+JSON submissions with the same keyed structure require an explicit contract to
+preserve document member order through parsing, editing, storage and reload.
+The example's JavaScript and PHP processing preserves that order; it does not
+sort row object keys. JSON grammar does not need to change for this contract.
+Editing member order in the JSON document changes the requested row order. A
+check edits that order and verifies the resulting stored and rendered order.
+No order fields, hidden sequence fields or alternative key encodings are added
+to the keyed submission data.
+Native multipart submissions contain the generated input names and a final
+`_form_complete=1` marker. PHP rejects requests missing the marker, including
+requests truncated by its input-count limit. Missing checkboxes become empty
+strings and missing repeat collections become empty collections. JSON requests
+use `{ "form": ... }`, with arrays for the array diagnostic and objects for both
+keyed examples, including empty collections. Responses preserve each example's data
+types. The page displays native fields, PHP parsed data, normalized values, stored
+rows, loaded form data and scoped key changes.
+
+The page displays source commits, framework selection and actual check results.
+The environment binds a localhost port and remains running for manual review.
+Operations documents describe building, starting, checking and stopping it.
+
+Order checks use each example's transport contract. Both keyed examples check
+reordered native fields and JSON that retains document member order through PHP
+persistence and reload. The array version also sorts JSON object keys recursively
+before transmission and checks the reloaded array order. Standard JSON alone
+does not establish the additional member-order contract. Stored record
+loading uses explicit `position` values, regardless
+of the physical order of records in the file. Real pointer and keyboard checks
+verify focus, selection, scrolling and checkbox-controlled note visibility.
