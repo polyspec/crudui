@@ -15,6 +15,7 @@
 | docs-check | 문서 링크·번역·상태 검사 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
 | form-comparison | 원본과 13자리 브라우저 비교 | implemented | passed | deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
 | form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | implemented | passed | deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
+| ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../examples/form-comparison/check-ordered-json.py) |
 | form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | implemented | passed | deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | original-empty-correction | 원본 출력 수정과 빈 컬렉션 전체 처리 과정 | implemented | passed | deployed | [비교 계약](spec/form-comparison.ko.md) |
 | original-keyed-proof | 원본 공개 함수의 키 편집, 영속 저장, 캐시 바인딩 | implemented | failed | deployed | [비교 계약](spec/form-comparison.ko.md) |
@@ -25,6 +26,17 @@ API 생성, 스키마 생성, 문서 사이트 빌드도 통과했습니다. 라
 패키지 게시를 기준으로 하며 게시한 패키지는 없습니다. 폼 비교 예제은 Apple container의
 [localhost:4317](http://localhost:4317)에 로컬 배포했습니다. 원격 배포는 실행하지
 않았습니다.
+
+## JSON 처리기 결과
+
+2026-09-07 JSON 처리기 검증은 ordered-json 커밋 `deb1b354`를 사용했습니다.
+JavaScript, PHP, PHP 확장, Go, Rust에서 각각 처리기 사례 115개와 CRUDUI
+전송 고정 데이터 10개가 통과했습니다. 호스트는 macOS arm64의 Node 26.8.1,
+PHP 8.5.10, Go 1.27.0, Rust 1.98.1을 사용했습니다. 전송 사례는 순서,
+13자리 키, 신규·복사·저장한 행 표현, 빈 객체와 배열의 자료형을 검사합니다.
+폼 행 조작을 실행하는 검사는 아닙니다. 런타임 연동은 변경하지 않았으며 로컬
+실험 환경은 표준 JSON 함수를 사용합니다.
+[검증 절차와 범위](operations/ordered-json.ko.md).
 
 ## 폼 비교 예제 결과
 

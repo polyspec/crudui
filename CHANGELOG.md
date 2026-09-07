@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — JSON processor contract verification
+
+Added a reproducible check against ordered-json `deb1b354` for document member
+order, nested 13-character row data and empty collection types. All five
+implementations passed ten transport fixtures and the processor's 115 common
+cases. The fixtures verify JSON representation; browser behavior and runtime JSON
+integration did not change. The local comparison remains available.
+
 ## 2026-09-07 — Empty collection correction and browser validation
 
 - Added corrected original source `78723bb` to the primary comparison with current
