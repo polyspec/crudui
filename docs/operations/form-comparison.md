@@ -84,6 +84,7 @@ Puppeteer's Chrome, then run:
 npm ci
 npx puppeteer browsers install chrome
 node examples/form-comparison/check.mjs
+node examples/form-comparison/check-typing.mjs
 container exec crudui-form-comparison node --test /workspace/keyed/examples/form-comparison/src/json.test.mjs
 container exec crudui-form-comparison php /workspace/keyed/examples/form-comparison/test-json.php
 container exec crudui-form-comparison php /workspace/keyed/examples/form-comparison/test-repository.php
@@ -96,6 +97,10 @@ and screenshots with that report's timestamp. Any failed check, incomplete resul
 produces exit status 1. The original-array diagnostic's failures remain failures
 in the report and interface; see [feature status](../features.md). Run the PHP and
 documentation commands separately even when the browser checks fail.
+The typing runner executes 36 native keyboard cases across the four variants and
+three frameworks at 0, 10 and 50 ms per character. It checks immediate and settled
+values, focus and caret position after a validation error, and preserves results
+in `typing-report.json`.
 The repository check also verifies fresh-instance loading, position-based loading
 after physical record reordering, parent ownership, transaction rejection without
 file changes, full deletion and non-reused IDs.
