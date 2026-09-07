@@ -183,14 +183,14 @@ interface RowIdentity {
 }
 
 function rowIdentities(value: unknown): RowIdentity[] {
-  if (Array.isArray(value) && value.length > 0) {
+  if (Array.isArray(value)) {
     return value.map((_, i) => ({ seg: positionSegment(i), uniqid: String(i) }));
   }
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+  if (value !== null && typeof value === 'object') {
     const keys = Object.keys(value as Record<string, unknown>);
-    if (keys.length > 0) return keys.map((k) => ({ seg: k, uniqid: k }));
+    return keys.map((k) => ({ seg: k, uniqid: k }));
   }
-  // Empty data → a single placeholder row at position 0.
+  // Missing data creates one initial row.
   return [{ seg: positionSegment(0), uniqid: '0' }];
 }
 

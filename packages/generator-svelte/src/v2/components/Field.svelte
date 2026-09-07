@@ -133,6 +133,8 @@
             {#if vm.multiple}{@render rowButtons(vm.multiple)}{/if}
           </div>
         {/if}
+      {:else}
+        <button type="button" class="btn btn-plus" aria-label="+"> </button>
       {/each}
     </div>
   </div>
@@ -149,6 +151,8 @@
           </div>
           <span class="btn-group input-group-btn">{#if vm.multiple}{@render rowButtons(vm.multiple)}{/if}</span>
         </div>
+      {:else}
+        <button type="button" class="btn btn-plus" aria-label="+"> </button>
       {/each}
     </div>
   </div>
