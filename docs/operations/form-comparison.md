@@ -146,8 +146,8 @@ excluded from Git. To prepare archives without starting a container:
 node examples/form-comparison/run.mjs prepare
 ```
 
-The correction source is retained on branch `fix/original-empty-collections`;
-its commit must be present locally when preparing archives.
+The correction commit `78723bb` is included in `main` history. Use a full clone;
+preparing archives requires all pinned source commits locally.
 The page exposes full source commit IDs and SHA-256 hashes of the Git archives.
 The snapshots use the committed npm lockfile. The image installs matching Linux
 ARM64 native build bindings separately because that lockfile contains only their

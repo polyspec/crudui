@@ -7,6 +7,7 @@
 | --- | --- | --- | --- | --- | --- |
 | form-template | 데이터와 독립된 폼 템플릿과 JSON 캐시 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
+| form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
 | form-typing | input 교체 중 전체 타이핑과 포커스 유지 | implemented | passed | deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | original-typing | 원본 컨트롤러의 대기 중 렌더링에서 입력 값 유지 | implemented | passed | deployed | [네이티브 타이핑 검사](../examples/form-comparison/check-typing.mjs) |
@@ -29,6 +30,15 @@ API 생성, 스키마 생성, 문서 사이트 빌드도 통과했습니다. 라
 패키지 게시를 기준으로 하며 게시한 패키지는 없습니다. 폼 비교 예제은 Apple container의
 [localhost:4317](http://localhost:4317)에 로컬 배포했습니다. 원격 배포는 실행하지
 않았습니다.
+
+## 빈 컬렉션 병합 검증
+
+2026-09-07 병합 코드의 생성기 빌드와 테스트 1,402개가 통과했습니다.
+코어 25개(빈 컬렉션 회귀 검사 6개 포함), React 689개, Vue 342개,
+Svelte 345개, Svelte 클라이언트 1개입니다. 회귀 검사는 `compileForm`과
+`bindForm`을 사용합니다. 수정 커밋은 `main` 이력에 포함합니다. 패키지를
+게시하지 않았으며 로컬 비교 예제는 아래의 고정 소스와 보고서를 유지합니다.
+[빈 컬렉션 계약](spec/empty-collections.ko.md).
 
 ## JSON 처리기 결과
 
