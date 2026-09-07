@@ -45,6 +45,8 @@ export interface WidgetCtx {
   value: unknown;
   /** Dot path within the form. */
   path: string;
+  /** Positions of repeated rows in the path, derived from form structure. */
+  rowSegments?: readonly number[];
   /** Optional name/id prefix. */
   keyPrefix?: string;
   /** Resolved design appearance for this field. */
@@ -58,8 +60,11 @@ export type Attrs = Record<string, string>;
 
 /** A prepend/append affix span (content + optional class/style). */
 export interface Affix {
+  /** Translated affix text. */
   text: string;
+  /** CSS class. */
   class?: string;
+  /** Inline style. */
   style?: string;
 }
 
@@ -136,8 +141,8 @@ function bracketName(ctx: WidgetCtx): string {
 /** The legacy data-attr trio as a flat bag. */
 function dataAttrs(ctx: WidgetCtx): Attrs {
   return {
-    'data-name': leafName(ctx.path),
-    'data-rule-name': ruleNameForPath(ctx.path),
+    'data-name': leafName(ctx.path, ctx.rowSegments),
+    'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
     'data-default': phpString(ctx.spec.default),
   };
 }
@@ -389,7 +394,7 @@ const select: Evaluator = (ctx) => {
   const items = ctx.spec.items;
   const effectiveValue = (() => {
     const v = phpString(ctx.value);
-    return v.length === 0 ? phpString(ctx.spec.default) : v;
+    return ctx.value === undefined ? phpString(ctx.spec.default) : v;
   })();
 
   if (isDynamicItemsSource(items)) {
@@ -490,7 +495,7 @@ const choice: Evaluator = (ctx) => {
       : null;
   const effectiveValue = (() => {
     const v = phpString(ctx.value);
-    return v.length === 0 ? defaultStr ?? '' : v;
+    return ctx.value === undefined ? defaultStr ?? '' : v;
   })();
   const idPrefix = elementId('choice', ctx.path);
 
@@ -552,7 +557,7 @@ const multichoice: Evaluator = (ctx) => {
   else if (ctx.value) selectedValues = [String(ctx.value)];
   else selectedValues = [];
   if (
-    selectedValues.length === 0 &&
+    ctx.value === undefined &&
     ctx.spec.default !== undefined &&
     ctx.spec.default !== null
   ) {
@@ -812,7 +817,7 @@ const search: Evaluator = (ctx) => {
 
   const effectiveValue = (() => {
     const v = phpString(ctx.value);
-    return v.length === 0 ? phpString(ctx.spec.default) : v;
+    return ctx.value === undefined ? phpString(ctx.spec.default) : v;
   })();
 
   const dynamic = isDynamicItemsSource(items);

@@ -10,7 +10,7 @@ export default withMermaid(defineConfig({
   title: 'CRUDUI',
   description:
     'YAML 기반 폼 정의 시스템 — 멀티언어 검증기(JS/PHP/Go/Rust) + 멀티프레임워크 렌더러(React/Vue/Svelte)',
-  lang: 'ko-KR',
+  lang: 'en-US',
   lastUpdated: false,
   cleanUrls: true,
 
@@ -23,7 +23,7 @@ export default withMermaid(defineConfig({
     nav: [
       { text: '홈', link: '/' },
       { text: '가이드', link: '/README' },
-      { text: '스펙', link: '/SPEC' },
+      { text: '스펙', link: '/spec/schema' },
       { text: '검증', link: '/VALIDATION-RULES' },
       { text: 'API', link: '/api/' },
     ],
@@ -35,15 +35,17 @@ export default withMermaid(defineConfig({
         items: [
           { text: '개요 (홈)', link: '/' },
           { text: '문서 색인', link: '/README' },
-          { text: '문서 자동생성', link: '/CONTRIBUTING-DOCS' },
+          { text: '문서 자동생성', link: '/operations/documentation' },
         ],
       },
       {
         text: '스펙',
         collapsed: false,
         items: [
-          { text: 'YAML 스펙 형식', link: '/SPEC' },
-          { text: '필드 키 패턴', link: '/FIELD-KEYS' },
+          { text: 'YAML 스펙 형식', link: '/spec/schema' },
+          { text: 'Form runtime', link: '/spec/form-runtime' },
+          { text: 'Feature status', link: '/features' },
+          { text: 'Forms', link: '/operations/forms' },
         ],
       },
       {

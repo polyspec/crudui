@@ -1,3 +1,4 @@
+import { compileForm } from '@crudui/generator-core';
 /**
  * form-render conformance — Vue 3 SSR vs the shared 3-framework parity fixture.
  *
@@ -32,7 +33,7 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.js
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 async function renderSSR(c) {
-  return renderFormSSR(c.spec, { ...(c.options ?? {}), data: c.data });
+  return renderFormSSR(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
 describe('current render — Vue 3 SSR reproduces the normalized expected_html', () => {

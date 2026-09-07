@@ -36,6 +36,7 @@ export interface CellFormatModel {
 
 /** A badge display: a CSS/variant token plus its translated label. */
 export interface BadgeDisplay {
+  /** Display type. */
   kind: 'badge';
   /** Variant token from the value→variant map (e.g. 'success', 'danger'). */
   variant: string;
@@ -45,6 +46,7 @@ export interface BadgeDisplay {
 
 /** A link display: resolved href + text + target. */
 export interface LinkDisplay {
+  /** Display type. */
   kind: 'link';
   /** href with `.field` interpolation applied (condition map resolved). */
   href: string;
@@ -56,17 +58,21 @@ export interface LinkDisplay {
 
 /** An image display: resolved src + alt + size. */
 export interface ImageDisplay {
+  /** Display type. */
   kind: 'image';
   /** Image source (the cell value, `.field` interpolation applied if a path). */
   src: string;
   /** Translated alt text (`.field` interpolated). */
   alt: string;
+  /** Image width. */
   width?: string;
+  /** Image height. */
   height?: string;
 }
 
 /** A boolean display: the chosen label + the requested form. */
 export interface BoolDisplay {
+  /** Display type. */
   kind: 'bool';
   /** The resolved boolean. */
   value: boolean;
@@ -78,6 +84,7 @@ export interface BoolDisplay {
 
 /** A raw-html display: passed through unescaped by the adapter. */
 export interface HtmlDisplay {
+  /** Display type. */
   kind: 'html';
   /** Raw HTML markup (NOT escaped — the adapter must dangerouslySetInnerHTML). */
   html: string;

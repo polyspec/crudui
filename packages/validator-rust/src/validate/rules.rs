@@ -1295,12 +1295,21 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
         .to_string();
 
     // Array-level: the field value is the array itself.
-    if let Value::Array(items) = ctx.value {
+    if ctx.value.is_array() || ctx.value.is_object() {
+        let entries: Vec<(String, &Value)> = match ctx.value {
+            Value::Array(arr) => arr
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (i.to_string(), v))
+                .collect(),
+            Value::Object(map) => map.iter().map(|(k, v)| (k.clone(), v)).collect(),
+            _ => unreachable!(),
+        };
         let mut to_check: Vec<&Value> = Vec::new();
         if let Some(cond) = filter_condition {
-            for (i, element) in items.iter().enumerate() {
+            for (key, element) in &entries {
                 let mut item_path = ctx.path_segments.to_vec();
-                item_path.push(i.to_string());
+                item_path.push(key.clone());
                 if !item_passes_condition(cond, &item_path, ctx.form_data) {
                     continue;
                 }
@@ -1310,9 +1319,10 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
             }
         } else if let Value::String(field_name) = ctx.rule_param {
             // Param is a field name within array items (owned values).
-            return unique_array_by_field(items, field_name, &error_message);
+            let items: Vec<Value> = entries.iter().map(|(_, value)| (*value).clone()).collect();
+            return unique_array_by_field(&items, field_name, &error_message);
         } else {
-            for element in items {
+            for (_, element) in &entries {
                 if !is_empty(element) {
                     to_check.push(element);
                 }

@@ -1,23 +1,4 @@
-/**
- * CRUDUI field-tree builder (framework-agnostic core) — markup 0, evaluation only.
- *
- * This is the structural half of the former render.ts: it walks the composed
- * spec tree and produces a `FieldViewModel` tree — the same group/multiple/lang/
- * leaf branching, the same explicit row identity (G4), the same checkbox/switcher/
- * hidden envelope flags, the same evaluated `design` and resolved CONTENT — but it
- * emits NO markup. A React/Vue/Svelte adapter renders the element tree from this
- * view model; the evaluation lives here, once.
- *
- * Inherited verbatim from render.ts:
- *  - design slot evaluation per node (via resolveDesign over makeContext),
- *  - multiple row model: resolveMultiple + rowIdentities (explicit `#N` position
- *    index / object key / single placeholder; no magic token),
- *  - lang row model: resolveLang (false|true|{only,frame,title,group_class}),
- *  - the wrapper layer name / element id / data-uniqid derivation (util.ts),
- *  - the unsupported-type lane: throw (default) or marker (never silent).
- *
- * No legacy meta key is read; no markup string is built; eval is never called.
- */
+/** Evaluate prepared form fields, values and conditions for framework adapters. */
 
 import {
   elementId,
@@ -34,6 +15,7 @@ import { makeContext } from './expr';
 import { UnsupportedFieldTypeError } from './errors';
 import type { Translate } from './content';
 import { evalWidget, type WidgetCtx, type WidgetModel } from './widget';
+import type { FormFieldTemplate } from './form';
 
 /** Behavior when a field `type` has no registered widget. */
 export type UnsupportedMode = 'throw' | 'marker';
@@ -48,14 +30,16 @@ export interface BuildState {
   t: Translate;
   /** Unsupported-type handling (default 'throw' — never silent). */
   unsupported: UnsupportedMode;
+  /** Repeated path segment positions, independent of their key encoding. */
+  rowSegments?: readonly number[];
 }
 
 /** Discriminator for the four field shapes. */
 export type FieldShape = 'leaf' | 'group' | 'multiple-leaf' | 'multiple-group' | 'lang';
 
-/** A repeated row's explicit identity (G4) plus its built body. */
+/** One repeated row and its evaluated fields. */
 export interface RowVM {
-  /** data-uniqid value (serialization index or hidden server-PK key). */
+  /** Row key used by the framework adapter and row operations. */
   uniqid: string;
   /** input-group-wrapper class for this row (clone-element when index>0). */
   wrapperClass: string;
@@ -69,13 +53,17 @@ export interface RowVM {
 
 /** One language child of a lang field. */
 export interface LangChildVM {
+  /** Language code. */
   code: string;
+  /** Evaluated language input. */
   widget: WidgetModel | UnsupportedVM;
 }
 
 /** A surfaced unsupported-type marker (only in 'marker' mode). */
 export interface UnsupportedVM {
+  /** Unsupported field discriminator. */
   unsupported: true;
+  /** Requested widget type. */
   type: string;
 }
 
@@ -107,10 +95,13 @@ export interface FieldViewModel {
   checkboxName?: string;
   /** checkbox main class (valid-target + design.main). */
   checkboxClass?: string;
+  /** Checked state from the bound data. */
+  checkboxChecked?: boolean;
   /** Group children (group shape). */
   children?: FieldViewModel[];
   /** .form-group class + style (group shape). */
   groupClass?: string;
+  /** Resolved group inline style. */
   groupStyle?: string;
   /** Repeated rows (multiple-leaf/multiple-group shape). */
   rows?: RowVM[];
@@ -118,8 +109,11 @@ export interface FieldViewModel {
   multiple?: MultipleSettings;
   /** Lang container (lang shape). */
   lang?: {
+    /** Language container class. */
     groupClass: string;
+    /** Translated language section title. */
     title?: string;
+    /** One input model per language. */
     children: LangChildVM[];
   };
 }
@@ -130,6 +124,7 @@ export interface FieldViewModel {
 
 export interface MultipleSettings {
   show: boolean;
+  min?: number;
   max?: number;
   copy?: boolean;
   sortable?: boolean;
@@ -143,6 +138,7 @@ function resolveMultiple(spec: Record<string, unknown>): MultipleSettings | null
     const o = m as Record<string, unknown>;
     return {
       show: true,
+      min: typeof o.min === 'number' ? o.min : undefined,
       max: typeof o.max === 'number' ? o.max : undefined,
       copy: o.copy === true,
       sortable: o.sortable === true,
@@ -190,6 +186,7 @@ function rowIdentities(value: unknown): RowIdentity[] {
     const keys = Object.keys(value as Record<string, unknown>);
     if (keys.length > 0) return keys.map((k) => ({ seg: k, uniqid: k }));
   }
+  if (value !== null && typeof value === 'object') return [];
   // Empty data → a single placeholder row at position 0.
   return [{ seg: positionSegment(0), uniqid: '0' }];
 }
@@ -221,6 +218,7 @@ function buildWidget(
     keyPrefix: state.keyPrefix,
     design,
     t: state.t,
+    rowSegments: state.rowSegments,
   };
   const model = evalWidget(type, ctx);
   if (model) return model;
@@ -238,7 +236,8 @@ function buildWidget(
 export function buildField(
   spec: Record<string, unknown>,
   path: string,
-  state: BuildState
+  state: BuildState,
+  children: readonly FormFieldTemplate[]
 ): FieldViewModel {
   const fieldType = String(spec.type ?? '');
   const ctx = makeContext(valuePathSegments(path), state.data);
@@ -248,7 +247,7 @@ export function buildField(
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
 
   if (fieldType === 'group') {
-    return buildGroup(spec, path, design, label, description, state);
+    return buildGroup(spec, path, design, label, description, state, children);
   }
 
   const multiple = resolveMultiple(spec);
@@ -292,6 +291,8 @@ function buildLeaf(
       checkbox: true,
       checkboxName: toBracketNotationWithPrefix(path, state.keyPrefix),
       checkboxClass: joinClass('valid-target', design.main.class),
+      checkboxChecked: value === true || value === 1 || value === '1' ||
+        (value === undefined && (spec.default === true || spec.default === 1 || spec.default === '1')),
     };
   }
 
@@ -315,11 +316,12 @@ function buildGroup(
   design: ResolvedDesign,
   label: string | undefined,
   description: string | undefined,
-  state: BuildState
+  state: BuildState,
+  templateChildren: readonly FormFieldTemplate[]
 ): FieldViewModel {
   const multiple = resolveMultiple(spec);
   if (multiple) {
-    return buildMultipleGroup(spec, path, design, label, description, multiple, state);
+    return buildMultipleGroup(spec, path, design, label, description, multiple, state, templateChildren);
   }
 
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
@@ -327,13 +329,7 @@ function buildGroup(
   const groupClass = joinClass('form-group', design.group.class);
   const groupStyle = styleString(design.group.style);
 
-  const children: FieldViewModel[] = [];
-  const props = spec.properties as Record<string, Record<string, unknown>> | undefined;
-  if (props) {
-    for (const [fieldName, fieldSpec] of Object.entries(props)) {
-      children.push(buildField(fieldSpec, `${path}.${fieldName}`, state));
-    }
-  }
+  const children = buildChildren(path, state, templateChildren);
 
   return {
     shape: 'group',
@@ -364,6 +360,7 @@ function buildMultipleLeaf(
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
   const value = getValueByPath(state.data, path);
   const identities = rowIdentities(value);
+  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), valuePathSegments(path).length] };
 
   const rows: RowVM[] = identities.map((row, rowIndex) => {
     const rowPath = `${path}.${row.seg}`;
@@ -372,7 +369,7 @@ function buildMultipleLeaf(
     return {
       uniqid: row.uniqid,
       wrapperClass: inputGroupWrapperClass(rowDesign, rowIndex),
-      widget: buildWidget(spec, getValueByPath(state.data, rowPath), rowPath, rowDesign, state),
+      widget: buildWidget(spec, getValueByPath(state.data, rowPath), rowPath, rowDesign, rowState),
     };
   });
 
@@ -398,23 +395,19 @@ function buildMultipleGroup(
   label: string | undefined,
   description: string | undefined,
   multiple: MultipleSettings,
-  state: BuildState
+  state: BuildState,
+  templateChildren: readonly FormFieldTemplate[]
 ): FieldViewModel {
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
   const value = getValueByPath(state.data, path);
   const identities = rowIdentities(value);
-  const props = spec.properties as Record<string, Record<string, unknown>> | undefined;
+  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), valuePathSegments(path).length] };
 
   const rows: RowVM[] = identities.map((row, rowIndex) => {
     const rowBase = `${path}.${row.seg}`;
     const rowCtx = makeContext(valuePathSegments(rowBase), state.data);
     const rowDesign = resolveDesign(spec.design, rowCtx);
-    const children: FieldViewModel[] = [];
-    if (props) {
-      for (const [fieldName, fieldSpec] of Object.entries(props)) {
-        children.push(buildField(fieldSpec, `${rowBase}.${fieldName}`, state));
-      }
-    }
+    const children = buildChildren(rowBase, rowState, templateChildren);
     return {
       uniqid: row.uniqid,
       wrapperClass: inputGroupWrapperClass(rowDesign, rowIndex),
@@ -436,6 +429,15 @@ function buildMultipleGroup(
     rows,
     multiple,
   };
+}
+
+function buildChildren(
+  path: string,
+  state: BuildState,
+  templates: readonly FormFieldTemplate[]
+): FieldViewModel[] {
+  return templates.map(field =>
+    buildField(field.spec, `${path}.${field.name}`, state, field.children));
 }
 
 function buildLangLeaf(

@@ -22,9 +22,11 @@ import type {
 /**
  * FormBuilder component
  */
+const EMPTY_DATA: FormData = {};
+
 export function FormBuilder({
   spec: specProp,
-  data = {},
+  data = EMPTY_DATA,
   language = 'ko',
   onSubmit,
   onChange,

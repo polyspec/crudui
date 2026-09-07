@@ -8,16 +8,11 @@
  * class/style attributes) while preserving the load-bearing structure (tag tree,
  * attribute presence + values, text).
  *
- * No uniqid mask: every row identity is now an EXPLICIT, deterministic value
- * (G4) — the client serialization index (`#N` → `data-uniqid="N"`,
- * `name="...[N]"`) for new/array rows, the hidden data key (server PK) for
- * object-keyed rows, and a path-derived element id (`elementId`) for single
- * fields/widgets. Those are byte-identical across React/Vue/Svelte, so nothing
- * needs masking. There is no longer a magic random `__<hex>__` token to erase.
+ * Row keys and input paths are compared without masking.
  *
  * Rules (also documented in README.md — keep in sync):
  *  N2 attribute order: attributes within a tag are sorted by name.
- *  N3 boolean/empty-value attrs: `x=""` is kept as `x=""` (presence matters).
+ *  N3 boolean/empty-value attrs: bare boolean attributes become `x=""`; presence is preserved.
  *  N4 empty class/style: `class=""` and `style=""` are dropped (no-op chrome).
  *  N5 whitespace: runs of whitespace between `>` and `<` are removed; runs of
  *     whitespace inside text are collapsed to one space; leading/trailing
@@ -68,6 +63,8 @@ function sortAttributes(tagBody) {
     if (m[0].trim() === '') continue;
     const key = m[1];
     let val = m[2];
+    // HTML boolean presence is equivalent to an empty attribute value.
+    if (val === undefined && /^(checked|selected|disabled|readonly|multiple|required|autofocus)$/.test(key)) val = '';
     // N4: drop empty class/style.
     if ((key === 'class' || key === 'style') && (val === undefined || val === '')) {
       continue;
