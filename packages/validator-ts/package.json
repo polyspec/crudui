@@ -38,13 +38,13 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.4.1",
     "ajv": "^8.20.0",
-    "eslint": "^10.5.0",
+    "eslint": "^10.9.1",
     "tsup": "^8.0.0",
-    "tsx": "^4.7.0",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.8",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0",
     "yaml": "^2.3.4"
   },
   "engines": {
