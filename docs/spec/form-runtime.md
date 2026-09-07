@@ -31,6 +31,11 @@ Removing a resolved inline style must remove the `style` attribute when no
 declarations remain. Data injection must not leave attributes from an earlier
 record. Replacing data with another record and restoring it must restore the
 same elements, attributes, control values and visibility.
+The restored HTML string must also match, including attribute order. After a
+framework renders a checkbox or radio input, the shared DOM binding places its
+`checked` attribute after the other attributes. This order applies to initial
+mounting and every update without replacing the input or changing its value.
+The inspector compares the resulting HTML without rewriting it.
 
 ## Row identity
 

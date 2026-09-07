@@ -138,6 +138,12 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
           continue;
         }
         if (input.type === 'checkbox' || input.type === 'radio') {
+          // Keep checked last so restoring data reproduces the initial HTML.
+          const checked = input.getAttributeNode('checked');
+          if (checked && input.attributes.item(input.attributes.length - 1) !== checked) {
+            input.removeAttributeNode(checked);
+            input.setAttributeNode(checked);
+          }
           input.checked = Array.isArray(value) ? value.map(String).includes(input.value)
             : value !== undefined && value !== null && (value === true ? '1' : String(value)) === input.value;
           continue;
