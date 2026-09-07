@@ -1,4 +1,3 @@
-const flush = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 const parts = name => name.match(/[^\[\]]+/g).slice(1);
 const valueAt = (data, path) => path.reduce((value, part) => value?.[part], data);
 const inputName = path => `form${path.map(part => `[${part}]`).join('')}`;
@@ -16,6 +15,7 @@ export function originalController(element, mount, spec, language, keyed = false
   let data = {};
   const renderer = mount(element, spec, language);
   let pending = Promise.resolve();
+  let inputVersion = 0;
 
   function getData() {
     const current = structuredClone(data);
@@ -83,12 +83,12 @@ export function originalController(element, mount, spec, language, keyed = false
     }
     return null;
   }
-  async function render(next, focus) {
+  async function render(next, focus, version = inputVersion) {
     const ownerPath = focus?.owner ? findPath(next, focus.owner) : null;
     const focusedName = focus?.path.length ? inputName(ownerPath ? [...ownerPath, focus.path.at(-1)] : focus.path) : null;
     data = structuredClone(next);
-    renderer.load(data);
-    await flush();
+    await renderer.load(data);
+    if (version !== inputVersion) return;
     for (const input of element.querySelectorAll('input[name],textarea[name],select[name]')) {
       const path = parts(input.name);
       const value = valueAt(data, path) ?? fieldAt(path).default ?? '';
@@ -121,7 +121,8 @@ export function originalController(element, mount, spec, language, keyed = false
   function onInput(event) {
     if (!event.target.matches('input[name],textarea[name],select[name]')) return;
     const next = getData(); const focus = capture(next);
-    pending = pending.then(() => render(next, focus));
+    const version = ++inputVersion;
+    pending = pending.then(() => version === inputVersion ? render(next, focus, version) : undefined);
   }
   function onClick(event) {
     const button = event.target.closest('button');
