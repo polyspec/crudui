@@ -11,7 +11,7 @@
 
 | 항목 | 값 |
 | --- | --- |
-| Limepie 소스 | `yejune/limepie`, 로컬 체크아웃 `/Users/max/ai/gui/limepie` (env `LIMEPIE_SRC` 로 변경 가능) |
+| Limepie 소스 | `yejune/limepie`, 로컬 체크아웃 `$LIMEPIE_SRC` (env `LIMEPIE_SRC` 로 변경 가능) |
 | 핀 커밋 | `a47ccba7e318ae1d364c034b1d7c5b0de8a564bb` — 기준 생성 당시 로컬 체크아웃 HEAD (clean tree 확인). 이 저장소의 어떤 composer.lock 도 limepie 커밋을 기록하지 않는다 — 핀의 유일한 강제 장치는 `generate-all.sh` 의 HEAD 가드다. |
 | PHP | 8.4 (로컬 8.4.14 로 검증) |
 | YAML 파서 | symfony/yaml v8 (`packages/generator-legacy/limepie/vendor/autoload.php`) — ext-yaml polyfill 로 사용 |
@@ -32,8 +32,8 @@ tests/fixtures/reference-html/   # 기준 픽스처 (이 파이프라인의 출�
 
 ```sh
 # 1. 핀 확인 (clean tree + 핀 커밋)
-git -C /Users/max/ai/gui/limepie rev-parse HEAD   # a47ccba... 여야 함
-git -C /Users/max/ai/gui/limepie status --porcelain  # 출력 없어야 함
+git -C $LIMEPIE_SRC rev-parse HEAD   # a47ccba... 여야 함
+git -C $LIMEPIE_SRC status --porcelain  # 출력 없어야 함
 
 # 2. 전체 재생성
 bash tools/limepie-baseline/generate-all.sh

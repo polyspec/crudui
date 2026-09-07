@@ -265,7 +265,7 @@ final class Validator
                     $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
                 }
                 // multiple set but data shape mismatched: skip (v1 parity).
-            } elseif ($isMultiple && is_array($fieldValue) && array_is_list($fieldValue)) {
+            } elseif ($isMultiple && is_array($fieldValue)) {
                 // Non-group multiple field: array-level rules on the whole array,
                 // the rest on each element.
                 $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
@@ -333,6 +333,9 @@ final class Validator
         }
 
         // 2. Element-level rules per index (items.i).
+        if (!array_is_list($values)) {
+            ksort($values, SORT_STRING);
+        }
         foreach ($values as $i => $value) {
             $this->validateElementRules($field, $value, [...$fieldPath, (string) $i], $allData, $errors);
         }
@@ -642,7 +645,7 @@ final class Validator
 
         $isFilterCondition = is_string($ruleParam) && $this->isConditionExpression($ruleParam);
 
-        if (is_array($value) && array_is_list($value)) {
+        if (is_array($value)) {
             // Array-level: the field value is the array itself.
             $valuesToCheck = [];
             if ($isFilterCondition) {

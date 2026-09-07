@@ -1,32 +1,24 @@
 # @polyspec/generator-core
 
-Framework-agnostic v2 evaluation core — the single source of truth shared by the
-React/Vue/Svelte adapters. It runs the four mandated stages WITHOUT emitting
-markup, then hands a markup-free view-model tree to each adapter. compose + expr
-are reused from `@polyspec/validator`; eval is never called.
+[한국어](README.ko.md).
 
-Pipeline: (1) v2 spec → (2) compose (`$ref`/`$patch` expansion; unresolved →
-`ComposeLoadError`) → (3) resolve `design` slots + condition maps via the expr
-engine + i18n CONTENT via `t()` → (4) build the view-model tree.
+Framework-independent form compilation, editable sessions and list evaluation.
 
-## v2 entry points
+```ts
+import { compileForm, createFormSession } from '@polyspec/generator-core';
 
-- `buildForm(rootSpec, options)` → `FieldViewModel[]`. The root must be a group
-  with `properties`; composition is expanded first. Throws `ComposeLoadError`
-  on an unresolved `$ref`, `UnsupportedFieldTypeError` on an un-ported type
-  (default-throw mode).
-- `buildList(listSpec, rows, options)` → `ListViewModel` (SPEC §9, read sister).
-  `rows` are INJECTED (DB-agnostic); search/sort/pagination are declared only.
-  Cells are DISPLAY values, never inputs.
-- Cell layer: `renderCell`, `normalizeFormat`, `CELL_RENDERERS`, `CELL_FORMATS`,
-  `CELL_FORMAT_DEFAULT` — the per-format read cell renderers (`CellDisplay`).
-- Widget catalog: `WIDGET_KINDS`, `WIDGET_LAYOUTS`, `WIDGET_CANONICAL`,
-  `WIDGET_COUNT`, `hasWidget` — the single widget registry the CLI describes.
-- Shared surfaces: `resolveDesign`, `evalShow`, `evalAppearance`, `makeContext`,
-  `makeTranslate`, `buildField`, `ComposeLoadError`, `UnsupportedFieldTypeError`.
-
-## Test
-
+const template = compileForm({
+  type: 'group', properties: { name: { type: 'text' } },
+});
+const session = createFormSession(template);
+session.setData({ name: 'Example' });
 ```
-npm test     # vitest (buildForm/buildList/cell unit + conformance)
-```
+
+Compile once per shared template and create a session per form instance.
+Use `bindForm(template, data)` to evaluate fields without creating an editable session.
+
+- [Runtime contract](../../docs/spec/form-runtime.md)
+- [Setup, nested rows and verification](../../docs/operations/forms.md)
+- [Feature status](../../docs/features.md)
+
+Run `npm run test:forms` from the repository root to build and test all adapters.

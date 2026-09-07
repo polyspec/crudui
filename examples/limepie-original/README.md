@@ -14,7 +14,7 @@ docker compose up limepie-original
 | 컨테이너 경로 | 호스트 소스 | 비고 |
 | --- | --- | --- |
 | `/var/www/vendor` | `packages/generator-legacy/limepie/vendor` | composer vendor (symfony/yaml, ics-parser) |
-| `/var/www/vendor/yejune/limepie` | `/Users/max/ai/gui/limepie` | 로컬 limepie 소스 체크아웃. **yejune/limepie a47ccba 핀 — tools/limepie-baseline/README.md 참조** |
+| `/var/www/vendor/yejune/limepie` | `$LIMEPIE_SRC` | 로컬 limepie 소스 체크아웃. **yejune/limepie a47ccba 핀 — tools/limepie-baseline/README.md 참조** |
 | `/var/www/html/index.php` | `examples/limepie-original/public/index.php` | 데모 엔트리포인트 |
 | `/var/www/specs` | `examples/shared-specs` | 스펙 단일 소스 — 이 디렉터리에 specs 사본을 두지 마라 |
 | `/var/www/html/assets/*` | `examples/limepie-original/assets/*` | css/js 자산 |

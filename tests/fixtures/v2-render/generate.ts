@@ -1,3 +1,4 @@
+import { compileForm } from '@polyspec/generator-core';
 /**
  * v2-render shared fixture generator (4-language / 3-framework parity gate).
  *
@@ -352,7 +353,7 @@ function build(): FixtureCase[] {
       // Confirm the error actually throws with the recorded code.
       let thrown: unknown;
       try {
-        renderFormV2(c.spec, { ...(c.options ?? {}), data: c.data });
+        renderFormV2(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
       } catch (e) {
         thrown = e;
       }
@@ -364,7 +365,7 @@ function build(): FixtureCase[] {
       }
       return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expectError: c.expectError };
     }
-    const html = renderFormV2(c.spec, { ...(c.options ?? {}), data: c.data });
+    const html = renderFormV2(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
     const expected_html = normalizeHtml(html);
     return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expected_html };
   });

@@ -15,23 +15,15 @@
  * from validator-ts; the evaluation lives here, once. eval is never called.
  */
 
-import {
-  composeProperties,
-  MemoryLoader,
-  type FileLoader,
-} from '@polyspec/validator';
-import { makeTranslate, type Language } from './content';
-import {
-  buildField,
-  type BuildState,
-  type FieldViewModel,
-  type UnsupportedMode,
-} from './viewmodel';
+export { compileForm, bindForm } from './form';
+export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
+export { FormSession, createFormSession, createRowKey, sequenceRowKey } from './session';
+export type { FormSessionOptions, FormSnapshot, AddRowOptions } from './session';
+export { connectForm } from './dom';
 
 export type { FieldViewModel, UnsupportedMode, RowVM, LangChildVM, UnsupportedVM, BuildState } from './viewmodel';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';
 export { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL, hasWidget } from './widget';
-export { buildField } from './viewmodel';
 
 // Shared framework-agnostic surfaces (the single source every adapter consumes).
 export { ComposeLoadError } from '@polyspec/validator';
@@ -74,57 +66,3 @@ export type {
   BoolDisplay,
   HtmlDisplay,
 } from './cell';
-
-/** Options for building a v2 form view model. */
-export interface BuildFormOptions {
-  /** Form data (the expr engine's formData + value source). */
-  data?: Record<string, unknown>;
-  /** Active content language (default 'ko'). */
-  language?: Language;
-  /** Name/id prefix. */
-  keyPrefix?: string;
-  /** $ref file set for composition (virtual in-memory loader). */
-  files?: Record<string, Record<string, unknown>>;
-  /** A custom loader (overrides `files`). */
-  loader?: FileLoader;
-  /** Basepath for relative $ref. */
-  basepath?: string;
-  /** Unsupported field-type handling (default 'throw'). */
-  unsupported?: UnsupportedMode;
-}
-
-/**
- * Compose the root spec and build the top-level `FieldViewModel[]` (the field
- * list, no markup). The root spec must be a group with `properties`; composition
- * is expanded first. Throws `ComposeLoadError` on an unresolved `$ref`.
- */
-export function buildForm(
-  rootSpec: Record<string, unknown>,
-  options: BuildFormOptions = {}
-): FieldViewModel[] {
-  const data = options.data ?? {};
-  const t = makeTranslate(options.language ?? 'ko');
-  const loader = options.loader ?? new MemoryLoader(options.files ?? {});
-  const opts = options.basepath ? { basepath: options.basepath } : {};
-
-  // Stage 2: compose the root properties (recurses into nested $ref/$patch).
-  const rawProps = (rootSpec.properties as Record<string, unknown>) ?? {};
-  const props = composeProperties(rawProps, loader, opts);
-
-  const state: BuildState = {
-    data,
-    keyPrefix: options.keyPrefix,
-    t,
-    unsupported: options.unsupported ?? 'throw',
-  };
-
-  // Stages 3–4: evaluate each composed top-level field into a view model.
-  const out: FieldViewModel[] = [];
-  for (const [name, fieldSpec] of Object.entries(props)) {
-    if (fieldSpec && typeof fieldSpec === 'object' && !Array.isArray(fieldSpec)) {
-      void name;
-      out.push(buildField(fieldSpec as Record<string, unknown>, name, state));
-    }
-  }
-  return out;
-}

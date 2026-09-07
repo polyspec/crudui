@@ -174,8 +174,14 @@ impl ValidatorV2 {
                     self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
                 }
                 // multiple set but shape mismatch: skip (v1 parity).
-            } else if is_multiple && field_value.is_array() {
-                self.validate_multiple_field_rules(field, &field_value, &field_path, all_data, errors);
+            } else if is_multiple && (field_value.is_array() || field_value.is_object()) {
+                self.validate_multiple_field_rules(
+                    field,
+                    &field_value,
+                    &field_path,
+                    all_data,
+                    errors,
+                );
             } else {
                 self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
             }
@@ -196,7 +202,19 @@ impl ValidatorV2 {
         errors: &mut Vec<ValidationError>,
     ) {
         let messages = field.get("messages");
-        let arr = values.as_array().cloned().unwrap_or_default();
+        let entries: Vec<(String, &Value)> = match values {
+            Value::Array(arr) => arr
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (i.to_string(), v))
+                .collect(),
+            Value::Object(map) => {
+                let mut entries: Vec<_> = map.iter().map(|(k, v)| (k.clone(), v)).collect();
+                entries.sort_by(|a, b| a.0.cmp(&b.0));
+                entries
+            }
+            _ => Vec::new(),
+        };
 
         // 1. Array-level rules in declaration order; first error wins.
         if let Some(rules) = normalize_validate_slot(field) {
@@ -220,9 +238,9 @@ impl ValidatorV2 {
         }
 
         // 2. Element-level rules per index (items.i).
-        for (i, value) in arr.iter().enumerate() {
+        for (key, value) in entries {
             let mut item_path = field_path.to_vec();
-            item_path.push(i.to_string());
+            item_path.push(key);
             self.validate_element_rules(field, value, &item_path, all_data, errors);
         }
     }

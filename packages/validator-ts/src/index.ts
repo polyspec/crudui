@@ -160,4 +160,6 @@ export type {
 } from './v2/compose/index';
 
 // Default export
+export { validateV2, ValidatorV2 } from './v2/validate/index';
+export type { ValidateV2Options } from './v2/validate/index';
 export { Validator as default } from './Validator';

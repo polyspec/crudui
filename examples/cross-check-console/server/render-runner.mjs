@@ -1,22 +1,6 @@
 /**
- * 3-framework v2 SSR fan-out (React / Svelte sync, Vue async) — all in-process.
- *
- * Every framework renders through the SAME shared core (buildForm: compose →
- * design/expr eval → i18n → FieldViewModel tree); the adapter just serializes.
- * The gateway calls the exact v2 entries the conformance gate imports, with the
- * byte-identical call shape `render(c) = renderFn(spec, { ...options, data })`, so
- * the console's render output == the AI gate's fixture output.
- *
- *   request : { spec, data, options:{ language, unsupported } }
- *   per fw  : { fw, ok, html, normalized, ms, error:{code,message}|null }
- *
- * normalized is normalizeHtml(html) — the shared parity key. parity holds iff all
- * three frameworks share one normalized string.
- *
- * A render FAILURE surfaces with a stable `code` (never a silent ''):
- *   REF_FILE_NOT_FOUND     — unresolved $ref (ComposeLoadError, a LOAD failure)
- *   UNSUPPORTED_FIELD_TYPE — un-ported field type with options.unsupported:'throw'
- * (the same ERROR_CLASS_BY_CODE keys the conformance tests assert).
+ * Compile and render one request in React, Svelte and Vue, then compare HTML
+ * using the shared fixture normalizer. Each result records output or its error.
  */
 
 import { getEngine } from './engine.mjs';
@@ -33,9 +17,9 @@ export async function renderAll(req) {
   const options = { ...(req.options ?? {}), data: req.data ?? {} };
 
   const [react, svelte, vue] = await Promise.all([
-    renderOne(engine, 'react', () => engine.renderReact(spec, options)),
-    renderOne(engine, 'svelte', () => engine.renderSvelte(spec, options)),
-    renderOne(engine, 'vue', () => engine.renderVue(spec, options)),
+    renderOne(engine, 'react', () => engine.renderReact(engine.compileForm(spec, options), options)),
+    renderOne(engine, 'svelte', () => engine.renderSvelte(engine.compileForm(spec, options), options)),
+    renderOne(engine, 'vue', () => engine.renderVue(engine.compileForm(spec, options), options)),
   ]);
 
   const results = [react, svelte, vue];

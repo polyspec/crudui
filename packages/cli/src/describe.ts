@@ -14,7 +14,7 @@
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
  *   - schema/polyspec-v2.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - EXPRESSION-GRAMMAR.md      → tokens / precedence / truthy / unsupported (parse)
- *   - SPEC-V2.md §3             → classification rules (parse)
+ *   - spec/schema.md             → classification rules (parse)
  *
  * Drift 0: a widget added to REGISTRY, a rule added to builtInRules, a slot key
  * changed in the schema, or a forbidden key added to FORBIDDEN_META_KEYS appears
@@ -56,7 +56,6 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
 const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/polyspec-v2.schema.json');
 const GRAMMAR_PATH = resolve(REPO_ROOT, 'docs/EXPRESSION-GRAMMAR.md');
-const SPEC_V2_PATH = resolve(REPO_ROOT, 'docs/SPEC-V2.md');
 
 // ---------------------------------------------------------------------------
 // Result shape (the one object both --json and --md render from).
@@ -331,17 +330,17 @@ function collectGrammar(): DescribeResult['grammar'] {
 }
 
 // ---------------------------------------------------------------------------
-// classification (SPEC-V2.md §3 — quoted, the prose single-source for placement)
+// classification (spec/schema.md — quoted, the prose single-source for placement)
 // ---------------------------------------------------------------------------
 
 function collectClassification(schema: SchemaDoc): DescribeResult['classification'] {
   // First-class split is read from the schema Field.properties grouping, keeping
-  // SPEC-V2 §3 B as the authority for which group each key sits in.
+  // schema field classification as the authority for which group each key sits in.
   const structure = ['type', 'name', 'default', 'properties', 'items', 'multiple', 'lang'];
   const content = ['label', 'description', 'placeholder', 'prepend', 'append', 'help'];
   const roleSlots = ['validate', 'design', 'behavior', 'options'];
   return {
-    source: 'docs/SPEC-V2.md §3',
+    source: 'docs/spec/schema.md',
     firstClass: { structure, content, roleSlots },
     dependencyIsolation: [
       { trigger: 'type (scalar)', target: 'options', note: 'type-dependent settings + container chrome + type scripts/callbacks' },
@@ -546,7 +545,7 @@ export function describe(): DescribeResult {
         forbiddenKeys: 'packages/validator-ts/src/v2/types.ts (FORBIDDEN_META_KEYS)',
         forbiddenScan: 'packages/validator-ts/src/v2/forbidden-scan.ts',
         grammar: 'docs/EXPRESSION-GRAMMAR.md',
-        classification: 'docs/SPEC-V2.md §3',
+        classification: 'docs/spec/schema.md',
         listCellFormats: 'packages/generator-core/src/cell.ts (CELL_RENDERERS)',
         listStructure: 'schema/polyspec-v2.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
       },

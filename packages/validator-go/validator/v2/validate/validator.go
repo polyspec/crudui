@@ -115,8 +115,8 @@ func (v *ValidatorV2) validateProperties(properties *compose.OMap, data map[stri
 			continue
 		}
 
-		if isMultiple && isArray(fieldValue) {
-			v.validateMultipleFieldRules(field, fieldValue.([]any), fieldPath, allData, errors)
+		if isMultiple && (isArray(fieldValue) || isObject(fieldValue)) {
+			v.validateMultipleFieldRules(field, fieldValue, fieldPath, allData, errors)
 		} else {
 			v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
 		}
@@ -125,7 +125,7 @@ func (v *ValidatorV2) validateProperties(properties *compose.OMap, data map[stri
 
 // validateMultipleFieldRules runs array-level rules on the whole array, then
 // element-level rules per index (JS validateMultipleFieldRules).
-func (v *ValidatorV2) validateMultipleFieldRules(field *compose.OMap, values []any, fieldPath []string, allData map[string]any, errors *[]ValidationError) {
+func (v *ValidatorV2) validateMultipleFieldRules(field *compose.OMap, values any, fieldPath []string, allData map[string]any, errors *[]ValidationError) {
 	rules := normalizeValidateSlot(field)
 	messages := fieldMessages(field)
 
@@ -146,8 +146,15 @@ func (v *ValidatorV2) validateMultipleFieldRules(field *compose.OMap, values []a
 		}
 	}
 
-	for i := range values {
-		v.validateElementRules(field, values[i], appendPath(fieldPath, strconv.Itoa(i)), allData, errors)
+	switch rows := values.(type) {
+	case []any:
+		for i, value := range rows {
+			v.validateElementRules(field, value, appendPath(fieldPath, strconv.Itoa(i)), allData, errors)
+		}
+	case map[string]any:
+		for _, key := range sortedKeys(rows) {
+			v.validateElementRules(field, rows[key], appendPath(fieldPath, key), allData, errors)
+		}
 	}
 }
 

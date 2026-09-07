@@ -1,8 +1,8 @@
+import { compileForm } from '@polyspec/generator-core';
 /**
  * Fixture generator for the v2-render NEW-WIDGET cases. Runs the React v2
  * generator (the reference) over each new spec, normalizes through the SHARED
- * normalizer, and appends the result as `expected_html`. Existing cases are kept
- * byte-for-byte. The 3-framework gate then re-verifies every generator reproduces
+ * normalizer, and replaces matching `expected_html` cases or appends new ones. The 3-framework gate then re-verifies every generator reproduces
  * the same normalized output.
  *
  * Run: npx tsx tests/fixtures/v2-render/gen-cases.mts
@@ -40,7 +40,7 @@ function pass(
   data?: Record<string, unknown>,
   options?: Record<string, unknown>
 ): FixtureCase {
-  const html = renderFormV2(spec, { ...(options ?? {}), data });
+  const html = renderFormV2(compileForm(spec, options), { ...(options ?? {}), data });
   return {
     name,
     note,
@@ -90,7 +90,7 @@ const NEW: FixtureCase[] = [
     G({ em: { type: 'email', label: { ko: '이메일' } } }), { em: 'a@b.com' }, { language: 'ko' }),
   pass('checkbox-bare', 'checkbox → .checkbox > h6 special envelope, value=1 input, no value.',
     G({ agree: { type: 'checkbox', label: { ko: '동의' } } }), {}, { language: 'ko' }),
-  pass('checkbox-with-data', 'checkbox with truthy value → input present (envelope is value-independent).',
+  pass('checkbox-with-data', 'checkbox with value 1 renders checked.',
     G({ agree: { type: 'checkbox', label: { ko: '동의' } } }), { agree: 1 }, { language: 'ko' }),
   pass('switcher-bare', 'switcher → same special envelope as checkbox (alias path), no value.',
     G({ on: { type: 'switcher', label: { ko: '켜기' } } }), {}, { language: 'ko' }),
@@ -245,7 +245,8 @@ void group; // (kept for ad-hoc use)
 const existing = JSON.parse(readFileSync(casesPath, 'utf8')) as FixtureCase[];
 const existingNames = new Set(existing.map((c) => c.name));
 const additions = NEW.filter((c) => !existingNames.has(c.name));
-const merged = [...existing, ...additions];
+const replacements = new Map(NEW.map(c => [c.name, c]));
+const merged = [...existing.map(c => replacements.get(c.name) ?? c), ...additions];
 
 writeFileSync(casesPath, JSON.stringify(merged, null, 2) + '\n', 'utf8');
 console.log(`existing=${existing.length} new=${additions.length} total=${merged.length}`);

@@ -228,12 +228,12 @@ export class ValidatorV2 {
           this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
         }
         // multiple set but data shape mismatched: skip (v1 parity).
-      } else if (isMultiple && Array.isArray(fieldValue)) {
+      } else if (isMultiple && fieldValue !== null && typeof fieldValue === 'object') {
         // Non-group multiple field: array-level rules on the whole array, the
         // rest on each element.
         this.validateMultipleFieldRules(
           field,
-          fieldValue,
+          fieldValue as unknown[] | Record<string, unknown>,
           fieldPath,
           allData,
           errors
@@ -268,7 +268,7 @@ export class ValidatorV2 {
   /** Array-level + element rules for a non-group `multiple` field. */
   private validateMultipleFieldRules(
     field: ComposedField,
-    values: unknown[],
+    values: unknown[] | Record<string, unknown>,
     fieldPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
@@ -305,11 +305,13 @@ export class ValidatorV2 {
     }
 
     // 2. Element-level rules per index (items.i).
-    for (let i = 0; i < values.length; i++) {
+    const entries = Array.isArray(values) ? values.map((value, i) => [String(i), value] as const)
+      : Object.keys(values).sort().map(key => [key, values[key]] as const);
+    for (const [key, value] of entries) {
       this.validateElementRules(
         field,
-        values[i],
-        [...fieldPath, String(i)],
+        value,
+        [...fieldPath, key],
         allData,
         errors
       );

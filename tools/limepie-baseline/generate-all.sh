@@ -6,7 +6,7 @@
 #   bash tools/limepie-baseline/generate-all.sh
 #
 # Env:
-#   LIMEPIE_SRC  yejune/limepie 체크아웃 경로 (기본 /Users/max/ai/gui/limepie).
+#   LIMEPIE_SRC  Source checkout path (required).
 #                반드시 핀 커밋 a47ccba 상태여야 한다. 다른 커밋으로 생성하지 마라.
 #
 # 출력: tests/fixtures/reference-html/<name>.html
@@ -17,7 +17,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RENDER="$ROOT/tools/limepie-baseline/render.php"
 OUT="$ROOT/tests/fixtures/reference-html"
-LIMEPIE_SRC="${LIMEPIE_SRC:-/Users/max/ai/gui/limepie}"
+: "${LIMEPIE_SRC:?Set LIMEPIE_SRC to the source checkout directory}"
 export LIMEPIE_SRC
 
 PIN="a47ccba7e318ae1d364c034b1d7c5b0de8a564bb"

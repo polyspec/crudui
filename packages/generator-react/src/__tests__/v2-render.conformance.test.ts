@@ -1,3 +1,4 @@
+import { compileForm } from '@polyspec/generator-core';
 /**
  * v2-render conformance — React reference verification.
  *
@@ -35,7 +36,7 @@ interface FixtureCase {
 const cases = fixtureCases as unknown as FixtureCase[];
 
 function render(c: FixtureCase): string {
-  return renderFormV2(c.spec, { ...(c.options ?? {}), data: c.data });
+  return renderFormV2(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
 describe('v2 render — React reproduces the normalized expected_html', () => {

@@ -107,6 +107,7 @@ async function bootEngine() {
   ]);
 
   return {
+    compileForm: reactMod.compileForm,
     renderReact: reactMod.renderFormV2,
     renderSvelte: svelteMod.renderFormV2,
     renderVue: vueMod.renderFormV2SSR,

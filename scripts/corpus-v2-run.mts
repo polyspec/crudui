@@ -1,7 +1,7 @@
 /**
  * Real corpus v1→v2 conversion + v2 validation harness (read-only over corpus).
  *
- * Corpus is READ-ONLY: /Users/max/Abyss/Workspace/blue/app — only Spec/*.yml are
+ * The input corpus is read-only. Only Spec/*.yml files are
  * read. Nothing in the corpus is created or modified. This script lives in the
  * polyspec repo.
  *
@@ -28,7 +28,9 @@ import { validateV2 } from '../packages/validator-ts/src/v2/validate/index';
 import { ComposeLoadError } from '../packages/validator-ts/src/v2/compose/index';
 import type { FileLoader } from '../packages/validator-ts/src/v2/compose/index';
 
-const CORPUS = '/Users/max/Abyss/Workspace/blue/app';
+const corpusInput = process.argv[2];
+if (!corpusInput) throw new Error('Usage: provide the corpus directory as the first argument');
+const CORPUS = path.resolve(corpusInput);
 const REPO = path.resolve(import.meta.dirname, '..');
 const SCHEMA = path.join(REPO, 'schema/polyspec-v2.schema.json');
 

@@ -1,26 +1,7 @@
-/**
- * v2 generator entry (Svelte) — compose → evaluate (shared core) → .svelte SSR.
- *
- * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) v2 spec → (2) v2 compose (validator-ts composeProperties: expand
- *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
- *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
- *   evaluation (framework-agnostic core: @polyspec/generator-core) → (4) Svelte
- *   5 SSR via svelte/server render().
- *
- * The evaluation runs ONCE in the shared core (buildForm returns a markup-free
- * FieldViewModel[] tree); the Svelte adapter builds a real `FormV2.svelte`
- * element tree from it and serializes with svelte/server render(). There is NO
- * string-builder and NO completed-form `{@html}` echo — every structural node is
- * a real `.svelte` element (the leaf control bytes go through the container's
- * `{@html}` directive because svelte/server coerces empty/boolean attributes the
- * parity fixture forbids; the same control-granularity boundary the Vue adapter
- * uses). compose + expr are reused from the core (validator-ts underneath); v1
- * generator code is never touched; eval is never called.
- */
+/** Form template binding, rendering and list rendering. */
 
 import { render } from 'svelte/server';
-import { buildForm, buildList, type BuildFormOptions, type BuildListOptions } from '@polyspec/generator-core';
+import { bindForm, buildList, type BindFormOptions, type FormTemplate, type BuildListOptions } from '@polyspec/generator-core';
 import type { Language, UnsupportedMode } from '@polyspec/generator-core';
 import FormV2 from './components/FormV2.svelte';
 import ListV2 from './components/ListV2.svelte';
@@ -34,7 +15,6 @@ export type { Language } from '@polyspec/generator-core';
 export type { UnsupportedMode } from '@polyspec/generator-core';
 
 // Core + components (the shared evaluation + the Svelte adapter surfaces).
-export { buildForm } from '@polyspec/generator-core';
 export type { FieldViewModel, WidgetModel } from '@polyspec/generator-core';
 export { default as FormV2 } from './components/FormV2.svelte';
 export { default as Field } from './components/Field.svelte';
@@ -56,7 +36,7 @@ export type {
 export { default as ListV2 } from './components/ListV2.svelte';
 
 /** Options for a v2 form render. */
-export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
+export interface RenderFormOptions extends Omit<BindFormOptions, 'language' | 'unsupported'> {
   /** Form data (the expr engine's formData + value source). */
   data?: Record<string, unknown>;
   /** Active content language (default 'ko'). */
@@ -68,19 +48,7 @@ export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | '
   unsupported?: UnsupportedMode;
 }
 
-/**
- * Build the top-level `FieldViewModel[]` for a v2 form via the shared core. The
- * root spec must be a group with `properties`; composition is expanded first.
- *
- * Throws `ComposeLoadError` on an unresolved `$ref` (a load error, never silent),
- * and `UnsupportedFieldTypeError` on an un-ported type (default-throw mode).
- */
-export function buildFormV2(
-  rootSpec: Record<string, unknown>,
-  options: RenderFormOptions = {}
-) {
-  return buildForm(rootSpec, options);
-}
+
 
 /**
  * Strip Svelte 5 SSR scaffolding from a rendered body: the outer fragment markers
@@ -94,38 +62,22 @@ function stripSsrScaffolding(body: string): string {
 }
 
 /**
- * Render a v2 form's CONTENT (the field list, no `<form>` wrapper) through Svelte
- * 5 SSR. The root spec must be a group with `properties`; composition is expanded
- * first.
- *
- * Throws `ComposeLoadError` on an unresolved `$ref` (raised by buildForm before
- * any Svelte work — a load error, never silent), and `UnsupportedFieldTypeError`
- * on an un-ported field type (default-throw mode).
+ * Render a compiled template to form-content HTML without a form element.
+ * Throws UnsupportedFieldTypeError when a field type has no renderer.
  */
 export function renderFormV2(
-  rootSpec: Record<string, unknown>,
+  template: FormTemplate,
   options: RenderFormOptions = {}
 ): string {
-  // Stages 1–4 (compose + design/expr + i18n + tree) → markup-free view model.
-  const fields = buildForm(rootSpec, options);
+  // Evaluate record values and display conditions.
+  const fields = bindForm(template, options.data, options);
   // Genuine Svelte 5 SSR of a REAL .svelte tree (FormV2 → Field → Widget), not a
   // completed-form {@html} echo.
   const { body } = render(FormV2, { props: { fields } });
   return stripSsrScaffolding(body);
 }
 
-/**
- * String alias of `renderFormV2` (kept as a public export for callers that hold
- * the older name). Svelte's render() is synchronous, so there is no separate
- * string path — both go through buildForm → svelte/server render() and yield the
- * identical envelope.
- */
-export function renderFormV2String(
-  rootSpec: Record<string, unknown>,
-  options: RenderFormOptions = {}
-): string {
-  return renderFormV2(rootSpec, options);
-}
+
 
 /** Options for a v2 list render (DB-agnostic: `rows` are the injected argument). */
 export interface RenderListOptions extends BuildListOptions {
@@ -154,3 +106,7 @@ export function renderListV2(
   const { body } = render(ListV2, { props: { vm, mode: mode ?? 'table' } });
   return stripSsrScaffolding(body);
 }
+
+export { default as FormSessionView } from './components/FormSessionView.svelte';
+export { compileForm, bindForm, createFormSession, createRowKey, sequenceRowKey } from '@polyspec/generator-core';
+export type { FormTemplate, FormSession, FormSessionOptions } from '@polyspec/generator-core';

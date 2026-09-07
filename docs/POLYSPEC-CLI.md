@@ -67,7 +67,7 @@
 | design 노드 이름 | `packages/validator-ts/src/v2/types.ts` `DesignNodeName` union(`show`/`class`/`style`/`label`/`wrapper`/`group`/`prepend`) + schema `Design` |
 | 금지 메타키 (열거+패턴) | `types.ts` `FORBIDDEN_META_KEYS` + `FORBIDDEN_META_KEY_PATTERN`(`/^x[\s\S]/`). 런타임 동기화=`v2/forbidden-scan.ts`. 메타스키마 거울=schema `ForbiddenKeyNames` |
 | 표현식 문법 | `docs/EXPRESSION-GRAMMAR.md` (§1 토큰표/§2 EBNF/§3 우선순위/§6 truthy/§10 비지원) — 산문 단일진실 인용 |
-| 분류 규칙 | `docs/SPEC-V2.md` §3 (A x주석 / B 1급만 1급 / C 종속격리 + 공통역할분배) 인용 |
+| 분류 규칙 | `docs/spec/schema.md` §3 (A x주석 / B 1급만 1급 / C 종속격리 + 공통역할분배) 인용 |
 | list read-cell 포맷 카탈로그 | `packages/generator-core/src/cell.ts` `CELL_FORMATS`(렌더러 키) + `CELL_FORMAT_DEFAULT`(unknown fallback). schema `CellFormat` 의존키와 cross-check |
 | list 구조 | `schema/polyspec-v2.schema.json` definitions(`List`·`Column`·`CellFormat`·`Pagination`·`Sort`·`ListAction`)를 JSON.parse — SPEC-V2 §9 |
 
@@ -98,7 +98,7 @@
   },
   "forbiddenKeys": { "enum": ["..."], "pattern": "^x[\\s\\S]", "schemaEnum": ["..."], "schemaPattern": "^x[\\s\\S]", "crossCheckOk": true },
   "grammar": { "source": "docs/EXPRESSION-GRAMMAR.md", "tokens": [{ "token": "DOT", "pattern": "..." }], "precedence": ["?:", "||", "&&", "..."], "truthyFalsy": ["..."], "unsupported": ["산술", "함수 호출", "..."] },
-  "classification": { "source": "docs/SPEC-V2.md §3", "firstClass": { "structure": ["..."], "content": ["..."], "roleSlots": ["validate", "design", "behavior", "options"] }, "dependencyIsolation": [{ "trigger": "...", "target": "...", "note": "..." }], "roleDistribution": [{ "role": "...", "target": "..." }] },
+  "classification": { "source": "docs/spec/schema.md", "firstClass": { "structure": ["..."], "content": ["..."], "roleSlots": ["validate", "design", "behavior", "options"] }, "dependencyIsolation": [{ "trigger": "...", "target": "...", "note": "..." }], "roleDistribution": [{ "role": "...", "target": "..." }] },
   "matrix": { "columns": ["validate", "design", "behavior", "options", "items", "multiple", "lang"], "note": "..." },
   "list": {
     "entry": "#/definitions/List",
@@ -188,7 +188,7 @@ polyspec validate ./contact.yml ./data.json --lang all
 
 > 상태: `src/render.ts` 없음, bin 미등록 (`unknown subcommand`, exit 2). 아래는 확정 설계다. 콘솔 `render-runner.mjs renderAll` 과 3프레임워크 SSR(`engine.mjs`)은 이미 구현·동작하지만, 그것을 호출하는 polyspec CLI 래퍼는 아직 없다.
 
-SSR 미리보기. 자체 렌더 0 — 콘솔 `render-runner.mjs renderAll` 을 재사용한다. 세 프레임워크가 동일 공유 코어(`buildForm`: compose → design/expr eval → i18n → FieldViewModel 트리)를 통과하고 어댑터는 직렬화만 한다(`engine.mjs` `renderReact`/`renderSvelte`/`renderVue`).
+SSR 미리보기. 자체 렌더 0 — 콘솔 `render-runner.mjs renderAll` 을 재사용한다. 세 프레임워크가 동일 공유 코어(`compileForm` + `bindForm`: compose → design/expr eval → i18n → FieldViewModel 트리)를 통과하고 어댑터는 직렬화만 한다(`engine.mjs` `renderReact`/`renderSvelte`/`renderVue`).
 
 **입력**: spec (+ data, language, unsupported).
 **출력**:
@@ -254,7 +254,7 @@ polyspec list-widgets --json
 4. **금지키** — `import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from '../../validator-ts/src/v2/types.ts'` + `scanForbiddenKeys`. types.ts enum ≡ schema enum ≡ 런타임 scan 3중 cross-check — 불일치 시 `crossCheckOk:false`.
 5. **list** — `import { CELL_FORMATS, CELL_FORMAT_DEFAULT } from '../../generator-core/src/cell.ts'` + schema `List`/`Column`/`CellFormat`/`Pagination`/`Sort`/`ListAction` definitions parse. cell.ts 카탈로그 ≡ schema CellFormat cross-check → `cellCrossCheckOk`.
 6. **문법** — `EXPRESSION-GRAMMAR.md` 를 § 번호로 정식 인용(파싱).
-7. **분류** — `SPEC-V2.md` §3 A/B/C 규칙 인용.
+7. **분류** — `spec/schema.md` 필드 분류 규칙 인용.
 
 ## 4. 콘솔 재사용 경계 (validate/render 는 로드맵)
 

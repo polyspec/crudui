@@ -43,3 +43,8 @@ export { applyLangAppendTransform } from './legacyLang';
 export * from './components/fields/limepieParity';
 export { makeTranslate } from './i18n';
 export type { Language, MultiLangText } from './i18n';
+
+// Form templates and editable instances.
+export { compileForm, bindForm, createFormSession, createRowKey, sequenceRowKey } from '@polyspec/generator-core';
+export type { FormTemplate, FormSession, FormSessionOptions } from '@polyspec/generator-core';
+export { default as FormSessionView } from './v2/components/FormSessionView.svelte';

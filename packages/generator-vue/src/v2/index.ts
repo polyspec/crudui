@@ -1,25 +1,6 @@
-/**
- * v2 generator entry (Vue) — compose → evaluate (shared core) → vnode SSR.
- *
- * Pipeline (the four mandated stages, SPEC §2 / G5):
- *   (1) v2 spec → (2) v2 compose (validator-ts composeProperties: expand
- *   $ref/$patch into a single composition-free spec; an unresolved $ref is a
- *   ComposeLoadError, NOT a render) → (3) design-slot + condition-map + i18n
- *   evaluation (framework-agnostic core: @polyspec/generator-core) → (4) Vue 3
- *   vnode SSR via @vue/server-renderer renderToString.
- *
- * The evaluation runs ONCE in the shared core (buildForm returns a markup-free
- * FieldViewModel[] tree); the Vue adapter builds a real `FormV2` vnode tree from
- * it and serializes with renderToString. There is NO string-builder and NO
- * createStaticVNode completed-form echo — every structural node is a real vnode
- * (the leaf control bytes go through the container's innerHTML domProp because
- * @vue/server-renderer hardcodes empty/boolean attribute coercion the parity
- * fixture forbids; same boundary mechanism as React's RAW/script slots). compose
- * + expr are reused from the core (validator-ts underneath); v1 generator code is
- * never touched; eval is never called.
- */
+/** Form template binding, rendering and list rendering. */
 
-import { buildForm, type BuildFormOptions } from '@polyspec/generator-core';
+import type { BindFormOptions } from '@polyspec/generator-core';
 import type { Language, UnsupportedMode } from '@polyspec/generator-core';
 import { buildList, type BuildListOptions } from '@polyspec/generator-core';
 
@@ -32,7 +13,6 @@ export type { Language } from '@polyspec/generator-core';
 export type { UnsupportedMode } from '@polyspec/generator-core';
 
 // Core + components (the shared evaluation + the Vue adapter surfaces).
-export { buildForm } from '@polyspec/generator-core';
 export type { FieldViewModel, WidgetModel } from '@polyspec/generator-core';
 export { FormV2 } from './components/FormV2';
 export { fieldVNode } from './components/Field';
@@ -55,7 +35,7 @@ export { ListV2 } from './components/ListV2';
 export type { ListLayout } from './components/ListV2';
 
 /** Options for a v2 form render. */
-export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | 'unsupported'> {
+export interface RenderFormOptions extends Omit<BindFormOptions, 'language' | 'unsupported'> {
   /** Form data (the expr engine's formData + value source). */
   data?: Record<string, unknown>;
   /** Active content language (default 'ko'). */
@@ -64,19 +44,7 @@ export interface RenderFormOptions extends Omit<BuildFormOptions, 'language' | '
   unsupported?: UnsupportedMode;
 }
 
-/**
- * Build the top-level `FieldViewModel[]` for a v2 form via the shared core. The
- * root spec must be a group with `properties`; composition is expanded first.
- *
- * Throws `ComposeLoadError` on an unresolved `$ref` (a load error, never silent),
- * and `UnsupportedFieldTypeError` on an un-ported type (default-throw mode).
- */
-export function buildFormV2(
-  rootSpec: Record<string, unknown>,
-  options: RenderFormOptions = {}
-) {
-  return buildForm(rootSpec, options);
-}
+
 
 export { renderFormV2SSR } from './ssr';
 
@@ -98,3 +66,7 @@ export function buildListV2(
 
 export { renderListV2SSR } from './listSsr';
 export type { RenderListOptions } from './listSsr';
+
+export { FormSessionView } from './components/FormSessionView';
+export { compileForm, bindForm, createFormSession, createRowKey, sequenceRowKey } from '@polyspec/generator-core';
+export type { FormTemplate, FormSession, FormSessionOptions } from '@polyspec/generator-core';

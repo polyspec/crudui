@@ -80,7 +80,7 @@
       <h6>
         <div class={igwClass} data-uniqid={vm.uniqid}>
           <div>
-            <input class={vm.checkboxClass} name={vm.checkboxName} type="checkbox" value="1" />
+            <input class={vm.checkboxClass} name={vm.checkboxName} type="checkbox" value="1" checked={vm.checkboxChecked || undefined} />
             <span>{vm.label}</span>
           </div>
         </div>
@@ -133,6 +133,9 @@
             {#if vm.multiple}{@render rowButtons(vm.multiple)}{/if}
           </div>
         {/if}
+      {:else}
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button type="button" class="btn btn-plus"> </button>
       {/each}
     </div>
   </div>
@@ -149,6 +152,9 @@
           </div>
           <span class="btn-group input-group-btn">{#if vm.multiple}{@render rowButtons(vm.multiple)}{/if}</span>
         </div>
+      {:else}
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button type="button" class="btn btn-plus"> </button>
       {/each}
     </div>
   </div>

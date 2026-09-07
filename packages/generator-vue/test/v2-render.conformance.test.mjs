@@ -1,3 +1,4 @@
+import { compileForm } from '@polyspec/generator-core';
 /**
  * v2-render conformance — Vue 3 SSR vs the shared 3-framework parity fixture.
  *
@@ -32,7 +33,7 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/v2-render/cases.json
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 async function renderSSR(c) {
-  return renderFormV2SSR(c.spec, { ...(c.options ?? {}), data: c.data });
+  return renderFormV2SSR(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
 describe('v2 render — Vue 3 SSR reproduces the normalized expected_html', () => {

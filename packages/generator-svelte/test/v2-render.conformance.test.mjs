@@ -1,3 +1,4 @@
+import { compileForm } from '@polyspec/generator-core';
 /**
  * v2-render conformance — Svelte SSR vs the shared 3-framework parity gate.
  *
@@ -20,7 +21,6 @@ import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 import {
   renderFormV2,
-  renderFormV2String,
   ComposeLoadError,
   UnsupportedFieldTypeError,
 } from '../src/v2/index.ts';
@@ -31,7 +31,7 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/v2-render/cases.json
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 function render(c) {
-  return renderFormV2(c.spec, { ...(c.options ?? {}), data: c.data });
+  return renderFormV2(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
 describe('v2 render — Svelte reproduces the normalized expected_html', () => {
@@ -121,20 +121,4 @@ describe('v2 render — eval is never used (no v1 condition meta keys leak)', ()
     expect(c, 'fixture must contain multiple-group-rows').toBeTruthy();
     expect(render(c)).toContain('data-uniqid="p1"');
   });
-});
-
-// renderFormV2String is a public export (the SSR-scaffolding-free string path).
-// Drive it through the SAME fixture so it is not a dead, untested API: its
-// normalized output must equal both renderFormV2's and the fixture's.
-describe('v2 render — renderFormV2String (public string API) matches the fixture', () => {
-  function renderString(c) {
-    return renderFormV2String(c.spec, { ...(c.options ?? {}), data: c.data });
-  }
-  for (const c of cases.filter((x) => x.expected_html)) {
-    test(`${c.name} — string API reproduces expected_html`, () => {
-      expect(normalizeHtml(renderString(c))).toStrictEqual(c.expected_html);
-      // identical to the SSR path after normalization (documented contract).
-      expect(normalizeHtml(renderString(c))).toStrictEqual(normalizeHtml(render(c)));
-    });
-  }
 });

@@ -210,8 +210,8 @@ HEAD 가드로 즉시 중단한다. 상세는 `tools/limepie-baseline/README.md`
 
 ```bash
 # 1. 핀 확인 (clean tree + 핀 커밋)
-git -C /Users/max/ai/gui/limepie rev-parse HEAD      # a47ccba... 여야 함
-git -C /Users/max/ai/gui/limepie status --porcelain  # 출력 없어야 함
+git -C $LIMEPIE_SRC rev-parse HEAD      # a47ccba... 여야 함
+git -C $LIMEPIE_SRC status --porcelain  # 출력 없어야 함
 
 # 2. 전체 재생성
 bash tools/limepie-baseline/generate-all.sh

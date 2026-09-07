@@ -166,7 +166,7 @@ services:
       - ../packages/generator-legacy/limepie/vendor:/var/www/vendor:ro
       # 로컬 limepie 소스 체크아웃을 composer 패키지 경로로 중첩 마운트.
       # yejune/limepie a47ccba 핀 — tools/limepie-baseline/README.md 참조.
-      - /Users/max/ai/gui/limepie:/var/www/vendor/yejune/limepie:ro
+      - ${LIMEPIE_SRC:?Set LIMEPIE_SRC to the source checkout directory}:/var/www/vendor/yejune/limepie:ro
       - ./limepie-original/public/index.php:/var/www/html/index.php:ro
       # 스펙은 shared-specs 단일 소스에서 마운트 (limepie-original/specs 사본은 제거됨)
       - ./shared-specs:/var/www/specs:ro

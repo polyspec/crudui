@@ -203,3 +203,8 @@ export type {
 // Default Export
 // ============================================================================
 export { FormBuilder as default } from './components/FormBuilder';
+
+// Form templates and editable instances.
+export { compileForm, bindForm, createFormSession, createRowKey, sequenceRowKey } from '@polyspec/generator-core';
+export type { FormTemplate, FormSession, FormSessionOptions } from '@polyspec/generator-core';
+export { FormSessionView } from './v2/components/FormSessionView';

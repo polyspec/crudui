@@ -529,3 +529,15 @@ jobs:
       - name: CLI conformance (drift/check-catalog/explain, 23 cases)
         run: npm test
         working-directory: packages/cli
+
+  form-runtime:
+    name: Form sessions and data injection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm i -g npm@11.17.0 && npm ci
+      - run: npm run test:forms
