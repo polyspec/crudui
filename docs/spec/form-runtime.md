@@ -35,8 +35,11 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 delimiters. The runtime never decides whether a row is persisted by inspecting
 the key. The server provides the correspondence after saving.
 
-Object keys retain their order. Numeric object keys and keys containing path
-separators are rejected by editable sessions. Callers use `sequenceRowKey` when
+Sessions preserve nonnumeric object key insertion order in memory. Native form
+submission follows control order. Keyed JSON uses document member order as row
+order, preserved through parsing, editing, persistence and serialization. Form
+data contains no auxiliary order or identity fields. Numeric object keys and
+keys containing path separators are rejected by editable sessions. Callers use `sequenceRowKey` when
 constructing data from database sequences. Editable sessions do not convert
 arrays or infer hidden identity fields.
 
