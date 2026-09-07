@@ -15,6 +15,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | docs-check | Document links, translations and status checks | implemented | passed | not-deployed | [Documentation procedure](operations/documentation.md) |
 | form-comparison | Original and 13-character browser comparison | implemented | passed | deployed | [Browser checks](../examples/form-comparison/check.mjs) |
 | form-persistence | Keyed native and JSON document-order persistence | implemented | passed | deployed | [Persistence scenarios](../examples/form-comparison/src/frame.mjs) |
+| ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../examples/form-comparison/check-ordered-json.py) |
 | form-client-validation | Existing JavaScript validation before user submission | implemented | passed | deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
 | original-empty-correction | Corrected original rendering and complete empty collection lifecycle | implemented | passed | deployed | [Comparison contract](spec/form-comparison.md) |
 | original-keyed-proof | Original public functions with keyed editing, persistence and cache binding | implemented | failed | deployed | [Comparison contract](spec/form-comparison.md) |
@@ -26,6 +27,17 @@ documentation site build passed. Library deployment status refers to package
 publication; no package was published. The form comparison example is deployed locally
 in Apple container at [localhost:4317](http://localhost:4317). No remote deployment
 was run.
+
+## JSON processor results
+
+JSON processor verification on 2026-09-07 used ordered-json commit `deb1b354`.
+JavaScript, PHP, the PHP extension, Go and Rust each passed 115 processor cases
+and ten Polyspec transport fixtures. Host versions were Node 26.8.1, PHP 8.5.10,
+Go 1.27.0 and Rust 1.98.1 on macOS arm64. The transport fixtures cover order,
+13-character keys, new/copied/saved row representations and empty object/array
+types. These checks do not execute form row operations. Runtime integration has
+not changed; the local comparison environment uses standard JSON functions.
+[Verification procedure and scope](operations/ordered-json.md).
 
 ## Polyspec form comparison results
 
