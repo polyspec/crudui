@@ -134,8 +134,8 @@ node examples/form-comparison/run.mjs start
 node examples/form-comparison/run.mjs prepare
 ```
 
-수정 소스는 `fix/original-empty-collections` 브랜치에 유지하며 아카이브를 준비할 때
-해당 커밋이 로컬에 있어야 합니다.
+수정 커밋 `78723bb`는 `main` 이력에 포함합니다. 전체 복제를 사용하며 아카이브를
+준비할 때 고정한 모든 소스 커밋이 로컬에 있어야 합니다.
 화면은 전체 소스 커밋 ID와 Git 아카이브의 SHA-256 해시를 제공합니다.
 소스들은 커밋된 npm 잠금 파일을 사용합니다. 잠금 파일에 네이티브 빌드 모듈의
 macOS 패키지 항목만 있으므로 이미지에서 동일 버전의 Linux ARM64 모듈을 별도로
