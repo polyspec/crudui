@@ -76,6 +76,10 @@ native input changes and row buttons. Framework adapters render view models and
 synchronize browser input properties after updates. Data binding updates text,
 textarea, selection, checkbox, language fields and conditional display.
 
+Native typing preserves focus and text selection when rendering replaces an
+input element. A duplicate change event with the same value must not replace
+the pending focus state.
+
 Adding or copying a row preserves the active control, its text selection and
 ancestor scroll positions. Pointer activation of a row button retains the current
 input focus. Keyboard activation retains button focus. Focus restoration does not

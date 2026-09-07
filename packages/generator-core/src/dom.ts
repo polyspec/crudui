@@ -83,7 +83,6 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
     if (!control?.matches?.('input[name],select[name],textarea[name]') || control.disabled) return;
     const path = pathOf(control.name);
     if (!path) return;
-    captureFocus();
     let value: unknown = control.value;
     if (control.tagName === 'INPUT') {
       const input = control as HTMLInputElement;
@@ -102,6 +101,7 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
     const previous = session.getValue(path);
     if (previous === value || (Array.isArray(previous) && Array.isArray(value) &&
         previous.length === value.length && previous.every((v, i) => v === value[i]))) return;
+    captureFocus();
     session.setValue(path, value);
   };
   const onClick = (event: Event) => {
