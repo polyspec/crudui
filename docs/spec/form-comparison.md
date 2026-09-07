@@ -65,6 +65,8 @@ classes, styles, row keys or hidden elements. A raw HTML mismatch remains a
 failed check even when the DOM comparison passes. Comparisons continue after a
 mismatch so subsequent CSS, control, interaction and persistence results remain
 available. Tests deliberately change each snapshot category to verify detection.
+Downloaded evidence identifies the time, server, variant, framework, transport
+and library source commit. A failed reset must not reuse a previous run's evidence.
 
 The example uses the existing `Validator` before user submission. Failure stops
 transmission and displays returned field errors. Each selected server independently validates the

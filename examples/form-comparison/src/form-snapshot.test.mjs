@@ -72,3 +72,9 @@ test('reports all CSS, data, focus and response differences after an HTML failur
   assert.equal(results.length, 5);
   assert.ok(results.every(result => !result.passed && result.error));
 });
+
+test('rejects different value types with matching serialized text', () => {
+  const results = compareSnapshots({ data: '{}' }, { data: {} });
+  assert.equal(results[0].passed, false);
+  assert.match(results[0].error, /expected type object, actual type string/);
+});

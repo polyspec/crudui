@@ -43,6 +43,7 @@ summary { cursor: pointer; font-weight: 600; }
 pre { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; background: #f0f4f8; padding: 12px; max-height: 500px; overflow: auto; }
 .pass { color: #126644; }.fail { color: #a92d30; }
 #results p { font-size: 12px; overflow-wrap: anywhere; }
+#results .initialization-evidence { color: #172334; }
 #report { overflow: auto; }
 table { border-collapse: collapse; width: 100%; margin: 18px 0; background: white; font-size: 12px; }
 th, td { text-align: left; padding: 10px; border: 1px solid #dae3ec; vertical-align: top; }

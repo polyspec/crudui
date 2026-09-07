@@ -110,7 +110,7 @@ selector.addEventListener('change', () => show(selector.value));
 variant.addEventListener('change', () => show(selector.value));
 document.querySelector('#all-checks').addEventListener('click', () => runAll().catch(error => { document.querySelector('#progress').textContent = error.message; }));
 document.querySelector('#download').addEventListener('click', () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify({ metadata, reports }, null, 2)], { type: 'application/json' }));
+  const url = URL.createObjectURL(new Blob([JSON.stringify({ metadata, reports })], { type: 'application/json' }));
   const link = document.createElement('a'); link.href = url; link.download = 'crudui-form-results.json'; link.click();
   URL.revokeObjectURL(url);
 });
