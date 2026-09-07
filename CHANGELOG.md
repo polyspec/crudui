@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Form comparison naming
+
+Applied consistent CRUDUI example names to paths, source, documentation and
+container commands.
+Comparison library and test files retain their original content. Previous data,
+reports and source archives were preserved outside the working tree.
+
+Verification at 12:21 UTC: corrected original and current runtime each passed
+19/19 in React, Vue and Svelte for both form and JSON transmission. All 108
+interaction checks, 12 mount-before-load checks, JavaScript/PHP conversion checks,
+both repository checks and `make docs-check` passed. No browser page errors
+occurred. Unchanged original keyed diagnostics remain 17/19 and array diagnostics
+15/19; the full runner returns status 1 for those recorded failures.
+Deployment: local Apple container at `localhost:4317`; no package publication or
+remote deployment.
+
 ## 2026-09-07 — Form and ordered JSON transmission
 
 Each form can select native multipart or JSON transmission. Both formats run
