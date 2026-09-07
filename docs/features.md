@@ -16,6 +16,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-comparison | Original and 13-character browser comparison | implemented | passed | deployed | [Browser checks](../examples/form-comparison/check.mjs) |
 | form-persistence | Keyed native and JSON document-order persistence | implemented | passed | deployed | [Persistence scenarios](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../examples/form-comparison/check-ordered-json.py) |
+| ordered-json-runtime | Form and ordered JSON transmission through shared validation and storage | implemented | passed | deployed | [Transport contract](spec/form-comparison.md) |
 | form-client-validation | Existing JavaScript validation before user submission | implemented | passed | deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
 | original-empty-correction | Corrected original rendering and complete empty collection lifecycle | implemented | passed | deployed | [Comparison contract](spec/form-comparison.md) |
 | original-keyed-proof | Original public functions with keyed editing, persistence and cache binding | implemented | failed | deployed | [Comparison contract](spec/form-comparison.md) |
@@ -35,8 +36,8 @@ JavaScript, PHP, the PHP extension, Go and Rust each passed 115 processor cases
 and ten CRUDUI transport fixtures. Host versions were Node 26.8.1, PHP 8.5.10,
 Go 1.27.0 and Rust 1.98.1 on macOS arm64. The transport fixtures cover order,
 13-character keys, new/copied/saved row representations and empty object/array
-types. These checks do not execute form row operations. Runtime integration has
-not changed; the local comparison environment uses standard JSON functions.
+types. These processor checks do not execute form row operations. Runtime
+integration is verified separately by the browser and PHP results below.
 [Verification procedure and scope](operations/ordered-json.md).
 
 ## CRUDUI form comparison results
@@ -49,22 +50,38 @@ and independent JSON repositories. No hidden sequence fields are submitted.
 [Run the comparison](operations/form-comparison.md) at [localhost:4317](http://localhost:4317).
 The `form-comparison` status above refers to these two primary implementations.
 
-Verified on 2026-09-07 at 10:15 UTC with Chrome 149.0.7827.22, Node 26.8.1 and
+Verified on 2026-09-07 at 11:35 UTC with Chrome 149.0.7827.22, Node 26.8.1 and
 PHP 8.4.24 in Apple container:
 
-| Framework | Corrected original | Current runtime | Unchanged original keyed | Retained array diagnostic |
-| --- | --- | --- | --- | --- |
-| React | 17 passed | 17 passed | 15 passed, 2 failed | 13 passed, 4 failed |
-| Vue | 17 passed | 17 passed | 15 passed, 2 failed | 13 passed, 4 failed |
-| Svelte | 17 passed | 17 passed | 15 passed, 2 failed | 13 passed, 4 failed |
+| Framework | Transmission | Corrected original | Current runtime | Unchanged original keyed | Retained array diagnostic |
+| --- | --- | --- | --- | --- | --- |
+| React | Form | 19 passed | 19 passed | 17 passed, 2 failed | 15 passed, 4 failed |
+| React | JSON | 19 passed | 19 passed | 17 passed, 2 failed | 15 passed, 4 failed |
+| Vue | Form | 19 passed | 19 passed | 17 passed, 2 failed | 15 passed, 4 failed |
+| Vue | JSON | 19 passed | 19 passed | 17 passed, 2 failed | 15 passed, 4 failed |
+| Svelte | Form | 19 passed | 19 passed | 17 passed, 2 failed | 15 passed, 4 failed |
+| Svelte | JSON | 19 passed | 19 passed | 17 passed, 2 failed | 15 passed, 4 failed |
 
-All 54 real interaction checks and all 12 mount-before-PHP-load checks passed.
+All 108 real interaction checks and all 12 mount-before-PHP-load checks passed.
 The interactions include complete native typing, pointer and keyboard focus,
 selection, scrolling, conditional display, blocked invalid submissions, successful
-corrected submissions and cleared errors after reload. Six checks specifically
+corrected submissions and cleared errors after reload. Twelve checks specifically
 verify keyboard addition to empty collections in the primary implementations.
 Both PHP repository checks passed. No browser page errors occurred. The full
 runner returned status 1 because retained diagnostic failures remain failures.
+
+Each frame selects native multipart or JSON transmission. Browser JSON requests,
+PHP request/response processing and stored JSON files use ordered-json `deb1b354`.
+The processor archive SHA-256 is
+`27a42f171995714509215421c009eb63768acb6c7480264a51a77b522236cd86`.
+The same validators and repository handle both formats. Actual HTTP content types
+and JSON body shapes passed inspection. Identical edited/copied data produced
+identical records, saved keys, parent IDs, positions and loaded values through
+both formats. Invalid JSON and unsupported content types were rejected without
+changing records. Three JavaScript conversion tests, PHP conversion checks and
+both repository checks passed in the container. TypeScript validation passed 44
+tests; PHP validation passed 61 tests, including the shared validation and list
+cases; Go and Rust validation conformance passed. `make docs-check` passed.
 
 The example runs the existing JavaScript validator before user submission and
 PHP validates independently. No validation rules changed. A required empty field
@@ -94,7 +111,7 @@ The array diagnostic additionally fails hidden-field exclusion and cached bindin
 because of its example configuration. Neither diagnostic is used as the accepted
 implementation. Their source and reports remain available for review.
 
-Additional verification: 21 corrected-original core tests; original-source SSR
+Retained library source verification from 10:15 UTC: 21 corrected-original core tests; original-source SSR
 conformance in React (273), Vue (273) and Svelte (363); current mounted DOM checks
 in all three frameworks; core type checking; and `make docs-check` passed. The
 existing 43 validation cases passed in TypeScript, PHP, Go and Rust. TypeScript

@@ -27,8 +27,14 @@ names, current values, PHP parsing, stored records and loaded hierarchy.
 The “5 → 7 → 1” control loads the nonsequential-ID fixture for manual insertion,
 copying, reordering and saving.
 
-Save runs the existing JavaScript validator and sends native multipart fields to
-PHP only when validation passes. Field errors remain visible, including errors
+Choose **Native form** or **JSON** in each frame's **Transmission** selector.
+Save runs the existing JavaScript validator and sends the selected representation
+to PHP only when validation passes. Both choices use the same PHP validator and
+repository. JSON requests retain the keyed structure under `form` and use
+ordered-json for browser encoding, PHP decoding, response encoding and browser
+decoding. PHP uses the same processor for stored JSON files. The dependency is
+pinned to `deb1b354`; preparation downloads its source into the project cache and
+records the archive hash in the source metadata. Field errors remain visible, including errors
 for required fields hidden by design. PHP validates the corresponding
 source revision and stores company, store and department rows in JSON files.
 Reload makes a new GET request and reconstructs nested data from persisted parent
@@ -52,13 +58,19 @@ This is a local development environment; packages are not published.
 
 ## Verify
 
-The page's “Run all frameworks” control runs the same 17 checks on the original
+The page's “Run all frameworks” control runs the same 19 checks on the original
 source with the empty-collection correction, unchanged keyed example, current
 keyed runtime and retained array diagnostic in all three
-frameworks. Results remain PASS or FAIL for each scenario. Download exports these
-results. The headless runner also performs 48 real pointer, keyboard, checkbox and submission-validation
-interaction checks across all twelve examples, plus six keyboard checks for
-addition to an empty collection in the two primary implementations. Row-operation checks use populated
+frameworks, once per transmission choice: 24 reports and 456 scenario results.
+Results remain PASS or FAIL for each scenario. Download exports these
+results. The headless runner also performs 96 real pointer, keyboard, checkbox and submission-validation
+interaction checks across all twelve examples and both transmission choices, plus
+twelve keyboard checks for addition to an empty collection in the two primary
+implementations. Validation checks inspect the actual HTTP content type and JSON
+body. The equivalence case saves the same edited and copied data through both
+formats and compares IDs, parent relationships, positions and reloaded values.
+Malformed JSON checks require a rejection without changes to saved records.
+Row-operation checks use populated
 records; exact and empty checks use empty departments. Empty checks cover optional
 blank values, visibility, nested and complete deletion, addition after deletion,
 native and JSON save/reload, and unchanged sibling IDs.
@@ -72,6 +84,8 @@ Puppeteer's Chrome, then run:
 npm ci
 npx puppeteer browsers install chrome
 node examples/form-comparison/check.mjs
+container exec crudui-form-comparison node --test /workspace/keyed/examples/form-comparison/src/json.test.mjs
+container exec crudui-form-comparison php /workspace/keyed/examples/form-comparison/test-json.php
 container exec crudui-form-comparison php /workspace/keyed/examples/form-comparison/test-repository.php
 make docs-check
 ```

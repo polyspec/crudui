@@ -11,6 +11,7 @@ const context = path.join(work, 'context');
 const name = 'crudui-form-comparison';
 const image = 'localhost/crudui-form-comparison:1';
 const revisions = { corrected: '78723bb0503aaf82fc83a6e4e84c98d9da2b4af4', original: '1e8702a6d5eeeb942aeb2f1d2950b9b30e2d0244', keyed: 'b516226447a8f7b4896a0573ac8861689e57553b' };
+const orderedJson = { repository: 'https://github.com/ordered-json/ordered-json', commit: 'deb1b354da845e4c44d1e35c28c77bdb02ec174b' };
 const command = process.argv[2] ?? 'start';
 function container(args) {
   return new Promise((resolve, reject) => {
@@ -30,6 +31,14 @@ if (command === 'stop') {
     await writeFile(path.join(context, `${mode}.tar`), archive);
     metadata[mode] = { commit, archiveSha256: createHash('sha256').update(archive).digest('hex') };
   }
+  const dependency = path.join(work, 'sources', 'ordered-json');
+  await mkdir(dependency, { recursive: true });
+  execFileSync('git', ['init', '--quiet', dependency]);
+  try { execFileSync('git', ['cat-file', '-e', `${orderedJson.commit}^{commit}`], { cwd: dependency, stdio: 'ignore' }); }
+  catch { execFileSync('git', ['fetch', '--quiet', '--depth=1', orderedJson.repository, orderedJson.commit], { cwd: dependency }); }
+  const archive = execFileSync('git', ['archive', orderedJson.commit], { cwd: dependency, maxBuffer: 100 * 1024 * 1024 });
+  await writeFile(path.join(context, 'ordered-json.tar'), archive);
+  metadata.orderedJson = { ...orderedJson, archiveSha256: createHash('sha256').update(archive).digest('hex') };
   await cp(exampleDir, path.join(context, 'example'), { recursive: true });
   await cp(path.join(exampleDir, 'Containerfile'), path.join(context, 'Containerfile'));
   await writeFile(path.join(context, 'metadata.json'), JSON.stringify(metadata, null, 2));
