@@ -13,6 +13,7 @@ const metadata = JSON.parse(await readFile(`${workspace}/metadata.json`, 'utf8')
 const publicDir = `${workspace}/public`;
 await mkdir(publicDir, { recursive: true });
 await cp(`${exampleDir}/public`, publicDir, { recursive: true });
+await cp(`${exampleDir}/fixtures/records.json`, `${publicDir}/records.json`);
 await writeFile(`${publicDir}/metadata.json`, JSON.stringify(metadata, null, 2));
 for (const mode of ['corrected', 'original', 'original-keyed', 'keyed']) {
   await writeFile(`${publicDir}/spec-${mode}.json`, JSON.stringify(specFor(mode), null, 2));

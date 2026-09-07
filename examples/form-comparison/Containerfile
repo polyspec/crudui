@@ -6,6 +6,33 @@ WORKDIR /workspace/keyed
 RUN npm ci --ignore-scripts
 RUN ln -s /workspace/keyed/node_modules /workspace/node_modules
 
+FROM golang:1.27.0-trixie AS go-build
+COPY original.tar corrected.tar keyed.tar ordered-json.tar source-revisions /archives/
+RUN mkdir -p /workspace/ordered-json /out && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json
+COPY example/servers/go /example
+RUN set -e; while read -r revision commit; do \
+    mkdir -p /workspace/$revision; \
+    tar -xf /archives/$revision.tar -C /workspace/$revision; \
+    mkdir -p /workspace/$revision/examples/form-comparison/servers/go; \
+    cp -R /example/. /workspace/$revision/examples/form-comparison/servers/go/; \
+    cd /workspace/$revision/examples/form-comparison/servers/go; \
+    CGO_ENABLED=0 go build -trimpath -ldflags "-X main.source=$revision -X main.sourceCommit=$commit" -o /out/go-$revision .; \
+    done < /archives/source-revisions
+
+FROM rust:1.98.0-slim-trixie AS rust-build
+COPY original.tar corrected.tar keyed.tar ordered-json.tar source-revisions /archives/
+RUN mkdir -p /workspace/ordered-json /out && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json
+COPY example/servers/rust /example
+RUN set -e; while read -r revision commit; do \
+    mkdir -p /workspace/$revision; \
+    tar -xf /archives/$revision.tar -C /workspace/$revision; \
+    mkdir -p /workspace/$revision/examples/form-comparison/servers/rust; \
+    cp -R /example/. /workspace/$revision/examples/form-comparison/servers/rust/; \
+    cd /workspace/$revision/examples/form-comparison/servers/rust; \
+    FORM_SOURCE=$revision FORM_SOURCE_COMMIT=$commit CARGO_TARGET_DIR=/target cargo build --locked --release; \
+    cp /target/release/crudui-form-comparison /out/rust-$revision; \
+    done < /archives/source-revisions
+
 FROM dependencies AS example
 COPY corrected.tar /archives/
 RUN mkdir -p /workspace/corrected && tar -xf /archives/corrected.tar -C /workspace/corrected
@@ -15,5 +42,7 @@ COPY ordered-json.tar /archives/
 RUN mkdir -p /workspace/ordered-json && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json && ln -s /workspace/ordered-json/js /workspace/node_modules/sortjson
 COPY metadata.json /workspace/metadata.json
 RUN node examples/form-comparison/build.mjs
+COPY --from=go-build /out/ /workspace/bin/
+COPY --from=rust-build /out/ /workspace/bin/
 EXPOSE 8080
-CMD ["php", "-d", "max_input_vars=10000", "-S", "0.0.0.0:8080", "-t", "/workspace/public", "/workspace/keyed/examples/form-comparison/api.php"]
+CMD ["node", "examples/form-comparison/server.mjs"]
