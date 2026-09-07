@@ -7,6 +7,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | --- | --- | --- | --- | --- | --- |
 | form-template | Data-independent form templates and JSON caching | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
+| form-empty-rendering | Explicit empty collection rendering in the merged runtime | implemented | passed | not-deployed | [Empty collection tests](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
 | form-typing | Complete native typing and focus during input replacement | implemented | passed | deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
 | original-typing | Preserve typed values in queued original-controller rendering | implemented | passed | deployed | [Native typing checks](../examples/form-comparison/check-typing.mjs) |
@@ -30,6 +31,15 @@ documentation site build passed. Library deployment status refers to package
 publication; no package was published. The form comparison example is deployed locally
 in Apple container at [localhost:4317](http://localhost:4317). No remote deployment
 was run.
+
+## Empty collection merge verification
+
+Merged-code verification on 2026-09-07 passed the generator builds and 1,402 tests:
+core 25 (including six empty-collection regressions), React 689, Vue 342, Svelte
+345 and Svelte client 1. The regression tests use `compileForm` and `bindForm`.
+The correction commit is included in `main` history. No package was published;
+the local comparison retains its pinned source revisions and reports below.
+[Empty collection contract](spec/empty-collections.md).
 
 ## JSON processor results
 
