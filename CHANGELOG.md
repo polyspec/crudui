@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Focus during native typing
+
+Ignore unchanged input/change events before capturing focus. A native change
+event during input replacement previously cleared the pending focus state in
+Vue and Svelte, so typing stopped after the first character.
+
+Verification: Chrome retained the complete typed value and input focus in Vue
+and Svelte using the changed source. Core type checking passed. Full comparison
+verification is pending. Deployment: packages not published.
+
 ## 2026-09-07 — Focus after adding to an empty collection
 
 The browser binding identifies the empty collection's Add button by its wrapper.
