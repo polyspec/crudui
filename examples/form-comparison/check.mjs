@@ -26,6 +26,7 @@ if (existsSync(path.join(output, reportFile))) {
 }
 const browser = await puppeteer.launch({ headless: true, protocolTimeout: 900000 });
 let page;
+const completedReports = [];
 try {
   page = await browser.newPage();
   await page.setViewport({ width: 1680, height: 1100 });
@@ -74,7 +75,14 @@ try {
   await page.goto(`http://127.0.0.1:4317/?server=${servers[0]}`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => window.comparison, { timeout: 30000 });
   await page.screenshot({ path: path.join(output, formsFile), fullPage: true });
-  const report = await page.evaluate(servers => window.comparison.runAll(servers), servers);
+  let metadata;
+  for (const server of servers) {
+    const partial = await page.evaluate(server => window.comparison.runAll([server]), server);
+    metadata = partial.metadata;
+    completedReports.push(...partial.reports);
+    process.stdout.write(`${server}: ${partial.reports.length} reports completed\n`);
+  }
+  const report = { generatedAt: new Date().toISOString(), metadata, reports: completedReports };
   report.interactions = await checkInteraction(page, servers);
   report.initialMounts = [...initialMounts.values()];
   await Promise.all(documentChecks);
@@ -99,7 +107,7 @@ try {
       await writeFile(path.join(directory, `${name}.json`), JSON.stringify(state, null, 2) + '\n');
     }));
   }
-  await writeFile(path.join(output, reportFile), JSON.stringify(report, null, 2) + '\n');
+  await writeFile(path.join(output, reportFile), JSON.stringify(report) + '\n');
   await page.screenshot({ path: path.join(output, comparisonFile), fullPage: true });
   for (const result of report.reports) {
     process.stdout.write(`${result.server}/${result.mode}/${result.framework}/${result.transport}: ${result.results.filter(item => item.passed).length}/${result.results.length}\n`);
@@ -116,7 +124,9 @@ try {
   for (const result of report.staticDocuments) process.stdout.write(`${result.server}/${result.mode}/${result.framework}/static-html: ${result.passed ? 'PASS' : `FAIL ${result.error}`}\n`);
   if (!complete || failed || errors.length || report.interactions.some(result => !result.passed) || report.initialMounts.some(result => !result.passed) || report.staticDocuments.some(result => !result.passed)) process.exitCode = 1;
 } catch (error) {
-  const reports = await page?.evaluate(() => window.comparison?.getReports() ?? []).catch(() => []);
-  await writeFile(path.join(output, `incomplete-${Date.now()}${suffix}.json`), JSON.stringify({ generatedAt: new Date().toISOString(), reports, error: error.stack }, null, 2) + '\n');
+  const current = await page?.evaluate(() => window.comparison?.getReports() ?? []).catch(() => []) ?? [];
+  const key = report => [report.server, report.mode, report.framework, report.transport].join('/');
+  const reports = [...new Map([...completedReports, ...current].map(report => [key(report), report])).values()];
+  await writeFile(path.join(output, `incomplete-${Date.now()}${suffix}.json`), JSON.stringify({ generatedAt: new Date().toISOString(), reports, error: error.stack }) + '\n');
   throw error;
 } finally { await browser.close(); }

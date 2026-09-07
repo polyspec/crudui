@@ -71,6 +71,7 @@ export function styleSnapshot(view) {
 /** Compare complete serialized values and identify the first differing position. */
 export function identical(actual, expected, label) {
   if (actual === expected) return;
+  if (typeof actual !== typeof expected) throw new Error(`${label}: expected type ${typeof expected}, actual type ${typeof actual}`);
   const a = typeof actual === 'string' ? actual : JSON.stringify(actual);
   const b = typeof expected === 'string' ? expected : JSON.stringify(expected);
   if (a === b) return;
