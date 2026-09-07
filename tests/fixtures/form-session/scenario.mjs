@@ -65,6 +65,20 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   expect(session.getValue(`${storesPath}.${storeKey}.name`)).toBe('서울 수정');
   expect(element.ownerDocument.activeElement.name).toBe(inputName(storeKey));
 
+  control(inputName(storeKey)).setSelectionRange(1, 3, 'backward');
+  const pointer = new element.ownerDocument.defaultView.MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 });
+  button(storeKey, 'plus').dispatchEvent(pointer);
+  expect(pointer.defaultPrevented).toBe(true);
+  button(storeKey, 'plus').click();
+  await flush();
+  expect(element.ownerDocument.activeElement.name).toBe(inputName(storeKey));
+  expect(element.ownerDocument.activeElement.selectionStart).toBe(1);
+  expect(element.ownerDocument.activeElement.selectionEnd).toBe(3);
+  expect(element.ownerDocument.activeElement.selectionDirection).toBe('backward');
+  const added = Object.keys(session.getValue(storesPath))[1];
+  button(added, 'minus').click();
+  await flush();
+
   button(storeKey, 'copy').click();
   await flush();
   const keys = Object.keys(session.getValue(storesPath));
