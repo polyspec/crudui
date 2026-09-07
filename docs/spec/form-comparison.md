@@ -95,7 +95,7 @@ showing a collection preserves its data and cached structure. Hidden collections
 with rows still submit those rows; explicit empty collections submit no row inputs.
 
 The unchanged-source comparison uses identical 13-character keyed data with the
-original source at `1e8702a` and the current runtime at `adfc051`. Both use the same
+original source at `1e8702a` and the current runtime at `f4ec125`. Both use the same
 company, store and department fields, native submission and stored records.
 The original-keyed example connects row operations and cached binding to the
 original public functions. This tests the original foundation; it does not

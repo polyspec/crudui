@@ -10,7 +10,7 @@ const work = path.join(root, '.form-comparison');
 const context = path.join(work, 'context');
 const name = 'crudui-form-comparison';
 const image = 'localhost/crudui-form-comparison:1';
-const revisions = { corrected: '78723bb0503aaf82fc83a6e4e84c98d9da2b4af4', original: '1e8702a6d5eeeb942aeb2f1d2950b9b30e2d0244', keyed: 'adfc0510aea0db8c4028fc80f78832ddeae289de' };
+const revisions = { corrected: '78723bb0503aaf82fc83a6e4e84c98d9da2b4af4', original: '1e8702a6d5eeeb942aeb2f1d2950b9b30e2d0244', keyed: 'f4ec125a6fad98b30c624a4f0a3d17950c6fc23a' };
 const orderedJson = { repository: 'https://github.com/ordered-json/ordered-json', commit: 'deb1b354da845e4c44d1e35c28c77bdb02ec174b' };
 const command = process.argv[2] ?? 'start';
 function container(args) {
