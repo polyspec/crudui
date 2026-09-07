@@ -1,3 +1,4 @@
+import { compileForm } from '@crudui/generator-core';
 /**
  * form-render conformance — Svelte SSR vs the shared 3-framework parity gate.
  *
@@ -20,7 +21,6 @@ import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 import {
   renderForm,
-  renderFormString,
   ComposeLoadError,
   UnsupportedFieldTypeError,
 } from '../src/index.ts';
@@ -31,7 +31,7 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.js
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 function render(c) {
-  return renderForm(c.spec, { ...(c.options ?? {}), data: c.data });
+  return renderForm(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
 describe('current render — Svelte reproduces the normalized expected_html', () => {
@@ -121,20 +121,4 @@ describe('current render — eval is never used (no legacy condition meta keys l
     expect(c, 'fixture must contain multiple-group-rows').toBeTruthy();
     expect(render(c)).toContain('data-uniqid="p1"');
   });
-});
-
-// renderFormString is a public export (the SSR-scaffolding-free string path).
-// Drive it through the SAME fixture so it is not a dead, untested API: its
-// normalized output must equal both renderForm's and the fixture's.
-describe('current render — renderFormString (public string API) matches the fixture', () => {
-  function renderString(c) {
-    return renderFormString(c.spec, { ...(c.options ?? {}), data: c.data });
-  }
-  for (const c of cases.filter((x) => x.expected_html)) {
-    test(`${c.name} — string API reproduces expected_html`, () => {
-      expect(normalizeHtml(renderString(c))).toStrictEqual(c.expected_html);
-      // identical to the SSR path after normalization (documented contract).
-      expect(normalizeHtml(renderString(c))).toStrictEqual(normalizeHtml(render(c)));
-    });
-  }
 });

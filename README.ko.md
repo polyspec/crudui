@@ -1,0 +1,33 @@
+# CRUDUI
+
+[English](README.md).
+
+CRUDUI은 YAML 또는 JavaScript 객체로 폼과 검증을 정의합니다. 공유 코어가 데이터
+로드 전에 폼 구조를 컴파일합니다. React, Vue, Svelte는 편집 가능한 인스턴스를
+렌더링하고 TypeScript, PHP, Go, Rust는 제출 데이터를 검증합니다.
+
+## 시작
+
+저장소 루트에서 실행합니다.
+
+```sh
+npm ci
+npm run build
+npm run test:forms
+```
+
+컴파일, 캐싱, 마운트, 데이터 주입은 [폼 설치와 사용](docs/operations/forms.ko.md)을
+확인합니다.
+
+## 문서
+
+- [명세 구조](docs/spec/schema.ko.md)
+- [폼 런타임 계약](docs/spec/form-runtime.ko.md)
+- [기능과 배포 상태](docs/features.ko.md)
+- [개발과 검증](docs/operations/forms.ko.md)
+- [문서 관리](docs/operations/documentation.ko.md)
+- [변경 기록](CHANGELOG.ko.md)
+- [개발 규칙](AGENTS.ko.md)
+
+`make docs-check`로 문서를 검사하고 `make docs`로 API 참조, 스키마, 문서 사이트를
+생성합니다. 테스트 통과와 배포 상태는 별도로 기록합니다.

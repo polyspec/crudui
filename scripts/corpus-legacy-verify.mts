@@ -17,7 +17,9 @@ import { validate } from '../packages/validator-ts/src/validate/index';
 import { ComposeLoadError } from '../packages/validator-ts/src/compose/index';
 import type { FileLoader } from '../packages/validator-ts/src/compose/index';
 
-const CORPUS = '/Users/max/Abyss/Workspace/blue/app';
+const corpusInput = process.argv[2];
+if (!corpusInput) throw new Error('Usage: provide the corpus directory as the first argument');
+const CORPUS = path.resolve(corpusInput);
 const REPO = path.resolve(import.meta.dirname, '..');
 const schema = JSON.parse(fs.readFileSync(path.join(REPO, 'schema/crudui.schema.json'), 'utf8'));
 const ajv = new Ajv({ allErrors: true, strict: false });

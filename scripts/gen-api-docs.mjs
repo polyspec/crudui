@@ -37,6 +37,12 @@ function warn(msg) {
 /** TypeScript packages: pkg dir name -> { entry, out, name } */
 const TS_PACKAGES = [
   {
+    pkg: 'generator-core',
+    entry: 'src/index.ts',
+    out: 'generator-core',
+    title: '@crudui/generator-core',
+  },
+  {
     pkg: 'validator-ts',
     entry: 'src/index.ts',
     out: 'validator-ts',

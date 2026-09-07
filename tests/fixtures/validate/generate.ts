@@ -31,7 +31,7 @@
 import {
   validate,
   ComposeLoadError,
-} from '/Users/max/ai/gui/form-spec/packages/validator-ts/src/validate/index';
+} from '../../../packages/validator-ts/src/validate/index';
 
 interface CaseSpec {
   name: string;
@@ -46,6 +46,205 @@ interface CaseSpec {
 // ---------------------------------------------------------------------------
 
 const SPECS: CaseSpec[] = [
+{
+  "name": "items-langmap-4lang-membership-valid",
+  "note": "G3 — in: value→label map with 4-language labels {ko,en,ja,zh}; value '1' is a key, valid (a 4-lang label is display-only, never a member)",
+  "spec": {
+    "type": "group",
+    "properties": {
+      "toggle": {
+        "type": "select",
+        "validate": {
+          "in": {
+            "0": {
+              "ko": "미사용",
+              "en": "Off",
+              "ja": "オフ",
+              "zh": "关闭"
+            },
+            "1": {
+              "ko": "사용",
+              "en": "On",
+              "ja": "オン",
+              "zh": "开启"
+            }
+          }
+        }
+      }
+    }
+  },
+  "data": {
+    "toggle": "1"
+  }
+},
+{
+  "name": "items-langmap-4lang-membership-invalid",
+  "note": "G3 — in: 4-language value→label map; value 'オン' (a ja label, not a key) fails — the label is never a member in any of the 4 languages",
+  "spec": {
+    "type": "group",
+    "properties": {
+      "toggle": {
+        "type": "select",
+        "validate": {
+          "in": {
+            "0": {
+              "ko": "미사용",
+              "en": "Off",
+              "ja": "オフ",
+              "zh": "关闭"
+            },
+            "1": {
+              "ko": "사용",
+              "en": "On",
+              "ja": "オン",
+              "zh": "开启"
+            }
+          }
+        }
+      }
+    }
+  },
+  "data": {
+    "toggle": "オン"
+  }
+},
+{
+  "name": "items-4lang-null-label-slot-membership",
+  "note": "G3 — in: 4-language map where key '2' has a partial-null label slot ({ko,en,ja:null,zh}) and key '4' has a fully null label; both keys stay valid members (a null label slot has no membership effect)",
+  "spec": {
+    "type": "group",
+    "properties": {
+      "opt": {
+        "type": "select",
+        "validate": {
+          "in": {
+            "1": {
+              "ko": "하나",
+              "en": "One",
+              "ja": "一",
+              "zh": "一"
+            },
+            "2": {
+              "ko": "둘",
+              "en": "Two",
+              "ja": null,
+              "zh": "二"
+            },
+            "3": {
+              "ko": "셋",
+              "en": "Three",
+              "ja": "三",
+              "zh": "三"
+            },
+            "4": null
+          }
+        }
+      }
+    }
+  },
+  "data": {
+    "opt": "2"
+  }
+},
+{
+  "name": "items-4lang-fully-null-label-membership",
+  "note": "G3 — the fully null label key '4' of the same 4-language map is still a valid member (null content == absent, no validate effect)",
+  "spec": {
+    "type": "group",
+    "properties": {
+      "opt": {
+        "type": "select",
+        "validate": {
+          "in": {
+            "1": {
+              "ko": "하나",
+              "en": "One",
+              "ja": "一",
+              "zh": "一"
+            },
+            "2": {
+              "ko": "둘",
+              "en": "Two",
+              "ja": null,
+              "zh": "二"
+            },
+            "3": {
+              "ko": "셋",
+              "en": "Three",
+              "ja": "三",
+              "zh": "三"
+            },
+            "4": null
+          }
+        }
+      }
+    }
+  },
+  "data": {
+    "opt": "4"
+  }
+},
+{
+  "name": "null-content-4lang-no-validate-effect",
+  "note": "G3 — label:null plus a 4-language content map with a null slot ({ko,en,ja:null,zh}) have no validate effect; required still fires on an empty value",
+  "spec": {
+    "type": "group",
+    "properties": {
+      "nickname": {
+        "type": "text",
+        "label": null,
+        "description": {
+          "ko": "별명",
+          "en": "Nickname",
+          "ja": null,
+          "zh": "昵称"
+        },
+        "validate": {
+          "required": true
+        }
+      }
+    }
+  },
+  "data": {
+    "nickname": ""
+  }
+},
+
+  {
+    name: 'keyed-scalar-email-errors',
+    note: 'Repeated scalar errors preserve sorted row keys.',
+    spec: { type: 'group', properties: { emails: { type: 'email', multiple: true, validate: { email: true } } } },
+    data: { emails: { __0000000000002__: 'invalid-b', __0000000000001__: 'invalid-a' } },
+  },
+  {
+    name: 'keyed-scalar-unique',
+    note: 'Collection uniqueness checks keyed scalar values.',
+    spec: { type: 'group', properties: { tags: { type: 'text', multiple: true, validate: { unique: true } } } },
+    data: { tags: { __0000000000002__: 'same', __0000000000001__: 'same' } },
+  },
+  {
+    name: 'keyed-scalar-mincount',
+    note: 'Collection size uses keyed row count.',
+    spec: { type: 'group', properties: { tags: { type: 'text', multiple: true, validate: { mincount: 2 } } } },
+    data: { tags: { __0000000000001__: 'one' } },
+  },
+  {
+    name: 'keyed-group-unique-filter',
+    note: 'Unique filters evaluate the original key path for each row.',
+    spec: { type: 'group', properties: { rows: {
+      type: 'group', multiple: true, validate: { unique: '.enabled == 1' },
+      properties: { name: { type: 'text' }, enabled: { type: 'number' } },
+    } } },
+    data: { rows: { second: { name: 'same', enabled: 1 }, first: { name: 'same', enabled: 1 }, ignored: { name: 'same', enabled: 0 } } },
+  },
+  {
+    name: 'nested-company-store-key-errors',
+    note: 'Company and store can share a key; errors retain the complete nested path.',
+    spec: { type: 'group', properties: { companies: { type: 'group', multiple: true, properties: {
+      stores: { type: 'group', multiple: true, properties: { name: { type: 'text', validate: { required: true } } } },
+    } } } },
+    data: { companies: { __0000000000001__: { stores: { __0000000000001__: { name: '' }, __0000000000002__: { name: 'ok' } } } } },
+  },
   // 1. Conditional required — true branch (subscribe truthy → required fires).
   {
     name: 'conditional-required-true',

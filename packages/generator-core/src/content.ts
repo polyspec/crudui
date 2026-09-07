@@ -34,4 +34,5 @@ export function makeTranslate(language: Language) {
   };
 }
 
+/** Resolve content for the selected language. */
 export type Translate = ReturnType<typeof makeTranslate>;

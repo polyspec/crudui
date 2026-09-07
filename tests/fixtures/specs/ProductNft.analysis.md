@@ -1,6 +1,6 @@
 # ProductNft Spec Analysis
 
-**Source**: `/Users/max/Work/bluetools-deploy/source/app/bluetools-app-main/resource/Module/Max/Shop/Controller/AppFrontSide/Controller/Control/Controller/ProductNft/Spec/Create.yml`
+**Source**: [ProductNft.yml](ProductNft.yml)
 
 **Lines**: 1,317 lines (ProductNft.yml) + 109 lines (OptionMultiplexable.yml)
 

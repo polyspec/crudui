@@ -6,7 +6,7 @@
  *   php render.php <spec.yml> [data.json]
  *
  * Env:
- *   LIMEPIE_SRC   Path to the yejune/limepie checkout (default: /Users/max/ai/gui/limepie).
+ *   LIMEPIE_SRC   Source checkout path (required).
  *                 Must be pinned at commit a47ccba (matches composer.lock).
  *   LIMEPIE_LANG  Language cookie value used by Limepie (default: ko).
  *
@@ -23,7 +23,11 @@ if ($argc < 2) {
     exit(1);
 }
 
-$limepieSrc = getenv('LIMEPIE_SRC') ?: '/Users/max/ai/gui/limepie';
+$limepieSrc = getenv('LIMEPIE_SRC');
+if (!$limepieSrc) {
+    fwrite(STDERR, "Set LIMEPIE_SRC to the source checkout directory\n");
+    exit(1);
+}
 
 if (!is_file($limepieSrc . '/src/Limepie.php')) {
     fwrite(STDERR, "LIMEPIE_SRC invalid: {$limepieSrc}/src/Limepie.php not found\n");
