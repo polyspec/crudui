@@ -6,8 +6,39 @@ The example is maintained in `examples/form-comparison/`. Its page displays the
 CRUDUI name. Browser checks use the example-local `window.comparison` controls.
 Local container files and verification reports are stored in `.form-comparison/`.
 
+## Server implementations
+
+PHP, Go and Rust implement the same native form and JSON request contract. Each
+server parses the request, runs its own existing CRUDUI validator, saves its own JSON
+repository and reconstructs the hierarchy on reload. Servers do not delegate
+validation or persistence to another language. A Node HTTP process serves the
+browser assets and forwards request bytes to the selected server.
+
+The page selects a server and framework. Both comparison frames use that server;
+the original, corrected and current validator sources match the displayed source
+revision. Go and Rust binaries are built separately for each source revision.
+Every server runs the same lifecycle and interaction checks for both transports.
+Implementation and verification are tracked in [feature status](../features.md).
+
+All servers preserve native field order and ordered-json document member order.
+They reject incomplete native submissions, invalid collection types, invalid
+JSON and unsupported media types before saving. Stored records contain the same
+IDs, parent IDs, positions and values for equivalent requests. Existing validation
+rules determine required and optional values independently of visibility.
+Each server, comparison variant and framework uses an independent repository.
+Scalar form fields and sequence identifiers are strings. Omitted or null scalar
+controls normalize to empty strings; numeric, boolean and composite field values
+are rejected instead of using language-specific string conversions. The checkbox
+default is the string `"1"`. Requests are limited to 2 MiB and 10,000 native fields.
+The example does not accept uploaded files.
+The multilingual `title` object accepts the `ko` and `en` fields declared in the
+specification. Numeric indexes and other language fields are rejected in both
+native and JSON submissions.
+
+## Form behavior
+
 The example uses the existing `Validator` before user submission. Failure stops
-transmission and displays returned field errors. PHP independently validates the
+transmission and displays returned field errors. Each selected server independently validates the
 same spec. Visibility does not change validation: a hidden required field with an
 empty value fails; optional empty values remain valid. No example-specific
 required rules, value filtering or automatic values are added for validation.
@@ -56,10 +87,10 @@ reorder and reload while retaining existing IDs and parent relationships.
 
 A separate keyed-input case gives both renderers the same keyed objects and a
 specification without hidden identity fields. It checks generated native names,
-PHP parsing, validation and document order. This case verifies the original
+server parsing, validation and document order. This case verifies the original
 renderer's existing keyed-data support, independently of the array controller's
 submission design. The original-keyed load, save, validate and reset endpoints
-use the keyed data contract, original PHP validator and an independent repository.
+use the keyed data contract, original validator in the selected language and an independent repository.
 
 Row-operation checks use a populated fixture for the keyed variants so
 that empty rendering cannot prevent unrelated persistence checks. Separate exact
@@ -73,9 +104,9 @@ once before mounting. Its loader rejects subsequent reads. Cache checks verify
 repeated data injection, immutable template content and one loader read, rather
 than requiring a particular session property. Added application binding is
 identified separately from the unchanged library source.
-Each frame mounts before requesting saved data from PHP, then injects the response.
+Each frame mounts before requesting saved data from the selected server, then injects the response.
 
-An Apple container serves React, Vue and Svelte browser builds and a PHP API.
+An Apple container serves React, Vue and Svelte browser builds and PHP, Go and Rust APIs.
 Library snapshots come from Git archives of the specified commits. The retained original
 library snapshot remains unchanged. The retained array example controller connects its
 existing buttons to array insertion, deep copying, deletion and reordering. It
@@ -94,7 +125,7 @@ Each original example adapter completes `load` after its framework commits the D
 controller restores input values and focus at that point without frame delays.
 The same browser checks exercise all variants. They inspect actual nested input
 names, current-value copying, independent descendants, ordering, data replacement,
-PHP transmission, persistence and reload. Failures in either version remain
+server transmission, persistence and reload. Failures in either version remain
 visible as failures. The absence of original button handlers alone is not evidence
 that its data structure cannot support row operations.
 
@@ -111,7 +142,7 @@ review of its results. A completed test run does not mean all requirements passe
 The browser runner exits with status 1 for any failed check, incomplete results
 or browser error. It preserves the actual results in its report.
 
-Each comparison variant/framework has an independent JSON repository. Company, store and
+Each server/comparison variant/framework has an independent JSON repository. Company, store and
 department tables contain string sequences and zero-based positions. Child tables
 contain parent sequences. Save replaces the complete hierarchy in one locked,
 atomic file update. Existing IDs remain stable, new IDs increase, and deleted IDs
@@ -121,13 +152,13 @@ keyed objects from the stored rows and parent IDs.
 
 The 13-character implementation uses native form submissions as its baseline.
 Each frame provides a choice between native form and JSON transmission. Both
-choices run the same JavaScript validation, PHP validation and repository save.
+choices run the same JavaScript validation, selected server validation and repository save.
 Automated checks execute each choice, including invalid submissions, saved-key
 updates, deletion, empty collections and reload. Form and JSON saves of identical
 valid data must produce identical records, IDs and row order.
 JSON submissions with the same keyed structure require an explicit contract to
 preserve document member order through parsing, editing, storage and reload.
-The JSON path uses ordered-json `deb1b354` for browser requests, PHP requests and
+The JSON path uses ordered-json `deb1b354` for browser requests, server requests and
 responses, and repository JSON files. It does not sort row object keys. JSON
 grammar does not need to change for this contract. Parsing and serialization are
 separate from form generation, validation and persistence rules. The transport
@@ -143,20 +174,20 @@ check edits that order and verifies the resulting stored and rendered order.
 No order fields, hidden sequence fields or alternative key encodings are added
 to the keyed submission data.
 Native multipart submissions contain the generated input names and a final
-`_form_complete=1` marker. PHP rejects requests missing the marker, including
+`_form_complete=1` marker. Each server rejects requests missing the marker. PHP also rejects
 requests truncated by its input-count limit. Missing checkboxes become empty
 strings and missing repeat collections become empty collections. JSON requests
 use `{ "form": ... }`, with arrays for the array diagnostic and objects for both
 keyed examples, including empty collections. Responses preserve each example's data
-types. The page displays native fields, PHP parsed data, normalized values, stored
+types. The page displays native fields, server parsed data, normalized values, stored
 rows, loaded form data and scoped key changes.
 
-The page displays source commits, framework selection and actual check results.
+The page displays source commits, server and framework selection and actual check results.
 The environment binds a localhost port and remains running for manual review.
 Operations documents describe building, starting, checking and stopping it.
 
 Order checks use each example's transport contract. The keyed examples check
-reordered native fields and JSON that retains document member order through PHP
+reordered native fields and JSON that retains document member order through server
 persistence and reload. The array version also sorts JSON object keys recursively
 before transmission and checks the reloaded array order. Standard JSON alone
 does not establish the additional member-order contract. Stored record

@@ -2,6 +2,32 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — PHP, Go and Rust form persistence
+
+Added independent Go and Rust servers alongside PHP for native form and JSON
+submission, existing CRUDUI validation, atomic JSON storage and hierarchy reload.
+Each server and source revision uses its own repository. Go and Rust binaries
+compile against the displayed validator revision. Node serves browser assets and
+forwards request bytes. Shared fixtures define identical stored records.
+
+The page selects the server and retains that selection when changing language.
+Form fields follow the string contract, and multilingual titles accept the
+specified `ko` and `en` fields. Invalid structures, reset requests, oversized
+requests and invalid required values are rejected without changing records.
+
+The 13:47 UTC browser report contains 72 reports and 1,368 scenario results.
+Corrected original and current runtime each passed 19/19 for PHP, Go and Rust in
+React, Vue and Svelte with both form and JSON transmission. All 324 interaction
+checks and 36 mount-before-load checks passed with no browser page errors.
+Unchanged original keyed diagnostics remain 17/19 and array diagnostics 15/19;
+the complete runner returned status 1 for the 108 retained diagnostic failures.
+All 180 shared HTTP checks, 36 typing checks, 54 bilingual UI selections,
+JavaScript/PHP conversion checks, PHP repository checks, Go static analysis,
+Rust Clippy and `make docs-check` passed. Earlier failed reports were preserved.
+
+Deployment: local Apple container at `localhost:4317`, using PHP 8.4.24,
+Go 1.27.0, Rust 1.98.0 and Node 26.8.1. No package publication or remote deployment.
+
 ## 2026-09-07 — Original-controller typing
 
 The original example controller could overwrite newer input with an earlier

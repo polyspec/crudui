@@ -13,7 +13,7 @@ const spec = {
           validate: { maxcount: 4 },
           properties: {
             name: { type: 'text', label: { en: 'Store name', ko: '스토어명' }, validate: { required: true } },
-            enabled: { type: 'checkbox', label: { en: 'Enabled', ko: '사용' }, default: 1 },
+            enabled: { type: 'checkbox', label: { en: 'Enabled', ko: '사용' }, default: '1' },
             detail: { type: 'textarea', label: { en: 'Notes', ko: '메모' }, design: { show: '.enabled' } },
             title: { type: 'text', label: { en: 'Title', ko: '제목' }, lang: { only: ['ko', 'en'] } },
             departments: {

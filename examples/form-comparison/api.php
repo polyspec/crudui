@@ -8,7 +8,7 @@ function respond(int $status, array $body): never
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store');
-    echo FormJson::encode($body);
+    echo FormJson::encode([...$body, 'server' => 'php']);
     exit;
 }
 
@@ -23,16 +23,21 @@ try {
     $validatorSource = in_array($mode, ['corrected', 'keyed'], true) ? $mode : 'original';
     $expectedMethod = $action === 'load' ? 'GET' : 'POST';
     if ($_SERVER['REQUEST_METHOD'] !== $expectedMethod) respond(405, ['error' => 'Method not allowed']);
-    $repo = new FormRepository("/data/$mode-$framework.json");
+    if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 2 * 1024 * 1024) respond(413, ['error' => 'Request exceeds 2 MiB']);
+    if ($_FILES !== []) respond(400, ['error' => 'File uploads are not part of this form']);
+    $contentType = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
+    if ($action === 'reset' && !in_array($contentType, ['multipart/form-data', 'application/x-www-form-urlencoded'], true)) respond(415, ['error' => 'Expected a native form']);
+    $repo = new FormRepository("/data/php-$mode-$framework.json");
     if ($action === 'reset' || $action === 'load') {
+        if (!is_string($_POST['fixture'] ?? 'default')) respond(400, ['error' => 'Expected fixture name']);
         $state = $action === 'reset' ? $repo->reset($_POST['fixture'] ?? 'default') : $repo->read();
         respond(200, ['storage' => $state, 'data' => FormRepository::loadData($state, $dataMode)]);
     }
     require_once "/workspace/$validatorSource/packages/validator-php/vendor/autoload.php";
     $spec = FormJson::arrays(FormJson::decode(file_get_contents("/workspace/public/spec-$dataMode.json")));
-    $contentType = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
     if ($contentType === 'application/json') {
         $raw = file_get_contents('php://input');
+        if (strlen($raw) > 2 * 1024 * 1024) respond(413, ['error' => 'Request exceeds 2 MiB']);
         $json = FormJson::decode($raw);
         FormRepository::checkJsonShape($json->form ?? null, $dataMode);
         $wireReceived = $json->form;
