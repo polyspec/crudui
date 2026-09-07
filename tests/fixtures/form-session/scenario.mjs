@@ -120,7 +120,11 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   await flush();
   expect(session.getValue(storesPath)).toEqual({});
   const wrapper = control(`form.${storesPath}-layer`);
-  wrapper.querySelector('button.btn-plus').click();
+  const emptyAdd = wrapper.querySelector('button.btn-plus');
+  emptyAdd.focus();
+  emptyAdd.click();
   await flush();
   expect(Object.keys(session.getValue(storesPath))).toHaveLength(1);
+  expect(element.ownerDocument.activeElement.matches('button.btn-plus')).toBe(true);
+  expect(element.ownerDocument.activeElement.closest('.form-element-wrapper')).toBe(wrapper);
 }
