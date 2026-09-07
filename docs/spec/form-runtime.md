@@ -79,7 +79,8 @@ textarea, selection, checkbox, language fields and conditional display.
 Adding or copying a row preserves the active control, its text selection and
 ancestor scroll positions. Pointer activation of a row button retains the current
 input focus. Keyboard activation retains button focus. Focus restoration does not
-scroll the document to the control.
+scroll the document to the control. When addition replaces an empty collection's
+Add button, focus moves to the Add button in that same collection.
 
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,

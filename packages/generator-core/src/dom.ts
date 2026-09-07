@@ -16,6 +16,7 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
   let focus: {
     active: HTMLElement;
     name?: string;
+    emptyAddWrapper?: string;
     start: number | null;
     end: number | null;
     direction?: 'forward' | 'backward' | 'none';
@@ -42,8 +43,12 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
       for (let parent = active.parentElement; parent; parent = parent.parentElement) {
         scroll.push({ element: parent, top: parent.scrollTop, left: parent.scrollLeft });
       }
+      const wrapper = active.closest('.form-element-wrapper[name]');
+      const row = active.closest('.input-group-wrapper[data-uniqid]');
+      const emptyAdd = active.matches('button.btn-plus') && row?.closest('.form-element-wrapper[name]') !== wrapper;
       focus = {
         active,
+        emptyAddWrapper: emptyAdd ? wrapper?.getAttribute('name') ?? undefined : undefined,
         name: active.name,
         start: active.selectionStart ?? null,
         end: active.selectionEnd ?? null,
@@ -163,7 +168,11 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
       }
     }
     if (focus) {
-      const control = element.contains(focus.active) ? focus.active : controls().find(c => c.name === focus!.name);
+      let control: HTMLElement | undefined = element.contains(focus.active) ? focus.active : controls().find(c => c.name === focus!.name);
+      if (!control && focus.emptyAddWrapper) {
+        control = Array.from(element.querySelectorAll<HTMLButtonElement>('button.btn-plus'))
+          .find(button => button.closest('.form-element-wrapper[name]')?.getAttribute('name') === focus!.emptyAddWrapper);
+      }
       if (control) {
         control.focus({ preventScroll: true });
         if (focus.start !== null && 'setSelectionRange' in control) {
