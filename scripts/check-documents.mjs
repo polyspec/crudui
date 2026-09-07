@@ -8,6 +8,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const documents = new Set([
   'README.md', 'AGENTS.md', 'CHANGELOG.md', 'docs/index.md', 'docs/README.md',
   'docs/features.md',
+  'examples/form-comparison/README.md',
   ...['core', 'react', 'vue', 'svelte'].map(name => `packages/generator-${name}/README.md`),
 ]);
 const errors = [];

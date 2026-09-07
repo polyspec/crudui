@@ -54,3 +54,6 @@ tools/bin/.phpdoc-cache/
 scripts/corpus-legacy-result.json
 scripts/corpus-legacy-classified.json
 scripts/corpus-legacy-verify.json
+
+# Local form comparison containers, source archives and JSON records
+.form-comparison/

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI form</title><link rel="stylesheet" href="/comparison.css"></head>
+<body class="frame">
+  <header><h2 id="revision"></h2><code id="commit"></code><p id="method"></p></header>
+  <nav class="actions"><button id="load"></button><button id="blank"></button><button id="save"></button><button id="validate"></button><button id="reset"></button><button id="nonsequential"></button><button id="checks"></button></nav>
+  <p id="save-note" class="muted"></p><p id="count"></p>
+  <form id="form"><div id="view"></div></form>
+  <details open><summary id="results-label"></summary><div id="results"></div></details>
+  <details><summary id="names-label"></summary><pre id="names"></pre></details>
+  <details><summary id="state-label"></summary><pre id="state"></pre></details>
+  <details id="php-details"><summary id="php-label"></summary><pre id="php"></pre></details>
+  <script type="module" src="../src/frame.mjs"></script>
+</body>
+</html>
