@@ -33,12 +33,16 @@ They include the source revision, checker and fixture hashes, and individual
 results. Previous reports remain available. A failed case returns exit status 1.
 
 The inserted, copied and saved-key cases are JSON fixtures. They verify transport
-representation, not execution of form buttons or database operations. The running
-comparison example still uses standard JSON functions. The processor returns `Value`
+representation, not execution of form buttons or database operations. The
+example's transport modules use the processor for JSON requests, responses
+and repository files. The processor returns `Value`
 nodes; its JavaScript object members are a `Map`, while the form session accepts
 record data. Numeric member order would be lost if these maps were converted to
-ordinary JavaScript objects. Existing delimited 13-character row keys are not
+ordinary JavaScript objects; the form conversion rejects such a change. Existing delimited 13-character row keys are not
 integer index properties and retain their insertion order in the current session.
 
-Run the [browser and PHP persistence checks](form-comparison.md) when changing runtime
-integration. A processor-only result is not evidence of that integration.
+The form and JSON transmission choices run the same validator and repository.
+Run the [browser and PHP persistence checks](form-comparison.md) for runtime integration:
+they execute both transmission choices, actual input and button actions,
+invalid-request rejection, equivalent stored data and fresh reloads. The
+processor-only result remains separate from these integration results.

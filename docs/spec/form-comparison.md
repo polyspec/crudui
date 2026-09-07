@@ -112,10 +112,24 @@ Validation failure does not modify the repository. Load reconstructs arrays or
 keyed objects from the stored rows and parent IDs.
 
 The 13-character implementation uses native form submissions as its baseline.
+Each frame provides a choice between native form and JSON transmission. Both
+choices run the same JavaScript validation, PHP validation and repository save.
+Automated checks execute each choice, including invalid submissions, saved-key
+updates, deletion, empty collections and reload. Form and JSON saves of identical
+valid data must produce identical records, IDs and row order.
 JSON submissions with the same keyed structure require an explicit contract to
 preserve document member order through parsing, editing, storage and reload.
-The example's JavaScript and PHP processing preserves that order; it does not
-sort row object keys. JSON grammar does not need to change for this contract.
+The JSON path uses ordered-json `deb1b354` for browser requests, PHP requests and
+responses, and repository JSON files. It does not sort row object keys. JSON
+grammar does not need to change for this contract. Parsing and serialization are
+separate from form generation, validation and persistence rules. The transport
+modules convert `Value` nodes to the existing record data model and back. Empty
+objects and arrays remain distinct until JSON shape validation completes; only
+then does PHP convert object data to validator arrays. Form row keys remain
+delimited strings. JavaScript rejects a conversion that would reorder object
+members, and non-finite or unsafe integer numbers, instead of changing them
+silently. Form field values and sequence identifiers use strings; numeric
+response metadata uses finite numbers within the JavaScript safe integer range.
 Editing member order in the JSON document changes the requested row order. A
 check edits that order and verifies the resulting stored and rendered order.
 No order fields, hidden sequence fields or alternative key encodings are added
@@ -153,7 +167,8 @@ order, and empty collections. Submitted documents contain no auxiliary identity
 or order fields.
 
 This check verifies the JSON processor against the existing data contract. It
-does not replace the example's browser and persistence checks. The running
-comparison example currently uses the standard JavaScript and PHP JSON functions. Its
-form session accepts record data, whereas the ordered processor returns `Value`
-nodes. A passing processor check does not establish runtime integration.
+does not replace the example's browser and persistence checks. Runtime
+integration requires both transmission choices to pass the actual form lifecycle
+checks. The dependency commit and source archive hash appear with the comparison
+source metadata. Implementation and deployment status are recorded in feature
+status.

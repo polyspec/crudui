@@ -24,8 +24,13 @@ input 이름, 현재 값, PHP 파싱, 저장 레코드, 로드된 계층을 확�
 “5 → 7 → 1” 버튼은 비연속 ID 픽스처를 불러와 직접 삽입, 복사, 정렬, 저장할 수
 있도록 합니다.
 
-저장은 기존 JavaScript 검증기를 실행하고 통과한 경우에만 네이티브 multipart
-필드를 PHP에 제출합니다. 디자인에 의해 숨겨진 필수 필드를 포함해 필드 오류를
+각 프레임의 **전송 방식**에서 **네이티브 폼** 또는 **JSON**을 선택합니다.
+저장은 기존 JavaScript 검증기를 실행하고 통과한 경우에만 선택한 표현을 PHP에
+제출합니다. 두 방식은 같은 PHP 검증기와 저장소를 사용합니다. JSON 요청은 `form`
+아래의 키 구조를 유지하며 브라우저 직렬화, PHP 파싱, 응답 직렬화와 브라우저
+파싱에 ordered-json을 사용합니다. PHP는 저장한 JSON 파일에도 같은 처리기를
+사용합니다. 의존성은 `deb1b354`로 고정하며 준비 단계에서 소스를 프로젝트 캐시에
+다운로드하고 아카이브 해시를 소스 정보에 기록합니다. 디자인에 의해 숨겨진 필수 필드를 포함해 필드 오류를
 표시합니다. PHP는 해당 소스 버전으로 검증하고
 회사, 스토어, 부서 행을 JSON 파일에 저장합니다. 재로드는 새로운 GET 요청을 수행하고
 저장된 부모 ID로 중첩 데이터를 생성합니다. 키 예제는 응답받은 키 변경을 하위 행부터
@@ -47,11 +52,16 @@ JSON 검사는 기존 키 구조를 사용하며 문서 멤버 순서를 행 순
 ## 검증
 
 화면의 “모든 프레임워크 검사”는 세 프레임워크에서 빈 컬렉션을 수정한 원본, 수정 전
-키 예제, 현재 키 런타임, 유지한 배열 진단에 동일한 17개 검사를 실행합니다. 각
+키 예제, 현재 키 런타임, 유지한 배열 진단에 전송 방식별로 동일한 19개 검사를
+실행하여 보고서 24개와 시나리오 결과 456개를 생성합니다. 각
 시나리오의 결과를 PASS 또는 FAIL로 표시합니다. 다운로드는 이 결과를 내보냅니다.
-헤드리스 실행기는 열두 예제에 실제 포인터, 키보드, 체크박스, 제출 검증 상호작용
-검사 48개도 실행합니다. 주 비교의 두 구현에서는 빈 컬렉션 추가의 키보드 검사
-6개를 추가로 실행합니다. 행 연산 검사는 하위 행이 있는 레코드를 사용하며 exact와
+헤드리스 실행기는 열두 예제와 두 전송 방식에 실제 포인터, 키보드, 체크박스,
+제출 검증 상호작용 검사 96개도 실행합니다. 주 비교의 두 구현에서는 빈 컬렉션
+추가의 키보드 검사 12개를 추가로 실행합니다. 검증 검사는 실제 HTTP Content-Type과
+JSON 본문을 확인합니다. 동등성 사례는 같은 편집·복사 데이터를 두 방식으로
+저장하고 ID, 부모 관계, 위치, 재로드 값을 비교합니다. 잘못된 JSON 검사는
+저장 레코드를 변경하지 않고 요청을 거부해야 합니다.
+행 연산 검사는 하위 행이 있는 레코드를 사용하며 exact와
 empty 검사는 빈 부서를 사용합니다. empty 검사는 선택 항목의 빈 값, 표시 여부,
 중첩 및 전체 삭제, 삭제 후 추가, 네이티브와 JSON 저장·재로드, 형제 행 ID 유지도
 확인합니다.
@@ -65,6 +75,8 @@ empty 검사는 빈 부서를 사용합니다. empty 검사는 선택 항목의 
 npm ci
 npx puppeteer browsers install chrome
 node examples/form-comparison/check.mjs
+container exec polyspec-form-comparison node --test /workspace/keyed/examples/form-comparison/src/json.test.mjs
+container exec polyspec-form-comparison php /workspace/keyed/examples/form-comparison/test-json.php
 container exec polyspec-form-comparison php /workspace/keyed/examples/form-comparison/test-repository.php
 make docs-check
 ```

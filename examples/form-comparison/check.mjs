@@ -48,12 +48,13 @@ try {
   await writeFile(path.join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
   await page.screenshot({ path: path.join(output, 'comparison.png'), fullPage: true });
   for (const result of report.reports) {
-    process.stdout.write(`${result.mode}/${result.framework}: ${result.results.filter(item => item.passed).length}/${result.results.length}\n`);
+    process.stdout.write(`${result.mode}/${result.framework}/${result.transport}: ${result.results.filter(item => item.passed).length}/${result.results.length}\n`);
     for (const check of result.results.filter(item => !item.passed)) process.stdout.write(`  FAIL ${check.id}: ${check.error}\n`);
   }
   if (errors.length) process.stdout.write(`Browser errors: ${JSON.stringify(errors)}\n`);
-  const complete = report.reports.length === 12 &&
-    report.reports.every(result => result.results.length === 17) && report.interactions.length === 54 && report.initialMounts.length === 12;
+  const variants = new Set(report.reports.map(result => `${result.mode}/${result.framework}/${result.transport}`));
+  const complete = report.reports.length === 24 && variants.size === 24 &&
+    report.reports.every(result => result.results.length === 19) && report.interactions.length === 108 && report.initialMounts.length === 12;
   const failed = report.reports.some(result => result.results.some(check => !check.passed));
   if (!complete) process.stderr.write('Comparison results are incomplete.\n');
   for (const result of report.initialMounts) process.stdout.write(`${result.mode}/${result.framework}/mount-before-load: ${result.passed ? 'PASS' : `FAIL ${result.error}`}\n`);

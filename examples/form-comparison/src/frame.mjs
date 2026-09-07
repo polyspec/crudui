@@ -3,6 +3,7 @@ import { formValidation } from './form-validation.mjs';
 import { originalController } from './original-controller.mjs';
 import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
+import { encodeJson, readJson } from './json.mjs';
 
 const mode = __FORM_MODE__;
 const framework = __FRAMEWORK__;
@@ -11,6 +12,7 @@ const language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en
 const t = translations(language);
 const form = document.querySelector('#form');
 const view = document.querySelector('#view');
+const transport = document.querySelector('#transport');
 const flush = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 const spec = specFor(mode);
 let driver;
@@ -19,6 +21,8 @@ let running = false;
 
 for (const id of ['load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks']) document.querySelector(`#${id}`).textContent = t[id];
 for (const id of ['results', 'names', 'state', 'php']) document.querySelector(`#${id}-label`).textContent = t[id];
+document.querySelector('#transport-label').textContent = t.transportLabel;
+for (const option of transport.options) option.textContent = t[`${option.value}Transport`];
 document.querySelector('#revision').textContent = `${t[mode]} · ${framework}`;
 document.querySelector('#commit').textContent = __SOURCE_COMMIT__;
 document.querySelector('#method').textContent = t[mode === 'original' ? 'originalNote' : mode === 'original-keyed' ? 'originalKeyedNote' : mode === 'corrected' ? 'correctedNote' : 'keyedNote'];
@@ -62,10 +66,10 @@ function inspect() {
 async function request(action, body, json = false) {
   const response = await fetch(`/api/${action}/${mode}/${framework}`, {
     method: action === 'load' ? 'GET' : 'POST',
-    ...(body ? { body: json ? JSON.stringify({ form: body }) : body } : {}),
+    ...(body ? { body: json ? encodeJson({ form: body }) : body } : {}),
     ...(json ? { headers: { 'Content-Type': 'application/json' } } : {}),
   });
-  const result = await response.json();
+  const result = await readJson(response);
   document.querySelector('#php').textContent = JSON.stringify({ status: response.status, ...result }, null, 2);
   return { status: response.status, ...result };
 }
@@ -80,8 +84,8 @@ function nativeData(data) {
   fields.append('_form_complete', '1');
   return fields;
 }
-const submitData = data => keyed
-  ? request('save', nativeData(data)) : request('save', data, true);
+const submitData = data => transport.value === 'json'
+  ? request('save', data, true) : request('save', nativeData(data));
 async function load() {
   const result = await request('load');
   equal(result.status, 200, 'load status');
@@ -103,7 +107,8 @@ async function reset(fixture = keyed ? 'populated' : 'default') {
   await mount(result.data);
   return result;
 }
-async function submit(action = 'validate') {
+async function submit(action = 'validate', method = transport.value) {
+  if (method === 'json') return request(action, driver.getData(), true);
   const fields = new FormData(form);
   fields.append('_form_complete', '1');
   return request(action, fields);
@@ -200,7 +205,7 @@ const checks = [
     equal(storeName(stores(companies()[0])[0]).value, 'Busan', 'first store before submission');
     if (keyed) {
       const saved = await save();
-      same(saved.storage.stores.map(row => row.name), ['Busan', 'Seoul'], 'native form order');
+      same(saved.storage.stores.map(row => row.name), ['Busan', 'Seoul'], 'selected transport order');
       const json = await request('save', driver.getData(), true);
       equal(json.status, 200, 'JSON submission with preserved member order');
       same(json.storage.stores.map(row => row.name), ['Busan', 'Seoul'], 'JSON document order');
@@ -286,6 +291,8 @@ const checks = [
     equal(result.status, 200, 'PHP status');
     equal(result.validatorSource, ['corrected', 'keyed'].includes(mode) ? mode : 'original', 'matching PHP validator revision');
     equal(result.validation.valid, true, 'PHP validation');
+    equal(result.transport, transport.value === 'json' ? 'application/json' : 'multipart/form-data', 'selected submission content type');
+    equal(result.jsonProcessor, 'ordered-json', 'PHP JSON processor');
     equal(Object.values(Object.values(result.received.companies)[0].stores)[0].name, 'Seoul', 'PHP nested name');
   }],
   ['phpInvalid', async () => {
@@ -317,11 +324,11 @@ const checks = [
     await reset('default');
     const before = await request('load');
     const saved = await save();
-    same(storageRows(saved.storage), storageRows(before.storage), 'complete native round trip');
+    same(storageRows(saved.storage), storageRows(before.storage), 'complete round trip');
     const loaded = await load();
     same(loaded.data, before.data, 'complete loaded form data');
     const parsed = await submit();
-    same(parsed.normalized, before.data, 'normalized native data after reload');
+    same(parsed.normalized, before.data, 'normalized data after reload');
   }],
   ['empty', async () => {
     await reset('default');
@@ -436,7 +443,7 @@ const checks = [
     const before = await request('load');
     if (mode === 'original') equal((await request('save', { companies: {} }, true)).status, 400, 'wrong empty collection type');
     equal((await submitData({ companies: null })).status, 400, 'invalid collection value');
-    equal((await submitData({ companies: mode === 'original' ? [{}] : { __abcdef0123456__: { name: '' } } })).status, 422, 'empty row requires a company name');
+    equal((await submitData({ companies: mode === 'original' ? [{ name: '' }] : { __abcdef0123456__: { name: '' } } })).status, 422, 'empty row requires a company name');
     const invalidField = structuredClone(before.data);
     const invalidStore = Object.values(Object.values(invalidField.companies)[0].stores)[0];
     invalidStore.enabled = '2';
@@ -466,6 +473,47 @@ const checks = [
     equal((await request('save', new FormData())).status, 400, 'incomplete native form');
     same((await request('load')).storage, before.storage, 'records after rejected structures');
   }],
+  ['equivalence', async () => {
+    await reset('nonsequential');
+    await click(companies()[1], 'copy');
+    await edit(companyName(companies()[2]), 'Equivalent copy');
+    await click(companies()[3], 'move-up');
+    const data = driver.getData();
+    const native = await submit('save', 'form');
+    equal(native.status, 200, 'native save status');
+    equal(native.transport, 'multipart/form-data', 'native request type');
+    await request('reset', new URLSearchParams({ fixture: 'nonsequential' }));
+    const json = await request('save', data, true);
+    equal(json.status, 200, 'JSON save status');
+    equal(json.transport, 'application/json', 'JSON request type');
+    equal(json.jsonProcessor, 'ordered-json', 'ordered PHP processing');
+    same(json.storage, native.storage, 'identical records, IDs, parents and positions');
+    same(json.keyChanges, native.keyChanges, 'identical saved-key changes');
+    equal(encodeJson(json.data), encodeJson(native.data), 'identical loaded values, types and row order');
+    assertOwnership(json.storage);
+    const loaded = await load();
+    equal(encodeJson(loaded.data), encodeJson(json.data), 'fresh GET preserves JSON save');
+    same(companies().map(row => companyName(row).value), json.storage.companies.map(row => row.name), 'rendered saved order');
+  }],
+  ['jsonSyntax', async () => {
+    const before = await request('load');
+    for (const [body, type, status] of [
+      ['{"form":{},}', 'application/json', 400],
+      [new Uint8Array([0x22, 0xff, 0x22]), 'application/json', 400],
+      ['{"form":[]}', 'application/json', 400],
+      ['{"form":{"companies":null}}', 'application/json', 400],
+      ['{"form":{},"number":9007199254740993}', 'application/json', 400],
+      ['{}', 'text/plain', 415],
+    ]) {
+      const response = await fetch(`/api/save/${mode}/${framework}`, {
+        method: 'POST', headers: { 'Content-Type': type }, body,
+      });
+      const result = await readJson(response);
+      equal(response.status, status, 'invalid JSON request status');
+      assert(typeof result.error === 'string', 'JSON error response');
+    }
+    same((await request('load')).storage, before.storage, 'JSON rejection leaves storage unchanged');
+  }],
   ['keyedNames', async () => {
     const keyedData = { companies: Object.fromEntries(['5', '7', '1'].map(seq => {
       const key = `__${seq.padStart(13, '0')}__`;
@@ -483,7 +531,7 @@ const checks = [
     equal(storeName(stores(companies()[0])[0]).name, 'form[companies][__0000000000005__][stores][__0000000000005__][name]', 'keyed name from the selected renderer');
     const fields = new FormData(form); fields.append('_form_complete', '1');
     const response = await fetch(`/api/validate/${mode === 'original' ? 'original-keyed' : mode}/${framework}`, { method: 'POST', body: fields });
-    const result = await response.json();
+    const result = await readJson(response);
     equal(response.status, 200, 'PHP status for keyed names');
     equal(result.validatorSource, ['corrected', 'keyed'].includes(mode) ? mode : 'original', 'matching validator source revision');
     equal(result.validation.valid, true, 'PHP validation of keyed names');
@@ -505,9 +553,11 @@ const checks = [
   }],
 ];
 
-async function runChecks() {
+async function runChecks(method = transport.value) {
   if (running) throw new Error('Checks already running');
   running = true;
+  transport.value = method;
+  transport.disabled = true;
   const results = [];
   const output = document.querySelector('#results');
   output.replaceChildren();
@@ -532,10 +582,10 @@ async function runChecks() {
       output.append(line);
     }
     await reset();
-    const report = { mode, framework, commit: __SOURCE_COMMIT__, results };
+    const report = { mode, framework, transport: method, commit: __SOURCE_COMMIT__, results };
     window.comparison.lastReport = report;
     return report;
-  } finally { running = false; }
+  } finally { running = false; transport.disabled = false; }
 }
 function action(id, fn) {
   document.querySelector(`#${id}`).addEventListener('click', async () => {

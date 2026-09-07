@@ -16,6 +16,7 @@
 | form-comparison | 원본과 13자리 브라우저 비교 | implemented | passed | deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
 | form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | implemented | passed | deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../examples/form-comparison/check-ordered-json.py) |
+| ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | implemented | passed | deployed | [전송 계약](spec/form-comparison.ko.md) |
 | form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | implemented | passed | deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | original-empty-correction | 원본 출력 수정과 빈 컬렉션 전체 처리 과정 | implemented | passed | deployed | [비교 계약](spec/form-comparison.ko.md) |
 | original-keyed-proof | 원본 공개 함수의 키 편집, 영속 저장, 캐시 바인딩 | implemented | failed | deployed | [비교 계약](spec/form-comparison.ko.md) |
@@ -34,8 +35,8 @@ JavaScript, PHP, PHP 확장, Go, Rust에서 각각 처리기 사례 115개와 Po
 전송 고정 데이터 10개가 통과했습니다. 호스트는 macOS arm64의 Node 26.8.1,
 PHP 8.5.10, Go 1.27.0, Rust 1.98.1을 사용했습니다. 전송 사례는 순서,
 13자리 키, 신규·복사·저장한 행 표현, 빈 객체와 배열의 자료형을 검사합니다.
-폼 행 조작을 실행하는 검사는 아닙니다. 런타임 연동은 변경하지 않았으며 로컬
-실험 환경은 표준 JSON 함수를 사용합니다.
+이 처리기 검사는 폼 행 조작을 실행하지 않습니다. 런타임 연동은 아래의 브라우저·PHP
+결과로 별도 검증합니다.
 [검증 절차와 범위](operations/ordered-json.ko.md).
 
 ## 폼 비교 예제 결과
@@ -48,21 +49,36 @@ PHP 8.5.10, Go 1.27.0, Rust 1.98.1을 사용했습니다. 전송 사례는 순�
 [비교 절차](operations/form-comparison.ko.md)를 실행합니다. 위 표의 `form-comparison` 상태는
 이 두 주 비교 구현을 기준으로 합니다.
 
-2026-09-07 10:15 UTC에 Chrome 149.0.7827.22, Node 26.8.1, Apple container의
+2026-09-07 11:35 UTC에 Chrome 149.0.7827.22, Node 26.8.1, Apple container의
 PHP 8.4.24로 검증했습니다.
 
-| 프레임워크 | 수정한 원본 | 현재 런타임 | 수정 전 원본 키 예제 | 유지한 배열 진단 |
-| --- | --- | --- | --- | --- |
-| React | 17개 통과 | 17개 통과 | 15개 통과, 2개 실패 | 13개 통과, 4개 실패 |
-| Vue | 17개 통과 | 17개 통과 | 15개 통과, 2개 실패 | 13개 통과, 4개 실패 |
-| Svelte | 17개 통과 | 17개 통과 | 15개 통과, 2개 실패 | 13개 통과, 4개 실패 |
+| 프레임워크 | 전송 방식 | 수정한 원본 | 현재 런타임 | 수정 전 원본 키 예제 | 유지한 배열 진단 |
+| --- | --- | --- | --- | --- | --- |
+| React | Form | 19개 통과 | 19개 통과 | 17개 통과, 2개 실패 | 15개 통과, 4개 실패 |
+| React | JSON | 19개 통과 | 19개 통과 | 17개 통과, 2개 실패 | 15개 통과, 4개 실패 |
+| Vue | Form | 19개 통과 | 19개 통과 | 17개 통과, 2개 실패 | 15개 통과, 4개 실패 |
+| Vue | JSON | 19개 통과 | 19개 통과 | 17개 통과, 2개 실패 | 15개 통과, 4개 실패 |
+| Svelte | Form | 19개 통과 | 19개 통과 | 17개 통과, 2개 실패 | 15개 통과, 4개 실패 |
+| Svelte | JSON | 19개 통과 | 19개 통과 | 17개 통과, 2개 실패 | 15개 통과, 4개 실패 |
 
-실제 상호작용 검사 54개와 PHP 로드 전 마운트 검사 12개가 모두 통과했습니다.
+실제 상호작용 검사 108개와 PHP 로드 전 마운트 검사 12개가 모두 통과했습니다.
 상호작용 검사는 전체 타이핑, 포인터와 키보드 포커스, 선택, 스크롤, 조건 표시,
 잘못된 제출 중단, 값을 수정한 후 제출 성공, 재로드 후 오류 제거를 포함합니다.
-이 중 6개는 주 비교 구현의 빈 컬렉션에 키보드로 추가하는 동작을 확인합니다.
+이 중 12개는 주 비교 구현의 빈 컬렉션에 키보드로 추가하는 동작을 확인합니다.
 두 PHP 저장소 검사도 통과했습니다. 브라우저 페이지 오류는 없었습니다. 전체
 실행기는 유지한 진단의 실패를 실패로 처리하므로 종료 코드 1을 반환했습니다.
+
+각 프레임에서 네이티브 multipart 또는 JSON 전송을 선택합니다. 브라우저의 JSON
+요청, PHP 요청·응답 처리, 저장 JSON 파일은 ordered-json `deb1b354`를 사용합니다.
+처리기 아카이브 SHA-256은
+`27a42f171995714509215421c009eb63768acb6c7480264a51a77b522236cd86`입니다.
+두 형식은 같은 검증기와 저장소를 사용합니다. 실제 HTTP Content-Type과 JSON 본문
+형태 검사가 통과했습니다. 같은 편집·복사 데이터는 두 방식에서 같은 레코드, 저장
+키, 부모 ID, 위치, 로드 값을 생성했습니다. 잘못된 JSON과 지원하지 않는 Content-Type은
+레코드를 변경하지 않고 거부했습니다. 컨테이너에서 JavaScript 변환 검사 3개,
+PHP 변환 검사, 두 저장소 검사가 통과했습니다. TypeScript 검증 검사 44개,
+공용 검증과 목록 사례를 포함한 PHP 검사 61개, Go·Rust 검증 적합성 검사가
+통과했습니다. `make docs-check`도 통과했습니다.
 
 예제는 사용자 제출 전에 기존 JavaScript 검증기를 실행하고 PHP는 독립적으로
 검증합니다. 검증 규칙은 변경하지 않았습니다. 필수 필드의 빈 값은 디자인에 의해
@@ -89,7 +105,8 @@ PHP 8.4.24로 검증했습니다.
 바인딩에도 실패합니다. 두 진단은 승인된 구현으로 사용하지 않으며 소스와 보고서는
 검토를 위해 유지합니다.
 
-추가 검증: 수정한 원본 코어 검사 21개, 원본 소스의 React 273개·Vue 273개·Svelte
+유지한 라이브러리 소스의 10:15 UTC 검증: 수정한 원본 코어 검사 21개,
+원본 소스의 React 273개·Vue 273개·Svelte
 363개 SSR 적합성 검사, 현재 런타임의 세 프레임워크 마운트 DOM 검사, 코어 타입 검사,
 `make docs-check`가 통과했습니다. 기존 검증 사례 43개는 TypeScript, PHP, Go,
 Rust에서 통과했습니다. TypeScript는 픽스처 실행 범위 검사도 통과했습니다. PHP 검증은
