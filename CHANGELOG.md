@@ -11,8 +11,25 @@ complete restored HTML and verifies that checkbox elements remain unchanged.
 
 Verification: the stricter regression failed in React and Vue before the fix.
 Generator builds, all 1,405 generator tests and 18 inspector tests passed after
-the fix. The container browser comparison has not yet been rerun for this source.
-The previous reports remain available. No package was published.
+the fix. Source `f4ec125` passed all 360 current-runtime scenarios across 18
+server/framework/transport combinations. All 3,024 initialization, repeated
+injection and restoration category comparisons passed, including 378 exact HTML
+comparisons. The 24 previous restoration differences are resolved.
+
+All 324 actual interactions, 36 mount-before-load checks, 36 static documents,
+180 HTTP checks, 36 typing cases and six Chrome CSS detection checks passed.
+Korean React and English Vue checks through Rust verified the inspector button,
+all 168 categories per run and exact JSON/HTML downloads. No browser page errors
+occurred. The complete matrix records 1,290 passed and 150 failed scenarios;
+all remaining failures belong to retained sources and match their previous results.
+
+An intermediate run recorded an additional CSS failure after a progress-monitor
+connection changed the browser viewport. The monitor was removed, the viewport
+change was reproduced separately, and the full matrix was rerun at 1680 × 1100
+without an additional connection. Both runs and previous reports are retained.
+All 2,160 exported HTML snapshots match the recorded strings. Deployment: the
+local container uses `f4ec125`; all 52 example files, the DOM binding source and
+served metadata match the verified source. No package was published.
 
 ## 2026-09-08 — Form initialization inspector
 
