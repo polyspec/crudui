@@ -12,9 +12,22 @@ example provides a separate check button and downloadable HTML and evidence.
 Static HTML responses are checked independently from mounting before data loads.
 React now removes the empty style attribute when resolved inline styles are removed.
 
-Verification: generator builds, 1,405 generator tests, 17 inspector tests and six
-Chrome CSS detection checks passed. Full container verification for the new
-inspector is pending. No package or remote deployment was published.
+Verification: generator builds, 1,405 generator tests, 18 inspector tests and six
+Chrome CSS detection checks passed. At 15:35 UTC, all three API servers completed
+72 reports containing 1,440 scenario results: 1,278 passed and 162 failed.
+Current-runtime initial-data/post-mount comparisons passed in all 18 combinations
+at 15 stages. Repeated injection passed, including raw HTML. Record restoration
+retained 24 raw HTML attribute-order differences in React and Vue; all current
+DOM, CSS, control, data, focus and persistence comparisons passed. Historical
+renderer differences remain recorded. Each server runner returned status 1.
+
+All 324 interactions, 36 mount-before-load checks, 36 static HTML checks, 180 HTTP
+checks, 36 typing cases and 54 bilingual UI selections passed. No browser page
+errors occurred. Exported 2,160 stage snapshots and retained the stopped 42-report
+run. Browser protocol calls now execute one API server at a time. Complete report
+JSON omits indentation because the indented DOM records exceed the runtime string
+limit; snapshot content is unchanged. Deployment is the local Apple container at
+`localhost:4317`; no package publication or remote deployment.
 
 ## 2026-09-07 — Empty collection merge
 

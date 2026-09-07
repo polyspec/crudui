@@ -6,8 +6,8 @@
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | form-template | 데이터와 독립된 폼 템플릿과 JSON 캐시 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
-| form-initialization | 초기 데이터 생성과 마운트 후 주입의 출력·동작 일치 | implemented | pending | not-deployed | [런타임 계약](spec/form-runtime.ko.md) |
-| form-inspector | 파싱한 DOM·HTML 원문·CSS·상태 비교와 차이 보존 | implemented | passed | not-deployed | [검사기 테스트](../examples/form-comparison/src/form-snapshot.test.mjs) |
+| form-initialization | 초기 데이터·반복 주입·레코드 복원 | implemented | failed | not-deployed | [런타임 계약](spec/form-runtime.ko.md) |
+| form-inspector | 파싱한 DOM·HTML 원문·CSS·상태 비교와 차이 보존 | implemented | passed | deployed | [검사기 테스트](../examples/form-comparison/src/form-snapshot.test.mjs) |
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
@@ -17,7 +17,7 @@
 | form-focus | 행 연산의 포커스, 선택, 스크롤 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
 | docs-check | 문서 링크·번역·상태 검사 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
-| form-comparison | 원본과 13자리 브라우저 비교 | implemented | passed | deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
+| form-comparison | 원본과 13자리 브라우저 비교 | implemented | failed | deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
 | form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | implemented | passed | deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../examples/form-comparison/check-ordered-json.py) |
 | ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | implemented | passed | deployed | [전송 계약](spec/form-comparison.ko.md) |
@@ -39,10 +39,22 @@ API 생성, 스키마 생성, 문서 사이트 빌드도 통과했습니다. 라
 Vue 343개, Svelte 345개, Svelte 클라이언트 2개입니다. 공통 마운트 테스트는
 초기 데이터, 반복 주입 3회, 표시 여부 변경과 레코드 복원을 비교합니다. React
 렌더러는 마지막 스타일 선언을 제거한 후 빈 `style` 속성을 제거합니다.
-검사기 테스트 17개가 모두 통과했으며 속성 누락, 행 키 변경, 자식 순서와 HTML을
+검사기 테스트 18개가 모두 통과했으며 속성 누락, 행 키 변경, 자식 순서와 HTML을
 변경하지 않는 컨트롤 속성 차이를 포함합니다. Chrome 검사 6개는 계산된 CSS,
 숨김 표시와 두 가상 요소의 의도적인 차이와 스타일 복원을 확인했습니다.
-이 검사기의 전체 컨테이너 조합 검증은 대기 상태입니다. 패키지는 게시하지 않았습니다.
+검사기는 로컬 비교 예제에서 실행 중입니다. 패키지는 게시하지 않았습니다.
+
+현재 런타임의 초기 데이터 생성과 마운트 후 주입은 항목별 검사 2,160개가 모두
+통과했습니다. 서버·프레임워크·전송 방식 18개 조합의 15단계와 8개 항목입니다.
+반복 주입 검사 576개도 HTML 원문을 포함해 모두 통과했습니다. 레코드 교체와
+복원을 포함한 DOM 비교 378개가 모두 통과했습니다. 체크박스를 변경한 후
+레코드를 복원하면 React와 Vue의 `checked` 속성 위치가 달라집니다. HTML 원문
+비교 24개가 실패했으며 DOM, CSS, 컨트롤 상태, 필드, 데이터, 포커스와 응답
+비교는 통과했습니다. 이 실패는 초기화 사례와 위 상태 표에 유지합니다.
+검사기는 실제 속성을 재정렬하거나 내보낸 HTML에서 차이를 제거하지 않습니다.
+한국어 React와 영어 Svelte 브라우저 검사로 전용 버튼, 단계 자료 30개,
+JSON 다운로드와 HTML 원문 다운로드를 확인했습니다. 초기화 요청을 의도적으로
+실패시킨 검사는 이전 자료나 다운로드 버튼 없이 실패 결과를 생성했습니다.
 
 ## 빈 컬렉션 병합 검증
 
@@ -67,42 +79,46 @@ PHP 8.5.10, Go 1.27.0, Rust 1.98.1을 사용했습니다. 전송 사례는 순�
 ## 폼 비교 예제 결과
 
 주 비교는 원본 소스 `1e8702a`에 명시적인 빈 컬렉션 출력 수정 `78723bb`를 적용한
-구현과 현재 런타임 `b516226`을 사용합니다. 원본 기반 예제는 캐시 바인딩과 행
+구현과 현재 런타임 `adfc051`을 사용합니다. 원본 기반 예제는 캐시 바인딩과 행
 컨트롤러를 추가하며 현재 런타임은 라이브러리 세션을 사용합니다. 두 구현은 동일한
 13자리 키 데이터, 기존 검증기, 독립된 JSON 저장소를 사용합니다. 숨김 seq 필드를
 제출하지 않습니다. [localhost:4317](http://localhost:4317)에서
 [비교 절차](operations/form-comparison.ko.md)를 실행합니다. 위 표의 `form-comparison` 상태는
 이 두 주 비교 구현을 기준으로 합니다.
 
-브라우저 보고서 시각은 2026-09-07 13:47 UTC입니다. Apple container에서 Chrome 149.0.7827.22, Node 26.8.1,
-PHP 8.4.24, Go 1.27.0, Rust 1.98.0으로 검증했습니다. 각 표 항목은 React·Vue·Svelte의
-네이티브 폼·JSON 전송을 포함하며 서버당 여섯 조합입니다.
+세 서버 보고서는 2026-09-07 15:35 UTC에 생성하고 15:42 UTC에 합쳤습니다.
+Chrome 149.0.7827.22, Node 26.8.1, PHP 8.4.24, Go 1.27.0, Rust 1.98.0을
+사용했습니다. 표의 각 항목은 네이티브 폼과 JSON 전송을 모두 포함합니다.
 
-| 서버 | 수정 원본 | 현재 런타임 | 수정 전 원본 키 | 유지한 배열 진단 |
-| --- | --- | --- | --- | --- |
-| PHP | 모든 조합 19/19 | 모든 조합 19/19 | 모든 조합 17/19 | 모든 조합 15/19 |
-| Go | 모든 조합 19/19 | 모든 조합 19/19 | 모든 조합 17/19 | 모든 조합 15/19 |
-| Rust | 모든 조합 19/19 | 모든 조합 19/19 | 모든 조합 17/19 | 모든 조합 15/19 |
+| 서버 | 프레임워크 | 수정 원본 | 현재 런타임 | 수정 전 원본 키 | 유지한 배열 진단 |
+| --- | --- | --- | --- | --- | --- |
+| PHP, Go, Rust | React | 19/20 | 19/20 | 17/20 | 15/20 |
+| PHP, Go, Rust | Vue | 19/20 | 19/20 | 17/20 | 15/20 |
+| PHP, Go, Rust | Svelte | 20/20 | 20/20 | 18/20 | 15/20 |
 
-실제 상호작용 검사 324개와 서버 데이터 로드 전 마운트 검사 36개가 모두 통과했습니다.
-서버당 상호작용 108개와 마운트 12개입니다. 상호작용은 타이핑, 포인터·키보드 포커스,
-선택, 스크롤, 조건 표시, 잘못된 제출 차단, 유효한 저장, 재로드 후 오류 제거를
-확인합니다. 주 비교 구현의 시나리오 결과 684개는 모두 통과했습니다. 전체 보고서는
-보고서 72개와 시나리오 결과 1,368개이며 1,260개 통과와 유지한 진단 실패 108개를
-기록합니다. 브라우저 페이지 오류는 없었습니다. 전체 실행기는 해당 진단 실패로
-종료 코드 1을 반환했습니다.
+보고서는 72개이며 시나리오 결과 1,440개 중 1,278개 통과와 162개 실패를
+기록했습니다. 서버별 실행기는 종료 코드 1을 반환했습니다. 실패는 이전 진단
+108개와 초기화 사례 54개를 포함합니다. 초기화 검사기는 전체 예제에서 HTML
+원문 차이 192개와 DOM 차이 168개를 기록했습니다. 과거 React·Vue 렌더러와
+배열 Svelte 예제는 숨긴 내용을 표시한 후 빈 `style` 속성을 유지합니다.
+해당 소스와 실패를 보존합니다. 현재 런타임의 차이는 위에 기록했습니다.
 
-13:42 UTC에 세 서버와 네 예제의 공유 HTTP 검사 180개가 모두 통과했습니다.
+상호작용 검사 324개, 데이터 로드 전 마운트 검사 36개, 정적 문서 검사 36개가
+모두 통과했습니다. 세 API 서버의 정적 HTML 해시도 일치했습니다. 브라우저
+페이지 오류는 없었습니다. 단계별 스냅샷 2,160개를 HTML 원문, 파싱한 DOM,
+컨트롤 상태와 함께 내보냈습니다. 전체 보고서는
+`.form-comparison/results/report.json`이며 `initialization-summary.json`에 개수와
+보고서 해시를 기록합니다. 서버별 보고서와 중단한 보고서 42개도 보존합니다.
+중단한 실행은 15분 제한의 브라우저 프로토콜 호출을 API 서버별로 나누기 전에
+보존했으며 전체 검증 완료로 계산하지 않습니다.
+
+15:38 UTC에 세 서버와 네 예제의 공유 HTTP 검사 180개가 모두 통과했습니다.
 Multipart, URL-encoded, JSON 요청의 레코드, ID, 부모 관계, 위치와 로드 순서가
 일치했습니다. 실제 파일 내용, 물리적인 레코드 정렬 변경, 신규·삭제 ID, 필수 값 검증
 실패, 잘못된 언어 객체, 단일 필드 자료형, 요청 제한, 잘못된 초기화 요청, 손상된 파일
 유지도 확인했습니다. 각 서버가 파싱, 기존 CRUDUI 검증과 원자적 저장을 직접 수행하며
-Node는 바이트를 전달했습니다. Go 정적 검사와 경고를 오류로 처리한 Rust Clippy도
-통과했습니다.
-
-이전 13:26 보고서에는 Go·Rust의 네이티브 언어 자료형 실패와 원본 컨트롤러의
-타이핑 실패가 기록되어 있으며 해당 보고서를 보존합니다. 수정한 동작은 여기에
-기록한 이후의 HTTP, 타이핑, 전체 브라우저 검사를 통과했습니다.
+Node는 바이트를 전달했습니다. 네이티브 타이핑 36개와 두 언어의 UI 선택 54개도
+모두 통과했습니다. 이전 Go 정적 검사와 Rust Clippy 결과는 변경 기록에 유지합니다.
 
 각 프레임에서 네이티브 multipart 또는 JSON 전송을 선택합니다. 브라우저의 JSON
 요청, PHP·Go·Rust 요청·응답 처리, 저장 JSON 파일은 ordered-json `deb1b354`를 사용합니다.
