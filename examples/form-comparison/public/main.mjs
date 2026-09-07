@@ -70,10 +70,12 @@ async function runAll() {
   try {
     for (const framework of ['react', 'vue', 'svelte']) {
       document.querySelector('#progress').textContent = `${t.running} ${framework}`;
-      await show(framework, 'original-keyed');
-      reports.push(...await Promise.all(frames.map(frame => frame.contentWindow.comparison.runChecks())));
-      await show(framework, 'original');
-      reports.push(await frames[0].contentWindow.comparison.runChecks());
+      await show(framework, 'corrected');
+      for (const frame of frames) reports.push(await frame.contentWindow.comparison.runChecks());
+      for (const diagnostic of ['original-keyed', 'original']) {
+        await show(framework, diagnostic);
+        reports.push(await frames[0].contentWindow.comparison.runChecks());
+      }
       renderReport();
     }
     document.querySelector('#progress').textContent = reports.map(report => `${report.mode}/${report.framework}: ${report.results.filter(item => item.passed).length}/${report.results.length}`).join(' · ');

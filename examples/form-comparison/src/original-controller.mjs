@@ -11,7 +11,7 @@ function newKey(rows) {
   return key;
 }
 
-/** Example application binding and row operations over the unchanged renderer. */
+/** Example application binding and row operations over the original rendering interface. */
 export function originalController(element, mount, spec, language, keyed = false) {
   let data = {};
   const renderer = mount(element, spec, language);
@@ -69,7 +69,10 @@ export function originalController(element, mount, spec, language, keyed = false
     const path = active.name ? parts(active.name) : [];
     const scroll = [];
     for (let parent = active.parentElement; parent; parent = parent.parentElement) scroll.push([parent, parent.scrollTop, parent.scrollLeft]);
-    return { active, path, owner: valueAt(next, path.slice(0, -1)), start: active.selectionStart, end: active.selectionEnd, direction: active.selectionDirection, scroll };
+    const wrapper = active.closest('.form-element-wrapper[name]');
+    const row = active.closest('.input-group-wrapper[data-uniqid]');
+    const emptyAddWrapper = active.matches('button.btn-plus') && row?.closest('.form-element-wrapper[name]') !== wrapper ? wrapper?.getAttribute('name') : null;
+    return { active, emptyAddWrapper, path, owner: valueAt(next, path.slice(0, -1)), start: active.selectionStart, end: active.selectionEnd, direction: active.selectionDirection, scroll };
   }
   function findPath(node, target, path = []) {
     if (node === target) return path;
@@ -93,9 +96,11 @@ export function originalController(element, mount, spec, language, keyed = false
       else if (input.value !== String(value)) input.value = String(value);
     }
     if (focus) {
-      const active = focusedName
+      let active = focusedName
         ? Array.from(element.querySelectorAll('[name]')).find(input => input.getAttribute('name') === focusedName)
         : element.contains(focus.active) ? focus.active : null;
+      if (!active && focus.emptyAddWrapper) active = Array.from(element.querySelectorAll('button.btn-plus'))
+        .find(button => button.closest('.form-element-wrapper[name]')?.getAttribute('name') === focus.emptyAddWrapper);
       active?.focus({ preventScroll: true });
       if (focus.start != null && active?.setSelectionRange) active.setSelectionRange(focus.start, focus.end, focus.direction);
       for (const [parent, top, left] of focus.scroll) { parent.scrollTop = top; parent.scrollLeft = left; }
@@ -126,12 +131,13 @@ export function originalController(element, mount, spec, language, keyed = false
     const row = button.closest('.input-group-wrapper[data-uniqid]');
     const wrapper = button.closest('.form-element-wrapper[name]');
     const path = wrapper.getAttribute('name').replace(/-layer$/, '').split('.').slice(1).map(part => part.replace(/^#/, ''));
-    const key = row.dataset.uniqid;
+    const key = row?.closest('.form-element-wrapper[name]') === wrapper ? row.dataset.uniqid : undefined;
     const next = getData(); const focus = capture(next);
     const rows = valueAt(next, path);
     const field = fieldAt(path);
     if (keyed) {
-      if (!rows || Array.isArray(rows) || !Object.hasOwn(rows, key)) throw new Error('Expected an existing keyed row');
+      if (!rows || Array.isArray(rows) || typeof rows !== 'object') throw new Error('Expected a keyed collection');
+      if (key === undefined ? action !== 'plus' || Object.keys(rows).length !== 0 : !Object.hasOwn(rows, key)) throw new Error('Expected an existing keyed row');
       const entries = Object.entries(rows);
       const index = entries.findIndex(([name]) => name === key);
       if (['plus', 'copy'].includes(action) && entries.length >= (field.multiple.max ?? Infinity)) return;
@@ -145,8 +151,8 @@ export function originalController(element, mount, spec, language, keyed = false
       }
       valueAt(next, path.slice(0, -1))[path.at(-1)] = Object.fromEntries(entries);
     } else {
-      const index = Number(key.replace(/^#/, ''));
-      if (!Array.isArray(rows) || !Number.isInteger(index)) throw new Error('Expected an indexed repeat collection');
+      const index = key === undefined ? -1 : Number(key.replace(/^#/, ''));
+      if (!Array.isArray(rows) || !Number.isInteger(index) || (key === undefined && (action !== 'plus' || rows.length !== 0))) throw new Error('Expected an indexed repeat collection');
       if (['plus', 'copy'].includes(action) && rows.length >= (field.multiple.max ?? Infinity)) return;
       if (action === 'plus') rows.splice(index + 1, 0, {});
       if (action === 'copy') rows.splice(index + 1, 0, clearSequences(structuredClone(rows[index]), field));
