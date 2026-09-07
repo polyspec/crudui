@@ -25,6 +25,7 @@ if (command === 'stop') {
 } else if (command === 'start' || command === 'prepare') {
   await mkdir(context, { recursive: true });
   await mkdir(path.join(work, 'data'), { recursive: true });
+  await mkdir(path.join(work, 'results'), { recursive: true });
   const metadata = {};
   for (const [mode, commit] of Object.entries(revisions)) {
     const archive = execFileSync('git', ['archive', commit], { cwd: root, maxBuffer: 100 * 1024 * 1024 });
@@ -42,9 +43,10 @@ if (command === 'stop') {
   await cp(exampleDir, path.join(context, 'example'), { recursive: true });
   await cp(path.join(exampleDir, 'Containerfile'), path.join(context, 'Containerfile'));
   await writeFile(path.join(context, 'metadata.json'), JSON.stringify(metadata, null, 2));
+  await writeFile(path.join(context, 'source-revisions'), Object.entries(revisions).map(([revision, commit]) => `${revision} ${commit}`).join('\n') + '\n');
   if (command === 'start') {
     await container(['build', '-t', image, '--progress', 'plain', context]);
-    await container(['run', '-d', '--name', name, '--cpus', '1', '--memory', '512M', '-p', '127.0.0.1:4317:8080', '-v', `${work}/data:/data`, image]);
+    await container(['run', '-d', '--name', name, '--cpus', '2', '--memory', '1G', '-p', '127.0.0.1:4317:8080', '-v', `${work}/data:/data`, '-v', `${work}/results:/results`, image]);
     for (let attempt = 0; attempt < 100; attempt++) {
       try { if ((await fetch('http://127.0.0.1:4317/api/health')).ok) break; } catch {}
       if (attempt === 99) throw new Error('Polyspec form comparison did not become ready');
