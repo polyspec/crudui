@@ -4,6 +4,8 @@ import { originalController } from './original-controller.mjs';
 import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
 import { encodeJson, readJson } from './json.mjs';
+import { formSnapshot, styleSnapshot, compareSnapshots, identical, snapshotHash } from './form-snapshot.mjs';
+import { appendInitializationEvidence } from './initialization-report.mjs';
 
 const mode = __FORM_MODE__;
 const framework = __FRAMEWORK__;
@@ -20,8 +22,9 @@ const spec = specFor(mode);
 let driver;
 let validation;
 let running = false;
+let initializationEvidence;
 
-for (const id of ['load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks']) document.querySelector(`#${id}`).textContent = t[id];
+for (const id of ['create', 'load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks', 'initialization-check']) document.querySelector(`#${id}`).textContent = t[id];
 for (const id of ['results', 'names', 'state', 'server-data']) document.querySelector(`#${id}-label`).textContent = t[id];
 document.querySelector('#transport-label').textContent = t.transportLabel;
 for (const option of transport.options) option.textContent = t[`${option.value}Transport`];
@@ -99,9 +102,9 @@ async function mount(data = {}, formSpec = spec) {
   validation?.clear();
   if (driver) await driver.dispose();
   view.replaceChildren();
-  driver = mode !== 'keyed' ? originalController(view, mountView, formSpec, language, keyed) : mountView(view, formSpec, language);
+  driver = mode !== 'keyed' ? originalController(view, mountView, formSpec, language, keyed, data) : mountView(view, formSpec, language, data);
   validation = formValidation(view, document.querySelector('#validation'), formSpec, t);
-  await driver.load(data); await settle(); inspect();
+  await settle(); inspect();
 }
 async function reset(fixture = keyed ? 'populated' : 'default') {
   const result = await request('reset', new URLSearchParams({ fixture }));
@@ -541,6 +544,113 @@ const checks = [
     same(result.normalized, keyedData, 'keyed native values without hidden sequence fields');
     same(Object.keys(result.normalized.companies), Object.keys(keyedData.companies), 'native keyed document order');
   }],
+  ['initialization', async () => {
+    const baseline = new Map();
+    initializationEvidence = { stages: [], comparisons: [], cssFailures: {}, randomSource: 'Repeated deterministic 7-byte inputs during row actions only' };
+    const categories = ['html', 'dom', 'controls', 'fields', 'css', 'data', 'focus', 'response'];
+    function compare(actual, expected, label, keys = categories) {
+      const results = compareSnapshots(actual, expected, keys);
+      initializationEvidence.comparisons.push({ label, results });
+      if (results.some(result => result.category === 'css' && !result.passed)) {
+        initializationEvidence.cssFailures[label] = { expected: expected.css, actual: actual.css };
+      }
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(crypto, 'getRandomValues');
+    const random = crypto.getRandomValues.bind(crypto);
+    let counter = 0;
+    const repeatableRandom = bytes => {
+      if (!(bytes instanceof Uint8Array) || bytes.length !== 7) return random(bytes);
+      const seed = counter++;
+      for (let index = 0; index < bytes.length; index++) bytes[index] = (171 + seed * 17 + index * 29) % 256;
+      return bytes;
+    };
+    const restoreRandom = () => {
+      if (descriptor) Object.defineProperty(crypto, 'getRandomValues', descriptor);
+      else delete crypto.getRandomValues;
+    };
+    async function capture(route, stage, response) {
+      await settle();
+      const snapshot = formSnapshot(view, form);
+      snapshot.css = styleSnapshot(view);
+      snapshot.data = encodeJson(driver.getData());
+      const active = document.activeElement;
+      snapshot.focus = view.contains(active) ? {
+        name: active.getAttribute('name'), class: active.getAttribute('class'),
+        row: active.closest('[data-uniqid]')?.getAttribute('data-uniqid'),
+        start: active.selectionStart, end: active.selectionEnd, direction: active.selectionDirection,
+      } : null;
+      snapshot.response = response;
+      const cssHash = await snapshotHash(snapshot.css);
+      initializationEvidence.stages.push({ route, stage, ...snapshot, css: undefined, cssHash });
+      if (route === 'initial') baseline.set(stage, snapshot);
+      else {
+        const expected = baseline.get(stage);
+        assert(expected, `Missing initial-data snapshot for ${stage}`);
+        compare(snapshot, expected, `initial/injected/${stage}`);
+      }
+      return snapshot;
+    }
+    await document.fonts.ready;
+    try {
+      for (const route of ['initial', 'injected']) {
+        const source = (await request('reset', new URLSearchParams({ fixture: keyed ? 'populated' : 'default' }))).data;
+        await mount(route === 'initial' ? source : {});
+        if (route === 'injected') {
+          assert(view.querySelector('input[name]'), 'A form must exist before record injection');
+          await driver.load(source);
+        }
+        const mounted = await capture(route, 'mounted');
+        const template = JSON.stringify(driver.template);
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          await driver.load(source);
+          const again = await capture(route, `reinjected-${attempt}`);
+          compare(again, mounted, `${route}/idempotence-${attempt}`);
+          identical(JSON.stringify(driver.template), template, 'cached template');
+        }
+        const changed = structuredClone(source);
+        Object.values(Object.values(changed.companies)[0].stores)[0].enabled = '';
+        await driver.load(changed);
+        await capture(route, 'data-hidden');
+        await driver.load(source);
+        const restored = await capture(route, 'data-restored');
+        compare(restored, mounted, `${route}/record-restoration`);
+        await edit(companyName(companies()[0]), 'Initialization company');
+        await edit(storeName(stores(companies()[0])[0]), 'Initialization store');
+        const notes = stores(companies()[0])[0].querySelector('textarea');
+        await edit(notes, 'Initialization notes');
+        stores(companies()[0])[0].querySelector('input[type=checkbox]').click();
+        await capture(route, 'edited');
+        const saved = await save();
+        equal(saved.status, 200, 'initialization save status');
+        await capture(route, 'saved', { validation: saved.validation, records: storageRows(saved.storage), keyChanges: saved.keyChanges });
+        await load();
+        await capture(route, 'reloaded');
+        counter = 0;
+        crypto.getRandomValues = repeatableRandom;
+        await click(companies()[0], 'copy');
+        await capture(route, 'copied');
+        await click(companies()[1], 'move-up');
+        await capture(route, 'moved');
+        await click(companies()[0], 'minus');
+        await capture(route, 'copy-removed');
+        await click(companies()[0], 'plus');
+        await edit(companyName(companies()[1]), 'Added company');
+        await edit(storeName(stores(companies()[1])[0]), 'Added store');
+        await capture(route, 'added');
+        const added = await save();
+        equal(added.status, 200, 'added initialization save status');
+        await capture(route, 'saved-new', { validation: added.validation, records: storageRows(added.storage), keyChanges: added.keyChanges });
+        restoreRandom();
+        await driver.load({ companies: keyed ? {} : [] });
+        await capture(route, 'empty');
+        await driver.load(source);
+        await capture(route, 'restored');
+      }
+    } finally { restoreRandom(); }
+    const failures = initializationEvidence.comparisons.flatMap(comparison =>
+      comparison.results.filter(result => !result.passed).map(result => `${comparison.label}/${result.error}`));
+    assert(failures.length === 0, failures.join('\n'));
+  }],
   ['cache', async () => {
     assert(driver.template && driver.referenceReads, 'This example adapter rebuilds through buildForm and does not prepare a cached structure');
     equal(driver.referenceReads(), 1, 'reference reads before data injection');
@@ -556,7 +666,7 @@ const checks = [
   }],
 ];
 
-async function runChecks(method = transport.value) {
+async function runChecks(method = transport.value, only) {
   if (running) throw new Error('Checks already running');
   running = true;
   transport.value = method;
@@ -566,9 +676,10 @@ async function runChecks(method = transport.value) {
   output.replaceChildren();
   try {
     for (const [id, test] of checks) {
+      if (only && id !== only) continue;
       let error;
       try { await reset(); await test(); } catch (e) { error = e.message; }
-      const item = { id, passed: !error, ...(error ? { error } : {}) };
+      const item = { id, passed: !error, ...(error ? { error } : {}), ...(id === 'initialization' ? { evidence: initializationEvidence } : {}) };
       results.push(item);
       const line = document.createElement('div');
       line.className = error ? 'fail' : 'pass';
@@ -582,6 +693,7 @@ async function runChecks(method = transport.value) {
         const raw = document.createElement('pre'); raw.textContent = error;
         detail.append(summary, raw); line.append(detail);
       }
+      if (id === 'initialization' && initializationEvidence) appendInitializationEvidence(line, initializationEvidence, t);
       output.append(line);
     }
     await reset();
@@ -598,12 +710,14 @@ function action(id, fn) {
   });
 }
 action('load', load);
+action('create', async () => { const result = await request('load'); equal(result.status, 200, 'load status'); await mount(result.data); });
 action('blank', () => mount());
 action('save', async () => { const result = await save(); if (result.status !== null) document.querySelector('#server-data-details').open = true; });
 action('validate', async () => { if (validation.validate(driver.getData()).valid) { await submit(); document.querySelector('#server-data-details').open = true; } });
 action('reset', () => reset());
 action('nonsequential', () => reset('nonsequential'));
 action('checks', runChecks);
+action('initialization-check', () => runChecks(transport.value, 'initialization'));
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (running) return;

@@ -6,6 +6,8 @@
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | form-template | 데이터와 독립된 폼 템플릿과 JSON 캐시 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
+| form-initialization | 초기 데이터 생성과 마운트 후 주입의 출력·동작 일치 | implemented | pending | not-deployed | [런타임 계약](spec/form-runtime.ko.md) |
+| form-inspector | 파싱한 DOM·HTML 원문·CSS·상태 비교와 차이 보존 | implemented | passed | not-deployed | [검사기 테스트](../examples/form-comparison/src/form-snapshot.test.mjs) |
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
@@ -30,6 +32,17 @@ API 생성, 스키마 생성, 문서 사이트 빌드도 통과했습니다. 라
 패키지 게시를 기준으로 하며 게시한 패키지는 없습니다. 폼 비교 예제은 Apple container의
 [localhost:4317](http://localhost:4317)에 로컬 배포했습니다. 원격 배포는 실행하지
 않았습니다.
+
+## 폼 초기화 검사기
+
+2026-09-08 생성기 빌드와 테스트 1,405개가 통과했습니다. 코어 25개, React 690개,
+Vue 343개, Svelte 345개, Svelte 클라이언트 2개입니다. 공통 마운트 테스트는
+초기 데이터, 반복 주입 3회, 표시 여부 변경과 레코드 복원을 비교합니다. React
+렌더러는 마지막 스타일 선언을 제거한 후 빈 `style` 속성을 제거합니다.
+검사기 테스트 17개가 모두 통과했으며 속성 누락, 행 키 변경, 자식 순서와 HTML을
+변경하지 않는 컨트롤 속성 차이를 포함합니다. Chrome 검사 6개는 계산된 CSS,
+숨김 표시와 두 가상 요소의 의도적인 차이와 스타일 복원을 확인했습니다.
+이 검사기의 전체 컨테이너 조합 검증은 대기 상태입니다. 패키지는 게시하지 않았습니다.
 
 ## 빈 컬렉션 병합 검증
 

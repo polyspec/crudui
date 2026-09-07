@@ -64,11 +64,11 @@ This is a local development environment; packages are not published.
 
 ## Verify
 
-The page's “Run all servers and frameworks” control runs the same 19 checks on the original
+The page's “Run all servers and frameworks” control runs the same 20 checks on the original
 source with the empty-collection correction, unchanged keyed example, current
 keyed runtime and retained array diagnostic in all three
 frameworks and all three servers, once per transmission choice: 72 reports and
-1,368 scenario results. The table shows the selected server and framework.
+1,440 scenario results. The table shows the selected server and framework.
 Results remain PASS or FAIL for each scenario. Download exports these
 results. The headless runner also performs 288 real pointer, keyboard, checkbox and submission-validation
 interaction checks across all 36 server/example/framework combinations and both transmission choices, plus
@@ -84,12 +84,26 @@ native and JSON save/reload, and unchanged sibling IDs.
 Cache checks verify one reference read and reject loading after preparation.
 The headless runner also pauses each example's initial server load request and checks
 that nested input elements already exist, covering all 36 server/example/framework combinations.
+It also verifies that the HTML responses contain empty form containers and remain
+identical across API servers. The initialization case compares 15 stages from
+initial-data creation and post-mount injection, including exact HTML, complete
+computed CSS, control state, ordered submissions and saved records. Repeated
+injection verifies idempotence. Exported HTML and state files are stored in
+`initialization-<timestamp>/<server>/<variant>/<framework>/<transport>/` under
+the result directory. CSS hashes cover all element and pseudo-element properties;
+failed CSS comparisons also retain the complete CSS snapshots.
+Use "Check data injection idempotence" in either frame to run only this case.
+Expand "Stage comparisons and original HTML" to inspect each category and download
+the evidence or individual HTML files. Raw HTML and parsed DOM have separate
+results; attribute order differences remain visible.
 For repeatable headless browser checks, install the repository dependencies and
 Puppeteer's Chrome, then run:
 
 ```sh
 npm ci
 npx puppeteer browsers install chrome
+node --test examples/form-comparison/src/form-snapshot.test.mjs
+node examples/form-comparison/check-inspector.mjs
 node examples/form-comparison/check.mjs
 node examples/form-comparison/check-typing.mjs
 container exec crudui-form-comparison node /workspace/keyed/examples/form-comparison/check-servers.mjs
