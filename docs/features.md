@@ -40,7 +40,7 @@ types. These processor checks do not execute form row operations. Runtime
 integration is verified separately by the browser and PHP results below.
 [Verification procedure and scope](operations/ordered-json.md).
 
-## Polyspec form comparison results
+## Form comparison results
 
 The primary comparison uses original source `1e8702a` with the explicit-empty
 rendering correction `78723bb`, and current runtime `b516226`. The original-source
@@ -50,7 +50,7 @@ and independent JSON repositories. No hidden sequence fields are submitted.
 [Run the comparison](operations/form-comparison.md) at [localhost:4317](http://localhost:4317).
 The `form-comparison` status above refers to these two primary implementations.
 
-Verified on 2026-09-07 at 11:35 UTC with Chrome 149.0.7827.22, Node 26.8.1 and
+Verified on 2026-09-07 at 12:21 UTC with Chrome 149.0.7827.22, Node 26.8.1 and
 PHP 8.4.24 in Apple container:
 
 | Framework | Transmission | Corrected original | Current runtime | Unchanged original keyed | Retained array diagnostic |
@@ -79,8 +79,8 @@ and JSON body shapes passed inspection. Identical edited/copied data produced
 identical records, saved keys, parent IDs, positions and loaded values through
 both formats. Invalid JSON and unsupported content types were rejected without
 changing records. Three JavaScript conversion tests, PHP conversion checks and
-both repository checks passed in the container. TypeScript validation passed 44
-tests; PHP validation passed 61 tests, including the shared validation and list
+both repository checks passed in the container. Retained validation results from
+11:35 UTC: TypeScript passed 44 tests; PHP validation passed 61 tests, including the shared validation and list
 cases; Go and Rust validation conformance passed. `make docs-check` passed.
 
 The example runs the existing JavaScript validator before user submission and
@@ -118,5 +118,5 @@ existing 43 validation cases passed in TypeScript, PHP, Go and Rust. TypeScript
 also passed the fixture-coverage test. PHP validation was checked in the container.
 
 The example runs locally in Apple container. No package or remote deployment was
-published. Repository cleanup has not started. SQL drivers and external editor
-widgets are outside this comparison's verification scope.
+published. All comparison implementations remain selectable. SQL drivers and
+external editor widgets are outside this comparison's verification scope.

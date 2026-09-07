@@ -2,6 +2,10 @@
 
 [한국어](form-comparison.ko.md).
 
+The example is maintained in `examples/form-comparison/`. Its page displays the
+Polyspec name. Browser checks use the example-local `window.comparison` controls.
+Local container files and verification reports are stored in `.form-comparison/`.
+
 The example uses the existing `ValidatorV2` before user submission. Failure stops
 transmission and displays returned field errors. PHP independently validates the
 same spec. Visibility does not change validation: a hidden required field with an

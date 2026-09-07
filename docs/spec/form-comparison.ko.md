@@ -2,6 +2,10 @@
 
 [English](form-comparison.md).
 
+예제는 `examples/form-comparison/`에서 관리합니다. 화면에는 Polyspec 이름을
+표시합니다. 브라우저 검사는 예제 내부의 `window.comparison` 제어 함수를 사용합니다.
+로컬 컨테이너 파일과 검증 보고서는 `.form-comparison/`에 저장합니다.
+
 예제는 사용자 제출 전에 기존 `ValidatorV2`를 실행합니다. 실패하면 전송을 중단하고
 반환된 필드 오류를 표시합니다. PHP는 같은 spec을 독립적으로 검증합니다. 표시 여부는
 검증을 변경하지 않습니다. 숨겨진 필수 필드의 빈 값은 실패하고 선택 필드의 빈 값은
