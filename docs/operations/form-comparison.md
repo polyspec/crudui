@@ -96,6 +96,10 @@ Use "Check data injection idempotence" in either frame to run only this case.
 Expand "Stage comparisons and original HTML" to inspect each category and download
 the evidence or individual HTML files. Raw HTML and parsed DOM have separate
 results; attribute order differences remain visible.
+Computed CSS comparisons require the same viewport throughout a check. The
+headless runner uses 1680 × 1100. Do not resize its page or connect an additional
+automation client that changes the viewport during execution. Preserve and repeat
+any run whose viewport changed.
 For repeatable headless browser checks, install the repository dependencies and
 Puppeteer's Chrome.
 The runner executes one API server per browser protocol call and combines the
