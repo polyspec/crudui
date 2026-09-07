@@ -546,7 +546,10 @@ const checks = [
   }],
   ['initialization', async () => {
     const baseline = new Map();
-    initializationEvidence = { stages: [], comparisons: [], cssFailures: {}, randomSource: 'Repeated deterministic 7-byte inputs during row actions only' };
+    initializationEvidence = {
+      generatedAt: new Date().toISOString(), server, mode, framework, transport: transport.value, commit: __SOURCE_COMMIT__,
+      stages: [], comparisons: [], cssFailures: {}, randomSource: 'Repeated deterministic 7-byte inputs during row actions only',
+    };
     const categories = ['html', 'dom', 'controls', 'fields', 'css', 'data', 'focus', 'response'];
     function compare(actual, expected, label, keys = categories) {
       const results = compareSnapshots(actual, expected, keys);
@@ -668,6 +671,7 @@ const checks = [
 
 async function runChecks(method = transport.value, only) {
   if (running) throw new Error('Checks already running');
+  delete window.comparison?.lastReport;
   running = true;
   transport.value = method;
   transport.disabled = true;
@@ -677,6 +681,7 @@ async function runChecks(method = transport.value, only) {
   try {
     for (const [id, test] of checks) {
       if (only && id !== only) continue;
+      if (id === 'initialization') initializationEvidence = undefined;
       let error;
       try { await reset(); await test(); } catch (e) { error = e.message; }
       const item = { id, passed: !error, ...(error ? { error } : {}), ...(id === 'initialization' ? { evidence: initializationEvidence } : {}) };

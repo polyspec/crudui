@@ -6,8 +6,8 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | form-template | Data-independent form templates and JSON caching | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
-| form-initialization | Identical initial-data and post-mount rendering and behavior | implemented | pending | not-deployed | [Runtime contract](spec/form-runtime.md) |
-| form-inspector | Parsed DOM, raw HTML, CSS and state comparison with retained differences | implemented | passed | not-deployed | [Inspector tests](../examples/form-comparison/src/form-snapshot.test.mjs) |
+| form-initialization | Initial data, repeated injection and record restoration | implemented | failed | not-deployed | [Runtime contract](spec/form-runtime.md) |
+| form-inspector | Parsed DOM, raw HTML, CSS and state comparison with retained differences | implemented | passed | deployed | [Inspector tests](../examples/form-comparison/src/form-snapshot.test.mjs) |
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | Explicit empty collection rendering in the merged runtime | implemented | passed | not-deployed | [Empty collection tests](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
@@ -17,7 +17,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-focus | Focus, selection and scroll retention during row operations | implemented | passed | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
 | docs-check | Document links, translations and status checks | implemented | passed | not-deployed | [Documentation procedure](operations/documentation.md) |
-| form-comparison | Original and 13-character browser comparison | implemented | passed | deployed | [Browser checks](../examples/form-comparison/check.mjs) |
+| form-comparison | Original and 13-character browser comparison | implemented | failed | deployed | [Browser checks](../examples/form-comparison/check.mjs) |
 | form-persistence | Keyed native and JSON document-order persistence | implemented | passed | deployed | [Persistence scenarios](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../examples/form-comparison/check-ordered-json.py) |
 | ordered-json-runtime | Form and ordered JSON transmission through shared validation and storage | implemented | passed | deployed | [Transport contract](spec/form-comparison.md) |
@@ -40,11 +40,24 @@ On 2026-09-08, generator builds and 1,405 tests passed: core 25, React 690,
 Vue 343, Svelte 345 and Svelte client 2. Shared mounted tests compare initial data,
 three repeated injections, visibility changes and record restoration. The React
 renderer removes the empty `style` attribute after its last declaration is cleared.
-All 17 inspector tests passed, including missing attributes, changed row keys,
+All 18 inspector tests passed, including missing attributes, changed row keys,
 child order and control properties that differ without changing HTML. Six Chrome
 checks verified computed CSS, hidden display and both pseudo-elements, including
-deliberate differences and restored styles. The full container matrix for this
-inspector is pending. No package was published.
+deliberate differences and restored styles. The inspector is running in the local
+comparison. No package was published.
+
+The current runtime passed all 2,160 category checks comparing initial-data
+creation with post-mount injection: 18 server/framework/transport combinations,
+15 stages and eight categories. All 576 repeated-injection checks passed, including
+raw HTML. All 378 DOM comparisons passed, including record replacement and restoration.
+Restoring a record after changing its checkbox leaves a different `checked`
+attribute position in React and Vue: 24 raw HTML comparisons failed while DOM,
+CSS, control state, fields, data, focus and response comparisons passed. These
+failures remain in the initialization case and its status above. The inspector
+does not reorder live attributes or remove differences from exported HTML.
+Korean React and English Svelte browser checks verified the dedicated button,
+30-stage evidence, JSON downloads and exact HTML downloads. Deliberate reset
+failures produced failed results without previous evidence or download buttons.
 
 ## Empty collection merge verification
 
@@ -69,43 +82,49 @@ integration is verified separately by the browser and server results below.
 ## Form comparison results
 
 The primary comparison uses original source `1e8702a` with the explicit-empty
-rendering correction `78723bb`, and current runtime `b516226`. The original-source
+rendering correction `78723bb`, and current runtime `adfc051`. The original-source
 example adds cached binding and a row controller; the current runtime uses its
 library session. Both use identical 13-character keyed data, existing validators
 and independent JSON repositories. No hidden sequence fields are submitted.
 [Run the comparison](operations/form-comparison.md) at [localhost:4317](http://localhost:4317).
 The `form-comparison` status above refers to these two primary implementations.
 
-Browser report timestamp: 2026-09-07 13:47 UTC. Verified with Chrome 149.0.7827.22, Node 26.8.1,
-PHP 8.4.24, Go 1.27.0 and Rust 1.98.0 in Apple container. Each table entry covers
-React, Vue and Svelte with native form and JSON: six combinations per server.
+The three server reports were generated on 2026-09-07 at 15:35 UTC and combined
+at 15:42 UTC. Chrome 149.0.7827.22, Node 26.8.1, PHP 8.4.24, Go 1.27.0 and
+Rust 1.98.0 were used. Each table entry covers both native form and JSON.
 
-| Server | Corrected original | Current runtime | Unchanged original keyed | Retained array diagnostic |
-| --- | --- | --- | --- | --- |
-| PHP | 19/19 in each combination | 19/19 in each combination | 17/19 in each combination | 15/19 in each combination |
-| Go | 19/19 in each combination | 19/19 in each combination | 17/19 in each combination | 15/19 in each combination |
-| Rust | 19/19 in each combination | 19/19 in each combination | 17/19 in each combination | 15/19 in each combination |
+| Server | Framework | Corrected original | Current runtime | Unchanged original keyed | Retained array diagnostic |
+| --- | --- | --- | --- | --- | --- |
+| PHP, Go, Rust | React | 19/20 | 19/20 | 17/20 | 15/20 |
+| PHP, Go, Rust | Vue | 19/20 | 19/20 | 17/20 | 15/20 |
+| PHP, Go, Rust | Svelte | 20/20 | 20/20 | 18/20 | 15/20 |
 
-All 324 real interaction checks and all 36 mount-before-server-load checks passed:
-108 interactions and 12 mounts per server. The interactions cover typing, pointer
-and keyboard focus, selection, scrolling, conditional display, invalid submission
-blocking, valid saves and cleared errors after reload. The primary implementations
-passed all 684 scenario results. The complete report contains 72 reports and 1,368
-scenario results: 1,260 passed and 108 retained diagnostic failures. No browser page
-errors occurred. The full runner returned status 1 for those diagnostic failures.
+The report contains 72 reports and 1,440 scenario results: 1,278 passed and 162
+failed. Each server runner returned status 1. The failures include 108 previous
+diagnostics and 54 initialization cases. The initialization inspector records
+192 raw HTML differences and 168 DOM differences across all variants. Historical
+React and Vue renderers, and the array Svelte example, retain an empty `style`
+attribute after hidden content becomes visible. Their source snapshots and
+failures remain available. Current-runtime differences are described above.
 
-At 13:42 UTC, all 180 shared HTTP checks passed across three servers and four
+All 324 interaction checks, 36 mount-before-load checks and 36 static-document
+checks passed. Static HTML hashes matched across all three API servers. There
+were no browser page errors. All 2,160 stage snapshots were exported, including
+original HTML, parsed DOM and control state. The complete report is
+`.form-comparison/results/report.json`; `initialization-summary.json` records the
+counts and report hash. Server reports and the stopped 42-report run are retained.
+The stopped run was preserved before splitting the 15-minute browser protocol
+call by API server. It is not counted as complete verification.
+
+At 15:38 UTC, all 180 shared HTTP checks passed across three servers and four
 variants. Multipart, URL-encoded and JSON requests produced identical records,
 IDs, parent relationships, positions and loaded order. Checks also inspected
 actual file contents, reordered physical records, new and deleted IDs, invalid
 required fields, invalid language objects, scalar field types, request limits,
 invalid reset requests and corrupt-file preservation. Each server performed its
 own parsing, existing CRUDUI validation and atomic persistence. Node forwarded bytes.
-Go static analysis and Rust Clippy with warnings denied passed.
-
-The earlier 13:26 report recorded Go/Rust failures to reject invalid native title fields and an
-original-controller typing failure. Those reports are retained. The corrected
-behavior passed the later HTTP, typing and complete browser checks described here.
+All 36 native typing cases and 54 bilingual UI selections passed. Earlier Go
+static analysis and Rust Clippy results remain recorded in the changelog.
 
 Each frame selects native multipart or JSON transmission. Browser JSON requests,
 PHP, Go and Rust request/response processing and stored JSON files use ordered-json `deb1b354`.

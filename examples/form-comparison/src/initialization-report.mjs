@@ -10,6 +10,7 @@ function download(name, text, type) {
 /** Display every comparison and provide the unmodified HTML for inspection. */
 export function appendInitializationEvidence(container, evidence, t) {
   const details = document.createElement('details');
+  details.className = 'initialization-evidence';
   const summary = document.createElement('summary');
   summary.textContent = t.initializationEvidence;
   details.append(summary);

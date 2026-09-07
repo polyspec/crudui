@@ -97,7 +97,15 @@ Expand "Stage comparisons and original HTML" to inspect each category and downlo
 the evidence or individual HTML files. Raw HTML and parsed DOM have separate
 results; attribute order differences remain visible.
 For repeatable headless browser checks, install the repository dependencies and
-Puppeteer's Chrome, then run:
+Puppeteer's Chrome.
+The runner executes one API server per browser protocol call and combines the
+reports afterward. Each call keeps the 15-minute timeout. A stopped run retains
+completed reports; it does not establish complete verification.
+Complete report files and downloads use compact JSON because indentation of the
+nested DOM snapshots exceeds the runtime string limit. Stage files remain
+indented. Both formats preserve the complete snapshot values and HTML strings.
+
+Run:
 
 ```sh
 npm ci
