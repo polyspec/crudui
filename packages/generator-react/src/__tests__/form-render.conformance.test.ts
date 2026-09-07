@@ -1,3 +1,4 @@
+import { compileForm } from '@crudui/generator-core';
 /**
  * form-render conformance — React reference verification.
  *
@@ -35,7 +36,7 @@ interface FixtureCase {
 const cases = fixtureCases as unknown as FixtureCase[];
 
 function render(c: FixtureCase): string {
-  return renderForm(c.spec, { ...(c.options ?? {}), data: c.data });
+  return renderForm(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
 describe('current render — React reproduces the normalized expected_html', () => {

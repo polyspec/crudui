@@ -166,7 +166,7 @@ services:
       - ../packages/generator-legacy/legacy/vendor:/var/www/vendor:ro
       # 로컬 legacy 소스 체크아웃을 composer 패키지 경로로 중첩 마운트.
       # legacy/framework a47ccba 핀 — tools/legacy-baseline/README.md 참조.
-      - /path/to/ai/gui/legacy:/var/www/vendor/legacy/framework:ro
+      - ${LEGACY_SRC:?Set LEGACY_SRC to the source checkout directory}:/var/www/vendor/legacy/framework:ro
       - ./legacy-original/public/index.php:/var/www/html/index.php:ro
       # 스펙은 shared-specs 단일 소스에서 마운트 (legacy-original/specs 사본은 제거됨)
       - ./shared-specs:/var/www/specs:ro

@@ -210,8 +210,8 @@ HEAD 가드로 즉시 중단한다. 상세는 `tools/legacy-baseline/README.md` 
 
 ```bash
 # 1. 핀 확인 (clean tree + 핀 커밋)
-git -C /path/to/ai/gui/legacy rev-parse HEAD      # a47ccba... 여야 함
-git -C /path/to/ai/gui/legacy status --porcelain  # 출력 없어야 함
+git -C $LEGACY_SRC rev-parse HEAD      # a47ccba... 여야 함
+git -C $LEGACY_SRC status --porcelain  # 출력 없어야 함
 
 # 2. 전체 재생성
 bash tools/legacy-baseline/generate-all.sh

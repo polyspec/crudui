@@ -1,39 +1,24 @@
 # @crudui/generator-react
 
-React form builder for crudui definitions. Two surfaces:
+[한국어](README.ko.md).
 
-- legacy (`src/index.ts`) — `FormBuilder` and the legacy field/group components,
-  byte-parity with the Legacy PHP `Generator::write()` reference fixtures.
-- CRUDUI (`src/index.ts`) — the REFERENCE adapter for the CRUDUI pipeline: compose →
-  evaluate (shared `@crudui/generator-core`) → JSX SSR. Every node is a real
-  JSX element (no string-builder, no `dangerouslySetInnerHTML` echo of completed
-  HTML). It is the parity baseline the Vue/Svelte adapters are checked against.
+React rendering for prepared form templates and editable sessions.
 
-## CRUDUI entry points (`src`)
+```ts
+import { compileForm, createFormSession, FormSessionView } from '@crudui/generator-react';
 
-- `renderForm(rootSpec, options)` → SSR HTML of the form CONTENT (no `<form>`
-  wrapper). Root must be a group with `properties`; composition is expanded
-  first. Throws `ComposeLoadError` on an unresolved `$ref`,
-  `UnsupportedFieldTypeError` on an un-ported type.
-- `renderList(listSpec, rows, options)` → SSR HTML of a list (SPEC §9, read
-  sister). `rows` are INJECTED (DB-agnostic); cells are DISPLAY values, never
-  inputs. `options.layout` is `'table'` (default) or `'card'`.
-- Components: `Form`, `Field`, `Widget`, `List`, `Cell`. Core re-exports:
-  `buildForm`, `buildList`, and the view-model types.
-
-## legacy usage
-
-```tsx
-import { FormBuilder } from '@crudui/generator-react';
-
-<FormBuilder spec={spec} data={{}} language="ko" />
+const template = compileForm({
+  type: 'group', properties: { name: { type: 'text' } },
+});
+const session = createFormSession(template);
+session.setData({ name: 'Example' });
 ```
 
-`spec` accepts a parsed object or a YAML string. `FormBuilder` renders the form
-CONTENT (the host page owns the surrounding chrome).
+Render `FormSessionView` with the `session` prop. Compile once per shared template and create a session per form instance.
+Use `bindForm(template, data)` to evaluate fields without creating an editable session.
 
-## Test
+- [Runtime contract](../../docs/spec/form-runtime.md)
+- [Setup, nested rows and verification](../../docs/operations/forms.md)
+- [Feature status](../../docs/features.md)
 
-```
-npm test     # vitest — legacy parity fixtures + CRUDUI render/list conformance
-```
+Run `npm run test:forms` from the repository root to build and test all adapters.

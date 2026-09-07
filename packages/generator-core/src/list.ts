@@ -1,28 +1,4 @@
-/**
- * list-spec view-model builder (framework-agnostic core) — markup 0, the read
- * sister of buildForm (schema §9.3). Where `buildForm(spec) → FieldViewModel[]`
- * turns a create/write spec into an input field tree, `buildList(listSpec, rows,
- * ctx) → ListViewModel` turns a read/list spec into a column+cell display model.
- *
- * It shares the CRUDUI engine 100%: the SAME compose pass (validator
- * composeProperties expands `$ref`/`$patch` on the columns map and per-column),
- * the SAME expression engine (expr.ts evalShow for column visibility / cell
- * design condition maps), the SAME design resolver (design.ts resolveDesign on
- * every column + cell node), the SAME i18n translator (content.ts makeTranslate
- * for headers / empty / cell content). The ONLY new code is the read cell
- * renderer (cell.ts) — the symmetric of widget.ts.
- *
- * DB-agnostic (SPEC §9): `rows` are INJECTED (a builder argument). Search, sort,
- * and pagination are DECLARED only; their real application (query ORDER BY /
- * offset / limit / filter) is the server's job and out of scope (SPEC §6 R1 read
- * correspondence — the spec preserves and declares, the runtime executes).
- * buildList performs zero DB access; it reads cell values from the injected rows
- * by the column `field` path.
- *
- * The core runs compose → expression/condition-map evaluation → i18n resolution
- * ONCE and emits a markup-0 view model; React/Vue/Svelte adapters assemble the
- * element tree and recompute nothing (parity gate, G-C). eval is never called.
- */
+/** Evaluate list declarations and supplied records for framework renderers. */
 
 import {
   composeProperties,
@@ -75,6 +51,7 @@ export interface CellVM {
 
 /** A resolved row: one cell per visible column. */
 export interface RowVM {
+  /** Cells in visible column order. */
   cells: CellVM[];
 }
 
@@ -82,7 +59,9 @@ export interface RowVM {
 export interface PaginationVM {
   /** false when paging is off. */
   enabled: boolean;
+  /** Declared number of rows per page. */
   perPage?: number;
+  /** Declared pagination mode. */
   mode?: string;
   /** Current page (injected meta, never derived from the spec). */
   page?: number;
@@ -92,7 +71,9 @@ export interface PaginationVM {
 
 /** Resolved sort declaration. */
 export interface SortVM {
+  /** Data field to sort. */
   field: string;
+  /** Sort direction. */
   dir: 'asc' | 'desc';
 }
 
@@ -142,7 +123,12 @@ export interface BuildListOptions {
    */
   data?: Record<string, unknown>;
   /** Injected pagination meta (current page / total) — DB-agnostic passthrough. */
-  pageMeta?: { page?: number; total?: number };
+  pageMeta?: {
+    /** Current page. */
+    page?: number;
+    /** Total record count. */
+    total?: number;
+  };
   /** $ref file set for composition (virtual in-memory loader). */
   files?: Record<string, Record<string, unknown>>;
   /** A custom loader (overrides `files`). */

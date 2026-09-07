@@ -146,6 +146,7 @@ function checkboxEnvelopeVNode(vm: FieldViewModel): VNode {
               name: vm.checkboxName,
               type: 'checkbox',
               value: '1',
+              ...(vm.checkboxChecked ? { checked: true } : {}),
             }),
             h('span', {}, vm.label),
           ]),
@@ -195,6 +196,7 @@ function multipleLeafRowVNode(row: RowVM, vm: FieldViewModel): VNode {
       // Root-raw control under the row wrapper → inject + buttons as siblings is
       // impossible (innerHTML owns children); buttons are appended into the raw.
       return h('div', {
+        key: row.uniqid,
         class: row.wrapperClass,
         'data-uniqid': row.uniqid,
         innerHTML: raw + rowButtonsHtml(vm),
@@ -203,7 +205,7 @@ function multipleLeafRowVNode(row: RowVM, vm: FieldViewModel): VNode {
     children.push(Widget(row.widget));
   }
   children.push(...rowButtonVNodes(vm));
-  return h('div', { class: row.wrapperClass, 'data-uniqid': row.uniqid }, children);
+  return h('div', { key: row.uniqid, class: row.wrapperClass, 'data-uniqid': row.uniqid }, children);
 }
 
 function multipleLeafFieldVNode(vm: FieldViewModel): VNode {
@@ -213,13 +215,14 @@ function multipleLeafFieldVNode(vm: FieldViewModel): VNode {
     h(
       'div',
       { class: 'form-element' },
-      (vm.rows ?? []).map((row) => multipleLeafRowVNode(row, vm))
+      vm.rows?.length === 0 ? [h('button', { type: 'button', class: 'btn btn-plus' }, ' ')]
+        : (vm.rows ?? []).map((row) => multipleLeafRowVNode(row, vm))
     ),
   ]);
 }
 
 function multipleGroupRowVNode(row: RowVM, vm: FieldViewModel): VNode {
-  return h('div', { class: row.wrapperClass, 'data-uniqid': row.uniqid }, [
+  return h('div', { key: row.uniqid, class: row.wrapperClass, 'data-uniqid': row.uniqid }, [
     h('div', { class: row.groupClass }, (row.children ?? []).map((c) => fieldVNode(c))),
     h('span', { class: 'btn-group input-group-btn' }, rowButtonVNodes(vm)),
   ]);
@@ -232,7 +235,8 @@ function multipleGroupFieldVNode(vm: FieldViewModel): VNode {
     h(
       'div',
       { class: 'form-element' },
-      (vm.rows ?? []).map((row) => multipleGroupRowVNode(row, vm))
+      vm.rows?.length === 0 ? [h('button', { type: 'button', class: 'btn btn-plus' }, ' ')]
+        : (vm.rows ?? []).map((row) => multipleGroupRowVNode(row, vm))
     ),
   ]);
 }

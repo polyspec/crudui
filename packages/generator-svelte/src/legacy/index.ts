@@ -43,3 +43,4 @@ export { applyLangAppendTransform } from './legacyLang';
 export * from './components/fields/legacyParity';
 export { makeTranslate } from './i18n';
 export type { Language, MultiLangText } from './i18n';
+
