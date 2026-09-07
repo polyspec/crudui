@@ -36,6 +36,12 @@ was run.
 
 ## Form initialization inspector
 
+The shared DOM binding now fixes the `checked` attribute position during both
+initial rendering and updates. The full HTML restoration regression failed in
+React and Vue before this correction; all 1,405 generator tests and 18 inspector
+tests pass afterward. The browser results below still refer to source `adfc051`;
+container verification of the correction is pending.
+
 On 2026-09-08, generator builds and 1,405 tests passed: core 25, React 690,
 Vue 343, Svelte 345 and Svelte client 2. Shared mounted tests compare initial data,
 three repeated injections, visibility changes and record restoration. The React
