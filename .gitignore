@@ -54,3 +54,6 @@ tools/bin/.phpdoc-cache/
 scripts/corpus-v2-result.json
 scripts/corpus-v2-classified.json
 scripts/corpus-v2-verify.json
+
+# Local form comparison containers, source archives and JSON records
+.form-comparison/

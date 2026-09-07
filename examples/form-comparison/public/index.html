@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Polyspec · Nested forms</title><link rel="stylesheet" href="/comparison.css"></head>
+<body class="comparison">
+  <header class="page-header"><span class="brand">POLYSPEC</span><a id="language" href="?lang=en">English</a><h1 id="title"></h1><p id="intro"></p></header>
+  <nav class="actions"><label for="framework" id="framework-label"></label><select id="framework"><option value="react">React</option><option value="vue">Vue</option><option value="svelte">Svelte</option></select><button id="all-checks"></button><button id="download" disabled></button><span id="progress" role="status"></span></nav>
+  <p id="manual"></p>
+  <nav class="actions"><label for="variant" id="comparison-label"></label><select id="variant"><option value="original-keyed"></option><option value="original"></option></select></nav>
+  <details><summary id="source-label"></summary><pre id="source"></pre></details>
+  <section id="report" aria-live="polite"></section>
+  <main class="frames"><iframe id="original" title="Original library form"></iframe><iframe id="keyed" title="13-character form"></iframe></main>
+  <script type="module" src="/main.mjs"></script>
+</body>
+</html>
