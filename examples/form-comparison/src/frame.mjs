@@ -8,6 +8,8 @@ import { encodeJson, readJson } from './json.mjs';
 const mode = __FORM_MODE__;
 const framework = __FRAMEWORK__;
 const keyed = mode !== 'original';
+const server = new URLSearchParams(location.search).get('server') ?? 'php';
+if (!['php', 'go', 'rust'].includes(server)) throw new Error('Unknown server');
 const language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'ko';
 const t = translations(language);
 const form = document.querySelector('#form');
@@ -20,10 +22,10 @@ let validation;
 let running = false;
 
 for (const id of ['load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks']) document.querySelector(`#${id}`).textContent = t[id];
-for (const id of ['results', 'names', 'state', 'php']) document.querySelector(`#${id}-label`).textContent = t[id];
+for (const id of ['results', 'names', 'state', 'server-data']) document.querySelector(`#${id}-label`).textContent = t[id];
 document.querySelector('#transport-label').textContent = t.transportLabel;
 for (const option of transport.options) option.textContent = t[`${option.value}Transport`];
-document.querySelector('#revision').textContent = `${t[mode]} · ${framework}`;
+document.querySelector('#revision').textContent = `${t[mode]} · ${t.serverNames[server]} · ${framework}`;
 document.querySelector('#commit').textContent = __SOURCE_COMMIT__;
 document.querySelector('#method').textContent = t[mode === 'original' ? 'originalNote' : mode === 'original-keyed' ? 'originalKeyedNote' : mode === 'corrected' ? 'correctedNote' : 'keyedNote'];
 document.querySelector('#save-note').textContent = t.saveNote;
@@ -64,13 +66,13 @@ function inspect() {
   document.querySelector('#count').textContent = `${t.count}: ${companies().length}`;
 }
 async function request(action, body, json = false) {
-  const response = await fetch(`/api/${action}/${mode}/${framework}`, {
+  const response = await fetch(`/api/${server}/${action}/${mode}/${framework}`, {
     method: action === 'load' ? 'GET' : 'POST',
     ...(body ? { body: json ? encodeJson({ form: body }) : body } : {}),
     ...(json ? { headers: { 'Content-Type': 'application/json' } } : {}),
   });
   const result = await readJson(response);
-  document.querySelector('#php').textContent = JSON.stringify({ status: response.status, ...result }, null, 2);
+  document.querySelector('#server-data').textContent = JSON.stringify({ status: response.status, ...result }, null, 2);
   return { status: response.status, ...result };
 }
 function nativeData(data) {
@@ -286,16 +288,17 @@ const checks = [
     const second = await save();
     same(second.storage, result.storage, 'second save must retain IDs and records');
   }],
-  ['phpValid', async () => {
+  ['serverValid', async () => {
     const result = await submit();
-    equal(result.status, 200, 'PHP status');
-    equal(result.validatorSource, ['corrected', 'keyed'].includes(mode) ? mode : 'original', 'matching PHP validator revision');
-    equal(result.validation.valid, true, 'PHP validation');
+    equal(result.status, 200, 'server status');
+    equal(result.validatorSource, ['corrected', 'keyed'].includes(mode) ? mode : 'original', 'matching server validator revision');
+    equal(result.validation.valid, true, 'server validation');
     equal(result.transport, transport.value === 'json' ? 'application/json' : 'multipart/form-data', 'selected submission content type');
-    equal(result.jsonProcessor, 'ordered-json', 'PHP JSON processor');
-    equal(Object.values(Object.values(result.received.companies)[0].stores)[0].name, 'Seoul', 'PHP nested name');
+    equal(result.jsonProcessor, 'ordered-json', 'server JSON processor');
+    equal(result.server, server, 'selected server implementation');
+    equal(Object.values(Object.values(result.received.companies)[0].stores)[0].name, 'Seoul', 'server nested name');
   }],
-  ['phpInvalid', async () => {
+  ['serverInvalid', async () => {
     const before = await request('load');
     await edit(storeName(stores(companies()[0])[0]), '');
     const data = driver.getData();
@@ -305,7 +308,7 @@ const checks = [
     equal(stopped.status, null, 'invalid save stops before transmission');
     const result = await submit('save');
     equal(result.status, 422, 'invalid save status');
-    same(client, result.validation, 'JS and PHP validation results');
+    same(client, result.validation, 'JS and server validation results');
     const hiddenSpec = structuredClone(spec);
     hiddenSpec.properties.companies.properties.stores.properties.name.design = { show: false };
     await mount(data, hiddenSpec);
@@ -316,7 +319,7 @@ const checks = [
     const hiddenServer = await submit('save');
     equal(hiddenServer.status, 422, 'hidden required input fails on server');
     same(hiddenServer.validation, client, 'server ignores display when validating');
-    equal(result.validation.valid, false, 'PHP required validation');
+    equal(result.validation.valid, false, 'server required validation');
     assert(result.validation.errors.some(error => String(error.path).endsWith('.name') && error.rule === 'required'), 'Expected required error at store name');
     same((await request('load')).storage, before.storage, 'stored data after invalid save');
   }],
@@ -486,7 +489,7 @@ const checks = [
     const json = await request('save', data, true);
     equal(json.status, 200, 'JSON save status');
     equal(json.transport, 'application/json', 'JSON request type');
-    equal(json.jsonProcessor, 'ordered-json', 'ordered PHP processing');
+    equal(json.jsonProcessor, 'ordered-json', 'ordered server processing');
     same(json.storage, native.storage, 'identical records, IDs, parents and positions');
     same(json.keyChanges, native.keyChanges, 'identical saved-key changes');
     equal(encodeJson(json.data), encodeJson(native.data), 'identical loaded values, types and row order');
@@ -505,7 +508,7 @@ const checks = [
       ['{"form":{},"number":9007199254740993}', 'application/json', 400],
       ['{}', 'text/plain', 415],
     ]) {
-      const response = await fetch(`/api/save/${mode}/${framework}`, {
+      const response = await fetch(`/api/${server}/save/${mode}/${framework}`, {
         method: 'POST', headers: { 'Content-Type': type }, body,
       });
       const result = await readJson(response);
@@ -530,11 +533,11 @@ const checks = [
     equal(view.querySelectorAll('input[type=hidden]').length, 0, 'keyed input uses no hidden sequence fields');
     equal(storeName(stores(companies()[0])[0]).name, 'form[companies][__0000000000005__][stores][__0000000000005__][name]', 'keyed name from the selected renderer');
     const fields = new FormData(form); fields.append('_form_complete', '1');
-    const response = await fetch(`/api/validate/${mode === 'original' ? 'original-keyed' : mode}/${framework}`, { method: 'POST', body: fields });
+    const response = await fetch(`/api/${server}/validate/${mode === 'original' ? 'original-keyed' : mode}/${framework}`, { method: 'POST', body: fields });
     const result = await readJson(response);
-    equal(response.status, 200, 'PHP status for keyed names');
+    equal(response.status, 200, 'server status for keyed names');
     equal(result.validatorSource, ['corrected', 'keyed'].includes(mode) ? mode : 'original', 'matching validator source revision');
-    equal(result.validation.valid, true, 'PHP validation of keyed names');
+    equal(result.validation.valid, true, 'server validation of keyed names');
     same(result.normalized, keyedData, 'keyed native values without hidden sequence fields');
     same(Object.keys(result.normalized.companies), Object.keys(keyedData.companies), 'native keyed document order');
   }],
@@ -582,7 +585,7 @@ async function runChecks(method = transport.value) {
       output.append(line);
     }
     await reset();
-    const report = { mode, framework, transport: method, commit: __SOURCE_COMMIT__, results };
+    const report = { server, mode, framework, transport: method, commit: __SOURCE_COMMIT__, results };
     window.comparison.lastReport = report;
     return report;
   } finally { running = false; transport.disabled = false; }
@@ -596,8 +599,8 @@ function action(id, fn) {
 }
 action('load', load);
 action('blank', () => mount());
-action('save', async () => { const result = await save(); if (result.status !== null) document.querySelector('#php-details').open = true; });
-action('validate', async () => { if (validation.validate(driver.getData()).valid) { await submit(); document.querySelector('#php-details').open = true; } });
+action('save', async () => { const result = await save(); if (result.status !== null) document.querySelector('#server-data-details').open = true; });
+action('validate', async () => { if (validation.validate(driver.getData()).valid) { await submit(); document.querySelector('#server-data-details').open = true; } });
 action('reset', () => reset());
 action('nonsequential', () => reset('nonsequential'));
 action('checks', runChecks);
@@ -610,4 +613,4 @@ form.addEventListener('submit', async event => {
 for (const name of ['input', 'change', 'click']) view.addEventListener(name, async () => { await settle(); inspect(); });
 await mount();
 await load();
-window.comparison = { runChecks, reset, inspect, submit, save, load, mode, framework, commit: __SOURCE_COMMIT__ };
+window.comparison = { runChecks, reset, inspect, submit, save, load, server, mode, framework, commit: __SOURCE_COMMIT__ };

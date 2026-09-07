@@ -11,15 +11,15 @@ final class FormRepository
     /** Return the initial database-shaped records. */
     public static function seed(): array
     {
-        return [
-            'next' => ['company' => 2, 'store' => 3, 'department' => 2],
-            'companies' => [['company_seq' => '1', 'name' => 'Company A', 'position' => 0]],
-            'stores' => [
-                ['store_seq' => '1', 'company_seq' => '1', 'position' => 0, 'name' => 'Seoul', 'enabled' => '1', 'detail' => 'First store', 'title' => ['ko' => '서울', 'en' => 'Seoul']],
-                ['store_seq' => '2', 'company_seq' => '1', 'position' => 1, 'name' => 'Busan', 'enabled' => '', 'detail' => '', 'title' => ['ko' => '부산', 'en' => 'Busan']],
-            ],
-            'departments' => [['department_seq' => '1', 'store_seq' => '1', 'position' => 0, 'name' => 'Sales']],
-        ];
+        return self::fixture('default');
+    }
+
+    /** Read the shared stored-record fixture. */
+    private static function fixture(string $name): array
+    {
+        $fixtures = FormJson::arrays(FormJson::decode(file_get_contents(__DIR__ . '/fixtures/records.json')));
+        if (!array_key_exists($name, $fixtures)) throw new InvalidArgumentException('Unknown fixture');
+        return $fixtures[$name];
     }
 
     /** Read records under the file lock, creating initial data when necessary. */
@@ -31,35 +31,8 @@ final class FormRepository
     /** Reset only this revision/framework repository. */
     public function reset(string $fixture = 'default'): array
     {
-        $state = match ($fixture) {
-            'default' => self::seed(),
-            'populated' => self::populatedSeed(),
-            'nonsequential' => self::nonsequentialSeed(),
-            default => throw new InvalidArgumentException('Unknown fixture'),
-        };
+        $state = self::fixture($fixture);
         return $this->transaction(static fn(array $before): array => [$state, $state]);
-    }
-
-    /** Populate each repeated level so row-operation checks are independent of empty rendering. */
-    private static function populatedSeed(): array
-    {
-        $state = self::seed();
-        $state['departments'][] = ['department_seq' => '2', 'store_seq' => '2', 'position' => 0, 'name' => 'Support'];
-        $state['next']['department'] = 3;
-        return $state;
-    }
-
-    /** Stored identity order is independent of sequence magnitude. */
-    private static function nonsequentialSeed(): array
-    {
-        $state = ['next' => ['company' => 8, 'store' => 8, 'department' => 8], 'companies' => [], 'stores' => [], 'departments' => []];
-        foreach (['5', '7', '1'] as $position => $sequence) {
-            $state['companies'][] = ['company_seq' => $sequence, 'name' => "Company $sequence", 'position' => $position];
-            $state['stores'][] = ['store_seq' => $sequence, 'company_seq' => $sequence, 'position' => 0,
-                'name' => "Store $sequence", 'enabled' => '1', 'detail' => "Notes $sequence", 'title' => ['ko' => $sequence, 'en' => $sequence]];
-            $state['departments'][] = ['department_seq' => $sequence, 'store_seq' => $sequence, 'position' => 0, 'name' => "Department $sequence"];
-        }
-        return $state;
     }
 
     /** Convert stored sequences to the 13-digit transport key. */
@@ -131,6 +104,7 @@ final class FormRepository
                 $store['detail'] = self::text($store['detail'] ?? '');
                 $title = $store['title'] ?? [];
                 if (!is_array($title) || ($title !== [] && array_is_list($title))) throw new InvalidArgumentException('Expected language object');
+                foreach (array_keys($title) as $language) if (!in_array($language, ['ko', 'en'], true)) throw new InvalidArgumentException('Expected ko or en title field');
                 $store['title'] = ['ko' => self::text($title['ko'] ?? ''), 'en' => self::text($title['en'] ?? '')];
                 $store['departments'] = self::rows(array_key_exists('departments', $store) ? $store['departments'] : [], $mode, "companies.$companyKey.stores.$storeKey.departments");
                 foreach ($store['departments'] as &$department) $department['name'] = self::text($department['name'] ?? '');
@@ -181,11 +155,11 @@ final class FormRepository
         }
     }
 
-    /** Convert a scalar request field to its stored string value. */
+    /** Require string fields and normalize omitted or null controls. */
     private static function text(mixed $value): string
     {
-        if (!is_scalar($value) && $value !== null) throw new InvalidArgumentException('Expected scalar field value');
-        return (string) $value;
+        if ($value !== null && !is_string($value)) throw new InvalidArgumentException('Expected string field value');
+        return $value ?? '';
     }
 
     /** Resolve existing ownership or allocate a new sequence for one row. */
