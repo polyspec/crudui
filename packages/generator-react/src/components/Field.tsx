@@ -17,7 +17,7 @@
 import * as React from 'react';
 import type { FieldViewModel, RowVM, WidgetModel, UnsupportedVM } from '@crudui/generator-core';
 import { Widget, widgetRootRaw } from './Widget';
-import { styleObject } from './attrs';
+import { resolvedStyleProps, styleObject } from './attrs';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -42,7 +42,7 @@ function wrapperProps(vm: FieldViewModel): Record<string, unknown> {
   return {
     className: wrapperClass(vm),
     name: vm.wrapperName,
-    ...(style ? { style } : {}),
+    ...resolvedStyleProps(style),
   };
 }
 
@@ -51,7 +51,7 @@ function Label({ vm }: { vm: FieldViewModel }): React.ReactElement | null {
   const cls = vm.design.label.class;
   const style = styleObject(vm.design.label.style);
   return (
-    <h6 {...(cls ? { className: cls } : {})} {...(style ? { style } : {})}>
+    <h6 {...(cls ? { className: cls } : {})} {...resolvedStyleProps(style)}>
       {vm.label}
     </h6>
   );
@@ -182,7 +182,7 @@ function GroupField({ vm }: { vm: FieldViewModel }): React.ReactElement {
         <div className={inputGroupWrapperClass(vm)} data-uniqid={vm.uniqid}>
           <div
             className={vm.groupClass}
-            {...(styleObject(vm.groupStyle) ? { style: styleObject(vm.groupStyle) } : {})}
+            {...resolvedStyleProps(styleObject(vm.groupStyle))}
           >
             {(vm.children ?? []).map((c) => (
               <Field key={c.path} vm={c} />

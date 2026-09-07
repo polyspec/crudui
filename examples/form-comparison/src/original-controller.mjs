@@ -11,9 +11,10 @@ function newKey(rows) {
 }
 
 /** Example application binding and row operations over the original rendering interface. */
-export function originalController(element, mount, spec, language, keyed = false) {
-  let data = {};
-  const renderer = mount(element, spec, language);
+export function originalController(element, mount, spec, language, keyed = false, initialData = {}) {
+  let data = keyed ? prepare(structuredClone(initialData), spec) : structuredClone(initialData);
+  const renderer = mount(element, spec, language, data);
+  synchronizeControls();
   let pending = Promise.resolve();
   let inputVersion = 0;
 
@@ -89,12 +90,7 @@ export function originalController(element, mount, spec, language, keyed = false
     data = structuredClone(next);
     await renderer.load(data);
     if (version !== inputVersion) return;
-    for (const input of element.querySelectorAll('input[name],textarea[name],select[name]')) {
-      const path = parts(input.name);
-      const value = valueAt(data, path) ?? fieldAt(path).default ?? '';
-      if (input.type === 'checkbox') input.checked = String(value) === input.value;
-      else if (input.value !== String(value)) input.value = String(value);
-    }
+    synchronizeControls();
     if (focus) {
       let active = focusedName
         ? Array.from(element.querySelectorAll('[name]')).find(input => input.getAttribute('name') === focusedName)
@@ -104,6 +100,14 @@ export function originalController(element, mount, spec, language, keyed = false
       active?.focus({ preventScroll: true });
       if (focus.start != null && active?.setSelectionRange) active.setSelectionRange(focus.start, focus.end, focus.direction);
       for (const [parent, top, left] of focus.scroll) { parent.scrollTop = top; parent.scrollLeft = left; }
+    }
+  }
+  function synchronizeControls() {
+    for (const input of element.querySelectorAll('input[name],textarea[name],select[name]')) {
+      const path = parts(input.name);
+      const value = valueAt(data, path) ?? fieldAt(path).default ?? '';
+      if (input.type === 'checkbox') input.checked = String(value) === input.value;
+      else if (input.value !== String(value)) input.value = String(value);
     }
   }
   function clearSequences(row, field) {

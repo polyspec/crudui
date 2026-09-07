@@ -20,6 +20,18 @@ instance state and must not be stored in a shared template cache.
 replaces the record after mounting, including previously edited input values.
 The template remains unchanged. `getData()` returns detached submission data.
 
+The template and browser HTML, CSS and JavaScript can be served as static files.
+The browser can mount a form before requesting record data; server-side rendering
+is not required. For the same template, record and language, creating a session
+with data and injecting that data after mounting must produce identical form
+HTML, classes, computed styles, visibility, control state and submitted fields.
+Repeated injection of the same data must preserve that result. The same user
+actions must produce the same state and submissions under the same row-key inputs.
+Removing a resolved inline style must remove the `style` attribute when no
+declarations remain. Data injection must not leave attributes from an earlier
+record. Replacing data with another record and restoring it must restore the
+same elements, attributes, control values and visibility.
+
 ## Row identity
 
 Repeated data uses objects keyed by row identity. A key identifies a row only
