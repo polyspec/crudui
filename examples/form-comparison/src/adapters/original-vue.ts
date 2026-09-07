@@ -1,4 +1,4 @@
-import { createApp, shallowRef } from 'vue';
+import { createApp, shallowRef, nextTick } from 'vue';
 import { originalBinding } from '../original-binding.mjs';
 import { Form } from '#vue/Form';
 
@@ -9,7 +9,7 @@ export function mountView(element, spec, language) {
   app.mount(element);
   return {
     ...binding,
-    load: (data) => { fields.value = binding.build(data); },
+    load: (data) => { fields.value = binding.build(data); return nextTick(); },
     dispose: () => app.unmount(),
   };
 }
