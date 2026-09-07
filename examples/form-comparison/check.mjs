@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { checkInteraction } from './check-interaction.mjs';
@@ -7,6 +8,14 @@ import { checkInteraction } from './check-interaction.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const output = path.join(root, '.form-comparison/results');
 await mkdir(output, { recursive: true });
+if (existsSync(path.join(output, 'report.json'))) {
+  const previous = JSON.parse(await readFile(path.join(output, 'report.json'), 'utf8'));
+  const stamp = previous.generatedAt.replaceAll(':', '-');
+  for (const file of ['report.json', 'forms.png', 'comparison.png']) {
+    const source = path.join(output, file);
+    if (existsSync(source)) await copyFile(source, path.join(output, `${path.parse(file).name}-${stamp}${path.extname(file)}`));
+  }
+}
 const browser = await puppeteer.launch({ headless: true });
 try {
   const page = await browser.newPage();
@@ -16,7 +25,7 @@ try {
   const initialMounts = new Map();
   await page.setRequestInterception(true);
   page.on('request', async request => {
-    const match = request.url().match(/\/api\/load\/(original-keyed|original|keyed)\/(react|vue|svelte)$/);
+    const match = request.url().match(/\/api\/load\/(corrected|original-keyed|original|keyed)\/(react|vue|svelte)$/);
     const key = match?.slice(1).join('/');
     if (key && !initialMounts.has(key)) {
       const result = { mode: match[1], framework: match[2], passed: false };
@@ -43,8 +52,8 @@ try {
     for (const check of result.results.filter(item => !item.passed)) process.stdout.write(`  FAIL ${check.id}: ${check.error}\n`);
   }
   if (errors.length) process.stdout.write(`Browser errors: ${JSON.stringify(errors)}\n`);
-  const complete = report.reports.length === 9 &&
-    report.reports.every(result => result.results.length === 17) && report.interactions.length === 27 && report.initialMounts.length === 9;
+  const complete = report.reports.length === 12 &&
+    report.reports.every(result => result.results.length === 17) && report.interactions.length === 54 && report.initialMounts.length === 12;
   const failed = report.reports.some(result => result.results.some(check => !check.passed));
   if (!complete) process.stderr.write('Comparison results are incomplete.\n');
   for (const result of report.initialMounts) process.stdout.write(`${result.mode}/${result.framework}/mount-before-load: ${result.passed ? 'PASS' : `FAIL ${result.error}`}\n`);

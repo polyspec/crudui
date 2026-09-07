@@ -14,9 +14,10 @@ const publicDir = `${workspace}/public`;
 await mkdir(publicDir, { recursive: true });
 await cp(`${exampleDir}/public`, publicDir, { recursive: true });
 await writeFile(`${publicDir}/metadata.json`, JSON.stringify(metadata, null, 2));
-for (const mode of ['original', 'original-keyed', 'keyed']) {
+for (const mode of ['corrected', 'original', 'original-keyed', 'keyed']) {
   await writeFile(`${publicDir}/spec-${mode}.json`, JSON.stringify(specFor(mode), null, 2));
-  const revision = mode === 'keyed' ? 'keyed' : 'original';
+  const revision = ['corrected', 'keyed'].includes(mode) ? mode : 'original';
+  const adapter = mode === 'keyed' ? 'keyed' : 'original';
   const source = `${workspace}/${revision}/packages`;
   for (const framework of ['react', 'vue', 'svelte']) {
     await build({
@@ -28,7 +29,8 @@ for (const mode of ['original', 'original-keyed', 'keyed']) {
       resolve: {
         dedupe: ['react', 'react-dom', 'vue', 'svelte'],
         alias: {
-          '#adapter': `${exampleDir}/src/adapters/${revision}-${framework}.${framework === 'react' ? 'tsx' : 'ts'}`,
+          '#adapter': `${exampleDir}/src/adapters/${adapter}-${framework}.${framework === 'react' ? 'tsx' : 'ts'}`,
+          '#validator': `${source}/validator-ts/src/v2/validate/index.ts`,
           '#react': `${source}/generator-react/src/v2/components`,
           '#vue': `${source}/generator-vue/src/v2/components`,
           '#svelte': `${source}/generator-svelte/src/v2/components`,

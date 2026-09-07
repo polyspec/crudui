@@ -2,9 +2,11 @@
 
 [한국어](README.ko.md).
 
-Compare identical keyed data using the original public functions with example
+Compare identical keyed data using the corrected original renderer with example
 row operations and cached binding, and the current 13-character runtime. The
-earlier array diagnostic remains selectable. React, Vue and Svelte submit real forms
+unchanged original keyed renderer and earlier array diagnostic remain selectable.
+User submissions run the existing JavaScript validator before transmission; PHP
+validates independently. React, Vue and Svelte submit real forms
 to PHP and reload persisted company, store and department records from JSON.
 
 Run from the repository root:

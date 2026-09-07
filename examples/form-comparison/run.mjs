@@ -10,7 +10,7 @@ const work = path.join(root, '.form-comparison');
 const context = path.join(work, 'context');
 const name = 'crudui-form-comparison';
 const image = 'localhost/crudui-form-comparison:1';
-const revisions = { original: 'main', keyed: 'main' };
+const revisions = { corrected: 'main', original: 'main', keyed: 'main' };
 const command = process.argv[2] ?? 'start';
 function container(args) {
   return new Promise((resolve, reject) => {
