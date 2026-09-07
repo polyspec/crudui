@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Focus after adding to an empty collection
+
+The browser binding identifies the empty collection's Add button by its wrapper.
+After the first row replaces that button, it restores focus to the Add button in
+the same collection with `preventScroll`.
+
+Verification: the shared mounted DOM scenario passed in React, Vue and Svelte;
+core type checking passed. Real browser verification is pending. Deployment:
+packages not published; the comparison example still uses its previous source snapshot.
+
 ## 2026-09-07 — Focus during row operations
 
 Row button pointer activation preserves input focus. DOM synchronization restores
