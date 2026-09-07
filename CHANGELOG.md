@@ -2,6 +2,31 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Form and ordered JSON transmission
+
+Each form can select native multipart or JSON transmission. Both formats run
+the same existing JavaScript/PHP validation and repository save. The JSON path
+uses ordered-json `deb1b354` for requests, responses and storage files. Separate
+transport modules convert its values to form records while preserving the
+13-character keys, document order and empty collection types. The container
+build includes the pinned source and displays its archive hash.
+
+Added complete lifecycle checks for both transmission choices, identical-data
+storage comparisons and malformed JSON rejection. Actual browser requests verify
+the selected Content-Type and JSON shape. Invalid browser values block both
+formats; invalid direct requests preserve stored records. Required/optional and
+display rules continue to use the existing validators.
+
+Verification at 11:35 UTC: corrected original and current runtime each passed
+19/19 in React, Vue and Svelte for both formats. All 108 real interaction checks,
+12 mount-before-load checks, JavaScript/PHP conversion checks and both repository
+checks passed. JavaScript, PHP, Go and Rust validation conformance and
+`make docs-check` passed. No browser page errors occurred. Unchanged original
+keyed diagnostics remain 17/19 and array diagnostics 15/19 in both formats;
+their existing failures remain recorded and the complete runner returns status 1.
+Deployment: local Apple container at `localhost:4317`; no package publication or
+remote deployment. Comparison sources and previous reports remain available.
+
 ## 2026-09-07 — JSON processor contract verification
 
 Added a reproducible check against ordered-json `deb1b354` for document member

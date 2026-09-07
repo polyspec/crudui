@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/json.php';
 
 /** File-backed company, store and department records for the form comparison example. */
 final class FormRepository
@@ -253,10 +254,10 @@ final class FormRepository
         try {
             $text = is_file($this->file) ? file_get_contents($this->file) : null;
             if ($text === false) throw new RuntimeException('Cannot read the JSON repository');
-            $before = $text === null ? self::seed() : json_decode($text, true, 512, JSON_THROW_ON_ERROR);
+            $before = $text === null ? self::seed() : FormJson::arrays(FormJson::decode($text));
             [$after, $result] = $operation($before);
             if ($text === null || $after !== $before) {
-                $json = json_encode($after, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
+                $json = FormJson::encode($after) . "\n";
                 $temporary = tempnam(dirname($this->file), '.form-');
                 if ($temporary === false) throw new RuntimeException('Cannot create the JSON repository file');
                 try {

@@ -8,6 +8,10 @@ unchanged original keyed renderer and earlier array diagnostic remain selectable
 User submissions run the existing JavaScript validator before transmission; PHP
 validates independently. React, Vue and Svelte submit real forms
 to PHP and reload persisted company, store and department records from JSON.
+Each frame supports native form and JSON transmission. Both use the same
+validation and storage. JSON requests, responses and stored files use ordered-json
+with the existing 13-character row keys and document order. Source metadata
+includes the pinned processor revision and archive hash.
 
 Run from the repository root:
 
