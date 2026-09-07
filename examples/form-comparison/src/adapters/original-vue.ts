@@ -1,0 +1,15 @@
+import { createApp, shallowRef } from 'vue';
+import { originalBinding } from '../original-binding.mjs';
+import { Form } from '#vue/Form';
+
+export function mountView(element, spec, language) {
+  const binding = originalBinding(spec, language);
+  const fields = shallowRef(binding.build({}));
+  const app = createApp({ render: () => Form(fields.value) });
+  app.mount(element);
+  return {
+    ...binding,
+    load: (data) => { fields.value = binding.build(data); },
+    dispose: () => app.unmount(),
+  };
+}
