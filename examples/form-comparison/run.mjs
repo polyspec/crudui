@@ -11,6 +11,7 @@ const context = path.join(work, 'context');
 const name = 'crudui-form-comparison';
 const image = 'localhost/crudui-form-comparison:1';
 const revisions = { corrected: 'main', original: 'main', keyed: 'main' };
+const orderedJson = { repository: 'https://github.com/polyspec/ordered-json', commit: 'main' };
 const command = process.argv[2] ?? 'start';
 function container(args) {
   return new Promise((resolve, reject) => {
@@ -30,6 +31,14 @@ if (command === 'stop') {
     await writeFile(path.join(context, `${mode}.tar`), archive);
     metadata[mode] = { commit, archiveSha256: createHash('sha256').update(archive).digest('hex') };
   }
+  const dependency = path.join(work, 'sources', 'ordered-json');
+  await mkdir(dependency, { recursive: true });
+  execFileSync('git', ['init', '--quiet', dependency]);
+  try { execFileSync('git', ['cat-file', '-e', `${orderedJson.commit}^{commit}`], { cwd: dependency, stdio: 'ignore' }); }
+  catch { execFileSync('git', ['fetch', '--quiet', '--depth=1', orderedJson.repository, orderedJson.commit], { cwd: dependency }); }
+  const archive = execFileSync('git', ['archive', orderedJson.commit], { cwd: dependency, maxBuffer: 100 * 1024 * 1024 });
+  await writeFile(path.join(context, 'ordered-json.tar'), archive);
+  metadata.orderedJson = { ...orderedJson, archiveSha256: createHash('sha256').update(archive).digest('hex') };
   await cp(exampleDir, path.join(context, 'example'), { recursive: true });
   await cp(path.join(exampleDir, 'Containerfile'), path.join(context, 'Containerfile'));
   await writeFile(path.join(context, 'metadata.json'), JSON.stringify(metadata, null, 2));

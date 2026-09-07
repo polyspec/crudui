@@ -8,7 +8,7 @@ function check(bool $condition, string $message): void
 }
 function formData(array $state, string $mode): array
 {
-    return json_decode(json_encode(FormRepository::loadData($state, $mode), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+    return FormJson::arrays(FormJson::decode(FormJson::encode(FormRepository::loadData($state, $mode))));
 }
 
 foreach (['original', 'keyed'] as $mode) {
@@ -50,7 +50,7 @@ foreach (['original', 'keyed'] as $mode) {
 
         file_put_contents($file, '{invalid');
         $rejected = false;
-        try { $repo->read(); } catch (JsonException) { $rejected = true; }
+        try { $repo->read(); } catch (SortJson\ParseError) { $rejected = true; }
         check($rejected && file_get_contents($file) === '{invalid', "$mode: invalid storage must not be replaced with seed data");
         echo "$mode: repository checks passed\n";
     } finally {
