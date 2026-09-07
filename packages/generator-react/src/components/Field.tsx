@@ -208,6 +208,7 @@ function MultipleLeafField({ vm }: { vm: FieldViewModel }): React.ReactElement {
       <Label vm={vm} />
       <Description vm={vm} />
       <div className="form-element">
+        {vm.rows?.length === 0 ? <button type="button" className="btn btn-plus" aria-label="+"> </button> : null}
         {(vm.rows ?? []).map((row, i) => (
           <MultipleLeafRow key={i} row={row} vm={vm} />
         ))}
@@ -237,6 +238,7 @@ function MultipleGroupField({ vm }: { vm: FieldViewModel }): React.ReactElement 
       <Label vm={vm} />
       <Description vm={vm} />
       <div className="form-element">
+        {vm.rows?.length === 0 ? <button type="button" className="btn btn-plus" aria-label="+"> </button> : null}
         {(vm.rows ?? []).map((row, i) => (
           <MultipleGroupRow key={i} row={row} vm={vm} />
         ))}
