@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 
 /** Use browser pointer and keyboard input to verify focus, scrolling and conditions. */
-export async function checkInteraction(page) {
+export async function checkInteraction(page, servers) {
   const results = [];
+  for (const server of servers) {
   for (const framework of ['react', 'vue', 'svelte']) {
     for (const originalMode of ['corrected', 'original-keyed', 'original']) {
-      await page.evaluate(([framework, originalMode]) => window.comparison.show(framework, originalMode), [framework, originalMode]);
+      await page.evaluate(([framework, originalMode, server]) => window.comparison.show(framework, originalMode, server), [framework, originalMode, server]);
       for (const frame of page.frames().filter(frame => frame.url().includes('/frames/'))) {
         const mode = await frame.evaluate(() => window.comparison.mode);
         if (mode === 'keyed' && originalMode !== 'corrected') continue;
@@ -41,7 +42,7 @@ export async function checkInteraction(page) {
                 await input.press('Backspace');
                 await frame.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
                 const requests = [];
-                const record = request => { if (request.url().endsWith(`/api/save/${mode}/${framework}`)) requests.push(request); };
+                const record = request => { if (request.url().endsWith(`/api/${server}/save/${mode}/${framework}`)) requests.push(request); };
                 page.on('request', record);
                 try {
                   await (await frame.$('#save')).click();
@@ -52,7 +53,7 @@ export async function checkInteraction(page) {
                   await (await frame.$(selector)).type('Seoul', { delay: 50 });
                   assert.equal(await frame.$eval(selector, input => input.value), 'Seoul', 'Continuous typing preserves all characters');
                   assert.equal(await frame.$eval(selector, input => input === document.activeElement), true, 'Continuous typing retains input focus');
-                  const response = page.waitForResponse(response => response.url().endsWith(`/api/save/${mode}/${framework}`));
+                  const response = page.waitForResponse(response => response.url().endsWith(`/api/${server}/save/${mode}/${framework}`));
                   await (await frame.$('#save')).click();
                   assert.equal((await response).status(), 200, 'Valid input is saved');
                   assert.equal(requests.length, 1, 'Exactly one valid save request');
@@ -113,15 +114,16 @@ export async function checkInteraction(page) {
                 assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - parentScroll) <= 1, 'Parent page scrolled');
               }
             } catch (cause) { error = cause.message; }
-            const result = { mode, framework, transport, action, passed: !error, ...(error ? { error } : {}) };
+            const result = { server, mode, framework, transport, action, passed: !error, ...(error ? { error } : {}) };
             results.push(result);
-            process.stdout.write(`${mode}/${framework}/${transport}/${action}: ${error ? `FAIL ${error}` : 'PASS'}\n`);
+            process.stdout.write(`${server}/${mode}/${framework}/${transport}/${action}: ${error ? `FAIL ${error}` : 'PASS'}\n`);
           }
         }
         await frame.evaluate(() => window.comparison.reset());
       }
     }
   }
-  await page.evaluate(() => window.comparison.show('react', 'corrected'));
+  }
+  await page.evaluate(server => window.comparison.show('react', 'corrected', server), servers[0]);
   return results;
 }
