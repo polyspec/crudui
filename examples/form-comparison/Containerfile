@@ -11,6 +11,8 @@ COPY corrected.tar /archives/
 RUN mkdir -p /workspace/corrected && tar -xf /archives/corrected.tar -C /workspace/corrected
 RUN npm install --prefix /opt/native-dependencies --package-lock=false --ignore-scripts --no-audit --no-fund @rolldown/binding-linux-arm64-gnu@1.0.3 lightningcss-linux-arm64-gnu@1.32.0 @rollup/rollup-linux-arm64-gnu@4.62.0 && cp -R /opt/native-dependencies/node_modules/@rolldown/binding-linux-arm64-gnu node_modules/@rolldown/ && cp -R /opt/native-dependencies/node_modules/lightningcss-linux-arm64-gnu node_modules/ && cp -R /opt/native-dependencies/node_modules/@rollup/rollup-linux-arm64-gnu node_modules/@rollup/
 COPY example /workspace/keyed/examples/form-comparison
+COPY ordered-json.tar /archives/
+RUN mkdir -p /workspace/ordered-json && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json && ln -s /workspace/ordered-json/js /workspace/node_modules/sortjson
 COPY metadata.json /workspace/metadata.json
 RUN node examples/form-comparison/build.mjs
 EXPOSE 8080

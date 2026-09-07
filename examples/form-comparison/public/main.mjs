@@ -37,7 +37,7 @@ async function show(framework, originalMode = variant.value) {
 function renderReport() {
   const table = document.createElement('table');
   const head = table.createTHead().insertRow();
-  for (const label of [t.results, ...reports.map(report => `${t[report.mode]} / ${report.framework}`)]) {
+  for (const label of [t.results, ...reports.map(report => `${t[report.mode]} / ${report.framework} / ${t[`${report.transport}Transport`]}`)]) {
     const th = document.createElement('th'); th.textContent = label; head.append(th);
   }
   const body = table.createTBody();
@@ -71,14 +71,16 @@ async function runAll() {
     for (const framework of ['react', 'vue', 'svelte']) {
       document.querySelector('#progress').textContent = `${t.running} ${framework}`;
       await show(framework, 'corrected');
-      for (const frame of frames) reports.push(await frame.contentWindow.comparison.runChecks());
+      for (const frame of frames) {
+        for (const method of ['form', 'json']) reports.push(await frame.contentWindow.comparison.runChecks(method));
+      }
       for (const diagnostic of ['original-keyed', 'original']) {
         await show(framework, diagnostic);
-        reports.push(await frames[0].contentWindow.comparison.runChecks());
+        for (const method of ['form', 'json']) reports.push(await frames[0].contentWindow.comparison.runChecks(method));
       }
       renderReport();
     }
-    document.querySelector('#progress').textContent = reports.map(report => `${report.mode}/${report.framework}: ${report.results.filter(item => item.passed).length}/${report.results.length}`).join(' · ');
+    document.querySelector('#progress').textContent = reports.map(report => `${report.mode}/${report.framework}/${report.transport}: ${report.results.filter(item => item.passed).length}/${report.results.length}`).join(' · ');
     document.querySelector('#download').disabled = false;
     return { generatedAt: new Date().toISOString(), metadata, reports };
   } finally {
