@@ -9,6 +9,7 @@
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
 | form-typing | input 교체 중 전체 타이핑과 포커스 유지 | implemented | passed | deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
+| original-typing | 원본 컨트롤러의 대기 중 렌더링에서 입력 값 유지 | implemented | passed | deployed | [네이티브 타이핑 검사](../examples/form-comparison/check-typing.mjs) |
 | form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | 행 연산의 포커스, 선택, 스크롤 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
@@ -115,3 +116,13 @@ Rust에서 통과했습니다. TypeScript는 픽스처 실행 범위 검사도 �
 예제는 Apple container에서 로컬 실행합니다. 패키지 게시와 원격 배포는 수행하지
 않았습니다. 모든 비교 구현을 계속 선택할 수 있습니다. SQL 드라이버와 외부 편집기 위젯은
 이번 비교의 검증 범위에 포함하지 않습니다.
+
+## 원본 컨트롤러 타이핑 결과
+
+2026-09-07 13:41 UTC 검증: 수정 원본, 수정 전 원본 키, 유지한 배열, 현재 런타임
+예제에서 React·Vue·Svelte의 실제 키보드 검사 36개가 모두 통과했습니다. 문자당
+0, 10, 50 ms 간격으로 입력했습니다. 즉시 값, 렌더링 후 값, 포커스와 커서 위치가
+유지되었고 브라우저 페이지 오류는 없었습니다. 원본 예제 컨트롤러는 새 입력으로
+대체된 입력 렌더링을 취소하고 프레임워크의 DOM 갱신 후 포커스를 복원합니다.
+라이브러리 소스 스냅샷은 변경하지 않았습니다. 수정은 로컬 비교 컨테이너에
+배포했으며 패키지를 게시하지 않았습니다.

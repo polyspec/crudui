@@ -9,6 +9,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
 | form-typing | Complete native typing and focus during input replacement | implemented | passed | deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
+| original-typing | Preserve typed values in queued original-controller rendering | implemented | passed | deployed | [Native typing checks](../examples/form-comparison/check-typing.mjs) |
 | form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | Focus, selection and scroll retention during row operations | implemented | passed | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
@@ -120,3 +121,14 @@ also passed the fixture-coverage test. PHP validation was checked in the contain
 The example runs locally in Apple container. No package or remote deployment was
 published. All comparison implementations remain selectable. SQL drivers and
 external editor widgets are outside this comparison's verification scope.
+
+## Original-controller typing results
+
+Verified on 2026-09-07 at 13:41 UTC: all 36 native keyboard cases passed in
+React, Vue and Svelte for corrected original, unchanged original keyed, retained
+array and current runtime examples. Character intervals were 0, 10 and 50 ms.
+Immediate and settled values, focus and caret positions were preserved; no browser
+page errors occurred. The original example controller cancels superseded input
+renders and restores focus after the framework commits the DOM. Library source
+snapshots are unchanged. This correction is deployed in the local comparison
+container; no package was published.

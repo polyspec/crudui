@@ -75,6 +75,7 @@ empty 검사는 빈 부서를 사용합니다. empty 검사는 선택 항목의 
 npm ci
 npx puppeteer browsers install chrome
 node examples/form-comparison/check.mjs
+node examples/form-comparison/check-typing.mjs
 container exec polyspec-form-comparison node --test /workspace/keyed/examples/form-comparison/src/json.test.mjs
 container exec polyspec-form-comparison php /workspace/keyed/examples/form-comparison/test-json.php
 container exec polyspec-form-comparison php /workspace/keyed/examples/form-comparison/test-repository.php
@@ -86,7 +87,11 @@ make docs-check
 타임스탬프가 있는 파일로 보존합니다. 검사 실패, 결과 누락, 브라우저 오류가 있으면
 종료 코드 1을 반환합니다. 원본 배열 진단의 실패는 보고서와 화면에서 실패로 유지하며
 [기능 상태](../features.ko.md)에 기록합니다. 브라우저 검사가 실패해도 PHP 검사와
-문서 검사 명령은 각각 실행합니다. 저장소 검사는 새 인스턴스의 로드, 물리적 레코드
+문서 검사 명령은 각각 실행합니다.
+타이핑 실행기는 네 예제와 세 프레임워크에 문자당 0, 10, 50 ms 간격으로 실제
+키보드 입력 36개를 검사합니다. 검증 오류 이후의 즉시 값, 렌더링 후 값, 포커스와
+커서 위치를 확인하며 결과를 `typing-report.json`에 보존합니다.
+저장소 검사는 새 인스턴스의 로드, 물리적 레코드
 순서를 변경한 후 `position`에 따른 로드, 부모 관계, 거부한 트랜잭션의 파일 유지,
 전체 삭제, 삭제된 ID의 재사용 방지도 확인합니다.
 

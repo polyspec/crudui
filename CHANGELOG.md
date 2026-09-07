@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Original-controller typing
+
+The original example controller could overwrite newer input with an earlier
+rendered value and temporarily lose focus when a framework replaced an input.
+It now cancels superseded input renders and restores values and focus immediately
+after React, Vue or Svelte commits the DOM. The fixed two-frame delay was removed.
+
+Verification at 13:41 UTC: all 36 native keyboard cases passed across four
+comparison variants, three frameworks and 0/10/50 ms character intervals.
+Immediate and settled text, focus and caret checks passed; no browser page errors
+occurred. Library source snapshots are unchanged. Deployment is the local Apple
+container at `localhost:4317`; no package or remote deployment was published.
+
 ## 2026-09-07 — Form comparison naming and source references
 
 Applied consistent Polyspec example names to paths, source, documentation,

@@ -88,6 +88,10 @@ already implemented in the original library. No 13-character keys are used in
 its form data or generated input names.
 
 Frame checks run sequentially because focus is shared by the browser page.
+The original example controller cancels superseded input renders. A render must
+not restore older field values or selection after a newer input event.
+Each original example adapter completes `load` after its framework commits the DOM. The
+controller restores input values and focus at that point without frame delays.
 The same browser checks exercise all variants. They inspect actual nested input
 names, current-value copying, independent descendants, ordering, data replacement,
 PHP transmission, persistence and reload. Failures in either version remain
