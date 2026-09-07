@@ -73,6 +73,11 @@ native input changes and row buttons. Framework adapters render view models and
 synchronize browser input properties after updates. Data binding updates text,
 textarea, selection, checkbox, language fields and conditional display.
 
+Adding or copying a row preserves the active control, its text selection and
+ancestor scroll positions. Pointer activation of a row button retains the current
+input focus. Keyboard activation retains button focus. Focus restoration does not
+scroll the document to the control.
+
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,
 `mincount`, `maxcount`) inspect the collection; other scalar rules inspect each
@@ -103,3 +108,5 @@ application.
 5. Apply a saved sequence key and update field names and rule paths correctly.
 6. Reject invalid operations atomically and permit adding after deleting all rows.
 7. Verify keyed scalar and group validation with shared four-language cases.
+8. Activate row addition with pointer and keyboard input; preserve focus, text
+   selection and scroll positions in React, Vue and Svelte.
