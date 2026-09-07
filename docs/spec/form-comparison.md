@@ -141,3 +141,19 @@ does not establish the additional member-order contract. Stored record
 loading uses explicit `position` values, regardless
 of the physical order of records in the file. Real pointer and keyboard checks
 verify focus, selection, scrolling and checkbox-controlled note visibility.
+
+## Ordered JSON processor verification
+
+The processor check supplies identical JSON documents to JavaScript, PHP, the PHP
+extension, Go and Rust. It compares object member order at every depth, array
+order, scalar values, and object/array types after parsing, serialization and
+reconstruction. Cases cover numeric member names in order `5, 7, 1`, saved
+13-character keys, inserted and copied rows, saved-key replacement, changed row
+order, and empty collections. Submitted documents contain no auxiliary identity
+or order fields.
+
+This check verifies the JSON processor against the existing data contract. It
+does not replace the example's browser and persistence checks. The running
+comparison example currently uses the standard JavaScript and PHP JSON functions. Its
+form session accepts record data, whereas the ordered processor returns `Value`
+nodes. A passing processor check does not establish runtime integration.
