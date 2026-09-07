@@ -58,8 +58,8 @@ PHP, Go, Rust가 각각 파싱, 검증, 저장과 재로드를 수행합니다.
 ## 검증
 
 화면의 “모든 서버와 프레임워크 검사”는 세 서버와 세 프레임워크에서 빈 컬렉션을 수정한 원본, 수정 전
-키 예제, 현재 키 런타임, 유지한 배열 진단에 전송 방식별로 동일한 19개 검사를
-실행하여 보고서 72개와 시나리오 결과 1,368개를 생성합니다. 표는 선택한 서버와
+키 예제, 현재 키 런타임, 유지한 배열 진단에 전송 방식별로 동일한 20개 검사를
+실행하여 보고서 72개와 시나리오 결과 1,440개를 생성합니다. 표는 선택한 서버와
 프레임워크의 결과를 표시합니다. 각
 시나리오의 결과를 PASS 또는 FAIL로 표시합니다. 다운로드는 이 결과를 내보냅니다.
 헤드리스 실행기는 36개 서버·예제·프레임워크 조합과 두 전송 방식에 실제 포인터, 키보드, 체크박스,
@@ -75,12 +75,25 @@ empty 검사는 빈 부서를 사용합니다. empty 검사는 선택 항목의 
 캐시 검사는 참조 읽기 1회를 확인하고 준비 이후의 로드를 거부합니다.
 헤드리스 실행기는 각 예제의 최초 서버 로드 요청을 중단하고 중첩 input 요소가 이미
 있는지 확인하며 36개 서버·예제·프레임워크 조합을 모두 검사합니다.
+HTML 응답의 폼 컨테이너가 비어 있으며 API 서버가 달라도 응답이 같은지도
+검사합니다. 초기화 사례는 생성 시 데이터 전달과 마운트 후 주입의 15단계에서
+HTML 원문, 전체 계산된 CSS, 컨트롤 상태, 순서를 유지한 제출과 저장 레코드를
+비교합니다. 반복 주입으로 멱등성을 검사합니다. HTML과 상태 파일은 결과
+디렉터리의 `initialization-<timestamp>/<server>/<variant>/<framework>/<transport>/`에
+저장합니다. CSS 해시는 모든 요소와 가상 요소의 속성을 포함하며 CSS 비교에 실패하면
+전체 CSS도 보존합니다.
+각 프레임의 “데이터 주입 멱등 검사”로 이 사례만 실행할 수 있습니다.
+“단계별 비교와 HTML 원문”을 펼치면 항목별 결과를 확인하고 비교 자료 또는 개별
+HTML 파일을 다운로드할 수 있습니다. HTML 원문과 파싱한 DOM 결과를 별도로
+표시하며 속성 순서 차이도 유지합니다.
 반복 가능한 헤드리스 브라우저 검사를 위해 저장소 의존성과 Puppeteer의 Chrome을
 설치한 후 실행합니다.
 
 ```sh
 npm ci
 npx puppeteer browsers install chrome
+node --test examples/form-comparison/src/form-snapshot.test.mjs
+node examples/form-comparison/check-inspector.mjs
 node examples/form-comparison/check.mjs
 node examples/form-comparison/check-typing.mjs
 container exec crudui-form-comparison node /workspace/keyed/examples/form-comparison/check-servers.mjs

@@ -6,6 +6,8 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | form-template | Data-independent form templates and JSON caching | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
+| form-initialization | Identical initial-data and post-mount rendering and behavior | implemented | pending | not-deployed | [Runtime contract](spec/form-runtime.md) |
+| form-inspector | Parsed DOM, raw HTML, CSS and state comparison with retained differences | implemented | passed | not-deployed | [Inspector tests](../examples/form-comparison/src/form-snapshot.test.mjs) |
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | Explicit empty collection rendering in the merged runtime | implemented | passed | not-deployed | [Empty collection tests](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
@@ -31,6 +33,18 @@ documentation site build passed. Library deployment status refers to package
 publication; no package was published. The form comparison example is deployed locally
 in Apple container at [localhost:4317](http://localhost:4317). No remote deployment
 was run.
+
+## Form initialization inspector
+
+On 2026-09-08, generator builds and 1,405 tests passed: core 25, React 690,
+Vue 343, Svelte 345 and Svelte client 2. Shared mounted tests compare initial data,
+three repeated injections, visibility changes and record restoration. The React
+renderer removes the empty `style` attribute after its last declaration is cleared.
+All 17 inspector tests passed, including missing attributes, changed row keys,
+child order and control properties that differ without changing HTML. Six Chrome
+checks verified computed CSS, hidden display and both pseudo-elements, including
+deliberate differences and restored styles. The full container matrix for this
+inspector is pending. No package was published.
 
 ## Empty collection merge verification
 

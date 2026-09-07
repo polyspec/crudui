@@ -13,6 +13,14 @@ validation and storage. JSON requests, responses and stored files use ordered-js
 with the existing 13-character row keys and document order. Source metadata
 includes the pinned processor revision and archive hash.
 
+The page uses static browser files without server-side rendering. Use "Create
+form with saved data" for initial data, or "Mount empty form" followed by "Reload
+saved data" for later injection. The initialization check compares exact HTML,
+computed CSS, control state, repeated injection and row operations with both
+form and JSON persistence.
+Use "Check data injection idempotence" to run the comparison independently.
+Results include each category, unmodified HTML and downloadable evidence.
+
 Run from the repository root:
 
 ```sh
