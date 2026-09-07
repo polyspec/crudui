@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-08 — Record restoration HTML
+
+The shared DOM binding places an existing `checked` attribute after the input's
+other attributes. Initial rendering and record restoration now use the same
+attribute order without replacing the input. The shared regression compares the
+complete restored HTML and verifies that checkbox elements remain unchanged.
+
+Verification: the stricter regression failed in React and Vue before the fix.
+Generator builds, all 1,405 generator tests and 18 inspector tests passed after
+the fix. The container browser comparison has not yet been rerun for this source.
+The previous reports remain available. No package was published.
+
 ## 2026-09-08 — Form initialization inspector
 
 Added initial-data creation and post-mount injection comparison using the parsed
