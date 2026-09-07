@@ -18,6 +18,19 @@
 import type * as React from 'react';
 import type { Attrs } from '@crudui/generator-core';
 
+/** Remove the style attribute after React clears the last CSS declaration. */
+export function resolvedStyleProps(style: React.CSSProperties | undefined): {
+  style: React.CSSProperties | undefined;
+  ref: React.RefCallback<HTMLElement>;
+} {
+  return {
+    style,
+    ref(element) {
+      if (element && !style) element.removeAttribute('style');
+    },
+  };
+}
+
 /** Split a core attr bag into verbatim attrs + an uncontrolled `defaultValue`. */
 export function inputProps(attrs: Attrs): Record<string, unknown> {
   const props: Record<string, unknown> = {};

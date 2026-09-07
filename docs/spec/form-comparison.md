@@ -37,6 +37,35 @@ native and JSON submissions.
 
 ## Form behavior
 
+The browser receives static HTML, CSS and JavaScript. The HTML response contains
+an empty form container; the browser mounts the nested form before requesting
+record data. The same static HTML is served for each selected API server.
+"Create form with saved data" creates the form with its initial record. "Mount
+empty form" followed by "Reload saved data" injects into the existing form.
+
+The initialization check compares these two paths directly. It compares exact
+form HTML, live and default control values, ordered native fields, JSON data,
+focus and selection, and every computed CSS property for elements and their
+`::before` and `::after` pseudo-elements. The same record is injected repeatedly
+to verify idempotence. The check then repeats editing, visibility changes,
+saving, reloading, copying, reordering, removal, addition and empty data.
+PHP, Go and Rust receive both form and JSON submissions from each path.
+
+Row-action replay supplies the same seven-byte random inputs in each path and
+restores the browser random function afterward. Generated keys remain part of
+the exact comparisons. Reports retain the HTML and control state at every stage,
+CSS hashes, and full CSS snapshots when CSS comparison fails. The runner exports
+these records under its timestamped initialization artifact directory.
+
+The inspector records raw HTML equality and DOM equality separately. DOM
+comparison includes every element, attribute name and value, text and comment,
+and child order. Attribute enumeration order is reported by the raw HTML check;
+it does not change DOM attribute equality. Neither comparison removes attributes,
+classes, styles, row keys or hidden elements. A raw HTML mismatch remains a
+failed check even when the DOM comparison passes. Comparisons continue after a
+mismatch so subsequent CSS, control, interaction and persistence results remain
+available. Tests deliberately change each snapshot category to verify detection.
+
 The example uses the existing `Validator` before user submission. Failure stops
 transmission and displays returned field errors. Each selected server independently validates the
 same spec. Visibility does not change validation: a hidden required field with an
@@ -64,7 +93,7 @@ showing a collection preserves its data and cached structure. Hidden collections
 with rows still submit those rows; explicit empty collections submit no row inputs.
 
 The unchanged-source comparison uses identical 13-character keyed data with the
-original source at `1e8702a` and the current runtime at `b516226`. Both use the same
+original source at `1e8702a` and the current runtime at `36b0c44`. Both use the same
 company, store and department fields, native submission and stored records.
 The original-keyed example connects row operations and cached binding to the
 original public functions. This tests the original foundation; it does not

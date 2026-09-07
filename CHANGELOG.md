@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-08 — Form initialization inspector
+
+Added initial-data creation and post-mount injection comparison using the parsed
+browser DOM, unmodified HTML, live/default controls, ordered fields, computed CSS,
+focus and saved records. The inspector retains category failures and continues
+through repeated injection, record replacement and the same row actions. The
+example provides a separate check button and downloadable HTML and evidence.
+Static HTML responses are checked independently from mounting before data loads.
+React now removes the empty style attribute when resolved inline styles are removed.
+
+Verification: generator builds, 1,405 generator tests, 17 inspector tests and six
+Chrome CSS detection checks passed. Full container verification for the new
+inspector is pending. No package or remote deployment was published.
+
 ## 2026-09-07 — Empty collection merge
 
 Merged the empty-collection correction into `main`, retaining stable row keys and
