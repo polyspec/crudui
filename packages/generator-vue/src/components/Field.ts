@@ -213,7 +213,9 @@ function multipleLeafFieldVNode(vm: FieldViewModel): VNode {
     h(
       'div',
       { class: 'form-element' },
-      (vm.rows ?? []).map((row) => multipleLeafRowVNode(row, vm))
+      vm.rows?.length === 0
+        ? [h('button', { type: 'button', class: 'btn btn-plus', 'aria-label': '+' }, ' ')]
+        : (vm.rows ?? []).map((row) => multipleLeafRowVNode(row, vm))
     ),
   ]);
 }
@@ -232,7 +234,9 @@ function multipleGroupFieldVNode(vm: FieldViewModel): VNode {
     h(
       'div',
       { class: 'form-element' },
-      (vm.rows ?? []).map((row) => multipleGroupRowVNode(row, vm))
+      vm.rows?.length === 0
+        ? [h('button', { type: 'button', class: 'btn btn-plus', 'aria-label': '+' }, ' ')]
+        : (vm.rows ?? []).map((row) => multipleGroupRowVNode(row, vm))
     ),
   ]);
 }
