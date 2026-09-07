@@ -1,4 +1,5 @@
 import { mountView } from '#adapter';
+import { formValidation } from './form-validation.mjs';
 import { originalController } from './original-controller.mjs';
 import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
@@ -13,13 +14,14 @@ const view = document.querySelector('#view');
 const flush = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 const spec = specFor(mode);
 let driver;
+let validation;
 let running = false;
 
 for (const id of ['load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks']) document.querySelector(`#${id}`).textContent = t[id];
 for (const id of ['results', 'names', 'state', 'php']) document.querySelector(`#${id}-label`).textContent = t[id];
 document.querySelector('#revision').textContent = `${t[mode]} · ${framework}`;
 document.querySelector('#commit').textContent = __SOURCE_COMMIT__;
-document.querySelector('#method').textContent = t[mode === 'original' ? 'originalNote' : mode === 'original-keyed' ? 'originalKeyedNote' : 'keyedNote'];
+document.querySelector('#method').textContent = t[mode === 'original' ? 'originalNote' : mode === 'original-keyed' ? 'originalKeyedNote' : mode === 'corrected' ? 'correctedNote' : 'keyedNote'];
 document.querySelector('#save-note').textContent = t.saveNote;
 document.documentElement.lang = language;
 document.documentElement.dataset.language = language;
@@ -83,13 +85,16 @@ const submitData = data => keyed
 async function load() {
   const result = await request('load');
   equal(result.status, 200, 'load status');
+  validation?.clear();
   await driver.load(result.data); await settle(); inspect();
   return result;
 }
-async function mount(data = {}) {
+async function mount(data = {}, formSpec = spec) {
+  validation?.clear();
   if (driver) await driver.dispose();
   view.replaceChildren();
-  driver = mode !== 'keyed' ? originalController(view, mountView, spec, language, keyed) : mountView(view, spec, language);
+  driver = mode !== 'keyed' ? originalController(view, mountView, formSpec, language, keyed) : mountView(view, formSpec, language);
+  validation = formValidation(view, document.querySelector('#validation'), formSpec, t);
   await driver.load(data); await settle(); inspect();
 }
 async function reset(fixture = keyed ? 'populated' : 'default') {
@@ -104,6 +109,9 @@ async function submit(action = 'validate') {
   return request(action, fields);
 }
 async function save() {
+  await settle();
+  const checked = validation.validate(driver.getData());
+  if (!checked.valid) return { status: null, validation: checked };
   const result = await submit('save');
   equal(result.status, 200, result.error ?? 'save status');
   equal(result.validation.valid, true, 'save validation');
@@ -276,15 +284,31 @@ const checks = [
   ['phpValid', async () => {
     const result = await submit();
     equal(result.status, 200, 'PHP status');
-    equal(result.validatorSource, mode === 'keyed' ? 'keyed' : 'original', 'matching PHP validator revision');
+    equal(result.validatorSource, ['corrected', 'keyed'].includes(mode) ? mode : 'original', 'matching PHP validator revision');
     equal(result.validation.valid, true, 'PHP validation');
     equal(Object.values(Object.values(result.received.companies)[0].stores)[0].name, 'Seoul', 'PHP nested name');
   }],
   ['phpInvalid', async () => {
     const before = await request('load');
     await edit(storeName(stores(companies()[0])[0]), '');
+    const data = driver.getData();
+    const client = validation.validate(data);
+    equal(client.valid, false, 'JS required validation');
+    const stopped = await save();
+    equal(stopped.status, null, 'invalid save stops before transmission');
     const result = await submit('save');
     equal(result.status, 422, 'invalid save status');
+    same(client, result.validation, 'JS and PHP validation results');
+    const hiddenSpec = structuredClone(spec);
+    hiddenSpec.properties.companies.properties.stores.properties.name.design = { show: false };
+    await mount(data, hiddenSpec);
+    equal(storeName(stores(companies()[0])[0]).closest('.form-element-wrapper').style.display, 'none', 'required field is hidden by design');
+    const hiddenClient = validation.validate(driver.getData());
+    same(hiddenClient, client, 'hiding required input does not change validation');
+    equal((await save()).status, null, 'hidden required input blocks browser submission');
+    const hiddenServer = await submit('save');
+    equal(hiddenServer.status, 422, 'hidden required input fails on server');
+    same(hiddenServer.validation, client, 'server ignores display when validating');
     equal(result.validation.valid, false, 'PHP required validation');
     assert(result.validation.errors.some(error => String(error.path).endsWith('.name') && error.rule === 'required'), 'Expected required error at store name');
     same((await request('load')).storage, before.storage, 'stored data after invalid save');
@@ -301,16 +325,95 @@ const checks = [
   }],
   ['empty', async () => {
     await reset('default');
+    const empty = mode === 'original' ? [] : {};
+    const collection = (parent, suffix) => Array.from(parent.querySelectorAll('.form-element-wrapper[name]')).find(el => el.getAttribute('name').endsWith(`.${suffix}-layer`));
+    async function addEmpty(wrapper) {
+      equal(collectionRows(wrapper).length, 0, 'empty collection row count');
+      equal(wrapper.querySelectorAll('input[name],textarea[name],select[name]').length, 0, 'empty collection has no submitted row controls');
+      assert(wrapper.style.display !== 'none', 'Empty collection remains visible');
+      const button = wrapper.querySelector(':scope > .form-element > button.btn-plus');
+      assert(button, 'Empty collection must have an Add button');
+      button.focus({ preventScroll: true });
+      button.click(); await settle();
+      equal(collectionRows(wrapper).length, 1, 'add into empty collection');
+      assert(document.activeElement.matches('button.btn-plus'), 'Empty addition retains button focus');
+      equal(document.activeElement.closest('.form-element-wrapper[name]'), wrapper, 'Focused button belongs to the same collection');
+    }
+    const departmentName = row => row.querySelector('input[name$="[name]"]');
     equal(departments(stores(companies()[0])[1]).length, 0, 'empty departments');
-    await driver.load({ companies: mode === 'original' ? [] : {} }); await settle();
-    equal(companies().length, 0, 'explicit empty companies');
+    const initial = await request('load');
+    const displaySpec = structuredClone(spec);
+    displaySpec.properties.companies.properties.stores.properties.departments.design = { show: '.enabled' };
+    await mount(initial.data, displaySpec);
+    const template = driver.template;
+    const serialized = JSON.stringify(template);
+    const departmentWrapper = () => collection(stores(companies()[0])[1], 'departments');
+    equal(departmentWrapper().style.display, 'none', 'hidden empty collection');
+    equal(departments(stores(companies()[0])[1]).length, 0, 'hidden empty row count');
+    stores(companies()[0])[1].querySelector('input[type=checkbox]').click(); await settle();
+    assert(departmentWrapper().style.display !== 'none', 'Empty collection becomes visible');
+    equal(departments(stores(companies()[0])[1]).length, 0, 'showing does not add data');
+    stores(companies()[0])[1].querySelector('input[type=checkbox]').click(); await settle();
+    equal(departmentWrapper().style.display, 'none', 'empty collection hides again');
+    equal(driver.template, template, 'visibility reuses the same template');
+    equal(JSON.stringify(template), serialized, 'visibility preserves template content');
+    await mount(initial.data);
+    const before = initial.storage;
+    await addEmpty(collection(stores(companies()[0])[1], 'departments'));
+    equal(companies().length, 1, 'nested addition preserves company count');
+    equal(stores(companies()[0]).length, 2, 'nested addition preserves store count');
+    // Department names are optional in the spec; a created blank row is valid.
+    const blank = await save();
+    equal(blank.status, 200, 'optional blank department is valid');
+    const created = blank.storage.departments.find(row => row.store_seq === '2');
+    equal(created.name, '', 'optional blank value is stored unchanged');
+    same(blank.storage.companies, before.companies, 'unchanged company IDs');
+    same(blank.storage.stores, before.stores, 'unchanged sibling stores');
+    same(blank.storage.departments.filter(row => row.store_seq === '1'), before.departments, 'unchanged sibling departments');
+    await load(); equal(departments(stores(companies()[0])[1]).length, 1, 'reloaded blank department');
+    await click(departments(stores(companies()[0])[1])[0], 'minus');
+    const removed = await save();
+    equal(removed.storage.departments.length, 1, 'last department removal');
+    await load(); equal(departments(stores(companies()[0])[1]).length, 0, 'reloaded empty department collection');
+    await addEmpty(collection(stores(companies()[0])[1], 'departments'));
+    await edit(departmentName(departments(stores(companies()[0])[1])[0]), 'Support');
+    const restored = await save();
+    assert(restored.storage.departments.find(row => row.name === 'Support').department_seq !== created.department_seq, 'Deleted department ID must not be reused');
+    assertOwnership(restored.storage);
+    await load(); equal(departmentName(departments(stores(companies()[0])[1])[0]).value, 'Support', 'recreated department reload');
+
+    while (stores(companies()[0]).length) await click(stores(companies()[0])[0], 'minus');
+    const noStores = await save();
+    equal(noStores.storage.companies.length, 1, 'company remains after store deletion');
+    equal(noStores.storage.stores.length, 0, 'stored empty stores');
+    equal(noStores.storage.departments.length, 0, 'removed store descendants');
+    await load(); equal(stores(companies()[0]).length, 0, 'reloaded empty stores');
+    await addEmpty(collection(companies()[0], 'stores'));
+    await edit(storeName(stores(companies()[0])[0]), 'New store');
+    const newStore = await save();
+    equal(newStore.status, 200, 'new store save');
+    equal(newStore.storage.stores[0].company_seq, before.companies[0].company_seq, 'existing parent ID retained');
+    await load(); equal(storeName(stores(companies()[0])[0]).value, 'New store', 'new store reload');
+
+    await click(companies()[0], 'minus');
+    equal(companies().length, 0, 'last company removal');
     const saved = await save();
-    equal(saved.storage.companies.length, 0, 'stored empty companies');
-    equal(saved.storage.stores.length, 0, 'stored empty stores');
-    equal(saved.storage.departments.length, 0, 'stored empty departments');
+    for (const table of ['companies', 'stores', 'departments']) equal(saved.storage[table].length, 0, `stored empty ${table}`);
     await load(); equal(companies().length, 0, 'reloaded empty companies');
-    view.querySelector('button.btn-plus').click(); await settle();
-    equal(companies().length, 1, 'add after removing all');
+    const json = await request('save', { companies: empty }, true);
+    equal(json.status, 200, 'explicit empty JSON save');
+    same(json.data, { companies: empty }, 'explicit empty JSON data');
+    await load(); equal(companies().length, 0, 'JSON empty reload');
+    await addEmpty(view.querySelector('[name="form.companies-layer"]'));
+    await edit(companyName(companies()[0]), 'New company');
+    await edit(storeName(stores(companies()[0])[0]), 'New child');
+    const rebuilt = await save();
+    equal(rebuilt.status, 200, 'recreated hierarchy save');
+    assertOwnership(rebuilt.storage);
+    assert(rebuilt.storage.companies[0].company_seq !== before.companies[0].company_seq, 'Deleted company ID must not be reused');
+    await load();
+    equal(companyName(companies()[0]).value, 'New company', 'recreated company reload');
+    equal(storeName(stores(companies()[0])[0]).value, 'New child', 'recreated child reload');
   }],
   ['deletion', async () => {
     await click(companies()[0], 'copy');
@@ -379,10 +482,10 @@ const checks = [
     equal(view.querySelectorAll('input[type=hidden]').length, 0, 'keyed input uses no hidden sequence fields');
     equal(storeName(stores(companies()[0])[0]).name, 'form[companies][__0000000000005__][stores][__0000000000005__][name]', 'keyed name from the selected renderer');
     const fields = new FormData(form); fields.append('_form_complete', '1');
-    const response = await fetch(`/api/validate/${mode === 'keyed' ? 'keyed' : 'original-keyed'}/${framework}`, { method: 'POST', body: fields });
+    const response = await fetch(`/api/validate/${mode === 'original' ? 'original-keyed' : mode}/${framework}`, { method: 'POST', body: fields });
     const result = await response.json();
     equal(response.status, 200, 'PHP status for keyed names');
-    equal(result.validatorSource, mode === 'keyed' ? 'keyed' : 'original', 'matching validator source revision');
+    equal(result.validatorSource, ['corrected', 'keyed'].includes(mode) ? mode : 'original', 'matching validator source revision');
     equal(result.validation.valid, true, 'PHP validation of keyed names');
     same(result.normalized, keyedData, 'keyed native values without hidden sequence fields');
     same(Object.keys(result.normalized.companies), Object.keys(keyedData.companies), 'native keyed document order');
@@ -443,12 +546,17 @@ function action(id, fn) {
 }
 action('load', load);
 action('blank', () => mount());
-action('save', async () => { await save(); document.querySelector('#php-details').open = true; });
-action('validate', async () => { await submit(); document.querySelector('#php-details').open = true; });
+action('save', async () => { const result = await save(); if (result.status !== null) document.querySelector('#php-details').open = true; });
+action('validate', async () => { if (validation.validate(driver.getData()).valid) { await submit(); document.querySelector('#php-details').open = true; } });
 action('reset', () => reset());
 action('nonsequential', () => reset('nonsequential'));
 action('checks', runChecks);
-form.addEventListener('submit', event => event.preventDefault());
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (running) return;
+  try { await save(); }
+  catch (error) { document.querySelector('#results').textContent = error.message; }
+});
 for (const name of ['input', 'change', 'click']) view.addEventListener(name, async () => { await settle(); inspect(); });
 await mount();
 await load();
