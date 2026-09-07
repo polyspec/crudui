@@ -10,7 +10,7 @@ const work = path.join(root, '.form-comparison');
 const context = path.join(work, 'context');
 const name = 'polyspec-form-comparison';
 const image = 'localhost/polyspec-form-comparison:1';
-const revisions = { original: '1e8702a6d5eeeb942aeb2f1d2950b9b30e2d0244', keyed: 'a96f8c31f15113f99b422c2b431d26bd2a25a8a8' };
+const revisions = { corrected: '78723bb0503aaf82fc83a6e4e84c98d9da2b4af4', original: '1e8702a6d5eeeb942aeb2f1d2950b9b30e2d0244', keyed: 'b516226447a8f7b4896a0573ac8861689e57553b' };
 const command = process.argv[2] ?? 'start';
 function container(args) {
   return new Promise((resolve, reject) => {

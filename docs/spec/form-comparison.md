@@ -2,8 +2,34 @@
 
 [한국어](form-comparison.ko.md).
 
-The primary comparison uses identical 13-character keyed data with the unchanged
-original source at `1e8702a` and the current runtime at `a96f8c3`. Both use the same
+The example uses the existing `ValidatorV2` before user submission. Failure stops
+transmission and displays returned field errors. PHP independently validates the
+same spec. Visibility does not change validation: a hidden required field with an
+empty value fails; optional empty values remain valid. No example-specific
+required rules, value filtering or automatic values are added for validation.
+Shared cases check these rules in TypeScript, PHP, Go and Rust. Rendering checks
+separately verify visibility, native names and editing. Direct invalid requests
+in server tests deliberately bypass the browser to verify server rejection.
+
+A corrected original-source variant uses zero rows for explicit empty arrays and
+objects, and an Add button in each empty collection. Missing data still creates
+an initial row. The example controller inserts into the collection owning the
+button, including nested collections. It does not filter rendered rows.
+The correction is a separate source commit based on `1e8702a`; the unchanged
+original-keyed and array diagnostics remain selectable. The corrected variant
+and current runtime form the primary comparison. The source correction is commit
+`78723bb`; implementation, verification and deployment status are recorded in
+[feature status](../features.md).
+
+Acceptance includes empty company, store and department collections, native and
+JSON save/reload, deleting the last row, adding again and saving the new row.
+Unaffected sibling IDs and parent relationships must remain unchanged.
+Collection visibility follows `design.show` independently of row count. Hiding or
+showing a collection preserves its data and cached structure. Hidden collections
+with rows still submit those rows; explicit empty collections submit no row inputs.
+
+The unchanged-source comparison uses identical 13-character keyed data with the
+original source at `1e8702a` and the current runtime at `b516226`. Both use the same
 company, store and department fields, native submission and stored records.
 The original-keyed example connects row operations and cached binding to the
 original public functions. This tests the original foundation; it does not
@@ -31,7 +57,7 @@ renderer's existing keyed-data support, independently of the array controller's
 submission design. The original-keyed load, save, validate and reset endpoints
 use the keyed data contract, original PHP validator and an independent repository.
 
-Row-operation checks use a populated fixture for both keyed implementations so
+Row-operation checks use a populated fixture for the keyed variants so
 that empty rendering cannot prevent unrelated persistence checks. Separate exact
 and empty checks use the fixture with an empty department collection. Explicit
 empty values are not filled, filtered or replaced by the example controller.
@@ -46,8 +72,8 @@ identified separately from the unchanged library source.
 Each frame mounts before requesting saved data from PHP, then injects the response.
 
 An Apple container serves React, Vue and Svelte browser builds and a PHP API.
-Library snapshots come from Git archives of the specified commits. The original
-library source remains unchanged. The retained array example controller connects its
+Library snapshots come from Git archives of the specified commits. The retained original
+library snapshot remains unchanged. The retained array example controller connects its
 existing buttons to array insertion, deep copying, deletion and reordering. It
 reads current input values, clears declared sequence fields in copied subtrees,
 updates native input properties and conditions, and calls the original rendering
@@ -57,7 +83,8 @@ identifies this added controller. Its behavior is not described as a feature
 already implemented in the original library. No 13-character keys are used in
 its form data or generated input names.
 
-The same browser checks exercise both versions. They inspect actual nested input
+Frame checks run sequentially because focus is shared by the browser page.
+The same browser checks exercise all variants. They inspect actual nested input
 names, current-value copying, independent descendants, ordering, data replacement,
 PHP transmission, persistence and reload. Failures in either version remain
 visible as failures. The absence of original button handlers alone is not evidence
@@ -106,7 +133,7 @@ The page displays source commits, framework selection and actual check results.
 The environment binds a localhost port and remains running for manual review.
 Operations documents describe building, starting, checking and stopping it.
 
-Order checks use each example's transport contract. Both keyed examples check
+Order checks use each example's transport contract. The keyed examples check
 reordered native fields and JSON that retains document member order through PHP
 persistence and reload. The array version also sorts JSON object keys recursively
 before transmission and checks the reloaded array order. Standard JSON alone

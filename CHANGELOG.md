@@ -2,15 +2,39 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-07 — Empty collection correction and browser validation
+
+- Added corrected original source `78723bb` to the primary comparison with current
+  runtime `b516226`. The unchanged original keyed and array diagnostics remain
+  selectable with their actual failures.
+- Connected the existing JavaScript validator before user submission. Invalid
+  values stop transmission and display field errors; reload clears obsolete errors.
+  PHP independently validates the same rules. No validator rules changed.
+- Verified optional blank department storage, hidden required-field failures,
+  empty collection visibility, nested and complete deletion, re-addition,
+  native/JSON persistence, sibling IDs and parent relationships.
+- Added real typing, invalid/valid request counts and empty-collection keyboard
+  focus checks. Frame scenarios run sequentially to avoid focus interference.
+  The runner preserves prior reports and screenshots before writing new results.
+
+Verification at 10:15 UTC: both primary implementations passed 17/17 in React,
+Vue and Svelte. All 54 interactions, 12 mount-before-load checks and both PHP
+repository checks passed; no browser page errors occurred. The unchanged original
+keyed diagnostic remains 15/17 and the array diagnostic remains 13/17, so the
+complete runner returns status 1. Existing shared validation cases passed in
+TypeScript, PHP, Go and Rust. `make docs-check` passed.
+Deployment: local Apple container at `localhost:4317`; packages not published.
+Comparison sources and historical reports remain available for review.
+
 ## 2026-09-07 — Focus during native typing
 
 Ignore unchanged input/change events before capturing focus. A native change
 event during input replacement previously cleared the pending focus state in
 Vue and Svelte, so typing stopped after the first character.
 
-Verification: Chrome retained the complete typed value and input focus in Vue
-and Svelte using the changed source. Core type checking passed. Full comparison
-verification is pending. Deployment: packages not published.
+Verification: full Chrome checks retained the complete typed value and input
+focus in React, Vue and Svelte. Shared mounted DOM checks and core type checking
+passed. Deployment: local comparison environment; packages not published.
 
 ## 2026-09-07 — Focus after adding to an empty collection
 
@@ -18,9 +42,9 @@ The browser binding identifies the empty collection's Add button by its wrapper.
 After the first row replaces that button, it restores focus to the Add button in
 the same collection with `preventScroll`.
 
-Verification: the shared mounted DOM scenario passed in React, Vue and Svelte;
-core type checking passed. Real browser verification is pending. Deployment:
-packages not published; the comparison example still uses its previous source snapshot.
+Verification: the shared mounted DOM scenario and real Chrome empty-collection
+keyboard checks passed in React, Vue and Svelte; core type checking passed.
+Deployment: local comparison environment; packages not published.
 
 ## 2026-09-07 — Focus during row operations
 

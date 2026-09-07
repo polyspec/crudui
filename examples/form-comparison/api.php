@@ -17,10 +17,10 @@ if (!str_starts_with($path, '/api/')) return false;
 
 try {
     if ($path === '/api/health') respond(200, ['status' => 'ok', 'php' => PHP_VERSION, 'storage' => 'JSON files']);
-    if (!preg_match('#^/api/(load|save|validate|reset)/(original|original-keyed|keyed)/(react|vue|svelte)$#', $path, $match)) respond(404, ['error' => 'Unknown endpoint']);
+    if (!preg_match('#^/api/(load|save|validate|reset)/(corrected|original|original-keyed|keyed)/(react|vue|svelte)$#', $path, $match)) respond(404, ['error' => 'Unknown endpoint']);
     [, $action, $mode, $framework] = $match;
     $dataMode = $mode === 'original' ? 'original' : 'keyed';
-    $validatorSource = $mode === 'keyed' ? 'keyed' : 'original';
+    $validatorSource = in_array($mode, ['corrected', 'keyed'], true) ? $mode : 'original';
     $expectedMethod = $action === 'load' ? 'GET' : 'POST';
     if ($_SERVER['REQUEST_METHOD'] !== $expectedMethod) respond(405, ['error' => 'Method not allowed']);
     $repo = new FormRepository("/data/$mode-$framework.json");
