@@ -15,6 +15,7 @@ export async function compareInitialization({ initial, deferred, flush, expect }
   }
   const changed = structuredClone(data);
   changed.companies[companyKey].stores[storeKey].enabled = '';
+  const inputs = [initial, deferred].map(instance => instance.element.querySelector('input[type=checkbox]'));
   for (const instance of [initial, deferred]) instance.session.setData(changed);
   await flush();
   expect(formSnapshot(deferred.element, deferred.element)).toEqual(formSnapshot(initial.element, initial.element));
@@ -22,7 +23,8 @@ export async function compareInitialization({ initial, deferred, flush, expect }
   await flush();
   const restored = formSnapshot(deferred.element, deferred.element);
   expect(restored).toEqual(formSnapshot(initial.element, initial.element));
-  // Attribute insertion order is checked above for identical action sequences.
-  // Restoring a record must also restore every DOM attribute and control value.
-  for (const key of ['dom', 'controls', 'fields']) expect(restored[key]).toEqual(expected[key]);
+  expect(restored).toEqual(expected);
+  for (const [index, instance] of [initial, deferred].entries()) {
+    expect(instance.element.querySelector('input[type=checkbox]')).toBe(inputs[index]);
+  }
 }
