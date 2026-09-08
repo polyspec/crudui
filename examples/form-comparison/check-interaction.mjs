@@ -9,6 +9,7 @@ export async function checkInteraction(page, servers) {
       await page.evaluate(([framework, originalMode, server]) => window.comparison.show(framework, originalMode, server), [framework, originalMode, server]);
       for (const frame of page.frames().filter(frame => frame.url().includes('/frames/'))) {
         const mode = await frame.evaluate(() => window.comparison.mode);
+        const collectionSelector = mode === 'keyed' ? '[data-field-path="companies"]' : '[name="form.companies-layer"]';
         if (mode === 'keyed' && originalMode !== 'corrected') continue;
         for (const transport of ['form', 'json']) {
           await frame.select('#transport', transport);
@@ -17,22 +18,22 @@ export async function checkInteraction(page, servers) {
             try {
               await frame.evaluate(() => window.comparison.reset());
               if (action === 'empty-keyboard') {
-                await (await frame.$('[name="form.companies-layer"] > .form-element > .input-group-wrapper > .input-group-btn > .btn-minus')).click();
-                const selector = '[name="form.companies-layer"] > .form-element > button.btn-plus';
+                await (await frame.$(`${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-minus`)).click();
+                const selector = `${collectionSelector} > .form-element > button.btn-plus`;
                 await frame.waitForSelector(selector);
                 await (await frame.$(selector)).focus();
                 const before = await frame.evaluate(() => document.scrollingElement.scrollTop);
                 const parentScroll = await page.evaluate(() => window.scrollY);
                 await page.keyboard.press('Enter');
-                await frame.waitForFunction(() => document.querySelector('[name="form.companies-layer"] > .form-element > .input-group-wrapper'));
+                await frame.waitForFunction(selector => document.querySelector(`${selector} > .form-element > .input-group-wrapper`), {}, collectionSelector);
                 await frame.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-                const active = await frame.evaluate(() => ({
+                const active = await frame.evaluate(selector => ({
                   isAdd: document.activeElement.matches('button.btn-plus'),
-                  wrapper: document.activeElement.closest('.form-element-wrapper[name]')?.getAttribute('name'),
+                  sameCollection: document.activeElement.closest('.form-element-wrapper') === document.querySelector(selector),
                   scroll: document.scrollingElement.scrollTop,
-                }));
+                }), collectionSelector);
                 assert.equal(active.isAdd, true, 'Empty addition retains Add button focus');
-                assert.equal(active.wrapper, 'form.companies-layer', 'Focused button belongs to the same collection');
+                assert.equal(active.sameCollection, true, 'Focused button belongs to the same collection');
                 assert.ok(Math.abs(active.scroll - before) <= 1, 'Empty addition preserves frame scroll');
                 assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - parentScroll) <= 1, 'Empty addition preserves page scroll');
               } else if (action === 'validation') {
@@ -82,7 +83,7 @@ export async function checkInteraction(page, servers) {
                 await (await frame.$(selector)).click();
                 await frame.waitForFunction(() => document.querySelector('textarea').closest('.form-element-wrapper').style.display !== 'none');
               } else {
-                const button = await frame.$('[name="form.companies-layer"] > .form-element > .input-group-wrapper > .input-group-btn > .btn-plus');
+                const button = await frame.$(`${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-plus`);
                 await button.scrollIntoView();
                 const before = await frame.evaluate((button, action) => {
                   const input = document.querySelector('input[name]');
@@ -94,7 +95,7 @@ export async function checkInteraction(page, servers) {
                 const parentScroll = await page.evaluate(() => window.scrollY);
                 if (action === 'pointer') await button.click();
                 else await page.keyboard.press('Enter');
-                await frame.waitForFunction(() => document.querySelector('[name="form.companies-layer"] > .form-element').children.length === 2);
+                await frame.waitForFunction(selector => document.querySelector(`${selector} > .form-element`).children.length === 2, {}, collectionSelector);
                 await frame.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
                 const after = await frame.evaluate(button => ({
                   name: document.activeElement.name,
