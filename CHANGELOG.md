@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Reusable form inspector
+
+The form inspector and its Node and browser checks are maintained under
+`tests/form-inspector/`. Framework initialization tests use that module directly.
+All 18 Node checks and six browser checks passed after relocation.
+
 ## 2026-09-09 — Bundled example specifications and nested data
 
 The Bootstrap example includes product and repeated-form specifications in its
