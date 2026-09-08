@@ -1,6 +1,8 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "plugin": ["typedoc-plugin-markdown"],
+  "plugin": [
+    "typedoc-plugin-markdown"
+  ],
   "readme": "none",
   "githubPages": false,
   "hideGenerator": true,
@@ -17,6 +19,8 @@
   "expandObjects": false,
   "hidePageHeader": false,
   "hideBreadcrumbs": false,
-  "publicPath": "/api/",
-  "sort": ["source-order"]
+  "sort": [
+    "source-order"
+  ],
+  "entryFileName": "index"
 }

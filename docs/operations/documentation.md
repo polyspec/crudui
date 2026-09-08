@@ -26,6 +26,13 @@ and feature status fields. Run `make docs` to generate API references, schema an
 the documentation site. Automated checks do not establish content accuracy;
 review the relevant source and tests before recording a result.
 
+The documentation site build checks internal links. Fix invalid source or
+generated links instead of disabling the link check for the whole site.
+TypeDoc generates relative links and an `index` page for each package.
+Relative links to repository files outside `docs/` are checked for file existence
+and rendered as GitHub source links on the site. Document sources retain their
+repository-relative links. A missing repository file fails the build.
+
 Use repository-relative paths in scripts and documents. External source tools
 must require an explicit input path. They must not depend on another project's
 checkout or a developer's home directory.
