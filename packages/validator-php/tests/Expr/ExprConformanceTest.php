@@ -11,7 +11,7 @@ use CRUDUI\Validator\Expr\Node;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI expression-engine conformance (EXPRESSION-GRAMMAR §9 three-stage check):
+ * CRUDUI expression-engine conformance (expressions.md §9 three-stage check):
  *   (1) lexer(expr)  == fixture tokens
  *   (2) parser(toks) == fixture ast
  *   (3) evaluate / evaluateValue == fixture truthy / value

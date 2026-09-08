@@ -1,4 +1,4 @@
-//! CRUDUI expression tokens (EXPRESSION-GRAMMAR §1, JS `types.ts` TokenType parity).
+//! CRUDUI expression tokens (expressions.md §1, JS `types.ts` TokenType parity).
 //!
 //! `TokenType` is the terminal tag; `Token` is `{type,value,literal}`. WHITESPACE
 //! never reaches the token array (the lexer drops it); EOF is always the final

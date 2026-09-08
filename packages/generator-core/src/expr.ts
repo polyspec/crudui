@@ -1,23 +1,4 @@
-/**
- * CRUDUI generator expression bridge — REUSE, do not reimplement.
- *
- * The condition parser (ConditionParser) and evaluator (PathResolver) are the
- * SAME surfaces the CRUDUI validator consumes (validator-ts/src/parser/*). This file
- * is a thin dispatcher that ports the validator's `resolveRuleValue` /
- * `resolveConditionMap` / `tryEvaluateTernary` patterns
- * (validator-ts/src/validate/validator.ts:519,543,578) so the generator
- * derives `design.show`/`design.class`/`design.style` from the SAME AST and the
- * SAME evaluation as the validator. One engine, two consumers — 4-language /
- * 3-framework idempotence is anchored on tests/fixtures/expr/cases.json.
- *
- * R7 isolation: this never imports legacy generator private state and never calls
- * `eval`. Parse/eval failures fall back to the validator's safety net
- * (false / null) — never throw out of render.
- */
-
-// The SAME parser/evaluator surfaces the CRUDUI validator consumes, imported through
-// the validator's public package API — identical AST, identical evaluation. The
-// generator never reimplements the engine.
+/** Evaluate form visibility and appearance using the shared expression engine. */
 import {
   parseCondition,
   isConditionExpression,
@@ -41,48 +22,6 @@ export function makeContext(
   return { currentPath, formData };
 }
 
-// ---------------------------------------------------------------------------
-// ternary helpers (string-split, regex-safe) — ported from validator.ts so the
-// generator never mistakes a regex (`^https?://...?:...`) for a ternary.
-// ---------------------------------------------------------------------------
-
-/** Index of a top-level `?`/`:` operator (skips strings/brackets/parens). */
-function findTernaryOperator(expr: string, op: '?' | ':', from = 0): number {
-  let depth = 0;
-  let quote: string | null = null;
-  for (let i = from; i < expr.length; i++) {
-    const ch = expr[i]!;
-    if (quote) {
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'") {
-      quote = ch;
-      continue;
-    }
-    if (ch === '(' || ch === '[') depth++;
-    else if (ch === ')' || ch === ']') depth--;
-    else if (depth === 0 && ch === op) return i;
-  }
-  return -1;
-}
-
-/** Parse a ternary branch literal: strip quotes, coerce number/bool/null. */
-function parseTernaryBranchValue(branch: string): unknown {
-  const s = branch.trim();
-  if (
-    (s.startsWith("'") && s.endsWith("'")) ||
-    (s.startsWith('"') && s.endsWith('"'))
-  ) {
-    return s.slice(1, -1);
-  }
-  if (s === 'true') return true;
-  if (s === 'false') return false;
-  if (s === 'null') return null;
-  if (s !== '' && !Number.isNaN(Number(s))) return Number(s);
-  return s;
-}
-
 function evalConditionBool(expression: string, context: PathContext): boolean {
   try {
     return evaluateCondition(parseCondition(expression), context, 'CURRENT');
@@ -99,37 +38,24 @@ function evalExpressionValue(expression: string, context: PathContext): unknown 
   }
 }
 
-/** Try to read `cond ? a : b`; `{ handled:false }` when not a real ternary. */
+/** Evaluate a complete ternary AST; other strings remain literal values. */
 function tryEvaluateTernary(
   expression: string,
   context: PathContext
 ): { handled: boolean; value?: unknown } {
-  const q = findTernaryOperator(expression, '?');
-  if (q === -1) return { handled: false };
-  const c = findTernaryOperator(expression, ':', q + 1);
-  if (c === -1) return { handled: false };
-  const condition = expression.slice(0, q).trim();
-  if (!isConditionExpression(condition)) return { handled: false };
   try {
-    parseCondition(condition);
+    const node = parseCondition(expression);
+    if (node.type !== 'Ternary') return { handled: false };
+    return { handled: true, value: evaluateExpressionValue(node, context) };
   } catch {
     return { handled: false };
   }
-  const result = evalConditionBool(condition, context);
-  const branch = result
-    ? expression.slice(q + 1, c).trim()
-    : expression.slice(c + 1).trim();
-  if (/\?[^:]*:/.test(branch)) {
-    const nested = tryEvaluateTernary(branch, context);
-    if (nested.handled) return nested;
-  }
-  return { handled: true, value: parseTernaryBranchValue(branch) };
 }
 
 /**
- * Evaluate a ConditionMap (EXPRESSION-GRAMMAR §8): walk keys in declaration
+ * Evaluate a ConditionMap (expressions.md §8): walk keys in declaration
  * order, return the value of the first truthy key; else the `true` default key;
- * else null. Exact port of validator.ts:519 resolveConditionMap.
+ * else null.
  */
 function resolveConditionMap(
   map: Record<string, unknown>,

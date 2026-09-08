@@ -5,6 +5,7 @@
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
+| expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | legacy-examples | 레거시 예제 경로와 패키지 빌드 | implemented | passed | not-deployed | [Examples](spec/examples.ko.md) |
 | form-controls | 라벨, 복수 선택 배열과 필드 컨테이너 경로 | implemented | passed | not-deployed | [공유 입력 검사](../tests/fixtures/form-session/controls.mjs) |
 | package-consumer | 패키지 export, 타입 선언과 소비자 프로덕션 빌드 | implemented | passed | not-deployed | [소비자 검사](../scripts/check-packages.mjs) |
@@ -29,8 +30,8 @@
 패키지 검사는 `a5b4491`에 커밋된 의존성 그래프를 사용합니다.
 `npm ci`, 공개 선언과 export 검사 5개, 반복 빌드 출력 검사 1개, 별도 소비자
 타입·프로덕션·세 프레임워크 브라우저 검사가 통과했습니다. 폼 검사는 코어
-26개, React 692개, Vue 344개, Svelte 345개와 마운트 검사 3개, 정규화 검사
-6개가 통과했습니다. JavaScript 검증 1,579개와 PHP 1,392개가 통과했습니다.
+29개, React 692개, Vue 344개, Svelte 345개와 마운트 검사 3개, 정규화 검사
+6개가 통과했습니다. JavaScript 검증 1,592개와 PHP 1,404개가 통과했습니다.
 Go와 Rust 패키지 테스트도 통과했습니다.
 
 `multiple.min`을 포함한 후 스키마 고정 사례 56개가 통과했습니다. 이후 스키마

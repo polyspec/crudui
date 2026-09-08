@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Expr;
 
 /**
- * CRUDUI expression evaluator (EXPRESSION-GRAMMAR §5/§6/§7, JS PathResolver parity).
+ * CRUDUI expression evaluator (expressions.md §5/§6/§7, JS PathResolver parity).
  *
  * The shared 4-language fixture (tests/fixtures/expr/cases.json) is generated
  * from the JS reference engine and is the §9 contract all four engines pass, so

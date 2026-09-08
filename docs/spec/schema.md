@@ -63,7 +63,7 @@ Condition maps select the first matching expression and require `true` as the
 default key. Dedicated conditional metadata such as `show_if`, `display_switch`
 and `display_target` is rejected in CRUDUI schemas.
 
-The [expression grammar](../EXPRESSION-GRAMMAR.md) defines the tokenizer, parser
+The [expression grammar](expressions.md) defines the tokenizer, parser
 and evaluator. Supported expressions include relative paths, wildcards, lists,
 comparison, logic, membership and conditional values. Arithmetic, function calls
 and JavaScript evaluation are unsupported. Event scripts in `behavior` are opaque

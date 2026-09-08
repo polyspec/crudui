@@ -212,6 +212,13 @@ descTest('list capability is additive — form describe surfaces are unchanged',
     expect(r.grammar.tokens.length).toBeGreaterThan(0);
   });
 
+  it('describes the maintained expression contract', () => {
+    expect(r.grammar.source).toBe('docs/spec/expressions.md');
+    expect(r.grammar.precedence).toHaveLength(6);
+    expect(r.grammar.truthyFalsy.join(' ')).toContain('including empty arrays and empty objects, are true');
+    expect(r.grammar.unsupported).toContain('function calls');
+  });
+
   it('the list section sits beside them without colliding (own top-level key)', () => {
     expect(r.list).toBeDefined();
     // describe still has the pre-existing keys (no rename/removal).
