@@ -21,7 +21,7 @@ React·Vue·Svelte 레이아웃 일치 검사는 `cases.json`을 공유합니다
 행 키, ID, 값과 숨김 상태는 마스킹하지 않습니다.
 
 정규화한 레이아웃의 일치는 HTML 원문의 일치를 증명하지 않습니다.
-[폼 검사기](../../../examples/form-comparison/src/form-snapshot.mjs)는 초기 데이터와
+[폼 검사기](../../../tests/form-inspector/form-snapshot.mjs)는 초기 데이터와
 나중 주입의 HTML 원문, DOM, CSS, 입력과 런타임 상태를 별도로 비교합니다.
 
 ## 생성과 검증

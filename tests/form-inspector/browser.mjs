@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import puppeteer from 'puppeteer';
 
-const source = await readFile(new URL('./src/form-snapshot.mjs', import.meta.url), 'utf8');
+const source = await readFile(new URL('./form-snapshot.mjs', import.meta.url), 'utf8');
 const browser = await puppeteer.launch({ headless: true });
 try {
   const page = await browser.newPage();

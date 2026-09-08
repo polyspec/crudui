@@ -1,5 +1,5 @@
 import { data, companyKey, storeKey } from './scenario.mjs';
-import { formSnapshot } from '../../../examples/form-comparison/src/form-snapshot.mjs';
+import { formSnapshot } from '../../form-inspector/form-snapshot.mjs';
 
 /** Compare initial records with repeated injection into an already mounted form. */
 export async function compareInitialization({ initial, deferred, flush, expect }) {
