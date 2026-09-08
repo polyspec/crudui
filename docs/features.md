@@ -57,7 +57,7 @@ All 240 HTTP checks and PHP processor-mode enforcement passed.
 | --- | --- | --- | --- |
 | PHP | 120/120 passed | 30/30 passed | 0 |
 | PHP extension | 120/120 passed | 30/30 passed | 0 |
-| Go | pending | pending | pending |
+| Go | 120/120 passed | 30/30 passed | 0 |
 | Rust | pending | pending | pending |
 
 Each target covers React, Vue and Svelte with form and ordered JSON transport.
