@@ -29,7 +29,9 @@
     "spec:schema": "node scripts/check-schema.mjs",
     "test:forms": "npm run build:validator && npm run build:generators && npm test -w @crudui/generator-core -- --run && npm test -w @crudui/generator-react -- --run && npm test -w @crudui/generator-vue && npm test -w @crudui/generator-svelte && node --test tests/fixtures/form-render/normalize.test.mjs",
     "docs:check:documents": "node scripts/check-documents.mjs",
-    "test:packages": "npm run build && node scripts/check-packages.mjs"
+    "test:packages": "npm run build && node scripts/check-packages.mjs",
+    "test:build": "node --test tests/build/public-packages.test.mjs",
+    "test:build:repeat": "node --test tests/build/reproducible-build.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -74,6 +76,8 @@
     "typedoc-plugin-markdown": "^4.12.0",
     "typescript-eslint": "^8.61.0",
     "vitepress": "^1.6.4",
-    "vitepress-plugin-mermaid": "^2.0.17"
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   }
 }
