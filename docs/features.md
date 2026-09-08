@@ -83,3 +83,7 @@ application classes. Frontend browser verification remains pending.
 Library deployment means package publication; no package is published.
 The comparison application is available locally and has not completed its full
 browser matrix. Release verification and repository cleanup remain in progress.
+
+Full documentation generation and the static site build passed. Two consecutive
+API documentation and schema runs produced identical output. The console tests
+passed 81 cases and the raw form inspector passed 18 cases.
