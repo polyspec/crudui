@@ -125,3 +125,20 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 반복 필드는 행 개수 제한으로 숫자형 `multiple.min`과 `multiple.max`를
 받습니다. 인스턴스의 컬렉션 키가 행을 식별하며 스키마는 숨김 식별자 필드를
 정의하지 않습니다. 행 연산은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
+
+## 위젯과 소스 설정
+
+`options`는 해당 위젯의 설정을 보존합니다. 선언을 허용하는 것이 코어가 외부
+위젯을 실행한다는 뜻은 아닙니다. 검색은 `keyword_min_length`, 지도 기술자는
+`marker_draggable`, `zoom`, `geometry_type`, 태그는 `max_tags`를 사용합니다.
+라벨 설정은 `checkbox_label`과 `on_label`을 포함합니다. 컨테이너 설정은
+`collapse`, `expend`, `view_total`, `stepper`, `blank_message`를 포함합니다.
+`callback`과 `event`는 위젯 스크립트를 보존합니다.
+
+동적 선택지 기술자는 `model`, `method`, `table`, `relations`, `keys`,
+`api_server`를 지정할 수 있습니다. 내부 `items` 컬렉션은 초기 정적 선택지를
+제공합니다. 애플리케이션이 질의와 엔드포인트 호출을 수행합니다.
+
+언어 설정은 `mode`, 언어 목록 또는 재정의 맵인 `only`, 그룹의 `name`,
+`key`, `frame`, `title`, `group_class` 설정을 받습니다. 언어별 재정의는
+`validate`, `design`, `behavior`, `options`를 변경할 수 있습니다.
