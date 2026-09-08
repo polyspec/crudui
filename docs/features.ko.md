@@ -25,6 +25,7 @@
 | form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | in-progress | pending | not-deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../examples/form-comparison/check-ordered-json.py) |
 | ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | in-progress | pending | not-deployed | [전송 계약](spec/form-comparison.ko.md) |
+| php-extension-server | 독립된 PHP 확장 요청과 저장 | in-progress | pending | not-deployed | [처리 모드](spec/form-comparison.ko.md#php-처리-모드) |
 | form-servers | PHP, Go, Rust의 독립된 제출, 검증, 저장과 재로드 | in-progress | pending | not-deployed | [서버 계약](spec/form-comparison.ko.md) |
 | form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | in-progress | pending | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | original-empty-correction | 원본 출력 수정과 빈 컬렉션 전체 처리 과정 | implemented | passed | not-deployed | [비교 계약](spec/form-comparison.ko.md) |
@@ -36,6 +37,12 @@ API 생성, 스키마 생성, 문서 사이트 빌드도 통과했습니다. 라
 패키지 게시를 기준으로 하며 게시한 패키지는 없습니다. 폼 비교 예제은 Apple container의
 [localhost:4317](http://localhost:4317)에 로컬 배포했습니다. 원격 배포는 실행하지
 않았습니다.
+
+PHP 확장 통합은 독립된 `crudui-extension-check` 컨테이너에서 HTTP 검사
+240개를 통과했습니다. 근거는
+`.form-comparison/extension-check/results/server-report.json`입니다.
+두 PHP 모드와 모드 강제 검사는 `test-php-modes.mjs`를 통과했습니다.
+확장 브라우저 검증과 기본 비교 컨테이너 교체는 남아 있습니다.
 
 ## 현재 서버 검증
 

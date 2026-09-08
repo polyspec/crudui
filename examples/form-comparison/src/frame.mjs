@@ -11,7 +11,7 @@ const mode = __FORM_MODE__;
 const framework = __FRAMEWORK__;
 const keyed = mode !== 'original';
 const server = new URLSearchParams(location.search).get('server') ?? 'php';
-if (!['php', 'go', 'rust'].includes(server)) throw new Error('Unknown server');
+if (!['php', 'php-ext', 'go', 'rust'].includes(server)) throw new Error('Unknown server');
 const language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'ko';
 const t = translations(language);
 const form = document.querySelector('#form');

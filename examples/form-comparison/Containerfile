@@ -35,7 +35,15 @@ RUN set -e; while read -r revision commit; do \
     cp /target/release/crudui-form-comparison /out/rust-$revision; \
     done < /archives/source-revisions
 
+FROM dependencies AS php-extension
+RUN apt-get update && apt-get install -y --no-install-recommends php8.4-dev gcc make autoconf libc6-dev && rm -rf /var/lib/apt/lists/*
+COPY ordered-json.tar /archives/
+RUN mkdir -p /extension && tar -xf /archives/ordered-json.tar -C /extension
+WORKDIR /extension/php/ext
+RUN phpize && ./configure --enable-sortjson && make -j2
+
 FROM dependencies AS example
+COPY --from=php-extension /extension/php/ext/modules/sortjson.so /opt/sortjson.so
 COPY corrected.tar /archives/
 RUN mkdir -p /workspace/corrected && tar -xf /archives/corrected.tar -C /workspace/corrected
 RUN npm install --prefix /opt/native-dependencies --package-lock=false --ignore-scripts --no-audit --no-fund @rolldown/binding-linux-arm64-gnu@1.0.3 lightningcss-linux-arm64-gnu@1.32.0 @rollup/rollup-linux-arm64-gnu@4.62.0 && cp -R /opt/native-dependencies/node_modules/@rolldown/binding-linux-arm64-gnu node_modules/@rolldown/ && cp -R /opt/native-dependencies/node_modules/lightningcss-linux-arm64-gnu node_modules/ && cp -R /opt/native-dependencies/node_modules/@rollup/rollup-linux-arm64-gnu node_modules/@rollup/

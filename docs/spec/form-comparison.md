@@ -8,7 +8,7 @@ Local container files and verification reports are stored in `.form-comparison/`
 
 ## Server implementations
 
-PHP, Go and Rust implement the same native form and JSON request contract. Each
+PHP, PHP extension, Go and Rust implement the same native form and JSON request contract. Each
 server parses the request, runs its own existing CRUDUI validator, saves its own JSON
 repository and reconstructs the hierarchy on reload. Servers do not delegate
 validation or persistence to another language. A Node HTTP process serves the
@@ -49,7 +49,7 @@ focus and selection, and every computed CSS property for elements and their
 `::before` and `::after` pseudo-elements. The same record is injected repeatedly
 to verify idempotence. The check then repeats editing, visibility changes,
 saving, reloading, copying, reordering, removal, addition and empty data.
-PHP, Go and Rust receive both form and JSON submissions from each path.
+PHP, PHP extension, Go and Rust receive both form and JSON submissions from each path.
 
 Row-action replay supplies the same seven-byte random inputs in each path and
 restores the browser random function afterward. Generated keys remain part of
@@ -73,7 +73,7 @@ transmission and displays returned field errors. Each selected server independen
 same spec. Visibility does not change validation: a hidden required field with an
 empty value fails; optional empty values remain valid. No example-specific
 required rules, value filtering or automatic values are added for validation.
-Shared cases check these rules in TypeScript, PHP, Go and Rust. Rendering checks
+Shared cases check these rules in TypeScript, PHP, PHP extension, Go and Rust. Rendering checks
 separately verify visibility, native names and editing. Direct invalid requests
 in server tests deliberately bypass the browser to verify server rejection.
 
@@ -137,7 +137,7 @@ than requiring a particular session property. Added application binding is
 identified separately from the unchanged library source.
 Each frame mounts before requesting saved data from the selected server, then injects the response.
 
-An Apple container serves React, Vue and Svelte browser builds and PHP, Go and Rust APIs.
+An Apple container serves React, Vue and Svelte browser builds and PHP, PHP extension, Go and Rust APIs.
 Library snapshots come from Git archives of the specified commits. The retained original
 library snapshot remains unchanged. The retained array example controller connects its
 existing buttons to array insertion, deep copying, deletion and reordering. It
@@ -243,7 +243,7 @@ checks. The dependency commit and source archive hash appear with the comparison
 source metadata. Implementation and deployment status are recorded in feature
 status.
 
-A four-language validation comparison succeeds only when JS, PHP, Go and Rust
+A four-language validation comparison succeeds only when JS, PHP, PHP extension, Go and Rust
 each return exactly one successful execution result and all validation signatures
 match. Missing, duplicate or failed engine results make the comparison fail.
 
@@ -272,3 +272,14 @@ The SSR comparison creates one form instance per request and supplies that
 instance to all three renderers. Missing repeat data therefore generates the
 same row identities for every renderer. Preparation errors remain explicit
 failures in each renderer result.
+
+## PHP processor modes
+
+PHP and PHP extension are separate server targets with independent processes,
+repositories and results. PHP disables the native processor; PHP extension
+requires the loaded `sortjson` extension and calls `parseNative`. A missing
+extension fails the extension target; it must not execute the PHP parser instead.
+Responses identify the server and processor mode. Both targets run the same
+validation, rendering and persistence contracts. Together with Go and Rust,
+this gives four server targets, three frameworks and two transports: 24 current
+lifecycle combinations. Node server implementation remains separate work.

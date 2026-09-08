@@ -14,7 +14,7 @@ container system status
 node examples/form-comparison/run.mjs start
 ```
 
-Open [http://localhost:4317](http://localhost:4317). Select PHP, Go or Rust, then
+Open [http://localhost:4317](http://localhost:4317). Select PHP, PHP extension, Go or Rust, then
 React, Vue or Svelte. Both forms use the selected server.
 The left form uses original source `1e8702a` with the empty-collection correction
 `78723bb`, an example row controller and cached binding through the original
@@ -57,7 +57,7 @@ Each server/comparison variant/framework has an independent file in
 `.form-comparison/data/`, named `<server>-<variant>-<framework>.json`. APIs use
 `/api/<server>/<action>/<variant>/<framework>`; for example,
 `/api/go/save/keyed/react`. The Node process forwards the original request bytes.
-PHP, Go and Rust perform their own parsing, validation, storage and reload.
+PHP, PHP extension, Go and Rust perform their own parsing, validation, storage and reload.
 Saving replaces the complete hierarchy in that file. Reset and automated checks
 restore its initial records. Container removal preserves these host files.
 This is a local development environment; packages are not published.
@@ -67,12 +67,12 @@ This is a local development environment; packages are not published.
 The page's “Run all servers and frameworks” control runs the same 20 checks on the original
 source with the empty-collection correction, unchanged keyed example, current
 keyed runtime and retained array diagnostic in all three
-frameworks and all three servers, once per transmission choice: 72 reports and
-1,440 scenario results. The table shows the selected server and framework.
+frameworks and all four servers, once per transmission choice: 96 reports and
+1,920 scenario results. The table shows the selected server and framework.
 Results remain PASS or FAIL for each scenario. Download exports these
-results. The headless runner also performs 288 real pointer, keyboard, checkbox and submission-validation
-interaction checks across all 36 server/example/framework combinations and both transmission choices, plus
-36 keyboard checks for addition to an empty collection in the two primary
+results. The headless runner also performs 384 real pointer, keyboard, checkbox and submission-validation
+interaction checks across all 48 server/example/framework combinations and both transmission choices, plus
+48 keyboard checks for addition to an empty collection in the two primary
 implementations. Validation checks inspect the actual HTTP content type and JSON
 body. The equivalence case saves the same edited and copied data through both
 formats and compares IDs, parent relationships, positions and reloaded values.
@@ -83,7 +83,7 @@ blank values, visibility, nested and complete deletion, addition after deletion,
 native and JSON save/reload, and unchanged sibling IDs.
 Cache checks verify one reference read and reject loading after preparation.
 The headless runner also pauses each example's initial server load request and checks
-that nested input elements already exist, covering all 36 server/example/framework combinations.
+that nested input elements already exist, covering all 48 server/example/framework combinations.
 It also verifies that the HTML responses contain empty form containers and remain
 identical across API servers. The initialization case compares 15 stages from
 initial-data creation and post-mount injection, including exact HTML, complete
@@ -135,14 +135,14 @@ The typing runner executes 36 native keyboard cases across the four variants and
 three frameworks at 0, 10 and 50 ms per character. It checks immediate and settled
 values, focus and caret position after a validation error, and preserves results
 in `typing-report.json`.
-The shared HTTP runner executes 180 checks across PHP, Go and Rust and all four
+The shared HTTP runner executes 240 checks across PHP, PHP extension, Go and Rust and all four
 source variants. It covers multipart, URL-encoded and JSON round trips, identical
 server results, file contents, scoped saved keys, deletion, non-reused IDs,
 invalid required values, string field types, request limits, unknown fixtures,
 physical record order and invalid-file preservation. It restores pre-test records
 and writes `server-report.json` to `.form-comparison/results/`, retaining the prior
 report with its timestamp. Run it after browser checks finish; both use the same
-repositories. An optional `php`, `go` or `rust` argument to `check.mjs` limits a
+repositories. An optional `php`, `php-ext`, `go` or `rust` argument to `check.mjs` limits a
 browser run to one server and writes separate filenames. Interrupted browser
 runs save an `incomplete-*.json` report.
 The PHP repository check also verifies fresh-instance loading, position-based loading
@@ -178,3 +178,24 @@ The page exposes full source commit IDs and SHA-256 hashes of the Git archives.
 The snapshots use the committed npm lockfile. The image installs matching Linux
 ARM64 native build bindings separately because that lockfile contains only their
 macOS package entries. It does not update the snapshots' framework dependencies.
+
+## PHP extension target
+
+Select `php` for the PHP processor or `php-ext` for the compiled extension.
+The image builds the extension with its PHP headers. The extension process
+loads `/opt/sortjson.so` explicitly; the PHP process does not load it.
+Health checks and HTTP responses must report `nativeJson: false` for `php`
+and `nativeJson: true` for `php-ext`. A mismatch fails startup or verification.
+Repositories use separate `php-` and `php-ext-` filenames in the data volume.
+
+After building and starting the environment, run:
+
+```sh
+node examples/form-comparison/check.mjs php-ext
+container exec crudui-form-comparison node /workspace/keyed/examples/form-comparison/test-php-modes.mjs /opt/sortjson.so
+container exec crudui-form-comparison node /workspace/keyed/examples/form-comparison/check-servers.mjs
+```
+
+The complete matrix includes PHP, PHP extension, Go and Rust with React, Vue
+and Svelte and both transports. Existing reports from three servers do not
+verify PHP extension execution.
