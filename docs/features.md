@@ -7,6 +7,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | --- | --- | --- | --- | --- | --- |
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
+| legacy-comparison | Legacy execution, fixture expectations and four-language agreement | implemented | passed | not-deployed | [Testing procedure](operations/testing.md) |
 | legacy-examples | Legacy example paths and package builds | implemented | passed | not-deployed | [Examples](spec/examples.md) |
 | form-controls | Labels, multiple choice arrays and field container paths | implemented | passed | not-deployed | [Shared control assertions](../tests/fixtures/form-session/controls.mjs) |
 | package-consumer | Packaged exports, type declarations and consumer production build | implemented | passed | not-deployed | [Consumer check](../scripts/check-packages.mjs) |

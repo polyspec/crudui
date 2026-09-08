@@ -5,7 +5,7 @@
   "description": "Cross-language validation test runner for crudui validators",
   "type": "commonjs",
   "scripts": {
-    "test": "node runner/compare-all.js",
+    "test": "node --test runner/compare-all.test.cjs && node runner/compare-all.js",
     "test:js": "node runner/compare-all.js --js-only",
     "test:php": "node runner/compare-all.js --php-only",
     "test:go": "node runner/compare-all.js --go-only",
