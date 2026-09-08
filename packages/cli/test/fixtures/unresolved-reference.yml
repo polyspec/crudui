@@ -1,0 +1,5 @@
+type: group
+properties:
+  name:
+    type: text
+    $ref: missing.yml

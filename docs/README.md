@@ -10,6 +10,7 @@
 - [Documentation maintenance](operations/documentation.md)
 - [Expression grammar](spec/expressions.md)
 - [Data validation](operations/validation.md)
+- [Specification CLI](operations/cli.md)
 - [Validation rules](VALIDATION-RULES.md)
 
 Generate API references and the documentation site with `make docs` from the
