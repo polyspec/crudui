@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Public API documentation generation
+
+API generation fails when a required tool fails or its output is missing.
+TypeScript checks all five public package entries, including Svelte component
+declarations. Go documents all validator packages. Rust and PHP HTML references
+are included in the static site. The documentation procedure specifies required
+tools; the duplicate procedure is removed.
+
+Eight generator failure tests, documentation checks, Svelte's 345 server tests
+and 3 mounted tests passed. Two complete documentation generations produced
+identical output, including native HTML assets. The strict site build passed.
+
 ## 2026-09-09 — Documentation link validation
 
 The site checks internal links during builds. TypeDoc generates relative links
