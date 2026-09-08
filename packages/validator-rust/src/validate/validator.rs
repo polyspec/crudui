@@ -14,7 +14,7 @@
 
 use serde_json::{Map, Value};
 
-use crate::expr::{Expression, Parser, Token};
+use crate::expr::{Evaluator, Expression, Node};
 
 use super::rules::{get_rule, is_condition_expression, RuleContext};
 
@@ -144,7 +144,13 @@ impl Validator {
                         } else {
                             Value::Object(Map::new())
                         };
-                        self.validate_properties(child_props, &item_obj, &item_path, all_data, errors);
+                        self.validate_properties(
+                            child_props,
+                            &item_obj,
+                            &item_path,
+                            all_data,
+                            errors,
+                        );
                     }
                     self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
                 } else if is_object_multiple {
@@ -161,7 +167,13 @@ impl Validator {
                         } else {
                             Value::Object(Map::new())
                         };
-                        self.validate_properties(child_props, &item_obj, &item_path, all_data, errors);
+                        self.validate_properties(
+                            child_props,
+                            &item_obj,
+                            &item_path,
+                            all_data,
+                            errors,
+                        );
                     }
                     self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
                 } else if !is_multiple {
@@ -222,9 +234,9 @@ impl Validator {
                 if !ARRAY_LEVEL_RULES.contains(&rule_name.as_str()) {
                     continue;
                 }
-                if let Some(message) =
-                    self.run_rule(rule_name, rule_value, values, field_path, messages, all_data)
-                {
+                if let Some(message) = self.run_rule(
+                    rule_name, rule_value, values, field_path, messages, all_data,
+                ) {
                     errors.push(ValidationError {
                         path: path_to_string(field_path),
                         field: field_name(field_path),
@@ -337,9 +349,14 @@ impl Validator {
         if rules.map(|r| r.contains_key("number")).unwrap_or(false) {
             return false;
         }
-        if let Some(message) =
-            self.run_rule("number", &Value::Bool(true), value, path, messages, all_data)
-        {
+        if let Some(message) = self.run_rule(
+            "number",
+            &Value::Bool(true),
+            value,
+            path,
+            messages,
+            all_data,
+        ) {
             errors.push(ValidationError {
                 path: path_to_string(path),
                 field: field_name(path),
@@ -426,7 +443,7 @@ impl Validator {
         rule_value.clone()
     }
 
-    /// Evaluate a ConditionMap (EXPRESSION-GRAMMAR §8): first truthy key wins;
+    /// Evaluate a ConditionMap (expressions.md §8): first truthy key wins;
     /// else the `true` key; else null (disabled).
     fn resolve_condition_map(
         &self,
@@ -448,37 +465,18 @@ impl Validator {
         Value::Null
     }
 
-    /// Try to read a string param as a value-returning ternary `cond ? a : b`.
-    /// Returns `None` when the string is not a ternary or its condition part is
-    /// not a parseable condition (so a regex containing `?...:` is not mistaken).
+    /// Evaluate a complete ternary AST; other strings remain literal parameters.
     fn try_evaluate_ternary(
         &self,
         expression: &str,
         current_path: &[String],
         all_data: &Value,
     ) -> Option<Value> {
-        let question_pos = find_ternary_operator(expression, '?', 0)?;
-        let colon_pos = find_ternary_operator(expression, ':', question_pos + 1)?;
-
-        let condition = expression[..question_pos].trim();
-        if !is_condition_expression(condition) {
+        let node = Expression::parse(expression).ok()?;
+        if !matches!(node, Node::Ternary { .. }) {
             return None;
         }
-        parse_condition_ok(condition)?;
-
-        let condition_result = evaluate_condition(condition, all_data, current_path);
-        let branch = if condition_result {
-            expression[question_pos + 1..colon_pos].trim()
-        } else {
-            expression[colon_pos + 1..].trim()
-        };
-
-        if has_ternary_regex(branch) {
-            if let Some(nested) = self.try_evaluate_ternary(branch, current_path, all_data) {
-                return Some(nested);
-            }
-        }
-        Some(parse_ternary_branch_value(branch))
+        Some(Evaluator::new(all_data, current_path).evaluate_value(&node))
     }
 }
 
@@ -490,7 +488,11 @@ fn evaluate_condition(expression: &str, form_data: &Value, current_path: &[Strin
     Expression::evaluate(expression, form_data, current_path).unwrap_or(false)
 }
 
-fn evaluate_expression_value(expression: &str, form_data: &Value, current_path: &[String]) -> Value {
+fn evaluate_expression_value(
+    expression: &str,
+    form_data: &Value,
+    current_path: &[String],
+) -> Value {
     Expression::evaluate_value(expression, form_data, current_path).unwrap_or(Value::Bool(false))
 }
 
@@ -499,7 +501,10 @@ fn evaluate_expression_value(expression: &str, form_data: &Value, current_path: 
 // ---------------------------------------------------------------------------
 
 fn is_multiple(field: &Value) -> bool {
-    matches!(field.get("multiple"), Some(Value::Bool(true)) | Some(Value::Object(_)))
+    matches!(
+        field.get("multiple"),
+        Some(Value::Bool(true)) | Some(Value::Object(_))
+    )
 }
 
 /// Normalize a polymorphic `validate` slot to a rule map. false/true/{}/absent →
@@ -524,8 +529,7 @@ fn field_name(path: &[String]) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Ternary helpers (string-split, regex-safe; JS findTernaryOperator /
-// parseTernaryBranchValue parity).
+// Identify strings containing ternary punctuation.
 // ---------------------------------------------------------------------------
 
 /// JS `/\?[^:]*:/` test: a '?' that has a ':' somewhere after it.
@@ -534,83 +538,4 @@ fn has_ternary_regex(s: &str) -> bool {
         return s[q + 1..].contains(':');
     }
     false
-}
-
-/// Position (byte offset) of a top-level ternary `?`/`:` respecting quotes,
-/// parens, brackets and nested ternaries (JS `findTernaryOperator`). Expressions
-/// are ASCII for operators; works on char scan returning byte offsets.
-fn find_ternary_operator(expression: &str, operator: char, start_pos: usize) -> Option<usize> {
-    let mut depth: i32 = 0;
-    let mut in_quote = false;
-    let mut quote_char = '\0';
-    let mut ternary_depth: i32 = 0;
-
-    for (byte_offset, ch) in expression.char_indices() {
-        if byte_offset < start_pos {
-            continue;
-        }
-        if (ch == '"' || ch == '\'') && !in_quote {
-            in_quote = true;
-            quote_char = ch;
-        } else if ch == quote_char && in_quote {
-            in_quote = false;
-            quote_char = '\0';
-        }
-        if !in_quote {
-            if ch == '(' || ch == '[' {
-                depth += 1;
-            } else if ch == ')' || ch == ']' {
-                depth -= 1;
-            }
-            if ch == '?' && depth == 0 {
-                if operator == '?' {
-                    return Some(byte_offset);
-                }
-                ternary_depth += 1;
-            } else if ch == ':' && depth == 0 && operator == ':' {
-                if ternary_depth == 0 {
-                    return Some(byte_offset);
-                }
-                ternary_depth -= 1;
-            }
-        }
-    }
-    None
-}
-
-/// Parse a ternary branch string into a typed value (JS `parseTernaryBranchValue`).
-fn parse_ternary_branch_value(raw: &str) -> Value {
-    let value = raw.trim();
-    if value.len() >= 2 {
-        let bytes = value.as_bytes();
-        let first = bytes[0];
-        let last = bytes[value.len() - 1];
-        if (first == b'"' && last == b'"') || (first == b'\'' && last == b'\'') {
-            return Value::String(value[1..value.len() - 1].to_string());
-        }
-    }
-    match value {
-        "true" => return Value::Bool(true),
-        "false" => return Value::Bool(false),
-        "null" => return Value::Null,
-        _ => {}
-    }
-    if !value.is_empty() {
-        if let Ok(f) = value.parse::<f64>() {
-            if value.contains('.') {
-                return Value::from(f);
-            }
-            if let Ok(i) = value.parse::<i64>() {
-                return Value::from(i);
-            }
-            return Value::from(f);
-        }
-    }
-    Value::String(value.to_string())
-}
-
-/// Check a condition string parses as a CRUDUI expression (regex-safe ternary guard).
-fn parse_condition_ok(expression: &str) -> Option<()> {
-    let tokens: Vec<Token> = Expression::tokenize(expression).ok()?;
-    Parser::new(tokens).parse().ok().map(|_| ())
 }

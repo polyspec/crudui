@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Expr;
 
 /**
- * CRUDUI expression lexer (EXPRESSION-GRAMMAR §1, JS Lexer parity).
+ * CRUDUI expression lexer (expressions.md §1, JS Lexer parity).
  *
  * Turns a condition string into a Token[] ending in EOF. WHITESPACE is consumed
  * but never emitted. The token order, multi-char operator precedence, multi-dot

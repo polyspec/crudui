@@ -1,6 +1,6 @@
 package expr
 
-// AST node set (EXPRESSION-GRAMMAR §4). Field names follow the JS reference
+// AST node set (expressions.md §4). Field names follow the JS reference
 // (ConditionParser.ts); ToMap() emits the JS serialization the 4-language
 // equivalence compares (position-free, GRAMMAR §4 position note).
 //

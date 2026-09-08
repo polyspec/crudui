@@ -13,7 +13,7 @@
  *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
  *   - schema/crudui-CRUDUI.json   → list definitions (List/Column/CellFormat/…) (parse)
- *   - EXPRESSION-GRAMMAR.md      → tokens / precedence / truthy / unsupported (parse)
+ *   - expressions.md      → tokens / precedence / truthy / unsupported (parse)
  *   - spec/schema.md             → classification rules (parse)
  *
  * Drift 0: a widget added to REGISTRY, a rule added to builtInRules, a slot key
@@ -55,7 +55,7 @@ import { scanForbiddenKeys } from '../../validator-ts/src/forbidden-scan.ts';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
 const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/crudui.schema.json');
-const GRAMMAR_PATH = resolve(REPO_ROOT, 'docs/EXPRESSION-GRAMMAR.md');
+const GRAMMAR_PATH = resolve(REPO_ROOT, 'docs/spec/expressions.md');
 
 // ---------------------------------------------------------------------------
 // Result shape (the one object both --json and --md render from).
@@ -258,7 +258,7 @@ function collectRules(): RuleEntry[] {
 }
 
 // ---------------------------------------------------------------------------
-// grammar parse (EXPRESSION-GRAMMAR.md §1 tokens / §3 precedence / §6 / §10)
+// grammar parse (expressions.md §1 tokens / §3 precedence / §6 / §10)
 // ---------------------------------------------------------------------------
 
 function sliceSection(md: string, fromHeader: RegExp, toHeader = /^## /m): string {
@@ -321,7 +321,7 @@ function collectGrammar(): DescribeResult['grammar'] {
     .filter((s) => s.length > 0);
 
   return {
-    source: 'docs/EXPRESSION-GRAMMAR.md',
+    source: 'docs/spec/expressions.md',
     tokens,
     precedence,
     truthyFalsy,
@@ -544,7 +544,7 @@ export function describe(): DescribeResult {
         slots: 'schema/crudui.schema.json (definitions)',
         forbiddenKeys: 'packages/validator-ts/src/types.ts (FORBIDDEN_META_KEYS)',
         forbiddenScan: 'packages/validator-ts/src/forbidden-scan.ts',
-        grammar: 'docs/EXPRESSION-GRAMMAR.md',
+        grammar: 'docs/spec/expressions.md',
         classification: 'docs/spec/schema.md',
         listCellFormats: 'packages/generator-core/src/cell.ts (CELL_RENDERERS)',
         listStructure: 'schema/crudui.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',

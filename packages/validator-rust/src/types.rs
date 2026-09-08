@@ -94,7 +94,7 @@ pub enum Polymorphic<T> {
 /// 정규 모델 `condition_map` — 키(조건식)를 선언 순서대로 평가해 첫 truthy의 값을
 /// 반환한다. 아무것도 안 맞으면 `true` 키(있으면)의 값, 없으면 null. 기본키는 항상
 /// 참인 리터럴 `true`(R4 위반인 `_` 같은 관례 기호 금지). 각 키는
-/// EXPRESSION-GRAMMAR §2 표현식이며, 조건맵은 엔진을 반복 호출하는 얇은 래퍼다.
+/// expressions.md §2 표현식이며, 조건맵은 엔진을 반복 호출하는 얇은 래퍼다.
 /// 선언 순서는 serde_json `preserve_order` 로 보존된다(`DEFAULT_KEY` = `"true"`).
 pub type ConditionMap = Map<String, Value>;
 
@@ -105,7 +105,7 @@ pub const DEFAULT_KEY: &str = "true";
 ///
 /// SPEC §2 G1 — 모든 평가값은 표현식 또는 조건맵이다. 별도 `if`/`when`/
 /// `show_if` 키는 없다. 단일 표현식 `"...?...:..."` 은 조건맵의 축약(동일 의미론).
-/// 평가는 EXPRESSION-GRAMMAR 엔진이 수행하고, 이 타입은 입력 형태만 고정한다.
+/// 평가는 expressions.md 엔진이 수행하고, 이 타입은 입력 형태만 고정한다.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ConditionValue {
@@ -227,7 +227,7 @@ pub struct FieldSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
-    /// 구조 — 기본값(경로 미해결 시 평가기가 참조, EXPRESSION-GRAMMAR §5 Path).
+    /// 구조 — 기본값(경로 미해결 시 평가기가 참조, expressions.md §5 Path).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default: Option<Value>,
 

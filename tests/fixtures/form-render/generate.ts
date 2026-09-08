@@ -101,11 +101,11 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'design-class-ternary',
-    note: "design.class ternary '.vip ? gold : plain' → tryEvaluateTernary value-return; regex-misread guard.",
+    note: "A ternary selects a quoted class-name string.",
     spec: {
       type: 'group',
       properties: {
-        tier: { type: 'text', design: { class: '.vip ? gold : plain' } },
+        tier: { type: 'text', design: { class: ".vip ? 'gold' : 'plain'" } },
       },
     },
     data: { vip: true },

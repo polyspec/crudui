@@ -286,7 +286,7 @@ final class FieldSpec
      * ordered map {expr: value, …}; keys are evaluated in declaration order and
      * the first truthy expression's value wins; otherwise the `true` key's value
      * (if present), else null. A single `?:` expression is the one-entry
-     * shorthand with identical semantics. Each key is an EXPRESSION-GRAMMAR §2
+     * shorthand with identical semantics. Each key is an expressions.md §2
      * expression; the condition map is a thin wrapper over the same engine, not a
      * separate parser. Evaluated value type — boolean | string | number | null —
      * is decided by the call site.

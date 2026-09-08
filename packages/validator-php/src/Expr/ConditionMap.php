@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Expr;
 
 /**
- * Condition-map resolver (EXPRESSION-GRAMMAR §8). A thin wrapper over the
+ * Condition-map resolver (expressions.md §8). A thin wrapper over the
  * expression engine — NOT a separate parser.
  *
  * A condition map is an ordered {expr: value, …}. Keys (each an §2 expression)

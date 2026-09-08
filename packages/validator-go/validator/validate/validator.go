@@ -16,7 +16,6 @@ package validate
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 	"github.com/crudui/crudui/packages/validator-go/validator/expr"
@@ -290,7 +289,7 @@ func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []stri
 	return ruleValue
 }
 
-// resolveConditionMap evaluates a condition map (EXPRESSION-GRAMMAR §8): keys in
+// resolveConditionMap evaluates a condition map (expressions.md §8): keys in
 // declaration order, first truthy key's value wins; else the "true" key; else nil
 // (rule disabled). JS resolveConditionMap.
 func (v *Validator) resolveConditionMap(m *compose.OMap, path []string, allData map[string]any) any {
@@ -310,38 +309,16 @@ func (v *Validator) resolveConditionMap(m *compose.OMap, path []string, allData 
 	return nil
 }
 
-// tryEvaluateTernary reads a string param as a value-returning ternary
-// (cond ? a : b). Returns (false, nil) when the string is not a ternary or its
-// condition is not parseable (so a regex containing "?...:" is not mistaken for a
-// ternary). JS tryEvaluateTernary.
+// tryEvaluateTernary evaluates a complete ternary AST. Other strings remain literal parameters.
 func (v *Validator) tryEvaluateTernary(expression string, path []string, allData map[string]any) (bool, any) {
-	questionPos := findTernaryOperator(expression, '?', 0)
-	if questionPos == -1 {
+	node, err := expr.Parse(expression)
+	if err != nil {
 		return false, nil
 	}
-	colonPos := findTernaryOperator(expression, ':', questionPos+1)
-	if colonPos == -1 {
+	if _, ok := node.(*expr.TernaryNode); !ok {
 		return false, nil
 	}
-	condition := strings.TrimSpace(expression[:questionPos])
-	if !isConditionExpression(condition) {
-		return false, nil
-	}
-	if _, err := expr.Parse(condition); err != nil {
-		return false, nil
-	}
-	var branch string
-	if v.evaluateCondition(condition, path, allData) {
-		branch = strings.TrimSpace(expression[questionPos+1 : colonPos])
-	} else {
-		branch = strings.TrimSpace(expression[colonPos+1:])
-	}
-	if ternaryRE.MatchString(branch) {
-		if handled, nested := v.tryEvaluateTernary(branch, path, allData); handled {
-			return true, nested
-		}
-	}
-	return true, parseTernaryBranchValue(branch)
+	return true, expr.NewEvaluator(allData, path).EvaluateValue(node)
 }
 
 // evaluateCondition evaluates a condition string to a boolean (JS
@@ -468,84 +445,4 @@ func asMap(v any) map[string]any {
 		return m
 	}
 	return map[string]any{}
-}
-
-// findTernaryOperator finds the position of a top-level '?' or ':' respecting
-// quotes, parens/brackets and nested ternaries (JS findTernaryOperator / PHP
-// ConditionParser parity).
-func findTernaryOperator(expression string, operator byte, startPos int) int {
-	depth := 0
-	inQuote := false
-	var quoteChar byte
-	ternaryDepth := 0
-
-	for i := startPos; i < len(expression); i++ {
-		ch := expression[i]
-		if (ch == '"' || ch == '\'') && !inQuote {
-			inQuote = true
-			quoteChar = ch
-		} else if inQuote && ch == quoteChar {
-			inQuote = false
-			quoteChar = 0
-		}
-		if inQuote {
-			continue
-		}
-		switch ch {
-		case '(', '[':
-			depth++
-		case ')', ']':
-			depth--
-		case '?':
-			if depth == 0 {
-				if operator == '?' {
-					return i
-				}
-				ternaryDepth++
-			}
-		case ':':
-			if depth == 0 && operator == ':' {
-				if ternaryDepth == 0 {
-					return i
-				}
-				ternaryDepth--
-			}
-		}
-	}
-	return -1
-}
-
-// parseTernaryBranchValue parses a ternary branch string into a typed value (JS
-// parseTernaryBranchValue): a quoted string unquotes; true/false/null literals; a
-// numeric string parses to int or float; otherwise the raw string (a regex branch
-// survives as a string).
-func parseTernaryBranchValue(raw string) any {
-	value := strings.TrimSpace(raw)
-	if len(value) >= 2 {
-		first := value[0]
-		last := value[len(value)-1]
-		if (first == '"' && last == '"') || (first == '\'' && last == '\'') {
-			return value[1 : len(value)-1]
-		}
-	}
-	switch value {
-	case "true":
-		return true
-	case "false":
-		return false
-	case "null":
-		return nil
-	}
-	if value != "" {
-		if strings.Contains(value, ".") {
-			if f, err := strconv.ParseFloat(value, 64); err == nil {
-				return f
-			}
-		} else if n, err := strconv.Atoi(value); err == nil {
-			return n
-		} else if f, err := strconv.ParseFloat(value, 64); err == nil {
-			return f
-		}
-	}
-	return value
 }

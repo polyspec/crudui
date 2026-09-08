@@ -1,4 +1,4 @@
-//! CRUDUI expression engine — formal lexer→parser→AST→evaluator (EXPRESSION-GRAMMAR
+//! CRUDUI expression engine — formal lexer→parser→AST→evaluator (expressions.md
 //! §0–§8). The single truth is the shared 4-language fixture
 //! `tests/fixtures/expr/cases.json`; this engine matches it byte-for-byte
 //! (tokens, AST without `position`, evaluated value, and truthy).

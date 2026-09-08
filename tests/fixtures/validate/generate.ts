@@ -46,6 +46,23 @@ interface CaseSpec {
 // ---------------------------------------------------------------------------
 
 const SPECS: CaseSpec[] = [
+  ...[false, true].flatMap(enabled => [5, 8].map(value => ({
+    name: `ternary-field-limit-${enabled}-${value}`,
+    note: 'The selected ternary branch resolves a field value as the validation limit.',
+    spec: { type: 'group', properties: {
+      value: { type: 'text', validate: { min: '.enabled ? .limit : 0' } },
+    } },
+    data: { enabled, limit: 7, value: String(value) },
+  }))),
+  ...[false, true].map(selected => ({
+    name: `ternary-nested-true-limit-${selected}`,
+    note: 'The nested true branch resolves a field value through the expression AST.',
+    spec: { type: 'group', properties: {
+      value: { type: 'text', validate: { min: '.enabled ? .selected ? .limit : 0 : 0' } },
+    } },
+    data: { enabled: true, selected, limit: 7, value: '5' },
+  })),
+
 {
   "name": "items-langmap-4lang-membership-valid",
   "note": "G3 — in: value→label map with 4-language labels {ko,en,ja,zh}; value '1' is a key, valid (a 4-lang label is display-only, never a member)",

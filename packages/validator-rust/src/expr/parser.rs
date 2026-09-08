@@ -1,4 +1,4 @@
-//! CRUDUI expression parser: `Vec<Token>` → AST (EXPRESSION-GRAMMAR §3/§4, JS/PHP
+//! CRUDUI expression parser: `Vec<Token>` → AST (expressions.md §3/§4, JS/PHP
 //! `Parser` parity).
 //!
 //! Recursive-descent grammar (EBNF, lowest precedence first):

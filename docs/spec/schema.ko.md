@@ -61,7 +61,7 @@ properties:
 CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 조건 메타키를
 거부합니다.
 
-[표현식 문법](../EXPRESSION-GRAMMAR.md)은 토크나이저, 파서, 평가기를 정의합니다.
+[표현식 문법](expressions.ko.md)은 토크나이저, 파서, 평가기를 정의합니다.
 상대 경로, 와일드카드, 목록, 비교, 논리, 포함 여부, 조건부 값을 지원합니다.
 산술, 함수 호출, JavaScript 평가는 지원하지 않습니다. `behavior`의 이벤트 스크립트는
 문자열로 보존하며 실행은 표현식 엔진의 범위 밖입니다.

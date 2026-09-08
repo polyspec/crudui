@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Expr;
 
 /**
- * Token type tags (EXPRESSION-GRAMMAR §1, JS types.ts TokenType parity).
+ * Token type tags (expressions.md §1, JS types.ts TokenType parity).
  *
  * String-backed so a fixture's token.type string ("DOT"|"IDENTIFIER"|...) maps
  * directly. WHITESPACE never reaches the token array (the lexer drops it); EOF
