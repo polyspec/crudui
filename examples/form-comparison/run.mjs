@@ -45,6 +45,7 @@ if (command === 'stop') {
   await writeFile(path.join(context, 'ordered-json.tar'), archive);
   metadata.orderedJson = { ...orderedJson, archiveSha256: createHash('sha256').update(archive).digest('hex') };
   await cp(exampleDir, path.join(context, 'example'), { recursive: true });
+  await cp(path.join(root, 'tests/form-inspector/form-snapshot.mjs'), path.join(context, 'example/src/form-snapshot.mjs'));
   await cp(path.join(exampleDir, 'Containerfile'), path.join(context, 'Containerfile'));
   await writeFile(path.join(context, 'metadata.json'), JSON.stringify(metadata, null, 2));
   await writeFile(path.join(context, 'source-revisions'), Object.entries(revisions).map(([revision, commit]) => `${revision} ${commit}`).join('\n') + '\n');

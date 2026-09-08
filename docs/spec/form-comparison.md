@@ -6,6 +6,10 @@ The example is maintained in `examples/form-comparison/`. Its page displays the
 CRUDUI name. Browser checks use the example-local `window.comparison` controls.
 Local container files and verification reports are stored in `.form-comparison/`.
 
+The reusable HTML, DOM, CSS and control-state inspector is maintained in
+`tests/form-inspector/`. Comparison build preparation copies that module into
+the browser assets. Framework initialization tests import the same module.
+
 ## Server implementations
 
 PHP, PHP extension, Go and Rust implement the same native form and JSON request contract. Each
