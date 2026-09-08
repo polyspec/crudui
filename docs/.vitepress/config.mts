@@ -66,7 +66,7 @@ export default withMermaid(defineConfig({
         text: 'Tests',
         collapsed: false,
         items: [
-          { text: 'Testing guide', link: '/TESTING' },
+          { text: 'Testing guide', link: '/operations/testing' },
           { text: 'Test cases', link: '/spec/test-fixtures' },
         ],
       },

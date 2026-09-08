@@ -15,7 +15,7 @@
     "build": "npm run build:validator && npm run build:generators",
     "build:validator": "npm run build -w @crudui/validator",
     "build:generators": "npm run build -w @crudui/generator-core && npm run build -w @crudui/generator-react && npm run build -w @crudui/generator-vue && npm run build -w @crudui/generator-svelte",
-    "test": "node tests/runner/compare-all.js",
+    "test": "node --test tests/runner/compare-all.test.cjs && node tests/runner/compare-all.js",
     "lint": "eslint packages/validator-ts/src packages/generator-react/src",
     "lint:fix": "eslint packages/validator-ts/src packages/generator-react/src --fix",
     "docs:api": "node scripts/gen-api-docs.mjs",
