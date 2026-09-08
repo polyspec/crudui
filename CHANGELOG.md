@@ -2,6 +2,15 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Current comparison image
+
+The comparison image builds library source `a5b4491` with normal dependency
+installation. The image installs the browser archive extractor and resolves
+native JavaScript build dependencies through the workspace lock file.
+The local comparison environment runs PHP, PHP extension, Go and Rust.
+All 240 HTTP checks and PHP processor-mode checks passed. Browser comparison
+is in progress for this source and dependency graph.
+
 ## 2026-09-09 — Dependency installation and package checks
 
 The workspace lock file resolves declared dependency ranges and includes native
