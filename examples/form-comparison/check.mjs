@@ -9,6 +9,8 @@ import { createHash } from 'node:crypto';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const output = path.join(root, '.form-comparison/results');
 const selectedServer = process.argv[2];
+const base = new URL(process.argv[3] ?? 'http://127.0.0.1:4317');
+if (!['http:', 'https:'].includes(base.protocol) || base.pathname !== '/' || base.search || base.hash || base.username || base.password) throw new Error('Expected an HTTP origin');
 const servers = selectedServer ? [selectedServer] : ['php', 'php-ext', 'go', 'rust'];
 if (servers.some(server => !['php', 'php-ext', 'go', 'rust'].includes(server))) throw new Error('Use php, php-ext, go or rust');
 const suffix = selectedServer ? `-${selectedServer}` : '';
@@ -72,7 +74,7 @@ try {
     }
     await request.continue();
   });
-  await page.goto(`http://127.0.0.1:4317/?server=${servers[0]}`, { waitUntil: 'networkidle0' });
+  await page.goto(`${base.origin}/?server=${servers[0]}`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => window.comparison, { timeout: 30000 });
   await page.screenshot({ path: path.join(output, formsFile), fullPage: true });
   let metadata;
