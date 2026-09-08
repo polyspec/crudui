@@ -8,7 +8,7 @@
  *       all in-process through the SAME CRUDUI entries the conformance gate imports.
  *   (c) static console      — serves client/ at /.
  *
- * It follows the node-api server contract (examples/node-api/server.js): CORS on
+ * It follows the node-api server contract (examples/legacy/node-api/server.js): CORS on
  * every response, validation/render failures are NOT HTTP errors (always 200 with
  * a result envelope), and only real server faults use 4xx/5xx with { error }.
  *
