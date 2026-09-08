@@ -57,7 +57,7 @@ function run(c: ListValidityCase) {
   return validateList(c.spec, c.files ? { files: c.files } : {});
 }
 
-describe('current list validate — every case declares an engine expectation', () => {
+describe('list validate — every case declares an engine expectation', () => {
   test('no case is silently missing `engine`', () => {
     for (const c of cases) {
       const ok =
@@ -71,7 +71,7 @@ describe('current list validate — every case declares an engine expectation', 
   });
 });
 
-describe('current list validate — engine:pass loads clean (no rows validated)', () => {
+describe('list validate — engine:pass loads clean (no rows validated)', () => {
   for (const c of cases.filter((x) => x.engine === 'pass')) {
     test(c.name, () => {
       // The structure gate must NOT throw. A meta-schema-only RED case
@@ -87,7 +87,7 @@ describe('current list validate — engine:pass loads clean (no rows validated)'
   }
 });
 
-describe('current list validate — a forbidden meta key in the list tree is a LOAD ERROR', () => {
+describe('list validate — a forbidden meta key in the list tree is a LOAD ERROR', () => {
   for (const c of cases.filter((x) => typeof x.engine === 'object')) {
     test(c.name, () => {
       const want = c.engine as { code: string; at: string };
@@ -109,7 +109,7 @@ describe('current list validate — a forbidden meta key in the list tree is a L
   }
 });
 
-describe('current list validate — does NOT touch form-spec validate (R7 parallel)', () => {
+describe('list validate — does NOT touch form-spec validate (R7 parallel)', () => {
   test('validateList takes no `data` argument and validates no rows', () => {
     // A list-spec carrying a "data-shaped" key alongside columns is irrelevant:
     // the function signature has no data slot and the result never reflects rows.

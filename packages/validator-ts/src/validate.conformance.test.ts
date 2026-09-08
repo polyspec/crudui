@@ -47,7 +47,7 @@ function run(c: FixtureCase) {
   return validate(c.spec, c.data, c.files ? { files: c.files } : {});
 }
 
-describe('current validate — result cases reproduce { valid, errors } bit-for-bit', () => {
+describe('validate — result cases reproduce { valid, errors } bit-for-bit', () => {
   for (const c of cases.filter((x) => x.expected)) {
     test(c.name, () => {
       const result = run(c);
@@ -56,7 +56,7 @@ describe('current validate — result cases reproduce { valid, errors } bit-for-
   }
 });
 
-describe('current validate — unresolved composition is a LOAD ERROR, never valid:true', () => {
+describe('validate — unresolved composition is a LOAD ERROR, never valid:true', () => {
   for (const c of cases.filter((x) => x.expectLoadError)) {
     test(c.name, () => {
       let thrown: unknown;
@@ -75,7 +75,7 @@ describe('current validate — unresolved composition is a LOAD ERROR, never val
   }
 });
 
-describe('current validate — every fixture case is exercised', () => {
+describe('validate — every fixture case is exercised', () => {
   test('no case is silently missing an expectation', () => {
     for (const c of cases) {
       expect(
