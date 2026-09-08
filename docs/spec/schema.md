@@ -130,3 +130,20 @@ server pagination. Page metadata is supplied by the caller.
 Repeated fields accept `multiple.min` and `multiple.max` as numeric row-count
 limits. Instance collection keys identify rows; the schema does not define hidden
 identity fields. See [form runtime](form-runtime.md) for row operations.
+
+## Widget and source settings
+
+`options` preserves settings for the corresponding widget. Declaration acceptance
+does not mean that the core executes an external widget. Search uses
+`keyword_min_length`; map descriptors use `marker_draggable`, `zoom` and
+`geometry_type`; tags use `max_tags`. Label settings include `checkbox_label` and
+`on_label`. Container settings include `collapse`, `expend`, `view_total`,
+`stepper` and `blank_message`. `callback` and `event` preserve widget scripts.
+
+Dynamic choice descriptors can specify `model`, `method`, `table`, `relations`,
+`keys` and `api_server`. A nested `items` collection supplies initial static
+choices. The application performs queries and endpoint calls.
+
+Language configuration accepts a `mode`, an `only` language list or override map,
+and group `name`, `key`, `frame`, `title` and `group_class` settings. Language
+overrides can change `validate`, `design`, `behavior` and `options`.

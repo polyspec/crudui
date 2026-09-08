@@ -9,7 +9,7 @@
   "definitions": {
 
     "ForbiddenKeyNames": {
-      "$comment": "조건 전용 메타키·레거시 매직 토큰·주석 잔재를 전역 거부하는 propertyNames 제약. 모든 열린 버킷(options 등)·역할 슬롯·구조 본문 한 칸 아래에서 재사용한다 — 확장은 허용하되 금지키만 차단(additionalProperties:true 대신 이걸 쓴다). 금지: 조건 전용 메타키(display_switch/display_target/if/when/show_if/_), 레거시 매직 인코딩(seqtokey/__13hex__), 레거시 패치 디렉티브($after/$before/$merge/$remove → $patch 로 흡수), 주석 잔재(^x: xclass/xstyle/x{key} — strip 후엔 존재 불가).",
+      "$comment": "Restrictions on reserved declaration property names. Reused by field maps and settings objects.",
       "allOf": [
         {
           "not": {
@@ -40,19 +40,19 @@
     },
 
     "Expression": {
-      "description": "G1 — 조건은 값이다. 제한 DSL 표현식 문자열(경로 . / .. / *, 비교, 논리, in, ternary). eval 금지, 4언어 동일. behavior 스크립트만 불투명 전달(엔진 미경유). 상세는 EXPRESSION-GRAMMAR.md §2.",
+      "description": "Expression string supporting relative paths, comparisons, logic, membership and conditional values. Behavior scripts are separate.",
       "type": "string"
     },
 
     "ConditionMap": {
-      "description": "선언 순서 맵: { <표현식 키>: <값>, ..., true: <기본값> }. 키(조건식)를 선언 순서대로 평가해 첫 truthy 의 값을 반환. 아무것도 안 맞으면 true 키 값(있으면), 없으면 null. 기본키는 항상 참인 true 다 — _ 같은 관례 기호 금지(R4). 각 키는 EXPRESSION-GRAMMAR §2 표현식이며, 조건맵은 엔진을 반복 호출하는 얇은 래퍼지 별도 파서가 아니다. 단일 '...?...:...' 은 조건맵의 축약(동일 의미론).",
+      "description": "Evaluates conditions in declaration order and selects the first matching value. The true key supplies the default.",
       "type": "object",
       "minProperties": 1,
       "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" }
     },
 
     "ConditionalValue": {
-      "description": "평가되는 값: 리터럴 | 표현식 문자열(G1) | 조건맵. 표현식 엔진을 거치는 모든 값의 형(표시·조건·외형·검증값). 평가값 타입은 호출 지점이 결정한다 — boolean(show/조건) | string(class/style) | number | null.",
+      "description": "Literal value, expression string or condition map. The consuming setting determines the evaluated value type.",
       "anyOf": [
         { "$ref": "#/definitions/Expression" },
         { "type": ["boolean", "number", "null"] },
@@ -62,14 +62,14 @@
     },
 
     "LangMap": {
-      "description": "G3 콘텐츠 번역. 언어별 텍스트 맵 { ko: …, en: … }(스펙 작성자의 번역). 콘텐츠 자체이지 분류 대상이 아니다. 빈 언어 슬롯은 null 허용(없는 것과 동일 — 렌더·검증 무영향, SPEC §2 G3).",
+      "description": "Content translations indexed by language code. A null translation represents absent content.",
       "type": "object",
       "minProperties": 1,
       "additionalProperties": { "type": ["string", "null"] }
     },
 
     "Content": {
-      "description": "콘텐츠 키 값. 단일 문자열이거나 언어별 LangMap(G3 콘텐츠 번역). 빈 콘텐츠는 생략하거나 null — null 은 없는 것과 동일해 렌더·검증에 무영향(SPEC §2 G3).",
+      "description": "Content text or a language map. Null represents absent content.",
       "anyOf": [
         { "type": "string" },
         { "$ref": "#/definitions/LangMap" },
@@ -78,7 +78,7 @@
     },
 
     "ItemLabel": {
-      "description": "정적 items 의 라벨(표시용). 단일 문자열이거나 언어별 LangMap(G3 콘텐츠 번역) — 값(key)은 표시용 라벨과 분리된다(값은 items 맵의 key, 라벨은 이 값). 빈 라벨은 null 허용(SPEC §2 G3).",
+      "description": "Choice display label, optionally translated. The choice value is separate from its label.",
       "anyOf": [
         { "type": "string" },
         { "$ref": "#/definitions/LangMap" },
@@ -87,7 +87,7 @@
     },
 
     "Validate": {
-      "description": "역할 슬롯 — 검증(§3 공통 역할 분배). 다형(false|{}|true). 값은 표현식/조건맵일 수 있어 조건부 검증을 별도 키 없이 표현(예: required: '.subscribe', email: true). 알려진 sub_keys 외 검증 규칙 확장을 허용하되(propertyNames 로 금지키만 차단) 조건 전용 메타키는 거부한다.",
+      "description": "Validation settings. Rule values can use expressions or condition maps.",
       "anyOf": [
         { "type": "boolean" },
         {
@@ -95,21 +95,21 @@
           "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
           "properties": {
             "required": {
-              "description": "비어있지 않은 값 요구. 문자열이면 요구를 게이트하는 조건 표현식(G1).",
+              "description": "Requires a nonempty value when enabled.",
               "anyOf": [
                 { "type": "boolean" },
                 { "$ref": "#/definitions/Expression" }
               ]
             },
             "email": {
-              "description": "구문상 유효한 이메일 주소 요구. 표현식·조건맵으로 조건부 가능.",
+              "description": "Requires a syntactically valid email address when enabled.",
               "anyOf": [
                 { "type": "boolean" },
                 { "$ref": "#/definitions/ConditionalValue" }
               ]
             },
             "match": {
-              "description": "값이 일치해야 하는 정규식 문자열 또는 조건맵.",
+              "description": "Regular expression requirement, optionally selected by a condition map.",
               "anyOf": [
                 { "type": "string" },
                 { "$ref": "#/definitions/ConditionMap" }
@@ -121,19 +121,19 @@
     },
 
     "DesignNode": {
-      "description": "design 의 한 명명 DOM 노드(label/wrapper/group/prepend) 외형 맵. class/style 은 조건맵 가능 — 어느 노드 스타일인지 키로 드러난다(R8).",
+      "description": "CSS classes and inline styles for a named DOM node.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "class": {
-          "description": "노드 CSS class. 단일·표현식·조건맵.",
+          "description": "CSS classes, optionally selected by an expression or condition map.",
           "anyOf": [
             { "type": "string" },
             { "$ref": "#/definitions/ConditionMap" }
           ]
         },
         "style": {
-          "description": "노드 인라인 style. 단일·표현식·조건맵.",
+          "description": "Inline styles, optionally selected by an expression or condition map.",
           "anyOf": [
             { "type": "string" },
             { "$ref": "#/definitions/ConditionMap" }
@@ -143,7 +143,7 @@
     },
 
     "Design": {
-      "description": "역할 슬롯 — 보임새 = 표시 조건(show, 노드 아님) + DOM 노드별 외형 맵(class/style=주 노드, label/wrapper/group/prepend=명명 노드). 다형(false|{}|true). false 로 합성 상속 무효화. 레거시 element_class/label_class/group_class/input_class/wrapper_class/prepend_class 흡수. sub_keys 가 닫혀 있어(additionalProperties:false) design_node_map 외 키를 거부한다.",
+      "description": "Visibility and appearance settings for the main node and named label, wrapper, group and prepend nodes.",
       "anyOf": [
         { "type": "boolean" },
         {
@@ -151,7 +151,7 @@
           "additionalProperties": false,
           "properties": {
             "show": {
-              "description": "표시 조건(노드 아님). 표현식 또는 조건맵.",
+              "description": "Visibility expression or condition map.",
               "anyOf": [
                 { "$ref": "#/definitions/Expression" },
                 { "type": "boolean" },
@@ -159,33 +159,33 @@
               ]
             },
             "class": {
-              "description": "주 노드(입력) CSS class. 단일·표현식·조건맵.",
+              "description": "CSS classes, optionally selected by an expression or condition map.",
               "anyOf": [
                 { "type": "string" },
                 { "$ref": "#/definitions/ConditionMap" }
               ]
             },
             "style": {
-              "description": "주 노드(입력) 인라인 style. 단일·표현식·조건맵.",
+              "description": "Inline styles, optionally selected by an expression or condition map.",
               "anyOf": [
                 { "type": "string" },
                 { "$ref": "#/definitions/ConditionMap" }
               ]
             },
             "label": {
-              "description": "라벨 노드 외형 맵.",
+              "description": "Appearance settings for the label node.",
               "$ref": "#/definitions/DesignNode"
             },
             "wrapper": {
-              "description": "래퍼 노드 외형 맵.",
+              "description": "Appearance settings for the wrapper node.",
               "$ref": "#/definitions/DesignNode"
             },
             "group": {
-              "description": "그룹 노드 외형 맵.",
+              "description": "Appearance settings for the group node.",
               "$ref": "#/definitions/DesignNode"
             },
             "prepend": {
-              "description": "prepend 노드 외형 맵.",
+              "description": "Appearance settings for the prepend node.",
               "$ref": "#/definitions/DesignNode"
             }
           }
@@ -194,7 +194,7 @@
     },
 
     "BehaviorAction": {
-      "description": "동작 한 항목. 불투명 스크립트 문자열이거나 { label, script } 형(동작 라벨은 behavior.{action}.label 인접). 표현식 엔진 미경유(§4).",
+      "description": "Opaque script string or an object containing a label and script. The expression engine does not execute scripts.",
       "anyOf": [
         { "type": "string" },
         {
@@ -209,7 +209,7 @@
     },
 
     "Behavior": {
-      "description": "역할 슬롯 — 동작(모든 타입 공통 불투명 클라 스크립트). 표현식 엔진을 거치지 않고 behavior 로 불투명 전달(§4). 다형(false|{}|true) — false 로 합성 상속 무효화. 동작 라벨은 behavior.{action}.label. sub_keys 가 닫혀 있어 onchange/onclick/onload 외 키를 거부한다.",
+      "description": "Named client behavior scripts preserved independently of expression evaluation.",
       "anyOf": [
         { "type": "boolean" },
         {
@@ -225,61 +225,61 @@
     },
 
     "Options": {
-      "description": "역할 슬롯 — 타입 종속 설정. 그 타입이 정의·검증하고 코어는 불관여 — 새 위젯이 와도 코어 불변(종속 격리: 타입을 끄면 함께 사라짐). 컨테이너 타입 chrome 과 타입 종속 스크립트/콜백도 여기. 다형(false|{}|true). 열린 버킷이다 — 알려진 sub_keys 만 문서화하고 그 외 타입별 키는 propertyNames(금지키만 차단)로 허용한다(additionalProperties:true 금지).",
+      "description": "Widget-specific settings preserved for the corresponding widget implementation.",
       "anyOf": [
         { "type": "boolean" },
         {
           "type": "object",
           "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
           "properties": {
-            "keyword_min_length": { "description": "타입 종속 — 키워드 최소 길이." },
-            "marker_draggable": { "description": "타입 종속 — 마커 드래그 가능." },
-            "zoom": { "description": "타입 종속 — 지도 줌." },
-            "geometry_type": { "description": "타입 종속 — 지오메트리 타입." },
-            "max_tags": { "description": "타입 종속 — 최대 태그 수." },
-            "checkbox_label": { "description": "타입 종속 — 체크박스 라벨." },
-            "on_label": { "description": "타입 종속 — 토글 ON 라벨." },
-            "collapse": { "description": "컨테이너 chrome — 접기." },
-            "expend": { "description": "컨테이너 chrome — 펼치기." },
-            "view_total": { "description": "컨테이너 chrome — 총계 표시." },
-            "stepper": { "description": "컨테이너 chrome — 스테퍼." },
-            "blank_message": { "description": "컨테이너 chrome — 빈 상태 메시지." },
-            "callback": { "description": "타입 종속 스크립트 — select2 콜백." },
-            "event": { "description": "타입 종속 스크립트 — datetime 설정 이벤트." }
+            "keyword_min_length": { "description": "Minimum search keyword length." },
+            "marker_draggable": { "description": "Whether the map marker can be dragged." },
+            "zoom": { "description": "Map zoom setting." },
+            "geometry_type": { "description": "Geometry type setting." },
+            "max_tags": { "description": "Maximum tag count." },
+            "checkbox_label": { "description": "Checkbox label content." },
+            "on_label": { "description": "Enabled toggle label content." },
+            "collapse": { "description": "Container collapse setting." },
+            "expend": { "description": "Container expansion setting." },
+            "view_total": { "description": "Container total display setting." },
+            "stepper": { "description": "Container stepper setting." },
+            "blank_message": { "description": "Empty container message." },
+            "callback": { "description": "Opaque widget callback script." },
+            "event": { "description": "Opaque widget event setting." }
           }
         }
       ]
     },
 
     "ItemsModel": {
-      "description": "items.model 의 중첩 형태 — 단일 모델명이 아니라 관계형 질의 디스크립터({table, relations, keys}). 실 코퍼스 동적소스(type:search)의 실형태. 구조만 표현한다 — 질의를 만들어 실행하는 것은 런타임의 일이며 범위 밖이다(SPEC §6 R1: 타입은 보존, 차단은 검증). sub_keys 외 디스크립터 키도 보존하되 금지 메타키는 propertyNames 로 한 칸 아래에서 차단한다.",
+      "description": "Dynamic choice model descriptor with table, relations and display keys. The application executes data queries.",
       "type": "object",
       "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
       "properties": {
-        "table": { "description": "행을 끌어올 기본 테이블.", "type": "string" },
-        "relations": { "description": "조인/관계 디스크립터(각 행이 관련 테이블을 컬럼 쌍으로 연결).", "type": "array" },
-        "keys": { "description": "표시키 디스크립터(각 옵션 라벨을 구성하는 필드들).", "type": "array" }
+        "table": { "description": "Source table descriptor.", "type": "string" },
+        "relations": { "description": "Source relation descriptors.", "type": "array" },
+        "keys": { "description": "Fields used to construct choice labels.", "type": "array" }
       }
     },
 
     "ItemsSource": {
-      "description": "items 하위 — 동적 선택지 소스. 레거시에 흩어졌던 동적 소스 종속을 items 로 모음(§3 C). 구조만 표현한다 — model 질의를 실행하거나 api_server 엔드포인트를 호출하는 것은 런타임의 일이며 범위 밖이다(SPEC §6 R1). 실 코퍼스 유일 동적소스(type:search)는 model(이름 string 또는 {table,relations,keys} 중첩 질의) + 형제 api_server(런타임 HTTP fn 참조) + placeholder 정적 items 가 공존하는 형태다 — 셋 모두 여기서 보존되며 엔진은 해석하지 않는다. 열린 버킷(propertyNames not-enum): 미흡수 소스 디스크립터 키는 보존하되 금지 메타키만 한 칸 아래에서 차단한다.",
+      "description": "Dynamic choice source descriptor. The application loads records and executes source callbacks.",
       "type": "object",
       "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
       "properties": {
         "model": {
-          "description": "옵션을 로드할 데이터 모델/소스. 모델명 string 또는 중첩 {table,relations,keys} 관계형 질의(실 코퍼스 형태). 어느 쪽이든 보존만 — 질의 실행은 런타임(범위 밖).",
+          "description": "Source model name or a descriptor containing table, relations and keys.",
           "anyOf": [
             { "type": "string" },
             { "$ref": "#/definitions/ItemsModel" }
           ]
         },
-        "method": { "description": "옵션 행을 가져오는 모델 메서드.", "type": "string" },
-        "table": { "description": "소스 테이블(model.table 의 최상위 단축형).", "type": "string" },
-        "relations": { "description": "조인/관계 정의." },
-        "api_server": { "description": "런타임 HTTP 엔드포인트 fn 참조(불투명 소스 콜백 문자열, 예: \"function() { return '/admin/user/search'; }\"). 그대로 보존하며 엔진은 호출하지 않는다 — 엔드포인트 호출은 런타임(범위 밖).", "type": "string" },
+        "method": { "description": "Source model method name.", "type": "string" },
+        "table": { "description": "Source table descriptor.", "type": "string" },
+        "relations": { "description": "Source relation descriptors." },
+        "api_server": { "description": "Opaque endpoint callback preserved for the application.", "type": "string" },
         "items": {
-          "description": "동적 소스와 공존하는 placeholder 정적 items: api_server/model 해석 전 UI가 보여줄 사전 선택지(흔히 빈 [] 또는 단일 {\"\": \"선택하세요\"} 프롬프트). 정적 배열 또는 value→label 맵 — 런타임이 가져온 행으로 대체한다.",
+          "description": "Static initial choices within a dynamic source.",
           "anyOf": [
             { "type": "array" },
             {
@@ -292,7 +292,7 @@
     },
 
     "Items": {
-      "description": "구조 — 선택지 소스(1급, 종속 격리 버킷). 다형: 정적 value→label 맵 | 정적 배열 | 동적 소스(ItemsSource). 정적 value→label 맵은 key 가 값(멤버십 검증 대상), 값이 라벨(string 또는 LangMap, G3) — 라벨은 표시용이라 멤버십에 무관. 빈 라벨은 null 허용. 동적 소스(실 코퍼스 type:search)는 model(string 또는 {table,relations,keys} 중첩) + api_server(런타임 HTTP fn 참조) + placeholder 정적 items 공존 — items 하위로 격리·보존, 런타임 해석은 범위 밖.",
+      "description": "Static choice array, value-to-label map or dynamic source descriptor. Labels may contain translations.",
       "anyOf": [
         { "type": "array" },
         { "$ref": "#/definitions/ItemsSource" },
@@ -304,7 +304,7 @@
     },
 
     "LangOverrideMap": {
-      "description": "lang.only 양형 중 하나 — 언어별 오버라이드 맵 {ja: {validate: …}, en: {validate: …}}. 키는 언어코드(금지키 차단), 값은 그 언어 입력에만 적용할 역할 슬롯(validate/design/behavior/options) 오버라이드. 레거시 langs 맵 양형을 흡수한다 — allowlist string[] 와 달리 언어별 슬롯을 재정의한다. 슬롯 본문은 Field 의 역할 슬롯과 동형이라 같은 정의를 재사용한다.",
+      "description": "Language-code map containing per-language validation, appearance, behavior and widget-option overrides.",
       "type": "object",
       "minProperties": 1,
       "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
@@ -313,25 +313,25 @@
         "additionalProperties": false,
         "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
         "properties": {
-          "validate": { "description": "언어별 검증 슬롯 오버라이드.", "$ref": "#/definitions/Validate" },
-          "design": { "description": "언어별 보임새 슬롯 오버라이드.", "$ref": "#/definitions/Design" },
-          "behavior": { "description": "언어별 동작 슬롯 오버라이드.", "$ref": "#/definitions/Behavior" },
-          "options": { "description": "언어별 타입 종속 슬롯 오버라이드.", "$ref": "#/definitions/Options" }
+          "validate": { "description": "Validation rules.", "$ref": "#/definitions/Validate" },
+          "design": { "description": "Visibility and node appearance settings.", "$ref": "#/definitions/Design" },
+          "behavior": { "description": "Opaque behavior scripts.", "$ref": "#/definitions/Behavior" },
+          "options": { "description": "Widget-specific settings.", "$ref": "#/definitions/Options" }
         }
       }
     },
 
     "Lang": {
-      "description": "구조 — 입력 다국어 차원(필드 값 자체가 언어별, G3 축2). multiple 과 같은 구조 차원. 1급, 종속 격리 버킷. 다형(false|{}|true). lang 종속 세부(언어 그룹 외형 frame/title/group_class 포함)는 모두 lang 하위로 격리(§3 C). sub_keys 가 닫혀 있어 정규 키 외(레거시 lang:append/langs/lang_name/lang_key/remove_lang_frame/remove_lang_title/lang_group_class)를 거부한다 — 레거시는 번역기가 mode/only/name/key/frame/title/group_class 로 매핑한다.",
+      "description": "Language input settings, separate from content translations. Values are stored by language code.",
       "anyOf": [
         { "type": "boolean" },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "mode": { "description": "다국어 입력 모드(예: append). 레거시 lang:append 흡수.", "type": "string" },
+            "mode": { "description": "Language input mode.", "type": "string" },
             "only": {
-              "description": "양형(§3 C): 언어 allowlist [ko, en](string[]) 또는 언어별 오버라이드 맵 {ja: {validate: …}, en: {validate: …}}. 레거시 langs(allowlist)·언어별 langs 맵 양형 흡수. allowlist 는 표시 언어 한정, 오버라이드 맵은 언어별 슬롯 재정의(키=언어코드, 값=필드 슬롯 일부).",
+              "description": "Language-code list or per-language override map.",
               "anyOf": [
                 {
                   "type": "array",
@@ -340,11 +340,11 @@
                 { "$ref": "#/definitions/LangOverrideMap" }
               ]
             },
-            "name": { "description": "언어 그룹 name. 레거시 lang_name 흡수.", "type": "string" },
-            "key": { "description": "언어 그룹 key. 레거시 lang_key 흡수.", "type": "string" },
-            "frame": { "description": "언어 그룹 frame. 레거시 remove_lang_frame 흡수.", "anyOf": [ { "type": "boolean" }, { "type": "string" } ] },
-            "title": { "description": "언어 그룹 title. 레거시 remove_lang_title 흡수.", "anyOf": [ { "type": "boolean" }, { "$ref": "#/definitions/Content" } ] },
-            "group_class": { "description": "언어 그룹 class. 레거시 lang_group_class 흡수.", "type": "string" }
+            "name": { "description": "Language group name.", "type": "string" },
+            "key": { "description": "Language group key.", "type": "string" },
+            "frame": { "description": "Language group frame setting.", "anyOf": [ { "type": "boolean" }, { "type": "string" } ] },
+            "title": { "description": "Language group title setting.", "anyOf": [ { "type": "boolean" }, { "$ref": "#/definitions/Content" } ] },
+            "group_class": { "description": "Language group CSS classes.", "type": "string" }
           }
         }
       ]
@@ -360,26 +360,26 @@
           "properties": {
             "min": { "description": "Minimum repeated row count.", "type": "number" },
             "max": { "description": "Maximum repeated row count.", "type": "number" },
-            "copy": { "description": "행 복사 허용. 레거시 add_buttons/remove_list_button/list_button_text 흡수.", "anyOf": [ { "type": "boolean" }, { "type": "object" } ] },
-            "sortable": { "description": "행 정렬 가능. 레거시 sortable* 흡수.", "type": "boolean" },
-            "onclick": { "description": "반복 버튼 onclick(불투명 스크립트). 레거시 multiple_button_onclick 흡수.", "$ref": "#/definitions/BehaviorAction" }
+            "copy": { "description": "Row copying configuration.", "anyOf": [ { "type": "boolean" }, { "type": "object" } ] },
+            "sortable": { "description": "Whether repeated rows can be reordered.", "type": "boolean" },
+            "onclick": { "description": "Opaque repeated-row button action.", "$ref": "#/definitions/BehaviorAction" }
           }
         }
       ]
     },
 
     "Patch": {
-      "description": "$patch — 변경(add/remove/replace, JSON Patch 식). 깊은 경로 설정 지원(예: 'field.validate.required': '.other'). 레거시 $after/$before/$merge/$remove 흡수.",
+      "description": "Composition operations for adding, removing or replacing definition properties.",
       "type": "object"
     },
 
     "Properties": {
-      "description": "구조 — 자식 필드 맵(group/오브젝트). $ref/$patch 합성 진입점. 각 자식은 Field. $ref/$patch 디렉티브를 맵 자체에 둘 수 있다(G5: 파서가 $ref → $patch → 단일 스펙 → 필드 층 순으로 펼침). 자식 키 이름은 ForbiddenKeyNames 로 금지키를 차단한다.",
+      "description": "Child field map supporting composition references and patches. Child names must satisfy the property-name rules.",
       "type": "object",
       "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
       "properties": {
         "$ref": {
-          "description": "$ref — 베이스 상속(파일/경로). 파서가 가장 먼저 펼침 — 미해결 $ref 는 로드 불가.",
+          "description": "Composition reference resolved before evaluation.",
           "type": "string"
         },
         "$patch": { "$ref": "#/definitions/Patch" }
@@ -394,22 +394,22 @@
       "required": ["type"],
       "properties": {
         "type": {
-          "description": "구조·정체성 — 필드 타입 정체성. 대상이 스칼라이므로 종속 세부는 전용 슬롯 options 로 격리.",
+          "description": "Field widget type.",
           "type": "string"
         },
         "name": {
-          "description": "구조·정체성 — 필드 이름(식별자). 명시적·의미적(R4).",
+          "description": "Field name.",
           "type": "string"
         },
         "default": {
-          "description": "구조·정체성 — 기본값. Path 평가 시 값 없으면 default 탐색(EXPRESSION §5)."
+          "description": "Default value used when a field value is absent."
         },
         "properties": {
-          "description": "구조·정체성 — 자식 필드 맵(group/오브젝트 구조). 합성 $ref/$patch 적용 지점.",
+          "description": "Nested field definitions.",
           "$ref": "#/definitions/Properties"
         },
         "items": {
-          "description": "구조·정체성 — 선택지 소스. 다형: 정적 배열 | 정적 value→label 맵 | 동적 소스. 동적 소스(실 코퍼스 type:search)는 model(string 또는 {table,relations,keys} 중첩 질의) + api_server(런타임 HTTP fn 참조) + placeholder 정적 items 공존 — 모두 items 하위로 격리·보존. 런타임 해석은 범위 밖(SPEC §6 R1).",
+          "description": "Static choices or a dynamic choice source descriptor.",
           "$ref": "#/definitions/Items"
         },
         "multiple": {
@@ -417,66 +417,66 @@
           "$ref": "#/definitions/Multiple"
         },
         "lang": {
-          "description": "구조·정체성 — 입력 다국어(필드 값 자체가 언어별, G3 축2). multiple 과 같은 구조 차원. 다형. lang 종속 세부는 lang 하위로 격리.",
+          "description": "Language input configuration.",
           "$ref": "#/definitions/Lang"
         },
         "label": {
-          "description": "콘텐츠 — 필드 라벨. 콘텐츠 번역 시 언어맵 {ko,en}(G3 축1). 필드 라벨은 수식 대상 곁=최상위.",
+          "description": "Display label, optionally translated.",
           "$ref": "#/definitions/Content"
         },
         "description": {
-          "description": "콘텐츠 — 설명. 언어맵 가능(G3 콘텐츠 번역).",
+          "description": "Description content, optionally translated.",
           "$ref": "#/definitions/Content"
         },
         "placeholder": {
-          "description": "콘텐츠 — 플레이스홀더 텍스트.",
+          "description": "Placeholder text.",
           "$ref": "#/definitions/Content"
         },
         "prepend": {
-          "description": "콘텐츠 — 입력 앞 텍스트. (design.prepend 노드 외형과 구분 — 여기는 콘텐츠 텍스트 자체).",
+          "description": "Content before the input.",
           "$ref": "#/definitions/Content"
         },
         "append": {
-          "description": "콘텐츠 — 입력 뒤 텍스트.",
+          "description": "Content after the input.",
           "$ref": "#/definitions/Content"
         },
         "help": {
-          "description": "콘텐츠 — 도움말. 언어맵 가능(G3 콘텐츠 번역).",
+          "description": "Help content, optionally translated.",
           "$ref": "#/definitions/Content"
         },
         "validate": {
-          "description": "역할 슬롯 — 검증.",
+          "description": "Validation rules.",
           "$ref": "#/definitions/Validate"
         },
         "design": {
-          "description": "역할 슬롯 — 보임새(표시+외형 노드맵).",
+          "description": "Visibility and node appearance settings.",
           "$ref": "#/definitions/Design"
         },
         "behavior": {
-          "description": "역할 슬롯 — 동작(불투명 스크립트).",
+          "description": "Opaque behavior scripts.",
           "$ref": "#/definitions/Behavior"
         },
         "options": {
-          "description": "역할 슬롯 — 타입 종속.",
+          "description": "Widget-specific settings.",
           "$ref": "#/definitions/Options"
         },
         "$ref": {
-          "description": "G5 합성 — 베이스 상속(파일/경로). 필드 층에서도 합성 진입 허용. 파서가 가장 먼저 펼침.",
+          "description": "Composition reference resolved before evaluation.",
           "type": "string"
         },
         "$patch": {
-          "description": "G5 합성 — 변경(add/remove/replace).",
+          "description": "Composition operations applied after reference resolution.",
           "$ref": "#/definitions/Patch"
         }
       }
     },
 
     "CellFormat": {
-      "description": "list-spec read 셀 렌더러 — 한 열의 값을 어떻게 표시할지(표시 방법). write 의 type+options 대칭이되 입력 위젯이 아니라 read 셀 표시다(SPEC §9.2). 다형(false|{}|true|단축 type 문자열|{객체}). type 별 종속 키는 write options 격리 원리대로 format 객체 안에 격리한다 — 타입을 바꾸면 함께 사라진다. 열린 버킷(propertyNames not-enum): 미흡수 셀 디스크립터 키도 보존하되 금지 메타키는 한 칸 아래에서 차단한다. map/items/true/false 라벨은 i18n 콘텐츠(G3)라 form-spec Content/LangMap/Items 를 재사용한다 — read 자매가 같은 양식을 두 번 정의하지 않는다(단일 진실). 카탈로그: text/date/number/badge/link/choice-label/bool/image/html(SPEC §9.2).",
+      "description": "Cell display format as a type name or an object with format-specific settings.",
       "anyOf": [
         { "type": "boolean" },
         {
-          "description": "단축형 — 종속 키 없는 셀 타입명(예: 'text', 'date', 'bool').",
+          "description": "Cell format type name without additional settings.",
           "type": "string"
         },
         {
@@ -484,132 +484,132 @@
           "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
           "properties": {
             "type": {
-              "description": "셀 렌더러 타입(표시 방법). 정규 카탈로그: text/date/number/badge/link/choice-label/bool/image/html(SPEC §9.2). 새 셀 타입이 와도 코어 불변(종속 격리).",
+              "description": "Cell format type.",
               "type": "string"
             },
-            "truncate": { "description": "text 종속 — 표시 길이 자르기." },
-            "pattern": { "description": "date 종속 — 날짜/시각 포맷 패턴(예: YYYY-MM-DD).", "type": "string" },
-            "decimals": { "description": "number 종속 — 소수 자릿수." },
-            "thousands": { "description": "number 종속 — 천 단위 구분." },
-            "prefix": { "description": "number 종속 — 값 앞 텍스트(콘텐츠).", "$ref": "#/definitions/Content" },
-            "suffix": { "description": "number 종속 — 값 뒤 텍스트(콘텐츠).", "$ref": "#/definitions/Content" },
+            "truncate": { "description": "Maximum displayed text length." },
+            "pattern": { "description": "Date and time display pattern.", "type": "string" },
+            "decimals": { "description": "Displayed decimal places." },
+            "thousands": { "description": "Thousands separator setting." },
+            "prefix": { "description": "Content before a number.", "$ref": "#/definitions/Content" },
+            "suffix": { "description": "Content after a number.", "$ref": "#/definitions/Content" },
             "map": {
-              "description": "badge 종속 — value→variant 맵. variant 라벨은 i18n 콘텐츠(G3)라 LangMap 허용. 라벨은 표시용이라 멤버십에 무관(form-spec ItemLabel 재사용).",
+              "description": "Value-to-badge mapping with optional translated labels.",
               "type": "object",
               "additionalProperties": { "$ref": "#/definitions/ItemLabel" }
             },
             "href": {
-              "description": "link 종속 — 링크 경로(.field 보간). 단일·표현식·조건맵.",
+              "description": "Link destination supporting field interpolation.",
               "anyOf": [
                 { "type": "string" },
                 { "$ref": "#/definitions/ConditionMap" }
               ]
             },
-            "target": { "description": "link 종속 — 링크 target(_blank 등).", "type": "string" },
-            "text": { "description": "link 종속 — 링크 표시 텍스트(콘텐츠, i18n). 없으면 값 자체.", "$ref": "#/definitions/Content" },
+            "target": { "description": "Link target.", "type": "string" },
+            "text": { "description": "Link text, optionally translated. The value is used when text is absent.", "$ref": "#/definitions/Content" },
             "items": {
-              "description": "choice-label 종속 — 코드→라벨 소스(멤버십 검증의 역: 값을 라벨로 표시). form-spec Items 를 재사용한다 — 정적 맵·정적 배열·동적 {model,…} 소스(보존만, 런타임 해석 범위 밖).",
+              "description": "Static choices or a dynamic choice source descriptor.",
               "$ref": "#/definitions/Items"
             },
-            "as": { "description": "bool 종속 — 표시 양식(text|icon|check).", "type": "string" },
-            "true": { "description": "bool 종속 — 참 라벨(콘텐츠, i18n).", "$ref": "#/definitions/Content" },
-            "false": { "description": "bool 종속 — 거짓 라벨(콘텐츠, i18n).", "$ref": "#/definitions/Content" },
-            "width": { "description": "image 종속 — 썸네일 너비." },
-            "height": { "description": "image 종속 — 썸네일 높이." },
-            "alt": { "description": "image 종속 — 대체 텍스트(.field 보간, 콘텐츠).", "$ref": "#/definitions/Content" }
+            "as": { "description": "Boolean display mode: text, icon or check.", "type": "string" },
+            "true": { "description": "True-value label, optionally translated.", "$ref": "#/definitions/Content" },
+            "false": { "description": "False-value label, optionally translated.", "$ref": "#/definitions/Content" },
+            "width": { "description": "Image width." },
+            "height": { "description": "Image height." },
+            "alt": { "description": "Image alternative text supporting field interpolation.", "$ref": "#/definitions/Content" }
           }
         }
       ]
     },
 
     "Column": {
-      "description": "list-spec 표시 열 하나(SPEC §9.1). form-spec 필드의 read 대칭 — 입력받지 않고 행에서 값을 읽어 표시한다. 1급(§3 B)은 핵심 공통뿐: field(값 경로)·label(i18n 헤더)·format(표시 방법)·design(셀 외형, form-spec 재사용)·sortable(정렬 허용 선언). additionalProperties:false 로 1급 외 키(특히 조건 전용 메타키)를 금지한다 — 셀 표시 종속은 format 하위로, 표시 조건/외형은 design(form-spec 과 동일 슬롯·동일 엔진), 조건은 값의 표현식으로.",
+      "description": "List column declaration specifying the value path, label, display format, appearance and sorting availability.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "field": {
-          "description": "구조 — 행에서 읽을 값 경로(표현식, G1). form-spec 필드의 name/경로 대칭.",
+          "description": "Row value path.",
           "$ref": "#/definitions/Expression"
         },
         "label": {
-          "description": "콘텐츠 — 열 헤더. 콘텐츠 번역 시 언어맵 {ko,en}(G3 축1). form-spec 필드 label 과 동형.",
+          "description": "Display label, optionally translated.",
           "$ref": "#/definitions/Content"
         },
         "format": {
-          "description": "표시 방법 — read 셀 렌더러(write type+options 대칭). 없으면 text 기본.",
+          "description": "Cell display format. The default is text.",
           "$ref": "#/definitions/CellFormat"
         },
         "design": {
-          "description": "역할 슬롯 — 셀 보임새(표시 show + 노드별 외형). form-spec Design 을 그대로 재사용 — 같은 슬롯·같은 엔진(G1·R8).",
+          "description": "Visibility and node appearance settings.",
           "$ref": "#/definitions/Design"
         },
         "sortable": {
-          "description": "구조 — 이 열로 정렬 허용 선언(read 고유). 실제 정렬 적용은 서버 책임(DB 무관 주입, SPEC §9). 표현식으로 조건부 가능.",
+          "description": "Whether sorting by this column is available. The application applies sorting.",
           "anyOf": [
             { "type": "boolean" },
             { "$ref": "#/definitions/Expression" }
           ]
         },
         "$ref": {
-          "description": "G5 합성 — 베이스 열 상속(파일/경로). 파서가 가장 먼저 펼침.",
+          "description": "Composition reference resolved before evaluation.",
           "type": "string"
         },
         "$patch": {
-          "description": "G5 합성 — 변경(add/remove/replace).",
+          "description": "Composition operations applied after reference resolution.",
           "$ref": "#/definitions/Patch"
         }
       }
     },
 
     "Sort": {
-      "description": "list-spec 기본 정렬 선언(SPEC §9.1). 구조 — read 고유. 정렬을 선언만 하고 실제 적용(쿼리 ORDER BY)은 서버 책임이다(DB 무관 주입, SPEC §9). sub_keys 가 닫혀 있어 field/dir 외 키를 거부한다.",
+      "description": "Sort declaration. The application applies the requested ordering to row data.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "field": { "description": "정렬 기준 값 경로(표현식, G1).", "$ref": "#/definitions/Expression" },
-        "dir": { "description": "정렬 방향(asc|desc).", "type": "string", "enum": ["asc", "desc"] }
+        "field": { "description": "Row value path.", "$ref": "#/definitions/Expression" },
+        "dir": { "description": "Sort direction: asc or desc.", "type": "string", "enum": ["asc", "desc"] }
       }
     },
 
     "Pagination": {
-      "description": "list-spec 페이징 선언(SPEC §9.1). 구조 — read 고유. 페이지 크기/방식을 선언만 하고 실제 offset/limit 적용은 서버 책임이다(DB 무관 주입, SPEC §9). 다형(false=끔|{}|true). sub_keys 가 닫혀 있어 per_page/mode 외 키를 거부한다.",
+      "description": "Pagination declaration. The application selects the corresponding page of row data.",
       "anyOf": [
         { "type": "boolean" },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "per_page": { "description": "페이지당 행 수(서버가 limit 으로 적용).", "type": "number" },
-            "mode": { "description": "페이징 방식(pages|offset|cursor|none).", "type": "string", "enum": ["pages", "offset", "cursor", "none"] }
+            "per_page": { "description": "Requested rows per page.", "type": "number" },
+            "mode": { "description": "Pagination mode: pages, offset, cursor or none.", "type": "string", "enum": ["pages", "offset", "cursor", "none"] }
           }
         }
       ]
     },
 
     "ListAction": {
-      "description": "list-spec 행/툴바 동작 하나(SPEC §9.1). 다형: 불투명 스크립트 문자열(form-spec behavior 양식) | {label, format(link), behavior} 객체. 동작 라벨은 인접(label). link 동작은 format(type:link)로, 스크립트 동작은 behavior 로 — form-spec 의 link/behavior 양식을 재사용한다(신규 발명 없음). additionalProperties:false 로 1급 외 키를 금지한다.",
+      "description": "List action script or an object containing label, format, behavior and appearance settings.",
       "anyOf": [
         { "$ref": "#/definitions/BehaviorAction" },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "label": { "description": "콘텐츠 — 동작 라벨(수식 대상 곁, i18n).", "$ref": "#/definitions/Content" },
-            "format": { "description": "표시 방법 — 동작 셀 렌더러(주로 link).", "$ref": "#/definitions/CellFormat" },
-            "behavior": { "description": "역할 슬롯 — 불투명 스크립트 동작(form-spec Behavior 재사용).", "$ref": "#/definitions/Behavior" },
-            "design": { "description": "역할 슬롯 — 동작 보임새(표시 show + 외형). form-spec Design 재사용.", "$ref": "#/definitions/Design" }
+            "label": { "description": "Display label, optionally translated.", "$ref": "#/definitions/Content" },
+            "format": { "description": "Cell display format. The default is text.", "$ref": "#/definitions/CellFormat" },
+            "behavior": { "description": "Opaque behavior scripts.", "$ref": "#/definitions/Behavior" },
+            "design": { "description": "Visibility and node appearance settings.", "$ref": "#/definitions/Design" }
           }
         }
       ]
     },
 
     "Columns": {
-      "description": "list-spec 표시 열 맵(SPEC §9.1). form-spec 의 properties 대칭(read). $ref/$patch 합성 진입점(G5: 파서가 $ref → $patch → 단일 스펙 → 열 층 순으로 펼침). 각 값은 Column. 열 키 이름은 ForbiddenKeyNames 로 금지키를 차단한다.",
+      "description": "Named list column map supporting composition references and patches.",
       "type": "object",
       "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
       "properties": {
         "$ref": {
-          "description": "$ref — 베이스 열 맵 상속(파일/경로). 파서가 가장 먼저 펼침 — 미해결 $ref 는 로드 불가.",
+          "description": "Composition reference resolved before evaluation.",
           "type": "string"
         },
         "$patch": { "$ref": "#/definitions/Patch" }
@@ -624,11 +624,11 @@
       "required": ["columns"],
       "properties": {
         "columns": {
-          "description": "구조·정체성 — 표시 열 맵(1급). form-spec properties 대칭(read). 합성 $ref/$patch 적용 지점.",
+          "description": "Named list column definitions.",
           "$ref": "#/definitions/Columns"
         },
         "search": {
-          "description": "입력 — 목록 위 검색 폼. 검색은 값을 입력받으므로 별도 발명 없이 form-spec 폼을 참조한다($ref) — search=입력=form-spec(SPEC §9.1). 인라인 폼(Field)도, 참조($ref)도 허용한다.",
+          "description": "Search form declaration or reference.",
           "anyOf": [
             { "type": "boolean" },
             { "$ref": "#/definitions/Field" },
@@ -636,40 +636,40 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "$ref": { "description": "검색 폼 베이스 참조(form-spec 스펙 파일/경로).", "type": "string" },
+                "$ref": { "description": "Composition reference resolved before evaluation.", "type": "string" },
                 "$patch": { "$ref": "#/definitions/Patch" }
               }
             }
           ]
         },
         "sort": {
-          "description": "구조 — 기본 정렬 선언(read 고유). 서버가 적용.",
+          "description": "Requested sort configuration applied by the application.",
           "$ref": "#/definitions/Sort"
         },
         "pagination": {
-          "description": "구조 — 페이징 선언(read 고유). 서버가 offset/limit 적용.",
+          "description": "Requested pagination configuration applied by the application.",
           "$ref": "#/definitions/Pagination"
         },
         "actions": {
-          "description": "구조 — 행/툴바 동작 맵(link 또는 behavior 스크립트). form-spec link/behavior 양식 재사용. 키 이름은 금지키 차단.",
+          "description": "Named list actions.",
           "type": "object",
           "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
           "additionalProperties": { "$ref": "#/definitions/ListAction" }
         },
         "empty": {
-          "description": "콘텐츠 — 빈 목록 메시지(i18n). form-spec blank_message 대칭. 언어맵 {ko,en} 가능(G3).",
+          "description": "Empty-list content, optionally translated.",
           "$ref": "#/definitions/Content"
         },
         "design": {
-          "description": "역할 슬롯 — 목록 컨테이너 보임새(표시 show + 노드별 외형). form-spec Design 재사용.",
+          "description": "Visibility and node appearance settings.",
           "$ref": "#/definitions/Design"
         },
         "$ref": {
-          "description": "G5 합성 — 베이스 list-spec 상속(파일/경로). 파서가 가장 먼저 펼침.",
+          "description": "Composition reference resolved before evaluation.",
           "type": "string"
         },
         "$patch": {
-          "description": "G5 합성 — 변경(add/remove/replace).",
+          "description": "Composition operations applied after reference resolution.",
           "$ref": "#/definitions/Patch"
         }
       }
