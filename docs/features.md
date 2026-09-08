@@ -17,28 +17,19 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | Explicit empty collection rendering in the merged runtime | implemented | passed | not-deployed | [Empty collection tests](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | Complete native typing and focus during input replacement | implemented | passed | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
-| original-typing | Preserve typed values in queued original-controller rendering | implemented | passed | not-deployed | [Native typing checks](../examples/form-comparison/check-typing.mjs) |
+| form-typing | Complete native typing and focus during input replacement | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
 | form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
-| form-focus | Focus, selection and scroll retention during row operations | implemented | passed | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
+| form-focus | Focus, selection and scroll retention during row operations | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
 | docs-check | Document links, translations and status checks | implemented | passed | not-deployed | [Documentation procedure](operations/documentation.md) |
-| form-comparison | Original and 13-character browser comparison | in-progress | pending | not-deployed | [Browser checks](../examples/form-comparison/check.mjs) |
-| form-persistence | Keyed native and JSON document-order persistence | in-progress | pending | not-deployed | [Persistence scenarios](../examples/form-comparison/src/frame.mjs) |
-| ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../examples/form-comparison/check-ordered-json.py) |
-| ordered-json-runtime | Form and ordered JSON transmission through shared validation and storage | in-progress | pending | not-deployed | [Transport contract](spec/form-comparison.md) |
-| php-extension-server | Independent PHP extension requests and persistence | in-progress | pending | not-deployed | [Processor modes](spec/form-comparison.md#php-processor-modes) |
-| form-servers | Independent PHP, Go and Rust submission, validation, storage and reload | in-progress | pending | not-deployed | [Server contract](spec/form-comparison.md) |
-| form-client-validation | Existing JavaScript validation before user submission | in-progress | pending | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
-| original-empty-correction | Corrected original rendering and complete empty collection lifecycle | implemented | passed | not-deployed | [Comparison contract](spec/form-comparison.md) |
-| original-keyed-proof | Original public functions with keyed editing, persistence and cache binding | implemented | failed | not-deployed | [Comparison contract](spec/form-comparison.md) |
+| ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../tests/ordered-json/check.py) |
 
 ## Current verification
 
 The package checks use the dependency graph committed in `a5b4491`.
 `npm ci`, public declarations and exports (5 checks), repeated build output
 (1 check), and the isolated consumer type, production and three-framework browser
-checks passed. Form tests passed: core 26, React 691, Vue 344, Svelte 345 and
+checks passed. Form tests passed: core 26, React 692, Vue 344, Svelte 345 and
 3 mounted tests, plus 6 normalizer tests. JavaScript validation passed 1,579 tests;
 PHP passed 1,392 tests. Go and Rust package tests passed.
 
@@ -49,7 +40,7 @@ package or a completed release.
 
 ## Form comparison results
 
-The local environment at [localhost:4317](http://localhost:4317) uses library
+The externally preserved environment at [localhost:4317](http://localhost:4317) uses library
 `a5b4491`, with PHP, PHP extension, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
 
@@ -63,7 +54,8 @@ All 240 HTTP checks and PHP processor-mode enforcement passed.
 Each target covers React, Vue and Svelte with form and ordered JSON transport.
 Reports include initial data, later injection, repeated injection, record
 restoration, raw HTML, DOM, CSS, control state and row operations. Evidence is
-stored in `.form-comparison/results/report-<server>.json`. Report metadata records
+stored in the external comparison workspace under
+`.form-comparison/results/report-<server>.json`. Report metadata records
 source revisions. A total of 108 interaction checks includes all four comparison
 modes; 30 belong to the current implementation.
 
@@ -82,7 +74,7 @@ application classes. Browser rendering and input checks passed for demo, Playgro
 form pages. Bootstrap product checks also verified nested data.
 
 Library deployment means package publication; no package is published.
-The comparison application is available locally and its current implementation
+The comparison application is preserved in an independent external workspace and its current implementation
 has completed the full browser matrix. Retained implementation failures remain
 in the reports. Release verification and repository cleanup remain in progress.
 

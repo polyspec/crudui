@@ -17,28 +17,19 @@
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | input 교체 중 전체 타이핑과 포커스 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
-| original-typing | 원본 컨트롤러의 대기 중 렌더링에서 입력 값 유지 | implemented | passed | not-deployed | [네이티브 타이핑 검사](../examples/form-comparison/check-typing.mjs) |
+| form-typing | input 교체 중 전체 타이핑과 포커스 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
 | form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | not-deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-focus | 행 연산의 포커스, 선택, 스크롤 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
+| form-focus | 행 연산의 포커스, 선택, 스크롤 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
 | docs-check | 문서 링크·번역·상태 검사 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
-| form-comparison | 원본과 13자리 브라우저 비교 | in-progress | pending | not-deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
-| form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | in-progress | pending | not-deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
-| ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../examples/form-comparison/check-ordered-json.py) |
-| ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | in-progress | pending | not-deployed | [전송 계약](spec/form-comparison.ko.md) |
-| php-extension-server | 독립된 PHP 확장 요청과 저장 | in-progress | pending | not-deployed | [처리 모드](spec/form-comparison.ko.md#php-처리-모드) |
-| form-servers | PHP, Go, Rust의 독립된 제출, 검증, 저장과 재로드 | in-progress | pending | not-deployed | [서버 계약](spec/form-comparison.ko.md) |
-| form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | in-progress | pending | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
-| original-empty-correction | 원본 출력 수정과 빈 컬렉션 전체 처리 과정 | implemented | passed | not-deployed | [비교 계약](spec/form-comparison.ko.md) |
-| original-keyed-proof | 원본 공개 함수의 키 편집, 영속 저장, 캐시 바인딩 | implemented | failed | not-deployed | [비교 계약](spec/form-comparison.ko.md) |
+| ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../tests/ordered-json/check.py) |
 
 ## 현재 검증
 
 패키지 검사는 `a5b4491`에 커밋된 의존성 그래프를 사용합니다.
 `npm ci`, 공개 선언과 export 검사 5개, 반복 빌드 출력 검사 1개, 별도 소비자
 타입·프로덕션·세 프레임워크 브라우저 검사가 통과했습니다. 폼 검사는 코어
-26개, React 691개, Vue 344개, Svelte 345개와 마운트 검사 3개, 정규화 검사
+26개, React 692개, Vue 344개, Svelte 345개와 마운트 검사 3개, 정규화 검사
 6개가 통과했습니다. JavaScript 검증 1,579개와 PHP 1,392개가 통과했습니다.
 Go와 Rust 패키지 테스트도 통과했습니다.
 
@@ -48,7 +39,7 @@ Go와 Rust 패키지 테스트도 통과했습니다.
 
 ## 폼 비교 결과
 
-[localhost:4317](http://localhost:4317)의 로컬 환경은 라이브러리 `a5b4491`을
+외부에 보존한 [localhost:4317](http://localhost:4317) 환경은 라이브러리 `a5b4491`을
 사용하며 PHP·PHP 확장·Go·Rust를 독립적인 HTTP 대상으로 실행합니다.
 HTTP 검사 240개와 PHP 처리 모드 검사가 모두 통과했습니다.
 
@@ -61,7 +52,7 @@ HTTP 검사 240개와 PHP 처리 모드 검사가 모두 통과했습니다.
 
 각 대상은 React·Vue·Svelte의 폼 전송과 ordered JSON 전송을 검사합니다.
 보고서는 초기 데이터, 나중 주입, 반복 주입, 레코드 복원, HTML 원문, DOM,
-CSS, 입력 상태와 행 연산을 포함합니다. 근거는
+CSS, 입력 상태와 행 연산을 포함합니다. 근거는 외부 비교 작업 공간의
 `.form-comparison/results/report-<server>.json`에 저장하며 보고서 메타데이터는
 소스 리비전을 기록합니다. 상호작용 검사 전체 108개는 비교 모드 네 가지의
 합계이며 그중 30개가 현재 구현에 해당합니다.
@@ -80,7 +71,7 @@ Rust 컴파일, PHP API 테스트와 Node HTTP 테스트가 통과했습니다. 
 통과했습니다. Bootstrap 상품 페이지는 중첩 데이터도 확인했습니다.
 
 라이브러리 배포는 패키지 게시를 의미하며 게시된 패키지는 없습니다.
-비교 애플리케이션은 로컬에서 사용할 수 있으며 현재 구현의 전체 브라우저 조합
+비교 애플리케이션은 독립된 외부 작업 공간에 보존하며 현재 구현의 전체 브라우저 조합
 검사가 완료됐습니다. 보존된 비교 구현의 실패는 보고서에 유지합니다.
 릴리스 검증과 저장소 정리는 진행 중입니다.
 

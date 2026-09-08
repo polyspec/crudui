@@ -6,7 +6,7 @@
 - [Form runtime](spec/form-runtime.md)
 - [Feature and deployment status](features.md)
 - [Form development and verification](operations/forms.md)
-- [Browser comparison and PHP persistence](operations/form-comparison.md)
+- [Form and transport verification](operations/verification.md)
 - [Documentation maintenance](operations/documentation.md)
 - [Expression grammar](EXPRESSION-GRAMMAR.md)
 - [Validation rules](VALIDATION-RULES.md)

@@ -1,6 +1,6 @@
 # JSON 문서 순서 검증
 
-[English](ordered-json.md). [폼 비교 예제 계약](../spec/form-comparison.ko.md)은 필요한
+[English](ordered-json.md). [폼 런타임 계약](../spec/form-runtime.ko.md)은 필요한
 데이터 형태와 순서를 정의합니다. [기능 상태](../features.ko.md)는 검증과 런타임
 배포를 구분해 기록합니다.
 
@@ -18,7 +18,7 @@ ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
 git clone https://github.com/ordered-json/ordered-json "$ORDERED_JSON_SOURCE"
 git -C "$ORDERED_JSON_SOURCE" checkout deb1b354da845e4c44d1e35c28c77bdb02ec174b
 python3 "$ORDERED_JSON_SOURCE/scripts/test.py" --build-extension
-python3 examples/form-comparison/check-ordered-json.py "$ORDERED_JSON_SOURCE"
+python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"
 make docs-check
 ```
 
@@ -28,12 +28,12 @@ make docs-check
 처리합니다. 독립된 Python 디코더가 객체 키·값 쌍과 숫자 토큰을 유지해 비교합니다.
 검사기는 객체 멤버를 정렬하지 않고 순서를 포함한 전체 트리를 비교합니다.
 
-보고서는 `.form-comparison/results/ordered-json-<timestamp>.json`에 저장합니다.
+보고서는 `.verification/ordered-json/ordered-json-<timestamp>.json`에 저장합니다.
 소스 리비전, 검사기·사례 해시, 개별 결과를 포함합니다. 이전 보고서는 유지합니다.
 사례가 실패하면 종료 상태 1을 반환합니다.
 
 추가·복사·저장 후 키 교체 사례는 JSON 고정 데이터입니다. 전송 표현을 검사하며,
-폼 버튼이나 데이터베이스 작업의 실행을 검사하지는 않습니다. 예제의 전송
+폼 버튼이나 데이터베이스 작업의 실행을 검사하지는 않습니다. 외부에 보존한 예제의 전송
 모듈은 JSON 요청·응답과 저장소 파일에 이 처리기를 사용합니다. 처리기는 `Value` 노드를 반환하며,
 JavaScript 객체 멤버는 `Map`입니다. 폼 세션은 일반 객체 데이터를 받습니다.
 이 맵을 일반 JavaScript 객체로 변환하면 숫자 형태 멤버의 순서가 변경되므로
@@ -42,6 +42,6 @@ JavaScript 객체 멤버는 `Map`입니다. 폼 세션은 일반 객체 데이�
 삽입 순서를 유지합니다.
 
 폼과 JSON 전송은 같은 검증기와 저장소를 실행합니다. 런타임 연동은
-[브라우저·PHP 영속 저장 검사](form-comparison.ko.md)로 확인합니다. 두 전송 방식, 실제
+[브라우저·PHP 영속 저장 검사](verification.ko.md)로 확인합니다. 두 전송 방식, 실제
 입력·버튼 조작, 잘못된 요청 거부, 같은 저장 데이터와 새 재로드를 실행합니다.
 처리기만 검사한 결과와 이 연동 결과는 별도로 기록합니다.

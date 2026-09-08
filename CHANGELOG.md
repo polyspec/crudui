@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Independent historical comparison workspace
+
+Historical comparison applications, pinned sources, build inputs and reports are
+preserved in an independent external workspace. Package tests use repository-local
+form inspection and JSON order checks. All 50 JSON order cases and the complete
+form test suite passed after separation.
+
 ## 2026-09-09 — Reusable form inspector
 
 The form inspector and its Node and browser checks are maintained under
