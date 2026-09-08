@@ -42,15 +42,15 @@ package or a completed release.
 ## Form comparison results
 
 The externally preserved environment at `localhost:4317` uses library
-`a5b4491`, with PHP, PHP extension, Go and Rust as separate HTTP targets.
+`2dfd321`, with PHP, PHP extension, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
 
-| Current implementation | Scenarios | Interactions | Page errors |
-| --- | --- | --- | --- |
-| PHP | 120/120 passed | 30/30 passed | 0 |
-| PHP extension | 120/120 passed | 30/30 passed | 0 |
-| Go | 120/120 passed | 30/30 passed | 0 |
-| Rust | 120/120 passed | 30/30 passed | 0 |
+| Server | Verified revision | Scenarios | Interactions | Page errors |
+| --- | --- | --- | --- | --- |
+| PHP | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
+| PHP extension | `a5b4491` | 120/120 passed | 30/30 passed | 0 |
+| Go | `a5b4491` | 120/120 passed | 30/30 passed | 0 |
+| Rust | `a5b4491` | 120/120 passed | 30/30 passed | 0 |
 
 Each target covers React, Vue and Svelte with form and ordered JSON transport.
 Reports include initial data, later injection, repeated injection, record
@@ -75,10 +75,12 @@ application classes. Browser rendering and input checks passed for demo, Playgro
 form pages. Bootstrap product checks also verified nested data.
 
 Library deployment means package publication; no package is published.
-The comparison application is preserved in an independent external workspace and its current implementation
-has completed the full browser matrix. Retained implementation failures remain
+The comparison application is preserved in an independent external workspace.
+The table records the latest completed checks per server. The `2dfd321` browser
+checks for PHP extension, Go and Rust are running. Retained implementation failures remain
 in the reports. Release verification and repository cleanup remain in progress.
 
-Full documentation generation and the static site build passed. Two consecutive
-API documentation and schema runs produced identical output. The console tests
+TypeScript API reference generation and the strict static site build passed.
+The PHP reference page records missing phpDocumentor; PHP HTML generation is
+incomplete. Earlier API documentation and schema runs produced identical output. The console tests
 passed 81 cases and the raw form inspector passed 18 cases.
