@@ -1,18 +1,5 @@
-<!--
-  CRUDUI Svelte widget renderer — real `.svelte` container elements, raw control bodies.
-
-  Receives the core's evaluated `WidgetModel` (markup-free) and renders the real
-  CONTAINER element for its layout (`.input-group` / display `<div>`). The leaf
-  CONTROL bytes (`<input>`/`<select><option>`/`<textarea>`) are injected via the
-  container's `{@html}` directive — forced by svelte/server's boolean-attr
-  coercion (see raw.ts), the same control-granularity boundary the Vue adapter
-  uses. This component RECOMPUTES NOTHING.
-
-  Sanctioned real-element-leaf cases (no boolean/empty attr hazard): the display
-  RAW `<div>` (dummy/image-viewer body — a verbatim-content boundary) and the
-  unsupported marker `<div>`. The root-raw layouts (bare/host-script/button/
-  btn-group/search) are rendered at the `.input-group-wrapper` root by the field
-  dispatcher via widgetRootRaw; this component renders nothing for them.
+<!-- @component
+  Render an evaluated widget and its native controls inside the required container.
 -->
 <script lang="ts">
   import type { WidgetModel } from '@crudui/generator-core';

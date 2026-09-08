@@ -13,7 +13,6 @@
   "excludePrivate": true,
   "excludeInternal": true,
   "excludeExternals": true,
-  "skipErrorChecking": true,
   "useCodeBlocks": true,
   "sanitizeComments": true,
   "expandObjects": false,

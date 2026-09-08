@@ -1,3 +1,6 @@
+<!-- @component
+  Render an editable form instance and synchronize its data, row actions and input state.
+-->
 <script lang="ts">
   import { untrack } from 'svelte';
   import { connectForm, type FormInstance } from '@crudui/generator-core';

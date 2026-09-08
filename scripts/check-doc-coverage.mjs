@@ -2,11 +2,11 @@
 /**
  * check-doc-coverage.mjs — doc-coverage gate (RED/GREEN) across 4 languages.
  *
- * Fails (non-zero exit) if any public API symbol lacks a doc comment. This is a
- * pure check; it is idempotent by nature and produces no artifacts.
+ * Fails (non-zero exit) if any public API symbol lacks a doc comment. Package builds
+ * prepare declarations before public entry inspection.
  *
  *   - TypeScript: typedoc validation.notDocumented + treatValidationWarningsAsErrors
- *     over the 4 TS packages (scripts/typedoc.check.json).
+ *     over the 5 TS packages (scripts/typedoc.check.json).
  *   - Go: `go test ./validator/... -run Test.*DocCoverage` (go/ast based, no extra deps).
  *   - Rust: `cargo build` with `#![deny(missing_docs)]` in the lib/bin crates.
  *   - PHP: `phpunit` DocCoverageTest (docblock presence on public classes/methods).
@@ -35,22 +35,22 @@ const TS_PACKAGES = [
   { pkg: 'generator-vue', entry: 'src/index.ts', tsconfig: 'packages/generator-vue/tsconfig.json' },
   {
     pkg: 'generator-svelte',
-    entry: 'src/legacy/render.ts',
-    extraEntries: ['src/legacy/fieldHtml.ts', 'src/legacy/i18n.ts', 'src/legacy/legacyDisplay.ts', 'src/legacy/legacyLang.ts', 'src/legacy/utils.ts'],
+    entry: 'dist/index.d.ts',
     tsconfig: 'scripts/tsconfig.svelte-docs.json',
   },
 ];
 
 function checkTS() {
+  execFileSync('npm', ['run', 'build'], { cwd: ROOT, stdio: 'inherit' });
   for (const p of TS_PACKAGES) {
     const pkgDir = join(ROOT, 'packages', p.pkg);
-    const entries = [join(pkgDir, p.entry), ...(p.extraEntries || []).map((e) => join(pkgDir, e))];
+    const entry = join(pkgDir, p.entry);
     const args = [
       'typedoc',
       '--options', join(ROOT, 'scripts', 'typedoc.check.json'),
       '--tsconfig', join(ROOT, p.tsconfig),
-      '--entryPointStrategy', 'expand',
-      ...entries,
+      '--entryPointStrategy', 'resolve',
+      entry,
     ];
     try {
       execFileSync('npx', args, { cwd: ROOT, stdio: 'inherit' });
