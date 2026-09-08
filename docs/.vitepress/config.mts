@@ -40,6 +40,7 @@ export default withMermaid(defineConfig({
         collapsed: false,
         items: [
           { text: 'Schema structure', link: '/spec/schema' },
+          { text: 'Legacy schema', link: '/spec/legacy-schema' },
           { text: 'Form runtime', link: '/spec/form-runtime' },
           { text: 'Feature status', link: '/features' },
           { text: 'Forms', link: '/operations/forms' },
