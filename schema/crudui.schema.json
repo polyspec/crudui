@@ -1,9 +1,9 @@
 {
   "$id": "https://github.com/crudui/crudui/schema/crudui.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "CRUDUI 메타스키마",
-  "description": "current 폼 스펙(spec/schema.md 헌법)을 검증하는 메타스키마. 역할 슬롯(validate/design/behavior/options)·구조 키(type/name/default/properties/items/multiple/lang)·콘텐츠·조건맵·$ref/$patch 합성 모델을 강제하고, 조건 전용 메타키와 레거시 매직 토큰을 전역 거부한다. 이 파일은 current 스펙을 검증하는 메타스키마이며 current 스펙 형식 자체가 아니다 — SPEC §8 'JSON Schema 미채택'은 스펙 형식 선택에 관한 것이고 여기서 검증 도구로 쓰는 것과 무관하다.",
-  "$comment": "전제: 파서가 먼저 합성($ref→$patch)을 펼치고 x{key} 주석을 strip 한 canonical 스펙을 만든 뒤 이 메타스키마가 검증한다(R3.A·G5). x{key}·xclass·xstyle 은 임시 비활성 주석이라 canonical 에는 남지 않는다 — 메타스키마는 이를 거부하되(ForbiddenKeyNames 의 ^x 패턴), 거부 이유는 'strip 이후엔 존재하면 안 되는 주석 잔재'다. 정규 current 키만 인식키로 등재한다 — 레거시 이름(multiple_max·lang:append·sortable* 등)과 매직 토큰(`*`·`:`)은 유효키가 아니다(R2·R4). 레거시→정규 매핑은 번역기의 책임이지 스키마의 인식 대상이 아니다.",
+  "title": "CRUDUI declaration schema",
+  "description": "Validates form and list declarations, including field structure, validation, appearance, behavior and composition.",
+  "$comment": "Form declarations use the root entry. List declarations use definitions/List. Resolve external references before runtime rendering.",
   "$ref": "#/definitions/Field",
 
   "definitions": {
@@ -388,7 +388,7 @@
     },
 
     "Field": {
-      "description": "current 필드. 1급(최상위)은 핵심 공통뿐이다(§3 B): 구조/정체성(type/name/default/properties/items/multiple/lang) + 콘텐츠(label/description/placeholder/prepend/append/help) + 역할 슬롯(validate/design/behavior/options) + 합성($ref/$patch). additionalProperties:false 로 1급 외 키(특히 조건 전용 메타키)를 금지한다 — 종속 세부는 options/multiple/lang/items 하위로, 합성은 $ref/$patch 로, 조건은 값의 표현식으로.",
+      "description": "Field declaration with structure, content, validation, appearance, behavior, type options and composition. Unrecognized field properties are rejected.",
       "type": "object",
       "additionalProperties": false,
       "required": ["type"],
@@ -618,7 +618,7 @@
     },
 
     "List": {
-      "description": "list-spec 루트 — form-spec 의 read 자매(create 대칭). 같은 도메인을 입력이 아니라 목록으로 표시한다(SPEC §9). DB 무관 — 행 데이터(rows)는 주입이며 스펙에 박지 않는다(SPEC §9: 검색·정렬·페이징의 실제 적용은 서버 책임, 스펙은 선언만). current 엔진 100% 공유: 표현식·i18n·design 노드맵·합성($ref/$patch)·금지키 스캔은 form-spec 과 동일 코드가 평가하고, 신규는 read 셀 렌더러(CellFormat)뿐이다. 1급(§3 B): columns(표시 열)·search(입력=form-spec 참조)·sort·pagination(read 구조)·actions(동작)·empty(콘텐츠). additionalProperties:false 로 1급 외 키(특히 조건 전용 메타키)를 금지한다. 이 definitions 는 form-spec Field 를 건드리지 않는 additive 다(불간섭) — Field 외 진입점(#/definitions/List)으로 검증한다.",
+      "description": "List declaration with columns, search, sorting, pagination, actions and empty content. Row data is supplied separately. The server applies searching, sorting and pagination.",
       "type": "object",
       "additionalProperties": false,
       "required": ["columns"],
