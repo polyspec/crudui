@@ -70,12 +70,14 @@ export function FormContextProvider({
   language = 'ko',
 }: FormContextProviderProps) {
   const [data, setData] = useState<FormData>(() => initialData);
+  const dataRef = useRef(initialData);
   const [errors, setErrors] = useState<FormErrors>({});
   const registeredFields = useRef<Set<string>>(new Set());
   const previousData = useRef(initialData);
   useEffect(() => {
     if (previousData.current !== initialData) {
       previousData.current = initialData;
+      dataRef.current = initialData;
       setData(initialData);
       setErrors({});
     }
@@ -104,12 +106,10 @@ export function FormContextProvider({
    */
   const setValue = useCallback(
     (path: string, value: FormValue) => {
-      let newData: FormData = {};
-      setData((prev: FormData) => {
-        newData = setValueByPath({ ...prev }, path, value);
-        onChange?.(path, value, newData);
-        return newData;
-      });
+      const newData = setValueByPath({ ...dataRef.current }, path, value);
+      dataRef.current = newData;
+      setData(newData);
+      onChange?.(path, value, newData);
       // Re-validate if there was an error, otherwise clear
       setErrors((prev) => {
         if (prev[path]) {
