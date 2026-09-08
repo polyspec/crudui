@@ -41,7 +41,7 @@ package or a completed release.
 
 ## Form comparison results
 
-The externally preserved environment at [localhost:4317](http://localhost:4317) uses library
+The externally preserved environment at `localhost:4317` uses library
 `a5b4491`, with PHP, PHP extension, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
 

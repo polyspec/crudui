@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Documentation link validation
+
+The site checks internal links during builds. TypeDoc generates relative links
+and package index pages. Existing repository files outside the site resolve to
+GitHub source URLs; missing files fail. Five link tests run in `make docs-check`.
+The strict site build, document checks and generated HTML link checks passed.
+
 ## 2026-09-09 — Maintained documentation navigation
 
 Historical evaluation and implementation-comparison reports are preserved in the
