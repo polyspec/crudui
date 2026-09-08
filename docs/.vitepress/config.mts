@@ -53,7 +53,7 @@ export default withMermaid(defineConfig({
         collapsed: false,
         items: [
           { text: '검증 규칙', link: '/VALIDATION-RULES' },
-          { text: 'Validator API', link: '/API' },
+          { text: 'Data validation', link: '/operations/validation' },
         ],
       },
       {
