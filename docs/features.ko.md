@@ -21,12 +21,12 @@
 | form-focus | 행 연산의 포커스, 선택, 스크롤 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
 | docs-check | 문서 링크·번역·상태 검사 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
-| form-comparison | 원본과 13자리 브라우저 비교 | implemented | failed | not-deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
-| form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | implemented | passed | not-deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
+| form-comparison | 원본과 13자리 브라우저 비교 | in-progress | pending | not-deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
+| form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | in-progress | pending | not-deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../examples/form-comparison/check-ordered-json.py) |
-| ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | implemented | passed | not-deployed | [전송 계약](spec/form-comparison.ko.md) |
-| form-servers | PHP, Go, Rust의 독립된 제출, 검증, 저장과 재로드 | implemented | passed | not-deployed | [서버 계약](spec/form-comparison.ko.md) |
-| form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
+| ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | in-progress | pending | not-deployed | [전송 계약](spec/form-comparison.ko.md) |
+| form-servers | PHP, Go, Rust의 독립된 제출, 검증, 저장과 재로드 | in-progress | pending | not-deployed | [서버 계약](spec/form-comparison.ko.md) |
+| form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | in-progress | pending | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | original-empty-correction | 원본 출력 수정과 빈 컬렉션 전체 처리 과정 | implemented | passed | not-deployed | [비교 계약](spec/form-comparison.ko.md) |
 | original-keyed-proof | 원본 공개 함수의 키 편집, 영속 저장, 캐시 바인딩 | implemented | failed | not-deployed | [비교 계약](spec/form-comparison.ko.md) |
 
