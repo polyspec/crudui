@@ -351,14 +351,15 @@
     },
 
     "Multiple": {
-      "description": "구조 — 반복 행(true=켜짐). 1급, 종속 격리 버킷. 다형(false|{}|true). multiple 종속 세부(max·copy·sortable·onclick)는 multiple 하위로 격리(§3 C). sub_keys 가 닫혀 있어 정규 키 외(레거시 multiple_max/sortable*/add_buttons/remove_list_button/list_button_text/multiple_button_onclick)를 거부한다 — 레거시는 번역기가 max/sortable/copy/onclick 으로 매핑한다. 행 정체성(G4)은 multiple 필드가 아니다 — 런타임에 제출 데이터가 실어 나르는 숨은 서버 PK(기존 행=있음, 신규 행=없음)이고, 직렬화 순서가 배열 순서다. 빌드타임 모델에는 id 필드도 id 방출 코드도 없다(데이터 층 정체성, 서버가 동기화). 레거시 seqtokey/__13hex__ 합성 id 키를 번역기가 버리는 이유도 이것 — 애초에 스펙 필드가 아니다.",
+      "description": "Repeated rows use keyed instance data. Repetition options belong under multiple; row identity is carried by collection keys, without hidden identity fields.",
       "anyOf": [
         { "type": "boolean" },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "max": { "description": "최대 반복 행 수. 레거시 multiple_max 흡수.", "type": "number" },
+            "min": { "description": "Minimum repeated row count.", "type": "number" },
+            "max": { "description": "Maximum repeated row count.", "type": "number" },
             "copy": { "description": "행 복사 허용. 레거시 add_buttons/remove_list_button/list_button_text 흡수.", "anyOf": [ { "type": "boolean" }, { "type": "object" } ] },
             "sortable": { "description": "행 정렬 가능. 레거시 sortable* 흡수.", "type": "boolean" },
             "onclick": { "description": "반복 버튼 onclick(불투명 스크립트). 레거시 multiple_button_onclick 흡수.", "$ref": "#/definitions/BehaviorAction" }
@@ -412,7 +413,7 @@
           "$ref": "#/definitions/Items"
         },
         "multiple": {
-          "description": "구조·정체성 — 반복 행(true=켜짐). 다형 false|{}|true. 반복 종속 세부는 multiple 하위로 격리. 행 정체성(G4)은 multiple 필드가 아니라 런타임에 제출 데이터가 실어 나르는 숨은 서버 PK다(빌드타임 스펙 필드·id 키 없음).",
+          "description": "Repeated rows use keyed instance data. Repetition options belong under multiple; row identity is carried by collection keys, without hidden identity fields.",
           "$ref": "#/definitions/Multiple"
         },
         "lang": {
