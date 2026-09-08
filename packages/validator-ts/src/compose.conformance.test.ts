@@ -73,7 +73,7 @@ function run(c: FixtureCase): Record<string, unknown> {
     : composeProperties(c.input.entry, loader, opts);
 }
 
-describe('current compose — success cases reproduce the expanded single spec', () => {
+describe('compose — success cases reproduce the expanded single spec', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
     test(c.name, () => {
       const result = run(c);
@@ -86,7 +86,7 @@ describe('current compose — success cases reproduce the expanded single spec',
   }
 });
 
-describe('current compose — unresolved composition is a LOAD ERROR, never valid:true', () => {
+describe('compose — unresolved composition is a LOAD ERROR, never valid:true', () => {
   for (const c of cases.filter((x) => x.expectError)) {
     test(c.name, () => {
       let thrown: unknown;
@@ -105,7 +105,7 @@ describe('current compose — unresolved composition is a LOAD ERROR, never vali
   }
 });
 
-describe('current compose — composition is pure pre-processing (field-layer invariant)', () => {
+describe('compose — composition is pure pre-processing (field-layer invariant)', () => {
   // The analysis "합성 후 필드층 불변": a composed single spec must be bit-identical
   // to the same content written WITHOUT composition. Prove it on every success
   // case by re-composing the already-expanded spec (no $ref/$patch left) and

@@ -37,7 +37,7 @@ async function render(c) {
 
 const ERROR_CLASS_BY_CODE = { REF_FILE_NOT_FOUND: ComposeLoadError };
 
-describe('current list render — Vue 3 SSR reproduces the normalized expected_html', () => {
+describe('list render — Vue 3 SSR reproduces the normalized expected_html', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
     test(c.name, async () => {
       expect(normalizeHtml(await render(c))).toStrictEqual(c.expected_html);
@@ -45,7 +45,7 @@ describe('current list render — Vue 3 SSR reproduces the normalized expected_h
   }
 });
 
-describe('current list render — render is idempotent (stable across re-render)', () => {
+describe('list render — render is idempotent (stable across re-render)', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
     test(`${c.name} — re-render is stable`, async () => {
       expect(normalizeHtml(await render(c))).toStrictEqual(normalizeHtml(await render(c)));
@@ -53,7 +53,7 @@ describe('current list render — render is idempotent (stable across re-render)
   }
 });
 
-describe('current list render — read-only invariant (no input control EVER reaches output)', () => {
+describe('list render — read-only invariant (no input control EVER reaches output)', () => {
   for (const c of cases.filter((x) => x.expected_html)) {
     test(`${c.name} — no input/select/textarea/form`, async () => {
       const raw = await render(c);
@@ -65,7 +65,7 @@ describe('current list render — read-only invariant (no input control EVER rea
   }
 });
 
-describe('current list render — a load gap is a surfaced ERROR, never a silent table', () => {
+describe('list render — a load gap is a surfaced ERROR, never a silent table', () => {
   for (const c of cases.filter((x) => x.expectError)) {
     test(c.name, async () => {
       let thrown;

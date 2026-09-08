@@ -11,7 +11,7 @@ import { composeProperties } from './compose';
 import { MemoryLoader } from './loader';
 import { ComposeLoadError } from './errors';
 
-describe('$ref cycle detection (legacy infinite-recurses; current must throw)', () => {
+describe('$ref cycle detection rejects recursive references', () => {
   test('self-cycle a -> a', () => {
     const loader = new MemoryLoader({ 'a.yml': { properties: { $ref: 'a.yml' } } });
     try {

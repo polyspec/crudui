@@ -627,7 +627,7 @@ mod tests {
     use super::*;
 
     fn parse(s: &str) -> FieldSpec {
-        serde_json::from_str(s).expect("valid current field spec")
+        serde_json::from_str(s).expect("valid field spec")
     }
 
     #[test]
