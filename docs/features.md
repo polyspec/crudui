@@ -75,8 +75,7 @@ example classes. Browser rendering and input checks passed for demo, Playground 
 form pages. Bootstrap product checks also verified nested data.
 
 Library deployment means package publication; no package is published.
-The table records the latest completed checks per server. The browser
-check for Rust is running. Retained implementation failures remain
+The table records completed browser checks for all four servers. Retained implementation failures remain
 in the reports. Release verification and repository cleanup remain in progress.
 
 TypeScript, Go, Rust and PHP API generation and the strict static site build
