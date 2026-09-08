@@ -60,7 +60,7 @@ export default withMermaid(defineConfig({
         text: '조건식',
         collapsed: false,
         items: [
-          { text: '조건식 파서', link: '/CONDITION-PARSER' },
+          { text: 'Expression grammar', link: '/spec/expressions' },
           { text: '조건부 표시', link: '/DISPLAY-CONDITIONS' },
         ],
       },
@@ -70,12 +70,6 @@ export default withMermaid(defineConfig({
         items: [
           { text: '테스트 가이드', link: '/TESTING' },
           { text: '테스트 케이스', link: '/TEST-CASES' },
-        ],
-      },
-      {
-        text: '사료 (legacy 분석)',
-        collapsed: true,
-        items: [
         ],
       },
       {
