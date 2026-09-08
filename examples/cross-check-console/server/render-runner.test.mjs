@@ -115,3 +115,20 @@ describe('renderAll — real 3-framework SSR fan-out (representative fixture)', 
     expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
   }, 120000);
 });
+
+
+test('SSR renderers receive identical generated row identities', async () => {
+  const spec = { type: 'group', properties: { companies: {
+    type: 'group', multiple: true, properties: { name: { type: 'text' } },
+  } } };
+  const result = await renderAll({ spec, data: {} });
+  const identities = result.results.map(rendered => {
+    expect(rendered.ok, rendered.error?.message).toBe(true);
+    const keys = [...rendered.html.matchAll(/data-uniqid="([^"]+)"/g)].map(match => match[1]);
+    expect(keys.length).toBeGreaterThan(0);
+    return keys;
+  });
+  expect(identities[1]).toEqual(identities[0]);
+  expect(identities[2]).toEqual(identities[0]);
+  expect(result.parity).toBe(true);
+}, 30000);
