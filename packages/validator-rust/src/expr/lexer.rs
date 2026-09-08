@@ -1,4 +1,4 @@
-//! CRUDUI expression lexer (EXPRESSION-GRAMMAR §1, JS/PHP `Lexer` parity).
+//! CRUDUI expression lexer (expressions.md §1, JS/PHP `Lexer` parity).
 //!
 //! Turns a condition string into a `Vec<Token>` ending in EOF. WHITESPACE is
 //! consumed but never emitted. The token order, multi-char operator precedence,

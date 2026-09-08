@@ -5,6 +5,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
+| expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | legacy-examples | Legacy example paths and package builds | implemented | passed | not-deployed | [Examples](spec/examples.md) |
 | form-controls | Labels, multiple choice arrays and field container paths | implemented | passed | not-deployed | [Shared control assertions](../tests/fixtures/form-session/controls.mjs) |
 | package-consumer | Packaged exports, type declarations and consumer production build | implemented | passed | not-deployed | [Consumer check](../scripts/check-packages.mjs) |
@@ -29,9 +30,9 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 The package checks use the dependency graph committed in `a5b4491`.
 `npm ci`, public declarations and exports (5 checks), repeated build output
 (1 check), and the isolated consumer type, production and three-framework browser
-checks passed. Form tests passed: core 26, React 692, Vue 344, Svelte 345 and
-3 mounted tests, plus 6 normalizer tests. JavaScript validation passed 1,579 tests;
-PHP passed 1,392 tests. Go and Rust package tests passed.
+checks passed. Form tests passed: core 29, React 692, Vue 344, Svelte 345 and
+3 mounted tests, plus 6 normalizer tests. JavaScript validation passed 1,592 tests;
+PHP passed 1,404 tests. Go and Rust package tests passed.
 
 Schema checks passed 56 fixtures after `multiple.min` was included. Subsequent
 schema annotation changes preserved the parsed validation rules. Documentation

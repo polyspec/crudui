@@ -559,10 +559,7 @@ final class Validator
     }
 
     /**
-     * Try to read a string param as a value-returning ternary (`cond ? a : b`).
-     * Returns ['handled' => false] when the string is not a ternary or its
-     * condition part is not a parseable condition (so a regex such as
-     * `^https?://...` containing `?...:` is NOT mistaken for a ternary).
+     * Evaluate a complete ternary AST; other strings remain literal parameters.
      *
      * @param list<string> $path
      * @param array<string, mixed> $allData
@@ -570,35 +567,15 @@ final class Validator
      */
     private function tryEvaluateTernary(string $expression, array $path, array $allData): array
     {
-        $questionPos = $this->findTernaryOperator($expression, '?');
-        if ($questionPos === -1) {
-            return ['handled' => false];
-        }
-        $colonPos = $this->findTernaryOperator($expression, ':', $questionPos + 1);
-        if ($colonPos === -1) {
-            return ['handled' => false];
-        }
-        $condition = trim(substr($expression, 0, $questionPos));
-        if (!$this->isConditionExpression($condition)) {
-            return ['handled' => false];
-        }
         try {
-            Expression::parse($condition);
+            $node = Expression::parse($expression);
+            if (!$node instanceof \CRUDUI\Validator\Expr\TernaryNode) {
+                return ['handled' => false];
+            }
+            return ['handled' => true, 'value' => Expression::evaluateValue($expression, $allData, $path)];
         } catch (\Throwable) {
             return ['handled' => false];
         }
-        $conditionResult = $this->evaluateCondition($condition, $path, $allData);
-        $branch = $conditionResult
-            ? trim(substr($expression, $questionPos + 1, $colonPos - $questionPos - 1))
-            : trim(substr($expression, $colonPos + 1));
-
-        if (preg_match('/\?[^:]*:/', $branch) === 1) {
-            $nested = $this->tryEvaluateTernary($branch, $path, $allData);
-            if ($nested['handled']) {
-                return $nested;
-            }
-        }
-        return ['handled' => true, 'value' => $this->parseTernaryBranchValue($branch)];
     }
 
     /** @param list<string> $path @param array<string, mixed> $allData */
@@ -780,81 +757,6 @@ final class Validator
     {
         if (is_array($value)) {
             return json_encode($value);
-        }
-        return $value;
-    }
-
-    // =========================================================================
-    // Ternary helpers (string-split, regex-safe; JS findTernaryOperator parity).
-    // =========================================================================
-
-    /**
-     * Position of a top-level ternary `?`/`:` respecting quotes, parens, brackets
-     * and nested ternaries (JS findTernaryOperator / PHP legacy ConditionParser).
-     */
-    private function findTernaryOperator(string $expression, string $operator, int $startPos = 0): int
-    {
-        $depth = 0;
-        $inQuote = false;
-        $quoteChar = '';
-        $ternaryDepth = 0;
-
-        $len = strlen($expression);
-        for ($i = $startPos; $i < $len; $i++) {
-            $char = $expression[$i];
-            if (($char === '"' || $char === "'") && !$inQuote) {
-                $inQuote = true;
-                $quoteChar = $char;
-            } elseif ($char === $quoteChar && $inQuote) {
-                $inQuote = false;
-                $quoteChar = '';
-            }
-            if (!$inQuote) {
-                if ($char === '(' || $char === '[') {
-                    $depth++;
-                } elseif ($char === ')' || $char === ']') {
-                    $depth--;
-                }
-                if ($char === '?' && $depth === 0) {
-                    if ($operator === '?') {
-                        return $i;
-                    }
-                    $ternaryDepth++;
-                } elseif ($char === ':' && $depth === 0) {
-                    if ($operator === ':') {
-                        if ($ternaryDepth === 0) {
-                            return $i;
-                        }
-                        $ternaryDepth--;
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Parse a ternary branch string into a typed value (JS parseTernaryBranchValue
-     * / PHP legacy ConditionParser::parseValue for scalars). A regex-pattern branch
-     * survives as a raw string.
-     */
-    private function parseTernaryBranchValue(string $raw): mixed
-    {
-        $value = trim($raw);
-        if (preg_match('/^["\'](.*)["\']$/s', $value, $m) === 1) {
-            return $m[1];
-        }
-        if ($value === 'true') {
-            return true;
-        }
-        if ($value === 'false') {
-            return false;
-        }
-        if ($value === 'null') {
-            return null;
-        }
-        if ($value !== '' && is_numeric($value)) {
-            return str_contains($value, '.') ? (float) $value : (int) $value;
         }
         return $value;
     }

@@ -83,7 +83,7 @@ g. **explain 역검증** — `crudui explain <spec>`로 스펙을 자연어로 �
 - `x` 접두 키를 쓰지 마라 — `x{key}`는 주석이고 파서가 무시한다(forbidden 패턴 `^x[\s\S]`). (§3 A)
 - 1급(최상위)을 함부로 늘리지 마라 — 1급 자격 없는 세부는 무조건 하위로. (§3 B)
 - 표현식에 산술·함수·임의 정규식·`eval`을 넣지 마라. 제한 DSL만(경로·비교·논리·`in`·ternary).
-  정규식은 `validate.match` 인자로만. 임의 JS는 `behavior`로 불투명 전달한다. (출처: `docs/EXPRESSION-GRAMMAR.md`)
+  정규식은 `validate.match` 인자로만. 임의 JS는 `behavior`로 불투명 전달한다. (출처: `docs/spec/expressions.md`)
 
 ## 4. 예제
 
@@ -137,4 +137,4 @@ properties:
 | `crudui list-widgets [--json]` | describe 위젯 섹션의 얇은 뷰. |
 
 출처 단일진실: 카탈로그=코드(`packages/generator-core`·`packages/validator-ts`·`schema/crudui.schema.json`),
-분류=`docs/SPEC.md §3`, 문법=`docs/EXPRESSION-GRAMMAR.md`. 이 파일은 절차와 매핑만 — 카탈로그는 describe가 읽는다.
+분류=`docs/SPEC.md §3`, 문법=`docs/spec/expressions.md`. 이 파일은 절차와 매핑만 — 카탈로그는 describe가 읽는다.
