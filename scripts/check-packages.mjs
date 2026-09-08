@@ -12,6 +12,7 @@ const require = createRequire(import.meta.url);
 const directory = mkdtempSync(join(tmpdir(), 'crudui-consumer-'));
 const packages = ['validator-ts', 'generator-core', 'generator-react', 'generator-vue', 'generator-svelte'];
 const dependencies = {};
+const { allowScripts } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 console.log(`Consumer project: ${directory}`);
 function run(command, args, cwd = directory) {
   return execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
@@ -29,7 +30,7 @@ try {
       ? JSON.parse(readFileSync(join(root, 'packages/generator-svelte/package.json'), 'utf8')).devDependencies[name]
       : require(`${name}/package.json`).version;
   }
-  writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'crudui-consumer-check', version: '0.0.1', private: true, type: 'module', dependencies }, null, 2));
+  writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'crudui-consumer-check', version: '0.0.1', private: true, type: 'module', dependencies, allowScripts }, null, 2));
   writeFileSync(join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
     target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler', strict: true, noEmit: true,
     esModuleInterop: true, lib: ['ES2022', 'DOM', 'DOM.Iterable'],
@@ -57,7 +58,7 @@ validate(spec, data);
   writeFileSync(join(directory, 'api.ts'), `export { compileForm, createForm } from '@crudui/generator-core';\nexport { validate } from '@crudui/validator';\n`);
   writeFileSync(join(directory, 'index.html'), '<!doctype html><html><head><title>Package verification</title><link rel="icon" href="data:,"></head><body><div id="react"></div><div id="vue"></div><div id="svelte"></div><script type="module" src="/main.ts"></script></body></html>');
   writeFileSync(join(directory, 'vite.config.mjs'), `import { defineConfig } from 'vite';\nimport { svelte } from '@sveltejs/vite-plugin-svelte';\nexport default defineConfig({ plugins: [svelte()] });\n`);
-  writeFileSync(join(directory, 'install.log'), run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund']));
+  writeFileSync(join(directory, 'install.log'), run('npm', ['install']));
   for (const name of Object.keys(dependencies).filter(name => name.startsWith('@crudui/'))) {
     const base = join(directory, 'node_modules', name);
     const manifest = JSON.parse(readFileSync(join(base, 'package.json'), 'utf8'));

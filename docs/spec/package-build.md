@@ -27,3 +27,13 @@ successful JavaScript build.
 
 These checks cover package generation and consumption. Form control behavior,
 validation conformance, SSR and browser interaction retain their separate tests.
+
+Dependency resolution uses the version constraints declared in package manifests.
+The lock file records the resolved dependency graph, including optional native
+packages for supported platforms. Clean installations use `npm ci`; package and
+consumer checks run against the resolved graph before verification is recorded.
+Installation runs dependency lifecycle scripts. npm versions that require script
+approval use the exact package approvals in the root `allowScripts` field.
+Container builds install platform dependencies through the package manager.
+The root development dependencies include the shared test runner so that testing
+integrations installed at the root can resolve it through normal module lookup.
