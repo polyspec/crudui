@@ -368,7 +368,7 @@ quantity:
 | PHP | `$validator->addRule($name, $fn)` | 인스턴스 한정 |
 | Go | `v.AddRule(name, fn)` | 인스턴스 한정 (내장 오버라이드 가능) |
 
-시그니처는 [API.md](./API.md) 참조.
+시그니처는 [데이터 검증](./operations/validation.ko.md) 참조.
 
 ---
 
@@ -392,6 +392,6 @@ quantity:
 
 ## 관련 문서
 
-- [API.md](./API.md) — 언어별 Validator API
+- [데이터 검증](./operations/validation.ko.md) — 언어별 Validator API
 - [SPEC.md](./SPEC.md) — 스펙 형식
 - [CONDITION-PARSER.md](./CONDITION-PARSER.md) — 조건식 문법

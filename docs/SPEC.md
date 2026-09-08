@@ -389,7 +389,7 @@ legacy Legacy 시스템의 기능이며, 필요 시 향후 도입 후보다.
 
 ## 관련 문서
 
-- [API.md](./API.md) — 언어별 Validator API
+- [데이터 검증](./operations/validation.ko.md) — 언어별 Validator API
 - [VALIDATION-RULES.md](./VALIDATION-RULES.md) — 검증 규칙
 - [CONDITION-PARSER.md](./CONDITION-PARSER.md) — 조건식 파서
 - [DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md) — 조건부 표시
