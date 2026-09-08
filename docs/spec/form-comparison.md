@@ -267,3 +267,8 @@ Current API servers compile against the current validator entries. Retained Go
 and Rust servers use a separately pinned server-source archive with their
 original validator imports. Source metadata records that archive and its digest.
 PHP selects its validator class from the explicitly selected source revision.
+
+The SSR comparison creates one form instance per request and supplies that
+instance to all three renderers. Missing repeat data therefore generates the
+same row identities for every renderer. Preparation errors remain explicit
+failures in each renderer result.
