@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Legacy visibility contract
+
+The English and Korean legacy visibility contract separates validator conditions
+from renderer presentation. It documents map-form renderer processing and links
+to the current schema's independent visibility and validation settings. The
+duplicate visibility guide is removed. The selected TypeScript legacy
+display-switch checks passed 84 cases.
+
 ## 2026-09-09 — Documentation site navigation
 
 The site uses English navigation with a Korean index link. Generated API navigation
