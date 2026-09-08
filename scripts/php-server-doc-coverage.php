@@ -78,7 +78,7 @@ function crudui_php_server_doc_gaps(string $file): array
  */
 function crudui_php_server_files(): array
 {
-    $dir = realpath(__DIR__ . '/../examples/php-api');
+    $dir = realpath(__DIR__ . '/../examples/legacy/php-api');
     if ($dir === false) {
         return [];
     }

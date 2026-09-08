@@ -181,7 +181,7 @@ npm install        # 최초 1회
 npm test           # = capture(3 프레임워크) → compare
 ```
 
-스펙은 parity 게이트와 동일한 7종(`examples/shared-specs/*.yml` 6종 +
+스펙은 parity 게이트와 동일한 7종(`examples/legacy/shared-specs/*.yml` 6종 +
 `tests/fixtures/specs/LargeForm.yml`). 스펙마다 세 순서쌍(React==Vue, Vue==Svelte,
 React==Svelte)을 단언한다 — 7specs × 3 = **21쌍**. 한 프레임워크만 어긋나면 그것이
 닿는 두 쌍만 RED 가 되고 세 번째는 GREEN 으로 남아 범인을 좁힌다. 현재 21/21 GREEN.

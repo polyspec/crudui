@@ -42,7 +42,7 @@ The two fixtures:
 
 | spec         | size       | input            | source |
 | ------------ | ---------- | ---------------- | ------ |
-| `contact`    | ~6 fields  | fully valid      | `examples/shared-specs/contact.yml` |
+| `contact`    | ~6 fields  | fully valid      | `examples/legacy/shared-specs/contact.yml` |
 | `large-form` | ~80 fields | empty form `{}`  | `tests/fixtures/specs/LargeForm.yml` |
 
 Fixtures are materialized to JSON by `gen-fixtures.js` so every backend reads
