@@ -335,10 +335,10 @@ options:
 ```
 
 상세 의미론(빈 값 판정, `0`/`'0'` 취급, 그룹 스코프)은
-[DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md) 참조.
+[구형 표시 동작](./spec/legacy-visibility.ko.md) 참조.
 
 `element.all_of`는 렌더러 전용 스타일 조건이다 (React/Vue/Svelte 공통, 검증과 무관 —
-[DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md#렌더러의-elementall_of)).
+[구형 표시 동작](./spec/legacy-visibility.ko.md#렌더러-표시)).
 
 ---
 
@@ -392,4 +392,4 @@ legacy Limepie 시스템의 기능이며, 필요 시 향후 도입 후보다.
 - [데이터 검증](./operations/validation.ko.md) — 언어별 Validator API
 - [VALIDATION-RULES.md](./VALIDATION-RULES.md) — 검증 규칙
 - [CONDITION-PARSER.md](./CONDITION-PARSER.md) — 조건식 파서
-- [DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md) — 조건부 표시
+- [구형 표시 동작](./spec/legacy-visibility.ko.md) — 조건부 표시

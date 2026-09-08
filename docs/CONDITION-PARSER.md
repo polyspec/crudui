@@ -299,4 +299,4 @@ PHP `Validator::looksLikeCondition`, Go `ternary.go` `IsConditionExpression`이 
 ## 관련 문서
 
 - [VALIDATION-RULES.md](./VALIDATION-RULES.md) — 조건부 규칙 파라미터
-- [DISPLAY-CONDITIONS.md](./DISPLAY-CONDITIONS.md) — display_switch/display_target
+- [구형 표시 동작](./spec/legacy-visibility.ko.md) — display_switch/display_target
