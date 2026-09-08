@@ -12,8 +12,8 @@ dist/
 target/
 
 # Compiled example Go server binaries
-examples/go-api/go-api
-# Compiled current validator Go CLI binary (built by cross-check-console build step)
+examples/legacy/go-api/go-api
+# Compiled validator Go CLI binary
 packages/validator-go/validate
 
 # IDE

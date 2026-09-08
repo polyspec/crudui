@@ -199,7 +199,7 @@ cd packages/generator-vue && npm test           # test/parity.test.mjs — 7/7
 cd packages/generator-svelte && npm test        # test/parity.test.mjs — 7/7
 ```
 
-비교 대상: `examples/shared-specs/*.yml` 6종 + `tests/fixtures/specs/ProductNft.yml`.
+비교 대상: `examples/legacy/shared-specs/*.yml` 6종 + `tests/fixtures/specs/ProductNft.yml`.
 모두 빈 데이터 렌더 기준. 세 프레임워크 모두 기준 HTML 7종에 7/7 GREEN 이다.
 
 ## 5. 기준 HTML 재생성 (tools/limepie-baseline)
@@ -217,7 +217,7 @@ git -C $LIMEPIE_SRC status --porcelain  # 출력 없어야 함
 bash tools/limepie-baseline/generate-all.sh
 
 # 3. 단일 스펙 렌더 (확인용)
-php tools/limepie-baseline/render.php examples/shared-specs/product-form.yml
+php tools/limepie-baseline/render.php examples/legacy/shared-specs/product-form.yml
 ```
 
 ## 6. 프레임워크끼리 직접 비교 (cross-framework)
@@ -232,7 +232,7 @@ npm install        # 최초 1회
 npm test           # = capture(3 프레임워크) → compare
 ```
 
-스펙은 parity 게이트와 동일한 7종(`examples/shared-specs/*.yml` 6종 +
+스펙은 parity 게이트와 동일한 7종(`examples/legacy/shared-specs/*.yml` 6종 +
 `tests/fixtures/specs/ProductNft.yml`). 스펙마다 세 순서쌍(React==Vue, Vue==Svelte,
 React==Svelte)을 단언한다 — 7specs × 3 = **21쌍**. 한 프레임워크만 어긋나면 그것이
 닿는 두 쌍만 RED 가 되고 세 번째는 GREEN 으로 남아 범인을 좁힌다. 현재 21/21 GREEN.
@@ -243,7 +243,7 @@ React==Svelte)을 단언한다 — 7specs × 3 = **21쌍**. 한 프레임워크�
 
 ## 7. legacy 클라이언트 비교 (legacy-client)
 
-legacy Limepie 의 jQuery 브라우저 검증기 `examples/limepie-original/assets/js/
+legacy Limepie 의 jQuery 브라우저 검증기 `examples/legacy/limepie-original/assets/js/
 dist.validate.js` 를 jsdom + jquery 로 구동해 새 검증기와 비교한다. legacy 폼이
 브라우저에서 통과하는데 새 검증기가 거부하면(또는 그 반대) 마이그레이션 회귀다.
 

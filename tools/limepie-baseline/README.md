@@ -39,7 +39,7 @@ git -C $LIMEPIE_SRC status --porcelain  # 출력 없어야 함
 bash tools/limepie-baseline/generate-all.sh
 
 # 3. 단일 스펙 렌더 (확인용)
-php tools/limepie-baseline/render.php examples/shared-specs/product-form.yml
+php tools/limepie-baseline/render.php examples/legacy/shared-specs/product-form.yml
 php tools/limepie-baseline/render.php spec.yml data.json   # 데이터 포함 렌더
 ```
 

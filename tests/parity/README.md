@@ -33,7 +33,7 @@ node normalize.js <file.html>                   # 정규화 결과 확인
 
 ## 비교 대상 픽스처
 
-`examples/shared-specs/*.yml` 6종 + `tests/fixtures/specs/ProductNft.yml`.
+`examples/legacy/shared-specs/*.yml` 6종 + `tests/fixtures/specs/ProductNft.yml`.
 모두 빈 데이터 렌더(`Generator::write($spec, [])` 기준) 비교다.
 `OptionMultiplexable.yml` 은 단독 렌더 불가(host 의존 fragment) — 커버리지는
 ProductNft 포함 렌더 안에 있다 (`tools/limepie-baseline/README.md` 참조).

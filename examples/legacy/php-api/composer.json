@@ -1,0 +1,26 @@
+{
+    "name": "crudui/php-api-example",
+    "description": "PHP API example for crudui validation system",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.0",
+        "crudui/validator": "0.0.1",
+        "symfony/yaml": "^6.0 || ^7.0"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../../packages/validator-php"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "scripts": {
+        "serve": "php -S localhost:8080 api.php",
+        "test": "php test-api.php"
+    }
+}

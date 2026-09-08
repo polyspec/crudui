@@ -1,0 +1,192 @@
+services:
+  # Demo App - React application showcasing form generation
+  demo-app:
+    build:
+      context: ../..
+      dockerfile: examples/legacy/demo-app/Dockerfile
+    ports:
+      - "8010:80"
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=demo-app"
+      - "com.form-generator.description=React demo application"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -sf http://localhost/ || wget -q --spider http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Node.js API - Express validation server
+  node-api:
+    build:
+      context: ../..
+      dockerfile: examples/legacy/node-api/Dockerfile
+    ports:
+      - "8011:3000"
+    volumes:
+      - ./shared-specs:/app/examples/legacy/node-api/specs:ro
+      - ./node-api/server.js:/app/examples/legacy/node-api/server.js:ro
+      - ../../packages/validator-ts/dist:/app/packages/validator-ts/dist:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=node-api"
+      - "com.form-generator.description=Node.js/Express validation API"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # PHP API - PHP validation server
+  php-api:
+    build:
+      context: ../..
+      dockerfile: examples/legacy/php-api/Dockerfile
+    ports:
+      - "8012:80"
+    volumes:
+      - ./shared-specs:/var/www/examples/legacy/php-api/specs:ro
+      - ./php-api/validate.php:/var/www/examples/legacy/php-api/validate.php:ro
+      - ./php-api/index.php:/var/www/examples/legacy/php-api/index.php:ro
+      - ../../packages/validator-php/src:/var/www/packages/validator-php/src:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=php-api"
+      - "com.form-generator.description=PHP validation API"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Go API - Go validation server
+  go-api:
+    build:
+      context: ../..
+      dockerfile: examples/legacy/go-api/Dockerfile
+    ports:
+      - "8013:8080"
+    volumes:
+      - ./shared-specs:/app/specs:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=go-api"
+      - "com.form-generator.description=Go validation API"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Rust API - Rust validation server
+  rust-api:
+    build:
+      context: ../..
+      dockerfile: examples/legacy/rust-api/Dockerfile
+    ports:
+      - "8017:8080"
+    volumes:
+      - ./shared-specs:/app/specs:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=rust-api"
+      - "com.form-generator.description=Rust validation API"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Playground - Interactive form spec editor
+  playground:
+    build:
+      context: ../..
+      dockerfile: examples/legacy/playground/Dockerfile
+    ports:
+      - "8014:80"
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=playground"
+      - "com.form-generator.description=Interactive form spec playground"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Limepie Bootstrap - Bootstrap 5 styled form demo
+  limepie-bootstrap:
+    build:
+      context: ../..
+      dockerfile: examples/legacy/limepie-bootstrap/Dockerfile
+    ports:
+      - "8016:80"
+    volumes:
+      - ./shared-specs:/usr/share/nginx/html/specs:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=limepie-bootstrap"
+      - "com.form-generator.description=Limepie-style Bootstrap 5 form demo"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Limepie Original - REAL Limepie PHP Form System
+  limepie-original:
+    build:
+      context: ./limepie-original
+      dockerfile: Dockerfile
+    ports:
+      - "8015:80"
+    volumes:
+      # composer vendor (symfony/yaml, ics-parser) — packages/generator-legacy/limepie 에 vendored
+      - ../../packages/generator-legacy/limepie/vendor:/var/www/vendor:ro
+      # 로컬 limepie 소스 체크아웃을 composer 패키지 경로로 중첩 마운트.
+      # yejune/limepie a47ccba 핀 — tools/limepie-baseline/README.md 참조.
+      - ${LIMEPIE_SRC:?Set LIMEPIE_SRC to the source checkout directory}:/var/www/vendor/yejune/limepie:ro
+      - ./limepie-original/public/index.php:/var/www/html/index.php:ro
+      # 스펙은 shared-specs 단일 소스에서 마운트 (limepie-original/specs 사본은 제거됨)
+      - ./shared-specs:/var/www/specs:ro
+      - ./limepie-original/assets/js:/var/www/html/assets/js:ro
+      - ./limepie-original/assets/css:/var/www/html/assets/css:ro
+    networks:
+      - form-generator-network
+    labels:
+      - "com.form-generator.service=limepie-original"
+      - "com.form-generator.description=REAL Limepie PHP Form System"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  form-generator-network:
+    driver: bridge
+    labels:
+      - "com.form-generator.network=main"

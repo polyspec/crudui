@@ -31,9 +31,9 @@ fi
 
 mkdir -p "$OUT"
 
-# --- examples/shared-specs/*.yml : 빈 데이터 렌더 ---------------------------
+# --- examples/legacy/shared-specs/*.yml : 빈 데이터 렌더 ---------------------------
 for s in product-form contact order-form registration user-registration multiple-test; do
-    php "$RENDER" "$ROOT/examples/shared-specs/$s.yml" > "$OUT/$s.html"
+    php "$RENDER" "$ROOT/examples/legacy/shared-specs/$s.yml" > "$OUT/$s.html"
     echo "ok: $s.html ($(wc -c < "$OUT/$s.html" | tr -d ' ') bytes)"
 done
 

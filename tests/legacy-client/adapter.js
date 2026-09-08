@@ -2,7 +2,7 @@
  * Legacy client runtime adapter.
  *
  * Drives the jQuery-validator-style legacy runtime
- *   examples/limepie-original/assets/js/dist.validate.js
+ *   examples/legacy/limepie-original/assets/js/dist.validate.js
  * under jsdom + jQuery, feeding it a crudui test {spec, input} and
  * extracting {valid, error, field} in the same shape compare-all.js uses
  * for the new validators (validator-ts/php/go/rust).
@@ -28,7 +28,7 @@ const jQueryFactory = require('jquery');
 
 const LEGACY_FILE = path.join(
   __dirname, '..', '..',
-  'examples', 'limepie-original', 'assets', 'js', 'dist.validate.js'
+  'examples', 'legacy', 'limepie-original', 'assets', 'js', 'dist.validate.js'
 );
 
 // ---------------------------------------------------------------------------

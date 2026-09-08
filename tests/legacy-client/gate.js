@@ -1,7 +1,7 @@
 /**
  * Legacy-client vs new-validator comparison gate.
  *
- * Drives the legacy browser runtime (examples/limepie-original/assets/js/
+ * Drives the legacy browser runtime (examples/legacy/limepie-original/assets/js/
  * dist.validate.js) under jsdom+jQuery via ./adapter and compares its
  * {valid,error} verdict, per case, against the new validator-ts (the canonical
  * client replacement; PHP/Go/Rust already agree with it per
@@ -152,7 +152,7 @@ if (require.main === module) {
     yellow: '\x1b[33m', cyan: '\x1b[36m', gray: '\x1b[90m', bold: '\x1b[1m',
   };
   console.log(`${C.bold}${C.cyan}Legacy-client vs new-validator gate${C.reset}`);
-  console.log(`${C.gray}legacy: examples/limepie-original/assets/js/dist.validate.js (jsdom+jQuery)${C.reset}`);
+  console.log(`${C.gray}legacy: examples/legacy/limepie-original/assets/js/dist.validate.js (jsdom+jQuery)${C.reset}`);
   console.log(`${C.gray}new:    packages/validator-ts/dist (PHP/Go/Rust agree per compare-all.js)${C.reset}\n`);
 
   console.log(`Total cases:      ${r.total}`);

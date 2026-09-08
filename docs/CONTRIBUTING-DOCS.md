@@ -64,7 +64,7 @@ phpDocumentor 가 환경에 없으면 PHP HTML 생성은 건너뛰고 `docs/api/
 
 `schema/crudui.schema.json` 은 `packages/validator-ts/src/types.ts` 의 `Spec`
 타입에서 생성한 draft-07 스키마다. 생성 후 Ajv 로 self-validate 하고
-`examples/shared-specs/*.yml` 로 스모크한다. 한계·에디터 연결법은
+`examples/legacy/shared-specs/*.yml` 로 스모크한다. 한계·에디터 연결법은
 [`schema/README.md`](https://github.com/crudui/crudui/blob/main/schema/README.md).
 
 ## doc-coverage 게이트
