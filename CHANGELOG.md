@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Repeated-field schema
+
+The declaration schema accepts `multiple.min` and describes collection-key row
+identity without hidden fields. Schema validation passed 56 fixtures, including
+minimum-count acceptance and rejection of a nonnumeric minimum.
+
 ## 2026-09-09 — Current comparison image
 
 The comparison image builds library source `a5b4491` with normal dependency
