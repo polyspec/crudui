@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/v2/compose"
+	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 	ordered "sortjson"
 )
 

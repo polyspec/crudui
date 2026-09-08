@@ -262,3 +262,8 @@ The current browser build imports unversioned package entries. Retained source
 builds use their recorded entry paths and validator class. Build selection is
 explicit; missing current entries fail the build. Current collection checks use
 `data-field-path`; retained source checks use their original wrapper names.
+
+Current API servers compile against the current validator entries. Retained Go
+and Rust servers use a separately pinned server-source archive with their
+original validator imports. Source metadata records that archive and its digest.
+PHP selects its validator class from the explicitly selected source revision.

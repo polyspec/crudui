@@ -11,6 +11,7 @@ const context = path.join(work, 'context');
 const name = 'crudui-form-comparison';
 const image = 'localhost/crudui-form-comparison:1';
 const revisions = { corrected: 'main', original: 'main', keyed: 'main' };
+const retainedServers = 'main';
 const orderedJson = { repository: 'https://github.com/polyspec/ordered-json', commit: 'main' };
 const command = process.argv[2] ?? 'start';
 function container(args) {
@@ -32,6 +33,9 @@ if (command === 'stop') {
     await writeFile(path.join(context, `${mode}.tar`), archive);
     metadata[mode] = { commit, archiveSha256: createHash('sha256').update(archive).digest('hex') };
   }
+  const serversArchive = execFileSync('git', ['archive', retainedServers, 'examples/form-comparison/servers'], { cwd: root, maxBuffer: 100 * 1024 * 1024 });
+  await writeFile(path.join(context, 'retained-servers.tar'), serversArchive);
+  metadata.retainedServers = { commit: retainedServers, archiveSha256: createHash('sha256').update(serversArchive).digest('hex') };
   const dependency = path.join(work, 'sources', 'ordered-json');
   await mkdir(dependency, { recursive: true });
   execFileSync('git', ['init', '--quiet', dependency]);
