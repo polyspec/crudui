@@ -12,6 +12,10 @@ TypeScript는 패키지의 엄격한 컴파일러 설정과 `noEmitOnError`를 �
 출력을 제거한 뒤 다음 패키지 산출물을 생성한다. 감시 명령은 JavaScript 빌드 성공
 후 선언 파일을 다시 생성한다.
 
+생성된 출력은 Git에서 추적하지 않습니다. Svelte의 `.svelte-kit` 디렉터리는
+임시 패키징 출력이며 `src`는 빌드 입력, `dist`는 배포 출력입니다.
+이전 `.svelte-kit` 디렉터리가 없는 상태에서도 빌드가 성공해야 합니다.
+
 ## 인수 기준
 
 - `npm ci`는 고정된 의존성을 설치하고 `npm run build`는 선언된 validator·generator

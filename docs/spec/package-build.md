@@ -14,6 +14,10 @@ substitute declarations. A clean build removes preceding output before producing
 the next package artifacts. Watch commands regenerate declarations after a
 successful JavaScript build.
 
+Generated output is not tracked in Git. Svelte's `.svelte-kit` directory is
+temporary packaging output; `src` is the build input and `dist` is the published
+output. A build must succeed without a preceding `.svelte-kit` directory.
+
 ## Acceptance
 
 - `npm ci` installs the pinned dependencies, and `npm run build` executes the
