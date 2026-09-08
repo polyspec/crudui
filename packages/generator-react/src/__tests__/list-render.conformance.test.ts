@@ -1,5 +1,5 @@
 /**
- * CRUDUI list-render conformance — React reference verification (schema §9).
+ * CRUDUI list-render conformance — React reference verification (SPEC §9).
  *
  * The read sister of form-render.conformance.test.ts. The shared fixture
  * tests/fixtures/list-render/cases.json declares its `expected_html` to be the

@@ -1,22 +1,21 @@
-<!--
-  CRUDUI Svelte form renderer — `Form` builds the composed field list as a real
-  `.svelte` element tree.
-
-  It takes the core's already-built `FieldViewModel[]` (compose + design eval +
-  i18n + tree) and maps each top-level field to a `Field` element inside the
-  `.form-group` envelope. A pure presentational `.svelte` tree: no evaluation, no
-  string concatenation, no completed-form HTML echo. SSR via svelte/server
-  render() produces the Legacy envelope byte-compatibly after normalization.
--->
 <script lang="ts">
-  import type { FieldViewModel } from '@crudui/generator-core';
-  import Field from './Field.svelte';
+  import { untrack } from 'svelte';
+  import { connectForm, type FormInstance } from '@crudui/generator-core';
+  import FormFields from './FormFields.svelte';
 
-  let { fields }: { fields: FieldViewModel[] } = $props();
+  let { form }: { form: FormInstance } = $props();
+  let root = $state<HTMLDivElement>();
+  let snapshot = $state(untrack(() => form.getSnapshot()));
+  let binding: ReturnType<typeof connectForm> | undefined;
+
+  $effect(() => {
+    const current = form;
+    snapshot = current.getSnapshot();
+    const unsubscribe = current.subscribe(() => { snapshot = current.getSnapshot(); });
+    binding = connectForm(root!, current);
+    return () => { binding?.disconnect(); unsubscribe(); };
+  });
+  $effect(() => { snapshot; binding?.sync(); });
 </script>
 
-<div class="form-group">
-  {#each fields as vm (vm.path)}
-    <Field {vm} />
-  {/each}
-</div>
+<FormFields fields={snapshot.fields} bind:root />

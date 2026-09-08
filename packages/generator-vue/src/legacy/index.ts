@@ -8,7 +8,7 @@
  * ```ts
  * import { createSSRApp, h } from 'vue';
  * import { renderToString } from '@vue/server-renderer';
- * import { FormBuilder } from '@crudui/generator-vue/legacy';
+ * import { FormBuilder } from '@crudui/generator-vue';
  *
  * const app = createSSRApp({ render: () => h(FormBuilder, { spec, data: {}, language: 'ko' }) });
  * const html = await renderToString(app);

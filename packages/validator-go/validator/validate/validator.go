@@ -1,18 +1,18 @@
 package validate
 
-// CRUDUI validator traversal + conditional rule-value resolution (schema §3 + §2 G1).
+// model validator traversal + conditional rule-value resolution (SPEC §3 + §2 G1).
 //
 // Operates on a COMPOSED properties tree (*compose.OMap, declaration order
 // preserved — composition keys already eliminated) and the decoded form data
 // (map[string]any / []any / scalars from encoding/json). The traversal mirrors the
-// JS Validator (validator-ts/src/validate/validator.ts) field for field; the
+// JS Validator (validator-ts/src/model/validate/validator.ts) field for field; the
 // rule-value resolution mirrors its resolveRuleValue / resolveConditionMap /
 // tryEvaluateTernary (G1 — the condition is the value's expression, never a
 // separate if/when key).
 //
 // No display_switch / display_target visibility gate (G1 — those meta keys do not
-// exist in CRUDUI; visibility-conditioned requiredness is required:'<expr>'). design
-// .show does NOT skip validation (schema R1 show/validate separation).
+// exist in model; visibility-conditioned requiredness is required:'<expr>'). design
+// .show does NOT skip validation (SPEC R1 show/validate separation).
 
 import (
 	"strconv"
@@ -38,16 +38,16 @@ var pathReferenceRules = map[string]bool{
 // reference) — never evaluated (LITERAL-PARAM-RULES).
 var literalParamRules = map[string]bool{"accept": true}
 
-// regexParamRules carry a regex string preserved verbatim (schema §10).
+// regexParamRules carry a regex string preserved verbatim (SPEC §10).
 var regexParamRules = map[string]bool{"match": true, "pattern": true}
 
 // membershipParamRules carry the allowed-value SET (array, comma string, or a
-// static value→label map, schema §2 G3). The param is data, NOT a condition
+// static value→label map, SPEC §2 G3). The param is data, NOT a condition
 // map — an object param is the value→label map (key = option value, value =
 // display label), kept verbatim and never evaluated key-by-key as expressions.
 var membershipParamRules = map[string]bool{"in": true}
 
-// Validator validates data against a composed CRUDUI spec. Construct via NewValidator
+// Validator validates data against a composed model spec. Construct via NewValidator
 // from a composed properties OMap.
 type Validator struct {
 	properties *compose.OMap
@@ -62,7 +62,7 @@ func NewValidator(properties *compose.OMap) *Validator {
 	return &Validator{properties: properties}
 }
 
-// Validate validates data against the composed CRUDUI spec.
+// Validate validates data against the composed model spec.
 func (v *Validator) Validate(data map[string]any) ValidationResult {
 	if data == nil {
 		data = map[string]any{}
@@ -72,7 +72,7 @@ func (v *Validator) Validate(data map[string]any) ValidationResult {
 	return ValidationResult{Valid: len(errors) == 0, Errors: errors}
 }
 
-// validateProperties recurses a properties map (schema §3; JS validateProperties).
+// validateProperties recurses a properties map (SPEC §3; JS validateProperties).
 func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath []string, allData map[string]any, errors *[]ValidationError) {
 	for _, propertyKey := range properties.Keys() {
 		raw, _ := properties.Get(propertyKey)

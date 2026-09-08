@@ -2,7 +2,7 @@ package expr
 
 import "sync"
 
-// Public facade for the CRUDUI expression engine: string → tokens → AST → value.
+// Public facade for the model expression engine: string → tokens → AST → value.
 //
 // The pipeline is strictly staged (GRAMMAR §0): never split a string to
 // evaluate, never eval. Parse caches one AST per expression string. Evaluate

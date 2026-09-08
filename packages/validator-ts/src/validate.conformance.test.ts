@@ -8,10 +8,10 @@
  * same fixture the other three engines (PHP / Go / Rust) load, with type-strict
  * comparison.
  *
- * It also enforces the core invariant (schema §5, §7): an unresolved
+ * It also enforces the core invariant (SPEC §5, §7): an unresolved
  * composition is a LOAD ERROR (`ComposeLoadError`) — never `valid:true`. Each
  * `expectLoadError` case must throw the exact code; each result case must
- * reproduce `expected` bit-for-bit (same valid + errors[], schema G-B).
+ * reproduce `expected` bit-for-bit (same valid + errors[], SPEC G-B).
  *
  * Do not weaken assertions. If JS disagrees with the fixture, the fixture is NOT
  * the JS output and the cross-language contract is broken.
@@ -25,7 +25,7 @@ import { validate, ComposeLoadError } from './validate/index';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// src -> repo root is four levels up.
+// src/CRUDUI -> repo root is four levels up.
 const FIXTURE = path.resolve(
   __dirname,
   '../../../tests/fixtures/validate/cases.json'

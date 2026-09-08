@@ -5,26 +5,29 @@
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
+| form-controls | 라벨, 복수 선택 배열과 필드 컨테이너 경로 | implemented | passed | not-deployed | [공유 입력 검사](../tests/fixtures/form-session/controls.mjs) |
+| package-consumer | 패키지 export, 타입 선언과 소비자 프로덕션 빌드 | implemented | passed | not-deployed | [소비자 검사](../scripts/check-packages.mjs) |
+| package-api | 초기 패키지 API와 버전 메타데이터 | in-progress | pending | not-deployed | [API 계약](spec/schema.ko.md) |
 | form-template | 데이터와 독립된 폼 템플릿과 JSON 캐시 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-initialization | 초기 데이터·반복 주입·레코드 복원 | implemented | passed | not-deployed | [런타임 계약](spec/form-runtime.ko.md) |
-| form-inspector | 파싱한 DOM·HTML 원문·CSS·상태 비교와 차이 보존 | implemented | passed | deployed | [검사기 테스트](../examples/form-comparison/src/form-snapshot.test.mjs) |
+| form-inspector | 파싱한 DOM·HTML 원문·CSS·상태 비교와 차이 보존 | implemented | passed | not-deployed | [검사기 테스트](../examples/form-comparison/src/form-snapshot.test.mjs) |
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | input 교체 중 전체 타이핑과 포커스 유지 | implemented | passed | deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
-| original-typing | 원본 컨트롤러의 대기 중 렌더링에서 입력 값 유지 | implemented | passed | deployed | [네이티브 타이핑 검사](../examples/form-comparison/check-typing.mjs) |
-| form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
+| form-typing | input 교체 중 전체 타이핑과 포커스 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
+| original-typing | 원본 컨트롤러의 대기 중 렌더링에서 입력 값 유지 | implemented | passed | not-deployed | [네이티브 타이핑 검사](../examples/form-comparison/check-typing.mjs) |
+| form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | not-deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | 행 연산의 포커스, 선택, 스크롤 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
 | docs-check | 문서 링크·번역·상태 검사 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
-| form-comparison | 원본과 13자리 브라우저 비교 | implemented | failed | deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
-| form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | implemented | passed | deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
+| form-comparison | 원본과 13자리 브라우저 비교 | implemented | failed | not-deployed | [브라우저 검사](../examples/form-comparison/check.mjs) |
+| form-persistence | 키 기반 네이티브 제출과 JSON 문서 순서 영속 저장 | implemented | passed | not-deployed | [영속 저장 사례](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../examples/form-comparison/check-ordered-json.py) |
-| ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | implemented | passed | deployed | [전송 계약](spec/form-comparison.ko.md) |
-| form-servers | PHP, Go, Rust의 독립된 제출, 검증, 저장과 재로드 | implemented | passed | deployed | [서버 계약](spec/form-comparison.ko.md) |
-| form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | implemented | passed | deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
-| original-empty-correction | 원본 출력 수정과 빈 컬렉션 전체 처리 과정 | implemented | passed | deployed | [비교 계약](spec/form-comparison.ko.md) |
-| original-keyed-proof | 원본 공개 함수의 키 편집, 영속 저장, 캐시 바인딩 | implemented | failed | deployed | [비교 계약](spec/form-comparison.ko.md) |
+| ordered-json-runtime | 같은 검증·저장 처리를 사용하는 폼과 순서 유지 JSON 전송 | implemented | passed | not-deployed | [전송 계약](spec/form-comparison.ko.md) |
+| form-servers | PHP, Go, Rust의 독립된 제출, 검증, 저장과 재로드 | implemented | passed | not-deployed | [서버 계약](spec/form-comparison.ko.md) |
+| form-client-validation | 사용자 제출 전 기존 JavaScript 검증 | implemented | passed | not-deployed | [브라우저 상호작용 검사](../examples/form-comparison/check-interaction.mjs) |
+| original-empty-correction | 원본 출력 수정과 빈 컬렉션 전체 처리 과정 | implemented | passed | not-deployed | [비교 계약](spec/form-comparison.ko.md) |
+| original-keyed-proof | 원본 공개 함수의 키 편집, 영속 저장, 캐시 바인딩 | implemented | failed | not-deployed | [비교 계약](spec/form-comparison.ko.md) |
 
 `5e517a2` 라이브러리 검증(2026-09-07): `npm run test:forms`, TypeScript 검증기, PHP/Go/Rust 검증 적합성,
 콘솔 SSR 테스트, CLI 테스트, 린트, 타입 검사, `make docs-check`가 통과했습니다.
@@ -191,3 +194,9 @@ Rust에서 통과했습니다. TypeScript는 픽스처 실행 범위 검사도 �
 대체된 입력 렌더링을 취소하고 프레임워크의 DOM 갱신 후 포커스를 복원합니다.
 라이브러리 소스 스냅샷은 변경하지 않았습니다. 수정은 로컬 비교 컨테이너에
 배포했으며 패키지를 게시하지 않았습니다.
+
+현재 작업 트리 검증(2026-09-08): 폼 검사 1,409개, JavaScript 검증기 검사
+1,579개, PHP 검사 1,392개, Go·Rust 검사, 콘솔 검사 42개, 검사기 검사 18개가
+통과했습니다. Svelte 타입 검사는 오류와 경고가 없었습니다. 패키지 소비자는
+export 파일 검사, TypeScript 컴파일, 세 프레임워크 프로덕션 빌드를 통과했습니다.
+이 결과는 컨테이너 배포나 전체 브라우저·서버 전송 조합의 검증을 의미하지 않습니다.

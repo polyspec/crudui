@@ -7,7 +7,7 @@
  *
  *   - TypeScript: typedoc validation.notDocumented + treatValidationWarningsAsErrors
  *     over the 4 TS packages (scripts/typedoc.check.json).
- *   - Go: `go test ./validator -run TestDocCoverage` (go/ast based, no extra deps).
+ *   - Go: `go test ./validator/... -run Test.*DocCoverage` (go/ast based, no extra deps).
  *   - Rust: `cargo build` with `#![deny(missing_docs)]` in the lib/bin crates.
  *   - PHP: `phpunit` DocCoverageTest (docblock presence on public classes/methods).
  *
@@ -35,8 +35,8 @@ const TS_PACKAGES = [
   { pkg: 'generator-vue', entry: 'src/index.ts', tsconfig: 'packages/generator-vue/tsconfig.json' },
   {
     pkg: 'generator-svelte',
-    entry: 'src/render.ts',
-    extraEntries: ['src/fieldHtml.ts', 'src/i18n.ts', 'src/legacyDisplay.ts', 'src/legacyLang.ts', 'src/utils.ts'],
+    entry: 'src/legacy/render.ts',
+    extraEntries: ['src/legacy/fieldHtml.ts', 'src/legacy/i18n.ts', 'src/legacy/legacyDisplay.ts', 'src/legacy/legacyLang.ts', 'src/legacy/utils.ts'],
     tsconfig: 'scripts/tsconfig.svelte-docs.json',
   },
 ];
@@ -64,7 +64,7 @@ function checkTS() {
 function checkGo() {
   const goDir = join(ROOT, 'packages', 'validator-go');
   try {
-    execSync('go test ./validator -run TestDocCoverage -count=1', { cwd: goDir, stdio: 'inherit' });
+    execSync('go test ./validator/... -run Test.*DocCoverage -count=1', { cwd: goDir, stdio: 'inherit' });
     record('go', true);
   } catch {
     record('go', false, 'undocumented exported declarations (see go test output above)');

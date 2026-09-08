@@ -1,27 +1,27 @@
 /**
- * legacy→CRUDUI translator shared-fixture generator (SPEC §6 round-trip gate).
+ * legacy→schema translator shared-fixture generator (SPEC §6 round-trip gate).
  *
  * Produces `cases.json`: one case per analysis `fixture_ideas` entry. Each case
- * is the legacy input, the translator's REAL CRUDUI output (never hand-written), the
+ * is the legacy input, the translator's REAL schema output (never hand-written), the
  * irreversibility note log, and the round-trip verdict.
  *
  * SCOPE — this translator is a JS-only, build-time, R7-transitional tool. It is
  * NOT one of the 4-language runtimes: the bit-for-bit 4-language idempotence
  * guarantee (PHP/Go/Rust/JS reproducing the same result) covers only VALIDATION
- * and RENDER. Legacy legacy→CRUDUI migration is a one-way JS-only step run during the R7
+ * and RENDER. Legacy legacy→schema migration is a one-way JS-only step run during the R7
  * transition, not a per-language runtime contract. `cases.json` is the JS
  * translator's frozen output (the cross-language fixtures it feeds are the
- * already-migrated CRUDUI specs, validated/rendered by all four engines).
+ * already-migrated schema specs, validated/rendered by all four engines).
  *
  * Two case families (the analysis roundtrip_rule split):
- *   - reversible cases: `legacy → CRUDUI → legacy` MUST equal the original bit-for-bit. The
+ *   - reversible cases: `legacy → schema → legacy` MUST equal the original bit-for-bit. The
  *     fixture records `roundtrip: { reversible:true, lossless:true }`.
  *   - irreversible (R7 transcend) cases: at least one absorption fires; the
  *     round-trip is OUTSIDE the gate. The fixture records the note(s) and
  *     `roundtrip: { reversible:false }` — losslessness is NOT asserted (we do not
- *     sacrifice CRUDUI for the translator).
+ *     sacrifice schema for the translator).
  *
- * Every emitted CRUDUI spec is also asserted to carry ZERO forbidden meta keys (the
+ * Every emitted schema spec is also asserted to carry ZERO forbidden meta keys (the
  * recursive forbidden-scan over the translated properties) — the translator must
  * never emit a meta key.
  *
@@ -136,7 +136,7 @@ const SPECS: CaseSpec[] = [
   },
 
   // 6. behavior opaque passthrough (reversible). Scripts are opaque strings —
-  //    the CRUDUI BehaviorAction is string | {label,script}, never a bare boolean.
+  //    the schema BehaviorAction is string | {label,script}, never a bare boolean.
   {
     name: 'behavior-opaque',
     note: 'onchange/onclick/onload → behavior; opaque script strings round-trip (BehaviorAction = string|{label,script}).',
@@ -247,7 +247,7 @@ const SPECS: CaseSpec[] = [
     reversible: true,
   },
 
-  // 13. messages gap (irreversible — out of scope, no CRUDUI slot).
+  // 13. messages gap (irreversible — out of scope, no schema slot).
   {
     name: 'messages-gap',
     note: 'rules.required converts; messages has NO schema slot — reported as a gap (no new decision, irreversible).',
@@ -385,7 +385,7 @@ const SPECS: CaseSpec[] = [
     reversible: false,
   },
 
-  // 22. BUG 5 — boolean behavior flag (onload:true) is NOT a CRUDUI BehaviorAction
+  // 22. BUG 5 — boolean behavior flag (onload:true) is NOT a schema BehaviorAction
   //     (string|{label,script}); the flag is dropped, real scripts survive.
   {
     name: 'bug5-behavior-boolean-flag-normalize',
@@ -452,7 +452,7 @@ const out: OutCase[] = SPECS.map((c) => {
   const { schema, notes } = translateFromLegacy(c.legacy);
 
   // INVARIANT 1: the translated output carries ZERO forbidden meta keys at any
-  // depth. The translator must never emit a meta key (the whole point of CRUDUI).
+  // depth. The translator must never emit a meta key (the whole point of schema).
   scanForbiddenKeys(schema, [c.name]);
 
   const reversible = notes.length === 0;
@@ -474,7 +474,7 @@ const out: OutCase[] = SPECS.map((c) => {
   };
 
   if (reversible) {
-    // INVARIANT 3 (the SPEC §6 gate): legacy→CRUDUI→legacy = original bit-for-bit.
+    // INVARIANT 3 (the SPEC §6 gate): legacy→schema→legacy = original bit-for-bit.
     const back = translateToLegacy(schema);
     const lossless = deepEqual(c.legacy, back);
     if (!lossless) {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Compose;
 
 /**
- * $ref resolution — base inheritance, resolved before anything else (schema §5;
+ * $ref resolution — base inheritance, resolved before anything else (SPEC §5;
  * legacy ReferenceResolver.php). Byte-for-byte port of
  * validator-ts/src/compose/ref.ts.
  *

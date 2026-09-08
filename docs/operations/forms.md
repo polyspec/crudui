@@ -19,7 +19,7 @@ No container is required when these toolchains are available locally.
 
 ```tsx
 import {
-  compileForm, createFormSession, FormSessionView, sequenceRowKey,
+  compileForm, createForm, Form, sequenceRowKey,
 } from '@crudui/generator-react';
 
 const template = compileForm({
@@ -32,10 +32,10 @@ const template = compileForm({
   },
 }, { keyPrefix: 'form' });
 const cached = JSON.stringify(template);
-const session = createFormSession(JSON.parse(cached));
+const session = createForm(JSON.parse(cached));
 
 function StoreForm() {
-  return <FormSessionView session={session} />;
+  return <Form session={session} />;
 }
 
 session.setData({ stores: { [sequenceRowKey(42)]: { name: 'Store' } } });
@@ -45,7 +45,7 @@ const submission = session.getData();
 ```
 
 Keep the template in the shared cache and create one session per form instance.
-Call `setData` when a record load finishes. Render `FormSessionView` with the
+Call `setData` when a record load finishes. Render `Form` with the
 `session` prop in Vue and Svelte as well. Framework packages export the same core
 functions. SSR entry points accept a compiled template and `{ data, language }`:
 Repository SSR helpers are `renderForm` in `src/index.ts` for React and
@@ -80,3 +80,11 @@ The shared DOM scenario covers late data injection, edits, nested row operations
 saved keys, checkboxes, dates, language fields and conditional display. DOM tests
 use jsdom; they do not establish external editor or browser file-picker behavior.
 Record current results in [features](../features.md) and [changelog](../../CHANGELOG.md).
+
+The Svelte package build emits JavaScript, preprocessed Svelte components and
+TypeScript declarations into `dist`. Public export entries reference these
+packaged files. Consumers compile components for their browser or SSR target.
+
+Run `npm run test:packages` to build and pack all JavaScript packages, install
+them into an isolated consumer project, check exported files and declarations,
+and compile a production application using all three form components.

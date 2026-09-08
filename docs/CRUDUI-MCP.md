@@ -49,7 +49,7 @@ CLI `describe` 위임. 통합 capabilities 산출. AI 가 초안 전 카탈로�
 
 **출력** (`format:json`): `describe --json` 객체. 최상위 키 11개: `meta`(schema/widgetCount/ruleCount/sources) · `widgets` · `layouts` · `rules` · `slots`(firstClass/validate/design/behavior/options) · `buckets`(items/multiple/lang) · `forbiddenKeys`(enum/pattern/schemaEnum/crossCheckOk) · `grammar` · `classification` · `matrix` · **`list`**. 상세 형상은 `CRUDUI-CLI.md` §2.1.
 
-`list` 키 (list-spec capability, schema §9 — 수집 출처 `cell.ts CELL_FORMATS` + schema `List` definitions):
+`list` 키 (list-spec capability, SPEC §9 — 수집 출처 `cell.ts CELL_FORMATS` + schema `List` definitions):
 ```json
 {
   "list": {
@@ -166,7 +166,7 @@ CLI 위임 아님 — `schema/crudui.schema.json` 원본을 그대로 반환한�
 구현된 tool 만으로 닫는 현재 루프:
 
 1. `crudui.describe` — 현재 카탈로그 로드 (초안 전 강제, form + list).
-2. 기획서/구술 → 필드추출 → 분류(describe `classification`, schema §3) → CRUDUI 초안 (type 은 describe `widgets` 에서만, 슬롯키는 describe `slots`/`buckets` 에서만, list 면 `list` 카탈로그에서만).
+2. 기획서/구술 → 필드추출 → 분류(describe `classification`, SPEC §3) → CRUDUI 초안 (type 은 describe `widgets` 에서만, 슬롯키는 describe `slots`/`buckets` 에서만, list 면 `list` 카탈로그에서만).
 3. `crudui.check` — 메타스키마 + forbidden-scan + leaf-type. RED 면 2 로.
 4. `crudui.explain` — 역검증. 기획서 대조 → 누락/오해 발견 시 2 로.
 5. 종료: check GREEN + explain 이 기획서와 일치.
@@ -180,4 +180,4 @@ CLI 위임 아님 — `schema/crudui.schema.json` 원본을 그대로 반환한�
 - `crudui.describe`/`check`/`explain` (구현됨) → CLI → 코드/스키마 단일진실 in-process import/parse (`generator-core` WIDGET_*·`cell.ts CELL_FORMATS`·`validator-ts` getRuleNames·`scanForbiddenKeys`·`FORBIDDEN_META_KEYS`·schema JSON). 수기 카탈로그 0.
 - `crudui.validate`/`render` (로드맵) → CLI(미구현) → 콘솔 `validate-runner.mjs`/`render-runner.mjs`. 검증·렌더 로직 재구현 0. 콘솔 백엔드는 구현·동작, CLI 래퍼만 미구현.
 - `crudui.schema` → schema JSON 원본 (describe 의 파생 출처).
-- SKILL.md(`nl-to-form`)는 휘발성 카탈로그를 보유하지 않고 `crudui.describe`(또는 `crudui describe`)에 위임한다 — 코드보다 권위 있는 목록은 없다.
+- SKILL.md(`nl-to-CRUDUI-form`)는 휘발성 카탈로그를 보유하지 않고 `crudui.describe`(또는 `crudui describe`)에 위임한다 — 코드보다 권위 있는 목록은 없다.

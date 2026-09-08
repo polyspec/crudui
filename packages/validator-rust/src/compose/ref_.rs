@@ -1,4 +1,4 @@
-//! `$ref` resolution — base inheritance, resolved before anything else (schema
+//! `$ref` resolution — base inheritance, resolved before anything else (SPEC
 //! §5; legacy ReferenceResolver.php).
 //!
 //! Semantics ported from legacy (single source of truth):

@@ -1,5 +1,5 @@
 /**
- * CRUDUI list-spec validation entry point (reference) — schema §9 read sister.
+ * CRUDUI list-spec validation entry point (reference) — SPEC §9 read sister.
  *
  * The read sister of `validate/index.ts` (validate). A list-spec describes the
  * SAME domain as a form-spec, shown as a list instead of accepted as input. It

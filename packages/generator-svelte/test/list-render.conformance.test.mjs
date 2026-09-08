@@ -29,15 +29,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/list-render/cases.json');
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
-/** Map the fixture's React-shaped options to the Svelte renderer's options. */
-function svelteOptions(options = {}) {
-  const { layout, ...rest } = options;
-  // Svelte's list option is `mode` ('table' | 'card'); the fixture carries `layout`.
-  return layout ? { ...rest, mode: layout } : rest;
-}
+
 
 function render(c) {
-  return renderList(c.spec, c.rows ?? [], svelteOptions(c.options));
+  return renderList(c.spec, c.rows ?? [], c.options);
 }
 
 const ERROR_CLASS_BY_CODE = { REF_FILE_NOT_FOUND: ComposeLoadError };

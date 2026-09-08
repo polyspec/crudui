@@ -97,7 +97,7 @@ node runner/compare-all.js --verbose          # 전체 결과 출력
 - **JS**: `packages/validator-ts/dist/index.js` 를 직접 require (없으면 ts-node 로 src).
 - **PHP**: 케이스마다 `runner/validate-case.php` 워커를 서브프로세스로 실행.
 - **Go**: `packages/validator-go/validate` CLI 바이너리 실행 (없으면
-  `go build -o validate ./cmd/validate` 로 자동 빌드).
+  `go build -o validate ./cmd/validate-legacy` 로 자동 빌드).
 - **Rust**: `packages/validator-rust/target/release/validate` CLI 바이너리 실행
   (없으면 `cargo build --release` 로 자동 빌드 — cargo/rustc 가 PATH 에 없으면
   실패하므로 `export PATH="$HOME/.cargo/bin:$PATH"` 후 미리 빌드하라).

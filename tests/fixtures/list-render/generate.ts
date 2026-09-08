@@ -1,5 +1,5 @@
 /**
- * CRUDUI list-render shared fixture generator (3-framework parity gate, schema §9).
+ * CRUDUI list-render shared fixture generator (3-framework parity gate, SPEC §9).
  *
  * The read sister of tests/fixtures/form-render/generate.ts. It produces
  * `cases.json`: one case per list render scenario. Each case is

@@ -1,4 +1,4 @@
-//! CRUDUI composition-engine conformance (schema §5, G5).
+//! CRUDUI composition-engine conformance (SPEC §5, G5).
 //!
 //! Single truth = the shared 4-language fixture tests/fixtures/compose/cases.json.
 //! All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce

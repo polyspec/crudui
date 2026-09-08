@@ -41,8 +41,6 @@
 </script>
 
 <script lang="ts">
-  import type { SpecNode } from './fields/legacyParity';
-  import type { Language } from '../i18n';
 
   /** Form specification (parsed object or YAML string). */
   export let spec: SpecNode | string;

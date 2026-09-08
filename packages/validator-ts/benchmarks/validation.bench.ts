@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
 import { Validator } from '../src/legacy/Validator';
-import { Spec } from '../src/legacy/types';
+import { Spec } from '../src/types';
 import {
   benchmark,
   printResult,

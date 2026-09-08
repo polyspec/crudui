@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Validate;
 
 /**
- * CRUDUI list-spec validation result — { valid, errors } (schema §9). Read sister of
+ * CRUDUI list-spec validation result — { valid, errors } (SPEC §9). Read sister of
  * ValidationResult. A list carries no data (rows are injected, SPEC §9), so the
  * four-language engine runs only compose + forbidden-scan: a clean structure load
  * is always { valid:true, errors:[] }. A composition/forbidden-key failure is a

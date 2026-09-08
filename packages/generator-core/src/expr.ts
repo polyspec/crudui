@@ -29,7 +29,7 @@ import {
 /**
  * A CRUDUI `Evaluated<V>` value as seen at render: a literal, an Expression string,
  * or a declaration-ordered ConditionMap (plain object). Mirrors
- * validator-ts/src/schema.ts:73.
+ * validator-ts/src/types.ts:73.
  */
 export type Evaluated<V = unknown> = V | string | Record<string, unknown>;
 

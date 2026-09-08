@@ -38,5 +38,5 @@ is ignored). A `ComposeLoadError` is emitted as `{"error", "code"}` with exit 1
 
 ```
 npm test            # full suite (vitest)
-npm run test:current     # CRUDUI conformance only (src)
+npm run test:current     # CRUDUI conformance only (src/CRUDUI)
 ```

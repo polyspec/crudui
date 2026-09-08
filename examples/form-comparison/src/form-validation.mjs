@@ -1,8 +1,8 @@
-import { Validator } from '#validator';
+import { ValidatorV2 } from '#validator';
 
 /** Connect the existing validator to form error display. */
 export function formValidation(view, output, spec, text) {
-  const validator = new Validator(spec);
+  const validator = new ValidatorV2(spec);
   function clear() {
     for (const input of view.querySelectorAll('[aria-invalid]')) input.removeAttribute('aria-invalid');
     for (const error of view.querySelectorAll('[data-validation-error]')) error.remove();

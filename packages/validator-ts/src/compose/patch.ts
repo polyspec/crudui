@@ -1,5 +1,5 @@
 /**
- * `$patch` application — add / remove / replace over the `$ref` base (schema
+ * `$patch` application — add / remove / replace over the `$ref` base (SPEC
  * §5). Absorbs the legacy legacy directives `$after`/`$before`/`$merge`/`$change`/
  * `$remove` (the analysis legacy_mapping):
  *

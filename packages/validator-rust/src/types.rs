@@ -1,12 +1,12 @@
 //! CRUDUI 정규 모델 — `FieldSpec` 및 부속 타입(serde `Deserialize`/`Serialize`).
 //!
-//! 단일 진실은 spec/schema.md(헌법) + 정규 모델 JSON이다. 이 모듈은 그 모델을
+//! 단일 진실은 SPEC.md(헌법) + 정규 모델 JSON이다. 이 모듈은 그 모델을
 //! 기계화한다 — top-level 키, 역할 슬롯(validate/design/behavior/options),
 //! 종속 격리 버킷(type→options, multiple/lang/items→그 키 하위), design 노드맵,
 //! 조건맵(기본키 true), 합성($ref/$patch)을 Rust 타입으로 고정한다.
 //!
 //! 이건 CRUDUI 신규다. legacy(`crate::types`)은 안정 확보까지 병행 유지하며 건드리지
-//! 않는다(schema R7). CRUDUI 소비자는 이 모듈만 본다.
+//! 않는다(SPEC R7). CRUDUI 소비자는 이 모듈만 본다.
 //!
 //! ## 강제(스키마 = 타입)
 //! - top-level `deny_unknown_fields`: 정규 CRUDUI 키만 1급이다. 그 외 모든 키는
@@ -24,7 +24,7 @@
 //!   금지키를 만나면 에러를 낸다.
 //! - 역할 슬롯·구조 차원은 다형이다: `false`(끔) | `{객체}`(설정) | `true`
 //!   (기본, `{}`의 축약) — `Polymorphic<T>` 로 인코딩.
-//! - 종속 키는 1급이 아니라 대상 하위로 격리한다(schema §3 C).
+//! - 종속 키는 1급이 아니라 대상 하위로 격리한다(SPEC §3 C).
 //!
 //! ## `x{key}`(주석) 처리
 //! `x` 로 시작하는 임의 주석 키(`x{key}`)는 메타스키마 계층이 canonical 스펙을
@@ -77,7 +77,7 @@ fn is_forbidden_key(key: &str) -> bool {
 
 /// 다형 슬롯/차원: `false`(끔/없음) | `{객체}`(설정) | `true`(기본, `{}`의 축약).
 ///
-/// schema §2 G2 — 역할 슬롯(validate/design/behavior/options)과 구조 차원
+/// SPEC §2 G2 — 역할 슬롯(validate/design/behavior/options)과 구조 차원
 /// (multiple/lang)이 모두 이 세 모양을 취한다. `behavior: false` 로 합성 상속을
 /// 무효화한다. `untagged` 로 역직렬화·직렬화 양방향 왕복.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -103,7 +103,7 @@ pub const DEFAULT_KEY: &str = "true";
 
 /// 평가되는 값: 단일 표현식(문자열/리터럴) | 조건맵 | 정적 값.
 ///
-/// schema §2 G1 — 모든 평가값은 표현식 또는 조건맵이다. 별도 `if`/`when`/
+/// SPEC §2 G1 — 모든 평가값은 표현식 또는 조건맵이다. 별도 `if`/`when`/
 /// `show_if` 키는 없다. 단일 표현식 `"...?...:..."` 은 조건맵의 축약(동일 의미론).
 /// 평가는 EXPRESSION-GRAMMAR 엔진이 수행하고, 이 타입은 입력 형태만 고정한다.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -117,7 +117,7 @@ pub enum ConditionValue {
 
 /// 콘텐츠(label/description/help/placeholder…): 단일 문자열 | 언어맵.
 ///
-/// schema §2 G3 — 콘텐츠 번역. 언어별이면 언어맵 `{ ko: …, en: … }`(스펙
+/// SPEC §2 G3 — 콘텐츠 번역. 언어별이면 언어맵 `{ ko: …, en: … }`(스펙
 /// 작성자의 번역). 입력 다국어(필드 값이 언어별)는 별도 축이며 `lang` 슬롯이다.
 /// 빈 콘텐츠는 생략하거나 `null` — `null` 은 없는 것과 동일하므로 `Option<Content>`
 /// 의 `None`(필드 부재)으로 역직렬화되어 렌더·검증에 무영향이다(G3). 언어맵의 빈
@@ -199,7 +199,7 @@ impl Serialize for ExtraMap {
 
 /// CRUDUI 정규 필드 모델.
 ///
-/// top-level 키만 1급이다(schema §3 B): 구조·정체성 + 콘텐츠 + 역할 슬롯.
+/// top-level 키만 1급이다(SPEC §3 B): 구조·정체성 + 콘텐츠 + 역할 슬롯.
 /// 1급 자격 없는 세부는 전부 대상 하위로 격리한다(§3 C). `$ref`/`$patch` 는
 /// 합성 진입점이며 파서가 가장 먼저 펼친다(§5).
 ///
@@ -208,7 +208,7 @@ impl Serialize for ExtraMap {
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FieldSpec {
-    // ---- 합성 (schema §5, 파서가 가장 먼저 펼침) ----
+    // ---- 합성 (SPEC §5, 파서가 가장 먼저 펼침) ----
     /// `$ref` — 베이스 상속(파일/경로). 미해결 `$ref` 는 로드 불가.
     #[serde(rename = "$ref", default, skip_serializing_if = "Option::is_none")]
     pub ref_: Option<Value>,
@@ -239,7 +239,7 @@ pub struct FieldSpec {
     /// 구조 — 선택지 소스. 정적 배열 | 정적 value→label 맵 | 동적 소스. 실 코퍼스
     /// 동적소스(type:search)는 model(string 또는 {table,relations,keys} 중첩) +
     /// api_server(런타임 HTTP fn 참조) + placeholder 정적 items 공존 — items 하위로
-    /// 격리·보존, 런타임 해석은 범위 밖(SPEC §6 R1). 1급(schema §3 C).
+    /// 격리·보존, 런타임 해석은 범위 밖(SPEC §6 R1). 1급(SPEC §3 C).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Items>,
 
@@ -280,7 +280,7 @@ pub struct FieldSpec {
     pub help: Option<Content>,
 
     // ---- 역할 슬롯 (top-level, 다형) ----
-    /// 역할 슬롯 — 검증(schema §3 공통 역할 분배). 값은 표현식/조건맵일 수 있어
+    /// 역할 슬롯 — 검증(SPEC §3 공통 역할 분배). 값은 표현식/조건맵일 수 있어
     /// 조건부 검증을 별도 키 없이 표현(예: `required: ".subscribe"`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub validate: Option<Polymorphic<ValidateSlot>>,
@@ -300,14 +300,14 @@ pub struct FieldSpec {
 }
 
 // ============================================================================
-// 역할 슬롯 (schema §3 공통 역할 분배) — 모두 다형 sub_keys.
+// 역할 슬롯 (SPEC §3 공통 역할 분배) — 모두 다형 sub_keys.
 // 슬롯은 다형이라 명시 안 한 키도 허용해야 한다(미래 위젯·미흡수 키). 슬롯 본문은
 // deny_unknown_fields 를 걸지 않고 명시 sub_keys 만 1급화하며 나머지는 ExtraMap
 // 으로 흡수한다 — ExtraMap 이 금지 메타키를 한 칸 아래에서도 전역 차단한다.
 // ============================================================================
 
 /// `validate` 슬롯 — 검증 규칙. 값은 표현식/조건맵일 수 있어 조건부 검증을 별도
-/// 키 없이 표현한다(다형, schema §3). sub_keys 외 규칙은 `extra` 로 흡수.
+/// 키 없이 표현한다(다형, SPEC §3). sub_keys 외 규칙은 `extra` 로 흡수.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct ValidateSlot {
     /// 필수. 표현식이면 조건부 필수(예: `".subscribe"`).
@@ -378,7 +378,7 @@ pub struct DesignNode {
 }
 
 /// `behavior` 슬롯 — 모든 타입 공통 동작 스크립트. 불투명 클라 JS로 전달되며
-/// 표현식 엔진을 거치지 않는다(schema §4). `false` 로 합성 상속 무효화. 동작
+/// 표현식 엔진을 거치지 않는다(SPEC §4). `false` 로 합성 상속 무효화. 동작
 /// 라벨은 `behavior.{action}.label`. sub_keys 외 동작은 `extra` 로 흡수.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct BehaviorSlot {
@@ -452,7 +452,7 @@ pub struct OptionsSlot {
 }
 
 // ============================================================================
-// 종속 격리 버킷 (schema §3 C) — 구조 대상의 하위.
+// 종속 격리 버킷 (SPEC §3 C) — 구조 대상의 하위.
 // 정규 CRUDUI 키만 sub_key 로 등재한다. 레거시 이름(multiple_max·lang:append·
 // sortable* 등)·매직 토큰은 인식키가 아니다 — 번역기 absorbs_legacy 가
 // 레거시→정규 매핑을 담당하고, 이 모델은 정규 키만 안다.
@@ -585,7 +585,7 @@ impl<'de> Deserialize<'de> for Items {
     }
 }
 
-/// `items` 동적 소스(schema §3 C 동적 선택지 소스). 레거시에 흩어졌던 소스
+/// `items` 동적 소스(SPEC §3 C 동적 선택지 소스). 레거시에 흩어졌던 소스
 /// 디스크립터를 `items` 하위로 모음. 구조만 표현한다 — `model` 질의를 실행하거나
 /// `api_server` 엔드포인트를 호출하는 것은 런타임의 일이며 범위 밖이다(SPEC §6 R1).
 ///
