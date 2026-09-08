@@ -2,6 +2,15 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Empty collection browser checks
+
+Browser checks locate the collection containing the focused button through its
+field wrapper. The current renderer no longer uses wrapper name attributes.
+All 18 current empty-collection checks passed across three servers, three
+frameworks and both transports. The PHP run passed all six current initialization
+comparisons and 108 pointer/keyboard interaction checks, with no page errors.
+Retained source HTML differences remain recorded as failures.
+
 ## 2026-09-09 — Shared SSR comparison instance
 
 The cross-check console creates one form instance for the three renderers.
