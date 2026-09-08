@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Public declaration builds
+
+TypeScript package builds generate JavaScript with the bundler and declarations
+with the TypeScript compiler. Public entries include the declared legacy exports.
+Declaration compilation uses `noEmitOnError` and no deprecated-option suppression.
+Watch commands regenerate declarations after successful JavaScript builds.
+
+Verification: clean installation and the full build passed. Five public package
+checks passed, including strict ESM/CommonJS type consumption, stylesheet output
+and rejection of invalid public declarations. Two complete builds produced
+identical output paths and SHA-256 digests. An isolated packaged consumer passed
+type checking, production build and three-framework browser checks. Runtime
+source files were unchanged by this build change. Packages were not published.
+
 ## 2026-09-08 — Form instances and input controls
 
 The form API prepares templates with `compileForm`, creates editable instances

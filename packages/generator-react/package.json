@@ -27,9 +27,9 @@
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --dts --clean --external react --external react-dom && npm run build:css",
+    "build": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --clean --external react --external react-dom && tsc --project tsconfig.build.json && npm run build:css",
     "build:css": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/styles/crudui.css','dist/styles.css')\"",
-    "dev": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --dts --watch --external react --external react-dom",
+    "dev": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --watch --external react --external react-dom --onSuccess \"tsc --project tsconfig.build.json\"",
     "test": "vitest",
     "test:current": "vitest run src/__tests__/form-render.conformance.test.ts src/__tests__/list-render.conformance.test.ts",
     "test:list": "vitest run src/__tests__/list-render.conformance.test.ts",

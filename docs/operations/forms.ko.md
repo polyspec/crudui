@@ -88,3 +88,18 @@ Svelte 패키지 빌드는 JavaScript, 전처리한 Svelte 컴포넌트, TypeScr
 `npm run test:packages`는 JavaScript 패키지 전체를 빌드·패키징하고 별도 소비자
 프로젝트에 설치합니다. export 파일과 타입 선언을 검사하고 세 폼 컴포넌트를
 사용하는 프로덕션 애플리케이션을 컴파일합니다.
+
+## 패키지 타입 선언 검사
+
+JavaScript 번들러는 런타임 모듈을 생성합니다. TypeScript 컴파일러는 번들러와
+별도로 공개 진입점에서 `noEmitOnError`를 적용해 선언을 생성합니다.
+Svelte 컴포넌트와 선언은 패키지 컴파일러를 사용합니다.
+
+```sh
+npm run test:build
+npm run test:build:repeat
+npm run test:packages
+```
+
+검증 범위는 [패키지 빌드 계약](../spec/package-build.ko.md)과
+[빌드 검사](../../tests/build/README.ko.md)에 정의합니다.
