@@ -19,7 +19,7 @@ npm run build
 
 ```tsx
 import {
-  compileForm, createFormSession, FormSessionView, sequenceRowKey,
+  compileForm, createForm, Form, sequenceRowKey,
 } from '@crudui/generator-react';
 
 const template = compileForm({
@@ -32,10 +32,10 @@ const template = compileForm({
   },
 }, { keyPrefix: 'form' });
 const cached = JSON.stringify(template);
-const session = createFormSession(JSON.parse(cached));
+const session = createForm(JSON.parse(cached));
 
 function StoreForm() {
-  return <FormSessionView session={session} />;
+  return <Form session={session} />;
 }
 
 session.setData({ stores: { [sequenceRowKey(42)]: { name: 'Store' } } });
@@ -46,7 +46,7 @@ const submission = session.getData();
 
 공유 캐시에는 템플릿을 저장하고 폼 인스턴스마다 세션을 생성합니다.
 레코드 로드가 완료되면 `setData`를 호출합니다. Vue와 Svelte에서도
-`FormSessionView`에 `session` 속성을 전달합니다. 프레임워크 패키지는 동일한 코어
+`Form`에 `session` 속성을 전달합니다. 프레임워크 패키지는 동일한 코어
 함수를 제공합니다. SSR 함수에는 컴파일된 템플릿과 `{ data, language }`를 전달합니다.
 저장소의 SSR 함수는 React와 Svelte의 `src/index.ts`에 있는 `renderForm`,
 Vue의 `src/ssr.ts`에 있는 `renderFormSSR`입니다. 이 소스 함수는 패키지 하위
@@ -80,3 +80,11 @@ cargo test --test validate_conformance
 날짜, 언어 필드, 조건부 표시를 검사합니다. DOM 테스트는 jsdom을 사용하며 외부
 편집기나 브라우저 파일 선택기의 동작을 검증하지 않습니다.
 현재 결과는 [기능 상태](../features.ko.md)와 [변경 기록](../../CHANGELOG.ko.md)에 기록합니다.
+
+Svelte 패키지 빌드는 JavaScript, 전처리한 Svelte 컴포넌트, TypeScript 선언을
+`dist`에 생성합니다. 공개 export는 패키지에 포함된 파일을 사용합니다.
+소비자 빌드는 브라우저 또는 SSR 대상에 맞게 컴포넌트를 컴파일합니다.
+
+`npm run test:packages`는 JavaScript 패키지 전체를 빌드·패키징하고 별도 소비자
+프로젝트에 설치합니다. export 파일과 타입 선언을 검사하고 세 폼 컴포넌트를
+사용하는 프로덕션 애플리케이션을 컴파일합니다.

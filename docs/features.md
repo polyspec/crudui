@@ -5,26 +5,29 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
+| form-controls | Labels, multiple choice arrays and field container paths | implemented | passed | not-deployed | [Shared control assertions](../tests/fixtures/form-session/controls.mjs) |
+| package-consumer | Packaged exports, type declarations and consumer production build | implemented | passed | not-deployed | [Consumer check](../scripts/check-packages.mjs) |
+| package-api | Initial package API and version metadata | in-progress | pending | not-deployed | [API contract](spec/schema.md) |
 | form-template | Data-independent form templates and JSON caching | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-initialization | Initial data, repeated injection and record restoration | implemented | passed | not-deployed | [Runtime contract](spec/form-runtime.md) |
-| form-inspector | Parsed DOM, raw HTML, CSS and state comparison with retained differences | implemented | passed | deployed | [Inspector tests](../examples/form-comparison/src/form-snapshot.test.mjs) |
+| form-inspector | Parsed DOM, raw HTML, CSS and state comparison with retained differences | implemented | passed | not-deployed | [Inspector tests](../examples/form-comparison/src/form-snapshot.test.mjs) |
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | Explicit empty collection rendering in the merged runtime | implemented | passed | not-deployed | [Empty collection tests](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | Complete native typing and focus during input replacement | implemented | passed | deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
-| original-typing | Preserve typed values in queued original-controller rendering | implemented | passed | deployed | [Native typing checks](../examples/form-comparison/check-typing.mjs) |
-| form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
+| form-typing | Complete native typing and focus during input replacement | implemented | passed | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
+| original-typing | Preserve typed values in queued original-controller rendering | implemented | passed | not-deployed | [Native typing checks](../examples/form-comparison/check-typing.mjs) |
+| form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | Focus, selection and scroll retention during row operations | implemented | passed | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
 | docs-check | Document links, translations and status checks | implemented | passed | not-deployed | [Documentation procedure](operations/documentation.md) |
-| form-comparison | Original and 13-character browser comparison | implemented | failed | deployed | [Browser checks](../examples/form-comparison/check.mjs) |
-| form-persistence | Keyed native and JSON document-order persistence | implemented | passed | deployed | [Persistence scenarios](../examples/form-comparison/src/frame.mjs) |
+| form-comparison | Original and 13-character browser comparison | implemented | failed | not-deployed | [Browser checks](../examples/form-comparison/check.mjs) |
+| form-persistence | Keyed native and JSON document-order persistence | implemented | passed | not-deployed | [Persistence scenarios](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../examples/form-comparison/check-ordered-json.py) |
-| ordered-json-runtime | Form and ordered JSON transmission through shared validation and storage | implemented | passed | deployed | [Transport contract](spec/form-comparison.md) |
-| form-servers | Independent PHP, Go and Rust submission, validation, storage and reload | implemented | passed | deployed | [Server contract](spec/form-comparison.md) |
-| form-client-validation | Existing JavaScript validation before user submission | implemented | passed | deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
-| original-empty-correction | Corrected original rendering and complete empty collection lifecycle | implemented | passed | deployed | [Comparison contract](spec/form-comparison.md) |
-| original-keyed-proof | Original public functions with keyed editing, persistence and cache binding | implemented | failed | deployed | [Comparison contract](spec/form-comparison.md) |
+| ordered-json-runtime | Form and ordered JSON transmission through shared validation and storage | implemented | passed | not-deployed | [Transport contract](spec/form-comparison.md) |
+| form-servers | Independent PHP, Go and Rust submission, validation, storage and reload | implemented | passed | not-deployed | [Server contract](spec/form-comparison.md) |
+| form-client-validation | Existing JavaScript validation before user submission | implemented | passed | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
+| original-empty-correction | Corrected original rendering and complete empty collection lifecycle | implemented | passed | not-deployed | [Comparison contract](spec/form-comparison.md) |
+| original-keyed-proof | Original public functions with keyed editing, persistence and cache binding | implemented | failed | not-deployed | [Comparison contract](spec/form-comparison.md) |
 
 Library verification at `5e517a2` (2026-09-07): `npm run test:forms`, the TypeScript validator suite,
 PHP/Go/Rust validation conformance, console SSR tests, CLI tests, lint, type
@@ -201,3 +204,10 @@ page errors occurred. The original example controller cancels superseded input
 renders and restores focus after the framework commits the DOM. Library source
 snapshots are unchanged. This correction is deployed in the local comparison
 container; no package was published.
+
+Current worktree verification (2026-09-08): 1,409 form tests, 1,579 JavaScript
+validator tests, 1,392 PHP tests, Go and Rust tests, 42 console checks, and 18
+inspector tests passed. Svelte type checking reported zero errors and warnings.
+The packaged consumer passed export-file checks, TypeScript compilation and a
+three-framework production build. These results do not establish container
+deployment or complete the browser/server transport matrix.

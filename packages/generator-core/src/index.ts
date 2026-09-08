@@ -17,8 +17,8 @@
 
 export { compileForm, bindForm } from './form';
 export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
-export { FormSession, createFormSession, createRowKey, sequenceRowKey } from './session';
-export type { FormSessionOptions, FormSnapshot, AddRowOptions } from './session';
+export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
+export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
 export { connectForm } from './dom';
 
 export type { FieldViewModel, UnsupportedMode, RowVM, LangChildVM, UnsupportedVM, BuildState } from './viewmodel';
@@ -36,7 +36,7 @@ export { makeTranslate } from './content';
 export type { Language, LocalizedText, Translate } from './content';
 
 // list-spec (read sister) — buildList + the read cell renderer (additive; the
-// form/write surfaces above are untouched). schema §9.
+// form/write surfaces above are untouched). SPEC §9.
 export { buildList } from './list';
 export type {
   ListViewModel,

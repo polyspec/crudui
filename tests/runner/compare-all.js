@@ -218,7 +218,7 @@ function runGoValidation(spec, input) {
 
   // If binary doesn't exist, try to build it
   if (!fs.existsSync(goBinaryPath)) {
-    const buildResult = spawnSync('go', ['build', '-o', 'validate', './cmd/validate'], {
+    const buildResult = spawnSync('go', ['build', '-o', 'validate', './cmd/validate-legacy'], {
       encoding: 'utf-8',
       timeout: 60000,
       cwd: GO_VALIDATOR_DIR,

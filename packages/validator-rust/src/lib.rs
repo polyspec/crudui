@@ -1,4 +1,6 @@
 //! CRUDUI schema composition and validation.
+#![deny(missing_docs)]
+
 
 pub mod compose;
 pub mod expr;
@@ -15,5 +17,6 @@ pub use types::{
     DEFAULT_KEY, FORBIDDEN_META_KEYS,
 };
 
-/// Legacy schema and validation APIs.
+/// Explicit legacy schema and validator APIs.
 pub mod legacy;
+pub use validate::{validate, Validator, ValidateOptions};

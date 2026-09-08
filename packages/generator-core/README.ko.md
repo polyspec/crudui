@@ -5,12 +5,12 @@
 프레임워크에 의존하지 않는 폼 컴파일, 편집 세션, 목록 평가를 제공합니다.
 
 ```ts
-import { compileForm, createFormSession } from '@crudui/generator-core';
+import { compileForm, createForm } from '@crudui/generator-core';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
 });
-const session = createFormSession(template);
+const session = createForm(template);
 session.setData({ name: 'Example' });
 ```
 

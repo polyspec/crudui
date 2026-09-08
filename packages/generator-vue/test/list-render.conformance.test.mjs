@@ -4,7 +4,7 @@
  * The read sister of form-render.conformance.test.mjs. The shared fixture
  * tests/fixtures/list-render/cases.json holds ONE `expected_html` per list
  * scenario (the React CRUDUI LIST reference's normalized output, SPEC §9). This test
- * runs the Vue list generator through genuine Vue 3 SSR (renderListSSR →
+ * runs the Vue list generator through genuine Vue 3 SSR (renderList →
  * @vue/server-renderer renderToString), normalizes with the SAME shared
  * normalizer, and asserts equality. The 3-framework gate: Vue must reproduce
  * `expected_html` after normalization.
@@ -22,23 +22,17 @@ import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
-import { renderListSSR } from '../src/listSsr.ts';
+import { renderList } from '../src/listSsr.ts';
 import { ComposeLoadError } from '../src/index.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/list-render/cases.json');
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
-/** Map the fixture's React-shaped options to the Vue renderer's options. */
-function vueOptions(options = {}) {
-  const { layout, ...rest } = options;
-  // Vue's list layout is 'table' | 'cards'; the fixture's 'card' maps to 'cards'.
-  if (!layout) return rest;
-  return { ...rest, layout: layout === 'card' ? 'cards' : layout };
-}
+
 
 async function render(c) {
-  return renderListSSR(c.spec, c.rows ?? [], vueOptions(c.options));
+  return renderList(c.spec, c.rows ?? [], c.options);
 }
 
 const ERROR_CLASS_BY_CODE = { REF_FILE_NOT_FOUND: ComposeLoadError };

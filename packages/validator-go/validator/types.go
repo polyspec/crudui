@@ -1,8 +1,8 @@
-// Package CRUDUI is the canonical (SPEC-mechanized, single-truth) Go model of the
-// crudui field. It is the CRUDUI successor to the stable legacy validator package.
+// Package model is the canonical (SPEC-mechanized, single-truth) Go model of the
+// crudui field. It is the model successor to the stable legacy validator package.
 //
-// CRUDUI runs in parallel with legacy (R7). Do not fold legacy into this package; legacy stays
-// until CRUDUI stabilizes. Nothing here imports legacy, and legacy imports nothing here.
+// model runs in parallel with legacy (R7). Do not fold legacy into this package; legacy stays
+// until model stabilizes. Nothing here imports legacy, and legacy imports nothing here.
 //
 // The model encodes SPEC §3 exactly:
 //
@@ -25,7 +25,7 @@
 //   - composition. $ref (base inheritance) expands first, then $patch
 //     (add / remove / replace).
 //
-// Only canonical CRUDUI keys are recognized. Legacy names (multiple_max,
+// Only canonical model keys are recognized. Legacy names (multiple_max,
 // lang:append, sortable*, add_buttons, …) and magic tokens (`*`, `:`) are NOT
 // valid keys here; they have no field on any struct. Their canonical targets are
 // recorded in LegacyKeyMap for a one-way translator, never mixed into the
@@ -49,7 +49,7 @@ import (
 	"strings"
 )
 
-// FieldSpec is the canonical CRUDUI field. Every member maps to one top-level SPEC
+// FieldSpec is the canonical model field. Every member maps to one top-level SPEC
 // key. The four role slots (Validate / Design / Behavior / Options) and the
 // polymorphic structure keys (Multiple / Lang) are pointers so the absent /
 // false / {} / true shapes all survive a round trip.
@@ -193,7 +193,7 @@ func (p *PropertyMap) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return fmt.Errorf("crudui: properties must be an object")
+		return fmt.Errorf("model: properties must be an object")
 	}
 	p.Keys = nil
 	p.Values = map[string]*FieldSpec{}
@@ -301,7 +301,7 @@ func (c *Content) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return fmt.Errorf("crudui: content must be a string, a language object, or null")
+		return fmt.Errorf("model: content must be a string, a language object, or null")
 	}
 	c.Text = nil
 	c.Null = false
@@ -382,7 +382,7 @@ func (c *ConditionMap) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return fmt.Errorf("crudui: condition map must be an object")
+		return fmt.Errorf("model: condition map must be an object")
 	}
 	c.Keys = nil
 	c.Values = map[string]any{}
@@ -885,7 +885,7 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 		return nil, nil, err
 	}
 	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return nil, nil, fmt.Errorf("crudui: items must be an array, a value→label map, or a dynamic source object")
+		return nil, nil, fmt.Errorf("model: items must be an array, a value→label map, or a dynamic source object")
 	}
 	var keys []string
 	values := map[string]json.RawMessage{}
@@ -1064,8 +1064,8 @@ type CompositionDirective struct {
 // CompositionDirectives is the closed set of recognized composition keys.
 var CompositionDirectives = []string{"$ref", "$patch"}
 
-// ForbiddenMetaKeys are keys that must never appear in a CRUDUI document, at ANY
-// depth. They have no field on any CRUDUI struct; every Unmarshal that owns an open
+// ForbiddenMetaKeys are keys that must never appear in a model document, at ANY
+// depth. They have no field on any model struct; every Unmarshal that owns an open
 // bucket (and every typed slot / structure key) rejects them via
 // rejectForbiddenKeys. A schema layer expresses the same with
 // propertyNames:{not:{enum:[…]}}.
@@ -1108,7 +1108,7 @@ var forbiddenSet = func() map[string]bool {
 	return m
 }()
 
-// LegacyKeyMap maps every legacy / magic-token key to its canonical CRUDUI target,
+// LegacyKeyMap maps every legacy / magic-token key to its canonical model target,
 // for a ONE-WAY translator only. These keys are never recognized as valid input
 // by the model; the map exists so a migration tool can rewrite them. The magic
 // tokens `*` (sortable*) and `:` (lang:append) are normalized to their bare
@@ -1174,13 +1174,13 @@ func rejectForbiddenKeys(data []byte, where string) error {
 		}
 		key, ok := keyTok.(string)
 		if !ok {
-			return fmt.Errorf("crudui: expected object key in %s", where)
+			return fmt.Errorf("model: expected object key in %s", where)
 		}
 		if forbiddenSet[key] {
-			return fmt.Errorf("crudui: forbidden meta key %q in %s", key, where)
+			return fmt.Errorf("model: forbidden meta key %q in %s", key, where)
 		}
 		if key != "_" && strings.HasPrefix(key, ForbiddenKeyPrefix) && isXCommentKey(key) {
-			return fmt.Errorf("crudui: x-comment key %q in %s must be x-stripped by the meta-schema before validation", key, where)
+			return fmt.Errorf("model: x-comment key %q in %s must be x-stripped by the meta-schema before validation", key, where)
 		}
 		// skip the value
 		if err := skipValue(dec); err != nil {

@@ -376,6 +376,6 @@ php-api/
 
 ## Related Documentation
 
-- [YAML Spec Format](../../docs/spec/legacy-schema.md)
+- [YAML Spec Format](../../docs/SPEC.md)
 - [Validation Rules](../../docs/VALIDATION-RULES.md)
 - [Condition Expressions](../../docs/CONDITION-PARSER.md)

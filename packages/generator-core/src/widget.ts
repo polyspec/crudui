@@ -26,6 +26,7 @@ import {
   applyDefaultString,
   cleanStr,
   elementId,
+  controlId,
   joinClass,
   leafName,
   phpString,
@@ -39,6 +40,8 @@ import type { Translate } from './content';
 
 /** Inputs every widget evaluator needs for one leaf field. */
 export interface WidgetCtx {
+  /** Stable DOM identifier prefix. */
+  idPrefix?: string;
   /** The composed (single-spec) field node. */
   spec: Record<string, unknown>;
   /** The field's current value. */
@@ -531,7 +534,7 @@ const choice: Evaluator = (ctx) => {
 
 const multichoice: Evaluator = (ctx) => {
   const bracketBase = bracketName(ctx);
-  const name = leafName(ctx.path).endsWith('[]') ? `${bracketBase}[]` : bracketBase;
+  const name = `${bracketBase}[]`;
   const items = ctx.spec.items;
   const dataName = leafName(ctx.path);
   const dataRuleName = ruleNameForPath(ctx.path);
@@ -705,7 +708,7 @@ const image: Evaluator = (ctx) => {
         type: 'text',
         class: 'form-control form-control-file',
         value: '',
-        readonly: 'readonly',
+        readonly: '',
       },
       file: {
         type: 'file',
@@ -736,7 +739,7 @@ const file: Evaluator = (ctx) => {
         type: 'text',
         class: 'form-control form-control-file',
         value: '',
-        readonly: 'readonly',
+        readonly: '',
       },
       file: {
         type: 'file',
@@ -1168,7 +1171,17 @@ export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
 /** Evaluate one leaf field to a markup-free WidgetModel, or undefined if unported. */
 export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefined {
   const ev = REGISTRY[type.toLowerCase()];
-  return ev ? ev(ctx) : undefined;
+  if (!ev) return undefined;
+  const widget = ev(ctx);
+  const id = controlId(ctx.idPrefix ?? 'crudui', ctx.path);
+  if (widget.tag && ['input', 'select', 'textarea'].includes(widget.tag)) {
+    widget.attrs.id = id;
+  }
+  if (widget.extra?.file) widget.extra.file.id = id;
+  if (widget.layout === 'btn-group') {
+    for (const [index, option] of (widget.options ?? []).entries()) option.id = `${id}:${index}`;
+  }
+  return widget;
 }
 
 /** True when a field `type` has a registered widget evaluator. */

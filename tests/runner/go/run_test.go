@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	validator "github.com/crudui/crudui/packages/validator-go/validator/legacy"
+	validator validator "github.com/crudui/crudui/packages/validator-go/validator/legacy"
 )
 
 // TestCase represents a single test case from the JSON files

@@ -1,4 +1,4 @@
-# CRUDUI list-render shared fixture (3-framework parity gate, schema §9)
+# CRUDUI list-render shared fixture (3-framework parity gate, SPEC §9)
 
 The read sister of `tests/fixtures/form-render/`. One `expected_html` per list
 scenario; React/Vue/Svelte each SSR-render the SAME list spec + injected rows and
@@ -24,7 +24,7 @@ only — the server applies the real query, the spec declares (SPEC §6 R1, §9.
 
 ## Consumers (per-framework parity tests)
 
-- React: `packages/generator-react/src/__tests__/current-list-parity.conformance.test.ts`
+- React: `packages/generator-react/src/__tests__/CRUDUI-list-parity.conformance.test.ts`
 - Vue: `packages/generator-vue/test/list-render.conformance.test.mjs`
 - Svelte: `packages/generator-svelte/test/list-render.conformance.test.mjs`
 

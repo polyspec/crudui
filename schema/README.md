@@ -1,25 +1,19 @@
 # CRUDUI JSON Schema
 
-`crudui.schema.json` is the machine-readable JSON Schema (draft-07) for a
-crudui definition. It is generated from the TypeScript source of truth
-`packages/validator-ts/src/types.ts` (the `Spec` interface) by
-`ts-json-schema-generator`.
+[한국어](README.ko.md).
 
-Do not hand-edit `crudui.schema.json`. Regenerate it:
+[`crudui.schema.json`](crudui.schema.json) defines form and list declaration
+shapes using JSON Schema draft-07. The root references `Field`; `List` is available
+at `#/definitions/List`. The schema is maintained as source.
 
 ```bash
-make docs-schema       # or: npm run spec:schema
+make docs-schema
 ```
 
-The generator is idempotent: repeated runs produce a byte-identical file. The
-script also self-validates the schema with Ajv and smoke-tests it against the
-example specs in `examples/shared-specs/`.
+The command compiles the schema and verifies shared fixtures without changing
+source or expected results. See [schema validation](../docs/operations/schema-validation.md).
 
-## Editor integration
-
-Point your YAML editor at the schema so spec files get completion and validation.
-
-In a YAML spec file (VS Code with the YAML extension), add a modeline:
+Configure your YAML editor to use this schema for CRUDUI declarations:
 
 ```yaml
 # yaml-language-server: $schema=../../schema/crudui.schema.json
@@ -27,40 +21,11 @@ type: group
 properties:
   email:
     type: email
-    rules:
+    validate:
       required: true
       email: true
 ```
 
-Or map it globally in `.vscode/settings.json`:
-
-```json
-{
-  "yaml.schemas": {
-    "./schema/crudui.schema.json": ["examples/**/*.yml", "**/*.form.yml"]
-  }
-}
-```
-
-For JSON specs, reference it inline:
-
-```json
-{ "$schema": "./schema/crudui.schema.json", "type": "group", "properties": {} }
-```
-
-## Limitations
-
-The schema is derived mechanically from `types.ts` and inherits its shape:
-
-- `FieldSpec` carries an index signature (`[key: string]: unknown`), so unknown
-  field keys are permitted by design. The schema therefore does not reject
-  generator-only or renderer-only keys (display/element extras).
-- TSDoc descriptions on interface fields flow into the schema as `description`.
-- The `Spec` type uses optional-heavy interfaces; the schema requires only what
-  the TypeScript type marks required (`type`, `properties`).
-- `Record<...>` types appear as `$ref`'d definitions with URL-encoded names; this
-  is a generator artifact and does not affect validation.
-
-These limitations come from the source types, which are not modified to fit the
-schema. If a stricter schema is needed, extend the TypeScript types upstream and
-regenerate.
+Composition and expression evaluation are separate runtime operations. JSON Schema
+checks declaration shapes; the validators check submitted data against those
+declarations. See the [schema contract](../docs/spec/schema.md).

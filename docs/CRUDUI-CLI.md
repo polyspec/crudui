@@ -15,7 +15,7 @@
 ## 0. 아키텍처 — 3층, describe 가 1·2층의 다리
 
 ```
-지식층  .claude/skills/nl-to-form/SKILL.md
+지식층  .claude/skills/nl-to-CRUDUI-form/SKILL.md
           안정 절차 + 자연어→슬롯 매핑 + 금지원칙 + 예제만 보유.
           휘발성 카탈로그(위젯/규칙/금지키/문법)는 수기 복사 금지 — describe 위임.
             │ (카탈로그 위임)
@@ -69,14 +69,14 @@
 | 표현식 문법 | `docs/EXPRESSION-GRAMMAR.md` (§1 토큰표/§2 EBNF/§3 우선순위/§6 truthy/§10 비지원) — 산문 단일진실 인용 |
 | 분류 규칙 | `docs/spec/schema.md` §3 (A x주석 / B 1급만 1급 / C 종속격리 + 공통역할분배) 인용 |
 | list read-cell 포맷 카탈로그 | `packages/generator-core/src/cell.ts` `CELL_FORMATS`(렌더러 키) + `CELL_FORMAT_DEFAULT`(unknown fallback). schema `CellFormat` 의존키와 cross-check |
-| list 구조 | `schema/crudui.schema.json` definitions(`List`·`Column`·`CellFormat`·`Pagination`·`Sort`·`ListAction`)를 JSON.parse — schema §9 |
+| list 구조 | `schema/crudui.schema.json` definitions(`List`·`Column`·`CellFormat`·`Pagination`·`Sort`·`ListAction`)를 JSON.parse — SPEC §9 |
 
 **`--json` 형상** (SKILL/MCP 가 파싱 — `src/describe.ts` `DescribeResult` 가 단일진실). 최상위 키 11개: `meta` `widgets` `layouts` `rules` `slots` `buckets` `forbiddenKeys` `grammar` `classification` `matrix` `list`:
 
 ```json
 {
   "meta": {
-    "schema": "crudui",
+    "schema": "crudui-CRUDUI",
     "widgetCount": 0,
     "ruleCount": 0,
     "sources": { "widgets": "...", "rules": "...", "listCellFormats": "...", "listStructure": "..." }
@@ -133,8 +133,8 @@ crudui describe --md
 세 게이트, 전부 단일진실에서(재구현 규칙 0):
 
 1. **메타스키마** — ajv vs `schema/crudui.schema.json` (`additionalProperties:false`, `required:[type]`). 1급외 키 / 미등록 슬롯키 / `ForbiddenKeyNames` 적발.
-2. **forbidden-scan** — `scanForbiddenKeys` (validator-ts/forbidden-scan.ts), 임의 깊이. 메타스키마가 거울로 가진 런타임 백스톱.
-3. **leaf-type 카탈로그** — spec 을 compose 한 뒤 필드 트리를 걷고, `properties` 없는 LEAF 필드의 `type` 이 등록된 위젯 kind(`generator-core` `WIDGET_KINDS`)가 아니면 거부. 메타스키마는 `Field.type` 을 무제약 string 으로 모델링하므로 발명된 leaf 타입(`type: checkbox`)은 게이트 1·2 를 통과한다 — 이 게이트가 "describe 카탈로그에서 type 선택" 규칙을 강제하는 유일한 자리. `properties` 를 가진 컨테이너 필드는 면제(schema §3).
+2. **forbidden-scan** — `scanForbiddenKeys` (validator-ts/CRUDUI/forbidden-scan.ts), 임의 깊이. 메타스키마가 거울로 가진 런타임 백스톱.
+3. **leaf-type 카탈로그** — spec 을 compose 한 뒤 필드 트리를 걷고, `properties` 없는 LEAF 필드의 `type` 이 등록된 위젯 kind(`generator-core` `WIDGET_KINDS`)가 아니면 거부. 메타스키마는 `Field.type` 을 무제약 string 으로 모델링하므로 발명된 leaf 타입(`type: checkbox`)은 게이트 1·2 를 통과한다 — 이 게이트가 "describe 카탈로그에서 type 선택" 규칙을 강제하는 유일한 자리. `properties` 를 가진 컨테이너 필드는 면제(SPEC §3).
 
 값 검증은 하지 않는다 — 그건 `validate`(로드맵)다.
 
@@ -251,7 +251,7 @@ crudui list-widgets --json
 1. **위젯** — `import { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL } from '../../generator-core/src/widget.ts'`. `WIDGET_CANONICAL[key]` 로 alias 그룹핑(canonical-first), 각 키→layout 은 `WIDGET_LAYOUTS`.
 2. **규칙** — `getRuleNames()` + 분류 상수(`ARRAY_LEVEL_RULES`/`PATH_REFERENCE_RULES`/`LITERAL_PARAM_RULES`/`REGEX_PARAM_RULES`/`MEMBERSHIP_PARAM_RULES`)를 `validator.ts` 에서 import. `pattern` 은 `match` 의 alias.
 3. **슬롯/구조/버킷** — `JSON.parse(schema/crudui.schema.json)` → `Field.properties`(1급), `Validate`/`Design`/`Behavior`/`Options`/`Items`/`ItemsSource`/`ItemsModel`/`Multiple`/`Lang` definitions, `DesignNode`, `ForbiddenKeyNames` enum.
-4. **금지키** — `import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from '../../validator-ts/src/schema.ts'` + `scanForbiddenKeys`. types.ts enum ≡ schema enum ≡ 런타임 scan 3중 cross-check — 불일치 시 `crossCheckOk:false`.
+4. **금지키** — `import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from '../../validator-ts/src/types.ts'` + `scanForbiddenKeys`. types.ts enum ≡ schema enum ≡ 런타임 scan 3중 cross-check — 불일치 시 `crossCheckOk:false`.
 5. **list** — `import { CELL_FORMATS, CELL_FORMAT_DEFAULT } from '../../generator-core/src/cell.ts'` + schema `List`/`Column`/`CellFormat`/`Pagination`/`Sort`/`ListAction` definitions parse. cell.ts 카탈로그 ≡ schema CellFormat cross-check → `cellCrossCheckOk`.
 6. **문법** — `EXPRESSION-GRAMMAR.md` 를 § 번호로 정식 인용(파싱).
 7. **분류** — `spec/schema.md` 필드 분류 규칙 인용.

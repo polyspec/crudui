@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// $ref resolution — base inheritance, resolved before anything else (schema §5;
+// $ref resolution — base inheritance, resolved before anything else (SPEC §5;
 // legacy ReferenceResolver.php). Port of ref.ts.
 //
 // Semantics ported from legacy (single source of truth):
@@ -20,7 +20,7 @@ import (
 //	    through (handled by the FileLoader).
 //	(5) the result is recursively processed — nested $ref is expanded.
 //
-// CRUDUI normalization: $ref is the properties-layer composition entry point. The
+// model normalization: $ref is the properties-layer composition entry point. The
 // resolved result is flattened to a single properties map and laid down as the
 // base; $patch overlays it (base first, patch overrides). Unresolved $ref
 // (missing file / bad format / absent detectKey / cycle) is a LOAD ERROR.
@@ -104,7 +104,7 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 	key := loader.Normalize(path, basepath)
 
 	// Cycle detection: this file key already on the current resolution chain
-	// (legacy has no guard and infinite-recurses; CRUDUI must detect — SPEC §7).
+	// (legacy has no guard and infinite-recurses; model must detect — SPEC §7).
 	for _, c := range chain {
 		if c == key {
 			trace := append(append([]string{}, chain...), key)

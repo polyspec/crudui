@@ -15,8 +15,11 @@ conditions. It returns field view models without modifying the template or data.
 It does not load composition files. Evaluated values and display conditions are
 instance state and must not be stored in a shared template cache.
 
-`createFormSession(template, data, options)` creates an editable instance.
-`FormSessionView` renders the instance in React, Vue or Svelte. `setData(data)`
+`createForm(template, data, options)` creates an editable instance.
+`Form` renders the instance in React, Vue or Svelte. The host owns the HTML
+`form` element and submission handling. `renderForm(instance)` renders that same
+instance on the server. Data defaults and row identity are prepared by the instance
+before either renderer runs. Field-only rendering is an internal operation. `setData(data)`
 replaces the record after mounting, including previously edited input values.
 The template remains unchanged. `getData()` returns detached submission data.
 
@@ -136,3 +139,22 @@ application.
 7. Verify keyed scalar and group validation with shared four-language cases.
 8. Activate row addition with pointer and keyboard input; preserve focus, text
    selection and scroll positions in React, Vue and Svelte.
+
+## Input labels and selection
+
+Each native input has a stable DOM identifier derived from its full field path
+and the instance `idPrefix` (default `crudui`). Applications rendering multiple
+forms in one document provide distinct prefixes; SSR and browser rendering use
+the same prefix. Identifiers do not encode or submit additional record data.
+Single-control labels use `for`; checkbox and radio captions target their own
+input. Group headings do not target an unrelated input.
+Multiple-choice inputs use an array submission name and preserve every selected
+value through injection, editing and submission. An empty selection is an empty
+array in instance data.
+
+List rendering uses `renderList(spec, rows, { layout })`; `layout` is `table`
+(default) or `card` in every framework.
+
+Field containers use `data-field-path` for the data path relative to the form
+root. Only actual controls use `name` for submission. Browser row operations
+resolve the nearest field container and do not depend on a generated title.

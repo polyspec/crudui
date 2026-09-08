@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryLoader, Validator } from '@crudui/validator';
-import { compileForm, bindForm, createFormSession, sequenceRowKey, createRowKey } from './index';
+import { compileForm, bindForm, createForm, sequenceRowKey, createRowKey } from './index';
 // @ts-expect-error Shared cross-framework scenario.
 import { spec, data, companyKey, storeKey, otherStoreKey, storesPath } from '../../../tests/fixtures/form-session/scenario.mjs';
 
@@ -25,8 +25,8 @@ describe('cached structure and nested row lifecycle', () => {
 
   it('copies only the selected store, renews descendant ids, preserves live edits, then applies saved keys', () => {
     const template = compileForm(spec, { keyPrefix: 'form' });
-    const a = createFormSession(template, data);
-    const b = createFormSession(template, data);
+    const a = createForm(template, data);
+    const b = createForm(template, data);
     const independent = b.getData();
     a.setValue(`${storesPath}.${storeKey}.name`, '편집');
     const copied = a.copyRow(storesPath, storeKey);
@@ -51,7 +51,7 @@ describe('cached structure and nested row lifecycle', () => {
   });
 
   it('is atomic on duplicate keys/limits, and can delete to zero and add again', () => {
-    const session = createFormSession(compileForm(spec), data);
+    const session = createForm(compileForm(spec), data);
     const before = session.getSnapshot();
     expect(() => session.rekeyRow(storesPath, storeKey, otherStoreKey)).toThrow('already exists');
     expect(session.getSnapshot()).toBe(before);
@@ -65,7 +65,7 @@ describe('cached structure and nested row lifecycle', () => {
     const fields = session.getSnapshot().fields[0].rows![0].children!.find(f => f.path === storesPath)!;
     expect(fields.rows).toEqual([]);
     expect(session.addRow(storesPath)).toMatch(/^__[0-9a-f]{13}__$/);
-    const fixed = createFormSession(compileForm({ type: 'group', properties: {
+    const fixed = createForm(compileForm({ type: 'group', properties: {
       rows: { type: 'text', multiple: { min: 1, max: 1 } },
     } }));
     const fixedBefore = fixed.getSnapshot();
@@ -75,8 +75,8 @@ describe('cached structure and nested row lifecycle', () => {
   });
 
   it('rejects index arrays and keeps row identity on edits', () => {
-    expect(() => createFormSession(compileForm(spec), { companies: [] })).toThrow('keyed object');
-    const session = createFormSession(compileForm(spec), data);
+    expect(() => createForm(compileForm(spec), { companies: [] })).toThrow('keyed object');
+    const session = createForm(compileForm(spec), data);
     const company = Object.keys(session.getData().companies as object)[0];
     const path = `companies.${company}.stores`;
     const keys = Object.keys(session.getValue(path) as object);
@@ -90,4 +90,24 @@ describe('cached structure and nested row lifecycle', () => {
     expect(() => session.setValue('__proto__.polluted', true)).toThrow();
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
+});
+
+it('preserves sequence row keys in names and generates distinct stable DOM scopes', () => {
+  const template = compileForm({ type: 'group', properties: {
+    rows: { type: 'group', multiple: true, properties: { value: { type: 'text', label: 'Value' } } },
+  } });
+  const key = sequenceRowKey(7);
+  const data = { rows: { [key]: { value: 'saved' } } };
+  const first = createForm(template, data, { idPrefix: 'first' });
+  const second = createForm(template, data, { idPrefix: 'second' });
+  const widget = (form: typeof first) => form.getSnapshot().fields[0].rows![0].children![0].widget!;
+  const a = widget(first);
+  const b = widget(second);
+  if ('unsupported' in a || 'unsupported' in b) throw new Error('Text must be supported');
+  expect(a.attrs.name).toBe(`rows[${key}][value]`);
+  expect(b.attrs.name).toBe(a.attrs.name);
+  expect(b.attrs.id).not.toBe(a.attrs.id);
+  first.setData(data);
+  expect(widget(first)).toEqual(a);
+  expect(first.getData()).toEqual(data);
 });

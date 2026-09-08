@@ -26,5 +26,5 @@ envelope (never `valid:false`).
 
 ```
 composer test          # full PHPUnit suite
-composer test:current       # CRUDUI conformance only (tests)
+composer test:current       # CRUDUI conformance only (tests/CRUDUI)
 ```

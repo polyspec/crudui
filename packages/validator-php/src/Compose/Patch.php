@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Compose;
 
 /**
- * $patch application — add / remove / replace over the $ref base (schema §5).
+ * $patch application — add / remove / replace over the $ref base (SPEC §5).
  * Byte-for-byte port of validator-ts/src/compose/patch.ts.
  *
  * Absorbs the legacy legacy directives $after/$before/$merge/$change/$remove

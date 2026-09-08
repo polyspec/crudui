@@ -1,16 +1,16 @@
-// Package validate is the Go CRUDUI form validator (schema §2 G5 → §3 → §2 G1) —
-// the THIRD pass of the CRUDUI pipeline.
+// Package validate is the Go model form validator (SPEC §2 G5 → §3 → §2 G1) —
+// the THIRD pass of the model pipeline.
 //
-// It consumes a CRUDUI field model (the validate / design / behavior / options role
-// slots) AFTER the compose pass (validator-go/validator/compose) has expanded
+// It consumes a model field model (the validate / design / behavior / options role
+// slots) AFTER the compose pass (validator-go/validator/model/compose) has expanded
 // $ref / $patch into a single spec. It does NOT touch the legacy validator (R7
 // parallel run) and it does NOT re-implement the expression engine — it CALLS the
-// existing engine (validator-go/validator/expr) for conditional rule values.
+// existing engine (validator-go/validator/model/expr) for conditional rule values.
 // The rule semantics mirror the JS reference (validator-ts/src/rules) byte for
 // byte; the shared 4-language fixture tests/fixtures/validate/cases.json is the
 // single truth, generated from the JS engine.
 //
-// Pipeline (schema):
+// Pipeline (SPEC):
 //
 //	(1) compose  — ComposeProperties / ComposeSpec (compose/) runs BEFORE this
 //	    engine (Validate in index.go). An unresolved $ref is a *ComposeLoadError
@@ -32,7 +32,7 @@ import "strings"
 
 // ValidationError is one validation failure. Field shape is identical to the legacy
 // validator (path / field / rule / message / value) so the 4-language idempotence
-// comparison (schema G-B) holds with the same (path, rule, message).
+// comparison (SPEC G-B) holds with the same (path, rule, message).
 type ValidationError struct {
 	// Path is the dot-joined full path to the field (items.0.name, rows.__uid__.v).
 	Path string `json:"path"`

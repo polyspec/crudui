@@ -10,7 +10,7 @@ use axum::{
     routing::any,
     Router,
 };
-use crudui_validator::validate::{validate, ValidateOptions};
+use crudui_validator::v2::validate::{validate_v2, ValidateV2Options};
 use repository::{load_data, read_object, Repository};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Arc};
@@ -228,7 +228,7 @@ async fn handle(
     let data = form::normalize(&received, mode_data)?;
     let spec = read_object(&server.specs.join(format!("spec-{mode_data}.json")))?;
     let validation =
-        validate(&spec, &data, &ValidateOptions::default()).map_err(|e| Error {
+        validate_v2(&spec, &data, &ValidateV2Options::default()).map_err(|e| Error {
             status: StatusCode::INTERNAL_SERVER_ERROR,
             message: e.to_string(),
         })?;

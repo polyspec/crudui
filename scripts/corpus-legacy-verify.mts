@@ -1,8 +1,8 @@
 /**
- * Independent re-verification of the 39 corpus-CRUDUI failures.
+ * Independent re-verification of the 39 corpus-schema failures.
  * Does NOT trust the classify heuristic. For each failing spec it re-derives the
  * failure and runs an independent corpus-defect probe to decide whether the
- * failure is a genuine corpus defect (is_schema_responsibility=false) or a CRUDUI/translator
+ * failure is a genuine corpus defect (is_schema_responsibility=false) or a schema/translator
  * problem (is_schema_responsibility=true).
  */
 import * as fs from 'node:fs';

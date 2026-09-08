@@ -5,6 +5,19 @@ Form instances, repeated row keys and caching are defined in
 [form runtime](form-runtime.md). Implementation and deployment status are
 recorded in [features](../features.md).
 
+## Package API
+
+CRUDUI starts at package version `0.0.1`. Current APIs use names without
+implementation-generation suffixes. Package roots expose the current validator
+and form renderer. Older implementations use explicit `legacy` modules. Shared
+rules and expression utilities are independent of legacy modules. Replaced
+versioned paths have no compatibility aliases.
+
+The machine-readable contract is maintained in
+[`schema/crudui.schema.json`](../../schema/crudui.schema.json). It validates
+form and list declaration shapes. `make docs-schema` checks this source against
+shared fixtures without generating or replacing its rules.
+
 ## Fields
 
 A form root is a `group` with a `properties` field map. Property names define

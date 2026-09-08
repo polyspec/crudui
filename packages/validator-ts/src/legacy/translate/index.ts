@@ -1,14 +1,14 @@
 /**
- * legacy→CRUDUI translator (reference) — public surface.
+ * legacy→schema translator (reference) — public surface.
  *
- * SPEC→SPEC migration (CRUDUI-NEW, R7 parallel run): translate a legacy legacy field spec
- * into the canonical CRUDUI model, and reverse the REVERSIBLE subset for the
+ * SPEC→SPEC migration (schema-NEW, R7 parallel run): translate a legacy legacy field spec
+ * into the canonical schema model, and reverse the REVERSIBLE subset for the
  * round-trip gate. The translator is the ONLY recognizer of legacy key names —
- * the CRUDUI meta-schema and forbidden-scan never recognize them (R2/R4). Translator
+ * the schema meta-schema and forbidden-scan never recognize them (R2/R4). Translator
  * output passes the meta-schema and forbidden-scan (zero meta keys), never runs
  * `eval`, and never mutates the legacy input.
  *
- * Round-trip (SPEC §6): legacy→CRUDUI→legacy = original bit-for-bit holds ONLY over the
+ * Round-trip (SPEC §6): legacy→schema→legacy = original bit-for-bit holds ONLY over the
  * reversible key set. `roundtripLegacy` runs the loop and reports whether the input
  * stayed inside that set (note log empty) — an input with any irreversible
  * absorption is OUTSIDE the gate by construction (R7), not a translator bug.
@@ -30,9 +30,9 @@ import { translateFromLegacy } from './from-legacy';
 import { translateToLegacy } from './to-legacy';
 import type { LegacySpec, TranslateNote } from './types';
 
-/** Outcome of a legacy→CRUDUI→legacy round-trip. */
+/** Outcome of a legacy→schema→legacy round-trip. */
 export interface RoundtripResult {
-  /** The intermediate CRUDUI spec. */
+  /** The intermediate schema spec. */
   schema: Record<string, unknown>;
   /** The reverse-translated legacy spec. */
   back: LegacySpec;
@@ -45,7 +45,7 @@ export interface RoundtripResult {
 }
 
 /**
- * Run legacy→CRUDUI→legacy and report losslessness. When the forward pass logged no
+ * Run legacy→schema→legacy and report losslessness. When the forward pass logged no
  * irreversible absorption (`reversible:true`), `back` must equal the input
  * bit-for-bit; the helper computes both so a test can assert the gate. When the
  * input used an irreversible key, `reversible:false` — the round-trip is OUTSIDE

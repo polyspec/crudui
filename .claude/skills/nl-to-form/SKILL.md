@@ -1,5 +1,5 @@
 ---
-name: nl-to-form
+name: nl-to-CRUDUI-form
 description: 자연어 기획서/구술을 검증 통과하는 CRUDUI 스펙으로 변환한다. 사용자가 폼 설계서·필드 목록·요구사항을 주고 CRUDUI 스펙(YAML/JSON)을 요청할 때, 또는 기존 CRUDUI 스펙을 자연어 의도와 대조·수정할 때 사용한다.
 ---
 
@@ -26,7 +26,7 @@ check·validate 둘 다 GREEN이고 explain이 기획서와 일치할 때까지 
 a. **추출** — 기획서/구술에서 필드 후보·라벨·필수여부·선택지·반복·조건·다국어·기본값·동작을 뽑는다.
    불명확하면 묻는다. 추측을 사실로 적지 마라.
 
-b. **분류** — describe의 `classification`(출처: `docs/spec/schema.md §3`)으로 각 키의 자리를 정한다:
+b. **분류** — describe의 `classification`(출처: `docs/SPEC.md §3`)으로 각 키의 자리를 정한다:
    1급 vs `options`/`multiple`/`lang`/`items` 하위 vs `validate`/`design`/`behavior`. 자리 규칙은
    describe만 따른다 — 임의로 1급을 늘리지 마라.
 
@@ -137,4 +137,4 @@ properties:
 | `crudui list-widgets [--json]` | describe 위젯 섹션의 얇은 뷰. |
 
 출처 단일진실: 카탈로그=코드(`packages/generator-core`·`packages/validator-ts`·`schema/crudui.schema.json`),
-분류=`docs/spec/schema.md §3`, 문법=`docs/EXPRESSION-GRAMMAR.md`. 이 파일은 절차와 매핑만 — 카탈로그는 describe가 읽는다.
+분류=`docs/SPEC.md §3`, 문법=`docs/EXPRESSION-GRAMMAR.md`. 이 파일은 절차와 매핑만 — 카탈로그는 describe가 읽는다.

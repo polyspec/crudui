@@ -4,7 +4,7 @@
  * Three gates, all from the single-source-of-truth (no re-implemented rule):
  *   1. ajv against schema/crudui.schema.json (additionalProperties:false →
  *      rejects non-first-class keys, unregistered slot keys, ForbiddenKeyNames).
- *   2. scanForbiddenKeys (validator-ts/forbidden-scan.ts) — the runtime
+ *   2. scanForbiddenKeys (validator-ts/CRUDUI/forbidden-scan.ts) — the runtime
  *      backstop that the meta-schema mirrors, walked to arbitrary depth.
  *   3. leaf-type catalog — compose the spec, walk the field tree, and reject any
  *      LEAF field (no `properties`) whose `type` is not a registered widget kind
@@ -13,7 +13,7 @@
  *      invented leaf type (`type: checkbox`) clears gates 1·2. This gate is the
  *      only place that enforces the SKILL rule "pick a type from describe's
  *      catalog". Container fields (those that own `properties`) are exempt — per
- *      schema §3, `properties` marks a group/container, not a leaf widget.
+ *      SPEC §3, `properties` marks a group/container, not a leaf widget.
  *
  * Gates 1·2 are the R1 verification CORE and stay type-agnostic. Gate 3 lives in
  * the CLI (orchestrator) layer ONLY and reads the live registry, so a widget
@@ -61,7 +61,7 @@ function isFieldNode(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
-/** A field is a CONTAINER when it owns a `properties` map (schema §3). */
+/** A field is a CONTAINER when it owns a `properties` map (SPEC §3). */
 function isContainer(field: Record<string, unknown>): boolean {
   return isFieldNode(field.properties);
 }
@@ -154,7 +154,7 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
   }
 
   // Gate 3 — leaf-type catalog (CLI orchestrator layer; live registry, drift 0).
-  // Compose first (schema §5, G5) so a `$ref`-inherited `type` is visited; an
+  // Compose first (SPEC §5, G5) so a `$ref`-inherited `type` is visited; an
   // empty MemoryLoader resolves self-contained specs unchanged. If composition
   // cannot resolve (unresolved `$ref` with no file set — a LOAD concern that
   // `validate` owns), fall back to the raw spec so inline leaf types are still

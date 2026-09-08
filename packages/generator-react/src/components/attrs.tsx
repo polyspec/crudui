@@ -31,6 +31,16 @@ export function resolvedStyleProps(style: React.CSSProperties | undefined): {
   };
 }
 
+const propertyNames: Record<string, string> = {
+  class: 'className', for: 'htmlFor', readonly: 'readOnly', autocomplete: 'autoComplete',
+  tabindex: 'tabIndex', maxlength: 'maxLength', minlength: 'minLength',
+  colspan: 'colSpan', rowspan: 'rowSpan', autofocus: 'autoFocus',
+};
+
+function reactProperty(attribute: string): string {
+  return propertyNames[attribute] ?? attribute;
+}
+
 /** Split a core attr bag into verbatim attrs + an uncontrolled `defaultValue`. */
 export function inputProps(attrs: Attrs): Record<string, unknown> {
   const props: Record<string, unknown> = {};
@@ -42,8 +52,10 @@ export function inputProps(attrs: Attrs): Record<string, unknown> {
       // React's style prop rejects a string → map to a CSSProperties object.
       const obj = styleObject(v);
       if (obj) props.style = obj;
+    } else if (k === 'readonly' || k === 'disabled' || k === 'required' || k === 'multiple' || k === 'autofocus') {
+      props[reactProperty(k)] = true;
     } else {
-      props[k] = v;
+      props[reactProperty(k)] = v;
     }
   }
   return props;
@@ -56,8 +68,10 @@ export function plainProps(attrs: Attrs): Record<string, unknown> {
     if (k === 'style') {
       const obj = styleObject(v);
       if (obj) props.style = obj;
+    } else if (k === 'readonly' || k === 'disabled' || k === 'required' || k === 'multiple' || k === 'autofocus') {
+      props[reactProperty(k)] = true;
     } else {
-      props[k] = v;
+      props[reactProperty(k)] = v;
     }
   }
   return props;

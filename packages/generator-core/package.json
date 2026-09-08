@@ -1,7 +1,7 @@
 {
   "name": "@crudui/generator-core",
   "version": "0.0.1",
-  "description": "Framework-agnostic current evaluation core (compose + evaluate, markup 0) shared by every crudui generator adapter (React/Vue/Svelte)",
+  "description": "Shared form compilation, data binding, expression evaluation and list models",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -36,7 +36,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@crudui/validator": "file:../validator-ts"
+    "@crudui/validator": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

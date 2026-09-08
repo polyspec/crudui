@@ -114,7 +114,7 @@ func (m *OMap) MarshalJSON() ([]byte, error) {
 
 // DecodeOrdered parses a JSON document into the engine value universe (*OMap /
 // []any / scalars), preserving object declaration order. It is the exported entry
-// the CRUDUI validate pass uses to load a spec into the compose value model before
+// the model validate pass uses to load a spec into the compose value model before
 // composing it. Same semantics as the internal decodeOrdered.
 func DecodeOrdered(data []byte) (any, error) {
 	return decodeOrdered(data)

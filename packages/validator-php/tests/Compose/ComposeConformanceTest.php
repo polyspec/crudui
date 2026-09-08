@@ -10,7 +10,7 @@ use CRUDUI\Validator\Compose\MemoryLoader;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI composition-engine conformance (schema §5, G5). The shared 4-language
+ * CRUDUI composition-engine conformance (SPEC §5, G5). The shared 4-language
  * fixture tests/fixtures/compose/cases.json is the single truth — its values are
  * the JS reference engine's actual output (expanded single spec | load-error
  * code). PHP loads this ONE file and must reproduce it bit-for-bit (G-B

@@ -1,5 +1,5 @@
 /**
- * CRUDUI list-spec validation conformance — JS reference verification (schema §9).
+ * CRUDUI list-spec validation conformance — JS reference verification (SPEC §9).
  *
  * The read sister of validate.conformance.test.ts. It pins the four-language
  * STRUCTURE gate for a list-spec: compose ($ref/$patch on the columns map and a

@@ -1,5 +1,5 @@
 /**
- * Real corpus legacy→CRUDUI conversion + CRUDUI validation harness (read-only over corpus).
+ * Real corpus legacy→schema conversion + schema validation harness (read-only over corpus).
  *
  * The input corpus is read-only. Only Spec/*.yml files are
  * read. Nothing in the corpus is created or modified. This script lives in the
@@ -7,10 +7,10 @@
  *
  * Pipeline per spec:
  *   load    — read + js-yaml parse the legacy spec file
- *   translate — translateFromLegacy (legacy spec object → CRUDUI spec object)
- *   schema  — ajv validate the CRUDUI output against the CRUDUI meta-schema (root Field)
- *   forbidden — scanForbiddenKeys over the CRUDUI output (zero meta keys at any depth)
- *   validate — validate(CRUDUI, {}) structural validation with empty data
+ *   translate — translateFromLegacy (legacy spec object → schema spec object)
+ *   schema  — ajv validate the schema output against the schema meta-schema (root Field)
+ *   forbidden — scanForbiddenKeys over the schema output (zero meta keys at any depth)
+ *   validate — validate(schema, {}) structural validation with empty data
  *
  * A failure records {spec, stage, reason}. Aggregates pass/fail and top reasons.
  */
@@ -53,7 +53,7 @@ const validateSchema = ajv.compile(schema);
 /**
  * Disk-backed loader for `$ref`: resolves a relative ref against the spec's
  * directory inside the READ-ONLY corpus, reads the legacy yaml, and translates it
- * to CRUDUI on the fly so the CRUDUI compose engine sees CRUDUI documents. Read-only —
+ * to schema on the fly so the schema compose engine sees schema documents. Read-only —
  * never writes to the corpus.
  */
 class TranslatingDiskLoader implements FileLoader {
@@ -150,7 +150,7 @@ for (const file of list) {
   }
 
   // --- validate (structural, empty data) ---
-  // only meaningful when the CRUDUI spec is a group with properties (root form).
+  // only meaningful when the schema spec is a group with properties (root form).
   let okValidate = false;
   try {
     validate(schema as Record<string, unknown>, {}, { loader: refLoader, basepath: path.dirname(file) });

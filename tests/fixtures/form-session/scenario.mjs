@@ -119,7 +119,7 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   button(savedKey, 'minus').click();
   await flush();
   expect(session.getValue(storesPath)).toEqual({});
-  const wrapper = control(`form.${storesPath}-layer`);
+  const wrapper = Array.from(element.querySelectorAll('[data-field-path]')).find(node => node.dataset.fieldPath === storesPath);
   const emptyAdd = wrapper.querySelector('button.btn-plus');
   emptyAdd.focus();
   emptyAdd.click();

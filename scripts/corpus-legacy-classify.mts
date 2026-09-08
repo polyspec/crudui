@@ -55,7 +55,7 @@ function classify(stage: string, reason: string, ctx: { errKw?: string; ap?: str
     return { cat: 'translator-bug', label: 'root/group missing type — translator omits type:group injection' };
   }
   if (/\/description$|\/label$|\/placeholder$|\/help$|\/prepend$|\/append$/.test(ip)) {
-    // Content slot: null content very common -> CRUDUI Content has no null branch
+    // Content slot: null content very common -> schema Content has no null branch
     return { cat: 'schema-gap', label: 'Content slot null (empty description:/label:) — schema Content lacks null branch' };
   }
   if (/\/items(\/|$)/.test(ip)) {

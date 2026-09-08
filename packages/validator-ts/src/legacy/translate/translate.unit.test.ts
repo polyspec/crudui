@@ -1,5 +1,5 @@
 /**
- * legacy→CRUDUI translator unit tests — internal invariants not covered by the shared
+ * legacy→schema translator unit tests — internal invariants not covered by the shared
  * fixture replay (which proves cross-language output). These pin the translator
  * contract directly.
  */
@@ -41,8 +41,8 @@ describe('x{key} comments are stripped, never emitted', () => {
     expect(notes.every((n) => n.reason === 'XKEY_STRIP')).toBe(true);
     expect(notes.length).toBe(3);
     // The bare key `x` (length 1) is NOT a comment — it goes to options.
-    const { schema: restored } = translateFromLegacy({ type: 'text', x: 5 });
-    expect((restored.options as Record<string, unknown>).x).toBe(5);
+    const { schema: schemaWithBareX } = translateFromLegacy({ type: 'text', x: 5 });
+    expect((schemaWithBareX.options as Record<string, unknown>).x).toBe(5);
   });
 });
 

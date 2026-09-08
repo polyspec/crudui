@@ -45,8 +45,6 @@ test-*.html
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 docs/api/
-# Generated JSON Schema (reproducible via `make docs-schema`)
-schema/crudui.schema.json
 # phpDocumentor phar + cache (large, environment-local)
 tools/bin/phpDocumentor.phar
 tools/bin/.phpdoc-cache/

@@ -1,10 +1,10 @@
-// Package main is the Go CRUDUI validate CLI — a thin stdin/stdout wrapper over the
-// CRUDUI pipeline (validator/validate.ValidateJSON: compose → forbidden-scan →
-// validate). It exists so the cross-check gateway can drive the Go CRUDUI validator
-// as a subprocess, identical in protocol to the JS/PHP/Rust CRUDUI wrappers.
+// Package main is the Go model validate CLI — a thin stdin/stdout wrapper over the
+// model pipeline (validator/model/validate.ValidateJSON: compose → forbidden-scan →
+// validate). It exists so the cross-check gateway can drive the Go model validator
+// as a subprocess, identical in protocol to the JS/PHP/Rust model wrappers.
 //
 // It does NOT touch the legacy CLI (cmd/validate) or the legacy validator (R7 parallel
-// run, legacy inviolable). It adds NO logic — every decision lives in the reused CRUDUI
+// run, legacy inviolable). It adds NO logic — every decision lives in the reused model
 // engine. Go ≥ 1.18: any, not interface{}.
 //
 // Protocol (gateway subprocess contract):
@@ -14,7 +14,7 @@
 //
 // mode selects the validation entry (default "form"):
 //   - "form" — ValidateJSON (compose → forbidden-scan → DATA validate). data is read.
-//   - "list" — ValidateListJSON (compose → forbidden-scan ONLY; schema §9). A
+//   - "list" — ValidateListJSON (compose → forbidden-scan ONLY; SPEC §9). A
 //     list carries no rows, so there is no DATA pass and `data` is ignored. The
 //     SAME load wire applies (an unresolved $ref / forbidden meta key is a fatal
 //     load envelope). The form path is untouched — list is an additive branch.
@@ -35,7 +35,7 @@ import (
 	"github.com/crudui/crudui/packages/validator-go/validator/validate"
 )
 
-// request is the stdin envelope. spec and data stay raw so the CRUDUI entry point
+// request is the stdin envelope. spec and data stay raw so the model entry point
 // decodes them itself — spec via compose.DecodeOrdered (declaration order
 // survives), data via encoding/json. files/basepath drive $ref resolution.
 type request struct {
@@ -67,7 +67,7 @@ func main() {
 	}
 
 	// Mode dispatch (default form). list runs compose → forbidden-scan only (no
-	// DATA pass, schema §9): a list carries no rows. The form path is unchanged.
+	// DATA pass, SPEC §9): a list carries no rows. The form path is unchanged.
 	var result validate.ValidationResult
 	switch req.Mode {
 	case "", "form":

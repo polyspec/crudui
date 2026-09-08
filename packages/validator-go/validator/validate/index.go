@@ -1,6 +1,6 @@
 package validate
 
-// CRUDUI validation entry point (schema §2 pipeline). Wires the three passes in
+// model validation entry point (SPEC §2 pipeline). Wires the three passes in
 // order: G5 compose first → §3 traversal → §2 G1 value evaluation. JS index.ts
 // (validate) parity.
 //
@@ -10,7 +10,7 @@ package validate
 //	    existence, so there is no validation result. This closes the legacy
 //	    valid:true-on-unresolved-$ref gap (ProductNft.yml:873).
 //	(2/3) validate — Validator traverses the composed spec and runs the validate
-//	    slot (conditional rule values via the CRUDUI expression engine).
+//	    slot (conditional rule values via the model expression engine).
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ import (
 // FileSet is a virtual file set $ref resolves against ({ key: doc }).
 type FileSet map[string]*compose.OMap
 
-// Options configures a CRUDUI validation run.
+// Options configures a model validation run.
 type Options struct {
 	// Files is the virtual file set for $ref resolution (default: empty).
 	Files FileSet
@@ -31,7 +31,7 @@ type Options struct {
 	Basepath string
 }
 
-// Validate validates data against a CRUDUI spec given as the engine value model
+// Validate validates data against a model spec given as the engine value model
 // (*compose.OMap, decoded with compose.DecodeOrdered). The spec may carry
 // $ref / $patch; they are expanded first. An unresolved composition returns a
 // *compose.ComposeLoadError (the caller distinguishes a LOAD failure from
@@ -78,7 +78,7 @@ func Validate(spec *compose.OMap, data map[string]any, opts Options) (Validation
 		}
 	}
 
-	// Load-path forbidden-scan (schema §6): walk the composed single spec to
+	// Load-path forbidden-scan (SPEC §6): walk the composed single spec to
 	// arbitrary depth and reject any forbidden meta key BEFORE validation entry.
 	// A hit is a *compose.ComposeLoadError (a LOAD failure), never valid:false.
 	// This closes the deep-nesting leak the typed model alone could not (R1).

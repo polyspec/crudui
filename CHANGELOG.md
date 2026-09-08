@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-08 — Form instances and input controls
+
+The form API prepares templates with `compileForm`, creates editable instances
+with `createForm`, renders `Form` components and accepts an instance in
+`renderForm`. List renderers use the same `layout` option. Native controls have
+stable, scoped label identifiers; multiple-choice controls submit arrays.
+Field containers use `data-field-path` instead of a submission name.
+Svelte packages include generated component declarations. Package dependencies
+use the `0.0.1` package version. Validation comparisons fail when a required
+engine fails, is missing or returns duplicate results.
+
+Verification: 1,409 form tests, 1,579 JavaScript validator tests, 1,392 PHP tests,
+Go and Rust tests, 42 console tests, 18 inspector tests, Svelte type checking,
+package consumer compilation/build and documentation checks passed.
+The running comparison container has not been updated to this source.
+
 ## 2026-09-08 — Record restoration HTML
 
 The shared DOM binding places an existing `checked` attribute after the input's
