@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Validate;
 
 /**
- * CRUDUI validation result — { valid, errors } (schema G-B). Port of the JS
+ * CRUDUI validation result — { valid, errors } (SPEC G-B). Port of the JS
  * ValidationResult shape. `errors` is a flat list of error records, each
  * { path, field, rule, message, value }; idempotent with the legacy ValidationError
  * fields so the 4-language fixture compares bit-for-bit.

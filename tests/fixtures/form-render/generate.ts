@@ -1,3 +1,5 @@
+import { renderFields } from '../../../packages/generator-react/src/internal/renderFields';
+import type { BindFormOptions, CompileFormOptions } from '@crudui/generator-core';
 import { compileForm } from '@crudui/generator-core';
 /**
  * form-render shared fixture generator (4-language / 3-framework parity gate).
@@ -14,9 +16,7 @@ import { compileForm } from '@crudui/generator-core';
  */
 
 import {
-  renderForm,
   ComposeLoadError,
-  type RenderFormOptions,
 } from '../../../packages/generator-react/src/index';
 // @ts-expect-error — JS normalizer shared across the fixture harness.
 import { normalizeHtml } from './normalize.mjs';
@@ -26,7 +26,7 @@ interface FixtureCase {
   note: string;
   spec: Record<string, unknown>;
   data?: Record<string, unknown>;
-  options?: Omit<RenderFormOptions, 'data'>;
+  options?: BindFormOptions & CompileFormOptions;
   expected_html?: string;
   expectError?: { code: string };
 }
@@ -353,7 +353,7 @@ function build(): FixtureCase[] {
       // Confirm the error actually throws with the recorded code.
       let thrown: unknown;
       try {
-        renderForm(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+        renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
       } catch (e) {
         thrown = e;
       }
@@ -365,7 +365,7 @@ function build(): FixtureCase[] {
       }
       return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expectError: c.expectError };
     }
-    const html = renderForm(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+    const html = renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
     const expected_html = normalizeHtml(html);
     return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expected_html };
   });

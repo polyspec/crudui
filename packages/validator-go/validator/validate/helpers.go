@@ -1,13 +1,13 @@
 package validate
 
-// Shared helpers for the CRUDUI validate engine: path-string parsing, field-reference
+// Shared helpers for the model validate engine: path-string parsing, field-reference
 // resolution (the verbatim path-param rules equalTo / notEqual / unique / enddate
 // need it), the condition-expression heuristic, accept MIME/extension matching,
 // date parsing, and URL validation. All mirror the JS reference
 // (validator-ts/src/parser/PathResolver, ConditionParser, rules/accept|date|url).
 //
 // Field-reference resolution is the ONE piece of path logic this package owns
-// directly: the CRUDUI expr engine resolves paths inside expressions, but a rule param
+// directly: the model expr engine resolves paths inside expressions, but a rule param
 // that is a verbatim field reference (".password") is not parsed as an expression,
 // so it is resolved here with the same relative-path semantics
 // (".x" = sibling, "..x" = parent's sibling, array indices not counted as levels).

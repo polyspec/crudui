@@ -5,7 +5,7 @@
 
   It takes the core's already-built `ListViewModel` (compose + design eval + i18n
   + the read cell renderer) and lays it out as a table (default) or cards
-  (`mode="card"`). A pure presentational `.svelte` tree: NO evaluation, NO string
+  (`layout="card"`). A pure presentational `.svelte` tree: NO evaluation, NO string
   concatenation of structure, NO completed-list HTML echo. Every structural node
   (table/thead/tr/th/td, card list/article/row) is a REAL `.svelte` element; the
   cell DISPATCH (text/date/number/choice-label/badge/link/image/bool/html) is real
@@ -33,8 +33,8 @@
 
   let {
     vm,
-    mode = 'table',
-  }: { vm: ListViewModel; mode?: 'table' | 'card' } = $props();
+    layout = 'table',
+  }: { vm: ListViewModel; layout?: 'table' | 'card' } = $props();
 
   const wrapperClass = $derived(
     ['list-view', vm.design.wrapper.class].filter((s) => s && s.trim()).join(' ').trim()
@@ -82,7 +82,7 @@
 
   {#if isEmpty}
     <div class="list-empty">{vm.empty}</div>
-  {:else if mode === 'card'}
+  {:else if layout === 'card'}
     <div class="list-cards">
       {#each vm.rows as row, ri (ri)}
         <article class="list-card">

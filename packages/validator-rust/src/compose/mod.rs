@@ -1,4 +1,4 @@
-//! CRUDUI composition engine — schema §5, G5.
+//! CRUDUI composition engine — SPEC §5, G5.
 //!
 //! The parser's first pass: expand `$ref` (base inheritance) then `$patch`
 //! (add/remove/replace + deep-path set) into a single, composition-free spec,

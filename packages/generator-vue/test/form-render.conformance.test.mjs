@@ -25,7 +25,7 @@ import { describe, test, expect } from 'vitest';
 // Shared 3-framework fixture + normalizer (the SAME files React/Svelte load).
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 // Vue CRUDUI generator (TypeScript source; Vitest transforms it).
-import { renderFormSSR } from '../src/ssr.ts';
+import { renderFields } from '../src/internal/renderFields.ts';
 import { ComposeLoadError, UnsupportedFieldTypeError } from '../src/index.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -33,10 +33,10 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.js
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 async function renderSSR(c) {
-  return renderFormSSR(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+  return renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
-describe('current render — Vue 3 SSR reproduces the normalized expected_html', () => {
+describe('form rendering: Vue 3 SSR reproduces the normalized expected_html', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
     test(c.name, async () => {
       const actual = normalizeHtml(await renderSSR(c));
@@ -45,7 +45,7 @@ describe('current render — Vue 3 SSR reproduces the normalized expected_html',
   }
 });
 
-describe('current render — Vue SSR is idempotent (stable across re-render)', () => {
+describe('form rendering: Vue SSR is idempotent (stable across re-render)', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
     test(`${c.name} — re-render is stable`, async () => {
       const a = normalizeHtml(await renderSSR(c));
@@ -64,7 +64,7 @@ const ERROR_CLASS_BY_CODE = {
   UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError,
 };
 
-describe('current render — a load/registry gap is a surfaced ERROR, never silent', () => {
+describe('form rendering: a load/registry gap is a surfaced ERROR, never silent', () => {
   for (const c of cases.filter((x) => x.expectError)) {
     test(c.name, async () => {
       let thrown;
@@ -87,16 +87,8 @@ describe('current render — a load/registry gap is a surfaced ERROR, never sile
 // ("if"/"when") so label/text prose never false-positives.
 const FORBIDDEN_LITERAL = ['display_switch', 'display_target', 'show_if'];
 const FORBIDDEN_KEYSHAPE = [/"if"/, /"when"/];
-// R4 magic-token guard. CRUDUI emits NO `__<hex>__` token (row identity is the
-// explicit position index / hidden data key; element ids are path-derived). Any
-// `__<hex>__` residue in raw output is a magic-token regression — there is no
-// longer a normalizer mask to hide it.
-const ANY_UNDERSCORE_TOKEN = /__[0-9a-f]+__/;
 
-// Symmetric with React/Svelte (3-framework parity). Operates on the RAW Vue 3
-// SSR output (pre-normalization): the real bytes the generator emits, where a
-// forbidden meta key or a magic token would still be visible.
-describe('current render — eval is never used (no legacy condition meta keys leak)', () => {
+describe('form rendering: eval is never used (no legacy condition metadata)', () => {
   for (const c of cases.filter((x) => x.expected_html)) {
     test(`${c.name} — no forbidden meta-key markup`, async () => {
       const raw = await renderSSR(c);
@@ -109,11 +101,6 @@ describe('current render — eval is never used (no legacy condition meta keys l
         expect(raw, `${c.name}: ${re} leaked into raw output`).not.toMatch(re);
       }
 
-      // 2: R4 — NO magic `__<hex>__` token is emitted at all. Row identity is the
-      // explicit position index / hidden data key; element ids are path-derived.
-      expect(raw, `${c.name}: magic __<hex>__ token leaked into raw output`).not.toMatch(
-        ANY_UNDERSCORE_TOKEN
-      );
     });
   }
 

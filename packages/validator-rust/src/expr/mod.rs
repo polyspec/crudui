@@ -4,7 +4,7 @@
 //! (tokens, AST without `position`, evaluated value, and truthy).
 //!
 //! This is CRUDUI-new and runs parallel to the legacy engine (`crate::condition_parser`),
-//! which is untouched (schema R7). No eval / no regex-split anywhere
+//! which is untouched (SPEC R7). No eval / no regex-split anywhere
 //! (GRAMMAR §10) — a strictly staged pipeline.
 
 pub mod ast;

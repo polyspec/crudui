@@ -113,24 +113,15 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
     expect(rustGroup.langs).toEqual(['rust']);
   });
 
-  test('a failed CLI (ok:false) is excluded from the verdict, never folded into consensus', () => {
-    // Three agree valid:true; the fourth crashed. A crashed engine does NOT vote
-    // — it is filtered before signatures are computed, so it cannot turn a real
-    // disagreement into false agreement (it is not silently counted as a yes).
-    // The verdict reflects only the engines that actually ran.
+  test('a failed CLI makes the four-language comparison fail', () => {
     const results = [
-      env('js', { valid: true }),
-      env('php', { valid: true }),
-      env('go', { valid: true }),
+      env('js', { valid: true }), env('php', { valid: true }), env('go', { valid: true }),
       { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'binary missing' },
     ];
-    const { idempotent, mismatch } = compareIdempotency(results);
-    expect(idempotent).toBe(true);
-    expect(mismatch).toBeNull();
-    // And if the crashed engine WERE compared, its signature is the __error__
-    // channel — distinct from any valid=... — so it can never silently agree.
-    expect(signature(results[3])).toMatch(/^__error__:/);
-    expect(signature(results[0])).not.toBe(signature(results[3]));
+    expect(compareIdempotency(results).idempotent).toBe(false);
+    expect(compareIdempotency(results.slice(0, 3)).mismatch.missing).toEqual(['rust']);
+    expect(compareIdempotency([]).idempotent).toBe(false);
+    expect(compareIdempotency([...results.slice(0, 3), results[0]]).idempotent).toBe(false);
   });
 
   test('a crashed engine masking a real disagreement is still caught (2 runnable disagree)', () => {
@@ -144,10 +135,10 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
     ];
     const { idempotent, mismatch } = compareIdempotency(results);
     expect(idempotent).toBe(false);
-    expect(mismatch.groups.length).toBe(2);
+    expect(mismatch.groups.length).toBe(3);
   });
 
-  test('fewer than two runnable engines → no judgement (idempotent:null)', () => {
+  test('fewer than two runnable engines fail the comparison', () => {
     const results = [
       env('js', { valid: true }),
       { lang: 'php', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'down' },
@@ -155,8 +146,8 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
       { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'down' },
     ];
     const { idempotent, mismatch } = compareIdempotency(results);
-    expect(idempotent).toBeNull();
-    expect(mismatch).toBeNull();
+    expect(idempotent).toBe(false);
+    expect(mismatch).not.toBeNull();
   });
 });
 

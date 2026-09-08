@@ -1,18 +1,18 @@
 /**
- * legacy→CRUDUI translator conformance — JS reference verification (SPEC §6).
+ * legacy→schema translator conformance — JS reference verification (SPEC §6).
  *
  * The shared fixture tests/fixtures/translate/cases.json is the cross-language
  * contract for the legacy→canonical migration: each case carries the legacy input,
- * the translator's CRUDUI output, the irreversibility note log, and the round-trip
+ * the translator's schema output, the irreversibility note log, and the round-trip
  * verdict. This test RE-RUNS the real translator and asserts:
  *
- *   1. Forward translation reproduces the fixture `CRUDUI` bit-for-bit (deepEqual).
+ *   1. Forward translation reproduces the fixture `schema` bit-for-bit (deepEqual).
  *   2. The note log reproduces the fixture `notes` (reason + path + key).
- *   3. Every translated `CRUDUI` passes the CRUDUI META-SCHEMA (ajv) — the translator
- *      emits a spec the CRUDUI constitution accepts, never a weakened shape.
- *   4. Every translated `CRUDUI` passes the recursive FORBIDDEN-SCAN — ZERO meta
+ *   3. Every translated `schema` passes the schema META-SCHEMA (ajv) — the translator
+ *      emits a spec the schema constitution accepts, never a weakened shape.
+ *   4. Every translated `schema` passes the recursive FORBIDDEN-SCAN — ZERO meta
  *      keys at any depth (no display_switch/if/when/_/$after/x{key} survives).
- *   5. The ROUND-TRIP gate: a `reversible:true` case satisfies legacy→CRUDUI→legacy =
+ *   5. The ROUND-TRIP gate: a `reversible:true` case satisfies legacy→schema→legacy =
  *      original bit-for-bit. A `reversible:false` (R7 transcend) case is OUTSIDE
  *      the gate — losslessness is NOT asserted; the recorded reason is.
  *
@@ -51,7 +51,7 @@ interface FixtureCase {
 
 const cases: FixtureCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
-// Compile the CRUDUI meta-schema once (Field is the root: $ref → #/definitions/Field).
+// Compile the schema meta-schema once (Field is the root: $ref → #/definitions/Field).
 const schema = JSON.parse(fs.readFileSync(SCHEMA, 'utf8'));
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateSchema: ValidateFunction = ajv.compile(schema);
@@ -138,7 +138,7 @@ describe('R7 transcend set: irreversible cases are OUTSIDE the gate, with a reas
 });
 
 describe('meta-schema NEGATIVE regression: forbidden meta keys are rejected (valid:false)', () => {
-  // Each spec is a valid CRUDUI Field with ONE forbidden meta key injected. The Ajv
+  // Each spec is a valid schema Field with ONE forbidden meta key injected. The Ajv
   // meta-schema must reject every one — proving the canonical model does NOT
   // recognize condition-only meta keys / legacy patch directives / x{key} (R2/R4).
   // This is the static twin of the runtime forbidden-scan: if any of these passes

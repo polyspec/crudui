@@ -1,12 +1,12 @@
-// Package compose is the Go port of the CRUDUI composition engine (schema §5, G5).
+// Package compose is the Go port of the model composition engine (SPEC §5, G5).
 //
 // The parser's FIRST pass: expand $ref (base inheritance) then $patch
 // (add/remove/replace + deep-path set) into a single, composition-free spec,
 // BEFORE the field layer / validation / render. Unresolved composition is a LOAD
 // ERROR (ComposeLoadError) — never valid:true (the legacy LargeForm.yml:873 bug).
-// CRUDUI-NEW only: this never touches the legacy model or loader (R7 parallel run).
+// model-NEW only: this never touches the legacy model or loader (R7 parallel run).
 //
-// Byte-for-byte parity with the JS reference (validator-ts/src/compose). Both
+// Byte-for-byte parity with the JS reference (validator-ts/src/model/compose). Both
 // load the SAME shared fixture tests/fixtures/compose/cases.json and must
 // reproduce it identically (G-B 4-language idempotence). interface{} is spelled
 // any (Go ≥ 1.18). No eval.

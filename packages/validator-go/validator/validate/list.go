@@ -1,11 +1,11 @@
 package validate
 
-// CRUDUI list-spec validation entry point (schema §9). The READ sister of the form
+// model list-spec validation entry point (SPEC §9). The READ sister of the form
 // Validate entry (index.go). JS reference parity: a list-spec reuses the SAME two
 // structural passes the form path runs — compose (G5, §5) and forbidden-scan
 // (§6) — and NOTHING ELSE.
 //
-// Why only two passes (schema §9.1): a list declares the read structure
+// Why only two passes (SPEC §9.1): a list declares the read structure
 // (columns / sort / pagination / actions / design / search); the rows are
 // INJECTED by the server (DB-agnostic), never carried by the spec. The DATA
 // validate pass (§3 + §2 G1, index.go Validator) evaluates field validate-slot
@@ -27,7 +27,7 @@ package validate
 // (1급 closure), required:columns, the sort.dir / pagination.mode enums, and the
 // CellFormat anyOf polymorphism — live ONLY in the meta-schema (ajv,
 // schema/crudui-model.schema.json #/definitions/List, exercised by
-// validator-ts/src/list-metaschema.conformance.test.ts), exactly as for a form.
+// validator-ts/src/model/list-metaschema.conformance.test.ts), exactly as for a form.
 // This entry invents NO new structural rule; it reuses the form's pass 1 + pass 2.
 //
 // Go ≥ 1.18: interface{} is spelled any. No eval.

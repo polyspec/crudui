@@ -9,7 +9,7 @@ use CRUDUI\Validator\Validate\ListValidate;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI list-spec validation conformance (schema §9) — the read sister of
+ * CRUDUI list-spec validation conformance (SPEC §9) — the read sister of
  * ValidateConformanceTest, isomorphic with the JS reference
  * validator-ts/src/validate-list/validate-list.conformance.test.ts.
  *

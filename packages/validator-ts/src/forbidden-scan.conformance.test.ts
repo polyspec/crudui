@@ -2,7 +2,7 @@
  * CRUDUI recursive forbidden-scan conformance — JS reference verification.
  *
  * The shared fixture tests/fixtures/spec-validity/cases.json is the cross-
- * language contract for schema §6 global meta-key rejection: a clean spec
+ * language contract for SPEC §6 global meta-key rejection: a clean spec
  * passes; a forbidden meta key found at ANY depth (slot/bucket body and one
  * level below, deep child subtrees, array elements, $ref-inherited bases) is a
  * LOAD ERROR, never `valid:true`. This test RE-VERIFIES the claim by running the
@@ -26,7 +26,7 @@ import { validate, ComposeLoadError } from './validate/index';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// src -> repo root is four levels up.
+// src/CRUDUI -> repo root is four levels up.
 const FIXTURE = path.resolve(
   __dirname,
   '../../../tests/fixtures/spec-validity/cases.json'

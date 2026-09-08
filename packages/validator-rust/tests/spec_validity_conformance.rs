@@ -1,4 +1,4 @@
-//! CRUDUI recursive forbidden-scan conformance (schema §6).
+//! CRUDUI recursive forbidden-scan conformance (SPEC §6).
 //!
 //! Single truth = the shared 4-language fixture
 //! tests/fixtures/spec-validity/cases.json (JS-generated). All four engines

@@ -1,4 +1,4 @@
-//! Composition load errors (schema §5, §7; unresolved_behavior).
+//! Composition load errors (SPEC §5, §7; unresolved_behavior).
 //!
 //! Composition is a pre-processing pass that runs BEFORE validation/render: the
 //! parser expands `$ref`/`$patch` into a single spec first (G5). An unresolved
@@ -36,7 +36,7 @@ pub enum ComposeErrorCode {
     /// $patch remove targets a path that does not exist (strict remove).
     PatchRemoveTargetMissing,
     /// A forbidden meta key survived into the composed single spec at some depth
-    /// (schema §6). The recursive forbidden-scan runs after compose/x-strip and
+    /// (SPEC §6). The recursive forbidden-scan runs after compose/x-strip and
     /// before validation; a forbidden key anywhere is a LOAD failure, never
     /// `valid:true`. `trace` carries the dotted path to the offending key.
     ForbiddenMetaKey,

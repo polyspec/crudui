@@ -84,7 +84,7 @@ demo-app/
 ## Usage Example
 
 ```tsx
-import { FormBuilder } from '@crudui/generator-react';
+import { FormBuilder } from '@crudui/generator-react/legacy';
 
 const yamlSpec = `
 type: group

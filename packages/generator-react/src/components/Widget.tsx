@@ -61,10 +61,11 @@ function affixHtml(affix?: Affix): string {
 
 /** A real <select> driven by defaultValue; selected only when an option is. */
 function SelectControl({ w }: { w: WidgetModel }): React.ReactElement {
-  const selected = (w.options ?? []).find((o) => o.selected);
+  const selected = (w.options ?? []).filter((o) => o.selected).map(o => o.value);
+  const multiple = Object.prototype.hasOwnProperty.call(w.attrs, 'multiple');
   const props = plainProps(w.attrs);
   return (
-    <select {...props} {...(selected ? { defaultValue: selected.value } : {})}>
+    <select {...props} {...(multiple ? { multiple: true, defaultValue: selected } : selected.length ? { defaultValue: selected[0] } : {})}>
       {(w.options ?? []).map((o, i) => (
         <option key={i} value={o.value}>
           {o.label}
@@ -199,8 +200,8 @@ function GroupButton({
     ...shared,
     type,
     value: o.value,
-    autocomplete: 'off',
-    class: 'valid-target btn-check',
+    autoComplete: 'off',
+    className: 'valid-target btn-check',
     ...(o.id ? { id: o.id } : {}),
   };
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
@@ -246,7 +247,7 @@ function FileGroup({ w }: { w: WidgetModel }): React.ReactElement {
     const html =
       affixHtml(w.prepend) +
       (display
-        ? `<input class="${escAttr(display.class ?? '')}" readonly="readonly" type="text" value="">`
+        ? `<input class="${escAttr(display.class ?? '')}" readonly="" type="text" value="">`
         : '') +
       rawVoid('input', fileAttrs) +
       (display ? `<button class="btn btn-search btn-file-search" type="button">&nbsp;</button>` : '');

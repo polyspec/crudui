@@ -1,11 +1,11 @@
-// Package expr is the Go CRUDUI expression engine (EXPRESSION-GRAMMAR §0-§7).
+// Package expr is the Go model expression engine (EXPRESSION-GRAMMAR §0-§7).
 //
 // Pipeline: string -[Lexer]-> []Token -[Parser]-> Node (AST) -[Evaluator + data]-> value.
 // The three stages are separate (GRAMMAR §0): the lexer knows no grammar, the
 // parser knows no data, the evaluator knows no string. No eval, no regex/string
 // split evaluation (GRAMMAR §10) — a single forward scan plus recursive descent.
 //
-// This is the CRUDUI engine. It runs in parallel with the legacy condition_parser in
+// This is the model engine. It runs in parallel with the legacy condition_parser in
 // package validator (R7); nothing here imports legacy and legacy imports nothing here.
 //
 // The single truth is the shared 4-language fixture

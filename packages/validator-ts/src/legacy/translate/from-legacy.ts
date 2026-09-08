@@ -1,5 +1,5 @@
 /**
- * Forward translator: legacy spec object → CRUDUI spec object (schema §6 absorbs_legacy).
+ * Forward translator: legacy spec object → schema spec object (SPEC §6 absorbs_legacy).
  *
  * Pure SPEC→SPEC rewrite, recursive over `properties`. Applies the analysis
  * `key_mappings` verbatim:
@@ -17,7 +17,7 @@
  *   - type-dependent / chrome / callbacks  : options (open bucket)
  *   - label/description/name/type/default/properties : passthrough
  *
- * NEVER emits a forbidden meta key — the output passes the CRUDUI meta-schema and the
+ * NEVER emits a forbidden meta key — the output passes the schema meta-schema and the
  * recursive forbidden-scan. NEVER runs `eval`. NEVER mutates the legacy input.
  *
  * Sibling-awareness: display_switch lives on the SOURCE field but its effect
@@ -61,7 +61,7 @@ const PASSTHROUGH = new Set([
   'help',
 ]);
 
-/** legacy design appearance keys → [CRUDUI design node, sub-key]. `null` node = main node. */
+/** legacy design appearance keys → [schema design node, sub-key]. `null` node = main node. */
 const DESIGN_NODE_MAP: Record<string, [node: string | null, sub: 'class' | 'style']> = {
   class: [null, 'class'],
   input_class: [null, 'class'],
@@ -73,7 +73,7 @@ const DESIGN_NODE_MAP: Record<string, [node: string | null, sub: 'class' | 'styl
   prepend_class: ['prepend', 'class'],
 };
 
-/** legacy lang-* keys → [CRUDUI lang sub-key, inverted?]. */
+/** legacy lang-* keys → [schema lang sub-key, inverted?]. */
 const LANG_KEY_MAP: Record<string, [sub: string, invert: boolean]> = {
   langs: ['only', false],
   lang_name: ['name', false],
@@ -83,7 +83,7 @@ const LANG_KEY_MAP: Record<string, [sub: string, invert: boolean]> = {
   remove_lang_title: ['title', true],
 };
 
-/** legacy multiple-* keys → CRUDUI multiple sub-key. */
+/** legacy multiple-* keys → schema multiple sub-key. */
 const MULTIPLE_KEY_MAP: Record<string, 'max' | 'copy' | 'sortable' | 'onclick'> = {
   multiple_max: 'max',
   multiple_copy: 'copy',
@@ -127,7 +127,7 @@ function isItemsSourceKey(key: string, legacy: LegacySpec): boolean {
   return false;
 }
 
-/** legacy behavior keys → CRUDUI behavior sub-key. */
+/** legacy behavior keys → schema behavior sub-key. */
 const BEHAVIOR_KEYS = new Set(['onchange', 'onclick', 'onload']);
 
 /** Content keys whose value is text (G3) — a `null` here is empty content, dropped. */
@@ -146,7 +146,7 @@ function isXComment(key: string): boolean {
 
 /**
  * Translate a legacy ROOT spec (a group with `properties`, or a bare properties map
- * entry) into CRUDUI. Returns the CRUDUI spec plus the irreversibility log.
+ * entry) into schema. Returns the schema spec plus the irreversibility log.
  */
 export function translateFromLegacy(legacy: LegacySpec): TranslateResult {
   const notes: TranslateNote[] = [];
@@ -155,7 +155,7 @@ export function translateFromLegacy(legacy: LegacySpec): TranslateResult {
 }
 
 /**
- * Translate ONE legacy field spec → CRUDUI. Recurses into `properties` (which runs the
+ * Translate ONE legacy field spec → schema. Recurses into `properties` (which runs the
  * sibling-aware display pass). `path` is the dotted trace for notes.
  */
 function translateSpec(legacy: LegacySpec, path: string[], notes: TranslateNote[]): SchemaSpec {
@@ -324,7 +324,7 @@ function translateSpec(legacy: LegacySpec, path: string[], notes: TranslateNote[
 
     // -- behavior scripts --
     if (BEHAVIOR_KEYS.has(key)) {
-      // Bug 5: a boolean flag (onload:true) is not a CRUDUI BehaviorAction
+      // Bug 5: a boolean flag (onload:true) is not a schema BehaviorAction
       // (string|{label,script}). `true` = "the action is on, no script" → drop
       // the flag (no opaque script to carry); `false` = off → drop. Real script
       // strings/objects pass through unchanged.
@@ -506,7 +506,7 @@ function translateProperties(props: LegacySpec, path: string[], notes: Translate
       continue;
     }
 
-    const schemaChild = translateSpec(child as LegacySpec, [...path, fieldName], notes);
+    const translatedField = translateSpec(child as LegacySpec, [...path, fieldName], notes);
 
     // Bug: a reserved key (items/table) used as a field NAME is a normal field
     // spec, not a dynamic-source/choice construct (reserved-key handling fires
@@ -516,24 +516,24 @@ function translateProperties(props: LegacySpec, path: string[], notes: Translate
     // body lands in options), inject `type:'group'` so the node satisfies
     // Field.required=[type]. A $patch-only or $ref-only residue node is left as is.
     if (
-      schemaChild.type === undefined &&
-      schemaChild.$ref === undefined &&
-      schemaChild.$patch === undefined &&
-      schemaChild.properties === undefined &&
-      Object.keys(schemaChild).length > 0
+      translatedField.type === undefined &&
+      translatedField.$ref === undefined &&
+      translatedField.$patch === undefined &&
+      translatedField.properties === undefined &&
+      Object.keys(translatedField).length > 0
     ) {
-      schemaChild.type = 'group';
+      translatedField.type = 'group';
       note(notes, [...path, fieldName], 'type', 'TYPE_GROUP_INJECTED', 'field-position node without type — type:group injected (Field.required=[type]); adds a key absent in legacy');
     }
 
     // Inject any distributed design.show for this target field.
     const inject = distributed[fieldName];
     if (inject) {
-      const design = isObject(schemaChild.design) ? (schemaChild.design as Record<string, unknown>) : {};
+      const design = isObject(translatedField.design) ? (translatedField.design as Record<string, unknown>) : {};
       design.show = inject;
-      schemaChild.design = design;
+      translatedField.design = design;
     }
-    out[fieldName] = schemaChild;
+    out[fieldName] = translatedField;
   }
   return out;
 }
@@ -580,7 +580,7 @@ function collectDisplaySwitch(
 
 /**
  * legacy `display_target_condition_style` ({0:'display:none',1:'display:block'}) →
- * CRUDUI `design.show` boolean condition map. Normalizes the style channel to a
+ * schema `design.show` boolean condition map. Normalizes the style channel to a
  * visibility boolean: `display:none` → false, anything else → true. Irreversible
  * (style strings are lost), but visibility semantics are preserved. The target
  * path threads the source value: `.<target>==<val>`.
@@ -602,7 +602,7 @@ function styleConditionToShow(value: unknown, targetPath: string): Record<string
 }
 
 /**
- * legacy `display_target_condition_class` ({val:'cls'}) → CRUDUI `design.class`
+ * legacy `display_target_condition_class` ({val:'cls'}) → schema `design.class`
  * condition map keyed by the target value.
  */
 function classConditionToMap(value: unknown, targetPath: string): Record<string, unknown> {

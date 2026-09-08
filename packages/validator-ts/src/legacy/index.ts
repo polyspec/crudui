@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { Validator } from '@crudui/validator/legacy';
+ * import { Validator } from '@crudui/validator';
  *
  * const spec = {
  *   type: 'group',

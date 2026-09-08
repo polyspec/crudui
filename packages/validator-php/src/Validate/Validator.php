@@ -31,7 +31,7 @@ use CRUDUI\Validator\Expr\ConditionMap;
 use CRUDUI\Validator\Expr\Expression;
 
 /**
- * CRUDUI form validator — schema §2 G5→§3→§2 G1. Port of validator-ts
+ * CRUDUI form validator — SPEC §2 G5→§3→§2 G1. Port of validator-ts
  * src/validate/validator.ts (Validator), function-for-function.
  *
  * This is the THIRD pass of the CRUDUI pipeline. It consumes a CRUDUI field model (the
@@ -76,14 +76,14 @@ final class Validator
     private const LITERAL_PARAM_RULES = ['accept'];
 
     /**
-     * `match`/`pattern` carry a regex string preserved verbatim (schema §10: a
+     * `match`/`pattern` carry a regex string preserved verbatim (SPEC §10: a
      * regex exists only as a `match` argument).
      */
     private const REGEX_PARAM_RULES = ['match', 'pattern'];
 
     /**
      * Membership rules whose param is the allowed-value SET (an array, comma
-     * string, or a static value→label map, schema §2 G3). The param is data, NOT
+     * string, or a static value→label map, SPEC §2 G3). The param is data, NOT
      * a condition map — an object param is the value→label map (key = option
      * value, value = display label), so it is kept verbatim and never evaluated
      * key-by-key as expressions. The rule's flatten reads keys for a value→label
@@ -185,7 +185,7 @@ final class Validator
     }
 
     // =========================================================================
-    // Field traversal (schema §3; legacy Validator.validateProperties skeleton).
+    // Field traversal (SPEC §3; legacy Validator.validateProperties skeleton).
     // =========================================================================
 
     /**
@@ -297,7 +297,7 @@ final class Validator
     }
 
     // =========================================================================
-    // validate-slot evaluation (schema §3 slots.validate).
+    // validate-slot evaluation (SPEC §3 slots.validate).
     // =========================================================================
 
     /**
@@ -509,7 +509,7 @@ final class Validator
      *
      * The value is Evaluated<V> = literal | Expression(string) | ConditionMap.
      *   - Path-reference / literal-param / regex rules keep their string param
-     *     verbatim (schema §10) — never evaluated as a condition.
+     *     verbatim (SPEC §10) — never evaluated as a condition.
      *   - A ConditionMap (plain object whose keys are expressions) is evaluated in
      *     declaration order; first truthy key's value is the param; else `true`
      *     key; else null (disabled).

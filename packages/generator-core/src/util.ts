@@ -249,3 +249,8 @@ export function joinClass(...parts: Array<string | undefined | false>): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+/** Encode a form scope and field path without collapsing distinct names. */
+export function controlId(prefix: string, path: string): string {
+  return `${encodeURIComponent(prefix)}:${encodeURIComponent(path)}`;
+}

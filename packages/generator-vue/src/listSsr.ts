@@ -28,7 +28,7 @@ export interface RenderListOptions extends BuildListOptions {
  * on an unresolved `$ref` (raised by buildList before any Vue work — a load error,
  * never silent).
  */
-export async function renderListSSR(
+export async function renderList(
   listSpec: Record<string, unknown>,
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {}

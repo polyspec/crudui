@@ -89,7 +89,7 @@ properties:
   {
     id: 'edge-unsupported',
     name: 'edge — unsupported field type (UNSUPPORTED_FIELD_TYPE)',
-    note: 'totally-unknown-widget has no current generator. options.unsupported:"throw" → render error{code:UNSUPPORTED_FIELD_TYPE}. Flip the unsupported toggle to "marker" to render a stub instead of throwing.',
+    note: 'totally-unknown-widget has no CRUDUI generator. options.unsupported:"throw" → render error{code:UNSUPPORTED_FIELD_TYPE}. Flip the unsupported toggle to "marker" to render a stub instead of throwing.',
     spec: `type: group
 properties:
   x:

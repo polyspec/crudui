@@ -1,6 +1,7 @@
 //! crudui-validator: Rust port of the crudui multi-language validator.
 //! Replicates the JS/PHP/Go reference validators exactly (shared fixtures are
 //! the single source of truth). Go's validator package is the primary blueprint.
+#![deny(missing_docs)]
 
 pub mod condition_parser;
 pub mod rules;

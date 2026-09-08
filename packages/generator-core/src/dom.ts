@@ -1,4 +1,4 @@
-import type { FormSession } from './session';
+import type { FormInstance } from './instance';
 import type { FieldViewModel } from './viewmodel';
 import { parsePathString } from './util';
 
@@ -11,7 +11,7 @@ export interface FormConnection {
 }
 
 /** Browser event delegation for all three adapters, including raw leaf controls. */
-export function connectForm(element: HTMLElement, session: FormSession): FormConnection {
+export function connectForm(element: HTMLElement, session: FormInstance): FormConnection {
   type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
   let focus: {
     active: HTMLElement;
@@ -43,12 +43,12 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
       for (let parent = active.parentElement; parent; parent = parent.parentElement) {
         scroll.push({ element: parent, top: parent.scrollTop, left: parent.scrollLeft });
       }
-      const wrapper = active.closest('.form-element-wrapper[name]');
+      const wrapper = active.closest('.form-element-wrapper[data-field-path]');
       const row = active.closest('.input-group-wrapper[data-uniqid]');
-      const emptyAdd = active.matches('button.btn-plus') && row?.closest('.form-element-wrapper[name]') !== wrapper;
+      const emptyAdd = active.matches('button.btn-plus') && row?.closest('.form-element-wrapper[data-field-path]') !== wrapper;
       focus = {
         active,
-        emptyAddWrapper: emptyAdd ? wrapper?.getAttribute('name') ?? undefined : undefined,
+        emptyAddWrapper: emptyAdd ? wrapper?.getAttribute('data-field-path') ?? undefined : undefined,
         name: active.name,
         start: active.selectionStart ?? null,
         end: active.selectionEnd ?? null,
@@ -70,7 +70,7 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
     const map = new Map<string, FieldViewModel>();
     const visit = (fields: FieldViewModel[]) => {
       for (const field of fields) {
-        map.set(field.wrapperName, field);
+        map.set(field.path, field);
         visit(field.children ?? []);
         for (const row of field.rows ?? []) visit(row.children ?? []);
       }
@@ -107,8 +107,8 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
   const onClick = (event: Event) => {
     const button = (event.target as Element)?.closest?.('button');
     if (!button || !element.contains(button) || button.disabled) return;
-    const wrapper = button.closest('.form-element-wrapper[name]');
-    const field = fieldsByWrapper().get(wrapper?.getAttribute('name') ?? '');
+    const wrapper = button.closest('.form-element-wrapper[data-field-path]');
+    const field = fieldsByWrapper().get(wrapper?.getAttribute('data-field-path') ?? '');
     if (!field?.multiple) return;
     const row = button.closest('.input-group-wrapper[data-uniqid]');
     // An empty nested collection's add button can sit inside a parent row.
@@ -158,8 +158,8 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
       }
     }
     const fields = fieldsByWrapper();
-    for (const wrapper of element.querySelectorAll<HTMLElement>('.form-element-wrapper[name]')) {
-      const field = fields.get(wrapper.getAttribute('name') ?? '');
+    for (const wrapper of element.querySelectorAll<HTMLElement>('.form-element-wrapper[data-field-path]')) {
+      const field = fields.get(wrapper.getAttribute('data-field-path') ?? '');
       if (!field?.multiple) continue;
       for (const button of wrapper.querySelectorAll<HTMLButtonElement>('button')) {
         if (button.closest('.form-element-wrapper') !== wrapper) continue;
@@ -177,7 +177,7 @@ export function connectForm(element: HTMLElement, session: FormSession): FormCon
       let control: HTMLElement | undefined = element.contains(focus.active) ? focus.active : controls().find(c => c.name === focus!.name);
       if (!control && focus.emptyAddWrapper) {
         control = Array.from(element.querySelectorAll<HTMLButtonElement>('button.btn-plus'))
-          .find(button => button.closest('.form-element-wrapper[name]')?.getAttribute('name') === focus!.emptyAddWrapper);
+          .find(button => button.closest('.form-element-wrapper[data-field-path]')?.getAttribute('data-field-path') === focus!.emptyAddWrapper);
       }
       if (control) {
         control.focus({ preventScroll: true });

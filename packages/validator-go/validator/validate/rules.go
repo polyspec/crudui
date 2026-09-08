@@ -1,7 +1,7 @@
 package validate
 
 // Rule registry — a self-contained port of the JS reference rules
-// (validator-ts/src/rules). CRUDUI does NOT import the legacy validator rules (R7
+// (validator-ts/src/rules). model does NOT import the legacy validator rules (R7
 // isolation); the semantics and default messages mirror the JS engine, which is
 // the source the shared 4-language fixture is generated from.
 //
@@ -40,7 +40,7 @@ type ruleContext struct {
 // ruleFn validates value with the effective param. Returns (message, failed).
 type ruleFn func(value any, ruleParam any, ctx ruleContext) (string, bool)
 
-// builtInRules is the CRUDUI rule registry. "pattern" aliases "match". An unregistered
+// builtInRules is the model rule registry. "pattern" aliases "match". An unregistered
 // rule produces no error (VALIDATION-RULES common §4).
 var builtInRules = map[string]ruleFn{
 	"required":    ruleRequired,
@@ -651,7 +651,7 @@ func flattenInValues(param any) []any {
 		}
 		return out
 	case *compose.OMap:
-		// Composed object node (the value universe the CRUDUI validate pass operates
+		// Composed object node (the value universe the model validate pass operates
 		// on): same value→label vs values decision as a plain object.
 		return flattenOrderedObject(p.Keys(), func(k string) any {
 			v, _ := p.Get(k)

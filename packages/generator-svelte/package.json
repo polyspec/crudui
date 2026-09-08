@@ -9,27 +9,25 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "svelte": "./src/index.ts",
-      "import": "./dist/index.js"
+      "svelte": "./dist/index.js"
     },
     "./package.json": "./package.json",
     "./legacy": {
       "types": "./dist/legacy/index.d.ts",
-      "svelte": "./src/legacy/index.ts",
-      "import": "./dist/legacy/index.js"
+      "svelte": "./dist/legacy/index.js"
     }
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "svelte-package -i src -o dist",
     "test": "vitest run && npm run test:client",
     "test:current": "vitest run test/form-render.conformance.test.mjs test/list-render.conformance.test.mjs",
     "test:list": "vitest run test/list-render.conformance.test.mjs",
     "test:watch": "vitest",
-    "test:client": "vitest run --config vitest.client.config.ts"
+    "test:client": "vitest run --config vitest.client.config.ts",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "keywords": [
     "svelte",
@@ -43,19 +41,24 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@crudui/generator-core": "file:../generator-core",
-    "@crudui/validator": "file:../validator-ts",
+    "@crudui/generator-core": "0.0.1",
+    "@crudui/validator": "0.0.1",
     "yaml": "^2.3.0"
   },
   "devDependencies": {
+    "@sveltejs/package": "^2.5.8",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "parse5": "^8.0.1",
     "svelte": "^5.0.0",
+    "svelte-check": "^4.7.6",
     "typescript": "^6.0.3",
     "vite": "^8.0.16",
     "vitest": "^4.1.8"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0"
   }
 }

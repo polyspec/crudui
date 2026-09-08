@@ -1,6 +1,6 @@
 /**
  * list-spec read cell renderer (framework-agnostic core) — markup 0, the ONE
- * new surface list-spec adds over form-spec (schema §9.2). It is the read-side
+ * new surface list-spec adds over form-spec (SPEC §9.2). It is the read-side
  * symmetric of widget.ts: where a write widget turns a field `type`+`options`
  * into an INPUT control model, a read cell turns a column `format` (type +
  * isolated dependent keys) into a DISPLAY model — never an input.

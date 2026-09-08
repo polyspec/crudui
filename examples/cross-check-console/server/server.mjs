@@ -294,20 +294,20 @@ function startServer() {
   server.listen(PORT, async () => {
     // Warm the CRUDUI engine (boot Vite SSR + load every CRUDUI entry) before serving so
     // the first request does not pay the cold-start cost. A boot failure is fatal.
-    process.stdout.write('Booting current engine (Vite SSR + 4-language wiring)...\n');
+    process.stdout.write('Booting CRUDUI engine (Vite SSR + 4-language wiring)...\n');
     try {
       await getEngine();
-      process.stdout.write('current engine ready.\n');
+      process.stdout.write('CRUDUI engine ready.\n');
     } catch (e) {
-      process.stderr.write('FATAL: current engine boot failed: ' + (e && e.stack ? e.stack : e) + '\n');
+      process.stderr.write('FATAL: CRUDUI engine boot failed: ' + (e && e.stack ? e.stack : e) + '\n');
       process.exit(1);
     }
     process.stdout.write(`\nCross-Check Console gateway on http://localhost:${PORT}\n`);
     process.stdout.write('  GET  /                 - console (static client/)\n');
-    process.stdout.write('  POST /api/validate     - 4-language current crudui validate fan-out\n');
-    process.stdout.write('  POST /api/validate-list - 4-language current list-spec validate fan-out\n');
-    process.stdout.write('  POST /api/render       - 3-framework current form SSR\n');
-    process.stdout.write('  POST /api/render-list  - 3-framework current list SSR\n');
+    process.stdout.write('  POST /api/validate     - 4-language CRUDUI crudui validate fan-out\n');
+    process.stdout.write('  POST /api/validate-list - 4-language CRUDUI list-spec validate fan-out\n');
+    process.stdout.write('  POST /api/render       - 3-framework CRUDUI form SSR\n');
+    process.stdout.write('  POST /api/render-list  - 3-framework CRUDUI list SSR\n');
     process.stdout.write('  GET  /health           - liveness probe\n');
   });
   return server;

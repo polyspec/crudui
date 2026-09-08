@@ -2,13 +2,13 @@
 
 > 4개 언어(JS/PHP/Go/Rust) 표현식 엔진의 **단일 진실**. 토크나이저·파서·평가기는
 > 이 명세를 글자 그대로 따른다. 같은 입력 → 같은 토큰열 → 같은 AST → 같은 값.
-> 한 언어라도 어긋나면 멱등(schema R6)이 깨진다. 정규식·문자열 split 같은 임시
+> 한 언어라도 어긋나면 멱등(SPEC R6)이 깨진다. 정규식·문자열 split 같은 임시
 > 구현은 금지한다 — 연산자 우선순위·중첩 ternary에서 반드시 깨진다. `eval`은 절대
 > 쓰지 않는다.
 
 이 명세는 CRUDUI `design.show`/`design.class`/`design.style`, `validate.*`(조건부
 규칙) 등 **평가되는 모든 값**에 적용된다. `behavior`의 스크립트(`onchange` 등)는
-표현식이 아니라 불투명 클라 JS이므로 이 엔진을 거치지 않는다(schema §4).
+표현식이 아니라 불투명 클라 JS이므로 이 엔진을 거치지 않는다(SPEC §4).
 
 기존 자산: `validator-ts/src/parser/ConditionParser.ts`(lexer+AST)·`PathResolver.ts`
 (평가), Go `condition_parser.go`·Rust `parser.rs`는 AST 보유. **PHP `ConditionParser.php`는
@@ -127,7 +127,7 @@ PathSegment = { type:'identifier', value } | { type:'wildcard' } | { type:'index
 - **Unary `!`**: 피연산자 truthy의 부정(boolean).
 - **In**: `value`가 `list`에 포함되면 true(`not in`은 부정).
 - **Ternary**: `cond`가 truthy면 `then`, 아니면 `else`를 평가해 **그 값**을 반환한다.
-  `then`/`else`는 boolean뿐 아니라 string/number/null일 수 있다 — 이것이 CRUDUI의
+  `then`/`else`는 boolean뿐 아니라 string/number/null일 수 있다 — 이것이 현재 형식의
   **값 반환**이며 `design.class` 등이 문자열을 얻는 경로다.
 - **Literal / Group**: 자명.
 
@@ -147,7 +147,7 @@ VALIDATION-RULES.md의 빈값 판정을 그대로 따른다.
 
 ## 8. 조건맵 (엔진 위, 스펙 레벨)
 
-`design.class` 등의 값은 **단일 표현식** 또는 **조건맵**이다(schema §4).
+`design.class` 등의 값은 **단일 표현식** 또는 **조건맵**이다(SPEC §4).
 
 ```yaml
 class:
@@ -168,7 +168,7 @@ class:
   평가 값을 낸다.
 - **공유 픽스처**: `표현식 → 기대 토큰열 / 기대 AST(직렬화) / (데이터, 기대 값)`
   케이스를 한 곳에 두고 4언어가 모두 통과해야 한다. 값 반환 ternary·조건맵·경로
-  비교는 legacy에 없던 신규이므로 **신규 픽스처**로 검증한다(schema §8·§10).
+  비교는 legacy에 없던 신규이므로 **신규 픽스처**로 검증한다(SPEC §8·§10).
 - **기존 자산 정식화**: `ConditionParser`(4언어)를 이 명세에 맞춰 정식화하고 평가기를
   값 반환·조건맵으로 확장한다 — 새로 짜기보다 명세 준수로 수렴시킨다.
 

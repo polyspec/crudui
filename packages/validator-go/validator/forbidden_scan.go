@@ -1,8 +1,8 @@
 package validator
 
-// Recursive forbidden meta-key scan (schema §6) — the runtime half of the
+// Recursive forbidden meta-key scan (SPEC §6) — the runtime half of the
 // global rejection that the meta-schema's propertyNames enforces statically.
-// Byte-for-byte behavior parity with the JS reference (validator-ts/src/
+// Byte-for-byte behavior parity with the JS reference (validator-ts/src/model/
 // forbidden-scan.ts).
 //
 // R1: the types/parser PRESERVE every key (round-trip), so blocking forbidden
@@ -14,12 +14,12 @@ package validator
 // ARBITRARY depth and rejects a forbidden key found at ANY depth — including one
 // level under a slot/bucket body.
 //
-// Placement (schema §2 pipeline): this runs in the spec LOAD path, immediately
+// Placement (SPEC §2 pipeline): this runs in the spec LOAD path, immediately
 // after compose expansion and before validation entry. A hit is therefore a LOAD
 // failure (*compose.ComposeLoadError, code FORBIDDEN_META_KEY) — the spec never
 // comes into existence — never a valid:false validation result.
 //
-// Forbidden set (schema §6): the enumerated ForbiddenMetaKeys (condition-only /
+// Forbidden set (SPEC §6): the enumerated ForbiddenMetaKeys (condition-only /
 // legacy / magic-symbol meta keys) PLUS the x{key} comment family (any
 // x-prefixed key, length > 1). $ref/$patch are NOT forbidden — compose already
 // consumed them, so they do not survive to here; x{key} IS strip-eligible, so

@@ -169,7 +169,10 @@ export interface ValidationContext {
   /** All form data */
   allData: Record<string, unknown>;
   /** Field specification */
-  spec: { type: string };
+  spec: {
+    /** Widget type for the value being validated. */
+    type: string;
+  };
   /** Parsed path segments */
   pathSegments: string[];
   /** Rule parameter value */

@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// CRUDUI expression-engine conformance (EXPRESSION-GRAMMAR §9 three-stage check):
+// model expression-engine conformance (EXPRESSION-GRAMMAR §9 three-stage check):
 //
 //	(1) Tokenize(expr)   == fixture tokens
 //	(2) Parse(toks)      == fixture ast
@@ -38,7 +38,7 @@ type fixtureSpec struct {
 
 func loadFixture(t *testing.T) []fixtureSpec {
 	t.Helper()
-	// validator-go/validator/expr → repo root is five levels up.
+	// validator-go/validator/model/expr → repo root is five levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "expr", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

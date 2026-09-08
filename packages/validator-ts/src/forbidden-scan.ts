@@ -1,5 +1,5 @@
 /**
- * Recursive forbidden meta-key scan (schema §6) — the runtime half of the
+ * Recursive forbidden meta-key scan (SPEC §6) — the runtime half of the
  * global rejection that the meta-schema's `propertyNames` enforces statically.
  *
  * R1: the types/parser PRESERVE every key (round-trip), so blocking forbidden
@@ -11,12 +11,12 @@
  * expansion and x-strip) to ARBITRARY depth and rejects a forbidden key found at
  * ANY depth — including one level under a slot/bucket body.
  *
- * Placement (schema §2 pipeline): this runs in the spec LOAD path, immediately
+ * Placement (SPEC §2 pipeline): this runs in the spec LOAD path, immediately
  * after compose expansion and before validation entry. A hit is therefore a LOAD
  * failure (`ComposeLoadError`, code `FORBIDDEN_META_KEY`) — the spec never comes
  * into existence — never a `valid:false` validation result.
  *
- * Forbidden set (schema §6): the enumerated `FORBIDDEN_META_KEYS`
+ * Forbidden set (SPEC §6): the enumerated `FORBIDDEN_META_KEYS`
  * (condition-only / legacy / magic-symbol meta keys) PLUS the `x{key}` comment
  * family (any `x`-prefixed key). `$ref`/`$patch` are NOT forbidden — compose
  * already consumed them, so they do not survive to here; `x{key}` IS strip-

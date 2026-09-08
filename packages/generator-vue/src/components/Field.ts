@@ -50,7 +50,7 @@ function wrapperProps(vm: FieldViewModel): Record<string, unknown> {
   const style = wrapperStyle(vm);
   return {
     class: wrapperClass(vm),
-    name: vm.wrapperName,
+    'data-field-path': vm.path,
     ...(style ? { style } : {}),
   };
 }
@@ -73,7 +73,9 @@ function labelVNode(vm: FieldViewModel): VNode | null {
       ...(cls ? { class: cls } : {}),
       ...(style ? { style } : {}),
     },
-    vm.label
+    vm.widget && !('unsupported' in vm.widget) && (vm.widget.attrs.id || vm.widget.extra?.file?.id)
+      ? h('label', { for: vm.widget.extra?.file?.id ?? vm.widget.attrs.id }, vm.label)
+      : vm.label
   );
 }
 
@@ -143,12 +145,13 @@ function checkboxEnvelopeVNode(vm: FieldViewModel): VNode {
           h('div', {}, [
             h('input', {
               class: vm.checkboxClass,
+              id: vm.checkboxId,
               name: vm.checkboxName,
               type: 'checkbox',
               value: '1',
               ...(vm.checkboxChecked ? { checked: true } : {}),
             }),
-            h('span', {}, vm.label),
+            h('label', { for: vm.checkboxId }, vm.label),
           ]),
         ]),
       ]),

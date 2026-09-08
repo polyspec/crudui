@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Compose;
 
 /**
- * Composition load failure (schema §5, §7; unresolved_behavior). Port of the JS
+ * Composition load failure (SPEC §5, §7; unresolved_behavior). Port of the JS
  * reference ComposeLoadError (validator-ts/src/compose/errors.ts).
  *
  * Composition is a pre-processing pass that runs BEFORE validation/render: the

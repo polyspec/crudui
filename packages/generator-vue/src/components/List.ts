@@ -1,7 +1,7 @@
 /**
  * CRUDUI Vue list renderer — `List` builds a `ListViewModel` as real `h()` vnodes.
  *
- * The read sister of Form (schema §9). It consumes the core's already-built
+ * The read sister of Form (SPEC §9). It consumes the core's already-built
  * `ListViewModel` (compose + design eval + condition maps + i18n + cell render,
  * all done ONCE in @crudui/generator-core buildList) and assembles a genuine
  * Vue 3 vnode tree — a `<table>` (default) or a `.list-cards` card grid. It
@@ -282,7 +282,7 @@ function paginationVNode(vm: ListViewModel): VNode | null {
 // ---------------------------------------------------------------------------
 
 /** Render mode: a default `<table>` or a card grid. */
-export type ListLayout = 'table' | 'cards';
+export type ListLayout = 'table' | 'card';
 
 /**
  * Build the `.list-view` envelope vnode around a `ListViewModel`: the actions
@@ -294,7 +294,7 @@ export function List(vm: ListViewModel, layout: ListLayout = 'table'): VNode {
   const isEmpty = vm.rows.length === 0;
   const body = isEmpty
     ? h('div', { class: 'list-empty' }, vm.empty)
-    : layout === 'cards'
+    : layout === 'card'
     ? cardsVNode(vm)
     : tableVNode(vm);
   const children = [toolbarVNode(vm), body, paginationVNode(vm)].filter(

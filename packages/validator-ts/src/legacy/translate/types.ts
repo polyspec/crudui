@@ -1,18 +1,18 @@
 /**
- * legacy→CRUDUI translator — shared types and the key-mapping table (single truth).
+ * legacy→schema translator — shared types and the key-mapping table (single truth).
  *
- * The translator is a pure SPEC→SPEC transform (CRUDUI-NEW, R7 parallel run): it
- * reads a legacy field spec object and emits a CRUDUI field spec object. It never touches
+ * The translator is a pure SPEC→SPEC transform (schema-NEW, R7 parallel run): it
+ * reads a legacy field spec object and emits a schema field spec object. It never touches
  * the legacy model/loader/parser and never runs `eval` — it rewrites keys only.
  *
  * This file mechanizes the analysis `key_mappings`/`roundtrip_rule` verbatim:
  * every legacy key the translator recognizes is listed once here, tagged reversible
  * or not. Reversibility is the SINGLE GATE the round-trip test reads — a key the
  * table marks `reversible:false` is a legacy-transcending (R7) absorption and is
- * excluded from the legacy→CRUDUI→legacy bit-identity guarantee, with the reason recorded.
+ * excluded from the legacy→schema→legacy bit-identity guarantee, with the reason recorded.
  *
- * Nothing here widens the CRUDUI model: the OUTPUT is a `FieldSpec` shape that the
- * CRUDUI meta-schema accepts and the forbidden-scan passes (zero meta keys). The
+ * Nothing here widens the schema model: the OUTPUT is a `FieldSpec` shape that the
+ * schema meta-schema accepts and the forbidden-scan passes (zero meta keys). The
  * translator is the only place legacy names are RECOGNIZED — the schema never
  * recognizes them (R2/R4).
  */
@@ -20,7 +20,7 @@
 /** A legacy spec object (untyped legacy shape — keys are absorbed, not modeled). */
 export type LegacySpec = Record<string, unknown>;
 
-/** A CRUDUI spec object (the canonical shape; see ../types.ts FieldSpec). */
+/** A schema spec object (the canonical shape; see ../types.ts FieldSpec). */
 export type SchemaSpec = Record<string, unknown>;
 
 /**
@@ -46,13 +46,13 @@ export type IrreversibleReason =
   | 'LANGS_GROUP_SYNTHESIS'
   /** parser-synthesized products (ready / seqtokey / __13hex__): never authored legacy keys, so no inverse target. */
   | 'SYNTHESIZED_PRODUCT'
-  /** messages (per-rule per-language) has NO CRUDUI slot — out of translator scope, reported as a gap (no new decision). */
+  /** messages (per-rule per-language) has NO schema slot — out of translator scope, reported as a gap (no new decision). */
   | 'MESSAGES_NO_SLOT'
   /** SPEC node map does not enumerate this node (fieldset/button/append/header) — naming is out of scope (no new decision). */
   | 'NODE_NOT_ENUMERATED'
   /** empty content (label/description/…:null) dropped — an empty content node is the same as no key, so it carries nothing to reverse. */
   | 'CONTENT_NULL_DROP'
-  /** boolean behavior flag (onchange/onclick/onload:true|false) dropped — CRUDUI BehaviorAction is string|{label,script}, never a bare flag, so there is no script to carry. */
+  /** boolean behavior flag (onchange/onclick/onload:true|false) dropped — schema BehaviorAction is string|{label,script}, never a bare flag, so there is no script to carry. */
   | 'BEHAVIOR_FLAG_NORMALIZE'
   /** type:group injected on a property-bearing node that lacked a type — adds a key absent in legacy (Field.required=[type]), so bit-identity does not hold. */
   | 'TYPE_GROUP_INJECTED'
@@ -89,9 +89,9 @@ export type IrreversibleReason =
 export interface KeyMapping {
   /** The legacy key family (or a short label for distributed/plural families). */
   legacy: string;
-  /** Where it lands in the CRUDUI model. */
+  /** Where it lands in the schema model. */
   schema: string;
-  /** Whether legacy→CRUDUI→legacy restores the original bit-for-bit for this key. */
+  /** Whether legacy→schema→legacy restores the original bit-for-bit for this key. */
   reversible: boolean;
   /** When `reversible:false`, the R7 reason; absent when reversible. */
   reason?: IrreversibleReason;
@@ -187,9 +187,9 @@ export const KEY_MAPPINGS: readonly KeyMapping[] = [
   { legacy: 'method (lone, no model/table/relations/items sibling)', schema: 'options.method (form/field HTTP verb, NOT items source)', reversible: true },
 ];
 
-/** Result of translating a single legacy spec tree into CRUDUI, with a translation log. */
+/** Result of translating a single legacy spec tree into schema, with a translation log. */
 export interface TranslateResult {
-  /** The translated CRUDUI spec (meta-schema-clean, zero meta keys). */
+  /** The translated schema spec (meta-schema-clean, zero meta keys). */
   schema: SchemaSpec;
   /**
    * One note per irreversible absorption that fired during translation, so a

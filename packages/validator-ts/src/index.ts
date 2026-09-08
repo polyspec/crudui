@@ -1,10 +1,10 @@
-/** CRUDUI validation and shared rule APIs. */
-export * from './schema';
-export * from './compose/index';
-export * from './validate-list/index';
-export * from './types';
+/** CRUDUI validation, composition, expression and rule APIs. */
 export { validate, Validator, default } from './validate/index';
 export type { ValidateOptions } from './validate/index';
+export * from './schema';
+export * from './types';
+export * from './compose/index';
+export * from './validate-list/index';
 // Parser exports
 export {
   Lexer,

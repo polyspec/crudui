@@ -43,7 +43,7 @@
 
 {#snippet labelAndDescription()}
   {#if showLabel}
-    <h6 class={labelClass || undefined} style={labelStyle || undefined}>{vm.label}</h6>
+    <h6 class={labelClass || undefined} style={labelStyle || undefined}>{#if vm.widget && !('unsupported' in vm.widget) && (vm.widget.attrs.id || vm.widget.extra?.file?.id)}<label for={vm.widget.extra?.file?.id ?? vm.widget.attrs.id}>{vm.label}</label>{:else}{vm.label}{/if}</h6>
   {/if}
   {#if vm.description}
     <p class="description">{vm.description}</p>
@@ -75,13 +75,13 @@
   <!-- checkbox / switcher special envelope. The checkbox input carries only
        non-empty/non-boolean attrs (class/name/type/value="1") → it renders
        correctly as a real element. -->
-  <div class={wClass} name={vm.wrapperName} style={wStyle}>
+  <div class={wClass} data-field-path={vm.path} style={wStyle}>
     <div class="checkbox">
       <h6>
         <div class={igwClass} data-uniqid={vm.uniqid}>
           <div>
-            <input class={vm.checkboxClass} name={vm.checkboxName} type="checkbox" value="1" checked={vm.checkboxChecked || undefined} />
-            <span>{vm.label}</span>
+            <input id={vm.checkboxId} class={vm.checkboxClass} name={vm.checkboxName} type="checkbox" value="1" checked={vm.checkboxChecked || undefined} />
+            <label for={vm.checkboxId}>{vm.label}</label>
           </div>
         </div>
       </h6>
@@ -91,7 +91,7 @@
     </div>
   </div>
 {:else if vm.shape === 'leaf'}
-  <div class={wClass} name={vm.wrapperName} style={wStyle}>
+  <div class={wClass} data-field-path={vm.path} style={wStyle}>
     {@render labelAndDescription()}
     <div class="form-element">
       {#if leafRaw !== null}
@@ -104,7 +104,7 @@
     </div>
   </div>
 {:else if vm.shape === 'group'}
-  <div class={wClass} name={vm.wrapperName} style={wStyle}>
+  <div class={wClass} data-field-path={vm.path} style={wStyle}>
     {@render labelAndDescription()}
     <div class="form-element">
       <div class={igwClass} data-uniqid={vm.uniqid}>
@@ -117,7 +117,7 @@
     </div>
   </div>
 {:else if vm.shape === 'multiple-leaf'}
-  <div class={wClass} name={vm.wrapperName} style={wStyle}>
+  <div class={wClass} data-field-path={vm.path} style={wStyle}>
     {@render labelAndDescription()}
     <div class="form-element">
       {#each vm.rows ?? [] as row (row.uniqid)}
@@ -139,7 +139,7 @@
     </div>
   </div>
 {:else if vm.shape === 'multiple-group'}
-  <div class={wClass} name={vm.wrapperName} style={wStyle}>
+  <div class={wClass} data-field-path={vm.path} style={wStyle}>
     {@render labelAndDescription()}
     <div class="form-element">
       {#each vm.rows ?? [] as row (row.uniqid)}
@@ -157,7 +157,7 @@
     </div>
   </div>
 {:else if vm.shape === 'lang'}
-  <div class={wClass} name={vm.wrapperName} style={wStyle}>
+  <div class={wClass} data-field-path={vm.path} style={wStyle}>
     {@render labelAndDescription()}
     <div class="form-element">
       <div class={igwClass} data-uniqid={vm.uniqid}>

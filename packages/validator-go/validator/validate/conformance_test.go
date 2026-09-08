@@ -10,7 +10,7 @@ import (
 	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
-// CRUDUI validate-engine conformance (schema §2 G5 → §3 → §2 G1).
+// model validate-engine conformance (SPEC §2 G5 → §3 → §2 G1).
 //
 // Single truth = the shared 4-language fixture tests/fixtures/validate/cases.json.
 // All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce
@@ -38,7 +38,7 @@ type expectedResult struct {
 
 func loadValidateFixtures(t *testing.T) []validateCase {
 	t.Helper()
-	// validator-go/validator/validate → repo root is five levels up.
+	// validator-go/validator/model/validate → repo root is five levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "validate", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

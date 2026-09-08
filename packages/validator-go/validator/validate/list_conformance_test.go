@@ -1,10 +1,10 @@
 package validate
 
-// CRUDUI list-spec structural-gate conformance — Go verification against the shared
+// model list-spec structural-gate conformance — Go verification against the shared
 // 4-language fixture tests/fixtures/list-validity/cases.json.
 //
 // That ONE fixture is the cross-language single truth for the list-spec read
-// surface (schema §9.4). It is read by TWO gates with DISJOINT ownership, and
+// surface (SPEC §9.4). It is read by TWO gates with DISJOINT ownership, and
 // this test asserts ONLY the gate the 4-language engine owns:
 //
 //	(A) the meta-schema gate (ajv, schema/crudui-model.schema.json
@@ -64,7 +64,7 @@ type listValidityCase struct {
 
 func loadListValidityFixtures(t *testing.T) []listValidityCase {
 	t.Helper()
-	// validator-go/validator/validate → repo root is five levels up.
+	// validator-go/validator/model/validate → repo root is five levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "list-validity", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
@@ -80,8 +80,8 @@ func loadListValidityFixtures(t *testing.T) []listValidityCase {
 	return cases
 }
 
-// list§6ForbiddenKeys is the schema §6 forbidden meta-key set, restated here
-// INDEPENDENTLY of the engine (validator/types.go ForbiddenMetaKeys). The test
+// list§6ForbiddenKeys is the SPEC §6 forbidden meta-key set, restated here
+// INDEPENDENTLY of the engine (validator/model/types.go ForbiddenMetaKeys). The test
 // must not import the engine's own list to decide what the engine should reject —
 // that would be circular. §6 is the contract; this is the contract restated.
 var listForbiddenKeys = map[string]bool{
@@ -92,7 +92,7 @@ var listForbiddenKeys = map[string]bool{
 	"xclass": true, "xstyle": true,
 }
 
-// isListForbiddenKey mirrors schema §6: an enumerated literal OR an x{key}
+// isListForbiddenKey mirrors SPEC §6: an enumerated literal OR an x{key}
 // comment (x followed by ≥1 char). The bare "x" is not a comment. $ref/$patch are
 // compose sigils, NOT forbidden (compose consumes them before the scan).
 func isListForbiddenKey(key string) bool {

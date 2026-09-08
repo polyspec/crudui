@@ -101,21 +101,22 @@ async function bootEngine() {
   const [reactMod, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-react/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-svelte/src/index.ts')),
-    vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/ssr.ts')),
+    vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/listSsr.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'tests/fixtures/form-render/normalize.mjs')),
   ]);
 
   return {
     compileForm: reactMod.compileForm,
+    createForm: reactMod.createForm,
     renderReact: reactMod.renderForm,
     renderSvelte: svelteMod.renderForm,
-    renderVue: vueMod.renderFormSSR,
+    renderVue: vueMod.renderForm,
     // list sister (read) — the SAME react/svelte index modules expose renderList;
     // Vue's list SSR lives in its own listSsr entry. Symmetric to the form trio.
     renderListReact: reactMod.renderList,
     renderListSvelte: svelteMod.renderList,
-    renderListVue: vueListMod.renderListSSR,
+    renderListVue: vueListMod.renderList,
     normalizeHtml: normMod.normalizeHtml,
     // Error classes for surfacing render failures with a stable `code` (the same
     // ERROR_CLASS_BY_CODE keys the conformance tests use).

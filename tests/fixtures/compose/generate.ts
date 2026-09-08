@@ -1,5 +1,5 @@
 /**
- * Shared-fixture generator for the 4-language composition engine (schema §5).
+ * Shared-fixture generator for the 4-language composition engine (SPEC §5).
  *
  * Runs the JS reference compose engine for real and dumps, per case, the
  * expanded single spec (`expected`) or the load-error code (`expectError`). The

@@ -9,7 +9,7 @@ use CRUDUI\Validator\Validate\Validate;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI recursive forbidden-scan conformance (schema §6 global meta-key rejection).
+ * CRUDUI recursive forbidden-scan conformance (SPEC §6 global meta-key rejection).
  *
  * The shared 4-language fixture tests/fixtures/spec-validity/cases.json is the
  * single truth: a clean spec passes; a forbidden meta key found at ANY depth
