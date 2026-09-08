@@ -15,7 +15,7 @@ import { describe, test, expect } from 'vitest';
 import { applyPatch } from './patch';
 import { ComposeLoadError } from './errors';
 
-describe('$patch deep-path set — legacy mergeDeep rule', () => {
+describe('$patch deep-path assignment', () => {
   test('both-object leaf deep-merges (preserves disjoint subkeys)', () => {
     const base = { a: { x: { p: 1, q: 2 } } };
     const out = applyPatch(base, { 'a.x': { q: 20, r: 30 } });
@@ -85,13 +85,13 @@ describe('$patch remove — array form (strict) vs nested-map form (tolerant)', 
     }
   });
 
-  test('nested-map remove recurses where both are objects (legacy arr::remove)', () => {
+  test('nested-map removal recurses when both values are objects', () => {
     const base = { f: { options: { max_tags: 5, min: 2 } } };
     const out = applyPatch(base, { remove: { f: { options: { max_tags: true } } } });
     expect(out).toStrictEqual({ f: { options: { min: 2 } } });
   });
 
-  test('nested-map remove tolerates a missing key (legacy silent unset)', () => {
+  test('nested-map removal accepts a missing key', () => {
     const base = { a: { type: 'text' } };
     const out = applyPatch(base, { remove: { ghost: { sub: true } } });
     expect(out).toStrictEqual({ a: { type: 'text' } });
