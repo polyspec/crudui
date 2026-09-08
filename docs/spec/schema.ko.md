@@ -82,6 +82,9 @@ CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 
 참조가 없으면 로드 오류입니다. 합성은 레코드 값에 의존하지 않습니다.
 폼 컴파일은 템플릿마다 합성을 한 번 처리합니다.
 
+CLI 정적 검사도 해결되지 않은 조합을 거부합니다. 조합 전 필드 검사를
+참조 해석 성공으로 처리하지 않습니다.
+
 검증기는 `validate` 규칙과 현재 데이터를 검사합니다.
 [검증 규칙](../VALIDATION-RULES.md)은 규칙의 의미를 설명합니다.
 `tests/fixtures/expr`, `tests/fixtures/compose`, `tests/fixtures/validate`의 공유 사례로

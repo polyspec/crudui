@@ -1,21 +1,5 @@
 #!/usr/bin/env node
-/**
- * crudui — orchestrator CLI entry. A thin dispatcher over the code/schema
- * single-source-of-truth and the cross-check-console backends.
- *
- * Subcommands (architecture):
- *   describe [--json|--md]    code/schema import·parse → unified capabilities
- *   list-widgets [--json]     thin view of describe.widgets
- *   check <spec>              meta-schema (ajv) + forbidden-scan
- *   validate <spec> <data>    delegate to console validate-runner (4 languages)
- *   render <spec>             delegate to console render-runner (3 frameworks)
- *   explain <spec>            spec → natural-language back-check
- *   scaffold [--type <w>]     describe-catalog-based minimal valid skeleton
- *
- * Run via the tsx loader so the .ts single-source-of-truth imports directly,
- * exactly like packages/validator-ts/bin/validate.mjs (no separate build).
- * `bin/crudui` (no ext) re-execs this through `node --import tsx`.
- */
+/** Dispatch describe, list-widgets, check and explain using the tsx loader. */
 
 import process from 'node:process';
 

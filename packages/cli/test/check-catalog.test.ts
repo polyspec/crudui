@@ -30,6 +30,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const fixture = (name: string) => resolve(HERE, 'fixtures', name);
 
 descTest('check enforces the leaf-type catalog (WIDGET_KINDS), beyond meta-schema + forbidden', () => {
+  it('rejects an unresolved reference instead of checking the uncomposed field', async () => {
+    const result = await runCheck(fixture('unresolved-reference.yml'));
+    expect(result.ok).toBe(false);
+    expect(result.errors.some(error => error.reason.includes('missing.yml'))).toBe(true);
+  });
   it('sanity: `checkbox` is an invented leaf type — not a registered widget kind', () => {
     expect(WIDGET_KINDS).not.toContain('checkbox');
     // the real option widgets ARE registered (proves the catalog is non-trivial)

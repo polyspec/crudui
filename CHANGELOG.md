@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — CLI composition failures and documentation
+
+`check` reports unresolved composition instead of checking uncomposed input as a
+substitute. The missing-reference regression failed before the fix and passed
+afterward; all 37 CLI tests passed. The English and Korean CLI guide describes
+the four registered commands. Package descriptions no longer list unimplemented
+commands, and the unimplemented MCP proposal is removed.
+
 ## 2026-09-09 — Schema documentation consolidation
 
 Current schema and expression contracts use their existing authoritative documents.
