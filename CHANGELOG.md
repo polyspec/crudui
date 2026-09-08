@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Documentation site navigation
+
+The site uses English navigation with a Korean index link. Generated API navigation
+includes the shared generator core. Documentation checks, the strict site build
+and generated navigation destination checks passed.
+
 ## 2026-09-09 — Data validation guide
 
 The validation guide documents the current JavaScript, PHP, Go and Rust entry
