@@ -124,7 +124,7 @@ origin: `http://localhost:5173/?api=http://localhost:8020`.
 ## Independent verification
 
 The console and the AI gate reach the SAME CRUDUI engine functions
-(`validate`, `renderForm`, `renderFormSSR`) through DIFFERENT call stacks:
+(`validate`, `renderForm`) through DIFFERENT call stacks:
 the console via the HTTP gateway with free-form live input; the gate via
 vitest / go test / cargo test / php worker with fixed fixtures. Same input must
 yield the same result — when it does not, a wrapper bug surfaces. The `raw`

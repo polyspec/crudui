@@ -48,7 +48,7 @@ docs/api/
 # phpDocumentor phar + cache (large, environment-local)
 tools/bin/phpDocumentor.phar
 tools/bin/.phpdoc-cache/
-# current corpus measurement artifacts (reproducible via scripts/corpus-legacy-run.mts against the specification corpus)
+# Generated legacy corpus measurement reports
 scripts/corpus-legacy-result.json
 scripts/corpus-legacy-classified.json
 scripts/corpus-legacy-verify.json

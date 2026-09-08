@@ -64,7 +64,7 @@ describe('$ref format errors', () => {
   });
 });
 
-describe('$ref declaration order (legacy positional array_merge)', () => {
+describe('$ref declaration order', () => {
   test('sibling BEFORE $ref is overridden by the base', () => {
     const loader = new MemoryLoader({
       'base.yml': { properties: { a: { from: 'base' } } },
