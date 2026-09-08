@@ -178,4 +178,4 @@
 
 - [TESTING.md](./TESTING.md) — 게이트 체계와 실행 방법
 - [VALIDATION-RULES.md](./VALIDATION-RULES.md) — 검증 규칙 상세
-- [SPEC.md](./SPEC.md) — 스펙 형식
+- [구형 스키마](./spec/legacy-schema.ko.md) — 스펙 형식
