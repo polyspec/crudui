@@ -282,4 +282,4 @@ extension fails the extension target; it must not execute the PHP parser instead
 Responses identify the server and processor mode. Both targets run the same
 validation, rendering and persistence contracts. Together with Go and Rust,
 this gives four server targets, three frameworks and two transports: 24 current
-lifecycle combinations. Node server implementation remains separate work.
+lifecycle combinations. JavaScript validation runs in the browser and the CLI.
