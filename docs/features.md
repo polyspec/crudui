@@ -237,3 +237,8 @@ inspector tests passed. Svelte type checking reported zero errors and warnings.
 The packaged consumer passed export-file checks, TypeScript compilation and a
 three-framework production build. These results do not establish container
 deployment or complete the browser/server transport matrix.
+
+Comparison environment on 2026-09-09: library `a5b4491`, four HTTP targets,
+240/240 HTTP checks and PHP processor-mode checks passed. The local container
+uses normal dependency installation. Browser verification of this source is
+in progress; earlier browser reports do not verify this dependency graph.
