@@ -9,8 +9,8 @@ import { createHash } from 'node:crypto';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const output = path.join(root, '.form-comparison/results');
 const selectedServer = process.argv[2];
-const servers = selectedServer ? [selectedServer] : ['php', 'go', 'rust'];
-if (servers.some(server => !['php', 'go', 'rust'].includes(server))) throw new Error('Use php, go or rust');
+const servers = selectedServer ? [selectedServer] : ['php', 'php-ext', 'go', 'rust'];
+if (servers.some(server => !['php', 'php-ext', 'go', 'rust'].includes(server))) throw new Error('Use php, php-ext, go or rust');
 const suffix = selectedServer ? `-${selectedServer}` : '';
 const reportFile = `report${suffix}.json`;
 const formsFile = `forms${suffix}.png`;
@@ -60,7 +60,7 @@ try {
   });
   await page.setRequestInterception(true);
   page.on('request', async request => {
-    const match = request.url().match(/\/api\/(php|go|rust)\/load\/(corrected|original-keyed|original|keyed)\/(react|vue|svelte)$/);
+    const match = request.url().match(/\/api\/(php|php-ext|go|rust)\/load\/(corrected|original-keyed|original|keyed)\/(react|vue|svelte)$/);
     const key = match?.slice(1).join('/');
     if (key && !initialMounts.has(key)) {
       const result = { server: match[1], mode: match[2], framework: match[3], passed: false };

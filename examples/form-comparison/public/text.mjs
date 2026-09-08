@@ -41,7 +41,7 @@ export const messages = {
     deletion: 'Persist reordered rows and delete descendants', shape: 'Reject incorrect collection types and child ownership',
     manual: 'Compare identical keyed data using the corrected original renderer and current runtime. The unchanged original keyed renderer remains selectable. Use the row buttons or load the 5 → 7 → 1 example. The earlier hidden-field array diagnostic remains selectable; it is not an accepted replacement.',
     source: 'Source commits and archive hashes', plusLabel: '+ Add', copyLabel: 'Copy', minusLabel: '− Remove',
-    upLabel: '↑', downLabel: '↓', count: 'Company rows', download: 'Download results', serverNames: { php: 'PHP', go: 'Go', rust: 'Rust' }, server: 'Server', framework: 'Framework',
+    upLabel: '↑', downLabel: '↓', count: 'Company rows', download: 'Download results', serverNames: { php: 'PHP', 'php-ext': 'PHP extension', go: 'Go', rust: 'Rust' }, server: 'Server', framework: 'Framework',
   },
   ko: {
     title: '중첩 폼 검증', original: '원본 배열 + 예제 컨트롤러', keyed: '13자리 런타임',
@@ -85,7 +85,7 @@ export const messages = {
     deletion: '변경한 순서 저장과 하위 행 삭제', shape: '잘못된 컬렉션 자료형과 하위 ID의 부모 변경 거부',
     manual: '수정한 원본 렌더러와 현재 런타임에 동일한 키 데이터를 제공해 비교합니다. 수정 전 원본 키 렌더러도 선택할 수 있습니다. 행 버튼을 사용하거나 5 → 7 → 1 예제를 불러옵니다. 이전 숨김 필드 배열 진단도 선택할 수 있으며 승인된 대체 구현은 아닙니다.',
     source: '소스 커밋과 아카이브 해시', plusLabel: '+ 추가', copyLabel: '복사', minusLabel: '− 제거',
-    upLabel: '↑', downLabel: '↓', count: '회사 행 수', download: '결과 다운로드', serverNames: { php: 'PHP', go: 'Go', rust: 'Rust' }, server: '서버', framework: '프레임워크',
+    upLabel: '↑', downLabel: '↓', count: '회사 행 수', download: '결과 다운로드', serverNames: { php: 'PHP', 'php-ext': 'PHP 확장', go: 'Go', rust: 'Rust' }, server: '서버', framework: '프레임워크',
   },
 };
 export function translations(language) { return messages[language === 'en' ? 'en' : 'ko']; }

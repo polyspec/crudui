@@ -14,7 +14,7 @@ container system status
 node examples/form-comparison/run.mjs start
 ```
 
-[http://localhost:4317](http://localhost:4317)을 열고 PHP, Go, Rust를 선택한 후
+[http://localhost:4317](http://localhost:4317)을 열고 PHP, PHP 확장, Go, Rust를 선택한 후
 React, Vue, Svelte를 선택합니다. 두 폼은 선택한 서버를 사용합니다.
 왼쪽 폼은 원본 소스 `1e8702a`에 빈 컬렉션 수정 `78723bb`를 적용하고 예제 행
 컨트롤러와 원본 공개 함수의 캐시 바인딩을 사용합니다.
@@ -50,21 +50,21 @@ JSON 검사는 기존 키 구조를 사용하며 문서 멤버 순서를 행 순
 `<server>-<variant>-<framework>.json` 파일을 사용합니다. API 경로는
 `/api/<server>/<action>/<variant>/<framework>`이며 예를 들면
 `/api/go/save/keyed/react`입니다. Node 프로세스는 요청 바이트를 그대로 전달하며
-PHP, Go, Rust가 각각 파싱, 검증, 저장과 재로드를 수행합니다.
+PHP, PHP 확장, Go, Rust가 각각 파싱, 검증, 저장과 재로드를 수행합니다.
 저장은 해당 파일의 전체 계층을 교체합니다. 초기화와 자동 검사는 최초 레코드를
 복원합니다. 컨테이너를 제거해도 호스트 파일은 유지합니다. 이 환경은 로컬 개발용이며
 패키지를 게시하지 않습니다.
 
 ## 검증
 
-화면의 “모든 서버와 프레임워크 검사”는 세 서버와 세 프레임워크에서 빈 컬렉션을 수정한 원본, 수정 전
+화면의 “모든 서버와 프레임워크 검사”는 네 서버와 세 프레임워크에서 빈 컬렉션을 수정한 원본, 수정 전
 키 예제, 현재 키 런타임, 유지한 배열 진단에 전송 방식별로 동일한 20개 검사를
-실행하여 보고서 72개와 시나리오 결과 1,440개를 생성합니다. 표는 선택한 서버와
+실행하여 보고서 96개와 시나리오 결과 1,920개를 생성합니다. 표는 선택한 서버와
 프레임워크의 결과를 표시합니다. 각
 시나리오의 결과를 PASS 또는 FAIL로 표시합니다. 다운로드는 이 결과를 내보냅니다.
-헤드리스 실행기는 36개 서버·예제·프레임워크 조합과 두 전송 방식에 실제 포인터, 키보드, 체크박스,
-제출 검증 상호작용 검사 288개도 실행합니다. 주 비교의 두 구현에서는 빈 컬렉션
-추가의 키보드 검사 36개를 추가로 실행합니다. 검증 검사는 실제 HTTP Content-Type과
+헤드리스 실행기는 48개 서버·예제·프레임워크 조합과 두 전송 방식에 실제 포인터, 키보드, 체크박스,
+제출 검증 상호작용 검사 384개도 실행합니다. 주 비교의 두 구현에서는 빈 컬렉션
+추가의 키보드 검사 48개를 추가로 실행합니다. 검증 검사는 실제 HTTP Content-Type과
 JSON 본문을 확인합니다. 동등성 사례는 같은 편집·복사 데이터를 두 방식으로
 저장하고 ID, 부모 관계, 위치, 재로드 값을 비교합니다. 잘못된 JSON 검사는
 저장 레코드를 변경하지 않고 요청을 거부해야 합니다.
@@ -74,7 +74,7 @@ empty 검사는 빈 부서를 사용합니다. empty 검사는 선택 항목의 
 확인합니다.
 캐시 검사는 참조 읽기 1회를 확인하고 준비 이후의 로드를 거부합니다.
 헤드리스 실행기는 각 예제의 최초 서버 로드 요청을 중단하고 중첩 input 요소가 이미
-있는지 확인하며 36개 서버·예제·프레임워크 조합을 모두 검사합니다.
+있는지 확인하며 48개 서버·예제·프레임워크 조합을 모두 검사합니다.
 HTML 응답의 폼 컨테이너가 비어 있으며 API 서버가 달라도 응답이 같은지도
 검사합니다. 초기화 사례는 생성 시 데이터 전달과 마운트 후 주입의 15단계에서
 HTML 원문, 전체 계산된 CSS, 컨트롤 상태, 순서를 유지한 제출과 저장 레코드를
@@ -123,13 +123,13 @@ make docs-check
 타이핑 실행기는 네 예제와 세 프레임워크에 문자당 0, 10, 50 ms 간격으로 실제
 키보드 입력 36개를 검사합니다. 검증 오류 이후의 즉시 값, 렌더링 후 값, 포커스와
 커서 위치를 확인하며 결과를 `typing-report.json`에 보존합니다.
-공유 HTTP 실행기는 PHP, Go, Rust와 네 소스 예제에 180개 검사를 실행합니다.
+공유 HTTP 실행기는 PHP, PHP 확장, Go, Rust와 네 소스 예제에 240개 검사를 실행합니다.
 검사 대상은 multipart·URL-encoded·JSON 저장과 재로드, 서버 간 결과 일치,
 실제 파일 내용, 경로별 저장 키, 삭제, ID 재사용 방지, 필수 값 검증 실패,
 문자열 필드 자료형, 요청 제한, 잘못된 초기 자료 이름, 물리적인 레코드 순서와
 잘못된 파일 유지입니다. 검사 전 레코드를 복원하고 `.form-comparison/results/`에
 `server-report.json`을 생성하며 이전 보고서는 타임스탬프로 보존합니다. 같은 저장소를
-사용하므로 브라우저 검사 후 실행합니다. `check.mjs`에 `php`, `go`, `rust` 중 하나를
+사용하므로 브라우저 검사 후 실행합니다. `check.mjs`에 `php`, `php-ext`, `go`, `rust` 중 하나를
 인수로 전달하면 해당 서버만 검사하고 별도 파일명으로 결과를 저장합니다. 중단된
 브라우저 실행은 `incomplete-*.json` 보고서를 저장합니다.
 PHP 저장소 검사는 새 인스턴스의 로드, 물리적 레코드
@@ -164,3 +164,23 @@ node examples/form-comparison/run.mjs prepare
 소스들은 커밋된 npm 잠금 파일을 사용합니다. 잠금 파일에 네이티브 빌드 모듈의
 macOS 패키지 항목만 있으므로 이미지에서 동일 버전의 Linux ARM64 모듈을 별도로
 설치합니다. 소스의 프레임워크 의존성 버전은 변경하지 않습니다.
+
+## PHP 확장 대상
+
+PHP 처리기는 `php`, 컴파일된 확장은 `php-ext`를 선택합니다. 이미지는
+PHP 헤더로 확장을 빌드합니다. 확장 프로세스는 `/opt/sortjson.so`를
+명시적으로 로드하고 PHP 프로세스는 로드하지 않습니다. 상태 검사와 HTTP
+응답은 `php`에서 `nativeJson: false`, `php-ext`에서 `nativeJson: true`를
+반환해야 합니다. 다르면 시작 또는 검증이 실패합니다. 저장소는 데이터
+볼륨에서 `php-`와 `php-ext-` 파일명을 별도로 사용합니다.
+
+환경을 빌드하고 시작한 후 실행합니다.
+
+```sh
+node examples/form-comparison/check.mjs php-ext
+container exec crudui-form-comparison node /workspace/keyed/examples/form-comparison/test-php-modes.mjs /opt/sortjson.so
+container exec crudui-form-comparison node /workspace/keyed/examples/form-comparison/check-servers.mjs
+```
+
+전체 조합은 PHP·PHP 확장·Go·Rust와 React·Vue·Svelte 및 두 전송 형식을
+포함합니다. 기존 서버 세 가지의 보고서는 PHP 확장 실행의 검증 근거가 아닙니다.
