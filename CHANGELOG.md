@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Shared AST evaluation for ternary parameters
+
+Form appearance and TypeScript, PHP, Go and Rust validation parameters evaluate
+complete ternary ASTs. Selected field paths, nested true branches and quoted
+escapes no longer use separate string parsers. Three form regressions and one
+validation regression failed before the fix and passed afterward. Six shared
+validation cases cover path-valued and nested limits. Existing validation results
+and expected form HTML remain unchanged. The class-name fixture now quotes its
+string branches.
+
+The expression contract is maintained in English and Korean under `docs/spec/`.
+It documents current boolean conversion separately from required-input validation,
+operator precedence and condition-map defaults. CLI descriptions use this contract.
+All four validator suites, all form suites, 36 CLI tests and documentation checks
+passed. These results do not update the preserved external browser comparison.
+
 ## 2026-09-09 — Current API and fixture descriptions
 
 Console documentation uses the current rendering API name. Composition and

@@ -524,7 +524,7 @@ export class Validator {
   }
 
   /**
-   * Evaluate a ConditionMap (EXPRESSION-GRAMMAR §8): walk keys in declaration
+   * Evaluate a ConditionMap (expressions.md §8): walk keys in declaration
    * order, return the value of the first key whose expression is truthy; if none
    * match, return the `true` (always-true default) key's value; if absent, null
    * (rule disabled). The map is a thin repeated-engine-call wrapper, not a new
@@ -548,45 +548,18 @@ export class Validator {
     return null;
   }
 
-  /**
-   * Try to read a string param as a value-returning ternary
-   * (`cond ? a : b`). Returns `{ handled:false }` when the string is not a
-   * ternary or its condition part is not a parseable condition (so a regex such
-   * as `^https?://...` containing `?...:` is NOT mistaken for a ternary).
-   */
+  /** Evaluate a complete ternary AST; other strings remain literal parameters. */
   private tryEvaluateTernary(
     expression: string,
     context: PathContext
   ): { handled: boolean; value?: unknown } {
-    const questionPos = findTernaryOperator(expression, '?');
-    if (questionPos === -1) {
-      return { handled: false };
-    }
-    const colonPos = findTernaryOperator(expression, ':', questionPos + 1);
-    if (colonPos === -1) {
-      return { handled: false };
-    }
-    const condition = expression.slice(0, questionPos).trim();
-    if (!isConditionExpression(condition)) {
-      return { handled: false };
-    }
     try {
-      parseCondition(condition);
+      const node = parseCondition(expression);
+      if (node.type !== 'Ternary') return { handled: false };
+      return { handled: true, value: evaluateExpressionValue(node, context) };
     } catch {
       return { handled: false };
     }
-    const conditionResult = this.evaluateCondition(condition, context);
-    const branch = conditionResult
-      ? expression.slice(questionPos + 1, colonPos).trim()
-      : expression.slice(colonPos + 1).trim();
-
-    if (/\?[^:]*:/.test(branch)) {
-      const nested = this.tryEvaluateTernary(branch, context);
-      if (nested.handled) {
-        return nested;
-      }
-    }
-    return { handled: true, value: parseTernaryBranchValue(branch) };
   }
 
   private evaluateCondition(expression: string, context: PathContext): boolean {
@@ -607,83 +580,4 @@ export class Validator {
       return false;
     }
   }
-}
-
-// ---------------------------------------------------------------------------
-// Ternary helpers (string-split, regex-safe). Self-contained so the CRUDUI engine
-// does not import legacy private functions (R7 isolation); semantics are identical
-// to the legacy Validator helpers and proven equal by the shared fixtures.
-// ---------------------------------------------------------------------------
-
-/**
- * Position of a top-level ternary `?`/`:` respecting quotes, parens, brackets
- * and nested ternaries (PHP ConditionParser::findTernaryOperator parity).
- */
-function findTernaryOperator(
-  expression: string,
-  operator: '?' | ':',
-  startPos = 0
-): number {
-  let depth = 0;
-  let inQuote = false;
-  let quoteChar = '';
-  let ternaryDepth = 0;
-
-  for (let i = startPos; i < expression.length; i++) {
-    const char = expression[i]!;
-    if ((char === '"' || char === "'") && !inQuote) {
-      inQuote = true;
-      quoteChar = char;
-    } else if (char === quoteChar && inQuote) {
-      inQuote = false;
-      quoteChar = '';
-    }
-    if (!inQuote) {
-      if (char === '(' || char === '[') {
-        depth++;
-      } else if (char === ')' || char === ']') {
-        depth--;
-      }
-      if (char === '?' && depth === 0) {
-        if (operator === '?') {
-          return i;
-        }
-        ternaryDepth++;
-      } else if (char === ':' && depth === 0) {
-        if (operator === ':') {
-          if (ternaryDepth === 0) {
-            return i;
-          }
-          ternaryDepth--;
-        }
-      }
-    }
-  }
-  return -1;
-}
-
-/**
- * Parse a ternary branch string into a typed value (PHP
- * ConditionParser::parseValue parity for scalars). A regex-pattern branch
- * survives as a raw string.
- */
-function parseTernaryBranchValue(raw: string): unknown {
-  const value = raw.trim();
-  const quoted = value.match(/^["'](.*)["']$/s);
-  if (quoted) {
-    return quoted[1];
-  }
-  if (value === 'true') {
-    return true;
-  }
-  if (value === 'false') {
-    return false;
-  }
-  if (value === 'null') {
-    return null;
-  }
-  if (value !== '' && !isNaN(Number(value))) {
-    return value.includes('.') ? parseFloat(value) : parseInt(value, 10);
-  }
-  return value;
 }

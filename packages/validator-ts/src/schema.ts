@@ -2,7 +2,7 @@
  * CRUDUI Field Type Definitions (canonical, reference)
  *
  * Single source of truth for the CRUDUI field model, mechanized from SPEC.md
- * (the CRUDUI constitution) and EXPRESSION-GRAMMAR.md (the expression engine).
+ * (the CRUDUI constitution) and expressions.md (the expression engine).
  *
  * This is CRUDUI-NEW. It does NOT modify or replace the legacy model in `../types.ts`
  * (R7 parallel run — legacy stays stable until CRUDUI is proven). These types are a
@@ -36,11 +36,11 @@
  */
 
 // ============================================================================
-// Expression & Condition Map (G1 / EXPRESSION-GRAMMAR §2, §8)
+// Expression & Condition Map (G1 / expressions.md §2, §8)
 // ============================================================================
 
 /**
- * A single restricted-DSL expression string (EXPRESSION-GRAMMAR §2): paths
+ * A single restricted-DSL expression string (expressions.md §2): paths
  * (`.`/`..`/`*`), comparisons, logic, `in`/`not in`, ternary `?:`, parentheses,
  * literals. No arithmetic, functions, methods, regex, or `eval`. A bare ternary
  * `"...?...:..."` is the shorthand of a condition map (same semantics).
@@ -48,7 +48,7 @@
 export type Expression = string;
 
 /**
- * Declaration-ordered condition map (EXPRESSION-GRAMMAR §8). Each key is an
+ * Declaration-ordered condition map (expressions.md §8). Each key is an
  * Expression (§2 grammar); keys are evaluated top-to-bottom and the value of the
  * first truthy key is returned. If none match, the value of the `true` key (the
  * always-true default) is used; if absent, `null`. The default key is always
@@ -120,7 +120,7 @@ export interface FieldSpec {
   label?: LocalizedText;
   /**
    * Structure — default value. The evaluator references it when a path does not
-   * resolve (EXPRESSION-GRAMMAR §5 Path).
+   * resolve (expressions.md §5 Path).
    */
   default?: unknown;
   /**

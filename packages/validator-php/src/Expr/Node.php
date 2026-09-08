@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Expr;
 
 /**
- * Base for every CRUDUI expression AST node (EXPRESSION-GRAMMAR §4).
+ * Base for every CRUDUI expression AST node (expressions.md §4).
  *
  * toArray() emits the canonical fixture shape, byte-matching the JS reference
  * field names (Ternary{condition,trueValue,falseValue} / Binary{operator,left,

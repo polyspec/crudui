@@ -1,5 +1,167 @@
 [
   {
+    "name": "ternary-field-limit-false-5",
+    "note": "The selected ternary branch resolves a field value as the validation limit.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".enabled ? .limit : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": false,
+      "limit": 7,
+      "value": "5"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "ternary-field-limit-false-8",
+    "note": "The selected ternary branch resolves a field value as the validation limit.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".enabled ? .limit : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": false,
+      "limit": 7,
+      "value": "8"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "ternary-field-limit-true-5",
+    "note": "The selected ternary branch resolves a field value as the validation limit.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".enabled ? .limit : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": true,
+      "limit": 7,
+      "value": "5"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 7.",
+          "value": "5"
+        }
+      ]
+    }
+  },
+  {
+    "name": "ternary-field-limit-true-8",
+    "note": "The selected ternary branch resolves a field value as the validation limit.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".enabled ? .limit : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": true,
+      "limit": 7,
+      "value": "8"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "ternary-nested-true-limit-false",
+    "note": "The nested true branch resolves a field value through the expression AST.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".enabled ? .selected ? .limit : 0 : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": true,
+      "selected": false,
+      "limit": 7,
+      "value": "5"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "ternary-nested-true-limit-true",
+    "note": "The nested true branch resolves a field value through the expression AST.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".enabled ? .selected ? .limit : 0 : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": true,
+      "selected": true,
+      "limit": 7,
+      "value": "5"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 7.",
+          "value": "5"
+        }
+      ]
+    }
+  },
+  {
     "name": "items-langmap-4lang-membership-valid",
     "note": "G3 — in: value→label map with 4-language labels {ko,en,ja,zh}; value '1' is a key, valid (a 4-lang label is display-only, never a member)",
     "spec": {

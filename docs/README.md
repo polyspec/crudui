@@ -8,7 +8,7 @@
 - [Form development and verification](operations/forms.md)
 - [Form and transport verification](operations/verification.md)
 - [Documentation maintenance](operations/documentation.md)
-- [Expression grammar](EXPRESSION-GRAMMAR.md)
+- [Expression grammar](spec/expressions.md)
 - [Validation rules](VALIDATION-RULES.md)
 
 Generate API references and the documentation site with `make docs` from the

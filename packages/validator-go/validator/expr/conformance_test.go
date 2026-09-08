@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// model expression-engine conformance (EXPRESSION-GRAMMAR §9 three-stage check):
+// model expression-engine conformance (expressions.md §9 three-stage check):
 //
 //	(1) Tokenize(expr)   == fixture tokens
 //	(2) Parse(toks)      == fixture ast

@@ -66,7 +66,7 @@ type FieldSpec struct {
 	Name string `json:"name,omitempty"`
 
 	// Default is structure / identity — the default value the evaluator reads
-	// when a path is unresolved (EXPRESSION-GRAMMAR §5 Path).
+	// when a path is unresolved (expressions.md §5 Path).
 	Default any `json:"default,omitempty"`
 
 	// Properties is structure / identity — the child-field map (group / object),
@@ -331,7 +331,7 @@ func (c *Content) UnmarshalJSON(data []byte) error {
 // returned. If none match, the value under the literal "true" key (if present)
 // is returned, else null. The default key is always the literal true
 // (ConditionDefaultKey) — R4 forbids convention sigils such as "_". Each key is
-// an EXPRESSION-GRAMMAR §2 expression; the map is a thin wrapper that re-invokes
+// an expressions.md §2 expression; the map is a thin wrapper that re-invokes
 // the engine, not a separate parser. A single ternary "...?...:..." is the
 // shorthand (same semantics). Evaluated value type — boolean | string | number |
 // null — is decided by the call site, not the map. Order is preserved on a round

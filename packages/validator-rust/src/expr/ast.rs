@@ -1,4 +1,4 @@
-//! CRUDUI expression AST nodes (EXPRESSION-GRAMMAR §4, JS `ConditionParser.ts` parity).
+//! CRUDUI expression AST nodes (expressions.md §4, JS `ConditionParser.ts` parity).
 //!
 //! `to_value()` emits the canonical fixture shape, byte-matching the JS reference
 //! field names: `Ternary{condition,trueValue,falseValue}`, `Binary{operator,left,
@@ -70,7 +70,7 @@ impl PathSegment {
     }
 }
 
-/// An expression AST node (EXPRESSION-GRAMMAR §4). CRUDUI-only; never reuse the legacy
+/// An expression AST node (expressions.md §4). CRUDUI-only; never reuse the legacy
 /// `crate::condition_parser` model (R7 parallel run).
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {

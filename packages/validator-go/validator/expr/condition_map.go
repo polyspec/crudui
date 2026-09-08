@@ -1,6 +1,6 @@
 package expr
 
-// Condition-map resolver (EXPRESSION-GRAMMAR §8). A thin wrapper over the
+// Condition-map resolver (expressions.md §8). A thin wrapper over the
 // expression engine — NOT a separate parser.
 //
 // A condition map is an ordered list of {Expr: value, …}. Keys (each a §2

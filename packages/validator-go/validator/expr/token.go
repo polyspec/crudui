@@ -1,4 +1,4 @@
-// Package expr is the Go model expression engine (EXPRESSION-GRAMMAR §0-§7).
+// Package expr is the Go model expression engine (expressions.md §0-§7).
 //
 // Pipeline: string -[Lexer]-> []Token -[Parser]-> Node (AST) -[Evaluator + data]-> value.
 // The three stages are separate (GRAMMAR §0): the lexer knows no grammar, the
@@ -16,7 +16,7 @@
 // nodes).
 package expr
 
-// TokenType tags a lexical token (EXPRESSION-GRAMMAR §1, JS TokenType parity).
+// TokenType tags a lexical token (expressions.md §1, JS TokenType parity).
 //
 // String-valued so a fixture's token.type string ("DOT"|"IDENTIFIER"|...) maps
 // directly. WHITESPACE never reaches the token slice (the lexer drops it); EOF
@@ -27,7 +27,7 @@ package expr
 type TokenType string
 
 // The Token* constants enumerate every TokenType the lexer emits
-// (EXPRESSION-GRAMMAR §1). Their string values are the canonical fixture token
+// (expressions.md §1). Their string values are the canonical fixture token
 // type names and are byte-compatible with the JS reference. TokenWhitespace and
 // TokenInvalid are lexer-internal: WHITESPACE is dropped before the token slice
 // and INVALID marks one unrecognized character.
