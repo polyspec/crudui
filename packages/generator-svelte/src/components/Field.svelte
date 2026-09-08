@@ -1,18 +1,6 @@
-<!--
-  CRUDUI Svelte field dispatcher — the envelope, as a real `.svelte` element tree.
-
-  Consumes one core `FieldViewModel` and builds the verified Legacy envelope:
-  `.form-element-wrapper` (show=false → `style="display: none"`, DOM kept) >
-  `<h6>` label (omitted for hidden) + `.description` + `.form-element` >
-  `.input-group-wrapper[data-uniqid]` > widget. It dispatches the four field
-  shapes (leaf / group / multiple-leaf|group / lang) plus the checkbox/switcher
-  special envelope. Every envelope node is a real `.svelte` element; only the leaf
-  CONTROL bytes are raw (Widget.svelte / widget.ts), injected at the container
-  that owns them through `{@html}`.
-
-  Appearance/visibility come pre-evaluated from the core's ResolvedDesign; this
-  dispatcher only maps evaluated strings to class/style. svelte accepts a STRING
-  `style` value verbatim (like Vue, no CSSProperties object). eval is never called.
+<!-- @component
+  Render an evaluated field, including nested groups, repeated rows and language inputs.
+  Apply the visibility and appearance prepared by the shared core.
 -->
 <script lang="ts">
   import type { FieldViewModel } from '@crudui/generator-core';

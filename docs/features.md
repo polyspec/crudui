@@ -48,8 +48,8 @@ All 240 HTTP checks and PHP processor-mode enforcement passed.
 | Server | Verified revision | Scenarios | Interactions | Page errors |
 | --- | --- | --- | --- | --- |
 | PHP | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
-| PHP extension | `a5b4491` | 120/120 passed | 30/30 passed | 0 |
-| Go | `a5b4491` | 120/120 passed | 30/30 passed | 0 |
+| PHP extension | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
+| Go | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
 | Rust | `a5b4491` | 120/120 passed | 30/30 passed | 0 |
 
 Each target covers React, Vue and Svelte with form and ordered JSON transport.
@@ -77,10 +77,10 @@ form pages. Bootstrap product checks also verified nested data.
 Library deployment means package publication; no package is published.
 The comparison application is preserved in an independent external workspace.
 The table records the latest completed checks per server. The `2dfd321` browser
-checks for PHP extension, Go and Rust are running. Retained implementation failures remain
+check for Rust is running. Retained implementation failures remain
 in the reports. Release verification and repository cleanup remain in progress.
 
-TypeScript API reference generation and the strict static site build passed.
-The PHP reference page records missing phpDocumentor; PHP HTML generation is
-incomplete. Earlier API documentation and schema runs produced identical output. The console tests
+TypeScript, Go, Rust and PHP API generation and the strict static site build
+passed. Two complete generations produced identical API documentation, native
+HTML assets and schema output. Eight generator failure tests passed. The console tests
 passed 81 cases and the raw form inspector passed 18 cases.

@@ -33,6 +33,28 @@ Relative links to repository files outside `docs/` are checked for file existenc
 and rendered as GitHub source links on the site. Document sources retain their
 repository-relative links. A missing repository file fails the build.
 
+API generation requires TypeDoc, Go, Cargo and phpDocumentor. A tool failure or
+missing output fails generation; the generator does not replace failed output
+with a success page. PHP documentation uses `tools/bin/phpDocumentor.phar`.
+
+Install phpDocumentor 3.10.0 from the repository root. Go, Cargo and PHP must be
+available on `PATH`; PHP requires the mbstring extension.
+
+```sh
+mkdir -p tools/bin
+curl --fail --location https://github.com/phpDocumentor/phpDocumentor/releases/download/v3.10.0/phpDocumentor.phar -o tools/bin/phpDocumentor.phar
+php tools/bin/phpDocumentor.phar --version
+make docs
+make docs-verify-idempotent
+```
+
+TypeScript references describe the five public package entries. Svelte uses its
+built declarations, including `Form`, instead of legacy helper modules. Native
+PHP and Rust HTML is included in the site under `docs/public/api/`. The repeated
+generation check compares those assets, Markdown references and the schema.
+Go references include every package under `validator/`, including composition,
+expressions, validation and explicit legacy packages.
+
 Use repository-relative paths in scripts and documents. External source tools
 must require an explicit input path. They must not depend on another project's
 checkout or a developer's home directory.
