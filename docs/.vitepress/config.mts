@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
+import { fileURLToPath } from 'node:url';
+import { configureRepositoryLinks } from '../../scripts/documentation-links.mjs';
 
 // VitePress site config for CRUDUI.
 // Idempotency: lastUpdated is disabled (it embeds git/file mtimes, which break
@@ -13,11 +15,9 @@ export default withMermaid(defineConfig({
   lang: 'en-US',
   lastUpdated: false,
   cleanUrls: true,
-
-  // Auto-generated API trees link between sibling pages with relative paths that
-  // VitePress' dead-link checker cannot always resolve (e.g. typedoc README links,
-  // and HTML-only php/rust outputs). Do not fail the build on those.
-  ignoreDeadLinks: true,
+  markdown: {
+    config: md => configureRepositoryLinks(md, fileURLToPath(new URL('../../', import.meta.url))),
+  },
 
   themeConfig: {
     nav: [
