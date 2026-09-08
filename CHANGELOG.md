@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Dependency installation and package checks
+
+The workspace lock file resolves declared dependency ranges and includes native
+packages for supported platforms. The root declares Vitest for shared test
+integration. npm install-script approvals identify reviewed package versions.
+The isolated consumer uses normal installation with the same script approvals.
+
+Clean installation, public package checks (5), repeated build comparison (1),
+consumer types, production compilation and three-framework browser checks passed.
+Form checks passed: core 26, React 691, Vue 344, Svelte 345 and 3 mounted checks,
+and 6 HTML normalizer checks. JavaScript validation passed 1,579 tests.
+These results do not establish deployment of the comparison environment.
+
 ## 2026-09-09 — Field error descriptions
 
 Unsupported field errors identify the field type and path. Current test names
