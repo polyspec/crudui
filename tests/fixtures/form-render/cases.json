@@ -191,7 +191,7 @@
   },
   {
     "name": "group-class-condmap-has-data",
-    "note": "legacy group_class exist/empty → design.group.class condition map { '.items': has-data, true: empty } → .form-group class branches on data.",
+    "note": "The design.group.class condition map selects has-data or empty according to the items value.",
     "spec": {
       "type": "group",
       "properties": {

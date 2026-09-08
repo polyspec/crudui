@@ -1,7 +1,7 @@
 [
   {
     "name": "ok-plain-spec",
-    "note": "a clean current spec with role slots and nesting passes the forbidden-scan",
+    "note": "A specification with role settings and nested fields passes the forbidden-key check.",
     "spec": {
       "type": "group",
       "properties": {

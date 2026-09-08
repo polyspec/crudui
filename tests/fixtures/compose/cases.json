@@ -451,7 +451,7 @@
   },
   {
     "name": "err-ref-file-missing",
-    "note": "missing $ref file is a load error (not valid:true; legacy LargeForm:873 bug)",
+    "note": "A missing $ref file produces a load error.",
     "input": {
       "files": {},
       "entry": {
