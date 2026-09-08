@@ -45,6 +45,7 @@ test-*.html
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 docs/api/
+docs/public/api/
 # phpDocumentor phar + cache (large, environment-local)
 tools/bin/phpDocumentor.phar
 tools/bin/.phpdoc-cache/

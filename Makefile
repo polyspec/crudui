@@ -22,7 +22,7 @@ help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + VitePress build)"
-	@echo "  make docs-api              멀티언어 API doc (typedoc 4종 + go doc + cargo doc + php 가능시)"
+	@echo "  make docs-api              Generate API references for all languages"
 	@echo "  make docs-schema           스펙 JSON Schema와 공유 고정 데이터 검사"
 	@echo "  make docs-site             VitePress 정적 빌드 (docs/.vitepress/dist)"
 	@echo "  make docs-dev              VitePress 개발 서버"
@@ -73,6 +73,7 @@ docs-check-all: docs-check ## docs-check 별칭 (라이브러리 + 서버)
 docs-check-documents:
 	node scripts/check-documents.mjs
 	node --test scripts/documentation-links.test.mjs
+	node --test scripts/gen-api-docs.test.mjs
 
 docs-check-libs: ## 라이브러리 packages/* doc-coverage
 	npm run docs:check
@@ -81,25 +82,24 @@ docs-check-servers: ## examples 서버 4종 doc-coverage (node/go/php/rust)
 	npm run docs:check:servers
 
 docs-clean: ## 생성물 전부 제거
-	rm -rf docs/api
+	rm -rf docs/api docs/public/api
 	rm -rf docs/.vitepress/dist docs/.vitepress/cache
 	rm -rf packages/validator-rust/target/doc
 	rm -rf tools/bin/.phpdoc-cache
 	@echo "[make] docs-clean: removed generated docs/api, dist, rustdoc, phpdoc cache"
 
-# Idempotency proof: generate twice, diff the full docs/api tree + schema json.
-# (rustdoc HTML lives in the gitignored target/doc, outside docs/api, so it is
-# naturally excluded; the docs/api markdown + php/go/rust pages are all
-# deterministic and compared in full.)
+# Generate twice and compare Markdown, native API assets and the schema.
 docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 	@$(MAKE) docs-clean
 	@$(MAKE) docs-api docs-schema
 	@rm -rf /tmp/crudui-docs-run1 && mkdir -p /tmp/crudui-docs-run1
 	@cp -R docs/api /tmp/crudui-docs-run1/api
+	@cp -R docs/public/api /tmp/crudui-docs-run1/native-api
 	@cp schema/crudui.schema.json /tmp/crudui-docs-run1/crudui.schema.json
 	@$(MAKE) docs-api docs-schema
 	@rm -rf /tmp/crudui-docs-run2 && mkdir -p /tmp/crudui-docs-run2
 	@cp -R docs/api /tmp/crudui-docs-run2/api
+	@cp -R docs/public/api /tmp/crudui-docs-run2/native-api
 	@cp schema/crudui.schema.json /tmp/crudui-docs-run2/crudui.schema.json
 	@if diff -r /tmp/crudui-docs-run1 /tmp/crudui-docs-run2 > /tmp/crudui-docs-diff.txt 2>&1; then \
 		echo "[make] docs-verify-idempotent: OK — two runs produced identical deterministic output"; \

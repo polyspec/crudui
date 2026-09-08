@@ -35,6 +35,28 @@ TypeDoc은 패키지마다 상대 링크와 `index` 페이지를 생성합니다
 GitHub 소스 링크로 출력합니다. 문서 원문은 저장소 상대 링크를 유지합니다.
 저장소 파일이 없으면 빌드가 실패합니다.
 
+API 생성에는 TypeDoc·Go·Cargo·phpDocumentor가 필요합니다. 도구 실행 실패나
+출력 누락은 생성 실패로 처리하며 실패한 출력을 성공 페이지로 대체하지
+않습니다. PHP 문서는 `tools/bin/phpDocumentor.phar`를 사용합니다.
+
+저장소 루트에서 phpDocumentor 3.10.0을 설치합니다. Go·Cargo·PHP는 `PATH`에
+있어야 하며 PHP에는 mbstring 확장이 필요합니다.
+
+```sh
+mkdir -p tools/bin
+curl --fail --location https://github.com/phpDocumentor/phpDocumentor/releases/download/v3.10.0/phpDocumentor.phar -o tools/bin/phpDocumentor.phar
+php tools/bin/phpDocumentor.phar --version
+make docs
+make docs-verify-idempotent
+```
+
+TypeScript 참조는 공개 패키지 진입점 다섯 개를 설명합니다. Svelte는 레거시
+보조 모듈 대신 `Form`을 포함한 빌드된 선언을 사용합니다. PHP·Rust의 자체
+HTML은 `docs/public/api/`에서 사이트에 포함합니다. 반복 생성 검사는 해당
+자산, Markdown 참조, 스키마를 비교합니다.
+Go 참조는 조합·표현식·검증과 명시적인 레거시 패키지를 포함해 `validator/`
+아래의 모든 패키지를 설명합니다.
+
 번역과 링크 검사는 저장소 안내 문서, 생성기 패키지 README, 예제 색인, 기능 상태와
 `docs/spec/`, `docs/operations/`, `docs/plans/`의 모든 문서에 적용합니다.
 이 디렉터리 밖의 기존 참조 문서는 번역 검사 대상에 포함하지 않습니다.

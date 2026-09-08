@@ -1,22 +1,5 @@
-<!--
-  CRUDUI Svelte list renderer — `List` builds a `ListViewModel` as a real `.svelte`
-  element tree (the read sister of `Form`). read-only: it renders DISPLAY
-  cells, never input controls.
-
-  It takes the core's already-built `ListViewModel` (compose + design eval + i18n
-  + the read cell renderer) and lays it out as a table (default) or cards
-  (`layout="card"`). A pure presentational `.svelte` tree: NO evaluation, NO string
-  concatenation of structure, NO completed-list HTML echo. Every structural node
-  (table/thead/tr/th/td, card list/article/row) is a REAL `.svelte` element; the
-  cell DISPATCH (text/date/number/choice-label/badge/link/image/bool/html) is real
-  `.svelte` branches over the core's `CellDisplay` union.
-
-  Only TWO sanctioned raw boundaries pass through `{@html}` (the same policy as
-  Form's leaf controls): the `html` cell display (verbatim row HTML the column
-  format opted into) and an action's behavior on* chrome (opaque host scripts the
-  core preserves verbatim, which svelte/server's dynamic spread would mangle). The
-  appearance strings come pre-evaluated from the core's ResolvedDesign; this
-  component RECOMPUTES NOTHING. eval is never called.
+<!-- @component
+  Render an evaluated list model as a table or cards with display cells and row actions.
 -->
 <script lang="ts">
   import type { ListViewModel } from '@crudui/generator-core';
