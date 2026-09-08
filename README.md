@@ -25,7 +25,7 @@ mounting and injecting data.
 - [Form runtime contract](docs/spec/form-runtime.md)
 - [Feature and deployment status](docs/features.md)
 - [Development and verification](docs/operations/forms.md)
-- [Browser comparison with PHP, Go and Rust persistence](docs/operations/form-comparison.md)
+- [Form and transport verification](docs/operations/verification.md)
 - [Documentation maintenance](docs/operations/documentation.md)
 - [Changes](CHANGELOG.md)
 - [Development rules](AGENTS.md)

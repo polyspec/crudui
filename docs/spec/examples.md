@@ -2,9 +2,12 @@
 
 [한국어](examples.ko.md).
 
-Current examples use unversioned public APIs. `examples/form-comparison` verifies
-form rendering, data injection and HTTP persistence. `examples/cross-check-console`
-compares validation and rendering results across implementations.
+Current examples use unversioned public APIs. `examples/cross-check-console`
+compares validation and rendering results across implementations. Form usage is
+defined in [form operations](../operations/forms.md).
+
+Reusable form inspection and JSON order checks are maintained under
+`tests/form-inspector/` and `tests/ordered-json/`.
 
 Examples using the legacy specification or legacy API are stored under
 `examples/legacy`. Their code imports explicit legacy entries.

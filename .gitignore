@@ -53,5 +53,6 @@ scripts/corpus-legacy-result.json
 scripts/corpus-legacy-classified.json
 scripts/corpus-legacy-verify.json
 
-# Local form comparison containers, source archives and JSON records
+# Local verification reports
+.verification/
 .form-comparison/
