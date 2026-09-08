@@ -114,8 +114,8 @@ Run:
 ```sh
 npm ci
 npx puppeteer browsers install chrome
-node --test examples/form-comparison/src/form-snapshot.test.mjs
-node examples/form-comparison/check-inspector.mjs
+node --test tests/form-inspector/form-snapshot.test.mjs
+node tests/form-inspector/browser.mjs
 node examples/form-comparison/check.mjs
 node examples/form-comparison/check-typing.mjs
 container exec crudui-form-comparison node /workspace/keyed/examples/form-comparison/check-servers.mjs
