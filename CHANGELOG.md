@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Controlled legacy React updates
+
+Legacy form change notifications execute outside React state updater functions.
+Consecutive field changes preserve prior values and notify the controlled parent
+once per change. The regression failed before the fix. All 692 React tests and
+the package build passed after the fix.
+
 ## 2026-09-09 — Legacy example layout and builds
 
 Legacy examples use `examples/legacy`. Imports, package references, build contexts,

@@ -15,3 +15,6 @@ implementation status records checks separately.
 
 PHP example classes use one PSR-4 class per matching source file. Composer
 optimized autoload generation must not exclude application classes.
+
+Controlled legacy React forms notify the parent once per field change, outside
+React state updater functions. Consecutive changes preserve previous field values.
