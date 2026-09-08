@@ -17,6 +17,14 @@ const validateList = ajv.compile({
 });
 
 let checked = 0;
+for (const [multiple, expected] of [
+  [{ min: 0, max: 3 }, true],
+  [{ min: 'one' }, false],
+]) {
+  const spec = { type: 'group', properties: { rows: { type: 'text', multiple } } };
+  assert.equal(validateForm(spec), expected, `multiple: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
 for (const test of read('../tests/fixtures/list-validity/cases.json')) {
   assert.equal(validateList(test.spec), test.expect === 'ok', `${test.name}: ${JSON.stringify(validateList.errors)}`);
   checked++;

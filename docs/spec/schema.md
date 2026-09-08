@@ -126,3 +126,7 @@ server pagination. Page metadata is supplied by the caller.
 4. Preserve language input values independently of the display language.
 5. Compare shared validation cases in four languages and SSR output in three
    frameworks; verify editable form behavior with mounted views.
+
+Repeated fields accept `multiple.min` and `multiple.max` as numeric row-count
+limits. Instance collection keys identify rows; the schema does not define hidden
+identity fields. See [form runtime](form-runtime.md) for row operations.
