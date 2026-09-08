@@ -1,16 +1,7 @@
 #!/usr/bin/env node
 /**
- * Cross-Language Idempotency Comparison Test Runner
- *
- * GOAL: Verify that same spec + same data = same result across JS, PHP, Go, Rust.
- *
- * Loads test cases from cases/*.json and runs each test through:
- * - JavaScript validator (direct import)
- * - PHP validator (via stdin JSON worker)
- * - Go validator (via pre-compiled CLI tool)
- * - Rust validator (via pre-compiled CLI tool)
- *
- * Reports any discrepancies where languages produce different results.
+ * Compare explicit legacy validators against fixture expectations and each other.
+ * Native executables are rebuilt before comparison; selected execution failures fail.
  */
 
 const fs = require('fs');
@@ -64,27 +55,7 @@ let stats = {
  * Load the JavaScript validator
  */
 function loadJsValidator() {
-  try {
-    // Try compiled version first
-    const distPath = path.join(JS_VALIDATOR_DIR, 'dist', 'index.js');
-    if (fs.existsSync(distPath)) {
-      return require(distPath);
-    }
-    // Try source directly (requires ts-node or compilation)
-    const srcPath = path.join(JS_VALIDATOR_DIR, 'src', 'index.ts');
-    if (fs.existsSync(srcPath)) {
-      try {
-        require('ts-node/register');
-        return require(srcPath);
-      } catch {
-        console.error(`${colors.yellow}Warning: ts-node not available, using dist${colors.reset}`);
-      }
-    }
-    throw new Error('No JS validator found');
-  } catch (error) {
-    console.error(`${colors.red}Error loading JS validator: ${error.message}${colors.reset}`);
-    return null;
-  }
+  return require(path.join(JS_VALIDATOR_DIR, 'dist', 'legacy', 'index.js'));
 }
 
 /**
@@ -213,25 +184,7 @@ function runPhpValidation(spec, input) {
  * Run Go validation via pre-compiled CLI tool
  */
 function runGoValidation(spec, input) {
-  // Check if Go CLI tool exists
-  const goBinaryPath = path.join(GO_VALIDATOR_DIR, 'validate');
-
-  // If binary doesn't exist, try to build it
-  if (!fs.existsSync(goBinaryPath)) {
-    const buildResult = spawnSync('go', ['build', '-o', 'validate', './cmd/validate-legacy'], {
-      encoding: 'utf-8',
-      timeout: 60000,
-      cwd: GO_VALIDATOR_DIR,
-      env: { ...process.env, GO111MODULE: 'on' },
-    });
-
-    if (buildResult.status !== 0) {
-      return {
-        success: false,
-        error: `Go build failed: ${buildResult.stderr || 'Unknown error'}`,
-      };
-    }
-  }
+  const goBinaryPath = path.join(__dirname, '../../.verification/validate-legacy-go');
 
   // Prepare request
   const request = JSON.stringify({ spec, input });
@@ -267,40 +220,9 @@ function runGoValidation(spec, input) {
   }
 }
 
-/**
- * Run Rust validation via pre-compiled CLI binary.
- *
- * Mirrors the Go path: the release binary lives at
- * packages/validator-rust/target/release/validate and speaks the same
- * stdin JSON protocol ({spec, input} in, {valid, error, field} out).
- * If the binary is missing, build it with cargo. cargo/rustc may not be on
- * the default PATH, so prepend $HOME/.cargo/bin.
- */
+/** Run the freshly built legacy Rust validator. */
 function runRustValidation(spec, input) {
-  const rustBinaryPath = path.join(RUST_VALIDATOR_DIR, 'target', 'release', 'validate');
-
-  // If binary doesn't exist, try to build it.
-  if (!fs.existsSync(rustBinaryPath)) {
-    const cargoEnv = {
-      ...process.env,
-      PATH: `${path.join(process.env.HOME || '', '.cargo', 'bin')}:${process.env.PATH || ''}`,
-    };
-    const buildResult = spawnSync('cargo', ['build', '--release', '--bin', 'validate'], {
-      encoding: 'utf-8',
-      timeout: 300000,
-      cwd: RUST_VALIDATOR_DIR,
-      env: cargoEnv,
-    });
-
-    if (buildResult.error || buildResult.status !== 0) {
-      return {
-        success: false,
-        error: `Rust build failed: ${
-          (buildResult.error && buildResult.error.message) || buildResult.stderr || 'Unknown error'
-        }. Build manually: export PATH="$HOME/.cargo/bin:$PATH" && (cd packages/validator-rust && cargo build --release)`,
-      };
-    }
-  }
+  const rustBinaryPath = path.join(RUST_VALIDATOR_DIR, 'target', 'release', 'validate-legacy');
 
   // Prepare request
   const request = JSON.stringify({ spec, input });
@@ -340,8 +262,8 @@ function runRustValidation(spec, input) {
  * Compare results from different languages
  */
 function resultsMatch(results) {
-  const validResults = results.filter((r) => r.success);
-  if (validResults.length < 2) return true;
+  if (!results.length || results.some(r => !r.success)) return false;
+  const validResults = results;
 
   const first = normalizeResult(validResults[0].result);
   return validResults.every((r) => {
@@ -541,7 +463,10 @@ function runComparison(jsModule, testFile, enabledLangs) {
 
       // Check for discrepancies
       const resultArray = Object.values(results);
-      const allMatch = resultsMatch(resultArray);
+      const allMatch = resultsMatch(resultArray) && resultArray.every(({ result }) =>
+        typeof result?.valid === 'boolean' && result.valid === testCase.expected.valid &&
+        (testCase.expected.error === undefined || result.error === testCase.expected.error) &&
+        (testCase.expected.field === undefined || result.field === testCase.expected.field));
 
       if (allMatch) {
         stats.matching++;
@@ -627,7 +552,7 @@ function main() {
       specificFile = args[++i];
     } else if (arg === '--help' || arg === '-h') {
       console.log(`
-${colors.cyan}Cross-Language Idempotency Test Runner${colors.reset}
+${colors.cyan}Legacy Cross-Language Test Runner${colors.reset}
 
 GOAL: Verify that same spec + same data = same result across JS, PHP, Go, Rust.
 
@@ -654,12 +579,22 @@ Examples:
     }
   }
 
-  console.log(`${colors.bold}${colors.cyan}Cross-Language Idempotency Test Runner${colors.reset}`);
+  console.log(`${colors.bold}${colors.cyan}Legacy Cross-Language Test Runner${colors.reset}`);
   console.log(`${colors.gray}Languages: ${enabledLangs.join(', ')}${colors.reset}`);
   console.log(`${colors.gray}Goal: Verify same spec + same data = same result${colors.reset}`);
 
   // Load JavaScript validator
-  const jsModule = loadJsValidator();
+  if (enabledLangs.includes('go')) {
+    const output = path.join(__dirname, '../../.verification/validate-legacy-go');
+    fs.mkdirSync(path.dirname(output), { recursive: true });
+    require('node:child_process').execFileSync('go', ['build', '-o', output, './cmd/validate-legacy'],
+      { cwd: GO_VALIDATOR_DIR, stdio: 'inherit' });
+  }
+  if (enabledLangs.includes('rust')) {
+    require('node:child_process').execFileSync('cargo', ['build', '--locked', '--release', '--bin', 'validate-legacy'],
+      { cwd: RUST_VALIDATOR_DIR, stdio: 'inherit' });
+  }
+  const jsModule = enabledLangs.includes('js') ? loadJsValidator() : null;
   if (!jsModule && enabledLangs.includes('js')) {
     console.error(`${colors.red}Failed to load JavaScript validator${colors.reset}`);
     process.exit(1);
@@ -683,12 +618,15 @@ Examples:
 
   console.log(`${colors.gray}Running ${testFiles.length} test suite(s)...${colors.reset}`);
 
+  if (!testFiles.length) throw new Error('No test suites found');
+
   // Run comparisons
   let totalDiscrepancies = 0;
   for (const testFile of testFiles) {
     try {
       totalDiscrepancies += runComparison(jsModule, testFile, enabledLangs);
     } catch (error) {
+      totalDiscrepancies++;
       console.error(
         `${colors.red}Error processing ${path.basename(testFile)}: ${error.message}${colors.reset}`
       );
@@ -748,7 +686,7 @@ Examples:
 
   if (totalDiscrepancies > 0) {
     console.log(
-      `${colors.bold}${colors.red}IDEMPOTENCY VIOLATION: Languages produce different results!${colors.reset}`
+      `${colors.bold}${colors.red}COMPARISON FAILED: execution, expectation or agreement failure.${colors.reset}`
     );
     console.log(
       `${colors.gray}Same input should produce same output across all languages.${colors.reset}`
@@ -757,9 +695,14 @@ Examples:
   }
 
   console.log(
-    `${colors.bold}${colors.green}IDEMPOTENCY VERIFIED: All languages produce identical results!${colors.reset}`
+    `${colors.bold}${colors.green}IDEMPOTENCY VERIFIED: Selected legacy implementations match expectations and each other.${colors.reset}`
   );
 }
 
 // Run main function
-main();
+try {
+  main();
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
+}

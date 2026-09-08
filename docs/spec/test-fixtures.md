@@ -5,6 +5,11 @@
 Fixtures define inputs and expected behavior. Their format depends on the tested
 contract. A passing legacy fixture does not establish current API conformance.
 
+The legacy comparison runner uses explicit legacy implementations. Every selected
+implementation must execute successfully, match the fixture expectation and agree
+with the other selected implementations. Missing output, execution failure or an
+unreadable suite fails the run. Native executables are rebuilt before comparison.
+
 | Location | Contract |
 | --- | --- |
 | `tests/fixtures/validate/cases.json` | Current validation results and composition failures. |

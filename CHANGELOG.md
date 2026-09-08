@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Legacy comparison correctness
+
+The comparison runner loads the explicit JavaScript legacy entry and rebuilds
+selected Go and Rust legacy executables. It rejects process failures, unreadable
+suites and results that differ from fixture expectations. Source-loading and
+developer-home fallbacks are removed. Two failure regressions failed before the
+fix and passed afterward. All four implementations passed 1,074 legacy cases.
+Default test commands include the runner regressions. English and Korean testing
+instructions distinguish current conformance from legacy comparison.
+
 ## 2026-09-09 — Test fixture contract
 
 The English and Korean fixture contract distinguishes current validation,
