@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Repository-local form inspection and JSON order checks
+
+Package tests use repository-local
+form inspection and JSON order checks. All 50 JSON order cases and the complete
+form test suite passed.
+
 ## 2026-09-09 — Reusable form inspector
 
 The form inspector and its Node and browser checks are maintained under

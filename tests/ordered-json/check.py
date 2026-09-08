@@ -146,7 +146,7 @@ def main():
             passed = sum(row['passed'] for row in report['results'] if row['language'] == language)
             print(f'{language}: {passed}/{len(cases)} JSON contract cases passed', flush=True)
 
-    output = ROOT / '.form-comparison/results'
+    output = ROOT / '.verification/ordered-json'
     output.mkdir(parents=True, exist_ok=True)
     stamp = report['generatedAt'].replace(':', '-')
     path = output / f'ordered-json-{stamp}.json'

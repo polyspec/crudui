@@ -2,9 +2,12 @@
 
 [English](examples.md).
 
-현재 예제는 버전 없는 공개 API를 사용합니다. `examples/form-comparison`은
-폼 렌더링·데이터 주입·HTTP 저장을 검증합니다. `examples/cross-check-console`은
-구현별 검증·렌더링 결과를 비교합니다.
+현재 예제는 버전 없는 공개 API를 사용합니다. `examples/cross-check-console`은
+구현별 검증·렌더링 결과를 비교합니다. 폼 사용법은
+[폼 작업 절차](../operations/forms.ko.md)에서 정의합니다.
+
+재사용 폼 검사기와 JSON 순서
+검사는 `tests/form-inspector/`와 `tests/ordered-json/`에서 관리합니다.
 
 레거시 명세 또는 레거시 API를 사용하는 예제는 `examples/legacy`에 저장합니다.
 예제 코드는 명시적인 레거시 진입점을 가져옵니다. 의존성·빌드 컨텍스트·
