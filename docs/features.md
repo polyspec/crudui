@@ -45,6 +45,12 @@ PHP extension integration passed 240 HTTP checks in the isolated
 and mode enforcement passed `test-php-modes.mjs`. Extension browser verification
 and replacement of the main comparison container are pending.
 
+Go and Rust browser reports each passed all 120 current-runtime scenarios and
+108 interaction checks with no page errors. Evidence is
+`.form-comparison/results/report-go.json` and `report-rust.json`, using library
+source `30ff267`. Retained source HTML differences remain failed diagnostics.
+These reports do not verify PHP extension browser execution.
+
 ## Current server verification
 
 The local comparison container uses library source `30ff267`. Current PHP, Go

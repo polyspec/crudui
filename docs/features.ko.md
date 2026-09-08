@@ -44,6 +44,12 @@ PHP 확장 통합은 독립된 `crudui-extension-check` 컨테이너에서 HTTP 
 두 PHP 모드와 모드 강제 검사는 `test-php-modes.mjs`를 통과했습니다.
 확장 브라우저 검증과 기본 비교 컨테이너 교체는 남아 있습니다.
 
+Go·Rust 브라우저 보고서는 각각 현재 런타임 시나리오 120개와 상호작용 검사
+108개를 통과했고 페이지 오류는 없었습니다. 근거는 라이브러리 소스
+`30ff267`을 사용한 `.form-comparison/results/report-go.json`과
+`report-rust.json`입니다. 보존된 소스의 HTML 차이는 실패한 진단으로
+유지합니다. 이 보고서는 PHP 확장 브라우저 실행의 검증 근거가 아닙니다.
+
 ## 현재 서버 검증
 
 로컬 비교 컨테이너는 라이브러리 소스 `30ff267`을 사용합니다. 현재 PHP·Go·Rust
