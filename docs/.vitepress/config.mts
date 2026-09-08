@@ -58,7 +58,7 @@ export default withMermaid(defineConfig({
         collapsed: false,
         items: [
           { text: 'Expression grammar', link: '/spec/expressions' },
-          { text: 'Legacy visibility', link: '/DISPLAY-CONDITIONS' },
+          { text: 'Legacy visibility', link: '/spec/legacy-visibility' },
         ],
       },
       {
