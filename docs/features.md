@@ -58,7 +58,7 @@ All 240 HTTP checks and PHP processor-mode enforcement passed.
 | PHP | 120/120 passed | 30/30 passed | 0 |
 | PHP extension | 120/120 passed | 30/30 passed | 0 |
 | Go | 120/120 passed | 30/30 passed | 0 |
-| Rust | pending | pending | pending |
+| Rust | 120/120 passed | 30/30 passed | 0 |
 
 Each target covers React, Vue and Svelte with form and ordered JSON transport.
 Reports include initial data, later injection, repeated injection, record
@@ -81,8 +81,9 @@ valid and invalid HTTP cases. PHP PSR-4 autoload generation passed without exclu
 application classes. Frontend browser verification remains pending.
 
 Library deployment means package publication; no package is published.
-The comparison application is available locally and has not completed its full
-browser matrix. Release verification and repository cleanup remain in progress.
+The comparison application is available locally and its current implementation
+has completed the full browser matrix. Retained implementation failures remain
+in the reports. Release verification and repository cleanup remain in progress.
 
 Full documentation generation and the static site build passed. Two consecutive
 API documentation and schema runs produced identical output. The console tests
