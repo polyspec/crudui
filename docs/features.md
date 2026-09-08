@@ -25,6 +25,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-persistence | Keyed native and JSON document-order persistence | in-progress | pending | not-deployed | [Persistence scenarios](../examples/form-comparison/src/frame.mjs) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../examples/form-comparison/check-ordered-json.py) |
 | ordered-json-runtime | Form and ordered JSON transmission through shared validation and storage | in-progress | pending | not-deployed | [Transport contract](spec/form-comparison.md) |
+| php-extension-server | Independent PHP extension requests and persistence | in-progress | pending | not-deployed | [Processor modes](spec/form-comparison.md#php-processor-modes) |
 | form-servers | Independent PHP, Go and Rust submission, validation, storage and reload | in-progress | pending | not-deployed | [Server contract](spec/form-comparison.md) |
 | form-client-validation | Existing JavaScript validation before user submission | in-progress | pending | not-deployed | [Browser interaction checks](../examples/form-comparison/check-interaction.mjs) |
 | original-empty-correction | Corrected original rendering and complete empty collection lifecycle | implemented | passed | not-deployed | [Comparison contract](spec/form-comparison.md) |
@@ -37,6 +38,12 @@ documentation site build passed. Library deployment status refers to package
 publication; no package was published. The form comparison example is deployed locally
 in Apple container at [localhost:4317](http://localhost:4317). No remote deployment
 was run.
+
+PHP extension integration passed 240 HTTP checks in the isolated
+`crudui-extension-check` container. Evidence is
+`.form-comparison/extension-check/results/server-report.json`. Both PHP modes
+and mode enforcement passed `test-php-modes.mjs`. Extension browser verification
+and replacement of the main comparison container are pending.
 
 ## Current server verification
 

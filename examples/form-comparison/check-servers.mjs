@@ -4,7 +4,7 @@ import { encodeJson, decodeJson, readJson } from './src/json.mjs';
 
 // Run inside the comparison container while browser checks are stopped.
 const base = 'http://127.0.0.1:8080';
-const servers = ['php', 'go', 'rust'];
+const servers = ['php', 'php-ext', 'go', 'rust'];
 const modes = ['corrected', 'keyed', 'original-keyed', 'original'];
 const results = [];
 const equivalents = new Map();
@@ -36,6 +36,7 @@ for (const server of servers) {
       const response = await fetch(url(action), { method: action === 'load' ? 'GET' : 'POST', body, headers });
       const data = await readJson(response);
       assert.equal(data.server, server, 'response must identify the selected server');
+      if (server.startsWith('php')) assert.equal(data.nativeJson, server === 'php-ext', 'PHP processor mode');
       return { status: response.status, ...data };
     }
     async function reset() {

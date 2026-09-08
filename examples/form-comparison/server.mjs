@@ -8,7 +8,7 @@ import { encodeJson } from './src/json.mjs';
 const publicDir = '/workspace/public';
 const metadata = JSON.parse(await readFile('/workspace/metadata.json', 'utf8'));
 const revisions = ['original', 'corrected', 'keyed'];
-const ports = { php: { original: 8081, corrected: 8081, keyed: 8081 }, go: {}, rust: {} };
+const ports = { php: { original: 8081, corrected: 8081, keyed: 8081 }, 'php-ext': { original: 8088, corrected: 8088, keyed: 8088 }, go: {}, rust: {} };
 const children = [];
 let stopping = false;
 function stop(code) {
@@ -18,8 +18,8 @@ function stop(code) {
   process.exitCode = code;
   if (httpServer.listening) httpServer.close();
 }
-function start(command, args) {
-  const child = spawn(command, args, { stdio: 'inherit' });
+function start(command, args, environment = {}) {
+  const child = spawn(command, args, { stdio: 'inherit', env: { ...process.env, ...environment } });
   child.on('error', error => { process.stderr.write(`${error.message}\n`); stop(1); });
   child.on('exit', code => { if (!stopping) { process.stderr.write(`${command} exited ${code}\n`); stop(1); } });
   children.push(child);
@@ -31,8 +31,8 @@ function respond(response, status, value) {
 const httpServer = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
-    if (url.pathname === '/api/health') return respond(response, 200, { status: 'ok', servers: ['php', 'go', 'rust'] });
-    const match = url.pathname.match(/^\/api\/(php|go|rust)\/(load|save|validate|reset)\/(corrected|original|original-keyed|keyed)\/(react|vue|svelte)$/);
+    if (url.pathname === '/api/health') return respond(response, 200, { status: 'ok', servers: ['php', 'php-ext', 'go', 'rust'] });
+    const match = url.pathname.match(/^\/api\/(php|php-ext|go|rust)\/(load|save|validate|reset)\/(corrected|original|original-keyed|keyed)\/(react|vue|svelte)$/);
     if (match) {
       const [, server, action, mode, framework] = match;
       const revision = mode === 'original-keyed' ? 'original' : mode;
@@ -61,7 +61,10 @@ const httpServer = http.createServer(async (request, response) => {
     else response.destroy(error);
   }
 });
-start('php', ['-d', 'max_input_vars=10000', '-d', 'post_max_size=2M', '-S', '127.0.0.1:8081', '-t', publicDir, '/workspace/keyed/examples/form-comparison/api.php']);
+for (const mode of ['php', 'php-ext']) {
+  const extension = mode === 'php-ext' ? ['-d', 'extension=/opt/sortjson.so'] : [];
+  start('php', [...extension, '-d', 'max_input_vars=10000', '-d', 'post_max_size=2M', '-S', `127.0.0.1:${ports[mode].keyed}`, '-t', publicDir, '/workspace/keyed/examples/form-comparison/api.php'], { FORM_PHP_SERVER: mode });
+}
 for (const [language, offset] of [['go', 8082], ['rust', 8085]]) {
   for (const [index, revision] of revisions.entries()) {
     const port = offset + index;
@@ -71,14 +74,15 @@ for (const [language, offset] of [['go', 8082], ['rust', 8085]]) {
 }
 process.on('SIGTERM', () => stop(0));
 process.on('SIGINT', () => stop(0));
-for (const server of ['php', 'go', 'rust']) {
+for (const server of ['php', 'php-ext', 'go', 'rust']) {
   for (const revision of revisions) {
     let ready = false;
     for (let attempt = 0; attempt < 100; attempt++) {
       try {
         const response = await fetch(`http://127.0.0.1:${ports[server][revision]}/api/health`);
         const value = await response.json();
-        ready = response.ok && value.server === server && (server === 'php' || value.commit === metadata[revision].commit);
+        ready = response.ok && value.server === server && (server.startsWith('php') || value.commit === metadata[revision].commit);
+        if (server.startsWith('php')) ready = ready && value.nativeJson === (server === 'php-ext');
         if (ready) break;
       } catch {}
       await new Promise(resolve => setTimeout(resolve, 100));

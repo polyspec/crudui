@@ -4,12 +4,24 @@ require_once '/workspace/ordered-json/php/src/SortJson.php';
 
 use SortJson\Value;
 
+/** Require the configured PHP processor mode. */
+function phpServerMode(): string
+{
+    $mode = getenv('FORM_PHP_SERVER') ?: 'php';
+    if (!in_array($mode, ['php', 'php-ext'], true)) throw new RuntimeException('Unknown PHP server mode');
+    if (extension_loaded('sortjson') !== ($mode === 'php-ext')) throw new RuntimeException('PHP extension state does not match the selected server');
+    return $mode;
+}
+phpServerMode();
+
 /** Convert ordered JSON values to the example's record and validator types. */
 final class FormJson
 {
     public static function decode(string $source): mixed
     {
-        return self::data(SortJson\parse($source, useNative: false));
+        return self::data(phpServerMode() === 'php-ext'
+            ? SortJson\parseNative($source)
+            : SortJson\parse($source, useNative: false));
     }
 
     public static function encode(mixed $data): string

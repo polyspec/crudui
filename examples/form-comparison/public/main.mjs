@@ -4,7 +4,7 @@ const t = translations(language);
 const selector = document.querySelector('#framework');
 const serverSelector = document.querySelector('#server');
 const initialServer = new URLSearchParams(location.search).get('server') ?? 'php';
-if (!['php', 'go', 'rust'].includes(initialServer)) throw new Error('Unknown server');
+if (!['php', 'php-ext', 'go', 'rust'].includes(initialServer)) throw new Error('Unknown server');
 serverSelector.value = initialServer;
 const variant = document.querySelector('#variant');
 const frames = ['original', 'keyed'].map(mode => document.querySelector(`#${mode}`));
@@ -68,7 +68,7 @@ function renderReport() {
   }
   document.querySelector('#report').replaceChildren(table);
 }
-async function runAll(servers = ['php', 'go', 'rust']) {
+async function runAll(servers = ['php', 'php-ext', 'go', 'rust']) {
   if (running) throw new Error('Checks already running');
   running = true; reports = [];
   const selectedComparison = variant.value;
@@ -116,3 +116,5 @@ document.querySelector('#download').addEventListener('click', () => {
 });
 await show('react');
 window.comparison = { runAll, show, getReports: () => reports };
+
+for (const option of serverSelector.options) option.textContent = t.serverNames[option.value];
