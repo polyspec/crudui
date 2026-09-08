@@ -5,7 +5,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| legacy-examples | Legacy example paths and package builds | in-progress | pending | not-deployed | [Examples](spec/examples.md) |
+| legacy-examples | Legacy example paths and package builds | implemented | passed | not-deployed | [Examples](spec/examples.md) |
 | form-controls | Labels, multiple choice arrays and field container paths | implemented | passed | not-deployed | [Shared control assertions](../tests/fixtures/form-session/controls.mjs) |
 | package-consumer | Packaged exports, type declarations and consumer production build | implemented | passed | not-deployed | [Consumer check](../scripts/check-packages.mjs) |
 | package-install | Resolved platform dependencies and normal install scripts | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.md) |
@@ -78,7 +78,8 @@ Legacy examples use `examples/legacy`. Local frontend builds, Go tests, Rust
 compilation, PHP API tests and Node HTTP tests passed. Linux images for three
 frontend examples and Node, PHP, Go and Rust built. The four server images passed
 valid and invalid HTTP cases. PHP PSR-4 autoload generation passed without excluded
-application classes. Frontend browser verification remains pending.
+application classes. Browser rendering and input checks passed for demo, Playground and Bootstrap
+form pages. Bootstrap product checks also verified nested data.
 
 Library deployment means package publication; no package is published.
 The comparison application is available locally and its current implementation

@@ -18,3 +18,9 @@ optimized autoload generation must not exclude application classes.
 
 Controlled legacy React forms notify the parent once per field change, outside
 React state updater functions. Consecutive changes preserve previous field values.
+
+Frontend examples import repository-local specifications during the application
+build. The resulting static application includes its form specifications.
+
+Controlled example parents apply the complete data object returned by the form
+change callback, preserving nested objects and repeated collections.
