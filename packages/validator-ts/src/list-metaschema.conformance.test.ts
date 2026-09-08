@@ -69,7 +69,7 @@ function compileListValidator(): ValidateFunction {
 
 const validateList = compileListValidator();
 
-describe('current list meta-schema — additive: Field entry point is untouched', () => {
+describe('list meta-schema — additive: Field entry point is untouched', () => {
   test('the schema file top $ref still targets the form-spec Field (unchanged)', () => {
     expect(schema.$ref).toStrictEqual('#/definitions/Field');
   });
@@ -81,7 +81,7 @@ describe('current list meta-schema — additive: Field entry point is untouched'
   });
 });
 
-describe('current list meta-schema — a valid list-spec passes (§9.4)', () => {
+describe('list meta-schema — a valid list-spec passes (§9.4)', () => {
   for (const c of cases.filter((x) => x.expect === 'ok')) {
     test(c.name, () => {
       const ok = validateList(c.spec);
@@ -90,7 +90,7 @@ describe('current list meta-schema — a valid list-spec passes (§9.4)', () => 
   }
 });
 
-describe('current list meta-schema — an invalid list-spec is REJECTED (RED cases, §9.4)', () => {
+describe('list meta-schema — an invalid list-spec is REJECTED (RED cases, §9.4)', () => {
   for (const c of cases.filter((x) => x.expect === 'fail')) {
     test(c.name, () => {
       const ok = validateList(c.spec);

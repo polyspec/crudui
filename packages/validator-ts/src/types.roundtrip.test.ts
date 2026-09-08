@@ -36,7 +36,7 @@ function roundTrip(json: string): void {
   expect(JSON.stringify(value)).toBe(json);
 }
 
-describe('current FieldSpec round-trip (canonical JSON shape)', () => {
+describe('FieldSpec round-trip (canonical JSON shape)', () => {
   it('round-trips a full field covering every first-class key and role slot', () => {
     // Key order is the canonical declaration order; round trip must preserve it.
     const json = JSON.stringify({
@@ -107,7 +107,7 @@ describe('current FieldSpec round-trip (canonical JSON shape)', () => {
   });
 });
 
-describe('current FieldSpec type assignability (the type is the reference schema)', () => {
+describe('FieldSpec type assignability (the type is the reference schema)', () => {
   it('accepts the canonical shapes for slots and buckets', () => {
     expectTypeOf<false>().toMatchTypeOf<FieldSpec['behavior']>();
     expectTypeOf<true>().toMatchTypeOf<FieldSpec['validate']>();
@@ -118,7 +118,7 @@ describe('current FieldSpec type assignability (the type is the reference schema
   });
 });
 
-describe('current forbidden meta keys (global rejection contract)', () => {
+describe('forbidden meta keys (global rejection contract)', () => {
   it('pins the canonical forbidden enumeration', () => {
     expect(FORBIDDEN_META_KEYS).toEqual([
       'display_switch',
