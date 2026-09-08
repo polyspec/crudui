@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Data validation guide
+
+The validation guide documents the current JavaScript, PHP, Go and Rust entry
+points with `validate` rules. It separates schema loading, input failures,
+visibility and transport processing. The outdated API guide is removed and
+navigation uses the English guide with a Korean translation. All four code
+examples executed successfully and detected the expected required-input failure.
+
 ## 2026-09-09 — Svelte generated output
 
 Git excludes Svelte's temporary `.svelte-kit` output. The 117 generated files are

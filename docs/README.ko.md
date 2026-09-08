@@ -9,6 +9,7 @@
 - [폼·전송 검증](operations/verification.ko.md)
 - [문서 관리](operations/documentation.ko.md)
 - [표현식 문법](spec/expressions.ko.md)
+- [데이터 검증](operations/validation.ko.md)
 - [검증 규칙](VALIDATION-RULES.md)
 
 저장소 루트에서 `make docs`로 API 참조와 문서 사이트를 생성합니다.
