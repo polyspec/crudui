@@ -11,8 +11,9 @@ use individual PSR-4 files. The Node example lock file reflects current manifest
 
 Local frontend builds, Go tests, Rust compilation, five PHP API checks and Node
 HTTP valid/invalid cases passed. Composer strict PSR-4 generation and documentation
-checks passed. Linux images for the frontend examples, Node, Go and Rust built.
-Frontend browser verification and the PHP image recheck remain pending.
+checks passed. Linux images for the frontend examples, Node, PHP, Go and Rust built.
+All four server images passed valid and invalid HTTP cases. PHP Apache routing
+and its document root passed. Frontend browser verification remains pending.
 
 ## 2026-09-09 — Repeated-field schema
 
