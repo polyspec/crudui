@@ -48,7 +48,7 @@ function run(c: FixtureCase) {
   return validate(c.spec, {}, c.files ? { files: c.files } : {});
 }
 
-describe('current forbidden-scan — clean specs pass the load path', () => {
+describe('forbidden-scan — clean specs pass the load path', () => {
   for (const c of cases.filter((x) => x.expect === 'ok')) {
     test(c.name, () => {
       expect(() => run(c)).not.toThrow();
@@ -56,7 +56,7 @@ describe('current forbidden-scan — clean specs pass the load path', () => {
   }
 });
 
-describe('current forbidden-scan — a forbidden meta key at any depth is a LOAD ERROR', () => {
+describe('forbidden-scan — a forbidden meta key at any depth is a LOAD ERROR', () => {
   for (const c of cases.filter((x) => x.expect !== 'ok')) {
     test(c.name, () => {
       const want = c.expect as { error_code: string; at_path: string };
@@ -76,7 +76,7 @@ describe('current forbidden-scan — a forbidden meta key at any depth is a LOAD
   }
 });
 
-describe('current forbidden-scan — every fixture case declares an expectation', () => {
+describe('forbidden-scan — every fixture case declares an expectation', () => {
   test('no case is silently missing an expect field', () => {
     for (const c of cases) {
       const ok =

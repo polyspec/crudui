@@ -158,3 +158,7 @@ List rendering uses `renderList(spec, rows, { layout })`; `layout` is `table`
 Field containers use `data-field-path` for the data path relative to the form
 root. Only actual controls use `name` for submission. Browser row operations
 resolve the nearest field container and do not depend on a generated title.
+
+Unsupported field types produce `UnsupportedFieldTypeError` with code
+`UNSUPPORTED_FIELD_TYPE`. The message identifies the field type and path without
+a version-specific renderer name.

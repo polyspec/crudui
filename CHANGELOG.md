@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Field error descriptions
+
+Unsupported field errors identify the field type and path. Current test names
+use unversioned operation names. Core checks passed: 26 tests. Documentation
+checks passed.
+
 ## 2026-09-09 — Independent PHP extension target
 
 PHP extension execution uses a separate process, repository and server identifier.

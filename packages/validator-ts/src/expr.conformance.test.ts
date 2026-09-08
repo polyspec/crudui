@@ -112,7 +112,7 @@ function ctx(c: FixtureCase): PathContext {
   };
 }
 
-describe('current expr — lexer matches fixture (JS reference)', () => {
+describe('expr — lexer matches fixture (JS reference)', () => {
   for (const spec of specs) {
     test(spec.name, () => {
       const toks = new Lexer(spec.expr).tokenize().map(tokenToFixture);
@@ -121,7 +121,7 @@ describe('current expr — lexer matches fixture (JS reference)', () => {
   }
 });
 
-describe('current expr — parser matches fixture (JS reference)', () => {
+describe('expr — parser matches fixture (JS reference)', () => {
   for (const spec of specs) {
     test(spec.name, () => {
       const ast = astToFixture(parseCondition(spec.expr));
@@ -130,7 +130,7 @@ describe('current expr — parser matches fixture (JS reference)', () => {
   }
 });
 
-describe('current expr — evaluation matches fixture (JS reference)', () => {
+describe('expr — evaluation matches fixture (JS reference)', () => {
   for (const spec of specs) {
     test(spec.name, () => {
       const ast = parseCondition(spec.expr);
