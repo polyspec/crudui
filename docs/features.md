@@ -52,8 +52,8 @@ and Rust entries passed 180 HTTP checks across all four comparison variants.
 The checks cover native multipart, URL-encoded and ordered JSON requests,
 stored records, reload, validation failures and corrupt-file preservation.
 The report is `.form-comparison/results/server-report.json`. Browser lifecycle
-verification is in progress. A Node validation and persistence server remains
-unimplemented. No package was published. Historical reports below retain their
+verification is in progress. JavaScript validation runs in the browser and the
+CLI. No package was published. Historical reports below retain their
 original source revisions.
 
 ## Form initialization inspector

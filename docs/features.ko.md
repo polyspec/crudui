@@ -51,7 +51,7 @@ PHP 확장 통합은 독립된 `crudui-extension-check` 컨테이너에서 HTTP 
 native multipart·URL-encoded·ordered JSON 요청, 저장된 레코드, 재로드,
 검증 실패와 손상된 파일 보존을 포함합니다. 보고서는
 `.form-comparison/results/server-report.json`입니다. 브라우저 동작 검증은
-진행 중입니다. Node 검증·저장 서버는 아직 구현되지 않았습니다. 패키지는
+진행 중입니다. JavaScript 검증은 브라우저와 CLI에서 실행합니다. 패키지는
 게시하지 않았습니다. 아래의 이전 보고서는 당시 소스 버전을 유지합니다.
 
 ## 폼 초기화 검사기
