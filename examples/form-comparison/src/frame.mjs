@@ -358,7 +358,7 @@ const checks = [
       button.click(); await settle();
       equal(collectionRows(wrapper).length, 1, 'add into empty collection');
       assert(document.activeElement.matches('button.btn-plus'), 'Empty addition retains button focus');
-      equal(document.activeElement.closest('.form-element-wrapper[name]'), wrapper, 'Focused button belongs to the same collection');
+      equal(document.activeElement.closest('.form-element-wrapper'), wrapper, 'Focused button belongs to the same collection');
     }
     const departmentName = row => row.querySelector('input[name$="[name]"]');
     equal(departments(stores(companies()[0])[1]).length, 0, 'empty departments');
