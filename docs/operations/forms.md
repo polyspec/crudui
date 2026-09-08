@@ -88,3 +88,18 @@ packaged files. Consumers compile components for their browser or SSR target.
 Run `npm run test:packages` to build and pack all JavaScript packages, install
 them into an isolated consumer project, check exported files and declarations,
 and compile a production application using all three form components.
+
+## Package declaration checks
+
+The JavaScript bundler generates runtime modules. The TypeScript compiler
+generates declarations from public entries with `noEmitOnError`, independently
+of the bundler. Svelte components and declarations use the package compiler.
+
+```sh
+npm run test:build
+npm run test:build:repeat
+npm run test:packages
+```
+
+See the [package build contract](../spec/package-build.md) and
+[build checks](../../tests/build/README.md) for the verification scope.
