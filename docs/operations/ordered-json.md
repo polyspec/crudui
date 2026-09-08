@@ -1,6 +1,6 @@
 # Verify JSON document order
 
-[한국어](ordered-json.ko.md). The [form comparison example contract](../spec/form-comparison.md)
+[한국어](ordered-json.ko.md). The [form runtime contract](../spec/form-runtime.md)
 defines the required data shapes and order. [Feature status](../features.md)
 records verification separately from runtime deployment.
 
@@ -17,7 +17,7 @@ ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
 git clone https://github.com/ordered-json/ordered-json "$ORDERED_JSON_SOURCE"
 git -C "$ORDERED_JSON_SOURCE" checkout deb1b354da845e4c44d1e35c28c77bdb02ec174b
 python3 "$ORDERED_JSON_SOURCE/scripts/test.py" --build-extension
-python3 examples/form-comparison/check-ordered-json.py "$ORDERED_JSON_SOURCE"
+python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"
 make docs-check
 ```
 
@@ -28,12 +28,12 @@ documents through those implementations' parse, serialize and reconstruct APIs.
 An independent Python decoder retains object pairs and number tokens for comparison.
 The checker compares complete ordered trees; it does not sort object members.
 
-Reports are saved as `.form-comparison/results/ordered-json-<timestamp>.json`.
+Reports are saved as `.verification/ordered-json/ordered-json-<timestamp>.json`.
 They include the source revision, checker and fixture hashes, and individual
 results. Previous reports remain available. A failed case returns exit status 1.
 
 The inserted, copied and saved-key cases are JSON fixtures. They verify transport
-representation, not execution of form buttons or database operations. The
+representation, not execution of form buttons or database operations. The preserved external
 example's transport modules use the processor for JSON requests, responses
 and repository files. The processor returns `Value`
 nodes; its JavaScript object members are a `Map`, while the form session accepts
@@ -42,7 +42,7 @@ ordinary JavaScript objects; the form conversion rejects such a change. Existing
 integer index properties and retain their insertion order in the current session.
 
 The form and JSON transmission choices run the same validator and repository.
-Run the [browser and PHP persistence checks](form-comparison.md) for runtime integration:
+Run the [browser and PHP persistence checks](verification.md) for runtime integration:
 they execute both transmission choices, actual input and button actions,
 invalid-request rejection, equivalent stored data and fresh reloads. The
 processor-only result remains separate from these integration results.
