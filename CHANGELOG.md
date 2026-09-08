@@ -65,7 +65,8 @@ Browser checks locate the collection containing the focused button through its
 field wrapper. The current renderer no longer uses wrapper name attributes.
 All 18 current empty-collection checks passed across three servers, three
 frameworks and both transports. The PHP run passed all six current initialization
-comparisons and 108 pointer/keyboard interaction checks, with no page errors.
+comparisons and 30 current-runtime pointer/keyboard interaction checks
+(108 across all comparison modes), with no page errors.
 Retained source HTML differences remain recorded as failures.
 
 ## 2026-09-09 — Shared SSR comparison instance
