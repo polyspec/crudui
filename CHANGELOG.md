@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Maintained documentation navigation
+
+The documentation site links to the maintained expression contract. Documentation maintenance
+instructions identify the current example index checked by `make docs-check`.
+The document checks and static site build passed.
+
 ## 2026-09-09 — Shared AST evaluation for ternary parameters
 
 Form appearance and TypeScript, PHP, Go and Rust validation parameters evaluate
