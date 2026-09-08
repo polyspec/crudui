@@ -8,7 +8,7 @@ function respond(int $status, array $body): never
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store');
-    echo FormJson::encode([...$body, 'server' => 'php']);
+    echo FormJson::encode([...$body, 'server' => phpServerMode(), 'nativeJson' => extension_loaded('sortjson')]);
     exit;
 }
 
@@ -27,7 +27,7 @@ try {
     if ($_FILES !== []) respond(400, ['error' => 'File uploads are not part of this form']);
     $contentType = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
     if ($action === 'reset' && !in_array($contentType, ['multipart/form-data', 'application/x-www-form-urlencoded'], true)) respond(415, ['error' => 'Expected a native form']);
-    $repo = new FormRepository("/data/php-$mode-$framework.json");
+    $repo = new FormRepository("/data/" . phpServerMode() . "-$mode-$framework.json");
     if ($action === 'reset' || $action === 'load') {
         if (!is_string($_POST['fixture'] ?? 'default')) respond(400, ['error' => 'Expected fixture name']);
         $state = $action === 'reset' ? $repo->reset($_POST['fixture'] ?? 'default') : $repo->read();

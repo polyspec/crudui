@@ -2,6 +2,17 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Independent PHP extension target
+
+PHP extension execution uses a separate process, repository and server identifier.
+The native processor is required in extension mode and prohibited in PHP mode.
+Server and browser checks include PHP extension as a fourth target.
+
+An isolated container passed 240 HTTP checks across four targets, including
+processor-mode assertions. Both PHP codec modes and rejection of missing or
+unexpected extensions passed. Full extension browser verification remains pending.
+The main comparison container has not yet been replaced with this image.
+
 ## 2026-09-09 — Empty collection browser checks
 
 Browser checks locate the collection containing the focused button through its
