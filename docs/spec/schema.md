@@ -87,6 +87,9 @@ Composition resolves `$ref`, then applies `$patch`, then processes the resulting
 field definitions. Missing references are load errors. Composition does not
 depend on record values. Form compilation resolves composition once per template.
 
+The CLI static check also rejects unresolved composition. It does not treat
+checking an uncomposed field as successful reference resolution.
+
 Validators inspect `validate` rules and current data. The
 [validation rules](../VALIDATION-RULES.md) describe rule semantics. Shared cases in
 `tests/fixtures/expr`, `tests/fixtures/compose` and `tests/fixtures/validate`
