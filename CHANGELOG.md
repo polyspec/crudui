@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Comparison server entries
+
+Current PHP, Go and Rust servers use unversioned validator entries. Retained
+Go and Rust servers build from a pinned server-source archive. The comparison
+container uses library source `30ff267`. All 180 HTTP persistence checks passed.
+Browser lifecycle verification is in progress. No package was published.
+
 ## 2026-09-09 — Comparison browser entries
 
 Comparison browser builds select current and retained source entries explicitly.

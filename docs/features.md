@@ -38,6 +38,17 @@ publication; no package was published. The form comparison example is deployed l
 in Apple container at [localhost:4317](http://localhost:4317). No remote deployment
 was run.
 
+## Current server verification
+
+The local comparison container uses library source `30ff267`. Current PHP, Go
+and Rust entries passed 180 HTTP checks across all four comparison variants.
+The checks cover native multipart, URL-encoded and ordered JSON requests,
+stored records, reload, validation failures and corrupt-file preservation.
+The report is `.form-comparison/results/server-report.json`. Browser lifecycle
+verification is in progress. A Node validation and persistence server remains
+unimplemented. No package was published. Historical reports below retain their
+original source revisions.
+
 ## Form initialization inspector
 
 The shared DOM binding now fixes the `checked` attribute position during both

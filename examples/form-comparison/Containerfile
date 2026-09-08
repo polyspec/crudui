@@ -7,27 +7,29 @@ RUN npm ci --ignore-scripts
 RUN ln -s /workspace/keyed/node_modules /workspace/node_modules
 
 FROM golang:1.27.0-trixie AS go-build
-COPY original.tar corrected.tar keyed.tar ordered-json.tar source-revisions /archives/
-RUN mkdir -p /workspace/ordered-json /out && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json
+COPY original.tar corrected.tar keyed.tar ordered-json.tar retained-servers.tar source-revisions /archives/
+RUN mkdir -p /workspace/ordered-json /out /retained && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json && tar -xf /archives/retained-servers.tar -C /retained
 COPY example/servers/go /example
 RUN set -e; while read -r revision commit; do \
     mkdir -p /workspace/$revision; \
     tar -xf /archives/$revision.tar -C /workspace/$revision; \
     mkdir -p /workspace/$revision/examples/form-comparison/servers/go; \
-    cp -R /example/. /workspace/$revision/examples/form-comparison/servers/go/; \
+    if [ "$revision" = keyed ]; then server_source=/example; else server_source=/retained/examples/form-comparison/servers/go; fi; \
+    cp -R "$server_source"/. /workspace/$revision/examples/form-comparison/servers/go/; \
     cd /workspace/$revision/examples/form-comparison/servers/go; \
     CGO_ENABLED=0 go build -trimpath -ldflags "-X main.source=$revision -X main.sourceCommit=$commit" -o /out/go-$revision .; \
     done < /archives/source-revisions
 
 FROM rust:1.98.0-slim-trixie AS rust-build
-COPY original.tar corrected.tar keyed.tar ordered-json.tar source-revisions /archives/
-RUN mkdir -p /workspace/ordered-json /out && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json
+COPY original.tar corrected.tar keyed.tar ordered-json.tar retained-servers.tar source-revisions /archives/
+RUN mkdir -p /workspace/ordered-json /out /retained && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json && tar -xf /archives/retained-servers.tar -C /retained
 COPY example/servers/rust /example
 RUN set -e; while read -r revision commit; do \
     mkdir -p /workspace/$revision; \
     tar -xf /archives/$revision.tar -C /workspace/$revision; \
     mkdir -p /workspace/$revision/examples/form-comparison/servers/rust; \
-    cp -R /example/. /workspace/$revision/examples/form-comparison/servers/rust/; \
+    if [ "$revision" = keyed ]; then server_source=/example; else server_source=/retained/examples/form-comparison/servers/rust; fi; \
+    cp -R "$server_source"/. /workspace/$revision/examples/form-comparison/servers/rust/; \
     cd /workspace/$revision/examples/form-comparison/servers/rust; \
     FORM_SOURCE=$revision FORM_SOURCE_COMMIT=$commit CARGO_TARGET_DIR=/target cargo build --locked --release; \
     cp /target/release/crudui-form-comparison /out/rust-$revision; \

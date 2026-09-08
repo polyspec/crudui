@@ -95,7 +95,7 @@ showing a collection preserves its data and cached structure. Hidden collections
 with rows still submit those rows; explicit empty collections submit no row inputs.
 
 The unchanged-source comparison uses identical 13-character keyed data with the
-original source at `1e8702a` and the current runtime at `f4ec125`. Both use the same
+original source at `1e8702a` and the current runtime at `30ff267`. Both use the same
 company, store and department fields, native submission and stored records.
 The original-keyed example connects row operations and cached binding to the
 original public functions. This tests the original foundation; it does not
@@ -262,3 +262,8 @@ The current browser build imports unversioned package entries. Retained source
 builds use their recorded entry paths and validator class. Build selection is
 explicit; missing current entries fail the build. Current collection checks use
 `data-field-path`; retained source checks use their original wrapper names.
+
+Current API servers compile against the current validator entries. Retained Go
+and Rust servers use a separately pinned server-source archive with their
+original validator imports. Source metadata records that archive and its digest.
+PHP selects its validator class from the explicitly selected source revision.
