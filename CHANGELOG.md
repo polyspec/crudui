@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Comparison browser entries
+
+Comparison browser builds select current and retained source entries explicitly.
+Current collection checks use field paths. The build requires an explicit
+absolute workspace path. All twelve browser bundles built successfully.
+Server integration and lifecycle verification remain pending; the running
+comparison environment has not been replaced.
+
 ## 2026-09-09 — Public declaration builds
 
 TypeScript package builds generate JavaScript with the bundler and declarations

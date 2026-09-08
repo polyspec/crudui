@@ -39,9 +39,18 @@ function collectionRows(container) {
   const body = Array.from(container?.children ?? []).find(el => el.classList.contains('form-element'));
   return Array.from(body?.children ?? []).filter(el => el.matches('.input-group-wrapper[data-uniqid]'));
 }
-const companies = () => collectionRows(view.querySelector('[name="form.companies-layer"]'));
-const stores = company => collectionRows(Array.from(company.querySelectorAll('.form-element-wrapper[name]')).find(el => el.getAttribute('name').endsWith('.stores-layer')));
-const departments = store => collectionRows(Array.from(store.querySelectorAll('.form-element-wrapper[name]')).find(el => el.getAttribute('name').endsWith('.departments-layer')));
+function collection(parent, field) {
+  const attribute = mode === 'keyed' ? 'data-field-path' : 'name';
+  const suffix = mode === 'keyed' ? field : `${field}-layer`;
+  return Array.from(parent.querySelectorAll(`.form-element-wrapper[${attribute}]`))
+    .find(element => {
+      const path = element.getAttribute(attribute);
+      return path === suffix || path.endsWith(`.${suffix}`);
+    });
+}
+const companies = () => collectionRows(collection(view, 'companies'));
+const stores = company => collectionRows(collection(company, 'stores'));
+const departments = store => collectionRows(collection(store, 'departments'));
 const companyName = row => Array.from(row.querySelectorAll('input[name]')).find(el => /^form\[companies\]\[[^\]]+\]\[name\]$/.test(el.name));
 const storeName = row => Array.from(row.querySelectorAll('input[name]')).find(el => /^form\[companies\]\[[^\]]+\]\[stores\]\[[^\]]+\]\[name\]$/.test(el.name));
 function rowButton(row, action) {
@@ -339,7 +348,6 @@ const checks = [
   ['empty', async () => {
     await reset('default');
     const empty = mode === 'original' ? [] : {};
-    const collection = (parent, suffix) => Array.from(parent.querySelectorAll('.form-element-wrapper[name]')).find(el => el.getAttribute('name').endsWith(`.${suffix}-layer`));
     async function addEmpty(wrapper) {
       equal(collectionRows(wrapper).length, 0, 'empty collection row count');
       equal(wrapper.querySelectorAll('input[name],textarea[name],select[name]').length, 0, 'empty collection has no submitted row controls');
@@ -417,7 +425,7 @@ const checks = [
     equal(json.status, 200, 'explicit empty JSON save');
     same(json.data, { companies: empty }, 'explicit empty JSON data');
     await load(); equal(companies().length, 0, 'JSON empty reload');
-    await addEmpty(view.querySelector('[name="form.companies-layer"]'));
+    await addEmpty(collection(view, 'companies'));
     await edit(companyName(companies()[0]), 'New company');
     await edit(storeName(stores(companies()[0])[0]), 'New child');
     const rebuilt = await save();

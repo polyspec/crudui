@@ -255,3 +255,10 @@ The comparison preserves input paths, IDs, values, SVG attributes and significan
 text whitespace. It removes framework comments and inter-element formatting
 whitespace. Original HTML equality remains a separate inspector check with no
 normalization.
+
+## Source entry selection
+
+The current browser build imports unversioned package entries. Retained source
+builds use their recorded entry paths and validator class. Build selection is
+explicit; missing current entries fail the build. Current collection checks use
+`data-field-path`; retained source checks use their original wrapper names.
