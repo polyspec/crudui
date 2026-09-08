@@ -311,7 +311,7 @@ make bench BENCH_ITERS=100000 BENCH_WARMUP=10000    # 반복수 조절
 
 - `expected.error` — 실패 시 규칙명. 성공 케이스에서는 생략.
 - `expected.field` — 그룹 스펙에서 에러 필드의 dot notation 경로. 단순 스펙에서는 생략.
-- 형식 상세와 케이스 파일 현황은 [TEST-CASES.md](./TEST-CASES.md) 참조.
+- 형식 상세와 케이스 파일 현황은 [테스트 사례](./spec/test-fixtures.ko.md) 참조.
 
 ## 케이스 추가 가이드
 
