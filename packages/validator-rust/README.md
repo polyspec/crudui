@@ -1,33 +1,35 @@
-# crudui-validator (Rust)
+# CRUDUI Rust validator
 
-Rust validator for the crudui system. Ships the legacy binary (`validate`) and the
-CRUDUI engine (compose → forbidden-scan → validate), kept in conformance lockstep
-with the JS/PHP/Go implementations. The legacy model is never touched by CRUDUI (R7
-parallel run).
+[한국어](README.ko.md).
 
-## CRUDUI CLI — `validate` bin (`src/bin/validate.rs`)
+The `crudui-validator` package is version `0.0.1`. The library exports form
+validation through `crudui_validator::validate::validate` and list validation
+through `crudui_validator::list::validate_list`. The current CLI is `validate`;
+the separate legacy CLI is `validate-legacy`.
 
-The cross-check gateway drives all four languages as symmetric subprocesses
-(spawn, stdin JSON, utf-8). This is the Rust wrapper:
+## CLI
 
-```
+Run from `packages/validator-rust`:
+
+```sh
 cargo run --bin validate < request.json
 ```
 
-- stdin: `{"spec": {...}, "data": {...}, "files"?: {...}, "basepath"?: "...", "mode"?: "form"|"list"}`
-- stdout: `{"valid": <bool>, "errors": [{path, field, rule, message, value}, ...]}`
+Input is a JSON object with `spec`, optional `data`, `files`, `basepath` and
+`mode`. The default mode is `form`. Form validation composes the specification,
+checks forbidden keys and validates data. The `list` mode checks list structure
+and ignores `data`.
 
-`mode` defaults to `form` (`CRUDUI::validate::validate`: compose → forbidden-scan
-→ DATA validate). `list` runs `CRUDUI::list::validate_list` (SPEC §9): compose +
-forbidden-scan only — a list carries no rows, so `data` is ignored. Distinct
-exit codes separate a bad request (exit 1, `{"error"}`) from a compose LOAD
-failure (exit 2, `{"error", "code", "at"}`); a LOAD failure is never
-`valid:false`.
+A completed validation returns `valid` and `errors`. Each validation error
+contains `path`, `field`, `rule`, `message` and `value`. Invalid request syntax
+returns an `error` with exit status 1. Specification loading failures return
+`error`, `code` and `at` with exit status 2. A loading failure is not a data
+validation result.
 
-## Test
+## Checks
 
-```
-cargo test                                 # full suite
-cargo test --test validate_cli_conformance   # CRUDUI CLI conformance
-cargo test --test list_validity_conformance      # list structure conformance
+```sh
+cargo test
+cargo test --test validate_cli_conformance
+cargo test --test list_validity_conformance
 ```
