@@ -11,6 +11,13 @@ npm ci
 npm run build
 ```
 
+Dependency updates resolve the version ranges in package manifests and update
+the lock file with npm. Review the resulting graph and run the checks below.
+For npm versions with install-script approval, review script changes and use
+`npm install-scripts approve <package>` to update the root `allowScripts` field.
+Run `npm rebuild` to execute newly approved scripts in an existing installation.
+Container images install `unzip` for Puppeteer's browser archive extraction.
+
 PHP with Composer dependencies, Go and Rust are needed for four-language checks.
 Install PHP dependencies with `composer install` in `packages/validator-php`.
 No container is required when these toolchains are available locally.
@@ -32,25 +39,23 @@ const template = compileForm({
   },
 }, { keyPrefix: 'form' });
 const cached = JSON.stringify(template);
-const session = createForm(JSON.parse(cached));
+const form = createForm(JSON.parse(cached));
 
 function StoreForm() {
-  return <Form session={session} />;
+  return <Form form={form} />;
 }
 
-session.setData({ stores: { [sequenceRowKey(42)]: { name: 'Store' } } });
-const copied = session.copyRow('stores', sequenceRowKey(42));
-session.rekeyRow('stores', copied, sequenceRowKey(43));
-const submission = session.getData();
+form.setData({ stores: { [sequenceRowKey(42)]: { name: 'Store' } } });
+const copied = form.copyRow('stores', sequenceRowKey(42));
+form.rekeyRow('stores', copied, sequenceRowKey(43));
+const submission = form.getData();
 ```
 
-Keep the template in the shared cache and create one session per form instance.
-Call `setData` when a record load finishes. Render `Form` with the
-`session` prop in Vue and Svelte as well. Framework packages export the same core
-functions. SSR entry points accept a compiled template and `{ data, language }`:
-Repository SSR helpers are `renderForm` in `src/index.ts` for React and
-Svelte, and `renderFormSSR` in `src/ssr.ts` for Vue. These source helpers are
-not package subpath exports. Compile `$ref` files before rendering.
+Keep the template in the shared cache and create an independent form instance for
+each rendered form. Call `setData` when a record load finishes. Vue and Svelte
+also accept the `form` prop. Framework packages export the same core functions.
+Each framework exports `renderForm(form)` for SSR; Vue returns a promise.
+Compile `$ref` files before rendering.
 
 Validate `submission` with `Validator` from `@crudui/validator` and the original
 spec. The server assigns saved sequences; apply each returned key to its specific

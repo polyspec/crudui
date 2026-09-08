@@ -11,6 +11,13 @@ npm ci
 npm run build
 ```
 
+의존성을 갱신할 때는 npm으로 패키지 선언의 버전 범위를 해석하고 잠금 파일을
+갱신합니다. 결과 의존성 그래프를 검토하고 아래 검사를 실행합니다.
+설치 스크립트 승인이 필요한 npm에서는 스크립트 변경을 검토하고
+`npm install-scripts approve <package>`로 루트 `allowScripts` 필드를 갱신합니다.
+기존 설치에서 새로 승인한 스크립트를 실행하려면 `npm rebuild`를 실행합니다.
+컨테이너 이미지는 Puppeteer 브라우저 압축 해제를 위해 `unzip`을 설치합니다.
+
 4개 언어 검증에는 Composer 의존성을 설치한 PHP, Go, Rust가 필요합니다.
 `packages/validator-php`에서 `composer install`로 PHP 의존성을 설치합니다.
 로컬에 이 도구들이 있으면 컨테이너는 필요하지 않습니다.
@@ -32,25 +39,23 @@ const template = compileForm({
   },
 }, { keyPrefix: 'form' });
 const cached = JSON.stringify(template);
-const session = createForm(JSON.parse(cached));
+const form = createForm(JSON.parse(cached));
 
 function StoreForm() {
-  return <Form session={session} />;
+  return <Form form={form} />;
 }
 
-session.setData({ stores: { [sequenceRowKey(42)]: { name: 'Store' } } });
-const copied = session.copyRow('stores', sequenceRowKey(42));
-session.rekeyRow('stores', copied, sequenceRowKey(43));
-const submission = session.getData();
+form.setData({ stores: { [sequenceRowKey(42)]: { name: 'Store' } } });
+const copied = form.copyRow('stores', sequenceRowKey(42));
+form.rekeyRow('stores', copied, sequenceRowKey(43));
+const submission = form.getData();
 ```
 
-공유 캐시에는 템플릿을 저장하고 폼 인스턴스마다 세션을 생성합니다.
-레코드 로드가 완료되면 `setData`를 호출합니다. Vue와 Svelte에서도
-`Form`에 `session` 속성을 전달합니다. 프레임워크 패키지는 동일한 코어
-함수를 제공합니다. SSR 함수에는 컴파일된 템플릿과 `{ data, language }`를 전달합니다.
-저장소의 SSR 함수는 React와 Svelte의 `src/index.ts`에 있는 `renderForm`,
-Vue의 `src/ssr.ts`에 있는 `renderFormSSR`입니다. 이 소스 함수는 패키지 하위
-경로로 내보내지 않습니다. `$ref` 파일은 렌더링 전에 컴파일합니다.
+공유 캐시에는 템플릿을 저장하고 렌더링할 폼마다 독립적인 폼 인스턴스를 생성합니다.
+레코드 로드가 완료되면 `setData`를 호출합니다. Vue와 Svelte도 `form` 속성을
+받습니다. 프레임워크 패키지는 동일한 코어 함수를 제공합니다.
+각 프레임워크는 SSR용 `renderForm(form)`을 export하며 Vue는 Promise를 반환합니다.
+`$ref` 파일은 렌더링 전에 컴파일합니다.
 
 `@crudui/validator`의 `Validator`와 원본 명세로 `submission`을 검증합니다.
 서버가 저장된 seq를 생성하면 해당 컬렉션 경로의 키를 변경합니다.
