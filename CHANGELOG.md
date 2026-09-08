@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Schema documentation consolidation
+
+Current schema and expression contracts use their existing authoritative documents.
+A separate English and Korean legacy schema describes the explicit legacy field
+model. The duplicate root schema and condition-parser documents are removed;
+references use the appropriate current or legacy contract. The legacy example
+passed valid-input and custom required-message checks.
+
 ## 2026-09-09 — Legacy visibility contract
 
 The English and Korean legacy visibility contract separates validator conditions

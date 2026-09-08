@@ -381,4 +381,4 @@ php-api/
 
 - [YAML Spec Format](../../../docs/spec/schema.md)
 - [Validation Rules](../../../docs/VALIDATION-RULES.md)
-- [Condition Expressions](../../../docs/CONDITION-PARSER.md)
+- [Condition Expressions](../../../docs/spec/expressions.md)

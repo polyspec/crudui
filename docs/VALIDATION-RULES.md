@@ -355,7 +355,7 @@ quantity:
   - 언어별 내부 상수는 다르지만 외부 동작(어떤 파라미터가 원문으로 전달되는가)은
     크로스언어 테스트로 일치가 검증된다.
 
-조건식 문법은 [CONDITION-PARSER.md](./CONDITION-PARSER.md) 참조.
+조건식 문법은 [표현식 문법](./spec/expressions.ko.md) 참조.
 
 ---
 
@@ -393,5 +393,5 @@ quantity:
 ## 관련 문서
 
 - [데이터 검증](./operations/validation.ko.md) — 언어별 Validator API
-- [SPEC.md](./SPEC.md) — 스펙 형식
-- [CONDITION-PARSER.md](./CONDITION-PARSER.md) — 조건식 문법
+- [구형 스키마](./spec/legacy-schema.ko.md) — 스펙 형식
+- [표현식 문법](./spec/expressions.ko.md) — 조건식 문법
