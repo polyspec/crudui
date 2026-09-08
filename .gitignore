@@ -6,6 +6,7 @@ examples/**/vendor/
 
 # Build outputs
 dist/
+.svelte-kit/
 *.tsbuildinfo
 
 # Rust build outputs (Cargo.lock is committed for the binary crate)
