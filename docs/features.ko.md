@@ -56,7 +56,7 @@ HTTP 검사 240개와 PHP 처리 모드 검사가 모두 통과했습니다.
 | --- | --- | --- | --- |
 | PHP | 120/120 통과 | 30/30 통과 | 0 |
 | PHP 확장 | 120/120 통과 | 30/30 통과 | 0 |
-| Go | pending | pending | pending |
+| Go | 120/120 통과 | 30/30 통과 | 0 |
 | Rust | pending | pending | pending |
 
 각 대상은 React·Vue·Svelte의 폼 전송과 ordered JSON 전송을 검사합니다.
