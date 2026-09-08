@@ -41,7 +41,7 @@ COPY example /workspace/keyed/examples/form-comparison
 COPY ordered-json.tar /archives/
 RUN mkdir -p /workspace/ordered-json && tar -xf /archives/ordered-json.tar -C /workspace/ordered-json && ln -s /workspace/ordered-json/js /workspace/node_modules/sortjson
 COPY metadata.json /workspace/metadata.json
-RUN node examples/form-comparison/build.mjs
+RUN node examples/form-comparison/build.mjs /workspace
 COPY --from=go-build /out/ /workspace/bin/
 COPY --from=rust-build /out/ /workspace/bin/
 EXPOSE 8080
