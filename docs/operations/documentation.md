@@ -16,6 +16,10 @@
 translation uses `.ko.md`. Update both in the same change and compare their
 meaning. Store personal preferences and conversation context outside Git.
 
+Site navigation uses English and includes a Korean document index. API navigation
+includes the validator, shared generator core and all three framework packages,
+plus Go, Rust and PHP references.
+
 Update the specification before changing direction. Mark unfinished behavior in
 the feature table. Update implementation status, verification evidence and the
 changelog with the behavior change. Test results apply only to the code tested;
