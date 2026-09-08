@@ -10,7 +10,7 @@ use CRUDUI\Validator\Compose\MemoryLoader;
 use CRUDUI\Validator\ForbiddenScan;
 
 /**
- * CRUDUI validation entry point — schema §2 pipeline. Port of validator-ts
+ * CRUDUI validation entry point — SPEC §2 pipeline. Port of validator-ts
  * src/validate/index.ts (validate).
  *
  * Wires the three CRUDUI passes in order (G5 compose first → §3 traversal → §2 G1
@@ -74,7 +74,7 @@ final class Validate
             $properties = (is_array($props) && !array_is_list($props)) ? $props : [];
         }
 
-        // Load-path forbidden-scan (schema §6): walk the composed single spec to
+        // Load-path forbidden-scan (SPEC §6): walk the composed single spec to
         // arbitrary depth and reject any forbidden meta key BEFORE validation
         // entry. A hit throws ComposeLoadError (a LOAD failure), never valid:false.
         // This closes the deep-nesting leak the typed models alone could not (R1).

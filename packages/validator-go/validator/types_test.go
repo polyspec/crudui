@@ -9,7 +9,7 @@ import (
 
 // roundTrip parses JSON into a FieldSpec, re-serializes, and asserts byte
 // equality against the compacted input. It is the cross-language round-trip
-// contract: the 4 languages must parse → re-emit the same CRUDUI JSON.
+// contract: the 4 languages must parse → re-emit the same model JSON.
 func roundTrip(t *testing.T, in string) {
 	t.Helper()
 	var f FieldSpec

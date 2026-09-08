@@ -1,7 +1,7 @@
 /**
  * CRUDUI Field Type Definitions (canonical, reference)
  *
- * Single source of truth for the CRUDUI field model, mechanized from spec/schema.md
+ * Single source of truth for the CRUDUI field model, mechanized from SPEC.md
  * (the CRUDUI constitution) and EXPRESSION-GRAMMAR.md (the expression engine).
  *
  * This is CRUDUI-NEW. It does NOT modify or replace the legacy model in `../types.ts`
@@ -89,7 +89,7 @@ export type LangMap = Record<string, string | null>;
 export type LocalizedText = string | LangMap | null;
 
 /**
- * Polymorphic role-slot value (schema G2). `false` turns the slot off (and
+ * Polymorphic role-slot value (SPEC G2). `false` turns the slot off (and
  * nullifies composed inheritance); `true` is the shorthand for `{}` (default
  * on); an object carries the slot's settings.
  */
@@ -100,7 +100,7 @@ export type Slot<T> = false | true | T;
 // ============================================================================
 
 /**
- * CRUDUI field specification. Top level holds only first-class keys (schema §3 B):
+ * CRUDUI field specification. Top level holds only first-class keys (SPEC §3 B):
  * structure/identity, content, and the four role slots. All non-first-class
  * detail is pushed under its dependency target (§3 C). A schema layer closes the
  * top level (`additionalProperties: false`) and rejects every `FORBIDDEN_META_KEYS`
@@ -161,7 +161,7 @@ export interface FieldSpec {
 
   // -- Role slots (first-class, polymorphic) --
 
-  /** Role slot — validation (schema §3 common-role distribution). */
+  /** Role slot — validation (SPEC §3 common-role distribution). */
   validate?: Slot<ValidateSlot>;
   /** Role slot — appearance = visibility + per-node external appearance map. */
   design?: Slot<DesignSlot>;
@@ -176,7 +176,7 @@ export interface FieldSpec {
    */
   options?: Slot<OptionsSlot>;
 
-  // -- Composition (schema §5) --
+  // -- Composition (SPEC §5) --
 
   /**
    * Base inheritance (file/path). The parser expands it first — an unresolved
@@ -219,7 +219,7 @@ export interface PatchDirective {
 // ============================================================================
 
 /**
- * Validation rules (schema §3 `slots.validate`). Each value may be an
+ * Validation rules (SPEC §3 `slots.validate`). Each value may be an
  * expression/condition map, expressing conditional validation without a separate
  * key (e.g. `required: '.subscribe'`, `email: true`) — the condition is the
  * value's expression (G1), never a separate key.
@@ -308,7 +308,7 @@ export type BehaviorEntry =
     };
 
 /**
- * Common (all-type) behavior scripts (schema §4). Values are opaque client JS
+ * Common (all-type) behavior scripts (SPEC §4). Values are opaque client JS
  * passed through verbatim and never routed through the expression engine.
  * `behavior: false` nullifies composed inheritance.
  */
@@ -460,7 +460,12 @@ export type ItemLabelMap = Record<string, ItemLabel>;
 
 /** A static option: a value→label map entry or a primitive value. */
 export type StaticItem =
-  | { value: unknown; label?: ItemLabel }
+  | {
+      /** Submitted option value. */
+      value: unknown;
+      /** Display label for the option. */
+      label?: ItemLabel;
+    }
   | Record<string, unknown>
   | string
   | number;
@@ -519,7 +524,7 @@ export interface MultipleSettings {
 export type Lang = boolean | LangSettings;
 
 /**
- * Per-language override map (one of the two `lang.only` shapes, schema §3 C):
+ * Per-language override map (one of the two `lang.only` shapes, SPEC §3 C):
  * `{ ja: { validate: … }, en: { validate: … } }`. The key is a language code,
  * the value is the role-slot override (`validate`/`design`/`behavior`/`options`)
  * applied to that language's input only. Distinct from the allowlist `string[]`:
@@ -527,11 +532,16 @@ export type Lang = boolean | LangSettings;
  * slots per language. Absorbs the legacy per-language `langs` map shape.
  */
 export interface LangOverride {
+  /** Validation rules for this language input. */
   validate?: Slot<ValidateSlot>;
+  /** Appearance settings for this language input. */
   design?: Slot<DesignSlot>;
+  /** Event scripts for this language input. */
   behavior?: Slot<BehaviorSlot>;
+  /** Widget options for this language input. */
   options?: Slot<OptionsSlot>;
 }
+/** Per-language overrides indexed by language code. */
 export type LangOverrideMap = Record<string, LangOverride>;
 
 /** Input multilingual settings object (kept under `lang`). */
@@ -539,7 +549,7 @@ export interface LangSettings {
   /** Expansion mode (e.g. append). */
   mode?: string;
   /**
-   * Two shapes (schema §3 C): a language allowlist `['ko', 'en']` (`string[]`)
+   * Two shapes (SPEC §3 C): a language allowlist `['ko', 'en']` (`string[]`)
    * OR a per-language override map `{ ja: { validate: … } }`
    * (`LangOverrideMap`). The allowlist restricts the rendered languages; the
    * override map redefines role slots per language. Absorbs the legacy `langs`

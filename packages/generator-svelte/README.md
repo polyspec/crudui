@@ -5,16 +5,16 @@
 Svelte rendering for prepared form templates and editable sessions.
 
 ```ts
-import { compileForm, createFormSession, FormSessionView } from '@crudui/generator-svelte';
+import { compileForm, createForm, Form } from '@crudui/generator-svelte';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
 });
-const session = createFormSession(template);
+const session = createForm(template);
 session.setData({ name: 'Example' });
 ```
 
-Render `FormSessionView` with the `session` prop. Compile once per shared template and create a session per form instance.
+Render `Form` with the `session` prop. Compile once per shared template and create a session per form instance.
 Use `bindForm(template, data)` to evaluate fields without creating an editable session.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)

@@ -246,21 +246,15 @@ export function signature(r) {
   return `valid=${r.valid}#${key.join(';')}`;
 }
 
-/**
- * Idempotent iff every language that ran (ok) shares one signature. A failed CLI
- * (ok:false) never silently agrees: it carries a distinct signature. Fewer than
- * two languages ran → no judgement is possible (null).
- */
+/** Compare every required validator, including execution failures. */
 export function compareIdempotency(results) {
-  const runnable = results.filter((r) => r.ok);
-  if (runnable.length < 2) {
-    return { idempotent: null, mismatch: null };
-  }
-  const sigs = runnable.map((r) => ({ lang: r.lang, sig: signature(r) }));
-  const distinct = new Set(sigs.map((s) => s.sig));
-  if (distinct.size <= 1) {
-    return { idempotent: true, mismatch: null };
-  }
+  const expected = ['js', 'php', 'go', 'rust'];
+  const missing = expected.filter(lang => !results.some(result => result.lang === lang));
+  const complete = results.length === expected.length && missing.length === 0 &&
+    results.every(result => result.ok && expected.includes(result.lang));
+  const sigs = results.map((result) => ({ lang: result.lang, sig: signature(result) }));
+  const distinct = new Set(sigs.map(result => result.sig));
+  if (complete && distinct.size === 1) return { idempotent: true, mismatch: null };
   // Group langs by signature so the client can show which langs diverged.
   const groups = {};
   for (const s of sigs) {
@@ -269,6 +263,7 @@ export function compareIdempotency(results) {
   return {
     idempotent: false,
     mismatch: {
+      missing,
       groups: Object.entries(groups).map(([sig, langs]) => ({ langs, signature: sig })),
       detail: results.map((r) => ({
         lang: r.lang,

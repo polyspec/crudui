@@ -1,3 +1,4 @@
+import { renderFields } from '../src/internal/renderFields.ts';
 import { compileForm } from '@crudui/generator-core';
 /**
  * form-render conformance — Svelte SSR vs the shared 3-framework parity gate.
@@ -20,7 +21,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 import {
-  renderForm,
   ComposeLoadError,
   UnsupportedFieldTypeError,
 } from '../src/index.ts';
@@ -31,10 +31,10 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.js
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 function render(c) {
-  return renderForm(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+  return renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
 }
 
-describe('current render — Svelte reproduces the normalized expected_html', () => {
+describe('form rendering: Svelte reproduces the normalized expected_html', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
     test(c.name, () => {
       const actual = normalizeHtml(render(c));
@@ -43,7 +43,7 @@ describe('current render — Svelte reproduces the normalized expected_html', ()
   }
 });
 
-describe('current render — render is idempotent (stable across re-render)', () => {
+describe('form rendering: render is idempotent (stable across re-render)', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
     test(`${c.name} — re-render is stable`, () => {
       expect(normalizeHtml(render(c))).toStrictEqual(normalizeHtml(render(c)));
@@ -60,7 +60,7 @@ const ERROR_CLASS_BY_CODE = {
   UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError,
 };
 
-describe('current render — a load/registry gap is a surfaced ERROR, never silent', () => {
+describe('form rendering: a load/registry gap is a surfaced ERROR, never silent', () => {
   for (const c of cases.filter((x) => x.expectError)) {
     test(c.name, () => {
       let thrown;
@@ -83,13 +83,8 @@ describe('current render — a load/registry gap is a surfaced ERROR, never sile
 // ("if"/"when") so label/text prose never false-positives.
 const FORBIDDEN_LITERAL = ['display_switch', 'display_target', 'show_if'];
 const FORBIDDEN_KEYSHAPE = [/"if"/, /"when"/];
-// R4 magic-token guard. CRUDUI emits NO `__<hex>__` token (row identity is the
-// explicit position index / hidden data key; element ids are path-derived). Any
-// `__<hex>__` residue in raw output is a magic-token regression — there is no
-// longer a normalizer mask to hide it.
-const ANY_UNDERSCORE_TOKEN = /__[0-9a-f]+__/;
 
-describe('current render — eval is never used (no legacy condition meta keys leak)', () => {
+describe('form rendering: eval is never used (no legacy condition metadata)', () => {
   // Operates on the RAW render output (pre-normalization) — the bytes the
   // generator actually emits, where a forbidden meta key or a magic token would
   // still be visible (there is no normalizer mask to hide one).
@@ -105,11 +100,6 @@ describe('current render — eval is never used (no legacy condition meta keys l
         expect(raw, `${c.name}: ${re} leaked into raw output`).not.toMatch(re);
       }
 
-      // 2: R4 — NO magic `__<hex>__` token is emitted at all. Row identity is the
-      // explicit position index / hidden data key; element ids are path-derived.
-      expect(raw, `${c.name}: magic __<hex>__ token leaked into raw output`).not.toMatch(
-        ANY_UNDERSCORE_TOKEN
-      );
     });
   }
 

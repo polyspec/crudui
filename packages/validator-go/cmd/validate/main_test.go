@@ -1,10 +1,10 @@
 package main
 
-// Go CRUDUI validate CLI — stdin/stdout BOUNDARY conformance.
+// Go model validate CLI — stdin/stdout BOUNDARY conformance.
 //
 // The ValidateJSON ENGINE is already pinned by
-// validator/validate/conformance_test.go. This test owns only the CLI wrapper
-// boundary (cmd/validate): serialization (stdin JSON → ValidateJSON → stdout
+// validator/model/validate/conformance_test.go. This test owns only the CLI wrapper
+// boundary (cmd/validate-model): serialization (stdin JSON → ValidateJSON → stdout
 // {valid,errors}), exit code, and the Go-specific LOAD-failure wire. It does NOT
 // re-verify rule semantics — it asserts the wrapper streams the engine result
 // verbatim and routes a load failure onto the Go wire, never a valid:false
@@ -49,18 +49,18 @@ type cliCase struct {
 var cliBin string
 
 func TestMain(m *testing.M) {
-	dir, err := os.MkdirTemp("", "validate-cli")
+	dir, err := os.MkdirTemp("", "validate-model-cli")
 	if err != nil {
 		panic("mktemp: " + err.Error())
 	}
 	defer os.RemoveAll(dir)
 
-	cliBin = filepath.Join(dir, "validate")
-	// go build the current package (cmd/validate) into the temp binary.
+	cliBin = filepath.Join(dir, "validate-model")
+	// go build the current package (cmd/validate-model) into the temp binary.
 	build := exec.Command("go", "build", "-o", cliBin, ".")
 	build.Stderr = os.Stderr
 	if err := build.Run(); err != nil {
-		panic("go build cmd/validate: " + err.Error())
+		panic("go build cmd/validate-model: " + err.Error())
 	}
 
 	os.Exit(m.Run())
@@ -68,7 +68,7 @@ func TestMain(m *testing.M) {
 
 func loadCliCases(t *testing.T) []cliCase {
 	t.Helper()
-	// cmd/validate → repo root is four levels up.
+	// cmd/validate-model → repo root is four levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "validate", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

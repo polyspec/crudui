@@ -1,5 +1,5 @@
 /**
- * CRUDUI validation entry point (reference) — schema §2 pipeline.
+ * CRUDUI validation entry point (reference) — SPEC §2 pipeline.
  *
  * Wires the three CRUDUI passes in order (G5 compose first → §3 traversal → §2 G1
  * value evaluation):
@@ -87,7 +87,7 @@ export function validate(
       ? composeProperties(spec, loader, opts)
       : (composeSpec(spec, loader, opts).properties as Record<string, unknown>) ?? {};
 
-  // Load-path forbidden-scan (schema §6): walk the composed single spec to
+  // Load-path forbidden-scan (SPEC §6): walk the composed single spec to
   // arbitrary depth and reject any forbidden meta key BEFORE validation entry.
   // A hit throws ComposeLoadError (a LOAD failure), never `valid:false`. This
   // closes the deep-nesting leak the typed models alone could not (R1).

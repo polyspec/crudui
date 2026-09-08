@@ -5,12 +5,12 @@
 Framework-independent form compilation, editable sessions and list evaluation.
 
 ```ts
-import { compileForm, createFormSession } from '@crudui/generator-core';
+import { compileForm, createForm } from '@crudui/generator-core';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
 });
-const session = createFormSession(template);
+const session = createForm(template);
 session.setData({ name: 'Example' });
 ```
 

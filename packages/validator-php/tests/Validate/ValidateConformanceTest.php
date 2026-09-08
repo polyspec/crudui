@@ -9,7 +9,7 @@ use CRUDUI\Validator\Validate\Validate;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI validator conformance (schema §2 G5→§3→§2 G1). The shared 4-language
+ * CRUDUI validator conformance (SPEC §2 G5→§3→§2 G1). The shared 4-language
  * fixture tests/fixtures/validate/cases.json is the single truth — its values
  * are the JS reference CRUDUI validator's actual output ({ valid, errors } | a
  * load-error code). PHP loads this ONE file and must reproduce it bit-for-bit

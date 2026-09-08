@@ -3,7 +3,7 @@
 /**
  * PHP stdin validation worker for compare-all.js.
  *
- * Protocol (identical to the Go CLI in packages/validator-go/cmd/validate):
+ * Protocol (identical to the Go CLI in packages/validator-go/cmd/validate-legacy):
  *   stdin:  {"spec": <spec>, "input": <input>}
  *   stdout: {"valid": bool, "error"?: string|null, "field"?: string|null}
  *

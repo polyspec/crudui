@@ -19,7 +19,7 @@ export function createRowKey(): string {
 }
 
 /** Per-instance presentation options. */
-export type FormSessionOptions = Pick<BindFormOptions, 'language' | 'keyPrefix'>;
+export type CreateFormOptions = Pick<BindFormOptions, 'language' | 'keyPrefix' | 'idPrefix'>;
 
 /** Values and insertion position for a new repeated row. */
 export interface AddRowOptions {
@@ -79,17 +79,17 @@ function putAt(data: Record<string, unknown>, path: string[], value: unknown): R
  * One editable form instance over a shared template. All row operations are
  * scoped to a collection path; no global string replacement touches siblings.
  */
-export class FormSession {
+export class FormInstance {
   private data: Record<string, unknown>;
   private snapshot: FormSnapshot;
   private readonly listeners = new Set<() => void>();
-  private readonly options: FormSessionOptions;
+  private readonly options: CreateFormOptions;
 
   /** Shared immutable structure. */
   readonly template: FormTemplate;
 
   /** Create an instance with independent record data. */
-  constructor(template: FormTemplate, data: Record<string, unknown> = {}, options: FormSessionOptions = {}) {
+  constructor(template: FormTemplate, data: Record<string, unknown> = {}, options: CreateFormOptions = {}) {
     this.template = template;
     this.options = { ...options };
     this.data = this.normalizeFields(template.fields, data);
@@ -286,6 +286,6 @@ export class FormSession {
 }
 
 /** Create an independent mutable instance from a cacheable form template. */
-export function createFormSession(template: FormTemplate, data?: Record<string, unknown>, options?: FormSessionOptions): FormSession {
-  return new FormSession(template, data, options);
+export function createForm(template: FormTemplate, data?: Record<string, unknown>, options?: CreateFormOptions): FormInstance {
+  return new FormInstance(template, data, options);
 }

@@ -1,11 +1,11 @@
 /**
- * Shared-fixture generator for the 4-language CRUDUI validator (schema §2 pipeline).
+ * Shared-fixture generator for the 4-language CRUDUI validator (SPEC §2 pipeline).
  *
  * Runs the JS reference CRUDUI validator for real and dumps, per case, the
  * validation result (`expected = { valid, errors }`) or the load-error code
  * (`expectLoadError = { code }`) when composition cannot be resolved. The other
  * three engines (PHP / Go / Rust) load the SAME `cases.json` and must reproduce
- * it bit-for-bit (schema G-B 4-language idempotence: identical `valid`+errors).
+ * it bit-for-bit (SPEC G-B 4-language idempotence: identical `valid`+errors).
  *
  * Each case is authored against the analysis (single truth) and VALIDATION-
  * RULES.md (the 1074 idempotence baseline). The JS engine GENERATES the
@@ -531,7 +531,7 @@ const SPECS: CaseSpec[] = [
     },
     data: { photo: 'snapshot.gif' },
   },
-  // 20. design.show does NOT skip validation (schema R1 show/validate split).
+  // 20. design.show does NOT skip validation (SPEC R1 show/validate split).
   {
     name: 'design-show-does-not-skip',
     note: 'design.show hidden field still validates (R1 — visibility != validation)',

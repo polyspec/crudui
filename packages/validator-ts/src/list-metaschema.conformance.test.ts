@@ -1,5 +1,5 @@
 /**
- * CRUDUI list-spec meta-schema conformance (schema §9.4).
+ * CRUDUI list-spec meta-schema conformance (SPEC §9.4).
  *
  * The read sister of the form-spec meta-schema gate. The list definitions are
  * ADDITIVE to schema/crudui.schema.json — they do NOT touch the form-spec

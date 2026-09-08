@@ -41,7 +41,7 @@ function wrapperProps(vm: FieldViewModel): Record<string, unknown> {
   const style = wrapperStyleObj(vm);
   return {
     className: wrapperClass(vm),
-    name: vm.wrapperName,
+    'data-field-path': vm.path,
     ...resolvedStyleProps(style),
   };
 }
@@ -52,7 +52,9 @@ function Label({ vm }: { vm: FieldViewModel }): React.ReactElement | null {
   const style = styleObject(vm.design.label.style);
   return (
     <h6 {...(cls ? { className: cls } : {})} {...resolvedStyleProps(style)}>
-      {vm.label}
+      {vm.widget && !('unsupported' in vm.widget) && (vm.widget.attrs.id || vm.widget.extra?.file?.id)
+        ? <label htmlFor={vm.widget.extra?.file?.id ?? vm.widget.attrs.id}>{vm.label}</label>
+        : vm.label}
     </h6>
   );
 }
@@ -115,12 +117,13 @@ function CheckboxEnvelope({ vm }: { vm: FieldViewModel }): React.ReactElement {
             <div>
               <input
                 className={vm.checkboxClass}
+                id={vm.checkboxId}
                 name={vm.checkboxName}
                 type="checkbox"
                 value="1"
                 defaultChecked={vm.checkboxChecked}
               />
-              <span>{vm.label}</span>
+              <label htmlFor={vm.checkboxId}>{vm.label}</label>
             </div>
           </div>
         </h6>

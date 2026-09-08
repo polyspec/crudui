@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Legacy;
 
 use CRUDUI\Validator\PathResolver;
-
 use CRUDUI\Validator\Rules\RuleInterface;
 use CRUDUI\Validator\Rules\Required;
 use CRUDUI\Validator\Rules\Email;

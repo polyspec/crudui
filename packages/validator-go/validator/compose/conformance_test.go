@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// CRUDUI composition-engine conformance (schema §5, G5).
+// model composition-engine conformance (SPEC §5, G5).
 //
 // Single truth = the shared 4-language fixture tests/fixtures/compose/cases.json.
 // All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce
@@ -30,7 +30,7 @@ type fixtureCase struct {
 
 func loadFixtures(t *testing.T) []fixtureCase {
 	t.Helper()
-	// validator-go/validator/compose → repo root is five levels up.
+	// validator-go/validator/model/compose → repo root is five levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "compose", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

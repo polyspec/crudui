@@ -1,5 +1,5 @@
 # Control — a container field carries `properties`, so it is exempt from the
-# leaf type check (schema §3: properties = container/group structure, not a
+# leaf type check (CRUDUI specification §3: properties = container/group structure, not a
 # leaf widget). `group` is intentionally NOT a registered WIDGET_KIND; the
 # nested container `address` is also not — both pass because they own
 # `properties`. Only the leaf descendants (text) are catalog-checked.

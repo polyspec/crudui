@@ -29,7 +29,7 @@ import { spawnSync } from 'node:child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// src -> JS package root is two levels up; repo root is four.
+// src/CRUDUI -> JS package root is two levels up; repo root is four.
 const JS_PKG = path.resolve(__dirname, '..');
 const CLI = path.join(JS_PKG, 'bin/validate.mjs');
 const FIXTURE = path.resolve(

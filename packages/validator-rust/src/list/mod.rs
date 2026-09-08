@@ -1,8 +1,8 @@
-//! CRUDUI list-spec structural validation (schema §9) — the read sister of the
+//! CRUDUI list-spec structural validation (SPEC §9) — the read sister of the
 //! form-spec load path.
 //!
 //! `list` has NO data (rows are DB-agnostic and INJECTED, never validated here —
-//! schema §6 R1, §9.1), so the form pipeline's DATA pass (§3+§2 G1) does NOT
+//! SPEC §6 R1, §9.1), so the form pipeline's DATA pass (§3+§2 G1) does NOT
 //! apply. The 4-language SHARED structural gate that lists reuse is exactly the
 //! form load path's first two passes.
 //!
@@ -19,7 +19,7 @@
 //! What is NOT here: the JSON-Schema-shaped checks (1급 닫힘
 //! `additionalProperties:false`, `required:columns`, `enum` sort.dir/pagination
 //! .mode, `anyOf` CellFormat polymorphism). The 4-language engine does NOT do
-//! JSON-Schema validation (schema §8); those remain the META-SCHEMA's job (ajv,
+//! JSON-Schema validation (SPEC §8); those remain the META-SCHEMA's job (ajv,
 //! `packages/validator-ts/src/list-metaschema.conformance.test.ts`), exactly as
 //! for form. This module invents NOTHING — it re-runs compose + forbidden-scan.
 //!

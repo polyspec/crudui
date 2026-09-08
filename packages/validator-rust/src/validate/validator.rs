@@ -1,4 +1,4 @@
-//! CRUDUI form validator (schema §2 G5→§3→§2 G1, JS `Validator` parity).
+//! CRUDUI form validator (SPEC §2 G5→§3→§2 G1, JS `Validator` parity).
 //!
 //! The third pass of the CRUDUI pipeline. It consumes a COMPOSED CRUDUI field model (the
 //! `validate`/`design`/`behavior`/`options` role slots) AFTER the compose pass has
@@ -73,7 +73,7 @@ const LITERAL_PARAM_RULES: &[&str] = &["accept"];
 const REGEX_PARAM_RULES: &[&str] = &["match", "pattern"];
 
 /// Membership rules whose param is the allowed-value SET (an array, comma string,
-/// or a static value→label map, schema §2 G3). The param is data, NOT a
+/// or a static value→label map, SPEC §2 G3). The param is data, NOT a
 /// condition map — an object param is the value→label map (key = option value,
 /// value = display label), kept verbatim and never evaluated key-by-key as
 /// expressions. The rule's flatten reads keys for a value→label map (the label,
@@ -104,7 +104,7 @@ impl Validator {
     }
 
     // =====================================================================
-    // Field traversal (schema §3; legacy validateProperties skeleton).
+    // Field traversal (SPEC §3; legacy validateProperties skeleton).
     // =====================================================================
 
     fn validate_properties(
@@ -189,7 +189,7 @@ impl Validator {
     }
 
     // =====================================================================
-    // validate-slot evaluation (schema §3 slots.validate).
+    // validate-slot evaluation (SPEC §3 slots.validate).
     // =====================================================================
 
     /// Array-level + element rules for a non-group `multiple` field.

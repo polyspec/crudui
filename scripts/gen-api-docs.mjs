@@ -52,21 +52,21 @@ const TS_PACKAGES = [
     pkg: 'generator-react',
     entry: 'src/index.ts',
     out: 'generator-react',
-    title: '@crudui/generator-react/legacy',
+    title: '@crudui/generator-react',
   },
   {
     pkg: 'generator-vue',
     entry: 'src/index.ts',
     out: 'generator-vue',
-    title: '@crudui/generator-vue/legacy',
+    title: '@crudui/generator-vue',
   },
   {
     // svelte index.ts re-exports *.svelte which typedoc cannot parse; document the
     // framework-independent TypeScript helpers instead (render/fieldHtml/i18n/...).
     // The package ships no tsconfig.json, so a docs-only tsconfig under scripts/ is used.
     pkg: 'generator-svelte',
-    entry: 'src/render.ts',
-    extraEntries: ['src/fieldHtml.ts', 'src/i18n.ts', 'src/legacyDisplay.ts', 'src/legacyLang.ts', 'src/utils.ts'],
+    entry: 'src/legacy/render.ts',
+    extraEntries: ['src/legacy/fieldHtml.ts', 'src/legacy/i18n.ts', 'src/legacy/legacyDisplay.ts', 'src/legacy/legacyLang.ts', 'src/legacy/utils.ts'],
     out: 'generator-svelte',
     title: '@crudui/generator-svelte (TypeScript helpers)',
     tsconfig: join(ROOT, 'scripts', 'tsconfig.svelte-docs.json'),

@@ -5,7 +5,7 @@
  *
  * @example
  * ```tsx
- * import { FormBuilder } from '@crudui/generator-react/legacy';
+ * import { FormBuilder } from '@crudui/generator-react';
  *
  * const yamlSpec = `
  * type: group

@@ -12,7 +12,7 @@ use CRUDUI\Validator\Compose\Ref;
 use CRUDUI\Validator\ForbiddenScan;
 
 /**
- * CRUDUI list-spec validation entry point — schema §9 read sister. Byte-for-byte
+ * CRUDUI list-spec validation entry point — SPEC §9 read sister. Byte-for-byte
  * port of validator-ts/src/validate-list/index.ts (validateList).
  *
  * The read sister of Validate::run (validate). A list-spec describes the SAME

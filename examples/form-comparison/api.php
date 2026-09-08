@@ -49,7 +49,7 @@ try {
     } else respond(415, ['error' => 'Expected a form or JSON request']);
     if (!is_array($received)) respond(400, ['error' => 'Expected form object']);
     $data = FormRepository::normalize($received, $dataMode);
-    $validator = new \CRUDUI\Validator\Validate\Validator($spec);
+    $validator = new \CRUDUI\Validator\V2\Validate\Validator($spec);
     $validation = $validator->validate($data);
     $result = ['transport' => $contentType, 'jsonProcessor' => 'ordered-json', 'validatorSource' => $validatorSource, 'received' => $wireReceived, 'normalized' => FormRepository::wireData($data, $dataMode), 'validation' => $validation->toArray()];
     if ($action === 'validate') respond(200, $result);

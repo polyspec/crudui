@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "Cross-check gateway: 4-language current validate fan-out + 3-framework current SSR + static console",
+  "description": "Cross-check gateway: 4-language CRUDUI validate fan-out + 3-framework CRUDUI SSR + static console",
   "main": "server.mjs",
   "scripts": {
     "build:go": "cd ../../../packages/validator-go && go build -o validate ./cmd/validate",

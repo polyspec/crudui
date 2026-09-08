@@ -12,17 +12,17 @@ import (
 	"testing"
 )
 
-// TestDocCoverage enforces that every exported top-level declaration across
-// the whole validator tree (functions, methods, types, and exported
-// const/var) carries a doc comment. It is the CRUDUI arm of the cross-language
+// TestSchemaDocCoverage enforces that every exported top-level declaration across
+// the whole validator/model tree (functions, methods, types, and exported
+// const/var) carries a doc comment. It is the model arm of the cross-language
 // doc-coverage gate: adding an undocumented exported symbol anywhere under
-// validator — the root CRUDUI package or any subpackage (validate, compose,
+// validator/model — the root model package or any subpackage (validate, compose,
 // expr) — turns this test RED.
 //
 // The legacy gate (validator/doc_coverage_test.go) globs only its own directory,
-// so it never sees model. This test closes that hole. It walks the entire CRUDUI
+// so it never sees model. This test closes that hole. It walks the entire model
 // subtree recursively from this package's directory rather than a flat glob,
-// because CRUDUI spans several subpackages and each must be covered. The check uses
+// because model spans several subpackages and each must be covered. The check uses
 // go/ast and needs no external tooling, so it is deterministic and
 // dependency-free.
 //
@@ -30,7 +30,7 @@ import (
 // documented. Struct fields and interface methods are not individually required
 // (documenting the enclosing type is sufficient), matching golint/revive
 // behavior.
-func TestDocCoverage(t *testing.T) {
+func TestSchemaDocCoverage(t *testing.T) {
 	fset := token.NewFileSet()
 
 	var files []string
@@ -51,7 +51,7 @@ func TestDocCoverage(t *testing.T) {
 		t.Fatalf("walk: %v", err)
 	}
 	if len(files) == 0 {
-		t.Fatal("doc-coverage: no current source files found")
+		t.Fatal("doc-coverage: no model source files found")
 	}
 
 	var undocumented []string

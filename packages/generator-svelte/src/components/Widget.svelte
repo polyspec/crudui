@@ -20,13 +20,12 @@
 
   let { w }: { w: AnyWidget } = $props();
 
-  const supported = $derived(!isUnsupported(w));
-  const model = $derived(supported ? (w as WidgetModel) : null);
+  const model = $derived(isUnsupported(w) ? null : w);
   // dummy-input is an input-group control, not a RAW display div.
   const isDisplayRaw = $derived(model?.layout === 'display' && model.kind !== 'dummy-input');
 </script>
 
-{#if !supported}
+{#if !model}
   <div class="form-element-unsupported" data-unsupported-type={(w as { type: string }).type}></div>
 {:else if model.layout === 'input-group' || (model.layout === 'display' && model.kind === 'dummy-input')}
   <div class="input-group">{@html inputGroupBody(model)}</div>

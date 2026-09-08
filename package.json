@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "description": "YAML-based form generation and validation system (Multi-language, Multi-framework)",
-  "main": "capture-react.js",
   "workspaces": [
     "packages/*"
   ],
@@ -27,9 +26,10 @@
     "docs:check:ts": "node scripts/check-doc-coverage.mjs ts",
     "docs:check:servers": "node scripts/check-server-doc-coverage.mjs",
     "docs:check:all": "npm run docs:check:documents && npm run docs:check && npm run docs:check:servers",
-    "spec:schema": "node scripts/gen-schema.mjs",
-    "test:forms": "npm run build:validator && npm run build:generators && npm test -w @crudui/generator-core -- --run && npm test -w @crudui/generator-react -- --run && npm test -w @crudui/generator-vue && npm test -w @crudui/generator-svelte",
-    "docs:check:documents": "node scripts/check-documents.mjs"
+    "spec:schema": "node scripts/check-schema.mjs",
+    "test:forms": "npm run build:validator && npm run build:generators && npm test -w @crudui/generator-core -- --run && npm test -w @crudui/generator-react -- --run && npm test -w @crudui/generator-vue && npm test -w @crudui/generator-svelte && node --test tests/fixtures/form-render/normalize.test.mjs",
+    "docs:check:documents": "node scripts/check-documents.mjs",
+    "test:packages": "npm run build && node scripts/check-packages.mjs"
   },
   "repository": {
     "type": "git",
@@ -59,12 +59,16 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "debug": "^4.4.3",
     "eslint": "^10.5.0",
     "js-yaml": "^4.2.0",
     "mermaid": "^11.15.0",
+    "parse5": "^8.0.1",
+    "postcss": "^8.5.28",
     "ts-json-schema-generator": "^2.9.0",
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.12.0",

@@ -16,7 +16,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const { Validator } = require('@crudui/validator');
+const { Validator } = require('@crudui/validator/legacy');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

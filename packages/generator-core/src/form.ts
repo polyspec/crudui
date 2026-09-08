@@ -16,8 +16,6 @@ export interface FormFieldTemplate {
 export interface FormTemplate {
   /** Template format identifier. */
   readonly kind: 'crudui/form-template';
-  /** Serialization format version. */
-  readonly version: 1;
   /** Optional root prefix for input names. */
   readonly keyPrefix?: string;
   /** Top-level field definitions. */
@@ -38,6 +36,8 @@ export interface CompileFormOptions {
 
 /** Per-instance data and presentation; never stored in the shared template. */
 export interface BindFormOptions {
+  /** Stable DOM identifier prefix; use distinct values for forms in one document. */
+  idPrefix?: string;
   /** Content language, defaulting to Korean. */
   language?: Language;
   /** Instance input prefix overriding the template prefix. */
@@ -93,7 +93,6 @@ export function compileForm(
   );
   return freezeTree({
     kind: 'crudui/form-template' as const,
-    version: 1 as const,
     keyPrefix: options.keyPrefix,
     fields: compileFields(copyFormValue(properties)),
   });
@@ -105,9 +104,10 @@ export function bindForm(
   data: Record<string, unknown> = {},
   options: BindFormOptions = {}
 ): FieldViewModel[] {
-  if (template.kind !== 'crudui/form-template' || template.version !== 1) throw new TypeError('Unsupported form template');
+  if (template.kind !== 'crudui/form-template') throw new TypeError('Unsupported form template');
   const state: BuildState = {
     data,
+    idPrefix: options.idPrefix ?? 'crudui',
     t: makeTranslate(options.language ?? 'ko'),
     keyPrefix: options.keyPrefix ?? template.keyPrefix,
     unsupported: options.unsupported ?? 'throw',

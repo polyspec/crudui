@@ -1,4 +1,4 @@
-//! CRUDUI list-spec STRUCTURAL conformance (schema §9) — the read sister of the
+//! CRUDUI list-spec STRUCTURAL conformance (SPEC §9) — the read sister of the
 //! crudui load-path conformance.
 //!
 //! Single truth = the shared fixture tests/fixtures/list-validity/cases.json,
@@ -8,7 +8,7 @@
 //!
 //!   - `expect` / `reason` — the META-SCHEMA (ajv) channel: a list-spec's
 //!     JSON-Schema shape (1급 닫힘 `additionalProperties`, `enum`, `anyOf`,
-//!     `required`). NOT this test's concern (schema §8: the engine does no
+//!     `required`). NOT this test's concern (SPEC §8: the engine does no
 //!     JSON-Schema validation).
 //!   - `engine` — the 4-LANGUAGE ENGINE channel, the contract THIS test pins.
 //!     `"pass"` means compose + forbidden-scan let the spec through (a valid

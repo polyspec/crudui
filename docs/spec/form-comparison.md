@@ -242,3 +242,16 @@ integration requires both transmission choices to pass the actual form lifecycle
 checks. The dependency commit and source archive hash appear with the comparison
 source metadata. Implementation and deployment status are recorded in feature
 status.
+
+A four-language validation comparison succeeds only when JS, PHP, Go and Rust
+each return exactly one successful execution result and all validation signatures
+match. Missing, duplicate or failed engine results make the comparison fail.
+
+## Parsed layout comparison
+
+Layout fixtures parse HTML and CSS before comparing framework output. The parser
+handles HTML attribute-name case, character references and quoted CSS values.
+The comparison preserves input paths, IDs, values, SVG attributes and significant
+text whitespace. It removes framework comments and inter-element formatting
+whitespace. Original HTML equality remains a separate inspector check with no
+normalization.

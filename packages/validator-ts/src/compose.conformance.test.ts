@@ -29,7 +29,7 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// src -> repo root is four levels up.
+// src/CRUDUI -> repo root is four levels up.
 const FIXTURE = path.resolve(
   __dirname,
   '../../../tests/fixtures/compose/cases.json'

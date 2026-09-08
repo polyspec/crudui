@@ -11,7 +11,7 @@ import { compileForm } from '@crudui/generator-core';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { renderForm } from '../../../packages/generator-react/src/index';
+import { renderFields } from '../../../packages/generator-react/src/internal/renderFields';
 import { normalizeHtml } from './normalize.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,7 +40,7 @@ function pass(
   data?: Record<string, unknown>,
   options?: Record<string, unknown>
 ): FixtureCase {
-  const html = renderForm(compileForm(spec, options), { ...(options ?? {}), data });
+  const html = renderFields(compileForm(spec, options), { ...(options ?? {}), data });
   return {
     name,
     note,

@@ -7,7 +7,7 @@
 //!     stdout : `{ "valid": bool, "errors": [{ path, field, rule, message, value }] }`
 //!     Reuses `CRUDUI::validate::validate` (compose → forbidden-scan → validate).
 //!
-//!   list — STRUCTURAL validation of a list-spec (schema §9). A list has no data
+//!   list — STRUCTURAL validation of a list-spec (SPEC §9). A list has no data
 //!     (rows are injected, §9.1), so only the load path's first two passes apply:
 //!     stdin  : `{ "mode": "list", "spec": {…}, "files"?: {…}, "basepath"?: "…" }`
 //!     stdout : `{ "valid": true, "errors": [] }` on a clean structure.

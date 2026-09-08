@@ -1,4 +1,4 @@
-//! `$ref` resolution — base inheritance, resolved before anything else (schema
+//! `$ref` resolution — base inheritance, resolved before anything else (SPEC
 //! §5).
 //!
 //! Semantics (single source of truth):

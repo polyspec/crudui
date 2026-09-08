@@ -8,11 +8,11 @@
  *   - generator-core REGISTRY  → widget kinds + per-kind layout (import)
  *   - validator-ts rules        → rule names (import getRuleNames)
  *   - validator-ts validator.ts → rule param-class tables (import)
- *   - schema/crudui.json  → slots / nodes / buckets / forbidden enum (parse)
+ *   - schema/crudui-CRUDUI.json  → slots / nodes / buckets / forbidden enum (parse)
  *   - validator-ts types.ts     → FORBIDDEN_META_KEYS + pattern (import)
  *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
- *   - schema/crudui.json   → list definitions (List/Column/CellFormat/…) (parse)
+ *   - schema/crudui-CRUDUI.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - EXPRESSION-GRAMMAR.md      → tokens / precedence / truthy / unsupported (parse)
  *   - spec/schema.md             → classification rules (parse)
  *
@@ -130,7 +130,7 @@ export interface DescribeResult {
     columns: string[];
     note: string;
   };
-  /** list-spec (read sister) capability — schema §9. Additive; sits beside widgets/rules/slots. */
+  /** list-spec (read sister) capability — SPEC §9. Additive; sits beside widgets/rules/slots. */
   list: {
     /** Entry definition the meta-schema validates a list against (#/definitions/List). */
     entry: string;
@@ -359,7 +359,7 @@ function collectClassification(schema: SchemaDoc): DescribeResult['classificatio
 }
 
 // ---------------------------------------------------------------------------
-// list capability (schema §9 — read sister)
+// list capability (SPEC §9 — read sister)
 //   cell catalog: cell.ts CELL_FORMATS (renderer keys) × meta-schema CellFormat
 //   list structure: meta-schema List/Column/CellFormat/Pagination/Sort/ListAction
 // No hand-written catalog — every value is a projection of code or the schema.
@@ -542,7 +542,7 @@ export function describe(): DescribeResult {
         rules: 'packages/validator-ts/src/rules/index.ts (builtInRules)',
         ruleParamClass: 'packages/validator-ts/src/validate/validator.ts',
         slots: 'schema/crudui.schema.json (definitions)',
-        forbiddenKeys: 'packages/validator-ts/src/schema.ts (FORBIDDEN_META_KEYS)',
+        forbiddenKeys: 'packages/validator-ts/src/types.ts (FORBIDDEN_META_KEYS)',
         forbiddenScan: 'packages/validator-ts/src/forbidden-scan.ts',
         grammar: 'docs/EXPRESSION-GRAMMAR.md',
         classification: 'docs/spec/schema.md',
@@ -698,7 +698,7 @@ export function renderMarkdown(r: DescribeResult): string {
   push(r.matrix.note);
   push();
 
-  push(`## List capability (read sister — schema §9)`);
+  push(`## List capability (read sister — SPEC §9)`);
   push();
   push(`Entry definition: \`${r.list.entry}\` (validated separately from \`Field\`; additive).`);
   push(`Cell-format cross-check (cell.ts catalog ≡ schema CellFormat): **${r.list.cellCrossCheckOk ? 'OK' : 'FAIL'}**`);

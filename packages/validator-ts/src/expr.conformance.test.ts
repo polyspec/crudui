@@ -24,7 +24,7 @@ import type { ASTNode, Token, PathContext } from './types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// src -> repo root is five levels up.
+// src/CRUDUI -> repo root is five levels up.
 const FIXTURE = path.resolve(
   __dirname,
   '../../../tests/fixtures/expr/cases.json'

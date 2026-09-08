@@ -1,4 +1,4 @@
-//! CRUDUI validation-engine conformance (schema §2 pipeline, G-B 4-language idempotence).
+//! CRUDUI validation-engine conformance (SPEC §2 pipeline, G-B 4-language idempotence).
 //!
 //! Single truth = the shared 4-language fixture tests/fixtures/validate/cases.json.
 //! All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce

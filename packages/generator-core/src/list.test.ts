@@ -1,5 +1,5 @@
 /**
- * buildList conformance — the read sister of buildForm (schema §9).
+ * buildList conformance — the read sister of buildForm (SPEC §9).
  *
  * Verifies the list view-model builder reuses the CRUDUI engine 100% (compose /
  * expression / design / i18n) and that the ONE new surface — the read cell

@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const GENERATOR_PKG = path.resolve(HERE, '..');
-const GENERATOR_DIST = path.join(GENERATOR_PKG, 'dist/index.js');
+const GENERATOR_DIST = path.join(GENERATOR_PKG, 'dist/legacy/index.js');
 
 const requireFromGenerator = createRequire(path.join(GENERATOR_PKG, 'package.json'));
 const YAML = requireFromGenerator('yaml');

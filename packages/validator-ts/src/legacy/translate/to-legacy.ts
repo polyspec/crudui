@@ -1,8 +1,8 @@
 /**
- * Reverse translator: CRUDUI spec object → legacy spec object — REVERSIBLE keys only.
+ * Reverse translator: schema spec object → legacy spec object — REVERSIBLE keys only.
  *
- * The round-trip gate (SPEC §6) is legacy→CRUDUI→legacy = original, and it holds ONLY over
- * the analysis reversible set. This reverse pass inverts exactly those CRUDUI
+ * The round-trip gate (SPEC §6) is legacy→schema→legacy = original, and it holds ONLY over
+ * the analysis reversible set. This reverse pass inverts exactly those schema
  * constructs back to their canonical legacy form:
  *
  *   validate slot            → rules{…}
@@ -28,7 +28,7 @@
 
 import type { LegacySpec, SchemaSpec } from './types';
 
-/** CRUDUI design node → legacy `{node}_class` key. */
+/** schema design node → legacy `{node}_class` key. */
 const NODE_TO_LEGACY_CLASS: Record<string, string> = {
   label: 'label_class',
   wrapper: 'wrapper_class',
@@ -36,7 +36,7 @@ const NODE_TO_LEGACY_CLASS: Record<string, string> = {
   prepend: 'prepend_class',
 };
 
-/** CRUDUI lang sub-key → [legacy key, inverted?]. */
+/** schema lang sub-key → [legacy key, inverted?]. */
 const LANG_SUB_TO_LEGACY: Record<string, [legacyKey: string, invert: boolean]> = {
   only: ['langs', false],
   name: ['lang_name', false],
@@ -46,7 +46,7 @@ const LANG_SUB_TO_LEGACY: Record<string, [legacyKey: string, invert: boolean]> =
   title: ['remove_lang_title', true],
 };
 
-/** CRUDUI multiple sub-key → legacy key (canonical inverse for the round-trip set). */
+/** schema multiple sub-key → legacy key (canonical inverse for the round-trip set). */
 const MULTIPLE_SUB_TO_LEGACY: Record<string, string> = {
   max: 'multiple_max',
   onclick: 'multiple_button_onclick',
@@ -54,7 +54,7 @@ const MULTIPLE_SUB_TO_LEGACY: Record<string, string> = {
 
 const ITEMS_SOURCE_KEYS = new Set(['model', 'method', 'table', 'relations', 'api_server']);
 
-/** Reverse-translate a CRUDUI ROOT spec → legacy (reversible keys only). */
+/** Reverse-translate a schema ROOT spec → legacy (reversible keys only). */
 export function translateToLegacy(schema: SchemaSpec): LegacySpec {
   return reverseSpec(schema);
 }

@@ -1,10 +1,10 @@
 package validate
 
-// CRUDUI recursive forbidden-scan conformance — Go verification against the shared
+// model recursive forbidden-scan conformance — Go verification against the shared
 // 4-language fixture.
 //
 // Single truth = tests/fixtures/spec-validity/cases.json, the cross-language
-// contract for schema §6 global meta-key rejection: a clean spec passes; a
+// contract for SPEC §6 global meta-key rejection: a clean spec passes; a
 // forbidden meta key found at ANY depth (slot/bucket body and one level below,
 // deep child subtrees, array elements, $ref-inherited bases) is a LOAD ERROR,
 // never valid:true. JS / PHP / Go / Rust load this ONE file and must reproduce
@@ -43,7 +43,7 @@ type expectError struct {
 
 func loadForbiddenScanFixtures(t *testing.T) []forbiddenScanCase {
 	t.Helper()
-	// validator-go/validator/validate → repo root is five levels up.
+	// validator-go/validator/model/validate → repo root is five levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "spec-validity", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

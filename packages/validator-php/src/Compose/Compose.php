@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Compose;
 
 /**
- * Composition orchestrator (schema §5, G5) — the parser's FIRST pass.
+ * Composition orchestrator (SPEC §5, G5) — the parser's FIRST pass.
  * Byte-for-byte port of validator-ts/src/compose/compose.ts.
  *
- * Resolution order (schema §5, verbatim):
+ * Resolution order (SPEC §5, verbatim):
  *   (1) $ref   — expand file/path base, recursively (nested $ref included) into a
  *                single properties base.
  *   (2) $patch — overlay add/remove/replace and deep-path set on that base.

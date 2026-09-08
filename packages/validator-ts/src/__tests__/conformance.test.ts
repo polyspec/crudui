@@ -17,7 +17,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Validator } from '../legacy/Validator';
-import type { Spec } from '../legacy/types';
+import type { Spec } from '../types';
 
 interface FixtureCase {
   input: unknown;

@@ -21,13 +21,13 @@ BENCH_WARMUP ?= 5000
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
-	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema + VitePress build)"
+	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + VitePress build)"
 	@echo "  make docs-api              멀티언어 API doc (typedoc 4종 + go doc + cargo doc + php 가능시)"
-	@echo "  make docs-schema           스펙 JSON Schema 생성 + self-validate + 스모크"
+	@echo "  make docs-schema           스펙 JSON Schema와 공유 고정 데이터 검사"
 	@echo "  make docs-site             VitePress 정적 빌드 (docs/.vitepress/dist)"
 	@echo "  make docs-dev              VitePress 개발 서버"
 	@echo "  make docs-preview          VitePress 빌드 결과 미리보기 서버"
-	@echo "  make docs-clean            생성물 전부 제거 (docs/api, schema json, dist, target/doc)"
+	@echo "  make docs-clean            생성물 전부 제거 (docs/api, dist, target/doc)"
 	@echo "  make docs-check            doc-coverage 게이트 (라이브러리 + examples 서버, 미문서화 시 RED)"
 	@echo "  make docs-check-libs       라이브러리 packages/* 만 검사"
 	@echo "  make docs-check-servers    examples 서버 4종만 검사 (node/go/php/rust)"
@@ -51,7 +51,7 @@ docs: docs-clean docs-api docs-schema docs-site ## 전체 문서 생성 (clean-t
 docs-api: ## 멀티언어 API doc
 	npm run docs:api
 
-docs-schema: ## 스펙 JSON Schema 생성
+docs-schema: ## 스펙 JSON Schema 검사
 	npm run spec:schema
 
 docs-site: ## VitePress 정적 빌드
@@ -82,10 +82,9 @@ docs-check-servers: ## examples 서버 4종 doc-coverage (node/go/php/rust)
 docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api
 	rm -rf docs/.vitepress/dist docs/.vitepress/cache
-	rm -f schema/crudui.schema.json
 	rm -rf packages/validator-rust/target/doc
 	rm -rf tools/bin/.phpdoc-cache
-	@echo "[make] docs-clean: removed generated docs/api, dist, schema json, rustdoc, phpdoc cache"
+	@echo "[make] docs-clean: removed generated docs/api, dist, rustdoc, phpdoc cache"
 
 # Idempotency proof: generate twice, diff the full docs/api tree + schema json.
 # (rustdoc HTML lives in the gitignored target/doc, outside docs/api, so it is

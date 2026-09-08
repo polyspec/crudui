@@ -2,6 +2,7 @@
 
 import {
   elementId,
+  controlId,
   getValueByPath,
   joinClass,
   positionSegment,
@@ -22,6 +23,8 @@ export type UnsupportedMode = 'throw' | 'marker';
 
 /** Per-build state threaded through the recursive tree builder. */
 export interface BuildState {
+  /** Stable DOM identifier prefix. */
+  idPrefix?: string;
   /** The root form data (the expr engine's formData). */
   data: Record<string, unknown>;
   /** Optional name/id prefix. */
@@ -93,6 +96,8 @@ export interface FieldViewModel {
   checkbox?: boolean;
   /** checkbox bracket name + caption (checkbox/switcher only). */
   checkboxName?: string;
+  /** DOM identifier for a standalone checkbox. */
+  checkboxId?: string;
   /** checkbox main class (valid-target + design.main). */
   checkboxClass?: string;
   /** Checked state from the bound data. */
@@ -215,6 +220,7 @@ function buildWidget(
     value,
     path,
     keyPrefix: state.keyPrefix,
+    idPrefix: state.idPrefix,
     design,
     t: state.t,
     rowSegments: state.rowSegments,
@@ -288,6 +294,7 @@ function buildLeaf(
       omitLabel: false,
       description: description || undefined,
       checkbox: true,
+      checkboxId: controlId(state.idPrefix ?? 'crudui', path),
       checkboxName: toBracketNotationWithPrefix(path, state.keyPrefix),
       checkboxClass: joinClass('valid-target', design.main.class),
       checkboxChecked: value === true || value === 1 || value === '1' ||

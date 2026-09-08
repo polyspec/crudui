@@ -10,7 +10,7 @@ export const docSections = [
   {
     title: '역할 슬롯 (role slots)',
     body:
-      'current 필드는 관심사를 슬롯으로 분리한다. ' +
+      'CRUDUI 필드는 관심사를 슬롯으로 분리한다. ' +
       'validate(검증 규칙), design(show/class/style 표현식 → 마크업), ' +
       'behavior(opaque passthrough), options(buildForm 옵션). ' +
       '한 필드가 여러 슬롯을 동시에 가질 수 있다.',
@@ -50,7 +50,7 @@ export const docSections = [
     title: '독립 검증 (왜 콘솔과 AI 게이트가 교차하는가)',
     body:
       '콘솔은 임의 입력을 HTTP 게이트웨이로 흘려 validate/renderForm(SSR) 를 호출한다. ' +
-      'AI 게이트(compare-all.js + 3 conformance)는 같은 current 함수를 vitest/go test/cargo test/php 워커로 호출한다. ' +
+      'AI 게이트(compare-all.js + 3 conformance)는 같은 CRUDUI 함수를 vitest/go test/cargo test/php 워커로 호출한다. ' +
       '엔진은 같고 wrapper 가 다르다 — 한 경로의 버그가 다른 경로를 오염시키지 않는다. ' +
       '같은 입력이면 같은 결과여야 하며, 안 나오면 wrapper 버그가 드러난다. ' +
       'raw 토글로 자동 판정을 불신·재검할 수 있고, 픽스처 export 로 라이브에서 깬 케이스를 영구 회귀 테스트로 편입한다.',

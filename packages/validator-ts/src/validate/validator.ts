@@ -1,5 +1,5 @@
 /**
- * CRUDUI form validator (reference) — schema §2 G5→§3→§2 G1.
+ * CRUDUI form validator (reference) — SPEC §2 G5→§3→§2 G1.
  *
  * The third pass of the CRUDUI pipeline. It consumes a CRUDUI field model (the
  * `validate`/`design`/`behavior`/`options` role slots) AFTER the compose pass
@@ -14,7 +14,7 @@
  * `display_switch`/`display_target` visibility gates (G1 forbids those meta
  * keys; visibility-driven requiredness is expressed as `required: '<expr>'`).
  *
- * Pipeline (schema):
+ * Pipeline (SPEC):
  *   1. compose — `composeSpec`/`composeProperties` (compose/) is run by the
  *      caller (`validate`) BEFORE this engine. An unresolved `$ref` throws a
  *      `ComposeLoadError` there (never `valid:true`).
@@ -75,13 +75,13 @@ export const LITERAL_PARAM_RULES = ['accept'];
 
 /**
  * `match`/`pattern` carry a regex string preserved verbatim (it is not a
- * condition expression). schema §10: a regex exists only as a `match` argument.
+ * condition expression). SPEC §10: a regex exists only as a `match` argument.
  */
 export const REGEX_PARAM_RULES = ['match', 'pattern'];
 
 /**
  * Membership rules whose param is the allowed-value SET (an array, comma string,
- * or a static value→label map, schema §2 G3). The param is data, NOT a
+ * or a static value→label map, SPEC §2 G3). The param is data, NOT a
  * condition map — an object param here is the value→label map (key = option
  * value, value = display label), so it must be kept verbatim and never evaluated
  * key-by-key as expressions. The rule's own flatten reads keys for a value→label
@@ -149,7 +149,7 @@ export class Validator {
   }
 
   // =========================================================================
-  // Field traversal (schema §3; legacy Validator.validateProperties skeleton).
+  // Field traversal (SPEC §3; legacy Validator.validateProperties skeleton).
   // =========================================================================
 
   private validateProperties(
@@ -261,7 +261,7 @@ export class Validator {
   }
 
   // =========================================================================
-  // validate-slot evaluation (schema §3 slots.validate).
+  // validate-slot evaluation (SPEC §3 slots.validate).
   // =========================================================================
 
   /** Array-level + element rules for a non-group `multiple` field. */
@@ -471,7 +471,7 @@ export class Validator {
    *
    * The value is `Evaluated<V>` = literal | Expression(string) | ConditionMap.
    *   - Path-reference / literal-param / regex rules keep their string param
-   *     verbatim (schema §10) — never evaluated as a condition.
+   *     verbatim (SPEC §10) — never evaluated as a condition.
    *   - A ConditionMap (plain object whose keys are expressions) is evaluated in
    *     declaration order; the first truthy key's value is the param; otherwise
    *     the `true` key; otherwise null (disabled).

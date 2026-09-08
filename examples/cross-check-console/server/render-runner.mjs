@@ -17,9 +17,9 @@ export async function renderAll(req) {
   const options = { ...(req.options ?? {}), data: req.data ?? {} };
 
   const [react, svelte, vue] = await Promise.all([
-    renderOne(engine, 'react', () => engine.renderReact(engine.compileForm(spec, options), options)),
-    renderOne(engine, 'svelte', () => engine.renderSvelte(engine.compileForm(spec, options), options)),
-    renderOne(engine, 'vue', () => engine.renderVue(engine.compileForm(spec, options), options)),
+    renderOne(engine, 'react', () => engine.renderReact(engine.createForm(engine.compileForm(spec, options), options.data, options))),
+    renderOne(engine, 'svelte', () => engine.renderSvelte(engine.createForm(engine.compileForm(spec, options), options.data, options))),
+    renderOne(engine, 'vue', () => engine.renderVue(engine.createForm(engine.compileForm(spec, options), options.data, options))),
   ]);
 
   const results = [react, svelte, vue];
@@ -54,24 +54,15 @@ function stripReactFloats(html) {
 export async function renderAllList(listSpec, rows = [], options = {}) {
   const engine = await getEngine();
   const safeRows = Array.isArray(rows) ? rows : [];
-  const { layout, ...rest } = options ?? {};
-
-  // Per-framework option shapes (the conformance gate's exact mapping).
-  const reactOpts = layout ? { ...rest, layout } : rest;
-  const svelteOpts = layout ? { ...rest, mode: layout } : rest;
-  const vueOpts = layout
-    ? { ...rest, layout: layout === 'card' ? 'cards' : layout }
-    : rest;
-
   const [react, svelte, vue] = await Promise.all([
     renderOne(engine, 'react', () =>
-      stripReactFloats(engine.renderListReact(listSpec, safeRows, reactOpts))
+      stripReactFloats(engine.renderListReact(listSpec, safeRows, options))
     ),
     renderOne(engine, 'svelte', () =>
-      engine.renderListSvelte(listSpec, safeRows, svelteOpts)
+      engine.renderListSvelte(listSpec, safeRows, options)
     ),
     renderOne(engine, 'vue', () =>
-      engine.renderListVue(listSpec, safeRows, vueOpts)
+      engine.renderListVue(listSpec, safeRows, options)
     ),
   ]);
 

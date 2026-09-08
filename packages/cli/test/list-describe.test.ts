@@ -1,5 +1,5 @@
 /**
- * drift-0 proof for `crudui describe`'s LIST capability (schema §9).
+ * drift-0 proof for `crudui describe`'s LIST capability (SPEC §9).
  *
  * The list section is produced like the rest of describe — a pure projection of
  * the code single-source-of-truth + the parsed meta-schema, never a hand-copied
