@@ -153,20 +153,14 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
     });
   }
 
-  // Gate 3 — leaf-type catalog (CLI orchestrator layer; live registry, drift 0).
-  // Compose first (SPEC §5, G5) so a `$ref`-inherited `type` is visited; an
-  // empty MemoryLoader resolves self-contained specs unchanged. If composition
-  // cannot resolve (unresolved `$ref` with no file set — a LOAD concern that
-  // `validate` owns), fall back to the raw spec so inline leaf types are still
-  // catalog-checked rather than silently skipped.
+  // Compose before checking widget types. An unresolved reference fails the check.
   if (isFieldNode(spec)) {
-    let tree: Record<string, unknown> = spec;
     try {
-      tree = composeSpec(spec, new MemoryLoader({}));
-    } catch {
-      tree = spec;
+      const tree = composeSpec(spec, new MemoryLoader({}));
+      errors.push(...catalogErrors(tree, ''));
+    } catch (error) {
+      errors.push({ path: '/', reason: `composition failed: ${(error as Error).message}` });
     }
-    errors.push(...catalogErrors(tree, ''));
   }
 
   return { ok: errors.length === 0, errors };
