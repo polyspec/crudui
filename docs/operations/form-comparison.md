@@ -199,3 +199,12 @@ container exec crudui-form-comparison node /workspace/keyed/examples/form-compar
 The complete matrix includes PHP, PHP extension, Go and Rust with React, Vue
 and Svelte and both transports. Existing reports from three servers do not
 verify PHP extension execution.
+
+To check an isolated container, pass its HTTP origin as the second argument:
+
+```sh
+node examples/form-comparison/check.mjs php-ext http://127.0.0.1:4318
+```
+
+The origin must identify the intended comparison environment. Reports record its
+source metadata. Omitting this argument uses `http://127.0.0.1:4317`.

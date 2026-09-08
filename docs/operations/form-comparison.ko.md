@@ -184,3 +184,12 @@ container exec crudui-form-comparison node /workspace/keyed/examples/form-compar
 
 전체 조합은 PHP·PHP 확장·Go·Rust와 React·Vue·Svelte 및 두 전송 형식을
 포함합니다. 기존 서버 세 가지의 보고서는 PHP 확장 실행의 검증 근거가 아닙니다.
+
+독립된 컨테이너를 검사하려면 HTTP origin을 두 번째 인수로 지정합니다.
+
+```sh
+node examples/form-comparison/check.mjs php-ext http://127.0.0.1:4318
+```
+
+origin은 검사할 비교 환경의 주소여야 합니다. 보고서는 해당 환경의 소스
+메타데이터를 기록합니다. 인수를 생략하면 `http://127.0.0.1:4317`을 사용합니다.
