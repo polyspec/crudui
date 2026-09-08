@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Svelte generated output
+
+Git excludes Svelte's temporary `.svelte-kit` output. The 117 generated files are
+removed from tracking. Building without the preceding directory passed, as did
+packaged exports, consumer type checking, the production build and browser checks
+for React, Vue and Svelte.
+
 ## 2026-09-09 — Public API documentation generation
 
 API generation fails when a required tool fails or its output is missing.
