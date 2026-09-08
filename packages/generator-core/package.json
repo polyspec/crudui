@@ -18,8 +18,8 @@
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts --format cjs,esm --clean && tsc --project tsconfig.build.json",
+    "dev": "tsup src/index.ts --format cjs,esm --watch --onSuccess \"tsc --project tsconfig.build.json\"",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
