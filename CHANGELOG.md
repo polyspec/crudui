@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Test fixture contract
+
+The English and Korean fixture contract distinguishes current validation,
+composition, expressions, rendering and legacy cases. It documents complete
+validation results separately from load failures and removes outdated counts
+from the format specification. The current and legacy TypeScript conformance
+checks passed 1,124 cases. Documentation checks and the strict site build passed.
+
 ## 2026-09-09 — CLI composition failures and documentation
 
 `check` reports unresolved composition instead of checking uncomposed input as a
