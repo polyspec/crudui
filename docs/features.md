@@ -45,7 +45,7 @@ The externally preserved environment at `localhost:4317` uses the library
 with PHP, PHP extension, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
 
-| Current implementation | Scenarios | Interactions | Page errors |
+| Server | Scenarios | Interactions | Page errors |
 | --- | --- | --- | --- |
 | PHP | 120/120 passed | 30/30 passed | 0 |
 | PHP extension | 120/120 passed | 30/30 passed | 0 |
@@ -75,10 +75,11 @@ example classes. Browser rendering and input checks passed for demo, Playground 
 form pages. Bootstrap product checks also verified nested data.
 
 Library deployment means package publication; no package is published.
-The current comparison implementation
-has completed the full browser matrix. Retained implementation failures remain
+The table records the latest completed checks per server. The browser
+checks for PHP extension, Go and Rust are running. Retained implementation failures remain
 in the reports. Release verification and repository cleanup remain in progress.
 
-Full documentation generation and the static site build passed. Two consecutive
-API documentation and schema runs produced identical output. The console tests
+TypeScript API reference generation and the strict static site build passed.
+The PHP reference page records missing phpDocumentor; PHP HTML generation is
+incomplete. Earlier API documentation and schema runs produced identical output. The console tests
 passed 81 cases and the raw form inspector passed 18 cases.
