@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Shared SSR comparison instance
+
+The cross-check console creates one form instance for the three renderers.
+Generated row keys are identical across framework outputs when repeat data is
+missing. Console checks passed: 81 tests, including the generated-key comparison.
+
 ## 2026-09-09 — Comparison server entries
 
 Current PHP, Go and Rust servers use unversioned validator entries. Retained

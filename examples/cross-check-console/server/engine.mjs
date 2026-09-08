@@ -1,39 +1,7 @@
 /**
- * Shared CRUDUI RENDER engine loader (in-process). RENDER ONLY.
- *
- * Validation is NOT in-process anymore — all four languages (JS included) run as
- * stdin-JSON CLI subprocesses (validate-runner.mjs), so the gateway imports NO
- * validator and has zero privileged path. This engine loads ONLY the three CRUDUI
- * render adapters + the shared HTML normalizer.
- *
- * Why render stays in-process while validate does not: the Svelte CRUDUI adapter
- * imports `.svelte` files, which only the Vite svelte plugin compiles — there is
- * no standalone CLI that can serialize a compiled Svelte component without a
- * bundler. So the gateway boots ONE long-lived Vite dev server in SSR-middleware
- * mode and `ssrLoadModule`s the exact same CRUDUI render entries the AI conformance
- * gate imports. Crucially, all THREE frameworks load the same way (import) — the
- * render side is symmetric too, so no framework is favored:
- *
- *   - generator-react  src/index.ts → renderForm     (sync)
- *   - generator-svelte src/index.ts → renderForm     (sync)
- *   - generator-vue    src/ssr.ts   → renderFormSSR  (async)
- *   - tests/fixtures/form-render/normalize.mjs → normalizeHtml (shared parity key)
- *
- * The LIST sister loads alongside (additive; the form entries above are untouched,
- * SPEC §9). The same THREE module graphs already SSR-load expose a list entry, so
- * loading them costs no extra ssrLoadModule:
- *
- *   - generator-react  src/index.ts   → renderList    (sync)
- *   - generator-svelte src/index.ts   → renderList    (sync)
- *   - generator-vue    src/listSsr.ts → renderListSSR (async)
- *
- * Reusing ssrLoadModule means the bytes the console renders are byte-identical to
- * the bytes the conformance tests assert (same module graph, same functions).
- *
- * Vite resolution: the svelte CRUDUI adapter needs @sveltejs/vite-plugin-svelte +
- * Vite 6/8, which live in packages/generator-svelte/node_modules (the root has an
- * older Vite 5). We load that Vite + plugin by absolute path so the svelte plugin
- * version matches its peer Vite.
+ * Load the React, Vue and Svelte render entries in one Vite SSR environment.
+ * The Svelte workspace supplies Vite and its matching compiler plugin.
+ * Validation runs separately through the four language CLI processes.
  */
 
 import path from 'node:path';

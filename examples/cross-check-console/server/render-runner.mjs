@@ -14,12 +14,13 @@ import { getEngine } from './engine.mjs';
 export async function renderAll(req) {
   const engine = await getEngine();
   const spec = req.spec;
-  const options = { ...(req.options ?? {}), data: req.data ?? {} };
+  const options = req.options ?? {};
+  const form = Promise.resolve().then(() => engine.createForm(engine.compileForm(spec, options), req.data ?? {}, options));
 
   const [react, svelte, vue] = await Promise.all([
-    renderOne(engine, 'react', () => engine.renderReact(engine.createForm(engine.compileForm(spec, options), options.data, options))),
-    renderOne(engine, 'svelte', () => engine.renderSvelte(engine.createForm(engine.compileForm(spec, options), options.data, options))),
-    renderOne(engine, 'vue', () => engine.renderVue(engine.createForm(engine.compileForm(spec, options), options.data, options))),
+    renderOne(engine, 'react', async () => engine.renderReact(await form)),
+    renderOne(engine, 'svelte', async () => engine.renderSvelte(await form)),
+    renderOne(engine, 'vue', async () => engine.renderVue(await form)),
   ]);
 
   const results = [react, svelte, vue];
@@ -38,13 +39,7 @@ function stripReactFloats(html) {
 }
 
 /**
- * Render one LIST request across React / Svelte / Vue in parallel — the read
- * sister of `renderAll` (SPEC §9). The list entries carry an ASYMMETRIC layout
- * option (React `layout:'card'`, Vue `layout:'cards'`, Svelte `mode:'card'`); the
- * call sites below map the single fixture-shaped `options.layout` to each
- * framework's own key, exactly as the three list-render conformance tests do,
- * so the three normalized outputs collapse to one parity key. `rows` are INJECTED
- * (DB-agnostic); search/sort/pagination are declared only.
+ * Render supplied list rows in all three frameworks with the same layout options.
  *
  * @param {object} listSpec the list-spec (columns map; $ref/$patch composable)
  * @param {Array<object>} rows injected display rows
