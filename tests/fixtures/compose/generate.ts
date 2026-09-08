@@ -308,7 +308,7 @@ const SPECS: CaseSpec[] = [
   // 14. unresolved file — must be a load error, NOT valid:true.
   {
     name: 'err-ref-file-missing',
-    note: 'missing $ref file is a load error (not valid:true; legacy ProductNft:873 bug)',
+    note: 'A missing $ref file produces a load error.',
     input: {
       files: {},
       entry: { $ref: 'nonexistent.yml' },

@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Current API and fixture descriptions
+
+Console documentation uses the current rendering API name. Composition and
+rendering fixture descriptions state their behavior without implementation-version
+labels. All 23 targeted composition tests passed; fixture inputs and expected
+results are unchanged.
+
 ## 2026-09-09 — Independent historical comparison workspace
 
 Historical comparison applications, pinned sources, build inputs and reports are
