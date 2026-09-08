@@ -5,7 +5,7 @@
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| legacy-examples | 레거시 예제 경로와 패키지 빌드 | in-progress | pending | not-deployed | [Examples](spec/examples.ko.md) |
+| legacy-examples | 레거시 예제 경로와 패키지 빌드 | implemented | passed | not-deployed | [Examples](spec/examples.ko.md) |
 | form-controls | 라벨, 복수 선택 배열과 필드 컨테이너 경로 | implemented | passed | not-deployed | [공유 입력 검사](../tests/fixtures/form-session/controls.mjs) |
 | package-consumer | 패키지 export, 타입 선언과 소비자 프로덕션 빌드 | implemented | passed | not-deployed | [소비자 검사](../scripts/check-packages.mjs) |
 | package-install | 플랫폼 의존성 해석과 정상 설치 스크립트 | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.ko.md) |
@@ -76,7 +76,8 @@ CSS, 입력 상태와 행 연산을 포함합니다. 근거는
 Rust 컴파일, PHP API 테스트와 Node HTTP 테스트가 통과했습니다. 프론트엔드
 예제 세 가지와 Node·PHP·Go·Rust의 Linux 이미지가 빌드됐습니다. 서버 이미지
 네 가지의 HTTP 유효·무효 사례가 통과했습니다. PHP PSR-4 자동 로딩 생성은
-애플리케이션 클래스 제외 없이 통과했습니다. 프론트엔드 브라우저 검증은 남아 있습니다.
+애플리케이션 클래스 제외 없이 통과했습니다. 데모·Playground와 Bootstrap의 폼 페이지에서 브라우저 렌더링·입력 검사가
+통과했습니다. Bootstrap 상품 페이지는 중첩 데이터도 확인했습니다.
 
 라이브러리 배포는 패키지 게시를 의미하며 게시된 패키지는 없습니다.
 비교 애플리케이션은 로컬에서 사용할 수 있으며 현재 구현의 전체 브라우저 조합

@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Bundled example specifications and nested data
+
+The Bootstrap example includes product and repeated-form specifications in its
+static build. Controlled pages apply complete form data instead of assigning
+dotted paths as top-level keys. The application build and browser checks for
+contact, registration, product and repeated forms passed, including nested
+product data and rejection of an unintended dotted key.
+
 ## 2026-09-09 — Controlled legacy React updates
 
 Legacy form change notifications execute outside React state updater functions.

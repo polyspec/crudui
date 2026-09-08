@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { FormBuilder } from '@crudui/generator-react/legacy';
+import { useState } from 'react';
+import { FormBuilder, type FormData } from '@crudui/generator-react/legacy';
+import spec from '../../../shared-specs/multiple-test.yml?raw';
 
 interface MultiplePageProps {
   language: 'ko' | 'en';
 }
 
 export function MultiplePage({ language }: MultiplePageProps) {
-  const [spec, setSpec] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     contacts: [
       { name: '', email: '', phone: '' }
@@ -18,12 +18,6 @@ export function MultiplePage({ language }: MultiplePageProps) {
   const [submittedData, setSubmittedData] = useState<Record<string, unknown> | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    fetch('/specs/multiple-test.yml')
-      .then(res => res.text())
-      .then(setSpec)
-      .catch(err => console.error('Failed to load spec:', err));
-  }, []);
 
   const handleSubmit = (data: Record<string, unknown>, errors: Record<string, string>) => {
     setValidationErrors(errors);
@@ -37,23 +31,10 @@ export function MultiplePage({ language }: MultiplePageProps) {
     }
   };
 
-  const handleChange = (_name: string, _value: unknown, fullData: Record<string, unknown>) => {
-    // Use the full data from FormBuilder instead of managing state separately
-    setFormData(fullData as typeof formData);
+  const handleChange = (_name: string, _value: unknown, fullData: FormData) => {
+    setFormData(fullData);
   };
 
-  if (!spec) {
-    return (
-      <div className="row">
-        <div className="col-12 text-center py-5">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2">{language === 'ko' ? '스펙 로딩 중...' : 'Loading spec...'}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="row">

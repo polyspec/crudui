@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormBuilder } from '@crudui/generator-react/legacy';
+import { FormBuilder, type FormData } from '@crudui/generator-react/legacy';
 import contactSpec from '../specs/contact.yaml?raw';
 
 interface ContactPageProps {
@@ -7,7 +7,7 @@ interface ContactPageProps {
 }
 
 export function ContactPage({ language }: ContactPageProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     phone: '',
@@ -30,12 +30,8 @@ export function ContactPage({ language }: ContactPageProps) {
     }
   };
 
-  const handleChange = (name: string, value: unknown) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-    console.log(`Field changed: ${name} =`, value);
+  const handleChange = (_name: string, _value: unknown, fullData: FormData) => {
+    setFormData(fullData);
   };
 
   return (

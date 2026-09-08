@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormBuilder } from '@crudui/generator-react/legacy';
+import { FormBuilder, type FormData } from '@crudui/generator-react/legacy';
 import registrationSpec from '../specs/registration.yaml?raw';
 
 interface RegistrationPageProps {
@@ -7,7 +7,7 @@ interface RegistrationPageProps {
 }
 
 export function RegistrationPage({ language }: RegistrationPageProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     username: '',
     email: '',
     password: '',
@@ -35,11 +35,8 @@ export function RegistrationPage({ language }: RegistrationPageProps) {
     }
   };
 
-  const handleChange = (name: string, value: unknown) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (_name: string, _value: unknown, fullData: FormData) => {
+    setFormData(fullData);
   };
 
   return (

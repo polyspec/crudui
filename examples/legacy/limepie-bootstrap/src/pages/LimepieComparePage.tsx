@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FormBuilder } from '@crudui/generator-react/legacy';
+import { FormBuilder, type FormData } from '@crudui/generator-react/legacy';
 import contactSpec from '../specs/contact.yaml?raw';
 
 interface LimepieComparePageProps {
@@ -7,7 +7,7 @@ interface LimepieComparePageProps {
 }
 
 export function LimepieComparePage({ language }: LimepieComparePageProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     phone: '',
@@ -25,11 +25,8 @@ export function LimepieComparePage({ language }: LimepieComparePageProps) {
     }
   };
 
-  const handleChange = (name: string, value: unknown) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (_name: string, _value: unknown, fullData: FormData) => {
+    setFormData(fullData);
   };
 
   // Load validate.js for the Limepie original form

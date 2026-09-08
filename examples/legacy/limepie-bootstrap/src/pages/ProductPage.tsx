@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { FormBuilder } from '@crudui/generator-react/legacy';
+import { useState } from 'react';
+import { FormBuilder, type FormData } from '@crudui/generator-react/legacy';
+import spec from '../../../shared-specs/product-form.yml?raw';
 
 interface ProductPageProps {
   language: 'ko' | 'en';
 }
 
 export function ProductPage({ language }: ProductPageProps) {
-  const [spec, setSpec] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     basic: {
       name: '',
       sku: '',
@@ -30,12 +30,6 @@ export function ProductPage({ language }: ProductPageProps) {
   const [submittedData, setSubmittedData] = useState<Record<string, unknown> | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    fetch('/specs/product-form.yml')
-      .then(res => res.text())
-      .then(setSpec)
-      .catch(err => console.error('Failed to load spec:', err));
-  }, []);
 
   const handleSubmit = (data: Record<string, unknown>, errors: Record<string, string>) => {
     setValidationErrors(errors);
@@ -49,25 +43,10 @@ export function ProductPage({ language }: ProductPageProps) {
     }
   };
 
-  const handleChange = (name: string, value: unknown) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (_name: string, _value: unknown, fullData: FormData) => {
+    setFormData(fullData);
   };
 
-  if (!spec) {
-    return (
-      <div className="row">
-        <div className="col-12 text-center py-5">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2">{language === 'ko' ? '스펙 로딩 중...' : 'Loading spec...'}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="row">
