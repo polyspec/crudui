@@ -63,7 +63,7 @@ const PRODUCTNFT_INPUT = {};
 const CASES = [
   {
     name: 'contact',
-    spec: 'examples/shared-specs/contact.yml',
+    spec: 'examples/legacy/shared-specs/contact.yml',
     input: CONTACT_INPUT,
   },
   {

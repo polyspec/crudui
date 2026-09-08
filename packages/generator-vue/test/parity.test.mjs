@@ -24,12 +24,12 @@ const REFERENCE_DIR = path.join(ROOT, 'tests/fixtures/reference-html');
 const OUT_DIR = path.join(HERE, 'out');
 
 const CASES = [
-  { name: 'contact', spec: 'examples/shared-specs/contact.yml' },
-  { name: 'multiple-test', spec: 'examples/shared-specs/multiple-test.yml' },
-  { name: 'order-form', spec: 'examples/shared-specs/order-form.yml' },
-  { name: 'product-form', spec: 'examples/shared-specs/product-form.yml' },
-  { name: 'registration', spec: 'examples/shared-specs/registration.yml' },
-  { name: 'user-registration', spec: 'examples/shared-specs/user-registration.yml' },
+  { name: 'contact', spec: 'examples/legacy/shared-specs/contact.yml' },
+  { name: 'multiple-test', spec: 'examples/legacy/shared-specs/multiple-test.yml' },
+  { name: 'order-form', spec: 'examples/legacy/shared-specs/order-form.yml' },
+  { name: 'product-form', spec: 'examples/legacy/shared-specs/product-form.yml' },
+  { name: 'registration', spec: 'examples/legacy/shared-specs/registration.yml' },
+  { name: 'user-registration', spec: 'examples/legacy/shared-specs/user-registration.yml' },
   { name: 'LargeForm', spec: 'tests/fixtures/specs/LargeForm.yml' },
 ];
 

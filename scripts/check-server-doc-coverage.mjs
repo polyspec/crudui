@@ -8,16 +8,16 @@
  * It fails (non-zero exit) if any server function / route handler lacks a
  * preceding doc comment. It is a pure check: idempotent by nature, no artifacts.
  *
- *   - node-api (examples/node-api/server.js): a light regex/line parser
+ *   - node-api (examples/legacy/node-api/server.js): a light regex/line parser
  *     requires a comment directly above every `function NAME(` declaration and
  *     every Express handler registration (app.get/post/put/delete/patch/use/
  *     all/options).
- *   - go-api (examples/go-api): `go test -run TestDocCoverage` (go/ast based)
+ *   - go-api (examples/legacy/go-api): `go test -run TestDocCoverage` (go/ast based)
  *     requires a doc comment on every func declaration.
- *   - php-api (examples/php-api/{api,validate,index}.php): the standalone
+ *   - php-api (examples/legacy/php-api/{api,validate,index}.php): the standalone
  *     php-server-doc-coverage.php tokenizer requires a docblock above every
  *     named function.
- *   - rust-api (examples/rust-api/src/main.rs): a line parser requires a `///`
+ *   - rust-api (examples/legacy/rust-api/src/main.rs): a line parser requires a `///`
  *     doc comment directly above every `fn` declaration. (`main.rs` is a bin
  *     crate, so #![deny(missing_docs)] only reaches pub items — it cannot cover
  *     these private fns, hence the dedicated lane.)
@@ -63,9 +63,9 @@ function lineAboveIsComment(lines, i) {
 
 /** node-api lane: every function decl + Express handler needs a comment above. */
 function checkNode() {
-  const file = join(ROOT, 'examples', 'node-api', 'server.js');
+  const file = join(ROOT, 'examples', 'legacy', 'node-api', 'server.js');
   if (!existsSync(file)) {
-    record('node', false, 'examples/node-api/server.js not found');
+    record('node', false, 'examples/legacy/node-api/server.js not found');
     return;
   }
   const lines = readFileSync(file, 'utf8').split('\n');
@@ -90,9 +90,9 @@ function checkNode() {
   }
 }
 
-/** go-api lane: delegate to the go/ast TestDocCoverage in examples/go-api. */
+/** go-api lane: delegate to the go/ast TestDocCoverage in examples/legacy/go-api. */
 function checkGo() {
-  const goDir = join(ROOT, 'examples', 'go-api');
+  const goDir = join(ROOT, 'examples', 'legacy', 'go-api');
   if (!commandExists('go')) {
     record('go', true, 'SKIP: go not installed');
     return;
@@ -122,9 +122,9 @@ function checkPHP() {
 
 /** rust-api lane: every `fn` in src/main.rs needs a `///` doc comment above. */
 function checkRust() {
-  const file = join(ROOT, 'examples', 'rust-api', 'src', 'main.rs');
+  const file = join(ROOT, 'examples', 'legacy', 'rust-api', 'src', 'main.rs');
   if (!existsSync(file)) {
-    record('rust', false, 'examples/rust-api/src/main.rs not found');
+    record('rust', false, 'examples/legacy/rust-api/src/main.rs not found');
     return;
   }
   const lines = readFileSync(file, 'utf8').split('\n');

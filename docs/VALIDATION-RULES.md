@@ -152,7 +152,7 @@ required, unique, mincount, maxcount
 ## 검증 의미론 원칙 (Validation Semantics Principles)
 
 검증 의미론의 단일 진실은 **"논리적으로 올바른 동작"** 이다. legacy 런타임의
-동작이 아니다. legacy(`examples/legacy-original/assets/js/legacy-client.validate.js`)의
+동작이 아니다. legacy(`examples/legacy/legacy-original/assets/js/legacy-client.validate.js`)의
 결함은 보완하고, 모든 구현(validator-ts/php/go/rust + legacy 클라)에 일관 적용한다.
 새 검증기 4언어는 이 원칙대로 구현돼 1074 케이스 교차언어 멱등이며, legacy 클라는
 새 검증기에 맞춰 보완했다. legacy의 과거 동작을 근거로 원칙을 약화하지 마라.

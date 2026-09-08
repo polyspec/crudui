@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Legacy example layout and builds
+
+Legacy examples use `examples/legacy`. Imports, package references, build contexts,
+tests and documentation use the relocated paths. Container builds install and
+build the complete workspace through package commands. PHP integration classes
+use individual PSR-4 files. The Node example lock file reflects current manifests.
+
+Local frontend builds, Go tests, Rust compilation, five PHP API checks and Node
+HTTP valid/invalid cases passed. Composer strict PSR-4 generation and documentation
+checks passed. Linux images for the frontend examples, Node, Go and Rust built.
+Frontend browser verification and the PHP image recheck remain pending.
+
 ## 2026-09-09 — Repeated-field schema
 
 The declaration schema accepts `multiple.min` and describes collection-key row

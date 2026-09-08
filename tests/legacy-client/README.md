@@ -1,7 +1,7 @@
 # Legacy-client validation gate
 
 Compares the **legacy jQuery browser runtime**
-`examples/legacy-original/assets/js/legacy-client.validate.js` against the **new
+`examples/legacy/legacy-original/assets/js/legacy-client.validate.js` against the **new
 validators** (`packages/validator-ts`; PHP/Go/Rust already agree with it per
 `tests/runner/compare-all.js`).
 
