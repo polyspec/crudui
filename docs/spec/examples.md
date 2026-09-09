@@ -27,3 +27,8 @@ build. The resulting static build includes its form specifications.
 
 Controlled example parents apply the complete data object returned by the form
 change callback, preserving nested objects and repeated collections.
+
+The external comparison environment uses Compose for its image, resources,
+mounts and startup health check. `containerctl up` reuses unchanged containers
+and serves local HTTPS. Repeated application of the same configuration must
+preserve storage, routes and HTTP responses.
