@@ -22,6 +22,7 @@
  * No legacy meta key is read; no markup string is built; eval is never called.
  */
 
+import { formatDateValue } from './date';
 import {
   applyDefaultString,
   cleanStr,
@@ -297,37 +298,6 @@ function sizeAttrs(ctx: WidgetCtx): Attrs {
   };
 }
 
-function formatDateValue(value: string): string {
-  if (!value) return '';
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  try {
-    const d = new Date(value);
-    if (!isNaN(d.getTime())) return d.toISOString().split('T')[0] ?? '';
-  } catch {
-    /* invalid */
-  }
-  return value;
-}
-
-function formatDatetimeValue(value: string): string {
-  if (!value) return '';
-  const m = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(:\d{2})?/.exec(value);
-  if (m) return m[1] + (m[2] ?? ':00');
-  try {
-    const d = new Date(value);
-    if (!isNaN(d.getTime())) {
-      const pad = (n: number) => String(n).padStart(2, '0');
-      return (
-        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
-        `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-      );
-    }
-  } catch {
-    /* invalid */
-  }
-  return value;
-}
-
 function nl2br(s: string): string {
   return s.replace(/(\r\n|\n\r|\r|\n)/g, '<br />$1');
 }
@@ -336,7 +306,16 @@ function nl2br(s: string): string {
 // per-widget evaluators (kind → WidgetModel)
 // ---------------------------------------------------------------------------
 
-type Evaluator = (ctx: WidgetCtx) => WidgetModel;
+interface EvaluatorContext extends WidgetCtx {
+  controlId: string;
+}
+
+type Evaluator = (ctx: EvaluatorContext) => WidgetModel;
+
+function scriptString(value: string): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+}
 
 function textLike(inputType: string): Evaluator {
   return (ctx) => {
@@ -465,8 +444,8 @@ const hidden: Evaluator = (ctx) => ({
 const choice: Evaluator = (ctx) => {
   const name = bracketName(ctx);
   const items = ctx.spec.items;
-  const dataName = leafName(ctx.path);
-  const dataRuleName = ruleNameForPath(ctx.path);
+  const dataName = leafName(ctx.path, ctx.rowSegments);
+  const dataRuleName = ruleNameForPath(ctx.path, ctx.rowSegments);
   const onchange = behaviorScript(ctx, 'onchange');
   const onclick = behaviorScript(ctx, 'onclick');
   const onAttrs: Attrs = {
@@ -536,8 +515,8 @@ const multichoice: Evaluator = (ctx) => {
   const bracketBase = bracketName(ctx);
   const name = `${bracketBase}[]`;
   const items = ctx.spec.items;
-  const dataName = leafName(ctx.path);
-  const dataRuleName = ruleNameForPath(ctx.path);
+  const dataName = leafName(ctx.path, ctx.rowSegments);
+  const dataRuleName = ruleNameForPath(ctx.path, ctx.rowSegments);
   const onchange = behaviorScript(ctx, 'onchange');
   const labelClass = joinClass('btn btn-switch btn-mswitch', ctx.design.main.class);
 
@@ -608,7 +587,7 @@ const date: Evaluator = (ctx) => {
     attrs: {
       type: 'date',
       name: bracketName(ctx),
-      value: formatDateValue(rawValue),
+      value: formatDateValue(rawValue, 'YYYY-MM-DD'),
       class: mainClass(ctx, 'valid-target form-control'),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
       ...behaviorAttrs(ctx),
@@ -628,7 +607,7 @@ const datetime: Evaluator = (ctx) => {
     attrs: {
       type: 'datetime-local',
       name: bracketName(ctx),
-      value: formatDatetimeValue(rawValue),
+      value: formatDateValue(rawValue, 'YYYY-MM-DDTHH:mm:ss'),
       class: mainClass(ctx, 'valid-target form-control'),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
       ...behaviorAttrs(ctx),
@@ -638,10 +617,7 @@ const datetime: Evaluator = (ctx) => {
 };
 
 const dummy: Evaluator = (ctx) => {
-  let v: unknown = ctx.value;
-  if ((v === null || v === undefined) && phpTruthy(phpString(ctx.spec.default))) {
-    v = ctx.spec.default;
-  }
+  let v: unknown = ctx.value === undefined ? ctx.spec.default : ctx.value;
   const items = ctx.spec.items;
   if (
     items &&
@@ -715,8 +691,8 @@ const image: Evaluator = (ctx) => {
         class: fileClass,
         ...sizeAttrs(ctx),
         name,
-        'data-name': leafName(ctx.path),
-        'data-rule-name': ruleNameForPath(ctx.path),
+        'data-name': leafName(ctx.path, ctx.rowSegments),
+        'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
         ...behaviorAttrs(ctx),
         value: '',
         accept,
@@ -746,8 +722,8 @@ const file: Evaluator = (ctx) => {
         class: fileClass,
         ...sizeAttrs(ctx),
         name,
-        'data-name': leafName(ctx.path),
-        'data-rule-name': ruleNameForPath(ctx.path),
+        'data-name': leafName(ctx.path, ctx.rowSegments),
+        'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
         ...behaviorAttrs(ctx),
         value: '',
         accept,
@@ -774,8 +750,8 @@ const cover: Evaluator = (ctx) => {
         class: fileClass,
         ...sizeAttrs(ctx),
         name: `${name}[name]`,
-        'data-name': leafName(ctx.path),
-        'data-rule-name': ruleNameForPath(ctx.path),
+        'data-name': leafName(ctx.path, ctx.rowSegments),
+        'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
         ...behaviorAttrs(ctx),
         accept,
       },
@@ -809,7 +785,7 @@ const imageViewer: Evaluator = (ctx) => {
 
 const search: Evaluator = (ctx) => {
   const name = bracketName(ctx);
-  const id = elementId('', ctx.path);
+  const id = ctx.controlId;
   const items = ctx.spec.items;
   const keywordMinLength = optWith(ctx, 'keyword_min_length', '2');
   const delay = optWith(ctx, 'delay', '250');
@@ -854,19 +830,20 @@ const search: Evaluator = (ctx) => {
     'data-delay': delay,
     'data-api-server': apiServer,
     ...(sourceAttrs ?? {}),
-    'data-name': leafName(ctx.path),
-    'data-rule-name': ruleNameForPath(ctx.path),
+    'data-name': leafName(ctx.path, ctx.rowSegments),
+    'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
     id,
     ...(onchange ? { onchange } : {}),
     'data-default': phpString(ctx.spec.default),
   };
 
   const callback = optStr(ctx, 'callback');
-  const callbackJs = callback ? `$('#${id}').on('select2:select', ${callback});` : '';
+  const callbackJs = callback ? `$(document.getElementById(${scriptString(id)})).on('select2:select', ${callback});` : '';
+  const containerClass = `${id}_select2`;
   const styleChrome = hideSearching
-    ? `.${id}_select2 .loading-results { display: none; }`
+    ? `[class~=${scriptString(containerClass)}] .loading-results { display: none; }`
     : '';
-  const script = `$(function() {select2('${id}', '${keywordMinLength}', '${delay}', '');${callbackJs}});`;
+  const script = `$(function() {select2(CSS.escape(${scriptString(id)}), ${scriptString(keywordMinLength)}, ${scriptString(delay)}, ${scriptString(containerClass)});${callbackJs}});`;
 
   return {
     kind: 'search',
@@ -890,7 +867,7 @@ function editorTextarea(
   buildScript: (ctx: WidgetCtx, id: string) => string
 ): Evaluator {
   return (ctx) => {
-    const editorId = elementId(kind === 'tinymce' ? 'tinymce' : kind, ctx.path);
+    const editorId = ctx.controlId;
     const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
     const rows = optWith(ctx, 'rows', rowsDefault);
     return {
@@ -913,7 +890,7 @@ function editorTextarea(
 }
 
 const tinymce: Evaluator = (ctx) => {
-  const editorId = elementId('tinymce', ctx.path);
+  const editorId = ctx.controlId;
   const rows = optWith(ctx, 'rows', '3');
   const height = optWith(ctx, 'height', '300');
   const upload = optWith(ctx, 'fileserver', 'upload');
@@ -934,7 +911,7 @@ const tinymce: Evaluator = (ctx) => {
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     },
-    script: `$(function() {editor_tinymce('#${editorId}', ${height}, '${upload}', false);});`,
+    script: `$(function() {editor_tinymce('#'+CSS.escape(${scriptString(editorId)}), ${height}, ${scriptString(upload)}, false);});`,
   };
 };
 
@@ -943,7 +920,7 @@ const summernote = editorTextarea(
   'valid-target form-control summernote',
   '5',
   () => ({}),
-  (ctx, id) => `$(function() {editor_summernote('#${id}', '${optWith(ctx, 'upload', 'upload')}');});`
+  (ctx, id) => `$(function() {editor_summernote('#'+CSS.escape(${scriptString(id)}), ${scriptString(optWith(ctx, 'upload', 'upload'))});});`
 );
 
 const editorjs = editorTextarea(
@@ -951,7 +928,7 @@ const editorjs = editorTextarea(
   'valid-target form-control contentjs',
   '3',
   (ctx) => ({ 'data-fileserver': optWith(ctx, 'fileserver', '') }),
-  (ctx, id) => `$(function() {editor_editorjs('#${id}', '${optWith(ctx, 'fileserver', '')}');});`
+  (ctx, id) => `$(function() {editor_editorjs('#'+CSS.escape(${scriptString(id)}), ${scriptString(optWith(ctx, 'fileserver', ''))});});`
 );
 
 const tui = editorTextarea(
@@ -959,16 +936,16 @@ const tui = editorTextarea(
   'valid-target form-control tuiarea',
   '3',
   (ctx) => ({ 'data-fileserver': optWith(ctx, 'fileserver', '') }),
-  (ctx, id) => `$(function() {editor_tui('#${id}', '${optWith(ctx, 'fileserver', '')}');});`
+  (ctx, id) => `$(function() {editor_tui('#'+CSS.escape(${scriptString(id)}), ${scriptString(optWith(ctx, 'fileserver', ''))});});`
 );
 
 const button: Evaluator = (ctx) => {
   const name = bracketName(ctx);
-  const id = name.split('[').join('_').split(']').join('');
+  const id = ctx.controlId;
   const onclick = behaviorScript(ctx, 'onclick');
   const initScript = optStr(ctx, 'init_script') ?? '';
   const script =
-    `\n$(function() {\n    ${initScript}\n    $("#btn${id}").on('click', function() {\n        ${onclick}\n    });\n});\n`;
+    `\n$(function() {\n    ${initScript}\n    $(document.getElementById(${scriptString(id)})).on('click', function() {\n        ${onclick}\n    });\n});\n`;
   const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
   const textVal =
     ctx.spec.content !== undefined
@@ -985,7 +962,7 @@ const button: Evaluator = (ctx) => {
       type: 'button',
       class: mainClass(ctx, 'btn'),
       name: `btn${name}`,
-      id: `btn${id}`,
+      id,
       value: textVal,
     },
     extra: {
@@ -994,8 +971,8 @@ const button: Evaluator = (ctx) => {
         class: 'valid-target form-control',
         readonly: '',
         name,
-        'data-name': leafName(ctx.path),
-        'data-rule-name': ruleNameForPath(ctx.path),
+        'data-name': leafName(ctx.path, ctx.rowSegments),
+        'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
         value: displayValue,
         'data-default': phpString(ctx.spec.default),
       },
@@ -1004,7 +981,7 @@ const button: Evaluator = (ctx) => {
 };
 
 const tagify: Evaluator = (ctx) => {
-  const id = elementId('tagify', ctx.path);
+  const id = ctx.controlId;
   const maxTags = optWith(ctx, 'max_tags', '0');
   const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
   return {
@@ -1022,12 +999,12 @@ const tagify: Evaluator = (ctx) => {
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     },
-    script: `$(function() {editor_tagify('#${id}', ${maxTags});});`,
+    script: `$(function() {editor_tagify('#'+CSS.escape(${scriptString(id)}), ${maxTags});});`,
   };
 };
 
 const tagify2: Evaluator = (ctx) => {
-  const id = elementId('tagify', ctx.path);
+  const id = ctx.controlId;
   const maxTags = optWith(ctx, 'max_tags', '0');
   const server = optWith(ctx, 'server', '');
   const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
@@ -1047,7 +1024,7 @@ const tagify2: Evaluator = (ctx) => {
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     },
-    script: `$(function() {editor_tagify2('#${id}', ${maxTags}, '${server}');});`,
+    script: `$(function() {editor_tagify2('#'+CSS.escape(${scriptString(id)}), ${maxTags}, ${scriptString(server)});});`,
   };
 };
 
@@ -1117,7 +1094,8 @@ export const WIDGET_KINDS: readonly string[] = Object.keys(REGISTRY);
  */
 export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (() => {
   const node = { class: '', style: '' };
-  const probeCtx: WidgetCtx = {
+  const probeCtx: EvaluatorContext = {
+    controlId: 'crudui:probe',
     spec: { type: 'probe' },
     value: undefined,
     path: 'probe',
@@ -1147,7 +1125,8 @@ export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (
  */
 export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
   const node = { class: '', style: '' };
-  const probeCtx: WidgetCtx = {
+  const probeCtx: EvaluatorContext = {
+    controlId: 'crudui:probe',
     spec: { type: 'probe' },
     value: undefined,
     path: 'probe',
@@ -1172,8 +1151,8 @@ export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
 export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefined {
   const ev = REGISTRY[type.toLowerCase()];
   if (!ev) return undefined;
-  const widget = ev(ctx);
   const id = controlId(ctx.idPrefix ?? 'crudui', ctx.path);
+  const widget = ev({ ...ctx, controlId: id });
   if (widget.tag && ['input', 'select', 'textarea'].includes(widget.tag)) {
     widget.attrs.id = id;
   }

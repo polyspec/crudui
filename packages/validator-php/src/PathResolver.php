@@ -106,7 +106,7 @@ class PathResolver
                 $valueAtPath = $pathBeforeWildcard === '' ? $allData : $this->getValueByPath($pathBeforeWildcard, $allData);
 
                 // Check if the value is an object (not an array) - this is the "multiple: only" pattern
-                if (is_array($valueAtPath) && !array_is_list($valueAtPath)) {
+                if ($valueAtPath instanceof \stdClass || (is_array($valueAtPath) && !array_is_list($valueAtPath))) {
                     // Skip the wildcard for "only" pattern - the data is an object, not an array
                     continue;
                 }
@@ -324,6 +324,7 @@ class PathResolver
         $current = $data;
 
         foreach ($parts as $part) {
+            if ($current instanceof \stdClass) $current = (array) $current;
             if (is_array($current)) {
                 if (array_key_exists($part, $current)) {
                     $current = $current[$part];
@@ -355,6 +356,7 @@ class PathResolver
             $newResults = [];
 
             foreach ($results as $current) {
+                if ($current instanceof \stdClass) $current = (array) $current;
                 if (!is_array($current)) {
                     continue;
                 }

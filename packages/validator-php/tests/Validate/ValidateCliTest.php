@@ -44,8 +44,12 @@ final class ValidateCliTest extends TestCase
         /** @var list<array<string, mixed>> $cases */
         $cases = \json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
+        $objects = json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
         $out = [];
-        foreach ($cases as $case) {
+        foreach ($cases as $index => $case) {
+            foreach (['spec', 'data', 'files'] as $key) {
+                if (property_exists($objects[$index], $key)) $case[$key] = $objects[$index]->{$key};
+            }
             $out[$case['name']] = [$case];
         }
         return $out;

@@ -87,14 +87,14 @@ final class ForbiddenScan
      */
     private static function walk(mixed $node, array $path): void
     {
-        if (!\is_array($node)) {
+        if (!\is_array($node) && !$node instanceof \stdClass) {
             return;
         }
 
         // A JSON array (list) is a sequence of sub-specs: descend into each
         // element, indexing the path by position (matches JS array handling and
         // the err-inside-array-element fixture's `…items.1.display_target`).
-        if (\array_is_list($node)) {
+        if (\is_array($node) && \array_is_list($node)) {
             foreach ($node as $i => $element) {
                 self::walk($element, [...$path, (string) $i]);
             }

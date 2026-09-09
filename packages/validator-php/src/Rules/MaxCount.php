@@ -21,6 +21,7 @@ class MaxCount implements RuleInterface
 
         $maxCount = (int)$param;
 
+        if ($value instanceof \stdClass) $value = (array) $value;
         if (is_array($value)) {
             return count($value) <= $maxCount;
         }

@@ -1,138 +1,49 @@
 #!/usr/bin/env node
-/**
- * check-doc-coverage.mjs — doc-coverage gate (RED/GREEN) across 4 languages.
- *
- * Fails (non-zero exit) if any public API symbol lacks a doc comment. Package builds
- * prepare declarations before public entry inspection.
- *
- *   - TypeScript: typedoc validation.notDocumented + treatValidationWarningsAsErrors
- *     over the 5 TS packages (scripts/typedoc.check.json).
- *   - Go: `go test ./validator/... -run Test.*DocCoverage` (go/ast based, no extra deps).
- *   - Rust: `cargo build` with `#![deny(missing_docs)]` in the lib/bin crates.
- *   - PHP: `phpunit` DocCoverageTest (docblock presence on public classes/methods).
- *
- * Usage: node scripts/check-doc-coverage.mjs [all|ts|go|rust|php]
- */
-import { execFileSync, execSync } from 'node:child_process';
+/** Check documentation for public TypeScript, Go, Rust and PHP package APIs. */
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync } from 'node:fs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const target = (process.argv[2] || 'all').toLowerCase();
-const want = (name) => target === 'all' || target === name;
-
+const target = process.argv[2] ?? 'all';
+if (!['all', 'ts', 'go', 'rust', 'php'].includes(target)) throw new Error('Use all, ts, go, rust or php');
+const want = name => target === 'all' || target === name;
 const results = [];
-function record(lang, ok, note) {
-  results.push({ lang, ok, note });
-  process.stdout.write(`[doc-coverage] ${lang}: ${ok ? 'GREEN' : 'RED'}${note ? ' — ' + note : ''}\n`);
+function check(name, operation) {
+  try {
+    operation();
+    results.push({ name, passed: true });
+    process.stdout.write(`[doc-coverage] ${name}: PASS\n`);
+  } catch (error) {
+    results.push({ name, passed: false });
+    process.stderr.write(`[doc-coverage] ${name}: FAIL: ${error.message}\n`);
+  }
+}
+function run(command, args, cwd = ROOT) {
+  execFileSync(command, args, { cwd, stdio: 'inherit' });
 }
 
-const TS_PACKAGES = [
-  { pkg: 'generator-core', entry: 'src/index.ts', tsconfig: 'packages/generator-core/tsconfig.json' },
-  { pkg: 'validator-ts', entry: 'src/index.ts', tsconfig: 'packages/validator-ts/tsconfig.json' },
-  { pkg: 'generator-react', entry: 'src/index.ts', tsconfig: 'packages/generator-react/tsconfig.json' },
-  { pkg: 'generator-vue', entry: 'src/index.ts', tsconfig: 'packages/generator-vue/tsconfig.json' },
-  {
-    pkg: 'generator-svelte',
-    entry: 'dist/index.d.ts',
-    tsconfig: 'scripts/tsconfig.svelte-docs.json',
-  },
-];
-
-function checkTS() {
-  execFileSync('npm', ['run', 'build'], { cwd: ROOT, stdio: 'inherit' });
-  for (const p of TS_PACKAGES) {
-    const pkgDir = join(ROOT, 'packages', p.pkg);
-    const entry = join(pkgDir, p.entry);
-    const args = [
-      'typedoc',
-      '--options', join(ROOT, 'scripts', 'typedoc.check.json'),
-      '--tsconfig', join(ROOT, p.tsconfig),
+if (want('ts')) {
+  check('ts:build', () => run('npm', ['run', 'build']));
+  if (results.at(-1).passed) for (const pkg of ['generator-core', 'validator-ts', 'generator-react', 'generator-vue', 'generator-svelte']) {
+    const svelte = pkg === 'generator-svelte';
+    check(`ts:${pkg}`, () => run(join(ROOT, 'node_modules/.bin/typedoc'), [
+      '--options', join(ROOT, 'scripts/typedoc.check.json'),
+      '--tsconfig', join(ROOT, svelte ? 'scripts/tsconfig.svelte-docs.json' : `packages/${pkg}/tsconfig.json`),
       '--entryPointStrategy', 'resolve',
-      entry,
-    ];
-    try {
-      execFileSync('npx', args, { cwd: ROOT, stdio: 'inherit' });
-      record(`ts:${p.pkg}`, true);
-    } catch {
-      record(`ts:${p.pkg}`, false, 'undocumented public exports (see typedoc warnings above)');
-    }
+      join(ROOT, 'packages', pkg, svelte ? 'dist/index.d.ts' : 'src/index.ts'),
+    ]));
   }
 }
-
-function checkGo() {
-  const goDir = join(ROOT, 'packages', 'validator-go');
-  try {
-    execSync('go test ./validator/... -run Test.*DocCoverage -count=1', { cwd: goDir, stdio: 'inherit' });
-    record('go', true);
-  } catch {
-    record('go', false, 'undocumented exported declarations (see go test output above)');
-  }
+if (want('go')) for (const pkg of ['validator-go', 'generator-go']) {
+  check(`go:${pkg}`, () => run(process.env.GO ?? 'go', ['test', './...', '-run', 'DocCoverage', '-count=1'], join(ROOT, 'packages', pkg)));
 }
-
-function checkRust() {
-  const rustDir = join(ROOT, 'packages', 'validator-rust');
-  const cargoBin = join(process.env.HOME || '', '.cargo', 'bin');
-  const env = { ...process.env, PATH: `${cargoBin}:${process.env.PATH || ''}` };
-  try {
-    // #![deny(missing_docs)] turns undocumented pub items into compile errors.
-    execSync('cargo build --lib', { cwd: rustDir, env, stdio: 'inherit' });
-    record('rust', true);
-  } catch {
-    record('rust', false, 'missing_docs on public items (see cargo output above)');
-  }
+if (want('rust')) for (const pkg of ['validator-rust', 'generator-rust']) {
+  check(`rust:${pkg}`, () => run(process.env.CARGO ?? 'cargo', ['build', '--locked', '--lib'], join(ROOT, 'packages', pkg)));
 }
-
-function commandExists(cmd) {
-  try {
-    execSync(`command -v ${cmd}`, { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
+if (want('php')) {
+  check('php:validator-and-generator', () => run(process.env.PHP ?? 'php', [join(ROOT, 'scripts/php-doc-coverage.php')]));
 }
-
-function checkPHP() {
-  const phpDir = join(ROOT, 'packages', 'validator-php');
-  const phpunit = join(phpDir, 'vendor', 'bin', 'phpunit');
-  if (!commandExists('php')) {
-    record('php', true, 'SKIP: php not installed');
-    return;
-  }
-  if (!existsSync(phpunit)) {
-    // fall back to the standalone checker if phpunit deps are not installed
-    try {
-      execSync(`php ${JSON.stringify(join(ROOT, 'scripts', 'php-doc-coverage.php'))}`, {
-        cwd: ROOT,
-        stdio: 'inherit',
-      });
-      record('php', true, '(standalone checker; phpunit vendor not installed)');
-    } catch {
-      record('php', false, 'undocumented public class/method (standalone checker)');
-    }
-    return;
-  }
-  try {
-    execSync(`${JSON.stringify(phpunit)} --filter DocCoverage`, { cwd: phpDir, stdio: 'inherit' });
-    record('php', true);
-  } catch {
-    record('php', false, 'undocumented public class/method (DocCoverageTest)');
-  }
-}
-
-if (want('ts')) checkTS();
-if (want('go')) checkGo();
-if (want('rust')) checkRust();
-if (want('php')) checkPHP();
-
-const failed = results.filter((r) => !r.ok);
-process.stdout.write('\n[doc-coverage] summary:\n');
-for (const r of results) {
-  process.stdout.write(`  ${r.ok ? 'GREEN' : 'RED  '} ${r.lang}${r.note ? ' (' + r.note + ')' : ''}\n`);
-}
-if (failed.length > 0) {
-  process.stdout.write(`\n[doc-coverage] FAILED: ${failed.length} language(s) RED\n`);
-  process.exit(1);
-}
-process.stdout.write('\n[doc-coverage] all GREEN\n');
+const failed = results.filter(result => !result.passed).length;
+process.stdout.write(`[doc-coverage] ${results.length - failed} passed, ${failed} failed\n`);
+if (failed > 0) process.exitCode = 1;

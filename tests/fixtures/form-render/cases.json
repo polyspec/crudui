@@ -1436,7 +1436,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"b\"><h6><label for=\"btnb\">버튼</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"b\"><script nonce=\"\">\n$(function() {\n    \n    $(\"#btnb\").on('click', function() {\n        \n    });\n});\n</script><input class=\"valid-target form-control\" data-default=\"\" data-name=\"b\" data-rule-name=\"b\" name=\"b\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"btn\" id=\"btnb\" name=\"btnb\" type=\"button\" value=\"실행\"></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"b\"><h6><label for=\"crudui:b\">버튼</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"b\"><script nonce=\"\">\n$(function() {\n    \n    $(document.getElementById(\"crudui:b\")).on('click', function() {\n        \n    });\n});\n</script><input class=\"valid-target form-control\" data-default=\"\" data-name=\"b\" data-rule-name=\"b\" name=\"b\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"btn\" id=\"crudui:b\" name=\"btnb\" type=\"button\" value=\"실행\"></div></div></div></div>"
   },
   {
     "name": "action-alias",
@@ -1462,7 +1462,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"a\"><h6><label for=\"btna\">액션</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"a\"><script nonce=\"\">\n$(function() {\n    \n    $(\"#btna\").on('click', function() {\n        doSave()\n    });\n});\n</script><input class=\"valid-target form-control\" data-default=\"\" data-name=\"a\" data-rule-name=\"a\" name=\"a\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"btn\" id=\"btna\" name=\"btna\" type=\"button\" value=\"저장\"></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"a\"><h6><label for=\"crudui:a\">액션</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"a\"><script nonce=\"\">\n$(function() {\n    \n    $(document.getElementById(\"crudui:a\")).on('click', function() {\n        doSave()\n    });\n});\n</script><input class=\"valid-target form-control\" data-default=\"\" data-name=\"a\" data-rule-name=\"a\" name=\"a\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"btn\" id=\"crudui:a\" name=\"btna\" type=\"button\" value=\"저장\"></div></div></div></div>"
   },
   {
     "name": "search-empty",
@@ -1482,7 +1482,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sc\"><h6><label for=\"crudui:sc\">검색</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sc\"><style nonce=\"\">.sc_select2 .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2('sc', '2', '250', '');});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"sc\" data-rule-name=\"sc\" id=\"crudui:sc\" name=\"sc\"><option value=\"\">select</option></select></div></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sc\"><h6><label for=\"crudui:sc\">검색</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sc\"><style nonce=\"\">[class~=\"crudui:sc_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:sc\"), \"2\", \"250\", \"crudui:sc_select2\");});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"sc\" data-rule-name=\"sc\" id=\"crudui:sc\" name=\"sc\"><option value=\"\">select</option></select></div></div></div></div></div>"
   },
   {
     "name": "search-static-items",
@@ -1512,7 +1512,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sc\"><h6><label for=\"crudui:sc\">검색</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sc\"><style nonce=\"\">.sc_select2 .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2('sc', '2', '250', '');});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"sc\" data-rule-name=\"sc\" id=\"crudui:sc\" name=\"sc\"><option selected=\"\" value=\"a\">가</option><option value=\"b\">나</option></select></div></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sc\"><h6><label for=\"crudui:sc\">검색</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sc\"><style nonce=\"\">[class~=\"crudui:sc_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:sc\"), \"2\", \"250\", \"crudui:sc_select2\");});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"sc\" data-rule-name=\"sc\" id=\"crudui:sc\" name=\"sc\"><option selected=\"\" value=\"a\">가</option><option value=\"b\">나</option></select></div></div></div></div></div>"
   },
   {
     "name": "autocomplete-alias",
@@ -1532,7 +1532,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"ac\"><h6><label for=\"crudui:ac\">자동</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"ac\"><style nonce=\"\">.ac_select2 .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2('ac', '2', '250', '');});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"ac\" data-rule-name=\"ac\" id=\"crudui:ac\" name=\"ac\"><option value=\"\">select</option></select></div></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"ac\"><h6><label for=\"crudui:ac\">자동</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"ac\"><style nonce=\"\">[class~=\"crudui:ac_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:ac\"), \"2\", \"250\", \"crudui:ac_select2\");});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"ac\" data-rule-name=\"ac\" id=\"crudui:ac\" name=\"ac\"><option value=\"\">select</option></select></div></div></div></div></div>"
   },
   {
     "name": "tinymce-empty",
@@ -1552,7 +1552,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tm\"><h6><label for=\"crudui:tm\">에디터</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tm\"><textarea class=\"valid-target form-control tinymcearea\" data-default=\"\" data-height=\"300\" data-name=\"tm\" data-rule-name=\"tm\" data-type=\"tinymce\" data-upload-server=\"upload\" id=\"crudui:tm\" name=\"tm\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tinymce('#tinymce-tm', 300, 'upload', false);});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tm\"><h6><label for=\"crudui:tm\">에디터</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tm\"><textarea class=\"valid-target form-control tinymcearea\" data-default=\"\" data-height=\"300\" data-name=\"tm\" data-rule-name=\"tm\" data-type=\"tinymce\" data-upload-server=\"upload\" id=\"crudui:tm\" name=\"tm\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tinymce('#'+CSS.escape(\"crudui:tm\"), 300, \"upload\", false);});</script></div></div></div></div>"
   },
   {
     "name": "tinymce-options",
@@ -1579,7 +1579,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tm\"><h6><label for=\"crudui:tm\">에디터</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tm\"><textarea class=\"valid-target form-control tinymcearea\" data-default=\"\" data-height=\"500\" data-name=\"tm\" data-rule-name=\"tm\" data-type=\"tinymce\" data-upload-server=\"cdn\" id=\"crudui:tm\" name=\"tm\" rows=\"10\">&lt;p&gt;x&lt;/p&gt;</textarea><script nonce=\"\">$(function() {editor_tinymce('#tinymce-tm', 500, 'cdn', false);});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tm\"><h6><label for=\"crudui:tm\">에디터</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tm\"><textarea class=\"valid-target form-control tinymcearea\" data-default=\"\" data-height=\"500\" data-name=\"tm\" data-rule-name=\"tm\" data-type=\"tinymce\" data-upload-server=\"cdn\" id=\"crudui:tm\" name=\"tm\" rows=\"10\">&lt;p&gt;x&lt;/p&gt;</textarea><script nonce=\"\">$(function() {editor_tinymce('#'+CSS.escape(\"crudui:tm\"), 500, \"cdn\", false);});</script></div></div></div></div>"
   },
   {
     "name": "wysiwyg-alias",
@@ -1599,7 +1599,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"wy\"><h6><label for=\"crudui:wy\">위지윅</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"wy\"><textarea class=\"valid-target form-control tinymcearea\" data-default=\"\" data-height=\"300\" data-name=\"wy\" data-rule-name=\"wy\" data-type=\"wysiwyg\" data-upload-server=\"upload\" id=\"crudui:wy\" name=\"wy\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tinymce('#tinymce-wy', 300, 'upload', false);});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"wy\"><h6><label for=\"crudui:wy\">위지윅</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"wy\"><textarea class=\"valid-target form-control tinymcearea\" data-default=\"\" data-height=\"300\" data-name=\"wy\" data-rule-name=\"wy\" data-type=\"wysiwyg\" data-upload-server=\"upload\" id=\"crudui:wy\" name=\"wy\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tinymce('#'+CSS.escape(\"crudui:wy\"), 300, \"upload\", false);});</script></div></div></div></div>"
   },
   {
     "name": "file-empty",
@@ -1783,7 +1783,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sn\"><h6><label for=\"crudui:sn\">서머노트</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sn\"><textarea class=\"valid-target form-control summernote\" data-default=\"\" data-name=\"sn\" data-rule-name=\"sn\" id=\"crudui:sn\" name=\"sn\" rows=\"5\"></textarea><script nonce=\"\">$(function() {editor_summernote('#summernote-sn', 'upload');});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sn\"><h6><label for=\"crudui:sn\">서머노트</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sn\"><textarea class=\"valid-target form-control summernote\" data-default=\"\" data-name=\"sn\" data-rule-name=\"sn\" id=\"crudui:sn\" name=\"sn\" rows=\"5\"></textarea><script nonce=\"\">$(function() {editor_summernote('#'+CSS.escape(\"crudui:sn\"), \"upload\");});</script></div></div></div></div>"
   },
   {
     "name": "editorjs-empty",
@@ -1803,7 +1803,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"ej\"><h6><label for=\"crudui:ej\">에디터JS</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"ej\"><textarea class=\"valid-target form-control contentjs\" data-default=\"\" data-fileserver=\"\" data-name=\"ej\" data-rule-name=\"ej\" id=\"crudui:ej\" name=\"ej\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_editorjs('#editorjs-ej', '');});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"ej\"><h6><label for=\"crudui:ej\">에디터JS</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"ej\"><textarea class=\"valid-target form-control contentjs\" data-default=\"\" data-fileserver=\"\" data-name=\"ej\" data-rule-name=\"ej\" id=\"crudui:ej\" name=\"ej\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_editorjs('#'+CSS.escape(\"crudui:ej\"), \"\");});</script></div></div></div></div>"
   },
   {
     "name": "tui-empty",
@@ -1823,7 +1823,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tu\"><h6><label for=\"crudui:tu\">TUI</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tu\"><textarea class=\"valid-target form-control tuiarea\" data-default=\"\" data-fileserver=\"\" data-name=\"tu\" data-rule-name=\"tu\" id=\"crudui:tu\" name=\"tu\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tui('#tui-tu', '');});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tu\"><h6><label for=\"crudui:tu\">TUI</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tu\"><textarea class=\"valid-target form-control tuiarea\" data-default=\"\" data-fileserver=\"\" data-name=\"tu\" data-rule-name=\"tu\" id=\"crudui:tu\" name=\"tu\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tui('#'+CSS.escape(\"crudui:tu\"), \"\");});</script></div></div></div></div>"
   },
   {
     "name": "tagify-empty",
@@ -1843,7 +1843,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tg\"><h6><label for=\"crudui:tg\">태그</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tg\"><input class=\"valid-target form-control\" data-default=\"\" data-max-tags=\"0\" data-name=\"tg\" data-rule-name=\"tg\" id=\"crudui:tg\" name=\"tg\" type=\"text\" value=\"\"><script nonce=\"\">$(function() {editor_tagify('#tagify-tg', 0);});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tg\"><h6><label for=\"crudui:tg\">태그</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tg\"><input class=\"valid-target form-control\" data-default=\"\" data-max-tags=\"0\" data-name=\"tg\" data-rule-name=\"tg\" id=\"crudui:tg\" name=\"tg\" type=\"text\" value=\"\"><script nonce=\"\">$(function() {editor_tagify('#'+CSS.escape(\"crudui:tg\"), 0);});</script></div></div></div></div>"
   },
   {
     "name": "tagify2-server",
@@ -1867,7 +1867,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tg2\"><h6><label for=\"crudui:tg2\">태그2</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tg2\"><input class=\"valid-target form-control\" data-default=\"\" data-max-tags=\"5\" data-name=\"tg2\" data-rule-name=\"tg2\" data-server=\"/api/tags\" id=\"crudui:tg2\" name=\"tg2\" type=\"text\" value=\"\"><script nonce=\"\">$(function() {editor_tagify2('#tagify-tg2', 5, '/api/tags');});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tg2\"><h6><label for=\"crudui:tg2\">태그2</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tg2\"><input class=\"valid-target form-control\" data-default=\"\" data-max-tags=\"5\" data-name=\"tg2\" data-rule-name=\"tg2\" data-server=\"/api/tags\" id=\"crudui:tg2\" name=\"tg2\" type=\"text\" value=\"\"><script nonce=\"\">$(function() {editor_tagify2('#'+CSS.escape(\"crudui:tg2\"), 5, \"/api/tags\");});</script></div></div></div></div>"
   },
   {
     "name": "choice-design-label-class",
@@ -1920,7 +1920,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tm\"><h6><label for=\"crudui:tm\">에디터</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tm\"><textarea class=\"valid-target form-control tinymcearea tall\" data-default=\"\" data-height=\"300\" data-name=\"tm\" data-rule-name=\"tm\" data-type=\"tinymce\" data-upload-server=\"upload\" id=\"crudui:tm\" name=\"tm\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tinymce('#tinymce-tm', 300, 'upload', false);});</script></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tm\"><h6><label for=\"crudui:tm\">에디터</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tm\"><textarea class=\"valid-target form-control tinymcearea tall\" data-default=\"\" data-height=\"300\" data-name=\"tm\" data-rule-name=\"tm\" data-type=\"tinymce\" data-upload-server=\"upload\" id=\"crudui:tm\" name=\"tm\" rows=\"3\"></textarea><script nonce=\"\">$(function() {editor_tinymce('#'+CSS.escape(\"crudui:tm\"), 300, \"upload\", false);});</script></div></div></div></div>"
   },
   {
     "name": "image-design-class",
@@ -2101,7 +2101,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sc\"><h6><label for=\"crudui:sc\">검색</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sc\"><style nonce=\"\">.sc_select2 .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2('sc', '2', '250', '');});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control valid-target-async\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"sc\" data-rule-name=\"sc\" data-source-method=\"find\" data-source-model=\"Doc\" data-source-relations=\"[]\" data-source-table=\"docs\" id=\"crudui:sc\" name=\"sc\"><option value=\"\">select</option></select></div></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"sc\"><h6><label for=\"crudui:sc\">검색</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"sc\"><style nonce=\"\">[class~=\"crudui:sc_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:sc\"), \"2\", \"250\", \"crudui:sc_select2\");});</script><div class=\"input-group field-search\"><select class=\"valid-target form-control valid-target-async\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"sc\" data-rule-name=\"sc\" data-source-method=\"find\" data-source-model=\"Doc\" data-source-relations=\"[]\" data-source-table=\"docs\" id=\"crudui:sc\" name=\"sc\"><option value=\"\">select</option></select></div></div></div></div></div>"
   },
   {
     "name": "unsupported-type-throws",
@@ -2223,6 +2223,6 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"b\"><h6><label for=\"btnb\">버튼</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"b\"><script nonce=\"\">\n$(function() {\n    \n    $(\"#btnb\").on('click', function() {\n        window.run() && go()\n    });\n});\n</script><input class=\"valid-target form-control\" data-default=\"\" data-name=\"b\" data-rule-name=\"b\" name=\"b\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"btn\" id=\"btnb\" name=\"btnb\" type=\"button\" value=\"실행\"></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"b\"><h6><label for=\"crudui:b\">버튼</label></h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"b\"><script nonce=\"\">\n$(function() {\n    \n    $(document.getElementById(\"crudui:b\")).on('click', function() {\n        window.run() && go()\n    });\n});\n</script><input class=\"valid-target form-control\" data-default=\"\" data-name=\"b\" data-rule-name=\"b\" name=\"b\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"btn\" id=\"crudui:b\" name=\"btnb\" type=\"button\" value=\"실행\"></div></div></div></div>"
   }
 ]

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Tests\Validate;
 
 use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Validate\ListValidate;
+use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -48,8 +48,12 @@ final class ListValidateConformanceTest extends TestCase
         /** @var list<array<string, mixed>> $cases */
         $cases = \json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
+        $objects = json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
         $out = [];
-        foreach ($cases as $case) {
+        foreach ($cases as $index => $case) {
+            foreach (['spec', 'data', 'files'] as $key) {
+                if (property_exists($objects[$index], $key)) $case[$key] = $objects[$index]->{$key};
+            }
             $out[$case['name']] = [$case];
         }
         return $out;
@@ -74,7 +78,7 @@ final class ListValidateConformanceTest extends TestCase
             // (required/enum/additionalProperties/anyOf) is the meta-schema's job,
             // never this engine's — so it loads clean here. No rows → no data
             // validation: a clean load is always { valid:true, errors:[] }.
-            $result = ListValidate::run($spec, $files);
+            $result = Validator::validateList($spec, ['files' => $files ?? []]);
             self::assertTrue($result->valid, "case {$case['name']} must not be rejected by the structure gate");
             self::assertSame([], $result->errors, "case {$case['name']} must produce no errors on a clean load");
             return;
@@ -88,13 +92,13 @@ final class ListValidateConformanceTest extends TestCase
         self::assertArrayHasKey('at', $want, "case {$case['name']} engine.at missing");
 
         try {
-            ListValidate::run($spec, $files);
+            Validator::validateList($spec, ['files' => $files ?? []]);
             self::fail("case {$case['name']} expected load error {$want['code']} at {$want['at']} but loaded successfully");
         } catch (ComposeLoadError $e) {
             self::assertSame($want['code'], $e->code, "error code mismatch for {$case['name']}: {$e->getMessage()}");
             self::assertSame(
                 $want['at'],
-                \implode('.', $e->trace),
+                \implode('.', $e->getCompositionTrace()),
                 "error path mismatch for {$case['name']}: {$e->getMessage()}",
             );
         }

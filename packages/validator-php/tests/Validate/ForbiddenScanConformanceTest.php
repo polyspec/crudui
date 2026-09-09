@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Tests\Validate;
 
 use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Validate\Validate;
+use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,8 +38,12 @@ final class ForbiddenScanConformanceTest extends TestCase
         /** @var list<array<string, mixed>> $cases */
         $cases = \json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
+        $objects = json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
         $out = [];
-        foreach ($cases as $case) {
+        foreach ($cases as $index => $case) {
+            foreach (['spec', 'data', 'files'] as $key) {
+                if (property_exists($objects[$index], $key)) $case[$key] = $objects[$index]->{$key};
+            }
             $out[$case['name']] = [$case];
         }
         return $out;
@@ -63,7 +67,7 @@ final class ForbiddenScanConformanceTest extends TestCase
         // load path before any data-driven validation.
         if ($expect === 'ok') {
             // A clean spec must complete the load path without throwing.
-            Validate::run($spec, [], $files);
+            Validator::validate($spec, [], ['files' => $files ?? []]);
             $this->addToAssertionCount(1);
             return;
         }
@@ -75,7 +79,7 @@ final class ForbiddenScanConformanceTest extends TestCase
         self::assertArrayHasKey('at_path', $want, "case {$case['name']} expect.at_path missing");
 
         try {
-            Validate::run($spec, [], $files);
+            Validator::validate($spec, [], ['files' => $files ?? []]);
             self::fail("case {$case['name']} expected load error {$want['error_code']} at {$want['at_path']} but validated successfully");
         } catch (ComposeLoadError $e) {
             self::assertSame(
@@ -85,7 +89,7 @@ final class ForbiddenScanConformanceTest extends TestCase
             );
             self::assertSame(
                 $want['at_path'],
-                \implode('.', $e->trace),
+                \implode('.', $e->getCompositionTrace()),
                 "error path mismatch for {$case['name']}: {$e->getMessage()}",
             );
         }

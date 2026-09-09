@@ -1,110 +1,114 @@
 <?php
-/**
- * php-doc-coverage.php — standalone PHP doc-coverage checker.
- *
- * Asserts that every public class and public method in CRUDUI\Validator
- * carries a docblock. Exits non-zero (RED) when any public symbol is
- * undocumented. Dependency-free: uses tokenizer + reflection over the source
- * tree, so it runs without composer/phpunit installed.
- *
- * It is also exercised as a PHPUnit test (see DocCoverageTest) when the test
- * suite runs.
- */
-
+/** Check documentation and source provenance for both public PHP packages. */
 declare(strict_types=1);
 
 /**
- * Scan the validator-php src tree and return a list of undocumented public
- * symbols ("Class" and "Class::method" entries).
+ * Return missing documentation or unresolved source declarations in a package.
  *
- * @param string $srcDir absolute path to the package src directory
- * @return string[] undocumented public symbol descriptions (empty when all documented)
+ * @param string $srcDir Absolute package source directory.
+ * @return string[] Source or documentation failures, sorted by name.
  */
 function crudui_php_doc_gaps(string $srcDir): array
 {
-    // Bootstrap the composer autoloader so dependent classes resolve regardless
-    // of file order. Falls back gracefully if vendor is absent.
     $autoload = dirname($srcDir) . '/vendor/autoload.php';
-    if (is_file($autoload)) {
-        require_once $autoload;
+    if (!is_file($autoload)) {
+        throw new RuntimeException('Composer autoload is required: ' . $autoload);
     }
-
+    require_once $autoload;
     $gaps = [];
-    $rii = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($srcDir, FilesystemIterator::SKIP_DOTS)
-    );
-    foreach ($rii as $file) {
+    $declarations = 0;
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir, FilesystemIterator::SKIP_DOTS));
+    foreach ($files as $file) {
         if ($file->getExtension() !== 'php') {
             continue;
         }
         $code = file_get_contents($file->getPathname());
         if ($code === false) {
-            continue;
+            throw new RuntimeException('Cannot read PHP source: ' . $file->getPathname());
         }
-
-        // Discover declared class-like names (class/interface/trait/enum).
-        if (!preg_match_all('/^\s*(?:final\s+|abstract\s+)?(?:class|interface|trait|enum)\s+(\w+)/m', $code, $m)) {
-            continue;
-        }
-
-        $fqcnBase = resolve_fqcn($code, '');
-        foreach ($m[1] as $shortName) {
-            $fqcn = $fqcnBase . $shortName;
-            if (!class_exists($fqcn) && !interface_exists($fqcn) && !trait_exists($fqcn) && !enum_exists($fqcn)) {
+        foreach (crudui_php_source_classes($code) as $name) {
+            $declarations++;
+            if (!class_exists($name) && !interface_exists($name) && !trait_exists($name) && !enum_exists($name)) {
+                $gaps[] = $name . ' (source declaration cannot be loaded)';
                 continue;
             }
-            $rc = new ReflectionClass($fqcn);
-            if ($rc->getDocComment() === false) {
-                $gaps[] = $rc->getName();
+            $class = new ReflectionClass($name);
+            if ($class->isInternal() || realpath((string) $class->getFileName()) !== realpath($file->getPathname())) {
+                $gaps[] = $name . ' (loaded class does not match its source file)';
+                continue;
             }
-            foreach ($rc->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-                if ($method->getDeclaringClass()->getName() !== $rc->getName()) {
-                    continue; // only own methods, not inherited
-                }
-                if ($method->isInternal()) {
-                    continue;
-                }
-                if ($method->getDocComment() === false) {
-                    $gaps[] = $rc->getName() . '::' . $method->getName() . '()';
+            if ($class->getDocComment() === false) {
+                $gaps[] = $name;
+            }
+            foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                if ($method->getDeclaringClass()->getName() === $name && !$method->isInternal() && $method->getDocComment() === false) {
+                    $gaps[] = $name . '::' . $method->getName() . '()';
                 }
             }
         }
+    }
+    if ($declarations === 0) {
+        $gaps[] = $srcDir . ' (no class declarations found)';
     }
     sort($gaps);
     return $gaps;
 }
 
 /**
- * Read the `namespace` declared in source and build a fully-qualified name.
+ * Read named class, interface, trait and enum declarations using PHP tokens.
  *
- * @param string $code      file contents
- * @param string $shortName declared class short name (use "" to get the namespace prefix only)
- * @return string fully-qualified class name, or the namespace prefix ending in "\\"
+ * @param string $code PHP source code.
+ * @return string[] Fully qualified declaration names in source order.
  */
-function resolve_fqcn(string $code, string $shortName): string
+function crudui_php_source_classes(string $code): array
 {
-    if (preg_match('/^\s*namespace\s+([^;]+);/m', $code, $nm)) {
-        return trim($nm[1]) . '\\' . $shortName;
+    $tokens = token_get_all($code, TOKEN_PARSE);
+    $namespace = '';
+    $names = [];
+    $count = count($tokens);
+    for ($index = 0; $index < $count; $index++) {
+        $token = $tokens[$index];
+        if (!is_array($token)) {
+            continue;
+        }
+        if ($token[0] === T_NAMESPACE) {
+            $namespace = '';
+            while (++$index < $count && $tokens[$index] !== ';' && $tokens[$index] !== '{') {
+                $part = $tokens[$index];
+                if (is_array($part) && in_array($part[0], [T_STRING, T_NAME_QUALIFIED, T_NS_SEPARATOR], true)) {
+                    $namespace .= $part[1];
+                }
+            }
+        } elseif (in_array($token[0], [T_CLASS, T_INTERFACE, T_TRAIT, T_ENUM], true)) {
+            $next = $index + 1;
+            while ($next < $count && is_array($tokens[$next]) && in_array($tokens[$next][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                $next++;
+            }
+            if ($next < $count && is_array($tokens[$next]) && $tokens[$next][0] === T_STRING) {
+                $names[] = ($namespace === '' ? '' : $namespace . '\\') . $tokens[$next][1];
+            }
+        }
     }
-    return $shortName;
+    return $names;
 }
 
-// --- run (only when invoked directly as a CLI, not when required by a test) ---
 if (PHP_SAPI === 'cli' && isset($argv[0]) && realpath($argv[0]) === realpath(__FILE__)) {
-    $srcDir = realpath(__DIR__ . '/../packages/validator-php/src');
-    if ($srcDir === false) {
-        fwrite(STDERR, "[php-doc-coverage] src dir not found\n");
-        exit(2);
-    }
-
-    $gaps = crudui_php_doc_gaps($srcDir);
-    if (count($gaps) > 0) {
-        fwrite(STDERR, '[php-doc-coverage] RED: ' . count($gaps) . " undocumented public symbol(s):\n");
-        foreach ($gaps as $g) {
-            fwrite(STDERR, "  $g\n");
+    $failed = false;
+    foreach (['validator-php', 'generator-php'] as $package) {
+        try {
+            $directory = realpath(__DIR__ . '/../packages/' . $package . '/src');
+            if ($directory === false) {
+                throw new RuntimeException('Source directory is missing: ' . $package);
+            }
+            $gaps = crudui_php_doc_gaps($directory);
+            if ($gaps !== []) {
+                throw new RuntimeException(implode("\n  ", $gaps));
+            }
+            fwrite(STDOUT, '[php-doc-coverage] ' . $package . ": PASS\n");
+        } catch (Throwable $error) {
+            $failed = true;
+            fwrite(STDERR, '[php-doc-coverage] ' . $package . ': FAIL: ' . $error->getMessage() . "\n");
         }
-        exit(1);
     }
-    fwrite(STDOUT, "[php-doc-coverage] GREEN: all public classes/methods documented\n");
-    exit(0);
+    exit($failed ? 1 : 0);
 }

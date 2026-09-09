@@ -3,6 +3,8 @@ package compose
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 )
 
 // OMap is an insertion-order-preserving string map — the Go stand-in for a JS
@@ -126,7 +128,17 @@ func DecodeOrdered(data []byte) (any, error) {
 // matching the JS side). This is how declaration order survives into the engine.
 func decodeOrdered(data []byte) (any, error) {
 	dec := json.NewDecoder(bytes.NewReader(data))
-	return decodeValue(dec)
+	value, err := decodeValue(dec)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("Expected one JSON document")
+	}
+	return value, nil
 }
 
 // decodeValue reads one JSON value from dec, recursively, preserving object order.

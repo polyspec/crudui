@@ -17,7 +17,8 @@
     },
     "autoload": {
         "psr-4": {
-            "CRUDUI\\Validator\\": "src/"
+            "CRUDUI\\Validator\\": "src/",
+            "CRUDUI\\": "src/Public/"
         }
     },
     "autoload-dev": {
