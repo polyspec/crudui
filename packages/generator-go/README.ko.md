@@ -1,0 +1,92 @@
+# CRUDUI Go 생성기
+
+[English](README.md).
+
+Go 패키지는 폼 템플릿 컴파일, 데이터 바인딩, 키 기반 행 관리, 폼과 목록 HTML
+렌더링을 제공합니다. 생성은 Go에서 실행하며 명세 합성과 표현식 평가를 Go
+검증기와 공유합니다.
+
+## 사용
+
+```go
+import generator "github.com/crudui/crudui/packages/generator-go"
+
+spec := generator.NewObject("type", "group", "properties",
+    generator.NewObject("name", generator.NewObject("type", "text", "label", "Name")))
+template, err := generator.CompileForm(spec, generator.CompileOptions{})
+if err != nil { return err }
+form, err := generator.NewForm(template,
+    generator.NewObject("name", "Ada"), generator.BindOptions{Language: "en"})
+if err != nil { return err }
+html, err := generator.RenderForm(form)
+```
+
+`CompileForm`은 레코드 데이터 없이 합성을 처리합니다. 템플릿은 `encoding/json`으로
+직렬화하고 `FormTemplate`으로 디코딩할 수 있습니다. `BindForm`은 템플릿이나
+레코드를 변경하지 않고 전체 필드 모델을 반환합니다. `NewForm`은 템플릿과
+레코드를 복사하여 인스턴스를 생성합니다.
+
+`Form.SetData`는 레코드를 교체합니다. `GetData`, `GetValue`, `Fields`, `Template`은
+복사한 값을 반환합니다. `SetValue`는 필드 하나를 수정합니다. 행 연산은 `AddRow`,
+`CopyRow`, `RemoveRow`, `MoveRow`, `RekeyRow`이며 컬렉션 경로는 레코드 루트를
+기준으로 합니다. 연산이 실패하면 데이터, 필드 모델, 리비전이 유지됩니다.
+`RenderForm`은 인스턴스를 변경하지 않고 현재 상태를 렌더링합니다.
+
+`BuildList`는 목록 모델을 반환합니다. `RenderList`의 `ListOptions.Layout`은 `table`
+또는 `card`입니다. 호출자가 목록 데이터를 제공하며 생성기는 데이터베이스를
+조회하지 않습니다. 기본 이미지 셀은 처음 사용하는 순서에 따라 중복 없는
+preload 링크를 생성합니다. 원시 HTML 내용은 리소스 링크를 생성하지 않습니다.
+
+날짜 컨트롤, 날짜시간 컨트롤, 날짜 목록 셀은 UTC를 사용합니다. 허용하는 ISO와
+RFC 2822 값은 하나의 엄격한 파서로 처리하고 잘못되거나 지원하지 않는 문자열은
+그대로 유지합니다. 렌더링은 명시적 offset을 변환하며 원래 인스턴스 데이터는
+유지합니다. 날짜시간 컨트롤은 초를 포함합니다.
+
+## 순서가 있는 값
+
+객체는 공용 삽입 순서 객체 타입인 `*generator.Object`를 사용합니다.
+`NewObject(key, value, ...)`로 생성하거나 `DecodeJSON`으로 디코딩합니다. 배열은
+`[]any`, JSON null은 `nil`입니다. 순서가 없는 네이티브 맵과 순환 값은 거부합니다.
+예제의 검증용 맵은 조회만 수행하는 별도 값이며 저장 데이터는 순서 표현을
+유지합니다.
+
+반복 필드는 키 기반 객체를 사용합니다. `SequenceRowKey(42)`는
+`__0000000000042__`를 반환하고 `CreateRowKey()`는 무작위 13자리 16진수 키를
+생성합니다. 키는 부모 컬렉션 안에서 식별자로 사용됩니다. 반복 데이터가 없으면
+기본 행 하나를 생성하며 명시적인 빈 객체는 행 0개를 생성합니다. 배열과 null은
+반복 컬렉션으로 사용할 수 없습니다.
+
+`AddRowOptions.Value`는 행 데이터를 지정합니다. 스칼라 행의 명시적인 null을
+지정하려면 `ValueProvided: true`를 설정합니다. 두 필드를 모두 생략하면 필드
+기본값을 적용합니다. `Key`는 행 키, `AfterKey`는 삽입 위치를 지정합니다.
+
+명시적으로 빈 `KeyPrefix`를 지정하려면 `CompileOptions.KeyPrefixProvided` 또는
+`BindOptions.KeyPrefixProvided`를 설정합니다. 인스턴스 접두사를 생략하면 템플릿
+접두사를 사용합니다. 접두사 없이 컴파일하거나 인스턴스에 명시적인 빈 접두사를
+지정하면 해당 이름 구간을 생략합니다.
+
+## 실행과 검증
+
+이 패키지 디렉터리에서 실행합니다.
+
+```sh
+go test ./...
+go run ./examples/server -data /tmp/crudui-go-record.json
+```
+
+`http://127.0.0.1:8087/`을 엽니다. Go가 템플릿을 한 번 컴파일하고 저장한 레코드를
+렌더링합니다. 폼 또는 JSON 전송 데이터를 검증한 뒤 유효한 레코드를 명시적으로
+지정한 JSON 파일에 저장하고 다시 로드합니다. `/template`은 재사용할 템플릿을,
+`/data`는 저장한 레코드를 반환합니다. 예제는 스칼라 필드 두 개를 사용하며
+React, Vue, Svelte 비교 행렬을 제공하지 않습니다.
+
+```sh
+curl -H 'Content-Type: application/json' \
+  --data '{"name":"Ada","email":"ada@example.test"}' \
+  http://127.0.0.1:8087/
+```
+
+`cmd/generate` CLI는 표준 입력의 JSON 요청 하나를 받아 JSON 값 하나를 반환합니다.
+지원 연산은 `compileForm`, `bindForm`, `form`, `renderList`입니다. `form` 연산은
+액션을 실행하고 성공 및 거부된 연산마다 전체 상태를 기록합니다. CLI는 적합성
+검사 어댑터이며 애플리케이션은 라이브러리를 직접 호출합니다.

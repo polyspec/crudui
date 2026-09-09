@@ -52,28 +52,32 @@ function genTypeScript() {
 function genGo() {
   const output = join(API_DIR, 'go.md');
   rmSync(output, { force: true });
-  const options = { cwd: join(ROOT, 'packages/validator-go'), encoding: 'utf8' };
-  const listed = execFileSync('go', ['list', './validator/...'], options).trim();
-  if (!listed) throw new Error('Go package list is empty');
-  const sections = listed.split('\n').sort().map(pkg => {
-    const body = execFileSync('go', ['doc', '-all', pkg], options).trimEnd();
-    if (!body) throw new Error(`Go documentation is empty: ${pkg}`);
-    return `## ${pkg}\n\n\`\`\`text\n${body}\n\`\`\`\n`;
-  });
+  const sections = [];
+  for (const pkg of ['validator-go', 'generator-go']) {
+    const options = { cwd: join(ROOT, 'packages', pkg), encoding: 'utf8' };
+    const listed = execFileSync(process.env.GO ?? 'go', ['list', '-f', '{{if ne .Name "main"}}{{.ImportPath}}{{end}}', './...'], options).trim();
+    if (!listed) throw new Error(`Go package list is empty: ${pkg}`);
+    for (const name of listed.split('\n').filter(Boolean).sort()) {
+      const body = execFileSync(process.env.GO ?? 'go', ['doc', '-all', name], options).trimEnd();
+      if (!body) throw new Error(`Go documentation is empty: ${name}`);
+      sections.push(`## ${name}\n\n\`\`\`text\n${body}\n\`\`\`\n`);
+    }
+  }
   writeFileSync(output, '# Go API\n\n' + sections.join('\n'));
 
 }
 
 function genRust() {
-  const pkgDir = join(ROOT, 'packages/validator-rust');
+  const pkgDir = join(ROOT, 'packages/generator-rust');
   const generated = join(pkgDir, 'target/doc');
   const output = join(STATIC_API_DIR, 'rust');
   cleanDirectory(output);
-  run('cargo', ['doc', '--locked', '--no-deps', '-p', 'crudui-validator'], pkgDir);
+  run(process.env.CARGO ?? 'cargo', ['doc', '--locked', '--no-deps', '-p', 'crudui-validator', '-p', 'crudui-generator'], pkgDir);
   requireOutput(join(generated, 'crudui_validator/index.html'));
+  requireOutput(join(generated, 'crudui_generator/index.html'));
   cpSync(generated, output, { recursive: true });
   writeFileSync(join(API_DIR, 'rust.md'),
-    '# Rust API\n\n[Open the Rust API reference](/api/rust/crudui_validator/index.html).\n');
+    '# Rust API\n\n- [Validator](/api/rust/crudui_validator/index.html)\n- [Generator](/api/rust/crudui_generator/index.html)\n');
 }
 
 function genPhp() {
@@ -83,9 +87,12 @@ function genPhp() {
   const cache = join(ROOT, 'tools/bin/.phpdoc-cache');
   cleanDirectory(output);
   try {
-    run('php', [phar, 'run', '-d', 'packages/validator-php/src', '-t', output,
-      '--cache-folder', cache, '--title', 'crudui/validator', '--no-interaction']);
+    run(process.env.PHP ?? 'php', [phar, 'run', '-d', 'packages/validator-php/src', '-d', 'packages/generator-php/src', '-t', output,
+      '--cache-folder', cache, '--title', 'CRUDUI PHP API', '--no-interaction']);
     requireOutput(join(output, 'index.html'));
+    for (const name of ['Generator', 'Validator', 'Form', 'FormError']) {
+      requireOutput(join(output, 'classes', `CRUDUI-${name}.html`));
+    }
   } finally {
     rmSync(cache, { recursive: true, force: true });
   }

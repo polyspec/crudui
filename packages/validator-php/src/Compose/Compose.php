@@ -74,7 +74,8 @@ final class Compose
         foreach ($result as $fieldName => $field) {
             if (self::isPlainObject($field)) {
                 /** @var array<string, mixed> $field */
-                $result[$fieldName] = self::spec($field, $loader, $basepath);
+                $composed = self::spec((array) $field, $loader, $basepath);
+                $result[$fieldName] = $field instanceof \stdClass ? (object) $composed : $composed;
             }
         }
 
@@ -122,7 +123,8 @@ final class Compose
         if (\array_key_exists('properties', $resolved) && self::isPlainObject($resolved['properties'])) {
             /** @var array<string, mixed> $props */
             $props = $resolved['properties'];
-            $resolved['properties'] = self::properties($props, $loader, $basepath);
+            $composed = self::properties((array) $props, $loader, $basepath);
+            $resolved['properties'] = $props instanceof \stdClass ? (object) $composed : $composed;
         }
 
         return $resolved;
@@ -144,18 +146,9 @@ final class Compose
         return $out;
     }
 
-    /**
-     * JS "plain object" predicate: non-list array, or empty array (read as {});
-     * never a scalar/null/list.
-     */
+    /** Objects are stdClass values or non-list PHP associative arrays. */
     private static function isPlainObject(mixed $v): bool
     {
-        if (!\is_array($v)) {
-            return false;
-        }
-        if ($v === []) {
-            return true;
-        }
-        return !\array_is_list($v);
+        return $v instanceof \stdClass || (\is_array($v) && !\array_is_list($v));
     }
 }

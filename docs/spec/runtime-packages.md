@@ -27,6 +27,48 @@ defines loading and method equality. Comparison tests run PHP and native PHP in
 separate processes and verify which implementation actually executed. An
 unavailable native module fails the native test target.
 
+## Package map
+
+| Package | Implementation responsibility | Reuse |
+| --- | --- | --- |
+| `packages/generator-core` | JavaScript templates, instances and evaluated models | JavaScript composition and expression modules |
+| `packages/generator-react`, `generator-vue`, `generator-svelte` | Framework integration, browser operation and rendering | Shared JavaScript generator |
+| `packages/generator-php` | PHP template compilation, data binding, form and list HTML | PHP composition and expression modules |
+| `packages/generator-go` | Go template compilation, data binding, form and list HTML | Go composition and expression modules |
+| `packages/generator-rust` | Rust template compilation, data binding, form and list HTML | Rust composition and expression modules |
+| `packages/php-ext` | PHP native generation and validation | The same public classes as the PHP packages; generation and validation execute in native code |
+| `packages/validator-*` | Data and specification validation | Existing language rule implementations and shared cases |
+
+Each server generator is a library that can run in its own language's HTTP
+process. CLI adapters are test and example entry points; they are not the library
+implementation. Go rendering does not depend on Rust, PHP or Node at runtime.
+PHP rendering does not require its native extension. Rust rendering does not
+require the PHP host.
+
+## API operations
+
+Names use each language's naming convention. The operations and results remain
+the same; no runtime selector is embedded in a field specification.
+
+| Operation | JavaScript | PHP library | Go | Rust | PHP native |
+| --- | --- | --- | --- | --- | --- |
+| Compile structure | `compileForm` | `Generator::compileForm` | `CompileForm` | `compile_form` | `Generator::compileForm` |
+| Bind data | `bindForm` | `Generator::bindForm` | `BindForm` | `bind_form` | `Generator::bindForm` |
+| Create instance | `createForm` | `new Form` | `NewForm` | `Form::new` | `new Form` |
+| Replace data | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
+| Read data | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
+| Render form | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
+| Render list | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
+| Validate | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
+
+Both PHP implementations use the classes `CRUDUI\Generator`,
+`CRUDUI\Validator` and `CRUDUI\Form`. The
+[PHP API contract](php-extension.md) defines the common methods and
+loading order. The extension registers these classes when enabled. Without the
+extension, Composer autoloads the PHP classes. Examples use the same calls in
+both configurations; comparison tests use separate PHP processes and verify
+class provenance and method signatures.
+
 ## Shared contracts and separate responsibilities
 
 All runtimes implement the same [schema](schema.md), [expressions](expressions.md),

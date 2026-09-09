@@ -27,6 +27,48 @@ PHP 구현을 자동 로드합니다. [PHP API 계약](php-extension.ko.md)은 �
 프로세스에서 실행하고 실제 실행된 구현을 확인합니다. 네이티브 모듈이
 없으면 네이티브 대상 검사는 실패합니다.
 
+## 패키지 구성
+
+| 패키지 | 구현 책임 | 재사용 |
+| --- | --- | --- |
+| `packages/generator-core` | JavaScript 템플릿, 인스턴스, 계산된 모델 | JavaScript 조합과 표현식 모듈 |
+| `packages/generator-react`, `generator-vue`, `generator-svelte` | 프레임워크 통합, 브라우저 동작, 렌더링 | 공용 JavaScript 생성기 |
+| `packages/generator-php` | PHP 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | PHP 조합과 표현식 모듈 |
+| `packages/generator-go` | Go 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | Go 조합과 표현식 모듈 |
+| `packages/generator-rust` | Rust 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | Rust 조합과 표현식 모듈 |
+| `packages/php-ext` | PHP 네이티브 생성과 검증 | PHP 패키지와 같은 공개 클래스이며 생성과 검증을 네이티브 코드에서 실행 |
+| `packages/validator-*` | 데이터와 명세 검증 | 기존 언어별 검증 규칙 구현과 공용 사례 |
+
+각 서버 생성기는 해당 언어의 HTTP 프로세스에서 실행할 수 있는
+라이브러리입니다. CLI 어댑터는 검사와 예제의 진입점이며 라이브러리 구현이
+아닙니다. Go 렌더링은 실행 시 Rust, PHP, Node에 의존하지 않습니다.
+PHP 렌더링은 네이티브 확장을 필수로 요구하지 않습니다. Rust 렌더링은
+PHP 호스트를 요구하지 않습니다.
+
+## API 동작
+
+이름은 각 언어의 명명 규칙을 따릅니다. 동작과 결과는 같으며 필드 명세에
+런타임 선택자를 추가하지 않습니다.
+
+| 동작 | JavaScript | PHP 라이브러리 | Go | Rust | PHP 네이티브 |
+| --- | --- | --- | --- | --- | --- |
+| 구조 컴파일 | `compileForm` | `Generator::compileForm` | `CompileForm` | `compile_form` | `Generator::compileForm` |
+| 데이터 바인딩 | `bindForm` | `Generator::bindForm` | `BindForm` | `bind_form` | `Generator::bindForm` |
+| 인스턴스 생성 | `createForm` | `new Form` | `NewForm` | `Form::new` | `new Form` |
+| 데이터 교체 | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
+| 데이터 조회 | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
+| 폼 렌더링 | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
+| 목록 렌더링 | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
+| 검증 | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
+
+두 PHP 구현 모두 `CRUDUI\Generator`, `CRUDUI\Validator`,
+`CRUDUI\Form` 클래스를 사용합니다.
+[PHP API 계약](php-extension.ko.md)은 공용 메서드와 로딩 순서를
+정의합니다. 활성화된 확장은 이 클래스를 등록합니다. 확장이 없으면
+Composer가 PHP 클래스를 자동 로드합니다. 예제는 두 설정에서 같은 호출을
+사용하며 비교 검사는 별도 PHP 프로세스에서 클래스 구현과 메서드
+시그니처를 확인합니다.
+
 ## 공용 계약과 책임 분리
 
 모든 런타임은 같은 [스키마](schema.ko.md), [표현식](expressions.ko.md),

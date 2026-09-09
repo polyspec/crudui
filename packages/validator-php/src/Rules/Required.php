@@ -28,6 +28,7 @@ class Required implements RuleInterface
             return trim($value) !== '';
         }
 
+        if ($value instanceof \stdClass) $value = (array) $value;
         if (is_array($value)) {
             // For file uploads, check if file was uploaded
             if (isset($value['tmp_name']) && isset($value['error'])) {

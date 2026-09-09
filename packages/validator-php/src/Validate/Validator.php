@@ -203,10 +203,11 @@ final class Validator
         array &$errors,
     ): void {
         foreach ($properties as $propertyKey => $field) {
-            if (!is_array($field)) {
+            if (!is_array($field) && !$field instanceof \stdClass) {
                 continue;
             }
 
+            $field = (array) $field;
             $fieldName = (string) $propertyKey;
             $isMultiple = $this->isMultiple($field);
             $fieldPath = [...$currentPath, $fieldName];
@@ -221,15 +222,14 @@ final class Validator
             if (($field['type'] ?? null) === 'group' && $childProps !== null) {
                 $isArrayMultiple = $isMultiple && is_array($fieldValue) && array_is_list($fieldValue);
                 $isObjectMultiple = $isMultiple
-                    && is_array($fieldValue)
-                    && !array_is_list($fieldValue);
+                    && ($fieldValue instanceof \stdClass || (is_array($fieldValue) && !array_is_list($fieldValue)));
 
                 if ($isArrayMultiple) {
                     // Repeatable group: each index is items.i.
                     foreach ($fieldValue as $i => $itemData) {
                         $this->validateProperties(
                             $childProps,
-                            is_array($itemData) ? $itemData : [],
+                            is_array($itemData) || $itemData instanceof \stdClass ? (array) $itemData : [],
                             [...$fieldPath, (string) $i],
                             $allData,
                             $errors,
@@ -240,13 +240,13 @@ final class Validator
                     // Object-key multiple: deterministic sorted-key traversal so
                     // the first reported error matches JS/Go/Rust (their maps
                     // carry no insertion order). Keys (items.__uid__) preserved.
-                    $keys = array_keys($fieldValue);
+                    $keys = array_keys((array) $fieldValue);
                     sort($keys);
                     foreach ($keys as $key) {
-                        $itemData = $fieldValue[$key];
+                        $itemData = ((array) $fieldValue)[$key];
                         $this->validateProperties(
                             $childProps,
-                            is_array($itemData) ? $itemData : [],
+                            is_array($itemData) || $itemData instanceof \stdClass ? (array) $itemData : [],
                             [...$fieldPath, (string) $key],
                             $allData,
                             $errors,
@@ -257,7 +257,7 @@ final class Validator
                     // Single nested group.
                     $this->validateProperties(
                         $childProps,
-                        is_array($fieldValue) ? $fieldValue : [],
+                        is_array($fieldValue) || $fieldValue instanceof \stdClass ? (array) $fieldValue : [],
                         $fieldPath,
                         $allData,
                         $errors,
@@ -265,7 +265,7 @@ final class Validator
                     $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
                 }
                 // multiple set but data shape mismatched: skip (legacy parity).
-            } elseif ($isMultiple && is_array($fieldValue)) {
+            } elseif ($isMultiple && (is_array($fieldValue) || $fieldValue instanceof \stdClass)) {
                 // Non-group multiple field: array-level rules on the whole array,
                 // the rest on each element.
                 $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
@@ -279,7 +279,7 @@ final class Validator
     private function isMultiple(array $field): bool
     {
         $m = $field['multiple'] ?? null;
-        return $m === true || (is_array($m) && !array_is_list($m));
+        return $m === true || $m instanceof \stdClass || (is_array($m) && !array_is_list($m));
     }
 
     /**
@@ -290,8 +290,8 @@ final class Validator
     private function childProperties(array $field): ?array
     {
         $props = $field['properties'] ?? null;
-        if (is_array($props) && !array_is_list($props)) {
-            return $props;
+        if ($props instanceof \stdClass || (is_array($props) && !array_is_list($props))) {
+            return (array) $props;
         }
         return null;
     }
@@ -310,7 +310,7 @@ final class Validator
      */
     private function validateMultipleFieldRules(
         array $field,
-        array $values,
+        array|\stdClass $values,
         array $fieldPath,
         array $allData,
         array &$errors,
@@ -333,7 +333,8 @@ final class Validator
         }
 
         // 2. Element-level rules per index (items.i).
-        if (!array_is_list($values)) {
+        if ($values instanceof \stdClass || !array_is_list($values)) {
+            $values = (array) $values;
             ksort($values, SORT_STRING);
         }
         foreach ($values as $i => $value) {
@@ -475,7 +476,7 @@ final class Validator
         // instances do NOT skip empty themselves. required always fires;
         // mincount/maxcount on an array fire on the empty array too.
         if ($ruleName !== 'required' && $this->isEmpty($value)) {
-            $isCountRuleOnArray = is_array($value)
+            $isCountRuleOnArray = (is_array($value) || $value instanceof \stdClass)
                 && in_array($ruleName, ['mincount', 'maxcount'], true);
             if (!$isCountRuleOnArray) {
                 return null;
@@ -539,7 +540,7 @@ final class Validator
         }
 
         // ConditionMap: a plain object of expression→value, declaration-ordered.
-        if (is_array($ruleValue) && !array_is_list($ruleValue) && $ruleValue !== []) {
+        if ($ruleValue instanceof \stdClass || (is_array($ruleValue) && !array_is_list($ruleValue) && $ruleValue !== [])) {
             return ConditionMap::resolve($ruleValue, $allData, $path);
         }
 
@@ -622,7 +623,7 @@ final class Validator
 
         $isFilterCondition = is_string($ruleParam) && $this->isConditionExpression($ruleParam);
 
-        if (is_array($value)) {
+        if (is_array($value) || $value instanceof \stdClass) {
             // Array-level: the field value is the array itself.
             $valuesToCheck = [];
             if ($isFilterCondition) {
@@ -637,8 +638,8 @@ final class Validator
                 }
             } elseif (is_string($ruleParam)) {
                 foreach ($value as $item) {
-                    if (is_array($item)) {
-                        $fv = $item[$ruleParam] ?? null;
+                    if (is_array($item) || $item instanceof \stdClass) {
+                        $fv = ((array) $item)[$ruleParam] ?? null;
                         if (!$this->isEmpty($fv)) {
                             $valuesToCheck[] = $fv;
                         }
@@ -677,7 +678,7 @@ final class Validator
             foreach ($container as $i => $item) {
                 $entries[] = [(string) $i, $item];
             }
-        } elseif (is_array($container)) {
+        } elseif (is_array($container) || $container instanceof \stdClass) {
             foreach ($container as $k => $item) {
                 $entries[] = [(string) $k, $item];
             }
@@ -701,7 +702,7 @@ final class Validator
                 // Only earlier siblings (so the error lands on the later dup).
                 break;
             }
-            if (!is_array($item)) {
+            if (!is_array($item) && !$item instanceof \stdClass) {
                 continue;
             }
             if ($isFilterCondition) {
@@ -710,7 +711,7 @@ final class Validator
                     continue;
                 }
             }
-            $siblingValue = $item[$fieldName] ?? null;
+            $siblingValue = ((array) $item)[$fieldName] ?? null;
             if ($this->isEmpty($siblingValue)) {
                 continue;
             }
@@ -755,7 +756,7 @@ final class Validator
     /** Build a comparison key: objects/arrays compare by JSON, scalars by value. */
     private function comparisonKey(mixed $value): mixed
     {
-        if (is_array($value)) {
+        if (is_array($value) || $value instanceof \stdClass) {
             return json_encode($value);
         }
         return $value;
@@ -768,14 +769,7 @@ final class Validator
      */
     private function isConditionExpression(string $value): bool
     {
-        $trimmed = trim($value);
-        if ($trimmed === '') {
-            return false;
-        }
-        return str_starts_with($trimmed, '.')
-            || preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*\./', $trimmed) === 1
-            || preg_match('/\s+(==|!=|>|>=|<|<=|&&|\|\||in|not\s+in)\s+/', $trimmed) === 1
-            || preg_match('/\?.*:/', $trimmed) === 1;
+        return Expression::isConditionExpression($value);
     }
 
     // =========================================================================
@@ -793,8 +787,8 @@ final class Validator
         if ($slot === false || $slot === true || $slot === null) {
             return null;
         }
-        if (is_array($slot) && !array_is_list($slot) && $slot !== []) {
-            return $slot;
+        if ($slot instanceof \stdClass || (is_array($slot) && !array_is_list($slot) && $slot !== [])) {
+            return (array) $slot;
         }
         return null;
     }
@@ -807,9 +801,9 @@ final class Validator
     private function fieldMessages(array $field): ?array
     {
         $m = $field['messages'] ?? null;
-        if (is_array($m) && !array_is_list($m)) {
+        if ($m instanceof \stdClass || (is_array($m) && !array_is_list($m))) {
             /** @var array<string, string> $m */
-            return $m;
+            return (array) $m;
         }
         return null;
     }
@@ -827,6 +821,7 @@ final class Validator
             ?? self::DEFAULT_MESSAGES[$ruleName]
             ?? 'Validation failed.';
 
+        if ($message instanceof \stdClass) $message = (array) $message;
         if (is_array($message)) {
             $message = $message['en'] ?? $message['ko'] ?? (reset($message) ?: 'Validation failed.');
         }
@@ -851,7 +846,7 @@ final class Validator
         if ($value === false || $value === null) {
             return '';
         }
-        if (is_array($value)) {
+        if (is_array($value) || $value instanceof \stdClass) {
             return '';
         }
         return (string) $value;
@@ -907,10 +902,10 @@ final class Validator
     {
         $current = $data;
         foreach ($path as $segment) {
-            if (!is_array($current) || !array_key_exists($segment, $current)) {
+            if ((!is_array($current) && !$current instanceof \stdClass) || !array_key_exists($segment, (array) $current)) {
                 return null;
             }
-            $current = $current[$segment];
+            $current = ((array) $current)[$segment];
         }
         return $current;
     }
@@ -927,8 +922,8 @@ final class Validator
         if (is_string($value)) {
             return trim($value) === '';
         }
-        if (is_array($value)) {
-            return count($value) === 0;
+        if (is_array($value) || $value instanceof \stdClass) {
+            return count((array) $value) === 0;
         }
         return false;
     }

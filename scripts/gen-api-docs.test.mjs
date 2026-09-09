@@ -11,7 +11,7 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
       const root = mkdtempSync(join(tmpdir(), 'crudui-api-docs-'));
       try {
         for (const path of ['scripts', 'bin', 'node_modules/.bin', 'tools/bin',
-          'packages/validator-go', 'packages/validator-rust']) {
+          'packages/validator-go', 'packages/validator-rust', 'packages/generator-go', 'packages/generator-rust']) {
           mkdirSync(join(root, path), { recursive: true });
         }
         copyFileSync(new URL('./gen-api-docs.mjs', import.meta.url), join(root, 'scripts/gen-api-docs.mjs'));
@@ -22,7 +22,7 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
         }
         writeFileSync(join(root, 'node_modules/.bin/typedoc'), script, { mode: 0o755 });
         const result = spawnSync(process.execPath, [join(root, 'scripts/gen-api-docs.mjs'), target], {
-          encoding: 'utf8', env: { ...process.env, PATH: join(root, 'bin') },
+          encoding: 'utf8', env: { ...process.env, PATH: join(root, 'bin'), GO: 'go', CARGO: 'cargo', PHP: 'php' },
         });
         assert.notEqual(result.status, 0);
         assert.ok(!result.stdout.includes(': complete'));

@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Native form generators and common PHP APIs
+
+PHP, Go and Rust provide form compilation, data binding, editable instances,
+form and list HTML, CLI adapters and HTTP examples. The CRUDUI PHP extension
+registers the same Generator, Form and Validator classes as the PHP packages.
+Its C binding converts PHP values directly to statically linked Rust engines.
+The implementations share ordered value conversion, UTC date rendering, CSS
+declaration handling and widget control contracts.
+
+The shared suite passed 153 checks for each of five implementations and one
+input-hash check: 766 passed, zero failed. PHP API checks passed 352 cases in each
+of three process configurations; PHP and native validation passed 94 cases each.
+Form package tests, packaged consumer checks and documentation checks passed.
+The Linux image built and loaded the module after selecting a non-root user.
+Its full test command and the new four-server browser integration remain pending.
+No package publication or comparison deployment was performed.
+
 ## 2026-09-09 — Validator CLI responses
 
 The comparison console checks process exit status, JSON response types, all

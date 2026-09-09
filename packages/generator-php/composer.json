@@ -1,0 +1,39 @@
+{
+    "name": "crudui/generator",
+    "description": "Form templates, editable data and HTML rendering for CRUDUI",
+    "type": "library",
+    "license": "MIT",
+    "version": "0.0.1",
+    "require": {
+        "php": "^8.2",
+        "php-64bit": "^8.2",
+        "ext-mbstring": "*",
+        "crudui/validator": "0.0.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "CRUDUI\\Generator\\": "src/Internal/",
+            "CRUDUI\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CRUDUI\\Generator\\Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../validator-php",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "scripts": {
+        "test": "phpunit"
+    }
+}
