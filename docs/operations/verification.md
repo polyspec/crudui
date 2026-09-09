@@ -28,8 +28,10 @@ containerctl up
 ```
 
 The preserved workspace includes its operation guide at
-`docs/operations/form-comparison.md`. Follow that guide to run PHP, PHP extension,
+`docs/operations/form-comparison.md`. Follow that guide to run PHP, PHP with native JSON parsing,
 Go and Rust against React, Vue and Svelte using both form and JSON transmission.
+The native JSON target still uses PHP validation. It does not verify the
+[CRUDUI extension](../spec/php-extension.md).
 Its reports retain individual failures and source metadata.
 External results do not verify subsequent source changes automatically.
 
