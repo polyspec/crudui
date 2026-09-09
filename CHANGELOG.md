@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — End-date field references
+
+TypeScript, PHP and Rust preserve `enddate` field-reference parameters, matching
+Go. Dotted start-date paths no longer become boolean conditions that skip date
+comparison. TypeScript and PHP use the common resolver for relative references.
+The earlier-end-date regressions failed before the fixes. Seven shared cases
+verify absolute, sibling and parent references and dates before, equal to and
+after the referenced date. TypeScript
+passed 1,606 tests, PHP passed 1,418 tests, and Go and Rust package suites passed.
+
+The current rule contract is maintained in English and Korean under `docs/spec/`.
+It replaces the mixed current/legacy rule document and separates registration,
+parameter evaluation and verification evidence.
+
 ## 2026-09-09 — Legacy comparison correctness
 
 The comparison runner loads the explicit JavaScript legacy entry and rebuilds

@@ -91,7 +91,7 @@ The CLI static check also rejects unresolved composition. It does not treat
 checking an uncomposed field as successful reference resolution.
 
 Validators inspect `validate` rules and current data. The
-[validation rules](../VALIDATION-RULES.md) describe rule semantics. Shared cases in
+[validation rules](validation-rules.md) describe rule semantics. Shared cases in
 `tests/fixtures/expr`, `tests/fixtures/compose` and `tests/fixtures/validate`
 compare the TypeScript, PHP, Go and Rust implementations. SSR comparisons and
 mounted DOM tests verify different behavior and are recorded separately.

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\PathResolver;
+
 /**
  * End Date validation rule.
  * Validates that an end date is greater than or equal to a start date field.
@@ -27,7 +29,7 @@ class EndDate implements RuleInterface
 
         // Get the start date field path
         $startDatePath = (string)$param;
-        $startDateValue = $this->getValueByPath($allData, $startDatePath, $path);
+        $startDateValue = (new PathResolver())->resolveExpression($startDatePath, $path, $allData);
 
         // Skip if start date is empty
         if ($startDateValue === null || $startDateValue === '') {
@@ -64,46 +66,6 @@ class EndDate implements RuleInterface
 
         $timestamp = strtotime($stringValue);
         return $timestamp === false ? null : $timestamp;
-    }
-
-    /**
-     * Get value from form data by path.
-     */
-    private function getValueByPath(array $data, string $targetPath, string $currentPath): mixed
-    {
-        if (str_starts_with($targetPath, '.')) {
-            $currentParts = explode('.', $currentPath);
-            array_pop($currentParts);
-
-            $relativeParts = explode('.', $targetPath);
-
-            foreach ($relativeParts as $part) {
-                if ($part === '') {
-                    if (!empty($currentParts)) {
-                        array_pop($currentParts);
-                    }
-                } else {
-                    $currentParts[] = $part;
-                }
-            }
-
-            $targetPath = implode('.', $currentParts);
-        }
-
-        $segments = explode('.', $targetPath);
-        $current = $data;
-
-        foreach ($segments as $segment) {
-            if ($segment === '') {
-                continue;
-            }
-            if (!is_array($current) || !array_key_exists($segment, $current)) {
-                return null;
-            }
-            $current = $current[$segment];
-        }
-
-        return $current;
     }
 
     /**
