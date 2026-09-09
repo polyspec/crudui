@@ -6,11 +6,13 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | validator-responses | Validator process status and complete response checks | implemented | passed | not-deployed | [Response tests](../examples/cross-check-console/server/validate-response.test.mjs) |
-| php-api | Common PHP and extension classes with identical methods | in-progress | pending | not-deployed | [PHP API contract](spec/php-extension.md) |
-| generator-php | PHP form generation and SSR | in-progress | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
-| generator-go | Go form generation and SSR | in-progress | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
-| generator-rust | Rust form generation and SSR | in-progress | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
-| php-extension | Native PHP form generation and validation | in-progress | pending | not-deployed | [Extension contract](spec/php-extension.md) |
+| php-api | Common PHP and extension classes with identical methods | implemented | passed | not-deployed | [PHP API contract](spec/php-extension.md) |
+| generator-php | PHP form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| generator-go | Go form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| generator-rust | Rust form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| php-extension | Native PHP form generation and validation | implemented | passed | not-deployed | [Extension contract](spec/php-extension.md) |
+| server-template-browser | Current keyed browser instances from serialized server-compiled templates | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
+| native-generation-integration | Current four-server generation, SSR, transport, persistence and browser integration | in-progress | pending | not-deployed | [Form verification procedure](operations/verification.md) |
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
 | legacy-comparison | Legacy execution, fixture expectations and four-language agreement | implemented | passed | not-deployed | [Testing procedure](operations/testing.md) |
@@ -42,7 +44,8 @@ parsing, serialization and reconstruction; current runtime integration is pendin
 The PHP, Go and Rust generators and the common PHP extension API are implemented.
 The shared generator report passed 153 cases in each of JavaScript, PHP, Go,
 Rust and native PHP, plus one unchanged-input check: 766 passed, zero failed.
-All 640 recorded input files matched the working source after verification.
+The report recorded 640 inputs and confirmed that they did not change during the
+run.
 PHP API checks passed 352 cases in each of three configurations; validation
 passed 94 cases in each PHP implementation.
 
@@ -51,11 +54,25 @@ checks and six HTML normalizer checks. Packaged exports, consumer types,
 production builds and three-framework consumer browser checks passed. The three
 Chromium widget and timezone checks and `make docs-check` passed.
 
-The non-root Linux image built and loaded the extension. Its full test command
-has not run. The new four-server generation endpoints and browser template
-integration still require complete HTTP, submission, persistence and browser
-verification. The feature rows remain pending for that acceptance scope.
-No new comparison image or package has been published.
+The full `make test-native` command passed in a non-root Linux arm64 image built
+from the current source snapshot. It rebuilt and loaded the extension, ran the
+PHP, Go and Rust package tests, repeated the PHP API and validation checks, passed
+all 19 protocol checks and all three Chromium widget and timezone checks, and
+produced a complete 766/766 generator report. The image index digest is
+`sha256:0612f157880aa4bd9ff05a64dc6044969d0736117164cafec466e45d53c64c02`;
+the report and run-log SHA-256 values are respectively
+`3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442` and
+`378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`.
+
+In the external comparison checkout, browser use of serialized server-compiled
+templates is implemented. Focused local verification passed all seven
+server-generation unit tests, the complete Go server package, all four Rust server
+tests and production builds for 12 React, Vue and Svelte frame combinations.
+
+Those focused results do not establish candidate-image integration. Building and
+starting the new comparison image and completing the four-server HTTP, submission,
+persistence and browser verification remain pending. No new comparison image or
+package has been published.
 
 ## Earlier validation and package verification
 
@@ -63,7 +80,8 @@ All 116 cross-check console tests passed, including 35 process-response checks
 and actual JavaScript, PHP, Go and Rust CLI execution. Eight initial regression
 cases failed before the response parser fix. Missing fields, invalid types,
 contradictory results and failed processes now fail comparison. These results
-verify the console parser and current CLIs, not the planned native generators.
+verify the console parser and the CLIs at that revision, not the later native
+generator implementations.
 
 The validator package build and all 1,606 tests passed after updating internal
 legacy translation identifiers.
@@ -90,13 +108,13 @@ schema annotation changes preserved the parsed validation rules. Documentation
 checks pass for the current documents. These checks do not establish a published
 package or a completed release.
 
-## Form comparison results
+## Retained form comparison results
 
-The external environment at `https://crudui.test/` uses library `dfe70a6`,
+The retained external environment at `https://crudui.test/` uses library `dfe70a6`,
 with PHP, PHP with native JSON parsing, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
-Both PHP targets use the PHP validator. These results do not verify native
-CRUDUI form generation or validation.
+Both PHP targets use the PHP validator. These retained results do not verify the
+current native CRUDUI form generation or validation integration.
 
 | Server | Verified revision | Scenarios | Interactions | Page errors |
 | --- | --- | --- | --- | --- |

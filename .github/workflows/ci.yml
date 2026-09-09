@@ -190,7 +190,9 @@ jobs:
           php-version: '8.5'
           tools: composer
       - name: Install PHP dependencies
-        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+        run: |
+          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -391,6 +393,29 @@ jobs:
           cache: npm
       - run: npm i -g npm@11.17.0 && npm ci
       - run: npm run test:forms
+
+  package-browser:
+    name: Packages, public builds and browser inspector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install workspace deps and Puppeteer Chromium
+        run: npm i -g npm@11.17.0 && npm ci
+      - name: Pack and test package consumers
+        run: npm run test:packages
+      - name: Test public package exports and types
+        run: npm run test:build
+      - name: Test reproducible package builds
+        run: npm run test:build:repeat
+      - name: Test form inspector units and browser CSS
+        run: |
+          node --test tests/form-inspector/form-snapshot.test.mjs
+          node tests/form-inspector/browser.mjs
 
   native-generators:
     name: Native generation and PHP API (${{ matrix.php }})

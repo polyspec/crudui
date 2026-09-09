@@ -6,11 +6,13 @@
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | validator-responses | 검증기 프로세스 상태와 완전한 응답 검사 | implemented | passed | not-deployed | [응답 검사](../examples/cross-check-console/server/validate-response.test.mjs) |
-| php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | in-progress | pending | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
-| generator-php | PHP 폼 생성과 SSR | in-progress | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
-| generator-go | Go 폼 생성과 SSR | in-progress | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
-| generator-rust | Rust 폼 생성과 SSR | in-progress | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
-| php-extension | PHP 네이티브 폼 생성과 검증 | in-progress | pending | not-deployed | [확장 계약](spec/php-extension.ko.md) |
+| php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | implemented | passed | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
+| generator-php | PHP 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| generator-go | Go 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| generator-rust | Rust 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](spec/php-extension.ko.md) |
+| server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
+| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | in-progress | pending | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | legacy-comparison | 구형 실행·사례 기대값·네 언어 일치 | implemented | passed | not-deployed | [테스트 절차](operations/testing.ko.md) |
@@ -41,8 +43,8 @@
 
 PHP·Go·Rust 생성기와 공통 PHP 확장 API를 구현했습니다. 공통 생성기 보고서는
 JavaScript·PHP·Go·Rust·네이티브 PHP에서 각각 153개와 입력 불변 검사 1개를
-통과하여 총 766개 통과, 실패 0개입니다. 검증 후 기록된 입력 파일 640개가
-모두 작업 소스와 일치했습니다. PHP API는 세 구성에서 각각 352개,
+통과하여 총 766개 통과, 실패 0개입니다. 보고서는 입력 640개를 기록하고
+실행 중 변경되지 않았음을 확인했습니다. PHP API는 세 구성에서 각각 352개,
 검증은 두 PHP 구현에서 각각 94개를 통과했습니다.
 
 폼 검사는 코어 86개, React 701개, Vue 344개, Svelte 345개, Svelte 마운트
@@ -50,10 +52,24 @@ JavaScript·PHP·Go·Rust·네이티브 PHP에서 각각 153개와 입력 불변
 프로덕션 빌드와 세 프레임워크 소비자 브라우저 검사도 통과했습니다.
 Chromium 위젯·시간대 검사 3개와 `make docs-check`가 통과했습니다.
 
-일반 사용자 Linux 이미지는 빌드와 확장 로딩에 성공했습니다. 전체 검사 명령은
-아직 실행하지 않았습니다. 새 네 서버 생성 엔드포인트와 브라우저 템플릿 연동은
-HTTP·전송·저장·브라우저 전체 검증이 필요합니다. 기능 표는 해당 인수 범위에
-대해 pending을 유지합니다. 새 비교 이미지나 패키지는 게시하지 않았습니다.
+현재 소스 스냅샷으로 만든 일반 사용자 Linux arm64 이미지에서 전체
+`make test-native` 명령이 통과했습니다. 확장을 다시 빌드하고 로드한 뒤
+PHP·Go·Rust 패키지 검사, PHP API·검증 검사, 프로토콜 검사 19개, Chromium
+위젯·시간대 검사 3개를 실행했고 생성기 보고서도 766/766으로 완료했습니다.
+이미지 index digest는
+`sha256:0612f157880aa4bd9ff05a64dc6044969d0736117164cafec466e45d53c64c02`,
+보고서와 실행 로그 SHA-256은 각각
+`3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442`,
+`378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`입니다.
+
+외부 비교 체크아웃에는 서버가 컴파일한 직렬화 템플릿을 사용하는 브라우저 연결을
+구현했습니다. 관련 로컬 검사는 server-generation 단위 검사 7개, Go 서버 패키지
+전체, Rust 서버 검사 4개와 React·Vue·Svelte 프레임 조합 production build 12개가
+모두 통과했습니다.
+
+이 집중 검사는 후보 이미지 통합을 검증하지 않습니다. 새 비교 이미지를 빌드·시작하고
+네 서버의 HTTP·전송·저장·브라우저 전체 검증을 완료하는 작업은 pending입니다. 새 비교
+이미지나 패키지는 게시하지 않았습니다.
 
 ## 이전 검증기와 패키지 검증
 
@@ -61,7 +77,7 @@ HTTP·전송·저장·브라우저 전체 검증이 필요합니다. 기능 표�
 비교 콘솔 검사 116개가 모두 통과했습니다. 최초 회귀 사례 8개는 응답 파서
 수정 전에 실패했습니다. 필드 누락, 잘못된 타입, 모순된 결과, 프로세스
 실패는 이제 비교 실패로 처리합니다. 이 결과는 콘솔 파서와 현재 CLI를
-검증하며 계획된 네이티브 생성기를 검증하지 않습니다.
+검증하며 이후 구현한 네이티브 생성기는 검증하지 않습니다.
 
 구형 스펙 변환의 내부 식별자를 수정한 뒤 validator 패키지 빌드와 검사
 1,606개가 모두 통과했습니다.
@@ -87,14 +103,14 @@ Git에서 제외합니다.
 설명 변경은 파싱한 검증 규칙을 유지했습니다. 현재 문서의 문서 검사도
 통과합니다. 이 검사는 패키지 게시나 릴리스 완료를 증명하지 않습니다.
 
-## 폼 비교 결과
+## 보존 폼 비교 결과
 
-외부 `https://crudui.test/` 환경은 라이브러리 `dfe70a6`을 사용하며
+보존 외부 `https://crudui.test/` 환경은 라이브러리 `dfe70a6`을 사용하며
 PHP·네이티브 JSON 파싱을 사용하는 PHP·Go·Rust를 독립적인 HTTP 대상으로 실행합니다.
 HTTP 검사 240개와 PHP 처리 모드 검사가 모두 통과했습니다.
 
-두 PHP 대상은 모두 PHP 검증기를 사용합니다. 이 결과는 CRUDUI 네이티브
-폼 생성이나 검증을 증명하지 않습니다.
+두 PHP 대상은 모두 PHP 검증기를 사용합니다. 이 보존 결과는 현재 CRUDUI
+네이티브 폼 생성이나 검증 통합을 증명하지 않습니다.
 
 | 서버 | 검증 리비전 | 시나리오 | 상호작용 | 페이지 오류 |
 | --- | --- | --- | --- | --- |

@@ -2,6 +2,31 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — CI package and documentation gates
+
+The documentation CI job installs both PHP package dependency graphs before
+running `make docs-check`. A package and browser job packs the five JavaScript
+packages into an isolated consumer, verifies public exports, declarations and
+styles, compares repeated build outputs, and runs the form inspector unit and
+Chromium CSS checks.
+
+The package consumer, public build, reproducible build and form inspector checks
+passed locally. Native PHP output through the three framework browsers remains a
+separate comparison-environment verification and was not established by this CI
+change. No remote CI run or deployment was performed.
+
+## 2026-09-09 — Current and retained comparison documentation
+
+The feature status now separates implemented native packages from the pending
+four-server integration. The verification procedure requires an explicit library
+path and commit, distinguishes the current PHP, PHP extension, Go and Rust targets
+from retained comparison modes, and documents the two native modules, generation
+checks and SSR routes. Browser use of serialized server-compiled templates is
+implemented; seven focused unit tests, the complete Go server package, four Rust
+server tests and 12 React, Vue and Svelte frame production builds passed locally.
+The candidate image's complete four-server HTTP, browser and storage verification
+remains pending and not deployed. The retained running image was not replaced.
+
 ## 2026-09-09 — OrderedJSON implementation submodules
 
 The processor checker uses the pinned OrderedJSON common repository and all five
@@ -26,9 +51,20 @@ The shared suite passed 153 checks for each of five implementations and one
 input-hash check: 766 passed, zero failed. PHP API checks passed 352 cases in each
 of three process configurations; PHP and native validation passed 94 cases each.
 Form package tests, packaged consumer checks and documentation checks passed.
-The Linux image built and loaded the module after selecting a non-root user.
-Its full test command and the new four-server browser integration remain pending.
-No package publication or comparison deployment was performed.
+
+The full `make test-native` command passed in a new non-root Linux arm64 image
+built from the current source snapshot. It rebuilt and loaded the extension, ran
+the PHP, Go and Rust package tests, repeated the PHP API and validation checks,
+passed all 19 protocol checks and all three Chromium widget and timezone checks,
+and produced another complete 766/766 generator report. The image index digest is
+`sha256:0612f157880aa4bd9ff05a64dc6044969d0736117164cafec466e45d53c64c02`;
+the report SHA-256 is
+`3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442`
+and the run-log SHA-256 is
+`378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`.
+This establishes native package verification, not the separate four-server
+comparison integration. No package publication or comparison deployment was
+performed.
 
 ## 2026-09-09 — Validator CLI responses
 
