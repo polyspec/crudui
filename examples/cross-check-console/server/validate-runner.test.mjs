@@ -33,7 +33,7 @@ function env(lang, { valid = false, errors = [], loadError = null } = {}) {
   return { lang, ok: true, valid, errors, ms: 1, loadError };
 }
 
-/** A 5-field error record (the canonical normErrors shape). */
+/** A complete validation error record. */
 function err({ path = 'email', field = 'email', rule = 'required', message = 'This field is required.', value = '' } = {}) {
   return { path, field, rule, message, value };
 }
@@ -55,8 +55,7 @@ describe('compareIdempotency — agreement', () => {
   });
 
   test('f64-vs-int value (rust 5.0 vs js/php/go 5) collapses → still idempotent:true', () => {
-    // false-mismatch regression lock: normValue collapses 5.0→5 upstream, so a
-    // numeric value that serializes as f64 in Rust must NOT split the signature.
+    // JSON parsing represents 5 and 5.0 as the same JavaScript number.
     const numErr = (v) => err({ rule: 'min', message: 'too small', value: v });
     const results = [
       env('js', { errors: [numErr(5)] }),
