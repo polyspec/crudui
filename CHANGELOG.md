@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Dependency update procedure
+
+Scheduled dependency update pull requests are disabled. Dependency updates are
+prepared locally and include the applicable package and documentation checks.
+`make docs-check` passed.
+
 ## 2026-09-09 — Comparison environment verification
 
 All four HTTP targets passed 120 current browser scenarios and 30 current
