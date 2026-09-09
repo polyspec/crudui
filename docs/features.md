@@ -5,6 +5,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
+| validator-responses | Validator process status and complete response checks | implemented | passed | not-deployed | [Response tests](../examples/cross-check-console/server/validate-response.test.mjs) |
 | php-api | Common PHP and extension classes with identical methods | not-started | pending | not-deployed | [PHP API contract](spec/php-extension.md) |
 | generator-php | PHP form generation and SSR | not-started | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | generator-go | Go form generation and SSR | not-started | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
@@ -33,6 +34,12 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../tests/ordered-json/check.py) |
 
 ## Current verification
+
+All 116 cross-check console tests passed, including 35 process-response checks
+and actual JavaScript, PHP, Go and Rust CLI execution. Eight initial regression
+cases failed before the response parser fix. Missing fields, invalid types,
+contradictory results and failed processes now fail comparison. These results
+verify the console parser and current CLIs, not the planned native generators.
 
 The validator package build and all 1,606 tests passed after updating internal
 legacy translation identifiers.
@@ -112,5 +119,5 @@ Retained implementation failures remain in the reports.
 
 TypeScript, Go, Rust and PHP API generation and the strict static site build
 passed. Two complete generations produced identical API documentation, native
-HTML assets and schema output. Eight generator failure tests passed. The console tests
-passed 81 cases and the raw form inspector passed 18 cases.
+HTML assets and schema output. Eight generator failure tests passed, and the raw
+form inspector passed 18 cases.

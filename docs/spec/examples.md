@@ -6,6 +6,21 @@ Current examples use unversioned public APIs. `examples/cross-check-console`
 compares validation and rendering results across implementations. Form usage is
 defined in [form operations](../operations/forms.md).
 
+The console accepts a validator response only when the process terminates with
+the expected exit status and emits a JSON object matching the response contract.
+Data validation uses exit status `0`, boolean `valid` and an `errors` array.
+Each error has string `path`, `field`, `rule` and `message` members and a `value`
+member. `valid` is true exactly when the error array is empty. Missing fields,
+invalid types, contradictory results, process errors and signals fail comparison;
+the console does not fill missing fields or convert invalid values.
+
+Specification load failures are checked separately from data results. The current
+JavaScript and Go CLIs exit with `1`, and Rust exits with `2`, with nonempty
+string `code` and `error` members. The PHP CLI exits with `0` and returns one
+complete error with `valid: false`, `rule: "compose"`, nonempty string `code` and
+`message`, empty `path` and `field`, and `value: null`. A load response with
+another exit status or malformed fields fails comparison.
+
 Historical implementation comparisons run in an independent external workspace.
 That workspace preserves the source commits, container build inputs, HTTP
 applications and verification reports. Package tests do not import its files.
