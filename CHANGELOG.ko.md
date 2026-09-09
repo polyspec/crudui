@@ -2,6 +2,18 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-09 — 런타임 패키지 계약
+
+런타임 계약은 JavaScript, PHP, Go, Rust, PHP 확장의 폼 생성, SSR, 검증
+요구사항을 정의합니다. PHP API 계약은 공통 `CRUDUI\Generator`,
+`CRUDUI\Validator`, `CRUDUI\Form` 클래스, Composer 클래스 로딩보다
+먼저 실행되는 확장 클래스 등록, 동일한 메서드를 명시합니다.
+구현 제안은 패키지, 현재 소스의 지원 범위, 필수 검사를 정리합니다.
+기능 상태는 이 요구사항과 구현된 패키지를 구분합니다.
+
+비교 문서는 네이티브 JSON 파싱과 네이티브 CRUDUI 생성·검증을 구분합니다.
+`make docs-check`가 통과했습니다.
+
 ## 2026-09-09 — 구형 스펙 변환 식별자
 
 내부 변환 변수는 변환된 필드나 스키마 값을 설명합니다.
