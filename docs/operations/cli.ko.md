@@ -3,7 +3,19 @@
 [English](cli.md).
 
 비공개 `@crudui/cli` 워크스페이스는 `describe`, `list-widgets`, `check`,
-`explain`을 제공합니다. `npm ci` 후 저장소 루트에서 실행합니다.
+`explain`을 제공합니다. 명령이나 테스트를 실행하기 전에 저장소 루트에서
+의존성을 설치하고 validator를 빌드합니다.
+
+```sh
+npm ci
+npm run build:validator
+```
+
+CLI는 `tsx`로 실행하며 import한 생성기 모듈은 빌드된 validator 패키지를
+사용합니다. validator 소스를 변경하면 다시 빌드합니다. CI도 같은 순서로
+설치·빌드·테스트를 실행합니다.
+
+저장소 루트에서 명령을 실행합니다.
 
 ```sh
 node --import tsx packages/cli/bin/crudui.mjs describe --json
