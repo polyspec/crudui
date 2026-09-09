@@ -5,6 +5,7 @@
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
+| validator-responses | 검증기 프로세스 상태와 완전한 응답 검사 | implemented | passed | not-deployed | [응답 검사](../examples/cross-check-console/server/validate-response.test.mjs) |
 | php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | not-started | pending | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
 | generator-php | PHP 폼 생성과 SSR | not-started | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-go | Go 폼 생성과 SSR | not-started | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
@@ -33,6 +34,12 @@
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../tests/ordered-json/check.py) |
 
 ## 현재 검증
+
+프로세스 응답 검사 35개와 실제 JavaScript·PHP·Go·Rust CLI 실행을 포함한
+비교 콘솔 검사 116개가 모두 통과했습니다. 최초 회귀 사례 8개는 응답 파서
+수정 전에 실패했습니다. 필드 누락, 잘못된 타입, 모순된 결과, 프로세스
+실패는 이제 비교 실패로 처리합니다. 이 결과는 콘솔 파서와 현재 CLI를
+검증하며 계획된 네이티브 생성기를 검증하지 않습니다.
 
 구형 스펙 변환의 내부 식별자를 수정한 뒤 validator 패키지 빌드와 검사
 1,606개가 모두 통과했습니다.
@@ -109,5 +116,4 @@ Rust 컴파일, PHP API 테스트와 Node HTTP 테스트가 통과했습니다. 
 
 TypeScript·Go·Rust·PHP API 생성과 엄격한 정적 사이트 빌드가 통과했습니다.
 전체 문서를 두 번 생성한 API 문서·네이티브 HTML 자산·스키마 출력은 동일했습니다.
-생성 실패 검사 8개가 통과했습니다. 콘솔 검사 81개와 폼 원문 검사기
-18개가 통과했습니다.
+생성 실패 검사 8개와 폼 원문 검사기 18개가 통과했습니다.

@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Validator CLI responses
+
+The comparison console checks process exit status, JSON response types, all
+five error fields and consistency between validity and errors. It preserves
+returned values instead of filling missing fields or coercing invalid types.
+Specification load failures must match the CLI's documented response and exit
+status. Process failures and malformed responses fail comparison.
+
+Eight initial regressions failed before the fix. All 116 console tests passed,
+including 35 response checks and execution of the four language CLIs.
+`make docs-check` passed. These are local checks; no deployment was performed.
+
 ## 2026-09-09 — Runtime package contracts
 
 The runtime contract defines form generation, SSR and validation requirements
