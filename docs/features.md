@@ -5,6 +5,11 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
+| php-api | Common PHP and extension classes with identical methods | not-started | pending | not-deployed | [PHP API contract](spec/php-extension.md) |
+| generator-php | PHP form generation and SSR | not-started | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| generator-go | Go form generation and SSR | not-started | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| generator-rust | Rust form generation and SSR | in-progress | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| php-extension | Native PHP form generation and validation | not-started | pending | not-deployed | [Extension contract](spec/php-extension.md) |
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
 | legacy-comparison | Legacy execution, fixture expectations and four-language agreement | implemented | passed | not-deployed | [Testing procedure](operations/testing.md) |
@@ -57,13 +62,15 @@ package or a completed release.
 ## Form comparison results
 
 The external environment at `https://crudui.test/` uses library `dfe70a6`,
-with PHP, PHP extension, Go and Rust as separate HTTP targets.
+with PHP, PHP with native JSON parsing, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
+Both PHP targets use the PHP validator. These results do not verify native
+CRUDUI form generation or validation.
 
 | Server | Verified revision | Scenarios | Interactions | Page errors |
 | --- | --- | --- | --- | --- |
 | PHP | `83181c2` | 120/120 passed | 30/30 passed | 0 |
-| PHP extension | `83181c2` | 120/120 passed | 30/30 passed | 0 |
+| PHP with native JSON parsing | `83181c2` | 120/120 passed | 30/30 passed | 0 |
 | Go | `83181c2` | 120/120 passed | 30/30 passed | 0 |
 | Rust | `83181c2` | 120/120 passed | 30/30 passed | 0 |
 
@@ -101,8 +108,7 @@ form pages. Bootstrap product checks also verified nested data.
 Library deployment means package publication; no package is published.
 The comparison application is preserved in an independent external workspace.
 The table records completed browser checks for all four servers at `83181c2`.
-Retained implementation failures remain
-in the reports. Release verification and repository cleanup remain in progress.
+Retained implementation failures remain in the reports.
 
 TypeScript, Go, Rust and PHP API generation and the strict static site build
 passed. Two complete generations produced identical API documentation, native

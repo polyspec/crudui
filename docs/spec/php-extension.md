@@ -1,0 +1,122 @@
+# PHP extension
+
+[한국어](php-extension.ko.md).
+Implementation, verification and publication are recorded in
+[feature status](../features.md).
+
+## Scope and modules
+
+The `crudui` PHP extension provides form generation and validation in the PHP
+process. Its package is `packages/php-ext`, with version `0.0.1`.
+The extension connects PHP values to the form generator and validator; it does
+not implement separate validation rules.
+
+Generation separates structure compilation, data binding, form instances and
+HTML rendering. Generation and validation share composition and expressions.
+Both execute inside the PHP process. The extension does not require a Node
+process, a validation executable or a PHP implementation of either operation.
+The implementation proposal is recorded in
+[native form generators](../plans/native-form-generators.md).
+
+## Public classes and loading
+
+The PHP packages and extension provide the same public classes:
+`CRUDUI\Generator`, `CRUDUI\Validator` and `CRUDUI\Form`.
+Method names, parameter names, types, defaults, return values and exception types
+are identical. Application calls do not change with the implementation.
+
+| Process configuration | Class implementation |
+| --- | --- |
+| The `crudui` extension is loaded | The extension registers the public classes during module initialization. PHP uses these classes without invoking Composer for them. |
+| The extension is not loaded and the PHP packages' Composer autoloader is registered | Composer loads the PHP classes when first used. |
+| Neither implementation is available | Class loading fails. |
+
+Installing the extension file does not load it; PHP must enable it at startup.
+The PHP packages use class autoloading and do not include public class definitions
+through Composer's `files` setting. They do not redeclare loaded native classes.
+There is no runtime dispatcher, class alias or separate native namespace.
+Errors from a loaded implementation are returned or raised by that implementation;
+they do not select another implementation.
+
+Both implementations can be installed together. A process uses one implementation
+of these classes. PHP and native comparisons run in separate processes, explicitly
+disabling or enabling the extension. Each test target checks class provenance with
+reflection; a missing extension fails the native test target.
+
+## Forms
+
+The extension follows the [form runtime contract](form-runtime.md), including
+keyed nested collections, defaults, labels, selection values and display rules.
+
+| API | Operation |
+| --- | --- |
+| `CRUDUI\Generator::compileForm(spec, options)` | Compile a data-independent, JSON-serializable form template. |
+| `CRUDUI\Generator::bindForm(template, data, options)` | Evaluate field models without modifying the template or data. |
+| `new CRUDUI\Form(template, data, options)` | Create an independent form instance. |
+| `$form->setData(data)` | Replace instance data and reevaluate fields. |
+| `$form->getData()` | Return detached submission data. |
+| `$form->addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow` | Apply the row operations defined by the form runtime. |
+| `CRUDUI\Generator::renderForm(form)` | Return the instance's form HTML. |
+| `CRUDUI\Generator::sequenceRowKey(seq)` | Format a saved sequence as a row key. |
+
+Compilation accepts the same `files`, `basepath` and `keyPrefix` inputs as the
+shared compiler. Binding and instances accept `language`, `idPrefix`,
+`keyPrefix` and `unsupported`. Templates have the same JSON structure as
+templates compiled in JavaScript and can be cached before record data exists.
+
+HTML generation covers the supported field types and layout families. It
+preserves the shared names, identifiers, classes, visibility, options and
+control values. The host provides the HTML `form` element and submission.
+Browser editing and events use the browser form runtime. PHP form generation
+does not execute browser scripts or simulate browser events.
+
+For identical template, data, options and row keys, initial data and later
+`setData` calls produce identical HTML and submission data. Repeated injection
+and record restoration preserve this equality. The cached template is unchanged.
+The generated template and submission data also work with React, Vue and Svelte.
+
+List generation follows the same list specification and table/card output
+contract as the JavaScript renderers. `CRUDUI\Generator::renderList` receives a
+list specification, display rows and rendering options.
+
+## Validation and PHP values
+
+`CRUDUI\Validator::validate(spec, data, options)` validates submitted data and returns
+`valid` and `errors`. Error entries preserve `path`, `field`, `rule`, `message`
+and `value`. `CRUDUI\Validator::validateList(spec, options)` checks a list specification.
+Composition inputs use an explicit `files` map and `basepath`.
+Specification and composition failures raise exceptions; they are not validation
+results. Validation uses the shared rules and conformance cases.
+
+PHP scalar types are preserved. Sequential PHP arrays represent JSON arrays;
+associative arrays and `stdClass` represent objects. Use `stdClass` for an
+explicit empty object. An empty array is accepted for an empty root object
+argument, whose type is fixed by its API. Nested values retain their type.
+Returned record objects and cached templates use `stdClass`; lists use arrays.
+Object member order and row keys survive conversion in both directions.
+Unsupported PHP values and recursive structures fail explicitly.
+
+The extension does not introduce hidden identity or ordering fields. Form
+transport and ordered JSON transport submit the same keyed records. JSON parsing
+and serialization are independent of form generation and validation.
+
+## Acceptance criteria
+
+1. Build and load the extension on PHP with its development headers. Run the same
+   application calls with the extension enabled and disabled. With Composer
+   registered in both processes, use PHP reflection to verify native class
+   registration or PHP class autoloading and compare all public method signatures.
+   Also verify native execution without the PHP packages installed.
+2. Run the shared composition, expression, form and validation cases against
+   native code. Compare template and field models with the JavaScript generator.
+3. Generate all supported field layouts and compare parsed HTML, attributes,
+   CSS, visibility and control state with the existing renderers.
+4. Compare initial data, later injection, repeated injection and restoration
+   using exact HTML and data equality within the native renderer.
+5. Test nested copying, insertion, removal, reordering and saved sequence keys,
+   including explicit empty collections and failed atomic operations.
+6. Provide an executable PHP extension example that generates forms, accepts
+   form and ordered JSON requests, validates them and reloads stored records.
+7. Verify React, Vue and Svelte with the native PHP target, including browser
+   input, focus, row operations and both data initialization paths.
+8. Run the checks in CI and record results separately from package publication.

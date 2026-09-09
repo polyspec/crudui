@@ -29,10 +29,13 @@ containerctl up
 ```
 
 보존한 작업 공간은 `docs/operations/form-comparison.md`에 실행 안내를 포함합니다.
-해당 안내에 따라 PHP·PHP 확장·Go·Rust를 React·Vue·Svelte와 폼·JSON 전송으로
+해당 안내에 따라 PHP·네이티브 JSON 파싱을 사용하는 PHP·Go·Rust를 React·Vue·Svelte와 폼·JSON 전송으로
 검사합니다. 보고서는 개별 실패와 소스 메타데이터를 유지합니다. 현재 구현의
 성공은 과거 구현의 결과를 변경하지 않습니다. 외부 결과가 이후 소스 변경을
 자동으로 검증하지는 않습니다.
+
+네이티브 JSON 대상도 PHP 검증기를 사용합니다. 이 대상은
+[CRUDUI 확장](../spec/php-extension.ko.md)을 검증하지 않습니다.
 
 `containerctl up`은 시작 준비 검사와 HTTPS 경로 적용이 완료된 후 반환합니다.
 같은 설정으로 다시 실행하고 컨테이너 검사 결과·프록시·인증서·저장 파일 해시·
