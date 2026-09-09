@@ -25,7 +25,7 @@ The template remains unchanged. `getData()` returns detached submission data.
 
 The template and browser HTML, CSS and JavaScript can be served as static files.
 The browser can mount a form before requesting record data; server-side rendering
-is not required. For the same template, record and language, creating a session
+is not required. For the same template, record and language, creating a instance
 with data and injecting that data after mounting must produce identical form
 HTML, classes, computed styles, visibility, control state and submitted fields.
 Repeated injection of the same data must preserve that result. The same user
@@ -55,12 +55,12 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 delimiters. The runtime never decides whether a row is persisted by inspecting
 the key. The server provides the correspondence after saving.
 
-Sessions preserve nonnumeric object key insertion order in memory. Native form
+Instances preserve nonnumeric object key insertion order in memory. Native form
 submission follows control order. Keyed JSON uses document member order as row
 order, preserved through parsing, editing, persistence and serialization. Form
 data contains no auxiliary order or identity fields. Numeric object keys and
-keys containing path separators are rejected by editable sessions. Callers use `sequenceRowKey` when
-constructing data from database sequences. Editable sessions do not convert
+keys containing path separators are rejected by editable instances. Callers use `sequenceRowKey` when
+constructing data from database sequences. Editable instances do not convert
 arrays or infer hidden identity fields.
 
 ## Row operations
