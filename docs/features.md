@@ -13,7 +13,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | package-consumer | Packaged exports, type declarations and consumer production build | implemented | passed | not-deployed | [Consumer check](../scripts/check-packages.mjs) |
 | package-install | Resolved platform dependencies and normal install scripts | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.md) |
 | package-build | Independent public declaration compilation | implemented | passed | not-deployed | [Build checks](../tests/build/README.md) |
-| package-api | Initial package API and version metadata | in-progress | pending | not-deployed | [API contract](spec/schema.md) |
+| package-api | Initial package API and version metadata | implemented | passed | not-deployed | [API contract](spec/schema.md) |
 | form-template | Data-independent form templates and JSON caching | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-initialization | Initial data, repeated injection and record restoration | implemented | passed | not-deployed | [Runtime contract](spec/form-runtime.md) |
 | form-inspector | Parsed DOM, raw HTML, CSS and state comparison with retained differences | implemented | passed | not-deployed | [Inspector tests](../tests/form-inspector/form-snapshot.test.mjs) |

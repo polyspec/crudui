@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Public API descriptions
+
+Public form and list API comments describe the current operations and error
+results. Removed an unused Vue type import and a reference to a nonexistent
+options type. The five edited files produce identical executable JavaScript.
+Package exports, strict consumer types, production rendering and repeat-build
+checks passed.
+
 ## 2026-09-09 — End-date field references
 
 TypeScript, PHP and Rust preserve `enddate` field-reference parameters, matching
