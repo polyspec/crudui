@@ -16,7 +16,8 @@ cases; the cross-check console passed 81 tests. Documentation checks passed.
 ## 2026-09-09 — Public API descriptions
 
 Public form and list API comments describe the current operations and error
-results. Removed an unused Vue type import and a reference to a nonexistent
+results. The runtime contract uses form-instance terminology; legacy validator
+examples import the explicit legacy entry. Removed an unused Vue type import and a reference to a nonexistent
 options type. The five edited files produce identical executable JavaScript.
 Package exports, strict consumer types, production rendering and repeat-build
 checks passed.
