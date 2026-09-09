@@ -117,7 +117,7 @@ final class Patch
         if (self::isPlainObject($val)) {
             // Nested map form (legacy arr::remove): recurse where both sides are objects.
             /** @var array<string, mixed> $val */
-            return self::removeNested($base, $val);
+            return self::removeNested($base, (array) $val);
         }
         throw new ComposeLoadError(
             'PATCH_SHAPE',
@@ -164,11 +164,11 @@ final class Patch
         }
 
         if (!\array_key_exists($head, $out)) {
-            $out[$head] = self::setDeepPath([], $rest, $value);
+            $out[$head] = (object) self::setDeepPath([], $rest, $value);
         } elseif (self::isPlainObject($out[$head])) {
             /** @var array<string, mixed> $child */
             $child = $out[$head];
-            $out[$head] = self::setDeepPath($child, $rest, $value);
+            $out[$head] = ($child instanceof \stdClass ? (object) self::setDeepPath((array) $child, $rest, $value) : self::setDeepPath($child, $rest, $value));
         } else {
             // Intermediate node is a scalar/array — cannot descend into it.
             throw new ComposeLoadError(
@@ -197,12 +197,12 @@ final class Patch
         ) {
             /** @var array<string, mixed> $existing */
             /** @var array<string, mixed> $incoming */
-            $out = $existing;
+            $out = (array) $existing;
             foreach ($incoming as $k => $v) {
                 $prior = \array_key_exists($k, $out) ? $out[$k] : self::UNDEFINED;
                 $out[$k] = self::mergeValue($prior, $v);
             }
-            return $out;
+            return $existing instanceof \stdClass || $incoming instanceof \stdClass ? (object) $out : $out;
         }
         return $incoming;
     }
@@ -238,7 +238,7 @@ final class Patch
         }
         /** @var array<string, mixed> $child */
         $child = $out[$head];
-        $out[$head] = self::removeDeepPath($child, $rest);
+        $out[$head] = ($child instanceof \stdClass ? (object) self::removeDeepPath((array) $child, $rest) : self::removeDeepPath($child, $rest));
         return $out;
     }
 
@@ -264,7 +264,7 @@ final class Patch
             ) {
                 /** @var array<string, mixed> $target */
                 /** @var array<string, mixed> $sub */
-                $out[$key] = self::removeNested($target, $sub);
+                $out[$key] = ($target instanceof \stdClass ? (object) self::removeNested((array) $target, (array) $sub) : self::removeNested($target, (array) $sub));
             } else {
                 unset($out[$key]);
             }
@@ -272,22 +272,10 @@ final class Patch
         return $out;
     }
 
-    /**
-     * JS "plain object" predicate: x !== null && typeof x === 'object' &&
-     * !Array.isArray(x). In PHP a json_decode(true) map is a non-list array; a
-     * JSON array is a list array. An empty {} and an empty [] both decode to [];
-     * a spec graph node is always an object, so an empty array is treated as a
-     * plain object (the JS {} branch). A scalar/null is never a plain object.
-     */
+    /** Objects are stdClass values or non-list PHP associative arrays. */
     private static function isPlainObject(mixed $v): bool
     {
-        if (!\is_array($v)) {
-            return false;
-        }
-        if ($v === []) {
-            return true; // empty {} (object), the only spec-graph reading
-        }
-        return !\array_is_list($v);
+        return $v instanceof \stdClass || (\is_array($v) && !\array_is_list($v));
     }
 
     /** JS-style type name for $patch shape error messages. */

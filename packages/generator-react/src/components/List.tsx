@@ -26,7 +26,7 @@ import type {
   ListRowVM,
 } from '@crudui/generator-core';
 import { Cell } from './Cell';
-import { styleObject } from './attrs';
+import { resolvedStyleProps, styleObject } from './attrs';
 import { escAttr, escText } from './raw';
 
 /** Merge a base class with a resolved design class ('' dropped) → className/undefined. */
@@ -117,7 +117,7 @@ function HeaderCell({
   return (
     <th
       {...(className ? { className } : {})}
-      {...(style ? { style } : {})}
+      {...resolvedStyleProps(style)}
       {...(col.field ? { 'data-field': col.field } : {})}
       {...(col.sortable ? { 'data-sortable': 'true' } : {})}
       {...(dir ? { 'data-sort-dir': dir } : {})}
@@ -228,7 +228,7 @@ export function List({ vm, layout = 'table' }: ListProps): React.ReactElement {
   const style = nodeStyle(vm.design.wrapper.style);
   const isEmpty = vm.rows.length === 0;
   return (
-    <div {...(className ? { className } : {})} {...(style ? { style } : {})}>
+    <div {...(className ? { className } : {})} {...resolvedStyleProps(style)}>
       <Toolbar actions={vm.actions} />
       {isEmpty ? (
         <div className="list-empty">{vm.empty}</div>

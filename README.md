@@ -4,7 +4,9 @@
 
 CRUDUI defines forms and validation in YAML or JavaScript objects. A shared
 core compiles form structure before data is available. React, Vue and Svelte
-render editable instances; TypeScript, PHP, Go and Rust validate submitted data.
+render editable instances. PHP, Go and Rust provide form and list rendering and
+validation in their own processes. A PHP extension provides the same public PHP
+classes using native generation and validation.
 
 ## Start
 
@@ -23,6 +25,8 @@ mounting and injecting data.
 
 - [Specification structure](docs/spec/schema.md)
 - [Form runtime contract](docs/spec/form-runtime.md)
+- [Runtime packages and APIs](docs/spec/runtime-packages.md)
+- [Native PHP package](packages/php-ext/README.md)
 - [Feature and deployment status](docs/features.md)
 - [Development and verification](docs/operations/forms.md)
 - [Form and transport verification](docs/operations/verification.md)

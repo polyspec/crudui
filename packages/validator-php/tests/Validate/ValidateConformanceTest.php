@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Tests\Validate;
 
 use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Validate\Validate;
+use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -33,8 +33,12 @@ final class ValidateConformanceTest extends TestCase
         /** @var list<array<string, mixed>> $cases */
         $cases = \json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
+        $objects = json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
         $out = [];
-        foreach ($cases as $case) {
+        foreach ($cases as $index => $case) {
+            foreach (['spec', 'data', 'files'] as $key) {
+                if (property_exists($objects[$index], $key)) $case[$key] = $objects[$index]->{$key};
+            }
             $out[$case['name']] = [$case];
         }
         return $out;
@@ -62,7 +66,7 @@ final class ValidateConformanceTest extends TestCase
             /** @var array{code: string} $expect */
             $expect = $case['expectLoadError'];
             try {
-                Validate::run($spec, $data, $files);
+                Validator::validate($spec, $data, ['files' => $files ?? []]);
                 self::fail("case {$case['name']} expected load error {$expect['code']} but validated successfully");
             } catch (ComposeLoadError $e) {
                 self::assertSame(
@@ -74,14 +78,14 @@ final class ValidateConformanceTest extends TestCase
             return;
         }
 
-        $result = Validate::run($spec, $data, $files);
+        $result = Validator::validate($spec, $data, ['files' => $files ?? []]);
 
         /** @var array{valid: bool, errors: list<array<string, mixed>>} $expected */
         $expected = $case['expected'];
 
         self::assertSame(
             self::normalize($expected),
-            self::normalize($result->toArray()),
+            self::normalize(json_decode(json_encode($result, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR)),
             "validation result mismatch for {$case['name']}",
         );
     }

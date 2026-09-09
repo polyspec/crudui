@@ -5,6 +5,8 @@ export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptio
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
 export { connectForm } from './dom';
+export { parseStyle } from './css';
+export type { StyleDeclaration } from './css';
 
 export type { FieldViewModel, UnsupportedMode, RowVM, LangChildVM, UnsupportedVM, BuildState } from './viewmodel';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';

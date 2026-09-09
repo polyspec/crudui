@@ -18,7 +18,7 @@
 
 import * as React from 'react';
 import type { CellVM } from '@crudui/generator-core';
-import { styleObject } from './attrs';
+import { resolvedStyleProps, styleObject } from './attrs';
 
 /** Render the inner display payload of one cell (no `<td>`/`<span>` host). */
 export function CellBody({ cell }: { cell: CellVM }): React.ReactNode {
@@ -99,8 +99,7 @@ function cellHostProps(cell: CellVM, base: string): Record<string, unknown> {
   const props: Record<string, unknown> = {};
   if (cls) props.className = cls;
   const style = styleObject(cell.design.main.style);
-  if (style) props.style = style;
-  return props;
+  return { ...props, ...resolvedStyleProps(style) };
 }
 
 /**

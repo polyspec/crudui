@@ -31,14 +31,14 @@ if (result.valid || result.errors[0]?.rule !== 'required') {
 
 ## PHP
 
-`CRUDUI\Validator\Validate\Validate::run`은 스펙, 데이터, 선택적 가상 파일,
+`CRUDUI\Validator::validate`은 스펙, 데이터, 선택적 가상 파일,
 선택적 로더와 기준 경로를 받습니다. 결과는 `valid`, `errors`, `toArray()`를 제공합니다.
 
 ```php
 <?php
 require 'packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator\Validate\Validate;
+use CRUDUI\Validator;
 
 $spec = [
     'type' => 'group',
@@ -46,7 +46,7 @@ $spec = [
         'email' => ['type' => 'email', 'validate' => ['required' => true, 'email' => true]],
     ],
 ];
-$result = Validate::run($spec, ['email' => '']);
+$result = Validator::validate($spec, ['email' => '']);
 if ($result->valid || $result->errors[0]['rule'] !== 'required') {
     throw new RuntimeException('Expected required validation failure');
 }

@@ -1,6 +1,6 @@
 //! CLI for the cross-language test runner.
-//! Reads {"spec": {...}, "input": <value>} from stdin and writes
-//! {"valid": bool, "error": <rule|null>, "field": <path|null>} to stdout.
+//! Reads `{"spec": {...}, "input": <value>}` from stdin and writes
+//! `{"valid": bool, "error": <rule|null>, "field": <path|null>}` to stdout.
 //! Ports validator-go/cmd/validate/main.go.
 
 use crudui_validator::legacy::run_validation;

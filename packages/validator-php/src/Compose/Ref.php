@@ -136,9 +136,9 @@ final class Ref
         // Descend detectKeys (legacy: ReferenceResolver:129-136).
         $node = $doc;
         foreach ($detectKeys as $detectKey) {
-            if (self::isPlainObject($node) && \array_key_exists($detectKey, $node)) {
+            if (self::isPlainObject($node) && \array_key_exists($detectKey, (array) $node)) {
                 /** @var array<string, mixed> $node */
-                $node = $node[$detectKey];
+                $node = ((array) $node)[$detectKey];
             } else {
                 $chain = [...\array_keys($visiting), $key];
                 throw new ComposeLoadError(
@@ -164,7 +164,7 @@ final class Ref
         $nextVisiting = $visiting;
         $nextVisiting[$key] = true;
         /** @var array<string, mixed> $node */
-        return self::expandNested($node, $basepath, $loader, $nextVisiting);
+        return self::expandNested((array) $node, $basepath, $loader, $nextVisiting);
     }
 
     /**
@@ -237,19 +237,10 @@ final class Ref
         return $out;
     }
 
-    /**
-     * JS "plain object" predicate (see Patch::isPlainObject): a non-list array,
-     * or an empty array (read as {}); never a scalar/null/list.
-     */
+    /** Objects are stdClass values or non-list PHP associative arrays. */
     private static function isPlainObject(mixed $v): bool
     {
-        if (!\is_array($v)) {
-            return false;
-        }
-        if ($v === []) {
-            return true;
-        }
-        return !\array_is_list($v);
+        return $v instanceof \stdClass || (\is_array($v) && !\array_is_list($v));
     }
 
     /** JS-style type name for $ref value-type error messages. */

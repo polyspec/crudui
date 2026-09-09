@@ -25,6 +25,7 @@ import type { PathContext } from '@crudui/validator';
 import { evalAppearance } from './expr';
 import type { Translate, LocalizedText } from './content';
 import { getValueByPath } from './util';
+import { formatDateValue } from './date';
 
 /** A resolved cell format: the catalog type + its isolated dependent keys. */
 export interface CellFormatModel {
@@ -178,21 +179,10 @@ function truncate(s: string, n: unknown): string {
   return s.slice(0, limit) + '…';
 }
 
-/** Date format: pattern tokens YYYY/MM/DD/HH/mm/ss against the value's date parts. */
+/** Format supported date values using UTC date parts. */
 function formatDate(value: unknown, pattern: unknown): string {
-  const s = asString(value);
-  if (!s) return '';
-  const d = new Date(s);
-  if (isNaN(d.getTime())) return s;
-  const pad = (n: number) => String(n).padStart(2, '0');
   const pat = typeof pattern === 'string' && pattern ? pattern : 'YYYY-MM-DD';
-  return pat
-    .replace(/YYYY/g, String(d.getFullYear()))
-    .replace(/MM/g, pad(d.getMonth() + 1))
-    .replace(/DD/g, pad(d.getDate()))
-    .replace(/HH/g, pad(d.getHours()))
-    .replace(/mm/g, pad(d.getMinutes()))
-    .replace(/ss/g, pad(d.getSeconds()));
+  return formatDateValue(asString(value), pat);
 }
 
 /** Number format: decimals + thousands grouping; prefix/suffix are i18n content. */

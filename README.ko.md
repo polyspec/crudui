@@ -4,7 +4,9 @@
 
 CRUDUI은 YAML 또는 JavaScript 객체로 폼과 검증을 정의합니다. 공유 코어가 데이터
 로드 전에 폼 구조를 컴파일합니다. React, Vue, Svelte는 편집 가능한 인스턴스를
-렌더링하고 TypeScript, PHP, Go, Rust는 제출 데이터를 검증합니다.
+렌더링합니다. PHP, Go, Rust는 자체 프로세스에서 폼과 목록을 렌더링하고
+데이터를 검증합니다. PHP 확장은 네이티브 폼 생성과 검증으로 같은 PHP 공개
+클래스를 제공합니다.
 
 ## 시작
 
@@ -23,6 +25,8 @@ npm run test:forms
 
 - [명세 구조](docs/spec/schema.ko.md)
 - [폼 런타임 계약](docs/spec/form-runtime.ko.md)
+- [런타임 패키지와 API](docs/spec/runtime-packages.ko.md)
+- [네이티브 PHP 패키지](packages/php-ext/README.ko.md)
 - [기능과 배포 상태](docs/features.ko.md)
 - [개발과 검증](docs/operations/forms.ko.md)
 - [폼·전송 검증](docs/operations/verification.ko.md)

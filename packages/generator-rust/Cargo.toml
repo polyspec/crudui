@@ -1,0 +1,17 @@
+[package]
+name = "crudui-generator"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+description = "CRUDUI form compilation, data binding and HTML rendering"
+
+[dependencies]
+crudui-validator = { path = "../validator-rust", version = "0.0.1" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+getrandom = "0.4"
+chrono = "0.4"
+regex = "1"
+ryu-js = "1"
+num-bigint = "0.5"
+num-traits = "0.2"

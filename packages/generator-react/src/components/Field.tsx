@@ -1,7 +1,7 @@
 /**
  * CRUDUI React field dispatcher — the envelope, as a real JSX tree.
  *
- * Consumes one core `FieldViewModel` and renders the verified legacy envelope:
+ * Consumes one core `FieldViewModel` and renders the form containers:
  * `.form-element-wrapper` (show=false → style display:none, DOM kept) > `<h6>`
  * label (omitted for hidden) + `.description` + `.form-element` >
  * `.input-group-wrapper[data-uniqid]` > widget. It dispatches the four field
@@ -18,6 +18,8 @@ import * as React from 'react';
 import type { FieldViewModel, RowVM, WidgetModel, UnsupportedVM } from '@crudui/generator-core';
 import { Widget, widgetRootRaw } from './Widget';
 import { resolvedStyleProps, styleObject } from './attrs';
+import { RowButtons, rowButtonsHtml } from './RowButtons';
+import { escText, rawElement } from './raw';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -64,42 +66,6 @@ function Description({ vm }: { vm: FieldViewModel }): React.ReactElement | null 
   return <p className="description">{vm.description}</p>;
 }
 
-/** Row action buttons (plus/minus/copy/move) from multiple settings. */
-function RowButtons({ vm }: { vm: FieldViewModel }): React.ReactElement | null {
-  const s = vm.multiple;
-  if (!s) return null;
-  const minusCls = s.copy ? 'btn btn-minus btn-delete' : 'btn btn-minus';
-  return (
-    <>
-      {s.sortable ? (
-        <>
-          <button type="button" className="btn btn-move-up">
-            {' '}
-          </button>
-          <button type="button" className="btn btn-move-down">
-            {' '}
-          </button>
-        </>
-      ) : null}
-      <button
-        type="button"
-        className="btn btn-plus"
-        {...(s.max !== undefined ? { 'data-multiple-max': String(s.max) } : {})}
-      >
-        {' '}
-      </button>
-      {s.copy ? (
-        <button type="button" className="btn btn-copy">
-          {' '}
-        </button>
-      ) : null}
-      <button type="button" className={minusCls}>
-        {' '}
-      </button>
-    </>
-  );
-}
-
 /** input-group-wrapper for a single field (leaf/group/lang). */
 function inputGroupWrapperClass(vm: FieldViewModel): string {
   return ['input-group-wrapper', vm.design.wrapper.class]
@@ -134,31 +100,35 @@ function CheckboxEnvelope({ vm }: { vm: FieldViewModel }): React.ReactElement {
 }
 
 /**
- * Render a widget into a sole-child container. A control whose only obstacle is
- * an opaque on* attr (datetime/host-script + behavior) is serialized raw at the
- * container root via widgetRootRaw, so no wrapper element is introduced. Every
- * other widget is a real JSX child.
+ * Render single, repeated and language widgets in their existing container.
+ * Declared control behavior uses the same raw serialization in every field shape.
  */
 function WidgetContainer({
   w,
   className,
   uniqid,
+  language,
+  buttons,
 }: {
   w: AnyWidget | undefined;
   className: string;
-  uniqid: string;
+  uniqid?: string;
+  language?: string;
+  buttons?: FieldViewModel['multiple'];
 }): React.ReactElement {
+  const attrs = { className, ...(uniqid === undefined ? {} : { 'data-uniqid': uniqid }), ...(language === undefined ? {} : { 'data-lang': language }) };
   if (w) {
     const raw = widgetRootRaw(w);
     if (raw !== null) {
-      return (
-        <div className={className} data-uniqid={uniqid} dangerouslySetInnerHTML={{ __html: raw }} />
-      );
+      const label = language === undefined ? '' : rawElement('span', { class: 'input-group-text lang-code' }, escText(language));
+      return <div {...attrs} dangerouslySetInnerHTML={{ __html: label + raw + rowButtonsHtml(buttons) }} />;
     }
   }
   return (
-    <div className={className} data-uniqid={uniqid}>
+    <div {...attrs}>
+      {language === undefined ? null : <span className="input-group-text lang-code">{language}</span>}
       {w ? <Widget w={w} /> : null}
+      <RowButtons settings={buttons} />
     </div>
   );
 }
@@ -198,12 +168,7 @@ function GroupField({ vm }: { vm: FieldViewModel }): React.ReactElement {
 }
 
 function MultipleLeafRow({ row, vm }: { row: RowVM; vm: FieldViewModel }): React.ReactElement {
-  return (
-    <div className={row.wrapperClass} data-uniqid={row.uniqid}>
-      {row.widget ? <Widget w={row.widget} /> : null}
-      <RowButtons vm={vm} />
-    </div>
-  );
+  return <WidgetContainer w={row.widget} className={row.wrapperClass} uniqid={row.uniqid} buttons={vm.multiple} />;
 }
 
 function MultipleLeafField({ vm }: { vm: FieldViewModel }): React.ReactElement {
@@ -230,7 +195,7 @@ function MultipleGroupRow({ row, vm }: { row: RowVM; vm: FieldViewModel }): Reac
         ))}
       </div>
       <span className="btn-group input-group-btn">
-        <RowButtons vm={vm} />
+        <RowButtons settings={vm.multiple} />
       </span>
     </div>
   );
@@ -262,10 +227,7 @@ function LangField({ vm }: { vm: FieldViewModel }): React.ReactElement {
           <div className={lang.groupClass}>
             {lang.title ? <div className="lang-title">{lang.title}</div> : null}
             {lang.children.map((c, i) => (
-              <div key={i} className="lang-child" data-lang={c.code}>
-                <span className="input-group-text lang-code">{c.code}</span>
-                <Widget w={c.widget} />
-              </div>
+              <WidgetContainer key={i} w={c.widget} className="lang-child" language={c.code} />
             ))}
           </div>
         </div>

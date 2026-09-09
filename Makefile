@@ -11,12 +11,14 @@
 export PATH := $(HOME)/.cargo/bin:$(PATH)
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust
+.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-native
 
 # Validator benchmark iteration counts (override on the command line, e.g.
 # `make bench BENCH_ITERS=100000`).
 BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
+PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
+NATIVE_REPORT ?= .git/native-generators/report.json
 
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -32,6 +34,8 @@ help: ## 타겟 설명
 	@echo "  make docs-check-libs       라이브러리 packages/* 만 검사"
 	@echo "  make docs-check-servers    examples 서버 4종만 검사 (node/go/php/rust)"
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
+	@echo "  make build-php-extension   Build and load the native PHP module"
+	@echo "  make test-native           Test PHP, Go, Rust and native PHP generation"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
@@ -74,6 +78,7 @@ docs-check-documents:
 	node scripts/check-documents.mjs
 	node --test scripts/documentation-links.test.mjs
 	node --test scripts/gen-api-docs.test.mjs
+	node --test scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
 
 docs-check-libs: ## 라이브러리 packages/* doc-coverage
 	npm run docs:check
@@ -136,3 +141,16 @@ bench-go: bench-fixtures ## Go 검증기만 측정
 
 bench-rust: bench-fixtures ## Rust 검증기만 측정
 	node tools/bench/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+
+build-php-extension:
+	sh scripts/build-php-extension.sh
+
+test-native: build-php-extension
+	npm run build
+	composer --working-dir=packages/generator-php test
+	go -C packages/generator-go test -race ./...
+	cargo test --locked --manifest-path packages/generator-rust/Cargo.toml
+	node packages/php-ext/tests/run.mjs "$(PHP_EXTENSION)"
+	node --test tests/native-generators/protocol.test.mjs
+	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)"
+	node --test tests/widget-scripts.test.mjs
