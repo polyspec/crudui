@@ -29,6 +29,9 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 ## Current verification
 
+The validator package build and all 1,606 tests passed after updating internal
+legacy translation identifiers.
+
 CLI tests passed all 37 checks after removing and rebuilding validator output.
 The four documented commands and two failure exit-code checks passed. CLI CI
 builds the validator before testing. These local results do not indicate package

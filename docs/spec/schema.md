@@ -7,8 +7,9 @@ recorded in [features](../features.md).
 
 ## Package API
 
-CRUDUI starts at package version `0.0.1`. Current APIs use names without
-implementation-generation suffixes. Package roots expose the current validator
+CRUDUI starts at package version `0.0.1`. File names, public APIs and internal
+identifiers describe their roles without implementation-generation markers.
+Package roots expose the current validator
 and form renderer. Older implementations use explicit `legacy` modules. Shared
 rules and expression utilities are independent of legacy modules. Replaced
 versioned paths have no compatibility aliases.
