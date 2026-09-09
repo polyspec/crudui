@@ -5,6 +5,11 @@
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
+| php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | not-started | pending | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
+| generator-php | PHP 폼 생성과 SSR | not-started | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| generator-go | Go 폼 생성과 SSR | not-started | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| generator-rust | Rust 폼 생성과 SSR | in-progress | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| php-extension | PHP 네이티브 폼 생성과 검증 | not-started | pending | not-deployed | [확장 계약](spec/php-extension.ko.md) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | legacy-comparison | 구형 실행·사례 기대값·네 언어 일치 | implemented | passed | not-deployed | [테스트 절차](operations/testing.ko.md) |
@@ -56,13 +61,16 @@ Git에서 제외합니다.
 ## 폼 비교 결과
 
 외부 `https://crudui.test/` 환경은 라이브러리 `dfe70a6`을 사용하며
-PHP·PHP 확장·Go·Rust를 독립적인 HTTP 대상으로 실행합니다.
+PHP·네이티브 JSON 파싱을 사용하는 PHP·Go·Rust를 독립적인 HTTP 대상으로 실행합니다.
 HTTP 검사 240개와 PHP 처리 모드 검사가 모두 통과했습니다.
+
+두 PHP 대상은 모두 PHP 검증기를 사용합니다. 이 결과는 CRUDUI 네이티브
+폼 생성이나 검증을 증명하지 않습니다.
 
 | 서버 | 검증 리비전 | 시나리오 | 상호작용 | 페이지 오류 |
 | --- | --- | --- | --- | --- |
 | PHP | `83181c2` | 120/120 통과 | 30/30 통과 | 0 |
-| PHP 확장 | `83181c2` | 120/120 통과 | 30/30 통과 | 0 |
+| 네이티브 JSON 파싱을 사용하는 PHP | `83181c2` | 120/120 통과 | 30/30 통과 | 0 |
 | Go | `83181c2` | 120/120 통과 | 30/30 통과 | 0 |
 | Rust | `83181c2` | 120/120 통과 | 30/30 통과 | 0 |
 
@@ -98,7 +106,6 @@ Rust 컴파일, PHP API 테스트와 Node HTTP 테스트가 통과했습니다. 
 라이브러리 배포는 패키지 게시를 의미하며 게시된 패키지는 없습니다.
 비교 애플리케이션은 독립된 외부 작업 공간에 보존하며 표는 서버별로 완료된 최신 검사를 기록합니다.
 네 서버의 `83181c2` 브라우저 검사가 완료되었습니다. 보존된 비교 구현의 실패는 보고서에 유지합니다.
-릴리스 검증과 저장소 정리는 진행 중입니다.
 
 TypeScript·Go·Rust·PHP API 생성과 엄격한 정적 사이트 빌드가 통과했습니다.
 전체 문서를 두 번 생성한 API 문서·네이티브 HTML 자산·스키마 출력은 동일했습니다.

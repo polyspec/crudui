@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Runtime package contracts
+
+The runtime contract defines form generation, SSR and validation requirements
+for JavaScript, PHP, Go, Rust and the PHP extension. The PHP API contract specifies
+common `CRUDUI\Generator`, `CRUDUI\Validator` and `CRUDUI\Form` classes,
+extension registration before Composer class loading, and matching methods.
+The implementation proposal maps packages, source coverage and required checks.
+Feature status distinguishes these requirements from implemented packages.
+
+The comparison documentation identifies native JSON parsing separately from
+native CRUDUI generation and validation. `make docs-check` passed.
+
 ## 2026-09-09 — Legacy translation identifiers
 
 Internal translation variables describe the translated field or schema value.
