@@ -1,4 +1,3 @@
-import type { FormInstance } from '@crudui/generator-core';
 /** Form template binding, rendering and list rendering. */
 
 import { type BuildListOptions } from '@crudui/generator-core';
@@ -11,13 +10,12 @@ export { makeTranslate } from '@crudui/generator-core';
 export type { Language } from '@crudui/generator-core';
 export type { UnsupportedMode } from '@crudui/generator-core';
 
-// Core + components (the shared evaluation + the Vue adapter surfaces).
+// Field and widget rendering.
 export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
 export { fieldVNode } from './components/Field';
 export { Widget } from './components/Widget';
 
-// list-spec (read sister) — buildList view model + the Vue List adapter
-// (additive; the form/write surfaces above are untouched). SPEC §9.
+// List models and rendering.
 export { buildList } from '@crudui/generator-core';
 export type {
   ListViewModel,
