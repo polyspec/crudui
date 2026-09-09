@@ -2,6 +2,10 @@
 
 [English](examples.md).
 
+외부 비교 환경은 Compose로 이미지·리소스·마운트·시작 준비 검사를 관리합니다.
+`containerctl up`은 변경되지 않은 컨테이너를 재사용하고 로컬 HTTPS를 제공합니다.
+같은 설정을 반복 적용해도 저장 데이터·경로·애플리케이션 응답이 유지되어야 합니다.
+
 현재 예제는 버전 없는 공개 API를 사용합니다. `examples/cross-check-console`은
 구현별 검증·렌더링 결과를 비교합니다. 폼 사용법은
 [폼 작업 절차](../operations/forms.ko.md)에서 정의합니다.

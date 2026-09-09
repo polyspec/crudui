@@ -48,24 +48,33 @@ package or a completed release.
 
 ## Form comparison results
 
-The externally preserved environment at `localhost:4317` uses library
-`83181c2`, with PHP, PHP extension, Go and Rust as separate HTTP targets.
+The external environment at `https://crudui.test/` uses library `dfe70a6`,
+with PHP, PHP extension, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
 
 | Server | Verified revision | Scenarios | Interactions | Page errors |
 | --- | --- | --- | --- | --- |
 | PHP | `83181c2` | 120/120 passed | 30/30 passed | 0 |
-| PHP extension | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
-| Go | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
-| Rust | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
+| PHP extension | `83181c2` | 120/120 passed | 30/30 passed | 0 |
+| Go | `83181c2` | 120/120 passed | 30/30 passed | 0 |
+| Rust | `83181c2` | 120/120 passed | 30/30 passed | 0 |
 
 Each target covers React, Vue and Svelte with form and ordered JSON transport.
 Reports include initial data, later injection, repeated injection, record
 restoration, raw HTML, DOM, CSS, control state and row operations. Evidence is
 stored in the external comparison workspace under
-`.form-comparison/results/report-<server>.json`; prior revision results are
-preserved under `results-2dfd321/`. Report metadata records source revisions. A total of 108 interaction checks includes all four comparison
+`.form-comparison/results-83181c2/report-<server>.json`.
+Report metadata records source revisions. A total of 108 interaction checks includes all four comparison
 modes; 30 belong to the current implementation.
+
+Between these revisions, five TypeScript files changed only API comments and an
+unused type import; their executable JavaScript is identical. Generated PHP
+dependencies and the Go binary were removed from Git. The new image installs the
+same locked PHP dependency versions and builds the server binaries from source.
+
+Two consecutive `containerctl up` calls preserved container inspection, project
+routes, proxy state, certificates, 17 stored files, HTML, health and load responses.
+All eight environment checks passed separately from form initialization tests.
 
 Retained comparison implementations have diagnostic failures. Their failures
 remain in the reports and cause the complete comparison runner to return a
@@ -83,8 +92,8 @@ form pages. Bootstrap product checks also verified nested data.
 
 Library deployment means package publication; no package is published.
 The comparison application is preserved in an independent external workspace.
-The table records the latest completed check per server. PHP verification at
-`83181c2` is complete; the other servers are being rechecked. Retained implementation failures remain
+The table records completed browser checks for all four servers at `83181c2`.
+Retained implementation failures remain
 in the reports. Release verification and repository cleanup remain in progress.
 
 TypeScript, Go, Rust and PHP API generation and the strict static site build

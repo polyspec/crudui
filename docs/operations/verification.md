@@ -19,12 +19,13 @@ tests compare initial data with later injection and record restoration.
 
 Historical browser and HTTP comparisons use an independent external checkout.
 Provide its absolute path explicitly; it must contain the preserved comparison
-application, pinned source commits and its own build instructions:
+application, pinned source commits and its own build instructions. Build its
+image using that guide, then apply the Compose configuration:
 
 ```sh
 COMPARISON_WORKSPACE=/absolute/path/to/preserved-comparison
 cd "$COMPARISON_WORKSPACE"
-node examples/form-comparison/run.mjs start
+containerctl up
 ```
 
 The preserved workspace includes its operation guide at
@@ -33,3 +34,8 @@ Go and Rust against React, Vue and Svelte using both form and JSON transmission.
 Its reports retain individual failures and source metadata. A successful current
 implementation does not change the result of a historical implementation.
 External results do not verify subsequent source changes automatically.
+
+`containerctl up` returns after startup health checks and HTTPS route updates.
+Apply the same configuration again and compare container inspection, proxy state,
+certificates, storage hashes and HTTP responses to check environment idempotence.
+Record this separately from form data-injection equivalence.
