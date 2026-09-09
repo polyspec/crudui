@@ -7,6 +7,7 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 컴파일된 export를 검사하기 전에 JavaScript 패키지를 빌드합니다.
 
 ```sh
+composer --working-dir=packages/validator-php install
 npm run build
 npm test --workspace @crudui/validator -- --run
 composer --working-dir=packages/validator-php test
