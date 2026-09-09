@@ -1,30 +1,8 @@
 /**
- * 4-language CRUDUI validate fan-out — ALL FOUR via stdin-JSON CLI subprocess.
- *
- * The gateway is a pure orchestrator: it imports NO language's validator. Every
- * language (JS included) runs as a spawnSync CLI, so the four are fully
- * symmetric — no language is favored inside the gateway process. This is what
- * makes a 4-language agreement evidence of engine equivalence, not an artifact
- * of one privileged call path:
- *
- *   JS  : node --import tsx packages/validator-ts/bin/validate.mjs
- *   PHP : php packages/validator-php/bin/validate.php       (cwd = pkg root)
- *   Go  : packages/validator-go/validate                    (compiled)
- *   Rust: packages/validator-rust/target/release/validate  (compiled)
- *
- * Shared contract:
- *   request : { spec, data, files?, basepath? }
- *   per lang: { lang, ok, valid, errors:[{path,field,rule,message,value}], ms, loadError }
- *
- * Each CLI runs the same CRUDUI stack: compose (G5) → forbidden-scan (§6) → validate
- * (§3 + §2 G1). A composition LOAD failure (unresolved $ref / $patch / forbidden
- * meta key) is NOT valid:false — it is the spec failing to come into existence.
- * It surfaces as `loadError: { code, message }` with `valid:false`, distinct from
- * a data-level validation failure (CRUDUI core invariant; closes the legacy
- * LargeForm.yml:873 gap).
- *
- * The subprocess protocol mirrors tests/runner/compare-all.js (spawnSync, utf-8,
- * input piped on stdin, 10s timeout, cwd = package root).
+ * Execute JavaScript, PHP, Go and Rust validator CLIs and compare their results.
+ * Each process receives JSON on stdin and has a ten-second timeout. Responses
+ * must match the CLI exit status and JSON contract. Data errors preserve path,
+ * field, rule, message and value; specification failures use loadError.
  */
 
 import path from 'node:path';
@@ -43,10 +21,10 @@ const GO_BIN = path.join(GO_PKG, 'validate');
 const RUST_BIN = path.join(RUST_PKG, 'target/release/validate');
 
 /**
- * Validate one request across all four languages in parallel.
+ * Validate one request through all four language CLIs.
  *
  * @param {object} req { spec, data, files?, basepath? }
- * @returns {Promise<{results: object[], idempotent: boolean|null, mismatch: object|null}>}
+ * @returns {Promise<{results: object[], idempotent: boolean, mismatch: object|null}>}
  */
 export async function validateAll(req) {
   const payload = {
@@ -59,18 +37,11 @@ export async function validateAll(req) {
 }
 
 /**
- * Validate one LIST request across all four languages in parallel — the read
- * sister of `validateAll` (SPEC §9). The four CRUDUI CLIs route the SAME wire on
- * `mode:"list"`: compose (columns/search $ref/$patch) → forbidden-scan over the
- * list tree. A list carries NO rows (they are injected, DB-agnostic), so there
- * is no DATA pass and `data` is omitted entirely. A clean load is
- * { valid:true, errors:[] }; an unresolved $ref / $patch or a forbidden meta key
- * surfaces as the SAME loadError envelope the form path uses, so the four agree
- * on a LOAD failure as much as on a clean structure. The form `validateAll` path
- * is untouched — this is an additive branch over one shared `runCli`.
+ * Validate list composition and forbidden keys through all four language CLIs.
+ * List requests contain a specification and composition inputs, without row data.
  *
  * @param {object} req { spec, files?, basepath? }
- * @returns {Promise<{results: object[], idempotent: boolean|null, mismatch: object|null}>}
+ * @returns {Promise<{results: object[], idempotent: boolean, mismatch: object|null}>}
  */
 export async function validateAllList(req) {
   const payload = {
@@ -82,25 +53,15 @@ export async function validateAllList(req) {
   return fanOut(payload);
 }
 
-/** Spawn the four CRUDUI validate CLIs on one payload and reduce to a verdict. */
-async function fanOut(payload) {
-  const [js, php, go, rust] = await Promise.all([
-    Promise.resolve(runJs(payload)),
-    Promise.resolve(runPhp(payload)),
-    Promise.resolve(runGo(payload)),
-    Promise.resolve(runRust(payload)),
-  ]);
-
-  const results = [js, php, go, rust];
+/** Execute all four validator CLIs on one payload and compare the results. */
+function fanOut(payload) {
+  const results = [runJs(payload), runPhp(payload), runGo(payload), runRust(payload)];
   const { idempotent, mismatch } = compareIdempotency(results);
   return { results, idempotent, mismatch };
 }
 
-// --- The four CRUDUI validate CLIs (JS symmetric with PHP/Go/Rust) ---------------
-
 function runJs(payload) {
-  // `node --import tsx` runs the .ts CRUDUI source through the tsx loader (the same
-  // validate the conformance gate imports). tsx resolves from cwd = JS_PKG.
+  // Resolve tsx from the validator package to execute the TypeScript source.
   return runCli('js', process.execPath, ['--import', 'tsx', JS_CLI], JS_PKG, payload);
 }
 
@@ -117,15 +78,13 @@ function runRust(payload) {
 }
 
 /**
- * Spawn a CRUDUI validate CLI and normalize its stdout into the shared envelope.
- *
- * Per-language load-failure wire shapes (all mapped to the same loadError
- * envelope so the four agree on a LOAD failure as much as on a valid result):
+ * Execute a validator CLI and check its exit status and response fields.
+ * Specification load failures use these process responses:
  *   PHP : exit 0, stdout { valid:false, errors:[{ rule:"compose", code, message }] }
  *   Go  : exit 1, stdout { error, code, trace }                (no "valid" key)
  *   Rust: exit 2, stdout { error, code }                       (no "valid" key)
  *   JS  : exit 1, stdout { error, code }                       (no "valid" key)
- *   any valid result: stdout { valid, errors:[5-field] }
+ *   data validation: exit 0, stdout { valid, errors:[5-field] }
  */
 function runCli(lang, cmd, args, cwd, payload) {
   const t0 = performance.now();
@@ -134,13 +93,13 @@ function runCli(lang, cmd, args, cwd, payload) {
     input: JSON.stringify(payload),
     timeout: 10000,
     cwd,
-    // tsx may need PATH/node_modules resolution; inherit the gateway env.
     env: process.env,
   });
   const ms = Math.round(performance.now() - t0);
 
-  if (proc.error) {
-    return cliFail(lang, ms, proc.error.message);
+  if (proc.error) return cliFail(lang, ms, proc.error.message);
+  if (proc.signal || proc.status === null) {
+    return cliFail(lang, ms, `${lang} CLI terminated (${proc.signal ?? 'no exit status'})`);
   }
 
   const stdout = (proc.stdout || '').trim();
@@ -153,46 +112,62 @@ function runCli(lang, cmd, args, cwd, payload) {
     }
   }
 
-  // No parseable stdout at all → the CLI failed to run (missing binary, etc.).
-  if (!parsed) {
-    return cliFail(lang, ms, proc.stderr || `empty ${lang} output (exit ${proc.status})`);
+  if (!isObject(parsed)) {
+    return cliFail(lang, ms, proc.stderr || `invalid ${lang} JSON response (exit ${proc.status})`);
   }
 
-  // Load-failure variants. Go/Rust/JS report { error, code } with no "valid".
-  if (parsed.code && parsed.valid === undefined) {
+  // JavaScript, Go and Rust report composition failures with a nonzero exit.
+  if (!Object.hasOwn(parsed, 'valid') && Object.hasOwn(parsed, 'code')) {
+    const loadExit = lang === 'rust' ? 2 : 1;
+    if (lang === 'php' || proc.status !== loadExit ||
+        typeof parsed.code !== 'string' || !parsed.code ||
+        typeof parsed.error !== 'string' || !parsed.error) {
+      return cliFail(lang, ms, `invalid ${lang} load response (exit ${proc.status})`);
+    }
     return {
       lang,
       ok: true,
       valid: false,
       errors: [],
       ms,
-      loadError: { code: parsed.code, message: parsed.error || parsed.message || '' },
+      loadError: { code: parsed.code, message: parsed.error },
     };
   }
-  // Plain { error } envelope with neither code nor valid → a request/exec failure.
-  if (parsed.error !== undefined && parsed.valid === undefined && !parsed.code) {
-    return cliFail(lang, ms, parsed.error);
+
+  if (proc.status !== 0) {
+    return cliFail(lang, ms, proc.stderr || parsed.error || `${lang} CLI exited ${proc.status}`);
+  }
+  if (typeof parsed.valid !== 'boolean' || !Array.isArray(parsed.errors) ||
+      !parsed.errors.every(isValidationError) ||
+      parsed.valid !== (parsed.errors.length === 0) ||
+      Object.hasOwn(parsed, 'error') || Object.hasOwn(parsed, 'code')) {
+    return cliFail(lang, ms, `invalid ${lang} validation response`);
   }
 
-  // PHP synthetic compose error: a single error with rule "compose" + a code.
-  const errs = Array.isArray(parsed.errors) ? parsed.errors : [];
-  const composeErr = errs.find((e) => e && e.rule === 'compose' && e.code);
+  // PHP reports composition failures as one complete error with a code.
+  const composeErr = parsed.errors.find(error => error.rule === 'compose');
   if (composeErr) {
+    if (lang !== 'php' || parsed.errors.length !== 1 ||
+        typeof composeErr.code !== 'string' || !composeErr.code ||
+        !composeErr.message || composeErr.path !== '' || composeErr.field !== '' ||
+        composeErr.value !== null) {
+      return cliFail(lang, ms, `invalid ${lang} load response`);
+    }
     return {
       lang,
       ok: true,
       valid: false,
       errors: [],
       ms,
-      loadError: { code: composeErr.code, message: composeErr.message || '' },
+      loadError: { code: composeErr.code, message: composeErr.message },
     };
   }
 
   return {
     lang,
     ok: true,
-    valid: Boolean(parsed.valid),
-    errors: normErrors(errs),
+    valid: parsed.valid,
+    errors: parsed.errors,
     ms,
     loadError: null,
   };
@@ -210,29 +185,14 @@ function cliFail(lang, ms, message) {
   };
 }
 
-// --- Normalization + idempotency comparison ----------------------------------
-
-/**
- * Normalize an error record to the canonical 5 fields, coercing numeric `value`
- * to a stable form so f64-vs-int serialization never trips a false mismatch.
- */
-function normErrors(errors) {
-  if (!Array.isArray(errors)) return [];
-  return errors.map((e) => ({
-    path: e.path ?? e.field ?? '',
-    field: e.field ?? e.path ?? '',
-    rule: e.rule ?? '',
-    message: e.message ?? '',
-    value: normValue(e.value),
-  }));
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function normValue(v) {
-  if (typeof v === 'number') {
-    // Collapse 5 vs 5.0 (Rust f64 vs JS/PHP int) to a single canonical number.
-    return Number.isFinite(v) ? Number(v) : v;
-  }
-  return v;
+function isValidationError(error) {
+  return isObject(error) &&
+    ['path', 'field', 'rule', 'message'].every(key => typeof error[key] === 'string') &&
+    Object.hasOwn(error, 'value');
 }
 
 /** Stable comparison signature: valid + load code + sorted errors. */
