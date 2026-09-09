@@ -35,6 +35,10 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 ## Native package verification
 
+The current OrderedJSON common revision and five implementation submodules passed
+575 official processor cases and all 50 CRUDUI JSON cases. These checks cover
+parsing, serialization and reconstruction; current runtime integration is pending.
+
 The PHP, Go and Rust generators and the common PHP extension API are implemented.
 The shared generator report passed 153 cases in each of JavaScript, PHP, Go,
 Rust and native PHP, plus one unchanged-input check: 766 passed, zero failed.

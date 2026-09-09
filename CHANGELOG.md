@@ -2,6 +2,17 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — OrderedJSON implementation submodules
+
+The processor checker uses the pinned OrderedJSON common repository and all five
+implementation submodules. It uses the current registry API, PHP namespace and
+extension name, and rejects changed sources, malformed output and incomplete
+results. Reports record source, fixture and module hashes.
+
+The official processor checks passed 575 cases; the CRUDUI checks passed all
+50 cases. Five checker unit tests passed and two invalid source inputs were
+rejected. These results verify JSON processing, not browser or storage integration.
+
 ## 2026-09-09 — Native form generators and common PHP APIs
 
 PHP, Go and Rust provide form compilation, data binding, editable instances,
