@@ -19,12 +19,13 @@ make docs-check
 
 과거 구현의 브라우저·HTTP 비교는 독립된 외부 체크아웃을 사용합니다.
 절대 경로를 명시해야 하며 해당 경로에는 보존한 비교 애플리케이션,
-고정된 소스 커밋, 자체 빌드 절차가 있어야 합니다.
+고정된 소스 커밋, 자체 빌드 절차가 있어야 합니다. 해당 안내에 따라 이미지를
+빌드한 후 Compose 설정을 적용합니다.
 
 ```sh
 COMPARISON_WORKSPACE=/absolute/path/to/preserved-comparison
 cd "$COMPARISON_WORKSPACE"
-node examples/form-comparison/run.mjs start
+containerctl up
 ```
 
 보존한 작업 공간은 `docs/operations/form-comparison.md`에 실행 안내를 포함합니다.
@@ -32,3 +33,8 @@ node examples/form-comparison/run.mjs start
 검사합니다. 보고서는 개별 실패와 소스 메타데이터를 유지합니다. 현재 구현의
 성공은 과거 구현의 결과를 변경하지 않습니다. 외부 결과가 이후 소스 변경을
 자동으로 검증하지는 않습니다.
+
+`containerctl up`은 시작 준비 검사와 HTTPS 경로 적용이 완료된 후 반환합니다.
+같은 설정으로 다시 실행하고 컨테이너 검사 결과·프록시·인증서·저장 파일 해시·
+HTTP 응답을 비교해 환경 멱등성을 검사합니다. 이 검사는 폼의 데이터 주입
+동일성 검사와 별도로 기록합니다.

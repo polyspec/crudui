@@ -2,6 +2,15 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Comparison environment verification
+
+All four HTTP targets passed 120 current browser scenarios and 30 current
+interaction checks each at `83181c2`, with no page errors. The image at
+`dfe70a6` installs locked PHP dependencies and passed 240 HTTP checks and PHP
+processor-mode checks. The external Compose environment serves local HTTPS
+through `containerctl`; repeated `up` calls passed eight state and response
+comparisons. English and Korean procedures describe the environment lifecycle.
+
 ## 2026-09-09 — Dependency installation and generated outputs
 
 PHP CI jobs install dependencies from `composer.lock`. The PHP `vendor/`
