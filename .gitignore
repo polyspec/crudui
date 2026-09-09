@@ -1,8 +1,9 @@
 # Dependencies
 node_modules/
 
-# Example app PHP dependencies (validator-php ships vendored, examples do not)
+# Composer dependencies
 examples/**/vendor/
+packages/validator-php/vendor/
 
 # Build outputs
 dist/

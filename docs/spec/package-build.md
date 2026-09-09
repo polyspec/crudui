@@ -17,6 +17,8 @@ successful JavaScript build.
 Generated output is not tracked in Git. Svelte's `.svelte-kit` directory is
 temporary packaging output; `src` is the build input and `dist` is the published
 output. A build must succeed without a preceding `.svelte-kit` directory.
+Compiled Go CLI executables are generated from source and excluded from Git.
+Applications that execute a CLI build it before use.
 
 ## Acceptance
 
@@ -41,3 +43,11 @@ approval use the exact package approvals in the root `allowScripts` field.
 Container builds install platform dependencies through the package manager.
 The root development dependencies include the shared test runner so that testing
 integrations installed at the root can resolve it through normal module lookup.
+
+## PHP dependencies
+
+The PHP validator declares runtime and test dependencies in `composer.json`.
+`composer.lock` records their resolved versions. Composer installs `vendor/`;
+that generated directory is excluded from Git. A clean checkout must install
+these dependencies before invoking PHP validation, tests or documentation checks.
+CI uses the same installation command as local development.

@@ -11,7 +11,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | legacy-examples | Legacy example paths and package builds | implemented | passed | not-deployed | [Examples](spec/examples.md) |
 | form-controls | Labels, multiple choice arrays and field container paths | implemented | passed | not-deployed | [Shared control assertions](../tests/fixtures/form-session/controls.mjs) |
 | package-consumer | Packaged exports, type declarations and consumer production build | implemented | passed | not-deployed | [Consumer check](../scripts/check-packages.mjs) |
-| package-install | Resolved platform dependencies and normal install scripts | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.md) |
+| package-install | Resolved dependencies and normal installation | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.md) |
 | package-build | Independent public declaration compilation | implemented | passed | not-deployed | [Build checks](../tests/build/README.md) |
 | package-api | Initial package API and version metadata | implemented | passed | not-deployed | [API contract](spec/schema.md) |
 | form-template | Data-independent form templates and JSON caching | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
@@ -35,6 +35,11 @@ The package checks use the dependency graph committed in `a5b4491`.
 checks passed. Form tests passed: core 29, React 692, Vue 344, Svelte 345 and
 3 mounted tests, plus 6 normalizer tests. JavaScript validation passed 1,606 tests;
 PHP passed 1,418 tests. Go and Rust package tests passed.
+
+A clean Composer installation reproduced all 26 PHP dependency versions and
+source references. PHP tests, four-language legacy comparison and the cross-check
+console passed with those installed dependencies. PHP CI jobs install from the
+lock file; generated dependencies and compiled Go executables are excluded from Git.
 
 Schema checks passed 56 fixtures after `multiple.min` was included. Subsequent
 schema annotation changes preserved the parsed validation rules. Documentation

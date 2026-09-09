@@ -2,6 +2,17 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Dependency installation and generated outputs
+
+PHP CI jobs install dependencies from `composer.lock`. The PHP `vendor/`
+directory and the compiled Go CLI executable are excluded from Git. Consumer CI
+jobs build all required form packages, and the legacy comparison job runs its
+regression checks. CI comments and step labels describe the commands actually run.
+
+A clean Composer installation reproduced all 26 dependency versions and source
+references. PHP passed 1,418 tests; four-language legacy comparison passed 1,074
+cases; the cross-check console passed 81 tests. Documentation checks passed.
+
 ## 2026-09-09 — Public API descriptions
 
 Public form and list API comments describe the current operations and error

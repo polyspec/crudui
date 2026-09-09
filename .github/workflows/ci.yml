@@ -1,56 +1,4 @@
-# CI — YAML crudui multi-language validators + multi-framework generators.
-#
-# This workflow only INVOKES the project's existing gate commands. It does not
-# define new gates. Every command below maps to a real script in package.json,
-# Makefile, or a per-package test runner verified to exist in the repo.
-#
-# README CI badge (add by hand into README.md later — this workflow does not
-# touch README.md):
-#
-#   ![CI](https://github.com/crudui/crudui/actions/workflows/ci.yml/badge.svg)
-#
-# Gate -> job map:
-#   cross-language   node tests/runner/compare-all.js          (JS/PHP/Go/Rust, 1074 cases)
-#   validator-unit   per-language unit tests (js/php/go/rust)
-#   build-lint       npm run build  +  npm run lint
-#   parity           React / Vue / Svelte HTML parity (SSR, no browser)
-#   docs-coverage    make docs-check                           (libs + servers, 4 langs)
-#
-# current gate -> job map (R7: runs alongside the legacy gates above, never replaces them):
-#   validator-current-ts     npm run test:current -w validator-ts       (vitest run src; incl. validate-cli)
-#   validator-current-php    composer test:current                      (phpunit tests; incl. ValidateCliTest)
-#   validator-current-go     go test ./validator/... ./cmd/validate
-#   validator-current-rust   cargo test --test {expr,compose,validate,spec_validity,list_validity,validate_cli}_conformance
-#   form-render           React/Vue/Svelte current SSR conformance   (npm run test:current per pkg)
-#   cross-check-console gateway verdict units + 4-lang fan-out (validate + list validate, incl. list tamper RED) + HTTP boundary + list parity (npm test in server)
-#   cli                 npm test -w cli                       (vitest run; drift/check-catalog/explain/list-describe)
-#
-# current shared 4-language fixtures (tests/fixtures/*/cases.json), each loaded by
-# every engine that consumes it and asserted bit-for-bit:
-#   expr           114 (38 specs x lexer/parser/eval)  JS/PHP/Go/Rust
-#   compose         20                                  JS/PHP/Go/Rust
-#   validate        28                                  JS/PHP/Go/Rust
-#   spec-validity   15 (recursive forbidden-scan)       JS/PHP/Go/Rust
-#   form-render       22 (SSR HTML)                        React/Vue/Svelte
-#   list-render  20 (list SSR HTML, SPEC §9)          React/Vue/Svelte
-#   list-validity 18 (list structure, SPEC §9)        JS/PHP/Go/Rust (engine: compose+forbidden-scan) + JS (ajv #/definitions/List)
-# A current regression turns the matching job red via the test runner exit code.
-#
-# list-validity carries two expectation channels in one file: `engine`
-# (compose+forbidden-scan, asserted bit-for-bit by JS/PHP/Go/Rust list-validity
-# conformance — the 4-language structure gate) and `expect`/`reason` (JSON-Schema
-# shape, asserted by the JS ajv list meta-schema). The engine cases ride the four
-# validator-current-{js,php,go,rust} jobs; the meta-schema rides validator-current-ts.
-#
-# Toolchain pinning rationale:
-#   - dist/ and target/ are gitignored, so cross-language must build the JS
-#     validator (compare-all loads dist/index.js; no ts-node at root) and the
-#     Rust release binary before running. compare-all auto-builds the Go and
-#     Rust binaries if missing, but we build Rust explicitly so failures are
-#     attributed to the build step, and so rust-cache populates.
-#   - validator-php ships a committed vendor/, so PHP unit + parity need no
-#     composer install. composer is still set up for the docs-coverage job
-#     (DocCoverage filter runs vendor/bin/phpunit).
+# Build, validation, rendering and documentation checks.
 
 name: CI
 
@@ -59,7 +7,6 @@ on:
     branches: [main]
   pull_request:
 
-# Cancel superseded runs on the same ref to save runner minutes.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -68,18 +15,13 @@ permissions:
   contents: read
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # build-lint — root workspace build (validator-ts + 3 generators) and lint.
-  # `npm run build` => build:validator + build:generators (react/vue/svelte).
-  # `npm run lint`  => eslint over validator-ts/src + generator-react/src.
-  # ---------------------------------------------------------------------------
   build-lint:
     name: build + lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -94,29 +36,25 @@ jobs:
       - name: Lint
         run: npm run lint
 
-  # ---------------------------------------------------------------------------
-  # cross-language — the idempotency gate. Same spec + same data must produce
-  # identical results across JS, PHP, Go, Rust over all 1074 cases.
-  # Needs ALL FOUR toolchains. The JS validator dist and the Rust release
-  # binary are built first (both gitignored; compare-all expects them present).
-  # ---------------------------------------------------------------------------
   cross-language:
     name: cross-language idempotency (1074)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
 
-      - name: Setup PHP 8.2
+      - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           tools: composer
+      - name: Install PHP dependencies
+        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -135,28 +73,18 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
-      - name: Build JS validator (compare-all loads dist/index.js)
+      - name: Build JS validator
         run: npm run build:validator
 
-      - name: Build Rust release binary
-        run: cargo build --release --bin validate
-        working-directory: packages/validator-rust
-
       - name: Cross-language compare (JS/PHP/Go/Rust, 1074 cases)
-        run: node tests/runner/compare-all.js
+        run: npm test
 
-  # ---------------------------------------------------------------------------
-  # validator-unit — per-language unit suites. Split into one job per language
-  # rather than a matrix: each language needs a different toolchain, so a
-  # matrix would install all four per shard anyway. Separate jobs give clear
-  # red/green per language and let unrelated toolchains cache independently.
-  # ---------------------------------------------------------------------------
   validator-unit-js:
     name: unit · validator-ts (vitest)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -172,12 +100,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Setup PHP 8.2
+      - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           tools: composer
-      # vendor/ is committed (phpunit present); composer test == phpunit.
+      - name: Install PHP dependencies
+        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
       - name: Test
         run: composer test
         working-directory: packages/validator-php
@@ -211,20 +140,13 @@ jobs:
         run: cargo test
         working-directory: packages/validator-rust
 
-  # ---------------------------------------------------------------------------
-  # parity — HTML parity across the three frameworks. All SSR (vitest), no
-  # browser/puppeteer needed. React parity lives in tests/parity (own lockfile
-  # => own npm install). Vue/Svelte parity run from their packages, so they
-  # need the root workspace build (the generators import @crudui/validator)
-  # plus their built dist.
-  # ---------------------------------------------------------------------------
   parity:
     name: HTML parity (React/Vue/Svelte)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -250,31 +172,25 @@ jobs:
         run: npm test
         working-directory: packages/generator-svelte
 
-  # ---------------------------------------------------------------------------
-  # docs-coverage — `make docs-check` gates documented public API across the
-  # library packages (ts/go/rust/php) AND the examples/* servers (node/go/php/
-  # rust). The Makefile prepends ~/.cargo/bin to PATH; the runner cargo is on
-  # PATH anyway. Needs all four toolchains. PHP DocCoverage runs vendor/bin/
-  # phpunit (committed), so no composer install is required, but composer is
-  # set up for completeness.
-  # ---------------------------------------------------------------------------
   docs-coverage:
     name: doc-coverage gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
 
-      - name: Setup PHP 8.2
+      - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           tools: composer
+      - name: Install PHP dependencies
+        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -296,26 +212,12 @@ jobs:
       - name: Doc-coverage gate (libs + servers, 4 langs)
         run: make docs-check
 
-  # ===========================================================================
-  # current gates (R7). These run in parallel with the legacy jobs above and gate the current
-  # core: the 4-language validation pipeline (expr/compose/validate/forbidden-
-  # scan) and the 3-framework current SSR generators. Each job invokes a real,
-  # repo-verified test command; a current regression turns the job red via the
-  # runner's exit code. None of these touch the legacy jobs, scripts, or files.
-  # ===========================================================================
-
-  # ---------------------------------------------------------------------------
-  # validator-current-ts — vitest over src only (expr/compose/validate/forbidden-
-  # scan conformance + types roundtrip). `npm run test:current` == `vitest run
-  # src`. Loads the shared fixtures expr(114)/compose(20)/validate(28)/
-  # spec-validity(15) as the JS reference engine.
-  # ---------------------------------------------------------------------------
   validator-current-ts:
     name: current · validator-ts (vitest src)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -326,31 +228,22 @@ jobs:
         run: npm run test:current
         working-directory: packages/validator-ts
 
-  # ---------------------------------------------------------------------------
-  # validator-current-php — phpunit over tests only. vendor/ is committed, so no
-  # composer install is needed; `composer test:current` == `phpunit tests`.
-  # ---------------------------------------------------------------------------
   validator-current-php:
     name: current · validator-php (phpunit tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Setup PHP 8.2
+      - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           tools: composer
+      - name: Install PHP dependencies
+        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
       - name: current conformance (phpunit tests)
         run: composer test:current
         working-directory: packages/validator-php
 
-  # ---------------------------------------------------------------------------
-  # validator-current-go — go test over the current package tree only. expr/compose/
-  # validate conformance + forbidden-scan + types roundtrip live under
-  # validator/...; legacy tests (validator/validator_test.go) are excluded by
-  # the package path. cmd/validate is OUTSIDE that glob, so the validate
-  # CLI boundary test (main_test.go) is added explicitly.
-  # ---------------------------------------------------------------------------
   validator-current-go:
     name: current · validator-go (go test ./validator/... + CLI)
     runs-on: ubuntu-latest
@@ -365,16 +258,6 @@ jobs:
         run: go test ./validator/... ./cmd/validate
         working-directory: packages/validator-go
 
-  # ---------------------------------------------------------------------------
-  # validator-current-rust — the current conformance integration tests by name
-  # (expr/compose/validate/spec-validity/list-validity) plus the validate CLI
-  # boundary test. Targeting them with --test excludes the legacy tests/conformance.rs
-  # while gating each shared fixture. Rust selects integration tests by file (no
-  # glob), so the list-validity gate (tests/list_validity_conformance.rs, SPEC §9 —
-  # the SAME tests/fixtures/list-validity/cases.json the JS/PHP/Go engines load)
-  # is named explicitly; omitting it would silently drop the Rust half of the
-  # 4-language list contract from this gate.
-  # ---------------------------------------------------------------------------
   validator-current-rust:
     name: current · validator-rust (cargo test current conformance + CLI)
     runs-on: ubuntu-latest
@@ -397,23 +280,13 @@ jobs:
           --test validate_cli_conformance
         working-directory: packages/validator-rust
 
-  # ---------------------------------------------------------------------------
-  # form-render — the 3-framework current SSR conformance. `npm run test:current` per package
-  # runs BOTH shared-fixture conformance files: the form render (form-render,
-  # tests/fixtures/form-render) and the LIST render (list-render,
-  # tests/fixtures/list-render — SPEC §9, the read sister). Every framework
-  # must reproduce the React reference's normalized expected_html after the shared
-  # normalizer. The list meta-schema gate (SPEC §9.4) rides the validator-current-ts
-  # job (vitest run src picks up list-metaschema.conformance.test.ts).
-  # Generators import @crudui/validator (dist), so the validator is built first.
-  # ---------------------------------------------------------------------------
   form-render:
     name: current render (React/Vue/Svelte SSR — form + list)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -422,8 +295,8 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
-      - name: Build JS validator (generators import @crudui/validator)
-        run: npm run build:validator
+      - name: Build form packages
+        run: npm run build
 
       - name: React current render
         run: npm run test:current
@@ -437,38 +310,25 @@ jobs:
         run: npm run test:current
         working-directory: packages/generator-svelte
 
-  # ---------------------------------------------------------------------------
-  # cross-check-console — the gateway's own conformance: the verdict pure
-  # functions (compareIdempotency / compareParity, incl. tamper RED cases) AND
-  # the real fan-outs (validateAll + the LIST sister validateAllList spawn the four
-  # current CLIs — validateAllList runs mode:list over every list-validity fixture
-  # case and carries its own tamper RED: a forged single-language list verdict →
-  # idempotent:false with that language isolated; renderAll + the LIST sister
-  # renderAllList boot the Vite SSR engine for React/Svelte/Vue, the list fan-out
-  # re-rendering every list-render fixture case) AND the HTTP boundary
-  # (coerceSpec YAML/object, client fault = 4xx, validation failure = 200 result
-  # surface, CORS, /health). The real validate fan-out needs the compiled Go/Rust CLIs,
-  # so all four toolchains are set up (same as the cross-language job) and
-  # build:cli runs before the gateway tests. `npm test` resolves vitest from the
-  # root workspace node_modules (no separate lockfile).
-  # ---------------------------------------------------------------------------
   cross-check-console:
     name: current · cross-check-console gateway
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
 
-      - name: Setup PHP 8.2
+      - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           tools: composer
+      - name: Install PHP dependencies
+        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -487,8 +347,8 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
-      - name: Build JS validator (render engine imports @crudui/validator)
-        run: npm run build:validator
+      - name: Build form packages
+        run: npm run build
 
       - name: Build Go + Rust validate CLIs (gateway spawns them)
         run: npm run build:cli
@@ -498,26 +358,13 @@ jobs:
         run: npm test
         working-directory: examples/cross-check-console/server
 
-  # ---------------------------------------------------------------------------
-  # cli — the toolchain's own conformance: the orchestrator CLI's
-  # drift-0 / catalog / explain projections (test/{drift,check-catalog,explain,
-  # list-describe}.test.ts). list-describe proves the SPEC §9 list describe is a
-  # drift-0 projection of cell.ts CELL_RENDERERS + the meta-schema (a renderer
-  # added in cell.ts surfaces in describe, describe.ts untouched).
-  # describe/check/explain are JS-only: the tests import
-  # generator-core and validator-ts TS SOURCE directly (../../generator-core/src,
-  # ../../validator-ts/src) and vitest transpiles on the fly, so NO dist build is
-  # needed — no go/rust/php toolchain, no build step. `npm test` == `vitest run`.
-  # Mirrors cross-check-console: the toolchain layer gets the same idempotent CI
-  # gate the console layer already has.
-  # ---------------------------------------------------------------------------
   cli:
     name: current · cli (describe/check/explain)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node 20
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -526,12 +373,12 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
-      - name: CLI conformance (drift/check-catalog/explain, 23 cases)
+      - name: CLI conformance
         run: npm test
         working-directory: packages/cli
 
   form-runtime:
-    name: Form sessions and data injection
+    name: Form instances and data injection
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
