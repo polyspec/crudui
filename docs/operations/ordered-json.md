@@ -5,32 +5,55 @@ defines the required data shapes and order. [Feature status](../features.md)
 records verification separately from runtime deployment.
 
 The check uses an explicit checkout of
-[ordered-json](https://github.com/ordered-json/ordered-json/tree/deb1b354da845e4c44d1e35c28c77bdb02ec174b)
-at commit `deb1b354da845e4c44d1e35c28c77bdb02ec174b`. This revision's package name is
-`sortjson`. The check rejects a different revision or modified source.
+[OrderedJSON](https://github.com/ordered-json/ordered-json/tree/7a2b4682f002f73b6c44e77012d39ff199c9331d)
+at common commit `7a2b4682f002f73b6c44e77012d39ff199c9331d`, with all five
+implementation submodules at these commits:
+
+| Submodule | Commit |
+| --- | --- |
+| `js` | `d3b1f3473ce2645c79c772940df622c4d8b0bca7` |
+| `rust` | `266ab5c95d7095342521701994462c9f057cde1b` |
+| `go` | `2588cbd59b442e9c7231a1b8d945a16142851141` |
+| `php` | `2571dacad60affcc299972474b53f2b9e6848967` |
+| `php-extension` | `1dcb0cff184a0618de810febfe651a50b2a06cd0` |
+
+The checker requires an absolute path, initialized submodules, the exact revisions
+and clean source before and after execution. PHP uses the `OrderedJson` namespace;
+the native target is `php-extension` and loads `ordered_json.so`.
 
 Set `ORDERED_JSON_SOURCE` to an absolute checkout path. Run from the CRUDUI root
 with Node, PHP, PHP extension build tools, Go, Rust and Python installed:
 
 ```sh
 ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
-git clone https://github.com/ordered-json/ordered-json "$ORDERED_JSON_SOURCE"
-git -C "$ORDERED_JSON_SOURCE" checkout deb1b354da845e4c44d1e35c28c77bdb02ec174b
-python3 "$ORDERED_JSON_SOURCE/scripts/test.py" --build-extension
+git clone --no-checkout https://github.com/ordered-json/ordered-json "$ORDERED_JSON_SOURCE"
+git -C "$ORDERED_JSON_SOURCE" checkout 7a2b4682f002f73b6c44e77012d39ff199c9331d
+git -C "$ORDERED_JSON_SOURCE" submodule update --init --recursive
+python3 -m unittest discover -s tests/ordered-json -p 'test_*.py'
+python3 "$ORDERED_JSON_SOURCE/scripts/verify.py"
 python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"
 make docs-check
 ```
 
-For an existing checkout, omit the clone command. The first Python command builds
-the PHP extension and runs the processor's 17 official examples and 98 syntax
-cases against all five implementations. The second runs ten CRUDUI JSON
+For an existing checkout, omit the clone command. The unit checks verify failure
+handling and incomplete-result detection. The official verifier builds
+the adapters and PHP extension and runs 17 official examples and 98 shared
+syntax cases against all five implementations. It does not replace the common
+repository's aggregate or PIE verification records. The CRUDUI checker runs ten JSON
 documents through those implementations' parse, serialize and reconstruct APIs.
 An independent Python decoder retains object pairs and number tokens for comparison.
 The checker compares complete ordered trees; it does not sort object members.
+It uses `scripts/registry.py` to resolve repositories, build the selected adapters
+and obtain their commands. Run these checks sequentially. An ordinary extension
+build and a PIE artifact check must not run concurrently in the same checkout.
 
 Reports are saved as `.verification/ordered-json/ordered-json-<timestamp>.json`.
-They include the source revision, checker and fixture hashes, and individual
-results. Previous reports remain available. A failed case returns exit status 1.
+They include the common and submodule revisions, checker and fixture hashes,
+runtime versions, native module hash, build warnings and individual results.
+Previous reports remain available. All five implementations and all 50 results
+are required. A missing response, malformed output, process failure or failed
+case produces a failed report and a nonzero exit status. Source or artifact
+changes during verification also fail the check.
 
 The inserted, copied and saved-key cases are JSON fixtures. They verify transport
 representation, not execution of form buttons or database operations. The preserved external

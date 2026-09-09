@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the keyed JSON contract using an explicit ordered-json checkout."""
+"""Verify the keyed JSON contract using an explicit OrderedJSON checkout."""
 import argparse
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -11,8 +11,15 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-REVISION = 'deb1b354da845e4c44d1e35c28c77bdb02ec174b'
-LANGUAGES = ['js', 'php', 'php-native', 'go', 'rust']
+REVISION = '7a2b4682f002f73b6c44e77012d39ff199c9331d'
+SUBMODULES = {
+    'js': 'd3b1f3473ce2645c79c772940df622c4d8b0bca7',
+    'rust': '266ab5c95d7095342521701994462c9f057cde1b',
+    'go': '2588cbd59b442e9c7231a1b8d945a16142851141',
+    'php': '2571dacad60affcc299972474b53f2b9e6848967',
+    'php-extension': '1dcb0cff184a0618de810febfe651a50b2a06cd0',
+}
+LANGUAGES = ['js', 'php', 'php-extension', 'go', 'rust']
 
 
 class ObjectPairs(list):
@@ -89,73 +96,154 @@ def fixtures():
     return result
 
 
+def source_revisions(checkout):
+    revisions = {}
+    for name, expected in {'.': REVISION, **SUBMODULES}.items():
+        directory = checkout / name
+        root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=directory, text=True).strip()
+        if Path(root).resolve() != directory.resolve():
+            raise ValueError(f'Missing repository checkout: {name}')
+        actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=directory, text=True).strip()
+        if actual != expected:
+            raise ValueError(f'{name}: expected commit {expected}; received {actual}')
+        status = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none'], cwd=directory, text=True)
+        if status.strip():
+            raise ValueError(f'{name}: source changes are not allowed:\n{status}')
+        revisions[name] = actual
+    return revisions
+
+
+def check_response(source, line):
+    actual = json.loads(line)
+    if not isinstance(actual, dict):
+        raise AssertionError('Expected a response object')
+    expected = document_tree(source)
+    if actual.get('ok') is not True or actual.get('tree') != expected:
+        raise AssertionError('Parsed order, types or values differ')
+    if actual.get('raw') != source:
+        raise AssertionError('Original JSON text differs')
+    for output in ['serialized', 'compact', 'rebuilt']:
+        if document_tree(actual[output]) != expected:
+            raise AssertionError(f'{output}: order, types or values differ')
+
+
+def failed_results(language, cases, error):
+    return [{'language': language, 'case': name, 'passed': False, 'error': error}
+            for name in cases]
+
+
+def run_adapter(language, command, cases, paths, checkout):
+    try:
+        process = subprocess.run(command, input='\n'.join(paths) + '\n', text=True,
+                                 capture_output=True, timeout=60, cwd=checkout)
+        if process.returncode or process.stderr:
+            raise RuntimeError(f'Exit {process.returncode}; stderr: {process.stderr}; stdout: {process.stdout}')
+        lines = process.stdout.split('\n')
+        if lines and lines[-1] == '':
+            lines.pop()
+        if len(lines) != len(cases):
+            raise RuntimeError(f'Expected {len(cases)} responses; received {len(lines)}')
+    except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+        return failed_results(language, cases, f'Processor execution failed: {error}')
+    results = []
+    for (name, source), line in zip(cases.items(), lines):
+        result = {'language': language, 'case': name, 'passed': False}
+        try:
+            check_response(source, line)
+            result['passed'] = True
+        except (AssertionError, KeyError, ValueError, TypeError, RecursionError) as error:
+            result['error'] = str(error)
+        results.append(result)
+    return results
+
+
+def complete_results(results, cases):
+    expected = {(language, name) for language in LANGUAGES for name in cases}
+    actual = [(result['language'], result['case']) for result in results]
+    return len(actual) == len(expected) and set(actual) == expected
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('checkout', type=Path, help='Explicit ordered-json repository path')
+    parser.add_argument('checkout', type=Path, help='Explicit absolute OrderedJSON repository path')
     args = parser.parse_args()
+    if not args.checkout.is_absolute():
+        parser.error('An absolute OrderedJSON repository path is required')
     checkout = args.checkout.resolve()
-    revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=checkout, text=True).strip()
-    if revision != REVISION:
-        parser.error(f'Expected ordered-json commit {REVISION}; received {revision}')
-    if subprocess.check_output(['git', 'status', '--porcelain'], cwd=checkout, text=True).strip():
-        parser.error('The ordered-json checkout must have no source changes')
+    try:
+        revisions = source_revisions(checkout)
+    except (OSError, subprocess.SubprocessError, ValueError) as error:
+        parser.error(str(error))
 
-    module_spec = importlib.util.spec_from_file_location('ordered_json_verifier', checkout / 'scripts/verify.py')
-    verifier = importlib.util.module_from_spec(module_spec)
-    module_spec.loader.exec_module(verifier)
-    commands = verifier.commands(LANGUAGES)
     report = {'generatedAt': datetime.now(timezone.utc).isoformat(),
-              'orderedJsonCommit': revision,
+              'orderedJsonCommit': revisions['.'],
+              'orderedJsonSubmodules': {name: revisions[name] for name in SUBMODULES},
               'cruduiCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'runnerSha256': sha256(Path(__file__).read_bytes()).hexdigest(),
               'scope': 'JSON processor parsing, serialization and reconstruction; no runtime integration',
               'results': []}
-    failed = False
-    with tempfile.TemporaryDirectory(prefix='crudui-json-cases-') as directory:
-        cases = fixtures()
-        report['fixtureSha256'] = {name: sha256(source.encode('utf-8')).hexdigest()
-                                  for name, source in cases.items()}
-        paths = []
-        for name, source in cases.items():
-            path = Path(directory) / f'{name}.json'
-            path.write_text(source, encoding='utf-8')
-            paths.append(str(path))
-        for language, command in commands.items():
-            process = subprocess.run(command, input='\n'.join(paths) + '\n', text=True,
-                                     capture_output=True, timeout=60)
-            if process.returncode or process.stderr:
-                raise RuntimeError(f'{language} processor failed: {process.stderr}')
-            lines = process.stdout.rstrip('\n').split('\n')
-            if len(lines) != len(cases):
-                raise RuntimeError(f'{language}: expected {len(cases)} responses, received {len(lines)}')
-            for (name, source), line in zip(cases.items(), lines):
-                result = {'language': language, 'case': name, 'passed': False}
-                try:
-                    actual = json.loads(line)
-                    expected = document_tree(source)
-                    if actual.get('ok') is not True or actual.get('tree') != expected:
-                        raise AssertionError('Parsed order, types or values differ')
-                    for output in ['serialized', 'compact', 'rebuilt']:
-                        if document_tree(actual[output]) != expected:
-                            raise AssertionError(f'{output}: order, types or values differ')
-                    result['passed'] = True
-                except (AssertionError, KeyError, ValueError) as error:
-                    result['error'] = str(error)
-                    failed = True
-                report['results'].append(result)
-            passed = sum(row['passed'] for row in report['results'] if row['language'] == language)
-            print(f'{language}: {passed}/{len(cases)} JSON contract cases passed', flush=True)
+    cases = fixtures()
+    report['fixtureSha256'] = {name: sha256(source.encode('utf-8')).hexdigest()
+                              for name, source in cases.items()}
+    module = checkout / 'php-extension/src/modules/ordered_json.so'
+    try:
+        module_spec = importlib.util.spec_from_file_location('ordered_json_registry', checkout / 'scripts/registry.py')
+        registry = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(registry)
+        repositories = registry.repository_paths(checkout)
+        if set(repositories.values()) != {(checkout / name).resolve() for name in SUBMODULES}:
+            raise ValueError('The implementation registry must use the five pinned submodule paths')
+        cache = checkout / '.cache/probes'
+        report['buildWarnings'] = registry.prepare(LANGUAGES, repositories, cache)
+        commands = registry.adapter_commands(LANGUAGES, repositories, cache)
+        if set(commands) != set(LANGUAGES):
+            raise ValueError('The registry must provide all five implementation commands')
+        report['runtimes'] = registry.runtime_versions(LANGUAGES, repositories, cache)
+        report['nativeModuleSha256'] = sha256(module.read_bytes()).hexdigest()
+        with tempfile.TemporaryDirectory(prefix='crudui-json-cases-') as directory:
+            paths = []
+            for name, source in cases.items():
+                path = Path(directory) / f'{name}.json'
+                path.write_text(source, encoding='utf-8')
+                paths.append(str(path))
+            for language in LANGUAGES:
+                results = run_adapter(language, commands[language], cases, paths, checkout)
+                report['results'].extend(results)
+                passed = sum(result['passed'] for result in results)
+                print(f'{language}: {passed}/{len(cases)} JSON contract cases passed', flush=True)
+    except Exception as error:
+        report['preparationError'] = str(error)
+        finished = {result['language'] for result in report['results']}
+        for language in LANGUAGES:
+            if language not in finished:
+                report['results'].extend(failed_results(language, cases, f'Preparation failed: {error}'))
+    try:
+        if source_revisions(checkout) != revisions:
+            raise ValueError('OrderedJSON source revisions changed during verification')
+        if sha256(Path(__file__).read_bytes()).hexdigest() != report['runnerSha256']:
+            raise ValueError('The CRUDUI checker changed during verification')
+        if 'nativeModuleSha256' in report and sha256(module.read_bytes()).hexdigest() != report['nativeModuleSha256']:
+            raise ValueError('The native module changed during verification')
+    except (OSError, subprocess.SubprocessError, ValueError) as error:
+        report['sourceError'] = str(error)
+
+    report['complete'] = complete_results(report['results'], cases)
+    report['passed'] = report['complete'] and all(result['passed'] for result in report['results']) and not any(key in report for key in ['preparationError', 'sourceError'])
 
     output = ROOT / '.verification/ordered-json'
     output.mkdir(parents=True, exist_ok=True)
     stamp = report['generatedAt'].replace(':', '-')
     path = output / f'ordered-json-{stamp}.json'
-    path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    with path.open('x', encoding='utf-8') as output_file:
+        output_file.write(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     print(f'Report: {path.relative_to(ROOT)}')
-    if failed:
+    if not report['passed']:
         for result in report['results']:
             if not result['passed']:
                 print(f"FAIL {result['language']}/{result['case']}: {result['error']}")
+        for error in ['preparationError', 'sourceError']:
+            if error in report:
+                print(f'FAIL {error}: {report[error]}')
         raise SystemExit(1)
 
 
