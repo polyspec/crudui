@@ -18,13 +18,12 @@ export { makeTranslate } from '@crudui/generator-core';
 export type { Language } from '@crudui/generator-core';
 export type { UnsupportedMode } from '@crudui/generator-core';
 
-// Core + components (the shared evaluation + the React adapter surfaces).
+// Field and widget rendering.
 export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
 export { Field } from './components/Field';
 export { Widget } from './components/Widget';
 
-// list-spec (read sister) — buildList + the list/cell React surfaces (additive;
-// the form surfaces above are untouched). SPEC §9.
+// List models and rendering.
 export { buildList } from '@crudui/generator-core';
 export type {
   ListViewModel,
@@ -44,21 +43,15 @@ export function renderForm(form: FormInstance): string {
   return renderToStaticMarkup(React.createElement(Form, { form }));
 }
 
-/** Options for a CRUDUI list render (the read sister of RenderFormOptions). */
+/** Options for list rendering. */
 export interface RenderListOptions extends BuildListOptions {
   /** Table (default) or card layout. */
   layout?: 'table' | 'card';
 }
 
 /**
- * Render a list spec + its INJECTED rows (SPEC §9, DB-agnostic) to SSR HTML —
- * the read sister of `renderForm`. Composes the columns map ($ref/$patch),
- * evaluates design/expression/i18n via the shared core (`buildList`), and
- * serializes the resulting `<List>` table/card tree with
- * `renderToStaticMarkup`. read-only: no input widget is emitted.
- *
- * Throws `ComposeLoadError` on an unresolved `$ref` (a load error, never a
- * silent render).
+ * Compose a list specification, evaluate supplied rows and render list HTML.
+ * Throws `ComposeLoadError` when a composition reference cannot be resolved.
  */
 export function renderList(
   listSpec: Record<string, unknown>,
