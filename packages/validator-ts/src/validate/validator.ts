@@ -64,7 +64,7 @@ export const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
  * is preserved verbatim and NOT evaluated as a condition expression. PATH-
  * REFERENCE-RULES.
  */
-export const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique'];
+export const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique', 'enddate'];
 
 /**
  * Rules whose string param is a literal value, never a condition expression. An

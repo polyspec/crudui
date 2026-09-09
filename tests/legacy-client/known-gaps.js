@@ -15,7 +15,7 @@
  * ---------------------------------------------------------------------------
  * Single source of truth = logically correct behavior, not the legacy runtime
  * ---------------------------------------------------------------------------
- * The validation semantics are governed by docs/VALIDATION-RULES.md
+ * The validation semantics are governed by docs/spec/validation-rules.md
  * "Validation Semantics Principles". Legacy defects are corrected, not
  * preserved: the new validators (validator-ts/php/go/rust, 1044-case
  * cross-language idempotency) are the reference, and dist.validate.js is
