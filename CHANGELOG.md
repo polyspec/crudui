@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — CLI dependency build
+
+CLI CI builds the validator package before running tests. Local instructions
+include the same prerequisite, and documentation checks include the CLI README
+and its Korean translation.
+
+Removing validator output reproduced the missing-package failure. Rebuilding it
+passed all 37 CLI tests, the four documented commands and two failure exit-code
+checks. `make docs-check` passed.
+
 ## 2026-09-09 — Dependency update procedure
 
 Scheduled dependency update pull requests are disabled. Dependency updates are

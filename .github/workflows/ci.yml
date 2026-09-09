@@ -373,6 +373,9 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
+      - name: Build validator package
+        run: npm run build:validator
+
       - name: CLI conformance
         run: npm test
         working-directory: packages/cli

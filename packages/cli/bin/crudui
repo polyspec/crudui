@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# crudui launcher — runs the .mjs entry through the tsx loader so the .ts
-# single-source-of-truth imports directly (no separate build), exactly like the
-# cross-check-console gateway spawns validate.mjs.
+# Run the CLI through tsx. Build the validator package before use.
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 exec node --import tsx "$DIR/crudui.mjs" "$@"

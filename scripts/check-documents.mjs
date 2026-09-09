@@ -9,6 +9,7 @@ const documents = new Set([
   'README.md', 'AGENTS.md', 'CHANGELOG.md', 'docs/index.md', 'docs/README.md',
   'docs/features.md',
   'examples/README.md',
+  'packages/cli/README.md',
   ...['core', 'react', 'vue', 'svelte'].map(name => `packages/generator-${name}/README.md`),
 ]);
 const errors = [];
