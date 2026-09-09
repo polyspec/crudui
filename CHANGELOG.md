@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-09 — Legacy translation identifiers
+
+Internal translation variables describe the translated field or schema value.
+The naming contract covers file names, public APIs and internal identifiers.
+The validator package build, all 1,606 validator tests and `make docs-check` passed.
+
 ## 2026-09-09 — CLI dependency build
 
 CLI CI builds the validator package before running tests. Local instructions
