@@ -10,7 +10,12 @@ const documents = new Set([
   'docs/features.md',
   'examples/README.md',
   'packages/cli/README.md',
-  ...['core', 'react', 'vue', 'svelte'].map(name => `packages/generator-${name}/README.md`),
+  ...['core', 'react', 'vue', 'svelte', 'php', 'go', 'rust'].map(name => `packages/generator-${name}/README.md`),
+  'packages/php-ext/README.md',
+  'packages/validator-php/README.md',
+  'tests/native-generators/README.md',
+  'tests/fixtures/form-render/README.md',
+  'tests/fixtures/list-render/README.md',
 ]);
 const errors = [];
 function collect(directory) {

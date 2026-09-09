@@ -1,0 +1,64 @@
+# Native PHP generation and validation
+
+[한국어](README.ko.md).
+
+The `crudui` extension provides `CRUDUI\Generator`, `CRUDUI\Validator` and
+`CRUDUI\Form` in the PHP process. The C module registers the shared PHP classes
+and converts PHP values directly to ordered Rust values. The standalone Rust
+generator and validator are statically linked into the extension.
+
+The [PHP API specification](../../docs/spec/php-extension.md) defines methods,
+loading, data types and exceptions. When enabled, the extension's classes are
+available before Composer autoloading. With the extension disabled, Composer
+loads the PHP packages. Each process uses one implementation.
+
+## Build and verification
+
+Build from the complete repository with 64-bit PHP 8.4 or later, matching PHP
+development headers, a C compiler, Autoconf, Make and Cargo. Linux and macOS are
+supported build targets. macOS builds target 11.0 or later. `phpize` and
+`php-config` must belong to the PHP binary that will load the module.
+
+Run from the repository root:
+
+```sh
+sh scripts/build-php-extension.sh
+composer install --working-dir=packages/generator-php
+node packages/php-ext/tests/run.mjs "$(pwd)/packages/php-ext/modules/crudui.so"
+npm run build
+node tests/native-generators/run.mjs \
+  --extension "$(pwd)/packages/php-ext/modules/crudui.so" \
+  --report .git/native-generators/report.json
+```
+
+The API checks execute PHP with the extension disabled, the extension without
+Composer, and the extension with Composer. They inspect class provenance and
+method signatures, conversion, exceptions, cloning, row operations and repeated
+instance creation. Validation uses shared form and list validity fixtures.
+Generator conformance compares all five implementations separately.
+
+`crudui.stub.php` defines native PHP signatures. Regenerate
+`crudui_arginfo.h` with the PHP development tools after changing the stubs:
+
+```sh
+php packages/php-ext/build/gen_stub.php packages/php-ext/crudui.stub.php
+```
+
+The generated header is committed; PHP classes are not declared by including the
+stub file. Cached templates are ordinary JSON objects. Native `Form` instances
+are not PHP-serializable; cache the template and persist `getData()` instead.
+
+## HTTP example
+
+The PHP generator's example uses the same calls with either implementation:
+
+```sh
+CRUDUI_DATA_FILE=/absolute/path/to/record.json \
+  php -n -d "extension=$(pwd)/packages/php-ext/modules/crudui.so" \
+  -S 127.0.0.1:8080 packages/generator-php/examples/index.php
+```
+
+The example renders HTML, validates a form submission and stores accepted data
+as JSON. It requires an explicit record path. Package build and HTTP verification
+are distinct from publication; current results are in
+[feature status](../../docs/features.md).

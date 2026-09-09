@@ -55,9 +55,18 @@ final class PatchTest extends TestCase
 
     public function testCreatesIntermediateObjectsForMissingDeepPath(): void
     {
-        $base = ['a' => []];
+        $base = ['a' => new \stdClass()];
         $out = Patch::apply($base, ['a.b.c' => 1]);
-        $this->assertSame(['a' => ['b' => ['c' => 1]]], $out);
+        $this->assertInstanceOf(\stdClass::class, $out['a']);
+        $this->assertInstanceOf(\stdClass::class, $out['a']->b);
+        $this->assertSame(1, $out['a']->b->c);
+    }
+
+    public function testCreatedIntermediateObjectRemainsAnObjectAfterItsLastMemberIsRemoved(): void
+    {
+        $out = Patch::apply([], json_decode('{"default.x":1,"remove":["default.x"]}'));
+        $this->assertInstanceOf(\stdClass::class, $out['default']);
+        $this->assertSame('{"default":{}}', json_encode($out));
     }
 
     public function testDoesNotMutateInputBase(): void

@@ -1,0 +1,16 @@
+[package]
+name = "crudui-php"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+description = "Native PHP form generation and validation"
+
+[lib]
+name = "crudui_engine"
+crate-type = ["staticlib"]
+
+[dependencies]
+crudui-generator = { path = "../generator-rust", version = "0.0.1" }
+crudui-validator = { path = "../validator-rust", version = "0.0.1" }
+serde = "1"
+serde_json = { version = "1", features = ["preserve_order"] }

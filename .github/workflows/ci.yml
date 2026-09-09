@@ -391,3 +391,46 @@ jobs:
           cache: npm
       - run: npm i -g npm@11.17.0 && npm ci
       - run: npm run test:forms
+
+  native-generators:
+    name: Native generation and PHP API (${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache-dependency-path: packages/generator-go/go.mod
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            packages/generator-rust
+            packages/php-ext
+      - name: Install dependencies
+        run: |
+          npm i -g npm@11.17.0 && npm ci
+          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+      - name: Build and test native packages
+        run: make test-native
+      - name: Preserve comparison report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-generators-php-${{ matrix.php }}
+          path: .git/native-generators/report.json
+          include-hidden-files: true
+          if-no-files-found: error

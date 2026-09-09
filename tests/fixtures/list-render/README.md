@@ -1,63 +1,41 @@
-# CRUDUI list-render shared fixture (3-framework parity gate, SPEC §9)
+# List rendering fixtures
 
-The read sister of `tests/fixtures/form-render/`. One `expected_html` per list
-scenario; React/Vue/Svelte each SSR-render the SAME list spec + injected rows and
-must reproduce `expected_html` AFTER the shared normalizer
-(`tests/fixtures/form-render/normalize.mjs` — reused verbatim, SPEC §9 plan).
+[한국어](README.ko.md).
 
-`list` is the read sister of `form-spec` (`create = write`): it shares the CRUDUI
-engine 100% (compose / expression / i18n / design node maps). The ONE new surface
-is the read cell renderer (`@crudui/generator-core` `cell.ts`). DB-agnostic:
-`rows` are INJECTED in the fixture; `search` / `sort` / `pagination` are DECLARED
-only — the server applies the real query, the spec declares (SPEC §6 R1, §9.1).
+`cases.json` contains the shared list layout cases for React, Vue and Svelte.
+Each case provides `name`, `spec`, `rows`, optional `options`, and either
+`expected_html` or `expectError`.
 
-## Files
+These cases check table and card layouts, column formats, actions, visibility,
+empty rows and pagination markup. Applications supply display rows and perform
+queries; the renderer does not query a database.
 
-- `cases.json` — generated. One case `{ name, note, spec, rows, options?,
-  expected_html?, expectError? }`. `expected_html` is the NORMALIZED output of the
-  React CRUDUI list reference generator (`renderList`). Do NOT edit by hand.
-- `generate.ts` — the generator. Regenerate after a contract change:
-  ```
-  node_modules/.bin/tsx tests/fixtures/list-render/generate.ts \
-    > tests/fixtures/list-render/cases.json
-  ```
+## Comparisons
 
-## Consumers (per-framework parity tests)
+The framework layout tests compare normalized list bodies with `expected_html`.
+They use the [form HTML normalizer](../form-render/README.md#normalization).
+React image preload links are excluded from these body expectations. This
+comparison does not establish equality of complete original HTML.
 
-- React: `packages/generator-react/src/__tests__/CRUDUI-list-parity.conformance.test.ts`
-- Vue: `packages/generator-vue/test/list-render.conformance.test.mjs`
-- Svelte: `packages/generator-svelte/test/list-render.conformance.test.mjs`
+The [native generator suite](../../native-generators/README.md) uses the same
+inputs and compares complete original HTML with React, including image preload
+links. It does not remove resource hints or normalize attributes and CSS.
 
-Each renders every non-error case through its framework's `renderList*` and
-asserts `normalizeHtml(actual) === expected_html`. Error cases assert the surfaced
-`ComposeLoadError` (an unresolved `$ref` is a LOAD ERROR, never a silent table).
+Consumers are the list conformance tests in
+[React](../../../packages/generator-react/src/__tests__/list-render.conformance.test.ts),
+[Vue](../../../packages/generator-vue/test/list-render.conformance.test.mjs), and
+[Svelte](../../../packages/generator-svelte/test/list-render.conformance.test.mjs).
+Composition error cases require the recorded error code.
 
-## Canonical list markup contract
+## Regeneration
 
-The normalized markup is identical across React/Vue/Svelte:
+Run from the repository root after building the packages:
 
-- envelope `<div class="list-view {design}">`
-- toolbar `<div class="list-actions"><span class="list-action" data-action="K">…</span></div>`
-  (link action → `<a>`, bare behavior → `<button>` with the verbatim `on*` script)
-- table `<table class="list-table">`
-  - head `<th class="list-th" data-field data-sortable data-sort-dir>`
-    `<span class="list-th-label">L</span>` + `<span class="list-sort">↕</span>` (sortable)
-  - body `<td class="list-td list-td-TYPE">CELL</td>`
-- cards `<div class="list-cards"><article class="list-card">`
-  `<div class="list-td list-td-TYPE"><span class="list-card-label">L</span>`
-  `<span class="list-card-value">CELL</span></div></article></div>`
-- empty `<div class="list-empty">EMPTY</div>` (no `<table>`)
-- pagination `<nav class="list-pagination" data-mode data-per-page data-page data-total>`
+```sh
+node_modules/.bin/tsx tests/fixtures/list-render/generate.ts \
+  > tests/fixtures/list-render/cases.json
+npm run test:forms
+```
 
-### §9.2 cell catalog display
-
-| format | normalized cell body |
-|---|---|
-| text / date / number / choice-label | escaped string |
-| badge | `<span class="badge badge-VARIANT">LABEL</span>` |
-| link | `<a href="…" target="…">TEXT</a>` |
-| image | `<img src="…" alt="…" width height>` |
-| bool `as=check` | `<span class="bool-check" aria-label="L">✔/✘</span>` |
-| bool `as=icon` | `<span class="bool-icon bool-true|false" aria-label="L"></span>` |
-| bool `as=text` | `<span class="bool-text">L</span>` |
-| html | verbatim raw markup (the ONE sanctioned raw passthrough, no wrapper) |
+The generator derives normalized list bodies from React. Review changes against
+the specification before accepting them. Regeneration alone is not verification.

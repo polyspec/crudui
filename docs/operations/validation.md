@@ -32,7 +32,7 @@ if (result.valid || result.errors[0]?.rule !== 'required') {
 
 ## PHP
 
-`CRUDUI\Validator\Validate\Validate::run` accepts the specification, data,
+`CRUDUI\Validator::validate` accepts the specification, data,
 optional virtual files, an optional loader and a base path. Its result exposes
 `valid`, `errors` and `toArray()`.
 
@@ -40,7 +40,7 @@ optional virtual files, an optional loader and a base path. Its result exposes
 <?php
 require 'packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator\Validate\Validate;
+use CRUDUI\Validator;
 
 $spec = [
     'type' => 'group',
@@ -48,7 +48,7 @@ $spec = [
         'email' => ['type' => 'email', 'validate' => ['required' => true, 'email' => true]],
     ],
 ];
-$result = Validate::run($spec, ['email' => '']);
+$result = Validator::validate($spec, ['email' => '']);
 if ($result->valid || $result->errors[0]['rule'] !== 'required') {
     throw new RuntimeException('Expected required validation failure');
 }

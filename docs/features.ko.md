@@ -6,11 +6,11 @@
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | validator-responses | 검증기 프로세스 상태와 완전한 응답 검사 | implemented | passed | not-deployed | [응답 검사](../examples/cross-check-console/server/validate-response.test.mjs) |
-| php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | not-started | pending | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
-| generator-php | PHP 폼 생성과 SSR | not-started | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
-| generator-go | Go 폼 생성과 SSR | not-started | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | in-progress | pending | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
+| generator-php | PHP 폼 생성과 SSR | in-progress | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| generator-go | Go 폼 생성과 SSR | in-progress | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-rust | Rust 폼 생성과 SSR | in-progress | pending | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
-| php-extension | PHP 네이티브 폼 생성과 검증 | not-started | pending | not-deployed | [확장 계약](spec/php-extension.ko.md) |
+| php-extension | PHP 네이티브 폼 생성과 검증 | in-progress | pending | not-deployed | [확장 계약](spec/php-extension.ko.md) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | legacy-comparison | 구형 실행·사례 기대값·네 언어 일치 | implemented | passed | not-deployed | [테스트 절차](operations/testing.ko.md) |
@@ -33,7 +33,25 @@
 | docs-check | 문서 링크·번역·상태 검사 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../tests/ordered-json/check.py) |
 
-## 현재 검증
+## 네이티브 패키지 검증
+
+PHP·Go·Rust 생성기와 공통 PHP 확장 API를 구현했습니다. 공통 생성기 보고서는
+JavaScript·PHP·Go·Rust·네이티브 PHP에서 각각 153개와 입력 불변 검사 1개를
+통과하여 총 766개 통과, 실패 0개입니다. 검증 후 기록된 입력 파일 640개가
+모두 작업 소스와 일치했습니다. PHP API는 세 구성에서 각각 352개,
+검증은 두 PHP 구현에서 각각 94개를 통과했습니다.
+
+폼 검사는 코어 86개, React 701개, Vue 344개, Svelte 345개, Svelte 마운트
+검사 3개와 HTML 정규화 검사 6개가 통과했습니다. 패키지 exports, 소비자 타입,
+프로덕션 빌드와 세 프레임워크 소비자 브라우저 검사도 통과했습니다.
+Chromium 위젯·시간대 검사 3개와 `make docs-check`가 통과했습니다.
+
+일반 사용자 Linux 이미지는 빌드와 확장 로딩에 성공했습니다. 전체 검사 명령은
+아직 실행하지 않았습니다. 새 네 서버 생성 엔드포인트와 브라우저 템플릿 연동은
+HTTP·전송·저장·브라우저 전체 검증이 필요합니다. 기능 표는 해당 인수 범위에
+대해 pending을 유지합니다. 새 비교 이미지나 패키지는 게시하지 않았습니다.
+
+## 이전 검증기와 패키지 검증
 
 프로세스 응답 검사 35개와 실제 JavaScript·PHP·Go·Rust CLI 실행을 포함한
 비교 콘솔 검사 116개가 모두 통과했습니다. 최초 회귀 사례 8개는 응답 파서

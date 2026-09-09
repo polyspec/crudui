@@ -15,8 +15,12 @@ Generation separates structure compilation, data binding, form instances and
 HTML rendering. Generation and validation share composition and expressions.
 Both execute inside the PHP process. The extension does not require a Node
 process, a validation executable or a PHP implementation of either operation.
-The implementation proposal is recorded in
-[native form generators](../plans/native-form-generators.md).
+The extension uses the standalone Rust generator and validator in the PHP
+process. Both Rust packages are also usable by Rust SSR applications. PHP and Go
+provide their own generators. The C binding uses the Zend extension API to register the common classes,
+convert PHP values directly to ordered engine values and report engine errors
+through the common PHP exceptions. Rust libraries are statically linked into
+the extension; value conversion does not serialize data or start another process.
 
 ## Public classes and loading
 
@@ -24,6 +28,10 @@ The PHP packages and extension provide the same public classes:
 `CRUDUI\Generator`, `CRUDUI\Validator` and `CRUDUI\Form`.
 Method names, parameter names, types, defaults, return values and exception types
 are identical. Application calls do not change with the implementation.
+
+`ComposeLoadError::getCompositionTrace()` returns the original composition path
+entries. The exception stores them separately from PHP's exception call stack;
+`getTrace()` retains its standard PHP meaning.
 
 | Process configuration | Class implementation |
 | --- | --- |
@@ -88,13 +96,21 @@ Composition inputs use an explicit `files` map and `basepath`.
 Specification and composition failures raise exceptions; they are not validation
 results. Validation uses the shared rules and conformance cases.
 
+Composition errors use `CRUDUI\Validator\Compose\ComposeLoadError`. Generator
+operation errors use `CRUDUI\FormError`, constructed with `errorCode`, `message`
+and optional `path`; `getErrorCode()` and `getPath()` return the operation details.
+Unsupported fields use `UNSUPPORTED_FIELD_TYPE`; other invalid form operations
+use `INVALID_FORM_INPUT`. PHP argument type violations raise `TypeError`.
+
 PHP scalar types are preserved. Sequential PHP arrays represent JSON arrays;
 associative arrays and `stdClass` represent objects. Use `stdClass` for an
 explicit empty object. An empty array is accepted for an empty root object
 argument, whose type is fixed by its API. Nested values retain their type.
+The fixed `files` option is also an object map and accepts an empty PHP array.
 Returned record objects and cached templates use `stdClass`; lists use arrays.
 Object member order and row keys survive conversion in both directions.
-Unsupported PHP values and recursive structures fail explicitly.
+Unsupported PHP values, invalid UTF-8 strings or member names, and recursive
+structures fail explicitly.
 
 The extension does not introduce hidden identity or ordering fields. Form
 transport and ordered JSON transport submit the same keyed records. JSON parsing

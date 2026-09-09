@@ -49,7 +49,7 @@ final class Expression
      * @param array<string, mixed> $formData
      * @param list<string>         $currentPath
      */
-    public static function evaluate(string $expression, array $formData, array $currentPath = []): bool
+    public static function evaluate(string $expression, array|\stdClass $formData, array $currentPath = []): bool
     {
         return (new Evaluator($formData, $currentPath))->evaluate(self::parse($expression));
     }
@@ -60,9 +60,21 @@ final class Expression
      * @param array<string, mixed> $formData
      * @param list<string>         $currentPath
      */
-    public static function evaluateValue(string $expression, array $formData, array $currentPath = []): mixed
+    public static function evaluateValue(string $expression, array|\stdClass $formData, array $currentPath = []): mixed
     {
         return (new Evaluator($formData, $currentPath))->evaluateValue(self::parse($expression));
+    }
+
+    /** Recognize expression strings used by validation and form appearance. */
+    public static function isConditionExpression(string $value): bool
+    {
+        $value = trim($value);
+        return $value !== '' && (
+            str_starts_with($value, '.')
+            || preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*\\./', $value) === 1
+            || preg_match('/\\s+(==|!=|>|>=|<|<=|&&|\\|\\||in|not\\s+in)\\s+/', $value) === 1
+            || preg_match('/\\?.*:/', $value) === 1
+        );
     }
 
     /**

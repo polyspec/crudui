@@ -35,7 +35,7 @@ final class Evaluator
      *                              condition, including the field name itself
      */
     public function __construct(
-        private readonly array $formData,
+        private readonly array|\stdClass $formData,
         private readonly array $currentPath = [],
     ) {
     }
@@ -268,7 +268,12 @@ final class Evaluator
             if ($current === null) {
                 return null;
             }
-            if (is_array($current)) {
+            if ($current instanceof \stdClass) {
+                if (!property_exists($current, $segment)) {
+                    return null;
+                }
+                $current = $current->{$segment};
+            } elseif (is_array($current)) {
                 if (!array_key_exists($segment, $current)) {
                     return null;
                 }
@@ -301,7 +306,7 @@ final class Evaluator
         $arrayData = $this->getValueByPath($arrayPath);
 
         // Object source: skip the wildcard index, access remaining directly.
-        if (is_array($arrayData) && !array_is_list($arrayData)) {
+        if ($arrayData instanceof \stdClass || (is_array($arrayData) && !array_is_list($arrayData))) {
             return $this->resolveWildcardPath([...$arrayPath, ...$remainingPath]);
         }
 
@@ -482,14 +487,8 @@ final class Evaluator
             return [$value ? 1.0 : 0.0, true];
         }
         if (is_string($value)) {
-            $trimmed = trim($value);
-            if ($trimmed === '') {
-                return [0.0, true]; // JS Number('') === 0
-            }
-            if (is_numeric($trimmed)) {
-                return [(float) $trimmed, true];
-            }
-            return [0.0, false];
+            $number = \CRUDUI\Validator\Support\NumberValue::parseString($value);
+            return $number === null ? [0.0, false] : [$number, true];
         }
         return [0.0, false];
     }

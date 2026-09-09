@@ -1,0 +1,68 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createServer } from 'vite';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { normalizeHtml } from '../../tests/fixtures/form-render/normalize.mjs';
+import { equalModels, equalOrdered } from '../../tests/native-generators/protocol.mjs';
+
+const packageRoot = dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = resolve(packageRoot, '../..');
+const temporary = await mkdtemp(join(tmpdir(), 'crudui-generator-rust-'));
+const output = join(temporary, 'fixtures.json');
+let server;
+try {
+  const process = spawnSync(globalThis.process.env.CARGO ?? 'cargo', ['test', '--locked', '--manifest-path', join(packageRoot, 'Cargo.toml'), 'native_fixture_records'], {
+    cwd: repositoryRoot,
+    env: { ...globalThis.process.env, CRUDUI_GENERATOR_FIXTURE_OUTPUT: output },
+    encoding: 'utf8',
+  });
+  if (process.error || process.status !== 0) throw new Error(process.error?.message ?? `${process.stdout}\n${process.stderr}`);
+  const native = JSON.parse(await readFile(output, 'utf8'));
+  const forms = JSON.parse(await readFile(join(repositoryRoot, 'tests/fixtures/form-render/cases.json'), 'utf8'));
+  const lists = JSON.parse(await readFile(join(repositoryRoot, 'tests/fixtures/list-render/cases.json'), 'utf8'));
+  server = await createServer({
+    root: repositoryRoot, configFile: false, logLevel: 'error', server: { middlewareMode: true },
+    resolve: { alias: { '@crudui/validator': join(repositoryRoot, 'packages/validator-ts/src/index.ts') } },
+  });
+  const { compileForm, bindForm, buildList } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-core/src/index.ts'));
+  const { FormFields } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-react/src/components/FormFields.tsx'));
+  const { List } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-react/src/components/List.tsx'));
+  const serializable = value => JSON.parse(JSON.stringify(value));
+  const failures = [];
+  const check = (name, actual, expected, compare = assert.deepEqual) => {
+    try { compare(actual, expected, name); }
+    catch (error) { failures.push({ name, message: error.message }); }
+  };
+  assert.equal(native.forms.length, forms.length);
+  assert.equal(native.lists.length, lists.length);
+  for (let i = 0; i < forms.length; i++) {
+    const fixture = forms[i], result = native.forms[i];
+    assert.equal(result.name, fixture.name);
+    if (fixture.expectError) { check(`${fixture.name}: error`, result.error?.code, fixture.expectError.code); continue; }
+    const template = compileForm(fixture.spec, fixture.options);
+    const fields = bindForm(template, fixture.data, fixture.options);
+    check(`${fixture.name}: template`, result.template, serializable(template), equalOrdered);
+    check(`${fixture.name}: fields`, result.fields, serializable(fields), equalModels);
+    check(`${fixture.name}: exact HTML`, result.html, renderToStaticMarkup(createElement(FormFields, { fields })));
+    check(`${fixture.name}: layout`, normalizeHtml(result.html), fixture.expected_html);
+  }
+  for (let i = 0; i < lists.length; i++) {
+    const fixture = lists[i], result = native.lists[i];
+    assert.equal(result.name, fixture.name);
+    if (fixture.expectError) { check(`${fixture.name}: error`, result.error?.code, fixture.expectError.code); continue; }
+    const vm = buildList(fixture.spec, fixture.rows, fixture.options);
+    check(`${fixture.name}: model`, result.model, serializable(vm), equalModels);
+    check(`${fixture.name}: exact HTML`, result.html, renderToStaticMarkup(createElement(List, { vm, layout: fixture.options?.layout })));
+  }
+  for (const failure of failures) console.error(failure.message);
+  if (failures.length) throw new Error(`${failures.length} Rust fixture comparisons failed`);
+  console.log(`Rust fixtures passed: ${forms.length} forms, ${lists.length} lists; complete templates, models and original HTML, plus normalized form layouts.`);
+} finally {
+  await server?.close();
+  await rm(temporary, { recursive: true, force: true });
+}

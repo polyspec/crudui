@@ -1,18 +1,11 @@
 /**
- * CRUDUI generator low-level helpers — framework-independent string/name/path
- * primitives. These reproduce the verified Limepie envelope conventions
- * (limepieParity.ts) that the Svelte reference render uses, so the CRUDUI envelope
- * is bit-identical to the proven legacy output after normalization. NO legacy meta key
- * is read here; these are pure structural primitives (escaping, name/id
- * derivation, php-string casts, explicit position-index identity, value lookup).
- *
- * G4 (SPEC §4): a repeated row's POSITION is the client-assigned serialization
- * index (deterministic, explicit), and its IDENTITY is the hidden data `id`
- * (server PK = the object key; new rows = none). No magic random token. The
- * position-index path segment is the readable marker `#N` (parsePathString keeps
- * it as one segment); it is the position, never a name, and collapses to `[]` in
- * data-name/data-rule-name (the rule applies to every row).
+ * Shared string conversion, field paths, names and identifiers.
+ * Editable forms use row keys in field paths. Internal array binding uses #N
+ * path segments for array positions; rule paths replace repeated segments with [].
  */
+
+import { styleString } from './css';
+export { styleString } from './css';
 
 /** HTML attribute-value escaping. */
 export function escAttr(s: string): string {
@@ -47,15 +40,10 @@ export function applyDefaultString(value: unknown, def: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// explicit position-index identity (G4: position = client index, no magic token)
+// Array positions used by internal field binding.
 // ---------------------------------------------------------------------------
 
-/**
- * Path segment for a repeated row at the given serialization index (G4 position).
- * `#N` is explicit and deterministic; parsePathString keeps it as one segment.
- * It is recognized by isPositionSegment() and collapses to the bracket index in
- * the submitted name and to `[]` in data-name/data-rule-name.
- */
+/** Encode an array position for field binding and rule-path generation. */
 export function positionSegment(index: number): string {
   return `#${index}`;
 }
@@ -215,24 +203,6 @@ export function ruleNameForPath(path: string, rowSegments: readonly number[] = [
 export function wrapperLayerName(path: string, keyPrefix?: string): string {
   const dotName = path.split('[]').join('.*');
   return keyPrefix ? `${keyPrefix}.${dotName}-layer` : `${dotName}-layer`;
-}
-
-/**
- * Normalize an inline CSS string to canonical "prop: val; prop: val" form, or
- * undefined when empty (so the attribute is omitted).
- */
-export function styleString(style: unknown): string | undefined {
-  if (typeof style !== 'string' || style.trim() === '') return undefined;
-  const decls: string[] = [];
-  for (const decl of style.split(';')) {
-    const idx = decl.indexOf(':');
-    if (idx === -1) continue;
-    const prop = decl.slice(0, idx).trim();
-    const val = decl.slice(idx + 1).trim();
-    if (!prop || !val) continue;
-    decls.push(`${prop}: ${val}`);
-  }
-  return decls.length > 0 ? decls.join('; ') : undefined;
 }
 
 /** Merge two style strings (design node + structural), dropping empties. */

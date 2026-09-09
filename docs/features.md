@@ -6,11 +6,11 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | validator-responses | Validator process status and complete response checks | implemented | passed | not-deployed | [Response tests](../examples/cross-check-console/server/validate-response.test.mjs) |
-| php-api | Common PHP and extension classes with identical methods | not-started | pending | not-deployed | [PHP API contract](spec/php-extension.md) |
-| generator-php | PHP form generation and SSR | not-started | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
-| generator-go | Go form generation and SSR | not-started | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| php-api | Common PHP and extension classes with identical methods | in-progress | pending | not-deployed | [PHP API contract](spec/php-extension.md) |
+| generator-php | PHP form generation and SSR | in-progress | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| generator-go | Go form generation and SSR | in-progress | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | generator-rust | Rust form generation and SSR | in-progress | pending | not-deployed | [Runtime contract](spec/runtime-packages.md) |
-| php-extension | Native PHP form generation and validation | not-started | pending | not-deployed | [Extension contract](spec/php-extension.md) |
+| php-extension | Native PHP form generation and validation | in-progress | pending | not-deployed | [Extension contract](spec/php-extension.md) |
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
 | legacy-comparison | Legacy execution, fixture expectations and four-language agreement | implemented | passed | not-deployed | [Testing procedure](operations/testing.md) |
@@ -33,7 +33,27 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | docs-check | Document links, translations and status checks | implemented | passed | not-deployed | [Documentation procedure](operations/documentation.md) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../tests/ordered-json/check.py) |
 
-## Current verification
+## Native package verification
+
+The PHP, Go and Rust generators and the common PHP extension API are implemented.
+The shared generator report passed 153 cases in each of JavaScript, PHP, Go,
+Rust and native PHP, plus one unchanged-input check: 766 passed, zero failed.
+All 640 recorded input files matched the working source after verification.
+PHP API checks passed 352 cases in each of three configurations; validation
+passed 94 cases in each PHP implementation.
+
+Form checks passed: core 86, React 701, Vue 344, Svelte 345, three mounted Svelte
+checks and six HTML normalizer checks. Packaged exports, consumer types,
+production builds and three-framework consumer browser checks passed. The three
+Chromium widget and timezone checks and `make docs-check` passed.
+
+The non-root Linux image built and loaded the extension. Its full test command
+has not run. The new four-server generation endpoints and browser template
+integration still require complete HTTP, submission, persistence and browser
+verification. The feature rows remain pending for that acceptance scope.
+No new comparison image or package has been published.
+
+## Earlier validation and package verification
 
 All 116 cross-check console tests passed, including 35 process-response checks
 and actual JavaScript, PHP, Go and Rust CLI execution. Eight initial regression

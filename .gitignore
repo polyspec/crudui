@@ -4,6 +4,9 @@ node_modules/
 # Composer dependencies
 examples/**/vendor/
 packages/validator-php/vendor/
+packages/generator-php/vendor/
+packages/generator-php/.phpunit.cache/
+packages/generator-php/.phpunit.result.cache
 
 # Build outputs
 dist/

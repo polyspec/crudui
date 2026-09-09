@@ -148,6 +148,12 @@ forms in one document provide distinct prefixes; SSR and browser rendering use
 the same prefix. Identifiers do not encode or submit additional record data.
 Single-control labels use `for`; checkbox and radio captions target their own
 input. Group headings do not target an unrelated input.
+Widget scripts use the same resolved identifier as their control. CSS selectors
+escape the identifier with `CSS.escape`; direct DOM lookup uses
+`document.getElementById`. Search initialization and its generated CSS use the
+same container class. String arguments in scripts use JSON string escaping and
+escape `<`, U+2028 and U+2029. Every widget derives rule paths from the structural
+row positions, including choices, file controls, search and action values.
 Multiple-choice inputs use an array submission name and preserve every selected
 value through injection, editing and submission. An empty selection is an empty
 array in instance data.
@@ -162,3 +168,44 @@ resolve the nearest field container and do not depend on a generated title.
 Unsupported field types produce `UnsupportedFieldTypeError` with code
 `UNSUPPORTED_FIELD_TYPE`. The message identifies the field type and path without
 a version-specific renderer name.
+
+## HTML serialization
+
+### Date values
+
+Date controls, datetime controls and list date formatting use UTC. A timestamp
+with an explicit offset is converted to UTC; a date or datetime without an
+offset is interpreted in UTC. Rendering does not depend on the PHP, server or
+browser timezone. Datetime controls display seconds and do not remove an offset
+before converting its timestamp. Instance data retains the supplied value.
+
+Accepted input forms are `YYYY-MM-DD`, `YYYY-MM-DD[T ]HH:mm`, optional seconds
+and fractional seconds, ISO timestamps with `Z` or `+/-HH:mm`, and RFC 2822 dates
+with an explicit timezone. Invalid or unsupported date strings remain unchanged
+in the field model or list display. Date validity remains a validation concern.
+RFC dates accept an optional weekday, a one- or two-digit day, an English
+three-letter month, a four-digit year, hours and minutes with optional seconds,
+and a numeric `+/-HHMM` offset or `UT`, `GMT`, `EST`, `EDT`, `CST`, `CDT`, `MST`,
+`MDT`, `PST`, `PDT`. English names are case-insensitive and separators use spaces
+or tabs. A supplied weekday must match the calendar date. Comments, folded lines,
+two-digit years and military zones are not accepted. ISO inputs do not trim
+surrounding whitespace. Calendar dates, clock values and offsets must be valid.
+Tests compare UTC, Asia/Seoul and America/Los_Angeles, including date changes
+across midnight and initial data versus subsequent injection.
+
+### Markup and styles
+
+Server renderers preserve the complete evaluated models. Native form and list
+HTML follow React static markup, including escaped attributes and image preload
+links for actual image elements. Resource hints follow first-use source order,
+exclude empty and `data:` sources, and are deduplicated by source. Raw HTML
+content is not parsed to produce resource hints. Normal `href` and `src`
+attributes reject the JavaScript URL scheme with the same blocked URL output;
+explicit raw content retains its declared handling.
+
+Inline CSS parsing separates declarations only at top-level semicolons and the
+first top-level colon. Quoted text, escapes, comments and nested parentheses,
+brackets and braces remain part of their declaration values. Rendering must not
+truncate data URLs or quoted values. Browser styles apply `!important` as a CSS
+priority. Field models retain declaration order and values; comparisons must not
+remove CSS differences.

@@ -28,8 +28,9 @@ final class ConditionMap
      * @param array<string, mixed> $formData
      * @param list<string>         $currentPath
      */
-    public static function resolve(array $map, array $formData, array $currentPath = []): mixed
+    public static function resolve(array|\stdClass $map, array|\stdClass $formData, array $currentPath = []): mixed
     {
+        $map = (array) $map;
         $evaluator = new Evaluator($formData, $currentPath);
 
         foreach ($map as $expr => $value) {

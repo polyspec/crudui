@@ -6,7 +6,7 @@
 //!                                            CRUDUI properties preserve insert order)
 //!   $merge / $change {key:{sub:val}}       → replace + add (deep-merge; scalar =
 //!                                            replace, new subkey = add)
-//!   $remove [k1,k2] | {k:{sub:…}}          → remove (whole key or deep subkey)
+//!   `$remove [k1,k2] | {k:{sub:…}}`        → remove (whole key or deep subkey)
 //!
 //! CRUDUI normalization (the analysis patch_ops): `$patch` is an OBJECT of operations.
 //! Two shapes coexist (both ported from legacy, both order-preserving):
