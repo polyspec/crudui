@@ -7,6 +7,7 @@ the PHP package's Composer dependencies, and make PHP, Go and Cargo available on
 `PATH`. Build JavaScript packages before checking their compiled exports.
 
 ```sh
+composer --working-dir=packages/validator-php install
 npm run build
 npm test --workspace @crudui/validator -- --run
 composer --working-dir=packages/validator-php test
