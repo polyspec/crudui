@@ -67,7 +67,7 @@ final class Validator
      * Rules whose param is a field reference (relative path / filter condition) —
      * preserved verbatim, never evaluated as a condition. PATH-REFERENCE-RULES.
      */
-    private const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique'];
+    private const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique', 'enddate'];
 
     /**
      * Rules whose string param is a literal value, never a condition. An `accept`

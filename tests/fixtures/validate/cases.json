@@ -1,5 +1,260 @@
 [
   {
+    "name": "enddate-relative-path-2026-01-01",
+    "note": "The enddate parameter remains a field path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "period": {
+          "type": "group",
+          "properties": {
+            "start": {
+              "type": "text"
+            },
+            "end": {
+              "type": "text",
+              "validate": {
+                "enddate": ".start"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "period": {
+        "start": "2026-01-02",
+        "end": "2026-01-01"
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "period.end",
+          "field": "end",
+          "rule": "enddate",
+          "message": "End date must be after the start date.",
+          "value": "2026-01-01"
+        }
+      ]
+    }
+  },
+  {
+    "name": "enddate-relative-path-2026-01-02",
+    "note": "The enddate parameter remains a field path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "period": {
+          "type": "group",
+          "properties": {
+            "start": {
+              "type": "text"
+            },
+            "end": {
+              "type": "text",
+              "validate": {
+                "enddate": ".start"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "period": {
+        "start": "2026-01-02",
+        "end": "2026-01-02"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "enddate-relative-path-2026-01-03",
+    "note": "The enddate parameter remains a field path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "period": {
+          "type": "group",
+          "properties": {
+            "start": {
+              "type": "text"
+            },
+            "end": {
+              "type": "text",
+              "validate": {
+                "enddate": ".start"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "period": {
+        "start": "2026-01-02",
+        "end": "2026-01-03"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "enddate-parent-path",
+    "note": "The enddate parameter remains a field path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "period": {
+          "type": "group",
+          "properties": {
+            "end": {
+              "type": "text",
+              "validate": {
+                "enddate": "..start"
+              }
+            }
+          }
+        },
+        "start": {
+          "type": "text"
+        }
+      }
+    },
+    "data": {
+      "period": {
+        "end": "2026-01-01"
+      },
+      "start": "2026-01-02"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "period.end",
+          "field": "end",
+          "rule": "enddate",
+          "message": "End date must be after the start date.",
+          "value": "2026-01-01"
+        }
+      ]
+    }
+  },
+  {
+    "name": "enddate-field-path-2026-01-01",
+    "note": "The enddate parameter remains a field path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "period": {
+          "type": "group",
+          "properties": {
+            "start": {
+              "type": "text"
+            },
+            "end": {
+              "type": "text",
+              "validate": {
+                "enddate": "period.start"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "period": {
+        "start": "2026-01-02",
+        "end": "2026-01-01"
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "period.end",
+          "field": "end",
+          "rule": "enddate",
+          "message": "End date must be after the start date.",
+          "value": "2026-01-01"
+        }
+      ]
+    }
+  },
+  {
+    "name": "enddate-field-path-2026-01-02",
+    "note": "The enddate parameter remains a field path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "period": {
+          "type": "group",
+          "properties": {
+            "start": {
+              "type": "text"
+            },
+            "end": {
+              "type": "text",
+              "validate": {
+                "enddate": "period.start"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "period": {
+        "start": "2026-01-02",
+        "end": "2026-01-02"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "enddate-field-path-2026-01-03",
+    "note": "The enddate parameter remains a field path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "period": {
+          "type": "group",
+          "properties": {
+            "start": {
+              "type": "text"
+            },
+            "end": {
+              "type": "text",
+              "validate": {
+                "enddate": "period.start"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "period": {
+        "start": "2026-01-02",
+        "end": "2026-01-03"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
     "name": "ternary-field-limit-false-5",
     "note": "The selected ternary branch resolves a field value as the validation limit.",
     "spec": {

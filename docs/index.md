@@ -8,7 +8,7 @@
 - [Form development and verification](operations/forms.md)
 - [Documentation maintenance](operations/documentation.md)
 - [Expression grammar](spec/expressions.md)
-- [Validation rules](VALIDATION-RULES.md)
+- [Validation rules](spec/validation-rules.md)
 
 Generate API references and the documentation site with `make docs` from the
 repository root. Run `make docs-check` before recording verification results.
