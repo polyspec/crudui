@@ -44,6 +44,10 @@ Container builds install platform dependencies through the package manager.
 The root development dependencies include the shared test runner so that testing
 integrations installed at the root can resolve it through normal module lookup.
 
+Dependency updates are prepared and verified locally. The repository does not
+schedule dependency update pull requests. Updated manifests and lock files are
+verified together with the relevant package and documentation checks.
+
 ## PHP dependencies
 
 The PHP validator declares runtime and test dependencies in `composer.json`.
