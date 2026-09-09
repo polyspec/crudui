@@ -20,6 +20,11 @@ output. A build must succeed without a preceding `.svelte-kit` directory.
 Compiled Go CLI executables are generated from source and excluded from Git.
 Applications that execute a CLI build it before use.
 
+The specification CLI runs its TypeScript source through `tsx`. Its generator
+imports load the validator through the public package entry, so local commands
+and CI tests build the validator before running the CLI. Dependency installation
+alone does not generate that package output.
+
 ## Acceptance
 
 - `npm ci` installs the pinned dependencies, and `npm run build` executes the

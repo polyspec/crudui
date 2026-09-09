@@ -29,6 +29,11 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 ## Current verification
 
+CLI tests passed all 37 checks after removing and rebuilding validator output.
+The four documented commands and two failure exit-code checks passed. CLI CI
+builds the validator before testing. These local results do not indicate package
+publication.
+
 The package checks use the dependency graph committed in `a5b4491`.
 `npm ci`, public declarations and exports (5 checks), repeated build output
 (1 check), and the isolated consumer type, production and three-framework browser

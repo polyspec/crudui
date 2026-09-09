@@ -18,6 +18,11 @@ TypeScript는 패키지의 엄격한 컴파일러 설정과 `noEmitOnError`를 �
 컴파일한 Go CLI 실행 파일은 소스에서 생성하며 Git에서 제외합니다.
 CLI를 실행하는 애플리케이션은 사용 전에 CLI를 빌드합니다.
 
+스펙 CLI는 `tsx`로 TypeScript 소스를 실행합니다. CLI가 import한 생성기는
+공개 패키지 진입점으로 validator를 로드하므로 로컬 명령과 CI 테스트는 CLI를
+실행하기 전에 validator를 빌드합니다. 의존성 설치만으로는 해당 패키지 출력이
+생성되지 않습니다.
+
 ## 인수 기준
 
 - `npm ci`는 고정된 의존성을 설치하고 `npm run build`는 선언된 validator·generator
