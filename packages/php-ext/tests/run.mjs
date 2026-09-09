@@ -8,10 +8,22 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const extension = process.argv[2];
 assert.ok(extension && extension.startsWith('/') && statSync(extension).isFile(), 'Provide an absolute CRUDUI extension path');
 const autoload = resolve(root, 'packages/generator-php/vendor/autoload.php');
+const phpBinary = process.env.PHP ?? 'php';
+const isolatedMbstring = spawnSync(phpBinary, ['-n', '-r', 'exit(extension_loaded("mbstring") ? 0 : 1);']);
+assert.equal(isolatedMbstring.error, undefined);
+assert.equal(isolatedMbstring.signal, null);
+const mbstring = isolatedMbstring.status === 0 ? [] : ['-d', 'extension=mbstring'];
 
 function php(script, native, composer) {
-  const args = ['-n', ...(native ? ['-d', `extension=${extension}`] : []), resolve(root, 'packages/php-ext/tests', script), native ? 'native' : 'php', ...(composer ? [autoload] : [])];
-  const result = spawnSync(process.env.PHP ?? 'php', args, { cwd: root, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 });
+  const args = [
+    '-n',
+    ...(composer ? mbstring : []),
+    ...(native ? ['-d', `extension=${extension}`] : []),
+    resolve(root, 'packages/php-ext/tests', script),
+    native ? 'native' : 'php',
+    ...(composer ? [autoload] : []),
+  ];
+  const result = spawnSync(phpBinary, args, { cwd: root, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 });
   assert.equal(result.error, undefined);
   assert.equal(result.signal, null);
   assert.equal(result.status, 0, `${args.join(' ')}\n${result.stdout}\n${result.stderr}`);
