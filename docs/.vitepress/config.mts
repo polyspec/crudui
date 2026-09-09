@@ -21,7 +21,7 @@ export default withMermaid(defineConfig({
       { text: 'Guide', link: '/README' },
       { text: '한국어', link: '/README.ko' },
       { text: 'Specification', link: '/spec/schema' },
-      { text: 'Validation', link: '/VALIDATION-RULES' },
+      { text: 'Validation', link: '/spec/validation-rules' },
       { text: 'API', link: '/api/' },
     ],
 
@@ -50,7 +50,7 @@ export default withMermaid(defineConfig({
         text: 'Validation',
         collapsed: false,
         items: [
-          { text: 'Validation rules', link: '/VALIDATION-RULES' },
+          { text: 'Validation rules', link: '/spec/validation-rules' },
           { text: 'Data validation', link: '/operations/validation' },
         ],
       },

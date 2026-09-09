@@ -33,8 +33,8 @@ The package checks use the dependency graph committed in `a5b4491`.
 `npm ci`, public declarations and exports (5 checks), repeated build output
 (1 check), and the isolated consumer type, production and three-framework browser
 checks passed. Form tests passed: core 29, React 692, Vue 344, Svelte 345 and
-3 mounted tests, plus 6 normalizer tests. JavaScript validation passed 1,592 tests;
-PHP passed 1,404 tests. Go and Rust package tests passed.
+3 mounted tests, plus 6 normalizer tests. JavaScript validation passed 1,606 tests;
+PHP passed 1,418 tests. Go and Rust package tests passed.
 
 Schema checks passed 56 fixtures after `multiple.min` was included. Subsequent
 schema annotation changes preserved the parsed validation rules. Documentation

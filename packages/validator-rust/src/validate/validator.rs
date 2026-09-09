@@ -64,7 +64,7 @@ pub struct ValidationResult {
 const ARRAY_LEVEL_RULES: &[&str] = &["required", "unique", "mincount", "maxcount"];
 
 /// Rules whose param is a field reference / filter — preserved verbatim.
-const PATH_REFERENCE_RULES: &[&str] = &["equalTo", "notEqual", "unique"];
+const PATH_REFERENCE_RULES: &[&str] = &["equalTo", "notEqual", "unique", "enddate"];
 
 /// Rules whose string param is a literal value, never a condition.
 const LITERAL_PARAM_RULES: &[&str] = &["accept"];

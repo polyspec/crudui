@@ -86,7 +86,7 @@ CLI 정적 검사도 해결되지 않은 조합을 거부합니다. 조합 전 �
 참조 해석 성공으로 처리하지 않습니다.
 
 검증기는 `validate` 규칙과 현재 데이터를 검사합니다.
-[검증 규칙](../VALIDATION-RULES.md)은 규칙의 의미를 설명합니다.
+[검증 규칙](validation-rules.ko.md)은 규칙의 의미를 설명합니다.
 `tests/fixtures/expr`, `tests/fixtures/compose`, `tests/fixtures/validate`의 공유 사례로
 TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 DOM 테스트는
 서로 다른 동작을 검사하므로 별도로 기록합니다.
