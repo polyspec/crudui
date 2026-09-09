@@ -49,12 +49,12 @@ package or a completed release.
 ## Form comparison results
 
 The externally preserved environment at `localhost:4317` uses library
-`2dfd321`, with PHP, PHP extension, Go and Rust as separate HTTP targets.
+`83181c2`, with PHP, PHP extension, Go and Rust as separate HTTP targets.
 All 240 HTTP checks and PHP processor-mode enforcement passed.
 
 | Server | Verified revision | Scenarios | Interactions | Page errors |
 | --- | --- | --- | --- | --- |
-| PHP | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
+| PHP | `83181c2` | 120/120 passed | 30/30 passed | 0 |
 | PHP extension | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
 | Go | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
 | Rust | `2dfd321` | 120/120 passed | 30/30 passed | 0 |
@@ -63,8 +63,8 @@ Each target covers React, Vue and Svelte with form and ordered JSON transport.
 Reports include initial data, later injection, repeated injection, record
 restoration, raw HTML, DOM, CSS, control state and row operations. Evidence is
 stored in the external comparison workspace under
-`.form-comparison/results/report-<server>.json`. Report metadata records
-source revisions. A total of 108 interaction checks includes all four comparison
+`.form-comparison/results/report-<server>.json`; prior revision results are
+preserved under `results-2dfd321/`. Report metadata records source revisions. A total of 108 interaction checks includes all four comparison
 modes; 30 belong to the current implementation.
 
 Retained comparison implementations have diagnostic failures. Their failures
@@ -83,7 +83,8 @@ form pages. Bootstrap product checks also verified nested data.
 
 Library deployment means package publication; no package is published.
 The comparison application is preserved in an independent external workspace.
-The table records completed browser checks for all four servers at `2dfd321`. Retained implementation failures remain
+The table records the latest completed check per server. PHP verification at
+`83181c2` is complete; the other servers are being rechecked. Retained implementation failures remain
 in the reports. Release verification and repository cleanup remain in progress.
 
 TypeScript, Go, Rust and PHP API generation and the strict static site build
