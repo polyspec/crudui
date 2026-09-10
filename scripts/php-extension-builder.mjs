@@ -112,7 +112,8 @@ export async function resolvePhpBuildTools(options = {}) {
         environment, run, /(?:clang|gcc|cc)/i);
   if (!options.needsCargo) return { phpConfig, compiler };
   const rust = await resolveRustToolchain({
-    cargo: options.cargo, environment, run, rustc: options.rustc, rustdoc: options.rustdoc,
+    cargo: options.cargo, cwd: options.cwd, environment, run,
+    rustc: options.rustc, rustdoc: options.rustdoc,
   });
   return { phpConfig, compiler, ...rust };
 }
@@ -380,6 +381,7 @@ export async function buildPhpExtension(descriptor, options = {}) {
   const sourceRoot = await assertRegularPath(descriptor.sourceRoot, 'directory');
 
   const tools = options.tools ?? await resolvePhpBuildTools({
+    cwd: sourceRoot,
     environment,
     run,
     phpConfig: options.phpConfig,

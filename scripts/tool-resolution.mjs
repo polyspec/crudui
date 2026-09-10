@@ -111,9 +111,9 @@ export function runCommand(executable, args, options = {}) {
 }
 
 export async function verifyVersion(
-  executable, pattern, run, environment, args = ['--version'],
+  executable, pattern, run, environment, args = ['--version'], cwd,
 ) {
-  const result = await run(executable, args, { capture: true, environment });
+  const result = await run(executable, args, { capture: true, cwd, environment });
   assert.match(result.stdout.trim(), pattern,
     'Executable returned an unexpected version: ' + executable);
   return result.stdout;
@@ -165,28 +165,32 @@ async function discoverRustup(environment) {
 export async function resolveRustToolchain(options = {}) {
   const environment = options.environment ?? process.env;
   const run = options.run ?? runCommand;
+  assert.equal(typeof options.cwd, 'string', 'Rust toolchain working directory is required');
+  const cwd = await assertRegularPath(options.cwd, 'directory');
   if (options.cargo || options.rustc || options.rustdoc) {
     assert.ok(options.cargo && options.rustc && options.rustdoc,
       'Explicit Rust tools require Cargo, rustc and rustdoc');
     const cargo = await assertExecutable(options.cargo, 'Cargo');
     const rustc = await assertExecutable(options.rustc, 'rustc');
     const rustdoc = await assertExecutable(options.rustdoc, 'rustdoc');
-    await verifyVersion(cargo, /^cargo /, run, environment);
-    const version = await verifyVersion(rustc, /^rustc /, run, environment, ['-vV']);
-    await verifyVersion(rustdoc, /^rustdoc /, run, environment);
+    await verifyVersion(cargo, /^cargo /, run, environment, ['--version'], cwd);
+    const version = await verifyVersion(rustc, /^rustc /, run, environment, ['-vV'], cwd);
+    await verifyVersion(rustdoc, /^rustdoc /, run, environment, ['--version'], cwd);
     return { cargo, rustc, rustdoc, rustHost: rustHost(version) };
   }
   const rustup = await discoverRustup(environment);
-  await verifyVersion(rustup, /^rustup /, run, environment);
+  await verifyVersion(rustup, /^rustup /, run, environment, ['--version'], cwd);
   const records = {};
   for (const name of ['cargo', 'rustc', 'rustdoc']) {
-    const result = await run(rustup, ['which', name], { capture: true, environment });
+    const result = await run(rustup, ['which', name], { capture: true, cwd, environment });
     const paths = result.stdout.trim().split(/\r?\n/).filter(Boolean);
     assert.equal(paths.length, 1, 'Rustup must identify one ' + name + ' executable');
     records[name] = await assertExecutable(paths[0], name);
   }
-  await verifyVersion(records.cargo, /^cargo /, run, environment);
-  const version = await verifyVersion(records.rustc, /^rustc /, run, environment, ['-vV']);
-  await verifyVersion(records.rustdoc, /^rustdoc /, run, environment);
+  await verifyVersion(records.cargo, /^cargo /, run, environment, ['--version'], cwd);
+  const version = await verifyVersion(
+    records.rustc, /^rustc /, run, environment, ['-vV'], cwd,
+  );
+  await verifyVersion(records.rustdoc, /^rustdoc /, run, environment, ['--version'], cwd);
   return { ...records, rustHost: rustHost(version) };
 }

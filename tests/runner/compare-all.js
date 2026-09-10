@@ -594,6 +594,7 @@ Examples:
     const { resolveRustToolchain } = await import('../../scripts/tool-resolution.mjs');
     const { cargo, rustc, rustdoc } = await resolveRustToolchain({
       cargo: process.env.CARGO,
+      cwd: RUST_VALIDATOR_DIR,
       rustc: process.env.RUSTC,
       rustdoc: process.env.RUSTDOC,
     });
