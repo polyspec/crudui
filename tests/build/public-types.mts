@@ -1,12 +1,16 @@
 import {
   compileForm, createForm, createRowKey, sequenceRowKey,
-  type FormTemplate, type FormInstance, type FormSnapshot,
+  type FieldShape, type FormConnection, type FormTemplate, type FormInstance,
+  type FormSnapshot, type MultipleSettings,
 } from '@crudui/generator-core';
 import {
   Form, createForm as createReactSession,
-  type FormInstance as ReactFormInstance,
+  type AnyWidget, type FormInstance as ReactFormInstance, type ListProps,
 } from '@crudui/generator-react';
-import { validate, type ValidateOptions } from '@crudui/validator';
+import {
+  validate, type ComposedField, type FileSet, type ParseErrorContext,
+  type ParseResult, type ValidateOptions,
+} from '@crudui/validator';
 import { createElement, type ReactElement } from 'react';
 
 const spec = { type: 'group', properties: { name: { type: 'text' } } };
@@ -20,5 +24,10 @@ const result = validate(spec, session.getData(), options);
 const valid: boolean = result.valid;
 const randomKey: string = createRowKey();
 const savedKey: string = sequenceRowKey('42');
+type PublicTypes = [
+  ComposedField, FileSet, ParseErrorContext, ParseResult, FormConnection,
+  FieldShape, MultipleSettings, AnyWidget, ListProps,
+];
+const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, valid, randomKey, savedKey };
+export { template, session, snapshot, view, valid, randomKey, savedKey, publicTypes };

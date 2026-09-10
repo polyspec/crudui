@@ -217,6 +217,7 @@ function Pagination({ vm }: { vm: ListViewModel }): React.ReactElement | null {
 
 /** Props for the CRUDUI list: the core-built view model + a layout selector. */
 export interface ListProps {
+  /** Evaluated list model rendered by the component. */
   vm: ListViewModel;
   /** 'table' (default) or 'card'. */
   layout?: 'table' | 'card';

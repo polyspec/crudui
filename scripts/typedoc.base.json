@@ -15,6 +15,10 @@
   "excludeExternals": true,
   "useCodeBlocks": true,
   "sanitizeComments": true,
+  "validation": {
+    "notExported": true
+  },
+  "treatValidationWarningsAsErrors": true,
   "expandObjects": false,
   "hidePageHeader": false,
   "hideBreadcrumbs": false,

@@ -14,5 +14,11 @@ const result = validator.validate(spec, session.getData(), options);
 const valid: boolean = result.valid;
 const randomKey: string = core.createRowKey();
 const savedKey: string = core.sequenceRowKey('42');
+type PublicTypes = [
+  validator.ComposedField, validator.FileSet, validator.ParseErrorContext,
+  validator.ParseResult, core.FormConnection, core.FieldShape,
+  core.MultipleSettings, generator.AnyWidget, generator.ListProps,
+];
+const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, valid, randomKey, savedKey };
+export { template, session, snapshot, view, valid, randomKey, savedKey, publicTypes };
