@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
 import {
-  assertStableDeployment, renderDeploymentCompose, verifyCandidateEvidence,
+  assertStableDeployment, preserveDeploymentDirectory, readDeploymentAuthority,
+  renderDeploymentCompose, verifyCandidateEvidence,
 } from './deployment.mjs';
 import {
   expectedGenerationCombinations, expectedGenerationRequests, expectedGenerationResults,
@@ -148,4 +149,38 @@ test('rejects any change during identical deployment reapplication', () => {
     mutate(changed);
     assert.throws(() => assertStableDeployment(snapshot, changed), /Deployment changed after identical application/);
   }
+});
+
+test('preserves active deployment files without overwriting different data', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-preservation-'));
+  t.after(() => import('node:fs/promises').then(({ rm }) => rm(directory, { recursive: true, force: true })));
+  const source = path.join(directory, 'source');
+  const destination = path.join(directory, 'destination');
+  await mkdir(path.join(source, 'nested'), { recursive: true });
+  await writeFile(path.join(source, 'record.json'), '{"id":1}\n');
+  await writeFile(path.join(source, 'nested/result.json'), '{"passed":true}\n');
+
+  const first = await preserveDeploymentDirectory(source, destination);
+  assert.equal(Object.keys(first.files).length, 2);
+  assert.equal(await readFile(path.join(destination, 'record.json'), 'utf8'), '{"id":1}\n');
+  const second = await preserveDeploymentDirectory(source, destination);
+  assert.deepEqual(second.files, first.files);
+
+  await writeFile(path.join(destination, 'record.json'), '{"id":2}\n');
+  await assert.rejects(preserveDeploymentDirectory(source, destination),
+    /Existing deployment files differ/);
+  assert.equal(await readFile(path.join(destination, 'record.json'), 'utf8'), '{"id":2}\n');
+});
+
+test('loads the explicit containerctl certificate authority', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-ca-'));
+  t.after(() => import('node:fs/promises').then(({ rm }) => rm(directory, { recursive: true, force: true })));
+  const caPath = path.join(directory, 'ca.crt');
+  const certificate = '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----\n';
+  await writeFile(caPath, certificate);
+  const authority = await readDeploymentAuthority({ machine: { caPath } });
+  assert.equal(authority.path, caPath);
+  assert.equal(authority.ca.toString(), certificate);
+  assert.match(authority.sha256, /^[0-9a-f]{64}$/);
+  await assert.rejects(readDeploymentAuthority({ machine: {} }), /CA path is missing/);
 });
