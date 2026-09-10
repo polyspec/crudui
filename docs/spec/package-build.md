@@ -93,6 +93,9 @@ Library manifests do not declare their release version. Git repository metadata
 provides release versions. A consumer that resolves one local path repository
 declares the exact package version in that repository's `options.versions` map,
 and its requirement uses the same version.
+Container builds without Git metadata declare `COMPOSER_ROOT_VERSION` with the
+repository package version before running Composer. They do not use Composer's
+inferred root-version value.
 
 ## Runtime and dependency versions
 
