@@ -1,5 +1,5 @@
 /**
- * CRUDUI list-render shared fixture generator (3-framework parity gate, SPEC §9).
+ * Generates shared CRUDUI list-render fixtures for three frameworks (SPEC §9).
  *
  * The read sister of tests/fixtures/form-render/generate.ts. It produces
  * `cases.json`: one case per list render scenario. Each case is
@@ -307,7 +307,7 @@ const SCENARIOS: ListFixtureCase[] = [
     },
   },
 
-  // --- error lane: unresolved $ref is a LOAD ERROR (never a silent table) ---
+  // An unresolved $ref returns a load error instead of a table.
   {
     name: 'unresolved-ref-error',
     note: 'unresolved $ref → ComposeLoadError (render FAILS, never valid).',

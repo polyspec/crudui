@@ -1,5 +1,5 @@
 /**
- * node-capture.mjs — React / Vue SSR capture legs of the cross-framework gate.
+ * node-capture.mjs captures React and Vue SSR for cross-framework comparison.
  *
  * Run as:  node node-capture.mjs react
  *          node node-capture.mjs vue
@@ -8,7 +8,7 @@
  * package realm via the createRequire anchors inside their capture-*.mjs, so a
  * plain node process renders them correctly. Each framework runs in its OWN
  * process (one invocation per framework) so the two module graphs never share
- * a realm — same isolation guarantee the Svelte leg gets from its subprocess.
+ * a realm. The Svelte capture uses the same process isolation.
  *
  * Svelte is NOT handled here: its SSR requires the svelte plugin compile step,
  * so it runs under vitest (svelte-capture.mjs + vitest.svelte.config.mjs).
