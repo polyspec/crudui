@@ -155,4 +155,6 @@ verification checks the same scalar and collection rules in every server.
 Fast source tests reproduce report-policy failures, protocol timeout behavior,
 absolute and stalled job limits, source archive changes, snapshot differences,
 generation cache behavior and request-count changes. These tests do not replace
-the complete candidate matrix.
+the complete candidate matrix. Pull request and `main` push CI runs
+`npm run test:form-comparison` so report-policy, browser-job, candidate-source
+and generation-performance regressions block integration.
