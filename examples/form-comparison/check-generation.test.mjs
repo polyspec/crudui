@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  assertGenerationProvenance,
   assertGenerationReportInvariants,
   expectedGenerationRequests,
   expectedGenerationResults,
@@ -11,6 +12,36 @@ import {
   generationServers,
   requiredCombinationIds,
 } from './check-generation.mjs';
+
+const source = { commit: 'a'.repeat(40), archiveSha256: 'b'.repeat(64) };
+
+function phpProvenance() {
+  return {
+    runtime: 'php',
+    commit: source.commit,
+    archiveSha256: source.archiveSha256,
+    nativeCRUDUI: false,
+    moduleSha256: null,
+    classes: {
+      'CRUDUI\\Generator': {
+        internal: false, extension: null,
+        file: '/workspace/source/packages/generator-php/src/Generator.php',
+      },
+      'CRUDUI\\Form': {
+        internal: false, extension: null,
+        file: '/workspace/source/packages/generator-php/src/Form.php',
+      },
+      'CRUDUI\\Validator': {
+        internal: false, extension: null,
+        file: '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
+      },
+    },
+  };
+}
+
+test('accepts the selected Composer validator in generation provenance', () => {
+  assert.doesNotThrow(() => assertGenerationProvenance(phpProvenance(), 'php', source));
+});
 
 function completeReport() {
   const hash = 'a'.repeat(64);
