@@ -1,12 +1,12 @@
 /**
- * CRUDUI list-render conformance — Vue 3 SSR vs the shared 3-framework parity gate.
+ * Verify Vue 3 SSR against the shared three-framework list fixtures.
  *
  * The read sister of form-render.conformance.test.mjs. The shared fixture
  * tests/fixtures/list-render/cases.json holds ONE `expected_html` per list
  * scenario (the React CRUDUI LIST reference's normalized output, SPEC §9). This test
  * runs the Vue list generator through genuine Vue 3 SSR (renderList →
  * @vue/server-renderer renderToString), normalizes with the SAME shared
- * normalizer, and asserts equality. The 3-framework gate: Vue must reproduce
+ * normalizer, and asserts equality. Vue must reproduce
  * `expected_html` after normalization.
  *
  * DB-agnostic (SPEC §9): rows are INJECTED; sort/pagination are declared only.

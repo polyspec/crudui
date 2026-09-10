@@ -1,14 +1,9 @@
 /**
- * legacyParity — framework-independent field-level helpers reproducing the
- * legacy field output semantics. Ported verbatim from
- * packages/generator-react/src/legacy/components/fields/legacyParity.ts (the
- * verified parity blueprint); the only adaptation is that style helpers
- * return a CSS STRING (Svelte uses string style attributes) instead of a
- * React CSSProperties object.
+ * Framework-independent field helpers reproduce the required PHP field output.
+ * Style helpers return CSS strings for Svelte style attributes.
  *
  * The legacy markup is the single source of
- * truth. Do NOT "improve" these helpers — every rule follows the legacy
- * markup exactly.
+ * truth. Changes must preserve those exact results.
  */
 
 export type SpecNode = Record<string, unknown>;
