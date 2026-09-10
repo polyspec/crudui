@@ -5,6 +5,8 @@
 Run the maintained package and form checks from the repository root:
 
 ```sh
+npm run test:dependencies
+make test-native
 npm run test:forms
 npm run test:form-comparison
 node --test tests/form-inspector/form-snapshot.test.mjs
@@ -12,6 +14,14 @@ node tests/form-inspector/browser.mjs
 npm run test:packages
 make docs-check
 ```
+
+Every command must return status 0 for the same committed source before candidate
+preparation. `npm run test:dependencies` verifies package declarations and install
+policy. `make test-native` builds and loads the PHP extension and runs the PHP, Go,
+Rust, shared protocol and generator checks, including the Chromium widget and
+timezone checks. The candidate checks below verify HTTP and browser integration. A
+successful repository check does not replace candidate verification, and successful
+candidate verification does not replace the repository check.
 
 The form inspector compares raw HTML, parsed DOM, computed styles and live
 control state without modifying the inspected form. Framework initialization
@@ -90,8 +100,8 @@ The aggregate requires 960 successful scenario checks, 240 successful interactio
 checks, 24 successful mount checks, 24 matching static-document checks and four
 successful performance results. Each server has a 900,000 millisecond absolute
 limit and a 300,000 millisecond no-progress limit. A failed, missing, malformed or
-late result keeps status 1. Do not deploy a candidate unless every command and the
-aggregate return status 0 and the aggregate records `passed: true`.
+late result keeps status 1. Do not deploy a candidate unless every repository and
+candidate command returns status 0 and the aggregate records `passed: true`.
 
 Stop and remove the isolated candidate container after retaining its reports:
 

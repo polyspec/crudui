@@ -2,6 +2,18 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-10 — 네이티브 검사 의존성 선언
+
+저장소 루트 빌드·검사 진입점은 직접 import하는 모든 외부 패키지를 루트
+매니페스트에 선언합니다. 의존성 검사는 `make test-native`가 실행하는 Node.js
+진입점을 확인하고 선언되지 않은 import를 거부합니다. 위젯 스크립트 검사는 전이
+설치 대신 루트 의존성의 Vite 8.2.2를 해석합니다.
+
+의존성 검사 6/6이 통과했습니다. PHP 8.5.10에서 전체 `make test-native`가 종료
+상태 0을 반환했고 PHP 검사 160개, 모든 Go 패키지 검사, Rust 검사 20개, 프로토콜
+검사 19개, 생성기 보고서 766/766과 Chromium 위젯·시간대 검사 3개가
+통과했습니다.
+
 ## 2026-09-10 — 의존성 설치 스크립트 승인 적용
 
 독립적으로 설치하는 각 npm 그래프는 모든 의존성 생명주기 스크립트의 승인을
@@ -20,16 +32,16 @@ CI와 컨테이너 빌드의 새 설치는 `--strict-allow-scripts`를 사용하
 보고했습니다. 교차 프레임워크 비교는 14/14, 레거시 클라이언트 비교는 5/5로
 통과했습니다.
 
-후보 `90a5b819ada60a082bc21c69a26e1fe0566bb23b`는 index digest가
-`sha256:2a6040288c1800d0c36077cdc2ab57ca28558f3ff0917d78276ec90783b0aaea`인
-이미지 `localhost/crudui-form-comparison:90a5b819ada6`를 빌드했습니다. 이미지
+후보 `757f144b9c4b5e2dd5f5dfd91c09362b3edbcedd`는 index digest가
+`sha256:7842bd0a40f1e51d4c975008a9b5bdaf6d148e9faba05e68faf3a935b02fe2c7`인
+이미지 `localhost/crudui-form-comparison:757f144b9c4b`를 빌드했습니다. 이미지
 구성에서 소스 검사 81개와 라이브러리 검사 4개가 통과했습니다. 실행 검증은 PHP
 두 모드, HTTP 요청 411개의 생성·SSR 검사 290개, 저장·검증 검사 120개와 Ordered
 JSON 검사 3개를 통과했습니다.
 
 브라우저 검증은 서버별 312개와 전체 1,248개를 통과했습니다. PHP는
-211,981밀리초, PHP 확장은 204,766밀리초, Go는 201,069밀리초, Rust는
-203,958밀리초에 완료했습니다. 집계는 `complete: true`, `passed: true`,
+213,288밀리초, PHP 확장은 206,475밀리초, Go는 200,691밀리초, Rust는
+200,500밀리초에 완료했습니다. 집계는 `complete: true`, `passed: true`,
 `failedChecks: 0`, `performancePassed: true`를 기록합니다. 패키지와 비교 서비스는
 배포하지 않았습니다.
 
