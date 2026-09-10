@@ -70,7 +70,9 @@ test('prepares one context from the complete current source commit', async t => 
   const entries = execFileSync('tar', ['-tf', path.join(result.context, 'source.tar')],
     { encoding: 'utf8' }).trim().split('\n');
   for (const file of ['package.json', 'examples/form-comparison/Containerfile',
-    'packages/generator-go/go.mod', 'scripts/build-php-extension.sh']) {
+    'packages/generator-go/go.mod', 'scripts/php-extension-builder.mjs',
+    'scripts/build-crudui-php-extension.mjs',
+    'scripts/build-ordered-json-php-extension.mjs']) {
     assert.ok(entries.includes(file), 'Missing source archive entry: ' + file);
   }
   assert.equal(readFileSync(path.join(result.context, 'Containerfile'), 'utf8'), 'FROM scratch\n');
