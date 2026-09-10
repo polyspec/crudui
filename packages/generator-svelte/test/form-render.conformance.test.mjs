@@ -1,13 +1,13 @@
 import { renderFields } from '../src/internal/renderFields.ts';
 import { compileForm } from '@crudui/generator-core';
 /**
- * form-render conformance — Svelte SSR vs the shared 3-framework parity gate.
+ * Verify Svelte SSR against the shared three-framework form fixtures.
  *
  * The shared fixture tests/fixtures/form-render/cases.json declares its
  * `expected_html` to be the React CRUDUI reference generator's OWN normalized output.
  * This test runs the SVELTE CRUDUI generator (renderForm → svelte/server render())
  * against the SAME fixture the React/Vue CRUDUI generators load, normalized through
- * the SAME shared normalizer (normalize.mjs). The 3-framework gate: every
+ * the same shared normalizer (normalize.mjs). Every framework
  * generator must reproduce `expected_html` after normalization.
  *
  * It also enforces the core invariant (SPEC §5/§2/G5): an unresolved $ref is a
@@ -51,10 +51,9 @@ describe('form rendering: render is idempotent (stable across re-render)', () =>
   }
 });
 
-// Error lanes: an unresolved $ref (ComposeLoadError) and an un-ported field type
-// (UnsupportedFieldTypeError) BOTH surface as a thrown error carrying a stable
-// `code` — render FAILS, never valid:true / never silent ''. The lane is keyed on
-// the declared code so every un-ported type stays RED until ported.
+// An unresolved $ref throws ComposeLoadError, and an unsupported field type
+// throws UnsupportedFieldTypeError. Both errors provide a stable code, and the
+// renderer does not return successful or empty output for either condition.
 const ERROR_CLASS_BY_CODE = {
   REF_FILE_NOT_FOUND: ComposeLoadError,
   UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError,

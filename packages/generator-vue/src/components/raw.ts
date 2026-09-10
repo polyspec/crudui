@@ -26,7 +26,7 @@ function escText(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/** Serialize an attr bag to ` k="v"` pairs (alphabetical order is the gate's job). */
+/** Serialize an attribute map to ` k="v"` pairs; normalization compares order. */
 export function serializeAttrs(attrs: Attrs): string {
   let out = '';
   for (const [k, v] of Object.entries(attrs)) {

@@ -2,9 +2,7 @@
  * legacyParity — field-level helpers that reproduce the legacy field
  * output semantics exactly.
  *
- * Framework-independent implementation shared with generator-react. Do
- * NOT "improve" these helpers toward idiomatic Vue/HTML — every rule is a
- * fixed rule of the legacy markup.
+ * The helpers implement the legacy field output.
  */
 
 import type { ReactFieldSpec, FormValue } from './types';
