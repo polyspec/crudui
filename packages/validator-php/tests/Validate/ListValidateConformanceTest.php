@@ -9,30 +9,21 @@ use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI list-spec validation conformance (SPEC §9) — the read sister of
- * ValidateConformanceTest, isomorphic with the JS reference
- * validator-ts/src/validate-list/validate-list.conformance.test.ts.
+ * CRUDUI list-spec validation conformance verifies SPEC §9.
  *
- * It pins the four-language STRUCTURE gate for a list-spec: compose ($ref/$patch
- * on the columns map and a { $ref, $patch } search overlay) + forbidden-scan over
- * the whole composed list tree. It does NOT validate rows — a list has no data
- * (rows are injected, SPEC §9).
+ * The runtime composes $ref and $patch on the columns map and on a search
+ * overlay. It scans the complete composed list tree for forbidden keys. It does
+ * not validate rows because the server supplies them separately (SPEC §9).
  *
- * It runs the SHARED fixture tests/fixtures/list-validity/cases.json — the SAME
- * file the JS engine and the ajv meta-schema gate read. The two gates own
- * different halves and the fixture's `engine` field says which:
- *  - engine: "pass"          — the four-language engine has NO opinion (a "schema
- *    shape" check: required/enum/additionalProperties/anyOf). The meta-schema may
- *    still REJECT it; the engine must NOT throw and returns { valid:true,
+ * The shared fixture tests/fixtures/list-validity/cases.json separates
+ * meta-schema shape checks from runtime structure checks with its `engine` field:
+ *  - engine: "pass"          — required, enum, additionalProperties and anyOf
+ *    remain meta-schema checks. The runtime returns { valid:true,
  *    errors:[] }.
- *  - engine: { code, at }    — the engine REJECTS it as a LOAD failure (a
- *    forbidden meta key surfaced by compose+forbidden-scan). The thrown
- *    ComposeLoadError code and dotted trace are asserted — the depth is
- *    load-bearing.
+ *  - engine: { code, at }    — composition or forbidden-key scanning throws a
+ *    ComposeLoadError. The test compares its code and complete dotted trace.
  *
- * PHP must reach the SAME verdict the JS engine reaches, bit-for-bit (G-B
- * idempotence). Never weaken an assertion to turn red green; fix the engine, the
- * fixture, or both at their shared source — not this test.
+ * Every runtime must produce the declared result.
  */
 final class ListValidateConformanceTest extends TestCase
 {
@@ -74,17 +65,16 @@ final class ListValidateConformanceTest extends TestCase
         $engine = $case['engine'];
 
         if ($engine === 'pass') {
-            // The structure gate must NOT throw. A meta-schema-only RED case
-            // (required/enum/additionalProperties/anyOf) is the meta-schema's job,
-            // never this engine's — so it loads clean here. No rows → no data
+            // The runtime does not reject a meta-schema-only shape error
+            // (required/enum/additionalProperties/anyOf). No rows means no data
             // validation: a clean load is always { valid:true, errors:[] }.
             $result = Validator::validateList($spec, ['files' => $files ?? []]);
-            self::assertTrue($result->valid, "case {$case['name']} must not be rejected by the structure gate");
+            self::assertTrue($result->valid, "case {$case['name']} must not be rejected by runtime structure validation");
             self::assertSame([], $result->errors, "case {$case['name']} must produce no errors on a clean load");
             return;
         }
 
-        // engine: { code, at } — the engine REJECTS it as a LOAD failure.
+        // engine: { code, at } requires a ComposeLoadError.
         /** @var array{code: string, at: string} $want */
         $want = $engine;
         self::assertIsArray($want, "case {$case['name']} engine must be 'pass' | {code, at}");

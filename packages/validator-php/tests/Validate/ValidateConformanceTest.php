@@ -9,15 +9,11 @@ use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI validator conformance (SPEC §2 G5→§3→§2 G1). The shared 4-language
- * fixture tests/fixtures/validate/cases.json is the single truth — its values
- * are the JS reference CRUDUI validator's actual output ({ valid, errors } | a
- * load-error code). PHP loads this ONE file and must reproduce it bit-for-bit
- * (G-B 4-language idempotence): result cases match `expected` (same valid +
+ * CRUDUI validator conformance verifies SPEC §2 G5, §3 and §2 G1. The shared
+ * fixture tests/fixtures/validate/cases.json defines each expected result or
+ * load-error code. Result cases match `expected` (same valid +
  * errors[] including path/field/rule/message/value), error cases throw a
- * ComposeLoadError with the exact `expectLoadError.code`. Never weaken an
- * assertion to turn red green; fix the engine, the fixture, or both at their
- * shared source — not this test.
+ * ComposeLoadError with the exact `expectLoadError.code`.
  */
 final class ValidateConformanceTest extends TestCase
 {
