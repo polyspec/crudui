@@ -198,7 +198,7 @@ test('rejects one invalid child response without another request', async () => {
       requests.push(url);
       return { ok: true, json: async () => ({ status: 'invalid' }) };
     },
-  }), /php failed startup verification/);
+  }), /php failed startup verification: status/);
   assert.deepEqual(requests, ['http://127.0.0.1:8081/api/health']);
 });
 
