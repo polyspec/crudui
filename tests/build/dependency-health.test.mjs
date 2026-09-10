@@ -189,6 +189,29 @@ test('Composer path repositories install local packages as copies', () => {
   assert.deepEqual(failures, []);
 });
 
+test('Composer package versions come from repository metadata', () => {
+  const failures = [];
+  for (const filename of trackedComposerFiles('composer.json')) {
+    const manifest = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
+    if (filename.startsWith('packages/') && !filename.includes('/vendor/')
+      && manifest.type === 'library' && Object.hasOwn(manifest, 'version')) {
+      failures.push(`${filename}: library declares its own version`);
+    }
+    for (const [index, repository] of (manifest.repositories ?? []).entries()) {
+      if (repository.type !== 'path' || repository.url.includes('*')) continue;
+      const targetFile = path.resolve(path.dirname(path.join(root, filename)),
+        repository.url, 'composer.json');
+      const target = JSON.parse(readFileSync(targetFile, 'utf8'));
+      const version = repository.options?.versions?.[target.name];
+      if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version ?? '')
+        || manifest.require?.[target.name] !== version) {
+        failures.push(`${filename}:repositories[${index}] does not declare the required version`);
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
 test('tracked npm lock files have no moderate or higher vulnerability', () => {
   const failures = [];
   for (const lockFile of trackedLockFiles()) {
