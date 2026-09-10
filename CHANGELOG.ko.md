@@ -20,16 +20,16 @@ CI와 컨테이너 빌드의 새 설치는 `--strict-allow-scripts`를 사용하
 보고했습니다. 교차 프레임워크 비교는 14/14, 레거시 클라이언트 비교는 5/5로
 통과했습니다.
 
-후보 `49b01c8237cd7b674c116c18e32ca9238c073134`는 index digest가
-`sha256:eb3bbe303a7cc45722a7086ad9b49253902f14136c2b8616bae6edb3d9a20c32`인
-이미지 `localhost/crudui-form-comparison:49b01c8237cd`를 빌드했습니다. 이미지
+후보 `90a5b819ada60a082bc21c69a26e1fe0566bb23b`는 index digest가
+`sha256:2a6040288c1800d0c36077cdc2ab57ca28558f3ff0917d78276ec90783b0aaea`인
+이미지 `localhost/crudui-form-comparison:90a5b819ada6`를 빌드했습니다. 이미지
 구성에서 소스 검사 81개와 라이브러리 검사 4개가 통과했습니다. 실행 검증은 PHP
 두 모드, HTTP 요청 411개의 생성·SSR 검사 290개, 저장·검증 검사 120개와 Ordered
 JSON 검사 3개를 통과했습니다.
 
 브라우저 검증은 서버별 312개와 전체 1,248개를 통과했습니다. PHP는
-211,124밀리초, PHP 확장은 205,125밀리초, Go는 200,351밀리초, Rust는
-199,736밀리초에 완료했습니다. 집계는 `complete: true`, `passed: true`,
+211,981밀리초, PHP 확장은 204,766밀리초, Go는 201,069밀리초, Rust는
+203,958밀리초에 완료했습니다. 집계는 `complete: true`, `passed: true`,
 `failedChecks: 0`, `performancePassed: true`를 기록합니다. 패키지와 비교 서비스는
 배포하지 않았습니다.
 

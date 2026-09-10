@@ -65,21 +65,30 @@ the report and run-log SHA-256 values are respectively
 `3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442` and
 `378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`.
 
-Candidate `49b01c8237cd7b674c116c18e32ca9238c073134` uses one committed source
-archive and verifies its commit and SHA-256 digest before extraction. Image
-construction passed 81 source checks and four library checks. The image passed the
-Chromium process check as the application user and started one PHP, PHP extension,
-Go and Rust server from that archive.
+Candidate `90a5b819ada60a082bc21c69a26e1fe0566bb23b` uses one committed source
+archive and verifies its commit and SHA-256 digest before extraction. The source
+archive SHA-256 is
+`c81e66ba0a5ae94b962c622f6bed048bece4e48fdf8bcada9a65088e770309c5`.
+Image `localhost/crudui-form-comparison:90a5b819ada6` has index digest
+`sha256:2a6040288c1800d0c36077cdc2ab57ca28558f3ff0917d78276ec90783b0aaea`.
+Image construction passed 81 source checks and four library checks. The image
+passed the Chromium process check as the application user and started one PHP,
+PHP extension, Go and Rust server from that archive.
 
 Generation and SSR passed 290 of 290 checks across 411 HTTP requests. Persistence
 and validation passed 120 of 120 checks. The browser aggregate passed 960 scenario
 checks, 240 interaction checks, 24 mount-before-load checks and 24 static-document
-checks with zero failures. PHP completed in 211,124 milliseconds, the PHP extension
-in 205,125 milliseconds, Go in 200,351 milliseconds and Rust in 199,736
+checks with zero failures. PHP completed in 211,981 milliseconds, the PHP extension
+in 204,766 milliseconds, Go in 201,069 milliseconds and Rust in 203,958
 milliseconds. Every server completed below the 900,000 millisecond limit. The
 aggregate records `complete: true`, `passed: true`, `failedChecks: 0` and
-`performancePassed: true`. The candidate image is local, and packages and the
-comparison service are not deployed.
+`performancePassed: true`. The browser aggregate, generation report and server
+report SHA-256 values are respectively
+`370de341b0e82a58e4cd5d800ad1b31861c5dc2d4346471004583f069607de11`,
+`5a1c4bb09764ed8f894f5f9beb763b5fda0c0cd16e3d509bf6d9c6652f382a3a` and
+`d27914a64f1c99ec6ecd8984cfe9c0b5ddbcf4331376d586be9d59e8444aca90`.
+The candidate image is local, and packages and the comparison service are not
+deployed.
 
 ## Earlier validation and package verification
 
