@@ -84,8 +84,16 @@ fn convert_field(name: &str, obj: &Map<String, Value>) -> Field {
         ..Default::default()
     };
 
-    field.field_type = obj.get("type").and_then(Value::as_str).unwrap_or("").to_string();
-    field.label = obj.get("label").and_then(Value::as_str).unwrap_or("").to_string();
+    field.field_type = obj
+        .get("type")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
+    field.label = obj
+        .get("label")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
 
     if let Some(rules_obj) = obj.get("rules").and_then(Value::as_object) {
         for (rule_name, rule_val) in rules_obj {
@@ -148,10 +156,17 @@ pub fn build_custom_rules(root: &Value) -> std::collections::HashMap<String, Cus
         for (name, raw) in rules_obj {
             if let Some(obj) = raw.as_object() {
                 let rule = CustomRule {
-                    pattern: obj.get("pattern").and_then(Value::as_str).map(str::to_string),
+                    pattern: obj
+                        .get("pattern")
+                        .and_then(Value::as_str)
+                        .map(str::to_string),
                     min: obj.get("min").and_then(Value::as_i64),
                     max: obj.get("max").and_then(Value::as_i64),
-                    message: obj.get("message").and_then(Value::as_str).unwrap_or("").to_string(),
+                    message: obj
+                        .get("message")
+                        .and_then(Value::as_str)
+                        .unwrap_or("")
+                        .to_string(),
                 };
                 out.insert(name.clone(), rule);
             }
