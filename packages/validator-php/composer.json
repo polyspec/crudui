@@ -3,7 +3,6 @@
     "description": "PHP validator for crudui system - validates form data against YAML specifications",
     "type": "library",
     "license": "MIT",
-    "version": "0.0.1",
     "authors": [
         {
             "name": "CRUDUI Team"

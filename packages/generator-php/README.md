@@ -14,9 +14,9 @@ composer install --working-dir=packages/generator-php
 composer test --working-dir=packages/generator-php
 ```
 
-The Composer path repository resolves `crudui/validator` from the adjacent
-package. 64-bit PHP 8.2 or newer and `mbstring` are required. Development tests also
-require the extensions used by PHPUnit, including DOM.
+The Composer path repository copies `crudui/validator` from the adjacent
+package into `vendor/`. 64-bit PHP 8.2 or newer and `mbstring` are required.
+Development tests also require the extensions used by PHPUnit, including DOM.
 
 ## Form API
 

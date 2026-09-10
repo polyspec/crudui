@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f1de6687a1da2f2e27d245eda3adb59",
+    "content-hash": "a84c7ed1a3871662482df0389d5fb57f",
     "packages": [
         {
             "name": "crudui/validator",
@@ -12,7 +12,7 @@
             "dist": {
                 "type": "path",
                 "url": "../validator-php",
-                "reference": "2a11b39d03482c5bce7075e6236db6ebd93b9028"
+                "reference": "3c91e5d313f4a766b8a2bd174b79bb920f107223"
             },
             "require": {
                 "php": "^8.2"
@@ -50,7 +50,7 @@
             ],
             "description": "PHP validator for crudui system - validates form data against YAML specifications",
             "transport-options": {
-                "symlink": true,
+                "symlink": false,
                 "relative": true
             }
         }
