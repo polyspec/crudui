@@ -18,10 +18,10 @@ test('CI runs the complete form comparison regression suite', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'form-comparison');
 
-  assert.match(job, /runs-on:s*ubuntu-latest/);
+  assert.match(job, /runs-on:\s*ubuntu-latest/);
   assert.match(job, /uses: actions\/checkout@/);
   assert.match(job, /uses: actions\/setup-node@/);
-  assert.match(job, /node-version-file:s*['"]?\.node-version['"]?/);
+  assert.match(job, /node-version-file:\s*['"]?\.node-version['"]?/);
   assert.match(job, /npm i -g npm@latest && npm ci/);
-  assert.match(job, /run:s*npm run test:form-comparison(?:\s|$)/);
+  assert.match(job, /run:\s*npm run test:form-comparison(?:\s|$)/);
 });
