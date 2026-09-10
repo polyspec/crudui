@@ -49,7 +49,7 @@ export interface ReactFieldSpec {
   rules?: Record<string, unknown>;
   /** Conditional-visibility expression evaluated against form data. */
   display_switch?: string | boolean | Record<string, unknown>;
-  /** Sibling field path whose value gates this field's visibility. */
+  /** Sibling field path whose value controls this field's visibility. */
   display_target?: string;
   /** Legacy `element.all_of` conditional style/class block. */
   element?: {

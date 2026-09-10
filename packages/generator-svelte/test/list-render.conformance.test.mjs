@@ -1,12 +1,12 @@
 /**
- * CRUDUI list-render conformance — Svelte SSR vs the shared 3-framework parity gate.
+ * Verify Svelte SSR against the shared three-framework list fixtures.
  *
  * The read sister of form-render.conformance.test.mjs. The shared fixture
  * tests/fixtures/list-render/cases.json declares one `expected_html` per list
  * scenario (the React CRUDUI LIST reference generator's OWN normalized output, SPEC
  * §9). This test runs the SVELTE list generator (renderList → List.svelte →
  * svelte/server render()) against the SAME fixture, normalized through the SAME
- * shared normalizer. The 3-framework gate: every generator must reproduce
+ * shared normalizer. Every generator must reproduce
  * `expected_html` after normalization.
  *
  * DB-agnostic (SPEC §9): rows are INJECTED; sort/pagination are declared only.

@@ -1,6 +1,5 @@
 /**
- * Framework-independent path / data-attribute / uniqid helpers.
- * Ported from packages/generator-react/src/utils/{dataAttributes,path}.ts.
+ * Framework-independent path, data-attribute and unique-ID helpers.
  */
 
 let uniqidCounter = 0;

@@ -5,8 +5,8 @@
  * core's pre-evaluated `ListViewModel` (ColumnVM / CellVM / ResolvedDesign /
  * CellDisplay) onto the class/style values the table nodes carry, and serialize
  * the two sanctioned raw boundaries — the `html` cell display (verbatim row HTML)
- * and a row/toolbar action's behavior on* attrs. eval is never called; nothing is
- * recomputed (parity gate, G-C).
+ * and a row/toolbar action's behavior on* attrs. The renderer does not call eval
+ * or recompute these values.
  *
  * The read sister of field.ts: where field.ts maps a write FieldViewModel's
  * design onto the form envelope, this maps a read column/cell design onto the

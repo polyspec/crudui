@@ -66,7 +66,7 @@ export function toRuleNameNotation(path: string): string {
 
 /**
  * Generate Limepie-compatible data attributes for a field (legacy validator
- * lookup keys). Used by fields not yet ported to limepieDataAttrs.
+ * lookup keys). Fields that do not call limepieDataAttrs use this helper.
  */
 export function getLimepieDataAttributes(
   spec: ReactFieldSpec,

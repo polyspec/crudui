@@ -1,9 +1,6 @@
 /**
- * legacyDisplay — pure ports of the legacy Limepie conditional-display
- * pipeline. Ported from
- * packages/generator-react/src/legacy/hooks/legacyDisplay.ts (the verified parity
- * blueprint). The only adaptation: legacyWrapperStyle returns a CSS STRING
- * (Svelte style attribute) instead of a React CSSProperties object.
+ * Implement the legacy conditional-display pipeline. legacyWrapperStyle returns
+ * a CSS string for the Svelte style attribute.
  *
  *   - applyDisplaySwitchTransform : Form\Parser\ElementVisibilityManager
  *   - resolveDisplayTargetParts   : Fields\Group::processSingleTarget
