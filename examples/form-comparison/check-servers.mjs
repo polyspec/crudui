@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile, copyFile, rm } from 'node:fs/promises';
 import { encodeJson, decodeJson, readJson } from './src/json.mjs';
 import { formRenderingPaths, formServers } from './src/runtime-paths.mjs';
+import { finalizePersistenceReport } from './persistence-report.mjs';
 
 // Run inside the comparison container while browser checks are stopped.
 const base = 'http://127.0.0.1:8080';
@@ -14,6 +15,10 @@ const temporaryKey = '__abcdef0123456__';
 const parsed = bytes => decodeJson(new Uint8Array(bytes));
 const canonical = value => Array.isArray(value) ? value.map(canonical)
   : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(name => [name, canonical(value[name])])) : value;
+const metadataResponse = await fetch(`${base}/metadata.json`);
+assert.equal(metadataResponse.status, 200, 'candidate metadata response');
+const metadata = await metadataResponse.json();
+assert.match(metadata?.source?.commit ?? '', /^[0-9a-f]{40}$/, 'candidate source commit');
 
 function native(data, format) {
   const fields = format === 'multipart' ? new FormData() : new URLSearchParams();
@@ -189,8 +194,8 @@ try {
   const previous = JSON.parse(await readFile(output, 'utf8'));
   await copyFile(output, `/results/server-report-${previous.generatedAt.replaceAll(':', '-')}.json`);
 } catch (error) { if (error.code !== 'ENOENT') throw error; }
-await writeFile(output, JSON.stringify({ generatedAt: new Date().toISOString(), results }, null, 2) + '\n');
-const expectedResults = servers.length * renderingPaths.length * 15;
-if (results.length !== expectedResults || results.some(result => !result.passed)) {
+const report = finalizePersistenceReport(results, metadata);
+await writeFile(output, JSON.stringify(report, null, 2) + '\n');
+if (!report.passed) {
   process.exitCode = 1;
 }
