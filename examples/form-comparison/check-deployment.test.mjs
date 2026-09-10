@@ -167,8 +167,9 @@ test('removes candidate files and comparison resources after successful deployme
   t.after(() => import('node:fs/promises').then(({ rm }) =>
     rm(directory, { recursive: true, force: true })));
   const candidateRoot = path.join(directory, 'candidates');
-  const currentCandidate = path.join(candidateRoot, 'current');
-  const previousCandidate = path.join(candidateRoot, 'previous');
+  const previousCommit = 'b'.repeat(40);
+  const currentCandidate = path.join(candidateRoot, commit);
+  const previousCandidate = path.join(candidateRoot, previousCommit);
   const deploymentResultsDirectory = path.join(directory, 'deployment/results');
   const retiredResultsDirectory = path.join(directory, 'retired/.form-comparison/results');
   for (const target of [currentCandidate, previousCandidate, deploymentResultsDirectory,
@@ -177,7 +178,7 @@ test('removes candidate files and comparison resources after successful deployme
     await writeFile(path.join(target, 'result.json'), '{}\n');
   }
   const deployedImageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
-  const oldImageReference = 'localhost/crudui-form-comparison:111111111111';
+  const oldImageReference = `localhost/crudui-form-comparison:${previousCommit.slice(0, 12)}`;
   const calls = [];
   const plan = await cleanupDeploymentArtifacts({
     deployedImageReference, candidateRoot, deploymentResultsDirectory,
@@ -186,16 +187,19 @@ test('removes candidate files and comparison resources after successful deployme
       candidateDirectories: [currentCandidate, previousCandidate],
       containers: [
         { id: 'crudui-comparison', state: 'running', imageReference: deployedImageReference },
-        { id: 'current-candidate', state: 'running', imageReference: deployedImageReference },
-        { id: 'previous-candidate', state: 'stopped', imageReference: oldImageReference },
+        { id: `crudui-form-comparison-${commit.slice(0, 12)}`, state: 'running',
+          imageReference: deployedImageReference },
+        { id: `crudui-form-comparison-${previousCommit.slice(0, 12)}`, state: 'stopped',
+          imageReference: oldImageReference },
       ],
       imageReferences: [deployedImageReference, oldImageReference],
     },
     runCommand: async (command, args) => { calls.push([command, args]); },
   });
   assert.deepEqual(calls, [
-    ['container', ['stop', 'current-candidate']],
-    ['container', ['delete', 'current-candidate', 'previous-candidate']],
+    ['container', ['stop', `crudui-form-comparison-${commit.slice(0, 12)}`]],
+    ['container', ['delete', `crudui-form-comparison-${commit.slice(0, 12)}`,
+      `crudui-form-comparison-${previousCommit.slice(0, 12)}`]],
     ['container', ['image', 'delete', oldImageReference]],
   ]);
   assert.deepEqual(plan.candidateDirectories, [currentCandidate, previousCandidate]);
@@ -210,13 +214,13 @@ test('rejects candidate cleanup outside the candidate directory', async t => {
   t.after(() => import('node:fs/promises').then(({ rm }) =>
     rm(directory, { recursive: true, force: true })));
   const candidateRoot = path.join(directory, 'candidates');
-  const outside = path.join(directory, 'outside');
+  const outside = path.join(directory, 'b'.repeat(40));
   await mkdir(candidateRoot);
   await mkdir(outside);
   const calls = [];
   await assert.rejects(cleanupDeploymentArtifacts({
     deployedImageReference: `localhost/crudui-form-comparison:${commit.slice(0, 12)}`,
-    candidateRoot, deploymentResultsDirectory: path.join(directory, 'results'),
+    candidateRoot, deploymentResultsDirectory: path.join(directory, 'deployment/results'),
     resources: { candidateDirectories: [outside], containers: [], imageReferences: [] },
     runCommand: async (...args) => { calls.push(args); },
   }), /Candidate cleanup path is invalid/);
