@@ -6,12 +6,17 @@
 
 ```sh
 npm ci
+npm run test:runtimes
 npm run test:dependencies
 npm run build
 npm run test:build
 npm run test:build:repeat
 npm run test:packages
 ```
+
+`test:runtimes`는 CI와 컨테이너 정의의 숫자 Node.js 릴리스 및 CI의 숫자 npm
+릴리스를 거부합니다. 이 설정은 현재 LTS Node.js 채널과 현재 안정 npm 채널을
+선택합니다.
 
 `test:dependencies`는 잘못되거나 누락되거나 충돌하는 설치 패키지를 거부합니다.
 또한 고정된 의존성 그래프에서 보고된 중간·높음·치명적 취약점을 거부합니다.
