@@ -23,6 +23,7 @@ const deploymentDomain = 'crudui.test';
 const deploymentContainer = 'crudui-comparison';
 const deploymentGroup = 'crudui';
 const deploymentService = 'comparison';
+const comparisonImagePrefix = 'localhost/crudui-form-comparison:';
 
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
@@ -132,7 +133,6 @@ export function renderDeploymentCompose({ commit, imageReference }) {
     '    mem_limit: 1G',
     '    volumes:',
     '      - ./data:/data',
-    '      - ./results:/results',
     '    labels:',
     `      containerctl.domain: ${deploymentDomain}`,
     '    healthcheck:',
@@ -143,6 +143,28 @@ export function renderDeploymentCompose({ commit, imageReference }) {
     '      start_period: 2s',
     '',
   ].join('\n');
+}
+
+/** Select temporary resources that are not part of the active deployment. */
+export function deploymentCleanupPlan({
+  deployedImageReference, candidateDirectories, containers, imageReferences,
+}) {
+  assert.ok(deployedImageReference.startsWith(comparisonImagePrefix),
+    'Deployed comparison image reference is invalid');
+  const temporaryContainers = containers.filter(container =>
+    container.id !== deploymentContainer
+      && container.imageReference.startsWith(comparisonImagePrefix));
+  return {
+    runningContainerIds: temporaryContainers
+      .filter(container => container.state === 'running')
+      .map(container => container.id).sort(),
+    containerIds: temporaryContainers.map(container => container.id).sort(),
+    candidateDirectories: [...new Set(candidateDirectories)].sort(),
+    imageReferences: [...new Set(imageReferences)]
+      .filter(reference => reference.startsWith(comparisonImagePrefix)
+        && reference !== deployedImageReference)
+      .sort(),
+  };
 }
 
 /** Reject state changes after applying the same deployment definition twice. */
@@ -172,6 +194,73 @@ async function inspectImage(imageReference) {
   const digest = configuration?.descriptor?.digest;
   assert.match(digest ?? '', digestPattern, 'Local image digest is invalid');
   return { reference: imageReference, digest };
+}
+
+async function directDirectories(root) {
+  try {
+    const entries = await readdir(root, { withFileTypes: true });
+    return entries.filter(entry => entry.isDirectory())
+      .map(entry => path.join(root, entry.name)).sort();
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function localComparisonResources(candidateRoot) {
+  const [{ stdout: containerOutput }, { stdout: imageOutput }, candidateDirectories] =
+    await Promise.all([
+      run('container', ['list', '--all', '--format', 'json']),
+      run('container', ['image', 'list', '--format', 'json']),
+      directDirectories(candidateRoot),
+    ]);
+  const containers = JSON.parse(containerOutput).map(container => ({
+    id: container.id, state: container.status?.state ?? '',
+    imageReference: container.configuration?.image?.reference ?? '',
+  }));
+  const imageReferences = JSON.parse(imageOutput)
+    .map(image => image.configuration?.name ?? '');
+  return { containers, imageReferences, candidateDirectories };
+}
+
+function assertDirectChild(root, directory, message) {
+  const relative = path.relative(root, directory);
+  assert.ok(relative && !relative.startsWith('..') && !path.isAbsolute(relative)
+    && !relative.includes(path.sep), message);
+}
+
+async function removeDirectoryWithin(root, directory) {
+  assertDirectChild(root, directory, 'Candidate cleanup path is invalid');
+  await rm(directory, { recursive: true, force: true });
+}
+
+/** Remove candidate resources after the deployed service passes verification. */
+export async function cleanupDeploymentArtifacts({
+  deployedImageReference, candidateRoot, deploymentResultsDirectory,
+  resources, runCommand = run,
+}) {
+  const plan = deploymentCleanupPlan({ deployedImageReference, ...resources });
+  for (const directory of plan.candidateDirectories) {
+    assertDirectChild(candidateRoot, directory, 'Candidate cleanup path is invalid');
+  }
+  const comparisonRoot = path.dirname(candidateRoot);
+  assert.equal(path.resolve(deploymentResultsDirectory),
+    path.join(comparisonRoot, 'deployment/results'),
+    'Deployment results cleanup path is invalid');
+  if (plan.runningContainerIds.length > 0) {
+    await runCommand('container', ['stop', ...plan.runningContainerIds]);
+  }
+  if (plan.containerIds.length > 0) {
+    await runCommand('container', ['delete', ...plan.containerIds]);
+  }
+  if (plan.imageReferences.length > 0) {
+    await runCommand('container', ['image', 'delete', ...plan.imageReferences]);
+  }
+  await rm(deploymentResultsDirectory, { recursive: true, force: true });
+  for (const directory of plan.candidateDirectories) {
+    await removeDirectoryWithin(candidateRoot, directory);
+  }
+  return plan;
 }
 
 async function fileDigests(root) {
@@ -302,7 +391,6 @@ async function containerState(expectedDigest, deploymentDirectory) {
   })).sort((left, right) => left.destination.localeCompare(right.destination));
   assert.deepEqual(mounts, [
     { destination: '/data', source: path.join(deploymentDirectory, 'data') },
-    { destination: '/results', source: path.join(deploymentDirectory, 'results') },
   ], 'Deployment mounts differ');
   return {
     id: value.id, createdAt: configuration.creationDate, startedAt: value.status.startedDate,
@@ -352,10 +440,7 @@ async function deploymentSnapshot(commit, image, deploymentDirectory) {
   return {
     container, route, authority: { path: authority.path, sha256: authority.sha256 },
     certificate: tlsCertificate,
-    files: {
-      data: await fileDigests(path.join(deploymentDirectory, 'data')),
-      results: await fileDigests(path.join(deploymentDirectory, 'results')),
-    },
+    files: { data: await fileDigests(path.join(deploymentDirectory, 'data')) },
     responses: {
       home: home.sha256, health: health.sha256, metadata: metadataResponse.sha256,
       data: dataResponse.sha256,
@@ -386,22 +471,19 @@ async function main() {
   const image = await inspectImage(imageReference);
   const deploymentDirectory = path.join(repositoryRoot, '.form-comparison/deployment');
   await mkdir(deploymentDirectory, { recursive: true });
-  let preservation = { data: null, results: null };
+  let preservation = { data: null };
   try {
     const { stdout } = await run('container', ['inspect', deploymentContainer]);
     const current = JSON.parse(stdout)[0];
     const mounts = Object.fromEntries((current?.configuration?.mounts ?? [])
       .map(mount => [mount.destination, mount.source]));
     assert.ok(path.isAbsolute(mounts['/data'] ?? ''), 'Active deployment data mount is missing');
-    assert.ok(path.isAbsolute(mounts['/results'] ?? ''), 'Active deployment results mount is missing');
     preservation = {
       data: await preserveDeploymentDirectory(mounts['/data'], path.join(deploymentDirectory, 'data')),
-      results: await preserveDeploymentDirectory(mounts['/results'], path.join(deploymentDirectory, 'results')),
     };
   } catch (error) {
     if (!/not found|does not exist|No such/i.test(`${error.stderr ?? ''} ${error.message}`)) throw error;
-    await mkdir(path.join(deploymentDirectory, 'data'));
-    await mkdir(path.join(deploymentDirectory, 'results'));
+    await mkdir(path.join(deploymentDirectory, 'data'), { recursive: true });
   }
   const compose = renderDeploymentCompose({ commit, imageReference });
   const composeFile = path.join(deploymentDirectory, 'compose.yaml');
@@ -418,7 +500,15 @@ async function main() {
     first, second };
   await writeFile(path.join(deploymentDirectory, 'verification.json'),
     `${JSON.stringify(verification, null, 2)}\n`);
-  process.stdout.write(`Deployed ${commit} at https://${deploymentDomain}/; identical reapplication passed\n`);
+  const candidateRoot = path.join(repositoryRoot, '.form-comparison/candidates');
+  const cleanup = await cleanupDeploymentArtifacts({
+    deployedImageReference: imageReference, candidateRoot,
+    deploymentResultsDirectory: path.join(deploymentDirectory, 'results'),
+    resources: await localComparisonResources(candidateRoot),
+  });
+  process.stdout.write(`Deployed ${commit} at https://${deploymentDomain}/; identical reapplication passed; `
+    + `removed ${cleanup.containerIds.length} containers, ${cleanup.imageReferences.length} images `
+    + `and ${cleanup.candidateDirectories.length} candidate directories\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
