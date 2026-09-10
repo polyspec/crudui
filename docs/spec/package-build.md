@@ -71,6 +71,9 @@ covered by an exact approval.
 Workspace packages use the root lock file and do not maintain package-level lock
 files.
 Container builds install platform dependencies through the package manager.
+Container build contexts exclude every generated package output directory. A
+container build does not import extension objects, native modules or other build
+output from the host workspace.
 The root development dependencies include the shared test runner so that testing
 integrations installed at the root can resolve it through normal module lookup.
 Every repository-root Node.js entry point invoked by a build or test target
@@ -82,6 +85,10 @@ not satisfy a root entry point.
 Dependency updates are prepared and verified locally. The repository does not
 schedule dependency update pull requests. Updated manifests and lock files are
 verified together with the relevant package and documentation checks.
+Composer path repositories for repository-local packages set `symlink` to
+`false`. Composer copies each local package into `vendor/`; installed PHP package
+trees do not contain symbolic links. Manifests and lock files record the same
+copy-install setting.
 
 ## Runtime and dependency versions
 
