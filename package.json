@@ -35,6 +35,7 @@
     "test:form-comparison:library": "node --test examples/form-comparison/generation-performance.test.mjs",
     "docs:check:documents": "node scripts/check-documents.mjs",
     "test:packages": "npm run build && node scripts/check-packages.mjs",
+    "test:dependencies": "node --test tests/build/dependency-health.test.mjs",
     "test:build": "node --test tests/build/public-packages.test.mjs",
     "test:build:repeat": "node --test tests/build/reproducible-build.test.mjs"
   },

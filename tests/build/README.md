@@ -6,11 +6,16 @@ Run from the repository root:
 
 ```sh
 npm ci
+npm run test:dependencies
 npm run build
 npm run test:build
 npm run test:build:repeat
 npm run test:packages
 ```
+
+`test:dependencies` rejects invalid, missing and conflicting installed packages.
+It also rejects moderate, high and critical advisories reported for the locked
+dependency graph.
 
 `test:build` loads validator, generator-core and generator-react through their
 public CommonJS and ESM exports. It compiles strict NodeNext type consumers with

@@ -30,6 +30,9 @@ jobs:
       - name: Install workspace deps
         run: npm i -g npm@11.17.0 && npm ci
 
+      - name: Verify dependency graph and advisories
+        run: npm run test:dependencies
+
       - name: Build (validator-ts + generator-react/vue/svelte)
         run: npm run build
 
