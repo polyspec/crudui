@@ -25,6 +25,8 @@ export function createBrowserJob(run, options = {}) {
   if (!Number.isSafeInteger(totalReports) || totalReports < 1) throw new Error('Browser job requires a positive report count');
   const now = options.now ?? (() => new Date());
   const clock = options.clock ?? (() => performance.now());
+  const publish = options.publish ?? (() => {});
+  if (typeof publish !== 'function') throw new Error('Browser job publisher must be a function');
   let status = 'idle';
   let startedAt;
   let completedAt;
@@ -50,6 +52,10 @@ export function createBrowserJob(run, options = {}) {
     };
   }
 
+  async function publishState() {
+    await publish({ type: 'state', state: state() });
+  }
+
   async function report(label, action) {
     if (typeof label !== 'string' || label.length === 0 || typeof action !== 'function') {
       throw new Error('Browser report requires a label and operation');
@@ -60,6 +66,7 @@ export function createBrowserJob(run, options = {}) {
     currentStartedAt = reportStartedAt;
     lastProgressAt = reportStartedAt;
     const reportStartedClock = clock();
+    await publishState();
     const value = await action();
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(label + ' did not return a report object');
     const reportCompletedAt = timestamp(now);
@@ -69,6 +76,9 @@ export function createBrowserJob(run, options = {}) {
     current = null;
     currentStartedAt = undefined;
     lastProgressAt = reportCompletedAt;
+    await publish({
+      type: 'report', index: reports.length - 1, report: timed, state: state(),
+    });
     return timed;
   }
 
@@ -91,6 +101,7 @@ export function createBrowserJob(run, options = {}) {
       } finally {
         completedAt = timestamp(now);
         durationMs = Math.max(0, clock() - startedClock);
+        await publishState();
       }
     })();
     promise.catch(() => {});
@@ -108,17 +119,25 @@ export function createBrowserJob(run, options = {}) {
   };
 }
 
-const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+function validState(state, reports) {
+  if (!state || !['running', 'completed', 'failed'].includes(state.status)) {
+    throw new Error('Browser job returned an invalid state');
+  }
+  if (!Number.isSafeInteger(state.completedReports)
+      || !Number.isSafeInteger(state.totalReports)
+      || state.completedReports !== reports.length
+      || state.completedReports > state.totalReports) {
+    throw new Error('Browser job returned invalid report progress');
+  }
+}
 
-/** Read job state with short calls and transfer each completed report once. */
+/** Collect browser job reports from subscribed progress and activity events. */
 export async function collectBrowserJob(client, input, options = {}) {
-  const pause = options.pause ?? delay;
-  const intervalMs = options.intervalMs ?? 250;
   const onState = options.onState ?? (() => {});
-  const activity = options.activity ?? (() => null);
-  const clock = options.clock ?? (() => performance.now());
   const stallLimitMs = options.stallLimitMs ?? browserJobStallLimitMs;
   const runLimitMs = options.runLimitMs ?? browserJobRunLimitMs;
+  const setTimer = options.setTimer ?? setTimeout;
+  const clearTimer = options.clearTimer ?? clearTimeout;
   if (!Number.isFinite(stallLimitMs) || stallLimitMs <= 0) {
     throw new Error('Browser job stall limit must be a positive duration');
   }
@@ -127,65 +146,106 @@ export async function collectBrowserJob(client, input, options = {}) {
   }
   const reports = [];
   let state;
-  try {
-    state = await client.start(input);
-  } catch (error) {
-    throw attachProgress(error, state, reports);
+  let started = false;
+  let buffering = true;
+  let finished = false;
+  let runTimer;
+  let stallTimer;
+  let unsubscribe = () => {};
+  let unsubscribeActivity = () => {};
+  const pending = [];
+  let queue = Promise.resolve();
+  let resolveCompletion;
+  let rejectCompletion;
+  const completion = new Promise((resolve, reject) => {
+    resolveCompletion = resolve;
+    rejectCompletion = reject;
+  });
+
+  function fail(error) {
+    if (finished) return;
+    finished = true;
+    rejectCompletion(attachProgress(error, state, reports));
   }
-  let progressToken;
-  const startedClock = clock();
-  let progressClock = startedClock;
-  while (true) {
-    if (!state || !['running', 'completed', 'failed'].includes(state.status)) throw new Error('Browser job returned an invalid state');
-    if (!Number.isSafeInteger(state.completedReports) || !Number.isSafeInteger(state.totalReports)
-      || state.completedReports < reports.length || state.completedReports > state.totalReports) {
-      throw new Error('Browser job returned invalid report progress');
-    }
-    while (reports.length < state.completedReports) {
-      let report;
-      try {
-        report = await client.report(reports.length);
-      } catch (error) {
-        throw attachProgress(error, state, reports);
-      }
-      if (!report || typeof report !== 'object') throw new Error('Browser job report ' + reports.length + ' is unavailable');
-      reports.push(report);
-    }
-    await onState(state, reports);
-    const currentClock = clock();
-    if (currentClock - startedClock > runLimitMs) {
-      throw attachProgress(
-        new Error(`Browser job exceeded ${runLimitMs} ms`),
-        state, reports,
-      );
-    }
+
+  function resetStallTimer() {
+    if (!started || finished) return;
+    if (stallTimer !== undefined) clearTimer(stallTimer);
+    stallTimer = setTimer(() => fail(new Error(
+      `Browser job made no observable progress for ${stallLimitMs} ms`,
+    )), stallLimitMs);
+  }
+
+  async function acceptState(next) {
+    validState(next, reports);
+    state = next;
+    resetStallTimer();
+    await onState(state, [...reports]);
     if (state.status === 'completed') {
-      if (reports.length !== state.totalReports) throw new Error('Browser job returned ' + reports.length + '/' + state.totalReports + ' reports');
-      return { state, reports };
+      if (reports.length !== state.totalReports) {
+        throw new Error(
+          `Browser job returned ${reports.length}/${state.totalReports} reports`,
+        );
+      }
+      if (!finished) {
+        finished = true;
+        resolveCompletion({ state, reports });
+      }
+    } else if (state.status === 'failed') {
+      throw new Error(state.error || 'Browser job failed');
     }
-    if (state.status === 'failed') {
-      const failure = new Error(state.error || 'Browser job failed');
-      failure.state = state;
-      failure.reports = reports;
-      throw failure;
+  }
+
+  async function acceptEvent(event) {
+    if (!event || !['state', 'report'].includes(event.type)) {
+      throw new Error('Browser job returned an invalid event');
     }
-    const nextProgressToken = JSON.stringify([
-      state.completedReports, state.current ?? null, state.lastProgressAt ?? null, activity(),
-    ]);
-    if (nextProgressToken !== progressToken) {
-      progressToken = nextProgressToken;
-      progressClock = currentClock;
-    } else if (currentClock - progressClock > stallLimitMs) {
-      throw attachProgress(
-        new Error(`Browser job made no observable progress for ${stallLimitMs} ms`),
-        state, reports,
-      );
+    if (event.type === 'report') {
+      if (event.index !== reports.length || !event.report
+          || typeof event.report !== 'object' || Array.isArray(event.report)) {
+        throw new Error('Browser job returned an invalid report event');
+      }
+      reports.push(event.report);
     }
-    await pause(intervalMs);
-    try {
-      state = await client.state();
-    } catch (error) {
-      throw attachProgress(error, state, reports);
+    await acceptState(event.state);
+  }
+
+  function receive(event) {
+    if (buffering) {
+      pending.push(event);
+      return Promise.resolve();
     }
+    queue = queue.then(() => acceptEvent(event)).catch(fail);
+    return queue;
+  }
+
+  try {
+    if (typeof client.subscribe !== 'function') {
+      throw new Error('Browser job client requires an event subscription');
+    }
+    unsubscribe = await client.subscribe(receive) ?? unsubscribe;
+    if (typeof client.subscribeActivity === 'function') {
+      unsubscribeActivity = await client.subscribeActivity(() => resetStallTimer())
+        ?? unsubscribeActivity;
+    }
+    state = await client.start(input);
+    validState(state, reports);
+    started = true;
+    runTimer = setTimer(() => fail(new Error(
+      `Browser job exceeded ${runLimitMs} ms`,
+    )), runLimitMs);
+    resetStallTimer();
+    await onState(state, [...reports]);
+    while (pending.length > 0) await acceptEvent(pending.shift());
+    buffering = false;
+    return await completion;
+  } catch (error) {
+    fail(error);
+    return await completion;
+  } finally {
+    if (runTimer !== undefined) clearTimer(runTimer);
+    if (stallTimer !== undefined) clearTimer(stallTimer);
+    await unsubscribe();
+    await unsubscribeActivity();
   }
 }
