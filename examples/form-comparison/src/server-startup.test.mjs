@@ -19,7 +19,8 @@ const metadata = { source: { commit, archiveSha256 }, cruduiModuleSha256: module
 const phpFiles = {
   'CRUDUI\\Generator': '/workspace/source/packages/generator-php/src/Generator.php',
   'CRUDUI\\Form': '/workspace/source/packages/generator-php/src/Form.php',
-  'CRUDUI\\Validator': '/workspace/source/packages/validator-php/src/Public/Validator.php',
+  'CRUDUI\\Validator':
+    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
 };
 
 function phpHealth(server) {
@@ -79,11 +80,11 @@ test('accepts current Composer and native PHP implementations', () => {
   assert.equal(serverReady('php-ext', true, phpHealth('php-ext'), metadata, expectedSignatures), true);
 });
 
-test('accepts the selected Composer validator installation in PHP health', () => {
+test('rejects the repository validator source in PHP health', () => {
   const value = phpHealth('php');
   value.generator.classes['CRUDUI\\Validator'].file =
-    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php';
-  assert.equal(serverReady('php', true, value, metadata, expectedSignatures), true);
+    '/workspace/source/packages/validator-php/src/Public/Validator.php';
+  assert.equal(serverReady('php', true, value, metadata, expectedSignatures), false);
 });
 
 test('rejects incomplete or inconsistent PHP provenance', () => {
