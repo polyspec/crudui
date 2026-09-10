@@ -29,6 +29,10 @@ The extension build reads the PHP executable, headers and build flags from
 It does not require `phpize`, Autoconf or libtool. Tool discovery rejects relative
 paths, symbolic links and multiple results. Explicit tool paths must identify
 regular executable files.
+On Debian-derived Linux systems, compiler discovery reads the installed `gcc`
+package record and selects one regular target compiler file. Set
+`PHP_EXTENSION_PHP_CONFIG` to the regular versioned `php-config` file when more
+than one PHP release can be selected.
 
 The PHP API check uses three separate processes: Composer classes, the extension
 without Composer, and the extension with Composer. Reflection verifies the actual
