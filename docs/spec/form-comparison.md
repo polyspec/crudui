@@ -98,6 +98,8 @@ The PHP health response reports `Generator` and `Form` from the generator source
 directory and `Validator` from the selected Composer installation directory.
 Startup accepts only these reported class locations after the source comparison
 has passed.
+When startup rejects a health response, the failure identifies the server and
+the first response field that does not meet this contract.
 
 The public API accepts only
 `/api/{server}/{action}/{renderingPath}/{framework}`. The public process starts
