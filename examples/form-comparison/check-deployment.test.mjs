@@ -131,27 +131,34 @@ test('renders one deterministic deployment definition for the verified image', (
 
 test('selects temporary comparison resources after successful deployment', () => {
   const deployedImageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
-  const oldImageReference = 'localhost/crudui-form-comparison:111111111111';
+  const previousCommit = 'b'.repeat(40);
+  const oldImageReference = `localhost/crudui-form-comparison:${previousCommit.slice(0, 12)}`;
+  const retiredDeploymentImage = 'localhost/crudui-form-comparison:dfe70a6';
   const plan = deploymentCleanupPlan({
     deployedImageReference,
-    candidateDirectories: ['/repo/.form-comparison/candidates/current',
-      '/repo/.form-comparison/candidates/previous'],
+    retiredImageReferences: [retiredDeploymentImage],
+    candidateDirectories: [`/repo/.form-comparison/candidates/${commit}`,
+      `/repo/.form-comparison/candidates/${previousCommit}`,
+      '/repo/.form-comparison/candidates/notes'],
     containers: [
       { id: 'crudui-comparison', state: 'running', imageReference: deployedImageReference },
-      { id: 'crudui-form-comparison-current', state: 'running',
+      { id: `crudui-form-comparison-${commit.slice(0, 12)}`, state: 'running',
         imageReference: deployedImageReference },
-      { id: 'crudui-form-comparison-previous', state: 'stopped',
+      { id: `crudui-form-comparison-${previousCommit.slice(0, 12)}`, state: 'stopped',
         imageReference: oldImageReference },
+      { id: 'comparison-diagnostic', state: 'running', imageReference: oldImageReference },
       { id: 'unrelated', state: 'running', imageReference: 'docker.io/library/node:26' },
     ],
-    imageReferences: [deployedImageReference, oldImageReference, 'docker.io/library/node:26'],
+    imageReferences: [deployedImageReference, oldImageReference,
+      'localhost/crudui-form-comparison:manual', 'docker.io/library/node:26'],
   });
   assert.deepEqual(plan, {
-    runningContainerIds: ['crudui-form-comparison-current'],
-    containerIds: ['crudui-form-comparison-current', 'crudui-form-comparison-previous'],
-    candidateDirectories: ['/repo/.form-comparison/candidates/current',
-      '/repo/.form-comparison/candidates/previous'],
-    imageReferences: [oldImageReference],
+    runningContainerIds: [`crudui-form-comparison-${commit.slice(0, 12)}`],
+    containerIds: [`crudui-form-comparison-${commit.slice(0, 12)}`,
+      `crudui-form-comparison-${previousCommit.slice(0, 12)}`],
+    candidateDirectories: [`/repo/.form-comparison/candidates/${commit}`,
+      `/repo/.form-comparison/candidates/${previousCommit}`],
+    imageReferences: [oldImageReference, retiredDeploymentImage],
   });
 });
 
