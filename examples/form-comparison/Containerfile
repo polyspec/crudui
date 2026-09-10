@@ -3,34 +3,10 @@ FROM rust:1.98.0-slim-trixie AS rust-toolchain
 FROM node:26.8.1-trixie-slim AS verified-source
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-COPY source.tar source-commit metadata.json \
+COPY source.tar source-commit metadata.json verify-candidate-context.mjs \
     ordered-json.tar ordered-json-js.tar ordered-json-go.tar ordered-json-rust.tar \
     ordered-json-php.tar ordered-json-php-extension.tar /archives/
-RUN node - <<'NODE'
-const { execFileSync } = require('node:child_process');
-const { createHash } = require('node:crypto');
-const { readFileSync } = require('node:fs');
-const metadata = JSON.parse(readFileSync('/archives/metadata.json'));
-const digest = file => createHash('sha256').update(readFileSync(file)).digest('hex');
-const sourceCommit = readFileSync('/archives/source-commit', 'utf8').trim();
-const embeddedCommit = execFileSync('git', ['get-tar-commit-id'], {
-  input: readFileSync('/archives/source.tar'), encoding: 'utf8',
-}).trim();
-if (metadata.source?.commit !== sourceCommit || embeddedCommit !== sourceCommit) {
-  throw new Error('Candidate source commit differs from metadata');
-}
-if (digest('/archives/source.tar') !== metadata.source.archiveSha256) {
-  throw new Error('Candidate source archive hash differs from metadata');
-}
-if (digest('/archives/ordered-json.tar') !== metadata.orderedJson?.archiveSha256) {
-  throw new Error('OrderedJSON archive hash differs from metadata');
-}
-for (const [name, source] of Object.entries(metadata.orderedJson?.submodules ?? {})) {
-  if (digest('/archives/ordered-json-' + name + '.tar') !== source.archiveSha256) {
-    throw new Error('OrderedJSON implementation archive hash differs: ' + name);
-  }
-}
-NODE
+RUN node /archives/verify-candidate-context.mjs
 RUN mkdir -p /workspace/source/.form-comparison/sources/ordered-json \
     && tar -xf /archives/source.tar -C /workspace/source \
     && for archive in /archives/ordered-json*.tar; do \
