@@ -6,16 +6,21 @@
 
 The repository verifies candidate metadata, generation, persistence, browser
 reports, the exact local image tag and image digest before generating the local
-comparison Compose file. Deployment preserves existing data and results without
-overwriting different files. HTTPS verification uses the explicit containerctl
-certificate authority and checks the source commit, route, certificate, mounts,
-stored files and response bytes. A second identical application must leave every
-checked value unchanged.
+comparison Compose file. Deployment preserves existing data without overwriting
+different files. HTTPS verification uses the explicit containerctl certificate
+authority and checks the source commit, route, certificate, data mount, stored
+files and response bytes. A second identical application must leave every checked
+value unchanged.
 
-The form comparison source suite passed 91 tests, including failed and stale
-evidence, exact report totals, deterministic Compose output, data preservation,
-certificate authority loading and identical reapplication changes. Deployment
-has not been performed for this change.
+Successful deployment removes candidate containers, candidate directories, raw
+reports, screenshots, previous deployment results and local comparison images
+that the deployed service does not use. Eleven deployment cleanup checks and all
+96 form-comparison source checks passed.
+
+The checks include failed and stale evidence, exact report totals, deterministic
+Compose output, data preservation, certificate authority loading, identical
+reapplication changes and cleanup path boundaries. Deployment has not been
+performed for this change.
 
 ## 2026-09-10 — Declare native test dependencies
 
