@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Compose;
 
 /**
- * $ref resolution — base inheritance, resolved before anything else (SPEC §5;
- * legacy ReferenceResolver.php). Byte-for-byte port of
- * validator-ts/src/compose/ref.ts.
+ * $ref resolution expands base inheritance before other composition (SPEC §5).
  *
- * Semantics ported from legacy (single source of truth):
+ * Resolution supports these input forms:
  *   (1) value = a single string OR a list of strings — a list resolves each path
  *       in order, then array_merge (later overrides earlier on key clash).
  *   (2) plain path 'OptionCombination.yml' → load YAML, descend by the default

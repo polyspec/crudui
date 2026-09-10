@@ -18,7 +18,7 @@ namespace CRUDUI\Validator\Compose;
  *   $remove [k1,k2] | {k:{sub:…}}          → remove (whole key or deep subkey)
  *
  * CRUDUI normalization (the analysis patch_ops): $patch is an OBJECT of operations.
- * Two shapes coexist (both ported from legacy, both order-preserving):
+ * Two order-preserving input shapes are supported:
  *
  *   1. Deep-path set — "field.validate.required": ".other". The dotted key is
  *      split into path segments and the value is SET at that node (creating
