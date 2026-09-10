@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -55,6 +56,36 @@ function workspacePackageDirectories() {
   });
 }
 
+function nativeGateNodeEntrypoints() {
+  const makefile = readFileSync(path.join(root, 'Makefile'), 'utf8');
+  const target = makefile.match(/^test-native:[^\n]*\n((?:\t[^\n]*\n?)*)/m);
+  assert.ok(target, 'Makefile must define test-native');
+  return [...target[1].matchAll(/\bnode(?:\s+--test)?\s+([^\s"']+\.mjs)\b/g)]
+    .map((match) => match[1]);
+}
+
+function importedPackageNames(filename) {
+  const source = readFileSync(path.join(root, filename), 'utf8');
+  const specifiers = [
+    ...source.matchAll(/\b(?:import|export)\s+(?:[^'"]*?\s+from\s*)?['"]([^'"]+)['"]/g),
+    ...source.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g),
+  ].map((match) => match[1]);
+  const builtins = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
+  return specifiers
+    .filter((specifier) => (
+      !specifier.startsWith('.')
+      && !specifier.startsWith('/')
+      && !specifier.startsWith('#')
+      && !builtins.has(specifier)
+      && !/^[A-Za-z][A-Za-z+.-]*:/.test(specifier)
+    ))
+    .map((specifier) => (
+      specifier.startsWith('@')
+        ? specifier.split('/').slice(0, 2).join('/')
+        : specifier.split('/')[0]
+    ));
+}
+
 function packageApprovalFailures(lockFile) {
   const directory = path.dirname(path.join(root, lockFile));
   const manifestFile = path.join(directory, 'package.json');
@@ -92,6 +123,28 @@ test('workspace packages use the root dependency lock file', () => {
   const failures = workspacePackageDirectories()
     .map((directory) => `${directory}/package-lock.json`)
     .filter((lockFile) => trackedLocks.has(lockFile));
+  assert.deepEqual(failures, []);
+});
+
+test('native gate root imports are declared by the root package', () => {
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const workspaceNames = workspacePackageDirectories().map((directory) => {
+    const workspace = JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8'));
+    assert.equal(typeof workspace.name, 'string', `${directory}/package.json: missing name`);
+    return workspace.name;
+  });
+  const declared = new Set([
+    ...Object.keys(manifest.dependencies ?? {}),
+    ...Object.keys(manifest.devDependencies ?? {}),
+    ...Object.keys(manifest.optionalDependencies ?? {}),
+    ...Object.keys(manifest.peerDependencies ?? {}),
+    ...workspaceNames,
+  ]);
+  const failures = nativeGateNodeEntrypoints().flatMap((filename) => (
+    importedPackageNames(filename)
+      .filter((packageName) => !declared.has(packageName))
+      .map((packageName) => `${filename}: ${packageName}`)
+  )).sort();
   assert.deepEqual(failures, []);
 });
 
