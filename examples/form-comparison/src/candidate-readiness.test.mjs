@@ -40,6 +40,8 @@ test('subscribes before start and accepts one complete readiness event', async t
     },
     async start() {
       actions.push(['start']);
+      watcher.emit('change', 'rename', null);
+      await new Promise(resolve => setImmediate(resolve));
       await writeFile(file, JSON.stringify(expected) + '\n');
       watcher.emit('change', 'rename', path.basename(file));
       return { completion: new Promise(() => {}) };
