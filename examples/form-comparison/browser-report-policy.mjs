@@ -1,0 +1,169 @@
+import assert from 'node:assert/strict';
+
+export const browserServers = ['php', 'php-ext', 'go', 'rust'];
+export const browserModes = ['corrected', 'keyed'];
+export const browserFrameworks = ['react', 'vue', 'svelte'];
+export const browserTransports = ['form', 'json'];
+export const browserServerRunBudgetMs = 15 * 60 * 1000;
+export const browserScenarioCheckIds = [
+  'identity', 'render', 'plus', 'copy', 'order', 'inject', 'transport',
+  'nonsequential', 'saved', 'serverValid', 'serverInvalid', 'exact',
+  'empty', 'deletion', 'shape', 'equivalence', 'jsonSyntax', 'keyedNames',
+  'initialization', 'cache',
+];
+
+const interactionActions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboard'];
+
+function exactKeys(actual, expected, label) {
+  assert.deepEqual([...new Set(actual)].sort(), [...expected].sort(), `${label} combinations differ`);
+  assert.equal(actual.length, expected.length, `${label} contains duplicates`);
+}
+
+function reportCombinations() {
+  return browserModes.flatMap(mode => browserFrameworks.flatMap(framework =>
+    browserTransports.map(transport => `${mode}/${framework}/${transport}`)));
+}
+
+function interactionCombinations() {
+  return browserModes.flatMap(mode => browserFrameworks.flatMap(framework =>
+    browserTransports.flatMap(transport => interactionActions
+      .map(action => `${mode}/${framework}/${transport}/${action}`))));
+}
+
+function documentCombinations() {
+  return browserModes.flatMap(mode => browserFrameworks.map(framework => `${mode}/${framework}`));
+}
+
+function modeSummary(items, checks) {
+  return Object.fromEntries(browserModes.map(mode => {
+    const selected = items.filter(item => item.mode === mode);
+    const entries = checks ? selected.flatMap(item => item.results) : selected;
+    return [mode, { total: entries.length, failed: entries.filter(item => !item.passed).length }];
+  }));
+}
+
+function verifyTiming(value, label) {
+  assert.ok(typeof value.startedAt === 'string' && !Number.isNaN(Date.parse(value.startedAt)), `${label}: startedAt`);
+  assert.ok(typeof value.completedAt === 'string' && !Number.isNaN(Date.parse(value.completedAt)), `${label}: completedAt`);
+  assert.ok(Date.parse(value.completedAt) >= Date.parse(value.startedAt), `${label}: completion order`);
+  assert.ok(Number.isFinite(value.durationMs) && value.durationMs >= 0, `${label}: durationMs`);
+}
+
+function verifyActivity(activity, report, label) {
+  assert.ok(activity && typeof activity === 'object' && !Array.isArray(activity), `${label}: activity`);
+  for (const field of ['requests', 'responses']) {
+    assert.ok(Number.isSafeInteger(activity[field]) && activity[field] > 0,
+      `${label}: activity ${field}`);
+  }
+  assert.ok(activity.responses <= activity.requests, `${label}: activity response count`);
+  for (const field of ['lastRequestAt', 'lastResponseAt']) {
+    assert.ok(typeof activity[field] === 'string' && !Number.isNaN(Date.parse(activity[field])),
+      `${label}: activity ${field}`);
+    assert.ok(Date.parse(activity[field]) >= Date.parse(report.startedAt)
+      && Date.parse(activity[field]) <= Date.parse(report.completedAt),
+    `${label}: activity ${field} range`);
+  }
+}
+
+function verifyInitializationEvidence(evidence, item, label) {
+  assert.ok(evidence && typeof evidence === 'object' && !Array.isArray(evidence),
+    `${label}: initialization evidence`);
+  for (const field of ['server', 'mode', 'framework', 'transport', 'commit']) {
+    assert.equal(evidence[field], item[field], `${label}: initialization evidence ${field}`);
+  }
+  assert.ok(typeof evidence.generatedAt === 'string' && !Number.isNaN(Date.parse(evidence.generatedAt)),
+    `${label}: initialization evidence generatedAt`);
+  assert.ok(typeof evidence.randomSource === 'string' && evidence.randomSource.length > 0,
+    `${label}: initialization evidence random source`);
+  assert.ok(Array.isArray(evidence.stages) && evidence.stages.length > 0,
+    `${label}: initialization evidence stages`);
+  assert.ok(Array.isArray(evidence.comparisons) && evidence.comparisons.length > 0,
+    `${label}: initialization evidence comparisons`);
+  assert.ok(evidence.cssFailures && typeof evidence.cssFailures === 'object'
+    && !Array.isArray(evidence.cssFailures), `${label}: initialization evidence CSS failures`);
+}
+
+export function verifyServerReport(report, expectedServer) {
+  assert.ok(browserServers.includes(expectedServer), 'Expected a supported browser server');
+  const label = `${expectedServer} verification`;
+  assert.equal(report.scope, 'verification', `${label}: report scope`);
+  assert.ok(typeof report.generatedAt === 'string' && !Number.isNaN(Date.parse(report.generatedAt)), `${label}: generatedAt`);
+  verifyTiming(report, `${label}: server run`);
+  assert.deepEqual(
+    { status: report.scenarioJob?.status, completedReports: report.scenarioJob?.completedReports, totalReports: report.scenarioJob?.totalReports },
+    { status: 'completed', completedReports: 12, totalReports: 12 },
+    `${label}: scenario job`,
+  );
+  verifyTiming(report.scenarioJob, `${label}: scenario job`);
+  assert.ok(typeof report.browser === 'string' && report.browser.length > 0, `${label}: browser version`);
+  assert.ok(Array.isArray(report.pageErrors) && report.pageErrors.every(error => typeof error === 'string'),
+    `${label}: browser page errors`);
+  verifyActivity(report.activity, report, label);
+  assert.ok(typeof report.initializationArtifacts === 'string'
+    && /^initialization-/.test(report.initializationArtifacts),
+  `${label}: initialization artifacts`);
+
+  assert.ok(Array.isArray(report.reports), `${label}: scenario reports`);
+  assert.equal(report.reports.length, 12, `${label}: scenario report count`);
+  assert.ok(report.reports.every(item => item.server === expectedServer), `${label}: scenario server`);
+  exactKeys(report.reports.map(item => `${item.mode}/${item.framework}/${item.transport}`),
+    reportCombinations(), `${label}: scenario`);
+  for (const item of report.reports) {
+    const itemLabel = `${expectedServer}/${item.mode}/${item.framework}/${item.transport}`;
+    verifyTiming(item, itemLabel);
+    assert.equal(item.commit, report.metadata?.[item.mode]?.commit, `${itemLabel}: source commit`);
+    assert.deepEqual(item.results.map(result => result.id), browserScenarioCheckIds, `${itemLabel}: check IDs`);
+    assert.ok(item.results.every(result => typeof result.passed === 'boolean'), `${itemLabel}: check result`);
+    verifyInitializationEvidence(
+      item.results.find(result => result.id === 'initialization')?.evidence, item, itemLabel,
+    );
+  }
+
+  assert.ok(Array.isArray(report.interactions), `${label}: interactions`);
+  assert.equal(report.interactions.length, 60, `${label}: interaction count`);
+  assert.ok(report.interactions.every(item => item.server === expectedServer), `${label}: interaction server`);
+  exactKeys(report.interactions.map(item => `${item.mode}/${item.framework}/${item.transport}/${item.action}`),
+    interactionCombinations(), `${label}: interaction`);
+  assert.ok(report.interactions.every(item => typeof item.passed === 'boolean'),
+    `${label}: interaction result`);
+
+  for (const [name, items] of [['mount-before-load', report.initialMounts], ['static-document', report.staticDocuments]]) {
+    assert.ok(Array.isArray(items), `${label}: ${name}`);
+    assert.equal(items.length, 6, `${label}: ${name} count`);
+    assert.ok(items.every(item => item.server === expectedServer), `${label}: ${name} server`);
+    exactKeys(items.map(item => `${item.mode}/${item.framework}`),
+      documentCombinations(), `${label}: ${name}`);
+    assert.ok(items.every(item => typeof item.passed === 'boolean'), `${label}: ${name} result`);
+    if (name === 'static-document') {
+      assert.ok(items.every(item => typeof item.sha256 === 'string' && /^[0-9a-f]{64}$/.test(item.sha256)),
+        `${label}: static-document SHA-256`);
+    }
+  }
+
+  const scenarios = modeSummary(report.reports, true);
+  const interactions = modeSummary(report.interactions, false);
+  const mounts = modeSummary(report.initialMounts, false);
+  const documents = modeSummary(report.staticDocuments, false);
+  const resultCount = report.reports.reduce(
+    (total, item) => total + item.results.filter(result => !result.passed).length, 0,
+  ) + report.interactions.filter(item => !item.passed).length
+    + report.initialMounts.filter(item => !item.passed).length
+    + report.staticDocuments.filter(item => !item.passed).length;
+  const performance = {
+    durationMs: report.durationMs,
+    budgetMs: browserServerRunBudgetMs,
+    passed: report.durationMs <= browserServerRunBudgetMs,
+  };
+
+  const common = {
+    server: expectedServer,
+    scope: 'verification',
+    generatedAt: report.generatedAt,
+    browser: report.browser,
+    complete: true,
+    performance,
+    scenarios, interactions, mounts, documents,
+  };
+  const failedChecks = resultCount + report.pageErrors.length;
+  return { ...common, passed: failedChecks === 0 && performance.passed, failedChecks };
+}
