@@ -72,11 +72,13 @@ Repository execution definitions select a release channel instead of an exact
 patch release. `.node-version` records the selected Node.js major, and
 `.go-version` records the selected Go major and minor release. CI reads these
 files. Node.js and Go container stages use the corresponding release line in
-their image tags. CI installs the current stable npm release. A candidate build
-resolves these channels once and records the resulting image and runtime versions
-in its verification evidence. A later build adopts a newer applicable release
-and produces new evidence. Package lock files record resolved package versions;
-they do not select a runtime release.
+their image tags. Rust CI selects the stable toolchain, and Rust container stages
+use the stable major channel instead of an exact patch release. CI installs the
+current stable npm release. A candidate build resolves these channels once and
+records the resulting image and runtime versions in its verification evidence. A
+later build adopts a newer applicable release and produces new evidence. Package
+lock files record resolved package versions; they do not select a runtime
+release.
 
 Package manifests and lock files must resolve one valid dependency graph.
 `npm ls --all` must return status 0 without invalid, missing or conflicting
