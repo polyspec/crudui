@@ -2,12 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
-## 2026-09-11 — Use operation completion events
+## 2026-09-11 — Use explicit browser completion signals
 
-The typing verifier subscribes to the frame readiness message before navigation.
-It awaits the save operation and renderer completion promises before it reads the
-input value, focus and caret. It does not use periodic DOM reads, network-idle
-inference or a fixed rendering delay.
+The form-comparison runner subscribes to the main-page and frame readiness
+messages before navigation. The interaction and typing verifiers reserve each UI
+operation before activation and await that operation's completion. React and
+Svelte complete synchronous updates with `flushSync`; Vue publishes `nextTick`
+completion. The verifiers read DOM results only after renderer completion. They
+do not use periodic DOM reads, network-idle inference or fixed rendering delays.
 
 The documentation development server registers its recursive file-system
 subscription before the initial build. It excludes generated `docs/.site/`
@@ -16,9 +18,11 @@ into one additional build. A build failure is reported and the next source event
 can request another build. A file-system subscription failure closes the server
 with status 1.
 
-The form-comparison source suite passed 123 checks and the documentation suite
-passed 14 checks. A development-server check returned HTTP status 200, rebuilt
-once for one source event and returned status 0 after `SIGINT`.
+The form-comparison source suite passed 129 checks, the generator construction
+performance suite passed four checks and the browser job suite passed one check.
+The documentation suite passed 14 checks. A development-server check returned
+HTTP status 200, rebuilt once for one source event and returned status 0 after
+`SIGINT`.
 
 ## 2026-09-11 — Resolve the native Cargo command path
 
