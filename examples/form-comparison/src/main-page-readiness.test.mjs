@@ -40,11 +40,11 @@ class PageFixture {
 }
 
 async function immediateOutcome(promise) {
-  return Promise.race([
-    promise.then(value => ({ status: 'resolved', value }),
-      error => ({ status: 'rejected', error })),
-    Promise.resolve({ status: 'pending' }),
-  ]);
+  let outcome = { status: 'pending' };
+  promise.then(value => { outcome = { status: 'resolved', value }; },
+    error => { outcome = { status: 'rejected', error }; });
+  await Promise.resolve();
+  return outcome;
 }
 
 for (const [event, value, message] of [
