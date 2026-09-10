@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync,
+} from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -26,6 +28,71 @@ function php(body) {
     encoding: 'utf8',
     timeout: 10_000,
   });
+}
+
+function composerCandidate(t, record) {
+  const root = mkdtempSync(path.join(library, '.git/form-generation-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const generatorSource = path.join(root, 'packages/generator-php/src');
+  const vendor = path.join(root, 'packages/generator-php/vendor');
+  const composer = path.join(vendor, 'composer');
+  const installedValidator = path.join(vendor, 'crudui/validator/src/Public');
+  const validatorSource = path.join(root, 'packages/validator-php/src/Public');
+  for (const directory of [generatorSource, composer, installedValidator, validatorSource]) {
+    mkdirSync(directory, { recursive: true });
+  }
+  for (const filename of ['Generator.php', 'Form.php']) {
+    copyFileSync(
+      path.join(library, 'packages/generator-php/src', filename),
+      path.join(generatorSource, filename),
+    );
+  }
+  const validator = readFileSync(
+    path.join(library, 'packages/validator-php/src/Public/Validator.php'),
+  );
+  writeFileSync(path.join(validatorSource, 'Validator.php'), validator);
+  writeFileSync(path.join(installedValidator, 'Validator.php'), validator);
+  writeFileSync(path.join(vendor, 'autoload.php'), `<?php
+namespace Composer\\Autoload;
+final class ClassLoader
+{
+    public function __construct(private string $vendor) {}
+    public function register(): void { spl_autoload_register([$this, 'loadClass']); }
+    public function loadClass(string $class): void
+    {
+        $files = [
+            'CRUDUI\\Generator' => dirname($this->vendor) . '/src/Generator.php',
+            'CRUDUI\\Form' => dirname($this->vendor) . '/src/Form.php',
+            'CRUDUI\\Validator' => $this->vendor . '/crudui/validator/src/Public/Validator.php',
+        ];
+        if (isset($files[$class])) require $files[$class];
+    }
+}
+$loader = new ClassLoader(__DIR__);
+$loader->register();
+return $loader;
+`);
+  writeComposerRecord(composer, record, path.resolve(installedValidator, '../..'));
+  return { root, installedValidator: path.join(installedValidator, 'Validator.php') };
+}
+
+function writeComposerRecord(composer, record, installDirectory) {
+  let packageRecord = '';
+  if (record === 'valid') {
+    packageRecord = `'crudui/validator' => ['install_path' => ${JSON.stringify(installDirectory)}],`;
+  } else if (record === 'malformed') {
+    packageRecord = `'crudui/validator' => ['install_path' => null],`;
+  }
+  writeFileSync(path.join(composer, 'installed.php'), `<?php
+return ['versions' => [${packageRecord}]];
+`);
+}
+
+function constructFrom(root) {
+  return php(
+    'new FormGeneration("php",' + JSON.stringify(root)
+      + ',$source,' + JSON.stringify(archiveSha256) + ',null);',
+  );
 }
 
 test('constructs a verified generator without deployment file paths', () => {
@@ -58,22 +125,18 @@ test('uses the Composer-installed validator copy from the candidate source', () 
   );
 });
 
-test('rejects a missing Composer validator package record', () => {
-  const fakeVendor = path.join(library, '.git/missing-composer-record');
-  const result = php([
-    'require ', JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php')), ';',
-    'class_exists(CRUDUI\\Generator::class);class_exists(CRUDUI\\Form::class);',
-    'class_exists(CRUDUI\\Validator::class);',
-    '$installed=Composer\\InstalledVersions::getRawData();',
-    'foreach(Composer\\Autoload\\ClassLoader::getRegisteredLoaders() as $loader)$loader->unregister();',
-    '$loader=new Composer\\Autoload\\ClassLoader(', JSON.stringify(fakeVendor), ');$loader->register();',
-    'unset($installed["versions"]["crudui/validator"]);',
-    'Composer\\InstalledVersions::reload($installed);',
-    'new FormGeneration("php",', JSON.stringify(library),
-    ',$source,', JSON.stringify(archiveSha256), ',null);',
-  ].join(''));
+test('rejects a missing Composer validator package record', t => {
+  const candidate = composerCandidate(t, 'missing');
+  const result = constructFrom(candidate.root);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr + result.stdout, /Missing Composer package record: crudui\/validator/);
+});
+
+test('rejects a malformed Composer validator package record', t => {
+  const candidate = composerCandidate(t, 'malformed');
+  const result = constructFrom(candidate.root);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr + result.stdout, /Malformed Composer package record: crudui\/validator/);
 });
 
 test('uses the selected generator record with another Composer installation', () => {
@@ -91,50 +154,27 @@ test('uses the selected generator record with another Composer installation', ()
   assert.equal(result.stdout, 'ok\n');
 });
 
-test('rejects a Composer validator package outside the candidate vendor directory', () => {
-  const result = php([
-    'require ', JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php')), ';',
-    'class_exists(CRUDUI\\Generator::class);class_exists(CRUDUI\\Form::class);',
-    'class_exists(CRUDUI\\Validator::class);',
-    '$installed=Composer\\InstalledVersions::getRawData();',
-    'foreach(Composer\\Autoload\\ClassLoader::getRegisteredLoaders() as $loader)$loader->unregister();',
-    '$loader=new Composer\\Autoload\\ClassLoader(', JSON.stringify(path.join(library, '.git/outside-vendor')), ');$loader->register();',
-    '$installed["versions"]["crudui/validator"]["install_path"]=',
-    JSON.stringify(path.join(library, 'packages/validator-php')), ';',
-    'Composer\\InstalledVersions::reload($installed);',
-    'new FormGeneration("php",', JSON.stringify(library),
-    ',$source,', JSON.stringify(archiveSha256), ',null);',
-  ].join(''));
+test('rejects a Composer validator package outside the candidate vendor directory', t => {
+  const candidate = composerCandidate(t, 'valid');
+  const composer = path.join(
+    candidate.root, 'packages/generator-php/vendor/composer',
+  );
+  writeComposerRecord(
+    composer, 'valid', path.join(candidate.root, 'packages/validator-php'),
+  );
+  const result = constructFrom(candidate.root);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr + result.stdout, /outside the candidate vendor directory/);
 });
 
-test('rejects an installed validator file that differs from the candidate source', () => {
-  const temporary = mkdtempSync(path.join(
-    library, 'packages/generator-php/vendor/.crudui-validator-copy-',
-  ));
-  const installDirectory = path.join(temporary, 'validator');
-  mkdirSync(path.join(installDirectory, 'src/Public'), { recursive: true });
-  writeFileSync(path.join(installDirectory, 'src/Public/Validator.php'), '<?php\n');
-  try {
-    const result = php([
-      'require ', JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php')), ';',
-      'class_exists(CRUDUI\\Generator::class);class_exists(CRUDUI\\Form::class);',
-      'class_exists(CRUDUI\\Validator::class);',
-      '$installed=Composer\\InstalledVersions::getRawData();',
-      'foreach(Composer\\Autoload\\ClassLoader::getRegisteredLoaders() as $loader)$loader->unregister();',
-      '$loader=new Composer\\Autoload\\ClassLoader(', JSON.stringify(path.join(temporary, 'vendor')), ');$loader->register();',
-      '$installed["versions"]["crudui/validator"]["install_path"]=',
-      JSON.stringify(installDirectory), ';',
-      'Composer\\InstalledVersions::reload($installed);',
-      'new FormGeneration("php",', JSON.stringify(library),
-      ',$source,', JSON.stringify(archiveSha256), ',null);',
-    ].join(''));
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr + result.stdout, /Installed CRUDUI source differs from the candidate/);
-  } finally {
-    rmSync(temporary, { recursive: true, force: true });
-  }
+test('rejects an installed validator file that differs from the candidate source', t => {
+  const candidate = composerCandidate(t, 'valid');
+  writeFileSync(candidate.installedValidator, Buffer.concat([
+    readFileSync(candidate.installedValidator), Buffer.from('\n// changed\n'),
+  ]));
+  const result = constructFrom(candidate.root);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr + result.stdout, /Installed CRUDUI source differs from the candidate/);
 });
 
 test('request construction does not read or hash deployment files', () => {
