@@ -1,11 +1,8 @@
 //! CRUDUI validation-engine conformance (SPEC §2 pipeline, G-B 4-language idempotence).
 //!
-//! Single truth = the shared 4-language fixture tests/fixtures/validate/cases.json.
-//! All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce
-//! it bit-for-bit: the validation result (`expected = { valid, errors }`) or the
-//! compose load-error code (`expectLoadError.code`). The values are the JS
-//! reference engine's actual output. Never weaken an assertion to turn red green;
-//! fix the engine, the fixture, or both at their shared source — not this test.
+//! The shared fixture tests/fixtures/validate/cases.json defines the validation
+//! result (`expected = { valid, errors }`) or compose load-error code
+//! (`expectLoadError.code`).
 //!
 //! errors are compared IN ORDER (declaration / traversal order), key by key:
 //! path, field, rule, message, value. A reorder is a failure.
@@ -46,8 +43,8 @@ fn normalize(v: &Value) -> Value {
 
 fn load_cases() -> Vec<Value> {
     let path = fixture_path();
-    let raw = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
+    let raw =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
     let parsed: Value =
         serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse fixture {:?}: {}", path, e));
     parsed
@@ -77,10 +74,7 @@ fn validate_matches_fixture() {
         let spec = case.get("spec").expect("case missing spec");
         let data = case.get("data").cloned().unwrap_or(Value::Null);
 
-        let files = case
-            .get("files")
-            .and_then(Value::as_object)
-            .cloned();
+        let files = case.get("files").and_then(Value::as_object).cloned();
         let options = ValidateOptions {
             files,
             loader: None,

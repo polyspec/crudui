@@ -75,8 +75,8 @@ fn number_pattern() -> &'static Regex {
 /// convert; strings must be a full numeric token (not "12abc").
 /// Validation semantics principle: an input value must be a finite real number,
 /// so "Infinity"/"-Infinity"/"NaN" return None (the number rule reports them).
-/// This is the input value gate only — min/max threshold parameters parse via
-/// `params[0].parse()` in their rules and still accept Infinity.
+/// Min and max threshold parameters parse through `params[0].parse()` and still
+/// accept Infinity.
 pub fn to_number(value: &Value) -> Option<f64> {
     match value {
         Value::Number(n) => {

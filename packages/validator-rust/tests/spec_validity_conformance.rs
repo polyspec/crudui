@@ -1,16 +1,12 @@
 //! CRUDUI recursive forbidden-scan conformance (SPEC §6).
 //!
-//! Single truth = the shared 4-language fixture
-//! tests/fixtures/spec-validity/cases.json (JS-generated). All four engines
-//! (JS / PHP / Go / Rust) load this ONE file and must reproduce it: a clean spec
+//! The shared fixture tests/fixtures/spec-validity/cases.json defines each
+//! expected result. A clean spec
 //! passes the load path; a forbidden meta key found at ANY depth (slot/bucket
 //! body and one level below, deep child subtrees, array elements, $ref-inherited
 //! bases) is a LOAD ERROR (`ComposeLoadError`, code `FORBIDDEN_META_KEY`), never
-//! `valid:true`. The depth is load-bearing, so the dotted path (`trace`) is
-//! asserted against the fixture `at_path`, not just the code.
-//!
-//! Never weaken an assertion to turn red green; fix the engine or the fixture at
-//! their shared source — not this test.
+//! `valid:true`. The test compares both the code and the complete dotted path
+//! (`trace`) against the fixture `at_path`.
 //!
 //! Fixture format:
 //!   { name, note, spec, files?, expect: "ok" }
@@ -35,8 +31,8 @@ fn fixture_path() -> PathBuf {
 
 fn load_cases() -> Vec<Value> {
     let path = fixture_path();
-    let raw = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
+    let raw =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
     let parsed: Value =
         serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse fixture {:?}: {}", path, e));
     parsed
@@ -91,7 +87,10 @@ fn spec_validity_matches_fixture() {
             // { error_code, at_path } — must be a LOAD ERROR with that exact code
             // AND that exact dotted path (depth is load-bearing).
             Value::Object(want) => {
-                let code = want.get("error_code").and_then(Value::as_str).unwrap_or("?");
+                let code = want
+                    .get("error_code")
+                    .and_then(Value::as_str)
+                    .unwrap_or("?");
                 let at = want.get("at_path").and_then(Value::as_str).unwrap_or("?");
                 let expected = format!("{}|{}", code, at);
                 match result {
