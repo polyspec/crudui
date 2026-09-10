@@ -38,6 +38,18 @@ command that depends on an added directory explicitly supplies the expanded
 `PATH` when invoking the tool. The tool must resolve from that directory when
 Make's process started without it.
 
+Repository Node.js build and test entry points resolve Rust tools through one
+shared rule. An invocation may declare both absolute Cargo and rustc paths.
+Otherwise, the resolver discovers one regular rustup executable from the
+declared `PATH` entries and the Rustup Cargo home (`CARGO_HOME`, or the Rustup
+default under `HOME` when omitted). Duplicate references to the same executable
+are one result; distinct results are ambiguous and fail. The resolver executes
+`rustup which cargo` and `rustup which rustc`, then requires both returned paths
+to be absolute, canonical, executable regular files with no symbolic-link path
+component. Missing records, malformed version output and ambiguous discovery
+fail before a build starts. Entry points execute the resolved Cargo path and do
+not substitute a `cargo` command from the process `PATH`.
+
 The specification CLI runs its TypeScript source through `tsx`. Its generator
 imports load the validator through the public package entry, so local commands
 and CI tests build the validator before running the CLI. Dependency installation
