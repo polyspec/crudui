@@ -68,3 +68,22 @@ READMEs, the example index, feature status, and all documents under `docs/spec/`
 and `docs/plans/`. Older reference documents outside those directories are not
 included in translation coverage. The check compares code examples and status
 fields between translations; prose equivalence requires review.
+
+## Repository writing
+
+Maintained documentation, comments, change records and user-visible text describe
+current behavior directly. Each statement names the component, operation, target
+and result. A necessary cause is stated in one sentence. Test results use
+`passes` and `fails`, and acceptance checks use `check` or `verification`.
+
+These records do not use metaphors, personification, color-coded test status,
+informal conversation or implementation-origin history. They do not identify
+an external project unless its identity, API or
+path is required to run the current operation. English documentation is
+authoritative, and the corresponding Korean document provides the same
+information.
+
+`npm run test:docs` checks maintained Markdown, source comments and descriptive
+fixture text for the defined writing rules. Vendored dependencies, generated
+references and preserved legacy inputs retain their original contents and are
+excluded from this check.
