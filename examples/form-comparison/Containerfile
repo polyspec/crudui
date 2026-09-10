@@ -67,10 +67,11 @@ COPY --from=php-extension /workspace/source/packages/php-ext/modules/crudui.so /
 COPY --from=go-server /out/go /workspace/bin/go
 COPY --from=rust-server /out/rust /workspace/bin/rust
 COPY metadata.json source.tar /archives/
-RUN npm run test:form-comparison
 RUN cp /archives/metadata.json /workspace/metadata.json \
-    && node examples/form-comparison/build.mjs /workspace
-RUN mkdir -p /results && chown node:node /results
+    && mkdir -p /results \
+    && chown -R node:node /workspace /results
 USER node
+RUN npm run test:form-comparison
+RUN node examples/form-comparison/build.mjs /workspace
 EXPOSE 8080
 CMD ["node", "examples/form-comparison/server.mjs"]
