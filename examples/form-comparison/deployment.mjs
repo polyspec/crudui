@@ -237,7 +237,7 @@ async function removeDirectoryWithin(root, directory) {
 /** Remove candidate resources after the deployed service passes verification. */
 export async function cleanupDeploymentArtifacts({
   deployedImageReference, candidateRoot, deploymentResultsDirectory,
-  resources, runCommand = run,
+  retiredResultsDirectories = [], resources, runCommand = run,
 }) {
   const plan = deploymentCleanupPlan({ deployedImageReference, ...resources });
   for (const directory of plan.candidateDirectories) {
@@ -247,6 +247,12 @@ export async function cleanupDeploymentArtifacts({
   assert.equal(path.resolve(deploymentResultsDirectory),
     path.join(comparisonRoot, 'deployment/results'),
     'Deployment results cleanup path is invalid');
+  for (const directory of retiredResultsDirectories) {
+    assert.ok(path.isAbsolute(directory)
+      && path.basename(directory) === 'results'
+      && path.basename(path.dirname(directory)) === '.form-comparison',
+    'Retired results cleanup path is invalid');
+  }
   if (plan.runningContainerIds.length > 0) {
     await runCommand('container', ['stop', ...plan.runningContainerIds]);
   }
@@ -257,6 +263,9 @@ export async function cleanupDeploymentArtifacts({
     await runCommand('container', ['image', 'delete', ...plan.imageReferences]);
   }
   await rm(deploymentResultsDirectory, { recursive: true, force: true });
+  for (const directory of retiredResultsDirectories) {
+    await rm(directory, { recursive: true, force: true });
+  }
   for (const directory of plan.candidateDirectories) {
     await removeDirectoryWithin(candidateRoot, directory);
   }
@@ -472,6 +481,7 @@ async function main() {
   const deploymentDirectory = path.join(repositoryRoot, '.form-comparison/deployment');
   await mkdir(deploymentDirectory, { recursive: true });
   let preservation = { data: null };
+  let retiredResultsDirectories = [];
   try {
     const { stdout } = await run('container', ['inspect', deploymentContainer]);
     const current = JSON.parse(stdout)[0];
@@ -481,6 +491,9 @@ async function main() {
     preservation = {
       data: await preserveDeploymentDirectory(mounts['/data'], path.join(deploymentDirectory, 'data')),
     };
+    if (path.isAbsolute(mounts['/results'] ?? '')) {
+      retiredResultsDirectories = [mounts['/results']];
+    }
   } catch (error) {
     if (!/not found|does not exist|No such/i.test(`${error.stderr ?? ''} ${error.message}`)) throw error;
     await mkdir(path.join(deploymentDirectory, 'data'), { recursive: true });
@@ -504,6 +517,7 @@ async function main() {
   const cleanup = await cleanupDeploymentArtifacts({
     deployedImageReference: imageReference, candidateRoot,
     deploymentResultsDirectory: path.join(deploymentDirectory, 'results'),
+    retiredResultsDirectories,
     resources: await localComparisonResources(candidateRoot),
   });
   process.stdout.write(`Deployed ${commit} at https://${deploymentDomain}/; identical reapplication passed; `
