@@ -14,5 +14,10 @@
   changes. Describe retained changes by their actual purpose.
 - Run relevant tests and `make docs-check`. Record results for the current code
   separately from deployment status.
-- Use direct descriptions of operations in comments and documentation. Keep
-  personal preferences and conversation context outside the repository.
+- Write comments, documentation, change records and user-facing text as direct
+  descriptions of current behavior. Name the subject, operation, target and
+  result. State a necessary cause in one sentence.
+- Do not use metaphors, personification or conversational wording. Do not record
+  external source, copying or adaptation history. Name an external project only
+  when its identity, API or path is required by the current contract or procedure.
+- Keep personal preferences and conversation context outside the repository.
