@@ -19,8 +19,10 @@ one Go major and minor release in `.go-version`. CI reads both files, and every
 Node.js and Go container stage uses the corresponding release line. Rust CI and
 container stages select the stable Rust channel. The check rejects exact runtime
 patch releases and numeric npm releases. CI installs the current stable npm
-release. It also runs `test-native` with Cargo available only through the path
-exported by the Makefile and requires that Cargo command to start.
+release. The runtime checks run repository Rust Node.js entry points without
+Cargo on the process `PATH`. Each entry point must resolve Cargo, rustc and
+rustdoc from one toolchain record and supply the resolved compiler paths to
+Cargo.
 
 `test:dependencies` rejects invalid, missing and conflicting installed packages.
 For every tracked npm lock file, it also rejects moderate, high and critical

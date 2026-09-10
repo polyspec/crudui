@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const RUST_COMMAND = join(ROOT, 'scripts/run-rust-command.mjs');
 const API_DIR = join(ROOT, 'docs/api');
 const STATIC_API_DIR = join(ROOT, 'docs/public/api');
 const target = process.argv[2] ?? 'all';
@@ -72,7 +73,10 @@ function genRust() {
   const generated = join(pkgDir, 'target/doc');
   const output = join(STATIC_API_DIR, 'rust');
   cleanDirectory(output);
-  run(process.env.CARGO ?? 'cargo', ['doc', '--locked', '--no-deps', '-p', 'crudui-validator', '-p', 'crudui-generator'], pkgDir);
+  run(process.execPath, [
+    RUST_COMMAND, 'doc', '--locked', '--no-deps',
+    '-p', 'crudui-validator', '-p', 'crudui-generator',
+  ], pkgDir);
   requireOutput(join(generated, 'crudui_validator/index.html'));
   requireOutput(join(generated, 'crudui_generator/index.html'));
   cpSync(generated, output, { recursive: true });
