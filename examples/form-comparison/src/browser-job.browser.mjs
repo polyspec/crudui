@@ -18,29 +18,36 @@ test('collects a browser job whose total duration exceeds one protocol call',
 
     const jobPage = await browser.newPage();
     await jobPage.setContent('<!doctype html><title>browser job</title>');
+    const listeners = new Set();
+    await jobPage.exposeFunction('publishTestJobEvent', async event => {
+      for (const listener of listeners) await listener(event);
+    });
     const client = {
+      subscribe(listener) {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
       start: durationMs => jobPage.evaluate(milliseconds => {
         window.testJob = {
           status: 'running', totalReports: 1, completedReports: 0, current: 'report',
           reports: [],
         };
         setTimeout(() => {
-          window.testJob.reports.push({ id: 'completed' });
+          const report = { id: 'completed' };
+          window.testJob.reports.push(report);
           Object.assign(window.testJob, {
             status: 'completed', completedReports: 1, current: null,
           });
+          const { reports, ...state } = window.testJob;
+          window.publishTestJobEvent({ type: 'report', index: 0, report, state })
+            .then(() => window.publishTestJobEvent({ type: 'state', state }));
         }, milliseconds);
         const { reports, ...state } = window.testJob;
         return state;
       }, durationMs),
-      state: () => jobPage.evaluate(() => {
-        const { reports, ...state } = window.testJob;
-        return state;
-      }),
-      report: index => jobPage.evaluate(value => window.testJob.reports[value], index),
     };
 
-    const collected = await collectBrowserJob(client, 1_500, { intervalMs: 20 });
+    const collected = await collectBrowserJob(client, 1_500);
     assert.equal(collected.state.status, 'completed');
     assert.deepEqual(collected.reports, [{ id: 'completed' }]);
   });
