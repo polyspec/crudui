@@ -19,6 +19,16 @@ test('verifies the candidate source archive without buffered pipe input', async 
   assert.match(source, /verify-candidate-context\.mjs/);
 });
 
+test('creates native server output directories before writing binaries', async () => {
+  const source = await readFile(new URL('./Containerfile', import.meta.url), 'utf8');
+  const goStage = source.slice(source.indexOf('FROM golang:'),
+    source.indexOf('FROM rust-toolchain AS rust-server'));
+  const rustStage = source.slice(source.indexOf('FROM rust-toolchain AS rust-server'),
+    source.indexOf('FROM dependencies AS php-extension'));
+  assert.match(goStage, /mkdir -p \/out[\s\S]*-o \/out\/go/);
+  assert.match(rustStage, /mkdir -p \/out[\s\S]*cp .* \/out\/rust/);
+});
+
 test('passes a large source archive to Git through a file descriptor', t => {
   const directory = mkdtempSync(path.join(tmpdir(), 'crudui-candidate-context-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
