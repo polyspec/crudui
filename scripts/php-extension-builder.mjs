@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
