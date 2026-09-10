@@ -1,4 +1,4 @@
-FROM node:26.8.1-trixie-slim AS builder
+FROM node:26-trixie-slim AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -8,7 +8,7 @@ COPY examples/legacy/playground ./examples/legacy/playground
 WORKDIR /app/examples/legacy/playground
 RUN npm ci && npm run build
 
-FROM node:20-alpine AS production
+FROM node:26-alpine AS production
 
 WORKDIR /app
 

@@ -1,4 +1,4 @@
-FROM node:26.8.1-trixie-slim
+FROM node:26-trixie-slim
 RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
