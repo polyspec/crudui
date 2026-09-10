@@ -27,17 +27,20 @@ generator and validator. The PHP extension process loads `crudui.so` and
 `ordered_json.so`; the PHP process loads neither extension. Startup rejects an
 unexpected class source, module digest or repository commit.
 
-The browser uses a serialized template compiled by the selected server and a
-form session. A frame mounts the form before it requests saved data, then injects
-the data into the existing form instance. The same session can also be created
-with saved data. Compile failures are returned as failures; the browser does not
-compile a replacement template.
+The browser runs two maintained rendering paths. The corrected renderer and the
+current session renderer are built from the same candidate commit and use the
+same keyed data and submission contract. The current renderer uses a serialized
+template compiled by the selected server and a form session. A frame mounts the
+form before it requests saved data, then injects the data into the existing form
+instance. Compile failures are returned as failures; the browser does not compile
+a replacement template.
 
-The complete browser matrix contains these 24 scenario reports:
+The complete browser matrix contains these 48 scenario reports:
 
 - four servers: PHP, PHP extension, Go and Rust;
 - three frameworks: React, Vue and Svelte;
 - two transports: native multipart form and ordered JSON.
+- two rendering paths: corrected renderer and current session renderer.
 
 Every report uses the same specification, data and checks. Native and JSON saves
 must produce the same records, identifiers, parent identifiers and positions.
@@ -103,14 +106,14 @@ It also fails after 300,000 milliseconds without a change to the current report,
 completed report count, request count or response count. Both failures retain
 the current state and every completed report.
 
-A complete server report requires six scenario reports, 30 interaction checks,
-three mount-before-load checks, six static-document checks, no browser or page
+A complete server report requires 12 scenario reports, 60 interaction checks,
+six mount-before-load checks, six static-document checks, no browser or page
 errors, matching source provenance and a duration within 900,000 milliseconds.
 Fields named `passed` must be booleans. Missing activity, initialization or
 timing evidence makes the report incomplete.
 
 The four-server aggregate requires one complete report from every server. It
-requires 480 successful scenario checks, 120 successful interaction checks, 12
+requires 960 successful scenario checks, 240 successful interaction checks, 24
 successful mount checks, 24 successful static-document checks, equal corresponding
 static SSR documents across servers and four successful performance results. Any failed,
 missing, malformed or unequal result sets `passed: false` and returns status 1.
