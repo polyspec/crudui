@@ -6,7 +6,7 @@
  * React CRUDUI LIST reference generator's OWN normalized output. This test re-verifies
  * that claim by running the real generator (renderList) against the SAME fixture
  * the Vue/Svelte list generators load, normalized through the SAME shared
- * normalizer (tests/fixtures/form-render/normalize.mjs). The 3-framework gate: every
+ * normalizer (tests/fixtures/form-render/normalize.mjs). Every framework
  * generator must reproduce `expected_html` after normalization.
  *
  * DB-agnostic (SPEC §9): rows are INJECTED; sort/pagination are declared only.

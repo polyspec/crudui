@@ -24,7 +24,7 @@ import { useFormContext } from '../context/FormContext';
 // ---------------------------------------------------------------------------
 
 /**
- * Legacy Limepie multiple semantics ported to React state:
+ * React state implements the legacy multiple-row behavior:
  *  - the multiple value lives in FormContext data as an object keyed by
  *    `__<13hex>__` unique keys (PHP uniqid row ids);
  *  - empty data still renders ONE blank placeholder row (PHP
