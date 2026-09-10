@@ -4,7 +4,7 @@ FROM node:26-trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.4-cli php8.4-dev php8.4-mbstring php8.4-xml composer \
-    build-essential autoconf pkg-config git ca-certificates unzip chromium \
+    build-essential git ca-certificates unzip chromium \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=rust /usr/local/cargo /usr/local/cargo
 COPY --from=rust /usr/local/rustup /usr/local/rustup
@@ -23,5 +23,6 @@ RUN npm ci --strict-allow-scripts \
     && composer install --working-dir=packages/validator-php --no-interaction --prefer-dist \
     && composer install --working-dir=packages/generator-php --no-interaction --prefer-dist \
     && npm run build \
-    && sh scripts/build-php-extension.sh
+    && node scripts/build-crudui-php-extension.mjs \
+      --php-config /usr/bin/php-config8.4
 CMD ["make", "test-native", "NATIVE_REPORT=/tmp/crudui-native-report.json"]
