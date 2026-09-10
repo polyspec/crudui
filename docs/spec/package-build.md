@@ -59,6 +59,22 @@ Dependency updates are prepared and verified locally. The repository does not
 schedule dependency update pull requests. Updated manifests and lock files are
 verified together with the relevant package and documentation checks.
 
+## Runtime and dependency versions
+
+Release candidates use the latest active LTS release for runtimes that publish
+an LTS channel. Runtimes and tools without an LTS channel use the latest stable
+release supported by the project. Pre-release versions are excluded unless a
+specification explicitly requires one. Container definitions record the exact
+release used by a candidate, while CI selects the active LTS channel. A release
+candidate updates an older recorded version before verification.
+
+Package manifests and lock files must resolve one valid dependency graph.
+`npm ls --all` must return status 0 without invalid, missing or conflicting
+dependencies. `npm audit --audit-level=moderate` must report no moderate, high or
+critical vulnerability. A tool with no secure compatible stable release is
+replaced. Dependency overrides and audit exclusions do not satisfy these gates.
+Unused build and documentation dependencies are removed.
+
 ## PHP dependencies
 
 The PHP validator declares runtime and test dependencies in `composer.json`.
