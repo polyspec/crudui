@@ -76,7 +76,7 @@ function resolveConditionMap(
 /**
  * `design.show` → boolean. Absent = always shown (true). Expression evaluated as
  * a condition; condition map resolved; failures fall back to the validator
- * safety net (false). Ported from validator.ts evaluateCondition path.
+ * safety result (false). Uses the shared validator expression evaluator.
  */
 export function evalShow(
   value: unknown,

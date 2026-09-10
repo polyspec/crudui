@@ -85,7 +85,7 @@ descTest('explain — spec → natural-language back-check (역검증)', () => {
   });
 
   it('expression required → "~일 때 필수" with the condition surfaced verbatim', () => {
-    // The conditional gate must be readable AND the raw expression preserved so
+    // The explanation displays the condition and retains the raw expression so
     // the author can confirm the trigger against the 기획서.
     expect(out).toContain("일 때 필수");
     expect(out).toContain(".subscribe == '1'");

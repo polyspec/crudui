@@ -124,7 +124,7 @@ export interface FieldViewModel {
 }
 
 // ---------------------------------------------------------------------------
-// multiple / lang settings (ported from render.ts)
+// Multiple and language settings
 // ---------------------------------------------------------------------------
 
 /** Evaluated controls and limits for a repeated field. */
@@ -210,7 +210,7 @@ function inputGroupWrapperClass(design: ResolvedDesign, rowIndex = 0): string {
 }
 
 // ---------------------------------------------------------------------------
-// leaf widget evaluation (with the unsupported lane)
+// Leaf widget evaluation and unsupported-type result
 // ---------------------------------------------------------------------------
 
 function buildWidget(
