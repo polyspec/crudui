@@ -104,6 +104,10 @@ after(async () => {
   }
 });
 
+test('limits Vite dependency optimization to the declared widget packages', () => {
+  assert.equal(server.config.optimizeDeps.noDiscovery, true);
+});
+
 async function openPage(timezone) {
   const page = await browser.newPage();
   const errors = [], loadFailures = [], consoleErrors = [];
