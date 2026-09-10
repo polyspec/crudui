@@ -61,6 +61,8 @@ test('candidate fixtures use the canonical operating system temporary directory'
     new URL('./generation-performance.test.mjs', import.meta.url), 'utf8',
   );
   assert.match(source, /realpathSync\(tmpdir\(\)\)/);
+  assert.match(source, /lstatSync\(current\)/);
+  assert.match(source, /state\.isSymbolicLink\(\)/);
   assert.doesNotMatch(source, /path\.join\(library, ['"]\.git\//);
 });
 
