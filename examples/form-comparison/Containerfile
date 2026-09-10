@@ -16,7 +16,8 @@ RUN mkdir -p /workspace/source/.form-comparison/sources/ordered-json \
 FROM verified-source AS dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
-    FORM_COMPARISON_RESULTS=/results
+    FORM_COMPARISON_RESULTS=/results \
+    FORM_COMPARISON_READINESS=service
 RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.4-cli php8.4-mbstring php8.4-xml composer unzip chromium=152.0.7977.82-1~deb13u1 \
     chromium-sandbox=152.0.7977.82-1~deb13u1 \

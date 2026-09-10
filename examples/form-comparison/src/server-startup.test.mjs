@@ -1,9 +1,16 @@
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import { fstatSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtemp, readFile, realpath, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { PassThrough } from 'node:stream';
 import test from 'node:test';
-import { readSourceArchiveCommit, serverReady, sourceArchiveReady } from './server-startup.mjs';
+import {
+  publishCandidateReadiness, readinessOutput, readSourceArchiveCommit, serverReady,
+  sourceArchiveReady,
+  verifyChildServers, waitForChildReadiness,
+} from './server-startup.mjs';
 
 const commit = 'a'.repeat(40);
 const archiveSha256 = 'c'.repeat(64);
@@ -111,4 +118,112 @@ test('checks compiled servers against the candidate source commit', () => {
   assert.equal(serverReady('rust', true, { status: 'ok', server: 'rust', commit }, metadata), true);
   assert.equal(serverReady('go', true, { status: 'ok', server: 'go', commit: 'b'.repeat(40) }, metadata), false);
   assert.equal(serverReady('rust', false, { status: 'ok', server: 'rust', commit }, metadata), false);
+});
+
+test('receives one fragmented child readiness event without polling', async () => {
+  const child = new EventEmitter();
+  child.stdout = new PassThrough();
+  child.stderr = new PassThrough();
+  child.exitCode = null;
+  child.signalCode = null;
+  const ready = waitForChildReadiness(child, {
+    server: 'go', stream: 'stderr', pattern: /(?:^|\n)CRUDUI_READY go(?:\n|$)/,
+  });
+  child.stderr.write('CRUDUI_');
+  child.stderr.write('READY go\n');
+  assert.equal(await ready, 'go');
+});
+
+test('fails when a child exits before publishing readiness', async () => {
+  const child = new EventEmitter();
+  child.stdout = new PassThrough();
+  child.stderr = new PassThrough();
+  child.exitCode = null;
+  child.signalCode = null;
+  const ready = waitForChildReadiness(child, {
+    server: 'rust', stream: 'stderr', pattern: /CRUDUI_READY rust/,
+  });
+  child.emit('exit', 2, null);
+  await assert.rejects(ready, /rust exited before readiness: 2/);
+});
+
+test('requests each child once after every readiness event', async () => {
+  const resolvers = [];
+  const readiness = ['php', 'php-ext', 'go', 'rust'].map(server =>
+    new Promise(resolve => resolvers.push(() => resolve(server))));
+  const requests = [];
+  const verification = verifyChildServers({
+    readiness,
+    servers: ['php', 'php-ext', 'go', 'rust'],
+    ports: { php: 8081, 'php-ext': 8088, go: 8082, rust: 8085 },
+    metadata,
+    request: async url => {
+      requests.push(url);
+      const server = ['php', 'php-ext', 'go', 'rust'][requests.length - 1];
+      return {
+        ok: true,
+        json: async () => server.startsWith('php')
+          ? phpHealth(server) : { status: 'ok', server, commit },
+      };
+    },
+  });
+  for (const resolve of resolvers.slice(0, -1)) resolve();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(requests, []);
+  resolvers.at(-1)();
+  await verification;
+  assert.deepEqual(requests, [
+    'http://127.0.0.1:8081/api/health',
+    'http://127.0.0.1:8088/api/health',
+    'http://127.0.0.1:8082/api/health',
+    'http://127.0.0.1:8085/api/health',
+  ]);
+});
+
+test('rejects one invalid child response without another request', async () => {
+  const requests = [];
+  await assert.rejects(verifyChildServers({
+    readiness: ['php', 'php-ext', 'go', 'rust'],
+    servers: ['php', 'php-ext', 'go', 'rust'],
+    ports: { php: 8081, 'php-ext': 8088, go: 8082, rust: 8085 },
+    metadata,
+    request: async url => {
+      requests.push(url);
+      return { ok: true, json: async () => ({ status: 'invalid' }) };
+    },
+  }), /php failed startup verification/);
+  assert.deepEqual(requests, ['http://127.0.0.1:8081/api/health']);
+});
+
+test('requires one declared readiness output mode', () => {
+  assert.equal(readinessOutput({ FORM_COMPARISON_READINESS: 'service' }), null);
+  assert.equal(readinessOutput({
+    FORM_COMPARISON_READINESS: 'file',
+    FORM_COMPARISON_READY_FILE: '/results/candidate-ready.json',
+  }), '/results/candidate-ready.json');
+  assert.throws(() => readinessOutput({}),
+    /FORM_COMPARISON_READINESS must be service or file/);
+  assert.throws(() => readinessOutput({
+    FORM_COMPARISON_READINESS: 'file', FORM_COMPARISON_READY_FILE: 'ready.json',
+  }), /Candidate readiness path must be absolute/);
+  assert.throws(() => readinessOutput({
+    FORM_COMPARISON_READINESS: 'service',
+    FORM_COMPARISON_READY_FILE: '/results/candidate-ready.json',
+  }), /Service readiness must not declare a candidate readiness file/);
+});
+
+test('publishes one complete readiness file and rejects existing paths', async t => {
+  const root = await mkdtemp(path.join(await realpath(tmpdir()), 'crudui-ready-'));
+  t.after(() => import('node:fs/promises').then(({ rm }) =>
+    rm(root, { recursive: true, force: true })));
+  const file = path.join(root, 'candidate-ready.json');
+  const value = { commit, servers: ['php', 'php-ext', 'go', 'rust'] };
+  await publishCandidateReadiness(file, value);
+  assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), value);
+  await assert.rejects(publishCandidateReadiness(file, value),
+    /readiness path already exists/);
+  const occupied = path.join(root, 'occupied-ready.json');
+  await writeFile(occupied, 'existing\n');
+  await assert.rejects(publishCandidateReadiness(occupied, value),
+    /readiness path already exists/);
 });
