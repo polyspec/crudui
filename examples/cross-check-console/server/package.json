@@ -7,7 +7,7 @@
   "main": "server.mjs",
   "scripts": {
     "build:go": "cd ../../../packages/validator-go && go build -o validate ./cmd/validate",
-    "build:rust": "cd ../../../packages/validator-rust && cargo build --release --bin validate",
+    "build:rust": "node build-rust.mjs",
     "check:js-cli": "echo '{\"spec\":{\"type\":\"group\",\"properties\":{}},\"data\":{}}' | node --import tsx ../../../packages/validator-ts/bin/validate.mjs",
     "build:cli": "npm run build:go && npm run build:rust",
     "start": "node server.mjs",
