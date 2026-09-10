@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { copyFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const repository = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 for (const target of ['ts', 'go', 'rust', 'php']) {
   for (const failure of ['tool-failure', 'missing-output']) {
@@ -34,3 +37,15 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
     });
   }
 }
+
+test('TypeScript API generation rejects an unexported public type', () => {
+  const result = spawnSync(join(repository, 'node_modules/.bin/typedoc'), [
+    '--options', join(repository, 'scripts/typedoc.base.json'),
+    '--tsconfig', join(repository, 'scripts/fixtures/typedoc/tsconfig.json'),
+    '--entryPointStrategy', 'resolve',
+    '--emit', 'none',
+    join(repository, 'scripts/fixtures/typedoc/unexported.ts'),
+  ], { encoding: 'utf8' });
+  assert.notEqual(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout + result.stderr, /HiddenInput.*not included in the documentation/);
+});
