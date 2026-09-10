@@ -26,13 +26,13 @@
  * DB-agnostic — SPEC §9). There is no value to evaluate a `validate` slot against.
  * So this function NEVER validates rows.
  *
- * The "schema shape" checks — `additionalProperties:false` (1급 closed),
+ * The "schema shape" checks — `additionalProperties:false` (closed objects),
  * `required: columns`, the `sort.dir`/`pagination.mode` enums, and the polymorphic
  * `CellFormat` (anyOf) — are NOT this engine's job. The four-language CRUDUI engines
  * do not perform JSON-Schema-style shape validation (SPEC §8: JSON Schema is not
  * adopted). Those live ONLY in the meta-schema (ajv, list-metaschema.conformance.
- * test.ts). This entry owns exactly the cross-language structure gate: compose +
- * forbidden-scan. No new invention.
+ * test.ts). This entry performs only cross-language structure composition and
+ * forbidden-key scanning.
  *
  * This NEVER touches form-spec `validate` (R7 parallel run): it is a sibling
  * entry that reuses the shared compose/forbidden-scan modules.

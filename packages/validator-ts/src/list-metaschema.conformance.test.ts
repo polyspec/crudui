@@ -1,25 +1,24 @@
 /**
  * CRUDUI list-spec meta-schema conformance (SPEC §9.4).
  *
- * The read sister of the form-spec meta-schema gate. The list definitions are
+ * The list meta-schema check complements the form-spec check. The definitions are
  * ADDITIVE to schema/crudui.schema.json — they do NOT touch the form-spec
  * Field entry point (the top `$ref` stays `#/definitions/Field`); a list-spec is
  * validated through a DIFFERENT entry, `#/definitions/List`. This test compiles
- * that entry with the SAME ajv config the CLI meta-schema gate uses
+ * that entry with the same Ajv configuration as the CLI meta-schema check
  * (cli check.ts: `new Ajv({ strict:false, allErrors:true })` +
  * ajv-formats) and runs the shared fixture tests/fixtures/list-validity.
  *
- * The §9.4 gate consistency:
+ * The §9.4 checks require these results:
  *  - a valid list-spec passes (columns + the §9.2 catalog + read structure slots);
  *  - a forbidden column key / x-prefixed key / forbidden meta key one level below
  *    the open CellFormat options bucket is rejected (ForbiddenKeyNames, shared);
- *  - an out-of-1급 key on Column/Sort/Pagination/ListAction or at the List top is
+ *  - an unsupported key on Column/Sort/Pagination/ListAction or at the List top is
  *    rejected (additionalProperties:false);
  *  - a bad enum (sort.dir / pagination.mode) and a malformed CellFormat shape are
  *    rejected.
  *
- * Do not weaken the fixture or the schema to force GREEN — the RED cases MUST be
- * rejected. If the schema stops rejecting a RED case, the meta-schema regressed.
+ * Invalid fixture cases must remain rejected for their declared reason.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -90,13 +89,13 @@ describe('list meta-schema — a valid list-spec passes (§9.4)', () => {
   }
 });
 
-describe('list meta-schema — an invalid list-spec is REJECTED (RED cases, §9.4)', () => {
+describe('list meta-schema rejects invalid list specifications (§9.4)', () => {
   for (const c of cases.filter((x) => x.expect === 'fail')) {
     test(c.name, () => {
       const ok = validateList(c.spec);
       expect(ok, `${c.name} must be rejected by the meta-schema`).toBe(false);
       // The declared rejection keyword must appear among the ajv errors — the
-      // RED case fails for the documented reason, not an incidental one.
+      // The invalid case fails for its documented reason.
       if (c.reason) {
         const keywords = (validateList.errors ?? []).map((e) => e.keyword);
         expect(keywords, `${c.name}: expected '${c.reason}' among ${JSON.stringify(keywords)}`).toContain(

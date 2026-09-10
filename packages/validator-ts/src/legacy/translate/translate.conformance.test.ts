@@ -12,9 +12,9 @@
  *      emits a spec the schema constitution accepts, never a weakened shape.
  *   4. Every translated `schema` passes the recursive FORBIDDEN-SCAN — ZERO meta
  *      keys at any depth (no display_switch/if/when/_/$after/x{key} survives).
- *   5. The ROUND-TRIP gate: a `reversible:true` case satisfies legacy→schema→legacy =
- *      original bit-for-bit. A `reversible:false` (R7 transcend) case is OUTSIDE
- *      the gate — losslessness is NOT asserted; the recorded reason is.
+ *   5. A `reversible:true` case satisfies legacy→schema→legacy = original
+ *      bit-for-bit. A `reversible:false` case records the reason and does not
+ *      claim losslessness.
  *
  * Do not weaken assertions. If JS disagrees with the fixture, the fixture is NOT
  * the JS output and the cross-language contract is broken.
@@ -98,11 +98,11 @@ describe('legacy→schema translator — output has ZERO forbidden meta keys', (
   });
 });
 
-describe('legacy→schema→legacy round-trip gate (SPEC §6): reversible set is lossless', () => {
+describe('legacy→schema→legacy: the reversible set is lossless (SPEC §6)', () => {
   const reversibleCases = cases.filter((c) => c.roundtrip.reversible);
   for (const c of reversibleCases) {
     test(`${c.name}: legacy→schema→legacy = original bit-for-bit`, () => {
-      // The forward pass must log NOTHING for a reversible case (the gate).
+      // The forward pass records no absorption note for a reversible case.
       const { schema, notes } = translateFromLegacy(c.legacy);
       expect(notes, `${c.name} must be in the reversible set (empty note log)`).toStrictEqual([]);
       const back = translateToLegacy(schema);
@@ -111,12 +111,12 @@ describe('legacy→schema→legacy round-trip gate (SPEC §6): reversible set is
       expect(deepEqual(back, c.roundtrip.back ?? c.legacy)).toBe(true);
     });
   }
-  test(`the reversible set is non-empty (gate has teeth)`, () => {
+  test('the reversible set contains at least one case', () => {
     expect(reversibleCases.length).toBeGreaterThan(0);
   });
 });
 
-describe('R7 transcend set: irreversible cases are OUTSIDE the gate, with a reason', () => {
+describe('R7 irreversible set: each case records a reason', () => {
   const irreversibleCases = cases.filter((c) => !c.roundtrip.reversible);
   for (const c of irreversibleCases) {
     test(`${c.name}: at least one absorption note, no losslessness claim`, () => {
@@ -142,7 +142,7 @@ describe('meta-schema NEGATIVE regression: forbidden meta keys are rejected (val
   // meta-schema must reject every one — proving the canonical model does NOT
   // recognize condition-only meta keys / legacy patch directives / x{key} (R2/R4).
   // This is the static twin of the runtime forbidden-scan: if any of these passes
-  // Ajv, the constitution leaked a meta key and the negative gate has no teeth.
+  // Ajv must reject every listed meta key.
   const pollutedSpecs: { name: string; spec: Record<string, unknown> }[] = [
     {
       name: 'display_switch at field top level',
@@ -208,7 +208,7 @@ describe('meta-schema NEGATIVE regression: forbidden meta keys are rejected (val
     });
   }
 
-  test('control: the un-polluted base spec IS accepted (gate is not a blanket reject)', () => {
+  test('accepts the base specification without forbidden keys', () => {
     expect(validateSchema({ type: 'text', options: { rows: 3 } })).toBe(true);
   });
 });
