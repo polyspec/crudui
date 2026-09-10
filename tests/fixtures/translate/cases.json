@@ -575,7 +575,7 @@
   },
   {
     "name": "items-dynamic-source-api-server-placeholder",
-    "note": "real corpus type:search shape — api_server (runtime HTTP fn) + placeholder static items:[] coexist under items; round-trips. Structure only; api_server is preserved verbatim, never called.",
+    "note": "type:search with api_server and placeholder items:[] stores both values under items and round-trips. The translator preserves api_server without executing it.",
     "legacy": {
       "type": "search",
       "items": [],
@@ -601,17 +601,30 @@
   },
   {
     "name": "items-dynamic-source-nested-model",
-    "note": "real corpus type:search shape — nested model {table,relations,keys} relational query + sibling api_server + placeholder items map, all reclaimed under items; round-trips. Structure only; the runtime runs the query and calls api_server.",
+    "note": "type:search stores the nested model, api_server and placeholder item map under items and round-trips without executing either source.",
     "legacy": {
       "type": "search",
       "model": {
         "table": "service_member",
         "relations": [
-          { "table": "user", "left": "user_seq", "right": "seq" }
+          {
+            "table": "user",
+            "left": "user_seq",
+            "right": "seq"
+          }
         ],
         "keys": [
-          { "table": "service_member", "field": "seq", "append": ". " },
-          { "table": "user", "field": "aes_hex_email", "prepend": " (", "append": ")" }
+          {
+            "table": "service_member",
+            "field": "seq",
+            "append": ". "
+          },
+          {
+            "table": "user",
+            "field": "aes_hex_email",
+            "prepend": " (",
+            "append": ")"
+          }
         ]
       },
       "api_server": "function() {\n  return '/admin/user/search';\n}\n",
@@ -625,11 +638,24 @@
         "model": {
           "table": "service_member",
           "relations": [
-            { "table": "user", "left": "user_seq", "right": "seq" }
+            {
+              "table": "user",
+              "left": "user_seq",
+              "right": "seq"
+            }
           ],
           "keys": [
-            { "table": "service_member", "field": "seq", "append": ". " },
-            { "table": "user", "field": "aes_hex_email", "prepend": " (", "append": ")" }
+            {
+              "table": "service_member",
+              "field": "seq",
+              "append": ". "
+            },
+            {
+              "table": "user",
+              "field": "aes_hex_email",
+              "prepend": " (",
+              "append": ")"
+            }
           ]
         },
         "api_server": "function() {\n  return '/admin/user/search';\n}\n",
@@ -647,11 +673,24 @@
         "model": {
           "table": "service_member",
           "relations": [
-            { "table": "user", "left": "user_seq", "right": "seq" }
+            {
+              "table": "user",
+              "left": "user_seq",
+              "right": "seq"
+            }
           ],
           "keys": [
-            { "table": "service_member", "field": "seq", "append": ". " },
-            { "table": "user", "field": "aes_hex_email", "prepend": " (", "append": ")" }
+            {
+              "table": "service_member",
+              "field": "seq",
+              "append": ". "
+            },
+            {
+              "table": "user",
+              "field": "aes_hex_email",
+              "prepend": " (",
+              "append": ")"
+            }
           ]
         },
         "api_server": "function() {\n  return '/admin/user/search';\n}\n",
@@ -875,7 +914,7 @@
   },
   {
     "name": "bug1-type-group-injected",
-    "note": "BUG1: root + nested group carry properties but no type → type:group injected so Field.required=[type] holds (adds a key absent in legacy → out of gate).",
+    "note": "BUG1: root + nested group carry properties but no type → type:group injected so Field.required=[type] holds; the added key makes the case irreversible.",
     "legacy": {
       "properties": {
         "addr": {
@@ -1152,7 +1191,7 @@
   },
   {
     "name": "bug-items-null-drop",
-    "note": "items:null (a fully commented-out legacy items: block) dropped — Items is array|source|label-map, never null; an empty items carries no membership.",
+    "note": "items:null is removed because Items accepts an array, source or label map and null defines no membership.",
     "legacy": {
       "type": "multichoice",
       "label": "구성 요소",
@@ -1176,7 +1215,7 @@
   },
   {
     "name": "bug-items-empty-drop",
-    "note": "items:{} (empty map) dropped — same as no items key.",
+    "note": "An empty items object is removed because it defines no items.",
     "legacy": {
       "type": "choice",
       "items": {}
@@ -1198,7 +1237,7 @@
   },
   {
     "name": "bug-reserved-key-field-name-stepper",
-    "note": "a reserved key (items) used as a properties FIELD NAME is a normal field, not a dynamic-source/choice construct; its value-map body lands in options and type:group is injected (Stepper items:{1:기본,…}).",
+    "note": "A properties field named items remains a field; its value map is stored in options and the translator adds type:group.",
     "legacy": {
       "type": "group",
       "properties": {
@@ -1236,7 +1275,7 @@
   },
   {
     "name": "bug-reserved-key-field-name-excel",
-    "note": "a reserved key (table) used as a properties FIELD NAME is a normal field; its value→spec body lands in options and type:group is injected at the field and the typeless root (Excel table:{5:{…}}).",
+    "note": "A properties field named table remains a field; its value map is stored in options and the translator adds type:group to the field and root.",
     "legacy": {
       "properties": {
         "table": {
@@ -1289,7 +1328,7 @@
   },
   {
     "name": "bug-design-class-null-drop",
-    "note": "class:null (empty appearance) dropped — Design.class is string|ConditionMap, never null; the emptied design slot is pruned.",
+    "note": "class:null is removed because Design.class accepts a string or condition map, and the empty design object is removed.",
     "legacy": {
       "type": "text",
       "class": null
@@ -1311,7 +1350,7 @@
   },
   {
     "name": "bug-empty-properties-group",
-    "note": "empty properties:null normalized to an empty group {type:group, properties:{}} — not a typeless options:{properties:null} node.",
+    "note": "properties:null becomes an empty group with type:group and properties:{}.",
     "legacy": {
       "properties": null
     },
@@ -1339,7 +1378,7 @@
   },
   {
     "name": "bug-item-label-numeric-stringify",
-    "note": "a numeric item label (404:404) stringified to \"404\" (G3) — ItemLabel is string|LangMap|null, never a number.",
+    "note": "A numeric item label becomes a string because ItemLabel accepts a string, language map or null.",
     "legacy": {
       "type": "choice",
       "default": 307,
