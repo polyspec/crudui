@@ -27,77 +27,47 @@ make docs-check
 생성 후 주입·레코드 복원을 비교합니다.
 [JSON 순서 검사](ordered-json.ko.md)는 전송 표현을 별도로 검증합니다.
 
-HTTP·브라우저 검증기는 이 저장소에서 관리합니다. 변경이 없는 현재 커밋으로
-후보를 준비하고 이미지를 빌드한 뒤 격리한 컨테이너를 시작합니다.
+HTTP·브라우저 검증기는 이 저장소에서 관리합니다. 전체 후보 수명 주기 명령으로 변경이
+없는 현재 커밋 하나를 검증합니다.
 
 ```sh
-CANDIDATE_ROOT=$(pwd)
 CANDIDATE_REF=$(git rev-parse HEAD)
-CANDIDATE_TAG=$(printf '%s' "$CANDIDATE_REF" | cut -c1-12)
-CANDIDATE_DIR="$CANDIDATE_ROOT/.form-comparison/candidates/$CANDIDATE_REF"
-CANDIDATE_IMAGE="localhost/crudui-form-comparison:$CANDIDATE_TAG"
-CANDIDATE_NAME="crudui-form-comparison-$CANDIDATE_TAG"
-node examples/form-comparison/prepare.mjs --ref "$CANDIDATE_REF"
-container build --tag "$CANDIDATE_IMAGE" --progress plain "$CANDIDATE_DIR/context"
-container run --detach --name "$CANDIDATE_NAME" \
-  --publish 127.0.0.1:18080:8080 \
-  --mount "type=bind,source=$CANDIDATE_DIR/data,target=/data" \
-  --mount "type=bind,source=$CANDIDATE_DIR/results,target=/results" \
-  "$CANDIDATE_IMAGE"
-for attempt in $(seq 1 120); do
-  curl --fail --silent http://127.0.0.1:18080/api/health >/dev/null && break
-  if [ "$attempt" -eq 120 ]; then
-    container logs "$CANDIDATE_NAME"
-    exit 1
-  fi
-  sleep 1
-done
+node examples/form-comparison/candidate-verification.mjs --ref "$CANDIDATE_REF"
 ```
 
 준비 명령은 추적하거나 추적하지 않은 변경을 거부하고 `CANDIDATE_REF`를
-아카이브합니다. 후보 데이터·결과 디렉터리는 배포 데이터와 분리합니다. 컨테이너는
-같은 소스 아카이브에서 PHP, PHP 확장, Go, Rust 프로세스를 각각 하나씩 시작합니다.
-PHP는 Composer 클래스를 사용하고 PHP 확장 프로세스는 `ordered_json.so`와
-`crudui.so`를 함께 로드합니다.
-이미지 생성 단계는 브라우저 비의존 소스·라이브러리 검사를 실행합니다. 컨테이너는
-Chromium 샌드박스를 활성화하고 애플리케이션 사용자로 전체 스위트를 실행한 후 네
-서버를 시작합니다. 검사나 서버 시작이 실패하면 준비 확인도 실패하고 컨테이너 로그를
-출력합니다.
+아카이브합니다. 명령은 배포 리소스를 변경하지 않고 이전 후보 리소스를 제거하며 커밋별
+이미지를 빌드하고 격리된 컨테이너를 생성합니다. 후보 데이터·결과 디렉터리는 배포
+데이터와 분리합니다. 명령은 연결된 컨테이너 프로세스를 시작하기 전에 후보 준비 파일을
+구독합니다. 선언한 준비 파일 이벤트를 수신하거나 컨테이너가 먼저 종료되면 실패합니다.
+상태 요청을 재시도하거나 sleep 간격을 사용하지 않습니다.
 
-후보 컨테이너 안에서 처리 모드·생성·저장·JSON 검사를 실행합니다.
+컨테이너는 같은 소스 아카이브에서 PHP, PHP 확장, Go, Rust 프로세스를 각각 하나씩
+시작합니다. PHP는 Composer 클래스를 사용하고 PHP 확장 프로세스는
+`ordered_json.so`와 `crudui.so`를 함께 로드합니다. 이미지 생성 단계는 브라우저
+비의존 소스·라이브러리 검사를 실행합니다. 컨테이너는 Chromium 샌드박스를 활성화하고
+애플리케이션 사용자로 전체 스위트를 실행한 후 네 서버를 시작합니다. 검사나 서버 시작이
+실패하면 컨테이너 로그를 출력하고 종료 상태 1을 반환합니다.
 
-```sh
-container exec "$CANDIDATE_NAME" node /workspace/source/examples/form-comparison/test-php-modes.mjs /opt/ordered_json.so /opt/crudui.so /workspace/source
-container exec "$CANDIDATE_NAME" node /workspace/source/examples/form-comparison/check-generation.mjs --url http://127.0.0.1:8080 --library /workspace/source --report /results/generation.json
-container exec "$CANDIDATE_NAME" node /workspace/source/examples/form-comparison/check-servers.mjs
-container exec "$CANDIDATE_NAME" node --test /workspace/source/examples/form-comparison/src/json.test.mjs
-```
+준비가 완료되면 수명 주기 명령은 후보 컨테이너 안에서 처리 모드·생성·저장·JSON 검사를
+실행합니다.
 
 전체 생성 검사는 결과 290개, 요청 411개와 서버·렌더링 경로·프레임워크 필수 조합
 24개를 요구합니다. compile, 유지한 직렬화 템플릿 render, SSR HTML 원문,
 영어·한국어 출력, 잘못된 데이터 거부와 저장 레코드 불변을 검사합니다. 저장 검사는
 네 서버·두 렌더링 경로의 결과 120개를 요구합니다.
 
-브라우저 검증은 서버별로 한 번씩 실행합니다. 포커스·선택 범위·스크롤을 하나의
-브라우저 환경에서 측정하므로 다음 명령을 병렬로 실행하지 않습니다.
-
-```sh
-FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs php http://127.0.0.1:18080
-FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs php-ext http://127.0.0.1:18080
-FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs go http://127.0.0.1:18080
-FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs rust http://127.0.0.1:18080
-node examples/form-comparison/check-browser-reports.mjs \
-  --results "$CANDIDATE_DIR/results" \
-  --origin http://127.0.0.1:18080 \
-  --metadata "$CANDIDATE_DIR/context/metadata.json" \
-  --report "$CANDIDATE_DIR/results/browser-summary.json"
-```
+이후 PHP, PHP 확장, Go, Rust 순서로 서버별 브라우저 검사를 한 번씩 실행하고 집계
+보고서를 생성합니다. 포커스·선택 범위·스크롤을 하나의 브라우저 환경에서 측정하므로 이
+검사는 순차 실행합니다.
 
 집계는 시나리오 960개, 상호작용 240개, 마운트 24개, 일치하는 정적 문서 24개와
 성능 결과 4개의 통과를 요구합니다. 서버별 절대 제한은 900,000밀리초이고 진행 없음
 제한은 300,000밀리초입니다. 실패·누락·잘못된 형식·시간 초과 결과가 있으면 종료
 상태 1을 유지합니다. 모든 저장소·후보 명령이 상태 0을 반환하고 집계에
-`passed: true`를 기록하기 전에는 후보를 배포하지 않습니다.
+`passed: true`를 기록하기 전에는 후보를 배포하지 않습니다. 검증에 성공하면 배포할
+정확한 이미지와 압축한 근거를 유지합니다. 검증에 실패하면 오류와 컨테이너 로그를
+보고하고 실패한 후보 리소스를 제거한 뒤 종료 상태 1을 반환합니다.
 
 모든 저장소·후보 명령이 종료 상태 0을 반환한 뒤 검증한 현재 커밋을 배포합니다.
 
