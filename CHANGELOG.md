@@ -22,14 +22,14 @@ zero vulnerabilities. The cross-framework comparison passed 14 of 14 checks.
 
 The candidate built image
 `localhost/crudui-form-comparison:<commit>` with index digest
-`sha256:eb3bbe303a7cc45722a7086ad9b49253902f14136c2b8616bae6edb3d9a20c32`.
+`sha256:2a6040288c1800d0c36077cdc2ab57ca28558f3ff0917d78276ec90783b0aaea`.
 Image construction passed 81 source checks and four library checks. Runtime
 verification passed both PHP modes, 290 generation and SSR checks across 411 HTTP
 requests, 120 persistence and validation checks, and three Ordered JSON checks.
 
 Browser verification passed 312 checks for each server and 1,248 checks in total.
-PHP completed in 211,124 milliseconds, the PHP extension in 205,125 milliseconds,
-Go in 200,351 milliseconds and Rust in 199,736 milliseconds. The aggregate records
+PHP completed in 211,981 milliseconds, the PHP extension in 204,766 milliseconds,
+Go in 201,069 milliseconds and Rust in 203,958 milliseconds. The aggregate records
 `complete: true`, `passed: true`, `failedChecks: 0` and
 `performancePassed: true`. Packages and the comparison service were not deployed.
 
