@@ -21,6 +21,13 @@ or checking a candidate does not change the deployed service. Deployment is
 allowed only after the candidate aggregate returns status 0 and records
 `passed: true`.
 
+Image construction runs compilation and source checks that do not start a
+browser process. The construction environment does not provide the namespace
+contract required by the Chromium sandbox. After the image starts, the complete
+source suite, including the Chromium process check, runs as the unprivileged
+application user with the Chromium sandbox enabled. A candidate fails when
+either the construction checks or the complete runtime source suite fails.
+
 ## Implementations and requests
 
 PHP, the PHP extension, Go and Rust implement the same compile, render,
