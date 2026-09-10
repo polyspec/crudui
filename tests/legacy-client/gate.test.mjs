@@ -1,4 +1,4 @@
-// Vitest wrapper around the legacy-client vs new-validator gate.
+// Runs the legacy-client and current-validator comparison with Vitest.
 // Run: npx vitest run  (from tests/legacy-client) or `npm test` here.
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
@@ -8,6 +8,12 @@ const { runGate } = require('./gate.js');
 
 describe('legacy legacy-client.validate.js vs new validator-ts (client<->server idempotency)', () => {
   const r = runGate();
+
+  it('validates legacy rules through the explicit legacy API', () => {
+    const required = runGate({ file: 'required.json' });
+    expect(required.regressions).toEqual([]);
+    expect(required.matched).toBeGreaterThan(0);
+  });
 
   it('drives the legacy runtime over a non-trivial slice of cases', () => {
     // Feasibility assertion: the legacy runtime is actually executed and
@@ -40,7 +46,7 @@ describe('legacy legacy-client.validate.js vs new validator-ts (client<->server 
     // a visible census so CI logs carry the numbers.
     // eslint-disable-next-line no-console
     console.log(
-      `[legacy-gate] total=${r.total} matched=${r.matched} gaps=${r.gaps} `
+      `[legacy-comparison] total=${r.total} matched=${r.matched} gaps=${r.gaps} `
       + `excluded=${r.excluded} regressions=${r.regressions.length}`
     );
     expect(r.total).toBeGreaterThan(0);

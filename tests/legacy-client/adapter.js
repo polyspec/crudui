@@ -92,8 +92,8 @@ function elementShapeFor(fieldSpec) {
  * compare-all field format. Group flattening matches fixSpec exactly.
  * Arrays (multiple groups, []-suffixed keys) are NOT expanded here — they are
  * handled / excluded by the caller, because the legacy array model needs the
- * [__uniqid__] element-name convention which a faithful gate cannot fake from
- * the spec alone.
+ * [__uniqid__] element-name convention, which cannot be derived from the spec
+ * alone.
  */
 function flattenSpec(spec, bracketPrefix, dotPrefix, out) {
   out = out || [];
@@ -122,14 +122,14 @@ function flattenSpec(spec, bracketPrefix, dotPrefix, out) {
         continue;
       }
       // display_switch on a group hides the whole subtree; legacy has no
-      // display gating, so the whole group is not comparable.
+      // display-based validation, so the whole group is not comparable.
       if (typeof child.display_switch !== 'undefined') {
         out.push({ unsupported: 'display_switch', dotPath, bracketName });
         continue;
       }
       flattenSpec(child, bracketName, dotPath, out);
     } else {
-      // display_switch: the legacy legacy-client.validate.js has no display-gating
+      // display_switch: the legacy legacy-client.validate.js has no display-based validation
       // (grep: 0 references). Skip-on-hidden is a new-validator feature; the
       // legacy runtime would validate the field regardless. Not comparable.
       if (child && typeof child.display_switch !== 'undefined') {
@@ -187,7 +187,7 @@ function makeRealm() {
   );
   const { window } = dom;
   // The legacy file has a few stray console.log(element) / console.warn calls
-  // (legacy-client.validate.js:84, 265, 860). Silence them so the gate output is clean.
+  // (legacy-client.validate.js:84, 265, 860). Silence them so output contains only results.
   const noop = () => {};
   window.console = { log: noop, warn: noop, error: noop, info: noop, debug: noop, trace: noop };
   const $ = jQueryFactory(window);
@@ -205,7 +205,7 @@ function makeRealm() {
   };
   // Evaluate the legacy file inside a function scope with those names bound.
   // Inject a stubbed `console` so the file's stray console.log(element) calls
-  // (it references the bare global `console`) do not spam the gate output.
+  // (it references the bare global `console`) do not add unrelated output.
   const run = new Function(
     'window', 'document', '$', 'jQuery', 'performance', 'grecaptcha', 'console',
     legacyCode
@@ -349,7 +349,7 @@ function runLegacyCase(spec, input) {
     const reasonMap = {
       'array-group': 'array group (multiple) needs legacy [__uniqid__] element naming',
       'array-leaf': 'array-valued field ([]/multiple) needs legacy [__uniqid__] element naming',
-      'display_switch': 'display_switch field — legacy legacy-client.validate.js has no display gating',
+      'display_switch': 'display_switch field — legacy legacy-client.validate.js has no display-based validation',
     };
     const parts = Object.keys(byKind).map(
       (k) => (reasonMap[k] || k) + ' @ ' + byKind[k].join(',')
