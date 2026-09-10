@@ -8,9 +8,8 @@ use CRUDUI\Validator\FieldSpec;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CRUDUI FieldSpec model gates: round-trip byte stability, polymorphic slot forms,
- * ordered-map preservation, dependency isolation, and the global forbidden-key
- * gate. Never weaken an assertion to make a red case green — fix the model.
+ * Verifies FieldSpec round-trip byte stability, polymorphic slot forms, ordered-map
+ * preservation, dependency isolation and global forbidden-key rejection.
  */
 final class FieldSpecTest extends TestCase
 {

@@ -44,7 +44,7 @@ use CRUDUI\Validator\Expr\Expression;
  *   (a) reading the `validate` slot instead of the legacy `rules` key,
  *   (b) evaluating a rule value that is an expression OR a condition map (G1 —
  *       the condition is the value's expression, never a separate if/when key),
- *   (c) dropping the legacy display_switch/display_target visibility gates (G1
+ *   (c) omitting display_switch/display_target visibility conditions (G1
  *       forbids those meta keys; visibility-driven requiredness is
  *       required:'<expr>').
  *
@@ -213,7 +213,7 @@ final class Validator
             $fieldPath = [...$currentPath, $fieldName];
             $fieldValue = $data[$fieldName] ?? null;
 
-            // NOTE: no display_switch / display_target gate (G1 — those meta keys
+            // No display_switch or display_target condition exists (G1: those meta keys
             // do not exist in CRUDUI; visibility-conditioned requiredness is
             // required:'<expr>').
 
