@@ -97,3 +97,29 @@ test('container definitions select the tracked Go release line', async () => {
     `Go stages must use the ${release} release line: ${JSON.stringify(goStages, null, 2)}`,
   );
 });
+
+test('CI selects the stable Rust toolchain channel', async () => {
+  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
+  const setupCount = [...workflow.matchAll(/uses: dtolnay\/rust-toolchain@/g)].length;
+  const stableCount = [...workflow.matchAll(/uses: dtolnay\/rust-toolchain@stable/g)].length;
+  assert.ok(setupCount > 0, 'CI must configure Rust');
+  assert.equal(stableCount, setupCount,
+    'Every Rust toolchain step must select the stable channel');
+});
+
+test('container definitions select the stable Rust major channel', async () => {
+  const definitions = await findContainerDefinitions();
+  const rustStages = [];
+  for (const definition of definitions) {
+    const source = await readFile(definition, 'utf8');
+    for (const match of source.matchAll(/^FROM\s+rust:([^\s]+)(?:\s|$)/gm)) {
+      rustStages.push({ definition: path.relative(repository, definition), tag: match[1] });
+    }
+  }
+  assert.ok(rustStages.length > 0, 'At least one Rust container stage is required');
+  assert.deepEqual(
+    rustStages.filter(stage => !stage.tag.startsWith('1-')),
+    [],
+    `Rust stages must use the stable major channel: ${JSON.stringify(rustStages, null, 2)}`,
+  );
+});

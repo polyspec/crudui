@@ -16,9 +16,10 @@ npm run test:packages
 
 `test:runtimes` requires one even-numbered Node.js major in `.node-version` and
 one Go major and minor release in `.go-version`. CI reads both files, and every
-Node.js and Go container stage uses the corresponding release line. The check
-rejects exact runtime patch releases and numeric npm releases. CI installs the
-current stable npm release.
+Node.js and Go container stage uses the corresponding release line. Rust CI and
+container stages select the stable Rust channel. The check rejects exact runtime
+patch releases and numeric npm releases. CI installs the current stable npm
+release.
 
 `test:dependencies` rejects invalid, missing and conflicting installed packages.
 It also rejects moderate, high and critical advisories reported for the locked
