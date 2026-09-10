@@ -16,12 +16,16 @@ inside the selected vendor directory. Every path component and loaded class file
 must be regular, and the installed validator file must match the candidate source
 file. A missing or malformed selected record, an external path or a changed
 package copy fails construction.
+The startup health check accepts `Generator` and `Form` only from the generator
+source directory and `Validator` only from the selected Composer package copy.
+It rejects the repository validator source path. A rejected health response
+reports the server and the first response field that failed verification.
 
 The PHP source and construction suite passed ten checks. Five hundred verified
 constructions completed within the 250 millisecond limit. The PHP and PHP
 extension integration check passed 125 generation checks in each mode together
 with JSON conversion, storage, validation, public signature and processor-mode
-checks. The form comparison build command passed 129 source checks and ten
+checks. The form comparison build command passed 131 source checks and ten
 construction checks.
 
 Candidate source tests create writable fixtures under the canonical operating
