@@ -39,8 +39,8 @@ test('non-Linux tool discovery uses regular executables and the Rust toolchain r
   const rustc = await executable(path.join(toolchain, 'rustc'));
   const rustdoc = await executable(path.join(toolchain, 'rustdoc'));
   const calls = [];
-  const run = async (file, args) => {
-    calls.push([file, args]);
+  const run = async (file, args, options) => {
+    calls.push([file, args, options]);
     if (file === rustup && args[0] === 'which') {
       return { stdout: ({ cargo, rustc, rustdoc })[args[1]] + '\n', stderr: '' };
     }
@@ -56,12 +56,13 @@ test('non-Linux tool discovery uses regular executables and the Rust toolchain r
   };
 
   assert.deepEqual(await resolvePhpBuildTools({
-    environment: { HOME: root, PATH: bin }, needsCargo: true, platform: 'darwin', run,
+    cwd: root, environment: { HOME: root, PATH: bin }, needsCargo: true,
+    platform: 'darwin', run,
   }), { phpConfig, compiler, cargo, rustc, rustdoc, rustHost: 'aarch64-test-system' });
   assert.deepEqual(calls.filter(([, args]) => args[0] === 'which'), [
-    [rustup, ['which', 'cargo']],
-    [rustup, ['which', 'rustc']],
-    [rustup, ['which', 'rustdoc']],
+    [rustup, ['which', 'cargo'], { capture: true, environment: { HOME: root, PATH: bin }, cwd: root }],
+    [rustup, ['which', 'rustc'], { capture: true, environment: { HOME: root, PATH: bin }, cwd: root }],
+    [rustup, ['which', 'rustdoc'], { capture: true, environment: { HOME: root, PATH: bin }, cwd: root }],
   ]);
 });
 
