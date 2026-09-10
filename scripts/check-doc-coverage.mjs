@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const RUST_COMMAND = join(ROOT, 'scripts/run-rust-command.mjs');
 const target = process.argv[2] ?? 'all';
 if (!['all', 'ts', 'go', 'rust', 'php'].includes(target)) throw new Error('Use all, ts, go, rust or php');
 const want = name => target === 'all' || target === name;
@@ -39,7 +40,9 @@ if (want('go')) for (const pkg of ['validator-go', 'generator-go']) {
   check(`go:${pkg}`, () => run(process.env.GO ?? 'go', ['test', './...', '-run', 'DocCoverage', '-count=1'], join(ROOT, 'packages', pkg)));
 }
 if (want('rust')) for (const pkg of ['validator-rust', 'generator-rust']) {
-  check(`rust:${pkg}`, () => run(process.env.CARGO ?? 'cargo', ['build', '--locked', '--lib'], join(ROOT, 'packages', pkg)));
+  check(`rust:${pkg}`, () => run(process.execPath, [
+    RUST_COMMAND, 'build', '--locked', '--lib',
+  ], join(ROOT, 'packages', pkg)));
 }
 if (want('php')) {
   check('php:validator-and-generator', () => run(process.env.PHP ?? 'php', [join(ROOT, 'scripts/php-doc-coverage.php')]));

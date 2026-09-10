@@ -18,9 +18,10 @@ npm run test:packages
 `.go-version`에 Go 메이저·마이너 릴리스 하나를 요구합니다. CI는 두 파일을 읽고
 모든 Node.js·Go 컨테이너 단계는 해당 릴리스 계열을 사용합니다. Rust CI와
 컨테이너 단계는 안정 Rust 채널을 선택합니다. 검사는 정확한 런타임 패치 릴리스와
-숫자 npm 릴리스를 거부합니다. CI는 현재 안정 npm 릴리스를 설치합니다. 또한
-Makefile이 내보낸 경로에만 Cargo가 있는 환경에서 `test-native`를 실행하고 Cargo
-명령이 시작되는지 검사합니다.
+숫자 npm 릴리스를 거부합니다. CI는 현재 안정 npm 릴리스를 설치합니다. 런타임
+검사는 프로세스 `PATH`에 Cargo가 없는 환경에서 저장소의 Rust Node.js 진입점을
+실행합니다. 각 진입점은 하나의 toolchain 기록에서 Cargo, rustc, rustdoc을 해석하고
+해석한 컴파일러 경로를 Cargo에 전달해야 합니다.
 
 `test:dependencies`는 잘못되거나 누락되거나 충돌하는 설치 패키지를 거부합니다.
 또한 추적하는 모든 npm 잠금 파일에서 보고된 중간·높음·치명적 취약점, 승인하지

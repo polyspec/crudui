@@ -30,6 +30,7 @@ const BENCH_DIR = __dirname;
 const FIXTURES = path.join(BENCH_DIR, 'fixtures');
 const REPO_ROOT = path.resolve(BENCH_DIR, '..', '..');
 const RESULTS_MD = path.join(BENCH_DIR, 'results.md');
+const RUST_COMMAND = path.join(REPO_ROOT, 'scripts/run-rust-command.mjs');
 
 const SPECS = [
   { name: 'contact', label: 'contact (small, ~6 fields)' },
@@ -49,7 +50,6 @@ function parseArgs(argv) {
 
 /** How to launch each language driver. cwd matters for Go/Rust module resolution. */
 function drivers(iters, warmup) {
-  const cargoBin = path.join(process.env.HOME || '', '.cargo', 'bin');
   return {
     js: {
       cmd: 'node',
@@ -70,8 +70,9 @@ function drivers(iters, warmup) {
       env: process.env,
     },
     rust: {
-      cmd: 'cargo',
+      cmd: process.execPath,
       args: [
+        RUST_COMMAND,
         'run',
         '--release',
         '--quiet',
@@ -84,8 +85,7 @@ function drivers(iters, warmup) {
         String(warmup),
       ],
       cwd: path.join(BENCH_DIR, 'rust'),
-      // cargo/rustc may not be on the default PATH.
-      env: { ...process.env, PATH: `${cargoBin}:${process.env.PATH || ''}` },
+      env: process.env,
     },
   };
 }
@@ -322,15 +322,11 @@ function main() {
 
   if (!args.json) {
     printTable(table);
-    const cargoBin = path.join(process.env.HOME || '', '.cargo', 'bin');
     const meta = {
       node: toolVersion('node', ['--version']),
       php: toolVersion('php', ['--version']),
       go: toolVersion('go', ['version']),
-      cargo: toolVersion('cargo', ['--version'], {
-        ...process.env,
-        PATH: `${cargoBin}:${process.env.PATH || ''}`,
-      }),
+      cargo: toolVersion(process.execPath, [RUST_COMMAND, '--version']),
     };
     writeResultsMd(table, args, okLangs, meta);
     console.log(`[bench] wrote ${path.relative(REPO_ROOT, RESULTS_MD)}`);
