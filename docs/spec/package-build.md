@@ -86,12 +86,13 @@ later build adopts a newer applicable release and produces new evidence. Package
 lock files record resolved package versions; they do not select a runtime
 release.
 
-Package manifests and lock files must resolve one valid dependency graph.
-`npm ls --all` must return status 0 without invalid, missing or conflicting
-dependencies. `npm audit --audit-level=moderate` must report no moderate, high or
-critical vulnerability. A tool with no secure compatible stable release is
-replaced. Dependency overrides and audit exclusions do not satisfy these checks.
-Unused build and documentation dependencies are removed.
+Every Git-tracked npm lock file is a maintained dependency graph. The root
+installation must make `npm ls --all` return status 0 without invalid, missing or
+conflicting dependencies. `npm audit --package-lock-only --audit-level=moderate`
+must report no moderate, high or critical vulnerability for each tracked lock
+file. A tool with no secure compatible stable release is replaced. Dependency
+overrides and audit exclusions do not satisfy these checks. Unused build and
+documentation dependencies are removed.
 
 ## Documentation site
 
