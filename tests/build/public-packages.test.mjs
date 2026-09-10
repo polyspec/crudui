@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, realpathSync, statSync, mkdtempSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync, realpathSync, statSync, mkdtempSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +13,30 @@ const packages = ['validator-ts', 'generator-core', 'generator-react'].map((fold
   const directory = resolve(root, 'packages', folder);
   const manifest = JSON.parse(readFileSync(resolve(directory, 'package.json'), 'utf8'));
   return { directory, manifest };
+});
+
+test('ES module Vitest configurations declare their module format', () => {
+  const failures = [];
+  const packagesDirectory = resolve(root, 'packages');
+  for (const entry of readdirSync(packagesDirectory, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const directory = resolve(packagesDirectory, entry.name);
+    const manifestPath = resolve(directory, 'package.json');
+    if (!existsSync(manifestPath)) continue;
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    for (const filename of readdirSync(directory)) {
+      if (!/^vitest(?:\.[^.]+)?\.config\.[cm]?[jt]s$/.test(filename)) continue;
+      const source = readFileSync(resolve(directory, filename), 'utf8');
+      if (!/^\s*(?:import|export)\s/m.test(source)) continue;
+      if (/\.(?:mts|mjs)$/.test(filename) || manifest.type === 'module') continue;
+      failures.push(relative(root, resolve(directory, filename)));
+    }
+  }
+  assert.deepEqual(
+    failures,
+    [],
+    'ES module Vitest configurations require .mts, .mjs or package type module',
+  );
 });
 
 function within(directory, filename) {
