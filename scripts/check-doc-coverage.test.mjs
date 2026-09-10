@@ -12,7 +12,9 @@ function environment(operation) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'crudui-doc-check-')));
   try {
     for (const relative of ['scripts', 'bin', 'node_modules/.bin', 'packages/validator-go', 'packages/generator-go', 'packages/validator-rust', 'packages/generator-rust']) mkdirSync(join(root, relative), { recursive: true });
-    copyFileSync(new URL('./check-doc-coverage.mjs', import.meta.url), join(root, 'scripts/check-doc-coverage.mjs'));
+    for (const file of ['check-doc-coverage.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs']) {
+      copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
+    }
     return operation(root);
   } finally { rmSync(root, { recursive: true }); }
 }
@@ -20,9 +22,31 @@ function mock(root, command, status = 0) {
   const file = command === 'typedoc' ? 'node_modules/.bin/typedoc' : `bin/${command}`;
   writeFileSync(join(root, file), `#!${process.execPath}\nrequire('node:fs').appendFileSync(process.env.CHECK_LOG, JSON.stringify({command:${JSON.stringify(command)}, cwd:process.cwd(), args:process.argv.slice(2)})+'\\n');process.exit(${status});\n`, { mode: 0o755 });
 }
-function run(root, target) {
-  const env = { ...process.env, PATH: join(root, 'bin'), CHECK_LOG: join(root, 'calls.jsonl') };
-  delete env.GO; delete env.CARGO; delete env.PHP;
+function mockRust(root, status = 0) {
+  const cargo = join(root, 'bin/cargo-tool');
+  const rustc = join(root, 'bin/rustc-tool');
+  const rustdoc = join(root, 'bin/rustdoc-tool');
+  writeFileSync(cargo, `#!${process.execPath}\n`
+    + `if (process.argv[2] === '--version') process.stdout.write('cargo 1.98.1\\n');\n`
+    + `else { require('node:fs').appendFileSync(process.env.CHECK_LOG, `
+    + `JSON.stringify({command:'cargo',cwd:process.cwd(),args:process.argv.slice(2)})`
+    + `+'\\n'); process.exit(${status}); }\n`, { mode: 0o755 });
+  writeFileSync(rustc, `#!${process.execPath}\n`
+    + `process.stdout.write('rustc 1.98.1 (test 2026-09-01)\\n`
+    + `host: aarch64-test-system\\n');\n`, { mode: 0o755 });
+  writeFileSync(rustdoc, `#!${process.execPath}\n`
+    + `process.stdout.write('rustdoc 1.98.1 (test 2026-09-01)\\n');\n`, { mode: 0o755 });
+  return { CARGO: cargo, RUSTC: rustc, RUSTDOC: rustdoc };
+}
+function run(root, target, additions = {}) {
+  const env = {
+    ...process.env,
+    HOME: root,
+    PATH: join(root, 'bin'),
+    CHECK_LOG: join(root, 'calls.jsonl'),
+  };
+  delete env.GO; delete env.CARGO; delete env.RUSTC; delete env.RUSTDOC; delete env.PHP;
+  Object.assign(env, additions);
   return spawnSync(process.execPath, [join(root, 'scripts/check-doc-coverage.mjs'), target], { encoding: 'utf8', env });
 }
 for (const [target, command] of [['go', 'go'], ['rust', 'cargo'], ['php', 'php']]) {
@@ -33,12 +57,12 @@ for (const [target, command] of [['go', 'go'], ['rust', 'cargo'], ['php', 'php']
     assert.ok(!result.stdout.includes('SKIP'));
   }));
   test(`${target} fails on a tool failure`, () => environment(root => {
-    mock(root, command, 17);
-    assert.equal(run(root, target).status, 1);
+    const additions = target === 'rust' ? mockRust(root, 17) : (mock(root, command, 17), {});
+    assert.equal(run(root, target, additions).status, 1);
   }));
   test(`${target} checks both current packages`, () => environment(root => {
-    mock(root, command);
-    const result = run(root, target);
+    const additions = target === 'rust' ? mockRust(root) : (mock(root, command), {});
+    const result = run(root, target, additions);
     assert.equal(result.status, 0, result.stderr);
     const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
     if (target === 'php') {
