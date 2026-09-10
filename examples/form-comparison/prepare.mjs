@@ -11,7 +11,7 @@ const repositoryRoot = path.resolve(exampleDirectory, '../..');
 const orderedJsonRevision = 'main';
 const orderedJsonRepository = 'https://github.com/polyspec/ordered-json';
 const implementationPaths = Object.freeze(['go', 'js', 'php', 'php-extension', 'rust']);
-const requiredSourcePaths = Object.freeze([
+export const requiredSourcePaths = Object.freeze([
   'package.json',
   'package-lock.json',
   'examples/form-comparison/Containerfile',
