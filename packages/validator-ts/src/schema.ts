@@ -231,7 +231,7 @@ export interface PatchDirective {
  * below every slot via `propertyNames`, not by widening this type.
  */
 export interface ValidateSlot {
-  /** Requires a non-empty value; an expression gates the requirement. */
+  /** Requires a non-empty value when its optional expression evaluates true. */
   required?: Evaluated<boolean>;
   /** Requires a syntactically valid email address. */
   email?: Evaluated<boolean>;

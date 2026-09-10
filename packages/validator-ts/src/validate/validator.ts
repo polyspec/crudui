@@ -11,7 +11,7 @@
  * `validate` slot instead of the legacy `rules` key, (b) evaluating a rule value
  * that is an expression OR a condition map (G1 — the condition is the value's
  * expression, never a separate `if`/`when` key), and (c) dropping the legacy
- * `display_switch`/`display_target` visibility gates (G1 forbids those meta
+ * `display_switch`/`display_target` visibility conditions (G1 forbids those meta
  * keys; visibility-driven requiredness is expressed as `required: '<expr>'`).
  *
  * Pipeline (SPEC):
@@ -168,7 +168,7 @@ export class Validator {
       const fieldPath = [...currentPath, fieldName];
       const fieldValue = data?.[fieldName];
 
-      // NOTE: no display_switch / display_target gate (G1 — those meta keys do
+      // No display_switch or display_target condition exists (G1: those meta keys do
       // not exist in CRUDUI; visibility-conditioned requiredness is required:'<expr>').
 
       const childProps = this.childProperties(field);
