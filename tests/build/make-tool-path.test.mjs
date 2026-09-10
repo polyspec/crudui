@@ -63,6 +63,7 @@ test('the Rust command entry point executes regular toolchain files', {
   const toolchain = path.join(directory, 'toolchain');
   const cargo = path.join(toolchain, 'cargo');
   const rustc = path.join(toolchain, 'rustc');
+  const rustdoc = path.join(toolchain, 'rustdoc');
   const commandLog = path.join(directory, 'commands.log');
   await Promise.all([mkdir(rustupDirectory, { recursive: true }), mkdir(toolchain)]);
   const rustup = path.join(rustupDirectory, 'rustup');
@@ -71,13 +72,14 @@ test('the Rust command entry point executes regular toolchain files', {
     'if [ "$1" = "--version" ]; then printf "rustup 1.29.0\n"; exit 0; fi',
     'if [ "$1" = "which" ] && [ "$2" = "cargo" ]; then printf "%s\n" "$TEST_CARGO"; exit 0; fi',
     'if [ "$1" = "which" ] && [ "$2" = "rustc" ]; then printf "%s\n" "$TEST_RUSTC"; exit 0; fi',
+    'if [ "$1" = "which" ] && [ "$2" = "rustdoc" ]; then printf "%s\n" "$TEST_RUSTDOC"; exit 0; fi',
     'exit 2',
     '',
   ].join('\n'));
   await writeFile(cargo, [
     '#!/bin/sh',
     'if [ "$1" = "--version" ]; then printf "cargo 1.98.1\n"; exit 0; fi',
-    "printf 'cargo\t%s\t%s\n' \"$*\" \"$RUSTC\" >> \"$COMMAND_LOG\"",
+    "printf 'cargo\t%s\t%s\t%s\n' \"$*\" \"$RUSTC\" \"$RUSTDOC\" >> \"$COMMAND_LOG\"",
     '',
   ].join('\n'));
   await writeFile(rustc, [
@@ -85,7 +87,12 @@ test('the Rust command entry point executes regular toolchain files', {
     'printf "rustc 1.98.1 (test 2026-09-01)\nhost: aarch64-test-system\n"',
     '',
   ].join('\n'));
-  await Promise.all([rustup, cargo, rustc].map(filename => chmod(filename, 0o755)));
+  await writeFile(rustdoc, [
+    '#!/bin/sh',
+    'printf "rustdoc 1.98.1 (test 2026-09-01)\n"',
+    '',
+  ].join('\n'));
+  await Promise.all([rustup, cargo, rustc, rustdoc].map(filename => chmod(filename, 0o755)));
 
   const result = spawnSync(process.execPath, [
     path.join(repository, 'scripts/run-rust-command.mjs'),
@@ -101,10 +108,12 @@ test('the Rust command entry point executes regular toolchain files', {
       PATH: '/usr/bin:/bin',
       TEST_CARGO: cargo,
       TEST_RUSTC: rustc,
+      TEST_RUSTDOC: rustdoc,
     },
   });
 
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(await readFile(commandLog, 'utf8'),
-    `cargo\ttest --locked --manifest-path packages/generator-rust/Cargo.toml\t${rustc}\n`);
+    `cargo\ttest --locked --manifest-path packages/generator-rust/Cargo.toml`
+      + `\t${rustc}\t${rustdoc}\n`);
 });
