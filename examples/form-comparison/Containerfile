@@ -71,7 +71,7 @@ RUN cp /archives/metadata.json /workspace/metadata.json \
     && mkdir -p /results \
     && chown -R node:node /workspace /results
 USER node
-RUN npm run test:form-comparison
+RUN npm run test:form-comparison:build
 RUN node examples/form-comparison/build.mjs /workspace
 EXPOSE 8080
-CMD ["node", "examples/form-comparison/server.mjs"]
+CMD ["sh", "-c", "npm run test:form-comparison && exec node examples/form-comparison/server.mjs"]
