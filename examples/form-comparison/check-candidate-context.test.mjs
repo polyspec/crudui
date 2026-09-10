@@ -56,6 +56,14 @@ test('includes the browser process check only in the complete runtime suite', as
     'node --test examples/form-comparison/src/browser-job.browser.mjs');
 });
 
+test('candidate fixtures use the canonical operating system temporary directory', async () => {
+  const source = await readFile(
+    new URL('./generation-performance.test.mjs', import.meta.url), 'utf8',
+  );
+  assert.match(source, /realpathSync\(tmpdir\(\)\)/);
+  assert.doesNotMatch(source, /path\.join\(library, ['"]\.git\//);
+});
+
 test('passes a large source archive to Git through a file descriptor', t => {
   const directory = mkdtempSync(path.join(tmpdir(), 'crudui-candidate-context-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
