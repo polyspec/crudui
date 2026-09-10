@@ -10,6 +10,7 @@ import {
   assertRegularPath,
   cleanGeneratedPaths,
   readPhpMetadata,
+  resolveHomebrewPhpConfig,
   resolvePhpBuildTools,
 } from '../../scripts/php-extension-builder.mjs';
 import { rustBuildEnvironment } from '../../scripts/build-crudui-php-extension.mjs';
@@ -91,6 +92,42 @@ test('tool discovery rejects symbolic and ambiguous executable paths', async t =
   }), /requires one result; received 2/i);
 
   await assert.rejects(assertRegularPath('relative/php-config', 'file'), /absolute/i);
+});
+
+test('Homebrew PHP discovery selects php-config from one installed record', async t => {
+  const root = await temporaryDirectory(t);
+  const bin = path.join(root, 'bin');
+  const cellar = path.join(root, 'Cellar', 'php');
+  const version = '8.5.10';
+  const phpConfigDirectory = path.join(cellar, version, 'bin');
+  await Promise.all([mkdir(bin), mkdir(phpConfigDirectory, { recursive: true })]);
+  const brew = await executable(path.join(bin, 'brew'));
+  const phpConfig = await executable(path.join(phpConfigDirectory, 'php-config'));
+  const calls = [];
+  const run = async (file, args, options) => {
+    calls.push([file, args, options]);
+    assert.equal(file, brew);
+    if (args[0] === 'info') {
+      return {
+        stdout: JSON.stringify({
+          casks: [],
+          formulae: [{ name: 'php', installed: [{ version }], linked_keg: version }],
+        }) + '\n',
+        stderr: '',
+      };
+    }
+    assert.deepEqual(args, ['--cellar', 'php']);
+    return { stdout: cellar + '\n', stderr: '' };
+  };
+
+  assert.equal(await resolveHomebrewPhpConfig({
+    environment: { PATH: bin }, run,
+  }), phpConfig);
+  assert.deepEqual(calls.map(([, args]) => args), [
+    ['info', '--json=v2', 'php'],
+    ['--cellar', 'php'],
+  ]);
+  assert.ok(calls.every(([, , options]) => options.capture === true));
 });
 
 test('Linux tool discovery follows Debian package records to one target compiler', async t => {
