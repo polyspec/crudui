@@ -51,16 +51,18 @@ RUN read -r commit < /archives/source-commit \
 
 FROM dependencies AS php-extension
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    php8.4-dev build-essential autoconf pkg-config \
+    php8.4-dev build-essential \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=rust-toolchain /usr/local/cargo /usr/local/cargo
 COPY --from=rust-toolchain /usr/local/rustup /usr/local/rustup
 ENV CARGO_HOME=/usr/local/cargo \
     RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
-RUN sh scripts/build-php-extension.sh
-WORKDIR /workspace/source/.form-comparison/sources/ordered-json/php-extension/src
-RUN phpize && ./configure --enable-ordered-json && make -j2
+RUN node scripts/build-crudui-php-extension.mjs \
+    --php-config /usr/bin/php-config8.4
+RUN node scripts/build-ordered-json-php-extension.mjs \
+    --php-config /usr/bin/php-config8.4 \
+    --source /workspace/source/.form-comparison/sources/ordered-json/php-extension/src
 
 FROM dependencies AS application
 COPY --from=php-extension /workspace/source/.form-comparison/sources/ordered-json/php-extension/src/modules/ordered_json.so /opt/ordered_json.so

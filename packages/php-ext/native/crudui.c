@@ -163,6 +163,7 @@ PHP_METHOD(CRUDUI_Generator, renderForm)
 
 PHP_METHOD(CRUDUI_Form, __construct)
 {
+    (void)return_value;
     zval *template, *data = NULL, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 3)
         Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
@@ -286,6 +287,8 @@ PHP_METHOD(CRUDUI_Form, rekeyRow)
 
 PHP_MINIT_FUNCTION(crudui)
 {
+    (void)type;
+    (void)module_number;
     crudui_form_error_ce = register_class_CRUDUI_FormError(spl_ce_RuntimeException);
     crudui_compose_error_ce = register_class_CRUDUI_Validator_Compose_ComposeLoadError(spl_ce_RuntimeException);
     crudui_generator_ce = register_class_CRUDUI_Generator();
@@ -302,6 +305,7 @@ PHP_MINIT_FUNCTION(crudui)
 
 PHP_MINFO_FUNCTION(crudui)
 {
+    (void)zend_module;
     php_info_print_table_start();
     php_info_print_table_row(2, "CRUDUI", "enabled");
     php_info_print_table_row(2, "Version", "0.0.1");

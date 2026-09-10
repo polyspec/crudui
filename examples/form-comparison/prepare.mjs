@@ -25,9 +25,11 @@ export const requiredSourcePaths = Object.freeze([
   'packages/generator-go/go.mod',
   'packages/generator-rust/Cargo.toml',
   'packages/generator-rust/Cargo.lock',
-  'packages/php-ext/config.m4',
+  'packages/php-ext/Cargo.toml',
   'packages/php-ext/Cargo.lock',
-  'scripts/build-php-extension.sh',
+  'scripts/php-extension-builder.mjs',
+  'scripts/build-crudui-php-extension.mjs',
+  'scripts/build-ordered-json-php-extension.mjs',
 ]);
 
 function git(repository, args, options = {}) {
