@@ -5,9 +5,10 @@ import path from 'node:path';
 import { readGitArchiveCommit } from '../verify-candidate-context.mjs';
 
 const phpClasses = new Map([
-  ['CRUDUI\\Generator', '/packages/generator-php/src/Generator.php'],
-  ['CRUDUI\\Form', '/packages/generator-php/src/Form.php'],
-  ['CRUDUI\\Validator', '/packages/validator-php/src/Public/Validator.php'],
+  ['CRUDUI\\Generator', '/workspace/source/packages/generator-php/src/Generator.php'],
+  ['CRUDUI\\Form', '/workspace/source/packages/generator-php/src/Form.php'],
+  ['CRUDUI\\Validator',
+    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php'],
 ]);
 
 /** Read the embedded commit without buffering the remaining archive into Git. */
@@ -82,9 +83,8 @@ export async function verifyChildServers({ readiness, servers, ports, metadata,
   for (const server of servers) {
     const response = await request('http://127.0.0.1:' + ports[server] + '/api/health');
     const value = await response.json();
-    if (!serverReady(server, response.ok, value, metadata, phpSignatures)) {
-      throw new Error(server + ' failed startup verification');
-    }
+    const failure = serverFailureField(server, response.ok, value, metadata, phpSignatures);
+    if (failure !== null) throw new Error(server + ' failed startup verification: ' + failure);
     if (server === 'php') phpSignatures = value.generator.signatures;
   }
 }
@@ -143,31 +143,59 @@ export async function publishCandidateReadiness(file, value) {
   }
 }
 
-function phpReady(server, value, metadata, expectedSignatures) {
+function phpFailureField(server, value, metadata, expectedSignatures) {
   const native = server === 'php-ext';
   const generator = value.generator;
-  if (!generator || generator.runtime !== server || generator.commit !== metadata.source?.commit || generator.nativeCRUDUI !== native) return false;
-  if (generator.archiveSha256 !== metadata.source?.archiveSha256) return false;
-  if (generator.moduleSha256 !== (native ? metadata.cruduiModuleSha256 : null)) return false;
-  if (generator.composerAutoload !== !native) return false;
-  if (value.nativeJson !== native || !generator.classes || Array.isArray(generator.classes)) return false;
-  if (!generator.signatures || Array.isArray(generator.signatures)) return false;
+  if (!generator || typeof generator !== 'object' || Array.isArray(generator)) return 'generator';
+  if (generator.runtime !== server) return 'generator.runtime';
+  if (generator.commit !== metadata.source?.commit) return 'generator.commit';
+  if (generator.nativeCRUDUI !== native) return 'generator.nativeCRUDUI';
+  if (generator.archiveSha256 !== metadata.source?.archiveSha256) return 'generator.archiveSha256';
+  if (generator.moduleSha256 !== (native ? metadata.cruduiModuleSha256 : null)) {
+    return 'generator.moduleSha256';
+  }
+  if (generator.composerAutoload !== !native) return 'generator.composerAutoload';
+  if (value.nativeJson !== native) return 'nativeJson';
+  if (!generator.classes || typeof generator.classes !== 'object'
+    || Array.isArray(generator.classes)) return 'generator.classes';
+  if (!generator.signatures || typeof generator.signatures !== 'object'
+    || Array.isArray(generator.signatures)) return 'generator.signatures';
   const classes = Object.keys(generator.classes);
-  if (classes.length !== phpClasses.size || classes.some(name => !phpClasses.has(name))) return false;
+  if (classes.length !== phpClasses.size || classes.some(name => !phpClasses.has(name))) {
+    return 'generator.classes';
+  }
   const signatures = Object.keys(generator.signatures);
-  if (signatures.length !== phpClasses.size || signatures.some(name => !phpClasses.has(name))) return false;
-  if (native && expectedSignatures === undefined) return false;
-  if (expectedSignatures !== undefined && JSON.stringify(generator.signatures) !== JSON.stringify(expectedSignatures)) return false;
-  return classes.every(name => {
+  if (signatures.length !== phpClasses.size || signatures.some(name => !phpClasses.has(name))) {
+    return 'generator.signatures';
+  }
+  if (native && expectedSignatures === undefined) return 'generator.signatures';
+  if (expectedSignatures !== undefined
+    && JSON.stringify(generator.signatures) !== JSON.stringify(expectedSignatures)) {
+    return 'generator.signatures';
+  }
+  for (const name of classes) {
     const source = generator.classes[name];
-    if (!source || source.internal !== native || source.extension !== (native ? 'crudui' : null)) return false;
-    return native ? source.file === null : typeof source.file === 'string' && source.file.startsWith('/') && source.file.endsWith(phpClasses.get(name));
-  });
+    const field = 'generator.classes.' + name;
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return field;
+    if (source.internal !== native) return field + '.internal';
+    if (source.extension !== (native ? 'crudui' : null)) return field + '.extension';
+    if (source.file !== (native ? null : phpClasses.get(name))) return field + '.file';
+  }
+  return null;
+}
+
+function serverFailureField(server, responseOk, value, metadata, expectedPhpSignatures) {
+  if (!responseOk) return 'response.ok';
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return 'response.body';
+  if (value.status !== 'ok') return 'status';
+  if (value.server !== server) return 'server';
+  if (server === 'php' || server === 'php-ext') {
+    return phpFailureField(server, value, metadata, expectedPhpSignatures);
+  }
+  return value.commit === metadata.source?.commit ? null : 'commit';
 }
 
 /** Verify that a child server reports the source and implementation it must run. */
 export function serverReady(server, responseOk, value, metadata, expectedPhpSignatures) {
-  if (!responseOk || !value || value.status !== 'ok' || value.server !== server) return false;
-  if (server === 'php' || server === 'php-ext') return phpReady(server, value, metadata, expectedPhpSignatures);
-  return value.commit === metadata.source?.commit;
+  return serverFailureField(server, responseOk, value, metadata, expectedPhpSignatures) === null;
 }
