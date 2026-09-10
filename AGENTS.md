@@ -9,7 +9,17 @@
 - Use the simplest implementation that meets the current contract. Remove
   replaced runtime paths instead of adding compatibility or migration code.
 - Separate structure compilation, instance data, rendering and validation.
-- Use repository-relative paths. Require explicit paths for external inputs.
+- Record repository paths relative to the repository. Runtime code resolves
+  repository inputs from its declared root or module location. Require an
+  explicit path or one authoritative discovery record for external inputs.
+  Reject symbolic links, missing records and ambiguous discovery results.
+- Use owned events, promises or process completion to determine readiness and
+  success. Do not use sleep intervals or periodic state reads when the producer
+  can publish completion. A time limit may only turn missing completion into a
+  failure; elapsed time never establishes success.
+- Use a default only when the current contract defines a value for an omitted
+  optional input. Do not replace malformed input, a missing dependency or a
+  failed operation with another path, implementation or result.
 - Inspect changes before reverting them. Remove harmful, incorrect or unnecessary
   changes. Describe retained changes by their actual purpose.
 - Run relevant tests and `make docs-check`. Record results for the current code
