@@ -1,0 +1,130 @@
+# Form verification
+
+[한국어](form-comparison.ko.md).
+
+This contract defines the repository's HTTP, browser and persistence verification
+for nested forms. The implementation and its verifier are stored in this
+repository. Verification uses one exact committed revision and does not read
+source files from another checkout.
+
+## Source and environment
+
+Preparation requires a clean worktree and an explicit commit. It creates one Git
+archive from that commit. Metadata records the commit and SHA-256 digest of the
+archive. Image construction verifies the digest before extraction. Uncommitted
+files cannot enter a candidate image.
+
+Candidate data, reports and image tags are separate from deployed data. Building
+or checking a candidate does not change the deployed service. Deployment is
+allowed only after the candidate aggregate returns status 0 and records
+`passed: true`.
+
+## Implementations and requests
+
+PHP, the PHP extension, Go and Rust implement the same compile, render,
+validation, persistence and SSR request contract. Each server uses its own
+generator and validator. The PHP extension process loads `crudui.so` and
+`ordered_json.so`; the PHP process loads neither extension. Startup rejects an
+unexpected class source, module digest or repository commit.
+
+The browser uses a serialized template compiled by the selected server and a
+form session. A frame mounts the form before it requests saved data, then injects
+the data into the existing form instance. The same session can also be created
+with saved data. Compile failures are returned as failures; the browser does not
+compile a replacement template.
+
+The complete browser matrix contains these 24 scenario reports:
+
+- four servers: PHP, PHP extension, Go and Rust;
+- three frameworks: React, Vue and Svelte;
+- two transports: native multipart form and ordered JSON.
+
+Every report uses the same specification, data and checks. Native and JSON saves
+must produce the same records, identifiers, parent identifiers and positions.
+Ordered JSON preserves object member order at every depth.
+
+## Structure, data and identity
+
+Structure compilation, instance data, rendering and validation are separate.
+The compiled template contains no record values, is JSON-serializable and is
+reused after compilation becomes unavailable. Repeated data injection, editing
+and remounting do not add compile requests for an existing cache key.
+
+Repeated collections are objects keyed by row identity. A saved sequence uses
+`__` plus 13 decimal digits plus `__`. A new unsaved row uses `__` plus 13
+lowercase hexadecimal digits plus `__`. A key identifies a row within its
+parent collection; object member order determines display order. The runtime
+does not infer saved state from key text.
+
+Submissions contain no hidden sequence controls, auxiliary identity fields or
+order fields. The server resolves an existing key only against stored rows under
+the same parent. It allocates a new sequence for an unknown key and returns the
+scoped key change. Deleted sequences are not reused.
+
+An explicit empty object represents an empty collection and produces no row
+controls. Missing collection data creates one initial row. Every visible empty
+collection provides an Add button. Visibility changes do not create, remove or
+submit data. A hidden collection with rows still submits those rows.
+
+## Browser checks
+
+Each scenario report checks all of the following operations:
+
+- rendering, native names and zero hidden identity controls;
+- addition, copying, movement, removal and saved-key replacement;
+- nonsequential saved identifiers in the order 5, 7 and 1;
+- client and server validation, including hidden required fields;
+- native and JSON transmission, malformed request rejection and exact reload;
+- empty company, store and department collection lifecycles;
+- parent ownership, stable sibling identifiers and non-reused deleted IDs;
+- cached structure reuse and compile-request stability;
+- initialization with data compared with mount-then-inject.
+
+Initialization comparison records raw HTML, parsed DOM, every attribute, live
+control state, native fields, ordered JSON data, focus, selection, computed CSS
+for elements and pseudo-elements, validation results and stored records. It
+compares both initialization paths at every stage without removing or replacing
+identifiers, attributes, styles or values. Repeated injection must be idempotent.
+
+Pointer and keyboard checks verify focus, selection and scroll preservation.
+Static SSR checks verify Korean and English output for every framework and
+compare corresponding documents from all four servers by SHA-256.
+
+## Runner and reports
+
+The browser starts a job and the host collects state and completed reports with
+short protocol calls. A long matrix never occupies one DevTools protocol call.
+The collector records the current report, report start time, completed report
+count, request and response counts, and last request and response times.
+
+A server run has an absolute limit of 900,000 milliseconds. The collector stops
+the run when elapsed time exceeds that limit, even if requests are still active.
+It also fails after 300,000 milliseconds without a change to the current report,
+completed report count, request count or response count. Both failures retain
+the current state and every completed report.
+
+A complete server report requires six scenario reports, 30 interaction checks,
+three mount-before-load checks, six static-document checks, no browser or page
+errors, matching source provenance and a duration within 900,000 milliseconds.
+Fields named `passed` must be booleans. Missing activity, initialization or
+timing evidence makes the report incomplete.
+
+The four-server aggregate requires one complete report from every server. It
+requires 480 successful scenario checks, 120 successful interaction checks, 12
+successful mount checks, 24 successful static-document checks, equal corresponding
+static SSR documents across servers and four successful performance results. Any failed,
+missing, malformed or unequal result sets `passed: false` and returns status 1.
+Only a complete aggregate with zero failures returns status 0.
+
+## Additional verification
+
+Generation verification requires 146 successful results, 207 HTTP requests and
+all 12 server/framework combinations. Repository verification checks atomic
+updates, locking, position-based loading, parent ownership, rejection without
+file changes, complete deletion and sequence allocation. Type verification
+checks the same scalar and collection rules in every server.
+
+Fast source tests reproduce report-policy failures, protocol timeout behavior,
+absolute and stalled job limits, source archive changes, snapshot differences,
+generation cache behavior and request-count changes. These tests do not replace
+the complete candidate matrix.
