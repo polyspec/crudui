@@ -9,7 +9,7 @@
 저장소 루트에서 실행합니다.
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run build:validator
 node --import tsx packages/cli/bin/crudui.mjs describe --json
 npm test --workspace @crudui/cli

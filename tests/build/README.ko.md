@@ -5,7 +5,7 @@
 저장소 루트에서 실행합니다.
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run test:runtimes
 npm run test:dependencies
 npm run build
@@ -21,7 +21,9 @@ npm run test:packages
 숫자 npm 릴리스를 거부합니다. CI는 현재 안정 npm 릴리스를 설치합니다.
 
 `test:dependencies`는 잘못되거나 누락되거나 충돌하는 설치 패키지를 거부합니다.
-또한 고정된 의존성 그래프에서 보고된 중간·높음·치명적 취약점을 거부합니다.
+또한 추적하는 모든 npm 잠금 파일에서 보고된 중간·높음·치명적 취약점, 승인하지
+않은 생명주기 스크립트, 정확한 패키지 버전을 명시하지 않은 스크립트 승인을
+거부합니다.
 
 `test:build`는 validator·generator-core·generator-react를 공개 CommonJS·ESM
 export로 로드합니다. `skipLibCheck: false`인 엄격한 NodeNext 타입 소비자를

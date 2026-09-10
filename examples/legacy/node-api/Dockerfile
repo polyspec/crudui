@@ -3,9 +3,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages ./packages
-RUN npm ci && npm run build
+RUN npm ci --strict-allow-scripts && npm run build
 COPY examples/legacy/node-api ./examples/legacy/node-api
 WORKDIR /app/examples/legacy/node-api
-RUN npm ci
+RUN npm ci --strict-allow-scripts
 EXPOSE 3000
 CMD ["npm", "start"]

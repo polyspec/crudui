@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+# Workspace packages use the root dependency lock file.
+packages/*/package-lock.json
 
 # Composer dependencies
 examples/**/vendor/

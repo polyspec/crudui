@@ -5,7 +5,7 @@
 Run from the repository root:
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run test:runtimes
 npm run test:dependencies
 npm run build
@@ -22,8 +22,9 @@ patch releases and numeric npm releases. CI installs the current stable npm
 release.
 
 `test:dependencies` rejects invalid, missing and conflicting installed packages.
-It also rejects moderate, high and critical advisories reported for the locked
-dependency graph.
+For every tracked npm lock file, it also rejects moderate, high and critical
+advisories, unapproved lifecycle scripts and script approvals that do not name an
+exact package version.
 
 `test:build` loads validator, generator-core and generator-react through their
 public CommonJS and ESM exports. It compiles strict NodeNext type consumers with

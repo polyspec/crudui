@@ -28,7 +28,7 @@ jobs:
           cache: npm
 
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
 
       - name: Verify runtime version channels
         run: npm run test:runtimes
@@ -77,7 +77,7 @@ jobs:
           workspaces: packages/validator-rust
 
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
 
       - name: Build JS validator
         run: npm run build:validator
@@ -96,7 +96,7 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
       - name: Test
         run: npm test
         working-directory: packages/validator-ts
@@ -159,14 +159,14 @@ jobs:
           cache: npm
 
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
 
       - name: Build generators (validator + react/vue/svelte)
         run: npm run build
 
       - name: React parity
         run: |
-          npm ci
+          npm ci --strict-allow-scripts
           npm test
         working-directory: tests/parity
 
@@ -215,7 +215,7 @@ jobs:
           workspaces: packages/validator-rust
 
       - name: Install workspace deps (typedoc lives here)
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
 
       - name: Install PHP API documentation generator
         run: sh scripts/install-phpdocumentor.sh
@@ -234,7 +234,7 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
       - name: current conformance (vitest src)
         run: npm run test:current
         working-directory: packages/validator-ts
@@ -304,7 +304,7 @@ jobs:
           cache: npm
 
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
 
       - name: Build form packages
         run: npm run build
@@ -356,7 +356,7 @@ jobs:
           workspaces: packages/validator-rust
 
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
 
       - name: Build form packages
         run: npm run build
@@ -382,7 +382,7 @@ jobs:
           cache: npm
 
       - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
 
       - name: Build validator package
         run: npm run build:validator
@@ -400,7 +400,7 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
-      - run: npm i -g npm@latest && npm ci
+      - run: npm i -g npm@latest && npm ci --strict-allow-scripts
       - run: npm run test:forms
 
   form-comparison:
@@ -414,7 +414,7 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install workspace deps and Puppeteer Chromium
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
       - name: Test report policy, browser jobs and candidate sources
         run: npm run test:form-comparison
 
@@ -429,7 +429,7 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install workspace deps and Puppeteer Chromium
-        run: npm i -g npm@latest && npm ci
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
       - name: Pack and test package consumers
         run: npm run test:packages
       - name: Test public package exports and types
@@ -470,7 +470,7 @@ jobs:
             packages/php-ext
       - name: Install dependencies
         run: |
-          npm i -g npm@latest && npm ci
+          npm i -g npm@latest && npm ci --strict-allow-scripts
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
       - name: Build and test native packages

@@ -3,10 +3,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages ./packages
-RUN npm ci && npm run build
+RUN npm ci --strict-allow-scripts && npm run build
 COPY examples/legacy/demo-app ./examples/legacy/demo-app
 WORKDIR /app/examples/legacy/demo-app
-RUN npm ci && npm run build
+RUN npm ci --strict-allow-scripts && npm run build
 
 FROM nginx:alpine AS production
 

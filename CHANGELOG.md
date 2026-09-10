@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-10 — Enforce dependency install-script approvals
+
+Each independently installed npm graph records exact-version approvals for all
+dependency lifecycle scripts. Workspace packages use the root lock file. Clean
+installs in CI and container builds use `--strict-allow-scripts` and fail before
+installation when an approval is missing.
+
+The dependency checks passed five of five tests across every tracked lock file.
+The three browser applications built successfully, the parity suite passed seven
+of seven tests, the runtime policy and package-build suites passed seven of seven
+tests each, and the complete documentation check passed.
+
 ## 2026-09-10 — Current candidate verification
 
 The cross-framework and legacy-client lock files resolve the current package

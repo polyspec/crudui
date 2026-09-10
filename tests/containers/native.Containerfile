@@ -19,7 +19,7 @@ WORKDIR /workspace
 RUN chown node:node /workspace
 COPY --chown=node:node . .
 USER node
-RUN npm ci \
+RUN npm ci --strict-allow-scripts \
     && composer install --working-dir=packages/validator-php --no-interaction --prefer-dist \
     && composer install --working-dir=packages/generator-php --no-interaction --prefer-dist \
     && npm run build \

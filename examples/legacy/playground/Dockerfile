@@ -3,10 +3,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages ./packages
-RUN npm ci && npm run build
+RUN npm ci --strict-allow-scripts && npm run build
 COPY examples/legacy/playground ./examples/legacy/playground
 WORKDIR /app/examples/legacy/playground
-RUN npm ci && npm run build
+RUN npm ci --strict-allow-scripts && npm run build
 
 FROM node:26-alpine AS production
 

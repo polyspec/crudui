@@ -40,7 +40,7 @@ alone does not generate that package output.
 
 ## Acceptance
 
-- `npm ci` installs the pinned dependencies, and `npm run build` executes the
+- `npm ci --strict-allow-scripts` installs the pinned dependencies, and `npm run build` executes the
   declared validator and generator builds in dependency order.
 - The validator, generator-core and generator-react load through their public
   CommonJS and ES module exports without importing package source paths.
@@ -54,10 +54,17 @@ validation conformance, SSR and browser interaction retain their separate tests.
 
 Dependency resolution uses the version constraints declared in package manifests.
 The lock file records the resolved dependency graph, including optional native
-packages for supported platforms. Clean installations use `npm ci`; package and
+packages for supported platforms. Clean installations use
+`npm ci --strict-allow-scripts`; package and
 consumer checks run against the resolved graph before verification is recorded.
-Installation runs dependency lifecycle scripts. npm versions that require script
-approval use the exact package approvals in the root `allowScripts` field.
+Installation runs dependency lifecycle scripts. Each independently installed
+dependency graph records required script approvals as exact package versions in
+the `allowScripts` field of that graph's root package manifest. Name-only and
+version-range approvals are not accepted. A clean install uses npm's strict
+approval check and fails before installation when any lifecycle script is not
+covered by an exact approval.
+Workspace packages use the root lock file and do not maintain package-level lock
+files.
 Container builds install platform dependencies through the package manager.
 The root development dependencies include the shared test runner so that testing
 integrations installed at the root can resolve it through normal module lookup.
@@ -91,9 +98,10 @@ Every Git-tracked npm lock file is a maintained dependency graph. The root
 installation must make `npm ls --all` return status 0 without invalid, missing or
 conflicting dependencies. `npm audit --package-lock-only --audit-level=moderate`
 must report no moderate, high or critical vulnerability for each tracked lock
-file. A tool with no secure compatible stable release is replaced. Dependency
-overrides and audit exclusions do not satisfy these checks. Unused build and
-documentation dependencies are removed.
+file. `npm ci --dry-run --strict-allow-scripts` must also succeed for each graph.
+A tool with no secure compatible stable release is replaced. Dependency overrides
+and audit exclusions do not satisfy these checks. Unused build and documentation
+dependencies are removed.
 
 ## Documentation site
 

@@ -3,11 +3,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages ./packages
-RUN npm ci && npm run build
+RUN npm ci --strict-allow-scripts && npm run build
 COPY examples/legacy/limepie-bootstrap ./examples/legacy/limepie-bootstrap
 COPY examples/legacy/shared-specs ./examples/legacy/shared-specs
 WORKDIR /app/examples/legacy/limepie-bootstrap
-RUN npm ci && npm run build
+RUN npm ci --strict-allow-scripts && npm run build
 
 FROM nginx:alpine AS production
 

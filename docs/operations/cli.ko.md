@@ -7,7 +7,7 @@
 의존성을 설치하고 validator를 빌드합니다.
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run build:validator
 ```
 
