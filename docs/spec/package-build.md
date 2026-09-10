@@ -8,6 +8,12 @@ CommonJS and ES module formats. TypeScript generates declarations from the publi
 entry and its imports, with the package's strict compiler options and
 `noEmitOnError`. Tests are checked separately from distributable declarations.
 
+Test configuration files declare the module format used by their loader. A Vitest
+configuration that uses ES module syntax uses an `.mts` or `.mjs` extension, or a
+closest `package.json` with `"type": "module"`. A package that publishes CommonJS
+`.js` files retains its CommonJS package type and uses `.mts` for an ES module
+Vitest configuration.
+
 The declaration compiler does not receive deprecated module-resolution options
 from the JavaScript bundler. Build commands do not suppress type errors or create
 substitute declarations. A clean build removes preceding output before producing
