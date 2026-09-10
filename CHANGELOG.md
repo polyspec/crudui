@@ -2,6 +2,27 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Verify explicit browser and PHP inputs
+
+The Chromium widget check disables Vite dependency discovery and optimizes only
+the five declared React and CRUDUI packages. It fails on page exceptions, HTTP
+error responses, failed requests and `console.error` messages during every test
+phase. The five widget and timezone checks passed.
+
+The PHP form server obtains the `crudui/validator` installation directory from
+exactly one Composer installed-package record. The directory must be inside the
+candidate Composer vendor directory. Every path component and loaded class file
+must be regular, and the installed validator file must match the candidate source
+file. Missing records, multiple records, external paths and changed package
+copies fail construction.
+
+The PHP source and construction suite passed nine checks. Five hundred verified
+constructions completed within the 250 millisecond limit. The PHP and PHP
+extension integration check passed 125 generation checks in each mode together
+with JSON conversion, storage, validation, public signature and processor-mode
+checks. The complete form comparison command passed 129 source checks, nine
+construction checks and one browser protocol check.
+
 ## 2026-09-11 — Build PHP extensions directly
 
 One PHP extension builder compiles and loads the CRUDUI and OrderedJSON
