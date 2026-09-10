@@ -94,6 +94,10 @@ class must use regular paths without symbolic links. The validator class must
 match the corresponding source file in the candidate archive. The process
 rejects a missing or malformed selected package record, an external installation
 directory or a different installed file.
+The PHP health response reports `Generator` and `Form` from the generator source
+directory and `Validator` from the selected Composer installation directory.
+Startup accepts only these reported class locations after the source comparison
+has passed.
 
 The public API accepts only
 `/api/{server}/{action}/{renderingPath}/{framework}`. The public process starts
