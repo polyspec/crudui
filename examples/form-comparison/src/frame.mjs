@@ -7,6 +7,7 @@ import { encodeJson, readJson } from './json.mjs';
 import { formSnapshot, styleSnapshot, compareSnapshots, identical, snapshotHash } from './form-snapshot.mjs';
 import { appendInitializationEvidence } from './initialization-report.mjs';
 import { serverGeneration } from './server-generation.mjs';
+import { createActionCompletion } from './action-completion.mjs';
 
 const renderingPath = __FORM_PATH__;
 const framework = __FRAMEWORK__;
@@ -17,13 +18,13 @@ const t = translations(language);
 const form = document.querySelector('#form');
 const view = document.querySelector('#view');
 const transport = document.querySelector('#transport');
-const flush = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 const spec = specFor();
 const generation = serverGeneration(server, renderingPath, framework);
 let driver;
 let validation;
 let running = false;
 let initializationEvidence;
+const actionCompletion = createActionCompletion();
 
 for (const id of ['create', 'load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks', 'initialization-check']) document.querySelector(`#${id}`).textContent = t[id];
 for (const id of ['results', 'names', 'state', 'server-data']) document.querySelector(`#${id}-label`).textContent = t[id];
@@ -65,7 +66,7 @@ function canonical(value) {
   return value;
 }
 function same(actual, expected, label) { equal(JSON.stringify(canonical(actual)), JSON.stringify(canonical(expected)), label); }
-async function settle() { await driver?.idle?.(); await flush(); }
+async function settle() { await driver?.idle?.(); }
 async function click(row, action) { rowButton(row, action).click(); await settle(); }
 async function edit(input, value) {
   input.focus(); input.value = value;
@@ -751,9 +752,20 @@ async function runChecks(method = transport.value, only) {
 }
 function action(id, fn) {
   document.querySelector(`#${id}`).addEventListener('click', async () => {
-    if (running) return;
-    try { await fn(); await settle(); inspect(); }
-    catch (error) { document.querySelector('#results').textContent = error.message; }
+    const tracked = actionCompletion.begin(id);
+    if (running) {
+      tracked?.fail(new Error('Checks already running'));
+      return;
+    }
+    try {
+      const result = await fn();
+      await settle();
+      inspect();
+      tracked?.complete(result);
+    } catch (error) {
+      document.querySelector('#results').textContent = error.message;
+      tracked?.fail(error);
+    }
   });
 }
 action('load', load);
@@ -776,6 +788,8 @@ await mount();
 await load();
 window.comparison = {
   runChecks, reset, inspect, submit, save, load, idle: settle, server,
+  nextAction: actionCompletion.next, cancelAction: actionCompletion.cancel,
+  actionCompletion: actionCompletion.completion,
   path: renderingPath, framework,
   commit: __SOURCE_COMMIT__,
 };

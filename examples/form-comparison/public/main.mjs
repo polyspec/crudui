@@ -169,3 +169,6 @@ document.querySelector('#download').addEventListener('click', () => {
 
 await show('react');
 window.comparison = { startRun, runState, runReport, show, getReports: () => reports };
+window.postMessage({
+  type: 'crudui:main-ready', server: initialServer, framework: 'react',
+}, location.origin);
