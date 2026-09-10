@@ -22,6 +22,7 @@ export type { UnsupportedMode } from '@crudui/generator-core';
 export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
 export { Field } from './components/Field';
 export { Widget } from './components/Widget';
+export type { AnyWidget } from './components/Widget';
 
 // List models and rendering.
 export { buildList } from '@crudui/generator-core';
@@ -36,6 +37,7 @@ export type {
   CellDisplay,
 } from '@crudui/generator-core';
 export { List } from './components/List';
+export type { ListProps } from './components/List';
 export { Cell } from './components/Cell';
 
 /** Render the current form instance as HTML. */

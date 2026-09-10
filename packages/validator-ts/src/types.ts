@@ -473,3 +473,5 @@ export interface CachedCondition {
 // Validator Options
 // ============================================================================
 
+/** Virtual files available to `$ref` resolution, indexed by reference key. */
+export type FileSet = Record<string, Record<string, unknown>>;
