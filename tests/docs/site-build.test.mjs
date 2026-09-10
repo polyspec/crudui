@@ -70,7 +70,7 @@ test('documentation build preserves page routes, titles, links and public files'
   assert.match(guide, /<html lang="en-US">/);
   assert.match(guide, /<title>Guide &amp; usage \| CRUDUI<\/title>/);
   assert.match(guide, /<h1 id="guide-usage">Guide &amp; usage<\/h1>/);
-  assert.match(guide, /href="\/#home"/);
+  assert.match(guide, /href="\/"/);
   assert.match(guide, /href="https:\/\/github\.com\/crudui\/crudui\/blob\/main\/tests\/build-notes\.md#checks"/);
   assert.equal(await readFile(join(outputDirectory, 'assets', 'fixture.txt'), 'utf8'), 'public asset\n');
   assert.match(await readFile(join(outputDirectory, '404.html'), 'utf8'), /<title>404 \| CRUDUI<\/title>/);
