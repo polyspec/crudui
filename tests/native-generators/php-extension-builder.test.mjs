@@ -37,11 +37,12 @@ test('non-Linux tool discovery uses regular executables and the Rust toolchain r
   const rustup = await executable(path.join(bin, 'rustup'));
   const cargo = await executable(path.join(toolchain, 'cargo'));
   const rustc = await executable(path.join(toolchain, 'rustc'));
+  const rustdoc = await executable(path.join(toolchain, 'rustdoc'));
   const calls = [];
   const run = async (file, args) => {
     calls.push([file, args]);
     if (file === rustup && args[0] === 'which') {
-      return { stdout: (args[1] === 'cargo' ? cargo : rustc) + '\n', stderr: '' };
+      return { stdout: ({ cargo, rustc, rustdoc })[args[1]] + '\n', stderr: '' };
     }
     if (file === phpConfig) return { stdout: '8.5.10\n', stderr: '' };
     if (file === compiler) return { stdout: 'clang version 21.0.0\n', stderr: '' };
@@ -50,15 +51,17 @@ test('non-Linux tool discovery uses regular executables and the Rust toolchain r
     if (file === rustc) {
       return { stdout: 'rustc 1.98.1 (test 2026-09-01)\nhost: aarch64-test-system\n', stderr: '' };
     }
+    if (file === rustdoc) return { stdout: 'rustdoc 1.98.1 (test 2026-09-01)\n', stderr: '' };
     throw new Error('Unexpected command: ' + file + ' ' + args.join(' '));
   };
 
   assert.deepEqual(await resolvePhpBuildTools({
     environment: { HOME: root, PATH: bin }, needsCargo: true, platform: 'darwin', run,
-  }), { phpConfig, compiler, cargo, rustc, rustHost: 'aarch64-test-system' });
+  }), { phpConfig, compiler, cargo, rustc, rustdoc, rustHost: 'aarch64-test-system' });
   assert.deepEqual(calls.filter(([, args]) => args[0] === 'which'), [
     [rustup, ['which', 'cargo']],
     [rustup, ['which', 'rustc']],
+    [rustup, ['which', 'rustdoc']],
   ]);
 });
 
@@ -202,10 +205,12 @@ test('Rust build environment declares regular compiler and linker paths', () => 
   assert.deepEqual(rustBuildEnvironment({ PATH: '/declared/bin' }, {
     compiler: '/tools/cc',
     rustc: '/toolchain/rustc',
+    rustdoc: '/toolchain/rustdoc',
     rustHost: 'aarch64-apple-darwin',
   }), {
     PATH: '/declared/bin',
     RUSTC: '/toolchain/rustc',
+    RUSTDOC: '/toolchain/rustdoc',
     CC: '/tools/cc',
     CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: '/tools/cc',
   });

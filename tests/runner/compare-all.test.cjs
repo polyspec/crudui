@@ -25,7 +25,7 @@ for (const mode of ['failure', 'wrong-result']) {
   });
 }
 
-test('comparison resolves Cargo from the Rustup toolchain record', () => {
+test('comparison resolves Rust tools from one Rustup toolchain record', () => {
   const directory = mkdtempSync(join(realpathSync(tmpdir()), 'crudui-comparison-rustup-'));
   try {
     const home = join(directory, 'home');
@@ -37,24 +37,31 @@ test('comparison resolves Cargo from the Rustup toolchain record', () => {
     mkdirSync(toolchain);
     const cargo = join(toolchain, 'cargo');
     const rustc = join(toolchain, 'rustc');
+    const rustdoc = join(toolchain, 'rustdoc');
     writeFileSync(join(rustupBin, 'rustup'), [
       '#!/bin/sh',
       'if [ "$1" = "--version" ]; then printf "rustup 1.29.0\n"; exit 0; fi',
       `if [ "$1" = "which" ] && [ "$2" = "cargo" ]; then printf '%s\n' '${cargo}'; exit 0; fi`,
       `if [ "$1" = "which" ] && [ "$2" = "rustc" ]; then printf '%s\n' '${rustc}'; exit 0; fi`,
+      `if [ "$1" = "which" ] && [ "$2" = "rustdoc" ]; then printf '%s\n' '${rustdoc}'; exit 0; fi`,
       'exit 2',
       '',
     ].join('\n'), { mode: 0o755 });
     writeFileSync(cargo, [
       '#!/bin/sh',
       'if [ "$1" = "--version" ]; then printf "cargo 1.98.1\n"; exit 0; fi',
-      `printf '%s\t%s\n' "$*" "$RUSTC" > '${commandLog}'`,
+      `printf '%s\t%s\t%s\n' "$*" "$RUSTC" "$RUSTDOC" > '${commandLog}'`,
       'exit 23',
       '',
     ].join('\n'), { mode: 0o755 });
     writeFileSync(rustc, [
       '#!/bin/sh',
       'printf "rustc 1.98.1 (test 2026-09-01)\nhost: aarch64-test-system\n"',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    writeFileSync(rustdoc, [
+      '#!/bin/sh',
+      'printf "rustdoc 1.98.1 (test 2026-09-01)\n"',
       '',
     ].join('\n'), { mode: 0o755 });
 
@@ -67,7 +74,7 @@ test('comparison resolves Cargo from the Rustup toolchain record', () => {
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.equal(existsSync(commandLog), true, result.stdout + result.stderr);
     assert.equal(readFileSync(commandLog, 'utf8'),
-      `build --locked --release --bin validate-legacy\t${rustc}\n`);
+      `build --locked --release --bin validate-legacy\t${rustc}\t${rustdoc}\n`);
     assert.doesNotMatch(result.stdout + result.stderr, /spawnSync cargo ENOENT/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
