@@ -170,15 +170,22 @@ and the deployment record stores the resolved image digest. Missing, stale,
 failed or malformed evidence prevents deployment.
 
 Deployment state is stored under `.form-comparison/deployment/` in this
-repository. The generated Compose file mounts its `data` and `results`
-directories, serves `crudui.test`, and checks `/api/health` and
-`/metadata.json` against the selected candidate commit. Candidate preparation,
-candidate results and deployment state use separate directories.
+repository. The generated Compose file mounts only its `data` directory, serves
+`crudui.test`, and checks `/api/health` and `/metadata.json` against the
+selected candidate commit. Browser reports, screenshots and other candidate
+results are verification inputs, not deployment state.
 
 After applying the generated Compose file, verification requests the HTTPS home
 page, health response, metadata and one saved-data response. It verifies the
 route certificate, deployed image digest, source commit, mounted paths and stored
 files. It then applies the same Compose file again. The second application must
-retain the container identity, creation and start times, image digest, mounts,
-route, certificate, stored files and response bytes. Any change or failed
+retain the container identity, creation and start times, image digest, data
+mount, route, certificate, stored files and response bytes. Any change or failed
 request makes deployment verification fail.
+
+After deployment verification succeeds, the repository retains the deployment
+commit, image digest, report totals, data digests and identical-application
+result. It removes candidate containers, candidate directories, raw reports,
+screenshots and local comparison images that the deployed service does not use.
+If deployment verification fails, it keeps the current candidate directory for
+diagnosis and does not remove the active deployment image.
