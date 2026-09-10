@@ -107,8 +107,8 @@ shared:
   `{name,note,spec,data,expected:{valid,errors}}`, form-render
   `{name,note,spec,data,options,expected_html}`, and list
   `{name,note,spec,rows,options,expected_html|expected_error}`. Paste an exported
-  divergent case into the AI gate (`compare-all.js` / `*.conformance`) to turn a
-  live break into a permanent regression test.
+  divergent case to the automated checks (`compare-all.js` / `*.conformance`)
+  to retain it as a regression test.
 
 ## Run
 
@@ -123,10 +123,10 @@ origin: `http://localhost:5173/?api=http://localhost:8020`.
 
 ## Independent verification
 
-The console and the AI gate reach the SAME CRUDUI engine functions
+The console and the automated conformance checks call the same CRUDUI functions
 (`validate`, `renderForm`) through DIFFERENT call stacks:
-the console via the HTTP gateway with free-form live input; the gate via
+the console uses the HTTP gateway with free-form live input, while the checks use
 vitest / go test / cargo test / php worker with fixed fixtures. Same input must
 yield the same result — when it does not, a wrapper bug surfaces. The `raw`
 toggle keeps the console's own verdict auditable, and fixture export feeds live
-breaks back into the fixed gate.
+differences into the fixed conformance suite.
