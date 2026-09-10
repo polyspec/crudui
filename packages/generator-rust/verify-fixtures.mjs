@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -9,6 +8,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { normalizeHtml } from '../../tests/fixtures/form-render/normalize.mjs';
 import { equalModels, equalOrdered } from '../../tests/native-generators/protocol.mjs';
+import { runRustCommand } from '../../scripts/run-rust-command.mjs';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(packageRoot, '../..');
@@ -16,12 +16,16 @@ const temporary = await mkdtemp(join(tmpdir(), 'crudui-generator-rust-'));
 const output = join(temporary, 'fixtures.json');
 let server;
 try {
-  const process = spawnSync(globalThis.process.env.CARGO ?? 'cargo', ['test', '--locked', '--manifest-path', join(packageRoot, 'Cargo.toml'), 'native_fixture_records'], {
+  await runRustCommand([
+    'test', '--locked', '--manifest-path', join(packageRoot, 'Cargo.toml'),
+    'native_fixture_records',
+  ], {
     cwd: repositoryRoot,
-    env: { ...globalThis.process.env, CRUDUI_GENERATOR_FIXTURE_OUTPUT: output },
-    encoding: 'utf8',
+    environment: {
+      ...globalThis.process.env,
+      CRUDUI_GENERATOR_FIXTURE_OUTPUT: output,
+    },
   });
-  if (process.error || process.status !== 0) throw new Error(process.error?.message ?? `${process.stdout}\n${process.stderr}`);
   const native = JSON.parse(await readFile(output, 'utf8'));
   const forms = JSON.parse(await readFile(join(repositoryRoot, 'tests/fixtures/form-render/cases.json'), 'utf8'));
   const lists = JSON.parse(await readFile(join(repositoryRoot, 'tests/fixtures/list-render/cases.json'), 'utf8'));
