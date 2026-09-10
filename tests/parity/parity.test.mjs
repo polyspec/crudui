@@ -1,11 +1,8 @@
 /**
  * parity.test.mjs — React SSR output vs Limepie PHP reference-html fixtures.
  *
- * RED is the expected state while React<->PHP gaps remain open
- * (checkbox structure regression, footer/submit_button_text, textarea
- * placeholder, name-prefix drift, multiple-group markup, ...).
- * Do NOT weaken fixtures or normalization to force GREEN — fix the
- * generator (Phase C scope).
+ * Every fixture requires equal React and PHP output. When a comparison fails,
+ * update the generator without weakening the fixture or normalization.
  *
  * Artifacts per fixture (inspect after a run):
  *   out/<name>.react.html        raw React SSR capture (form content)

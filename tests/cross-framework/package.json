@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "Direct React == Vue == Svelte SSR parity gate (no PHP reference; client renderers compared to each other).",
+  "description": "Compares React, Vue and Svelte SSR output directly without a PHP reference.",
   "scripts": {
     "capture": "npm run capture:react && npm run capture:vue && npm run capture:svelte",
     "capture:react": "node node-capture.mjs react",

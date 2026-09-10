@@ -2,7 +2,7 @@ import { renderFields } from '../../../packages/generator-react/src/internal/ren
 import type { BindFormOptions, CompileFormOptions } from '@crudui/generator-core';
 import { compileForm } from '@crudui/generator-core';
 /**
- * form-render shared fixture generator (4-language / 3-framework parity gate).
+ * Generates shared form-render fixtures for four languages and three frameworks.
  *
  * Produces `cases.json`: one case per render scenario from the CRUDUI analysis
  * `fixture_ideas`. Each case is `{ name, note, spec, data?, options?,

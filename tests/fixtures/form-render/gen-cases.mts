@@ -2,7 +2,7 @@ import { compileForm } from '@crudui/generator-core';
 /**
  * Fixture generator for the form-render NEW-WIDGET cases. Runs the React CRUDUI
  * generator (the reference) over each new spec, normalizes through the SHARED
- * normalizer, and replaces matching `expected_html` cases or appends new ones. The 3-framework gate then re-verifies every generator reproduces
+ * normalizer, and replaces matching `expected_html` cases or appends new ones. The three-framework comparison then verifies that every generator reproduces
  * the same normalized output.
  *
  * Run: npx tsx tests/fixtures/form-render/gen-cases.mts
@@ -32,7 +32,7 @@ function group(field: Record<string, unknown>): Record<string, unknown> {
   return { type: 'group', properties: { [Object.keys(field)[0]!]: field[Object.keys(field)[0]!] } };
 }
 
-// Helper: declare a case with auto-computed expected_html (pass-lane).
+// Declare a case with an automatically computed expected_html value.
 function pass(
   name: string,
   note: string,
@@ -51,7 +51,7 @@ function pass(
   };
 }
 
-// Helper: an error-lane case (no expected_html).
+// Declare an expected-error case without expected_html.
 function err(name: string, note: string, spec: Record<string, unknown>, code: string): FixtureCase {
   return { name, note, spec, expectError: { code } };
 }
