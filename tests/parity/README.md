@@ -4,11 +4,11 @@
 `@crudui/generator-react` FormBuilder 의 SSR 출력(`react-dom/server`
 `renderToStaticMarkup`)을 정규화 후 비교한다.
 
-- **GREEN 이 기대 상태다 (7/7, 50/50 필드 + chrome).** Phase C 수렴 완료 —
-  React 쪽 격차(체크박스 구조, footer/submit 버튼, multiple 마크업, 조건부
-  그룹, lang append, search/tinymce/image 레거시 마크업, datetime event,
-  items 순서)는 전부 닫혔다. 회귀가 나면 기준 픽스처나 정규화 규칙을 약화해
-  GREEN 으로 만들지 마라 — generator-react 구현을 고쳐라.
+- 현재 검사는 7개 사례, 50개 필드와 Chromium 비교를 모두 통과합니다.
+  React는 체크박스 구조, footer·submit 버튼, multiple 마크업, 조건부 그룹,
+  lang append, search·tinymce·image 마크업, datetime event와 items 순서를
+  기준 출력과 동일하게 생성합니다. 차이가 발생하면 기준 픽스처와 정규화
+  규칙을 유지하고 generator-react 구현을 수정합니다.
 - 기준 재생성은 `tools/limepie-baseline/` 파이프라인으로만 하라.
 
 ## 실행
@@ -42,7 +42,7 @@ ProductNft 포함 렌더 안에 있다 (`tools/limepie-baseline/README.md` 참�
 
 | 규칙 | 내용 |
 | --- | --- |
-| (a) 토큰 마스킹 | `tools/limepie-baseline/README.md` 의 검증된 4규칙 레시피 포팅 — 무수정 적용. 파싱 전 raw 문자열에 적용, 등장 순서대로 `U1…`/`C1…`/`T1…` 치환 — 상관관계(예: multiple name placeholder == data-uniqid) 보존. bare hex 규칙은 원본 그대로 `{13,14}` — React `generateUniqid()` 가 PHP `uniqid()` 와 같은 13 hex 를 내도록 맞춰져 (과거 12 hex deviation 해소), 토큰 길이 자체도 parity 단언 대상이다. |
+| (a) 토큰 마스킹 | 파싱 전 raw 문자열에 네 규칙을 적용하고 등장 순서대로 `U1…`/`C1…`/`T1…`로 치환한다. 이 처리는 multiple name placeholder와 data-uniqid 같은 값의 대응 관계를 보존한다. bare hex 규칙은 13~14자를 허용하며 토큰 길이도 비교한다. |
 | (b) 속성 순서 | 이름 알파벳순 정렬. |
 | (c) 태그 사이 공백 | 공백 전용 텍스트 노드(`[ \t\r\n]`) 제거. 혼합 텍스트는 공백 run 을 단일 스페이스로 축약 + 양끝 ASCII 공백 trim. U+00A0(`&nbsp;`)은 공백이 아니라 콘텐츠다(legacy 버튼 라벨이 전부 `&nbsp;`) — 보존된다. |
 | (d) HTML 주석 제거 | legacy 출력의 `<!--btn-->` 등 주석은 비교에서 제외한다. **React 는 주석을 출력할 수 없으므로** 주석은 parity 대상이 아니다. 제거 사실을 여기 기록한다 — 주석이 의미를 갖게 되면 이 규칙을 재검토하라. |

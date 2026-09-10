@@ -1,8 +1,9 @@
 # Cross-Check Console
 
-A single Node gateway that runs the SAME CRUDUI engine the AI conformance gate runs,
-through a DIFFERENT call stack, so a human can flow arbitrary spec + data live and
-watch all four validators and all three SSR generators agree (or diverge).
+A Node HTTP gateway runs the same CRUDUI entry points as the automated
+conformance checks through a separate call stack. It accepts an arbitrary
+specification and data, then displays agreement or differences across four
+validators and three SSR generators.
 
 Responsibilities in one process (`server/server.mjs`):
 
@@ -29,7 +30,7 @@ Responsibilities in one process (`server/server.mjs`):
 
 ## Why it is independent verification
 
-The conformance gate (`tests/runner/compare-all.js` + the three
+The conformance checks (`tests/runner/compare-all.js` + the three
 `form-render.conformance` tests, plus the list-render conformance and the
 4-language list-structure conformance) drives the CRUDUI engine through vitest / go
 test / cargo test / a php worker against FIXED fixtures. The console drives the
@@ -38,8 +39,8 @@ different wrapper — a bug in one path cannot hide a bug in the other. Removing
 JS in-process import strengthens this: JS now runs through a CLI exactly like
 PHP/Go/Rust, so no language is favored inside the gateway and a 4-language
 agreement is engine determinism, not a privileged-call-path artifact. A live
-divergence you find can be exported as a fixture case and folded back into the
-gate as a permanent regression test.
+reported difference can be exported as a fixture case and added to the
+conformance suite as a regression test.
 
 The console does NOT trust the server's verdict. For every run it recomputes
 `idempotent` (4 langs agree) and `parity` (3 frameworks agree) from the raw
@@ -166,8 +167,8 @@ downloads it, one case per language/framework:
   list-spec verbatim (including a `search` slot if present); the list conformance
   reader ignores that slot exactly as the live renderers do.
 
-Paste an exported divergent case into the AI gate (`compare-all.js` /
-`*.conformance`) to turn a live break into a permanent regression test.
+Add an exported divergent case to the automated checks (`compare-all.js` /
+`*.conformance`) to retain it as a regression test.
 
 ## Local curl smoke test
 

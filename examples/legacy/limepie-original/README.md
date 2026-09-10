@@ -32,6 +32,5 @@ docker compose up limepie-original
 재생성**한다 — 절차와 핀(커밋 `a47ccba`), 비결정 토큰 정규화 규칙은
 `tools/limepie-baseline/README.md` 를 따르라.
 
-과거 이 디렉터리에 있던 `src/FormGenerator.php`("Limepie 와 동일 출력" 주장 standalone
-포트)는 `public/index.php` 가 사용하지 않는 죽은 코드였고 실제 Limepie 출력과도
-불일치하여 삭제되었다. 동일 출력 검증이 필요하면 tools/limepie-baseline 을 사용하라.
+`public/index.php`는 이 디렉터리의 실행 진입점입니다. 출력 비교는
+`tools/limepie-baseline`의 검사 절차를 사용합니다.

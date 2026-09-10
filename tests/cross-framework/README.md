@@ -1,4 +1,4 @@
-# cross-framework parity gate
+# Cross-framework parity verification
 
 Direct **React == Vue == Svelte** SSR comparison. The existing parity suites
 each diff ONE framework against the PHP Limepie `reference-html` fixtures
@@ -14,9 +14,9 @@ The same 7 specs the PHP-parity suites use (`specs.mjs`):
 `user-registration`, `ProductNft`.
 
 For each spec all THREE ordered pairs are asserted — React==Vue, Vue==Svelte,
-React==Svelte — i.e. **21 cross-framework equalities** over the 7 specs. It is a
-real 3-way gate, not a transitive shortcut: corrupting one framework's output
-fails exactly the two pairs that touch it, leaving the third green.
+React==Svelte — i.e. **21 cross-framework equalities** over the 7 specs. The
+check compares all three pairs directly. A mismatch in one framework fails the
+two pairs that include it and leaves the remaining pair successful.
 
 ## How it works (capture is per-process, comparison is here)
 
@@ -48,7 +48,7 @@ frameworks resolve from the monorepo root `node_modules` (workspace hoisting).
 
 ```sh
 cd tests/cross-framework
-npm test            # capture all 3 frameworks, then compare (the gate)
+npm test            # capture all 3 frameworks, then compare
 ```
 
 Or run the legs individually:
