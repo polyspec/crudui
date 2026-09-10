@@ -1,4 +1,4 @@
-FROM rust:1.98.0-slim-trixie AS rust-toolchain
+FROM rust:1-slim-trixie AS rust-toolchain
 
 FROM node:26-trixie-slim AS verified-source
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
