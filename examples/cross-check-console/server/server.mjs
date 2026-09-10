@@ -5,7 +5,7 @@
  *   (a) POST /api/validate — 4-language CRUDUI validation fan-out (JS in-process;
  *       PHP/Go/Rust as stdin-JSON CLIs). Same CRUDUI engine, four call stacks.
  *   (b) POST /api/render   — 3-framework CRUDUI SSR (React/Svelte sync, Vue async),
- *       all in-process through the SAME CRUDUI entries the conformance gate imports.
+ *       all in-process through the same CRUDUI entries used by conformance checks.
  *   (c) static console      — serves client/ at /.
  *
  * It follows the node-api server contract (examples/legacy/node-api/server.js): CORS on

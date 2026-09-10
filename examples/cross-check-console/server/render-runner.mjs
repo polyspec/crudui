@@ -31,8 +31,8 @@ export async function renderAll(req) {
 /**
  * Strip React 19's SSR resource-hint hoists (`<link rel="preload" as="image">`
  * emitted for an `<img src>`). A React-renderer artifact, not list markup (Vue/
- * Svelte SSR do not emit them) — the conformance gate strips the SAME bytes, so
- * the gateway must too for the React list output to match its sisters.
+ * Svelte SSR do not emit them). The conformance check removes the same bytes, so
+ * the gateway removes them before comparing framework output.
  */
 function stripReactFloats(html) {
   return html.replace(/<link\b[^>]*\brel="preload"[^>]*>/g, '');
