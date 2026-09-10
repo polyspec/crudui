@@ -22,11 +22,21 @@ const pageErrors = [];
 try {
   const page = await browser.newPage();
   page.on('pageerror', error => pageErrors.push(error.message));
+  await page.evaluateOnNewDocument(() => {
+    globalThis.cruduiFrameReady = new Promise(resolve => {
+      addEventListener('message', event => {
+        if (event.origin === location.origin && event.source === window
+            && event.data?.type === 'crudui:frame-ready') resolve(event.data);
+      });
+    });
+  });
   for (const framework of formFrameworks) {
     for (const renderingPath of formRenderingPaths) {
       await page.goto(base.origin + '/frames/' + renderingPath + '-' + framework
-        + '/?server=php', { waitUntil: 'networkidle0' });
-      await page.waitForFunction(() => window.comparison);
+        + '/?server=php', { waitUntil: 'load' });
+      assert.deepEqual(await page.evaluate(() => globalThis.cruduiFrameReady), {
+        type: 'crudui:frame-ready', server: 'php', framework, path: renderingPath,
+      });
       const selector = 'input[name$="[stores][__0000000000001__][name]"]';
       for (const delay of [0, 10, 50]) {
         let error;
@@ -35,13 +45,12 @@ try {
           const input = await page.$(selector);
           await input.click({ count: 3 });
           await input.press('Backspace');
-          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-          await page.click('#save');
-          await page.waitForFunction(() => document.querySelector('#validation').textContent.length > 0);
+          await page.evaluate(() => window.comparison.idle());
+          await page.evaluate(() => window.comparison.save());
           const expected = 'Seoul stores remain editable';
           await (await page.$(selector)).type(expected, { delay });
           assert.equal(await page.$eval(selector, input => input.value), expected, 'native typing retains every character');
-          await new Promise(resolve => setTimeout(resolve, 250));
+          await page.evaluate(() => window.comparison.idle());
           assert.equal(await page.$eval(selector, input => input.value), expected, 'queued rendering retains the final value');
           assert.equal(await page.$eval(selector, input => input === document.activeElement), true, 'typing retains focus');
           assert.equal(await page.$eval(selector, input => input.selectionStart), expected.length, 'typing retains the caret');
