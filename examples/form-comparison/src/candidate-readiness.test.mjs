@@ -69,6 +69,30 @@ test('fails when the container exits before readiness', async t => {
   assert.equal(watcher.closed, true);
 });
 
+test('ignores attached container completion after readiness', async t => {
+  const directory = await temporary(t);
+  const file = path.join(directory, 'candidate-ready.json');
+  const watcher = controlledWatcher();
+  let complete;
+  const completion = new Promise(resolve => { complete = resolve; });
+  const result = waitForCandidateReadiness({
+    file,
+    expected,
+    watchDirectory(_parent, listener) {
+      watcher.on('change', listener);
+      return watcher;
+    },
+    async start() {
+      await writeFile(file, JSON.stringify(expected) + '\n');
+      watcher.emit('change', 'rename', path.basename(file));
+      return { completion };
+    },
+  });
+  assert.deepEqual(await result, expected);
+  complete({ code: 0, signal: null });
+  await new Promise(resolve => setImmediate(resolve));
+});
+
 test('rejects an existing readiness path before starting the container', async t => {
   const directory = await temporary(t);
   const file = path.join(directory, 'candidate-ready.json');
