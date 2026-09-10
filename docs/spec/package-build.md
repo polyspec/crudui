@@ -68,6 +68,11 @@ files.
 Container builds install platform dependencies through the package manager.
 The root development dependencies include the shared test runner so that testing
 integrations installed at the root can resolve it through normal module lookup.
+Every repository-root Node.js entry point invoked by a build or test target
+declares each directly imported third-party package in the root manifest. A
+workspace package is available through the root workspace declaration. A
+transitive dependency or a dependency declared only by another workspace does
+not satisfy a root entry point.
 
 Dependency updates are prepared and verified locally. The repository does not
 schedule dependency update pull requests. Updated manifests and lock files are
