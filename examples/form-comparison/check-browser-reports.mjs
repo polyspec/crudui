@@ -4,12 +4,12 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  browserFrameworks, browserModes, browserScenarioCheckIds, browserServers, browserTransports,
+  browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers, browserTransports,
   verifyServerReport,
 } from './browser-report-policy.mjs';
 
 export {
-  browserFrameworks, browserModes, browserScenarioCheckIds, browserServers, browserTransports,
+  browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers, browserTransports,
 };
 
 function origin(value) {
@@ -21,19 +21,21 @@ function origin(value) {
 }
 
 function aggregate(summaries) {
-  return Object.fromEntries(browserModes.map(mode => [mode,
+  return Object.fromEntries(browserPaths.map(renderingPath => [renderingPath,
     Object.fromEntries(['scenarios', 'interactions', 'mounts', 'documents'].map(section =>
       [section, {
-        total: summaries.reduce((sum, report) => sum + report[section][mode].total, 0),
-        failed: summaries.reduce((sum, report) => sum + report[section][mode].failed, 0),
+        total: summaries.reduce((sum, report) =>
+          sum + report[section][renderingPath].total, 0),
+        failed: summaries.reduce((sum, report) =>
+          sum + report[section][renderingPath].failed, 0),
       }]))]));
 }
 
 function applyStaticDocumentAgreement(reports) {
-  for (const mode of browserModes) {
+  for (const renderingPath of browserPaths) {
     for (const framework of browserFrameworks) {
       const documents = browserServers.map(server => reports[server].staticDocuments
-        ?.find(item => item.mode === mode && item.framework === framework));
+        ?.find(item => item.path === renderingPath && item.framework === framework));
       if (documents.some(document => !document)) continue;
       if (new Set(documents.map(document => document.sha256)).size === 1) continue;
       for (const document of documents) {
@@ -112,8 +114,8 @@ async function main() {
     [server, JSON.parse(await readFile(path.join(directory, `report-${server}.json`), 'utf8'))])));
   const summary = summarizeBrowserReports(reports, options.get('--origin'), metadata);
   await writeFile(destination, JSON.stringify(summary, null, 2) + '\n');
-  const checked = Object.values(summary.verification).reduce((sum, mode) =>
-    sum + Object.values(mode).reduce((count, section) => count + section.total, 0), 0);
+  const checked = Object.values(summary.verification).reduce((sum, renderingPath) =>
+    sum + Object.values(renderingPath).reduce((count, section) => count + section.total, 0), 0);
   process.stdout.write(`Browser verification completed: ${checked} checks recorded; ${summary.failedChecks} checks failed; candidate ${summary.passed ? 'passed' : 'failed'}\n`);
   if (!summary.passed) process.exitCode = 1;
 }
