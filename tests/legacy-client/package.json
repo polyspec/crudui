@@ -25,5 +25,8 @@
   },
   "devDependencies": {
     "vitest": "^4.1.8"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true
   }
 }

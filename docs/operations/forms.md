@@ -7,14 +7,14 @@
 Run commands from the repository root. Install Node.js and npm, then run:
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run build
 ```
 
 Dependency updates resolve the version ranges in package manifests and update
 the lock file with npm. Review the resulting graph and run the checks below.
-For npm versions with install-script approval, review script changes and use
-`npm install-scripts approve <package>` to update the root `allowScripts` field.
+Review install-script changes and use `npm install-scripts approve <package>` to
+update the independent graph's root `allowScripts` field with exact versions.
 Run `npm rebuild` to execute newly approved scripts in an existing installation.
 Container images install `unzip` for Puppeteer's browser archive extraction.
 

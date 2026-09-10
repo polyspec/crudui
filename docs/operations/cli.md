@@ -7,7 +7,7 @@ and `explain`. Install dependencies and build the validator from the repository
 root before running commands or tests:
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run build:validator
 ```
 
