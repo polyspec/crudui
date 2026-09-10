@@ -35,18 +35,20 @@ CLI를 실행하는 애플리케이션은 사용 전에 CLI를 빌드합니다.
 전달합니다. Make 프로세스가 해당 디렉터리 없이 시작해도 그 디렉터리에서 도구를
 찾아 실행해야 합니다.
 Rust recipe는 Cargo 프록시 디렉터리를 `PATH`에 추가하지 않습니다. 공통 Rust 명령
-진입점을 사용하여 toolchain 기록이 선택한 일반 파일 Cargo와 rustc를 실행합니다.
+진입점을 사용하여 toolchain 기록이 선택한 일반 파일 Cargo, rustc, rustdoc을
+실행합니다.
 
 저장소의 Node.js 빌드·테스트 진입점은 하나의 공통 규칙으로 Rust 도구를
-해석합니다. 실행 시 Cargo와 rustc의 절대경로를 모두 선언할 수 있습니다. 경로를
+해석합니다. 실행 시 Cargo, rustc, rustdoc의 절대경로를 모두 선언할 수 있습니다. 경로를
 선언하지 않으면 `PATH`에 선언한 디렉터리와 Rustup Cargo 홈(`CARGO_HOME`, 생략 시
 `HOME` 아래 Rustup 기본 위치)에서 일반 파일인 rustup 실행 파일 하나를 발견합니다.
 같은 실행 파일을 가리키는 중복 위치는 결과 하나로 처리하고 서로 다른 결과가 있으면
-실패합니다. 해석기는 `rustup which cargo`와 `rustup which rustc`를 실행하고 반환된
-두 경로가 절대·정규 경로이며 모든 경로 구성 요소에 심볼릭 링크가 없는 실행 가능한
-일반 파일인지 검사합니다. 기록 누락, 잘못된 버전 출력, 모호한 발견 결과는 빌드 시작
-전에 실패합니다. 각 진입점은 해석된 Cargo 경로를 실행하며 프로세스 `PATH`의
-`cargo` 명령으로 대체하지 않습니다.
+실패합니다. 해석기는 `rustup which cargo`, `rustup which rustc`,
+`rustup which rustdoc`을 실행하고 반환된 모든 경로가 절대·정규 경로이며 모든 경로
+구성 요소에 심볼릭 링크가 없는 실행 가능한 일반 파일인지 검사합니다. 기록 누락,
+잘못된 버전 출력, 모호한 발견 결과는 빌드 시작 전에 실패합니다. 각 진입점은 해석된
+Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경로를 설정하며
+프로세스 `PATH`의 Rust 명령으로 대체하지 않습니다.
 
 스펙 CLI는 `tsx`로 TypeScript 소스를 실행합니다. CLI가 import한 생성기는
 공개 패키지 진입점으로 validator를 로드하므로 로컬 명령과 CI 테스트는 CLI를
