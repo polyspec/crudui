@@ -63,6 +63,14 @@ try {
   await page.exposeFunction('cruduiBrowserJobEvent', async event => {
     for (const listener of jobListeners) await listener(event);
   });
+  await page.evaluateOnNewDocument(() => {
+    globalThis.cruduiMainReady = new Promise(resolve => {
+      addEventListener('message', event => {
+        if (event.origin === location.origin && event.source === window
+            && event.data?.type === 'crudui:main-ready') resolve(event.data);
+      });
+    });
+  });
   publishActivity = event => {
     for (const listener of activityListeners) listener(event);
   };
@@ -135,8 +143,11 @@ try {
     }
     await request.continue();
   });
-  await page.goto(`${base.origin}/?server=${selectedServer}`, { waitUntil: 'networkidle0' });
-  await page.waitForFunction(() => window.comparison, { timeout: 30_000 });
+  await page.goto(`${base.origin}/?server=${selectedServer}`, { waitUntil: 'load' });
+  const mainReady = await page.evaluate(() => globalThis.cruduiMainReady);
+  if (JSON.stringify(mainReady) !== JSON.stringify({
+    type: 'crudui:main-ready', server: selectedServer, framework: 'react',
+  })) throw new Error('Main page readiness differs');
   await page.screenshot({ path: path.join(output, formsFile), fullPage: true });
   let loggedProgress = '';
   const collected = await collectBrowserJob({

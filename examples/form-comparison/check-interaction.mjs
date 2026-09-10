@@ -7,6 +7,19 @@ const actions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboa
 const collectionSelector = '[data-field-path="companies"]';
 const storeSelector = 'input[name$="[stores][__0000000000001__][name]"]';
 
+async function clickAction(frame, id) {
+  const action = await frame.evaluate(operation =>
+    window.comparison.nextAction(operation), id);
+  try {
+    await (await frame.$(`#${id}`)).click();
+  } catch (error) {
+    await frame.evaluate(selected => window.comparison.cancelAction(selected), action);
+    throw error;
+  }
+  return frame.evaluate(selected =>
+    window.comparison.actionCompletion(selected), action);
+}
+
 /** Return every current interaction check for the selected servers. */
 export function interactionCombinations(servers) {
   if (!Array.isArray(servers) || servers.length === 0
@@ -41,17 +54,13 @@ export async function checkInteraction(page, servers) {
                   `${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-minus`,
                 );
                 await remove.click();
+                await frame.evaluate(() => window.comparison.idle());
                 const selector = `${collectionSelector} > .form-element > button.btn-plus`;
-                await frame.waitForSelector(selector);
                 await (await frame.$(selector)).focus();
                 const before = await frame.evaluate(() => document.scrollingElement.scrollTop);
                 const parentScroll = await page.evaluate(() => window.scrollY);
                 await page.keyboard.press('Enter');
-                await frame.waitForFunction(value =>
-                  document.querySelector(`${value} > .form-element > .input-group-wrapper`),
-                {}, collectionSelector);
-                await frame.evaluate(() => new Promise(resolve =>
-                  requestAnimationFrame(() => requestAnimationFrame(resolve))));
+                await frame.evaluate(() => window.comparison.idle());
                 const active = await frame.evaluate(selectorValue => ({
                   isAdd: document.activeElement.matches('button.btn-plus'),
                   sameCollection: document.activeElement.closest('.form-element-wrapper')
@@ -69,8 +78,7 @@ export async function checkInteraction(page, servers) {
                 const input = await frame.$(storeSelector);
                 await input.click({ count: 3 });
                 await input.press('Backspace');
-                await frame.evaluate(() => new Promise(resolve =>
-                  requestAnimationFrame(() => requestAnimationFrame(resolve))));
+                await frame.evaluate(() => window.comparison.idle());
                 const requests = [];
                 const endpoint = `/api/${server}/save/${path}/${framework}`;
                 const record = request => {
@@ -78,11 +86,7 @@ export async function checkInteraction(page, servers) {
                 };
                 page.on('request', record);
                 try {
-                  await (await frame.$('#save')).click();
-                  await frame.waitForFunction(() =>
-                    document.querySelector('#validation').textContent.length > 0);
-                  await frame.evaluate(() => new Promise(resolve =>
-                    requestAnimationFrame(() => requestAnimationFrame(resolve))));
+                  await clickAction(frame, 'save');
                   assert.equal(requests.length, 0,
                     'Invalid browser data must not be submitted');
                   assert.equal(await frame.$eval(storeSelector, item =>
@@ -92,8 +96,9 @@ export async function checkInteraction(page, servers) {
                     'Seoul', 'Continuous typing preserves all characters');
                   assert.equal(await frame.$eval(storeSelector, item =>
                     item === document.activeElement), true, 'Continuous typing retains focus');
+                  await frame.evaluate(() => window.comparison.idle());
                   const response = page.waitForResponse(item => item.url().endsWith(endpoint));
-                  await (await frame.$('#save')).click();
+                  await clickAction(frame, 'save');
                   assert.equal((await response).status(), 200, 'Valid input is saved');
                   assert.equal(requests.length, 1, 'Exactly one valid save request');
                   assert.equal(requests[0].headers()['content-type'].split(';')[0],
@@ -111,15 +116,14 @@ export async function checkInteraction(page, servers) {
                   const saved = await frame.$(storeSelector);
                   await saved.click({ count: 3 });
                   await saved.press('Backspace');
-                  await (await frame.$('#save')).click();
-                  await frame.waitForFunction(() =>
-                    document.querySelector('#validation').textContent.length > 0);
+                  await frame.evaluate(() => window.comparison.idle());
+                  await clickAction(frame, 'save');
                   assert.equal(requests.length, 1, 'Second invalid save is also blocked');
-                  await (await frame.$('#load')).click();
-                  await frame.waitForFunction(selector =>
-                    document.querySelector('#validation').textContent === ''
-                      && document.querySelector(selector).value === 'Seoul',
-                  {}, storeSelector);
+                  await clickAction(frame, 'load');
+                  assert.equal(await frame.$eval(storeSelector, item => item.value),
+                    'Seoul', 'Reload restores saved input');
+                  assert.equal(await frame.$eval('#validation', output => output.textContent),
+                    '', 'Reload clears validation output');
                   assert.equal(await frame.$eval(storeSelector, item =>
                     item.getAttribute('aria-invalid')), null, 'Reload clears old field errors');
                 } finally {
@@ -129,13 +133,13 @@ export async function checkInteraction(page, servers) {
                 const selector = 'input[type=checkbox]';
                 assert.equal(await frame.$eval(selector, item => item.checked), true);
                 await (await frame.$(selector)).click();
-                await frame.waitForFunction(() =>
-                  document.querySelector('textarea').closest('.form-element-wrapper')
-                    .style.display === 'none');
+                await frame.evaluate(() => window.comparison.idle());
+                assert.equal(await frame.$eval('textarea', item =>
+                  item.closest('.form-element-wrapper').style.display), 'none');
                 await (await frame.$(selector)).click();
-                await frame.waitForFunction(() =>
-                  document.querySelector('textarea').closest('.form-element-wrapper')
-                    .style.display !== 'none');
+                await frame.evaluate(() => window.comparison.idle());
+                assert.notEqual(await frame.$eval('textarea', item =>
+                  item.closest('.form-element-wrapper').style.display), 'none');
               } else {
                 const button = await frame.$(
                   `${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-plus`,
@@ -154,11 +158,9 @@ export async function checkInteraction(page, servers) {
                 const parentScroll = await page.evaluate(() => window.scrollY);
                 if (action === 'pointer') await button.click();
                 else await page.keyboard.press('Enter');
-                await frame.waitForFunction(selector =>
-                  document.querySelector(`${selector} > .form-element`).children.length === 2,
-                {}, collectionSelector);
-                await frame.evaluate(() => new Promise(resolve =>
-                  requestAnimationFrame(() => requestAnimationFrame(resolve))));
+                await frame.evaluate(() => window.comparison.idle());
+                assert.equal(await frame.$eval(`${collectionSelector} > .form-element`,
+                  element => element.children.length), 2, 'Addition creates one row');
                 const after = await frame.evaluate(selectedButton => ({
                   name: document.activeElement.name,
                   start: document.activeElement.selectionStart,
