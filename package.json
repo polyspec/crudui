@@ -37,7 +37,7 @@
     "docs:check:documents": "node scripts/check-documents.mjs",
     "test:packages": "npm run build && node scripts/check-packages.mjs",
     "test:dependencies": "node --test tests/build/dependency-health.test.mjs",
-    "test:runtimes": "node --test tests/build/runtime-version-policy.test.mjs",
+    "test:runtimes": "node --test tests/build/runtime-version-policy.test.mjs tests/build/form-comparison-ci.test.mjs",
     "test:docs": "node --test tests/docs/*.test.mjs",
     "test:build": "node --test tests/build/public-packages.test.mjs",
     "test:build:repeat": "node --test tests/build/reproducible-build.test.mjs"
