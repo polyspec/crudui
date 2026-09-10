@@ -12,6 +12,7 @@ COPY --from=go /usr/local/go /usr/local/go
 ENV CARGO_HOME=/home/node/.cargo \
     RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:/usr/local/go/bin:$PATH \
+    PHP_EXTENSION_PHP_CONFIG=/usr/bin/php-config8.4 \
     PUPPETEER_SKIP_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
