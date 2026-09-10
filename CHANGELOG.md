@@ -33,7 +33,7 @@ mount-before-load checks and 24 static-document checks. Every server completed
 below the 900,000 millisecond limit. The aggregate recorded zero failures and
 `passed: true`. Packages and the comparison service were not deployed.
 
-## 2026-09-09 — CI package and documentation gates
+## 2026-09-09 — CI package and documentation checks
 
 The documentation CI job installs both PHP package dependency graphs before
 running `make docs-check`. A package and browser job packs the five JavaScript
