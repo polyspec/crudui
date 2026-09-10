@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
-  copyFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync,
+  copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync,
+  writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -31,8 +32,26 @@ function php(body) {
   });
 }
 
+function regularTemporaryRoot() {
+  const root = realpathSync(tmpdir());
+  assert.ok(path.isAbsolute(root), 'The operating system temporary path must be absolute');
+  assert.equal(path.normalize(root), root,
+    'The operating system temporary path must be normalized');
+  const parsed = path.parse(root);
+  let current = parsed.root;
+  for (const component of root.slice(parsed.root.length).split(path.sep).filter(Boolean)) {
+    current = path.join(current, component);
+    const state = lstatSync(current);
+    assert.equal(state.isSymbolicLink(), false,
+      'The operating system temporary path must not contain symbolic links');
+    assert.equal(state.isDirectory(), true,
+      'The operating system temporary path must contain only directories');
+  }
+  return root;
+}
+
 function composerCandidate(t, record) {
-  const root = mkdtempSync(path.join(realpathSync(tmpdir()), 'crudui-form-generation-'));
+  const root = mkdtempSync(path.join(regularTemporaryRoot(), 'crudui-form-generation-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const generatorSource = path.join(root, 'packages/generator-php/src');
   const vendor = path.join(root, 'packages/generator-php/vendor');
