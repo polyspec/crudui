@@ -30,6 +30,8 @@ test('PHP modules use the shared builder through explicit entry points', async (
   assert.match(files.Makefile, /node scripts\/build-crudui-php-extension\.mjs/);
   assert.match(files['tests/containers/native.Containerfile'],
     /node scripts\/build-crudui-php-extension\.mjs/);
+  assert.match(files['tests/containers/native.Containerfile'],
+    /PHP_EXTENSION_PHP_CONFIG=\/usr\/bin\/php-config8\.4/);
 
   const candidate = normalized(files['examples/form-comparison/Containerfile']);
   assert.match(candidate, /node scripts\/build-crudui-php-extension\.mjs/);

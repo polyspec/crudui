@@ -27,7 +27,7 @@ async function temporaryDirectory(t) {
   return directory;
 }
 
-test('tool discovery uses regular executables and the Rust toolchain record', async t => {
+test('non-Linux tool discovery uses regular executables and the Rust toolchain record', async t => {
   const root = await temporaryDirectory(t);
   const bin = path.join(root, 'bin');
   const toolchain = path.join(root, 'toolchain');
@@ -54,7 +54,7 @@ test('tool discovery uses regular executables and the Rust toolchain record', as
   };
 
   assert.deepEqual(await resolvePhpBuildTools({
-    environment: { PATH: bin }, needsCargo: true, run,
+    environment: { PATH: bin }, needsCargo: true, platform: 'darwin', run,
   }), { phpConfig, compiler, cargo, rustc, rustHost: 'aarch64-test-system' });
   assert.deepEqual(calls.filter(([, args]) => args[0] === 'which'), [
     [rustup, ['which', 'cargo']],
