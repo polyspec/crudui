@@ -13,9 +13,7 @@ import {
 
 const origin = 'http://127.0.0.1:8080';
 const metadata = {
-  comparison: { commit: 'a'.repeat(40), archiveSha256: '1'.repeat(64) },
-  corrected: { commit: 'c'.repeat(40), archiveSha256: '2'.repeat(64) },
-  keyed: { commit: 'k'.repeat(40).replaceAll('k', 'd'), archiveSha256: '3'.repeat(64) },
+  source: { commit: 'a'.repeat(40), archiveSha256: '1'.repeat(64) },
 };
 const startedAt = '2026-09-10T00:00:00.000Z';
 const completedAt = '2026-09-10T00:05:00.000Z';
@@ -37,7 +35,7 @@ function evidence(item) {
 
 function scenario(server, mode, framework, transport) {
   const item = {
-    server, mode, framework, transport, commit: metadata[mode].commit,
+    server, mode, framework, transport, commit: metadata.source.commit,
     startedAt, completedAt, durationMs: 1_000,
   };
   item.results = browserScenarioCheckIds.map(id => ({
@@ -91,8 +89,8 @@ test('passes only a complete four-server verification with zero failures', () =>
   assert.equal(summary.passed, true);
   assert.equal(summary.performancePassed, true);
   assert.equal(summary.failedChecks, 0);
-  assert.deepEqual(summary.verification.corrected.scenarios, { total: 480, failed: 0 });
-  assert.deepEqual(summary.verification.keyed.scenarios, { total: 480, failed: 0 });
+  assert.deepEqual(summary.verification.bindForm.scenarios, { total: 480, failed: 0 });
+  assert.deepEqual(summary.verification.createForm.scenarios, { total: 480, failed: 0 });
 });
 
 test('rejects a missing server report', () => {
@@ -138,7 +136,7 @@ test('fails when corresponding static HTML differs between servers', () => {
   reports.rust.staticDocuments[0].sha256 = '0'.repeat(64);
   const summary = summarizeBrowserReports(reports, origin, metadata);
   assert.equal(summary.passed, false);
-  assert.equal(summary.verification.corrected.documents.failed, 4);
+  assert.equal(summary.verification.bindForm.documents.failed, 4);
 });
 
 test('fails a server duration above 900000 milliseconds', () => {

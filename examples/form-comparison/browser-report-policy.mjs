@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 export const browserServers = ['php', 'php-ext', 'go', 'rust'];
-export const browserModes = ['corrected', 'keyed'];
+export const browserModes = ['bindForm', 'createForm'];
 export const browserFrameworks = ['react', 'vue', 'svelte'];
 export const browserTransports = ['form', 'json'];
 export const browserServerRunBudgetMs = 15 * 60 * 1000;
@@ -111,7 +111,7 @@ export function verifyServerReport(report, expectedServer) {
   for (const item of report.reports) {
     const itemLabel = `${expectedServer}/${item.mode}/${item.framework}/${item.transport}`;
     verifyTiming(item, itemLabel);
-    assert.equal(item.commit, report.metadata?.[item.mode]?.commit, `${itemLabel}: source commit`);
+    assert.equal(item.commit, report.metadata?.source?.commit, `${itemLabel}: source commit`);
     assert.deepEqual(item.results.map(result => result.id), browserScenarioCheckIds, `${itemLabel}: check IDs`);
     assert.ok(item.results.every(result => typeof result.passed === 'boolean'), `${itemLabel}: check result`);
     verifyInitializationEvidence(
