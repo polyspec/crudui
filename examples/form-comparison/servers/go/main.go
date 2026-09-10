@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"mime"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -229,5 +230,10 @@ func main() {
 	if len(os.Args) != 4 || source == "" || sourceCommit == "" {
 		log.Fatal("Expected compiled source metadata and arguments: address data-directory spec-directory")
 	}
-	log.Fatal(http.ListenAndServe(os.Args[1], server{os.Args[2], os.Args[3]}))
+	listener, err := net.Listen("tcp", os.Args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Fprintln(os.Stderr, "CRUDUI_READY go")
+	log.Fatal(http.Serve(listener, server{os.Args[2], os.Args[3]}))
 }

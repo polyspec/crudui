@@ -9,7 +9,10 @@ import { formServers } from './src/runtime-paths.mjs';
 import {
   publicDirectory, serverPorts, serverProcesses, serverRequest, sourceArchiveFile,
 } from './src/server-layout.mjs';
-import { readSourceArchiveCommit, serverReady, sourceArchiveReady } from './src/server-startup.mjs';
+import {
+  publishCandidateReadiness, readinessOutput, readSourceArchiveCommit, sourceArchiveReady,
+  verifyChildServers, waitForChildReadiness,
+} from './src/server-startup.mjs';
 
 const metadata = JSON.parse(await readFile('/workspace/metadata.json', 'utf8'));
 const archive = await readFile(sourceArchiveFile);
@@ -19,6 +22,7 @@ if (!sourceArchiveReady(metadata, archiveSha256, archiveCommit)) throw new Error
 const digest = async file => createHash('sha256').update(await readFile(file)).digest('hex');
 const cruduiModuleSha256 = await digest('/opt/crudui.so');
 metadata.cruduiModuleSha256 = cruduiModuleSha256;
+const readinessFile = readinessOutput(process.env);
 const children = [];
 let stopping = false;
 function stop(code) {
@@ -28,11 +32,25 @@ function stop(code) {
   process.exitCode = code;
   if (httpServer.listening) httpServer.close();
 }
-function start(command, args, environment = {}) {
-  const child = spawn(command, args, { stdio: 'inherit', env: { ...process.env, ...environment } });
+function start(definition) {
+  const child = spawn(definition.command, definition.args, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, ...definition.environment },
+  });
+  const readiness = waitForChildReadiness(child, {
+    server: definition.server, ...definition.ready,
+  });
+  child.stdout.pipe(process.stdout, { end: false });
+  child.stderr.pipe(process.stderr, { end: false });
   child.on('error', error => { process.stderr.write(`${error.message}\n`); stop(1); });
-  child.on('exit', code => { if (!stopping) { process.stderr.write(`${command} exited ${code}\n`); stop(1); } });
+  child.on('exit', code => {
+    if (!stopping) {
+      process.stderr.write(definition.command + ' exited ' + code + '\n');
+      stop(1);
+    }
+  });
   children.push(child);
+  return readiness;
 }
 function respond(response, status, value) {
   response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -68,24 +86,25 @@ const httpServer = http.createServer(async (request, response) => {
     else response.destroy(error);
   }
 });
-for (const process of serverProcesses(archiveSha256, cruduiModuleSha256)) {
-  start(process.command, process.args, process.environment);
-}
+const readiness = serverProcesses(archiveSha256, cruduiModuleSha256).map(start);
 process.on('SIGTERM', () => stop(0));
 process.on('SIGINT', () => stop(0));
-let phpSignatures;
-for (const server of formServers) {
-  let ready = false;
-  for (let attempt = 0; attempt < 100; attempt++) {
+try {
+  await verifyChildServers({ readiness, servers: formServers, ports: serverPorts, metadata });
+  httpServer.once('listening', async () => {
+    if (readinessFile === null) return;
     try {
-      const response = await fetch(`http://127.0.0.1:${serverPorts[server]}/api/health`);
-      const value = await response.json();
-      ready = serverReady(server, response.ok, value, metadata, phpSignatures);
-      if (ready && server === 'php' && phpSignatures === undefined) phpSignatures = value.generator.signatures;
-      if (ready) break;
-    } catch {}
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  if (!ready) { process.stderr.write(`${server} did not become ready\n`); stop(1); throw new Error('Server startup failed'); }
+      await publishCandidateReadiness(readinessFile, {
+        commit: metadata.source.commit,
+        servers: formServers,
+      });
+    } catch (error) {
+      process.stderr.write(error.message + '\n');
+      stop(1);
+    }
+  });
+  httpServer.listen(8080, '0.0.0.0');
+} catch (error) {
+  process.stderr.write(error.message + '\n');
+  stop(1);
 }
-httpServer.listen(8080, '0.0.0.0');

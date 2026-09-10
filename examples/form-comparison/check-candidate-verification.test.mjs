@@ -29,6 +29,7 @@ test('defines one commit-specific candidate without a published host port', () =
   assert.deepEqual(args, [
     'create', '--name', plan.containerName,
     '--cpus', '4', '--memory', '4g', '--shm-size', '1g',
+    '--env', 'FORM_COMPARISON_READINESS=file',
     '--env', 'FORM_COMPARISON_READY_FILE=/results/candidate-ready.json',
     '--mount', 'type=bind,source=' + plan.dataDirectory + ',target=/data',
     '--mount', 'type=bind,source=' + plan.resultsDirectory + ',target=/results',
