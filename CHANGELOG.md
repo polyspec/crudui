@@ -2,6 +2,24 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Use operation completion events
+
+The typing verifier subscribes to the frame readiness message before navigation.
+It awaits the save operation and renderer completion promises before it reads the
+input value, focus and caret. It does not use periodic DOM reads, network-idle
+inference or a fixed rendering delay.
+
+The documentation development server registers its recursive file-system
+subscription before the initial build. It excludes generated `docs/.site/`
+events, serializes rebuilds and combines source events received during one build
+into one additional build. A build failure is reported and the next source event
+can request another build. A file-system subscription failure closes the server
+with status 1.
+
+The form-comparison source suite passed 123 checks and the documentation suite
+passed 14 checks. A development-server check returned HTTP status 200, rebuilt
+once for one source event and returned status 0 after `SIGINT`.
+
 ## 2026-09-11 — Resolve the native Cargo command path
 
 The `test-native` target supplies its expanded `PATH` when it starts Cargo. GNU
