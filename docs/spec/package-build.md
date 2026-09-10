@@ -20,6 +20,12 @@ substitute declarations. A clean build removes preceding output before producing
 the next package artifacts. Watch commands regenerate declarations after a
 successful JavaScript build.
 
+Every named type referenced by a public TypeScript declaration is exported from
+the package entry point and included in the generated API reference. TypeDoc
+validation warnings fail both API generation and documentation coverage checks.
+The documentation pipeline does not suppress references to unexported public
+types.
+
 Generated output is not tracked in Git. Svelte's `.svelte-kit` directory is
 temporary packaging output; `src` is the build input and `dist` is the published
 output. A build must succeed without a preceding `.svelte-kit` directory.
