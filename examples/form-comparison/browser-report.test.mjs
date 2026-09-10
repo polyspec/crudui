@@ -7,7 +7,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
-  browserFrameworks, browserModes, browserScenarioCheckIds, browserServers,
+  browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers,
   browserTransports, summarizeBrowserReports,
 } from './check-browser-reports.mjs';
 
@@ -22,7 +22,7 @@ function evidence(item) {
   return {
     generatedAt: completedAt,
     server: item.server,
-    mode: item.mode,
+    path: item.path,
     framework: item.framework,
     transport: item.transport,
     commit: item.commit,
@@ -33,9 +33,9 @@ function evidence(item) {
   };
 }
 
-function scenario(server, mode, framework, transport) {
+function scenario(server, renderingPath, framework, transport) {
   const item = {
-    server, mode, framework, transport, commit: metadata.source.commit,
+    server, path: renderingPath, framework, transport, commit: metadata.source.commit,
     startedAt, completedAt, durationMs: 1_000,
   };
   item.results = browserScenarioCheckIds.map(id => ({
@@ -47,15 +47,16 @@ function scenario(server, mode, framework, transport) {
 }
 
 function report(server, sha256 = 'f'.repeat(64)) {
-  const combinations = browserModes.flatMap(mode => browserFrameworks.flatMap(framework =>
-    browserTransports.map(transport => scenario(server, mode, framework, transport))));
+  const combinations = browserPaths.flatMap(renderingPath =>
+    browserFrameworks.flatMap(framework => browserTransports.map(transport =>
+      scenario(server, renderingPath, framework, transport))));
   const interactions = combinations.flatMap(item =>
     ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboard'].map(action => ({
-      server, mode: item.mode, framework: item.framework, transport: item.transport,
+      server, path: item.path, framework: item.framework, transport: item.transport,
       action, passed: true,
     })));
-  const documents = browserModes.flatMap(mode => browserFrameworks.map(framework => ({
-    server, mode, framework, passed: true, sha256,
+  const documents = browserPaths.flatMap(renderingPath => browserFrameworks.map(framework => ({
+    server, path: renderingPath, framework, passed: true, sha256,
   })));
   return {
     scope: 'verification', origin, metadata,

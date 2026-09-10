@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 export const browserServers = ['php', 'php-ext', 'go', 'rust'];
-export const browserModes = ['bindForm', 'createForm'];
+export const browserPaths = ['bindForm', 'createForm'];
 export const browserFrameworks = ['react', 'vue', 'svelte'];
 export const browserTransports = ['form', 'json'];
 export const browserServerRunBudgetMs = 15 * 60 * 1000;
@@ -20,25 +20,29 @@ function exactKeys(actual, expected, label) {
 }
 
 function reportCombinations() {
-  return browserModes.flatMap(mode => browserFrameworks.flatMap(framework =>
-    browserTransports.map(transport => `${mode}/${framework}/${transport}`)));
+  return browserPaths.flatMap(renderingPath => browserFrameworks.flatMap(framework =>
+    browserTransports.map(transport => `${renderingPath}/${framework}/${transport}`)));
 }
 
 function interactionCombinations() {
-  return browserModes.flatMap(mode => browserFrameworks.flatMap(framework =>
+  return browserPaths.flatMap(renderingPath => browserFrameworks.flatMap(framework =>
     browserTransports.flatMap(transport => interactionActions
-      .map(action => `${mode}/${framework}/${transport}/${action}`))));
+      .map(action => `${renderingPath}/${framework}/${transport}/${action}`))));
 }
 
 function documentCombinations() {
-  return browserModes.flatMap(mode => browserFrameworks.map(framework => `${mode}/${framework}`));
+  return browserPaths.flatMap(renderingPath =>
+    browserFrameworks.map(framework => `${renderingPath}/${framework}`));
 }
 
-function modeSummary(items, checks) {
-  return Object.fromEntries(browserModes.map(mode => {
-    const selected = items.filter(item => item.mode === mode);
+function pathSummary(items, checks) {
+  return Object.fromEntries(browserPaths.map(renderingPath => {
+    const selected = items.filter(item => item.path === renderingPath);
     const entries = checks ? selected.flatMap(item => item.results) : selected;
-    return [mode, { total: entries.length, failed: entries.filter(item => !item.passed).length }];
+    return [renderingPath, {
+      total: entries.length,
+      failed: entries.filter(item => !item.passed).length,
+    }];
   }));
 }
 
@@ -68,7 +72,7 @@ function verifyActivity(activity, report, label) {
 function verifyInitializationEvidence(evidence, item, label) {
   assert.ok(evidence && typeof evidence === 'object' && !Array.isArray(evidence),
     `${label}: initialization evidence`);
-  for (const field of ['server', 'mode', 'framework', 'transport', 'commit']) {
+  for (const field of ['server', 'path', 'framework', 'transport', 'commit']) {
     assert.equal(evidence[field], item[field], `${label}: initialization evidence ${field}`);
   }
   assert.ok(typeof evidence.generatedAt === 'string' && !Number.isNaN(Date.parse(evidence.generatedAt)),
@@ -106,10 +110,10 @@ export function verifyServerReport(report, expectedServer) {
   assert.ok(Array.isArray(report.reports), `${label}: scenario reports`);
   assert.equal(report.reports.length, 12, `${label}: scenario report count`);
   assert.ok(report.reports.every(item => item.server === expectedServer), `${label}: scenario server`);
-  exactKeys(report.reports.map(item => `${item.mode}/${item.framework}/${item.transport}`),
+  exactKeys(report.reports.map(item => `${item.path}/${item.framework}/${item.transport}`),
     reportCombinations(), `${label}: scenario`);
   for (const item of report.reports) {
-    const itemLabel = `${expectedServer}/${item.mode}/${item.framework}/${item.transport}`;
+    const itemLabel = `${expectedServer}/${item.path}/${item.framework}/${item.transport}`;
     verifyTiming(item, itemLabel);
     assert.equal(item.commit, report.metadata?.source?.commit, `${itemLabel}: source commit`);
     assert.deepEqual(item.results.map(result => result.id), browserScenarioCheckIds, `${itemLabel}: check IDs`);
@@ -122,7 +126,7 @@ export function verifyServerReport(report, expectedServer) {
   assert.ok(Array.isArray(report.interactions), `${label}: interactions`);
   assert.equal(report.interactions.length, 60, `${label}: interaction count`);
   assert.ok(report.interactions.every(item => item.server === expectedServer), `${label}: interaction server`);
-  exactKeys(report.interactions.map(item => `${item.mode}/${item.framework}/${item.transport}/${item.action}`),
+  exactKeys(report.interactions.map(item => `${item.path}/${item.framework}/${item.transport}/${item.action}`),
     interactionCombinations(), `${label}: interaction`);
   assert.ok(report.interactions.every(item => typeof item.passed === 'boolean'),
     `${label}: interaction result`);
@@ -131,7 +135,7 @@ export function verifyServerReport(report, expectedServer) {
     assert.ok(Array.isArray(items), `${label}: ${name}`);
     assert.equal(items.length, 6, `${label}: ${name} count`);
     assert.ok(items.every(item => item.server === expectedServer), `${label}: ${name} server`);
-    exactKeys(items.map(item => `${item.mode}/${item.framework}`),
+    exactKeys(items.map(item => `${item.path}/${item.framework}`),
       documentCombinations(), `${label}: ${name}`);
     assert.ok(items.every(item => typeof item.passed === 'boolean'), `${label}: ${name} result`);
     if (name === 'static-document') {
@@ -140,10 +144,10 @@ export function verifyServerReport(report, expectedServer) {
     }
   }
 
-  const scenarios = modeSummary(report.reports, true);
-  const interactions = modeSummary(report.interactions, false);
-  const mounts = modeSummary(report.initialMounts, false);
-  const documents = modeSummary(report.staticDocuments, false);
+  const scenarios = pathSummary(report.reports, true);
+  const interactions = pathSummary(report.interactions, false);
+  const mounts = pathSummary(report.initialMounts, false);
+  const documents = pathSummary(report.staticDocuments, false);
   const resultCount = report.reports.reduce(
     (total, item) => total + item.results.filter(result => !result.passed).length, 0,
   ) + report.interactions.filter(item => !item.passed).length
