@@ -29,6 +29,15 @@ generator and validator. The PHP extension process loads `crudui.so` and
 `ordered_json.so`; the PHP process loads neither extension. Startup rejects an
 unexpected class source, module digest or repository commit.
 
+The public API accepts only
+`/api/{server}/{action}/{renderingPath}/{framework}`. The public process starts
+exactly one PHP process, one PHP extension process, one Go process and one Rust
+process. It forwards each accepted request to the selected process as
+`/api/{action}/{renderingPath}/{framework}`. The API contains no implementation
+revision or data-shape segment. `bindForm` and `createForm` select the rendering
+and editing path. Keyed objects define repeated instance data and do not select
+an implementation or URL.
+
 The browser runs the `bindForm` and `createForm` rendering paths. Both paths use
 the same packages from the candidate commit, the same keyed data and the same
 submission contract. The selected server compiles one data-independent template,
@@ -97,8 +106,10 @@ compares both initialization paths at every stage without removing or replacing
 identifiers, attributes, styles or values. Repeated injection must be idempotent.
 
 Pointer and keyboard checks verify focus, selection and scroll preservation.
-Static SSR checks verify Korean and English output for every framework and
-compare corresponding documents from all four servers by SHA-256.
+Static browser-entry checks cover both rendering paths and every framework and
+compare corresponding documents from all four servers by SHA-256. Generation
+verification checks Korean and English SSR output for every server and
+framework.
 
 ## Runner and reports
 
@@ -128,11 +139,11 @@ Only a complete aggregate with zero failures returns status 0.
 
 ## Additional verification
 
-Generation verification requires 146 successful results, 207 HTTP requests and
-all 12 server/framework combinations. Repository verification checks atomic
-updates, locking, position-based loading, parent ownership, rejection without
-file changes, complete deletion and sequence allocation. Type verification
-checks the same scalar and collection rules in every server.
+Generation verification requires 290 successful results, 411 HTTP requests and
+all 24 server/rendering-path/framework combinations. Repository verification
+checks atomic updates, locking, position-based loading, parent ownership,
+rejection without file changes, complete deletion and sequence allocation. Type
+verification checks the same scalar and collection rules in every server.
 
 Fast source tests reproduce report-policy failures, protocol timeout behavior,
 absolute and stalled job limits, source archive changes, snapshot differences,
