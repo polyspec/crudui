@@ -495,13 +495,8 @@ fn coerce_number(value: &Value) -> f64 {
     match value {
         Value::Number(n) => n.as_f64().unwrap_or(0.0),
         Value::String(s) => parse_float_prefix(s).unwrap_or(0.0),
-        Value::Bool(b) => {
-            if *b {
-                1.0
-            } else {
-                0.0
-            }
-        }
+        Value::Bool(true) => 1.0,
+        Value::Bool(false) => 0.0,
         _ => 0.0,
     }
 }
