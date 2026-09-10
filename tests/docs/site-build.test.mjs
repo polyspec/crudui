@@ -70,7 +70,7 @@ test('documentation build preserves page routes, titles, links and public files'
   assert.match(guide, /<html lang="en-US">/);
   assert.match(guide, /<title>Guide &amp; usage \| CRUDUI<\/title>/);
   assert.match(guide, /<h1 id="guide-usage">Guide &amp; usage<\/h1>/);
-  assert.match(guide, /href="\/"/);
+  assert.match(guide, /href="\/">Home<\/a>/);
   assert.match(guide, /href="https:\/\/github\.com\/crudui\/crudui\/blob\/main\/tests\/build-notes\.md#checks"/);
   assert.equal(await readFile(join(outputDirectory, 'assets', 'fixture.txt'), 'utf8'), 'public asset\n');
   assert.match(await readFile(join(outputDirectory, '404.html'), 'utf8'), /<title>404 \| CRUDUI<\/title>/);
@@ -89,6 +89,45 @@ test('documentation build rejects a document without one level-one heading', asy
       outputDirectory: join(repositoryRoot, 'output'),
     }),
     /exactly one level-one heading/,
+  );
+});
+
+for (const [name, link, error] of [
+  ['missing site document', './missing.md', /Missing documentation target/],
+  ['missing site fragment', './index.md#missing', /Missing documentation fragment/],
+  ['missing repository file', '../missing.md', /Invalid repository link/],
+]) {
+  test('documentation build rejects a ' + name, async t => {
+    const repositoryRoot = await mkdtemp(join(tmpdir(), 'crudui-doc-link-'));
+    t.after(() => rm(repositoryRoot, { recursive: true, force: true }));
+    const docsDirectory = join(repositoryRoot, 'docs');
+    await mkdir(docsDirectory);
+    await writeFile(join(docsDirectory, 'index.md'), '# Links\n\n[Invalid](' + link + ')\n');
+    await assert.rejects(
+      buildDocumentationSite({
+        repositoryRoot,
+        docsDirectory,
+        outputDirectory: join(repositoryRoot, 'output'),
+      }),
+      error,
+    );
+  });
+}
+
+test('documentation build rejects public files that replace generated pages', async t => {
+  const repositoryRoot = await mkdtemp(join(tmpdir(), 'crudui-doc-collision-'));
+  t.after(() => rm(repositoryRoot, { recursive: true, force: true }));
+  const docsDirectory = join(repositoryRoot, 'docs');
+  await mkdir(join(docsDirectory, 'public'), { recursive: true });
+  await writeFile(join(docsDirectory, 'index.md'), '# Generated page\n');
+  await writeFile(join(docsDirectory, 'public', 'index.html'), 'replacement\n');
+  await assert.rejects(
+    buildDocumentationSite({
+      repositoryRoot,
+      docsDirectory,
+      outputDirectory: join(repositoryRoot, 'output'),
+    }),
+    /Duplicate documentation output: index\.html/,
   );
 });
 
