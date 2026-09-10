@@ -132,6 +132,13 @@ JSON 전송은 같은 키 기반 레코드를 전송합니다. JSON 파싱과 �
 선택하지 않습니다. PHP 바이너리, 개발 메타데이터, 헤더는 같은 PHP 설치를 나타내야
 합니다.
 
+Debian 계열 Linux 빌드는 설치된 `gcc` 패키지 기록을 읽고 설치된 versioned compiler
+의존성 하나를 요구하며, 이 패키지의 설치된 target compiler 의존성 하나를 확인하고 해당
+패키지의 정규 target compiler 파일 하나를 선택합니다. 버전이 없는 컴파일러 링크는
+실행하지 않습니다. 매트릭스 빌드는 선택한 PHP 릴리스의 정규 `php-config` 파일을
+전달합니다. macOS 빌드는 `php-config`를 명시하지 않으면 설치된 Homebrew PHP formula
+기록 하나를 읽습니다.
+
 Linux 빌드는 공유 객체 하나를 생성하고 플랫폼의 동적 로딩·수학·스레드 라이브러리를
 연결합니다. macOS 빌드는 번들 하나를 생성하고 모듈 로드 시 PHP 심볼을 해석하며 iconv와
 Core Foundation을 연결합니다. 선언한 최소 macOS 버전을 Rust 컴파일, C 컴파일, 연결에
