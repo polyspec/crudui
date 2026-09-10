@@ -12,4 +12,4 @@ replace github.com/crudui/crudui/packages/generator-go => ../../../../packages/g
 
 replace github.com/crudui/crudui/packages/validator-go => ../../../../packages/validator-go
 
-replace github.com/ordered-json/go => /workspace/ordered-json/go
+replace github.com/ordered-json/go => ../../../../.form-comparison/sources/ordered-json/go
