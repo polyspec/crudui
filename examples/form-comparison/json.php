@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
-$orderedJsonSource = getenv('FORM_ORDERED_JSON_PHP_SOURCE')
-    ?: '/workspace/ordered-json/php/src/OrderedJson.php';
+$orderedJsonSource = getenv('FORM_ORDERED_JSON_PHP_SOURCE');
+if ($orderedJsonSource === false) {
+    $orderedJsonSource = dirname(__DIR__, 2)
+        . '/.form-comparison/sources/ordered-json/php/src/OrderedJson.php';
+}
 if (!str_starts_with($orderedJsonSource, '/') || !is_file($orderedJsonSource)) {
     throw new RuntimeException('FORM_ORDERED_JSON_PHP_SOURCE must identify the absolute OrderedJSON PHP source file');
 }
