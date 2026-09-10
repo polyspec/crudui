@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-10 — Declare native test dependencies
+
+Repository-root build and test entry points declare every directly imported
+third-party package in the root manifest. The dependency check reads the Node.js
+entry points executed by `make test-native` and rejects undeclared imports. The
+widget script check resolves Vite 8.2.2 from the root dependency instead of a
+transitive installation.
+
+All six dependency checks passed. The complete `make test-native` command returned
+status 0 with PHP 8.5.10 and passed 160 PHP tests, all Go package tests, 20 Rust
+tests, 19 protocol checks, the 766/766 generator report and three Chromium widget
+and timezone checks.
+
 ## 2026-09-10 — Enforce dependency install-script approvals
 
 Each independently installed npm graph records exact-version approvals for all
@@ -21,16 +34,16 @@ releases allowed by their manifests. Clean `npm ci` and `npm audit` runs reporte
 zero vulnerabilities. The cross-framework comparison passed 14 of 14 checks, and
 the legacy-client comparison passed 5 of 5 checks.
 
-Candidate `90a5b819ada60a082bc21c69a26e1fe0566bb23b` built image
-`localhost/crudui-form-comparison:90a5b819ada6` with index digest
-`sha256:2a6040288c1800d0c36077cdc2ab57ca28558f3ff0917d78276ec90783b0aaea`.
+Candidate `757f144b9c4b5e2dd5f5dfd91c09362b3edbcedd` built image
+`localhost/crudui-form-comparison:757f144b9c4b` with index digest
+`sha256:7842bd0a40f1e51d4c975008a9b5bdaf6d148e9faba05e68faf3a935b02fe2c7`.
 Image construction passed 81 source checks and four library checks. Runtime
 verification passed both PHP modes, 290 generation and SSR checks across 411 HTTP
 requests, 120 persistence and validation checks, and three Ordered JSON checks.
 
 Browser verification passed 312 checks for each server and 1,248 checks in total.
-PHP completed in 211,981 milliseconds, the PHP extension in 204,766 milliseconds,
-Go in 201,069 milliseconds and Rust in 203,958 milliseconds. The aggregate records
+PHP completed in 213,288 milliseconds, the PHP extension in 206,475 milliseconds,
+Go in 200,691 milliseconds and Rust in 200,500 milliseconds. The aggregate records
 `complete: true`, `passed: true`, `failedChecks: 0` and
 `performancePassed: true`. Packages and the comparison service were not deployed.
 

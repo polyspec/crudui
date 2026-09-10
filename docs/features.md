@@ -55,8 +55,8 @@ checks and six HTML normalizer checks. Packaged exports, consumer types,
 production builds and three-framework consumer browser checks passed. The three
 Chromium widget and timezone checks and `make docs-check` passed.
 
-The full `make test-native` command passed in a non-root Linux arm64 image built
-from the current source snapshot. It rebuilt and loaded the extension, ran the
+The full `make test-native` command passed at commit `e2e1af01` in a non-root
+Linux arm64 image. It rebuilt and loaded the extension, ran the
 PHP, Go and Rust package tests, repeated the PHP API and validation checks, passed
 all 19 protocol checks and all three Chromium widget and timezone checks, and
 produced a complete 766/766 generator report. The image index digest is
@@ -65,12 +65,21 @@ the report and run-log SHA-256 values are respectively
 `3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442` and
 `378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`.
 
-Candidate `90a5b819ada60a082bc21c69a26e1fe0566bb23b` uses one committed source
+Repository-root build and test entry points declare every directly imported
+third-party package in the root manifest. The dependency checks inspect the Node.js
+entry points executed by `make test-native` and fail when a direct import is not
+declared. At commit `757f144b9c4b5e2dd5f5dfd91c09362b3edbcedd`, all six
+dependency checks passed. The full `make test-native` command also returned status
+0 on macOS arm64 with PHP 8.5.10, Node.js 26.8.1, Go 1.27.0 and Rust 1.98.1. It
+passed 160 PHP tests, 20 Rust tests, all Go package tests, 19 protocol checks, the
+766/766 generator report and three Chromium widget and timezone checks.
+
+Candidate `757f144b9c4b5e2dd5f5dfd91c09362b3edbcedd` uses one committed source
 archive and verifies its commit and SHA-256 digest before extraction. The source
 archive SHA-256 is
-`c81e66ba0a5ae94b962c622f6bed048bece4e48fdf8bcada9a65088e770309c5`.
-Image `localhost/crudui-form-comparison:90a5b819ada6` has index digest
-`sha256:2a6040288c1800d0c36077cdc2ab57ca28558f3ff0917d78276ec90783b0aaea`.
+`2175aec2e0aa72837d2886f14b2279a975329336f088197c60bf8f8e4ae89f45`.
+Image `localhost/crudui-form-comparison:757f144b9c4b` has index digest
+`sha256:7842bd0a40f1e51d4c975008a9b5bdaf6d148e9faba05e68faf3a935b02fe2c7`.
 Image construction passed 81 source checks and four library checks. The image
 passed the Chromium process check as the application user and started one PHP,
 PHP extension, Go and Rust server from that archive.
@@ -78,15 +87,15 @@ PHP extension, Go and Rust server from that archive.
 Generation and SSR passed 290 of 290 checks across 411 HTTP requests. Persistence
 and validation passed 120 of 120 checks. The browser aggregate passed 960 scenario
 checks, 240 interaction checks, 24 mount-before-load checks and 24 static-document
-checks with zero failures. PHP completed in 211,981 milliseconds, the PHP extension
-in 204,766 milliseconds, Go in 201,069 milliseconds and Rust in 203,958
+checks with zero failures. PHP completed in 213,288 milliseconds, the PHP extension
+in 206,475 milliseconds, Go in 200,691 milliseconds and Rust in 200,500
 milliseconds. Every server completed below the 900,000 millisecond limit. The
 aggregate records `complete: true`, `passed: true`, `failedChecks: 0` and
 `performancePassed: true`. The browser aggregate, generation report and server
 report SHA-256 values are respectively
-`370de341b0e82a58e4cd5d800ad1b31861c5dc2d4346471004583f069607de11`,
-`5a1c4bb09764ed8f894f5f9beb763b5fda0c0cd16e3d509bf6d9c6652f382a3a` and
-`d27914a64f1c99ec6ecd8984cfe9c0b5ddbcf4331376d586be9d59e8444aca90`.
+`ee25ad9c1ea6c1f616b6f63c0bad87b6aa95e4e1c64cf091da513bcfc7f9ad30`,
+`9bba9a8a13b4d06b1c14f347178747ad73c86d71db60c5d131a24f936beaa373` and
+`218921211380bd1339d62665e1180c2b41bbb5cdfbcd57326e1778f9c5debb38`.
 The candidate image is local, and packages and the comparison service are not
 deployed.
 

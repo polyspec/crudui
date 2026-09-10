@@ -53,7 +53,7 @@ JavaScript·PHP·Go·Rust·네이티브 PHP에서 각각 153개와 입력 불변
 프로덕션 빌드와 세 프레임워크 소비자 브라우저 검사도 통과했습니다.
 Chromium 위젯·시간대 검사 3개와 `make docs-check`가 통과했습니다.
 
-현재 소스 스냅샷으로 만든 일반 사용자 Linux arm64 이미지에서 전체
+커밋 `e2e1af01`로 만든 일반 사용자 Linux arm64 이미지에서 전체
 `make test-native` 명령이 통과했습니다. 확장을 다시 빌드하고 로드한 뒤
 PHP·Go·Rust 패키지 검사, PHP API·검증 검사, 프로토콜 검사 19개, Chromium
 위젯·시간대 검사 3개를 실행했고 생성기 보고서도 766/766으로 완료했습니다.
@@ -63,12 +63,21 @@ PHP·Go·Rust 패키지 검사, PHP API·검증 검사, 프로토콜 검사 19�
 `3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442`,
 `378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`입니다.
 
-후보 `90a5b819ada60a082bc21c69a26e1fe0566bb23b`는 커밋한 소스 아카이브
+저장소 루트 빌드·검사 진입점은 직접 import하는 모든 외부 패키지를 루트
+매니페스트에 선언합니다. 의존성 검사는 `make test-native`가 실행하는 Node.js
+진입점을 검사하며 직접 import한 패키지가 선언되지 않으면 실패합니다. 커밋
+`757f144b9c4b5e2dd5f5dfd91c09362b3edbcedd`에서 의존성 검사 6/6이
+통과했습니다. macOS arm64에서 PHP 8.5.10, Node.js 26.8.1, Go 1.27.0, Rust
+1.98.1로 실행한 전체 `make test-native`도 종료 상태 0을 반환했습니다. PHP 검사
+160개, Rust 검사 20개, 모든 Go 패키지 검사, 프로토콜 검사 19개, 생성기 보고서
+766/766과 Chromium 위젯·시간대 검사 3개가 통과했습니다.
+
+후보 `757f144b9c4b5e2dd5f5dfd91c09362b3edbcedd`는 커밋한 소스 아카이브
 하나를 사용하며 압축 해제 전에 커밋과 SHA-256 digest를 검증합니다. 소스 아카이브의
 SHA-256은
-`c81e66ba0a5ae94b962c622f6bed048bece4e48fdf8bcada9a65088e770309c5`입니다. 이미지
-`localhost/crudui-form-comparison:90a5b819ada6`의 index digest는
-`sha256:2a6040288c1800d0c36077cdc2ab57ca28558f3ff0917d78276ec90783b0aaea`입니다.
+`2175aec2e0aa72837d2886f14b2279a975329336f088197c60bf8f8e4ae89f45`입니다. 이미지
+`localhost/crudui-form-comparison:757f144b9c4b`의 index digest는
+`sha256:7842bd0a40f1e51d4c975008a9b5bdaf6d148e9faba05e68faf3a935b02fe2c7`입니다.
 이미지 구성에서 소스 검사 81개와 라이브러리 검사 4개가 통과했습니다. 이미지는
 애플리케이션 사용자로 Chromium 프로세스 검사를 통과했고 같은 아카이브에서 PHP,
 PHP 확장, Go, Rust 서버를 각각 하나씩 시작했습니다.
@@ -76,14 +85,14 @@ PHP 확장, Go, Rust 서버를 각각 하나씩 시작했습니다.
 생성·SSR 검사 290개는 HTTP 요청 411개에서 모두 통과했습니다. 저장·검증 검사
 120개도 모두 통과했습니다. 브라우저 집계는 시나리오 960개, 상호작용 240개,
 로드 전 마운트 24개, 정적 문서 24개를 실패 없이 통과했습니다. PHP는
-211,981밀리초, PHP 확장은 204,766밀리초, Go는 201,069밀리초, Rust는
-203,958밀리초에 완료했습니다. 모든 서버는 900,000밀리초 제한 이내에
+213,288밀리초, PHP 확장은 206,475밀리초, Go는 200,691밀리초, Rust는
+200,500밀리초에 완료했습니다. 모든 서버는 900,000밀리초 제한 이내에
 완료했습니다. 집계는 `complete: true`, `passed: true`, `failedChecks: 0`,
 `performancePassed: true`를 기록합니다. 브라우저 집계, 생성 보고서, 서버 보고서의
 SHA-256은 각각
-`370de341b0e82a58e4cd5d800ad1b31861c5dc2d4346471004583f069607de11`,
-`5a1c4bb09764ed8f894f5f9beb763b5fda0c0cd16e3d509bf6d9c6652f382a3a`,
-`d27914a64f1c99ec6ecd8984cfe9c0b5ddbcf4331376d586be9d59e8444aca90`입니다.
+`ee25ad9c1ea6c1f616b6f63c0bad87b6aa95e4e1c64cf091da513bcfc7f9ad30`,
+`9bba9a8a13b4d06b1c14f347178747ad73c86d71db60c5d131a24f936beaa373`,
+`218921211380bd1339d62665e1180c2b41bbb5cdfbcd57326e1778f9c5debb38`입니다.
 후보 이미지는 로컬에 있으며 패키지와 비교 서비스는 배포하지 않았습니다.
 
 ## 이전 검증기와 패키지 검증
