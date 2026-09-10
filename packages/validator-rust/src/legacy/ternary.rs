@@ -113,13 +113,11 @@ fn find_ternary_operator(expression: &str, operator: u8, start_pos: usize) -> Op
                     ternary_depth += 1;
                 }
             }
-            b':' => {
-                if depth == 0 && operator == b':' {
-                    if ternary_depth == 0 {
-                        return Some(i);
-                    }
-                    ternary_depth -= 1;
+            b':' if depth == 0 && operator == b':' => {
+                if ternary_depth == 0 {
+                    return Some(i);
                 }
+                ternary_depth -= 1;
             }
             _ => {}
         }

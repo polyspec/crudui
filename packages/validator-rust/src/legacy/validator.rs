@@ -484,37 +484,18 @@ impl Validator {
                     }
                 }
             }
-            Some(other) => {
-                if !is_truthy(other) {
-                    return false;
-                }
-            }
+            Some(other) if !is_truthy(other) => return false,
+            Some(_) => {}
         }
 
         if !field.display_target.is_empty() {
             let target = self.resolve_field_reference(&field.display_target, field_path, root_data);
             match target {
                 None | Some(Value::Null) => return false,
-                Some(Value::String(s)) => {
-                    if s.is_empty() {
-                        return false;
-                    }
-                }
-                Some(Value::Bool(b)) => {
-                    if !b {
-                        return false;
-                    }
-                }
-                Some(Value::Array(a)) => {
-                    if a.is_empty() {
-                        return false;
-                    }
-                }
-                Some(Value::Object(o)) => {
-                    if o.is_empty() {
-                        return false;
-                    }
-                }
+                Some(Value::String(s)) if s.is_empty() => return false,
+                Some(Value::Bool(false)) => return false,
+                Some(Value::Array(a)) if a.is_empty() => return false,
+                Some(Value::Object(o)) if o.is_empty() => return false,
                 _ => {}
             }
         }

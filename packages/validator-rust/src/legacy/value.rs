@@ -239,10 +239,7 @@ pub fn get_value_by_path<'a>(
             continue;
         }
         match current {
-            Value::Object(map) => match map.get(segment) {
-                Some(v) => current = v,
-                None => return None,
-            },
+            Value::Object(map) => current = map.get(segment)?,
             _ => return None,
         }
     }
