@@ -403,6 +403,21 @@ jobs:
       - run: npm i -g npm@latest && npm ci
       - run: npm run test:forms
 
+  form-comparison:
+    name: Form comparison runner regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+      - name: Install workspace deps and Puppeteer Chromium
+        run: npm i -g npm@latest && npm ci
+      - name: Test report policy, browser jobs and candidate sources
+        run: npm run test:form-comparison
+
   package-browser:
     name: Packages, public builds and browser inspector
     runs-on: ubuntu-latest
