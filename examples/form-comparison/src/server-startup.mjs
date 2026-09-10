@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { closeSync, openSync } from 'node:fs';
+import { readGitArchiveCommit } from '../verify-candidate-context.mjs';
 
 const phpClasses = new Map([
   ['CRUDUI\\Generator', '/packages/generator-php/src/Generator.php'],
@@ -9,16 +9,7 @@ const phpClasses = new Map([
 
 /** Read the embedded commit without buffering the remaining archive into Git. */
 export function readSourceArchiveCommit(archiveFile, execute = spawnSync) {
-  const descriptor = openSync(archiveFile, 'r');
-  try {
-    const result = execute('git', ['get-tar-commit-id'], { stdio: [descriptor, 'pipe', 'pipe'], encoding: 'utf8' });
-    if (result.error || result.signal || result.status !== 0) throw new Error('Cannot read the deployed source archive commit');
-    const commit = result.stdout.trim();
-    if (!/^[a-f0-9]{40}$/.test(commit)) throw new Error('The deployed source archive does not identify a commit');
-    return commit;
-  } finally {
-    closeSync(descriptor);
-  }
+  return readGitArchiveCommit(archiveFile, execute);
 }
 
 /** Verify metadata against the deployed Git archive. */
