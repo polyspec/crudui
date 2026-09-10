@@ -38,20 +38,22 @@ command that depends on an added directory explicitly supplies the expanded
 `PATH` when invoking the tool. The tool must resolve from that directory when
 Make's process started without it.
 Rust recipes do not add a Cargo proxy directory to `PATH`. They use the shared
-Rust command entry point, which executes the regular Cargo and rustc files
-selected by the toolchain record.
+Rust command entry point, which executes the regular Cargo, rustc and rustdoc
+files selected by the toolchain record.
 
 Repository Node.js build and test entry points resolve Rust tools through one
-shared rule. An invocation may declare both absolute Cargo and rustc paths.
+shared rule. An invocation may declare absolute Cargo, rustc and rustdoc paths.
 Otherwise, the resolver discovers one regular rustup executable from the
 declared `PATH` entries and the Rustup Cargo home (`CARGO_HOME`, or the Rustup
 default under `HOME` when omitted). Duplicate references to the same executable
 are one result; distinct results are ambiguous and fail. The resolver executes
-`rustup which cargo` and `rustup which rustc`, then requires both returned paths
-to be absolute, canonical, executable regular files with no symbolic-link path
+`rustup which cargo`, `rustup which rustc` and `rustup which rustdoc`, then
+requires every returned path to be an absolute, canonical, executable regular
+file with no symbolic-link path
 component. Missing records, malformed version output and ambiguous discovery
-fail before a build starts. Entry points execute the resolved Cargo path and do
-not substitute a `cargo` command from the process `PATH`.
+fail before a build starts. Entry points execute the resolved Cargo path, set
+`RUSTC` and `RUSTDOC` to the resolved compiler paths and do not substitute Rust
+commands from the process `PATH`.
 
 The specification CLI runs its TypeScript source through `tsx`. Its generator
 imports load the validator through the public package entry, so local commands
