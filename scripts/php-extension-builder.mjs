@@ -6,6 +6,7 @@ import path from 'node:path';
 import {
   assertExecutable,
   assertRegularPath,
+  discoverOneExecutable,
   pathState,
   resolveExecutable,
   resolveRustToolchain,
