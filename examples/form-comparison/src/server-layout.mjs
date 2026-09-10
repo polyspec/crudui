@@ -37,6 +37,13 @@ export function serverProcesses(archiveSha256, cruduiModuleSha256) {
           ...(server === 'php-ext'
             ? { FORM_CRUDUI_MODULE_SHA256: cruduiModuleSha256 } : {}),
         },
+        ready: {
+          stream: 'stderr',
+          pattern: new RegExp('Development Server \\(http://127\\.0\\.0\\.1:'
+            + serverPorts[server] + '\\) started'),
+          example: 'PHP Development Server (http://127.0.0.1:'
+            + serverPorts[server] + ') started',
+        },
       };
     }
     return {
@@ -44,6 +51,11 @@ export function serverProcesses(archiveSha256, cruduiModuleSha256) {
       command: `/workspace/bin/${server}`,
       args: [address, dataDirectory, publicDirectory],
       environment: {},
+      ready: {
+        stream: 'stderr',
+        pattern: new RegExp('(?:^|\\n)CRUDUI_READY ' + server + '(?:\\n|$)'),
+        example: 'CRUDUI_READY ' + server + '\n',
+      },
     };
   });
 }
