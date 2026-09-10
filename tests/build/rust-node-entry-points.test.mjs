@@ -43,7 +43,7 @@ function rustEnvironment(root, additions = {}) {
   const cargo = path.join(toolchain, 'cargo');
   const rustc = path.join(toolchain, 'rustc');
   const rustdoc = path.join(toolchain, 'rustdoc');
-  executable(path.join(rustupDirectory, 'rustup'), `
+  executable(path.join(rustupDirectory, 'rustup'), String.raw`
 const name = process.argv[2];
 if (name === '--version') process.stdout.write('rustup 1.29.0\n');
 else if (name === 'which') {
@@ -52,7 +52,7 @@ else if (name === 'which') {
   process.stdout.write(tools[process.argv[3]] + '\n');
 } else process.exit(2);
 `);
-  executable(cargo, `
+  executable(cargo, String.raw`
 const fs = require('node:fs');
 const path = require('node:path');
 const args = process.argv.slice(2);
@@ -78,10 +78,10 @@ if (args[0] === 'run') {
   }
 }
 `);
-  executable(rustc, `
+  executable(rustc, String.raw`
 process.stdout.write('rustc 1.98.1 (test 2026-09-01)\nhost: aarch64-test-system\n');
 `);
-  executable(rustdoc, `
+  executable(rustdoc, String.raw`
 process.stdout.write('rustdoc 1.98.1 (test 2026-09-01)\n');
 `);
 
