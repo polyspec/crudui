@@ -125,20 +125,25 @@ test('records console errors after widget initialization', async () => {
 
 async function openPage(timezone) {
   const page = await browser.newPage();
-  const errors = [], loadFailures = [], consoleErrors = [];
+  const failures = [];
   let rejectInitialization;
   const failedInitialization = new Promise((_, reject) => { rejectInitialization = reject; });
-  page.on('pageerror', error => { errors.push(error.message); rejectInitialization(error); });
+  page.on('pageerror', error => {
+    failures.push({ type: 'page', message: error.message });
+    rejectInitialization(error);
+  });
   page.on('response', response => {
     if (response.status() < 400) return;
-    loadFailures.push({ url: response.url(), status: response.status() });
+    failures.push({ type: 'response', url: response.url(), status: response.status() });
     if (response.request().resourceType() === 'script') rejectInitialization(new Error(`Module request failed: ${response.status()} ${response.url()}`));
   });
   page.on('requestfailed', request => {
-    loadFailures.push({ url: request.url(), failure: request.failure()?.errorText });
+    failures.push({ type: 'request', url: request.url(), message: request.failure()?.errorText });
     if (request.resourceType() === 'script') rejectInitialization(new Error(`Module request failed: ${request.url()}`));
   });
-  page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('console', message => {
+    if (message.type() === 'error') failures.push({ type: 'console', message: message.text() });
+  });
   try {
     if (timezone) await page.emulateTimezone(timezone);
     await Promise.race([
@@ -147,9 +152,9 @@ async function openPage(timezone) {
     ]);
   } catch (error) {
     await page.close();
-    assert.fail(`Widget test initialization failed: ${error.message}; ${JSON.stringify({ errors, loadFailures, consoleErrors })}`);
+    assert.fail(`Widget test initialization failed: ${error.message}; ${JSON.stringify(failures)}`);
   }
-  return { page, errors };
+  return { page, failures };
 }
 
 async function activateAndInspect(page) {
@@ -211,7 +216,7 @@ async function activateAndInspect(page) {
 
 for (const prefix of ["form scope:'한글", "another:'日本語:scope"]) {
   test(`script widgets select controls with scope ${JSON.stringify(prefix)}`, { timeout: 60000 }, async () => {
-    const { page, errors } = await openPage();
+    const { page, failures } = await openPage();
     try {
       let initialHtml;
       for (const phase of ['initial', 'injected']) {
@@ -242,7 +247,7 @@ for (const prefix of ["form scope:'한글", "another:'日本語:scope"]) {
           { kind: 'search', id: id('search'), name: name('search'), event: 'select2:select' },
           { kind: 'button', id: id('button'), name: name('button'), event: 'click' },
         ]);
-        assert.deepEqual(errors, [], 'Generated scripts must execute without browser errors');
+        assert.deepEqual(failures, [], 'Generated scripts must execute without browser errors');
         await page.evaluate(() => { window.widgetScriptTest.unmount(); document.getElementById('host-results').replaceChildren(); });
       }
     } finally { await page.close(); }
@@ -264,7 +269,7 @@ test('date models and rendered HTML are identical across browser timezones', { t
   const listSpec = { columns: { time: { field: '.time', format: { type: 'date', pattern: 'YYYY-MM-DDTHH:mm:ss' } } } };
   const baseline = new Map();
   for (const timezone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) {
-    const { page, errors } = await openPage(timezone);
+    const { page, failures } = await openPage(timezone);
     try {
       assert.equal(await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone), timezone);
       for (const [input, date, datetime] of cases) {
@@ -296,7 +301,7 @@ test('date models and rendered HTML are identical across browser timezones', { t
           else assert.deepEqual(result, baseline.get(`${input}:${phase}`), `${timezone}: date rendering must match UTC`);
         }
       }
-      assert.deepEqual(errors, []);
+      assert.deepEqual(failures, [], 'Date rendering must complete without browser errors');
     } finally { await page.close(); }
   }
 });
