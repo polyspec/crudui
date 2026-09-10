@@ -54,7 +54,7 @@ test('non-Linux tool discovery uses regular executables and the Rust toolchain r
   };
 
   assert.deepEqual(await resolvePhpBuildTools({
-    environment: { PATH: bin }, needsCargo: true, platform: 'darwin', run,
+    environment: { HOME: root, PATH: bin }, needsCargo: true, platform: 'darwin', run,
   }), { phpConfig, compiler, cargo, rustc, rustHost: 'aarch64-test-system' });
   assert.deepEqual(calls.filter(([, args]) => args[0] === 'which'), [
     [rustup, ['which', 'cargo']],

@@ -522,7 +522,7 @@ function runComparison(jsModule, testFile, enabledLangs) {
 /**
  * Main function
  */
-function main() {
+async function main() {
   const args = process.argv.slice(2);
 
   // Parse arguments
@@ -591,8 +591,13 @@ Examples:
       { cwd: GO_VALIDATOR_DIR, stdio: 'inherit' });
   }
   if (enabledLangs.includes('rust')) {
-    require('node:child_process').execFileSync('cargo', ['build', '--locked', '--release', '--bin', 'validate-legacy'],
-      { cwd: RUST_VALIDATOR_DIR, stdio: 'inherit' });
+    const { resolveRustToolchain } = await import('../../scripts/tool-resolution.mjs');
+    const { cargo, rustc } = await resolveRustToolchain({
+      cargo: process.env.CARGO,
+      rustc: process.env.RUSTC,
+    });
+    require('node:child_process').execFileSync(cargo, ['build', '--locked', '--release', '--bin', 'validate-legacy'],
+      { cwd: RUST_VALIDATOR_DIR, env: { ...process.env, RUSTC: rustc }, stdio: 'inherit' });
   }
   const jsModule = enabledLangs.includes('js') ? loadJsValidator() : null;
   if (!jsModule && enabledLangs.includes('js')) {
@@ -700,9 +705,7 @@ Examples:
 }
 
 // Run main function
-try {
-  main();
-} catch (error) {
+main().catch(error => {
   console.error(error.message);
   process.exitCode = 1;
-}
+});
