@@ -83,6 +83,8 @@ Composer 설치가 등록한 기록은 패키지 선택에 영향을 주지 않�
 PHP 상태 응답은 생성기 소스 디렉터리의 `Generator`와 `Form`, 선택한 Composer 설치
 디렉터리의 `Validator`를 보고합니다. 시작 검증은 소스 비교가 통과한 뒤 이 세 클래스
 위치만 허용합니다.
+시작 검증이 상태 응답을 거부하면 실패 메시지는 서버와 이 계약을 충족하지 못한 첫
+응답 필드를 명시합니다.
 
 공개 API는 `/api/{server}/{action}/{renderingPath}/{framework}`만 허용합니다. 공개
 프로세스는 PHP 프로세스, PHP 확장 프로세스, Go 프로세스, Rust 프로세스를 각각
