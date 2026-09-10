@@ -85,6 +85,11 @@ validation, persistence and SSR request contract. Each server uses its own
 generator and validator. The PHP extension process loads `crudui.so` and
 `ordered_json.so`; the PHP process loads neither extension. Startup rejects an
 unexpected class source, module digest or repository commit.
+The PHP process obtains the validator installation directory from Composer's
+installed-package record. The validator class must be a regular file in that
+directory and must match the corresponding source file in the candidate archive.
+The process rejects a symbolic link, a different installed file or a missing
+Composer package record.
 
 The public API accepts only
 `/api/{server}/{action}/{renderingPath}/{framework}`. The public process starts
