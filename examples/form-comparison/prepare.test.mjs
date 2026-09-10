@@ -24,17 +24,7 @@ function repository(t) {
   git(root, 'init', '--quiet');
   git(root, 'config', 'user.name', 'CRUDUI Test');
   git(root, 'config', 'user.email', 'test@crudui.invalid');
-  for (const file of [
-    'package.json', 'package-lock.json',
-    'examples/form-comparison/Containerfile',
-    'examples/form-comparison/package.json',
-    'examples/form-comparison/package-lock.json',
-    'packages/generator-php/composer.json', 'packages/generator-php/composer.lock',
-    'packages/validator-php/composer.json', 'packages/validator-php/composer.lock',
-    'packages/generator-go/go.mod', 'packages/generator-rust/Cargo.toml',
-    'packages/generator-rust/Cargo.lock', 'packages/php-ext/config.m4',
-    'packages/php-ext/Cargo.lock', 'scripts/build-php-extension.sh',
-  ]) {
+  for (const file of requiredSourcePaths) {
     mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
     writeFileSync(path.join(root, file),
       file.endsWith('Containerfile') ? 'FROM scratch\n' : file + '\n');
@@ -84,6 +74,8 @@ test('prepares one context from the complete current source commit', async t => 
     assert.ok(entries.includes(file), 'Missing source archive entry: ' + file);
   }
   assert.equal(readFileSync(path.join(result.context, 'Containerfile'), 'utf8'), 'FROM scratch\n');
+  assert.equal(readFileSync(path.join(result.context, 'verify-candidate-context.mjs'), 'utf8'),
+    'examples/form-comparison/verify-candidate-context.mjs\n');
   assert.equal(readFileSync(path.join(result.context, 'source-commit'), 'utf8'), commit + '\n');
   assert.deepEqual((await prepareCandidate(input)).metadata, result.metadata);
 });
