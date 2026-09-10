@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 /**
- * check-server-doc-coverage.mjs — doc-coverage gate for the examples/* API
- * servers. The library gate (scripts/check-doc-coverage.mjs) covers packages/*;
- * this gate extends the same RED/GREEN discipline to the four example backends,
- * which are otherwise out of scope.
+ * Check documentation coverage for the examples/* API servers. The library
+ * checker covers packages/*; this checker covers the four example backends.
  *
  * It fails (non-zero exit) if any server function / route handler lacks a
  * preceding doc comment. It is a pure check: idempotent by nature, no artifacts.
@@ -20,7 +18,7 @@
  *   - rust-api (examples/legacy/rust-api/src/main.rs): a line parser requires a `///`
  *     doc comment directly above every `fn` declaration. (`main.rs` is a bin
  *     crate, so #![deny(missing_docs)] only reaches pub items — it cannot cover
- *     these private fns, hence the dedicated lane.)
+ *     these private functions, so this script checks them directly.)
  *
  * Usage: node scripts/check-server-doc-coverage.mjs [all|node|go|php|rust]
  */
@@ -34,9 +32,9 @@ const target = (process.argv[2] || 'all').toLowerCase();
 const want = (name) => target === 'all' || target === name;
 
 const results = [];
-function record(lane, ok, note) {
-  results.push({ lane, ok, note });
-  process.stdout.write(`[server-doc-coverage] ${lane}: ${ok ? 'GREEN' : 'RED'}${note ? ' — ' + note : ''}\n`);
+function record(targetName, ok, note) {
+  results.push({ targetName, ok, note });
+  process.stdout.write(`[server-doc-coverage] ${targetName}: ${ok ? 'PASS' : 'FAIL'}${note ? ' — ' + note : ''}\n`);
 }
 
 function commandExists(cmd) {
@@ -61,7 +59,7 @@ function lineAboveIsComment(lines, i) {
   return prev.startsWith('//') || prev.startsWith('*/') || prev.startsWith('*') || prev.startsWith('/*');
 }
 
-/** node-api lane: every function decl + Express handler needs a comment above. */
+/** Check that every node-api function and Express handler has a preceding comment. */
 function checkNode() {
   const file = join(ROOT, 'examples', 'legacy', 'node-api', 'server.js');
   if (!existsSync(file)) {
@@ -90,7 +88,7 @@ function checkNode() {
   }
 }
 
-/** go-api lane: delegate to the go/ast TestDocCoverage in examples/legacy/go-api. */
+/** Run the Go AST documentation check in examples/legacy/go-api. */
 function checkGo() {
   const goDir = join(ROOT, 'examples', 'legacy', 'go-api');
   if (!commandExists('go')) {
@@ -105,7 +103,7 @@ function checkGo() {
   }
 }
 
-/** php-api lane: delegate to the standalone tokenizer checker. */
+/** Run the PHP tokenizer documentation check. */
 function checkPHP() {
   if (!commandExists('php')) {
     record('php', true, 'SKIP: php not installed');
@@ -120,7 +118,7 @@ function checkPHP() {
   }
 }
 
-/** rust-api lane: every `fn` in src/main.rs needs a `///` doc comment above. */
+/** Check that every Rust function in src/main.rs has a preceding doc comment. */
 function checkRust() {
   const file = join(ROOT, 'examples', 'legacy', 'rust-api', 'src', 'main.rs');
   if (!existsSync(file)) {
@@ -158,10 +156,10 @@ if (want('rust')) checkRust();
 const failed = results.filter((r) => !r.ok);
 process.stdout.write('\n[server-doc-coverage] summary:\n');
 for (const r of results) {
-  process.stdout.write(`  ${r.ok ? 'GREEN' : 'RED  '} ${r.lane}${r.note ? ' (' + r.note + ')' : ''}\n`);
+  process.stdout.write(`  ${r.ok ? 'PASS' : 'FAIL'} ${r.targetName}${r.note ? ' (' + r.note + ')' : ''}\n`);
 }
 if (failed.length > 0) {
-  process.stdout.write(`\n[server-doc-coverage] FAILED: ${failed.length} lane(s) RED\n`);
+  process.stdout.write(`\n[server-doc-coverage] FAILED: ${failed.length} target(s) failed\n`);
   process.exit(1);
 }
-process.stdout.write('\n[server-doc-coverage] all GREEN\n');
+process.stdout.write('\n[server-doc-coverage] all targets passed\n');

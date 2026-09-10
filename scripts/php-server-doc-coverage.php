@@ -4,7 +4,7 @@
  *
  * Asserts that every named top-level function in the php-api router files
  * (api.php, validate.php, index.php) carries a docblock immediately above its
- * declaration. Exits non-zero (RED) when any function is undocumented.
+ * declaration. Exits non-zero when any function is undocumented.
  *
  * Dependency-free: tokenizes each file with PHP's own tokenizer rather than
  * loading it, so the closures and `exit`-driven router scripts (which must not
@@ -107,12 +107,12 @@ if (PHP_SAPI === 'cli' && isset($argv[0]) && realpath($argv[0]) === realpath(__F
     sort($gaps);
 
     if (count($gaps) > 0) {
-        fwrite(STDERR, '[php-server-doc-coverage] RED: ' . count($gaps) . " undocumented function(s):\n");
+        fwrite(STDERR, '[php-server-doc-coverage] FAIL: ' . count($gaps) . " undocumented function(s):\n");
         foreach ($gaps as $g) {
             fwrite(STDERR, "  $g\n");
         }
         exit(1);
     }
-    fwrite(STDOUT, "[php-server-doc-coverage] GREEN: all php-api router functions documented\n");
+    fwrite(STDOUT, "[php-server-doc-coverage] PASS: all php-api router functions documented\n");
     exit(0);
 }

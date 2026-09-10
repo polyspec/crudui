@@ -310,7 +310,7 @@ function main() {
     process.exit(1);
   }
 
-  // Agreement gate across the backends that ran.
+  // Verify agreement across the backends that ran.
   const problems = checkAgreement(byLangBySpec, okLangs);
   if (problems.length > 0) {
     console.error('\n[bench] CROSS-LANGUAGE DISAGREEMENT — refusing to report throughput:');
