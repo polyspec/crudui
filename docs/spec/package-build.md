@@ -33,6 +33,11 @@ output. A build must succeed without a preceding `.svelte-kit` directory.
 Compiled Go CLI executables are generated from source and excluded from Git.
 Applications that execute a CLI build it before use.
 
+Repository Make targets may prepend tool directories to `PATH`. Each recipe
+command that depends on an added directory explicitly supplies the expanded
+`PATH` when invoking the tool. The tool must resolve from that directory when
+Make's process started without it.
+
 The specification CLI runs its TypeScript source through `tsx`. Its generator
 imports load the validator through the public package entry, so local commands
 and CI tests build the validator before running the CLI. Dependency installation
