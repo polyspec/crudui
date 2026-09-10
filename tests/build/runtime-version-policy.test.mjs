@@ -23,17 +23,29 @@ async function findContainerDefinitions(directory = repository) {
   return files;
 }
 
-test('CI selects the current Node.js LTS and npm stable channels', async () => {
+async function selectedNodeMajor() {
+  const value = (await readFile(path.join(repository, '.node-version'), 'utf8')).trim();
+  assert.match(value, /^\d+$/, '.node-version must contain one Node.js major');
+  const major = Number(value);
+  assert.equal(major % 2, 0, 'The selected Node.js major must be an LTS-designated line');
+  return value;
+}
+
+test('CI selects the tracked Node.js line and current npm stable channel', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const setupCount = [...workflow.matchAll(/uses: actions\/setup-node@/g)].length;
-  const ltsCount = [...workflow.matchAll(/node-version:\s*['"]lts\/\*['"]/g)].length;
+  const versionFileCount = [...workflow.matchAll(/node-version-file:\s*['"]?\.node-version['"]?/g)]
+    .length;
   assert.ok(setupCount > 0, 'CI must configure Node.js');
-  assert.equal(ltsCount, setupCount, 'Every setup-node step must select lts/*');
+  assert.equal(versionFileCount, setupCount,
+    'Every setup-node step must read .node-version');
+  assert.doesNotMatch(workflow, /node-version:\s*['"]?\d/);
   assert.doesNotMatch(workflow, /npm@\d+(?:\.\d+)*/);
   assert.match(workflow, /npm@latest/);
 });
 
-test('container definitions select the current Node.js LTS channel', async () => {
+test('container definitions select the tracked Node.js major channel', async () => {
+  const major = await selectedNodeMajor();
   const definitions = await findContainerDefinitions();
   const nodeStages = [];
   for (const definition of definitions) {
@@ -44,8 +56,8 @@ test('container definitions select the current Node.js LTS channel', async () =>
   }
   assert.ok(nodeStages.length > 0, 'At least one Node.js container stage is required');
   assert.deepEqual(
-    nodeStages.filter(stage => !stage.tag.startsWith('lts-')),
+    nodeStages.filter(stage => !stage.tag.startsWith(`${major}-`)),
     [],
-    `Node.js stages must use lts tags: ${JSON.stringify(nodeStages, null, 2)}`,
+    `Node.js stages must use the ${major} major channel: ${JSON.stringify(nodeStages, null, 2)}`,
   );
 });
