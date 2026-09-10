@@ -42,6 +42,8 @@ each required executable once before compilation. Relative paths, symbolic links
 missing tools, multiple discovery results and PHP installation mismatches fail
 the build. A failed command does not select another executable or build path.
 Generated build and module paths contain only regular files and directories.
+The Linux candidate declares its versioned `php-config` file and selects the C
+compiler from one installed Debian `gcc` package record.
 
 When every candidate check succeeds, verification stops and removes the
 candidate container. It retains only the candidate image and these deployment
