@@ -6,6 +6,7 @@ import { requiredSourcePaths } from '../../examples/form-comparison/prepare.mjs'
 
 const root = new URL('../../', import.meta.url);
 const files = Object.fromEntries(await Promise.all([
+  '.dockerignore',
   'Makefile',
   'examples/form-comparison/Containerfile',
   'tests/containers/native.Containerfile',
@@ -32,6 +33,12 @@ test('PHP modules use the shared builder through explicit entry points', async (
     /node scripts\/build-crudui-php-extension\.mjs/);
   assert.match(files['tests/containers/native.Containerfile'],
     /PHP_EXTENSION_PHP_CONFIG=\/usr\/bin\/php-config8\.4/);
+  assert.equal(
+    files['tests/containers/native.Containerfile']
+      .match(/\/usr\/bin\/php-config8\.4/g)?.length,
+    1,
+    'The native container must declare php-config once',
+  );
 
   const candidate = normalized(files['examples/form-comparison/Containerfile']);
   assert.match(candidate, /node scripts\/build-crudui-php-extension\.mjs/);
@@ -51,6 +58,11 @@ test('PHP modules use the shared builder through explicit entry points', async (
     assert.equal(requiredSourcePaths.includes(removed), false);
     await assert.rejects(access(new URL(removed, root)));
   }
+});
+
+test('container context excludes direct PHP extension build output', () => {
+  assert.match(files['.dockerignore'], /^packages\/php-ext\/\.build\/$/m);
+  assert.match(files['.dockerignore'], /^packages\/php-ext\/modules\/?$/m);
 });
 
 test('PHP extension instructions use the current direct build entry point', () => {
