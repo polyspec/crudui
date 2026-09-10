@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { copyFileSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const repository = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 function environment(operation) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'crudui-doc-check-')));
@@ -54,6 +57,16 @@ test('TypeScript checks all five current public entries', () => environment(root
   assert.equal(calls[0].command, 'npm');
   assert.deepEqual(calls.slice(1).map(call => call.args.at(-1)), ['generator-core', 'validator-ts', 'generator-react', 'generator-vue', 'generator-svelte'].map(pkg => join(root, 'packages', pkg, pkg === 'generator-svelte' ? 'dist/index.d.ts' : 'src/index.ts')));
 }));
+test('TypeScript rejects a public declaration that references an unexported type', () => {
+  const result = spawnSync(join(repository, 'node_modules/.bin/typedoc'), [
+    '--options', join(repository, 'scripts/typedoc.check.json'),
+    '--tsconfig', join(repository, 'scripts/fixtures/typedoc/tsconfig.json'),
+    '--entryPointStrategy', 'resolve',
+    join(repository, 'scripts/fixtures/typedoc/unexported.ts'),
+  ], { encoding: 'utf8' });
+  assert.notEqual(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout + result.stderr, /HiddenInput.*not included in the documentation/);
+});
 test('unknown doc coverage target fails', () => environment(root => {
   assert.notEqual(run(root, 'unknown').status, 0);
 }));
