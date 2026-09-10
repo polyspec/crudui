@@ -139,9 +139,9 @@ export function renderDeploymentCompose({ commit, imageReference }) {
     `      containerctl.domain: ${deploymentDomain}`,
     '    healthcheck:',
     `      test: ${healthCommand}`,
-    '      interval: 1s',
+    '      interval: 2s',
     '      timeout: 5s',
-    '      retries: 120',
+    '      retries: 60',
     '      start_period: 2s',
     '',
   ].join('\n');
