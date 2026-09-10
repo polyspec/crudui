@@ -148,8 +148,8 @@ bench-rust: bench-fixtures ## Rust 검증기만 측정
 	node tools/bench/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 build-php-extension:
-	node --test tests/native-generators/php-extension-build.test.mjs
-	sh scripts/build-php-extension.sh
+	node --test tests/native-generators/direct-extension-build.test.mjs tests/native-generators/php-extension-builder.test.mjs
+	node scripts/build-crudui-php-extension.mjs
 
 test-native: build-php-extension
 	npm run build

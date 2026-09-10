@@ -22,6 +22,7 @@ void crudui_invalid_value(const char *message, bool form_error)
 
 PHP_METHOD(CRUDUI_FormError, __construct)
 {
+    (void)return_value;
     zend_string *code, *message, *path = NULL;
     ZEND_PARSE_PARAMETERS_START(2, 3)
         Z_PARAM_STR(code)
@@ -37,6 +38,7 @@ PHP_METHOD(CRUDUI_FormError, __construct)
 
 PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __construct)
 {
+    (void)return_value;
     zend_string *code, *message;
     zval *trace = NULL, detail;
     ZEND_PARSE_PARAMETERS_START(2, 3)
