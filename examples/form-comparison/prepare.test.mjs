@@ -5,7 +5,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { prepareCandidate } from './prepare.mjs';
+import { prepareCandidate, requiredSourcePaths } from './prepare.mjs';
+
+const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 
 function git(repository, ...args) {
   return execFileSync('git', args, { cwd: repository, encoding: 'utf8' }).trim();
@@ -48,6 +50,16 @@ function dependency() {
     files: new Map([['ordered-json.tar', Buffer.from('ordered json')]]),
   };
 }
+
+test('current candidate commit contains every required source file', () => {
+  const commit = git(repositoryRoot, 'rev-parse', 'HEAD');
+  for (const file of requiredSourcePaths) {
+    assert.doesNotThrow(
+      () => git(repositoryRoot, 'cat-file', '-e', `${commit}:${file}`),
+      `Candidate commit is missing required file: ${file}`,
+    );
+  }
+});
 
 test('prepares one context from the complete current source commit', async t => {
   const root = repository(t);

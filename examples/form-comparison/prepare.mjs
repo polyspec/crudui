@@ -11,7 +11,7 @@ const repositoryRoot = path.resolve(exampleDirectory, '../..');
 const orderedJsonRevision = '7a2b4682f002f73b6c44e77012d39ff199c9331d';
 const orderedJsonRepository = 'https://github.com/ordered-json/ordered-json';
 const implementationPaths = Object.freeze(['go', 'js', 'php', 'php-extension', 'rust']);
-const requiredSourcePaths = Object.freeze([
+export const requiredSourcePaths = Object.freeze([
   'package.json',
   'package-lock.json',
   'examples/form-comparison/Containerfile',
