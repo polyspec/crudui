@@ -1,4 +1,5 @@
 import { createBrowserJob } from './browser-job.mjs';
+import { loadComparisonFrames } from './frame-readiness.mjs';
 import {
   formFrameworks, formRenderingPaths, formServers, formTransports,
 } from './runtime-paths.mjs';
@@ -76,26 +77,11 @@ async function show(framework, server = serverSelector.value) {
   frameworkSelector.value = framework;
   document.querySelector('#language').href =
     `?lang=${language === 'ko' ? 'en' : 'ko'}&server=${server}`;
-  const loaded = frames.map(frame =>
-    new Promise(resolve => frame.addEventListener('load', resolve, { once: true })));
-  for (const [index, path] of formRenderingPaths.entries()) {
-    frames[index].title = t[path];
-    frames[index].src = `/frames/${path}-${framework}/?lang=${language}&server=${server}`;
-  }
-  await Promise.all(loaded);
-  for (let attempt = 0; attempt < 300; attempt++) {
-    const ready = frames.every((frame, index) => {
-      const comparison = frame.contentWindow.comparison;
-      return comparison?.server === server && comparison.framework === framework
-        && comparison.path === formRenderingPaths[index];
-    });
-    if (ready) {
-      renderReport();
-      return;
-    }
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  throw new Error(`Frames did not load: ${framework}`);
+  await loadComparisonFrames({
+    host: window, frames, paths: formRenderingPaths, framework, server, language,
+    title: path => t[path],
+  });
+  renderReport();
 }
 
 async function runAll(servers, publish) {
@@ -148,6 +134,7 @@ function startRun(servers = formServers) {
   activeJob = createBrowserJob(({ report }) => runAll(servers, report), {
     totalReports: formRenderingPaths.length * formFrameworks.length
       * formTransports.length * servers.length,
+    publish: event => window.cruduiBrowserJobEvent?.(event),
   });
   return activeJob.start();
 }

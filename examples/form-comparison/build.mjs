@@ -21,6 +21,8 @@ await mkdir(publicDirectory, { recursive: true });
 await cp(path.join(exampleDirectory, 'public'), publicDirectory, { recursive: true });
 await cp(path.join(exampleDirectory, 'src/browser-job.mjs'),
   path.join(publicDirectory, 'browser-job.mjs'));
+await cp(path.join(exampleDirectory, 'src/frame-readiness.mjs'),
+  path.join(publicDirectory, 'frame-readiness.mjs'));
 await cp(path.join(exampleDirectory, 'src/runtime-paths.mjs'),
   path.join(publicDirectory, 'runtime-paths.mjs'));
 await cp(path.join(exampleDirectory, 'fixtures/records.json'),
