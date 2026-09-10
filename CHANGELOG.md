@@ -25,9 +25,10 @@ checks. The form comparison build command passed 129 source checks and ten
 construction checks.
 
 Candidate source tests create writable fixtures under the canonical operating
-system temporary directory. They do not require Git metadata or write under the
-extracted source directory. The candidate fixture location regression check and
-all ten PHP construction checks passed.
+system temporary directory. Every temporary path component must be a regular
+directory and must not be a symbolic link. Candidate tests do not require Git
+metadata or write under the extracted source directory. The candidate fixture
+location regression check and all ten PHP construction checks passed.
 
 ## 2026-09-11 — Build PHP extensions directly
 
