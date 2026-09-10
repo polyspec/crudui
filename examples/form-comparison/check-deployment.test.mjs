@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
+import * as deployment from './deployment.mjs';
 import {
   assertStableDeployment, preserveDeploymentDirectory, readDeploymentAuthority,
   renderDeploymentCompose, verifyCandidateEvidence,
@@ -120,7 +121,7 @@ test('renders one deterministic deployment definition for the verified image', (
   assert.match(first, new RegExp(`image: ${imageReference}`));
   assert.match(first, /containerctl\.domain: crudui\.test/);
   assert.ok(first.includes('./data:/data'));
-  assert.ok(first.includes('./results:/results'));
+  assert.ok(!first.includes('./results:/results'));
   assert.match(first, new RegExp(commit));
   const healthLine = first.split('\n').find(line => line.startsWith('      test: '));
   const healthCommand = JSON.parse(healthLine.slice('      test: '.length));
@@ -128,10 +129,34 @@ test('renders one deterministic deployment definition for the verified image', (
   assert.doesNotThrow(() => new Function(healthCommand[3]));
 });
 
+test('selects temporary comparison resources after successful deployment', () => {
+  assert.equal(typeof deployment.deploymentCleanupPlan, 'function');
+  const deployedImageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
+  const oldImageReference = 'localhost/crudui-form-comparison:111111111111';
+  const plan = deployment.deploymentCleanupPlan({
+    deployedImageReference,
+    candidateDirectories: ['/repo/.form-comparison/candidates/current',
+      '/repo/.form-comparison/candidates/previous'],
+    containers: [
+      { id: 'crudui-comparison', imageReference: deployedImageReference },
+      { id: 'crudui-form-comparison-current', imageReference: deployedImageReference },
+      { id: 'crudui-form-comparison-previous', imageReference: oldImageReference },
+      { id: 'unrelated', imageReference: 'docker.io/library/node:26' },
+    ],
+    imageReferences: [deployedImageReference, oldImageReference, 'docker.io/library/node:26'],
+  });
+  assert.deepEqual(plan, {
+    containerIds: ['crudui-form-comparison-current', 'crudui-form-comparison-previous'],
+    candidateDirectories: ['/repo/.form-comparison/candidates/current',
+      '/repo/.form-comparison/candidates/previous'],
+    imageReferences: [oldImageReference],
+  });
+});
+
 test('rejects any change during identical deployment reapplication', () => {
   const snapshot = {
     container: { id: 'crudui-comparison', createdAt: 'one', startedAt: 'two',
-      imageDigest: `sha256:${'3'.repeat(64)}`, mounts: ['/data', '/results'] },
+      imageDigest: `sha256:${'3'.repeat(64)}`, mounts: ['/data'] },
     route: { domain: 'crudui.test', target: 'crudui-comparison' },
     certificate: { fingerprint256: 'AA:BB' },
     files: { 'php-bindForm-react.json': '4'.repeat(64) },
