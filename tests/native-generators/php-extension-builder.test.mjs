@@ -239,6 +239,19 @@ test('generated path cleanup rejects a symbolic link without changing its target
   assert.equal(await readFile(nestedRetained, 'utf8'), 'nested retained\n');
 });
 
+test('generated path cleanup removes declared regular trees', async t => {
+  const root = await temporaryDirectory(t);
+  const extension = path.join(root, 'extension');
+  const generated = path.join(extension, '.build');
+  const nested = path.join(generated, 'objects');
+  const output = path.join(nested, 'module.o');
+  await mkdir(nested, { recursive: true });
+  await writeFile(output, 'generated\n');
+
+  await cleanGeneratedPaths(extension, ['.build']);
+  await assert.rejects(readFile(output, 'utf8'), error => error.code === 'ENOENT');
+});
+
 test('Rust build environment declares regular compiler and linker paths', () => {
   assert.deepEqual(rustBuildEnvironment({ PATH: '/declared/bin' }, {
     compiler: '/tools/cc',
