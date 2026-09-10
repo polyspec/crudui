@@ -21,6 +21,23 @@ or checking a candidate does not change the deployed service. Deployment is
 allowed only after the candidate aggregate returns status 0 and records
 `passed: true`.
 
+Candidate verification manages its complete local artifact lifecycle. Before it
+prepares a commit, it removes candidate containers, image tags and directories
+from earlier runs. It never removes the active deployment container, image or
+data. While a candidate runs, its commit-specific directory may contain build
+context, mutable test data, individual reports and screenshots.
+
+When every candidate check succeeds, verification stops and removes the
+candidate container. It retains only the candidate image and these deployment
+inputs: `context/metadata.json`, `results/generation.json`,
+`results/server-report.json` and `results/browser-summary.json`. It removes the
+candidate build context, mutable data, individual browser reports, screenshots
+and every candidate artifact for another commit. When preparation, construction,
+startup or any check fails, verification writes the failure and available
+container log to standard error, then removes the failed candidate container,
+image and directory. A completed run does not retain raw test output for later
+diagnosis.
+
 Image construction runs compilation and source checks that do not start a
 browser process. The construction environment does not provide the namespace
 contract required by the Chromium sandbox. After the image starts, the complete
@@ -190,5 +207,6 @@ After deployment verification succeeds, the repository retains the deployment
 commit, image digest, report totals, data digests and identical-application
 result. It removes candidate containers, candidate directories, raw reports,
 screenshots and local comparison images that the deployed service does not use.
-If deployment verification fails, it keeps the current candidate directory for
-diagnosis and does not remove the active deployment image.
+If deployment verification fails, it retains the verified candidate's four
+deployment inputs and image for a retry. It does not remove or replace the last
+verified deployment record as part of artifact cleanup.
