@@ -160,7 +160,7 @@ function equalRendered(actual, expected) {
   assert.equal(actual.html, expected.html, 'Raw form HTML differs');
 }
 
-function provenance(actual, server, source) {
+export function assertGenerationProvenance(actual, server, source) {
   assert.ok(object(actual), 'Missing generator provenance');
   assert.equal(actual.runtime, server, 'Incorrect generator runtime');
   assert.equal(actual.commit, source.commit, 'Incorrect generator source commit');
@@ -269,7 +269,7 @@ function checkDocument(parse, markup, expected, server, renderingPath, framework
   if (server === 'php' || server === 'php-ext') {
     const metadata = oneNode(nodes, node => node.tagName === 'script' && attr(node, 'id') === 'generator', 'Missing SSR PHP provenance');
     assert.equal(attr(metadata, 'type'), 'application/json');
-    provenance(decodeJson(new TextEncoder().encode(metadata.childNodes.map(node => node.value ?? '').join(''))), server, source);
+    assertGenerationProvenance(decodeJson(new TextEncoder().encode(metadata.childNodes.map(node => node.value ?? '').join(''))), server, source);
   } else {
     assert.equal(attr(form, 'data-generator-runtime'), server, 'Missing SSR generator runtime');
     assert.equal(attr(form, 'data-generator-commit'), source.commit, 'Missing SSR generator commit');
@@ -365,7 +365,7 @@ async function main() {
         const payload = { spec: { type: 'group', properties: { $ref: 'current-fields.json' } }, options: { keyPrefix: 'form', files: { 'current-fields.json': publicSpec } } };
         const expected = compileForm(payload.spec, payload.options);
         const response = await request(endpoint('compile'), payload, server);
-        provenance(response.generator, server, source);
+        assertGenerationProvenance(response.generator, server, source);
         const expectedReferenceReads = server === 'go' || server === 'rust' ? 1 : null;
         assert.equal(response.referenceReads, expectedReferenceReads, 'Compile reference read count differs');
         equalOrdered(response.template, expected, 'Compiled template');
@@ -394,7 +394,7 @@ async function main() {
         const binding = { language: scenario.language, idPrefix: 'http:form' };
         const cachedTemplate = deserialize(serializedTemplate);
         const response = await request(endpoint('render'), { template: cachedTemplate, data, options: binding }, server);
-        provenance(response.generator, server, source);
+        assertGenerationProvenance(response.generator, server, source);
         assert.ok(object(response.data) && Array.isArray(response.fields) && typeof response.html === 'string', 'Incomplete render response');
         assert.equal(response.revision, 0, 'A new HTTP form instance must start at revision zero');
         if (scenario.defaults) freshDefaults(response.data);
@@ -417,7 +417,7 @@ async function main() {
         equalRendered(state(injected), response);
         assert.equal(injected.getSnapshot().revision, 4);
         const repeated = await request(endpoint('render'), { template: deserialize(serializedTemplate), data: response.data, options: binding }, server);
-        provenance(repeated.generator, server, source);
+        assertGenerationProvenance(repeated.generator, server, source);
         equalRendered(repeated, response);
         assert.equal(repeated.revision, 0);
         assert.equal(encodeJson(cachedTemplate), serializedTemplate, 'Binding modified the reusable serialized template');
