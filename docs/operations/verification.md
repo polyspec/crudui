@@ -110,5 +110,23 @@ container stop "$CANDIDATE_NAME"
 container delete "$CANDIDATE_NAME"
 ```
 
-Deployment and package publication are separate operations. Candidate verification
-does not change either state.
+Deploy the verified current commit after every repository and candidate command
+has returned status 0:
+
+```sh
+node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"
+```
+
+The deployment command verifies the candidate metadata, generation report,
+persistence report, browser aggregate, exact image tag and image digest before
+creating `.form-comparison/deployment/compose.yaml`. It preserves the active
+service's data and results in the repository deployment directory without
+overwriting different files. It applies the Compose file with containerctl,
+uses the explicit containerctl CA to verify `https://crudui.test`, and checks
+the deployed source commit, route, certificate, mounts, stored files and response
+bytes. It applies the same Compose file a second time and fails if any checked
+state changes. The deployment and verification records remain under
+`.form-comparison/deployment/`.
+
+Package publication is a separate operation. Candidate verification alone does
+not change deployment or publication state.
