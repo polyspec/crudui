@@ -258,6 +258,7 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     });
     let app = application(server);
     let listener = tokio::net::TcpListener::bind(&args[1]).await?;
+    eprintln!("CRUDUI_READY rust");
     axum::serve(listener, app).await?;
     Ok(())
 }
