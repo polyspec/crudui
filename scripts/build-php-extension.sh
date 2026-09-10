@@ -3,6 +3,7 @@ set -eu
 
 project_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_root/packages/php-ext"
+phpize --clean
 phpize
 ./configure --enable-crudui
 make -j"${CRUDUI_BUILD_JOBS:-2}"
