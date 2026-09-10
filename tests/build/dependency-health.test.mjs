@@ -36,6 +36,12 @@ function trackedLockFiles() {
   return result.stdout.trim().split('\n').filter(Boolean).sort();
 }
 
+function trackedComposerFiles(basename) {
+  const result = execute(git, ['ls-files', '--', basename, `**/${basename}`]);
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim().split('\n').filter(Boolean).sort();
+}
+
 function trackedInstallDefinitionFiles() {
   const result = execute(git, ['ls-files']);
   assert.equal(result.status, 0, result.stderr);
@@ -155,6 +161,28 @@ test('CI and container clean installs enforce script approvals', () => {
     for (const [index, line] of lines.entries()) {
       if (/\bnpm ci(?!\s+--strict-allow-scripts\b)/.test(line)) {
         failures.push(`${filename}:${index + 1}: ${line.trim()}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
+test('Composer path repositories install local packages as copies', () => {
+  const failures = [];
+  for (const filename of trackedComposerFiles('composer.json')) {
+    const manifest = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
+    for (const [index, repository] of (manifest.repositories ?? []).entries()) {
+      if (repository.type === 'path' && repository.options?.symlink !== false) {
+        failures.push(`${filename}:repositories[${index}]`);
+      }
+    }
+  }
+  for (const filename of trackedComposerFiles('composer.lock')) {
+    const lock = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
+    for (const dependency of [...(lock.packages ?? []), ...(lock['packages-dev'] ?? [])]) {
+      if (dependency.dist?.type === 'path'
+        && dependency['transport-options']?.symlink !== false) {
+        failures.push(`${filename}:${dependency.name}`);
       }
     }
   }
