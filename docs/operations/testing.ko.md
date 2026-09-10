@@ -2,7 +2,8 @@
 
 [English](testing.md).
 
-저장소 루트에서 실행합니다. `npm ci`로 Node 의존성을 설치하고 PHP 패키지의
+저장소 루트에서 실행합니다. `npm ci --strict-allow-scripts`로 Node 의존성을
+설치하고 PHP 패키지의
 Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 있게 합니다.
 컴파일된 export를 검사하기 전에 JavaScript 패키지를 빌드합니다.
 

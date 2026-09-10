@@ -22,6 +22,6 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /uses: actions\/checkout@/);
   assert.match(job, /uses: actions\/setup-node@/);
   assert.match(job, /node-version-file:\s*['"]?\.node-version['"]?/);
-  assert.match(job, /npm i -g npm@latest && npm ci/);
+  assert.match(job, /npm i -g npm@latest && npm ci --strict-allow-scripts/);
   assert.match(job, /run:\s*npm run test:form-comparison(?:\s|$)/);
 });
