@@ -28,7 +28,7 @@ RUN npm ci
 RUN npm run build
 RUN npm ci --prefix examples/form-comparison
 
-FROM golang:1.27.0-trixie AS go-server
+FROM golang:1.27-trixie AS go-server
 COPY --from=verified-source /workspace /workspace
 COPY --from=verified-source /archives/source-commit /archives/source-commit
 WORKDIR /workspace/source/examples/form-comparison/servers/go

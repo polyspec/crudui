@@ -65,7 +65,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26'
+          go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
 
       - name: Setup Rust (stable)
@@ -125,7 +125,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26'
+          go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
       - name: Test
         run: go test ./...
@@ -203,7 +203,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26'
+          go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
 
       - name: Setup Rust (stable)
@@ -263,7 +263,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26'
+          go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
       - name: current conformance (go test ./validator/... + validate CLI)
         run: go test ./validator/... ./cmd/validate
@@ -344,7 +344,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26'
+          go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
 
       - name: Setup Rust (stable)
@@ -445,7 +445,7 @@ jobs:
           tools: composer
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.26'
+          go-version-file: '.go-version'
           cache-dependency-path: packages/generator-go/go.mod
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
