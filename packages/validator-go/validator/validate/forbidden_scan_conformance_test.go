@@ -1,10 +1,9 @@
 package validate
 
-// model recursive forbidden-scan conformance — Go verification against the shared
-// 4-language fixture.
+// Recursive forbidden-key scanning verifies the shared four-runtime fixture.
 //
-// Single truth = tests/fixtures/spec-validity/cases.json, the cross-language
-// contract for SPEC §6 global meta-key rejection: a clean spec passes; a
+// tests/fixtures/spec-validity/cases.json defines SPEC §6 meta-key rejection.
+// A clean specification passes; a
 // forbidden meta key found at ANY depth (slot/bucket body and one level below,
 // deep child subtrees, array elements, $ref-inherited bases) is a LOAD ERROR,
 // never valid:true. JS / PHP / Go / Rust load this ONE file and must reproduce
@@ -13,9 +12,8 @@ package validate
 //
 // Each ok case must validate without a load error. Each error case must return a
 // *compose.ComposeLoadError whose Code is the fixture error_code AND whose path
-// (Trace, dotted) equals the fixture at_path — depth is load-bearing, so the path
-// is asserted, not just the code. Never weaken an assertion to turn red green; fix
-// the engine, the fixture, or both at their shared source — not this test.
+// (Trace, dotted) equals the fixture at_path. The check compares both the code
+// and the complete path.
 
 import (
 	"encoding/json"

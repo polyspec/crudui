@@ -10,14 +10,10 @@ import (
 	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
-// model validate-engine conformance (SPEC §2 G5 → §3 → §2 G1).
+// Validation conformance verifies SPEC §2 G5, §3 and §2 G1.
 //
-// Single truth = the shared 4-language fixture tests/fixtures/validate/cases.json.
-// All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce
-// it identically — valid + errors, keys/order/messages included. Its values are
-// the JS reference engine's actual output. Go matches it bit-for-bit. Never weaken
-// an assertion to turn red green; fix the engine, the fixture, or both at their
-// shared source — not this test.
+// The shared fixture tests/fixtures/validate/cases.json defines the expected
+// validity, errors, key order and messages for every runtime.
 
 type validateCase struct {
 	Name            string          `json:"name"`

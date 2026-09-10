@@ -9,14 +9,10 @@ import (
 	"testing"
 )
 
-// model composition-engine conformance (SPEC §5, G5).
+// Composition conformance verifies SPEC §5 and G5.
 //
-// Single truth = the shared 4-language fixture tests/fixtures/compose/cases.json.
-// All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce
-// it. Its values are the JS reference engine's actual output (expanded single
-// spec | load-error code); Go matches it bit-for-bit. Never weaken an assertion
-// to turn red green; fix the engine, the fixture, or both at their shared source
-// — not this test.
+// The shared fixture tests/fixtures/compose/cases.json defines the expected
+// expanded specification or load-error code for every runtime.
 
 type fixtureCase struct {
 	Name        string          `json:"name"`

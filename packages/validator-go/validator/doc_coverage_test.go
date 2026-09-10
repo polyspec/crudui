@@ -12,19 +12,12 @@ import (
 	"testing"
 )
 
-// TestSchemaDocCoverage enforces that every exported top-level declaration across
-// the whole validator/model tree (functions, methods, types, and exported
-// const/var) carries a doc comment. It is the model arm of the cross-language
-// doc-coverage gate: adding an undocumented exported symbol anywhere under
-// validator/model — the root model package or any subpackage (validate, compose,
-// expr) — turns this test RED.
+// TestSchemaDocCoverage requires a doc comment on every exported top-level
+// function, method, type, constant and variable in the validator tree.
 //
-// The legacy gate (validator/doc_coverage_test.go) globs only its own directory,
-// so it never sees model. This test closes that hole. It walks the entire model
-// subtree recursively from this package's directory rather than a flat glob,
-// because model spans several subpackages and each must be covered. The check uses
-// go/ast and needs no external tooling, so it is deterministic and
-// dependency-free.
+// The check walks every subpackage recursively. The legacy package runs a
+// separate check over its own directory. The implementation uses go/ast and no
+// external tooling.
 //
 // Scope follows Go convention: top-level exported declarations must be
 // documented. Struct fields and interface methods are not individually required

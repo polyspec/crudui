@@ -11,11 +11,9 @@ import (
 	"testing"
 )
 
-// TestDocCoverage enforces that every exported top-level declaration in this
-// package (functions, methods, types, and exported const/var) carries a doc
-// comment. It is the Go arm of the cross-language doc-coverage gate: adding an
-// undocumented exported symbol turns this test RED. The check uses go/ast and
-// needs no external tooling, so it is deterministic and dependency-free.
+// TestDocCoverage requires a doc comment on every exported top-level function,
+// method, type, constant and variable in this package. The check uses go/ast and
+// no external tooling.
 //
 // Scope follows Go convention: top-level exported declarations must be
 // documented. Struct fields and interface methods are not individually
