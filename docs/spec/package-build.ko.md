@@ -43,8 +43,10 @@ Rust recipe는 Cargo 프록시 디렉터리를 `PATH`에 추가하지 않습니�
 선언하지 않으면 `PATH`에 선언한 디렉터리와 Rustup Cargo 홈(`CARGO_HOME`, 생략 시
 `HOME` 아래 Rustup 기본 위치)에서 일반 파일인 rustup 실행 파일 하나를 발견합니다.
 같은 실행 파일을 가리키는 중복 위치는 결과 하나로 처리하고 서로 다른 결과가 있으면
-실패합니다. 해석기는 `rustup which cargo`, `rustup which rustc`,
-`rustup which rustdoc`을 실행하고 반환된 모든 경로가 절대·정규 경로이며 모든 경로
+실패합니다. 해석기는 Cargo 명령에 선언한 작업 디렉터리에서 `rustup which cargo`,
+`rustup which rustc`, `rustup which rustdoc`을 실행합니다. 작업 디렉터리는
+절대·정규 경로이고 모든 경로 구성 요소가 심볼릭 링크 없는 일반 디렉터리여야 합니다.
+해석기는 반환된 모든 경로가 절대·정규 경로이며 모든 경로
 구성 요소에 심볼릭 링크가 없는 실행 가능한 일반 파일인지 검사합니다. 기록 누락,
 잘못된 버전 출력, 모호한 발견 결과는 빌드 시작 전에 실패합니다. 각 진입점은 해석된
 Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경로를 설정하며
