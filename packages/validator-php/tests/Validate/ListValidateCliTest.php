@@ -12,9 +12,8 @@ use PHPUnit\Framework\TestCase;
  * The ListValidate ENGINE is already pinned by ListValidateConformanceTest. This
  * test owns only the CLI wrapper boundary (bin/validate.php with mode:"list"):
  * the request routes to the read sister, no data pass runs, and the structure
- * verdict streams verbatim to stdout {valid, errors}. It spawns the REAL binary
- * the gateway runs, so a wire regression (wrong mode route, dropped field, form
- * mode leaking into list mode) turns this red.
+ * verdict streams verbatim to stdout {valid, errors}. It executes the CLI binary
+ * and fails on a wrong mode route, a missing field or form validation in list mode.
  *
  * The shared fixture tests/fixtures/list-validity/cases.json is the truth via
  * its `engine` field:

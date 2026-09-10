@@ -13,8 +13,8 @@ class Number implements RuleInterface
     /**
      * Validate that a value is a valid number.
      * Validation semantics principle: an input value must be a finite real
-     * number. "Infinity"/"-Infinity"/"NaN" are rejected. This is the input value
-     * gate only — min/max threshold parameters keep accepting Infinity.
+     * number. "Infinity"/"-Infinity"/"NaN" are rejected. Min and max threshold
+     * parameters continue to accept Infinity.
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {

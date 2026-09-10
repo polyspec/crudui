@@ -69,7 +69,7 @@ final class FieldSpec
      * The closed set of top-level field keys, in declaration order, each with
      * its role. A CRUDUI field accepts these keys and nothing else; the schema
      * enforces this with additionalProperties:false plus the global
-     * propertyNames forbidden-key gate.
+     * propertyNames forbidden-key check.
      *
      * @var array<string, string> key => role constant
      */
@@ -143,12 +143,12 @@ final class FieldSpec
     /**
      * Sub-keys inside the `options` slot — the type-dependent slot (the type
      * defines and validates them; the core stays uninvolved). Container chrome
-     * and type-dependent scripts/callbacks live here too. Killing the type makes
-     * these vanish with it. A new widget leaves the core unchanged.
+     * and type-dependent scripts/callbacks live here too. Removing the type also
+     * removes these options. A new widget does not change the core.
      *
      * Mirrors SPEC §3 slots.options.sub_keys exactly (the wider type-dependent
      * surface — marker_draggable/zoom/geometry_type — rides through the open
-     * options bucket guarded only by the global forbidden-key gate).
+     * options bucket checked only by global forbidden-key validation).
      *
      * @var list<string>
      */
@@ -543,7 +543,7 @@ final class FieldSpec
      * Deep-validate a decoded CRUDUI field. Returns the list of violations (empty =
      * valid). Enforces: closed top-level key set, polymorphic slot value forms,
      * dependency isolation (a bucket key only under its location), and the global
-     * forbidden-key gate (root + one level below every slot and bucket). An
+     * forbidden-key check (root + one level below every slot and bucket). An
      * `x`-prefixed comment key is a violation (x-strip is an upstream step).
      *
      * @param array<string, mixed> $field

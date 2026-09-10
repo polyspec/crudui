@@ -7,9 +7,8 @@ namespace CRUDUI\Validator\Tests;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Doc-coverage gate (PHP arm). Asserts that every public class and public
- * method in the validator-php source carries a docblock. Adding an
- * undocumented public symbol turns this test RED.
+ * Requires a docblock on every public class and public method in the
+ * validator-php source. An undocumented public symbol fails the test.
  *
  * The check logic lives in scripts/php-doc-coverage.php (also runnable
  * standalone without phpunit); this test wraps it for the suite.

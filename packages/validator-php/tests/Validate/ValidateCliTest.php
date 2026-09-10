@@ -16,10 +16,9 @@ use PHPUnit\Framework\TestCase;
  * asserts the wrapper streams the engine result verbatim and routes a load
  * failure onto the PHP wire, not a valid:false masquerade.
  *
- * It spawns the REAL binary the cross-check gateway runs (`php bin/validate.php`,
- * cwd = package root, request piped on stdin, utf-8), so a wire regression
- * (wrong exit, dropped field, LOAD leaking as a normal validation failure) turns
- * this red — exactly what the gateway hits at runtime.
+ * It executes `php bin/validate.php` from the package root and sends a UTF-8
+ * request through stdin. A wrong exit code, a missing field or a load error
+ * reported as a normal validation failure fails this test.
  *
  * PHP LOAD wire (distinct from JS/Go/Rust): exit 0, stdout
  * {valid:false, errors:[{rule:"compose", code, message, ...}]}. A bad request

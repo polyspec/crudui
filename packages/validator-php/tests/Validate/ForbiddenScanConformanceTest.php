@@ -11,18 +11,17 @@ use PHPUnit\Framework\TestCase;
 /**
  * CRUDUI recursive forbidden-scan conformance (SPEC §6 global meta-key rejection).
  *
- * The shared 4-language fixture tests/fixtures/spec-validity/cases.json is the
- * single truth: a clean spec passes; a forbidden meta key found at ANY depth
+ * The shared fixture tests/fixtures/spec-validity/cases.json defines the expected
+ * result. A clean spec passes; a forbidden meta key found at any depth
  * (slot/bucket body and one level below, deep child subtrees, array elements,
  * $ref-inherited bases) is a LOAD ERROR, never valid:true. PHP loads this ONE
- * file and runs the real load path (Validate::run = compose → forbidden-scan →
- * validate), reproducing the JS / Go / Rust verdict bit-for-bit.
+ * file and runs the complete load path (Validate::run = compose →
+ * forbidden-scan → validate).
  *
  * Each `ok` case must validate without throwing. Each error case must throw a
  * ComposeLoadError whose code equals the fixture `error_code` AND whose trace
- * (dotted) equals the fixture `at_path` — the depth is load-bearing, so the path
- * is asserted, not just the code. Never weaken an assertion to turn red green;
- * fix the engine, the fixture, or both at their shared source — not this test.
+ * (dotted) equals the fixture `at_path`. The test compares both the code and
+ * complete path.
  */
 final class ForbiddenScanConformanceTest extends TestCase
 {

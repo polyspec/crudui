@@ -12,8 +12,7 @@ use PHPUnit\Framework\TestCase;
  * Conformance bridge: runs every fixture in tests/cases/*.json (repo root)
  * through the PHP validator via a PHPUnit data provider.
  *
- * The fixtures are the single source of truth - never weaken an assertion
- * here to make a red case green; fix the implementation instead.
+ * The fixtures define the expected validation results.
  */
 final class ConformanceTest extends TestCase
 {

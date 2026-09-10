@@ -16,11 +16,8 @@ use PHPUnit\Framework\TestCase;
  *   (2) parser(toks) == fixture ast
  *   (3) evaluate / evaluateValue == fixture truthy / value
  *
- * Single truth = the shared 4-language fixture tests/fixtures/expr/cases.json.
- * All four engines (JS / PHP / Go / Rust) load this ONE file and must pass it.
- * Its values are the JS reference engine's actual output (tokens+AST+eval). PHP
- * matches it byte-for-byte. Never weaken an assertion to turn red green; fix the
- * engine, the fixture, or both at their shared source — not this test.
+ * The shared fixture tests/fixtures/expr/cases.json defines the expected tokens,
+ * syntax tree and evaluation result for every runtime.
  */
 final class ExprConformanceTest extends TestCase
 {
