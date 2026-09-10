@@ -3,7 +3,7 @@
  * output layout. React, Vue, and Svelte capture legs plus the coordinator all
  * import this so they render and compare exactly the same set.
  *
- * The 7 cases mirror tests/parity/parity.test.mjs (the React<->PHP gate) and
+ * The 7 cases match the React-to-PHP comparison in tests/parity/parity.test.mjs and
  * the Vue/Svelte equivalents — same names, same spec paths — so a per-case
  * mismatch maps 1:1 onto an existing PHP-parity fixture.
  */

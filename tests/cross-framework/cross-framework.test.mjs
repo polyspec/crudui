@@ -1,5 +1,5 @@
 /**
- * cross-framework.test.mjs — the client-renderer parity GATE.
+ * cross-framework.test.mjs compares client-renderer SSR output.
  *
  * Existing parity suites each compare ONE framework's SSR output to the PHP
  * Legacy reference-html (React, Vue, Svelte vs PHP, 7/7 each). If all three
@@ -8,8 +8,8 @@
  * change the HTML a user sees?" It also catches client-only differences that
  * have no PHP fixture to diff against.
  *
- * Design — capture is isolated per framework, comparison is here:
- *   The three capture legs run in SEPARATE processes (see package.json
+ * Capture is isolated per framework, and this file performs the comparison:
+ *   The three capture processes run separately (see package.json
  *   "capture" script), each writing out/<fw>/<name>.html and .norm.txt:
  *     - react  : plain node  (own React realm via createRequire)
  *     - vue    : plain node  (own Vue realm via createRequire)
@@ -67,7 +67,7 @@ describe('cross-framework SSR parity (React == Vue == Svelte)', () => {
         FRAMEWORKS.map((fw) => [fw, analyzeForm(readCapture(fw, c.name))])
       );
 
-      // All three ordered pairs — a real 3-way gate, not a transitive shortcut.
+      // Compare all three framework pairs directly.
       const pairs = [
         ['react', 'vue'],
         ['vue', 'svelte'],
