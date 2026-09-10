@@ -158,3 +158,27 @@ generation cache behavior and request-count changes. These tests do not replace
 the complete candidate matrix. Pull request and `main` push CI runs
 `npm run test:form-comparison` so report-policy, browser-job, candidate-source
 and generation-performance regressions block integration.
+
+## Deployment
+
+The repository creates the local comparison deployment only from an explicit
+40-character candidate commit. The candidate metadata, generation report,
+persistence report and four-server browser aggregate must identify that commit
+and satisfy every count and pass condition in this specification. The local
+image reference uses the first 12 characters of the commit as its complete tag,
+and the deployment record stores the resolved image digest. Missing, stale,
+failed or malformed evidence prevents deployment.
+
+Deployment state is stored under `.form-comparison/deployment/` in this
+repository. The generated Compose file mounts its `data` and `results`
+directories, serves `crudui.test`, and checks `/api/health` and
+`/metadata.json` against the selected candidate commit. Candidate preparation,
+candidate results and deployment state use separate directories.
+
+After applying the generated Compose file, verification requests the HTTPS home
+page, health response, metadata and one saved-data response. It verifies the
+route certificate, deployed image digest, source commit, mounted paths and stored
+files. It then applies the same Compose file again. The second application must
+retain the container identity, creation and start times, image digest, mounts,
+route, certificate, stored files and response bytes. Any change or failed
+request makes deployment verification fail.
