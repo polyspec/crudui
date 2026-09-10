@@ -136,6 +136,13 @@ path, missing tool or ambiguous discovery result fails the build; the build does
 not select a different tool after a failure. The PHP binary, development metadata
 and headers must describe the same PHP installation.
 
+Debian-derived Linux builds read the installed `gcc` package record, require one
+installed versioned compiler dependency, follow its one installed target compiler
+dependency and select that package's one regular target compiler file. They do not
+execute an unversioned compiler link. Matrix builds pass the regular versioned
+`php-config` file for the selected PHP release. macOS builds read one installed
+Homebrew PHP formula record when `php-config` is not declared.
+
 Linux builds create one shared object and link the platform dynamic-loading, math
 and thread libraries. macOS builds create one bundle, allow PHP symbols to resolve
 when the module loads, link iconv and Core Foundation, and apply the declared
