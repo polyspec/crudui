@@ -94,10 +94,11 @@ class must use regular paths without symbolic links. The validator class must
 match the corresponding source file in the candidate archive. The process
 rejects a missing or malformed selected package record, an external installation
 directory or a different installed file.
-The PHP health response reports `Generator` and `Form` from the generator source
-directory and `Validator` from the selected Composer installation directory.
-Startup accepts only these reported class locations after the source comparison
-has passed.
+Every PHP provenance response from health, generation and SSR reports `Generator`
+and `Form` from the generator source directory and `Validator` from the selected
+Composer installation directory. Startup and result verification use one class
+location contract and accept only these reported locations after the source
+comparison has passed.
 When startup rejects a health response, the failure identifies the server and
 the first response field that does not meet this contract.
 
