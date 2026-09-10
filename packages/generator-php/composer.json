@@ -3,7 +3,6 @@
     "description": "Form templates, editable data and HTML rendering for CRUDUI",
     "type": "library",
     "license": "MIT",
-    "version": "0.0.1",
     "require": {
         "php": "^8.2",
         "php-64bit": "^8.2",
@@ -29,7 +28,10 @@
             "type": "path",
             "url": "../validator-php",
             "options": {
-                "symlink": true
+                "symlink": false,
+                "versions": {
+                    "crudui/validator": "0.0.1"
+                }
             }
         }
     ],
