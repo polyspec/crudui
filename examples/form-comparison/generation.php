@@ -1,0 +1,129 @@
+<?php
+declare(strict_types=1);
+
+use CRUDUI\Form;
+use CRUDUI\Generator;
+use CRUDUI\Validator;
+
+/** Generate current forms and verify the loaded PHP implementation. */
+final class FormGeneration
+{
+    private readonly array $generator;
+
+    /** Load the selected classes with source digests verified during server startup. */
+    public function __construct(
+        string $runtime,
+        string $sourceRoot,
+        stdClass $source,
+        string $verifiedArchiveSha256,
+        ?string $verifiedModuleSha256,
+    )
+    {
+        if (!in_array($runtime, ['php', 'php-ext'], true)) throw new RuntimeException('Unknown PHP generator runtime');
+        $native = $runtime === 'php-ext';
+        if (extension_loaded('crudui') !== $native) throw new RuntimeException('CRUDUI extension state does not match the selected server');
+        if (!str_starts_with($sourceRoot, '/') || !is_dir($sourceRoot)) throw new RuntimeException('An absolute library directory is required');
+        foreach (['commit' => 40, 'archiveSha256' => 64] as $key => $length) {
+            if (!is_string($source->$key ?? null) || !preg_match('/^[a-f0-9]{' . $length . '}$/D', $source->$key)) throw new RuntimeException('Invalid library source metadata: ' . $key);
+        }
+        if (!preg_match('/^[a-f0-9]{64}$/D', $verifiedArchiveSha256) || !hash_equals($verifiedArchiveSha256, $source->archiveSha256)) {
+            throw new RuntimeException('CRUDUI source archive hash does not match metadata');
+        }
+        if (!$native) require_once $sourceRoot . '/packages/generator-php/vendor/autoload.php';
+        $composerAutoload = self::composerAutoloadRegistered();
+        if ($composerAutoload === $native) throw new RuntimeException('Composer autoloader state does not match the selected server');
+        $classes = [];
+        $signatures = [];
+        foreach ([Generator::class => 'packages/generator-php/src/Generator.php', Form::class => 'packages/generator-php/src/Form.php', Validator::class => 'packages/validator-php/src/Public/Validator.php'] as $name => $file) {
+            $class = new ReflectionClass($name);
+            if ($class->isInternal() !== $native || $class->getExtensionName() !== ($native ? 'crudui' : false)) throw new RuntimeException('Incorrect CRUDUI implementation: ' . $name);
+            if (!$native && realpath($class->getFileName()) !== realpath($sourceRoot . '/' . $file)) throw new RuntimeException('Incorrect CRUDUI source file: ' . $name);
+            $classes[$name] = ['internal' => $class->isInternal(), 'extension' => $class->getExtensionName() ?: null, 'file' => $class->getFileName() ?: null];
+            $signatures[$name] = self::signature($class);
+        }
+        $moduleHash = null;
+        if ($native) {
+            if ($verifiedModuleSha256 === null || !preg_match('/^[a-f0-9]{64}$/D', $verifiedModuleSha256)) throw new RuntimeException('A verified CRUDUI module hash is required');
+            $moduleHash = $verifiedModuleSha256;
+        } elseif ($verifiedModuleSha256 !== null) {
+            throw new RuntimeException('Pure PHP must not declare a CRUDUI module hash');
+        }
+        $this->generator = ['runtime' => $runtime, 'commit' => $source->commit, 'archiveSha256' => $source->archiveSha256, 'nativeCRUDUI' => $native, 'moduleSha256' => $moduleHash, 'composerAutoload' => $composerAutoload, 'classes' => (object) $classes, 'signatures' => (object) $signatures];
+    }
+
+    /** Return verified implementation and source metadata. */
+    public function provenance(): array
+    {
+        return $this->generator;
+    }
+
+    /** Compile a structure without reading record data. */
+    public function compile(stdClass $request): array
+    {
+        $spec = self::object($request->spec ?? null, 'spec');
+        return ['template' => Generator::compileForm($spec, self::options($request)), 'generator' => $this->generator, 'referenceReads' => null];
+    }
+
+    /** Bind a supplied cached template and return its complete state and HTML. */
+    public function render(stdClass $request): array
+    {
+        $form = new Form(self::object($request->template ?? null, 'template'), self::object($request->data ?? null, 'data'), self::options($request));
+        return ['data' => $form->getData(), 'fields' => $form->getFields(), 'html' => Generator::renderForm($form), 'revision' => $form->getRevision(), 'generator' => $this->generator];
+    }
+
+    /** Render a stored record as a complete document with native form submission. */
+    public function document(stdClass $spec, array|stdClass $data, string $renderingPath, string $framework, string $language): string
+    {
+        if (!in_array($renderingPath, ['bindForm', 'createForm'], true)) throw new InvalidArgumentException('Unknown rendering path');
+        if (!in_array($framework, ['react', 'vue', 'svelte'], true)) throw new InvalidArgumentException('Unknown framework');
+        if (!in_array($language, ['ko', 'en'], true)) throw new InvalidArgumentException('Expected language ko or en');
+        $form = new Form(Generator::compileForm($spec, ['keyPrefix' => 'form']), $data, ['language' => $language]);
+        $runtime = $this->generator['runtime'];
+        $link = '/frames/' . $renderingPath . '-' . $framework . '/?lang=' . $language . '&server=' . $runtime;
+        $text = $language === 'ko' ? ['link' => '대화형 폼', 'save' => '저장'] : ['link' => 'Interactive form', 'save' => 'Save'];
+        $provenance = json_encode($this->generator, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
+        return '<!doctype html><html lang="' . $language . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '">' . $text['link'] . '</a></header><form id="form" method="post" action="/api/' . $runtime . '/save/' . $renderingPath . '/' . $framework . '"><div id="view">' . Generator::renderForm($form) . '</div><button type="submit" name="_form_complete" value="1">' . $text['save'] . '</button></form><script type="application/json" id="generator">' . $provenance . '</script></body></html>';
+    }
+
+    private static function object(mixed $value, string $name): stdClass
+    {
+        if (!$value instanceof stdClass) throw new InvalidArgumentException('Expected ' . $name . ' object');
+        return $value;
+    }
+
+    private static function options(stdClass $request): array
+    {
+        return property_exists($request, 'options') ? (array) self::object($request->options, 'options') : [];
+    }
+
+    /** Return the public methods declared by one common API class. */
+    private static function signature(ReflectionClass $class): array
+    {
+        $methods = [];
+        foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->getDeclaringClass()->getName() !== $class->getName()) continue;
+            $parameters = [];
+            foreach ($method->getParameters() as $parameter) {
+                $parameters[] = [
+                    'name' => $parameter->getName(),
+                    'type' => (string) $parameter->getType(),
+                    'reference' => $parameter->isPassedByReference(),
+                    'variadic' => $parameter->isVariadic(),
+                    'optional' => $parameter->isOptional(),
+                    'default' => $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
+                ];
+            }
+            $methods[$method->getName()] = ['static' => $method->isStatic(), 'parameters' => $parameters, 'return' => (string) $method->getReturnType()];
+        }
+        ksort($methods);
+        return $methods;
+    }
+
+    private static function composerAutoloadRegistered(): bool
+    {
+        foreach (spl_autoload_functions() as $loader) {
+            if (is_array($loader) && is_object($loader[0] ?? null) && $loader[0]::class === 'Composer\Autoload\ClassLoader') return true;
+        }
+        return false;
+    }
+}
