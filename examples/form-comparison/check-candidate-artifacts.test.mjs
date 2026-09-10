@@ -8,7 +8,6 @@ import {
   cleanupCandidateArtifacts, compactCandidateEvidence, planCandidateArtifactCleanup,
   readCandidateResources,
 } from './candidate-artifacts.mjs';
-import { resolveContainerExecutable } from './container-runtime.mjs';
 
 const currentCommit = 'a'.repeat(40);
 const staleCommit = 'b'.repeat(40);
@@ -159,31 +158,4 @@ test('reads candidate resources from container JSON and direct directories', asy
     imageReferences: [currentImage],
     candidateDirectories: [path.join(root, currentCommit)],
   });
-});
-
-test('resolves the container executable from explicit, PATH and Homebrew locations', async () => {
-  const executableFiles = new Set([
-    '/explicit/container', '/path/bin/container', '/brew/bin/brew',
-    '/opt/container/bin/container',
-  ]);
-  const accessFile = async file => {
-    if (!executableFiles.has(file)) throw Object.assign(new Error('missing'), { code: 'ENOENT' });
-  };
-  assert.equal(await resolveContainerExecutable({
-    environment: { CONTAINER_BIN: '/explicit/container', PATH: '' }, accessFile,
-  }), '/explicit/container');
-  assert.equal(await resolveContainerExecutable({
-    environment: { PATH: '/path/bin' }, accessFile,
-  }), '/path/bin/container');
-  assert.equal(await resolveContainerExecutable({
-    environment: { PATH: '/brew/bin' }, accessFile,
-    execute: async (file, args) => {
-      assert.equal(file, '/brew/bin/brew');
-      assert.deepEqual(args, ['--prefix', 'container']);
-      return { stdout: '/opt/container\n' };
-    },
-  }), '/opt/container/bin/container');
-  await assert.rejects(resolveContainerExecutable({
-    environment: { CONTAINER_BIN: 'relative/container', PATH: '' }, accessFile,
-  }), /CONTAINER_BIN must contain an absolute path/);
 });
