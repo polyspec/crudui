@@ -107,4 +107,3 @@ test('rejects a symbolic link in the resolved runtime path', async () => {
     execute: commands.execute,
   }), /symbolic links are not allowed/);
 });
-
