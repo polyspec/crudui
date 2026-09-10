@@ -1,6 +1,6 @@
 package main
 
-// Go model validate CLI — stdin/stdout BOUNDARY conformance.
+// Go validation CLI stdin/stdout conformance.
 //
 // The ValidateJSON ENGINE is already pinned by
 // validator/model/validate/conformance_test.go. This test owns only the CLI wrapper
@@ -10,15 +10,13 @@ package main
 // verbatim and routes a load failure onto the Go wire, never a valid:false
 // masquerade.
 //
-// It builds the REAL binary (go build into a temp dir) and spawns it exactly as
-// the cross-check gateway does: request piped on stdin, utf-8, cwd = package
-// root. A wire regression (wrong exit, dropped field, LOAD leaking as valid) turns
-// this red — exactly what the gateway hits at runtime.
+// The test builds the binary in a temporary directory and sends a UTF-8 request
+// through stdin from the package root. It fails on a wrong exit code, a missing
+// field or a load error reported as a validation result.
 //
 // Go LOAD wire (mirrors JS/Rust on absence of "valid"; carries a trace): exit 1,
 // stdout {error, code, trace}, NO "valid" key. A bad request: exit 1, {error}
-// with no "code". Do not weaken assertions — the fixture is the JS reference
-// engine's own output; the CLI must reproduce it verbatim on stdout.
+// with no "code". The CLI must reproduce the fixture output on stdout.
 
 import (
 	"bytes"

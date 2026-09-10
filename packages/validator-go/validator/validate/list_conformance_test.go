@@ -1,47 +1,25 @@
 package validate
 
-// model list-spec structural-gate conformance — Go verification against the shared
-// 4-language fixture tests/fixtures/list-validity/cases.json.
+// List structure conformance verifies the Go runtime against
+// tests/fixtures/list-validity/cases.json. The meta-schema and runtime check
+// separate requirements from SPEC §9.4:
 //
-// That ONE fixture is the cross-language single truth for the list-spec read
-// surface (SPEC §9.4). It is read by TWO gates with DISJOINT ownership, and
-// this test asserts ONLY the gate the 4-language engine owns:
+//	(A) The meta-schema checks required columns, closed objects, sort.dir and
+//	    pagination.mode enums, and CellFormat polymorphism. Ajv treats $ref and
+//	    $patch as plain object keys.
+//	(B) The runtime resolves $ref and $patch and rejects a §6 forbidden key at
+//	    any depth with *compose.ComposeLoadError. It does not repeat meta-schema
+//	    shape checks.
 //
-//	(A) the meta-schema gate (ajv, schema/crudui-model.schema.json
-//	    #/definitions/List; validator-ts list-metaschema.conformance.test.ts) owns
-//	    the "schema-shape" verdicts — required:columns, additionalProperties:false
-//	    (1급 closure), the sort.dir / pagination.mode enums, and the CellFormat
-//	    anyOf polymorphism. ajv does NOT resolve $ref; it treats $ref/$patch as
-//	    plain object keys.
-//	(B) the 4-language ENGINE gate (this package) owns the SAME two structural
-//	    passes a form runs — compose (G5, §5) and forbidden-scan (§6) — and nothing
-//	    else. It RESOLVES $ref and rejects a §6 forbidden key at any depth as a
-//	    *compose.ComposeLoadError. It is SILENT on schema-shape (that is gate A).
-//
-// So each fixture case is asserted in the bucket its OWN data places it in
-// (derived here, independent of the engine — §6 forbidden set + the $ref/$patch
-// compose-entry sigils are the contract, encoded in this test, that the engine
-// must match):
+// This test classifies each fixture from its forbidden keys and composition
+// entries independently of the runtime implementation:
 //
 //	1. spec carries a §6 forbidden key (any depth)  → engine REJECTS it
-//	   (ComposeLoadError code FORBIDDEN_META_KEY). This is gate B. It catches
-//	   red-forbidden-column-key, red-x-prefixed-column-key, red-unknown-column-key
-//	   (show_if is a §6 key — ajv reports it as additionalProperties, the engine as
-//	   FORBIDDEN_META_KEY: SAME rejection, DIFFERENT gate), red-forbidden-key-in-
-//	   format-options.
+//	   (ComposeLoadError code FORBIDDEN_META_KEY).
 //	2. spec carries a $ref/$patch compose entry → the columns/search files are
-//	   supplied and the engine composes + scans CLEAN (no LOAD error). This is gate
-//	   B's compose reuse — the SAME ComposeProperties/ComposeSpec the form path runs
-//	   (ok-compose-ref-patch-columns, ok-search-form-ref).
-//	3. otherwise → the engine produces NO LOAD error (a clean structural verdict).
-//	   This covers the plain ok cases AND the meta-schema-only RED cases
-//	   (required / enum / anyOf / non-§6 additionalProperties): the engine must NOT
-//	   fabricate a LOAD error for a shape violation it does not own — gate A does.
-//
-// Never weaken an assertion to turn red green: the §6 set and the compose engine
-// are the shared contract; fix the engine or the fixture at their source, not this
-// test. The bucketing here is the cross-language definition of WHICH gate owns a
-// case — it is the test's load-bearing claim.
+//	   supplied and the runtime composes and scans without a load error.
+//	3. otherwise → the runtime produces no load error. The meta-schema reports any
+//	   required, enum, anyOf or non-§6 additional-property error separately.
 
 import (
 	"encoding/json"
@@ -201,13 +179,10 @@ func TestValidateListMatchesFixture(t *testing.T) {
 				return
 			}
 
-			// Bucket 3 — no forbidden key, no compose entry: the structural gate is
-			// SILENT. The engine must NOT fabricate a LOAD error — schema-shape
-			// (required / enum / anyOf / non-§6 additionalProperties) is the meta-schema's
-			// job (gate A). This holds for the plain ok cases AND the meta-schema-only
-			// RED cases.
+			// Bucket 3 has no forbidden key or composition entry. The runtime does
+			// not report meta-schema shape errors as load errors.
 			if err != nil {
-				t.Fatalf("%s: engine must produce no LOAD error (schema-shape is the meta-schema's gate, not the engine's), got: %v", c.Name, err)
+				t.Fatalf("%s: runtime must produce no load error for a meta-schema shape result, got: %v", c.Name, err)
 			}
 		})
 	}

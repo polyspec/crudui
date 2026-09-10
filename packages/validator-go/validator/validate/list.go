@@ -1,17 +1,9 @@
 package validate
 
-// model list-spec validation entry point (SPEC §9). The READ sister of the form
-// Validate entry (index.go). JS reference parity: a list-spec reuses the SAME two
-// structural passes the form path runs — compose (G5, §5) and forbidden-scan
-// (§6) — and NOTHING ELSE.
-//
-// Why only two passes (SPEC §9.1): a list declares the read structure
-// (columns / sort / pagination / actions / design / search); the rows are
-// INJECTED by the server (DB-agnostic), never carried by the spec. The DATA
-// validate pass (§3 + §2 G1, index.go Validator) evaluates field validate-slot
-// rules against DATA VALUES — with no rows there is no data to evaluate, so that
-// pass does not apply to a list. The 4-language structural gate a list shares with
-// a form is therefore exactly:
+// List validation processes the read structure defined by SPEC §9. A list
+// contains columns, sorting, pagination, actions, design and search settings.
+// The server supplies rows separately, so this entry does not validate row data.
+// It performs these structure operations:
 //
 //	(1) compose — ComposeSpec expands a root-level $ref/$patch; ComposeProperties
 //	    expands the columns map (each column may carry $ref/$patch, the SAME engine
@@ -23,12 +15,11 @@ package validate
 //	    pagination / design / search sub-form) and rejects a forbidden meta key
 //	    (display_switch / if / when / show_if / _ / x{key} … §6) as a LOAD failure.
 //
-// The "schema-shape" gates a list does NOT run here — additionalProperties:false
-// (1급 closure), required:columns, the sort.dir / pagination.mode enums, and the
-// CellFormat anyOf polymorphism — live ONLY in the meta-schema (ajv,
+// The meta-schema validates closed objects, required columns, the sort.dir and
+// pagination.mode enums, and CellFormat polymorphism. This runtime does not
+// repeat those checks. They are defined in the Ajv entry at
 // schema/crudui-model.schema.json #/definitions/List, exercised by
-// validator-ts/src/model/list-metaschema.conformance.test.ts), exactly as for a form.
-// This entry invents NO new structural rule; it reuses the form's pass 1 + pass 2.
+// validator-ts/src/model/list-metaschema.conformance.test.ts.
 //
 // Go ≥ 1.18: interface{} is spelled any. No eval.
 
@@ -39,7 +30,7 @@ import (
 	"github.com/crudui/crudui/packages/validator-go/validator/compose"
 )
 
-// ValidateList runs the two structural passes (compose → forbidden-scan) over a
+// ValidateList runs composition and forbidden-key scanning over a
 // list-spec given as the engine value model (*compose.OMap). It returns a clean
 // ValidationResult (valid:true, no errors) when the list composes and scans clean
 // — a list carries no rows, so there is no DATA pass to produce field errors. An

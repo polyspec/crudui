@@ -251,7 +251,7 @@ func (v *Validator) validateFieldRules(field *Field, value interface{}, fieldPat
 
 // applyRule applies a single validation rule.
 // String parameters are evaluated first: ternary expressions yield their
-// branch value, condition expressions gate the rule (false skips it).
+// branch value, and a false condition expression skips the rule.
 func (v *Validator) applyRule(ruleName string, ruleParam interface{}, value interface{}, fieldPath []string, rootData map[string]interface{}, field *Field) (*string, []string) {
 	if s, ok := ruleParam.(string); ok && !pathReferenceRules[ruleName] {
 		// Regex-param rules (match/pattern) may contain "?:" sequences;
