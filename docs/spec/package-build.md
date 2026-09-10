@@ -84,6 +84,29 @@ critical vulnerability. A tool with no secure compatible stable release is
 replaced. Dependency overrides and audit exclusions do not satisfy these gates.
 Unused build and documentation dependencies are removed.
 
+## Documentation site
+
+The documentation site build reads Markdown from `docs/` after API reference
+generation. Every Markdown document must contain exactly one level-one heading.
+The heading becomes the document heading and the browser title is
+`<heading> | CRUDUI`. `index.md` maps to the directory route; every other
+Markdown filename maps to the same clean route without the `.md` suffix. The
+build also creates a `404.html` page.
+
+Documentation-relative links use clean site routes. The build verifies every
+local target and fragment. A relative link outside `docs/` requires an existing
+repository file or directory and becomes a repository source link in generated
+HTML. Files under `docs/public/` are copied to the site root. Missing targets,
+missing fragments, duplicate routes and invalid document headings fail the
+build.
+
+The generated site contains navigation, the complete documentation sidebar,
+per-page headings and responsive styles. English documents use `en-US` and
+`.ko.md` documents use `ko-KR`. A clean build writes only deterministic
+output to `docs/.site/dist/`; repeated builds from unchanged inputs must produce
+identical files. Development and preview commands serve the same generated
+output and return a nonzero status when the initial build fails.
+
 ## PHP dependencies
 
 The PHP validator declares runtime and test dependencies in `composer.json`.
