@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import test from 'node:test';
+import { phpClassFiles } from './php-provenance.mjs';
+import { sourceDirectory } from './server-layout.mjs';
 import {
   publishCandidateReadiness, readinessOutput, readSourceArchiveCommit, serverReady,
   sourceArchiveReady,
@@ -16,12 +18,7 @@ const commit = 'a'.repeat(40);
 const archiveSha256 = 'c'.repeat(64);
 const moduleSha256 = 'd'.repeat(64);
 const metadata = { source: { commit, archiveSha256 }, cruduiModuleSha256: moduleSha256 };
-const phpFiles = {
-  'CRUDUI\\Generator': '/workspace/source/packages/generator-php/src/Generator.php',
-  'CRUDUI\\Form': '/workspace/source/packages/generator-php/src/Form.php',
-  'CRUDUI\\Validator':
-    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
-};
+const phpFiles = phpClassFiles(sourceDirectory);
 
 function phpHealth(server) {
   const native = server === 'php-ext';
