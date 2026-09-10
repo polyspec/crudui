@@ -33,6 +33,7 @@ COPY --from=verified-source /workspace /workspace
 COPY --from=verified-source /archives/source-commit /archives/source-commit
 WORKDIR /workspace/source/examples/form-comparison/servers/go
 RUN read -r commit < /archives/source-commit \
+    && mkdir -p /out \
     && CGO_ENABLED=0 go test ./... \
     && CGO_ENABLED=0 go build -trimpath \
       -ldflags "-X main.source=current -X main.sourceCommit=$commit" -o /out/go .
@@ -42,6 +43,7 @@ COPY --from=verified-source /workspace /workspace
 COPY --from=verified-source /archives/source-commit /archives/source-commit
 WORKDIR /workspace/source/examples/form-comparison/servers/rust
 RUN read -r commit < /archives/source-commit \
+    && mkdir -p /out \
     && FORM_SOURCE=current FORM_SOURCE_COMMIT=$commit cargo test --locked \
     && FORM_SOURCE=current FORM_SOURCE_COMMIT=$commit cargo build --locked --release \
     && cp target/release/crudui-form-comparison /out/rust
