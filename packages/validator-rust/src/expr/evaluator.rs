@@ -233,11 +233,7 @@ impl<'a> Evaluator<'a> {
 
             // Ascend levelsUp parents; array indices do not count as a level.
             for _ in 0..levels_up.max(0) {
-                while bp
-                    .last()
-                    .map(|s| is_numeric_segment(s))
-                    .unwrap_or(false)
-                {
+                while bp.last().map(|s| is_numeric_segment(s)).unwrap_or(false) {
                     bp.pop();
                 }
                 if !bp.is_empty() {

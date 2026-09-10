@@ -59,9 +59,15 @@ pub fn evaluate_ternary_string(
     let true_value = expression[question_pos + 1..colon_pos].trim();
     let false_value = expression[colon_pos + 1..].trim();
 
-    let condition_result = cp.evaluate(condition, form_data, current_path).unwrap_or(false);
+    let condition_result = cp
+        .evaluate(condition, form_data, current_path)
+        .unwrap_or(false);
 
-    let result_expr = if condition_result { true_value } else { false_value };
+    let result_expr = if condition_result {
+        true_value
+    } else {
+        false_value
+    };
 
     if is_ternary_expression(result_expr) {
         return evaluate_ternary_string(cp, result_expr, form_data, current_path);
@@ -132,7 +138,10 @@ pub fn parse_ternary_branch_value(value: &str) -> Value {
     if value.len() >= 2 && value.starts_with('[') && value.ends_with(']') {
         let inner = value[1..value.len() - 1].trim();
         let parts = split_value_list(inner);
-        let result: Vec<Value> = parts.iter().map(|p| parse_ternary_branch_value(p)).collect();
+        let result: Vec<Value> = parts
+            .iter()
+            .map(|p| parse_ternary_branch_value(p))
+            .collect();
         return Value::Array(result);
     }
 
@@ -149,7 +158,10 @@ pub fn parse_ternary_branch_value(value: &str) -> Value {
     // Comma-separated list without brackets.
     if value.contains(',') && !value.contains('[') {
         let parts = split_value_list(value);
-        let result: Vec<Value> = parts.iter().map(|p| parse_ternary_branch_value(p)).collect();
+        let result: Vec<Value> = parts
+            .iter()
+            .map(|p| parse_ternary_branch_value(p))
+            .collect();
         return Value::Array(result);
     }
 
