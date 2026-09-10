@@ -1,5 +1,5 @@
 /**
- * svelte-capture.mjs — Svelte SSR capture leg of the cross-framework gate.
+ * svelte-capture.mjs captures Svelte SSR for cross-framework comparison.
  *
  * Runs ONLY under vitest with vitest.svelte.config.mjs (the svelte plugin
  * compiles the .svelte SSR component graph that capture-svelte.mjs imports).

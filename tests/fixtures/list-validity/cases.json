@@ -43,7 +43,7 @@
   },
   {
     "name": "ok-sortable-sort-pagination-actions-empty-design",
-    "note": "the read-structure 1급 slots all validate together (sort/pagination/actions/empty/design).",
+    "note": "The sort, pagination, actions, empty and design read-structure slots validate together.",
     "expect": "ok",
     "engine": "pass",
     "spec": {
@@ -101,7 +101,7 @@
 
   {
     "name": "red-missing-columns",
-    "note": "RED — columns is required; a list-spec without it is rejected. The 'required' shape check is meta-schema-only; the four-language engine (compose + forbidden-scan) has no shape opinion, so it passes (engine: pass).",
+    "note": "A list specification without required columns is rejected. This shape check is defined only by the meta-schema, so the four-language composition and forbidden-key engine accepts it.",
     "expect": "fail",
     "reason": "required",
     "engine": "pass",
@@ -109,7 +109,7 @@
   },
   {
     "name": "red-forbidden-column-key",
-    "note": "RED — a forbidden condition meta-key as a COLUMN key is rejected (ForbiddenKeyNames). The four-language engine catches this too: forbidden-scan rejects the key as a LOAD failure.",
+    "note": "A forbidden condition meta-key used as a column key is rejected. The four-language engine also rejects the key as a load failure.",
     "expect": "fail",
     "reason": "propertyNames",
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.display_switch" },
@@ -122,7 +122,7 @@
   },
   {
     "name": "red-x-prefixed-column-key",
-    "note": "RED — an x-prefixed comment-residue key as a COLUMN key is rejected (ForbiddenKeyNames pattern). The four-language engine catches this too: forbidden-scan rejects any surviving x{key}.",
+    "note": "An x-prefixed comment-residue key used as a column key is rejected. The four-language engine also rejects every remaining x{key}.",
     "expect": "fail",
     "reason": "propertyNames",
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.xclass" },
@@ -135,7 +135,7 @@
   },
   {
     "name": "red-unknown-column-key",
-    "note": "RED — a Column carries an out-of-1급 key (additionalProperties:false) — here a stray condition key. ajv rejects it as additionalProperties; show_if is ALSO a forbidden meta key, so the four-language engine catches it via forbidden-scan (a LOAD failure).",
+    "note": "A column with an unregistered key is rejected by additionalProperties:false. The four-language engine also rejects show_if as a forbidden meta-key load failure.",
     "expect": "fail",
     "reason": "additionalProperties",
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.name.show_if" },
@@ -147,7 +147,7 @@
   },
   {
     "name": "red-forbidden-key-in-format-options",
-    "note": "RED — a forbidden meta-key one level below the open CellFormat options bucket is rejected. The four-language engine catches this too: forbidden-scan descends into the format bucket and rejects 'if' (a LOAD failure).",
+    "note": "A forbidden meta-key inside the open CellFormat options object is rejected. The four-language engine scans the format object and rejects 'if' as a load failure.",
     "expect": "fail",
     "reason": "propertyNames",
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.name.format.if" },
@@ -159,7 +159,7 @@
   },
   {
     "name": "red-bad-sort-dir",
-    "note": "RED — sort.dir is an enum (asc|desc); an unregistered value is rejected. Enum shape is meta-schema-only; the four-language engine has no enum opinion (engine: pass).",
+    "note": "sort.dir accepts only asc or desc. This enum check is defined only by the meta-schema, so the four-language engine accepts the value.",
     "expect": "fail",
     "reason": "enum",
     "engine": "pass",
@@ -170,7 +170,7 @@
   },
   {
     "name": "red-unknown-sort-key",
-    "note": "RED — Sort is closed (field/dir only); an extra key is rejected. additionalProperties closure is meta-schema-only; 'nulls' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
+    "note": "Sort accepts only field and dir, so an extra key is rejected. This object-shape check is defined only by the meta-schema; the four-language engine accepts nulls because it is not a forbidden meta-key.",
     "expect": "fail",
     "reason": "additionalProperties",
     "engine": "pass",
@@ -181,7 +181,7 @@
   },
   {
     "name": "red-unknown-pagination-key",
-    "note": "RED — Pagination is closed (per_page/mode only); an extra key is rejected. additionalProperties closure is meta-schema-only; 'limit' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
+    "note": "Pagination accepts only per_page and mode, so an extra key is rejected. This object-shape check is defined only by the meta-schema; the four-language engine accepts limit because it is not a forbidden meta-key.",
     "expect": "fail",
     "reason": "additionalProperties",
     "engine": "pass",
@@ -192,7 +192,7 @@
   },
   {
     "name": "red-bad-pagination-mode",
-    "note": "RED — pagination.mode is an enum (pages|offset|cursor|none); an unregistered value is rejected. Enum shape is meta-schema-only; the four-language engine has no enum opinion (engine: pass).",
+    "note": "pagination.mode accepts only pages, offset, cursor or none. This enum check is defined only by the meta-schema, so the four-language engine accepts the value.",
     "expect": "fail",
     "reason": "enum",
     "engine": "pass",
@@ -203,7 +203,7 @@
   },
   {
     "name": "red-unknown-list-top-key",
-    "note": "RED — List is closed at the top (additionalProperties:false); a stray top key is rejected. Top-level closure is meta-schema-only; 'limit' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
+    "note": "A list rejects an unregistered top-level key through additionalProperties:false. This object-shape check is defined only by the meta-schema; the four-language engine accepts limit because it is not a forbidden meta-key.",
     "expect": "fail",
     "reason": "additionalProperties",
     "engine": "pass",
@@ -214,7 +214,7 @@
   },
   {
     "name": "red-unknown-action-key",
-    "note": "RED — a ListAction object is closed; an out-of-1급 action key is rejected. additionalProperties closure is meta-schema-only; 'onclick' is not a forbidden meta key, so the four-language engine passes (engine: pass).",
+    "note": "A ListAction object rejects an unregistered action key. This object-shape check is defined only by the meta-schema; the four-language engine accepts onclick because it is not a forbidden meta-key.",
     "expect": "fail",
     "reason": "additionalProperties",
     "engine": "pass",
@@ -225,7 +225,7 @@
   },
   {
     "name": "red-malformed-format-value",
-    "note": "RED — a CellFormat is polymorphic boolean|string|{object}; an array (an unregistered format SHAPE) is rejected by anyOf. CellFormat polymorphism is meta-schema-only; the array carries no forbidden key, so the four-language engine passes (engine: pass).",
+    "note": "CellFormat accepts a boolean, string or object, so anyOf rejects an array. This type check is defined only by the meta-schema; the four-language engine accepts the array because it contains no forbidden key.",
     "expect": "fail",
     "reason": "anyOf",
     "engine": "pass",

@@ -1,13 +1,13 @@
 /**
- * cross-framework.test.mjs — the client-renderer parity GATE.
+ * cross-framework.test.mjs compares client-renderer SSR output.
  *
  * This suite asserts that the three outputs are equal
  * directly: "does swapping the framework
  * change the HTML a user sees?" It also catches client-only differences that
  * appear in one framework only.
  *
- * Design — capture is isolated per framework, comparison is here:
- *   The three capture legs run in SEPARATE processes (see package.json
+ * Capture is isolated per framework, and this file performs the comparison:
+ *   The three capture processes run separately (see package.json
  *   "capture" script), each writing out/<fw>/<name>.html and .norm.txt:
  *     - react  : plain node  (own React realm via createRequire)
  *     - vue    : plain node  (own Vue realm via createRequire)
@@ -65,7 +65,7 @@ describe('cross-framework SSR parity (React == Vue == Svelte)', () => {
         FRAMEWORKS.map((fw) => [fw, analyzeForm(readCapture(fw, c.name))])
       );
 
-      // All three ordered pairs — a real 3-way gate, not a transitive shortcut.
+      // Compare all three framework pairs directly.
       const pairs = [
         ['react', 'vue'],
         ['vue', 'svelte'],
