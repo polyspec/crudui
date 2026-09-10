@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import { createReadStream } from 'node:fs';
-import { readdir, stat } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { dirname, extname, join, normalize, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildDocumentationSite } from './build.mjs';
+import { watchDocumentation } from './watch.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DOCS = join(ROOT, 'docs');
@@ -21,9 +22,9 @@ async function build() {
   process.stdout.write(`[docs-site] ${report.documents} documents, ${report.pages} pages, ${report.assets} assets\n`);
 }
 
-function argument(name, fallback) {
+function argument(name, defaultValue) {
   const index = process.argv.indexOf(name);
-  return index === -1 ? fallback : process.argv[index + 1];
+  return index === -1 ? defaultValue : process.argv[index + 1];
 }
 
 function safePath(pathname) {
@@ -52,28 +53,43 @@ async function responseFile(pathname) {
   return undefined;
 }
 
-async function snapshot(directory) {
-  const entries = [];
-  async function visit(current) {
-    for (const entry of (await readdir(current, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
-      const filename = join(current, entry.name);
-      if (entry.name === '.site') continue;
-      if (entry.isDirectory()) await visit(filename);
-      else if (entry.isFile()) {
-        const info = await stat(filename);
-        entries.push(`${relative(directory, filename)}:${info.size}:${info.mtimeMs}`);
-      }
-    }
-  }
-  await visit(directory);
-  return entries.join('|');
-}
-
-async function serve(watch) {
-  await build();
+async function serve(development) {
   const host = argument('--host', '127.0.0.1');
-  const port = Number(argument('--port', watch ? '5173' : '4173'));
+  const port = Number(argument('--port', development ? '5173' : '4173'));
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Port must be an integer from 1 to 65535');
+  let sourceWatcher;
+  let watchFailure;
+  let handleRuntimeWatchFailure;
+  const startupBuildFailures = [];
+  let reportBuildError = error => startupBuildFailures.push(error);
+  const receiveWatchFailure = error => {
+    if (handleRuntimeWatchFailure) handleRuntimeWatchFailure(error);
+    else watchFailure ??= error;
+  };
+  if (development) {
+    sourceWatcher = watchDocumentation(DOCS, build, {
+      paused: true,
+      onBuildError: error => reportBuildError(error),
+    });
+    sourceWatcher.watcher.on('error', receiveWatchFailure);
+  }
+  try {
+    await build();
+    if (development) {
+      sourceWatcher.resume();
+      await sourceWatcher.idle();
+      if (watchFailure) throw watchFailure;
+      if (startupBuildFailures.length) throw startupBuildFailures.at(-1);
+    }
+  } catch (error) {
+    sourceWatcher?.close();
+    throw error;
+  }
+  if (development) {
+    reportBuildError = error => {
+      process.stderr.write(`[docs-site] rebuild failed: ${error.stack ?? error.message}\n`);
+    };
+  }
   const server = createServer(async (request, response) => {
     try {
       const pathname = new URL(request.url, `http://${request.headers.host ?? host}`).pathname;
@@ -90,40 +106,37 @@ async function serve(watch) {
       response.end(`Documentation server error: ${error.message}\n`);
     }
   });
-  await new Promise((accept, reject) => {
-    server.once('error', reject);
-    server.listen(port, host, accept);
-  });
-  process.stdout.write(`[docs-site] http://${host}:${port}/\n`);
-  let timer;
-  let previous = watch ? await snapshot(DOCS) : undefined;
-  let rebuilding = false;
-  if (watch) {
-    timer = setInterval(async () => {
-      if (rebuilding) return;
-      const current = await snapshot(DOCS);
-      if (current === previous) return;
-      rebuilding = true;
-      try {
-        await build();
-        previous = current;
-      } catch (error) {
-        process.stderr.write(`[docs-site] rebuild failed: ${error.stack ?? error.message}\n`);
-      } finally {
-        rebuilding = false;
-      }
-    }, 500);
-    timer.unref();
+  try {
+    await new Promise((accept, reject) => {
+      server.once('error', reject);
+      server.listen(port, host, accept);
+    });
+  } catch (error) {
+    sourceWatcher?.close();
+    throw error;
   }
-  const stop = () => {
-    if (timer) clearInterval(timer);
+  process.stdout.write(`[docs-site] http://${host}:${port}/\n`);
+  let stopping = false;
+  const stop = (status = 0) => {
+    if (stopping) return;
+    stopping = true;
+    sourceWatcher?.close();
     server.close(error => {
-      if (error) throw error;
-      process.exit(0);
+      if (error) {
+        process.stderr.write(`[docs-site] server close failed: ${error.stack ?? error.message}\n`);
+        process.exitCode = 1;
+      } else process.exitCode = status;
     });
   };
-  process.once('SIGINT', stop);
-  process.once('SIGTERM', stop);
+  if (development) {
+    handleRuntimeWatchFailure = error => {
+      process.stderr.write(`[docs-site] source watch failed: ${error.stack ?? error.message}\n`);
+      stop(1);
+    };
+    if (watchFailure) handleRuntimeWatchFailure(watchFailure);
+  }
+  process.once('SIGINT', () => stop());
+  process.once('SIGTERM', () => stop());
 }
 
 const command = process.argv[2] ?? 'build';
