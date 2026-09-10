@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-10 — Complete public TypeScript API types
+
+Package entry points export every named type referenced by their public
+TypeScript declarations. Form and list validation use one public file-set type.
+TypeDoc validation warnings now fail API generation and documentation coverage.
+Two unexported-type regression checks, six public declaration checks and the
+isolated five-package consumer check passed.
+
 ## 2026-09-10 — Selected runtime channels
 
 `.node-version`, CI and Node.js container stages select Node.js 26 as the next
