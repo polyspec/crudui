@@ -12,6 +12,7 @@ export async function runRustCommand(args, options = {}) {
   const environment = options.environment ?? process.env;
   const tools = await resolveRustToolchain({
     cargo: options.cargo ?? environment.CARGO,
+    cwd: options.cwd,
     environment,
     run: options.run,
     rustc: options.rustc ?? environment.RUSTC,
@@ -25,7 +26,7 @@ export async function runRustCommand(args, options = {}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  runRustCommand(process.argv.slice(2)).catch(error => {
+  runRustCommand(process.argv.slice(2), { cwd: process.cwd() }).catch(error => {
     process.stderr.write((error.stack ?? error.message ?? String(error)) + '\n');
     process.exitCode = 1;
   });
