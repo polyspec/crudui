@@ -12,7 +12,8 @@ Test configuration files declare the module format used by their loader. A Vites
 configuration that uses ES module syntax uses an `.mts` or `.mjs` extension, or a
 closest `package.json` with `"type": "module"`. A package that publishes CommonJS
 `.js` files retains its CommonJS package type and uses `.mts` for an ES module
-Vitest configuration.
+Vitest configuration. An ES module Vite configuration resolves paths from
+`import.meta.dirname`; it does not use the CommonJS-only `__dirname` binding.
 
 The declaration compiler does not receive deprecated module-resolution options
 from the JavaScript bundler. Build commands do not suppress type errors or create
