@@ -7,9 +7,6 @@
 # the generators emit deterministic output (no timestamps, no commit hashes, no
 # machine-absolute paths). `make docs` run twice yields identical output.
 
-# cargo lives in ~/.cargo/bin which is not on PATH by default.
-export PATH := $(HOME)/.cargo/bin:$(PATH)
-
 .DEFAULT_GOAL := help
 .PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-native
 .NOTPARALLEL: docs docs-site docs-dev docs-preview docs-check docs-verify-idempotent
@@ -155,7 +152,7 @@ test-native: build-php-extension
 	npm run build
 	composer --working-dir=packages/generator-php test
 	go -C packages/generator-go test -race ./...
-	PATH="$(PATH)" cargo test --locked --manifest-path packages/generator-rust/Cargo.toml
+	node scripts/run-rust-command.mjs test --locked --manifest-path packages/generator-rust/Cargo.toml
 	node packages/php-ext/tests/run.mjs "$(PHP_EXTENSION)"
 	node --test tests/native-generators/protocol.test.mjs
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)"

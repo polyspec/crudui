@@ -592,12 +592,17 @@ Examples:
   }
   if (enabledLangs.includes('rust')) {
     const { resolveRustToolchain } = await import('../../scripts/tool-resolution.mjs');
-    const { cargo, rustc } = await resolveRustToolchain({
+    const { cargo, rustc, rustdoc } = await resolveRustToolchain({
       cargo: process.env.CARGO,
       rustc: process.env.RUSTC,
+      rustdoc: process.env.RUSTDOC,
     });
     require('node:child_process').execFileSync(cargo, ['build', '--locked', '--release', '--bin', 'validate-legacy'],
-      { cwd: RUST_VALIDATOR_DIR, env: { ...process.env, RUSTC: rustc }, stdio: 'inherit' });
+      {
+        cwd: RUST_VALIDATOR_DIR,
+        env: { ...process.env, RUSTC: rustc, RUSTDOC: rustdoc },
+        stdio: 'inherit',
+      });
   }
   const jsModule = enabledLangs.includes('js') ? loadJsValidator() : null;
   if (!jsModule && enabledLangs.includes('js')) {
