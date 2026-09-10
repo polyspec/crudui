@@ -1,7 +1,6 @@
-//! `$ref` resolution — base inheritance, resolved before anything else (SPEC
-//! §5; legacy ReferenceResolver.php).
+//! `$ref` resolution expands base inheritance before other composition (SPEC §5).
 //!
-//! Semantics ported from legacy (single source of truth):
+//! Resolution supports these input forms:
 //!   (1) value = a single string OR an array of strings — an array resolves each
 //!       path in order, then array_merge (later overrides earlier on key clash).
 //!   (2) plain path `OptionCombination.yml` → load YAML, descend by the default

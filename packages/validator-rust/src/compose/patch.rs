@@ -9,7 +9,7 @@
 //!   `$remove [k1,k2] | {k:{sub:…}}`        → remove (whole key or deep subkey)
 //!
 //! CRUDUI normalization (the analysis patch_ops): `$patch` is an OBJECT of operations.
-//! Two shapes coexist (both ported from legacy, both order-preserving):
+//! Two order-preserving input shapes are supported:
 //!
 //!   1. Deep-path set — `"field.validate.required": ".other"`. The dotted key is
 //!      split into path segments and the value is SET at that node (creating
@@ -264,13 +264,9 @@ fn kind_of(v: &Value) -> &'static str {
 
 #[cfg(test)]
 mod order_tests {
-    //! RAW key-order tests — assert the literal key SEQUENCE (no sorting), since
-    //! serde_json `Map`/`Value` `PartialEq` is order-INSENSITIVE (IndexMap eq
-    //! compares membership only) and would silently pass a swap_remove reorder.
-    //! legacy positional array_merge makes declaration order load-bearing; these tests
-    //! turn RED if a `remove()` (swap_remove) ever creeps back into a re-insert
-    //! path. `to_string` serializes in IndexMap insertion order, so the emitted
-    //! byte string is the order oracle (must match JS/PHP/Go byte-for-byte).
+    //! Verify the literal unsorted key sequence for every patch write path. Map
+    //! equality does not detect reordering, so these tests compare keys and
+    //! serialized bytes directly.
 
     use super::apply_patch;
     use serde_json::{json, Value};
@@ -294,9 +290,12 @@ mod order_tests {
             "c": {"t": 2},
             "d": {"t": 3}
         });
-        let out = apply_patch(base.as_object().unwrap().clone(), &json!({
-            "field.validate.required": ".other"
-        }))
+        let out = apply_patch(
+            base.as_object().unwrap().clone(),
+            &json!({
+                "field.validate.required": ".other"
+            }),
+        )
         .unwrap();
         let out = Value::Object(out);
         assert_eq!(keys(&out), vec!["a", "field", "c", "d"]);
@@ -315,8 +314,7 @@ mod order_tests {
     #[test]
     fn deep_path_set_appends_only_genuinely_new_keys() {
         let base = json!({"a": 1, "b": 2});
-        let out = apply_patch(base.as_object().unwrap().clone(), &json!({"c": 3}))
-            .unwrap();
+        let out = apply_patch(base.as_object().unwrap().clone(), &json!({"c": 3})).unwrap();
         assert_eq!(keys(&Value::Object(out)), vec!["a", "b", "c"]);
     }
 
@@ -324,12 +322,18 @@ mod order_tests {
     fn add_appends_replace_keeps_position() {
         let base = json!({"a": {"design": {"class": "old"}}, "b": 2, "c": 3});
         // replace a.design.class (in place) + add newf (append).
-        let out = apply_patch(base.as_object().unwrap().clone(), &json!({
-            "replace": {"a.design.class": "new"},
-            "add": {"newf": {"t": 1}}
-        }))
+        let out = apply_patch(
+            base.as_object().unwrap().clone(),
+            &json!({
+                "replace": {"a.design.class": "new"},
+                "add": {"newf": {"t": 1}}
+            }),
+        )
         .unwrap();
-        assert_eq!(keys(&Value::Object(out.clone())), vec!["a", "b", "c", "newf"]);
+        assert_eq!(
+            keys(&Value::Object(out.clone())),
+            vec!["a", "b", "c", "newf"]
+        );
         assert_eq!(out["a"]["design"]["class"], json!("new"));
     }
 
@@ -338,9 +342,12 @@ mod order_tests {
         // Remove the MIDDLE sibling: swap_remove would pull the last key (`z`)
         // into the hole and scramble order; shift_remove keeps a,c,z order.
         let base = json!({"a": 1, "remove_me": 2, "c": 3, "z": 4});
-        let out = apply_patch(base.as_object().unwrap().clone(), &json!({
-            "remove": ["remove_me"]
-        }))
+        let out = apply_patch(
+            base.as_object().unwrap().clone(),
+            &json!({
+                "remove": ["remove_me"]
+            }),
+        )
         .unwrap();
         assert_eq!(keys(&Value::Object(out)), vec!["a", "c", "z"]);
     }
@@ -353,9 +360,12 @@ mod order_tests {
             "field": {"type": "tags", "options": {"max_tags": 5, "keyword_min_length": 2}},
             "sibling": {"t": 1}
         });
-        let out = apply_patch(base.as_object().unwrap().clone(), &json!({
-            "remove": ["field.options.max_tags"]
-        }))
+        let out = apply_patch(
+            base.as_object().unwrap().clone(),
+            &json!({
+                "remove": ["field.options.max_tags"]
+            }),
+        )
         .unwrap();
         let out = Value::Object(out);
         assert_eq!(keys(&out), vec!["field", "sibling"]);
@@ -369,9 +379,12 @@ mod order_tests {
             "f": {"options": {"max_tags": 5, "min": 2}},
             "g": {"t": 1}
         });
-        let out = apply_patch(base.as_object().unwrap().clone(), &json!({
-            "remove": {"f": {"options": {"max_tags": true}}}
-        }))
+        let out = apply_patch(
+            base.as_object().unwrap().clone(),
+            &json!({
+                "remove": {"f": {"options": {"max_tags": true}}}
+            }),
+        )
         .unwrap();
         let out = Value::Object(out);
         assert_eq!(keys(&out), vec!["f", "g"]);
@@ -381,9 +394,12 @@ mod order_tests {
     #[test]
     fn remove_nested_whole_key_preserves_remaining_order() {
         let base = json!({"a": {"t": 1}, "b": {"t": 2}, "c": {"t": 3}});
-        let out = apply_patch(base.as_object().unwrap().clone(), &json!({
-            "remove": {"b": true}
-        }))
+        let out = apply_patch(
+            base.as_object().unwrap().clone(),
+            &json!({
+                "remove": {"b": true}
+            }),
+        )
         .unwrap();
         assert_eq!(keys(&Value::Object(out)), vec!["a", "c"]);
     }

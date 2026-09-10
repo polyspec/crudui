@@ -11,7 +11,7 @@
 //!     (rows are injected, §9.1), so only the load path's first two passes apply:
 //!     stdin  : `{ "mode": "list", "spec": {…}, "files"?: {…}, "basepath"?: "…" }`
 //!     stdout : `{ "valid": true, "errors": [] }` on a clean structure.
-//!     Reuses `CRUDUI::list::validate_list` (compose → forbidden-scan), NOT a new gate.
+//!     Calls `CRUDUI::list::validate_list` for composition and forbidden-key scanning.
 //!
 //! Both modes re-implement nothing and never touch the legacy model
 //! (`crate::legacy::validator`, R7 parallel run).
@@ -49,10 +49,7 @@ fn main() {
         fail_request("Missing or non-object 'spec'");
     }
 
-    let files = req
-        .get("files")
-        .and_then(Value::as_object)
-        .cloned();
+    let files = req.get("files").and_then(Value::as_object).cloned();
     let basepath = req
         .get("basepath")
         .and_then(Value::as_str)
