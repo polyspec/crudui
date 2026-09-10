@@ -135,7 +135,7 @@ export interface WidgetModel {
 }
 
 // ---------------------------------------------------------------------------
-// shared primitives (ported verbatim from fields.ts — values, not markup)
+// Shared value primitives
 // ---------------------------------------------------------------------------
 
 function bracketName(ctx: WidgetCtx): string {

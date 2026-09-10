@@ -241,8 +241,7 @@ function scalarText(v: unknown): string {
 // per-slot explainers — each returns prose fragments (clauses) for one field.
 // ---------------------------------------------------------------------------
 
-/** validate slot → clauses. Distinguishes unconditional, expression-gated, and
- * conditional-map rules so the back-check can read each gate verbatim. */
+/** Convert validation rules into clauses and retain each declared condition. */
 function explainValidate(
   validate: unknown,
   cat: Catalog,

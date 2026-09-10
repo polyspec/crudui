@@ -1,7 +1,7 @@
 /**
  * `crudui check` — meta-schema validation + forbidden-scan + leaf-type catalog.
  *
- * Three gates, all from the single-source-of-truth (no re-implemented rule):
+ * Three checks use the registered schema and widget catalog directly:
  *   1. ajv against schema/crudui.schema.json (additionalProperties:false →
  *      rejects non-first-class keys, unregistered slot keys, ForbiddenKeyNames).
  *   2. scanForbiddenKeys (validator-ts/CRUDUI/forbidden-scan.ts) — the runtime
@@ -10,12 +10,12 @@
  *      LEAF field (no `properties`) whose `type` is not a registered widget kind
  *      (generator-core WIDGET_KINDS). The meta-schema models `Field.type` as an
  *      unconstrained string and the forbidden-scan only bounds KEY names — so an
- *      invented leaf type (`type: checkbox`) clears gates 1·2. This gate is the
- *      only place that enforces the SKILL rule "pick a type from describe's
+ *      invented leaf type (`type: checkbox`) passes checks 1 and 2. Check 3
+ *      enforces the rule "pick a type from describe's
  *      catalog". Container fields (those that own `properties`) are exempt — per
  *      SPEC §3, `properties` marks a group/container, not a leaf widget.
  *
- * Gates 1·2 are the R1 verification CORE and stay type-agnostic. Gate 3 lives in
+ * Checks 1 and 2 remain type-agnostic. Check 3 runs in
  * the CLI (orchestrator) layer ONLY and reads the live registry, so a widget
  * added to generator-core is admitted with zero edits here (drift 0).
  */
@@ -75,7 +75,7 @@ const REGISTERED_KINDS = new Set(WIDGET_KINDS);
  * (`type: group, properties: {…}`) so it is exempt for the same reason.
  *
  * A field with no `type` is left to the meta-schema (`required: type`); this
- * gate only judges a present `type` against the catalog.
+ * catalog check only compares a present `type` with registered kinds.
  */
 function catalogErrors(field: Record<string, unknown>, path: string): CheckError[] {
   const out: CheckError[] = [];
@@ -118,7 +118,7 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
     return { ok: false, errors: [{ path: file, reason: `parse failed: ${(e as Error).message}` }] };
   }
 
-  // Gate 1 — meta-schema (ajv). strict:false: the schema carries $comment and
+  // Check 1 — meta-schema (ajv). strict:false: the schema carries $comment and
   // descriptive metadata the strict mode would flag; the constraints are intact.
   const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
   const ajv = new Ajv({ strict: false, allErrors: true });
@@ -141,7 +141,7 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
     }
   }
 
-  // Gate 2 — runtime forbidden-scan (the authority the validators use).
+  // Check 2 — runtime forbidden-scan used by the validators.
   try {
     scanForbiddenKeys(spec);
   } catch (e) {

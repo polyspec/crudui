@@ -29,7 +29,7 @@ export function hasEventAttr(attrs: Attrs): boolean {
   return Object.keys(attrs).some((k) => /^on[a-z]/.test(k));
 }
 
-/** Serialize an attr bag to ` k="v"` pairs (alphabetical order is the gate's job). */
+/** Serialize an attribute map to ` k="v"` pairs; normalization compares order. */
 export function serializeAttrs(attrs: Attrs): string {
   let out = '';
   for (const [k, v] of Object.entries(attrs)) {
