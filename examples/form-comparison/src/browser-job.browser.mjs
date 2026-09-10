@@ -1,9 +1,23 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import puppeteer from 'puppeteer';
 
 import { collectBrowserJob } from './browser-job.mjs';
 import { subscribeMainPageReadiness } from './main-page-readiness.mjs';
+
+test('loads the public frame readiness module in Chromium', async t => {
+  const browser = await puppeteer.launch({ headless: true });
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+  const source = await readFile(new URL('./frame-readiness.mjs', import.meta.url), 'utf8');
+  const moduleUrl = 'data:text/javascript,' + encodeURIComponent(source);
+  await page.goto('data:text/html,<title>public module</title>');
+  assert.equal(await page.evaluate(async url => {
+    const module = await import(url);
+    return typeof module.loadComparisonFrames;
+  }, moduleUrl), 'function');
+});
 
 test('receives delayed main-page readiness without one open protocol call',
   { timeout: 10_000 }, async t => {
