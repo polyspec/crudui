@@ -9,10 +9,10 @@ defines the required operations and comparisons.
 
 ## Local build and tests
 
-Use a 64-bit PHP installation with matching `phpize`, `php-config` and development
-headers. Pure PHP requires PHP 8.2 or later; the extension requires PHP 8.4 or
-later. Install Composer, Node, Go, Cargo and a C compiler. The container below
-provides a complete Linux toolchain.
+Use a 64-bit PHP installation with `php-config` and matching development headers.
+Pure PHP requires PHP 8.2 or later; the extension requires PHP 8.4 or later.
+Install Composer, Node, Go, Cargo and a C compiler. The container below provides
+a complete Linux toolchain.
 
 ```sh
 npm ci --strict-allow-scripts
@@ -24,8 +24,11 @@ make docs-check
 
 `make test-native` builds and loads the extension, builds the JavaScript packages,
 runs generator package tests and compares JavaScript, PHP, Go, Rust and native PHP.
-The native module uses PHP's standard `phpize`, configure and make procedure and
-Cargo's locked dependency graph.
+The extension build reads the PHP executable, headers and build flags from
+`php-config`, compiles the C binding and links Cargo's locked Rust output directly.
+It does not require `phpize`, Autoconf or libtool. Tool discovery rejects relative
+paths, symbolic links and multiple results. Explicit tool paths must identify
+regular executable files.
 
 The PHP API check uses three separate processes: Composer classes, the extension
 without Composer, and the extension with Composer. Reflection verifies the actual
