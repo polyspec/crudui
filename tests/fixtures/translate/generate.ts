@@ -1,5 +1,5 @@
 /**
- * legacy→schema translator shared-fixture generator (SPEC §6 round-trip gate).
+ * Generates shared legacy-to-schema translation fixtures for SPEC §6 round-trip verification.
  *
  * Produces `cases.json`: one case per analysis `fixture_ideas` entry. Each case
  * is the legacy input, the translator's REAL schema output (never hand-written), the
@@ -16,8 +16,8 @@
  * Two case families (the analysis roundtrip_rule split):
  *   - reversible cases: `legacy → schema → legacy` MUST equal the original bit-for-bit. The
  *     fixture records `roundtrip: { reversible:true, lossless:true }`.
- *   - irreversible (R7 transcend) cases: at least one absorption fires; the
- *     round-trip is OUTSIDE the gate. The fixture records the note(s) and
+ *   - irreversible (R7 transcend) cases: at least one absorption applies; the
+ *     lossless round-trip assertion does not run. The fixture records the note(s) and
  *     `roundtrip: { reversible:false }` — losslessness is NOT asserted (we do not
  *     sacrifice schema for the translator).
  *
@@ -246,6 +246,36 @@ const SPECS: CaseSpec[] = [
     },
     reversible: true,
   },
+  {
+    name: 'items-dynamic-source-api-server-placeholder',
+    note: 'type:search with api_server and placeholder items:[] stores both values under items and round-trips. The translator preserves api_server without executing it.',
+    legacy: {
+      type: 'search',
+      items: [],
+      api_server: "function() {\n  return '../search_product_brand';\n}\n",
+    },
+    reversible: true,
+  },
+  {
+    name: 'items-dynamic-source-nested-model',
+    note: 'type:search stores the nested model, api_server and placeholder item map under items and round-trips without executing either source.',
+    legacy: {
+      type: 'search',
+      model: {
+        table: 'service_member',
+        relations: [
+          { table: 'user', left: 'user_seq', right: 'seq' },
+        ],
+        keys: [
+          { table: 'service_member', field: 'seq', append: '. ' },
+          { table: 'user', field: 'aes_hex_email', prepend: ' (', append: ')' },
+        ],
+      },
+      api_server: "function() {\n  return '/admin/user/search';\n}\n",
+      items: { '': '선택하세요' },
+    },
+    reversible: true,
+  },
 
   // 13. messages gap (irreversible — out of scope, no schema slot).
   {
@@ -320,7 +350,7 @@ const SPECS: CaseSpec[] = [
   //     (Field.required=[type]). Root and nested group both gain type:group.
   {
     name: 'bug1-type-group-injected',
-    note: 'BUG1: root + nested group carry properties but no type → type:group injected so Field.required=[type] holds (adds a key absent in legacy → out of gate).',
+    note: 'BUG1: root + nested group carry properties but no type → type:group injected so Field.required=[type] holds; the added key makes the case irreversible.',
     legacy: {
       properties: {
         addr: {
@@ -433,6 +463,86 @@ const SPECS: CaseSpec[] = [
     },
     reversible: false,
   },
+  {
+    name: 'bug-items-null-drop',
+    note: 'items:null is removed because Items accepts an array, source or label map and null defines no membership.',
+    legacy: {
+      type: 'multichoice',
+      label: '구성 요소',
+      items: null,
+    },
+    reversible: false,
+  },
+  {
+    name: 'bug-items-empty-drop',
+    note: 'An empty items object is removed because it defines no items.',
+    legacy: {
+      type: 'choice',
+      items: {},
+    },
+    reversible: false,
+  },
+  {
+    name: 'bug-reserved-key-field-name-stepper',
+    note: 'A properties field named items remains a field; its value map is stored in options and the translator adds type:group.',
+    legacy: {
+      type: 'group',
+      properties: {
+        items: {
+          1: '기본',
+          2: '객실',
+          3: '확인',
+        },
+      },
+    },
+    reversible: false,
+  },
+  {
+    name: 'bug-reserved-key-field-name-excel',
+    note: 'A properties field named table remains a field; its value map is stored in options and the translator adds type:group to the field and root.',
+    legacy: {
+      properties: {
+        table: {
+          5: {
+            exist: { target: 'excel_product' },
+            not: { target: 'excel_product_item' },
+          },
+        },
+      },
+    },
+    reversible: false,
+  },
+  {
+    name: 'bug-design-class-null-drop',
+    note: 'class:null is removed because Design.class accepts a string or condition map, and the empty design object is removed.',
+    legacy: {
+      type: 'text',
+      class: null,
+    },
+    reversible: false,
+  },
+  {
+    name: 'bug-empty-properties-group',
+    note: 'properties:null becomes an empty group with type:group and properties:{}.',
+    legacy: {
+      properties: null,
+    },
+    reversible: false,
+  },
+  {
+    name: 'bug-item-label-numeric-stringify',
+    note: 'A numeric item label becomes a string because ItemLabel accepts a string, language map or null.',
+    legacy: {
+      type: 'choice',
+      default: 307,
+      items: {
+        301: '301 (Moved Permanently)',
+        307: '307 (Temporary Redirect)',
+        404: 404,
+      },
+    },
+    reversible: false,
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -474,7 +584,7 @@ const out: OutCase[] = SPECS.map((c) => {
   };
 
   if (reversible) {
-    // INVARIANT 3 (the SPEC §6 gate): legacy→schema→legacy = original bit-for-bit.
+    // INVARIANT 3: reversible SPEC §6 translation returns the original bytes.
     const back = translateToLegacy(schema);
     const lossless = deepEqual(c.legacy, back);
     if (!lossless) {
@@ -492,7 +602,7 @@ const out: OutCase[] = SPECS.map((c) => {
 const losslessCount = out.filter((c) => c.roundtrip.reversible).length;
 const transcendCount = out.length - losslessCount;
 process.stderr.write(
-  `translate fixtures: ${out.length} cases — ${losslessCount} reversible (lossless round-trip), ${transcendCount} R7-transcend (out of gate)\n`
+  `translate fixtures: ${out.length} cases — ${losslessCount} reversible (lossless round-trip), ${transcendCount} irreversible R7-transcend\n`
 );
 
 process.stdout.write(JSON.stringify(out, null, 2) + '\n');
