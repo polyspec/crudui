@@ -1,0 +1,9 @@
+{
+  "name": "@polyspec/crudui-form-comparison",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ordered-json": "https://codeload.github.com/polyspec/ordered-json/tar.gz/main"
+  }
+}
