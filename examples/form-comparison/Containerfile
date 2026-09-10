@@ -1,0 +1,98 @@
+FROM rust:1.98.0-slim-trixie AS rust-toolchain
+
+FROM node:26.8.1-trixie-slim AS verified-source
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+COPY source.tar source-commit metadata.json \
+    ordered-json.tar ordered-json-js.tar ordered-json-go.tar ordered-json-rust.tar \
+    ordered-json-php.tar ordered-json-php-extension.tar /archives/
+RUN node - <<'NODE'
+const { execFileSync } = require('node:child_process');
+const { createHash } = require('node:crypto');
+const { readFileSync } = require('node:fs');
+const metadata = JSON.parse(readFileSync('/archives/metadata.json'));
+const digest = file => createHash('sha256').update(readFileSync(file)).digest('hex');
+const sourceCommit = readFileSync('/archives/source-commit', 'utf8').trim();
+const embeddedCommit = execFileSync('git', ['get-tar-commit-id'], {
+  input: readFileSync('/archives/source.tar'), encoding: 'utf8',
+}).trim();
+if (metadata.source?.commit !== sourceCommit || embeddedCommit !== sourceCommit) {
+  throw new Error('Candidate source commit differs from metadata');
+}
+if (digest('/archives/source.tar') !== metadata.source.archiveSha256) {
+  throw new Error('Candidate source archive hash differs from metadata');
+}
+if (digest('/archives/ordered-json.tar') !== metadata.orderedJson?.archiveSha256) {
+  throw new Error('OrderedJSON archive hash differs from metadata');
+}
+for (const [name, source] of Object.entries(metadata.orderedJson?.submodules ?? {})) {
+  if (digest('/archives/ordered-json-' + name + '.tar') !== source.archiveSha256) {
+    throw new Error('OrderedJSON implementation archive hash differs: ' + name);
+  }
+}
+NODE
+RUN mkdir -p /workspace/source/.form-comparison/sources/ordered-json \
+    && tar -xf /archives/source.tar -C /workspace/source \
+    && for archive in /archives/ordered-json*.tar; do \
+      tar -xf "$archive" -C /workspace/source/.form-comparison/sources/ordered-json; \
+    done
+
+FROM verified-source AS dependencies
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    FORM_COMPARISON_RESULTS=/results
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    php8.4-cli php8.4-mbstring php8.4-xml composer unzip chromium=152.0.7977.82-1~deb13u1 \
+    chromium-sandbox=152.0.7977.82-1~deb13u1 \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace/source
+RUN composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+RUN composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+RUN npm ci
+RUN npm run build
+RUN npm ci --prefix examples/form-comparison
+
+FROM golang:1.27.0-trixie AS go-server
+COPY --from=verified-source /workspace /workspace
+COPY --from=verified-source /archives/source-commit /archives/source-commit
+WORKDIR /workspace/source/examples/form-comparison/servers/go
+RUN read -r commit < /archives/source-commit \
+    && CGO_ENABLED=0 go test ./... \
+    && CGO_ENABLED=0 go build -trimpath \
+      -ldflags "-X main.source=current -X main.sourceCommit=$commit" -o /out/go .
+
+FROM rust-toolchain AS rust-server
+COPY --from=verified-source /workspace /workspace
+COPY --from=verified-source /archives/source-commit /archives/source-commit
+WORKDIR /workspace/source/examples/form-comparison/servers/rust
+RUN read -r commit < /archives/source-commit \
+    && FORM_SOURCE=current FORM_SOURCE_COMMIT=$commit cargo test --locked \
+    && FORM_SOURCE=current FORM_SOURCE_COMMIT=$commit cargo build --locked --release \
+    && cp target/release/crudui-form-comparison /out/rust
+
+FROM dependencies AS php-extension
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    php8.4-dev build-essential autoconf pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=rust-toolchain /usr/local/cargo /usr/local/cargo
+COPY --from=rust-toolchain /usr/local/rustup /usr/local/rustup
+ENV CARGO_HOME=/usr/local/cargo \
+    RUSTUP_HOME=/usr/local/rustup \
+    PATH=/usr/local/cargo/bin:$PATH
+RUN sh scripts/build-php-extension.sh
+WORKDIR /workspace/source/.form-comparison/sources/ordered-json/php-extension/src
+RUN phpize && ./configure --enable-ordered-json && make -j2
+
+FROM dependencies AS application
+COPY --from=php-extension /workspace/source/.form-comparison/sources/ordered-json/php-extension/src/modules/ordered_json.so /opt/ordered_json.so
+COPY --from=php-extension /workspace/source/packages/php-ext/modules/crudui.so /opt/crudui.so
+COPY --from=go-server /out/go /workspace/bin/go
+COPY --from=rust-server /out/rust /workspace/bin/rust
+COPY metadata.json source.tar /archives/
+RUN npm run test:form-comparison
+RUN cp /archives/metadata.json /workspace/metadata.json \
+    && node examples/form-comparison/build.mjs /workspace
+RUN mkdir -p /results && chown node:node /results
+USER node
+EXPOSE 8080
+CMD ["node", "examples/form-comparison/server.mjs"]
