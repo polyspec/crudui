@@ -55,8 +55,17 @@ const startedClock = performance.now();
 const activity = {
   requests: 0, responses: 0, lastRequestAt: null, lastResponseAt: null,
 };
+let publishActivity = () => {};
 try {
   page = await browser.newPage();
+  const jobListeners = new Set();
+  const activityListeners = new Set();
+  await page.exposeFunction('cruduiBrowserJobEvent', async event => {
+    for (const listener of jobListeners) await listener(event);
+  });
+  publishActivity = event => {
+    for (const listener of activityListeners) listener(event);
+  };
   await page.setViewport({ width: 1680, height: 1100 });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -66,6 +75,7 @@ try {
   page.on('response', response => {
     activity.responses++;
     activity.lastResponseAt = new Date().toISOString();
+    publishActivity({ type: 'response', ...activity });
     if (response.request().resourceType() !== 'document') return;
     const url = new URL(response.url());
     const match = new RegExp(
@@ -102,6 +112,7 @@ try {
   page.on('request', async request => {
     activity.requests++;
     activity.lastRequestAt = new Date().toISOString();
+    publishActivity({ type: 'request', ...activity });
     const match = new RegExp(
       `/api/(${formServers.join('|')})/load/(${formRenderingPaths.join('|')})/(${formFrameworks.join('|')})$`,
     ).exec(request.url());
@@ -130,10 +141,15 @@ try {
   let loggedProgress = '';
   const collected = await collectBrowserJob({
     start: servers => page.evaluate(value => window.comparison.startRun(value), servers),
-    state: () => page.evaluate(() => window.comparison.runState()),
-    report: index => page.evaluate(value => window.comparison.runReport(value), index),
+    subscribe(listener) {
+      jobListeners.add(listener);
+      return () => jobListeners.delete(listener);
+    },
+    subscribeActivity(listener) {
+      activityListeners.add(listener);
+      return () => activityListeners.delete(listener);
+    },
   }, [selectedServer], {
-    activity: () => activity,
     onState(state, reports) {
       scenarioJob = state;
       completedReports = [...reports];

@@ -778,3 +778,6 @@ window.comparison = {
   runChecks, reset, inspect, submit, save, load, server, path: renderingPath, framework,
   commit: __SOURCE_COMMIT__,
 };
+window.parent.postMessage({
+  type: 'crudui:frame-ready', server, framework, path: renderingPath,
+}, location.origin);

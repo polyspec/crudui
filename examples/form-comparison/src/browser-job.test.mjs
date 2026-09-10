@@ -144,6 +144,8 @@ test('returns completed reports and state when the browser job fails', async () 
 
 test('fails after the 900000 millisecond run limit while activity continues', async () => {
   const timers = controlledTimers();
+  let ready;
+  const initialized = new Promise(resolve => { ready = resolve; });
   const running = {
     status: 'running', completedReports: 0, totalReports: 2, current: 'first',
   };
@@ -151,8 +153,9 @@ test('fails after the 900000 millisecond run limit while activity continues', as
   const collected = collectBrowserJob(protocol.client, undefined, {
     setTimer: timers.setTimer, clearTimer: timers.clearTimer,
     runLimitMs: 900_000, stallLimitMs: 300_000,
+    onState: async () => ready(),
   });
-  await protocol.started;
+  await initialized;
   protocol.activity({ requests: 1 });
   timers.fire(900_000);
   await assert.rejects(
@@ -165,6 +168,8 @@ test('fails after the 900000 millisecond run limit while activity continues', as
 
 test('fails after five minutes without progress and retains collected evidence', async () => {
   const timers = controlledTimers();
+  let ready;
+  const initialized = new Promise(resolve => { ready = resolve; });
   const running = {
     status: 'running', completedReports: 0, totalReports: 2, current: 'first',
   };
@@ -172,8 +177,9 @@ test('fails after five minutes without progress and retains collected evidence',
   const collected = collectBrowserJob(protocol.client, undefined, {
     setTimer: timers.setTimer, clearTimer: timers.clearTimer,
     runLimitMs: 900_000, stallLimitMs: 300_000,
+    onState: async () => ready(),
   });
-  await protocol.started;
+  await initialized;
   await protocol.emit({ type: 'report', index: 0, report: { id: 0 }, state: {
     status: 'running', completedReports: 1, totalReports: 2, current: 'second',
   } });
