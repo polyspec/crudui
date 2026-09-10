@@ -275,7 +275,9 @@ impl Lexer {
 
     fn read_identifier(&mut self) -> Token {
         let start = self.position;
-        while !self.is_at_end() && (is_letter(self.peek()) || is_digit(self.peek()) || self.peek() == b'_') {
+        while !self.is_at_end()
+            && (is_letter(self.peek()) || is_digit(self.peek()) || self.peek() == b'_')
+        {
             self.advance();
         }
         let value = String::from_utf8_lossy(&self.input[start..self.position]).to_string();
@@ -600,7 +602,10 @@ impl Parser {
             });
         }
 
-        if self.check(&TokenType::Dot) || self.check(&TokenType::DotDot) || self.check(&TokenType::Identifier) {
+        if self.check(&TokenType::Dot)
+            || self.check(&TokenType::DotDot)
+            || self.check(&TokenType::Identifier)
+        {
             return self.parse_path();
         }
 
@@ -740,9 +745,17 @@ struct Evaluator<'a> {
 impl<'a> Evaluator<'a> {
     fn evaluate(&self, node: &AstNode) -> Value {
         match node {
-            AstNode::Binary { operator, left, right } => self.evaluate_binary(operator, left, right),
+            AstNode::Binary {
+                operator,
+                left,
+                right,
+            } => self.evaluate_binary(operator, left, right),
             AstNode::Unary { operator, operand } => self.evaluate_unary(operator, operand),
-            AstNode::In { negated, value, list } => Value::Bool(self.evaluate_in(*negated, value, list)),
+            AstNode::In {
+                negated,
+                value,
+                list,
+            } => Value::Bool(self.evaluate_in(*negated, value, list)),
             AstNode::Ternary {
                 condition,
                 true_value,
@@ -758,7 +771,12 @@ impl<'a> Evaluator<'a> {
         }
     }
 
-    fn evaluate_ternary(&self, condition: &AstNode, true_value: &AstNode, false_value: &AstNode) -> Value {
+    fn evaluate_ternary(
+        &self,
+        condition: &AstNode,
+        true_value: &AstNode,
+        false_value: &AstNode,
+    ) -> Value {
         let cond = self.evaluate(condition);
         if is_truthy(&cond) {
             self.evaluate(true_value)
@@ -907,7 +925,9 @@ impl<'a> Evaluator<'a> {
         let remaining_path = &path[wildcard_index + 1..];
 
         // Same array context: reuse the current index if currentPath matches.
-        if self.current_path.len() > array_path.len() && self.path_prefix_equals(array_path, self.current_path) {
+        if self.current_path.len() > array_path.len()
+            && self.path_prefix_equals(array_path, self.current_path)
+        {
             let idx_str = &self.current_path[array_path.len()];
             if idx_str.parse::<usize>().is_ok() {
                 let mut resolved = array_path.to_vec();
@@ -923,7 +943,9 @@ impl<'a> Evaluator<'a> {
         if let Value::Object(obj) = &array_data {
             if !remaining_path.is_empty() {
                 let rem: Vec<String> = remaining_path.to_vec();
-                return get_nested_value(&array_data, &rem).cloned().unwrap_or(Value::Null);
+                return get_nested_value(&array_data, &rem)
+                    .cloned()
+                    .unwrap_or(Value::Null);
             }
             let _ = obj;
             return array_data;
@@ -992,7 +1014,12 @@ impl ConditionParser {
     }
 
     /// evaluate returns the truthiness of an expression.
-    pub fn evaluate(&mut self, expression: &str, form_data: &Value, current_path: &[String]) -> Result<bool, String> {
+    pub fn evaluate(
+        &mut self,
+        expression: &str,
+        form_data: &Value,
+        current_path: &[String],
+    ) -> Result<bool, String> {
         let ast = self.parse(expression)?;
         let evaluator = Evaluator {
             form_data,

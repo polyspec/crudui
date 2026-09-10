@@ -61,7 +61,12 @@ fn re(cell: &'static OnceLock<Regex>, pattern: &str) -> &'static Regex {
 // Rules
 // ---------------------------------------------------------------------------
 
-fn rule_required(value: &Value, _p: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_required(
+    value: &Value,
+    _p: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) {
         Some("This field is required.".to_string())
     } else {
@@ -92,7 +97,12 @@ fn rule_email(value: &Value, _p: &[String], _d: &Value, _c: &ValidationContext) 
     None
 }
 
-fn rule_min_length(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_min_length(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -108,7 +118,12 @@ fn rule_min_length(value: &Value, params: &[String], _d: &Value, _c: &Validation
     None
 }
 
-fn rule_max_length(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_max_length(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -119,12 +134,20 @@ fn rule_max_length(value: &Value, params: &[String], _d: &Value, _c: &Validation
     let s = to_string(value);
     let length = s.chars().count() as i64;
     if length > max_len {
-        return Some(format!("Please enter no more than {} characters.", params[0]));
+        return Some(format!(
+            "Please enter no more than {} characters.",
+            params[0]
+        ));
     }
     None
 }
 
-fn rule_min(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_min(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -134,12 +157,20 @@ fn rule_min(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext
     };
     let num = to_number(value)?;
     if num < min_val {
-        return Some(format!("Please enter a value greater than or equal to {}.", params[0]));
+        return Some(format!(
+            "Please enter a value greater than or equal to {}.",
+            params[0]
+        ));
     }
     None
 }
 
-fn rule_max(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_max(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -149,7 +180,10 @@ fn rule_max(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext
     };
     let num = to_number(value)?;
     if num > max_val {
-        return Some(format!("Please enter a value less than or equal to {}.", params[0]));
+        return Some(format!(
+            "Please enter a value less than or equal to {}.",
+            params[0]
+        ));
     }
     None
 }
@@ -166,7 +200,12 @@ fn anchor_pattern(pattern: &str) -> String {
     anchored
 }
 
-fn rule_match(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_match(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -184,7 +223,12 @@ fn rule_match(value: &Value, params: &[String], _d: &Value, _c: &ValidationConte
     }
 }
 
-fn rule_unique(value: &Value, _p: &[String], all_data: &Value, ctx: &ValidationContext) -> Option<String> {
+fn rule_unique(
+    value: &Value,
+    _p: &[String],
+    all_data: &Value,
+    ctx: &ValidationContext,
+) -> Option<String> {
     let msg = "Values must be unique.".to_string();
 
     // Array mode.
@@ -268,7 +312,12 @@ fn rule_in(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext)
     Some("Please select a valid option.".to_string())
 }
 
-fn rule_range(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_range(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.len() < 2 {
         return None;
     }
@@ -285,12 +334,20 @@ fn rule_range(value: &Value, params: &[String], _d: &Value, _c: &ValidationConte
         None => return Some("Please enter a valid number.".to_string()),
     };
     if num < min_val || num > max_val {
-        return Some(format!("Please enter a value between {} and {}.", params[0], params[1]));
+        return Some(format!(
+            "Please enter a value between {} and {}.",
+            params[0], params[1]
+        ));
     }
     None
 }
 
-fn rule_range_length(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_range_length(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.len() < 2 {
         return None;
     }
@@ -335,7 +392,12 @@ fn rule_digits(value: &Value, _p: &[String], _d: &Value, _c: &ValidationContext)
     None
 }
 
-fn rule_equal_to(value: &Value, params: &[String], all_data: &Value, ctx: &ValidationContext) -> Option<String> {
+fn rule_equal_to(
+    value: &Value,
+    params: &[String],
+    all_data: &Value,
+    ctx: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -348,7 +410,12 @@ fn rule_equal_to(value: &Value, params: &[String], all_data: &Value, ctx: &Valid
     None
 }
 
-fn rule_not_equal(value: &Value, params: &[String], all_data: &Value, ctx: &ValidationContext) -> Option<String> {
+fn rule_not_equal(
+    value: &Value,
+    params: &[String],
+    all_data: &Value,
+    ctx: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -376,7 +443,12 @@ fn rule_date(value: &Value, _p: &[String], _d: &Value, _c: &ValidationContext) -
     Some("Please enter a valid date.".to_string())
 }
 
-fn rule_date_iso(value: &Value, _p: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_date_iso(
+    value: &Value,
+    _p: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) {
         return None;
     }
@@ -391,7 +463,12 @@ fn rule_date_iso(value: &Value, _p: &[String], _d: &Value, _c: &ValidationContex
     None
 }
 
-fn rule_end_date(value: &Value, params: &[String], all_data: &Value, ctx: &ValidationContext) -> Option<String> {
+fn rule_end_date(
+    value: &Value,
+    params: &[String],
+    all_data: &Value,
+    ctx: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -430,7 +507,12 @@ fn rule_url(value: &Value, _p: &[String], _d: &Value, _c: &ValidationContext) ->
     }
 }
 
-fn rule_accept(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_accept(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -446,7 +528,12 @@ fn rule_accept(value: &Value, params: &[String], _d: &Value, _c: &ValidationCont
     None
 }
 
-fn rule_min_count(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_min_count(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if params.is_empty() {
         return None;
     }
@@ -460,7 +547,12 @@ fn rule_min_count(value: &Value, params: &[String], _d: &Value, _c: &ValidationC
     None
 }
 
-fn rule_max_count(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_max_count(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -474,7 +566,12 @@ fn rule_max_count(value: &Value, params: &[String], _d: &Value, _c: &ValidationC
     None
 }
 
-fn rule_step(value: &Value, params: &[String], _d: &Value, _c: &ValidationContext) -> Option<String> {
+fn rule_step(
+    value: &Value,
+    params: &[String],
+    _d: &Value,
+    _c: &ValidationContext,
+) -> Option<String> {
     if is_empty(value) || params.is_empty() {
         return None;
     }
@@ -492,7 +589,10 @@ fn rule_step(value: &Value, params: &[String], _d: &Value, _c: &ValidationContex
     let int_value = (num * multiplier).round() as i64;
     let int_step = (step * multiplier).round() as i64;
     if int_step != 0 && int_value % int_step != 0 {
-        return Some(format!("Please enter a value that is a multiple of {}.", params[0]));
+        return Some(format!(
+            "Please enter a value that is a multiple of {}.",
+            params[0]
+        ));
     }
     None
 }
@@ -609,8 +709,14 @@ fn parse_url(s: &str) -> Option<(String, String)> {
         // scheme must be a valid scheme token (alpha first); else Go treats the
         // whole thing as a path with empty scheme.
         if scheme.is_empty()
-            || !scheme.chars().next().map(|c| c.is_ascii_alphabetic()).unwrap_or(false)
-            || !scheme.chars().all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.')
+            || !scheme
+                .chars()
+                .next()
+                .map(|c| c.is_ascii_alphabetic())
+                .unwrap_or(false)
+            || !scheme
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.')
         {
             return Some((String::new(), String::new()));
         }
@@ -673,8 +779,14 @@ fn extension_to_mime() -> &'static HashMap<&'static str, Vec<&'static str>> {
         m.insert("mov", vec!["video/quicktime"]);
         m.insert("mkv", vec!["video/x-matroska"]);
 
-        m.insert("zip", vec!["application/zip", "application/x-zip-compressed"]);
-        m.insert("rar", vec!["application/x-rar-compressed", "application/vnd.rar"]);
+        m.insert(
+            "zip",
+            vec!["application/zip", "application/x-zip-compressed"],
+        );
+        m.insert(
+            "rar",
+            vec!["application/x-rar-compressed", "application/vnd.rar"],
+        );
         m.insert("tar", vec!["application/x-tar"]);
         m.insert("gz", vec!["application/gzip"]);
         m.insert("7z", vec!["application/x-7z-compressed"]);
