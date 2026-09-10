@@ -10,7 +10,9 @@ TypeScript는 패키지의 엄격한 컴파일러 설정과 `noEmitOnError`를 �
 테스트 설정 파일은 로더가 사용할 모듈 형식을 명시한다. ES 모듈 문법을 사용하는
 Vitest 설정은 `.mts`·`.mjs` 확장자 또는 가장 가까운 `package.json`의
 `"type": "module"`을 사용한다. CommonJS `.js` 파일을 게시하는 패키지는 CommonJS
-패키지 형식을 유지하고 ES 모듈 Vitest 설정에 `.mts`를 사용한다.
+패키지 형식을 유지하고 ES 모듈 Vitest 설정에 `.mts`를 사용한다. ES 모듈 Vite
+설정은 `import.meta.dirname`에서 경로를 해석하며 CommonJS 전용 `__dirname` 바인딩을
+사용하지 않는다.
 
 선언 컴파일러는 JavaScript 번들러가 추가한 폐기 예정 모듈 해석 설정을 받지 않는다.
 빌드 명령은 타입 오류를 억제하거나 대체 선언을 만들지 않는다. 전체 빌드는 이전
