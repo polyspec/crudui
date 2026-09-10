@@ -24,6 +24,8 @@ const deploymentContainer = 'crudui-comparison';
 const deploymentGroup = 'crudui';
 const deploymentService = 'comparison';
 const comparisonImagePrefix = 'localhost/crudui-form-comparison:';
+const candidateContainerPattern = /^crudui-form-comparison-[0-9a-f]{12}$/;
+const candidateImagePattern = /^localhost\/crudui-form-comparison:[0-9a-f]{12}$/;
 
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
@@ -147,20 +149,26 @@ export function renderDeploymentCompose({ commit, imageReference }) {
 
 /** Select temporary resources that are not part of the active deployment. */
 export function deploymentCleanupPlan({
-  deployedImageReference, candidateDirectories, containers, imageReferences,
+  deployedImageReference, retiredImageReferences = [], candidateDirectories, containers,
+  imageReferences,
 }) {
   assert.ok(deployedImageReference.startsWith(comparisonImagePrefix),
     'Deployed comparison image reference is invalid');
   const temporaryContainers = containers.filter(container =>
     container.id !== deploymentContainer
-      && container.imageReference.startsWith(comparisonImagePrefix));
+      && candidateContainerPattern.test(container.id)
+      && candidateImagePattern.test(container.imageReference));
   return {
     runningContainerIds: temporaryContainers
       .filter(container => container.state === 'running')
       .map(container => container.id).sort(),
     containerIds: temporaryContainers.map(container => container.id).sort(),
-    candidateDirectories: [...new Set(candidateDirectories)].sort(),
-    imageReferences: [...new Set(imageReferences)]
+    candidateDirectories: [...new Set(candidateDirectories)]
+      .filter(directory => commitPattern.test(path.basename(directory))).sort(),
+    imageReferences: [...new Set([
+      ...imageReferences.filter(reference => candidateImagePattern.test(reference)),
+      ...retiredImageReferences,
+    ])]
       .filter(reference => reference.startsWith(comparisonImagePrefix)
         && reference !== deployedImageReference)
       .sort(),
@@ -237,9 +245,11 @@ async function removeDirectoryWithin(root, directory) {
 /** Remove candidate resources after the deployed service passes verification. */
 export async function cleanupDeploymentArtifacts({
   deployedImageReference, candidateRoot, deploymentResultsDirectory,
-  retiredResultsDirectories = [], resources, runCommand = run,
+  retiredImageReferences = [], retiredResultsDirectories = [], resources, runCommand = run,
 }) {
-  const plan = deploymentCleanupPlan({ deployedImageReference, ...resources });
+  const plan = deploymentCleanupPlan({
+    deployedImageReference, retiredImageReferences, ...resources,
+  });
   for (const directory of plan.candidateDirectories) {
     assertDirectChild(candidateRoot, directory, 'Candidate cleanup path is invalid');
   }
@@ -481,10 +491,17 @@ async function main() {
   const deploymentDirectory = path.join(repositoryRoot, '.form-comparison/deployment');
   await mkdir(deploymentDirectory, { recursive: true });
   let preservation = { data: null };
+  let retiredImageReferences = [];
   let retiredResultsDirectories = [];
   try {
     const { stdout } = await run('container', ['inspect', deploymentContainer]);
     const current = JSON.parse(stdout)[0];
+    const retiredImageReference = current?.configuration?.image?.reference;
+    if (retiredImageReference && retiredImageReference !== imageReference) {
+      assert.ok(retiredImageReference.startsWith(comparisonImagePrefix),
+        'Active deployment image reference is invalid');
+      retiredImageReferences = [retiredImageReference];
+    }
     const mounts = Object.fromEntries((current?.configuration?.mounts ?? [])
       .map(mount => [mount.destination, mount.source]));
     assert.ok(path.isAbsolute(mounts['/data'] ?? ''), 'Active deployment data mount is missing');
@@ -517,6 +534,7 @@ async function main() {
   const cleanup = await cleanupDeploymentArtifacts({
     deployedImageReference: imageReference, candidateRoot,
     deploymentResultsDirectory: path.join(deploymentDirectory, 'results'),
+    retiredImageReferences,
     retiredResultsDirectories,
     resources: await localComparisonResources(candidateRoot),
   });
