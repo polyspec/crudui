@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { execFile as execFileCallback } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import https from 'node:https';
 import path from 'node:path';
 import tls from 'node:tls';
 import { promisify } from 'node:util';
@@ -190,17 +191,85 @@ async function fileDigests(root) {
   return result;
 }
 
-async function response(url) {
-  const value = await fetch(url, { redirect: 'error' });
-  assert.equal(value.status, 200, `${url}: HTTP status`);
-  const bytes = Buffer.from(await value.arrayBuffer());
-  return { bytes, sha256: sha256(bytes) };
+async function copyDirectory(source, destination) {
+  const entries = await readdir(source, { withFileTypes: true });
+  entries.sort((left, right) => left.name.localeCompare(right.name));
+  for (const entry of entries) {
+    const sourcePath = path.join(source, entry.name);
+    const destinationPath = path.join(destination, entry.name);
+    if (entry.isDirectory()) {
+      await mkdir(destinationPath);
+      await copyDirectory(sourcePath, destinationPath);
+    } else if (entry.isFile()) {
+      await copyFile(sourcePath, destinationPath);
+    } else {
+      throw new Error(`Deployment data contains an unsupported entry: ${sourcePath}`);
+    }
+  }
 }
 
-async function certificate(hostname) {
+/** Copy existing deployment files without overwriting or changing their bytes. */
+export async function preserveDeploymentDirectory(source, destination) {
+  const before = await fileDigests(source);
+  try {
+    const existing = await fileDigests(destination);
+    assert.deepEqual(existing, before, 'Existing deployment files differ from the active service');
+    return { source: path.resolve(source), destination: path.resolve(destination), files: before };
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+
+  await mkdir(path.dirname(destination), { recursive: true });
+  const staging = await mkdtemp(`${destination}.migration-`);
+  try {
+    await copyDirectory(source, staging);
+    assert.deepEqual(await fileDigests(staging), before,
+      'Copied deployment files differ from the active service');
+    assert.deepEqual(await fileDigests(source), before,
+      'Active deployment files changed during preservation');
+    await rename(staging, destination);
+  } catch (error) {
+    await rm(staging, { recursive: true, force: true });
+    throw error;
+  }
+  assert.deepEqual(await fileDigests(destination), before,
+    'Preserved deployment files differ from the active service');
+  return { source: path.resolve(source), destination: path.resolve(destination), files: before };
+}
+
+/** Load the certificate authority selected by containerctl. */
+export async function readDeploymentAuthority(status) {
+  const caPath = status?.machine?.caPath;
+  assert.ok(path.isAbsolute(caPath ?? ''), 'containerctl CA path is missing');
+  const ca = await readFile(caPath);
+  assert.match(ca.toString('ascii'), /-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----/,
+    'containerctl CA file is invalid');
+  return { path: caPath, ca, sha256: sha256(ca) };
+}
+
+async function response(url, ca) {
+  return new Promise((resolve, reject) => {
+    const request = https.get(url, { ca, rejectUnauthorized: true }, value => {
+      const chunks = [];
+      value.on('data', chunk => chunks.push(chunk));
+      value.on('end', () => {
+        try {
+          assert.equal(value.statusCode, 200, `${url}: HTTP status`);
+          const bytes = Buffer.concat(chunks);
+          resolve({ bytes, sha256: sha256(bytes) });
+        } catch (error) { reject(error); }
+      });
+      value.on('error', reject);
+    });
+    request.setTimeout(10_000, () => request.destroy(new Error(`${url}: request timed out`)));
+    request.on('error', reject);
+  });
+}
+
+async function certificate(hostname, ca) {
   return new Promise((resolve, reject) => {
     const socket = tls.connect({ host: hostname, port: 443, servername: hostname,
-      rejectUnauthorized: true });
+      ca, rejectUnauthorized: true });
     socket.setTimeout(10_000);
     socket.once('secureConnect', () => {
       try {
@@ -241,9 +310,7 @@ async function containerState(expectedDigest, deploymentDirectory) {
   };
 }
 
-async function routeState() {
-  const { stdout } = await run('containerctl', ['status', '--json']);
-  const status = JSON.parse(stdout);
+async function routeState(status) {
   const group = status.groups?.find(item => item.name === deploymentGroup);
   assert.ok(group, 'Deployment route group is missing');
   const service = group.services?.find(item => item.name === deploymentService);
@@ -262,12 +329,16 @@ async function routeState() {
 
 async function deploymentSnapshot(commit, image, deploymentDirectory) {
   const origin = `https://${deploymentDomain}`;
+  const { stdout } = await run('containerctl', ['status', '--json']);
+  const status = JSON.parse(stdout);
+  const authority = await readDeploymentAuthority(status);
   const [home, health, metadataResponse, dataResponse, container, route, tlsCertificate] =
     await Promise.all([
-      response(`${origin}/`), response(`${origin}/api/health`),
-      response(`${origin}/metadata.json`),
-      response(`${origin}/api/php/load/bindForm/react`),
-      containerState(image.digest, deploymentDirectory), routeState(), certificate(deploymentDomain),
+      response(`${origin}/`, authority.ca), response(`${origin}/api/health`, authority.ca),
+      response(`${origin}/metadata.json`, authority.ca),
+      response(`${origin}/api/php/load/bindForm/react`, authority.ca),
+      containerState(image.digest, deploymentDirectory), routeState(status),
+      certificate(deploymentDomain, authority.ca),
     ]);
   const healthValue = JSON.parse(health.bytes);
   assert.deepEqual(healthValue, { status: 'ok', servers: browserServers },
@@ -279,7 +350,8 @@ async function deploymentSnapshot(commit, image, deploymentDirectory) {
   assert.equal(route.image, image.reference, 'Deployment route image differs');
 
   return {
-    container, route, certificate: tlsCertificate,
+    container, route, authority: { path: authority.path, sha256: authority.sha256 },
+    certificate: tlsCertificate,
     files: {
       data: await fileDigests(path.join(deploymentDirectory, 'data')),
       results: await fileDigests(path.join(deploymentDirectory, 'results')),
@@ -313,13 +385,29 @@ async function main() {
   const imageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
   const image = await inspectImage(imageReference);
   const deploymentDirectory = path.join(repositoryRoot, '.form-comparison/deployment');
-  await mkdir(path.join(deploymentDirectory, 'data'), { recursive: true });
-  await mkdir(path.join(deploymentDirectory, 'results'), { recursive: true });
+  await mkdir(deploymentDirectory, { recursive: true });
+  let preservation = { data: null, results: null };
+  try {
+    const { stdout } = await run('container', ['inspect', deploymentContainer]);
+    const current = JSON.parse(stdout)[0];
+    const mounts = Object.fromEntries((current?.configuration?.mounts ?? [])
+      .map(mount => [mount.destination, mount.source]));
+    assert.ok(path.isAbsolute(mounts['/data'] ?? ''), 'Active deployment data mount is missing');
+    assert.ok(path.isAbsolute(mounts['/results'] ?? ''), 'Active deployment results mount is missing');
+    preservation = {
+      data: await preserveDeploymentDirectory(mounts['/data'], path.join(deploymentDirectory, 'data')),
+      results: await preserveDeploymentDirectory(mounts['/results'], path.join(deploymentDirectory, 'results')),
+    };
+  } catch (error) {
+    if (!/not found|does not exist|No such/i.test(`${error.stderr ?? ''} ${error.message}`)) throw error;
+    await mkdir(path.join(deploymentDirectory, 'data'));
+    await mkdir(path.join(deploymentDirectory, 'results'));
+  }
   const compose = renderDeploymentCompose({ commit, imageReference });
   const composeFile = path.join(deploymentDirectory, 'compose.yaml');
   await writeFile(composeFile, compose);
   await writeFile(path.join(deploymentDirectory, 'deployment.json'),
-    `${JSON.stringify({ commit, image, composeSha256: sha256(compose), evidence }, null, 2)}\n`);
+    `${JSON.stringify({ commit, image, composeSha256: sha256(compose), evidence, preservation }, null, 2)}\n`);
 
   await run('containerctl', ['-f', composeFile, 'up']);
   const first = await deploymentSnapshot(commit, image, deploymentDirectory);
