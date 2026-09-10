@@ -9,6 +9,7 @@
 #   docker run -p 8080:80 crudui-php-api
 
 FROM php:8.2-apache
+ENV COMPOSER_ROOT_VERSION=0.0.1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
