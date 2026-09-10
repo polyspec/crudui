@@ -7,7 +7,7 @@ import { compileForm } from '@crudui/generator-core';
  * test runs the Vue CRUDUI generator through genuine Vue 3 SSR
  * (@vue/server-renderer renderToString via createStaticVNode), normalizes with
  * the SAME shared normalizer (normalize.mjs), and asserts equality. The
- * 3-framework gate: Vue must reproduce `expected_html` after normalization.
+ * Vue must reproduce `expected_html` after normalization.
  *
  * It also enforces the core invariant (SPEC §5/§2/G5): an unresolved $ref is a
  * LOAD ERROR (ComposeLoadError) — render FAILS, never valid:true. Do NOT weaken
@@ -55,10 +55,9 @@ describe('form rendering: Vue SSR is idempotent (stable across re-render)', () =
   }
 });
 
-// Error lanes: an unresolved $ref (ComposeLoadError) and an un-ported field type
-// (UnsupportedFieldTypeError) BOTH surface as a thrown error carrying a stable
-// `code` — render FAILS, never valid:true / never silent ''. The lane is keyed on
-// the declared code so every un-ported type stays RED until ported.
+// An unresolved $ref throws ComposeLoadError, and an unsupported field type
+// throws UnsupportedFieldTypeError. Both errors provide a stable code, and the
+// renderer does not return successful or empty output for either condition.
 const ERROR_CLASS_BY_CODE = {
   REF_FILE_NOT_FOUND: ComposeLoadError,
   UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError,

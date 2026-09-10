@@ -2,8 +2,8 @@
  * parity.test.mjs — Vue SSR output vs Legacy PHP reference-html fixtures.
  *
  * Reuses the read-only reference fixtures and tests/parity/normalize.js (the
- * same normalization generator-react's harness uses). Do NOT weaken fixtures
- * or normalization to force GREEN — fix the Vue generator.
+ * same normalization generator-react's harness uses). If output differs, keep
+ * the fixtures and normalization rules unchanged and fix the Vue generator.
  *
  * Artifacts per fixture (inspect after a run):
  *   out/<name>.vue.html        raw Vue SSR capture (form content)

@@ -66,7 +66,7 @@ export function toRuleNameNotation(path: string): string {
 
 /**
  * Generate Legacy-compatible data attributes for a field (legacy validator
- * lookup keys). Used by fields not yet ported to legacyDataAttrs.
+ * lookup keys). Fields that do not call legacyDataAttrs use this helper.
  */
 export function getLegacyDataAttributes(
   spec: ReactFieldSpec,

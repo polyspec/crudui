@@ -1,6 +1,5 @@
 /**
- * multipleRows — static (render-time) row-key derivation, ported from
- * generator-react useMultipleRows for the empty/static render path.
+ * Derive stable row keys for empty and static render input.
  *
  * Legacy semantics:
  *  - object-keyed data renders one row per `__<13hex>__` key;

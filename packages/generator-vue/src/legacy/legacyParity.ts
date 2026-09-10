@@ -2,10 +2,8 @@
  * legacyParity — field-level helpers that reproduce Legacy PHP
  * Generator\Fields output semantics exactly.
  *
- * Framework-independent port (adapted from generator-react). The reference
- * fixtures (tests/fixtures/reference-html) are the single source of truth. Do
- * NOT "improve" these helpers toward idiomatic Vue/HTML — every rule is a
- * verbatim port of the PHP implementation.
+ * The helpers implement the field output verified by
+ * tests/fixtures/reference-html. Changes must preserve those exact results.
  */
 
 import type { ReactFieldSpec, FormValue } from './types';
