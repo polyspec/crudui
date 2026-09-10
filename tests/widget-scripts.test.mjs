@@ -71,7 +71,10 @@ before(async () => {
   cacheDirectory = await mkdtemp(join(tmpdir(), 'crudui-widget-scripts-'));
   server = await createServer({
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
-    optimizeDeps: { include: ['react', 'react-dom', 'react-dom/client', '@crudui/generator-core', '@crudui/generator-react'] },
+    optimizeDeps: {
+      noDiscovery: true,
+      include: ['react', 'react-dom', 'react-dom/client', '@crudui/generator-core', '@crudui/generator-react'],
+    },
     server: { host: '127.0.0.1', port: 0 },
     plugins: [{
       name: 'widget-script-test',
