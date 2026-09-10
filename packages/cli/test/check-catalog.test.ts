@@ -1,11 +1,10 @@
 /**
- * `crudui check` — leaf-type catalog cross-check (the orchestrator gate that
- * the meta-schema cannot express).
+ * Verify the leaf-type catalog rule that the meta-schema cannot express.
  *
  * The meta-schema models `Field.type` as an unconstrained string, and the
  * forbidden-scan only rejects condition/magic meta KEYS — neither bounds the
  * VALUE of `type`. So an invented leaf widget (`type: checkbox`, never
- * registered) slips through both R1 gates with `ok:true`. The SKILL directs the
+ * registered) passes both structural checks with `ok:true`. The SKILL directs the
  * author to pick a type only from `describe`'s widget catalog; this test pins
  * that `check` actually enforces it.
  *
@@ -42,7 +41,7 @@ descTest('check enforces the leaf-type catalog (WIDGET_KINDS), beyond meta-schem
     expect(WIDGET_KINDS).toContain('radio');
   });
 
-  it('rejects an invented leaf type (RED until the catalog gate lands)', async () => {
+  it('rejects an invented leaf type through the catalog check', async () => {
     const r = await runCheck(fixture('invented-leaf-type.yml'));
     expect(r.ok).toBe(false);
     // the error names the offending field path and the unregistered type value

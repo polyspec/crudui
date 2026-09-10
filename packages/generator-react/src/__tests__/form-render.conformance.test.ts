@@ -7,7 +7,7 @@ import { compileForm } from '@crudui/generator-core';
  * `expected_html` to be the React CRUDUI reference generator's OWN normalized output.
  * This test re-verifies that claim by running the real generator (renderForm)
  * against the same fixture the Vue/Svelte CRUDUI generators load, normalized through
- * the SAME shared normalizer (normalize.mjs). The 3-framework gate: every
+ * the same shared normalizer (normalize.mjs). Every framework
  * generator must reproduce `expected_html` after normalization.
  *
  * It also enforces the core invariant (SPEC §5/§2/G5): an unresolved $ref is a
@@ -57,10 +57,9 @@ describe('form rendering: render is idempotent (stable across re-render)', () =>
   }
 });
 
-// Error lanes: an unresolved $ref (ComposeLoadError) and an un-ported field type
-// (UnsupportedFieldTypeError) BOTH surface as a thrown error carrying a stable
-// `code` — render FAILS, never valid:true / never silent ''. The lane is keyed on
-// the declared code so every un-ported type stays RED until ported.
+// An unresolved $ref throws ComposeLoadError, and an unsupported field type
+// throws UnsupportedFieldTypeError. Both errors provide a stable code, and the
+// renderer does not return successful or empty output for either condition.
 const ERROR_CLASS_BY_CODE: Record<string, new (...args: never[]) => Error & { code: string }> = {
   REF_FILE_NOT_FOUND: ComposeLoadError as never,
   UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError as never,
