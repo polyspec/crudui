@@ -171,7 +171,9 @@ impl Parser {
     fn parse_value_list_item(&mut self) -> Result<Node, ParseError> {
         // Unquoted identifiers in an "in" list are string literals.
         if self.match_type(TokenType::Identifier) {
-            return Ok(Node::Literal(LiteralValue::Str(self.previous().value.clone())));
+            return Ok(Node::Literal(LiteralValue::Str(
+                self.previous().value.clone(),
+            )));
         }
 
         if self.match_type(TokenType::Number) {
@@ -199,7 +201,9 @@ impl Parser {
             self.advance(); // consume identifier
 
             if !self.check(TokenType::Dot) {
-                return Ok(Node::Literal(LiteralValue::Str(self.previous().value.clone())));
+                return Ok(Node::Literal(LiteralValue::Str(
+                    self.previous().value.clone(),
+                )));
             }
 
             // Followed by a dot → path reference; backtrack.

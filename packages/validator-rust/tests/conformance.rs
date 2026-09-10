@@ -12,7 +12,11 @@ fn cases_dir() -> PathBuf {
     // tests/conformance.rs -> crate root is packages/validator-rust;
     // shared fixtures live at ../../tests/cases.
     let manifest = env!("CARGO_MANIFEST_DIR");
-    Path::new(manifest).join("..").join("..").join("tests").join("cases")
+    Path::new(manifest)
+        .join("..")
+        .join("..")
+        .join("tests")
+        .join("cases")
 }
 
 #[test]
@@ -33,8 +37,8 @@ fn conformance_all_cases() {
 
     for file in &files {
         let content = fs::read_to_string(file).unwrap();
-        let suite: Value = serde_json::from_str(&content)
-            .unwrap_or_else(|e| panic!("parse {:?}: {}", file, e));
+        let suite: Value =
+            serde_json::from_str(&content).unwrap_or_else(|e| panic!("parse {:?}: {}", file, e));
         let suite_name = file.file_name().unwrap().to_string_lossy().to_string();
 
         let tests = match suite.get("tests").and_then(Value::as_array) {
@@ -58,7 +62,10 @@ fn conformance_all_cases() {
                 let input = case.get("input").cloned().unwrap_or(Value::Null);
                 let expected = case.get("expected").cloned().unwrap_or(Value::Null);
 
-                let exp_valid = expected.get("valid").and_then(Value::as_bool).unwrap_or(false);
+                let exp_valid = expected
+                    .get("valid")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false);
                 let exp_error = expected.get("error").and_then(Value::as_str);
                 let exp_field = expected.get("field").and_then(Value::as_str);
 

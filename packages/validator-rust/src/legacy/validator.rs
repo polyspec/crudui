@@ -4,7 +4,9 @@
 
 use crate::legacy::condition_parser::ConditionParser;
 use crate::legacy::rules::{default_rules, RuleFn, ValidationContext};
-use crate::legacy::ternary::{evaluate_ternary_string, is_condition_expression, is_ternary_expression};
+use crate::legacy::ternary::{
+    evaluate_ternary_string, is_condition_expression, is_ternary_expression,
+};
 use crate::legacy::types::{Field, Spec, ValidationError, ValidationResult};
 use crate::legacy::value::{format_float, get_nested_value, is_empty, is_truthy, to_string};
 use serde_json::Value;
@@ -21,7 +23,11 @@ enum RuleMode {
 fn array_level_rules() -> &'static HashSet<&'static str> {
     use std::sync::OnceLock;
     static S: OnceLock<HashSet<&'static str>> = OnceLock::new();
-    S.get_or_init(|| ["required", "mincount", "maxcount", "unique"].into_iter().collect())
+    S.get_or_init(|| {
+        ["required", "mincount", "maxcount", "unique"]
+            .into_iter()
+            .collect()
+    })
 }
 
 fn path_reference_rules() -> &'static HashSet<&'static str> {
@@ -103,13 +109,26 @@ impl Validator {
             // Multiple leaf field with array data.
             if field.multiple {
                 if let Value::Array(arr) = &value {
-                    let stopped =
-                        self.validate_field_rules(field, &value, &field_path, root_data, result, RuleMode::Array);
+                    let stopped = self.validate_field_rules(
+                        field,
+                        &value,
+                        &field_path,
+                        root_data,
+                        result,
+                        RuleMode::Array,
+                    );
                     if !stopped {
                         for (idx, item) in arr.iter().enumerate() {
                             let mut item_path = field_path.clone();
                             item_path.push(idx.to_string());
-                            self.validate_field_rules(field, item, &item_path, root_data, result, RuleMode::Item);
+                            self.validate_field_rules(
+                                field,
+                                item,
+                                &item_path,
+                                root_data,
+                                result,
+                                RuleMode::Item,
+                            );
                         }
                     }
                     continue;
@@ -152,7 +171,14 @@ impl Validator {
                         item_path.push(idx.to_string());
                         self.validate_fields(&children, &item_map, root_data, &item_path, result);
                     }
-                    self.validate_field_rules(field, value, field_path, root_data, result, RuleMode::All);
+                    self.validate_field_rules(
+                        field,
+                        value,
+                        field_path,
+                        root_data,
+                        result,
+                        RuleMode::All,
+                    );
                 }
                 Value::Object(m) => {
                     // Repeatable group stored as object with unique keys.
@@ -169,7 +195,14 @@ impl Validator {
                         item_path.push(k);
                         self.validate_fields(&children, &item_map, root_data, &item_path, result);
                     }
-                    self.validate_field_rules(field, value, field_path, root_data, result, RuleMode::All);
+                    self.validate_field_rules(
+                        field,
+                        value,
+                        field_path,
+                        root_data,
+                        result,
+                        RuleMode::All,
+                    );
                 }
                 _ => {}
             }
@@ -233,7 +266,8 @@ impl Validator {
                 continue;
             }
 
-            let (err_msg, params) = self.apply_rule(&entry.name, &entry.param, value, field_path, root_data);
+            let (err_msg, params) =
+                self.apply_rule(&entry.name, &entry.param, value, field_path, root_data);
             if let Some(msg) = err_msg {
                 result.is_valid = false;
                 result.errors.push(ValidationError {
@@ -268,7 +302,12 @@ impl Validator {
                     is_ternary = is_ternary && s.contains(" ? ") && s.contains(" : ");
                 }
                 if is_ternary {
-                    match evaluate_ternary_string(&mut self.condition_parser, s, root_data, field_path) {
+                    match evaluate_ternary_string(
+                        &mut self.condition_parser,
+                        s,
+                        root_data,
+                        field_path,
+                    ) {
                         None => return (None, vec![]),
                         Some(Value::Bool(false)) => return (None, vec![]),
                         Some(resolved) => effective_param = resolved,
@@ -326,7 +365,9 @@ impl Validator {
         if let Some(pattern) = &rule.pattern {
             if !pattern.is_empty() {
                 if let Some(match_rule) = self.rules.get("match") {
-                    if let Some(err) = match_rule(value, std::slice::from_ref(pattern), root_data, &ctx) {
+                    if let Some(err) =
+                        match_rule(value, std::slice::from_ref(pattern), root_data, &ctx)
+                    {
                         return Some(if !rule.message.is_empty() {
                             rule.message.clone()
                         } else {
@@ -481,7 +522,12 @@ impl Validator {
         true
     }
 
-    fn resolve_field_reference(&mut self, reference: &str, field_path: &[String], root_data: &Value) -> Option<Value> {
+    fn resolve_field_reference(
+        &mut self,
+        reference: &str,
+        field_path: &[String],
+        root_data: &Value,
+    ) -> Option<Value> {
         if reference.starts_with('.') {
             return self
                 .condition_parser
@@ -489,7 +535,11 @@ impl Validator {
                 .ok();
         }
 
-        let segments: Vec<String> = reference.split('.').filter(|s| !s.is_empty()).map(str::to_string).collect();
+        let segments: Vec<String> = reference
+            .split('.')
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect();
         if !field_path.is_empty() {
             let mut sibling = field_path[..field_path.len() - 1].to_vec();
             sibling.extend(segments.clone());
@@ -502,7 +552,13 @@ impl Validator {
         get_nested_value(root_data, &segments).cloned()
     }
 
-    fn get_error_message(&self, field: &Field, rule_name: &str, default_msg: &str, params: &[String]) -> String {
+    fn get_error_message(
+        &self,
+        field: &Field,
+        rule_name: &str,
+        default_msg: &str,
+        params: &[String],
+    ) -> String {
         let mut msg = default_msg.to_string();
         if let Some(custom) = field.messages.get(rule_name) {
             msg = custom.clone();
