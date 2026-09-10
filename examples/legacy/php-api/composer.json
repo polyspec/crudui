@@ -11,7 +11,13 @@
     "repositories": [
         {
             "type": "path",
-            "url": "../../../packages/validator-php"
+            "url": "../../../packages/validator-php",
+            "options": {
+                "symlink": false,
+                "versions": {
+                    "crudui/validator": "0.0.1"
+                }
+            }
         }
     ],
     "autoload": {

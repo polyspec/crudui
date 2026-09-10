@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd51691f7ca0b7e04233476a5e53609c",
+    "content-hash": "36439f8601b622b6e72d735c8600e7eb",
     "packages": [
         {
             "name": "crudui/validator",
@@ -12,7 +12,7 @@
             "dist": {
                 "type": "path",
                 "url": "../../../packages/validator-php",
-                "reference": "789bb82b1d8c36ec5499b19762f735a3b7e1b4dd"
+                "reference": "3c91e5d313f4a766b8a2bd174b79bb920f107223"
             },
             "require": {
                 "php": "^8.2"
@@ -23,7 +23,8 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "CRUDUI\\Validator\\": "src/"
+                    "CRUDUI\\Validator\\": "src/",
+                    "CRUDUI\\": "src/Public/"
                 }
             },
             "autoload-dev": {
@@ -49,6 +50,7 @@
             ],
             "description": "PHP validator for crudui system - validates form data against YAML specifications",
             "transport-options": {
+                "symlink": false,
                 "relative": true
             }
         },

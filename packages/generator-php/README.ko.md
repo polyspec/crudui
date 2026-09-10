@@ -14,7 +14,7 @@ composer install --working-dir=packages/generator-php
 composer test --working-dir=packages/generator-php
 ```
 
-Composer 경로 저장소는 인접 패키지에서 `crudui/validator`를 설치합니다.
+Composer 경로 저장소는 인접 패키지의 `crudui/validator`를 `vendor/`에 복사합니다.
 64비트 PHP 8.2 이상과 `mbstring`이 필요합니다. 개발 검사는 DOM을 포함하여
 PHPUnit이 사용하는 확장도 필요합니다.
 
