@@ -2,6 +2,26 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-10 — Current candidate verification
+
+The cross-framework and legacy-client lock files resolve the current package
+releases allowed by their manifests. Clean `npm ci` and `npm audit` runs reported
+zero vulnerabilities. The cross-framework comparison passed 14 of 14 checks, and
+the legacy-client comparison passed 5 of 5 checks.
+
+Candidate `49b01c8237cd7b674c116c18e32ca9238c073134` built image
+`localhost/crudui-form-comparison:49b01c8237cd` with index digest
+`sha256:eb3bbe303a7cc45722a7086ad9b49253902f14136c2b8616bae6edb3d9a20c32`.
+Image construction passed 81 source checks and four library checks. Runtime
+verification passed both PHP modes, 290 generation and SSR checks across 411 HTTP
+requests, 120 persistence and validation checks, and three Ordered JSON checks.
+
+Browser verification passed 312 checks for each server and 1,248 checks in total.
+PHP completed in 211,124 milliseconds, the PHP extension in 205,125 milliseconds,
+Go in 200,351 milliseconds and Rust in 199,736 milliseconds. The aggregate records
+`complete: true`, `passed: true`, `failedChecks: 0` and
+`performancePassed: true`. Packages and the comparison service were not deployed.
+
 ## 2026-09-10 — Complete public TypeScript API types
 
 Package entry points export every named type referenced by their public
