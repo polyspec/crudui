@@ -1,8 +1,8 @@
 /**
  * Spec-syntax doc shown in the collapsible side panel. Mirrors the CRUDUI
  * semantics the engine enforces (role slots, condition maps, compose,
- * lang, design node map). Each entry quotes a real fixture so the doc never
- * drifts from what the gate actually runs.
+ * lang, design node map). Each entry uses a fixture that the conformance checks
+ * execute.
  */
 
 /** @type {{ title: string, body: string }[]} */
@@ -47,20 +47,18 @@ export const docSections = [
       '제거가 아니라 숨김. 출처: form-render design-show-expr-falsy.',
   },
   {
-    title: '독립 검증 (왜 콘솔과 AI 게이트가 교차하는가)',
+    title: '독립 검증',
     body:
-      '콘솔은 임의 입력을 HTTP 게이트웨이로 흘려 validate/renderForm(SSR) 를 호출한다. ' +
-      'AI 게이트(compare-all.js + 3 conformance)는 같은 CRUDUI 함수를 vitest/go test/cargo test/php 워커로 호출한다. ' +
-      '엔진은 같고 wrapper 가 다르다 — 한 경로의 버그가 다른 경로를 오염시키지 않는다. ' +
-      '같은 입력이면 같은 결과여야 하며, 안 나오면 wrapper 버그가 드러난다. ' +
-      'raw 토글로 자동 판정을 불신·재검할 수 있고, 픽스처 export 로 라이브에서 깬 케이스를 영구 회귀 테스트로 편입한다.',
+      '콘솔은 임의 입력을 HTTP gateway로 전송하고 validate와 renderForm(SSR)을 호출한다. ' +
+      '자동 검사는 같은 CRUDUI 함수를 vitest, go test, cargo test, PHP worker로 호출한다. ' +
+      '두 경로에 같은 입력을 전달하면 같은 결과를 반환해야 한다. ' +
+      'raw 토글은 원시 결과를 표시하며 fixture export는 확인한 차이를 회귀 검사 입력으로 저장한다.',
   },
 ];
 
 /**
  * List-tab doc — the read-side spec syntax (columns / format / search / paging).
- * Each entry quotes a real list-render fixture so the doc never drifts from
- * what the list conformance gate runs.
+ * Each entry uses a list-render fixture that the conformance checks execute.
  *
  * @type {{ title: string, body: string }[]}
  */
@@ -109,9 +107,9 @@ export const listDocSections = [
     title: 'list parity (왜 3프레임워크가 한 문자열로 모이는가)',
     body:
       '같은 list-spec·같은 주입 rows 면 react/vue/svelte 의 normalizeHtml 결과가 한 개로 모여야 parity. ' +
-      'React 는 SSR resource-hint(<link rel="preload">) 를 hoist 하므로 게이트와 동일하게 제거 후 비교한다. ' +
-      'layout 옵션만 프레임워크별 키가 다르다 — React layout, Svelte mode, Vue layout(card→cards) — ' +
-      '게이트웨이가 단일 layout 을 각 키로 매핑한다. ' +
+      'React의 SSR resource hint(<link rel="preload">)는 비교 전에 제거한다. ' +
+      'layout 옵션은 프레임워크별 키가 다르다. React는 layout, Svelte는 mode, Vue는 layout(card→cards)을 사용한다. ' +
+      'HTTP gateway는 단일 layout 값을 각 키로 매핑한다. ' +
       '미해결 $ref 는 LOAD 에러(REF_FILE_NOT_FOUND)로 표면화되지 silent skip 이 아니다.',
   },
 ];

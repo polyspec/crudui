@@ -1,10 +1,10 @@
 /**
  * Example specs + data for the cross-check console.
  *
- * Sourced from tests/fixtures/{validate,form-render}/cases.json — these are the
- * SAME inputs the AI gate (compare-all.js / *.conformance) runs. The console
- * flows them through the live HTTP gateway; the gate flows them through
- * vitest/go test/cargo test/php worker. Same CRUDUI engine, different call stack.
+ * These entries use the inputs in tests/fixtures/{validate,form-render}/cases.json.
+ * The console sends them through the HTTP gateway, while the automated checks
+ * call the same CRUDUI operations through vitest, go test, cargo test and the
+ * PHP worker.
  *
  * Each example carries spec (YAML string), data (JSON string) and options.
  * Do NOT invent new shapes here — quote the fixtures.

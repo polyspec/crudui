@@ -713,7 +713,7 @@ function setTab(tab) {
   renderResults();
 }
 
-/** Show the active <main>, hide the other, and gate per-tab header controls. */
+/** Show the active <main>, hide the other, and select the matching header controls. */
 function applyTabVisibility() {
   document.getElementById('tab-form').classList.toggle('active', state.tab === 'form');
   document.getElementById('tab-list').classList.toggle('active', state.tab === 'list');

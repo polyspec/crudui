@@ -40,7 +40,7 @@ const allCases = JSON.parse(fs.readFileSync(LIST_VALIDITY_FIXTURE, 'utf8'));
 // compose + forbidden-scan. So the engine verdict is keyed off `engine`, NOT
 // `expect`: engine:"pass" → clean load (valid:true); engine:{code,at} → a LOAD
 // failure carrying that code. A `clean` case is any engine:"pass" case (these
-// include several RED meta-schema cases that the engine intentionally passes).
+// include several meta-schema failures that the engine intentionally accepts).
 const cleanCases = allCases.filter((c) => c.engine === 'pass');
 const loadFailCases = allCases.filter((c) => c.engine && typeof c.engine === 'object' && c.engine.code);
 
@@ -118,7 +118,7 @@ describe('validateAllList — TAMPER (forged single-language list verdict → id
   test('three engines reject a forbidden-key list while one is forged to valid:true → idempotent:false, forged lang isolated', () => {
     // js/php/rust agree the list carries a forbidden meta key (the SAME loadError
     // code); a fake-PHP result is forged to a clean valid:true (the legacy silent-pass
-    // gap this gate exists to close). The verdict must break with php isolated.
+    // difference this check detects). The result must identify PHP separately.
     const code = 'FORBIDDEN_META_KEY';
     const results = [
       listEnv('js', { valid: false, loadError: { code, message: 'if' } }),

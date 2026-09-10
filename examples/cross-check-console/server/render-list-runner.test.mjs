@@ -20,7 +20,7 @@
  *       framework conformance suites load. For each non-error case the three
  *       frameworks must agree (parity:true) AND React's normalized output must
  *       equal the fixture's `expected_html` (the fixture is the React reference,
- *       so the gateway's bytes == the conformance gate's bytes). The lone error
+ *       so the gateway bytes equal the conformance reference bytes). The lone error
  *       case (`unresolved-ref-error`) must surface REF_FILE_NOT_FOUND on all
  *       three (parity:true, never a silent table).
  *
@@ -129,7 +129,7 @@ describe('renderAllList — real 3-framework list SSR fan-out (every fixture cas
       // The three normalized outputs collapse to one parity key.
       expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
 
-      // The gateway's React bytes == the conformance gate's reference bytes.
+      // The gateway React bytes equal the conformance reference bytes.
       const react = out.results.find((r) => r.fw === 'react');
       expect(react.normalized).toStrictEqual(c.expected_html);
     }, 120000);
