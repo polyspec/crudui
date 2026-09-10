@@ -33,9 +33,13 @@ test('PHP modules use the shared builder through explicit entry points', async (
 
   const candidate = normalized(files['examples/form-comparison/Containerfile']);
   assert.match(candidate, /node scripts\/build-crudui-php-extension\.mjs/);
+  assert.match(candidate, /node scripts\/build-ordered-json-php-extension\.mjs/);
   assert.match(candidate,
-    /node scripts\/build-ordered-json-php-extension\.mjs --source \/workspace\/source\/\.form-comparison\/sources\/ordered-json\/php-extension\/src/);
+    /--source \/workspace\/source\/\.form-comparison\/sources\/ordered-json\/php-extension\/src/);
   assert.doesNotMatch(candidate, /phpize|autoconf|libtool/i);
+  assert.doesNotMatch(candidate, /--cc \/usr\/bin\/gcc-14/);
+  assert.doesNotMatch(normalized(files['tests/containers/native.Containerfile']),
+    /--cc \/usr\/bin\/gcc-14/);
 
   for (const removed of [
     'packages/php-ext/config.m4',
