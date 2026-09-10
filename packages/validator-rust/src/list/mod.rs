@@ -1,10 +1,7 @@
-//! CRUDUI list-spec structural validation (SPEC §9) — the read sister of the
-//! form-spec load path.
+//! CRUDUI list-spec structure validation (SPEC §9).
 //!
-//! `list` has NO data (rows are DB-agnostic and INJECTED, never validated here —
-//! SPEC §6 R1, §9.1), so the form pipeline's DATA pass (§3+§2 G1) does NOT
-//! apply. The 4-language SHARED structural gate that lists reuse is exactly the
-//! form load path's first two passes.
+//! A list contains no row data, so this module performs only composition and
+//! forbidden-key scanning. The server supplies rows separately.
 //!
 //! Pass 1 — compose (G5): `compose_spec`/`compose_properties` expand
 //! `$ref`/`$patch` on the list root, the `columns` map, and the `search`
@@ -16,16 +13,9 @@
 //! pagination / design / search) to ARBITRARY depth and rejects any forbidden
 //! meta key (`display_switch`/`if`/`when`/`show_if`/`x{key}`…) as a LOAD failure.
 //!
-//! What is NOT here: the JSON-Schema-shaped checks (1급 닫힘
-//! `additionalProperties:false`, `required:columns`, `enum` sort.dir/pagination
-//! .mode, `anyOf` CellFormat polymorphism). The 4-language engine does NOT do
-//! JSON-Schema validation (SPEC §8); those remain the META-SCHEMA's job (ajv,
-//! `packages/validator-ts/src/list-metaschema.conformance.test.ts`), exactly as
-//! for form. This module invents NOTHING — it re-runs compose + forbidden-scan.
-//!
-//! Reuses `crate::compose` and `crate::forbidden_scan` verbatim; the
-//! shared fixture `tests/fixtures/list-validity/cases.json` is the single
-//! source of truth across JS / Rust.
+//! The meta-schema separately checks closed objects, required columns, enums and
+//! CellFormat polymorphism. This runtime does not repeat those shape checks. The
+//! shared fixture `tests/fixtures/list-validity/cases.json` declares both results.
 
 use serde_json::{Map, Value};
 
@@ -60,10 +50,7 @@ pub struct ValidateListOptions<'a> {
 /// form `properties` recursion. `columns` is a properties-shaped map →
 /// `compose_properties` (the SAME code that composes form `properties`).
 /// `search` is a form-spec reference (input, §9.1) → `compose_spec`.
-pub fn validate_list(
-    spec: &Value,
-    options: &ValidateListOptions,
-) -> Result<(), ComposeLoadError> {
+pub fn validate_list(spec: &Value, options: &ValidateListOptions) -> Result<(), ComposeLoadError> {
     let owned_loader;
     let loader: &dyn FileLoader = match options.loader {
         Some(l) => l,
@@ -162,10 +149,7 @@ mod tests {
     #[test]
     fn x_prefixed_column_key_is_load_error() {
         let v = json!({ "columns": { "name": { "field": ".name" }, "xclass": { "field": ".x" } } });
-        assert_eq!(
-            run(&v).unwrap_err().trace.join("."),
-            "columns.xclass"
-        );
+        assert_eq!(run(&v).unwrap_err().trace.join("."), "columns.xclass");
     }
 
     #[test]
@@ -197,10 +181,7 @@ mod tests {
         // No files → the columns $ref cannot resolve → REF_FILE_NOT_FOUND. An
         // unresolved composition is a LOAD failure, never a silent pass.
         let v = json!({ "columns": { "$ref": "missing.yml" } });
-        assert_eq!(
-            run(&v).unwrap_err().code,
-            ComposeErrorCode::RefFileNotFound
-        );
+        assert_eq!(run(&v).unwrap_err().code, ComposeErrorCode::RefFileNotFound);
     }
 
     #[test]
@@ -236,16 +217,17 @@ mod tests {
 
     #[test]
     fn metaschema_only_shape_violations_pass_the_engine() {
-        // additionalProperties / enum / anyOf / required are META-SCHEMA concerns,
-        // NOT engine concerns: the engine (compose + forbidden-scan) lets them
-        // through. ajv is the gate for these — the engine invents no shape check.
+        // The runtime does not report meta-schema-only shape errors.
         for v in [
             json!({ "columns": { "name": { "field": ".name" } }, "sort": { "dir": "sideways" } }),
             json!({ "columns": { "name": { "field": ".name" } }, "limit": 10 }),
             json!({ "columns": { "name": { "field": ".name", "format": ["date"] } } }),
             json!({ "sort": { "field": ".name" } }),
         ] {
-            assert!(run(&v).is_ok(), "engine must not reject a meta-schema-only shape: {v}");
+            assert!(
+                run(&v).is_ok(),
+                "engine must not reject a meta-schema-only shape: {v}"
+            );
         }
     }
 }

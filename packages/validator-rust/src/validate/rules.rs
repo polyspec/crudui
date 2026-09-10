@@ -113,8 +113,8 @@ fn js_number_param(value: &Value) -> Option<f64> {
 }
 
 /// Strict input-value → number (JS `rules/min.toNumber`). Returns `None` for a
-/// non-finite or partially-numeric string ("12abc", "Infinity", "NaN"). This is
-/// the input value gate — threshold params keep accepting Infinity.
+/// non-finite or partially-numeric string ("12abc", "Infinity", "NaN").
+/// Threshold parameters continue to accept Infinity.
 fn to_number_input(value: &Value) -> Option<f64> {
     match value {
         Value::Number(n) => {
@@ -273,8 +273,25 @@ fn is_valid_email_local(local: &str) -> bool {
         c.is_ascii_alphanumeric()
             || matches!(
                 c,
-                '.' | '!' | '#' | '$' | '%' | '&' | '\'' | '*' | '+' | '/' | '='
-                    | '?' | '^' | '_' | '`' | '{' | '|' | '}' | '~' | '-'
+                '.' | '!'
+                    | '#'
+                    | '$'
+                    | '%'
+                    | '&'
+                    | '\''
+                    | '*'
+                    | '+'
+                    | '/'
+                    | '='
+                    | '?'
+                    | '^'
+                    | '_'
+                    | '`'
+                    | '{'
+                    | '|'
+                    | '}'
+                    | '~'
+                    | '-'
             )
     })
 }
@@ -582,7 +599,11 @@ fn rule_range(ctx: &RuleContext) -> Option<String> {
         let msg = message_override(ctx.messages, "range")
             .map(str::to_string)
             .unwrap_or_else(|| {
-                format!("Please enter a value between {} and {}.", fmt_num(min), fmt_num(max))
+                format!(
+                    "Please enter a value between {} and {}.",
+                    fmt_num(min),
+                    fmt_num(max)
+                )
             });
         return Some(
             msg.replacen("{0}", &fmt_num(min), 1)
@@ -607,7 +628,12 @@ fn rule_step(ctx: &RuleContext) -> Option<String> {
     if !is_valid_step(num, step, 0.0) {
         let msg = message_override(ctx.messages, "step")
             .map(str::to_string)
-            .unwrap_or_else(|| format!("Please enter a value that is a multiple of {}.", fmt_num(step)));
+            .unwrap_or_else(|| {
+                format!(
+                    "Please enter a value that is a multiple of {}.",
+                    fmt_num(step)
+                )
+            });
         return Some(msg.replacen("{0}", &fmt_num(step), 1));
     }
     None
@@ -1012,7 +1038,11 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
         resolve_field_reference(&param, ctx.path_segments, ctx.form_data)
     } else {
         // Absolute dotted path from root.
-        let segments: Vec<String> = param.split('.').filter(|s| !s.is_empty()).map(String::from).collect();
+        let segments: Vec<String> = param
+            .split('.')
+            .filter(|s| !s.is_empty())
+            .map(String::from)
+            .collect();
         get_value_by_path(ctx.form_data, &segments)
     };
     if is_empty(&start_value) {
@@ -1500,7 +1530,8 @@ fn starts_identifier_dot(s: &str) -> bool {
 fn has_comparison_operator(s: &str) -> bool {
     let ops = ["==", "!=", ">=", "<=", ">", "<", "&&", "||", "in", "not in"];
     let bytes = s.as_bytes();
-    let is_ws = |b: u8| b == b' ' || b == b'\t' || b == b'\n' || b == b'\r' || b == 0x0c || b == 0x0b;
+    let is_ws =
+        |b: u8| b == b' ' || b == b'\t' || b == b'\n' || b == b'\r' || b == 0x0c || b == 0x0b;
 
     // Search each operator with required surrounding whitespace (one-or-more).
     for op in ops {
@@ -1550,7 +1581,11 @@ pub fn get_value_by_path(data: &Value, path: &[String]) -> Value {
 
 /// Resolve a field-reference expression to its value (JS `resolveFieldReference`).
 /// Supports `.x` / `..x` relatives, dotted absolute, and bare sibling lookup.
-pub fn resolve_field_reference(expression: &str, current_path: &[String], form_data: &Value) -> Value {
+pub fn resolve_field_reference(
+    expression: &str,
+    current_path: &[String],
+    form_data: &Value,
+) -> Value {
     let trimmed = expression.trim();
     if trimmed.is_empty() {
         return Value::Null;

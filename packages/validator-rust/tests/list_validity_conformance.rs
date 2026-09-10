@@ -1,30 +1,9 @@
-//! CRUDUI list-spec STRUCTURAL conformance (SPEC §9) — the read sister of the
-//! crudui load-path conformance.
+//! CRUDUI list-spec structure conformance for SPEC §9.
 //!
-//! Single truth = the shared fixture tests/fixtures/list-validity/cases.json,
-//! the SAME file the JS meta-schema gate reads
-//! (`packages/validator-ts/src/list-metaschema.conformance.test.ts`). That
-//! fixture carries TWO independent expectation channels, one per gate:
-//!
-//!   - `expect` / `reason` — the META-SCHEMA (ajv) channel: a list-spec's
-//!     JSON-Schema shape (1급 닫힘 `additionalProperties`, `enum`, `anyOf`,
-//!     `required`). NOT this test's concern (SPEC §8: the engine does no
-//!     JSON-Schema validation).
-//!   - `engine` — the 4-LANGUAGE ENGINE channel, the contract THIS test pins.
-//!     `"pass"` means compose + forbidden-scan let the spec through (a valid
-//!     spec, OR a meta-schema-only shape violation the engine does not own).
-//!     `{ code, at }` means compose/forbidden-scan reject it as a LOAD failure
-//!     with this `ComposeErrorCode` and this dotted trace path.
-//!
-//! The list engine = the form load path's first two passes REUSED verbatim
-//! (`crate::list::validate_list` = compose → forbidden-scan); list has no data
-//! (rows are injected, §9.1), so the DATA pass does not apply. A future JS engine
-//! test consumes the SAME `engine` field the SAME way — this is the cross-language
-//! contract, isomorphic by construction.
-//!
-//! Do not weaken assertions to force GREEN. If Rust disagrees with the fixture,
-//! the fixture is NOT the engine's output and the cross-language contract is
-//! broken — fix the engine or the fixture at the shared source, not this test.
+//! `tests/fixtures/list-validity/cases.json` contains independent meta-schema and
+//! runtime expectations. This test reads `engine`: `"pass"` requires successful
+//! composition and forbidden-key scanning; `{ code, at }` requires the declared
+//! load-error code and complete dotted trace. Row validation does not apply.
 
 use std::path::{Path, PathBuf};
 
@@ -46,8 +25,8 @@ fn fixture_path() -> PathBuf {
 
 fn load_cases() -> Vec<Value> {
     let path = fixture_path();
-    let raw = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
+    let raw =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
     let parsed: Value =
         serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse fixture {:?}: {}", path, e));
     parsed
@@ -136,8 +115,7 @@ fn list_engine_matches_fixture() {
 
 #[test]
 fn every_case_declares_an_engine_channel() {
-    // The cross-language engine contract is load-bearing: a case with no `engine`
-    // field would silently escape the gate. Pin its presence + shape.
+    // Every fixture must declare a valid runtime expectation.
     let cases = load_cases();
     for case in &cases {
         let name = case.get("name").and_then(Value::as_str).unwrap_or("?");

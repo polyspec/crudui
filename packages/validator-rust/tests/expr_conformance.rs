@@ -3,11 +3,8 @@
 //!   (2) parser(toks) == fixture ast
 //!   (3) evaluate / evaluateValue == fixture truthy / value
 //!
-//! Single truth = the shared 4-language fixture tests/fixtures/expr/cases.json.
-//! All four engines (JS / PHP / Go / Rust) load this ONE file and must pass it.
-//! Its values are the JS reference engine's actual output (tokens+AST+eval).
-//! Never weaken an assertion to turn red green; fix the engine, the fixture, or
-//! both at their shared source — not this test.
+//! The shared fixture tests/fixtures/expr/cases.json defines the expected tokens,
+//! syntax tree and evaluation result for every runtime.
 
 use crudui_validator::expr::Expression;
 use serde_json::Value;
@@ -54,8 +51,8 @@ fn value_equals(expected: &Value, actual: &Value) -> bool {
 
 fn load_cases() -> Vec<Value> {
     let path = fixture_path();
-    let raw = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
+    let raw =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
     let parsed: Value =
         serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse fixture {:?}: {}", path, e));
     parsed
@@ -131,7 +128,10 @@ fn evaluation_matches_fixture() {
         let name = spec.get("name").and_then(Value::as_str).unwrap_or("?");
         let expr = spec.get("expr").and_then(Value::as_str).unwrap();
         let empty: Vec<Value> = Vec::new();
-        let case_list = spec.get("cases").and_then(Value::as_array).unwrap_or(&empty);
+        let case_list = spec
+            .get("cases")
+            .and_then(Value::as_array)
+            .unwrap_or(&empty);
 
         for (i, case) in case_list.iter().enumerate() {
             let data = case.get("data").cloned().unwrap_or(Value::Null);
@@ -234,15 +234,30 @@ fn ternary_returns_raw_branch_value() {
     let cp: Vec<String> = vec!["x".to_string()];
 
     assert_eq!(
-        Expression::evaluate_value(".big ? 'huge' : 'tiny'", &serde_json::json!({"big":true,"x":1}), &cp).unwrap(),
+        Expression::evaluate_value(
+            ".big ? 'huge' : 'tiny'",
+            &serde_json::json!({"big":true,"x":1}),
+            &cp
+        )
+        .unwrap(),
         Value::from("huge")
     );
     assert_eq!(
-        Expression::evaluate_value(".a ? 'A' : .b ? 'B' : 'C'", &serde_json::json!({"a":false,"b":true,"x":1}), &cp).unwrap(),
+        Expression::evaluate_value(
+            ".a ? 'A' : .b ? 'B' : 'C'",
+            &serde_json::json!({"a":false,"b":true,"x":1}),
+            &cp
+        )
+        .unwrap(),
         Value::from("B")
     );
     assert_eq!(
-        Expression::evaluate_value(".show == 1 ? 1 : null", &serde_json::json!({"show":0,"x":1}), &cp).unwrap(),
+        Expression::evaluate_value(
+            ".show == 1 ? 1 : null",
+            &serde_json::json!({"show":0,"x":1}),
+            &cp
+        )
+        .unwrap(),
         Value::Null
     );
 }

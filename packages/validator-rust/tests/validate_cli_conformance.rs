@@ -7,15 +7,13 @@
 //! — it asserts the wrapper streams the engine result verbatim and routes a load
 //! failure onto the Rust wire, never a valid:false masquerade.
 //!
-//! It spawns the REAL compiled binary (Cargo's CARGO_BIN_EXE_validate) exactly
-//! as the cross-check gateway runs it: request piped on stdin, utf-8. A wire
-//! regression (wrong exit, dropped field, LOAD leaking as valid) turns this red —
-//! exactly what the gateway hits at runtime.
+//! It executes Cargo's compiled `validate` binary and sends a UTF-8 request
+//! through stdin. A wrong exit code, a missing field or a load error reported as
+//! valid fails this test.
 //!
 //! Rust LOAD wire (distinct exit from JS/Go): exit 2, stdout {error, code}, NO
 //! "valid" key. A bad request (no/non-object spec, bad JSON): exit 1, {error}
-//! with no "code". Do not weaken assertions — the fixture is the JS reference
-//! engine's own output; the CLI must reproduce it verbatim on stdout.
+//! with no "code". The CLI must reproduce the fixture output on stdout.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -36,8 +34,8 @@ fn fixture_path() -> PathBuf {
 
 fn load_cases() -> Vec<Value> {
     let path = fixture_path();
-    let raw = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
+    let raw =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
     let parsed: Value =
         serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse fixture {:?}: {}", path, e));
     parsed
@@ -139,7 +137,10 @@ fn cli_boundary_matches_fixture() {
                 let out: Value = match serde_json::from_str(run.stdout.trim()) {
                     Ok(v) => v,
                     Err(e) => {
-                        failures.push(format!("[{}] stdout not JSON: {:?} ({})", name, run.stdout, e));
+                        failures.push(format!(
+                            "[{}] stdout not JSON: {:?} ({})",
+                            name, run.stdout, e
+                        ));
                         continue;
                     }
                 };
@@ -178,7 +179,10 @@ fn cli_boundary_matches_fixture() {
                 let out: Value = match serde_json::from_str(run.stdout.trim()) {
                     Ok(v) => v,
                     Err(e) => {
-                        failures.push(format!("[{}] LOAD stdout not JSON: {:?} ({})", name, run.stdout, e));
+                        failures.push(format!(
+                            "[{}] LOAD stdout not JSON: {:?} ({})",
+                            name, run.stdout, e
+                        ));
                         continue;
                     }
                 };
@@ -196,7 +200,12 @@ fn cli_boundary_matches_fixture() {
                         name, want, got, out
                     ));
                 }
-                if out.get("error").and_then(Value::as_str).unwrap_or("").is_empty() {
+                if out
+                    .get("error")
+                    .and_then(Value::as_str)
+                    .unwrap_or("")
+                    .is_empty()
+                {
                     failures.push(format!(
                         "[{}] LOAD failure must carry a non-empty error message: {}",
                         name, out
@@ -223,11 +232,24 @@ fn cli_boundary_matches_fixture() {
 #[test]
 fn cli_malformed_empty_stdin_exits_1() {
     let run = run_cli("");
-    assert_eq!(run.code, Some(1), "empty stdin must exit 1 (stderr: {})", run.stderr);
+    assert_eq!(
+        run.code,
+        Some(1),
+        "empty stdin must exit 1 (stderr: {})",
+        run.stderr
+    );
     let out: Value = serde_json::from_str(run.stdout.trim())
         .unwrap_or_else(|e| panic!("malformed stdout not JSON: {:?} ({})", run.stdout, e));
-    assert!(out.get("error").is_some(), "malformed request must carry {{error}}: {}", out);
-    assert!(out.get("valid").is_none(), "malformed request must not carry \"valid\": {}", out);
+    assert!(
+        out.get("error").is_some(),
+        "malformed request must carry {{error}}: {}",
+        out
+    );
+    assert!(
+        out.get("valid").is_none(),
+        "malformed request must not carry \"valid\": {}",
+        out
+    );
 }
 
 #[test]
@@ -236,7 +258,11 @@ fn cli_malformed_bad_json_exits_1() {
     assert_eq!(run.code, Some(1), "bad JSON must exit 1");
     let out: Value = serde_json::from_str(run.stdout.trim())
         .unwrap_or_else(|e| panic!("bad-JSON stdout not JSON: {:?} ({})", run.stdout, e));
-    assert!(out.get("error").is_some(), "bad JSON must carry {{error}}: {}", out);
+    assert!(
+        out.get("error").is_some(),
+        "bad JSON must carry {{error}}: {}",
+        out
+    );
 }
 
 #[test]
@@ -245,6 +271,14 @@ fn cli_malformed_non_object_spec_exits_1() {
     assert_eq!(run.code, Some(1), "non-object spec must exit 1");
     let out: Value = serde_json::from_str(run.stdout.trim())
         .unwrap_or_else(|_e| panic!("non-object-spec stdout not JSON: {:?}", run.stdout));
-    assert!(out.get("error").is_some(), "non-object spec must carry {{error}}: {}", out);
-    assert!(out.get("valid").is_none(), "non-object spec must not carry \"valid\": {}", out);
+    assert!(
+        out.get("error").is_some(),
+        "non-object spec must carry {{error}}: {}",
+        out
+    );
+    assert!(
+        out.get("valid").is_none(),
+        "non-object spec must not carry \"valid\": {}",
+        out
+    );
 }

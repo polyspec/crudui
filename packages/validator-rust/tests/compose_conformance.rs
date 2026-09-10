@@ -1,19 +1,13 @@
 //! CRUDUI composition-engine conformance (SPEC §5, G5).
 //!
-//! Single truth = the shared 4-language fixture tests/fixtures/compose/cases.json.
-//! All four engines (JS / PHP / Go / Rust) load this ONE file and must reproduce
-//! it bit-for-bit: the expanded single spec (`expected`) or the load-error code
-//! (`expectError.code`). Its values are the JS reference engine's actual output.
-//! Never weaken an assertion to turn red green; fix the engine, the fixture, or
-//! both at their shared source — not this test.
+//! The shared fixture tests/fixtures/compose/cases.json defines the expanded
+//! specification (`expected`) or load-error code (`expectError.code`).
 //!
 //! Fixture format (per the task contract):
 //!   { name, input: { files?, entry, basepath?, kind? }, expected }    — success
 //!   { name, input: { files?, entry, basepath?, kind? }, expectError } — load error
 
-use crudui_validator::compose::{
-    compose_properties, compose_spec, ComposeOptions, MemoryLoader,
-};
+use crudui_validator::compose::{compose_properties, compose_spec, ComposeOptions, MemoryLoader};
 use serde_json::{Map, Value};
 use std::path::{Path, PathBuf};
 
@@ -53,8 +47,8 @@ fn normalize(v: &Value) -> Value {
 
 fn load_cases() -> Vec<Value> {
     let path = fixture_path();
-    let raw = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
+    let raw =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
     let parsed: Value =
         serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse fixture {:?}: {}", path, e));
     parsed
@@ -87,7 +81,10 @@ fn compose_matches_fixture() {
         let loader = MemoryLoader::new(files);
 
         // kind: 'properties' (default) | 'spec'.
-        let kind = input.get("kind").and_then(Value::as_str).unwrap_or("properties");
+        let kind = input
+            .get("kind")
+            .and_then(Value::as_str)
+            .unwrap_or("properties");
 
         // basepath (default '').
         let opts = match input.get("basepath").and_then(Value::as_str) {

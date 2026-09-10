@@ -6,7 +6,7 @@
 //! (R7 parallel run). The only CRUDUI-new logic: (a) reading the `validate` slot, not
 //! legacy `rules`; (b) evaluating a rule value that is an expression OR a condition
 //! map (G1 — the condition is the value's expression, never a separate key); and
-//! (c) dropping the legacy `display_switch`/`display_target` visibility gates (G1).
+//! (c) omitting `display_switch` and `display_target` visibility conditions (G1).
 //!
 //! Byte-for-byte with the JS reference; the shared 4-language fixture
 //! `tests/fixtures/validate/cases.json` is the single source of truth. errors are
