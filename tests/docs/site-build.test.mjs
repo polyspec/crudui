@@ -39,9 +39,19 @@ test('documentation build preserves page routes, titles, links and public files'
     '# Home',
     '',
     '[Guide](./guide/start.md#install)',
+    '',
+    '![Fixture](./public/assets/fixture.txt)',
   ].join('\n'));
   await writeFile(join(docsDirectory, 'guide', 'start.md'), [
     '# Guide & usage',
+    '',
+    '## Install',
+    '',
+    '## 0. Processing',
+    '',
+    '## @crudui/validator',
+    '',
+    '## CELL_FORMATS',
     '',
     '## Install',
     '',
@@ -51,6 +61,7 @@ test('documentation build preserves page routes, titles, links and public files'
   ].join('\n'));
   await writeFile(join(repositoryRoot, 'tests', 'build-notes.md'), '# Build notes');
   await writeFile(join(docsDirectory, 'public', 'assets', 'fixture.txt'), 'public asset\n');
+  await writeFile(join(docsDirectory, 'public', 'assets', 'source.md'), '# Public source file\n');
 
   const report = await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory });
 
@@ -58,18 +69,24 @@ test('documentation build preserves page routes, titles, links and public files'
     '404.html',
     'assets/fixture.txt',
     'assets/site.css',
+    'assets/source.md',
     'guide/start.html',
     'index.html',
   ]);
-  assert.deepEqual(report, { pages: 3, documents: 2, assets: 2 });
+  assert.deepEqual(report, { pages: 3, documents: 2, assets: 3 });
   const index = await readFile(join(outputDirectory, 'index.html'), 'utf8');
   const guide = await readFile(join(outputDirectory, 'guide', 'start.html'), 'utf8');
   assert.match(index, /<title>Home \| CRUDUI<\/title>/);
   assert.match(index, /<h1 id="home">Home<\/h1>/);
   assert.match(index, /href="\/guide\/start#install"/);
+  assert.match(index, /src="\/assets\/fixture\.txt"/);
   assert.match(guide, /<html lang="en-US">/);
   assert.match(guide, /<title>Guide &amp; usage \| CRUDUI<\/title>/);
   assert.match(guide, /<h1 id="guide-usage">Guide &amp; usage<\/h1>/);
+  assert.match(guide, /<h2 id="_0-processing">0\. Processing<\/h2>/);
+  assert.match(guide, /<h2 id="crudui-validator">@crudui\/validator<\/h2>/);
+  assert.match(guide, /<h2 id="cell-formats">CELL_FORMATS<\/h2>/);
+  assert.match(guide, /<h2 id="install-1">Install<\/h2>/);
   assert.match(guide, /href="\/">Home<\/a>/);
   assert.match(guide, /href="https:\/\/github\.com\/crudui\/crudui\/blob\/main\/tests\/build-notes\.md#checks"/);
   assert.equal(await readFile(join(outputDirectory, 'assets', 'fixture.txt'), 'utf8'), 'public asset\n');
@@ -90,6 +107,19 @@ test('documentation build rejects a document without one level-one heading', asy
     }),
     /exactly one level-one heading/,
   );
+});
+
+test('documentation build rejects an output path that contains its input', async t => {
+  const repositoryRoot = await mkdtemp(join(tmpdir(), 'crudui-doc-output-'));
+  t.after(() => rm(repositoryRoot, { recursive: true, force: true }));
+  const docsDirectory = join(repositoryRoot, 'docs');
+  await mkdir(docsDirectory);
+  await writeFile(join(docsDirectory, 'index.md'), '# Source remains\n');
+  await assert.rejects(
+    buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory: repositoryRoot }),
+    /output cannot contain the documentation input/,
+  );
+  assert.equal(await readFile(join(docsDirectory, 'index.md'), 'utf8'), '# Source remains\n');
 });
 
 for (const [name, link, error] of [
