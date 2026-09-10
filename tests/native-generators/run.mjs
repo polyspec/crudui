@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 let dispatch, errorRecord;
 import { parseCLIResponse, OperationError, equalOrdered, equalModels, equalState } from './protocol.mjs';
 import { formScenarios, numberCases, companySpec, companyData, row, imageCase, urlCase, dateCases, dateFormSpec, dateFormData, dateListSpec } from './cases.mjs';
+import { runRustCommand } from '../../scripts/run-rust-command.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const argv = process.argv.slice(2);
@@ -96,7 +97,14 @@ const targets = [
     assert.deepEqual(JSON.parse(result.stdout), { generator: false, validator: false, form: false }, 'Pure PHP target must use PHP classes; disable the native extension in its configuration');
   } },
   { name: 'go', command: goBinary, args: [], prepare: () => build(process.env.GO ?? 'go', ['build', '-o', goBinary, './cmd/generate'], path.join(ROOT, 'packages/generator-go')) },
-  { name: 'rust', command: rustBinary, args: [], prepare: () => build(process.env.CARGO ?? 'cargo', ['build', '--locked', '--bin', 'generate'], path.join(ROOT, 'packages/generator-rust')) },
+  {
+    name: 'rust',
+    command: rustBinary,
+    args: [],
+    prepare: () => runRustCommand(['build', '--locked', '--bin', 'generate'], {
+      cwd: path.join(ROOT, 'packages/generator-rust'),
+    }),
+  },
   { name: 'php-native', command: process.env.PHP ?? 'php', args: ['-d', `extension=${extension ?? ''}`, phpCLI], prepare: async () => {
     assert.ok(extension && path.isAbsolute(extension), '--extension must provide an absolute native PHP module path');
     assert.ok((await stat(extension)).isFile(), 'Native PHP module must be a file');
