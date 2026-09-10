@@ -129,11 +129,12 @@ directory before compilation starts.
 The build command uses `php-config` metadata to compile the C binding and link
 the Rust static library directly. It does not invoke `phpize`, Autoconf or
 libtool. An explicitly declared tool path must be absolute and identify one
-regular executable. When a tool path is omitted, discovery selects one canonical
-regular executable before the build starts. An invalid explicit path, missing
-tool or ambiguous discovery result fails the build; the build does not select a
-different tool after a failure. The PHP binary, development metadata and headers
-must describe the same PHP installation.
+regular executable. The path and each parent component must not be a symbolic
+link. When a tool path is omitted, discovery selects one regular executable with
+no symbolic-link path component before the build starts. An invalid explicit
+path, missing tool or ambiguous discovery result fails the build; the build does
+not select a different tool after a failure. The PHP binary, development metadata
+and headers must describe the same PHP installation.
 
 Linux builds create one shared object and link the platform dynamic-loading, math
 and thread libraries. macOS builds create one bundle, allow PHP symbols to resolve

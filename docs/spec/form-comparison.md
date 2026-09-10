@@ -33,6 +33,16 @@ one regular executable file. Relative paths, symbolic links, missing records,
 multiple matching records and alternate command providers are rejected. Runtime
 resolution does not try another path after an invalid result.
 
+Image construction uses one PHP extension builder for `crudui.so` and
+`ordered_json.so`. Each extension has an explicit build entry point and declares
+its sources, module name, output directory and load check. The builder reads the
+PHP executable, headers and build flags from one `php-config` executable and
+compiles both modules directly without `phpize`, Autoconf or libtool. It resolves
+each required executable once before compilation. Relative paths, symbolic links,
+missing tools, multiple discovery results and PHP installation mismatches fail
+the build. A failed command does not select another executable or build path.
+Generated build and module paths contain only regular files and directories.
+
 When every candidate check succeeds, verification stops and removes the
 candidate container. It retains only the candidate image and these deployment
 inputs: `context/metadata.json`, `results/generation.json`,
