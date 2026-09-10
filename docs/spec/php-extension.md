@@ -135,6 +135,9 @@ no symbolic-link path component before the build starts. An invalid explicit
 path, missing tool or ambiguous discovery result fails the build; the build does
 not select a different tool after a failure. The PHP binary, development metadata
 and headers must describe the same PHP installation.
+Each explicit tool path is declared through either its command argument or its
+environment variable. Declaring the same input through both interfaces fails
+before compilation.
 
 Debian-derived Linux builds read the installed `gcc` package record, require one
 installed versioned compiler dependency, follow its one installed target compiler
