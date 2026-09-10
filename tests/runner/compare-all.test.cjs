@@ -1,6 +1,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } = require('node:fs');
+const {
+  existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync, rmSync,
+} = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
 const { spawnSync } = require('node:child_process');
@@ -24,7 +26,7 @@ for (const mode of ['failure', 'wrong-result']) {
 }
 
 test('comparison resolves Cargo from the Rustup toolchain record', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'crudui-comparison-rustup-'));
+  const directory = mkdtempSync(join(realpathSync(tmpdir()), 'crudui-comparison-rustup-'));
   try {
     const home = join(directory, 'home');
     const cargoHome = join(home, '.cargo');
@@ -46,7 +48,7 @@ test('comparison resolves Cargo from the Rustup toolchain record', () => {
     writeFileSync(cargo, [
       '#!/bin/sh',
       'if [ "$1" = "--version" ]; then printf "cargo 1.98.1\n"; exit 0; fi',
-      `printf '%s\n' "$*" > '${commandLog}'`,
+      `printf '%s\t%s\n' "$*" "$RUSTC" > '${commandLog}'`,
       'exit 23',
       '',
     ].join('\n'), { mode: 0o755 });
@@ -65,7 +67,7 @@ test('comparison resolves Cargo from the Rustup toolchain record', () => {
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.equal(existsSync(commandLog), true, result.stdout + result.stderr);
     assert.equal(readFileSync(commandLog, 'utf8'),
-      'build --locked --release --bin validate-legacy\n');
+      `build --locked --release --bin validate-legacy\t${rustc}\n`);
     assert.doesNotMatch(result.stdout + result.stderr, /spawnSync cargo ENOENT/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
