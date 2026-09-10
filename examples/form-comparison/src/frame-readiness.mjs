@@ -1,11 +1,10 @@
-import assert from 'node:assert/strict';
-
 /** Navigate comparison frames after subscribing to their exact readiness messages. */
 export async function loadComparisonFrames({
   host, frames, paths, framework, server, language, title,
 }) {
-  assert.equal(frames.length, paths.length,
-    'Frame readiness requires one frame per rendering path');
+  if (frames.length !== paths.length) {
+    throw new Error('Frame readiness requires one frame per rendering path');
+  }
   const expected = new Map(frames.map((frame, index) => [frame.contentWindow, paths[index]]));
   let resolve;
   let reject;
@@ -15,15 +14,14 @@ export async function loadComparisonFrames({
     if (event.origin !== host.location.origin || !expected.has(event.source)
         || event.data?.type !== 'crudui:frame-ready') return;
     const path = expected.get(event.source);
-    try {
-      assert.deepEqual(event.data, {
-        type: 'crudui:frame-ready', server, framework, path,
-      });
-      expected.delete(event.source);
-      if (expected.size === 0) resolve();
-    } catch (error) {
-      reject(new Error('Frame readiness differs', { cause: error }));
+    const value = event.data;
+    if (value.server !== server || value.framework !== framework
+        || value.path !== path || Object.keys(value).length !== 4) {
+      reject(new Error('Frame readiness differs'));
+      return;
     }
+    expected.delete(event.source);
+    if (expected.size === 0) resolve();
   }
 
   host.addEventListener('message', receive);
