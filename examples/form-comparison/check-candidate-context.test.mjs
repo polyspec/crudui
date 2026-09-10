@@ -29,6 +29,15 @@ test('creates native server output directories before writing binaries', async (
   assert.match(rustStage, /mkdir -p \/out[\s\S]*cp .* \/out\/rust/);
 });
 
+test('runs browser checks as the application user', async () => {
+  const source = await readFile(new URL('./Containerfile', import.meta.url), 'utf8');
+  const application = source.slice(source.indexOf('FROM dependencies AS application'));
+  assert.ok(application.indexOf('USER node')
+    < application.indexOf('RUN npm run test:form-comparison'),
+  'The application user must be selected before browser checks run');
+  assert.doesNotMatch(application, /--no-sandbox/);
+});
+
 test('passes a large source archive to Git through a file descriptor', t => {
   const directory = mkdtempSync(path.join(tmpdir(), 'crudui-candidate-context-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
