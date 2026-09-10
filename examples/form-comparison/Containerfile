@@ -14,7 +14,8 @@ RUN mkdir -p /workspace/source/.form-comparison/sources/ordered-json \
     done
 
 FROM verified-source AS dependencies
-ENV PUPPETEER_SKIP_DOWNLOAD=true \
+ENV COMPOSER_ROOT_VERSION=0.0.1 \
+    PUPPETEER_SKIP_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     FORM_COMPARISON_RESULTS=/results \
     FORM_COMPARISON_READINESS=service
