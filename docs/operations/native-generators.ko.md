@@ -27,6 +27,9 @@ make docs-check
 컴파일한 뒤 Cargo 잠금 파일의 Rust 출력을 직접 연결합니다. `phpize`, Autoconf,
 libtool은 필요하지 않습니다. 도구 발견은 상대경로, 심볼릭 링크, 여러 결과를
 거부합니다. 명시한 도구 경로는 정규 실행 파일을 식별해야 합니다.
+Debian 계열 Linux에서 컴파일러 발견은 설치된 `gcc` 패키지 기록을 읽고 정규 target
+compiler 파일 하나를 선택합니다. 여러 PHP 릴리스를 선택할 수 있으면
+`PHP_EXTENSION_PHP_CONFIG`에 정규 versioned `php-config` 파일을 지정합니다.
 
 PHP API 검사는 Composer 클래스, Composer 없는 확장, Composer를 함께 사용하는
 확장의 세 프로세스를 실행합니다. 리플렉션은 실제 클래스 구현과 모든 공개 메서드

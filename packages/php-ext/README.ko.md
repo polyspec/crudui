@@ -14,15 +14,16 @@
 
 ## 빌드와 검증
 
-전체 저장소에서 64비트 PHP 8.4 이상, 일치하는 PHP 개발 헤더, C 컴파일러,
-Autoconf, Make, Cargo로 빌드합니다. Linux와 macOS를 빌드 대상으로 지원합니다.
-macOS 빌드는 11.0 이상을 대상으로 합니다. `phpize`와 `php-config`는 모듈을
-로드할 PHP 바이너리와 일치해야 합니다.
+전체 저장소에서 64비트 PHP 8.4 이상, 일치하는 PHP 개발 헤더, `php-config`, C
+컴파일러, Cargo로 빌드합니다. Linux와 macOS를 빌드 대상으로 지원합니다. macOS
+빌드는 11.0 이상을 대상으로 합니다. 빌드는 컴파일 전에 정규 실행 파일 경로를 확인하고
+심볼릭 링크, 여러 발견 결과, 서로 다른 PHP 설치 정보를 거부합니다. `phpize`,
+Autoconf, libtool은 사용하지 않습니다.
 
 저장소 루트에서 실행합니다.
 
 ```sh
-sh scripts/build-php-extension.sh
+node scripts/build-crudui-php-extension.mjs
 composer install --working-dir=packages/generator-php
 node packages/php-ext/tests/run.mjs "$(pwd)/packages/php-ext/modules/crudui.so"
 npm run build
@@ -40,8 +41,12 @@ API 검사는 확장을 비활성화한 PHP, Composer 없는 확장, Composer를
 개발 도구로 `crudui_arginfo.h`를 다시 생성합니다.
 
 ```sh
-php packages/php-ext/build/gen_stub.php packages/php-ext/crudui.stub.php
+/absolute/path/to/php -n /absolute/path/to/php-build/gen_stub.php \
+  packages/php-ext/crudui.stub.php
 ```
+
+두 외부 경로는 같은 PHP 개발 도구 설치의 정규 파일이어야 합니다. 빌드는 PHP 빌드
+도구의 로컬 복사본을 생성하거나 유지하지 않습니다.
 
 생성한 헤더는 커밋합니다. 스텁 파일을 포함하여 PHP 클래스를 선언하지
 않습니다. 캐시 템플릿은 일반 JSON 객체입니다. 네이티브 `Form` 인스턴스는
