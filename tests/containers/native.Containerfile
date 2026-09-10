@@ -10,6 +10,7 @@ COPY --from=rust /usr/local/cargo /usr/local/cargo
 COPY --from=rust /usr/local/rustup /usr/local/rustup
 COPY --from=go /usr/local/go /usr/local/go
 ENV CARGO_HOME=/home/node/.cargo \
+    COMPOSER_ROOT_VERSION=0.0.1 \
     RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:/usr/local/go/bin:$PATH \
     PHP_EXTENSION_PHP_CONFIG=/usr/bin/php-config8.4 \
