@@ -111,6 +111,18 @@ test('limits Vite dependency optimization to the declared widget packages', () =
   assert.equal(server.config.optimizeDeps.noDiscovery, true);
 });
 
+test('records console errors after widget initialization', async () => {
+  const { page, failures } = await openPage();
+  try {
+    const observed = new Promise(resolve => page.once('console', resolve));
+    await page.evaluate(() => console.error('widget failure after initialization'));
+    await observed;
+    assert.deepEqual(failures, [{
+      type: 'console', message: 'widget failure after initialization',
+    }]);
+  } finally { await page.close(); }
+});
+
 async function openPage(timezone) {
   const page = await browser.newPage();
   const errors = [], loadFailures = [], consoleErrors = [];
