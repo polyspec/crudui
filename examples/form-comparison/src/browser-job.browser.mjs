@@ -3,6 +3,22 @@ import test from 'node:test';
 import puppeteer from 'puppeteer';
 
 import { collectBrowserJob } from './browser-job.mjs';
+import { subscribeMainPageReadiness } from './main-page-readiness.mjs';
+
+test('receives delayed main-page readiness without one open protocol call',
+  { timeout: 10_000 }, async t => {
+    const browser = await puppeteer.launch({ headless: true, protocolTimeout: 1_000 });
+    t.after(() => browser.close());
+    const page = await browser.newPage();
+    const readiness = await subscribeMainPageReadiness(page);
+    const expected = {
+      type: 'crudui:main-ready', server: 'php', framework: 'react',
+    };
+    const source = '<script>setTimeout(() => postMessage('
+      + JSON.stringify(expected) + ', "*"), 1500)</script>';
+    await page.goto('data:text/html,' + encodeURIComponent(source));
+    assert.deepEqual(await readiness.wait(), expected);
+  });
 
 test('collects a browser job whose total duration exceeds one protocol call',
   { timeout: 30_000 }, async t => {
