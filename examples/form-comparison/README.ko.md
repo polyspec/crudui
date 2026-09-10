@@ -41,5 +41,8 @@ container build --tag "$CANDIDATE_IMAGE" --progress plain \
 [검증 절차](../../docs/operations/verification.ko.md)는 후보 시작, HTTP 검사,
 서버별 순차 브라우저 검사와 보고서 집계를 정의합니다.
 [폼 검증 계약](../../docs/spec/form-comparison.ko.md)은 필수 조합·자료·통과 기준을
-정의합니다. [기능 상태](../../docs/features.ko.md)는 코드 검증과 배포를 별도로
-기록합니다.
+정의합니다. 전체 집계가 통과하면
+`node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"`가 정확한
+이미지와 보고서를 검사하고 실행 중인 서비스 파일을 보존한 뒤
+`https://crudui.test`에서 동일한 containerctl 적용 두 번을 검증합니다.
+[기능 상태](../../docs/features.ko.md)는 코드 검증과 배포를 별도로 기록합니다.
