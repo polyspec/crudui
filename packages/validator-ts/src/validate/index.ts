@@ -25,15 +25,12 @@ import {
   MemoryLoader,
 } from '../compose/index';
 import type { FileLoader } from '../compose/index';
-import type { ValidationResult } from '../types';
+import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 import { Validator } from './validator';
 
-export { Validator } from './validator';
+export { Validator, type ComposedField } from './validator';
 export { ComposeLoadError } from '../compose/index';
-
-/** A virtual file set `$ref` resolves against (`{ key: doc }`). */
-export type FileSet = Record<string, Record<string, unknown>>;
 
 /** Options for a CRUDUI validation run. */
 export interface ValidateOptions {

@@ -127,11 +127,17 @@ export interface FieldViewModel {
 // multiple / lang settings (ported from render.ts)
 // ---------------------------------------------------------------------------
 
+/** Evaluated controls and limits for a repeated field. */
 export interface MultipleSettings {
+  /** Whether repeated rows and their controls are displayed. */
   show: boolean;
+  /** Minimum allowed row count. */
   min?: number;
+  /** Maximum allowed row count. */
   max?: number;
+  /** Whether the adapter provides row copy controls. */
   copy?: boolean;
+  /** Whether the adapter provides row reordering controls. */
   sortable?: boolean;
 }
 

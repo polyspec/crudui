@@ -1,6 +1,6 @@
 /** CRUDUI validation, composition, expression and rule APIs. */
 export { validate, Validator, default } from './validate/index';
-export type { ValidateOptions } from './validate/index';
+export type { ComposedField, ValidateOptions } from './validate/index';
 export * from './schema';
 export * from './types';
 export * from './compose/index';
@@ -16,6 +16,8 @@ export {
   setConditionCache,
   getConditionCache,
   isConditionExpression,
+  type ParseErrorContext,
+  type ParseResult,
 } from './parser/ConditionParser';
 
 // Cache exports
@@ -70,4 +72,3 @@ export {
   getPattern,
   areAllUnique,
 } from './rules/index';
-

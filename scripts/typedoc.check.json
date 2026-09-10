@@ -9,7 +9,7 @@
   "skipErrorChecking": true,
   "emit": "none",
   "validation": {
-    "notExported": false,
+    "notExported": true,
     "invalidLink": false,
     "notDocumented": true
   },
