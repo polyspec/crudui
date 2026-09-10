@@ -217,6 +217,9 @@ jobs:
       - name: Install workspace deps (typedoc lives here)
         run: npm i -g npm@latest && npm ci
 
+      - name: Install PHP API documentation generator
+        run: sh scripts/install-phpdocumentor.sh
+
       - name: Doc-coverage gate (libs + servers, 4 langs)
         run: make docs-check
 
