@@ -55,6 +55,10 @@ EOF
 chmod +x configure
 `);
   executable(path.join(commands, 'make'), `#!/bin/sh
+if [ ! -d native/.libs ]; then
+  echo 'parallel native output directory was not prepared' >&2
+  exit 65
+fi
 printf 'make %s\n' "$*" >>"$TRACE"
 `);
   executable(path.join(commands, 'php'), `#!/bin/sh
