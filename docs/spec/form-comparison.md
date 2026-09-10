@@ -59,6 +59,13 @@ subscribes to that file before starting the container and waits for either the
 file event or container termination. Startup uses no sleep interval, retry loop
 or periodic health request.
 
+Browser verification subscribes to the exact frame and job events before it
+starts the corresponding operation. It awaits the operation promise and the
+renderer completion signal before reading the result. It does not infer frame
+readiness, validation completion or rendering completion from periodic DOM
+reads or elapsed time. A time limit may fail a browser operation that stops
+publishing progress, but reaching that limit cannot produce a successful result.
+
 ## Implementations and requests
 
 PHP, the PHP extension, Go and Rust implement the same compile, render,
