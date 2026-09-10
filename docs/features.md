@@ -13,7 +13,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | php-extension | Native PHP form generation and validation | implemented | passed | not-deployed | [Extension contract](spec/php-extension.md) |
 | server-template-browser | Current keyed browser instances from serialized server-compiled templates | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
 | native-generation-integration | Current four-server generation, SSR, transport, persistence and browser integration | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
-| comparison-deployment | Verified local comparison deployment and unchanged reapplication | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
+| comparison-deployment | Verified local comparison deployment, data preservation and candidate cleanup | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
 | legacy-comparison | Legacy execution, fixture expectations and four-language agreement | implemented | passed | not-deployed | [Testing procedure](operations/testing.md) |

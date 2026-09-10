@@ -103,13 +103,6 @@ limit and a 300,000 millisecond no-progress limit. A failed, missing, malformed 
 late result keeps status 1. Do not deploy a candidate unless every repository and
 candidate command returns status 0 and the aggregate records `passed: true`.
 
-Stop and remove the isolated candidate container after retaining its reports:
-
-```sh
-container stop "$CANDIDATE_NAME"
-container delete "$CANDIDATE_NAME"
-```
-
 Deploy the verified current commit after every repository and candidate command
 has returned status 0:
 
@@ -120,13 +113,20 @@ node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"
 The deployment command verifies the candidate metadata, generation report,
 persistence report, browser aggregate, exact image tag and image digest before
 creating `.form-comparison/deployment/compose.yaml`. It preserves the active
-service's data and results in the repository deployment directory without
-overwriting different files. It applies the Compose file with containerctl,
-uses the explicit containerctl CA to verify `https://crudui.test`, and checks
-the deployed source commit, route, certificate, mounts, stored files and response
-bytes. It applies the same Compose file a second time and fails if any checked
-state changes. The deployment and verification records remain under
-`.form-comparison/deployment/`.
+service's data in the repository deployment directory without overwriting
+different files. It applies the Compose file with containerctl, uses the explicit
+containerctl CA to verify `https://crudui.test`, and checks the deployed source
+commit, route, certificate, data mount, stored files and response bytes. It
+applies the same Compose file a second time and fails if any checked state
+changes.
+
+After successful verification, the command removes every candidate container,
+candidate directory, raw report, screenshot and local comparison image except
+the deployed image. It also removes results from the previous deployment. The
+deployment data, Compose file, candidate totals, image digest and identical-apply
+verification remain under `.form-comparison/deployment/`. A failed deployment
+keeps the current candidate directory for diagnosis and does not remove the
+active deployment image.
 
 Package publication is a separate operation. Candidate verification alone does
 not change deployment or publication state.

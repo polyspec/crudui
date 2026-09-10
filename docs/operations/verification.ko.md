@@ -99,13 +99,6 @@ node examples/form-comparison/check-browser-reports.mjs \
 상태 1을 유지합니다. 모든 저장소·후보 명령이 상태 0을 반환하고 집계에
 `passed: true`를 기록하기 전에는 후보를 배포하지 않습니다.
 
-보고서를 보존한 뒤 격리한 후보 컨테이너를 중지하고 제거합니다.
-
-```sh
-container stop "$CANDIDATE_NAME"
-container delete "$CANDIDATE_NAME"
-```
-
 모든 저장소·후보 명령이 종료 상태 0을 반환한 뒤 검증한 현재 커밋을 배포합니다.
 
 ```sh
@@ -114,11 +107,16 @@ node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"
 
 배포 명령은 `.form-comparison/deployment/compose.yaml`을 생성하기 전에 후보 메타데이터,
 생성 보고서, 저장 보고서, 브라우저 집계, 정확한 이미지 태그와 이미지 digest를
-검사합니다. 실행 중인 서비스의 데이터와 결과를 주 저장소의 배포 디렉터리에 보존하며
-내용이 다른 파일을 덮어쓰지 않습니다. containerctl로 Compose 파일을 적용하고 명시적인
+검사합니다. 실행 중인 서비스의 데이터를 주 저장소의 배포 디렉터리에 보존하며 내용이
+다른 파일을 덮어쓰지 않습니다. containerctl로 Compose 파일을 적용하고 명시적인
 containerctl CA로 `https://crudui.test`를 검증합니다. 배포 소스 커밋, 라우트, 인증서,
-마운트, 저장 파일, 응답 바이트를 검사합니다. 같은 Compose 파일을 다시 적용한 뒤 검사한
-상태가 하나라도 변경되면 실패합니다. 배포·검증 기록은
-`.form-comparison/deployment/`에 유지합니다.
+데이터 마운트, 저장 파일, 응답 바이트를 검사합니다. 같은 Compose 파일을 다시 적용한 뒤
+검사한 상태가 하나라도 변경되면 실패합니다.
+
+검증이 성공하면 모든 후보 컨테이너, 후보 디렉터리, 원본 보고서, 스크린샷과 배포 이미지
+외의 로컬 비교 이미지를 제거합니다. 이전 배포의 결과도 제거합니다. 배포 데이터, Compose
+파일, 후보 검사 합계, 이미지 digest와 동일 설정 재적용 결과는
+`.form-comparison/deployment/`에 유지합니다. 배포가 실패하면 진단을 위해 현재 후보
+디렉터리를 유지하고 실행 중인 배포 이미지는 제거하지 않습니다.
 
 패키지 게시는 별도 작업입니다. 후보 검증만으로 배포나 게시 상태는 변경되지 않습니다.
