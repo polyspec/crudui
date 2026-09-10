@@ -1,0 +1,9 @@
+{
+  "name": "crudui-form-comparison",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ordered-json": "https://codeload.github.com/ordered-json/javascript/tar.gz/d3b1f3473ce2645c79c772940df622c4d8b0bca7"
+  }
+}
