@@ -79,6 +79,13 @@ test('accepts current Composer and native PHP implementations', () => {
   assert.equal(serverReady('php-ext', true, phpHealth('php-ext'), metadata, expectedSignatures), true);
 });
 
+test('accepts the selected Composer validator installation in PHP health', () => {
+  const value = phpHealth('php');
+  value.generator.classes['CRUDUI\\Validator'].file =
+    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php';
+  assert.equal(serverReady('php', true, value, metadata, expectedSignatures), true);
+});
+
 test('rejects incomplete or inconsistent PHP provenance', () => {
   for (const mutate of [
     value => { value.generator.runtime = 'php-ext'; },
