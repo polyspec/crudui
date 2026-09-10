@@ -193,3 +193,58 @@ test('Rust benchmark uses one resolved toolchain for execution and version metad
   }]);
   assert.match(readFileSync(path.join(root, 'tools/bench/results.md'), 'utf8'), /cargo 1\.98\.1/);
 });
+
+test('Rust generator fixture validation uses one resolved toolchain', t => {
+  const root = fixture(t, 'crudui-rust-generator-fixtures-', []);
+  const tools = rustEnvironment(root);
+  const result = spawnSync(process.execPath, [
+    path.join(repository, 'packages/generator-rust/verify-fixtures.mjs'),
+  ], {
+    cwd: repository,
+    encoding: 'utf8',
+    env: tools.environment,
+  });
+
+  assert.notEqual(result.status, 0, 'The fixture output mock intentionally omits its result');
+  assert.doesNotMatch(result.stdout + result.stderr, /spawnSync cargo ENOENT/);
+  assert.deepEqual(commands(tools.commandLog), [{
+    args: [
+      'test', '--locked', '--manifest-path',
+      path.join(repository, 'packages/generator-rust/Cargo.toml'), 'native_fixture_records',
+    ],
+    cwd: repository,
+    rustc: tools.rustc,
+    rustdoc: tools.rustdoc,
+  }]);
+});
+
+test('native generator integration uses the shared Rust command entry point', () => {
+  const source = readFileSync(path.join(repository, 'tests/native-generators/run.mjs'), 'utf8');
+  assert.match(source, /runRustCommand/);
+  assert.doesNotMatch(source, /process\.env\.CARGO|globalThis\.process\.env\.CARGO/);
+});
+
+test('cross-check server builds Rust through its module-located entry point', t => {
+  const manifest = JSON.parse(readFileSync(
+    path.join(repository, 'examples/cross-check-console/server/package.json'), 'utf8',
+  ));
+  assert.equal(manifest.scripts['build:rust'], 'node build-rust.mjs');
+
+  const root = fixture(t, 'crudui-rust-cross-check-', []);
+  const tools = rustEnvironment(root);
+  const result = spawnSync(process.execPath, [
+    path.join(repository, 'examples/cross-check-console/server/build-rust.mjs'),
+  ], {
+    cwd: path.join(repository, 'examples/cross-check-console/server'),
+    encoding: 'utf8',
+    env: tools.environment,
+  });
+
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.deepEqual(commands(tools.commandLog), [{
+    args: ['build', '--locked', '--release', '--bin', 'validate'],
+    cwd: path.join(repository, 'packages/validator-rust'),
+    rustc: tools.rustc,
+    rustdoc: tools.rustdoc,
+  }]);
+});
