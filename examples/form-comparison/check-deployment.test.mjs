@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import * as deployment from './deployment.mjs';
 import {
-  assertStableDeployment, preserveDeploymentDirectory, readDeploymentAuthority,
-  renderDeploymentCompose, verifyCandidateEvidence,
+  assertStableDeployment, cleanupDeploymentArtifacts, deploymentCleanupPlan,
+  preserveDeploymentDirectory, readDeploymentAuthority, renderDeploymentCompose,
+  verifyCandidateEvidence,
 } from './deployment.mjs';
 import {
   expectedGenerationCombinations, expectedGenerationRequests, expectedGenerationResults,
@@ -130,27 +130,106 @@ test('renders one deterministic deployment definition for the verified image', (
 });
 
 test('selects temporary comparison resources after successful deployment', () => {
-  assert.equal(typeof deployment.deploymentCleanupPlan, 'function');
   const deployedImageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
   const oldImageReference = 'localhost/crudui-form-comparison:111111111111';
-  const plan = deployment.deploymentCleanupPlan({
+  const plan = deploymentCleanupPlan({
     deployedImageReference,
     candidateDirectories: ['/repo/.form-comparison/candidates/current',
       '/repo/.form-comparison/candidates/previous'],
     containers: [
-      { id: 'crudui-comparison', imageReference: deployedImageReference },
-      { id: 'crudui-form-comparison-current', imageReference: deployedImageReference },
-      { id: 'crudui-form-comparison-previous', imageReference: oldImageReference },
-      { id: 'unrelated', imageReference: 'docker.io/library/node:26' },
+      { id: 'crudui-comparison', state: 'running', imageReference: deployedImageReference },
+      { id: 'crudui-form-comparison-current', state: 'running',
+        imageReference: deployedImageReference },
+      { id: 'crudui-form-comparison-previous', state: 'stopped',
+        imageReference: oldImageReference },
+      { id: 'unrelated', state: 'running', imageReference: 'docker.io/library/node:26' },
     ],
     imageReferences: [deployedImageReference, oldImageReference, 'docker.io/library/node:26'],
   });
   assert.deepEqual(plan, {
+    runningContainerIds: ['crudui-form-comparison-current'],
     containerIds: ['crudui-form-comparison-current', 'crudui-form-comparison-previous'],
     candidateDirectories: ['/repo/.form-comparison/candidates/current',
       '/repo/.form-comparison/candidates/previous'],
     imageReferences: [oldImageReference],
   });
+});
+
+test('removes candidate files and comparison resources after successful deployment', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-cleanup-'));
+  t.after(() => import('node:fs/promises').then(({ rm }) =>
+    rm(directory, { recursive: true, force: true })));
+  const candidateRoot = path.join(directory, 'candidates');
+  const currentCandidate = path.join(candidateRoot, 'current');
+  const previousCandidate = path.join(candidateRoot, 'previous');
+  const deploymentResultsDirectory = path.join(directory, 'deployment/results');
+  for (const target of [currentCandidate, previousCandidate, deploymentResultsDirectory]) {
+    await mkdir(target, { recursive: true });
+    await writeFile(path.join(target, 'result.json'), '{}\n');
+  }
+  const deployedImageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
+  const oldImageReference = 'localhost/crudui-form-comparison:111111111111';
+  const calls = [];
+  const plan = await cleanupDeploymentArtifacts({
+    deployedImageReference, candidateRoot, deploymentResultsDirectory,
+    resources: {
+      candidateDirectories: [currentCandidate, previousCandidate],
+      containers: [
+        { id: 'crudui-comparison', state: 'running', imageReference: deployedImageReference },
+        { id: 'current-candidate', state: 'running', imageReference: deployedImageReference },
+        { id: 'previous-candidate', state: 'stopped', imageReference: oldImageReference },
+      ],
+      imageReferences: [deployedImageReference, oldImageReference],
+    },
+    runCommand: async (command, args) => { calls.push([command, args]); },
+  });
+  assert.deepEqual(calls, [
+    ['container', ['stop', 'current-candidate']],
+    ['container', ['delete', 'current-candidate', 'previous-candidate']],
+    ['container', ['image', 'delete', oldImageReference]],
+  ]);
+  assert.deepEqual(plan.candidateDirectories, [currentCandidate, previousCandidate]);
+  await assert.rejects(readFile(currentCandidate), /ENOENT/);
+  await assert.rejects(readFile(previousCandidate), /ENOENT/);
+  await assert.rejects(readFile(deploymentResultsDirectory), /ENOENT/);
+});
+
+test('rejects candidate cleanup outside the candidate directory', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-cleanup-boundary-'));
+  t.after(() => import('node:fs/promises').then(({ rm }) =>
+    rm(directory, { recursive: true, force: true })));
+  const candidateRoot = path.join(directory, 'candidates');
+  const outside = path.join(directory, 'outside');
+  await mkdir(candidateRoot);
+  await mkdir(outside);
+  const calls = [];
+  await assert.rejects(cleanupDeploymentArtifacts({
+    deployedImageReference: `localhost/crudui-form-comparison:${commit.slice(0, 12)}`,
+    candidateRoot, deploymentResultsDirectory: path.join(directory, 'results'),
+    resources: { candidateDirectories: [outside], containers: [], imageReferences: [] },
+    runCommand: async (...args) => { calls.push(args); },
+  }), /Candidate cleanup path is invalid/);
+  assert.deepEqual(calls, []);
+  await writeFile(path.join(outside, 'retained'), 'retained');
+  assert.equal(await readFile(path.join(outside, 'retained'), 'utf8'), 'retained');
+});
+
+test('rejects deployment results cleanup outside the comparison directory', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-results-boundary-'));
+  t.after(() => import('node:fs/promises').then(({ rm }) =>
+    rm(directory, { recursive: true, force: true })));
+  const candidateRoot = path.join(directory, 'candidates');
+  const outside = path.join(directory, 'outside');
+  await mkdir(candidateRoot);
+  await mkdir(outside);
+  const calls = [];
+  await assert.rejects(cleanupDeploymentArtifacts({
+    deployedImageReference: `localhost/crudui-form-comparison:${commit.slice(0, 12)}`,
+    candidateRoot, deploymentResultsDirectory: outside,
+    resources: { candidateDirectories: [], containers: [], imageReferences: [] },
+    runCommand: async (...args) => { calls.push(args); },
+  }), /Deployment results cleanup path is invalid/);
+  assert.deepEqual(calls, []);
 });
 
 test('rejects any change during identical deployment reapplication', () => {
