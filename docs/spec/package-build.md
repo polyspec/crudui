@@ -69,13 +69,14 @@ LTS channel use the latest stable release supported by the project. Pre-release
 versions are excluded unless a specification explicitly requires one.
 
 Repository execution definitions select a release channel instead of an exact
-patch release. `.node-version` records the selected Node.js major, CI reads that
-file, and Node.js container stages use the same major image tag. CI installs the
-current stable npm release. A candidate build resolves these channels once and
-records the resulting image and runtime versions in its verification evidence. A
-later build adopts a newer applicable release and produces new evidence. Package
-lock files record resolved package versions; they do not select a runtime
-release.
+patch release. `.node-version` records the selected Node.js major, and
+`.go-version` records the selected Go major and minor release. CI reads these
+files. Node.js and Go container stages use the corresponding release line in
+their image tags. CI installs the current stable npm release. A candidate build
+resolves these channels once and records the resulting image and runtime versions
+in its verification evidence. A later build adopts a newer applicable release
+and produces new evidence. Package lock files record resolved package versions;
+they do not select a runtime release.
 
 Package manifests and lock files must resolve one valid dependency graph.
 `npm ls --all` must return status 0 without invalid, missing or conflicting
