@@ -39,6 +39,25 @@ test('constructs a verified generator without deployment file paths', () => {
   assert.equal(result.stdout, 'ok\n');
 });
 
+test('uses the Composer-installed validator copy from the candidate source', () => {
+  const result = php([
+    '$generation=new FormGeneration("php",', JSON.stringify(library),
+    ',$source,', JSON.stringify(archiveSha256), ',null);',
+    'echo json_encode(["generator"=>$generation->provenance(),',
+    '"validatorInstall"=>realpath(Composer\\InstalledVersions::getInstallPath("crudui/validator"))],JSON_THROW_ON_ERROR);',
+  ].join(''));
+  assert.equal(result.error, undefined);
+  assert.equal(result.signal, null);
+  assert.equal(result.status, 0, result.stderr + '\n' + result.stdout);
+  const report = JSON.parse(result.stdout);
+  const installedFile = report.generator.classes['CRUDUI\\Validator'].file;
+  assert.equal(installedFile, path.join(report.validatorInstall, 'src/Public/Validator.php'));
+  assert.deepEqual(
+    readFileSync(installedFile),
+    readFileSync(path.join(library, 'packages/validator-php/src/Public/Validator.php')),
+  );
+});
+
 test('request construction does not read or hash deployment files', () => {
   const source = readFileSync(generation, 'utf8');
   assert.doesNotMatch(source, /hash_file\s*\(/);
