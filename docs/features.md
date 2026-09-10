@@ -12,7 +12,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | generator-rust | Rust form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | php-extension | Native PHP form generation and validation | implemented | passed | not-deployed | [Extension contract](spec/php-extension.md) |
 | server-template-browser | Current keyed browser instances from serialized server-compiled templates | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
-| native-generation-integration | Current four-server generation, SSR, transport, persistence and browser integration | in-progress | pending | not-deployed | [Form verification procedure](operations/verification.md) |
+| native-generation-integration | Current four-server generation, SSR, transport, persistence and browser integration | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
 | legacy-comparison | Legacy execution, fixture expectations and four-language agreement | implemented | passed | not-deployed | [Testing procedure](operations/testing.md) |
@@ -39,7 +39,8 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 The current OrderedJSON common revision and five implementation submodules passed
 575 official processor cases and all 50 CRUDUI JSON cases. These checks cover
-parsing, serialization and reconstruction; current runtime integration is pending.
+parsing, serialization and reconstruction. The candidate runtime also passed the
+PHP processor-mode checks and the four-server transport checks.
 
 The PHP, Go and Rust generators and the common PHP extension API are implemented.
 The shared generator report passed 153 cases in each of JavaScript, PHP, Go,
@@ -64,15 +65,18 @@ the report and run-log SHA-256 values are respectively
 `3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442` and
 `378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`.
 
-In the external comparison checkout, browser use of serialized server-compiled
-templates is implemented. Focused local verification passed all seven
-server-generation unit tests, the complete Go server package, all four Rust server
-tests and production builds for 12 React, Vue and Svelte frame combinations.
+The form-comparison candidate uses one committed source archive and verifies its
+commit and SHA-256 digest before extraction. Image construction passed 81 source
+checks and four library checks. The running image passed the Chromium process
+check as the application user and started one PHP, PHP extension, Go and Rust
+server from that archive.
 
-Those focused results do not establish candidate-image integration. Building and
-starting the new comparison image and completing the four-server HTTP, submission,
-persistence and browser verification remain pending. No new comparison image or
-package has been published.
+Generation and SSR passed 290 of 290 checks across 411 HTTP requests. Persistence
+and validation passed 120 of 120 checks. The browser aggregate passed 960 scenario
+checks, 240 interaction checks, 24 mount-before-load checks and 24 static-document
+checks with zero failures. Every server completed below the 900,000 millisecond
+limit, and the aggregate records `passed: true`. The candidate image is local,
+and packages and the comparison service are not deployed.
 
 ## Earlier validation and package verification
 

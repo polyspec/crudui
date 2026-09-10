@@ -12,7 +12,7 @@
 | generator-rust | Rust 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](spec/php-extension.ko.md) |
 | server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
-| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | in-progress | pending | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
+| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | legacy-comparison | 구형 실행·사례 기대값·네 언어 일치 | implemented | passed | not-deployed | [테스트 절차](operations/testing.ko.md) |
@@ -39,7 +39,8 @@
 
 현재 OrderedJSON 공통 리비전과 구현 하위 모듈 다섯 개에서 공식 처리기 사례
 575개와 CRUDUI JSON 사례 50개가 모두 통과했습니다. 파싱·직렬화·재구성을
-검사한 결과이며 현재 런타임 통합 검증은 남아 있습니다.
+검사합니다. 후보 런타임은 PHP 처리기 모드 검사와 네 서버 전송 검사도
+통과했습니다.
 
 PHP·Go·Rust 생성기와 공통 PHP 확장 API를 구현했습니다. 공통 생성기 보고서는
 JavaScript·PHP·Go·Rust·네이티브 PHP에서 각각 153개와 입력 불변 검사 1개를
@@ -62,14 +63,17 @@ PHP·Go·Rust 패키지 검사, PHP API·검증 검사, 프로토콜 검사 19�
 `3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442`,
 `378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`입니다.
 
-외부 비교 체크아웃에는 서버가 컴파일한 직렬화 템플릿을 사용하는 브라우저 연결을
-구현했습니다. 관련 로컬 검사는 server-generation 단위 검사 7개, Go 서버 패키지
-전체, Rust 서버 검사 4개와 React·Vue·Svelte 프레임 조합 production build 12개가
-모두 통과했습니다.
+폼 비교 후보는 커밋한 소스 아카이브 하나를 사용하며 압축 해제 전에 커밋과
+SHA-256 digest를 검증합니다. 이미지 구성에서 소스 검사 81개와 라이브러리 검사
+4개가 통과했습니다. 실행 이미지는 애플리케이션 사용자로 Chromium 프로세스
+검사를 통과했고 같은 아카이브에서 PHP, PHP 확장, Go, Rust 서버를 각각 하나씩
+시작했습니다.
 
-이 집중 검사는 후보 이미지 통합을 검증하지 않습니다. 새 비교 이미지를 빌드·시작하고
-네 서버의 HTTP·전송·저장·브라우저 전체 검증을 완료하는 작업은 pending입니다. 새 비교
-이미지나 패키지는 게시하지 않았습니다.
+생성·SSR 검사 290개는 HTTP 요청 411개에서 모두 통과했습니다. 저장·검증 검사
+120개도 모두 통과했습니다. 브라우저 집계는 시나리오 960개, 상호작용 240개,
+로드 전 마운트 24개, 정적 문서 24개를 실패 없이 통과했습니다. 모든 서버는
+900,000밀리초 제한 이내에 완료되었고 집계는 `passed: true`를 기록합니다.
+후보 이미지는 로컬에 있으며 패키지와 비교 서비스는 배포하지 않았습니다.
 
 ## 이전 검증기와 패키지 검증
 

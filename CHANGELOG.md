@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-10 — Four-server candidate verification
+
+The candidate image verifies one committed source archive before extraction and
+runs the complete source suite as the application user before starting PHP, the
+PHP extension, Go and Rust servers. Image construction passed 81 source checks
+and four library checks. Runtime verification passed the Chromium process check,
+290 generation and SSR checks across 411 HTTP requests, 120 persistence checks
+and all PHP processor-mode and Ordered JSON checks.
+
+The browser aggregate passed 960 scenario checks, 240 interaction checks, 24
+mount-before-load checks and 24 static-document checks. Every server completed
+below the 900,000 millisecond limit. The aggregate recorded zero failures and
+`passed: true`. Packages and the comparison service were not deployed.
+
 ## 2026-09-09 — CI package and documentation gates
 
 The documentation CI job installs both PHP package dependency graphs before
