@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
-  copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync,
+  copyFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync,
 } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +32,7 @@ function php(body) {
 }
 
 function composerCandidate(t, record) {
-  const root = mkdtempSync(path.join(library, '.git/form-generation-'));
+  const root = mkdtempSync(path.join(realpathSync(tmpdir()), 'crudui-form-generation-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const generatorSource = path.join(root, 'packages/generator-php/src');
   const vendor = path.join(root, 'packages/generator-php/vendor');
