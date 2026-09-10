@@ -127,6 +127,14 @@ test('renders one deterministic deployment definition for the verified image', (
   const healthCommand = JSON.parse(healthLine.slice('      test: '.length));
   assert.deepEqual(healthCommand.slice(0, 2), ['CMD', 'node']);
   assert.doesNotThrow(() => new Function(healthCommand[3]));
+  const interval = Number(first.match(/^      interval: (\d+)s$/m)?.[1]);
+  const retries = Number(first.match(/^      retries: (\d+)$/m)?.[1]);
+  assert.ok(Number.isInteger(interval) && interval > 0,
+    'Deployment health interval must contain positive whole seconds');
+  assert.ok(Number.isInteger(retries) && retries >= 1 && retries <= 100,
+    'Deployment health retries must be within containerctl range 1..100');
+  assert.ok(interval * retries >= 120,
+    'Deployment health check must allow at least 120 seconds for readiness');
 });
 
 test('selects temporary comparison resources after successful deployment', () => {
