@@ -29,12 +29,16 @@ test('creates native server output directories before writing binaries', async (
   assert.match(rustStage, /mkdir -p \/out[\s\S]*cp .* \/out\/rust/);
 });
 
-test('runs browser checks as the application user', async () => {
+test('runs browser checks after image construction as the application user', async () => {
   const source = await readFile(new URL('./Containerfile', import.meta.url), 'utf8');
   const application = source.slice(source.indexOf('FROM dependencies AS application'));
-  assert.ok(application.indexOf('USER node')
-    < application.indexOf('RUN npm run test:form-comparison'),
-  'The application user must be selected before browser checks run');
+  assert.match(application, /RUN npm run test:form-comparison:build/);
+  const runtimeCommand = 'CMD ["sh", "-c", "npm run test:form-comparison'
+    + ' && exec node examples/form-comparison/server.mjs"]';
+  assert.ok(application.indexOf('USER node') < application.indexOf(runtimeCommand),
+  'The application user must be selected before the complete source suite runs');
+  assert.doesNotMatch(application, /RUN npm run test:form-comparison(?:\s|$)/);
+  assert.ok(application.includes(runtimeCommand));
   assert.doesNotMatch(application, /--no-sandbox/);
 });
 
