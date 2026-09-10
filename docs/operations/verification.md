@@ -35,6 +35,14 @@ container run --detach --name "$CANDIDATE_NAME" \
   --mount "type=bind,source=$CANDIDATE_DIR/data,target=/data" \
   --mount "type=bind,source=$CANDIDATE_DIR/results,target=/results" \
   "$CANDIDATE_IMAGE"
+for attempt in $(seq 1 120); do
+  curl --fail --silent http://127.0.0.1:18080/api/health >/dev/null && break
+  if [ "$attempt" -eq 120 ]; then
+    container logs "$CANDIDATE_NAME"
+    exit 1
+  fi
+  sleep 1
+done
 ```
 
 Preparation rejects tracked or untracked changes and archives `CANDIDATE_REF`.
@@ -42,6 +50,10 @@ The candidate data and results directories are separate from deployed data. The
 container starts one PHP process, one PHP extension process, one Go process and
 one Rust process from the same source archive. PHP uses Composer classes. The PHP
 extension process loads both `ordered_json.so` and `crudui.so`.
+Image construction runs the browser-independent source and library checks. The
+container runs the complete suite as the application user with the Chromium
+sandbox enabled before it starts the four servers. The readiness loop fails and
+prints the container log when those checks or server startup fail.
 
 Run the processor-mode, generation, persistence and JSON checks inside the
 candidate container:

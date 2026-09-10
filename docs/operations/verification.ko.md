@@ -35,6 +35,14 @@ container run --detach --name "$CANDIDATE_NAME" \
   --mount "type=bind,source=$CANDIDATE_DIR/data,target=/data" \
   --mount "type=bind,source=$CANDIDATE_DIR/results,target=/results" \
   "$CANDIDATE_IMAGE"
+for attempt in $(seq 1 120); do
+  curl --fail --silent http://127.0.0.1:18080/api/health >/dev/null && break
+  if [ "$attempt" -eq 120 ]; then
+    container logs "$CANDIDATE_NAME"
+    exit 1
+  fi
+  sleep 1
+done
 ```
 
 준비 명령은 추적하거나 추적하지 않은 변경을 거부하고 `CANDIDATE_REF`를
@@ -42,6 +50,10 @@ container run --detach --name "$CANDIDATE_NAME" \
 같은 소스 아카이브에서 PHP, PHP 확장, Go, Rust 프로세스를 각각 하나씩 시작합니다.
 PHP는 Composer 클래스를 사용하고 PHP 확장 프로세스는 `ordered_json.so`와
 `crudui.so`를 함께 로드합니다.
+이미지 생성 단계는 브라우저 비의존 소스·라이브러리 검사를 실행합니다. 컨테이너는
+Chromium 샌드박스를 활성화하고 애플리케이션 사용자로 전체 스위트를 실행한 후 네
+서버를 시작합니다. 검사나 서버 시작이 실패하면 준비 확인도 실패하고 컨테이너 로그를
+출력합니다.
 
 후보 컨테이너 안에서 처리 모드·생성·저장·JSON 검사를 실행합니다.
 
