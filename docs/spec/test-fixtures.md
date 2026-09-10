@@ -68,5 +68,12 @@ against the resulting fixture and record current results in
 [feature status](../features.md). Counts and deployment results do not belong in
 the fixture format contract.
 
+Tests executed from a candidate archive create writable scratch fixtures under
+the operating system temporary directory. They resolve that directory to one
+canonical absolute path and use only regular path components. Candidate tests do
+not require Git metadata and do not write scratch fixtures under the extracted
+source directory. Each test creates a unique directory and removes it after the
+test completes.
+
 [Form verification](../operations/verification.md) defines the separate rendering,
 DOM, style, control-state and browser interaction checks.
