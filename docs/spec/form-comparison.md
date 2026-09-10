@@ -27,6 +27,12 @@ from earlier runs. It never removes the active deployment container, image or
 data. While a candidate runs, its commit-specific directory may contain build
 context, mutable test data, individual reports and screenshots.
 
+Candidate verification resolves the container executable from one installed
+package record. The record identifies one versioned installation directory and
+one regular executable file. Relative paths, symbolic links, missing records,
+multiple matching records and alternate command providers are rejected. Runtime
+resolution does not try another path after an invalid result.
+
 When every candidate check succeeds, verification stops and removes the
 candidate container. It retains only the candidate image and these deployment
 inputs: `context/metadata.json`, `results/generation.json`,
@@ -44,6 +50,14 @@ contract required by the Chromium sandbox. After the image starts, the complete
 source suite, including the Chromium process check, runs as the unprivileged
 application user with the Chromium sandbox enabled. A candidate fails when
 either the construction checks or the complete runtime source suite fails.
+
+Each child server publishes one readiness event after binding its listening
+socket. The parent waits for those events and then sends one health request to
+each child to verify its source and implementation. After the public server
+binds its socket, it atomically publishes one candidate readiness file. The host
+subscribes to that file before starting the container and waits for either the
+file event or container termination. Startup uses no sleep interval, retry loop
+or periodic health request.
 
 ## Implementations and requests
 
