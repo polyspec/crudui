@@ -76,18 +76,19 @@ test('rejects a missing Composer validator package record', () => {
   assert.match(result.stderr + result.stdout, /Missing Composer package record: crudui\/validator/);
 });
 
-test('rejects multiple Composer validator package records', () => {
+test('uses the selected generator record with another Composer installation', () => {
   const result = php([
     'require ', JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php')), ';',
     'class_exists(CRUDUI\\Generator::class);class_exists(CRUDUI\\Form::class);',
     'class_exists(CRUDUI\\Validator::class);',
-    '$installed=Composer\\InstalledVersions::getRawData();',
-    'Composer\\InstalledVersions::reload($installed);',
+    'require ', JSON.stringify(path.join(library, 'packages/validator-php/vendor/autoload.php')), ';',
     'new FormGeneration("php",', JSON.stringify(library),
-    ',$source,', JSON.stringify(archiveSha256), ',null);',
+    ',$source,', JSON.stringify(archiveSha256), ',null);echo "ok\\n";',
   ].join(''));
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /Multiple Composer package records: crudui\/validator/);
+  assert.equal(result.error, undefined);
+  assert.equal(result.signal, null);
+  assert.equal(result.status, 0, result.stderr + '\n' + result.stdout);
+  assert.equal(result.stdout, 'ok\n');
 });
 
 test('rejects a Composer validator package outside the candidate vendor directory', () => {
