@@ -167,6 +167,18 @@ test('CI and container clean installs enforce script approvals', () => {
   assert.deepEqual(failures, []);
 });
 
+test('container Composer installs declare the repository package version', () => {
+  const version = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')).version;
+  const failures = trackedInstallDefinitionFiles().filter((filename) => {
+    if (!/(?:^|\/)[^/]*(?:Containerfile|Dockerfile)$/.test(filename)) return false;
+    const source = readFileSync(path.join(root, filename), 'utf8');
+    return /\bcomposer(?:\s+--[^\s]+)*\s+install\b/.test(source)
+      && !new RegExp('\\bCOMPOSER_ROOT_VERSION=' + version.replaceAll('.', '\\.')
+        + '\\b').test(source);
+  });
+  assert.deepEqual(failures, []);
+});
+
 test('Composer path repositories install local packages as copies', () => {
   const failures = [];
   for (const filename of trackedComposerFiles('composer.json')) {
