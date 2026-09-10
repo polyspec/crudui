@@ -11,7 +11,7 @@ import { isEmpty } from './required';
  * Check if a value is a valid number.
  * Validation semantics principle: an input value must be a finite real number.
  * "Infinity"/"-Infinity"/"NaN" are rejected (number error). This is the input
- * value gate only — min/max threshold parameters keep accepting Infinity.
+ * value check does not change min/max threshold parameter handling.
  */
 export function isValidNumber(value: unknown): boolean {
   if (typeof value === 'number') {

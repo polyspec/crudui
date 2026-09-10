@@ -2,7 +2,6 @@
  * In list validation rule
  *
  * Validates that a value is one of the allowed values.
- * Ported from PHP validator-php Rules/In.php.
  */
 
 import { RuleDefinition, ValidationContext } from '../types';

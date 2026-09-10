@@ -7,7 +7,7 @@
  *
  * This file mechanizes the analysis `key_mappings`/`roundtrip_rule` verbatim:
  * every legacy key the translator recognizes is listed once here, tagged reversible
- * or not. Reversibility is the SINGLE GATE the round-trip test reads — a key the
+ * or not. The round-trip test reads the reversibility tag. A key the
  * table marks `reversible:false` is a legacy-transcending (R7) absorption and is
  * excluded from the legacy→schema→legacy bit-identity guarantee, with the reason recorded.
  *
@@ -26,7 +26,7 @@ export type SchemaSpec = Record<string, unknown>;
 /**
  * Why a legacy key is NOT round-trippable. Each value is an R7 legacy-transcend
  * reason taken from the analysis `irreversible_notes` — the translator records
- * it so the round-trip gate can EXCLUDE the key and explain the exclusion rather
+ * it so the round-trip check can exclude the key and explain the reason rather
  * than silently dropping the guarantee.
  */
 export type IrreversibleReason =
@@ -76,7 +76,7 @@ export type IrreversibleReason =
  *   - `from-legacy.ts` consults it as the authoritative R7-reason registry: every
  *     reason the forward translator records (`note()`) must be a row the table
  *     marks `reversible:false` — an unregistered reason throws.
- *   - the round-trip gate (`index.ts roundtripLegacy`) splits cases by whether the
+ *   - the round-trip check (`index.ts roundtripLegacy`) splits cases by whether the
  *     forward pass logged any such reason (reversible = empty note log).
  *   - `translate.unit.test.ts` asserts table integrity (every irreversible row
  *     carries a reason, every reversible row omits it).
@@ -99,7 +99,7 @@ export interface KeyMapping {
 
 /**
  * The canonical key-mapping table (single truth, mechanized from the analysis).
- * The round-trip gate splits cases by `reversible` here; the meta-schema/
+ * The round-trip check splits cases by `reversible` here; the meta-schema and
  * forbidden-scan validate the OUTPUT shape independently.
  */
 export const KEY_MAPPINGS: readonly KeyMapping[] = [
@@ -193,7 +193,7 @@ export interface TranslateResult {
   schema: SchemaSpec;
   /**
    * One note per irreversible absorption that fired during translation, so a
-   * round-trip gate can exclude the affected field and surface WHY (R7). A field
+   * round-trip check can exclude the affected field and report the reason (R7). A field
    * whose log is empty is in the reversible set.
    */
   notes: TranslateNote[];

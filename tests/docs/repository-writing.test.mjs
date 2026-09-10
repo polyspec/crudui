@@ -36,7 +36,11 @@ function trackedFiles() {
 }
 
 function markdownProse(source) {
-  return source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '');
+  return removeInlineCode(source.replace(/^```[^\n]*\n[\s\S]*?^```/gm, ''));
+}
+
+function removeInlineCode(source) {
+  return source.replace(/`[^`\n]+`/g, '');
 }
 
 function sourceComments(source) {
@@ -47,7 +51,7 @@ function sourceComments(source) {
     if (slash >= 0 && line[slash - 1] !== ':') comments.push(line.slice(slash));
     if (/^\s*#(?![!])/.test(line)) comments.push(line);
   }
-  return comments.join('\n');
+  return removeInlineCode(comments.join('\n'));
 }
 
 function jsonDescriptions(source) {
@@ -60,7 +64,7 @@ function jsonDescriptions(source) {
     }
   }
   visit(JSON.parse(source));
-  return values.join('\n');
+  return removeInlineCode(values.join('\n'));
 }
 
 function maintainedProse(file, source) {
@@ -69,6 +73,16 @@ function maintainedProse(file, source) {
   if (sourceExtensions.has(path.extname(file))) return sourceComments(source);
   return '';
 }
+
+test('repository prose extraction excludes inline code only', () => {
+  assert.equal(markdownProse('Uses `gate` as an identifier.'), 'Uses  as an identifier.');
+  assert.equal(sourceComments('// Calls `gate()`.'), '// Calls .');
+  assert.equal(
+    jsonDescriptions('{"description":"Returns `gate` unchanged."}'),
+    'Returns  unchanged.',
+  );
+  assert.match(markdownProse('The gate accepts the result.'), /\bgates?\b/i);
+});
 
 test('maintained repository prose describes current operations directly', () => {
   const failures = [];

@@ -12,7 +12,7 @@ import { isEmpty } from './required';
  * Returns null for strings that aren't valid complete numbers (e.g., "12abc").
  * Validation semantics principle: input values must be finite real numbers, so
  * "Infinity"/"-Infinity"/"NaN" return null (the number rule reports them). This
- * is the input value gate only — min/max threshold parameters (Number(ruleParam)
+ * applies only to input values; min/max threshold parameters (Number(ruleParam)
  * in min/max rules) keep accepting Infinity.
  */
 export function toNumber(value: unknown): number | null {

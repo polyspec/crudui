@@ -2,14 +2,14 @@
  * CRUDUI list-spec validation conformance — JS reference verification (SPEC §9).
  *
  * The read sister of validate.conformance.test.ts. It pins the four-language
- * STRUCTURE gate for a list-spec: compose ($ref/$patch on the columns map and a
+ * structure check for a list-spec: compose ($ref/$patch on the columns map and a
  * `{ $ref, $patch }` search overlay) + forbidden-scan over the whole composed
  * list tree. It does NOT validate rows — a list has no data (rows are injected,
  * SPEC §9).
  *
  * It runs the SHARED fixture tests/fixtures/list-validity/cases.json — the
- * SAME file the ajv meta-schema gate (list-metaschema.conformance.test.ts) reads.
- * The two gates own different halves and the fixture says which:
+ * same file the Ajv meta-schema check reads. The fixture identifies which
+ * checker owns each requirement:
  *  - `engine: "pass"`                       — the four-language engine has NO
  *    opinion (a "schema shape" check: required/enum/additionalProperties/anyOf).
  *    The meta-schema may still REJECT it; the engine must NOT throw.
@@ -74,13 +74,13 @@ describe('list validate — every case declares an engine expectation', () => {
 describe('list validate — engine:pass loads clean (no rows validated)', () => {
   for (const c of cases.filter((x) => x.engine === 'pass')) {
     test(c.name, () => {
-      // The structure gate must NOT throw. A meta-schema-only RED case
+      // The structure check does not reject a meta-schema-only invalid case
       // (required/enum/additionalProperties/anyOf) is the meta-schema's job,
       // never this engine's — so it loads clean here.
       let result: ReturnType<typeof validateList> | undefined;
       expect(() => {
         result = run(c);
-      }, `${c.name} must not be rejected by the four-language structure gate`).not.toThrow();
+      }, `${c.name} must not be rejected by the four-language structure check`).not.toThrow();
       // No rows → no data validation: a clean load is always { valid:true, errors:[] }.
       expect(result).toStrictEqual({ valid: true, errors: [] });
     });
