@@ -1,5 +1,5 @@
 FROM rust:1.98.0-slim-trixie AS rust
-FROM golang:1.27.0-trixie AS go
+FROM golang:1.27-trixie AS go
 FROM node:26-trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

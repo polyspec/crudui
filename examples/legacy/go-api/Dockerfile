@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.27.0-trixie AS builder
+FROM golang:1.27-trixie AS builder
 
 WORKDIR /app
 
