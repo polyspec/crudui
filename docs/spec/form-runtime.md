@@ -100,6 +100,11 @@ textarea, selection, checkbox, language fields and conditional display.
 Native typing preserves focus and text selection when rendering replaces an
 input element. A duplicate change event with the same value must not replace
 the pending focus state.
+Each native input event updates the form instance before the framework renders
+the next view. Consecutive input events preserve the value accepted by every
+preceding event. After rendering completes, the active control value, instance
+value and revision represent the last input event. Replacing a control during
+rendering must not interrupt the active editing sequence.
 
 Adding or copying a row preserves the active control, its text selection and
 ancestor scroll positions. Pointer activation of a row button retains the current
@@ -139,6 +144,8 @@ application.
 7. Verify keyed scalar and group validation with shared four-language cases.
 8. Activate row addition with pointer and keyboard input; preserve focus, text
    selection and scroll positions in React, Vue and Svelte.
+9. Send consecutive native input events across framework renders; retain every
+   accepted edit and finish with matching control and instance values.
 
 ## Input labels and selection
 
