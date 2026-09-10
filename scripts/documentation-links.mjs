@@ -17,7 +17,7 @@ export function repositoryLink(href, sourceFile, repositoryRoot) {
   return `https://github.com/crudui/crudui/${operation}/main/${path}${href.slice(pathname.length)}`;
 }
 
-/** Apply repository source links before VitePress checks site links. */
+/** Apply repository source links before the site build checks local links. */
 export function configureRepositoryLinks(markdown, repositoryRoot) {
   const renderLink = markdown.renderer.rules.link_open;
   markdown.renderer.rules.link_open = (tokens, index, options, environment, renderer) => {
