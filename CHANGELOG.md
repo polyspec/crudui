@@ -4,10 +4,11 @@
 
 ## 2026-09-10 — Selected runtime channels
 
-CI and Node.js container stages select Node.js 26 as the next LTS release line
-without fixing a patch release. CI installs the current stable npm release. The
-runtime policy check requires the same even-numbered Node.js line in
-`.node-version`, CI and container definitions. Package lock files continue to
+`.node-version`, CI and Node.js container stages select Node.js 26 as the next
+LTS release line without fixing a patch release. `.go-version`, CI and Go
+container stages select the Go 1.27 stable release line. Rust CI and container
+stages select the stable Rust channel. CI installs the current stable npm
+release. All six runtime policy checks passed. Package lock files continue to
 record resolved package versions.
 
 ## 2026-09-10 — Four-server candidate verification
