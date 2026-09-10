@@ -37,7 +37,8 @@ import {
   escText,
 } from './raw';
 
-type AnyWidget = WidgetModel | UnsupportedVM;
+/** Widget model accepted by the renderer, including unsupported markers. */
+export type AnyWidget = WidgetModel | UnsupportedVM;
 
 function isUnsupported(w: AnyWidget): w is UnsupportedVM {
   return (w as UnsupportedVM).unsupported === true;

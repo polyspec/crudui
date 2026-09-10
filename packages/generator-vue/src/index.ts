@@ -14,6 +14,7 @@ export type { UnsupportedMode } from '@crudui/generator-core';
 export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
 export { fieldVNode } from './components/Field';
 export { Widget } from './components/Widget';
+export type { AnyWidget } from './components/Widget';
 
 // List models and rendering.
 export { buildList } from '@crudui/generator-core';

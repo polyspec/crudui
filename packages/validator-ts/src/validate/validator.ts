@@ -94,7 +94,7 @@ export const MEMBERSHIP_PARAM_RULES = ['in'];
 // ---------------------------------------------------------------------------
 
 /** A CRUDUI field after compose: a plain object with the role slots. */
-type ComposedField = Record<string, unknown>;
+export type ComposedField = Record<string, unknown>;
 
 /**
  * Normalize a polymorphic `validate` slot to a rule map. `false` → no rules;

@@ -5,10 +5,20 @@ export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptio
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
 export { connectForm } from './dom';
+export type { FormConnection } from './dom';
 export { parseStyle } from './css';
 export type { StyleDeclaration } from './css';
 
-export type { FieldViewModel, UnsupportedMode, RowVM, LangChildVM, UnsupportedVM, BuildState } from './viewmodel';
+export type {
+  FieldShape,
+  FieldViewModel,
+  UnsupportedMode,
+  RowVM,
+  LangChildVM,
+  UnsupportedVM,
+  BuildState,
+  MultipleSettings,
+} from './viewmodel';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';
 export { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL, hasWidget } from './widget';
 
