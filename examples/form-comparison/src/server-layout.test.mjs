@@ -8,6 +8,8 @@ import {
 } from './server-layout.mjs';
 
 const serverSource = await readFile(new URL('../server.mjs', import.meta.url), 'utf8');
+const goSource = await readFile(new URL('../servers/go/main.go', import.meta.url), 'utf8');
+const rustSource = await readFile(new URL('../servers/rust/src/main.rs', import.meta.url), 'utf8');
 
 test('uses the candidate source archive and extracted source directory', () => {
   assert.equal(sourceArchiveFile, '/archives/source.tar');
@@ -33,7 +35,19 @@ test('starts one current process for each server implementation', () => {
   for (const process of processes) {
     assert.equal(process.args.includes('/workspace/public'), true);
     assert.equal(process.args.some(value => /original|corrected|keyed/.test(value)), false);
+    assert.equal(process.ready.pattern instanceof RegExp, true);
+    assert.equal(process.ready.pattern.test(process.ready.example), true);
   }
+});
+
+test('uses child and filesystem events for candidate startup', () => {
+  assert.equal(serverSource.includes('for (let attempt'), false);
+  assert.equal(serverSource.includes('setTimeout'), false);
+  assert.match(serverSource, /waitForChildReadiness/);
+  assert.match(serverSource, /publishCandidateReadiness/);
+  assert.equal(serverSource.includes("httpServer.once('listening'"), true);
+  assert.match(goSource, /CRUDUI_READY go/);
+  assert.match(rustSource, /CRUDUI_READY rust/);
 });
 
 test('uses the current public API parser and forwards the rendering path', () => {
