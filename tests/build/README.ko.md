@@ -6,11 +6,15 @@
 
 ```sh
 npm ci
+npm run test:dependencies
 npm run build
 npm run test:build
 npm run test:build:repeat
 npm run test:packages
 ```
+
+`test:dependencies`는 잘못되거나 누락되거나 충돌하는 설치 패키지를 거부합니다.
+또한 고정된 의존성 그래프에서 보고된 중간·높음·치명적 취약점을 거부합니다.
 
 `test:build`는 validator·generator-core·generator-react를 공개 CommonJS·ESM
 export로 로드합니다. `skipLibCheck: false`인 엄격한 NodeNext 타입 소비자를
