@@ -45,10 +45,11 @@ do not install or verify the external editor implementations.
 
 ## Apple container
 
-The container definition includes PHP 8.4 and its development headers, Node
-26.8.1, Go 1.27.0, Rust 1.98.0, Composer and Chromium. Build from the complete
-repository context. Generated host dependencies and binaries are excluded.
-Dependencies are installed from the package lock files inside the image.
+The container definition includes PHP 8.4 and its development headers, the Node
+26 and Go 1.27 release lines, the stable Rust channel, Composer and Chromium.
+Build from the complete repository context. Generated host dependencies and
+binaries are excluded. Dependencies are installed from the package lock files
+inside the image.
 
 ```sh
 container build --cpus 4 --memory 4g \
