@@ -6,12 +6,17 @@ Run from the repository root:
 
 ```sh
 npm ci
+npm run test:runtimes
 npm run test:dependencies
 npm run build
 npm run test:build
 npm run test:build:repeat
 npm run test:packages
 ```
+
+`test:runtimes` rejects numeric Node.js releases in CI and container definitions
+and rejects a numeric npm release in CI. These definitions select the current
+LTS Node.js channel and current stable npm channel.
 
 `test:dependencies` rejects invalid, missing and conflicting installed packages.
 It also rejects moderate, high and critical advisories reported for the locked
