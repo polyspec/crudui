@@ -6,7 +6,9 @@ import test from 'node:test';
 
 import {
   cleanupCandidateArtifacts, compactCandidateEvidence, planCandidateArtifactCleanup,
+  readCandidateResources,
 } from './candidate-artifacts.mjs';
+import { resolveContainerExecutable } from './container-runtime.mjs';
 
 const currentCommit = 'a'.repeat(40);
 const staleCommit = 'b'.repeat(40);
@@ -127,3 +129,61 @@ test('rejects cleanup and compaction outside the candidate root', async t => {
   }), /Candidate commit must contain 40 lowercase hexadecimal characters/);
 });
 
+test('reads candidate resources from container JSON and direct directories', async t => {
+  const root = await temporary(t, 'crudui-candidate-resources-');
+  await mkdir(path.join(root, currentCommit));
+  const calls = [];
+  const resources = await readCandidateResources({
+    candidateRoot: root,
+    runCommand: async (command, args) => {
+      calls.push([command, args]);
+      if (args[0] === 'list') {
+        return { stdout: JSON.stringify([{
+          id: candidateContainer(currentCommit),
+          status: { state: 'running' },
+          configuration: { image: { reference: currentImage } },
+        }]) };
+      }
+      return { stdout: JSON.stringify([{
+        configuration: { name: currentImage },
+      }]) };
+    },
+  });
+  assert.deepEqual(calls, [
+    ['container', ['list', '--all', '--format', 'json']],
+    ['container', ['image', 'list', '--format', 'json']],
+  ]);
+  assert.deepEqual(resources, {
+    containers: [{ id: candidateContainer(currentCommit), state: 'running',
+      imageReference: currentImage }],
+    imageReferences: [currentImage],
+    candidateDirectories: [path.join(root, currentCommit)],
+  });
+});
+
+test('resolves the container executable from explicit, PATH and Homebrew locations', async () => {
+  const executableFiles = new Set([
+    '/explicit/container', '/path/bin/container', '/brew/bin/brew',
+    '/opt/container/bin/container',
+  ]);
+  const accessFile = async file => {
+    if (!executableFiles.has(file)) throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+  };
+  assert.equal(await resolveContainerExecutable({
+    environment: { CONTAINER_BIN: '/explicit/container', PATH: '' }, accessFile,
+  }), '/explicit/container');
+  assert.equal(await resolveContainerExecutable({
+    environment: { PATH: '/path/bin' }, accessFile,
+  }), '/path/bin/container');
+  assert.equal(await resolveContainerExecutable({
+    environment: { PATH: '/brew/bin' }, accessFile,
+    execute: async (file, args) => {
+      assert.equal(file, '/brew/bin/brew');
+      assert.deepEqual(args, ['--prefix', 'container']);
+      return { stdout: '/opt/container\n' };
+    },
+  }), '/opt/container/bin/container');
+  await assert.rejects(resolveContainerExecutable({
+    environment: { CONTAINER_BIN: 'relative/container', PATH: '' }, accessFile,
+  }), /CONTAINER_BIN must contain an absolute path/);
+});
