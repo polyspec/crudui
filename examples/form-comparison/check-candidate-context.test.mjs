@@ -42,6 +42,20 @@ test('runs browser checks after image construction as the application user', asy
   assert.doesNotMatch(application, /--no-sandbox/);
 });
 
+test('includes the browser process check only in the complete runtime suite', async () => {
+  const packageJson = JSON.parse(await readFile(
+    new URL('../../package.json', import.meta.url), 'utf8'));
+  const scripts = packageJson.scripts;
+  assert.equal(scripts['test:form-comparison'],
+    'npm run test:form-comparison:build && npm run test:form-comparison:browser');
+  assert.equal(scripts['test:form-comparison:build'],
+    'npm run test:form-comparison:source && npm run test:form-comparison:library');
+  assert.ok(scripts['test:form-comparison:source'].includes('src/*.test.mjs'));
+  assert.doesNotMatch(scripts['test:form-comparison:source'], /browser-job\.browser\.mjs/);
+  assert.equal(scripts['test:form-comparison:browser'],
+    'node --test examples/form-comparison/src/browser-job.browser.mjs');
+});
+
 test('passes a large source archive to Git through a file descriptor', t => {
   const directory = mkdtempSync(path.join(tmpdir(), 'crudui-candidate-context-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
