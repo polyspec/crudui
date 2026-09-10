@@ -13,5 +13,6 @@ rm -rf \
   native/values.dep native/values.lo
 phpize
 ./configure --enable-crudui
+mkdir -p native/.libs
 make -j"${CRUDUI_BUILD_JOBS:-2}"
 php -n -d "extension=$project_root/packages/php-ext/modules/crudui.so" --ri crudui
