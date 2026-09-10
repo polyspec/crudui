@@ -1,5 +1,5 @@
 /**
- * Legacy-client vs new-validator comparison gate.
+ * Compares the legacy client with the current validator.
  *
  * Drives the legacy browser runtime (examples/legacy/limepie-original/assets/js/
  * dist.validate.js) under jsdom+jQuery via ./adapter and compares its
@@ -7,18 +7,17 @@
  * client replacement; PHP/Go/Rust already agree with it per
  * tests/runner/compare-all.js). The case `expected` is also recorded.
  *
- * This is the missing axis: compare-all.js deliberately excludes the legacy
- * runtime. This gate asks "does the legacy browser verdict still match the new
- * stack?" — and where it does not, surfaces the exact client<->server gap.
+ * compare-all.js excludes the legacy runtime. This comparison reports whether
+ * the legacy browser result matches the current validator and lists each difference.
  *
  * Verdict classes per case:
  *   match      legacy == validator-ts
  *   gap        legacy != validator-ts AND listed in known-gaps.js (documented)
- *   regression legacy != validator-ts AND NOT documented  -> gate FAILS
+ *   regression legacy != validator-ts AND NOT documented  -> comparison fails
  *   excluded   legacy cannot be faithfully driven (array/file/display_switch/
  *              absolute-path-resolution/etc.) -> not compared
  *
- * The gate also fails if a documented gap stops reproducing (stale list).
+ * The comparison also fails if a documented difference no longer reproduces.
  */
 const fs = require('fs');
 const path = require('path');
@@ -26,7 +25,9 @@ const { runLegacyCase } = require('./adapter');
 const knownGaps = require('./known-gaps');
 
 const CASES_DIR = path.join(__dirname, '..', 'cases');
-const JS_VALIDATOR = path.join(__dirname, '..', '..', 'packages', 'validator-ts', 'dist', 'index.js');
+const JS_VALIDATOR = path.join(
+  __dirname, '..', '..', 'packages', 'validator-ts', 'dist', 'legacy', 'index.js'
+);
 
 function loadJs() {
   // eslint-disable-next-line global-require, import/no-dynamic-require
@@ -55,7 +56,7 @@ function caseKey(file, id, ci) {
 }
 
 /**
- * Run the full gate.
+ * Run the complete comparison.
  * @returns {{
  *   total:number, matched:number, gaps:number, excluded:number,
  *   regressions:Array, staleGaps:Array, exclusionsByReason:Object,
@@ -151,7 +152,7 @@ if (require.main === module) {
     reset: '\x1b[0m', red: '\x1b[31m', green: '\x1b[32m',
     yellow: '\x1b[33m', cyan: '\x1b[36m', gray: '\x1b[90m', bold: '\x1b[1m',
   };
-  console.log(`${C.bold}${C.cyan}Legacy-client vs new-validator gate${C.reset}`);
+  console.log(`${C.bold}${C.cyan}Legacy-client vs current-validator comparison${C.reset}`);
   console.log(`${C.gray}legacy: examples/legacy/limepie-original/assets/js/dist.validate.js (jsdom+jQuery)${C.reset}`);
   console.log(`${C.gray}new:    packages/validator-ts/dist (PHP/Go/Rust agree per compare-all.js)${C.reset}\n`);
 
@@ -179,7 +180,7 @@ if (require.main === module) {
   }
 
   if (r.regressions.length) {
-    console.log(`\n${C.red}${C.bold}UNDOCUMENTED mismatches (gate FAIL):${C.reset}`);
+    console.log(`\n${C.red}${C.bold}Undocumented mismatches (comparison failed):${C.reset}`);
     for (const d of r.regressions) {
       console.log(`  ${C.red}${d.key}${C.reset} input=${JSON.stringify(d.input)}`);
       console.log(`     legacy: valid=${d.legacy.valid} error=${d.legacy.error}`);
@@ -189,6 +190,6 @@ if (require.main === module) {
   }
 
   const ok = r.regressions.length === 0 && r.staleGaps.length === 0;
-  console.log(`\n${ok ? C.green + 'GATE PASS' : C.red + 'GATE FAIL'}${C.reset}`);
+  console.log(`\n${ok ? C.green + 'COMPARISON PASSED' : C.red + 'COMPARISON FAILED'}${C.reset}`);
   process.exit(ok ? 0 : 1);
 }

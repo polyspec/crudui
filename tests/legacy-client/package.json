@@ -1,7 +1,7 @@
 {
   "name": "@crudui/legacy-client-gate",
   "version": "0.0.1",
-  "description": "Gate comparing the legacy jQuery client runtime (dist.validate.js) against the new validators (client<->server idempotency)",
+  "description": "Compares the legacy jQuery client runtime with the current validators.",
   "private": true,
   "main": "gate.js",
   "scripts": {

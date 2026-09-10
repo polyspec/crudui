@@ -1,14 +1,14 @@
 /**
  * Documented client(legacy dist.validate.js) <-> server(new validator-ts/php/
- * go/rust) semantic divergences surfaced by this gate.
+ * go/rust) semantic differences reported by this comparison.
  *
  * Each entry is a real idempotency gap: the legacy browser runtime and the new
  * validators disagree on the SAME spec + input. These are NOT adapter bugs —
  * they reflect how dist.validate.js actually behaves (verified by driving its
  * own check()/methods under jsdom).
  *
- * Keyed by "<suiteFile> <testId>[<caseIndex>]". The gate treats a mismatch as
- * EXPECTED only if it is listed here. Any mismatch NOT listed fails the gate
+ * Keyed by "<suiteFile> <testId>[<caseIndex>]". The comparison treats a mismatch as
+ * expected only if it is listed here. Any unlisted mismatch fails the comparison
  * (regression guard); any listed entry that stops mismatching also fails (so
  * the list cannot rot).
  *
@@ -40,6 +40,6 @@
  *     (number.ts isFinite). Both runtimes now report the SAME rule key.
  *
  * No documented gaps remain: the legacy client matches the new validators on
- * every comparable case. Any new mismatch fails the gate (regression guard).
+ * every comparable case. Any new mismatch fails the comparison.
  */
 module.exports = {};

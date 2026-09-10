@@ -1,6 +1,6 @@
 // Sweep every suite through the adapter vs validator-ts; print per-suite and
-// total match/mismatch/skip. Used for adapter development; the real gate is
-// gate.test (vitest) and gate.js.
+// total match/mismatch/skip. Used for adapter development; the Vitest suite and
+// CLI module run the complete comparison.
 const fs = require('fs');
 const path = require('path');
 const { runLegacyCase } = require('./adapter');
