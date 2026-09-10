@@ -171,11 +171,8 @@ pub fn compose_spec(
 
 #[cfg(test)]
 mod order_tests {
-    //! RAW key-order tests for the composition tree — assert the literal key
-    //! SEQUENCE (no sorting). serde_json `Value` `PartialEq` is order-insensitive,
-    //! so the cross-language fixture (which uses `==`) cannot catch a reorder; legacy
-    //! positional array_merge makes declaration order load-bearing. These turn RED
-    //! if a `remove()` (swap_remove) regression re-enters a re-insert path.
+    //! Verify the literal unsorted key sequence for the composition tree. Value
+    //! equality does not detect reordering, so these tests compare keys directly.
 
     use super::{compose_properties, compose_spec, ComposeOptions};
     use crate::compose::loader::MemoryLoader;
