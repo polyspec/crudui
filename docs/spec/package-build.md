@@ -62,17 +62,20 @@ verified together with the relevant package and documentation checks.
 ## Runtime and dependency versions
 
 Release candidates use the latest active LTS release for runtimes that publish
-an LTS channel. Runtimes and tools without an LTS channel use the latest stable
-release supported by the project. Pre-release versions are excluded unless a
-specification explicitly requires one.
+an LTS channel. Node.js uses the newest even-numbered stable major designated as
+the active or next LTS release. This permits the next LTS major while it has
+Current status and excludes odd-numbered releases. Runtimes and tools without an
+LTS channel use the latest stable release supported by the project. Pre-release
+versions are excluded unless a specification explicitly requires one.
 
-Repository execution definitions select the current channel instead of a
-numeric runtime or tool release. Node.js CI selects `lts/*`, Node.js container
-stages use an `lts` image tag, and CI installs the current stable npm release. A
-candidate build resolves these channels once and records the resulting image and
-runtime versions in its verification evidence. A later build adopts a newer LTS
-or stable release and produces new evidence. Package lock files record resolved
-package versions; they do not select a runtime release.
+Repository execution definitions select a release channel instead of an exact
+patch release. `.node-version` records the selected Node.js major, CI reads that
+file, and Node.js container stages use the same major image tag. CI installs the
+current stable npm release. A candidate build resolves these channels once and
+records the resulting image and runtime versions in its verification evidence. A
+later build adopts a newer applicable release and produces new evidence. Package
+lock files record resolved package versions; they do not select a runtime
+release.
 
 Package manifests and lock files must resolve one valid dependency graph.
 `npm ls --all` must return status 0 without invalid, missing or conflicting

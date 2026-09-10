@@ -14,9 +14,9 @@ npm run test:build:repeat
 npm run test:packages
 ```
 
-`test:runtimes` rejects numeric Node.js releases in CI and container definitions
-and rejects a numeric npm release in CI. These definitions select the current
-LTS Node.js channel and current stable npm channel.
+`test:runtimes` requires one even-numbered Node.js release line in
+`.node-version`, CI and container definitions. It rejects exact Node.js patch
+releases and numeric npm releases. CI installs the current stable npm release.
 
 `test:dependencies` rejects invalid, missing and conflicting installed packages.
 It also rejects moderate, high and critical advisories reported for the locked
