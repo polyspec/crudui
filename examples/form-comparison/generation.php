@@ -165,20 +165,26 @@ final class FormGeneration
         }
     }
 
-    /** Return one regular package directory declared by Composer. */
+    /** Return one regular package directory from the selected Composer record. */
     private static function composerPackageDirectory(string $package, string $vendorDirectory): string
     {
-        if (!class_exists(Composer\InstalledVersions::class)) {
-            throw new RuntimeException('Composer installed-package records are unavailable');
+        $recordFile = self::regularFile(
+            $vendorDirectory . '/composer/installed.php',
+            'Composer installed-package record',
+        );
+        $installed = require $recordFile;
+        if (!is_array($installed) || !is_array($installed['versions'] ?? null)) {
+            throw new RuntimeException('Malformed Composer installed-package record');
         }
-        $directories = [];
-        foreach (Composer\InstalledVersions::getAllRawData() as $installed) {
-            $directory = $installed['versions'][$package]['install_path'] ?? null;
-            if (is_string($directory)) $directories[] = $directory;
+        if (!array_key_exists($package, $installed['versions'])) {
+            throw new RuntimeException('Missing Composer package record: ' . $package);
         }
-        if ($directories === []) throw new RuntimeException('Missing Composer package record: ' . $package);
-        if (count($directories) !== 1) throw new RuntimeException('Multiple Composer package records: ' . $package);
-        $directory = self::regularDirectory($directories[0], 'Composer package directory');
+        $record = $installed['versions'][$package];
+        $directory = is_array($record) ? ($record['install_path'] ?? null) : null;
+        if (!is_string($directory) || $directory === '') {
+            throw new RuntimeException('Malformed Composer package record: ' . $package);
+        }
+        $directory = self::regularDirectory($directory, 'Composer package directory');
         if (!str_starts_with($directory, $vendorDirectory . '/')) {
             throw new RuntimeException('Composer package is outside the candidate vendor directory: ' . $package);
         }
