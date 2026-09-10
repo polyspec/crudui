@@ -56,7 +56,7 @@ function workspacePackageDirectories() {
   });
 }
 
-function nativeGateNodeEntrypoints() {
+function nativeTestNodeEntrypoints() {
   const makefile = readFileSync(path.join(root, 'Makefile'), 'utf8');
   const target = makefile.match(/^test-native:[^\n]*\n((?:\t[^\n]*\n?)*)/m);
   assert.ok(target, 'Makefile must define test-native');
@@ -126,7 +126,7 @@ test('workspace packages use the root dependency lock file', () => {
   assert.deepEqual(failures, []);
 });
 
-test('native gate root imports are declared by the root package', () => {
+test('native test root imports are declared by the root package', () => {
   const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
   const workspaceNames = workspacePackageDirectories().map((directory) => {
     const workspace = JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8'));
@@ -140,7 +140,7 @@ test('native gate root imports are declared by the root package', () => {
     ...Object.keys(manifest.peerDependencies ?? {}),
     ...workspaceNames,
   ]);
-  const failures = nativeGateNodeEntrypoints().flatMap((filename) => (
+  const failures = nativeTestNodeEntrypoints().flatMap((filename) => (
     importedPackageNames(filename)
       .filter((packageName) => !declared.has(packageName))
       .map((packageName) => `${filename}: ${packageName}`)

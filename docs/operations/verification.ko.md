@@ -5,6 +5,8 @@
 저장소 루트에서 유지하는 패키지·폼 검사를 실행합니다.
 
 ```sh
+npm run test:dependencies
+make test-native
 npm run test:forms
 npm run test:form-comparison
 node --test tests/form-inspector/form-snapshot.test.mjs
@@ -12,6 +14,13 @@ node tests/form-inspector/browser.mjs
 npm run test:packages
 make docs-check
 ```
+
+후보 준비 전에 같은 커밋 소스에서 모든 명령이 종료 상태 0을 반환해야 합니다.
+`npm run test:dependencies`는 패키지 선언과 설치 정책을 검사합니다.
+`make test-native`는 PHP 확장을 빌드하고 로드한 뒤 PHP, Go, Rust, 공통 프로토콜,
+생성기 검사와 Chromium 위젯·시간대 검사를 실행합니다. 아래 후보 검사는 HTTP와
+브라우저 통합을 검사합니다. 저장소 검사 성공은 후보 검증을 대체하지 않으며 후보
+검증 성공도 저장소 검사를 대체하지 않습니다.
 
 폼 검사기는 검사 대상 폼을 변경하지 않고 HTML 원문, 파싱한 DOM, 계산된
 스타일, 현재 입력 상태를 비교합니다. 프레임워크 초기화 테스트는 초기 데이터와
@@ -87,8 +96,8 @@ node examples/form-comparison/check-browser-reports.mjs \
 집계는 시나리오 960개, 상호작용 240개, 마운트 24개, 일치하는 정적 문서 24개와
 성능 결과 4개의 통과를 요구합니다. 서버별 절대 제한은 900,000밀리초이고 진행 없음
 제한은 300,000밀리초입니다. 실패·누락·잘못된 형식·시간 초과 결과가 있으면 종료
-상태 1을 유지합니다. 모든 명령과 집계가 상태 0을 반환하고 집계에 `passed: true`를
-기록하기 전에는 후보를 배포하지 않습니다.
+상태 1을 유지합니다. 모든 저장소·후보 명령이 상태 0을 반환하고 집계에
+`passed: true`를 기록하기 전에는 후보를 배포하지 않습니다.
 
 보고서를 보존한 뒤 격리한 후보 컨테이너를 중지하고 제거합니다.
 
