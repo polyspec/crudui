@@ -18,9 +18,15 @@ into one additional build. A build failure is reported and the next source event
 can request another build. A file-system subscription failure closes the server
 with status 1.
 
+The candidate verification procedure runs one commit-specific lifecycle command.
+The command prepares and builds the candidate, subscribes to its readiness file
+before startup, runs the HTTP and browser checks sequentially and retains only
+verified deployment evidence. The procedure does not use a sleep interval or a
+readiness retry loop.
+
 The form-comparison source suite passed 129 checks, the generator construction
 performance suite passed four checks and the browser job suite passed one check.
-The documentation suite passed 14 checks. A development-server check returned
+The documentation suite passed 15 checks. A development-server check returned
 HTTP status 200, rebuilt once for one source event and returned status 0 after
 `SIGINT`.
 
