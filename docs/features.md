@@ -65,18 +65,21 @@ the report and run-log SHA-256 values are respectively
 `3f8a91ccbbdaf72c116f2749aa4b6f5cee0975567f6edcbe1372e602cdcf7442` and
 `378f4e3a63a88823b3a15b88859237332c27d36f43ee89bd62f9ad03cd38b0b1`.
 
-The form-comparison candidate uses one committed source archive and verifies its
-commit and SHA-256 digest before extraction. Image construction passed 81 source
-checks and four library checks. The running image passed the Chromium process
-check as the application user and started one PHP, PHP extension, Go and Rust
-server from that archive.
+Candidate `49b01c8237cd7b674c116c18e32ca9238c073134` uses one committed source
+archive and verifies its commit and SHA-256 digest before extraction. Image
+construction passed 81 source checks and four library checks. The image passed the
+Chromium process check as the application user and started one PHP, PHP extension,
+Go and Rust server from that archive.
 
 Generation and SSR passed 290 of 290 checks across 411 HTTP requests. Persistence
 and validation passed 120 of 120 checks. The browser aggregate passed 960 scenario
 checks, 240 interaction checks, 24 mount-before-load checks and 24 static-document
-checks with zero failures. Every server completed below the 900,000 millisecond
-limit, and the aggregate records `passed: true`. The candidate image is local,
-and packages and the comparison service are not deployed.
+checks with zero failures. PHP completed in 211,124 milliseconds, the PHP extension
+in 205,125 milliseconds, Go in 200,351 milliseconds and Rust in 199,736
+milliseconds. Every server completed below the 900,000 millisecond limit. The
+aggregate records `complete: true`, `passed: true`, `failedChecks: 0` and
+`performancePassed: true`. The candidate image is local, and packages and the
+comparison service are not deployed.
 
 ## Earlier validation and package verification
 
