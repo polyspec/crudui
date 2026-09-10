@@ -449,7 +449,7 @@ function translateSpec(legacy: LegacySpec, path: string[], notes: TranslateNote[
   // Bug 1: a node that has `properties` but no `type` is a group — inject
   // `type:'group'` so the output satisfies Field.required=['type']. The schema
   // forbids a property-bearing field without a type. The injection ADDS a key
-  // absent in legacy, so the node falls outside the bit-identity round-trip gate.
+  // absent in legacy, so the node is not part of the bit-identical round-trip set.
   if (out.type === undefined && isObject(out.properties)) {
     out.type = 'group';
     note(notes, path, 'type', 'TYPE_GROUP_INJECTED', 'properties present without type — type:group injected (Field.required=[type]); adds a key absent in legacy');

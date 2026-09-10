@@ -1,7 +1,7 @@
 /**
  * Reverse translator: schema spec object → legacy spec object — REVERSIBLE keys only.
  *
- * The round-trip gate (SPEC §6) is legacy→schema→legacy = original, and it holds ONLY over
+ * The round-trip check (SPEC §6) requires legacy→schema→legacy = original only for
  * the analysis reversible set. This reverse pass inverts exactly those schema
  * constructs back to their canonical legacy form:
  *
@@ -20,7 +20,7 @@
  *
  * It does NOT invert irreversible absorptions (display_switch / $patch /
  * x{key} / messages / plural targets / multiple:only) — those fields are
- * excluded from the round-trip gate by the translator's note log (R7). Feeding
+ * excluded from the reversible set by the translator's note log (R7). Feeding
  * an irreversible construct here is a no-op-ish best effort, never relied upon.
  *
  * Pure, recursive over `properties`. No `eval`. No mutation of the input.

@@ -23,7 +23,7 @@
  *     $ref/$patch) → forbidden-scan over the list tree. It validates NO rows (a
  *     list has no data; rows are injected, DB-agnostic), so `data` is ignored and
  *     a clean load is {"valid":true,"errors":[]}. The "schema shape" half
- *     (1급 closed / enum / required / CellFormat polymorphism) stays with the
+ *     (closed objects / enum / required / CellFormat polymorphism) stays with the
  *     meta-schema, not this engine.
  * This is a THIN wrapper: it adds no validation logic and never touches the legacy
  * Validator (R7 parallel run).
