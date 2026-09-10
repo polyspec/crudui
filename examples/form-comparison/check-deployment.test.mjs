@@ -11,6 +11,7 @@ import {
   expectedGenerationCombinations, expectedGenerationRequests, expectedGenerationResults,
   finalizeGenerationReport, generationFrameworks, generationRenderingPaths, generationServers,
 } from './check-generation.mjs';
+import { finalizePersistenceReport, persistenceCheckIds } from './persistence-report.mjs';
 
 const commit = 'a'.repeat(40);
 const metadata = {
@@ -52,14 +53,9 @@ function generationReport() {
 }
 
 function serverReport() {
-  return {
-    generatedAt: '2026-09-10T00:02:00.000Z', metadata, complete: true, passed: true,
-    failedChecks: 0,
-    results: generationServers.flatMap(server => generationRenderingPaths.flatMap(renderingPath =>
-      Array.from({ length: 15 }, (_, index) => ({
-        server, path: renderingPath, id: `check-${index}`, passed: true,
-      })))),
-  };
+  const results = generationServers.flatMap(server => generationRenderingPaths.flatMap(renderingPath =>
+    persistenceCheckIds.map(id => ({ server, path: renderingPath, id, passed: true }))));
+  return finalizePersistenceReport(results, metadata, '2026-09-10T00:02:00.000Z');
 }
 
 function browserSummary() {
@@ -125,6 +121,10 @@ test('renders one deterministic deployment definition for the verified image', (
   assert.ok(first.includes('./data:/data'));
   assert.ok(first.includes('./results:/results'));
   assert.match(first, new RegExp(commit));
+  const healthLine = first.split('\n').find(line => line.startsWith('      test: '));
+  const healthCommand = JSON.parse(healthLine.slice('      test: '.length));
+  assert.deepEqual(healthCommand.slice(0, 2), ['CMD', 'node']);
+  assert.doesNotThrow(() => new Function(healthCommand[3]));
 });
 
 test('rejects any change during identical deployment reapplication', () => {
