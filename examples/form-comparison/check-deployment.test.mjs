@@ -236,6 +236,26 @@ test('rejects deployment results cleanup outside the comparison directory', asyn
   assert.deepEqual(calls, []);
 });
 
+test('rejects a retired results directory outside a comparison state directory', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-retired-results-boundary-'));
+  t.after(() => import('node:fs/promises').then(({ rm }) =>
+    rm(directory, { recursive: true, force: true })));
+  const candidateRoot = path.join(directory, 'candidates');
+  const invalidResults = path.join(directory, 'results');
+  await mkdir(candidateRoot);
+  await mkdir(invalidResults);
+  const calls = [];
+  await assert.rejects(cleanupDeploymentArtifacts({
+    deployedImageReference: `localhost/crudui-form-comparison:${commit.slice(0, 12)}`,
+    candidateRoot,
+    deploymentResultsDirectory: path.join(directory, 'deployment/results'),
+    retiredResultsDirectories: [invalidResults],
+    resources: { candidateDirectories: [], containers: [], imageReferences: [] },
+    runCommand: async (...args) => { calls.push(args); },
+  }), /Retired results cleanup path is invalid/);
+  assert.deepEqual(calls, []);
+});
+
 test('rejects any change during identical deployment reapplication', () => {
   const snapshot = {
     container: { id: 'crudui-comparison', createdAt: 'one', startedAt: 'two',
