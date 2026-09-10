@@ -14,6 +14,7 @@ import {
 } from './check-generation.mjs';
 
 const source = { commit: 'a'.repeat(40), archiveSha256: 'b'.repeat(64) };
+const sourceDirectory = '/workspace/source';
 
 function phpProvenance() {
   return {
@@ -40,7 +41,20 @@ function phpProvenance() {
 }
 
 test('accepts the selected Composer validator in generation provenance', () => {
-  assert.doesNotThrow(() => assertGenerationProvenance(phpProvenance(), 'php', source));
+  assert.doesNotThrow(() => assertGenerationProvenance(
+    phpProvenance(), 'php', source, sourceDirectory));
+});
+
+test('rejects PHP class files outside the selected candidate locations', () => {
+  for (const file of [
+    '/workspace/source/packages/validator-php/src/Public/Validator.php',
+    '/other/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
+  ]) {
+    const actual = phpProvenance();
+    actual.classes['CRUDUI\\Validator'].file = file;
+    assert.throws(() => assertGenerationProvenance(
+      actual, 'php', source, sourceDirectory), /CRUDUI\\Validator\.file/);
+  }
 });
 
 function completeReport() {

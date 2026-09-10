@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { encodeJson, decodeJson } from './src/json.mjs';
+import { phpClassProvenanceFailure } from './src/php-provenance.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
 import { specFor } from './src/scenario.mjs';
 
@@ -160,7 +161,7 @@ function equalRendered(actual, expected) {
   assert.equal(actual.html, expected.html, 'Raw form HTML differs');
 }
 
-export function assertGenerationProvenance(actual, server, source) {
+export function assertGenerationProvenance(actual, server, source, sourceDirectory) {
   assert.ok(object(actual), 'Missing generator provenance');
   assert.equal(actual.runtime, server, 'Incorrect generator runtime');
   assert.equal(actual.commit, source.commit, 'Incorrect generator source commit');
@@ -170,20 +171,10 @@ export function assertGenerationProvenance(actual, server, source) {
     assert.equal(actual.nativeCRUDUI, native, 'Incorrect PHP generator implementation');
     if (native) assert.match(actual.moduleSha256, /^[a-f0-9]{64}$/, 'Missing native CRUDUI module hash');
     else assert.equal(actual.moduleSha256, null, 'Composer mode reports a native CRUDUI module');
-    assert.ok(object(actual.classes), 'Missing PHP class provenance');
-    const files = {
-      'CRUDUI\\Generator': '/packages/generator-php/src/Generator.php',
-      'CRUDUI\\Form': '/packages/generator-php/src/Form.php',
-      'CRUDUI\\Validator': '/packages/validator-php/src/Public/Validator.php',
-    };
-    assert.deepStrictEqual(Object.keys(actual.classes).sort(), Object.keys(files).sort(), 'PHP provenance must cover all three public classes');
-    for (const [name, suffix] of Object.entries(files)) {
-      const value = actual.classes[name];
-      assert.equal(value.internal, native, `${name}: incorrect internal class state`);
-      assert.equal(value.extension, native ? 'crudui' : null, `${name}: incorrect extension`);
-      if (native) assert.equal(value.file, null, `${name}: native class has a PHP source file`);
-      else assert.ok(typeof value.file === 'string' && path.isAbsolute(value.file) && value.file.endsWith(suffix), `${name}: incorrect PHP source file`);
-    }
+    const classFailure = phpClassProvenanceFailure(
+      actual.classes, native, sourceDirectory);
+    assert.equal(classFailure, null,
+      classFailure === null ? undefined : `Incorrect PHP class provenance: ${classFailure}`);
   }
 }
 
@@ -243,7 +234,8 @@ function oneNode(nodes, predicate, message) {
   return found[0];
 }
 
-function checkDocument(parse, markup, expected, server, renderingPath, framework, language, source, base) {
+function checkDocument(parse, markup, expected, server, renderingPath, framework, language,
+  source, sourceDirectory, base) {
   const document = parse(markup, { sourceCodeLocationInfo: true });
   const nodes = allNodes(document);
   const form = oneNode(nodes, node => node.tagName === 'form' && attr(node, 'id') === 'form', 'SSR must contain one form');
@@ -269,7 +261,7 @@ function checkDocument(parse, markup, expected, server, renderingPath, framework
   if (server === 'php' || server === 'php-ext') {
     const metadata = oneNode(nodes, node => node.tagName === 'script' && attr(node, 'id') === 'generator', 'Missing SSR PHP provenance');
     assert.equal(attr(metadata, 'type'), 'application/json');
-    assertGenerationProvenance(decodeJson(new TextEncoder().encode(metadata.childNodes.map(node => node.value ?? '').join(''))), server, source);
+    assertGenerationProvenance(decodeJson(new TextEncoder().encode(metadata.childNodes.map(node => node.value ?? '').join(''))), server, source, sourceDirectory);
   } else {
     assert.equal(attr(form, 'data-generator-runtime'), server, 'Missing SSR generator runtime');
     assert.equal(attr(form, 'data-generator-commit'), source.commit, 'Missing SSR generator commit');
@@ -365,7 +357,7 @@ async function main() {
         const payload = { spec: { type: 'group', properties: { $ref: 'current-fields.json' } }, options: { keyPrefix: 'form', files: { 'current-fields.json': publicSpec } } };
         const expected = compileForm(payload.spec, payload.options);
         const response = await request(endpoint('compile'), payload, server);
-        assertGenerationProvenance(response.generator, server, source);
+        assertGenerationProvenance(response.generator, server, source, options.library);
         const expectedReferenceReads = server === 'go' || server === 'rust' ? 1 : null;
         assert.equal(response.referenceReads, expectedReferenceReads, 'Compile reference read count differs');
         equalOrdered(response.template, expected, 'Compiled template');
@@ -394,7 +386,7 @@ async function main() {
         const binding = { language: scenario.language, idPrefix: 'http:form' };
         const cachedTemplate = deserialize(serializedTemplate);
         const response = await request(endpoint('render'), { template: cachedTemplate, data, options: binding }, server);
-        assertGenerationProvenance(response.generator, server, source);
+        assertGenerationProvenance(response.generator, server, source, options.library);
         assert.ok(object(response.data) && Array.isArray(response.fields) && typeof response.html === 'string', 'Incomplete render response');
         assert.equal(response.revision, 0, 'A new HTTP form instance must start at revision zero');
         if (scenario.defaults) freshDefaults(response.data);
@@ -417,7 +409,7 @@ async function main() {
         equalRendered(state(injected), response);
         assert.equal(injected.getSnapshot().revision, 4);
         const repeated = await request(endpoint('render'), { template: deserialize(serializedTemplate), data: response.data, options: binding }, server);
-        assertGenerationProvenance(repeated.generator, server, source);
+        assertGenerationProvenance(repeated.generator, server, source, options.library);
         equalRendered(repeated, response);
         assert.equal(repeated.revision, 0);
         assert.equal(encodeJson(cachedTemplate), serializedTemplate, 'Binding modified the reusable serialized template');
@@ -429,7 +421,7 @@ async function main() {
         const expected = state(createForm(template, deserialize(storedBaseline).data, { language }));
         const markup = await request(`${endpoint('ssr')}?language=${language}`, undefined, server, 200, true);
         return checkDocument(parse, markup, expected, server, renderingPath, framework,
-          language, source, options.url);
+          language, source, options.library, options.url);
       });
       await check(server, renderingPath, framework, 'reject-invalid-render-data', async () => {
         assert.ok(serializedTemplate, 'Server compilation failed');

@@ -3,13 +3,8 @@ import { spawnSync } from 'node:child_process';
 import { link, lstat, open, realpath, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { readGitArchiveCommit } from '../verify-candidate-context.mjs';
-
-const phpClasses = new Map([
-  ['CRUDUI\\Generator', '/workspace/source/packages/generator-php/src/Generator.php'],
-  ['CRUDUI\\Form', '/workspace/source/packages/generator-php/src/Form.php'],
-  ['CRUDUI\\Validator',
-    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php'],
-]);
+import { phpClassNames, phpClassProvenanceFailure } from './php-provenance.mjs';
+import { sourceDirectory } from './server-layout.mjs';
 
 /** Read the embedded commit without buffering the remaining archive into Git. */
 export function readSourceArchiveCommit(archiveFile, execute = spawnSync) {
@@ -156,16 +151,14 @@ function phpFailureField(server, value, metadata, expectedSignatures) {
   }
   if (generator.composerAutoload !== !native) return 'generator.composerAutoload';
   if (value.nativeJson !== native) return 'nativeJson';
-  if (!generator.classes || typeof generator.classes !== 'object'
-    || Array.isArray(generator.classes)) return 'generator.classes';
+  const classFailure = phpClassProvenanceFailure(
+    generator.classes, native, sourceDirectory);
+  if (classFailure === 'generator.classes') return classFailure;
   if (!generator.signatures || typeof generator.signatures !== 'object'
     || Array.isArray(generator.signatures)) return 'generator.signatures';
-  const classes = Object.keys(generator.classes);
-  if (classes.length !== phpClasses.size || classes.some(name => !phpClasses.has(name))) {
-    return 'generator.classes';
-  }
   const signatures = Object.keys(generator.signatures);
-  if (signatures.length !== phpClasses.size || signatures.some(name => !phpClasses.has(name))) {
+  if (signatures.length !== phpClassNames.length
+    || signatures.some(name => !phpClassNames.includes(name))) {
     return 'generator.signatures';
   }
   if (native && expectedSignatures === undefined) return 'generator.signatures';
@@ -173,15 +166,7 @@ function phpFailureField(server, value, metadata, expectedSignatures) {
     && JSON.stringify(generator.signatures) !== JSON.stringify(expectedSignatures)) {
     return 'generator.signatures';
   }
-  for (const name of classes) {
-    const source = generator.classes[name];
-    const field = 'generator.classes.' + name;
-    if (!source || typeof source !== 'object' || Array.isArray(source)) return field;
-    if (source.internal !== native) return field + '.internal';
-    if (source.extension !== (native ? 'crudui' : null)) return field + '.extension';
-    if (source.file !== (native ? null : phpClasses.get(name))) return field + '.file';
-  }
-  return null;
+  return classFailure;
 }
 
 function serverFailureField(server, responseOk, value, metadata, expectedPhpSignatures) {
