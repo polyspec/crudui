@@ -47,7 +47,10 @@ Otherwise, the resolver discovers one regular rustup executable from the
 declared `PATH` entries and the Rustup Cargo home (`CARGO_HOME`, or the Rustup
 default under `HOME` when omitted). Duplicate references to the same executable
 are one result; distinct results are ambiguous and fail. The resolver executes
-`rustup which cargo`, `rustup which rustc` and `rustup which rustdoc`, then
+`rustup which cargo`, `rustup which rustc` and `rustup which rustdoc` in the
+working directory declared for the Cargo command. The resolver requires that
+directory to be absolute and canonical, with regular directory components and
+no symbolic links. It then
 requires every returned path to be an absolute, canonical, executable regular
 file with no symbolic-link path
 component. Missing records, malformed version output and ambiguous discovery
