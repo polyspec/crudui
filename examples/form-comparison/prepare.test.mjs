@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -52,12 +52,19 @@ function dependency() {
 }
 
 test('current candidate commit contains every required source file', () => {
-  const commit = git(repositoryRoot, 'rev-parse', 'HEAD');
+  if (existsSync(path.join(repositoryRoot, '.git'))) {
+    const commit = git(repositoryRoot, 'rev-parse', 'HEAD');
+    for (const file of requiredSourcePaths) {
+      assert.doesNotThrow(
+        () => git(repositoryRoot, 'cat-file', '-e', `${commit}:${file}`),
+        `Candidate commit is missing required file: ${file}`,
+      );
+    }
+    return;
+  }
   for (const file of requiredSourcePaths) {
-    assert.doesNotThrow(
-      () => git(repositoryRoot, 'cat-file', '-e', `${commit}:${file}`),
-      `Candidate commit is missing required file: ${file}`,
-    );
+    assert.ok(existsSync(path.join(repositoryRoot, file)),
+      `Candidate archive is missing required file: ${file}`);
   }
 });
 
