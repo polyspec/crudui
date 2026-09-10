@@ -37,6 +37,9 @@ Repository Make targets may prepend tool directories to `PATH`. Each recipe
 command that depends on an added directory explicitly supplies the expanded
 `PATH` when invoking the tool. The tool must resolve from that directory when
 Make's process started without it.
+Rust recipes do not add a Cargo proxy directory to `PATH`. They use the shared
+Rust command entry point, which executes the regular Cargo and rustc files
+selected by the toolchain record.
 
 Repository Node.js build and test entry points resolve Rust tools through one
 shared rule. An invocation may declare both absolute Cargo and rustc paths.
