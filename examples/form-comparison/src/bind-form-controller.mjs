@@ -95,6 +95,66 @@ export function bindFormController(element, mount, template, language, initialDa
   const renderer = mount(element, template, language, data);
   let pending = Promise.resolve();
   let inputVersion = 0;
+  const attributeOrder = new WeakMap();
+
+  function controls() {
+    return Array.from(element.querySelectorAll('input[name],textarea[name],select[name]'));
+  }
+
+  function rememberAttributeOrder() {
+    for (const control of controls()) {
+      if (!attributeOrder.has(control)) {
+        attributeOrder.set(control, control.getAttributeNames());
+      }
+    }
+  }
+
+  function restoreAttributeOrder(control) {
+    const initial = attributeOrder.get(control);
+    const current = control.getAttributeNames();
+    if (!initial) {
+      attributeOrder.set(control, current);
+      return;
+    }
+    const currentSet = new Set(current);
+    const expected = [
+      ...initial.filter(name => currentSet.has(name)),
+      ...current.filter(name => !initial.includes(name)),
+    ];
+    if (expected.every((name, index) => current[index] === name)) return;
+    const values = new Map(expected.map(name => [name, control.getAttribute(name)]));
+    for (const name of expected) control.removeAttribute(name);
+    for (const name of expected) control.setAttribute(name, values.get(name) ?? '');
+  }
+
+  function synchronizeControls() {
+    for (const control of controls()) {
+      restoreAttributeOrder(control);
+      const value = valueAt(data, inputSegments(control.name));
+      if (control.tagName === 'INPUT') {
+        if (control.type === 'file') continue;
+        if (control.type === 'date' || control.type === 'datetime-local') {
+          control.value = control.getAttribute('value') ?? '';
+          continue;
+        }
+        if (control.type === 'checkbox' || control.type === 'radio') {
+          control.checked = Array.isArray(value)
+            ? value.map(String).includes(control.value)
+            : value !== undefined && value !== null
+              && (value === true ? '1' : String(value)) === control.value;
+          continue;
+        }
+      }
+      if (control.tagName === 'SELECT' && control.multiple) {
+        const selected = Array.isArray(value) ? value.map(String) : [];
+        for (const option of control.options) option.selected = selected.includes(option.value);
+      } else {
+        control.value = value === undefined || value === null ? '' : String(value);
+      }
+    }
+  }
+
+  rememberAttributeOrder();
 
   function capture() {
     const active = element.ownerDocument.activeElement;
@@ -137,6 +197,7 @@ export function bindFormController(element, mount, template, language, initialDa
 
   async function render(focus, version = inputVersion) {
     await renderer.load(data);
+    synchronizeControls();
     if (version === inputVersion) restore(focus);
   }
 
