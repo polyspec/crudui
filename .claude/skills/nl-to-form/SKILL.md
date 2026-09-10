@@ -27,14 +27,14 @@ a. **추출** — 기획서/구술에서 필드 후보·라벨·필수여부·�
    불명확하면 묻는다. 추측을 사실로 적지 마라.
 
 b. **분류** — describe의 `classification`(출처: `docs/spec/schema.md`)으로 각 키의 자리를 정한다:
-   1급 vs `options`/`multiple`/`lang`/`items` 하위 vs `validate`/`design`/`behavior`. 자리 규칙은
-   describe만 따른다 — 임의로 1급을 늘리지 마라.
+   최상위 vs `options`/`multiple`/`lang`/`items` 하위 vs `validate`/`design`/`behavior`. 자리 규칙은
+   describe만 따른다. 임의의 최상위 키를 추가하지 마라.
 
 c. **초안** — `type`은 describe `widgets`에 있는 것만 쓴다(없는 type 발명 금지). 슬롯 키는
    describe `slots`/`buckets`에 있는 것만. 역할 슬롯은 다형이다: `false`(끔) | `{객체}` | `true`(`{}` 축약).
 
 d. **check** — `crudui check <spec>`. 메타스키마(`additionalProperties: false`) + forbidden-scan.
-   1급 외 키·금지키·미등록 슬롯키를 잡는다. RED면 c로 돌아가 고친다 — 표준을 낮춰 우회하지 마라.
+   허용되지 않은 최상위 키·금지 키·미등록 슬롯 키를 거부한다. 실패하면 c의 초안을 수정한다.
 
 e. **validate** — `crudui validate <spec> <data> --lang all`. 4언어로 규칙 의미·표현식 평가를
    검증한다. mismatch(언어 간 불일치)나 비멱등이면 스펙이 틀린 것이다 — 고친다.
@@ -81,7 +81,7 @@ g. **explain 역검증** — `crudui explain <spec>`로 스펙을 자연어로 �
 - 레거시 키를 쓰지 마라(`display_switch`·`element_class`·`multiple_max`·`langs`·`$merge`·`seqtokey`…).
   describe `forbiddenKeys`와 분류규칙이 흡수처를 준다.
 - `x` 접두 키를 쓰지 마라 — `x{key}`는 주석이고 파서가 무시한다(forbidden 패턴 `^x[\s\S]`). (§3 A)
-- 1급(최상위)을 함부로 늘리지 마라 — 1급 자격 없는 세부는 무조건 하위로. (§3 B)
+- 최상위 키를 임의로 늘리지 마라. 최상위로 분류되지 않은 세부 설정은 지정된 하위 객체에 둔다. (§3 B)
 - 표현식에 산술·함수·임의 정규식·`eval`을 넣지 마라. 제한 DSL만(경로·비교·논리·`in`·ternary).
   정규식은 `validate.match` 인자로만. 임의 JS는 `behavior`로 불투명 전달한다. (출처: `docs/spec/expressions.md`)
 
@@ -129,7 +129,7 @@ properties:
 | 명령 | 용도 |
 |---|---|
 | `crudui describe [--json\|--md]` | 코드/스키마 통합 카탈로그(위젯·layout·규칙·슬롯·노드·버킷·금지키·문법·분류). 초안 전 필수. |
-| `crudui check <spec>` | 메타스키마 + forbidden-scan. 1급 외 키·금지키·미등록 슬롯키 적발. |
+| `crudui check <spec>` | 메타스키마 + forbidden-scan. 허용되지 않은 최상위 키·금지 키·미등록 슬롯 키를 거부한다. |
 | `crudui validate <spec> <data> [--lang js\|php\|go\|rust\|all]` | 값 검증(규칙·표현식), 4언어 parity. |
 | `crudui render <spec> [--fw react\|svelte\|vue\|all]` | SSR 미리보기, 프레임워크 parity. |
 | `crudui explain <spec> [--lang ko\|en]` | 스펙 → 자연어 역검증. 기획서 대조용. |

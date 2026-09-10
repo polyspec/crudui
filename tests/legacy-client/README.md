@@ -1,4 +1,4 @@
-# Legacy-client validation gate
+# Legacy-client validation comparison
 
 Compares the **legacy jQuery browser runtime**
 `examples/legacy/legacy-original/assets/js/legacy-client.validate.js` against the **new
@@ -8,8 +8,8 @@ validators** (`packages/validator-ts`; PHP/Go/Rust already agree with it per
 This is the axis `compare-all.js` deliberately excludes. compare-all treats
 `validator-ts` as the client replacement and never runs `legacy-client.validate.js`. If
 a legacy form still validates in the browser with `legacy-client.validate.js`, the
-browser verdict and the server verdict are not guaranteed to agree. This gate
-measures that agreement, per case, over `tests/cases/*.json`.
+browser verdict and the server verdict are not guaranteed to agree. This suite
+compares those results for every case in `tests/cases/*.json`.
 
 ## Run
 
@@ -17,7 +17,7 @@ measures that agreement, per case, over `tests/cases/*.json`.
 cd tests/legacy-client
 npm install        # jquery + jsdom + vitest (local to this dir)
 npm run gate       # standalone report (exit 0 = pass)
-npm test           # same gate as vitest
+npm test           # run the same comparison with Vitest
 ```
 
 ## Feasibility: the legacy runtime IS programmatically drivable
@@ -49,7 +49,7 @@ Output shape matches `compare-all.js`: `{valid, error, field}`.
 total 1030  matched 526  documented-gaps 28  excluded 476  regressions 0
 ```
 
-The gate PASSES when there are no undocumented mismatches and no stale gap
+The comparison passes when there are no undocumented mismatches and no stale gap
 entries. `matched` = legacy and new agree. `gaps` = they disagree and the
 divergence is a documented client<->server semantic gap (`known-gaps.js`).
 `excluded` = the case cannot be faithfully driven (see below).
@@ -95,6 +95,6 @@ server-side validators on the same spec + input. Full list in `known-gaps.js`.
 
 - `adapter.js` — loads `legacy-client.validate.js` under jsdom+jQuery; `runLegacyCase(spec, input)` -> `{supported, valid, error, field}` or `{supported:false, reason}`.
 - `gate.js` — runs all `tests/cases/*.json`, classifies match/gap/excluded/regression; standalone CLI and `runGate()` export.
-- `gate.test.mjs` — vitest wrapper (regression + stale-gap guards).
-- `known-gaps.js` — documented client<->server gaps; the gate fails on any undocumented mismatch and on any stale (no-longer-reproducing) entry.
+- `gate.test.mjs` — Vitest wrapper that checks regressions and obsolete gap entries.
+- `known-gaps.js` — documented client<->server gaps; the comparison fails on any undocumented mismatch and on any gap entry that no longer reproduces.
 - `sweep.js` — dev helper: per-suite match/mismatch/skip totals (`DIFFS=1` to list mismatches).
