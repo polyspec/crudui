@@ -40,6 +40,7 @@ test('comparison resolves Rust tools from one Rustup toolchain record', () => {
     const rustdoc = join(toolchain, 'rustdoc');
     writeFileSync(join(rustupBin, 'rustup'), [
       '#!/bin/sh',
+      'if [ "$PWD" != "$TEST_RUST_CWD" ]; then exit 31; fi',
       'if [ "$1" = "--version" ]; then printf "rustup 1.29.0\n"; exit 0; fi',
       `if [ "$1" = "which" ] && [ "$2" = "cargo" ]; then printf '%s\n' '${cargo}'; exit 0; fi`,
       `if [ "$1" = "which" ] && [ "$2" = "rustc" ]; then printf '%s\n' '${rustc}'; exit 0; fi`,
@@ -68,7 +69,10 @@ test('comparison resolves Rust tools from one Rustup toolchain record', () => {
     const result = spawnSync(process.execPath, [resolve(__dirname, 'compare-all.js'),
       '--rust-only', '--file', 'required.json'], {
       encoding: 'utf8',
-      env: { HOME: home, LANG: 'C', LC_ALL: 'C', PATH: directory },
+      env: {
+        HOME: home, LANG: 'C', LC_ALL: 'C', PATH: directory,
+        TEST_RUST_CWD: resolve(__dirname, '../../packages/validator-rust'),
+      },
     });
 
     assert.equal(result.status, 1, result.stdout + result.stderr);
