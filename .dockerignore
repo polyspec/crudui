@@ -9,6 +9,7 @@ packages/validator-php/vendor
 packages/generator-php/vendor
 **/autom4te.cache
 packages/php-ext/build
+packages/php-ext/.build/
 packages/php-ext/Makefile
 packages/php-ext/Makefile.fragments
 packages/php-ext/Makefile.objects

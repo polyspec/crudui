@@ -24,6 +24,5 @@ RUN npm ci --strict-allow-scripts \
     && composer install --working-dir=packages/validator-php --no-interaction --prefer-dist \
     && composer install --working-dir=packages/generator-php --no-interaction --prefer-dist \
     && npm run build \
-    && node scripts/build-crudui-php-extension.mjs \
-      --php-config /usr/bin/php-config8.4
+    && node scripts/build-crudui-php-extension.mjs
 CMD ["make", "test-native", "NATIVE_REPORT=/tmp/crudui-native-report.json"]
