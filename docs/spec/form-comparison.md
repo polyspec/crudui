@@ -10,9 +10,11 @@ source files from another checkout.
 ## Source and environment
 
 Preparation requires a clean worktree and an explicit commit. It creates one Git
-archive from that commit. Metadata records the commit and SHA-256 digest of the
-archive. Image construction verifies the digest before extraction. Uncommitted
-files cannot enter a candidate image.
+archive of the complete repository at that commit. Metadata records the commit
+and SHA-256 digest of the archive. Image construction verifies the digest and
+embedded Git commit before extraction. The verifier, servers and packages all
+come from this archive. Uncommitted files, earlier repository revisions, source
+patches and files from another checkout cannot enter a candidate image.
 
 Candidate data, reports and image tags are separate from deployed data. Building
 or checking a candidate does not change the deployed service. Deployment is
@@ -27,24 +29,29 @@ generator and validator. The PHP extension process loads `crudui.so` and
 `ordered_json.so`; the PHP process loads neither extension. Startup rejects an
 unexpected class source, module digest or repository commit.
 
-The browser runs two maintained rendering paths. The corrected renderer and the
-current session renderer are built from the same candidate commit and use the
-same keyed data and submission contract. The current renderer uses a serialized
-template compiled by the selected server and a form session. A frame mounts the
-form before it requests saved data, then injects the data into the existing form
-instance. Compile failures are returned as failures; the browser does not compile
-a replacement template.
+The browser runs the `bindForm` and `createForm` rendering paths. Both paths use
+the same packages from the candidate commit, the same keyed data and the same
+submission contract. The selected server compiles one data-independent template,
+and the browser restores that template from JSON. The `bindForm` path evaluates
+field models from the template and current data; its application controller
+updates keyed data and binds the fields again after input and row operations. The
+`createForm` path creates an editable form session from the same template and uses
+the session for data replacement and row operations. Each frame mounts a form
+before it requests saved data, then injects the data into the existing rendering
+path. Compile failures are returned as failures; the browser does not compile a
+replacement template.
 
 The complete browser matrix contains these 48 scenario reports:
 
 - four servers: PHP, PHP extension, Go and Rust;
 - three frameworks: React, Vue and Svelte;
 - two transports: native multipart form and ordered JSON.
-- two rendering paths: corrected renderer and current session renderer.
+- two rendering paths: `bindForm` and `createForm`.
 
-Every report uses the same specification, data and checks. Native and JSON saves
-must produce the same records, identifiers, parent identifiers and positions.
-Ordered JSON preserves object member order at every depth.
+Every report uses the same specification, compiled template, data and checks.
+Native and JSON saves must produce the same records, identifiers, parent
+identifiers and positions. Ordered JSON preserves object member order at every
+depth.
 
 ## Structure, data and identity
 
@@ -108,9 +115,9 @@ the current state and every completed report.
 
 A complete server report requires 12 scenario reports, 60 interaction checks,
 six mount-before-load checks, six static-document checks, no browser or page
-errors, matching source provenance and a duration within 900,000 milliseconds.
-Fields named `passed` must be booleans. Missing activity, initialization or
-timing evidence makes the report incomplete.
+errors, one matching candidate commit for both rendering paths and a duration
+within 900,000 milliseconds. Fields named `passed` must be booleans. Missing
+activity, initialization or timing evidence makes the report incomplete.
 
 The four-server aggregate requires one complete report from every server. It
 requires 960 successful scenario checks, 240 successful interaction checks, 24
