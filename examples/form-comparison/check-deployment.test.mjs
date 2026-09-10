@@ -163,7 +163,9 @@ test('removes candidate files and comparison resources after successful deployme
   const currentCandidate = path.join(candidateRoot, 'current');
   const previousCandidate = path.join(candidateRoot, 'previous');
   const deploymentResultsDirectory = path.join(directory, 'deployment/results');
-  for (const target of [currentCandidate, previousCandidate, deploymentResultsDirectory]) {
+  const retiredResultsDirectory = path.join(directory, 'retired/.form-comparison/results');
+  for (const target of [currentCandidate, previousCandidate, deploymentResultsDirectory,
+    retiredResultsDirectory]) {
     await mkdir(target, { recursive: true });
     await writeFile(path.join(target, 'result.json'), '{}\n');
   }
@@ -172,6 +174,7 @@ test('removes candidate files and comparison resources after successful deployme
   const calls = [];
   const plan = await cleanupDeploymentArtifacts({
     deployedImageReference, candidateRoot, deploymentResultsDirectory,
+    retiredResultsDirectories: [retiredResultsDirectory],
     resources: {
       candidateDirectories: [currentCandidate, previousCandidate],
       containers: [
@@ -192,6 +195,7 @@ test('removes candidate files and comparison resources after successful deployme
   await assert.rejects(readFile(currentCandidate), /ENOENT/);
   await assert.rejects(readFile(previousCandidate), /ENOENT/);
   await assert.rejects(readFile(deploymentResultsDirectory), /ENOENT/);
+  await assert.rejects(readFile(retiredResultsDirectory), /ENOENT/);
 });
 
 test('rejects candidate cleanup outside the candidate directory', async t => {
