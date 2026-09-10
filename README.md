@@ -13,7 +13,7 @@ classes using native generation and validation.
 Run from the repository root:
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run build
 npm run test:forms
 ```

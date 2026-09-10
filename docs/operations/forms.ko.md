@@ -7,14 +7,14 @@
 저장소 루트에서 명령을 실행합니다. Node.js와 npm을 설치한 후 실행합니다.
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run build
 ```
 
 의존성을 갱신할 때는 npm으로 패키지 선언의 버전 범위를 해석하고 잠금 파일을
 갱신합니다. 결과 의존성 그래프를 검토하고 아래 검사를 실행합니다.
-설치 스크립트 승인이 필요한 npm에서는 스크립트 변경을 검토하고
-`npm install-scripts approve <package>`로 루트 `allowScripts` 필드를 갱신합니다.
+설치 스크립트 변경을 검토하고 `npm install-scripts approve <package>`로 독립
+그래프의 루트 `allowScripts` 필드에 정확한 버전을 기록합니다.
 기존 설치에서 새로 승인한 스크립트를 실행하려면 `npm rebuild`를 실행합니다.
 컨테이너 이미지는 Puppeteer 브라우저 압축 해제를 위해 `unzip`을 설치합니다.
 

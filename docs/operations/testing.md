@@ -2,9 +2,10 @@
 
 [한국어](testing.ko.md).
 
-Run from the repository root. Install Node dependencies with `npm ci`, install
-the PHP package's Composer dependencies, and make PHP, Go and Cargo available on
-`PATH`. Build JavaScript packages before checking their compiled exports.
+Run from the repository root. Install Node dependencies with
+`npm ci --strict-allow-scripts`, install the PHP package's Composer dependencies,
+and make PHP, Go and Cargo available on `PATH`. Build JavaScript packages before
+checking their compiled exports.
 
 ```sh
 composer --working-dir=packages/validator-php install

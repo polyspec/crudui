@@ -24,9 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /workspace/source
 RUN composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
 RUN composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
-RUN npm ci
+RUN npm ci --strict-allow-scripts
 RUN npm run build
-RUN npm ci --prefix examples/form-comparison
+RUN npm ci --strict-allow-scripts --prefix examples/form-comparison
 
 FROM golang:1.27-trixie AS go-server
 COPY --from=verified-source /workspace /workspace

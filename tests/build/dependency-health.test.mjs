@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -34,6 +35,49 @@ function trackedLockFiles() {
   return result.stdout.trim().split('\n').filter(Boolean).sort();
 }
 
+function trackedInstallDefinitionFiles() {
+  const result = execute(git, ['ls-files']);
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim().split('\n').filter((filename) => (
+    (/^\.github\/workflows\/.*\.ya?ml$/).test(filename)
+      || (/(?:^|\/)[^/]*(?:Containerfile|Dockerfile)$/).test(filename)
+  )).sort();
+}
+
+function workspacePackageDirectories() {
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  return manifest.workspaces.flatMap((workspace) => {
+    assert.match(workspace, /\/\*$/, `unsupported workspace pattern: ${workspace}`);
+    const parent = workspace.slice(0, -2);
+    const result = execute(git, ['ls-files', '--', `${parent}/*/package.json`]);
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout.trim().split('\n').filter(Boolean).map(path.dirname);
+  });
+}
+
+function packageApprovalFailures(lockFile) {
+  const directory = path.dirname(path.join(root, lockFile));
+  const manifestFile = path.join(directory, 'package.json');
+  const manifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
+  const approvals = manifest.allowScripts ?? {};
+  assert.equal(
+    approvals !== null && typeof approvals === 'object' && !Array.isArray(approvals),
+    true,
+    `${lockFile}: allowScripts must be an object`,
+  );
+
+  const failures = [];
+  for (const [key, approved] of Object.entries(approvals)) {
+    const separator = key.lastIndexOf('@');
+    const version = separator > 0 ? key.slice(separator + 1) : '';
+    const exactVersions = version.split('||').map((part) => part.trim());
+    if (approved !== true || exactVersions.some((part) => !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(part))) {
+      failures.push({ key, approved });
+    }
+  }
+  return failures;
+}
+
 test('installed packages form one valid dependency graph', () => {
   const result = executeNpm(['ls', '--all', '--json']);
   assert.equal(result.status, 0, [
@@ -41,6 +85,27 @@ test('installed packages form one valid dependency graph', () => {
     result.report.error?.summary,
     result.stderr,
   ].filter(Boolean).join('\n'));
+});
+
+test('workspace packages use the root dependency lock file', () => {
+  const trackedLocks = new Set(trackedLockFiles());
+  const failures = workspacePackageDirectories()
+    .map((directory) => `${directory}/package-lock.json`)
+    .filter((lockFile) => trackedLocks.has(lockFile));
+  assert.deepEqual(failures, []);
+});
+
+test('CI and container clean installs enforce script approvals', () => {
+  const failures = [];
+  for (const filename of trackedInstallDefinitionFiles()) {
+    const lines = readFileSync(path.join(root, filename), 'utf8').split('\n');
+    for (const [index, line] of lines.entries()) {
+      if (/\bnpm ci(?!\s+--strict-allow-scripts\b)/.test(line)) {
+        failures.push(`${filename}:${index + 1}: ${line.trim()}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
 });
 
 test('tracked npm lock files have no moderate or higher vulnerability', () => {
@@ -57,6 +122,36 @@ test('tracked npm lock files have no moderate or higher vulnerability', () => {
         lockFile,
         vulnerabilities: counts,
         packages: Object.keys(result.report.vulnerabilities ?? {}),
+      });
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
+test('tracked npm dependency graphs approve every install script by exact version', () => {
+  const failures = [];
+  for (const lockFile of trackedLockFiles()) {
+    const directory = path.dirname(path.join(root, lockFile));
+    const invalidApprovals = packageApprovalFailures(lockFile);
+    const args = [
+      'ci',
+      '--dry-run',
+      '--strict-allow-scripts',
+      '--no-ignore-scripts',
+      '--no-dangerously-allow-all-scripts',
+      '--audit=false',
+      '--fund=false',
+      '--install-links=false',
+    ];
+    if (directory !== root) {
+      args.push('--workspaces=false');
+    }
+    const result = execute(npm, args, directory);
+    if (invalidApprovals.length > 0 || result.status !== 0) {
+      failures.push({
+        lockFile,
+        invalidApprovals,
+        installError: [result.stderr, result.stdout].filter(Boolean).join('\n').trim(),
       });
     }
   }

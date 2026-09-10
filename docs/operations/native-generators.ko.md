@@ -14,7 +14,7 @@
 Cargo, C 컴파일러를 설치합니다. 아래 컨테이너는 필요한 Linux 빌드 도구를 제공합니다.
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 composer install --working-dir=packages/validator-php --no-interaction --prefer-dist
 composer install --working-dir=packages/generator-php --no-interaction --prefer-dist
 make test-native

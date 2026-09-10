@@ -13,7 +13,7 @@ CRUDUI은 YAML 또는 JavaScript 객체로 폼과 검증을 정의합니다. 공
 저장소 루트에서 실행합니다.
 
 ```sh
-npm ci
+npm ci --strict-allow-scripts
 npm run build
 npm run test:forms
 ```
