@@ -7,7 +7,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@crudui/generator-react/legacy': path.resolve(__dirname, '../../../packages/generator-react/src/legacy'),
+      '@crudui/generator-react/legacy': path.resolve(
+        import.meta.dirname,
+        '../../../packages/generator-react/src/legacy',
+      ),
     },
   },
   optimizeDeps: {

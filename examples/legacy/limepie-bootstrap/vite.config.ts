@@ -10,7 +10,7 @@ export default defineConfig({
       name: 'serve-specs',
       configureServer(server) {
         server.middlewares.use('/specs', (req, res, next) => {
-          const filePath = path.resolve(__dirname, '../shared-specs', req.url?.slice(1) || '');
+          const filePath = path.resolve(import.meta.dirname, '../shared-specs', req.url?.slice(1) || '');
           if (fs.existsSync(filePath)) {
             res.setHeader('Content-Type', 'text/yaml');
             fs.createReadStream(filePath).pipe(res);
