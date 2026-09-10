@@ -71,6 +71,7 @@ export function rustBuildEnvironment(environment, tools) {
   return {
     ...environment,
     RUSTC: tools.rustc,
+    RUSTDOC: tools.rustdoc,
     CC: tools.compiler,
     [linkerVariable]: tools.compiler,
   };
@@ -83,6 +84,7 @@ function arguments_(values) {
       'php-config': { type: 'string' },
       cargo: { type: 'string' },
       rustc: { type: 'string' },
+      rustdoc: { type: 'string' },
       cc: { type: 'string' },
     },
     strict: true,
@@ -130,6 +132,7 @@ async function main() {
     phpConfig: await selectedPhpConfig(options['php-config'], environment),
     cargo: declaredValue('PHP_EXTENSION_CARGO', options.cargo, environment),
     rustc: declaredValue('PHP_EXTENSION_RUSTC', options.rustc, environment),
+    rustdoc: declaredValue('PHP_EXTENSION_RUSTDOC', options.rustdoc, environment),
     compiler: declaredValue('PHP_EXTENSION_CC', options.cc, environment),
   });
 }

@@ -161,23 +161,25 @@ async function discoverRustup(environment) {
   return unique[0];
 }
 
-/** Resolve one Cargo and rustc pair from explicit paths or the Rustup toolchain record. */
+/** Resolve Cargo, rustc and rustdoc from explicit paths or one Rustup toolchain record. */
 export async function resolveRustToolchain(options = {}) {
   const environment = options.environment ?? process.env;
   const run = options.run ?? runCommand;
-  if (options.cargo || options.rustc) {
-    assert.ok(options.cargo && options.rustc,
-      'Explicit Rust tools require both Cargo and rustc');
+  if (options.cargo || options.rustc || options.rustdoc) {
+    assert.ok(options.cargo && options.rustc && options.rustdoc,
+      'Explicit Rust tools require Cargo, rustc and rustdoc');
     const cargo = await assertExecutable(options.cargo, 'Cargo');
     const rustc = await assertExecutable(options.rustc, 'rustc');
+    const rustdoc = await assertExecutable(options.rustdoc, 'rustdoc');
     await verifyVersion(cargo, /^cargo /, run, environment);
     const version = await verifyVersion(rustc, /^rustc /, run, environment, ['-vV']);
-    return { cargo, rustc, rustHost: rustHost(version) };
+    await verifyVersion(rustdoc, /^rustdoc /, run, environment);
+    return { cargo, rustc, rustdoc, rustHost: rustHost(version) };
   }
   const rustup = await discoverRustup(environment);
   await verifyVersion(rustup, /^rustup /, run, environment);
   const records = {};
-  for (const name of ['cargo', 'rustc']) {
+  for (const name of ['cargo', 'rustc', 'rustdoc']) {
     const result = await run(rustup, ['which', name], { capture: true, environment });
     const paths = result.stdout.trim().split(/\r?\n/).filter(Boolean);
     assert.equal(paths.length, 1, 'Rustup must identify one ' + name + ' executable');
@@ -185,5 +187,6 @@ export async function resolveRustToolchain(options = {}) {
   }
   await verifyVersion(records.cargo, /^cargo /, run, environment);
   const version = await verifyVersion(records.rustc, /^rustc /, run, environment, ['-vV']);
+  await verifyVersion(records.rustdoc, /^rustdoc /, run, environment);
   return { ...records, rustHost: rustHost(version) };
 }
