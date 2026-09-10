@@ -28,3 +28,37 @@ test('rejects row keys outside the current keyed data contract', () => {
     );
   }
 });
+
+test('accepts saved, unsaved and empty keyed collections', async () => {
+  const renders = [];
+  const listeners = new Map();
+  const element = {
+    ownerDocument: { activeElement: null },
+    contains: () => false,
+    querySelectorAll: () => [],
+    addEventListener: (name, listener) => listeners.set(name, listener),
+    removeEventListener: name => listeners.delete(name),
+  };
+  const mount = (_element, _template, language, data) => {
+    assert.equal(language, 'ko');
+    renders.push(structuredClone(data));
+    return {
+      load(next) { renders.push(structuredClone(next)); },
+      dispose() {},
+    };
+  };
+  const initial = {
+    companies: {
+      __0000000000001__: { name: 'Saved' },
+      __00000000000af__: { name: 'New' },
+    },
+  };
+  const controller = bindFormController(element, mount, template, 'ko', initial);
+  assert.deepEqual(controller.getData(), initial);
+  assert.equal(listeners.size, 4);
+  await controller.load({ companies: {} });
+  assert.deepEqual(controller.getData(), { companies: {} });
+  assert.deepEqual(renders, [initial, { companies: {} }]);
+  await controller.dispose();
+  assert.equal(listeners.size, 0);
+});
