@@ -174,6 +174,9 @@ repository. The generated Compose file mounts only its `data` directory, serves
 `crudui.test`, and checks `/api/health` and `/metadata.json` against the
 selected candidate commit. Browser reports, screenshots and other candidate
 results are verification inputs, not deployment state.
+The startup health check provides at least 120 seconds for the four servers to
+become ready. Its retry count remains within containerctl's supported range of
+1 through 100.
 
 After applying the generated Compose file, verification requests the HTTPS home
 page, health response, metadata and one saved-data response. It verifies the
