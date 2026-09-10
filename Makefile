@@ -155,7 +155,7 @@ test-native: build-php-extension
 	npm run build
 	composer --working-dir=packages/generator-php test
 	go -C packages/generator-go test -race ./...
-	cargo test --locked --manifest-path packages/generator-rust/Cargo.toml
+	PATH="$(PATH)" cargo test --locked --manifest-path packages/generator-rust/Cargo.toml
 	node packages/php-ext/tests/run.mjs "$(PHP_EXTENSION)"
 	node --test tests/native-generators/protocol.test.mjs
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)"

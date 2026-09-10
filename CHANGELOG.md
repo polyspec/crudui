@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Resolve the native Cargo command path
+
+The `test-native` target supplies its expanded `PATH` when it starts Cargo. GNU
+Make 3.81 now resolves Cargo from the directory added by the Makefile when that
+directory is absent from Make's startup environment. A regression check runs the
+target with simulated commands and places Cargo only in the added directory.
+
+The regression check and all eight runtime policy checks passed. The complete
+`make test-native` command returned status 0 with PHP 8.5.10 and passed 160 PHP
+tests, all Go package tests, 20 Rust tests, 19 protocol checks, the 766/766
+generator report and three Chromium widget and timezone checks.
+
 ## 2026-09-11 — Verify local comparison deployment
 
 The repository verifies candidate metadata, generation, persistence, browser
