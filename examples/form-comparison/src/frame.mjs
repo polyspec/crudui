@@ -775,7 +775,8 @@ for (const name of ['input', 'change', 'click']) view.addEventListener(name, asy
 await mount();
 await load();
 window.comparison = {
-  runChecks, reset, inspect, submit, save, load, server, path: renderingPath, framework,
+  runChecks, reset, inspect, submit, save, load, idle: settle, server,
+  path: renderingPath, framework,
   commit: __SOURCE_COMMIT__,
 };
 window.parent.postMessage({
