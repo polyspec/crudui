@@ -6,6 +6,7 @@ Run the maintained package and form checks from the repository root:
 
 ```sh
 npm run test:forms
+npm run test:form-comparison
 node --test tests/form-inspector/form-snapshot.test.mjs
 node tests/form-inspector/browser.mjs
 npm run test:packages
@@ -17,61 +18,75 @@ control state without modifying the inspected form. Framework initialization
 tests compare initial data with later injection and record restoration.
 [JSON order checks](ordered-json.md) verify the transport representation separately.
 
-Current HTTP and browser integration uses an independent external checkout. That
-checkout also retains the historical comparison implementations and their
-results. From this repository root, provide the comparison path and resolve the
-exact committed library revision explicitly:
+The HTTP and browser verifier is stored in this repository. Prepare a candidate
+from a clean current commit, build the image and start an isolated container:
 
 ```sh
-LIBRARY_WORKSPACE=$(pwd)
-LIBRARY_REF=$(git rev-parse HEAD)
-COMPARISON_WORKSPACE=/absolute/path/to/crudui-comparison
-cd "$COMPARISON_WORKSPACE"
-node examples/form-comparison/prepare.mjs --library "$LIBRARY_WORKSPACE" --ref "$LIBRARY_REF"
+CANDIDATE_ROOT=$(pwd)
+CANDIDATE_REF=$(git rev-parse HEAD)
+CANDIDATE_TAG=$(printf '%s' "$CANDIDATE_REF" | cut -c1-12)
+CANDIDATE_DIR="$CANDIDATE_ROOT/.form-comparison/candidates/$CANDIDATE_REF"
+CANDIDATE_IMAGE="localhost/crudui-form-comparison:$CANDIDATE_TAG"
+CANDIDATE_NAME="crudui-form-comparison-$CANDIDATE_TAG"
+node examples/form-comparison/prepare.mjs --ref "$CANDIDATE_REF"
+container build --tag "$CANDIDATE_IMAGE" --progress plain "$CANDIDATE_DIR/context"
+container run --detach --name "$CANDIDATE_NAME" \
+  --publish 127.0.0.1:18080:8080 \
+  --mount "type=bind,source=$CANDIDATE_DIR/data,target=/data" \
+  --mount "type=bind,source=$CANDIDATE_DIR/results,target=/results" \
+  "$CANDIDATE_IMAGE"
 ```
 
-Preparation archives `LIBRARY_REF`; it does not include uncommitted library
-changes. The comparison checkout's `docs/operations/form-comparison.md` defines
-candidate image construction and verification. Its Compose configuration still
-identifies the retained `dfe70a6` deployment until a new image has passed the
-complete checks. Starting that retained image does not verify the current source.
+Preparation rejects tracked or untracked changes and archives `CANDIDATE_REF`.
+The candidate data and results directories are separate from deployed data. The
+container starts one PHP process, one PHP extension process, one Go process and
+one Rust process from the same source archive. PHP uses Composer classes. The PHP
+extension process loads both `ordered_json.so` and `crudui.so`.
 
-The current targets are PHP using Composer classes, PHP extension using both
-`ordered_json.so` and `crudui.so`, Go and Rust. Each provides compile, render and
-SSR endpoints and is checked with React, Vue and Svelte. The browser receives a
-serialized server-compiled template; it does not hydrate arbitrary native HTML.
-Focused local verification of this connection passed all seven server-generation
-unit tests, the complete Go server package, all four Rust server tests and
-production builds for 12 React, Vue and Svelte frame combinations. These results
-verify the implemented connection, not a candidate image.
-After a candidate image is selected and started, run the generation checks inside
-that container:
+Run the processor-mode, generation, persistence and JSON checks inside the
+candidate container:
 
 ```sh
-container exec crudui-comparison node /workspace/keyed/examples/form-comparison/test-php-modes.mjs /opt/ordered_json.so /opt/crudui.so /workspace/keyed
-container exec crudui-comparison node /workspace/keyed/examples/form-comparison/check-generation.mjs --url http://127.0.0.1:8080 --library /workspace/keyed --report /results/generation-current-new.json
-container exec crudui-comparison node /workspace/keyed/examples/form-comparison/check-servers.mjs
-container exec crudui-comparison node --test /workspace/keyed/examples/form-comparison/src/json.test.mjs
+container exec "$CANDIDATE_NAME" node /workspace/source/examples/form-comparison/test-php-modes.mjs /opt/ordered_json.so /opt/crudui.so /workspace/source
+container exec "$CANDIDATE_NAME" node /workspace/source/examples/form-comparison/check-generation.mjs --url http://127.0.0.1:8080 --library /workspace/source --report /results/generation.json
+container exec "$CANDIDATE_NAME" node /workspace/source/examples/form-comparison/check-servers.mjs
+container exec "$CANDIDATE_NAME" node --test /workspace/source/examples/form-comparison/src/json.test.mjs
 ```
 
-The complete generation check requires 146 results, 207 requests and all 12
-server/framework combinations. It separately checks compile and render, raw SSR
-HTML, English and Korean responses, submission, persistence and invalid-request
-rejection. These requirements remain pending until the candidate report records a
-complete run. After deployment, representative SSR documents are the
-[English PHP/React form](https://crudui.test/api/php/ssr/keyed/react?language=en)
-and [Korean PHP/React form](https://crudui.test/api/php/ssr/keyed/react?language=ko);
-the server and framework path segments select the other combinations.
+The generation check requires 290 results, 411 requests and all 24
+server/rendering-path/framework combinations. It checks compile, retained
+serialized-template render, raw SSR HTML, English and Korean output, invalid data
+rejection and unchanged stored records. The persistence check requires 120
+results across four servers and two rendering paths.
 
-The retained modes preserve PHP with native JSON parsing, Go and Rust at their
-recorded revisions. That historical PHP target still uses PHP validation and does
-not verify the [CRUDUI extension](../spec/php-extension.md). Retained failures and
-source metadata remain unchanged. A successful current implementation does not
-change a historical result, and external results do not verify later source
-changes automatically.
+Run browser verification once per server. Do not run these commands in parallel;
+the checks measure focus, selection and scroll in one browser environment.
 
-After the verified image is recorded in Compose, `containerctl up` returns after
-startup health checks and HTTPS route updates. Apply that same configuration again
-and compare container inspection, proxy state, certificates, storage hashes and
-HTTP responses to check environment idempotence. Record this separately from form
-data-injection equivalence.
+```sh
+FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs php http://127.0.0.1:18080
+FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs php-ext http://127.0.0.1:18080
+FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs go http://127.0.0.1:18080
+FORM_COMPARISON_RESULTS="$CANDIDATE_DIR/results" node examples/form-comparison/check.mjs rust http://127.0.0.1:18080
+node examples/form-comparison/check-browser-reports.mjs \
+  --results "$CANDIDATE_DIR/results" \
+  --origin http://127.0.0.1:18080 \
+  --metadata "$CANDIDATE_DIR/context/metadata.json" \
+  --report "$CANDIDATE_DIR/results/browser-summary.json"
+```
+
+The aggregate requires 960 successful scenario checks, 240 successful interaction
+checks, 24 successful mount checks, 24 matching static-document checks and four
+successful performance results. Each server has a 900,000 millisecond absolute
+limit and a 300,000 millisecond no-progress limit. A failed, missing, malformed or
+late result keeps status 1. Do not deploy a candidate unless every command and the
+aggregate return status 0 and the aggregate records `passed: true`.
+
+Stop and remove the isolated candidate container after retaining its reports:
+
+```sh
+container stop "$CANDIDATE_NAME"
+container delete "$CANDIDATE_NAME"
+```
+
+Deployment and package publication are separate operations. Candidate verification
+does not change either state.
