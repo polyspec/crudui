@@ -1,0 +1,65 @@
+:root {
+  color-scheme: light dark;
+  --background: #ffffff;
+  --surface: #f5f7fa;
+  --border: #dfe3e8;
+  --text: #20242a;
+  --muted: #626a76;
+  --accent: #3451b2;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { --background: #16181d; --surface: #202329; --border: #343942; --text: #edf0f3; --muted: #a9b0ba; --accent: #9eb1ff; }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; color: var(--text); background: var(--background); line-height: 1.65; }
+a { color: var(--accent); text-underline-offset: .18em; }
+.skip-link { position: fixed; left: 1rem; top: -4rem; z-index: 10; padding: .65rem 1rem; background: var(--background); border: 1px solid var(--border); }
+.skip-link:focus { top: 1rem; }
+.site-header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 2rem; min-height: 4rem; padding: .7rem 2rem; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--background) 94%, transparent); backdrop-filter: blur(10px); }
+.brand { color: var(--text); font-size: 1.15rem; font-weight: 750; text-decoration: none; }
+.site-header nav { display: flex; flex-wrap: wrap; gap: 1.15rem; margin-left: auto; }
+.site-header nav a { color: var(--muted); text-decoration: none; }
+.site-header nav a:hover, .site-header nav a:focus { color: var(--accent); }
+.site-layout { display: grid; grid-template-columns: minmax(14rem, 18rem) minmax(0, 52rem) minmax(11rem, 15rem); gap: 2.5rem; max-width: 98rem; margin: 0 auto; padding: 2rem; }
+.sidebar { position: sticky; top: 5.5rem; align-self: start; max-height: calc(100vh - 7rem); overflow: auto; padding-right: 1rem; font-size: .9rem; }
+.sidebar details { margin: .3rem 0 1rem; }
+.sidebar summary { cursor: pointer; font-weight: 700; }
+.sidebar ul, .outline ul { list-style: none; margin: .45rem 0; padding: 0; }
+.sidebar li { margin: .25rem 0; }
+.sidebar a, .outline a { color: var(--muted); text-decoration: none; }
+.sidebar a:hover, .sidebar a:focus, .outline a:hover, .outline a:focus, .sidebar a[aria-current="page"] { color: var(--accent); }
+.sidebar a[aria-current="page"] { font-weight: 700; }
+main { min-width: 0; }
+article { padding-bottom: 5rem; }
+article h1 { margin-top: .2rem; font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.2; }
+article h2 { margin-top: 2.6rem; padding-top: .5rem; border-top: 1px solid var(--border); }
+article h3 { margin-top: 2rem; }
+article img { max-width: 100%; }
+article table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+article th, article td { padding: .55rem .75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+article blockquote { margin-left: 0; padding-left: 1rem; border-left: .25rem solid var(--border); color: var(--muted); }
+code { padding: .12rem .3rem; border-radius: .3rem; background: var(--surface); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .9em; }
+pre { overflow-x: auto; padding: 1rem; border: 1px solid var(--border); border-radius: .55rem; background: var(--surface); }
+pre code { padding: 0; background: transparent; }
+.outline { position: sticky; top: 5.5rem; align-self: start; max-height: calc(100vh - 7rem); overflow: auto; font-size: .85rem; }
+.outline li { margin: .35rem 0; }
+.outline .level-3 { padding-left: .8rem; }
+footer { padding: 1.4rem 2rem; border-top: 1px solid var(--border); color: var(--muted); text-align: center; }
+.not-found { max-width: 42rem; margin: 15vh auto; padding: 2rem; text-align: center; }
+.error-code { margin: 0; font-size: clamp(4rem, 15vw, 8rem); font-weight: 800; line-height: 1; }
+
+@media (max-width: 72rem) {
+  .site-layout { grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr); }
+  .outline { display: none; }
+}
+
+@media (max-width: 48rem) {
+  .site-header { position: static; align-items: flex-start; padding: 1rem; }
+  .site-header nav { gap: .7rem; }
+  .site-layout { display: block; padding: 1.2rem; }
+  .sidebar { position: static; max-height: 18rem; margin-bottom: 2rem; padding: 1rem; border: 1px solid var(--border); border-radius: .55rem; }
+}
