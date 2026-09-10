@@ -21,6 +21,7 @@ test('PHP extension build removes previous generated configuration', t => {
   const trace = path.join(root, 'trace');
   mkdirSync(scripts, { recursive: true });
   mkdirSync(path.join(extension, 'build'), { recursive: true });
+  mkdirSync(path.join(extension, 'tests'), { recursive: true });
   mkdirSync(commands);
   writeFileSync(
     path.join(scripts, 'build-php-extension.sh'),
@@ -29,12 +30,16 @@ test('PHP extension build removes previous generated configuration', t => {
   writeFileSync(path.join(extension, 'config.m4'), 'PHP_ARG_ENABLE([crudui])\n');
   writeFileSync(path.join(extension, 'build/previous'), 'previous configuration\n');
   chmodSync(path.join(extension, 'build/previous'), 0o444);
+  const testSource = '<?php echo \'tracked test source\\n\';\n';
+  writeFileSync(path.join(extension, 'tests/api.php'), testSource);
+  writeFileSync(path.join(extension, 'tests/validate.php'), testSource);
 
   executable(path.join(commands, 'phpize'), `#!/bin/sh
 set -eu
 if [ "\${1-}" = --clean ]; then
   printf 'phpize --clean\n' >>"$TRACE"
   rm -rf build configure
+  rm -f tests/*.php
   exit 0
 fi
 printf 'phpize\n' >>"$TRACE"
@@ -65,8 +70,9 @@ printf 'php %s\n' "$*" >>"$TRACE"
     },
   });
   assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(path.join(extension, 'tests/api.php'), 'utf8'), testSource);
+  assert.equal(readFileSync(path.join(extension, 'tests/validate.php'), 'utf8'), testSource);
   assert.deepEqual(readFileSync(trace, 'utf8').trim().split('\n'), [
-    'phpize --clean',
     'phpize',
     'configure --enable-crudui',
     'make -j2',
