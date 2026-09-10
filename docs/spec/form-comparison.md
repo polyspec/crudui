@@ -74,13 +74,17 @@ or periodic health request.
 Browser verification registers the host callback for main-page readiness before
 navigating. The main page publishes readiness after both initial comparison
 frames publish their readiness events. The verifier waits for the host callback
-without keeping a browser evaluation call open. It also subscribes to the exact
-job and renderer events before it starts the corresponding operation. It awaits
-the operation promise and the renderer completion signal before reading the
-result. It does not infer page readiness, frame readiness, validation completion
-or rendering completion from periodic DOM reads or elapsed time. A time limit may
-fail a browser operation that stops publishing progress, but reaching that limit
-cannot produce a successful result.
+without keeping a browser evaluation call open. Every module copied directly to
+the public directory uses only browser-resolvable imports. Source verification
+loads those modules in Chromium. A script error, page failure or page close before
+main-page readiness rejects the current server run and records the failure. The
+readiness wait does not remain pending after an observed initialization failure.
+The verifier also subscribes to the exact job and renderer events before it starts
+the corresponding operation. It awaits the operation promise and the renderer
+completion signal before reading the result. It does not infer page readiness,
+frame readiness, validation completion or rendering completion from periodic DOM
+reads or elapsed time. A time limit may fail a browser operation that stops
+publishing progress, but reaching that limit cannot produce a successful result.
 
 ## Implementations and requests
 
