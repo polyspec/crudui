@@ -11,16 +11,11 @@ import (
 	"testing"
 )
 
-// TestDocCoverage enforces that every top-level func declaration in the go-api
-// example carries a doc comment. It is the Go arm of the server doc-coverage
-// gate: adding an undocumented func (including unexported helpers and the
-// route handler methods) turns this test RED.
+// TestDocCoverage requires a doc comment on every top-level function in the
+// go-api example, including unexported helpers and route handler methods.
 //
-// Unlike the library gate (packages/validator-go), which follows Go convention
-// and only requires *exported* symbols to be documented, this example server
-// holds every func to the standard — the request was that all server functions
-// be commented. Struct types are documented via their own /// doc comments and
-// are not re-checked here; the focus is the behavior-bearing funcs.
+// The library check requires comments only for exported symbols. This example
+// server checks every function. Struct type comments are outside this check.
 //
 // The check uses go/ast and needs no external tooling, so it is deterministic
 // and dependency-free.

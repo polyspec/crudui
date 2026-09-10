@@ -184,14 +184,14 @@ func jsNumber(value any) (float64, bool) {
 	}
 }
 
-// numberPattern is the finite-number gate (JS rules/min toNumber / number
+// numberPattern recognizes finite decimal input for min and number rules
 // isValidNumber): optional sign, digits with optional decimal point.
 // "Infinity"/"-Infinity"/"NaN" do not match.
 var numberPattern = regexp.MustCompile(`^[-+]?(\d+\.?\d*|\d*\.?\d+)$`)
 
 // toNumber mirrors JS rules/min toNumber: a number passes only if finite; a
 // string must wholly match numberPattern AND be finite. Returns (n, true) or
-// (0, false) — the "input must be a finite real number" gate.
+// (0, false) when the input is not a finite real number.
 func toNumber(value any) (float64, bool) {
 	switch v := value.(type) {
 	case int:

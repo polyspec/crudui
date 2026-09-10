@@ -10,7 +10,7 @@ package validate
 // tryEvaluateTernary (G1 — the condition is the value's expression, never a
 // separate if/when key).
 //
-// No display_switch / display_target visibility gate (G1 — those meta keys do not
+// No display_switch or display_target visibility condition exists (G1: those meta keys do not
 // exist in model; visibility-conditioned requiredness is required:'<expr>'). design
 // .show does NOT skip validation (SPEC R1 show/validate separation).
 

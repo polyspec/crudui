@@ -9,17 +9,14 @@ import (
 	"testing"
 )
 
-// model expression-engine conformance (expressions.md §9 three-stage check):
+// Expression conformance verifies the three stages in expressions.md §9:
 //
 //	(1) Tokenize(expr)   == fixture tokens
 //	(2) Parse(toks)      == fixture ast
 //	(3) Evaluate / EvaluateValue == fixture truthy / value
 //
-// Single truth = the shared 4-language fixture tests/fixtures/expr/cases.json.
-// All four engines (JS / PHP / Go / Rust) load this ONE file and must pass it.
-// Its values are the JS reference engine's actual output (tokens+AST+eval); Go
-// matches it. Never weaken an assertion to turn red green; fix the engine, the
-// fixture, or both at their shared source — not this test.
+// The shared fixture tests/fixtures/expr/cases.json defines the expected tokens,
+// syntax tree and evaluation result for every runtime.
 
 type fixtureCase struct {
 	Data        map[string]any `json:"data"`
