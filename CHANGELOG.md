@@ -2,6 +2,25 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Build PHP extensions directly
+
+One PHP extension builder compiles and loads the CRUDUI and OrderedJSON
+modules. Separate entry points declare each module's sources, outputs, platform
+libraries and load checks. Candidate images use both entry points and do not run
+`phpize`, Autoconf or libtool.
+
+The builder resolves regular `php-config`, C compiler, Cargo and rustc files
+before compilation. It rejects relative paths, symbolic links, missing or
+ambiguous tools and mismatched PHP installations. Rustup identifies the regular
+Cargo and rustc files in one selected toolchain. Cargo receives the regular
+rustc and linker paths explicitly. Generated path cleanup validates every
+declared target before removal and does not follow symbolic links.
+
+The direct builds loaded both modules on PHP 8.5.10. The combined process called
+both modules successfully. The PHP API check passed 352 checks in each of three
+configurations and 94 validation cases in each implementation. Six builder and
+entry-point regression checks passed.
+
 ## 2026-09-11 — Use explicit browser completion signals
 
 The form-comparison runner subscribes to the main-page and frame readiness

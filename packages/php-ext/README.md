@@ -15,14 +15,16 @@ loads the PHP packages. Each process uses one implementation.
 ## Build and verification
 
 Build from the complete repository with 64-bit PHP 8.4 or later, matching PHP
-development headers, a C compiler, Autoconf, Make and Cargo. Linux and macOS are
-supported build targets. macOS builds target 11.0 or later. `phpize` and
-`php-config` must belong to the PHP binary that will load the module.
+development headers, `php-config`, a C compiler and Cargo. Linux and macOS are
+supported build targets. macOS builds target 11.0 or later. The build resolves
+regular executable paths before compilation and rejects symbolic links, multiple
+discovery results and mismatched PHP installations. It does not use `phpize`,
+Autoconf or libtool.
 
 Run from the repository root:
 
 ```sh
-sh scripts/build-php-extension.sh
+node scripts/build-crudui-php-extension.mjs
 composer install --working-dir=packages/generator-php
 node packages/php-ext/tests/run.mjs "$(pwd)/packages/php-ext/modules/crudui.so"
 npm run build
@@ -41,8 +43,12 @@ Generator conformance compares all five implementations separately.
 `crudui_arginfo.h` with the PHP development tools after changing the stubs:
 
 ```sh
-php packages/php-ext/build/gen_stub.php packages/php-ext/crudui.stub.php
+/absolute/path/to/php -n /absolute/path/to/php-build/gen_stub.php \
+  packages/php-ext/crudui.stub.php
 ```
+
+Both external paths must be regular files from the same PHP development
+installation. The build does not create or retain a local PHP build-tool copy.
 
 The generated header is committed; PHP classes are not declared by including the
 stub file. Cached templates are ordinary JSON objects. Native `Form` instances
