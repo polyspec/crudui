@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Make native C fixtures compile with Linux toolchains
+
+`packages/php-ext/tests/engine.test.mjs` now links `libm` when compiling native
+fixtures and emits cleanup statements separately from guard clauses. The C
+engine fixtures compile with the warning-as-error settings used by the PHP 8.4
+and 8.5 CI jobs.
+
 ## 2026-09-11 — Build JavaScript prerequisites before native tests
 
 `make test-native` now builds the workspace JavaScript packages before running

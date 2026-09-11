@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-11 — Linux 도구 모음에서 네이티브 C fixture 컴파일
+
+`packages/php-ext/tests/engine.test.mjs`는 이제 네이티브 fixture를 컴파일할 때
+`libm`을 연결하고 guard clause와 정리 문장을 별도 문장으로 출력합니다. C 엔진
+fixture는 PHP 8.4 및 8.5 CI 작업에서 사용하는 경고 오류 설정으로 컴파일됩니다.
+
 ## 2026-09-11 — 네이티브 검사 전 JavaScript 의존성 빌드
 
 `make test-native`는 이제 C 확장 엔진 검사 전에 작업공간 JavaScript 패키지를
