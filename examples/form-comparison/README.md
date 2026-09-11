@@ -45,7 +45,7 @@ The [verification procedure](../../docs/operations/verification.md) defines
 candidate startup, HTTP checks, sequential browser checks and report aggregation.
 The [form verification contract](../../docs/spec/form-comparison.md) defines the
 required matrix, evidence and pass criteria. After the complete aggregate passes,
-`node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"` verifies
+`node examples/form-comparison/comparison-deployment.mjs --commit "$CANDIDATE_REF"` verifies
 the exact image and reports, preserves active service data and verifies two
 identical containerctl applications at `https://crudui.test`. A successful
 deployment removes candidate containers, directories, reports, screenshots and
