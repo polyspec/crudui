@@ -2,6 +2,26 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Verify clean CI installations
+
+Repository-root form-comparison and cross-check commands declare their direct
+JavaScript dependencies in the root manifest. Form comparison uses the root npm
+graph, and the cross-check renderer resolves Vite and the Svelte plugin by package
+name. Package consumer verification packs each package from its own directory and
+requires one archive result.
+
+The form-comparison CI job installs PHP 8.5 and the validator and generator
+Composer graphs before running the complete suite. Native PHP matrix jobs pass
+the regular versioned `php-config` path for the selected PHP release. Artifact
+upload runs only after native verification creates the report.
+
+A clean source archive passed 136 form-comparison source checks, ten generator
+construction checks and three Chromium browser checks. Package consumer export,
+type, production build and three-framework browser verification passed. Public
+package checks passed nine cases, repeated builds passed one case, and the form
+inspector passed 18 unit and six browser CSS checks. Cross-check rendering passed
+33 cases. These changes are not deployed.
+
 ## 2026-09-11 — Preserve Svelte editable controls
 
 The Svelte generator renders ordinary input and textarea controls as stable DOM
