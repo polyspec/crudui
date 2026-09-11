@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Preserve Svelte editable controls
+
+The Svelte generator renders ordinary input and textarea controls as stable DOM
+elements. Session value updates retain each element, focus and text selection.
+Controls with string `on*` behavior attributes and controls that require exact
+specialized HTML remain on the raw serialization path.
+
+The browser connection formats date and datetime values from the current form
+instance before updating live controls. Initial data and later injection use the
+same value conversion.
+
+Regression checks cover text, email, number, password, textarea, date and datetime
+controls. The Svelte SSR and HTML comparison suite passed 345 checks, the mounted
+browser suite passed ten checks, the generator core passed 86 checks and
+`svelte-check` reported zero errors and warnings. This change is not deployed.
+
 ## 2026-09-11 — Verify explicit browser and PHP inputs
 
 The Chromium widget check disables Vite dependency discovery and optimizes only
