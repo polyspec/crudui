@@ -153,11 +153,12 @@ release.
 Linux CI browser jobs use the regular Chrome executable installed by the runner
 at `/opt/google/chrome/chrome`. They set `PUPPETEER_EXECUTABLE_PATH` to that
 canonical file and disable Puppeteer's browser download. Before tests start, a
-preflight requires the browser and its adjacent `chrome-sandbox` helper to be
-executable regular files with no symbolic-link resolution. The helper must be
-owned by root and have its set-user-ID bit. The preflight launches Chrome without
-sandbox-disabling arguments and loads a document. Any failed condition fails the
-job. CI browser checks do not use `--no-sandbox` or
+preflight requires the browser and every parent path component to be regular
+filesystem entries with no symbolic-link resolution. The preflight launches
+Chrome without sandbox-disabling arguments and requires `chrome://sandbox` to
+report `You are adequately sandboxed.` This status requires a namespace or SUID
+first layer, PID and network namespaces, and Seccomp-BPF. Any failed condition
+fails the job. CI browser checks do not use `--no-sandbox` or
 `--disable-setuid-sandbox`.
 
 Every Git-tracked npm lock file is a maintained dependency graph. The root
