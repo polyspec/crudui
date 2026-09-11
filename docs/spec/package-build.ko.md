@@ -139,7 +139,11 @@ Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존�
 반환해야 합니다. 각 추적 잠금 파일의
 `npm audit --package-lock-only --audit-level=moderate`는 중간·높음·치명적 취약점을
 보고하지 않아야 합니다. 각 그래프의
-`npm ci --dry-run --strict-allow-scripts`도 성공해야 합니다. 호환되는 안전한 안정
+`npm ci --dry-run --strict-allow-scripts`도 성공해야 합니다. URL 의존성은 루트
+매니페스트가 직접 선언한 경우에만 가져올 수 있습니다. 프로젝트 npm 설정은
+`allow-remote=root`를 선언하며 의존성이 추가한 URL 의존성은 npm이 거부합니다.
+매니페스트는 허용한 각 URL을 변경되지 않는 소스 리비전에 고정하고 잠금 파일은
+무결성을 기록합니다. 호환되는 안전한 안정
 릴리스가 없는 도구는 교체합니다. 의존성 override와 audit 제외는 이 기준을
 충족하지 않습니다. 사용하지 않는 빌드·문서 의존성은 제거합니다.
 
