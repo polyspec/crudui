@@ -2,6 +2,27 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Enforce npm 12 and sandboxed Chrome CI
+
+The npm dependency policy permits a URL dependency only when the root manifest
+declares it directly and pins it to an immutable source revision. Dependency
+verification rejects URL dependencies introduced by another dependency. Package
+consumer verification reads the current npm 12 `pack --json` report and requires
+exactly one report for the requested package and archive.
+
+Linux browser CI uses the regular Chrome file at `/opt/google/chrome/chrome` and
+disables Puppeteer's browser download. The preflight rejects symbolic links in the
+browser path, launches Chrome without sandbox-disabling arguments and requires
+`chrome://sandbox` to confirm the active first-layer, PID, network and Seccomp-BPF
+sandboxes. Both browser CI jobs complete this preflight before starting tests.
+
+GitHub Actions run `34551049527` for commit
+`a7ac873b5a2e47c398372a50ab8fb31a75823393` completed all 20 jobs successfully.
+The run includes package consumer, public export and type, repeated build, browser
+inspector and CSS, form-comparison regression, documentation coverage and PHP 8.4
+and 8.5 native generation and PHP API checks. No job failed or was cancelled.
+These changes are not deployed.
+
 ## 2026-09-11 — Verify clean CI installations
 
 Repository-root form-comparison and cross-check commands declare their direct
