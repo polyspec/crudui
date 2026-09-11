@@ -2,10 +2,9 @@
  * CRUDUI Svelte widget byte-builders — control bodies only, NO structural markup.
  *
  * Each function turns the core's evaluated `WidgetModel` (markup-free) into the
- * raw HTML of its leaf CONTROL bytes (`<input>` / `<select><option>` / `<textarea>`
- * and the per-item radio/checkbox pairs). Widget.svelte owns the real container
- * element (`.input-group` / `.btn-group` / `.input-group field-search` / display
- * `<div>` / `<script>`/`<style>` chrome) and injects these bytes via `{@html}`.
+ * raw HTML required for exact control attributes, embedded behavior and display
+ * content. Widget.svelte renders ordinary input-group inputs as stable Svelte
+ * elements and uses these serializers for the remaining control bodies.
  *
  * It RECOMPUTES NOTHING — every class string, data-* value, item list, and script
  * is already evaluated by the core. The raw path is forced by svelte/server's
@@ -24,8 +23,19 @@ export function isUnsupported(w: AnyWidget): w is UnsupportedVM {
   return (w as UnsupportedVM).unsupported === true;
 }
 
+/** Return whether a control contains browser-executed behavior attributes. */
+export function hasEventAttr(attrs: Attrs): boolean {
+  return Object.keys(attrs).some(name => name.startsWith('on'));
+}
+
+/** Keep an editable input-group input as one DOM element across value updates. */
+export function usesStableInput(w: WidgetModel): boolean {
+  return w.layout === 'input-group' && w.tag === 'input'
+    && ['text', 'email', 'number'].includes(w.kind) && !hasEventAttr(w.attrs);
+}
+
 /** Raw prepend/append affix span html. */
-function affixHtml(affix?: Affix): string {
+export function affixHtml(affix?: Affix): string {
   if (!affix) return '';
   const cls = affix.class ? ` class="${escAttr(affix.class)}"` : '';
   const style = affix.style ? ` style="${escAttr(affix.style)}"` : '';
