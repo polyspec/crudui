@@ -37,9 +37,9 @@ it('preserves consecutive native input across Svelte renders', async () => {
   try {
     const input = () => element.querySelector('input[name="name"]');
     input().focus();
+    const active = input();
     let expected = '';
     for (const character of 'continuous') {
-      const active = document.activeElement;
       expected += character;
       active.value = expected;
       active.setSelectionRange(expected.length, expected.length);
