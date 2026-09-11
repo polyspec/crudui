@@ -140,11 +140,12 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 Linux CI 브라우저 작업은 러너가 설치한 정규 Chrome 실행 파일
 `/opt/google/chrome/chrome`을 사용합니다. `PUPPETEER_EXECUTABLE_PATH`는 이 정규
 파일을 지정하며 Puppeteer 브라우저 다운로드는 비활성화합니다. 테스트 실행 전에
-사전 검사는 브라우저와 같은 디렉터리의 `chrome-sandbox`가 심볼릭 링크를 해석하지
-않는 실행 가능한 일반 파일인지 확인합니다. sandbox 파일은 root 소유이며 set-user-ID
-비트를 포함해야 합니다. 사전 검사는 sandbox 비활성화 인자 없이 Chrome을 시작하고
-문서를 로드합니다. 조건 하나라도 실패하면 작업이 실패합니다. CI 브라우저 검사는
-`--no-sandbox`와 `--disable-setuid-sandbox`를 사용하지 않습니다.
+사전 검사는 브라우저와 모든 상위 경로 구성요소가 심볼릭 링크를 해석하지 않는 정규
+파일시스템 항목인지 확인합니다. 사전 검사는 sandbox 비활성화 인자 없이 Chrome을
+시작하고 `chrome://sandbox`가 `You are adequately sandboxed.`를 보고하도록
+요구합니다. 이 상태에는 namespace 또는 SUID 1차 계층, PID·network namespace와
+Seccomp-BPF가 필요합니다. 조건 하나라도 실패하면 작업이 실패합니다. CI 브라우저
+검사는 `--no-sandbox`와 `--disable-setuid-sandbox`를 사용하지 않습니다.
 
 Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존성 그래프입니다. 루트
 설치의 `npm ls --all`은 잘못되거나 누락되거나 충돌하는 의존성 없이 상태 0을
