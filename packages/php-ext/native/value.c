@@ -269,3 +269,43 @@ bool ps_truthy(const ps_value *value)
         default: return true;
     }
 }
+
+ps_value *ps_null_value(void) { return ps_value_new(PS_NULL); }
+ps_value *ps_bool_value(bool input)
+{
+    ps_value *value = ps_value_new(PS_NULL);
+    if (value) ps_value_bool(value, input);
+    return value;
+}
+ps_value *ps_int_value(int64_t input)
+{
+    ps_value *value = ps_value_new(PS_NULL);
+    if (value) ps_value_int(value, input);
+    return value;
+}
+ps_value *ps_float_value(double input)
+{
+    ps_value *value = ps_value_new(PS_NULL);
+    if (!value || !ps_value_float(value, input)) { ps_value_free(value); return NULL; }
+    return value;
+}
+ps_value *ps_string_value(const char *input)
+{
+    ps_value *value = ps_value_new(PS_NULL);
+    if (!value || !ps_value_string(value, (const uint8_t *)input, strlen(input))) {
+        ps_value_free(value); return NULL;
+    }
+    return value;
+}
+ps_value *ps_array_value(void) { return ps_value_new(PS_ARRAY); }
+ps_value *ps_object_value(void) { return ps_value_new(PS_OBJECT); }
+bool ps_replace(ps_value *parent, size_t index, ps_value *value)
+{
+    if (!parent || !value || (parent->kind != PS_ARRAY && parent->kind != PS_OBJECT) ||
+        index >= parent->data.children.length) {
+        ps_value_free(value); return false;
+    }
+    ps_value_free(parent->data.children.items[index].value);
+    parent->data.children.items[index].value = value;
+    return true;
+}
