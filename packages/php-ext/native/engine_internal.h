@@ -42,6 +42,20 @@ ps_value *ps_string_value(const char *value);
 ps_value *ps_array_value(void);
 ps_value *ps_object_value(void);
 bool ps_replace(ps_value *parent, size_t index, ps_value *value);
+const ps_value *ps_path(const ps_value *root, const char *path);
+const ps_value *ps_path_segments(const ps_value *root, const char *const *segments,
+                                 size_t length);
+char *ps_scalar_string(const ps_value *value);
+char *ps_js_string(const ps_value *value);
+
+ps_value *ps_expression_value(const char *expression, const ps_value *data,
+                              const char *const *current_path, size_t path_length,
+                              bool *parsed);
+bool ps_expression_truth(const char *expression, const ps_value *data,
+                         const char *const *current_path, size_t path_length,
+                         bool *parsed);
+ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
+                             const char *const *current_path, size_t path_length);
 
 ps_result ps_ok(ps_value *value);
 ps_result ps_fail(const char *kind, const char *code, const char *message,
