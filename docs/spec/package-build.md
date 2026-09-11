@@ -151,6 +151,10 @@ installation must make `npm ls --all` return status 0 without invalid, missing o
 conflicting dependencies. `npm audit --package-lock-only --audit-level=moderate`
 must report no moderate, high or critical vulnerability for each tracked lock
 file. `npm ci --dry-run --strict-allow-scripts` must also succeed for each graph.
+A URL dependency may be fetched only when the root manifest declares it directly.
+The project npm configuration sets `allow-remote=root`; npm rejects URL
+dependencies introduced by dependencies. The manifest pins each permitted URL to
+an immutable source revision, and the lock file records its integrity.
 A tool with no secure compatible stable release is replaced. Dependency overrides
 and audit exclusions do not satisfy these checks. Unused build and documentation
 dependencies are removed.

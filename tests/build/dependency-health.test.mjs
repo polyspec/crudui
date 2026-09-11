@@ -183,12 +183,33 @@ test('root example imports are declared by the root package', () => {
 
 test('root URL dependencies permit only root npm remote fetches', () => {
   const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
   const remoteDependencies = [
     ...Object.entries(manifest.dependencies ?? {}),
     ...Object.entries(manifest.devDependencies ?? {}),
     ...Object.entries(manifest.optionalDependencies ?? {}),
   ].filter(([, specifier]) => /^https?:\/\//.test(specifier));
   assert.ok(remoteDependencies.length > 0, 'root package must declare a URL dependency');
+  for (const [packageName, specifier] of remoteDependencies) {
+    assert.match(specifier, /[0-9a-f]{40}(?:[/?#]|$)/,
+      `${packageName}: URL dependency must identify one source revision`);
+    const locked = lock.packages?.[`node_modules/${packageName}`];
+    assert.equal(locked?.resolved, specifier,
+      `${packageName}: lock file must retain the declared URL`);
+    assert.match(locked?.integrity ?? '', /^sha512-[A-Za-z0-9+/]+={0,2}$/,
+      `${packageName}: lock file must record SHA-512 integrity`);
+  }
+
+  const workspaceRemoteDependencies = workspacePackageDirectories().flatMap((directory) => {
+    const workspace = JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8'));
+    return [
+      ...Object.entries(workspace.dependencies ?? {}),
+      ...Object.entries(workspace.devDependencies ?? {}),
+      ...Object.entries(workspace.optionalDependencies ?? {}),
+    ].filter(([, specifier]) => /^https?:\/\//.test(specifier))
+      .map(([packageName]) => `${directory}: ${packageName}`);
+  });
+  assert.deepEqual(workspaceRemoteDependencies, []);
 
   const configFile = path.join(root, '.npmrc');
   const config = existsSync(configFile) ? readFileSync(configFile, 'utf8') : '';
