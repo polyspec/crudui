@@ -25,33 +25,40 @@ it('runs the shared browser lifecycle over a cached Svelte form', async () => {
   finally { await unmount(app); element.remove(); }
 });
 
-it('preserves consecutive native input across Svelte renders', async () => {
+it.each([
+  { type: 'text', selector: 'input', values: ['c', 'co', 'con'], selection: true },
+  { type: 'email', selector: 'input', values: ['name@one.test', 'name@two.test'] },
+  { type: 'number', selector: 'input', values: ['1', '12', '123'] },
+  { type: 'password', selector: 'input', values: ['s', 'se', 'sec'], selection: true },
+  { type: 'textarea', selector: 'textarea', values: ['n', 'no', 'not'], selection: true },
+  { type: 'date', selector: 'input', values: ['2026-09-10', '2026-09-11'] },
+  { type: 'datetime', selector: 'input', values: ['2026-09-10T09:30', '2026-09-11T10:45'] },
+])('preserves consecutive $type input across Svelte renders', async ({ type, selector, values, selection }) => {
   const form = createForm(compileForm({
     type: 'group',
-    properties: { name: { type: 'text' } },
+    properties: { name: { type } },
   }));
   const element = document.createElement('form');
   document.body.append(element);
   const app = mount(Form, { target: element, props: { form } });
   await tick();
   try {
-    const input = () => element.querySelector('input[name="name"]');
+    const input = () => element.querySelector(`${selector}[name="name"]`);
     input().focus();
     const active = input();
-    let expected = '';
-    for (const character of 'continuous') {
-      expected += character;
+    for (const [index, expected] of values.entries()) {
       active.value = expected;
-      active.setSelectionRange(expected.length, expected.length);
-      active.dispatchEvent(new InputEvent('input', { bubbles: true, data: character, inputType: 'insertText' }));
+      if (selection) active.setSelectionRange(expected.length, expected.length);
+      active.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
       expect(form.getValue('name')).toBe(expected);
       await tick();
+      expect(input()).toBe(active);
       expect(input().value).toBe(expected);
       expect(document.activeElement).toBe(input());
-      expect(input().selectionStart).toBe(expected.length);
-      expect(form.getSnapshot().revision).toBe(expected.length);
+      if (selection) expect(input().selectionStart).toBe(expected.length);
+      expect(form.getSnapshot().revision).toBe(index + 1);
     }
-    expect(new FormData(element).get('name')).toBe(expected);
+    expect(new FormData(element).get('name')).toBe(values.at(-1));
   } finally { await unmount(app); element.remove(); }
 });
 
