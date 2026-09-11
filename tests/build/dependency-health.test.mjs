@@ -181,6 +181,24 @@ test('root example imports are declared by the root package', () => {
   assert.deepEqual(failures, []);
 });
 
+test('root URL dependencies permit only root npm remote fetches', () => {
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const remoteDependencies = [
+    ...Object.entries(manifest.dependencies ?? {}),
+    ...Object.entries(manifest.devDependencies ?? {}),
+    ...Object.entries(manifest.optionalDependencies ?? {}),
+  ].filter(([, specifier]) => /^https?:\/\//.test(specifier));
+  assert.ok(remoteDependencies.length > 0, 'root package must declare a URL dependency');
+
+  const configFile = path.join(root, '.npmrc');
+  const config = existsSync(configFile) ? readFileSync(configFile, 'utf8') : '';
+  const policies = config.split('\n').flatMap((line) => {
+    const match = line.match(/^\s*allow-remote\s*=\s*([^#;\s]+)\s*(?:[#;].*)?$/);
+    return match ? [match[1]] : [];
+  });
+  assert.deepEqual(policies, ['root']);
+});
+
 test('form comparison commands use the root npm dependency graph', () => {
   const container = readFileSync(
     path.join(root, 'examples/form-comparison/Containerfile'), 'utf8',
