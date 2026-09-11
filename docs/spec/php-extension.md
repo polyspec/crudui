@@ -8,19 +8,17 @@ Implementation, verification and publication are recorded in
 
 The `crudui` PHP extension provides form generation and validation in the PHP
 process. Its package is `packages/php-ext`, with version `0.0.1`.
-The extension connects PHP values to the form generator and validator; it does
-not implement separate validation rules.
+The extension implements the form generator and validator in C.
 
 Generation separates structure compilation, data binding, form instances and
 HTML rendering. Generation and validation share composition and expressions.
 Both execute inside the PHP process. The extension does not require a Node
 process, a validation executable or a PHP implementation of either operation.
-The extension uses the standalone Rust generator and validator in the PHP
-process. Both Rust packages are also usable by Rust SSR applications. PHP and Go
-provide their own generators. The C binding uses the Zend extension API to register the common classes,
-convert PHP values directly to ordered engine values and report engine errors
-through the common PHP exceptions. Rust libraries are statically linked into
-the extension; value conversion does not serialize data or start another process.
+It does not require Cargo, rustc, Rust source or a Rust library. The C module uses
+the Zend extension API to register the common classes, converts PHP values
+directly to ordered engine values and reports engine errors through the common
+PHP exceptions. Value conversion does not serialize data or start another
+process.
 
 ## Public classes and loading
 
@@ -126,15 +124,17 @@ limited to generated configuration and build output. It retains the tracked PHP
 test sources in `packages/php-ext/tests`. The build command creates every output
 directory before compilation starts.
 
-The build command uses `php-config` metadata to compile the C binding and link
-the Rust static library directly. It does not invoke `phpize`, Autoconf or
-libtool. An explicitly declared tool path must be absolute and identify one
-regular executable. The path and each parent component must not be a symbolic
-link. When a tool path is omitted, discovery selects one regular executable with
-no symbolic-link path component before the build starts. An invalid explicit
-path, missing tool or ambiguous discovery result fails the build; the build does
-not select a different tool after a failure. The PHP binary, development metadata
-and headers must describe the same PHP installation.
+The build command uses `php-config` metadata to compile and link the C module
+directly. The extension package contains no Cargo manifest, Cargo lock file or
+Rust source. The build does not discover or execute Cargo, rustc or rustdoc and
+does not link a Rust library. It does not invoke `phpize`, Autoconf or libtool. An
+explicitly declared tool path must be absolute and identify one regular
+executable. The path and each parent component must not be a symbolic link. When
+a tool path is omitted, discovery selects one regular executable with no
+symbolic-link path component before the build starts. An invalid explicit path,
+missing tool or ambiguous discovery result fails the build; the build does not
+select a different tool after a failure. The PHP binary, development metadata and
+headers must describe the same PHP installation.
 Each explicit tool path is declared through either its command argument or its
 environment variable. Declaring the same input through both interfaces fails
 before compilation.
@@ -149,10 +149,9 @@ Homebrew PHP formula record when `php-config` is not declared.
 Linux builds create one shared object and link the platform dynamic-loading, math
 and thread libraries. macOS builds create one bundle, allow PHP symbols to resolve
 when the module loads, link iconv and Core Foundation, and apply the declared
-minimum macOS version to Rust compilation, C compilation and linking. Generated
-configuration, objects, the Rust target and the module output must contain only
-regular files and directories. The build fails if any generated path is a
-symbolic link.
+minimum macOS version to C compilation and linking. Generated configuration,
+objects and the module output must contain only regular files and directories.
+The build fails if any generated path is a symbolic link.
 
 1. Build and load the extension on PHP with its development headers. Run the same
    application calls with the extension enabled and disabled. With Composer
