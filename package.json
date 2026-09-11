@@ -44,7 +44,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crudui/crudui.git"
+    "url": "git+https://github.com/polyspec/crudui.git"
   },
   "keywords": [
     "form",
@@ -58,9 +58,9 @@
   "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/crudui/crudui/issues"
+    "url": "https://github.com/polyspec/crudui/issues"
   },
-  "homepage": "https://github.com/crudui/crudui#readme",
+  "homepage": "https://github.com/polyspec/crudui#readme",
   "overrides": {
     "react": "^19.2.7",
     "react-dom": "^19.2.7"

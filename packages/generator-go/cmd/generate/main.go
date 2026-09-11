@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	gen "github.com/crudui/crudui/packages/generator-go"
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	gen "github.com/polyspec/crudui/packages/generator-go"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 func val(o *gen.Object, k string) any {

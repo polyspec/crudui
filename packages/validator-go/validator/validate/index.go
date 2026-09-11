@@ -16,8 +16,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	model "github.com/crudui/crudui/packages/validator-go/validator"
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	model "github.com/polyspec/crudui/packages/validator-go/validator"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // FileSet is a virtual file set $ref resolves against ({ key: doc }).

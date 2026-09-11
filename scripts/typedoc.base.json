@@ -8,7 +8,7 @@
   "hideGenerator": true,
   "gitRevision": "main",
   "disableGit": true,
-  "sourceLinkTemplate": "https://github.com/crudui/crudui/blob/main/{path}#L{line}",
+  "sourceLinkTemplate": "https://github.com/polyspec/crudui/blob/main/{path}#L{line}",
   "includeVersion": false,
   "excludePrivate": true,
   "excludeInternal": true,

@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"github.com/crudui/crudui/packages/validator-go/validator/expr"
+	"github.com/polyspec/crudui/packages/validator-go/validator/expr"
 	"regexp"
 	"strings"
 )

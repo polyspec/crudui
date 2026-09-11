@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	generator "github.com/crudui/crudui/packages/generator-go"
-	"github.com/crudui/crudui/packages/validator-go/validator/validate"
+	generator "github.com/polyspec/crudui/packages/generator-go"
+	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
 )
 
 const specification = `{"type":"group","properties":{"name":{"type":"text","label":{"en":"Name","ko":"이름"},"validate":{"required":true,"minlength":2}},"email":{"type":"email","label":{"en":"Email","ko":"이메일"},"validate":{"required":true,"email":true}}}}`

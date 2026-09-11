@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/validate"
+	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
 )
 
 var source, sourceCommit string

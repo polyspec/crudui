@@ -22,7 +22,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 type forbiddenScanCase struct {

@@ -30,7 +30,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // isXScanCommentKey reports whether key is an x{key} comment key for the scan: an

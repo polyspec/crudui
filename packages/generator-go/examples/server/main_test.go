@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	generator "github.com/crudui/crudui/packages/generator-go"
+	generator "github.com/polyspec/crudui/packages/generator-go"
 	"net/http"
 	"net/http/httptest"
 	"os"
