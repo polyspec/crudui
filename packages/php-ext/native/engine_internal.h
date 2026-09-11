@@ -70,6 +70,7 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
                     const char *path, const ps_value *design, const char *key_prefix,
                     const char *id_prefix, const char *language,
                     const size_t *row_segments, size_t row_count);
+char *ps_render_fields(const ps_value *fields);
 
 ps_value *ps_expression_value(const char *expression, const ps_value *data,
                               const char *const *current_path, size_t path_length,
