@@ -146,28 +146,45 @@ static bool set_affix(const widget_context *context, ps_value *model,
     free(text); free(class_name); free(style); return result;
 }
 
+static bool same_type(const char *left, const char *right)
+{
+    while (*left && *right) {
+        unsigned char a = (unsigned char)*left++;
+        unsigned char b = (unsigned char)*right++;
+        if (a >= 'A' && a <= 'Z') a = (unsigned char)(a - 'A' + 'a');
+        if (b >= 'A' && b <= 'Z') b = (unsigned char)(b - 'A' + 'a');
+        if (a != b) return false;
+    }
+    return !*left && !*right;
+}
+
 static const char *canonical_kind(const char *name)
 {
-    if (!strcmp(name, "text") || !strcmp(name, "string")) return "text";
-    if (!strcmp(name, "integer") || !strcmp(name, "float") ||
-        !strcmp(name, "decimal") || !strcmp(name, "number")) return "number";
-    if (!strcmp(name, "select") || !strcmp(name, "dropdown") ||
-        !strcmp(name, "selectbox")) return "select";
-    if (!strcmp(name, "choice") || !strcmp(name, "radio")) return "choice";
-    if (!strcmp(name, "multichoice") || !strcmp(name, "checkboxes") ||
-        !strcmp(name, "checkcontainer")) return "multichoice";
-    if (!strcmp(name, "datetime-local") || !strcmp(name, "datetime")) return "datetime";
-    if (!strcmp(name, "html") || !strcmp(name, "static") || !strcmp(name, "dummy")) return "dummy";
-    if (!strcmp(name, "cover-simple") || !strcmp(name, "cover")) return "cover";
-    if (!strcmp(name, "search") || !strcmp(name, "autocomplete")) return "search";
-    if (!strcmp(name, "tinymce") || !strcmp(name, "wysiwyg")) return "tinymce";
-    if (!strcmp(name, "button") || !strcmp(name, "action")) return "button";
+    if (same_type(name, "text") || same_type(name, "string")) return "text";
+    if (same_type(name, "integer") || same_type(name, "float") ||
+        same_type(name, "decimal") || same_type(name, "number")) return "number";
+    if (same_type(name, "select") || same_type(name, "dropdown") ||
+        same_type(name, "selectbox")) return "select";
+    if (same_type(name, "choice") || same_type(name, "radio")) return "choice";
+    if (same_type(name, "multichoice") || same_type(name, "checkboxes") ||
+        same_type(name, "checkcontainer")) return "multichoice";
+    if (same_type(name, "datetime-local") || same_type(name, "datetime")) return "datetime";
+    if (same_type(name, "html") || same_type(name, "static") || same_type(name, "dummy")) return "dummy";
+    if (same_type(name, "cover-simple") || same_type(name, "cover")) return "cover";
+    if (same_type(name, "search") || same_type(name, "autocomplete")) return "search";
+    if (same_type(name, "tinymce") || same_type(name, "wysiwyg")) return "tinymce";
+    if (same_type(name, "button") || same_type(name, "action")) return "button";
     const char *direct[] = {"email","password","textarea","hidden","date",
         "dummy-input","image","file","image-viewer","summernote",
         "editorjs","tui","tagify","tagify2"};
     for (size_t i = 0; i < sizeof(direct) / sizeof(direct[0]); ++i)
-        if (!strcmp(name, direct[i])) return direct[i];
+        if (same_type(name, direct[i])) return direct[i];
     return NULL;
+}
+
+bool ps_widget_supported(const char *type)
+{
+    return type && canonical_kind(type) != NULL;
 }
 
 static ps_value *source_model(const ps_value *items)
@@ -683,13 +700,10 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
                     const size_t *row_segments, size_t row_count)
 {
     const char *type = string_member(spec, "type");
-    char *lower = ps_string_join(type, "", "");
-    if (!lower) return NULL;
-    for (char *cursor = lower; *cursor; ++cursor) *cursor = (char)tolower((unsigned char)*cursor);
-    const char *kind = canonical_kind(lower);
-    if (!kind) { free(lower); return NULL; }
+    const char *kind = canonical_kind(type);
+    if (!kind) return NULL;
     char *id = ps_control_id(id_prefix, path);
-    if (!id) { free(lower); return NULL; }
+    if (!id) return NULL;
     widget_context context = {spec, value, value_present, path, design, key_prefix, id,
                               language, row_segments, row_count};
     ps_value *model;
@@ -721,5 +735,5 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
             }
         }
     }
-    free(id); free(lower); return model;
+    free(id); return model;
 }

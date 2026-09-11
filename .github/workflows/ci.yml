@@ -488,7 +488,6 @@ jobs:
         with:
           workspaces: |
             packages/generator-rust
-            packages/php-ext
       - name: Install dependencies
         run: |
           npm i -g npm@latest && npm ci --strict-allow-scripts

@@ -121,21 +121,25 @@ static ps_value *build_widget(const ps_value *spec, const ps_value *value,
                               const bind_context *context, const size_t *rows,
                               size_t row_count, ps_value **error)
 {
-    ps_value *widget = ps_widget(spec, value, present, path, design,
-                                 context->key_prefix, context->id_prefix,
-                                 context->language, rows, row_count);
-    if (widget) return widget;
     char *type = field_type(spec);
     if (!type) return NULL;
-    if (context->unsupported_marker) {
-        widget = unsupported_widget(type);
-        free(type); return widget;
+    if (!ps_widget_supported(type)) {
+        if (context->unsupported_marker) {
+            ps_value *widget = unsupported_widget(type);
+            free(type);
+            return widget;
+        }
+        size_t length = strlen(type) + strlen(path) + 34;
+        char *message = malloc(length);
+        if (message) snprintf(message, length, "Unsupported field type \"%s\" at \"%s\"", type, path);
+        *error = message ? ps_error("form", "UNSUPPORTED_FIELD_TYPE", message, path, NULL) : NULL;
+        free(message);
+        free(type); return NULL;
     }
-    size_t length = strlen(type) + strlen(path) + 34;
-    char *message = malloc(length);
-    if (message) snprintf(message, length, "Unsupported field type \"%s\" at \"%s\"", type, path);
-    *error = message ? ps_error("form", "UNSUPPORTED_FIELD_TYPE", message, path, NULL) : NULL;
-    free(message); free(type); return NULL;
+    free(type);
+    return ps_widget(spec, value, present, path, design,
+                     context->key_prefix, context->id_prefix,
+                     context->language, rows, row_count);
 }
 
 static ps_value *build_field(const ps_value *field, const char *path,
@@ -218,8 +222,10 @@ static ps_value *build_multiple(const ps_value *field, const ps_value *spec,
     }
     const ps_value *value = ps_path(context->data, path);
     size_t path_length = 0;
-    char **parts = ps_path_parts(path, &path_length);
-    if (!parts && *path) { ps_value_free(model); ps_value_free(settings); return NULL; }
+    char **parts = NULL;
+    if (!ps_path_parts(path, &parts, &path_length)) {
+        ps_value_free(model); ps_value_free(settings); return NULL;
+    }
     size_t *next_rows = malloc((row_count + 1) * sizeof(*next_rows));
     if (!next_rows) {
         ps_path_parts_free(parts, path_length); ps_value_free(model);

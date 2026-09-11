@@ -3,9 +3,8 @@
 [한국어](README.ko.md).
 
 The `crudui` extension provides `CRUDUI\Generator`, `CRUDUI\Validator` and
-`CRUDUI\Form` in the PHP process. The C module registers the shared PHP classes
-and converts PHP values directly to ordered Rust values. The standalone Rust
-generator and validator are statically linked into the extension.
+`CRUDUI\Form` in the PHP process. The C module registers the PHP classes and
+converts PHP values directly to its ordered value model.
 
 The [PHP API specification](../../docs/spec/php-extension.md) defines methods,
 loading, data types and exceptions. When enabled, the extension's classes are
@@ -15,7 +14,7 @@ loads the PHP packages. Each process uses one implementation.
 ## Build and verification
 
 Build from the complete repository with 64-bit PHP 8.4 or later, matching PHP
-development headers, `php-config`, a C compiler and Cargo. Linux and macOS are
+development headers, `php-config` and a C compiler. Linux and macOS are
 supported build targets. macOS builds target 11.0 or later. The build resolves
 regular executable paths before compilation and rejects symbolic links, multiple
 discovery results and mismatched PHP installations. It does not use `phpize`,
@@ -37,7 +36,7 @@ The API checks execute PHP with the extension disabled, the extension without
 Composer, and the extension with Composer. They inspect class provenance and
 method signatures, conversion, exceptions, cloning, row operations and repeated
 instance creation. Validation uses shared form and list validity fixtures.
-Generator conformance compares all five implementations separately.
+Generator conformance checks the extension separately from the PHP package.
 
 `crudui.stub.php` defines native PHP signatures. Regenerate
 `crudui_arginfo.h` with the PHP development tools after changing the stubs:
@@ -56,7 +55,7 @@ are not PHP-serializable; cache the template and persist `getData()` instead.
 
 ## HTTP example
 
-The PHP generator's example uses the same calls with either implementation:
+The PHP example loads the extension and calls its public classes:
 
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \

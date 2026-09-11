@@ -96,8 +96,9 @@ HTML 생성은 지원하는 필드 타입과 레이아웃을 모두 포함합니
 생성기 동작 오류는 `errorCode`, `message`, 선택적 `path`로 생성하는
 `CRUDUI\FormError`를 사용하며 `getErrorCode()`와 `getPath()`가 동작의
 오류 정보를 반환합니다. 지원하지 않는 필드는 `UNSUPPORTED_FIELD_TYPE`,
-그 밖의 잘못된 폼 작업은 `INVALID_FORM_INPUT`을 사용합니다.
-PHP 인수 타입 위반은 `TypeError`를 발생시킵니다.
+그 밖의 잘못된 폼 작업은 `INVALID_FORM_INPUT`을 사용합니다. 지원하는 필드를
+생성하는 중 실패하면 `INTERNAL_ERROR`를 사용합니다. PHP 인수 타입 위반은
+`TypeError`를 발생시킵니다.
 
 PHP 스칼라 타입을 유지합니다. 순차 PHP 배열은 JSON 배열을 나타내고,
 연관 배열과 `stdClass`는 객체를 나타냅니다. 명시적인 빈 객체에는

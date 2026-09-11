@@ -9,7 +9,6 @@ import {
   discoverOneExecutable,
   pathState,
   resolveExecutable,
-  resolveRustToolchain,
   runCommand,
   verifyVersion,
 } from './tool-resolution.mjs';
@@ -111,12 +110,7 @@ export async function resolvePhpBuildTools(options = {}) {
       })
       : await resolveExecutable('cc', undefined, 'C compiler',
         environment, run, /(?:clang|gcc|cc)/i);
-  if (!options.needsCargo) return { phpConfig, compiler };
-  const rust = await resolveRustToolchain({
-    cargo: options.cargo, cwd: options.cwd, environment, run,
-    rustc: options.rustc, rustdoc: options.rustdoc,
-  });
-  return { phpConfig, compiler, ...rust };
+  return { phpConfig, compiler };
 }
 
 function installedHomebrewVersion(output) {
@@ -364,13 +358,6 @@ function macosDeploymentTarget(environment) {
   return value;
 }
 
-function buildJobs(environment) {
-  const value = environment.CRUDUI_BUILD_JOBS;
-  if (value === undefined) return null;
-  assert.match(value, /^[1-9]\d*$/, 'CRUDUI_BUILD_JOBS must be a positive integer');
-  return value;
-}
-
 /** Compile, link and load one explicitly declared PHP extension. */
 export async function buildPhpExtension(descriptor, options = {}) {
   validateDescriptor(descriptor);
@@ -387,21 +374,10 @@ export async function buildPhpExtension(descriptor, options = {}) {
     run,
     phpConfig: options.phpConfig,
     compiler: options.compiler,
-    cargo: options.cargo,
-    rustc: options.rustc,
-    rustdoc: options.rustdoc,
     platform,
-    needsCargo: descriptor.needsCargo,
   });
   await assertExecutable(tools.phpConfig, 'php-config');
   await assertExecutable(tools.compiler, 'C compiler');
-  if (descriptor.needsCargo) {
-    await assertExecutable(tools.cargo, 'Cargo');
-    await assertExecutable(tools.rustc, 'rustc');
-    await assertExecutable(tools.rustdoc, 'rustdoc');
-    assert.match(tools.rustHost, /^[a-z0-9_]+(?:-[a-z0-9_]+)+$/,
-      'Rust host target is invalid');
-  }
   const php = await readPhpMetadata(tools.phpConfig, {
     environment,
     minimumVersion: descriptor.minimumPhpVersion,
@@ -438,18 +414,6 @@ export async function buildPhpExtension(descriptor, options = {}) {
     platformLinkArguments.push('-mmacosx-version-min=' + deploymentTarget);
   }
 
-  const prepared = descriptor.prepare
-    ? await descriptor.prepare({
-      buildDirectory,
-      commandEnvironment,
-      deploymentTarget,
-      jobs: buildJobs(environment),
-      platform,
-      run,
-      sourceRoot,
-      tools,
-    })
-    : {};
   const definitions = [...(descriptor.definitions ?? [])];
   if (php.zts) definitions.push('ZTS=1');
   if (php.debug) definitions.push('ZEND_DEBUG=1');
@@ -472,15 +436,13 @@ export async function buildPhpExtension(descriptor, options = {}) {
   await assertGeneratedTree(objectDirectory);
 
   const module = path.join(moduleDirectory, descriptor.moduleName + '.so');
-  const extraObjects = prepared.objects ?? [];
-  for (const filename of extraObjects) await assertRegularPath(filename, 'file');
   const libraries = platform === 'darwin'
     ? descriptor.macosLibraries ?? []
     : descriptor.linuxLibraries ?? [];
   const linkArguments = platform === 'darwin'
     ? ['-bundle', '-undefined', 'dynamic_lookup', ...platformLinkArguments,
-      '-o', module, ...objects, ...extraObjects, ...libraries]
-    : ['-shared', '-o', module, ...objects, ...extraObjects, ...libraries];
+      '-o', module, ...objects, ...libraries]
+    : ['-shared', '-o', module, ...objects, ...libraries];
   await run(tools.compiler, linkArguments, {
     cwd: sourceRoot,
     environment: commandEnvironment,
