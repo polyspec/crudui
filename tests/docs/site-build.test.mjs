@@ -88,7 +88,7 @@ test('documentation build preserves page routes, titles, links and public files'
   assert.match(guide, /<h2 id="cell-formats">CELL_FORMATS<\/h2>/);
   assert.match(guide, /<h2 id="install-1">Install<\/h2>/);
   assert.match(guide, /href="\/">Home<\/a>/);
-  assert.match(guide, /href="https:\/\/github\.com\/crudui\/crudui\/blob\/main\/tests\/build-notes\.md#checks"/);
+  assert.match(guide, /href="https:\/\/github\.com\/polyspec\/crudui\/blob\/main\/tests\/build-notes\.md#checks"/);
   assert.equal(await readFile(join(outputDirectory, 'assets', 'fixture.txt'), 'utf8'), 'public asset\n');
   assert.match(await readFile(join(outputDirectory, '404.html'), 'utf8'), /<title>404 \| CRUDUI<\/title>/);
 });

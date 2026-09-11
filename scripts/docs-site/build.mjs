@@ -246,7 +246,7 @@ function documentHtml(page, body, pages) {
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <a class="brand" href="/">CRUDUI</a>
-    <nav aria-label="Primary"><a href="/README">Guide</a><a href="/README.ko">한국어</a><a href="/spec/schema">Specification</a><a href="/spec/validation-rules">Validation</a><a href="/api/">API</a><a href="https://github.com/crudui/crudui">GitHub</a></nav>
+    <nav aria-label="Primary"><a href="/README">Guide</a><a href="/README.ko">한국어</a><a href="/spec/schema">Specification</a><a href="/spec/validation-rules">Validation</a><a href="/api/">API</a><a href="https://github.com/polyspec/crudui">GitHub</a></nav>
   </header>
   <div class="site-layout">
     <aside class="sidebar" aria-label="Documentation">${navigation(pages, page)}</aside>
