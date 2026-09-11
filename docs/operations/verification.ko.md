@@ -72,7 +72,7 @@ node examples/form-comparison/candidate-verification.mjs --ref "$CANDIDATE_REF"
 모든 저장소·후보 명령이 종료 상태 0을 반환한 뒤 검증한 현재 커밋을 배포합니다.
 
 ```sh
-node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"
+node examples/form-comparison/comparison-deployment.mjs --commit "$CANDIDATE_REF"
 ```
 
 배포 명령은 `.form-comparison/deployment/compose.yaml`을 생성하기 전에 후보 메타데이터,

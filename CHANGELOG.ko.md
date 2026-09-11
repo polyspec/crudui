@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-11 — 비교 배포 명령 이름 명확화
+
+로컬 비교 배포 진입점 이름을
+`examples/form-comparison/comparison-deployment.mjs`로 변경했습니다. 검증 절차,
+예제와 테스트가 명확한 비교 배포 이름을 사용합니다.
+
 ## 2026-09-11 — Linux 도구 모음에서 네이티브 C fixture 컴파일
 
 `packages/php-ext/tests/engine.test.mjs`는 이제 네이티브 fixture를 컴파일할 때

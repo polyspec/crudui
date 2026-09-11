@@ -42,7 +42,7 @@ container build --tag "$CANDIDATE_IMAGE" --progress plain \
 서버별 순차 브라우저 검사와 보고서 집계를 정의합니다.
 [폼 검증 계약](../../docs/spec/form-comparison.ko.md)은 필수 조합·자료·통과 기준을
 정의합니다. 전체 집계가 통과하면
-`node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"`가 정확한
+`node examples/form-comparison/comparison-deployment.mjs --commit "$CANDIDATE_REF"`가 정확한
 이미지와 보고서를 검사하고 실행 중인 서비스 데이터를 보존한 뒤
 `https://crudui.test`에서 동일한 containerctl 적용 두 번을 검증합니다. 배포가
 성공하면 후보 컨테이너, 디렉터리, 보고서, 스크린샷과 사용하지 않는 비교 이미지를
