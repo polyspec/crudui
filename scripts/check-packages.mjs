@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 import { createRequire } from 'node:module';
+import { packPackage } from './package-consumer-pack.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
@@ -22,8 +23,7 @@ try {
     const source = join(root, 'packages', folder);
     const manifest = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
     assert.equal(manifest.version, '0.0.1', manifest.name);
-    const packed = JSON.parse(run('npm', ['pack', '--json', '--pack-destination', directory], source));
-    dependencies[manifest.name] = `file:${join(directory, packed[0].filename)}`;
+    dependencies[manifest.name] = `file:${packPackage(source, directory, run)}`;
   }
   for (const name of ['react', 'react-dom', 'vue', 'svelte', 'typescript', '@types/react', '@types/react-dom', '@types/node', 'vite', '@sveltejs/vite-plugin-svelte']) {
     dependencies[name] = ['vite', '@sveltejs/vite-plugin-svelte'].includes(name)
