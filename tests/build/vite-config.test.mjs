@@ -17,3 +17,12 @@ test('ES module Vite configurations use native module paths', () => {
   });
   assert.deepEqual(failures, []);
 });
+
+test('cross-check renderer resolves build tools by package name', () => {
+  const filename = path.join(root, 'examples/cross-check-console/server/engine.mjs');
+  const source = readFileSync(filename, 'utf8');
+
+  assert.match(source, /import\(\s*['"]vite['"]\s*\)/);
+  assert.match(source, /import\(\s*['"]@sveltejs\/vite-plugin-svelte['"]\s*\)/);
+  assert.doesNotMatch(source, /node_modules/);
+});

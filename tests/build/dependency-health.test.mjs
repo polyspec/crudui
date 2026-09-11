@@ -70,6 +70,17 @@ function nativeTestNodeEntrypoints() {
     .map((match) => match[1]);
 }
 
+function rootExampleEntrypoints() {
+  const result = execute(git, [
+    'ls-files', '--',
+    'examples/form-comparison/*.mjs',
+    'examples/form-comparison/**/*.mjs',
+    'examples/cross-check-console/server/*.mjs',
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim().split('\n').filter(Boolean);
+}
+
 function importedPackageNames(filename) {
   const source = readFileSync(path.join(root, filename), 'utf8');
   const specifiers = [
@@ -147,6 +158,22 @@ test('native test root imports are declared by the root package', () => {
     ...workspaceNames,
   ]);
   const failures = nativeTestNodeEntrypoints().flatMap((filename) => (
+    importedPackageNames(filename)
+      .filter((packageName) => !declared.has(packageName))
+      .map((packageName) => `${filename}: ${packageName}`)
+  )).sort();
+  assert.deepEqual(failures, []);
+});
+
+test('root example imports are declared by the root package', () => {
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const declared = new Set([
+    ...Object.keys(manifest.dependencies ?? {}),
+    ...Object.keys(manifest.devDependencies ?? {}),
+    ...Object.keys(manifest.optionalDependencies ?? {}),
+    ...Object.keys(manifest.peerDependencies ?? {}),
+  ]);
+  const failures = rootExampleEntrypoints().flatMap((filename) => (
     importedPackageNames(filename)
       .filter((packageName) => !declared.has(packageName))
       .map((packageName) => `${filename}: ${packageName}`)
