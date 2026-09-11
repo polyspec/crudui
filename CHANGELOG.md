@@ -2,6 +2,21 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Bind form fields in C
+
+The C extension binds compiled templates to record data without changing either
+input. Binding resolves presentation rules, translated content, repeated rows,
+language fields, checkbox state and widget models. Explicit empty arrays and
+objects produce zero repeated rows, while an omitted repeated value produces one
+initial row. Unsupported field types return `UNSUPPORTED_FIELD_TYPE` unless the
+caller selects the explicit marker result.
+
+The widget implementation generates complete button and editor scripts and keeps
+ordered model members. Focused C checks matched the complete ordered field models
+for all 91 compilable shared form fixtures, confirmed input immutability and
+completed the same cases with undefined-behavior instrumentation. These changes
+are not deployed.
+
 ## 2026-09-11 — Evaluate form expressions in C
 
 The C extension resolves object and array paths and evaluates literals, relative
