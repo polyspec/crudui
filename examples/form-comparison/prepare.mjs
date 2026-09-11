@@ -16,8 +16,6 @@ export const requiredSourcePaths = Object.freeze([
   'package-lock.json',
   'examples/form-comparison/Containerfile',
   'examples/form-comparison/verify-candidate-context.mjs',
-  'examples/form-comparison/package.json',
-  'examples/form-comparison/package-lock.json',
   'packages/generator-php/composer.json',
   'packages/generator-php/composer.lock',
   'packages/validator-php/composer.json',
