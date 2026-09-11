@@ -70,6 +70,16 @@ test('CI browser preflight verifies regular executable files and starts Chrome',
   ]);
 });
 
+test('CI browser preflight accepts namespace sandbox without set-user-ID helper', async () => {
+  await checkCiBrowser({
+    executablePath,
+    inspect: async filename => filename === sandboxPath
+      ? metadata({ mode: 0o100755, uid: 0 })
+      : inspectRegularChrome(filename),
+    launch: async () => browser(),
+  });
+});
+
 test('CI browser preflight rejects a symbolic-link executable', async () => {
   await assert.rejects(
     checkCiBrowser({
