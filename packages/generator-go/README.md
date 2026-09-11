@@ -9,7 +9,7 @@ composition and expression evaluation with the Go validator.
 ## Use
 
 ```go
-import generator "github.com/crudui/crudui/packages/generator-go"
+import generator "github.com/polyspec/crudui/packages/generator-go"
 
 spec := generator.NewObject("type", "group", "properties",
     generator.NewObject("name", generator.NewObject("type", "text", "label", "Name")))

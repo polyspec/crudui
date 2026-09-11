@@ -9,7 +9,7 @@ Go 패키지는 폼 템플릿 컴파일, 데이터 바인딩, 키 기반 행 관
 ## 사용
 
 ```go
-import generator "github.com/crudui/crudui/packages/generator-go"
+import generator "github.com/polyspec/crudui/packages/generator-go"
 
 spec := generator.NewObject("type", "group", "properties",
     generator.NewObject("name", generator.NewObject("type", "text", "label", "Name")))

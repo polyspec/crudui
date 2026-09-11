@@ -14,7 +14,7 @@ export function repositoryLink(href, sourceFile, repositoryRoot) {
   }
   const operation = statSync(target).isDirectory() ? 'tree' : 'blob';
   const path = repositoryRelative.split(sep).map(encodeURIComponent).join('/');
-  return `https://github.com/crudui/crudui/${operation}/main/${path}${href.slice(pathname.length)}`;
+  return `https://github.com/polyspec/crudui/${operation}/main/${path}${href.slice(pathname.length)}`;
 }
 
 /** Apply repository source links before the site build checks local links. */

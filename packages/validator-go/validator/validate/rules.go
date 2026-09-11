@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // ruleContext carries the data a rule needs beyond value + param.

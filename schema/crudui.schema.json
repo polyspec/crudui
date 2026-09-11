@@ -1,5 +1,5 @@
 {
-  "$id": "https://github.com/crudui/crudui/schema/crudui.schema.json",
+  "$id": "https://github.com/polyspec/crudui/schema/crudui.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CRUDUI declaration schema",
   "description": "Validates form and list declarations, including field structure, validation, appearance, behavior and composition.",

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a84c7ed1a3871662482df0389d5fb57f",
+    "content-hash": "58d9ede88b9820a63860d8aee4d7bf54",
     "packages": [
         {
             "name": "crudui/validator",
@@ -12,7 +12,7 @@
             "dist": {
                 "type": "path",
                 "url": "../validator-php",
-                "reference": "3c91e5d313f4a766b8a2bd174b79bb920f107223"
+                "reference": "bc9d58202823504977eccd0b343283c2e04e1419"
             },
             "require": {
                 "php": "^8.2"

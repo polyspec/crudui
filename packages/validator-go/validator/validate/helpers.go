@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/expr"
+	"github.com/polyspec/crudui/packages/validator-go/validator/expr"
 )
 
 // parsePathString splits a dotted path string into non-empty segments (JS

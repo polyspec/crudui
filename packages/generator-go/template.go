@@ -4,7 +4,7 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // FieldTemplate stores one resolved field specification and its ordered children.

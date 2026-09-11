@@ -17,8 +17,8 @@ package validate
 import (
 	"strconv"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
-	"github.com/crudui/crudui/packages/validator-go/validator/expr"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/expr"
 )
 
 // arrayLevelRules apply to the whole array of a multiple field; the rest apply to
