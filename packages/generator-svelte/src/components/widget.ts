@@ -3,7 +3,7 @@
  *
  * Each function turns the core's evaluated `WidgetModel` (markup-free) into the
  * raw HTML required for exact control attributes, embedded behavior and display
- * content. Widget.svelte renders ordinary input-group inputs as stable Svelte
+ * content. Widget.svelte renders ordinary inputs and textareas as stable Svelte
  * elements and uses these serializers for the remaining control bodies.
  *
  * It RECOMPUTES NOTHING — every class string, data-* value, item list, and script
@@ -28,10 +28,10 @@ export function hasEventAttr(attrs: Attrs): boolean {
   return Object.keys(attrs).some(name => name.startsWith('on'));
 }
 
-/** Keep an editable input-group input as one DOM element across value updates. */
-export function usesStableInput(w: WidgetModel): boolean {
-  return w.layout === 'input-group' && w.tag === 'input'
-    && ['text', 'email', 'number'].includes(w.kind) && !hasEventAttr(w.attrs);
+/** Keep an ordinary editable control as one DOM element across value updates. */
+export function usesStableControl(w: WidgetModel): boolean {
+  return (w.layout === 'input-group' || w.layout === 'bare')
+    && (w.tag === 'input' || w.tag === 'textarea') && !hasEventAttr(w.attrs);
 }
 
 /** Raw prepend/append affix span html. */
@@ -140,7 +140,7 @@ export function searchHtml(w: WidgetModel): string {
  */
 export function widgetRootRaw(w: AnyWidget): string | null {
   if (isUnsupported(w)) return null;
-  if (w.layout === 'bare') return rawControl(w);
+  if (w.layout === 'bare') return usesStableControl(w) ? null : rawControl(w);
   if (w.layout === 'host-script') {
     return rawControl(w) + `<script nonce="">${w.script ?? ''}<\/script>`;
   }

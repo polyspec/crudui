@@ -4,7 +4,7 @@
 <script lang="ts">
   import type { WidgetModel } from '@crudui/generator-core';
   import {
-    affixHtml, inputGroupBody, fileGroupBody, isUnsupported, usesStableInput,
+    affixHtml, inputGroupBody, fileGroupBody, isUnsupported, usesStableControl,
     type AnyWidget,
   } from './widget';
 
@@ -17,8 +17,10 @@
 
 {#if !model}
   <div class="form-element-unsupported" data-unsupported-type={(w as { type: string }).type}></div>
+{:else if model.layout === 'bare' && usesStableControl(model)}
+  <input {...model.attrs} />
 {:else if model.layout === 'input-group' || (model.layout === 'display' && model.kind === 'dummy-input')}
-  <div class="input-group">{#if usesStableInput(model)}{@html affixHtml(model.prepend)}<input {...model.attrs} />{@html affixHtml(model.append)}{:else}{@html inputGroupBody(model)}{/if}</div>
+  <div class="input-group">{#if usesStableControl(model)}{@html affixHtml(model.prepend)}{#if model.tag === 'textarea'}<textarea {...model.attrs}>{model.text ?? ''}</textarea>{:else}<input {...model.attrs} />{/if}{@html affixHtml(model.append)}{:else}{@html inputGroupBody(model)}{/if}</div>
 {:else if model.layout === 'file'}
   <div class="input-group">{@html fileGroupBody(model)}</div>
 {:else if isDisplayRaw}
