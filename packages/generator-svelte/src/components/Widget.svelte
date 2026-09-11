@@ -3,7 +3,10 @@
 -->
 <script lang="ts">
   import type { WidgetModel } from '@crudui/generator-core';
-  import { inputGroupBody, fileGroupBody, isUnsupported, type AnyWidget } from './widget';
+  import {
+    affixHtml, inputGroupBody, fileGroupBody, isUnsupported, usesStableInput,
+    type AnyWidget,
+  } from './widget';
 
   let { w }: { w: AnyWidget } = $props();
 
@@ -15,7 +18,7 @@
 {#if !model}
   <div class="form-element-unsupported" data-unsupported-type={(w as { type: string }).type}></div>
 {:else if model.layout === 'input-group' || (model.layout === 'display' && model.kind === 'dummy-input')}
-  <div class="input-group">{@html inputGroupBody(model)}</div>
+  <div class="input-group">{#if usesStableInput(model)}{@html affixHtml(model.prepend)}<input {...model.attrs} />{@html affixHtml(model.append)}{:else}{@html inputGroupBody(model)}{/if}</div>
 {:else if model.layout === 'file'}
   <div class="input-group">{@html fileGroupBody(model)}</div>
 {:else if isDisplayRaw}
