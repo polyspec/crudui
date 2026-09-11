@@ -55,6 +55,10 @@ Form checks passed: core 86, React 701, Vue 344, Svelte 345, ten mounted Svelte
 checks and six HTML normalizer checks. Packaged exports, consumer types,
 production builds and three-framework consumer browser checks passed. The three
 Chromium widget and timezone checks and `make docs-check` passed.
+A clean source archive passed 136 form-comparison source checks, ten generator
+construction checks, three form-comparison Chromium checks, nine public package
+checks, one repeated-build check, 18 form-inspector checks and six form-inspector
+browser CSS checks. Cross-check rendering passed 33 cases.
 
 The full `make test-native` command passed at commit `e2e1af01` in a non-root
 Linux arm64 image. It rebuilt and loaded the extension, ran the
