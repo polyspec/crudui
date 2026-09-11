@@ -475,8 +475,9 @@ jobs:
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
       - name: Build and test native packages
         run: make test-native
+        env:
+          PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
       - name: Preserve comparison report
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-generators-php-${{ matrix.php }}
