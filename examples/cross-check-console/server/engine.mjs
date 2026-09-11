@@ -5,12 +5,10 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(HERE, '../../..');
-const SVELTE_PKG = path.join(ROOT, 'packages/generator-svelte');
-
 let enginePromise = null;
 
 /**
@@ -48,14 +46,8 @@ async function bootEngine() {
     origError.apply(console, args);
   };
 
-  const { createServer } = await import(
-    pathToFileURL(path.join(SVELTE_PKG, 'node_modules/vite/dist/node/index.js')).href
-  );
-  const { svelte } = await import(
-    pathToFileURL(
-      path.join(SVELTE_PKG, 'node_modules/@sveltejs/vite-plugin-svelte/src/index.js')
-    ).href
-  );
+  const { createServer } = await import('vite');
+  const { svelte } = await import('@sveltejs/vite-plugin-svelte');
 
   const vite = await createServer({
     root: ROOT,
@@ -80,8 +72,8 @@ async function bootEngine() {
     renderReact: reactMod.renderForm,
     renderSvelte: svelteMod.renderForm,
     renderVue: vueMod.renderForm,
-    // list sister (read) — the SAME react/svelte index modules expose renderList;
-    // Vue's list SSR lives in its own listSsr entry. Symmetric to the form trio.
+    // React and Svelte export list rendering from their package entries.
+    // Vue exports list rendering from its list SSR entry.
     renderListReact: reactMod.renderList,
     renderListSvelte: svelteMod.renderList,
     renderListVue: vueListMod.renderList,
