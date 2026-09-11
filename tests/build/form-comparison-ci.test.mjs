@@ -25,3 +25,14 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /npm i -g npm@latest && npm ci --strict-allow-scripts/);
   assert.match(job, /run:\s*npm run test:form-comparison(?:\s|$)/);
 });
+
+test('native PHP matrix passes the selected regular php-config path', async () => {
+  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
+  const job = workflowJob(workflow, 'native-generators');
+
+  assert.match(job, /php:\s*\['8\.4', '8\.5'\]/);
+  assert.match(
+    job,
+    /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config\$\{\{ matrix\.php \}\}/,
+  );
+});
