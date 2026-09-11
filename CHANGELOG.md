@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Add the C extension value model
+
+The C extension engine stores nulls, booleans, integers, finite numbers, UTF-8
+strings, arrays and ordered objects without PHP or Rust data structures. Values
+own their strings, object keys and children. Copy, replacement and removal keep
+object declaration order and produce independent values. Invalid UTF-8 and
+nonfinite numbers are rejected.
+
+The focused C test verifies ordering, replacement, deep copies, arrays, UTF-8 and
+numeric equality. It passed with strict C11 compiler warnings and undefined
+behavior checks. The macOS memory inspector reported zero leaks. The independent
+C extension source check excludes declared build output and continues to reject
+Rust source and Cargo files in the package. These changes are not deployed.
+
 ## 2026-09-11 — Use the Node.js 24 artifact action
 
 Native PHP 8.4 and 8.5 CI jobs upload their comparison reports with

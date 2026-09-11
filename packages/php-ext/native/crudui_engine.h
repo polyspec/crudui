@@ -11,6 +11,16 @@ typedef struct { ps_value *value; ps_value *error; } ps_result;
 typedef struct { ps_form *form; ps_value *error; } ps_form_result;
 typedef bool (*ps_visitor)(void *, const uint8_t *, size_t, const ps_value *);
 
+enum {
+    PS_NULL = 0,
+    PS_BOOL = 1,
+    PS_INT = 2,
+    PS_FLOAT = 3,
+    PS_STRING = 4,
+    PS_ARRAY = 5,
+    PS_OBJECT = 6
+};
+
 ps_value *ps_value_new(uint8_t kind);
 void ps_value_free(ps_value *value);
 void ps_value_bool(ps_value *value, bool input);

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
+import path from 'node:path';
 import test from 'node:test';
 
 import { requiredSourcePaths } from '../../examples/form-comparison/prepare.mjs';
@@ -74,15 +75,21 @@ test('PHP extension instructions use the current direct build entry point', () =
 });
 
 test('CRUDUI PHP extension is an independent C implementation', async () => {
-  const entries = await readdir(new URL('packages/php-ext/', root), {
-    recursive: true,
-    withFileTypes: true,
-  });
-  const prohibited = entries
-    .filter(entry => entry.isFile())
-    .map(entry => entry.name)
-    .filter(name => name === 'Cargo.toml' || name === 'Cargo.lock' || name.endsWith('.rs'))
-    .sort();
+  const sourceRoot = new URL('packages/php-ext/', root);
+  const generated = new Set(['.build', '.libs', 'autom4te.cache', 'build', 'include',
+    'modules', 'target']);
+  const prohibited = [];
+  async function inspect(directory, relative = '') {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const child = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, directory);
+      const filename = path.posix.join(relative, entry.name);
+      if (entry.isDirectory() && !generated.has(entry.name)) await inspect(child, filename);
+      else if (entry.isFile() && (entry.name === 'Cargo.toml'
+        || entry.name === 'Cargo.lock' || entry.name.endsWith('.rs'))) prohibited.push(filename);
+    }
+  }
+  await inspect(sourceRoot);
+  prohibited.sort();
   assert.deepEqual(prohibited, []);
   assert.equal(requiredSourcePaths.includes('packages/php-ext/Cargo.toml'), false);
   assert.equal(requiredSourcePaths.includes('packages/php-ext/Cargo.lock'), false);
