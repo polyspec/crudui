@@ -18,6 +18,13 @@ controls. The Svelte SSR and HTML comparison suite passed 345 checks, the mounte
 browser suite passed ten checks, the generator core passed 86 checks and
 `svelte-check` reported zero errors and warnings. This change is not deployed.
 
+The complete `make test-native` command returned status 0. The run passed 11
+extension build checks, 160 PHP generator tests, all Go package tests, 20 Rust
+generator tests, 352 PHP API checks in each of three configurations, 94 validation
+cases in each PHP implementation, 19 protocol checks, the 766/766 generator report
+and five Chromium widget and timezone checks. The generator report SHA-256 is
+`16ab371b3691429ca4e2c1a3eaa3c35fb7209861abd5759f16efea6c1a19aa5d`.
+
 ## 2026-09-11 — Verify explicit browser and PHP inputs
 
 The Chromium widget check disables Vite dependency discovery and optimizes only
