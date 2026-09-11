@@ -72,6 +72,10 @@ alone does not generate that package output.
 - The validator, generator-core and generator-react load through their public
   CommonJS and ES module exports without importing package source paths.
 - Strict consumers resolve public types and their complete declaration imports.
+- Consumer verification packs each workspace from its package directory. The
+  current stable npm `pack --json` result contains exactly one property named
+  after the package. Its value reports the same package name and one archive
+  filename.
 - React's exported stylesheet exists and matches its declared source stylesheet.
 - Repeated builds preserve the public API and produce the same artifacts for
   unchanged inputs.
