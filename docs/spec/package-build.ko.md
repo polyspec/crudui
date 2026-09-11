@@ -137,6 +137,11 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 가능한 새 릴리스를 사용하고 새 검증 근거를 생성합니다. 패키지 잠금 파일은 해석한
 패키지 버전을 기록하며 런타임 릴리스를 선택하지 않습니다.
 
+GitHub 호스팅 CI는 각 공식 JavaScript action의 현재 안정 메이저 릴리스를
+사용합니다. 네이티브 보고서 업로드는 action 런타임으로 Node.js 24를 사용하는
+`actions/upload-artifact@v7`을 사용합니다. 러너가 실행 중 런타임을 교체하더라도
+지원 종료된 Node.js 런타임을 선언한 action은 허용하지 않습니다.
+
 Linux CI 브라우저 작업은 러너가 설치한 정규 Chrome 실행 파일
 `/opt/google/chrome/chrome`을 사용합니다. `PUPPETEER_EXECUTABLE_PATH`는 이 정규
 파일을 지정하며 Puppeteer 브라우저 다운로드는 비활성화합니다. 테스트 실행 전에

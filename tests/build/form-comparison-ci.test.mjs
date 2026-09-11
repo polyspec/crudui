@@ -47,6 +47,15 @@ test('native PHP matrix passes the selected regular php-config path', async () =
   );
 });
 
+test('native report upload uses the current Node.js 24 artifact action', async () => {
+  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
+  const job = workflowJob(workflow, 'native-generators');
+  const versions = [...job.matchAll(/uses:\s*actions\/upload-artifact@([^\s]+)/g)]
+    .map(match => match[1]);
+
+  assert.deepEqual(versions, ['v7']);
+});
+
 test('browser CI jobs select the regular sandboxed Chrome executable', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const failures = [];

@@ -150,6 +150,12 @@ later build adopts a newer applicable release and produces new evidence. Package
 lock files record resolved package versions; they do not select a runtime
 release.
 
+GitHub-hosted CI uses the current stable major release of each official
+JavaScript action. Native report upload uses `actions/upload-artifact@v7`, whose
+action runtime is Node.js 24. An action that declares a deprecated Node.js
+runtime is not accepted even when the runner replaces that runtime during
+execution.
+
 Linux CI browser jobs use the regular Chrome executable installed by the runner
 at `/opt/google/chrome/chrome`. They set `PUPPETEER_EXECUTABLE_PATH` to that
 canonical file and disable Puppeteer's browser download. Before tests start, a
