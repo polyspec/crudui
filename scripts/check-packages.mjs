@@ -23,7 +23,9 @@ try {
     const source = join(root, 'packages', folder);
     const manifest = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
     assert.equal(manifest.version, '0.0.1', manifest.name);
-    dependencies[manifest.name] = `file:${packPackage(source, directory, run)}`;
+    dependencies[manifest.name] = `file:${packPackage(
+      source, directory, manifest.name, run,
+    )}`;
   }
   for (const name of ['react', 'react-dom', 'vue', 'svelte', 'typescript', '@types/react', '@types/react-dom', '@types/node', 'vite', '@sveltejs/vite-plugin-svelte']) {
     dependencies[name] = ['vite', '@sveltejs/vite-plugin-svelte'].includes(name)
