@@ -413,8 +413,16 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
       - name: Install workspace deps and Puppeteer Chromium
-        run: npm i -g npm@latest && npm ci --strict-allow-scripts
+        run: |
+          npm i -g npm@latest && npm ci --strict-allow-scripts
+          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
       - name: Test report policy, browser jobs and candidate sources
         run: npm run test:form-comparison
 
