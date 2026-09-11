@@ -94,10 +94,7 @@ before(async () => {
   });
   await server.listen();
   url = `${server.resolvedUrls.local[0]}widget-scripts`;
-  browser = await puppeteer.launch({
-    headless: true,
-    args: process.platform === 'linux' && process.getuid?.() === 0 ? ['--no-sandbox'] : [],
-  });
+  browser = await puppeteer.launch({ headless: true });
 }, { timeout: 60000 });
 after(async () => {
   try { await browser?.close(); }
