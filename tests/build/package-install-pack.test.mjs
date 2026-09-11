@@ -10,7 +10,12 @@ test('package install packs the current package without workspace selection', ()
   const calls = [];
   const archive = packPackage(source, destination, (command, args, cwd) => {
     calls.push({ command, args, cwd });
-    return JSON.stringify([{ filename: 'crudui-generator-core-0.0.1.tgz' }]);
+    return JSON.stringify({
+      '@crudui/generator-core': {
+        name: '@crudui/generator-core',
+        filename: 'crudui-generator-core-0.0.1.tgz',
+      },
+    });
   });
 
   assert.equal(archive, path.join(destination, 'crudui-generator-core-0.0.1.tgz'));
@@ -23,7 +28,7 @@ test('package install packs the current package without workspace selection', ()
 
 test('package install rejects an empty npm pack report', () => {
   assert.throws(
-    () => packPackage('/repository/package', '/temporary/install', () => '[]'),
+    () => packPackage('/repository/package', '/temporary/install', () => '{}'),
     /npm pack must produce one archive; received 0/,
   );
 });
