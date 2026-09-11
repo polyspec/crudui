@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 import { requiredSourcePaths } from '../../examples/form-comparison/prepare.mjs';
@@ -12,6 +12,7 @@ const files = Object.fromEntries(await Promise.all([
   'tests/containers/native.Containerfile',
   'packages/php-ext/README.md',
   'packages/php-ext/README.ko.md',
+  'scripts/build-crudui-php-extension.mjs',
 ].map(async filename => [filename, await readFile(new URL(filename, root), 'utf8')])));
 
 function normalized(source) {
@@ -69,5 +70,27 @@ test('PHP extension instructions use the current direct build entry point', () =
   for (const filename of ['packages/php-ext/README.md', 'packages/php-ext/README.ko.md']) {
     assert.match(files[filename], /node scripts\/build-crudui-php-extension\.mjs/);
     assert.doesNotMatch(files[filename], /sh scripts\/build-php-extension\.sh/);
+  }
+});
+
+test('CRUDUI PHP extension is an independent C implementation', async () => {
+  const entries = await readdir(new URL('packages/php-ext/', root), {
+    recursive: true,
+    withFileTypes: true,
+  });
+  const prohibited = entries
+    .filter(entry => entry.isFile())
+    .map(entry => entry.name)
+    .filter(name => name === 'Cargo.toml' || name === 'Cargo.lock' || name.endsWith('.rs'))
+    .sort();
+  assert.deepEqual(prohibited, []);
+  assert.equal(requiredSourcePaths.includes('packages/php-ext/Cargo.toml'), false);
+  assert.equal(requiredSourcePaths.includes('packages/php-ext/Cargo.lock'), false);
+  assert.doesNotMatch(
+    files['scripts/build-crudui-php-extension.mjs'],
+    /\b(?:cargo|rustc|rustdoc|Rust)\b/,
+  );
+  for (const filename of ['packages/php-ext/README.md', 'packages/php-ext/README.ko.md']) {
+    assert.doesNotMatch(files[filename], /\b(?:Cargo|Rust|rustc|rustdoc)\b/);
   }
 });
