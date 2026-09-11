@@ -8,7 +8,8 @@ test('package install packs the current package without workspace selection', ()
   const source = path.resolve('/repository/packages/generator-core');
   const destination = path.resolve('/temporary/install');
   const calls = [];
-  const archive = packPackage(source, destination, (command, args, cwd) => {
+  const archive = packPackage(
+    source, destination, '@crudui/generator-core', (command, args, cwd) => {
     calls.push({ command, args, cwd });
     return JSON.stringify({
       '@crudui/generator-core': {
@@ -28,7 +29,8 @@ test('package install packs the current package without workspace selection', ()
 
 test('package install rejects an empty npm pack report', () => {
   assert.throws(
-    () => packPackage('/repository/package', '/temporary/install', () => '{}'),
+    () => packPackage('/repository/package', '/temporary/install',
+      '@crudui/package', () => '{}'),
     /npm pack must produce one archive; received 0/,
   );
 });
