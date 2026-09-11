@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-11 — Node.js 24 artifact action 사용
+
+네이티브 PHP 8.4·8.5 CI 작업은 `actions/upload-artifact@v7`으로 비교 보고서를
+업로드합니다. 이 action은 Node.js 24 런타임을 선언합니다. 이전 action은 Node.js
+20을 선언했으므로 GitHub 호스팅 러너가 런타임을 교체하고 지원 종료 경고를
+보고했습니다. 보고서 이름, 경로, 숨김 파일 포함 및 파일 누락 실패 동작은
+변경되지 않습니다.
+
+CI 설정 회귀 스위트는 현재 artifact action을 요구하며 검사 4개를 모두
+통과했습니다. 이 변경은 배포되지 않았습니다.
+
 ## 2026-09-11 — npm 12 및 sandbox가 활성화된 Chrome CI 적용
 
 npm 의존성 정책은 루트 매니페스트가 직접 선언하고 변경되지 않는 소스 리비전에
