@@ -47,6 +47,29 @@ const ps_value *ps_path_segments(const ps_value *root, const char *const *segmen
                                  size_t length);
 char *ps_scalar_string(const ps_value *value);
 char *ps_js_string(const ps_value *value);
+char *ps_json_string(const ps_value *value);
+char *ps_json_quote(const char *value);
+char *ps_string_join(const char *left, const char *middle, const char *right);
+char *ps_join_classes(const char *first, const char *second, const char *third);
+char *ps_join_path(const char *parent, const char *child);
+char *ps_bracket_name(const char *path, const char *prefix);
+char *ps_rule_name(const char *path, const size_t *row_segments, size_t row_count);
+char *ps_leaf_name(const char *path, const size_t *row_segments, size_t row_count);
+char *ps_element_id(const char *prefix, const char *path);
+char *ps_control_id(const char *prefix, const char *path);
+char *ps_translate(const ps_value *value, const char *language);
+char *ps_style_string(const char *source);
+char *ps_format_date(const char *source, bool datetime);
+char **ps_path_parts(const char *path, size_t *length);
+void ps_path_parts_free(char **parts, size_t length);
+const char *ps_position(const char *segment);
+bool ps_condition_expression(const char *value);
+
+ps_value *ps_design(const ps_value *design, const ps_value *data, const char *path);
+ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,
+                    const char *path, const ps_value *design, const char *key_prefix,
+                    const char *id_prefix, const char *language,
+                    const size_t *row_segments, size_t row_count);
 
 ps_value *ps_expression_value(const char *expression, const ps_value *data,
                               const char *const *current_path, size_t path_length,

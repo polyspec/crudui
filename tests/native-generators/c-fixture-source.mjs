@@ -55,7 +55,8 @@ export function fixtureProgram(body) {
   ].join('\n');
 }
 
-export function compileAndRunCFixture({ root, directory, source, sources, name }) {
+export function compileAndRunCFixture({ root, directory, source, sources, name,
+  compilerFlags = [], runEnvironment }) {
   const fixtureSource = path.join(directory, `${name}.c`);
   const executable = path.join(directory, name);
   return import('node:fs').then(({ writeFileSync }) => {
@@ -63,15 +64,18 @@ export function compileAndRunCFixture({ root, directory, source, sources, name }
     const native = file => path.join(root, 'packages/php-ext/native', file);
     const compile = spawnSync(process.env.CC ?? 'cc', [
       '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
+      ...compilerFlags,
       '-I', path.join(root, 'packages/php-ext/native'),
       ...sources.map(native), fixtureSource, '-o', executable,
     ], { encoding: 'utf8' });
     assert.equal(compile.error, undefined);
     assert.equal(compile.signal, null);
     assert.equal(compile.status, 0, compile.stderr || compile.stdout);
-    const run = spawnSync(executable, [], { encoding: 'utf8' });
+    const run = spawnSync(executable, [], {
+      encoding: 'utf8', env: runEnvironment ?? process.env,
+    });
     assert.equal(run.error, undefined);
-    assert.equal(run.signal, null);
+    assert.equal(run.signal, null, run.stderr || run.stdout);
     assert.equal(run.status, 0, run.stderr || run.stdout);
   });
 }
