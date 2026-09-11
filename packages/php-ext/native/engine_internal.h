@@ -34,9 +34,24 @@ bool ps_equal(const ps_value *left, const ps_value *right);
 bool ps_is_string(const ps_value *value, const char *text);
 const char *ps_string(const ps_value *value);
 bool ps_truthy(const ps_value *value);
+ps_value *ps_null_value(void);
+ps_value *ps_bool_value(bool value);
+ps_value *ps_int_value(int64_t value);
+ps_value *ps_float_value(double value);
+ps_value *ps_string_value(const char *value);
+ps_value *ps_array_value(void);
+ps_value *ps_object_value(void);
+bool ps_replace(ps_value *parent, size_t index, ps_value *value);
 
 ps_result ps_ok(ps_value *value);
 ps_result ps_fail(const char *kind, const char *code, const char *message,
                   const char *at);
+ps_value *ps_error(const char *kind, const char *code, const char *message,
+                   const char *at, const ps_value *trace);
+
+ps_value *ps_compose_properties(const ps_value *properties, const ps_value *files,
+                                const char *basepath, ps_value **error);
+ps_value *ps_compose_spec(const ps_value *spec, const ps_value *files,
+                          const char *basepath, ps_value **error);
 
 #endif

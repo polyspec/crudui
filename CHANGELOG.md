@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Compile form templates in C
+
+The C extension composes explicit in-memory files, applies ordered references and
+patches, detects reference cycles and returns composition error codes and traces.
+Form compilation produces data-independent templates containing the template
+kind, optional key prefix and recursively compiled fields. Field specifications
+do not retain nested `properties`.
+
+Focused C checks passed all 20 shared composition cases and compiled all 92 shared
+form fixtures with the same ordered templates or errors as the JavaScript
+implementation. The C sources compile with strict C11 warnings. These changes are
+not deployed.
+
 ## 2026-09-11 — Add the C extension value model
 
 The C extension engine stores nulls, booleans, integers, finite numbers, UTF-8
