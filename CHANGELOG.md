@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Name the comparison deployment command explicitly
+
+The local comparison deployment entry point is now named
+`examples/form-comparison/comparison-deployment.mjs`. Verification procedures,
+examples and tests use the explicit comparison deployment name.
+
 ## 2026-09-11 — Make native C fixtures compile with Linux toolchains
 
 `packages/php-ext/tests/engine.test.mjs` now links `libm` when compiling native

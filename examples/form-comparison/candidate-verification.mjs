@@ -8,7 +8,7 @@ import {
   cleanupCandidateArtifacts, compactCandidateEvidence, readCandidateResources,
 } from './candidate-artifacts.mjs';
 import { containerRuntime, runContainer } from './container-runtime.mjs';
-import { verifyCandidateEvidence } from './deployment.mjs';
+import { verifyCandidateEvidence } from './comparison-deployment.mjs';
 import { prepareCandidate } from './prepare.mjs';
 import { waitForCandidateReadiness } from './src/candidate-readiness.mjs';
 

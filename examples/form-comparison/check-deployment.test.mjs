@@ -8,7 +8,7 @@ import {
   assertStableDeployment, cleanupDeploymentArtifacts, deploymentCleanupPlan,
   preserveDeploymentDirectory, readDeploymentAuthority, renderDeploymentCompose,
   verifyCandidateEvidence,
-} from './deployment.mjs';
+} from './comparison-deployment.mjs';
 import {
   expectedGenerationCombinations, expectedGenerationRequests, expectedGenerationResults,
   finalizeGenerationReport, generationFrameworks, generationRenderingPaths, generationServers,

@@ -469,9 +469,9 @@ async function deploymentSnapshot(commit, image, deploymentDirectory) {
 
 function parseCommit(argv) {
   assert.equal(argv.length, 2,
-    'Usage: node deployment.mjs --commit 40-character-candidate-commit');
+    'Usage: node comparison-deployment.mjs --commit 40-character-candidate-commit');
   assert.equal(argv[0], '--commit',
-    'Usage: node deployment.mjs --commit 40-character-candidate-commit');
+    'Usage: node comparison-deployment.mjs --commit 40-character-candidate-commit');
   assert.match(argv[1], commitPattern,
     'Candidate commit must contain 40 lowercase hexadecimal characters');
   return argv[1];

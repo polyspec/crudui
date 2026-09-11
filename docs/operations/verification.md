@@ -79,7 +79,7 @@ Deploy the verified current commit after every repository and candidate command
 has returned status 0:
 
 ```sh
-node examples/form-comparison/deployment.mjs --commit "$CANDIDATE_REF"
+node examples/form-comparison/comparison-deployment.mjs --commit "$CANDIDATE_REF"
 ```
 
 The deployment command verifies the candidate metadata, generation report,
