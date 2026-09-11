@@ -2,6 +2,17 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Use the Node.js 24 artifact action
+
+Native PHP 8.4 and 8.5 CI jobs upload their comparison reports with
+`actions/upload-artifact@v7`. This action declares the Node.js 24 runtime. The
+previous action declared Node.js 20, so GitHub-hosted runners replaced its runtime
+and reported a deprecation warning. Report names, paths, hidden-file inclusion and
+missing-file failure behavior remain unchanged.
+
+The CI configuration regression suite requires the current artifact action and
+passed all four checks. These changes are not deployed.
+
 ## 2026-09-11 — Enforce npm 12 and sandboxed Chrome CI
 
 The npm dependency policy permits a URL dependency only when the root manifest

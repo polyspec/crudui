@@ -501,7 +501,7 @@ jobs:
         env:
           PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
       - name: Preserve comparison report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-generators-php-${{ matrix.php }}
           path: .git/native-generators/report.json
