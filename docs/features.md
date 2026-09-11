@@ -43,13 +43,20 @@ The current OrderedJSON common revision and five implementation submodules passe
 parsing, serialization and reconstruction. The candidate runtime also passed the
 PHP processor-mode checks and the four-server transport checks.
 
-The PHP, Go and Rust generators and the common PHP extension API are implemented.
+The PHP, Go and Rust generators and the independent C PHP extension are implemented.
 The shared generator report passed 153 cases in each of JavaScript, PHP, Go,
 Rust and native PHP, plus one unchanged-input check: 766 passed, zero failed.
 The report recorded 640 inputs and confirmed that they did not change during the
 run.
 PHP API checks passed 352 cases in each of three configurations; validation
 passed 94 cases in each PHP implementation.
+
+The current direct-C source revision passed `make test-native` on macOS arm64
+with PHP 8.5.10, Node.js 26.8.1, Go 1.27.0 and Rust 1.98.1. The run returned
+status 0 after building and loading the C extension, running the package suites,
+passing the 19 protocol checks, producing the 766/766 generator report and
+passing the widget and timezone checks. The result records verified code; the
+extension and comparison service remain not-deployed.
 
 Form checks passed: core 86, React 701, Vue 344, Svelte 345, ten mounted Svelte
 checks and six HTML normalizer checks. Packaged exports, consumer types,

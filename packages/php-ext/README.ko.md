@@ -3,9 +3,8 @@
 [English](README.md).
 
 `crudui` 확장은 PHP 프로세스에서 `CRUDUI\Generator`, `CRUDUI\Validator`,
-`CRUDUI\Form`을 제공합니다. C 모듈은 공용 PHP 클래스를 등록하고 PHP 값을
-순서 있는 Rust 값으로 직접 변환합니다. 독립 Rust 생성기와 검증기는 확장에
-정적으로 연결합니다.
+`CRUDUI\Form`을 제공합니다. C 모듈은 PHP 클래스를 등록하고 PHP 값을 자체
+순서 보존 값 모델로 직접 변환합니다.
 
 [PHP API 명세](../../docs/spec/php-extension.ko.md)는 메서드, 로딩, 데이터 타입,
 예외를 정의합니다. 확장을 활성화하면 Composer 자동 로딩 전에 확장의
@@ -15,7 +14,7 @@
 ## 빌드와 검증
 
 전체 저장소에서 64비트 PHP 8.4 이상, 일치하는 PHP 개발 헤더, `php-config`, C
-컴파일러, Cargo로 빌드합니다. Linux와 macOS를 빌드 대상으로 지원합니다. macOS
+컴파일러로 빌드합니다. Linux와 macOS를 빌드 대상으로 지원합니다. macOS
 빌드는 11.0 이상을 대상으로 합니다. 빌드는 컴파일 전에 정규 실행 파일 경로를 확인하고
 심볼릭 링크, 여러 발견 결과, 서로 다른 PHP 설치 정보를 거부합니다. `phpize`,
 Autoconf, libtool은 사용하지 않습니다.
@@ -35,7 +34,7 @@ node tests/native-generators/run.mjs \
 API 검사는 확장을 비활성화한 PHP, Composer 없는 확장, Composer를 사용하는
 확장을 실행합니다. 클래스 구현 출처, 메서드 서명, 값 변환, 예외, 복사,
 행 작업, 반복 인스턴스 생성을 검사합니다. 검증기는 공용 폼과 목록 유효성
-데이터를 사용합니다. 생성기 적합성 검사는 다섯 구현을 각각 비교합니다.
+데이터를 사용합니다. 생성기 적합성 검사는 확장과 PHP 패키지를 별도로 검사합니다.
 
 `crudui.stub.php`는 네이티브 PHP 서명을 정의합니다. 스텁을 변경하면 PHP
 개발 도구로 `crudui_arginfo.h`를 다시 생성합니다.
@@ -54,7 +53,7 @@ PHP 직렬화를 지원하지 않습니다. 템플릿을 캐싱하고 `getData()
 
 ## HTTP 예제
 
-PHP 생성기 예제는 두 구현에서 같은 호출을 사용합니다.
+PHP 예제는 확장을 로드하고 공개 클래스를 호출합니다.
 
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \

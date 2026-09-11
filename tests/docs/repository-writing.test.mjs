@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
@@ -32,7 +32,8 @@ function trackedFiles() {
   const result = spawnSync('git', ['ls-files', '-z'], { cwd: repository, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.split('\0').filter(Boolean)
-    .filter(file => !excludedPrefixes.some(prefix => file.startsWith(prefix)));
+    .filter(file => !excludedPrefixes.some(prefix => file.startsWith(prefix)))
+    .filter(file => existsSync(path.join(repository, file)));
 }
 
 function markdownProse(source) {

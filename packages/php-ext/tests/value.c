@@ -37,6 +37,12 @@ static ps_value *integer(int64_t input)
 
 int main(void)
 {
+    assert(!ps_value_string(NULL, (const uint8_t *)"", 0));
+    ps_value_bool(NULL, true);
+    ps_value_int(NULL, 1);
+    assert(!ps_value_float(NULL, 1.0));
+    assert(ps_value_read(NULL, NULL, NULL, NULL, NULL) == UINT8_MAX);
+
     ps_value *object = ps_value_new(PS_OBJECT);
     assert(object);
     assert(ps_set(object, "first", integer(1)));
@@ -56,6 +62,8 @@ int main(void)
     assert(ps_delete(copy, "first"));
     assert(!ps_equal(copy, object));
     assert(ps_has(object, "first"));
+    assert(!ps_get(object, NULL));
+    assert(!ps_delete(object, NULL));
     ps_value_free(copy);
 
     ps_value *array = ps_value_new(PS_ARRAY);
@@ -71,6 +79,7 @@ int main(void)
     const uint8_t invalid[] = {0xc0, 0xaf};
     assert(ps_value_string(text, valid, sizeof(valid)));
     assert(!ps_value_string(text, invalid, sizeof(invalid)));
+    assert(!ps_value_string(text, NULL, 1));
     assert(text->kind == PS_STRING && text->data.string.length == sizeof(valid));
     ps_value_free(text);
 

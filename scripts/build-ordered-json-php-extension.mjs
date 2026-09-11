@@ -71,7 +71,6 @@ export async function buildOrderedJsonPhpExtension(sourceRoot, options = {}) {
     moduleName: 'ordered_json',
     minimumPhpVersion: 80200,
     require64Bit: false,
-    needsCargo: false,
     sources: ['ordered_json.c'],
     compilerArguments: ['-Wno-unused-parameter'],
     definitions: ['COMPILE_DL_ORDERED_JSON=1', 'ZEND_COMPILE_DL_EXT=1'],
