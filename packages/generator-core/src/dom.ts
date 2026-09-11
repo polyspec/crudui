@@ -1,5 +1,6 @@
 import type { FormInstance } from './instance';
 import type { FieldViewModel } from './viewmodel';
+import { formatDateValue } from './date';
 import { parsePathString } from './util';
 
 /** Browser binding lifecycle. */
@@ -134,7 +135,11 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         const input = control as HTMLInputElement;
         if (input.type === 'file') continue;
         if (input.type === 'date' || input.type === 'datetime-local') {
-          input.value = input.getAttribute('value') ?? '';
+          const raw = value === undefined || value === null ? '' : String(value);
+          input.value = formatDateValue(
+            raw,
+            input.type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DDTHH:mm:ss',
+          );
           continue;
         }
         if (input.type === 'checkbox' || input.type === 'radio') {
