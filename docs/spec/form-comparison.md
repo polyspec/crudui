@@ -62,6 +62,9 @@ contract required by the Chromium sandbox. After the image starts, the complete
 source suite, including the Chromium process check, runs as the unprivileged
 application user with the Chromium sandbox enabled. A candidate fails when
 either the construction checks or the complete runtime source suite fails.
+The form-comparison CI job installs the root npm graph and the Composer graphs
+for the PHP validator and generator before it runs the source and generator
+construction suites. A clean checkout does not use an ignored `vendor/` directory.
 
 Each child server publishes one readiness event after binding its listening
 socket. The parent waits for those events and then sends one health request to
