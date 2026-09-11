@@ -2,6 +2,17 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Evaluate form expressions in C
+
+The C extension resolves object and array paths and evaluates literals, relative
+paths, wildcards, comparisons, membership, boolean operations and ternary
+expressions. Condition maps select the first matching declaration and use an
+explicit `true` entry as the default. The implementation uses standard C11.
+
+The focused C check passed all 38 shared expression specifications and their 77
+evaluation cases with strict compiler warnings. The cases cover expression
+values and boolean results. These changes are not deployed.
+
 ## 2026-09-11 — Compile form templates in C
 
 The C extension composes explicit in-memory files, applies ordered references and
