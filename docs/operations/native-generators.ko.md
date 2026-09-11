@@ -21,7 +21,7 @@ make test-native
 make docs-check
 ```
 
-`make test-native`는 확장을 빌드하고 로드한 다음 JavaScript 패키지를 빌드하고,
+`make test-native`는 JavaScript 패키지를 빌드한 다음 확장을 빌드하고 로드하며,
 생성기 패키지 검사 및 JavaScript, PHP, Go, Rust, 네이티브 PHP 비교를 실행합니다.
 확장 빌드는 `php-config`에서 PHP 실행 파일, 헤더, 빌드 플래그를 읽고 C 바인딩을
 컴파일한 뒤 Cargo 잠금 파일의 Rust 출력을 직접 연결합니다. `phpize`, Autoconf,
