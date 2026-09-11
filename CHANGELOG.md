@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Build JavaScript prerequisites before native tests
+
+`make test-native` now builds the workspace JavaScript packages before running
+the C extension engine tests. The native test target provides the built React
+generator package required by the engine rendering fixtures in a clean checkout.
+
 ## 2026-09-11 — Complete the independent C PHP extension
 
 The PHP extension now implements its form and validation engine in C. The
