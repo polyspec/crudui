@@ -29,7 +29,7 @@
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | input 교체 후 타이핑, 포커스, 렌더러 완료 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
+| form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
 | form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | not-deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | 행 연산의 포커스, 선택, 스크롤 유지 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
@@ -50,7 +50,7 @@ JavaScript·PHP·Go·Rust·네이티브 PHP에서 각각 153개와 입력 불변
 검증은 두 PHP 구현에서 각각 94개를 통과했습니다.
 
 폼 검사는 코어 86개, React 701개, Vue 344개, Svelte 345개, Svelte 마운트
-검사 3개와 HTML 정규화 검사 6개가 통과했습니다. 패키지 exports, 소비자 타입,
+검사 10개와 HTML 정규화 검사 6개가 통과했습니다. 패키지 exports, 소비자 타입,
 프로덕션 빌드와 세 프레임워크 소비자 브라우저 검사도 통과했습니다.
 Chromium 위젯·시간대 검사 3개와 `make docs-check`가 통과했습니다.
 

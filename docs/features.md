@@ -29,7 +29,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | Explicit empty collection rendering in the merged runtime | implemented | passed | not-deployed | [Empty collection tests](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | Native typing, focus and renderer completion after input replacement | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
+| form-typing | Native input updates with stable editable controls, focus and renderer completion | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
 | form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | Focus, selection and scroll retention during row operations | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
@@ -51,7 +51,7 @@ run.
 PHP API checks passed 352 cases in each of three configurations; validation
 passed 94 cases in each PHP implementation.
 
-Form checks passed: core 86, React 701, Vue 344, Svelte 345, three mounted Svelte
+Form checks passed: core 86, React 701, Vue 344, Svelte 345, ten mounted Svelte
 checks and six HTML normalizer checks. Packaged exports, consumer types,
 production builds and three-framework consumer browser checks passed. The three
 Chromium widget and timezone checks and `make docs-check` passed.

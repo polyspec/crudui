@@ -2,6 +2,21 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-11 — Svelte 편집 컨트롤 유지
+
+Svelte 생성기는 일반 input과 textarea 컨트롤을 안정적인 DOM 요소로 렌더링합니다.
+폼 인스턴스 값이 갱신되어도 각 요소, 포커스와 텍스트 선택을 유지합니다. 문자열
+`on*` 동작 속성이 있는 컨트롤과 정확한 특수 HTML이 필요한 컨트롤은 raw 직렬화
+경로를 사용합니다.
+
+브라우저 연결은 현재 폼 인스턴스에서 date와 datetime 값을 포맷한 뒤 실제
+컨트롤을 갱신합니다. 초기 데이터와 나중 주입은 같은 값 변환을 사용합니다.
+
+회귀 검사는 text, email, number, password, textarea, date, datetime 컨트롤을
+확인합니다. Svelte SSR·HTML 비교 345개, 마운트 브라우저 검사 10개, 생성기 코어
+검사 86개가 통과했고 `svelte-check`는 오류와 경고 0개를 보고했습니다. 이 변경은
+배포하지 않았습니다.
+
 ## 2026-09-11 — 명시적인 브라우저·PHP 입력 검증
 
 Chromium 위젯 검사는 Vite 의존성 탐색을 비활성화하고 명시한 React·CRUDUI 패키지
