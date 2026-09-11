@@ -23,7 +23,7 @@ async function requireCanonicalDirectory(directory, inspect) {
   }
 }
 
-/** Verify the Linux CI Chrome executable, sandbox helper and browser startup. */
+/** Verify the Linux CI Chrome executable and active browser sandbox. */
 export async function checkCiBrowser({
   executablePath = process.env.PUPPETEER_EXECUTABLE_PATH,
   inspect = lstat,
@@ -39,12 +39,6 @@ export async function checkCiBrowser({
   const executable = await inspect(executablePath);
   requireExecutableFile(executable, executablePath);
 
-  const sandboxPath = path.join(path.dirname(executablePath), 'chrome-sandbox');
-  const sandbox = await inspect(sandboxPath);
-  requireExecutableFile(sandbox, sandboxPath);
-  assert.equal(sandbox.uid, 0, `${sandboxPath} must be owned by root`);
-  assert.notEqual(sandbox.mode & 0o4000, 0, `${sandboxPath} must have set-user-ID`);
-
   const browser = await launch({ headless: true, executablePath });
   try {
     const spawnArguments = browser.process()?.spawnargs;
@@ -54,8 +48,22 @@ export async function checkCiBrowser({
 
     const page = await browser.newPage();
     try {
-      await page.setContent('<!doctype html><title>CRUDUI CI browser</title>');
-      assert.equal(await page.title(), 'CRUDUI CI browser');
+      await page.goto('chrome://sandbox');
+      await page.waitForFunction(() => (
+        document.querySelector('#evaluation')?.textContent?.trim().length > 0
+      ));
+      const status = await page.evaluate(() => ({
+        evaluation: document.querySelector('#evaluation')?.textContent?.trim(),
+        rows: Object.fromEntries([...document.querySelectorAll('#sandbox-status tr')].map(row => {
+          const cells = [...row.querySelectorAll('td')].map(cell => cell.textContent?.trim());
+          return [cells[0], cells[1]];
+        })),
+      }));
+      assert.equal(status.evaluation, 'You are adequately sandboxed.');
+      assert.match(status.rows['Layer 1 Sandbox'] ?? '', /^(?:Namespace|SUID)$/);
+      assert.equal(status.rows['PID namespaces'], 'Yes');
+      assert.equal(status.rows['Network namespaces'], 'Yes');
+      assert.equal(status.rows['Seccomp-BPF sandbox'], 'Yes');
     } finally {
       await page.close();
     }
@@ -63,7 +71,7 @@ export async function checkCiBrowser({
     await browser.close();
   }
 
-  return { executablePath, sandboxPath };
+  return { executablePath };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -5,6 +5,15 @@ import { checkCiBrowser } from '../../scripts/check-ci-browser.mjs';
 
 const executablePath = '/opt/google/chrome/chrome';
 const sandboxPath = '/opt/google/chrome/chrome-sandbox';
+const adequateSandbox = {
+  evaluation: 'You are adequately sandboxed.',
+  rows: {
+    'Layer 1 Sandbox': 'Namespace',
+    'PID namespaces': 'Yes',
+    'Network namespaces': 'Yes',
+    'Seccomp-BPF sandbox': 'Yes',
+  },
+};
 
 function metadata({
   mode = 0o100755, uid = 501, symbolicLink = false, type = 'file',
@@ -19,12 +28,13 @@ function metadata({
 }
 
 const inspectRegularChrome = async filename => {
-  if (filename === sandboxPath) return metadata({ mode: 0o104755, uid: 0 });
   if (filename === executablePath) return metadata();
   return metadata({ type: 'directory' });
 };
 
-function browser(spawnargs = [executablePath, '--headless']) {
+function browser({
+  spawnargs = [executablePath, '--headless'], sandbox = adequateSandbox,
+} = {}) {
   const events = [];
   return {
     events,
@@ -32,8 +42,9 @@ function browser(spawnargs = [executablePath, '--headless']) {
     async newPage() {
       events.push('new-page');
       return {
-        async setContent(html) { events.push(['content', html]); },
-        async title() { return 'CRUDUI CI browser'; },
+        async goto(url) { events.push(['goto', url]); },
+        async waitForFunction() { events.push('wait-for-status'); },
+        async evaluate() { events.push('read-status'); return sandbox; },
         async close() { events.push('close-page'); },
       };
     },
@@ -57,14 +68,16 @@ test('CI browser preflight verifies regular executable files and starts Chrome',
     },
   });
 
-  assert.deepEqual(result, { executablePath, sandboxPath });
+  assert.deepEqual(result, { executablePath });
   assert.deepEqual(inspected, [
-    '/opt', '/opt/google', '/opt/google/chrome', executablePath, sandboxPath,
+    '/opt', '/opt/google', '/opt/google/chrome', executablePath,
   ]);
   assert.deepEqual(launched, [{ headless: true, executablePath }]);
   assert.deepEqual(instance.events, [
     'new-page',
-    ['content', '<!doctype html><title>CRUDUI CI browser</title>'],
+    ['goto', 'chrome://sandbox'],
+    'wait-for-status',
+    'read-status',
     'close-page',
     'close-browser',
   ]);
@@ -73,9 +86,10 @@ test('CI browser preflight verifies regular executable files and starts Chrome',
 test('CI browser preflight accepts namespace sandbox without set-user-ID helper', async () => {
   await checkCiBrowser({
     executablePath,
-    inspect: async filename => filename === sandboxPath
-      ? metadata({ mode: 0o100755, uid: 0 })
-      : inspectRegularChrome(filename),
+    inspect: async filename => {
+      assert.notEqual(filename, sandboxPath);
+      return inspectRegularChrome(filename);
+    },
     launch: async () => browser(),
   });
 });
@@ -93,16 +107,17 @@ test('CI browser preflight rejects a symbolic-link executable', async () => {
   );
 });
 
-test('CI browser preflight rejects a sandbox without root set-user-ID ownership', async () => {
+test('CI browser preflight rejects an inadequate Chrome sandbox status', async () => {
   await assert.rejects(
     checkCiBrowser({
       executablePath,
-      inspect: async filename => filename === sandboxPath
-        ? metadata({ mode: 0o100755, uid: 501 })
-        : inspectRegularChrome(filename),
-      launch: async () => browser(),
+      inspect: inspectRegularChrome,
+      launch: async () => browser({ sandbox: {
+        evaluation: 'You are NOT adequately sandboxed.',
+        rows: { ...adequateSandbox.rows, 'Layer 1 Sandbox': 'None' },
+      } }),
     }),
-    /must be owned by root/,
+    /You are adequately sandboxed/,
   );
 });
 
@@ -111,7 +126,7 @@ test('CI browser preflight rejects sandbox-disabling process arguments', async (
     checkCiBrowser({
       executablePath,
       inspect: inspectRegularChrome,
-      launch: async () => browser([executablePath, '--no-sandbox']),
+      launch: async () => browser({ spawnargs: [executablePath, '--no-sandbox'] }),
     }),
     /Chrome received --no-sandbox/,
   );
