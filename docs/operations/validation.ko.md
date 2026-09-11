@@ -64,7 +64,7 @@ package main
 
 import (
     "fmt"
-    "github.com/crudui/crudui/packages/validator-go/validator/validate"
+    "github.com/polyspec/crudui/packages/validator-go/validator/validate"
 )
 
 func main() {

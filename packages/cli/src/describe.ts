@@ -8,11 +8,11 @@
  *   - generator-core REGISTRY  → widget kinds + per-kind layout (import)
  *   - validator-ts rules        → rule names (import getRuleNames)
  *   - validator-ts validator.ts → rule param-class tables (import)
- *   - schema/crudui-CRUDUI.json  → slots / nodes / buckets / forbidden enum (parse)
+ *   - schema/crudui.schema.json  → slots / nodes / buckets / forbidden enum (parse)
  *   - validator-ts types.ts     → FORBIDDEN_META_KEYS + pattern (import)
  *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
- *   - schema/crudui-CRUDUI.json   → list definitions (List/Column/CellFormat/…) (parse)
+ *   - schema/crudui.schema.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - expressions.md      → tokens / precedence / truthy / unsupported (parse)
  *   - spec/schema.md             → classification rules (parse)
  *

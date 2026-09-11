@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // ListOptions supplies composition, display language, layout and caller-owned pagination data.

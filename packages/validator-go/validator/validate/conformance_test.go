@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // Validation conformance verifies SPEC §2 G5, §3 and §2 G1.

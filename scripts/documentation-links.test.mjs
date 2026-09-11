@@ -18,12 +18,12 @@ test('site links remain available to the normal site link checker', () => {
 
 test('existing repository files use source URLs with their anchors', () => {
   assert.equal(repositoryLink('../tests/build%20notes.md#checks', source, root),
-    'https://github.com/crudui/crudui/blob/main/tests/build%20notes.md#checks');
+    'https://github.com/polyspec/crudui/blob/main/tests/build%20notes.md#checks');
 });
 
 test('repository directories use directory URLs', () => {
   assert.equal(repositoryLink('../tests/', source, root),
-    'https://github.com/crudui/crudui/tree/main/tests');
+    'https://github.com/polyspec/crudui/tree/main/tests');
 });
 
 test('missing repository files fail instead of bypassing validation', () => {

@@ -26,8 +26,8 @@ package validate
 import (
 	"fmt"
 
-	model "github.com/crudui/crudui/packages/validator-go/validator"
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	model "github.com/polyspec/crudui/packages/validator-go/validator"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // ValidateList runs composition and forbidden-key scanning over a

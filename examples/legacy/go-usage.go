@@ -9,7 +9,7 @@
 //	mkdir /tmp/go-usage && cp go-usage.go /tmp/go-usage/main.go
 //	cd /tmp/go-usage
 //	go mod init example.com/go-usage
-//	go mod edit -replace github.com/crudui/crudui/packages/validator-go=/path/to/crudui/packages/validator-go
+//	go mod edit -replace github.com/polyspec/crudui/packages/validator-go=/path/to/crudui/packages/validator-go
 //	go get gopkg.in/yaml.v3 && go mod tidy
 //	go run .
 //
@@ -26,7 +26,7 @@ import (
 	"os"
 	"strings"
 
-	validator "github.com/crudui/crudui/packages/validator-go/validator/legacy"
+	validator "github.com/polyspec/crudui/packages/validator-go/validator/legacy"
 	"gopkg.in/yaml.v3"
 )
 
@@ -678,7 +678,7 @@ import (
     "net/http"
 
     "github.com/gin-gonic/gin"
-    validator "github.com/crudui/crudui/packages/validator-go/validator/legacy"
+    validator "github.com/polyspec/crudui/packages/validator-go/validator/legacy"
     "gopkg.in/yaml.v3"
 )
 

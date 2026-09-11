@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	gen "github.com/crudui/crudui/packages/generator-go"
+	gen "github.com/polyspec/crudui/packages/generator-go"
 )
 
 func TestRejectedRowActionsHaveNoResultAndPreserveState(t *testing.T) {

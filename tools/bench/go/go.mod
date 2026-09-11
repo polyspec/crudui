@@ -2,6 +2,6 @@ module crudui-bench
 
 go 1.21
 
-require github.com/crudui/crudui/packages/validator-go v0.0.0
+require github.com/polyspec/crudui/packages/validator-go v0.0.0
 
-replace github.com/crudui/crudui/packages/validator-go => ../../../packages/validator-go
+replace github.com/polyspec/crudui/packages/validator-go => ../../../packages/validator-go

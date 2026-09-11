@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"regexp"
 
-	generator "github.com/crudui/crudui/packages/generator-go"
-	"github.com/crudui/crudui/packages/validator-go/validator/compose"
+	generator "github.com/polyspec/crudui/packages/generator-go"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 var generationRoute = regexp.MustCompile(`^/api/(compile|render|ssr)/(bindForm|createForm)/(react|vue|svelte)$`)
