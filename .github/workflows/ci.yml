@@ -406,6 +406,9 @@ jobs:
   form-comparison:
     name: Form comparison runner regressions
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
     steps:
       - uses: actions/checkout@v6
       - name: Setup selected Node.js release line
@@ -418,17 +421,22 @@ jobs:
         with:
           php-version: '8.5'
           tools: composer
-      - name: Install workspace deps and Puppeteer Chromium
+      - name: Install workspace and PHP dependencies
         run: |
           npm i -g npm@latest && npm ci --strict-allow-scripts
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+      - name: Verify sandboxed Chrome
+        run: node scripts/check-ci-browser.mjs
       - name: Test report policy, browser jobs and candidate sources
         run: npm run test:form-comparison
 
   package-browser:
     name: Packages, public builds and browser inspector
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
     steps:
       - uses: actions/checkout@v6
       - name: Setup selected Node.js release line
@@ -436,8 +444,10 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
-      - name: Install workspace deps and Puppeteer Chromium
+      - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
+      - name: Verify sandboxed Chrome
+        run: node scripts/check-ci-browser.mjs
       - name: Pack and test package consumers
         run: npm run test:packages
       - name: Test public package exports and types
@@ -452,6 +462,9 @@ jobs:
   native-generators:
     name: Native generation and PHP API (${{ matrix.php }})
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -481,6 +494,8 @@ jobs:
           npm i -g npm@latest && npm ci --strict-allow-scripts
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+      - name: Verify sandboxed Chrome
+        run: node scripts/check-ci-browser.mjs
       - name: Build and test native packages
         run: make test-native
         env:
