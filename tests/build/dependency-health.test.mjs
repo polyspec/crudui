@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
@@ -178,6 +178,20 @@ test('root example imports are declared by the root package', () => {
       .filter((packageName) => !declared.has(packageName))
       .map((packageName) => `${filename}: ${packageName}`)
   )).sort();
+  assert.deepEqual(failures, []);
+});
+
+test('form comparison commands use the root npm dependency graph', () => {
+  const container = readFileSync(
+    path.join(root, 'examples/form-comparison/Containerfile'), 'utf8',
+  );
+  const failures = [
+    'examples/form-comparison/package.json',
+    'examples/form-comparison/package-lock.json',
+  ].filter((filename) => existsSync(path.join(root, filename)));
+  if (/npm ci[^\n]*--prefix examples\/form-comparison/.test(container)) {
+    failures.push('examples/form-comparison/Containerfile: nested npm install');
+  }
   assert.deepEqual(failures, []);
 });
 
