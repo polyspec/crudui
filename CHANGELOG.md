@@ -2,6 +2,26 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Complete the independent C PHP extension
+
+The PHP extension now implements its form and validation engine in C. The
+engine owns ordered values and performs composition, expression evaluation,
+template compilation, data binding, form and list rendering, validation, row
+operations and PHP value conversion inside the extension process. The package
+no longer contains a Cargo manifest, Cargo lock file or Rust source. The direct
+builder compiles the complete C source set, and the form-comparison extension
+stage no longer copies a Rust toolchain. The comparison generator check hashes
+the root package lock file used by the candidate source archive.
+
+The C engine checks passed 29 of 30 tests on macOS, with the Linux-only address
+sanitizer test skipped. The module build and load succeeded; PHP API checks
+passed 352 cases in each of three configurations and validation passed 94 cases
+in each implementation. `make test-native` passed with 766/766 generator
+checks, 19 protocol checks, all PHP, Go and Rust package checks, and the widget
+and timezone checks. `npm run test:form-comparison` passed 136 source, 10
+library and 3 browser-job checks. `make docs-check` passed. The extension and
+comparison service are not deployed.
+
 ## 2026-09-11 — Render form fields in C
 
 The C extension renders evaluated form fields as server HTML. The renderer

@@ -115,8 +115,10 @@ char *ps_join_path(const char *parent, const char *child)
     return ps_string_join(parent, ".", child ? child : "");
 }
 
-char **ps_path_parts(const char *path, size_t *length)
+bool ps_path_parts(const char *path, char ***result, size_t *length)
 {
+    if (!path || !result || !length) return false;
+    *result = NULL;
     *length = 0;
     size_t capacity = 0;
     char **parts = NULL;
@@ -142,9 +144,12 @@ char **ps_path_parts(const char *path, size_t *length)
         else if (bracket && value == ']') { bracket = false; start = cursor + 1; }
         else if (!bracket && value == '.') start = cursor + 1;
     }
-    return parts;
+    *result = parts;
+    return true;
 fail:
-    ps_path_parts_free(parts, *length); *length = 0; return NULL;
+    ps_path_parts_free(parts, *length);
+    *length = 0;
+    return false;
 }
 
 void ps_path_parts_free(char **parts, size_t length)
@@ -166,8 +171,8 @@ const char *ps_position(const char *segment)
 char *ps_bracket_name(const char *path, const char *prefix)
 {
     size_t length = 0;
-    char **parts = ps_path_parts(path, &length);
-    if (!parts && *path) return NULL;
+    char **parts = NULL;
+    if (!ps_path_parts(path, &parts, &length)) return NULL;
     text_buffer out = {0};
     bool has_prefix = prefix && *prefix;
     if (has_prefix && !buffer_text(&out, prefix)) goto fail;
@@ -193,8 +198,8 @@ static bool row_segment(size_t index, const size_t *rows, size_t count)
 char *ps_rule_name(const char *path, const size_t *rows, size_t count)
 {
     size_t length = 0;
-    char **parts = ps_path_parts(path, &length);
-    if (!parts && *path) return NULL;
+    char **parts = NULL;
+    if (!ps_path_parts(path, &parts, &length)) return NULL;
     text_buffer out = {0};
     if (length && !buffer_text(&out, parts[0])) goto fail;
     for (size_t i = 1; i < length; ++i) {
@@ -214,8 +219,8 @@ fail:
 char *ps_leaf_name(const char *path, const size_t *rows, size_t count)
 {
     size_t length = 0;
-    char **parts = ps_path_parts(path, &length);
-    if (!parts && *path) return NULL;
+    char **parts = NULL;
+    if (!ps_path_parts(path, &parts, &length)) return NULL;
     const char *last = length ? parts[length - 1] : path;
     bool repeated = length && (row_segment(length - 1, rows, count) ||
                                ps_position(last) != last);
@@ -228,7 +233,10 @@ char *ps_leaf_name(const char *path, const size_t *rows, size_t count)
 
 static bool unreserved(unsigned char value)
 {
-    return isalnum(value) || strchr("-_.!~*'()", value) != NULL;
+    return (value >= 'A' && value <= 'Z') ||
+           (value >= 'a' && value <= 'z') ||
+           (value >= '0' && value <= '9') ||
+           strchr("-_.!~*'()", value) != NULL;
 }
 
 static bool encode_component(text_buffer *out, const char *value)
@@ -269,10 +277,14 @@ char *ps_element_id(const char *prefix, const char *path)
     while (*cursor) {
         if (cursor[0] == '[' && cursor[1] == ']' ) { cursor += 2; continue; }
         if (cursor[0] == ']' && cursor[1] == '[') {
-            if (!buffer_char(&out, '-')) goto fail; cursor += 2; continue;
+            if (!buffer_char(&out, '-')) goto fail;
+            cursor += 2;
+            continue;
         }
         if (*cursor == '[' || *cursor == ']') {
-            if (!buffer_char(&out, '-')) goto fail; cursor++; continue;
+            if (!buffer_char(&out, '-')) goto fail;
+            cursor++;
+            continue;
         }
         uint32_t code = 0;
         size_t bytes = utf8_codepoint(cursor, &code);
@@ -424,105 +436,6 @@ fail:
     free(out.data); return NULL;
 }
 
-static bool digits(const char *value, size_t count)
-{
-    for (size_t i = 0; i < count; ++i) if (!isdigit((unsigned char)value[i])) return false;
-    return true;
-}
-
-static int integer_at(const char *value, size_t count)
-{
-    int result = 0;
-    for (size_t i = 0; i < count; ++i) result = result * 10 + value[i] - '0';
-    return result;
-}
-
-static bool leap(int year)
-{
-    return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-}
-
-static int month_days(int year, int month)
-{
-    static const int days[] = {31,28,31,30,31,30,31,31,30,31,30,31};
-    return month == 2 ? days[1] + leap(year) : days[month - 1];
-}
-
-static long long days_from_civil(int year, unsigned month, unsigned day)
-{
-    year -= month <= 2;
-    const int era = (year >= 0 ? year : year - 399) / 400;
-    const unsigned yoe = (unsigned)(year - era * 400);
-    const unsigned doy = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
-    const unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    return (long long)era * 146097 + (long long)doe - 719468;
-}
-
-static void civil_from_days(long long days, int *year, unsigned *month, unsigned *day)
-{
-    days += 719468;
-    const long long era = (days >= 0 ? days : days - 146096) / 146097;
-    const unsigned doe = (unsigned)(days - era * 146097);
-    const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    int y = (int)yoe + (int)era * 400;
-    const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    const unsigned mp = (5 * doy + 2) / 153;
-    *day = doy - (153 * mp + 2) / 5 + 1;
-    *month = mp + (mp < 10 ? 3 : -9);
-    y += *month <= 2; *year = y;
-}
-
-char *ps_format_date(const char *source, bool datetime)
-{
-    size_t length = strlen(source);
-    if (length < 10 || !digits(source, 4) || source[4] != '-' || !digits(source + 5, 2) ||
-        source[7] != '-' || !digits(source + 8, 2)) return copy_range(source, length);
-    int year = integer_at(source, 4), month = integer_at(source + 5, 2), day = integer_at(source + 8, 2);
-    int hour = 0, minute = 0, second = 0, offset = 0;
-    size_t cursor = 10;
-    if (cursor < length) {
-        if ((source[cursor] != 'T' && source[cursor] != ' ') || cursor + 6 > length ||
-            !digits(source + cursor + 1, 2) || source[cursor + 3] != ':' ||
-            !digits(source + cursor + 4, 2)) return copy_range(source, length);
-        hour = integer_at(source + cursor + 1, 2);
-        minute = integer_at(source + cursor + 4, 2); cursor += 6;
-        if (cursor < length && source[cursor] == ':') {
-            if (cursor + 3 > length || !digits(source + cursor + 1, 2)) return copy_range(source, length);
-            second = integer_at(source + cursor + 1, 2); cursor += 3;
-            if (cursor < length && source[cursor] == '.') {
-                cursor++; size_t start = cursor;
-                while (cursor < length && isdigit((unsigned char)source[cursor])) cursor++;
-                if (cursor == start) return copy_range(source, length);
-            }
-        }
-        if (cursor < length && source[cursor] == 'Z') cursor++;
-        else if (cursor < length && (source[cursor] == '+' || source[cursor] == '-')) {
-            int sign = source[cursor] == '-' ? -1 : 1;
-            if (cursor + 6 != length || !digits(source + cursor + 1, 2) ||
-                source[cursor + 3] != ':' || !digits(source + cursor + 4, 2))
-                return copy_range(source, length);
-            int zone_hour = integer_at(source + cursor + 1, 2);
-            int zone_minute = integer_at(source + cursor + 4, 2);
-            if (zone_hour > 23 || zone_minute > 59) return copy_range(source, length);
-            offset = sign * (zone_hour * 60 + zone_minute); cursor += 6;
-        }
-    }
-    if (cursor != length || month < 1 || month > 12 || day < 1 ||
-        day > month_days(year, month) || hour > 23 || minute > 59 || second > 59)
-        return copy_range(source, length);
-    long long total = days_from_civil(year, (unsigned)month, (unsigned)day) * 86400 +
-        hour * 3600 + minute * 60 + second - offset * 60;
-    long long days = total / 86400, remainder = total % 86400;
-    if (remainder < 0) { remainder += 86400; days--; }
-    unsigned output_month, output_day;
-    civil_from_days(days, &year, &output_month, &output_day);
-    hour = (int)(remainder / 3600); minute = (int)(remainder % 3600 / 60); second = (int)(remainder % 60);
-    char formatted[40];
-    if (datetime) snprintf(formatted, sizeof(formatted), "%04d-%02u-%02uT%02d:%02d:%02d",
-                           year, output_month, output_day, hour, minute, second);
-    else snprintf(formatted, sizeof(formatted), "%04d-%02u-%02u", year, output_month, output_day);
-    return copy_range(formatted, strlen(formatted));
-}
 
 static const char *trim_left(const char *value)
 {

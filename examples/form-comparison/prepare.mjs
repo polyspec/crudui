@@ -23,8 +23,6 @@ export const requiredSourcePaths = Object.freeze([
   'packages/generator-go/go.mod',
   'packages/generator-rust/Cargo.toml',
   'packages/generator-rust/Cargo.lock',
-  'packages/php-ext/Cargo.toml',
-  'packages/php-ext/Cargo.lock',
   'scripts/tool-resolution.mjs',
   'scripts/php-extension-builder.mjs',
   'scripts/build-crudui-php-extension.mjs',

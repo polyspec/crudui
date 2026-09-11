@@ -20,6 +20,13 @@ struct ps_value {
     } data;
 };
 
+typedef struct {
+    char *data;
+    size_t length;
+    size_t capacity;
+    bool failed;
+} ps_html_buffer;
+
 ps_value *ps_value_clone(const ps_value *value);
 const ps_value *ps_get(const ps_value *value, const char *key);
 ps_value *ps_get_mut(ps_value *value, const char *key);
@@ -60,12 +67,29 @@ char *ps_control_id(const char *prefix, const char *path);
 char *ps_translate(const ps_value *value, const char *language);
 char *ps_style_string(const char *source);
 char *ps_format_date(const char *source, bool datetime);
-char **ps_path_parts(const char *path, size_t *length);
+char *ps_format_date_pattern(const char *source, const char *pattern);
+bool ps_path_parts(const char *path, char ***parts, size_t *length);
 void ps_path_parts_free(char **parts, size_t length);
 const char *ps_position(const char *segment);
 bool ps_condition_expression(const char *value);
 
+bool ps_html_bytes(ps_html_buffer *out, const char *value, size_t length);
+bool ps_html_text(ps_html_buffer *out, const char *value);
+bool ps_html_character(ps_html_buffer *out, char value);
+char *ps_html_take(ps_html_buffer *out);
+ps_value *ps_html_value(ps_html_buffer *out);
+bool ps_html_escaped(ps_html_buffer *out, const char *value, size_t length, bool raw);
+bool ps_html_raw_text(ps_html_buffer *out, const char *value, size_t length);
+bool ps_html_void_tag(const char *tag);
+bool ps_html_start_element(ps_html_buffer *out, const char *tag,
+                           const ps_value *attrs, bool raw, bool style_last);
+bool ps_html_end_element(ps_html_buffer *out, const char *tag);
+bool ps_html_attr_string(ps_value *attrs, const char *name, const char *value);
+bool ps_html_attr_clone(ps_value *attrs, const char *name, const ps_value *value);
+ps_value *ps_html_appearance_attrs(const char *class_name, const char *style);
+
 ps_value *ps_design(const ps_value *design, const ps_value *data, const char *path);
+bool ps_widget_supported(const char *type);
 ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,
                     const char *path, const ps_value *design, const char *key_prefix,
                     const char *id_prefix, const char *language,
