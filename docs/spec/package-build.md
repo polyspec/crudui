@@ -14,6 +14,8 @@ closest `package.json` with `"type": "module"`. A package that publishes CommonJ
 `.js` files retains its CommonJS package type and uses `.mts` for an ES module
 Vitest configuration. An ES module Vite configuration resolves paths from
 `import.meta.dirname`; it does not use the CommonJS-only `__dirname` binding.
+Configuration checks discover source files from the extracted repository tree and
+do not require Git metadata. They exclude generated and dependency directories.
 
 The declaration compiler does not receive deprecated module-resolution options
 from the JavaScript bundler. Build commands do not suppress type errors or create
