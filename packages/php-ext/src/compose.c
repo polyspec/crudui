@@ -254,9 +254,14 @@ static ps_value *resolve_single(const char *raw, compose_context *context, ps_va
 
 static ps_value *resolve_ref(const ps_value *reference, compose_context *context, ps_value **error)
 {
+    if (!reference || (reference->kind != PS_STRING && reference->kind != PS_ARRAY)) {
+        composition_error(error, "REF_VALUE_TYPE",
+                          "$ref must be a string or an array of strings", NULL);
+        return NULL;
+    }
     ps_value *out = ps_object_value();
     if (!out) return NULL;
-    size_t count = reference && reference->kind == PS_ARRAY ? ps_size(reference) : 1;
+    size_t count = reference->kind == PS_ARRAY ? ps_size(reference) : 1;
     for (size_t i = 0; i < count; ++i) {
         const ps_value *path = reference->kind == PS_ARRAY ? ps_at(reference, i) : reference;
         if (!path || path->kind != PS_STRING) {

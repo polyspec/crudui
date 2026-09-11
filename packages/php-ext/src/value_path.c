@@ -26,6 +26,7 @@ static const ps_value *segment(const ps_value *value, const char *key, size_t le
 
 const ps_value *ps_path(const ps_value *root, const char *path)
 {
+    if (!path) return NULL;
     const ps_value *value = root;
     const char *start = path;
     bool bracket = false;
@@ -47,8 +48,10 @@ const ps_value *ps_path(const ps_value *root, const char *path)
 const ps_value *ps_path_segments(const ps_value *root, const char *const *segments,
                                  size_t length)
 {
+    if (!segments && length) return NULL;
     const ps_value *value = root;
     for (size_t i = 0; i < length; ++i) {
+        if (!segments[i]) return NULL;
         value = segment(value, segments[i], strlen(segments[i]));
         if (!value) return NULL;
     }
@@ -81,10 +84,11 @@ char *ps_js_string(const ps_value *value)
     if (value->kind == PS_BOOL) return copy_text(value->data.boolean ? "true" : "false");
     if (value->kind == PS_OBJECT) return copy_text("[object Object]");
     if (value->kind != PS_ARRAY) return ps_scalar_string(value);
+    size_t count = ps_size(value);
     size_t length = 1;
-    char **items = calloc(ps_size(value), sizeof(*items));
-    if (!items && ps_size(value)) return NULL;
-    for (size_t i = 0; i < ps_size(value); ++i) {
+    char **items = calloc(count, sizeof(*items));
+    if (!items && count) return NULL;
+    for (size_t i = 0; i < count; ++i) {
         const ps_value *item = ps_at(value, i);
         items[i] = item && item->kind != PS_NULL ? ps_js_string(item) : copy_text("");
         if (!items[i]) goto fail;
@@ -92,11 +96,13 @@ char *ps_js_string(const ps_value *value)
     }
     char *out = calloc(length, 1);
     if (!out) goto fail;
-    for (size_t i = 0; i < ps_size(value); ++i) {
-        if (i) strcat(out, ","); strcat(out, items[i]); free(items[i]);
+    for (size_t i = 0; i < count; ++i) {
+        if (i) strcat(out, ",");
+        strcat(out, items[i]);
+        free(items[i]);
     }
     free(items); return out;
 fail:
-    for (size_t i = 0; i < ps_size(value); ++i) free(items[i]);
+    for (size_t i = 0; i < count; ++i) free(items[i]);
     free(items); return NULL;
 }

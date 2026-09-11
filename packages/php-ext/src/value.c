@@ -6,6 +6,7 @@
 
 static bool valid_utf8(const uint8_t *input, size_t length)
 {
+    if (!input && length) return false;
     size_t i = 0;
     while (i < length) {
         uint8_t byte = input[i++];
@@ -62,6 +63,7 @@ void ps_value_free(ps_value *value)
 
 static void clear_value(ps_value *value)
 {
+    if (!value) return;
     if (value->kind == PS_STRING) free(value->data.string.bytes);
     if (value->kind == PS_ARRAY || value->kind == PS_OBJECT) {
         for (size_t i = 0; i < value->data.children.length; ++i) {
@@ -75,23 +77,25 @@ static void clear_value(ps_value *value)
 
 void ps_value_bool(ps_value *value, bool input)
 {
+    if (!value) return;
     clear_value(value); value->kind = PS_BOOL; value->data.boolean = input;
 }
 
 void ps_value_int(ps_value *value, int64_t input)
 {
+    if (!value) return;
     clear_value(value); value->kind = PS_INT; value->data.integer = input;
 }
 
 bool ps_value_float(ps_value *value, double input)
 {
-    if (!isfinite(input)) return false;
+    if (!value || !isfinite(input)) return false;
     clear_value(value); value->kind = PS_FLOAT; value->data.number = input; return true;
 }
 
 bool ps_value_string(ps_value *value, const uint8_t *input, size_t length)
 {
-    if (!valid_utf8(input, length)) return false;
+    if (!value || !valid_utf8(input, length)) return false;
     char *copy = copy_bytes(input, length);
     if (!copy) return false;
     clear_value(value); value->kind = PS_STRING;
@@ -110,7 +114,7 @@ static bool reserve(ps_value *value)
 
 static size_t member_index(const ps_value *object, const char *key, size_t length)
 {
-    if (!object || object->kind != PS_OBJECT) return SIZE_MAX;
+    if (!object || object->kind != PS_OBJECT || !key) return SIZE_MAX;
     for (size_t i = 0; i < object->data.children.length; ++i) {
         const ps_member *member = &object->data.children.items[i];
         if (member->key_length == length && !memcmp(member->key, key, length)) return i;
@@ -121,6 +125,9 @@ static size_t member_index(const ps_value *object, const char *key, size_t lengt
 bool ps_value_insert(ps_value *parent, const uint8_t *key, size_t length, ps_value *child)
 {
     if (!parent || !child) { ps_value_free(child); return false; }
+    if (parent->data.children.length && !parent->data.children.items) {
+        ps_value_free(child); return false;
+    }
     if (parent->kind == PS_ARRAY && !key) {
         if (!reserve(parent)) { ps_value_free(child); return false; }
         parent->data.children.items[parent->data.children.length++] = (ps_member){NULL, 0, child};
@@ -146,12 +153,13 @@ uint8_t ps_value_read(const ps_value *value, int64_t *integer, double *number,
 {
     if (!value) return UINT8_MAX;
     switch (value->kind) {
-        case PS_BOOL: *integer = value->data.boolean; break;
-        case PS_INT: *integer = value->data.integer; break;
-        case PS_FLOAT: *number = value->data.number; break;
+        case PS_BOOL: if (integer) *integer = value->data.boolean; break;
+        case PS_INT: if (integer) *integer = value->data.integer; break;
+        case PS_FLOAT: if (number) *number = value->data.number; break;
         case PS_STRING:
-            *text = (const uint8_t *)value->data.string.bytes;
-            *length = value->data.string.length; break;
+            if (text) *text = (const uint8_t *)value->data.string.bytes;
+            if (length) *length = value->data.string.length;
+            break;
         default: break;
     }
     return value->kind;
@@ -159,7 +167,8 @@ uint8_t ps_value_read(const ps_value *value, int64_t *integer, double *number,
 
 bool ps_value_visit(const ps_value *value, void *context, ps_visitor visitor)
 {
-    if (!value || (value->kind != PS_ARRAY && value->kind != PS_OBJECT)) return false;
+    if (!value || !visitor ||
+        (value->kind != PS_ARRAY && value->kind != PS_OBJECT)) return false;
     for (size_t i = 0; i < value->data.children.length; ++i) {
         const ps_member *member = &value->data.children.items[i];
         const uint8_t *key = value->kind == PS_OBJECT ? (const uint8_t *)member->key : NULL;
@@ -170,7 +179,7 @@ bool ps_value_visit(const ps_value *value, void *context, ps_visitor visitor)
 
 ps_value *ps_value_clone(const ps_value *value)
 {
-    if (!value) return NULL;
+    if (!value || value->kind > PS_OBJECT) return NULL;
     ps_value *copy = ps_value_new(value->kind);
     if (!copy) return NULL;
     switch (value->kind) {
@@ -196,6 +205,7 @@ fail:
 
 const ps_value *ps_get(const ps_value *value, const char *key)
 {
+    if (!key) return NULL;
     size_t index = member_index(value, key, strlen(key));
     return index == SIZE_MAX ? NULL : value->data.children.items[index].value;
 }
@@ -209,11 +219,16 @@ bool ps_has(const ps_value *value, const char *key) { return ps_get(value, key) 
 size_t ps_size(const ps_value *value) { return value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT) ? value->data.children.length : 0; }
 const ps_value *ps_at(const ps_value *value, size_t index) { return index < ps_size(value) ? value->data.children.items[index].value : NULL; }
 const char *ps_key_at(const ps_value *value, size_t index) { return value && value->kind == PS_OBJECT && index < ps_size(value) ? value->data.children.items[index].key : NULL; }
-bool ps_set(ps_value *object, const char *key, ps_value *value) { return ps_value_insert(object, (const uint8_t *)key, strlen(key), value); }
+bool ps_set(ps_value *object, const char *key, ps_value *value)
+{
+    if (!key) { ps_value_free(value); return false; }
+    return ps_value_insert(object, (const uint8_t *)key, strlen(key), value);
+}
 bool ps_append(ps_value *array, ps_value *value) { return ps_value_insert(array, NULL, 0, value); }
 
 bool ps_delete(ps_value *object, const char *key)
 {
+    if (!key) return false;
     size_t index = member_index(object, key, strlen(key));
     if (index == SIZE_MAX) return false;
     ps_member *member = &object->data.children.items[index];
@@ -253,7 +268,8 @@ bool ps_equal(const ps_value *left, const ps_value *right)
 
 bool ps_is_string(const ps_value *value, const char *text)
 {
-    return value && value->kind == PS_STRING && strlen(text) == value->data.string.length &&
+    return value && value->kind == PS_STRING && text &&
+        strlen(text) == value->data.string.length &&
         !memcmp(value->data.string.bytes, text, value->data.string.length);
 }
 const char *ps_string(const ps_value *value) { return value && value->kind == PS_STRING ? value->data.string.bytes : ""; }
@@ -291,6 +307,7 @@ ps_value *ps_float_value(double input)
 }
 ps_value *ps_string_value(const char *input)
 {
+    if (!input) return NULL;
     ps_value *value = ps_value_new(PS_NULL);
     if (!value || !ps_value_string(value, (const uint8_t *)input, strlen(input))) {
         ps_value_free(value); return NULL;

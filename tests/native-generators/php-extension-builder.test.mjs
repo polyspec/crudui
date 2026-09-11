@@ -13,7 +13,6 @@ import {
   resolveHomebrewPhpConfig,
   resolvePhpBuildTools,
 } from '../../scripts/php-extension-builder.mjs';
-import { rustBuildEnvironment } from '../../scripts/build-crudui-php-extension.mjs';
 
 async function executable(filename) {
   await writeFile(filename, '#!/bin/sh\nexit 0\n');
@@ -28,43 +27,25 @@ async function temporaryDirectory(t) {
   return directory;
 }
 
-test('non-Linux tool discovery uses regular executables and the Rust toolchain record', async t => {
+test('non-Linux tool discovery uses regular PHP and C executables', async t => {
   const root = await temporaryDirectory(t);
   const bin = path.join(root, 'bin');
-  const toolchain = path.join(root, 'toolchain');
-  await Promise.all([mkdir(bin), mkdir(toolchain)]);
+  await mkdir(bin);
   const phpConfig = await executable(path.join(bin, 'php-config'));
   const compiler = await executable(path.join(bin, 'cc'));
-  const rustup = await executable(path.join(bin, 'rustup'));
-  const cargo = await executable(path.join(toolchain, 'cargo'));
-  const rustc = await executable(path.join(toolchain, 'rustc'));
-  const rustdoc = await executable(path.join(toolchain, 'rustdoc'));
   const calls = [];
   const run = async (file, args, options) => {
     calls.push([file, args, options]);
-    if (file === rustup && args[0] === 'which') {
-      return { stdout: ({ cargo, rustc, rustdoc })[args[1]] + '\n', stderr: '' };
-    }
     if (file === phpConfig) return { stdout: '8.5.10\n', stderr: '' };
     if (file === compiler) return { stdout: 'clang version 21.0.0\n', stderr: '' };
-    if (file === rustup) return { stdout: 'rustup 1.29.0\n', stderr: '' };
-    if (file === cargo) return { stdout: 'cargo 1.98.1\n', stderr: '' };
-    if (file === rustc) {
-      return { stdout: 'rustc 1.98.1 (test 2026-09-01)\nhost: aarch64-test-system\n', stderr: '' };
-    }
-    if (file === rustdoc) return { stdout: 'rustdoc 1.98.1 (test 2026-09-01)\n', stderr: '' };
     throw new Error('Unexpected command: ' + file + ' ' + args.join(' '));
   };
 
   assert.deepEqual(await resolvePhpBuildTools({
-    cwd: root, environment: { HOME: root, PATH: bin }, needsCargo: true,
+    environment: { PATH: bin },
     platform: 'darwin', run,
-  }), { phpConfig, compiler, cargo, rustc, rustdoc, rustHost: 'aarch64-test-system' });
-  assert.deepEqual(calls.filter(([, args]) => args[0] === 'which'), [
-    [rustup, ['which', 'cargo'], { capture: true, environment: { HOME: root, PATH: bin }, cwd: root }],
-    [rustup, ['which', 'rustc'], { capture: true, environment: { HOME: root, PATH: bin }, cwd: root }],
-    [rustup, ['which', 'rustdoc'], { capture: true, environment: { HOME: root, PATH: bin }, cwd: root }],
-  ]);
+  }), { phpConfig, compiler });
+  assert.deepEqual(calls.map(([file]) => file), [phpConfig, compiler]);
 });
 
 test('tool discovery rejects symbolic and ambiguous executable paths', async t => {
@@ -78,7 +59,7 @@ test('tool discovery rejects symbolic and ambiguous executable paths', async t =
   await executable(path.join(first, 'cc'));
 
   await assert.rejects(resolvePhpBuildTools({
-    environment: { PATH: first }, needsCargo: false,
+    environment: { PATH: first },
     run: async () => ({ stdout: 'clang version 21.0.0\n', stderr: '' }),
   }), /symbolic link/i);
 
@@ -87,7 +68,7 @@ test('tool discovery rejects symbolic and ambiguous executable paths', async t =
   await executable(path.join(second, 'php-config'));
   await executable(path.join(second, 'cc'));
   await assert.rejects(resolvePhpBuildTools({
-    environment: { PATH: first + path.delimiter + second }, needsCargo: false,
+    environment: { PATH: first + path.delimiter + second },
     run: async () => ({ stdout: '8.5.10\n', stderr: '' }),
   }), /requires one result; received 2/i);
 
@@ -169,7 +150,6 @@ test('Linux tool discovery follows Debian package records to one target compiler
 
   assert.deepEqual(await resolvePhpBuildTools({
     environment: { PATH: bin },
-    needsCargo: false,
     packageQuery,
     phpConfig,
     platform: 'linux',
@@ -250,19 +230,4 @@ test('generated path cleanup removes declared regular trees', async t => {
 
   await cleanGeneratedPaths(extension, ['.build']);
   await assert.rejects(readFile(output, 'utf8'), error => error.code === 'ENOENT');
-});
-
-test('Rust build environment declares regular compiler and linker paths', () => {
-  assert.deepEqual(rustBuildEnvironment({ PATH: '/declared/bin' }, {
-    compiler: '/tools/cc',
-    rustc: '/toolchain/rustc',
-    rustdoc: '/toolchain/rustdoc',
-    rustHost: 'aarch64-apple-darwin',
-  }), {
-    PATH: '/declared/bin',
-    RUSTC: '/toolchain/rustc',
-    RUSTDOC: '/toolchain/rustdoc',
-    CC: '/tools/cc',
-    CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: '/tools/cc',
-  });
 });

@@ -98,7 +98,8 @@ Composition errors use `CRUDUI\Validator\Compose\ComposeLoadError`. Generator
 operation errors use `CRUDUI\FormError`, constructed with `errorCode`, `message`
 and optional `path`; `getErrorCode()` and `getPath()` return the operation details.
 Unsupported fields use `UNSUPPORTED_FIELD_TYPE`; other invalid form operations
-use `INVALID_FORM_INPUT`. PHP argument type violations raise `TypeError`.
+use `INVALID_FORM_INPUT`. A failure while constructing a supported field uses
+`INTERNAL_ERROR`. PHP argument type violations raise `TypeError`.
 
 PHP scalar types are preserved. Sequential PHP arrays represent JSON arrays;
 associative arrays and `stdClass` represent objects. Use `stdClass` for an

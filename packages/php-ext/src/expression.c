@@ -143,7 +143,7 @@ static lexer_output tokenize(const char *source)
             if (*cursor != quote) { free(decoded); out.valid = false; break; }
             cursor++; decoded[used] = '\0';
             kind = TOK_STRING; length = (size_t)(cursor - start);
-            literal = ps_string_value(decoded); free(decoded); cursor = start;
+            literal = ps_string_value(decoded); free(decoded);
         } else if (kind == TOK_INVALID && (isdigit((unsigned char)*cursor) ||
                    (*cursor == '-' && isdigit((unsigned char)cursor[1])))) {
             const char *number = cursor;
@@ -167,7 +167,7 @@ static lexer_output tokenize(const char *source)
                 literal = errno || !end || *end ? ps_float_value(strtod(raw, NULL))
                                                 : ps_int_value((int64_t)value);
             }
-            free(raw); kind = TOK_NUMBER; cursor = start;
+            free(raw); kind = TOK_NUMBER;
         } else if (kind == TOK_INVALID && (isalpha((unsigned char)*cursor) || *cursor == '_')) {
             cursor++; while (word_character(*cursor)) cursor++;
             length = (size_t)(cursor - start);
@@ -178,7 +178,7 @@ static lexer_output tokenize(const char *source)
             else if (!strcmp(word, "null")) { kind = TOK_NULL; literal = ps_null_value(); }
             else if (!strcmp(word, "in")) kind = TOK_IN;
             else { kind = TOK_IDENTIFIER; literal = ps_string_value(word); }
-            free(word); cursor = start;
+            free(word);
         }
         if (!token_text(&out, kind, start, length, literal, dots)) out.valid = false;
         cursor = start + length;
@@ -221,7 +221,9 @@ static token *peek(parser *p) { return &p->tokens[p->current]; }
 static bool check(parser *p, token_kind kind) { return peek(p)->kind == kind; }
 static bool match(parser *p, token_kind kind)
 {
-    if (!check(p, kind)) return false; p->current++; return true;
+    if (!check(p, kind)) return false;
+    p->current++;
+    return true;
 }
 static token *previous(parser *p) { return &p->tokens[p->current - 1]; }
 static expression_node *parse_ternary(parser *p);

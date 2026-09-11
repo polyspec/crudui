@@ -10,8 +10,8 @@ static char *empty_string(void)
 
 static char **expression_path(const char *path, size_t *length)
 {
-    char **parts = ps_path_parts(path, length);
-    if (!parts && *path) return NULL;
+    char **parts = NULL;
+    if (!ps_path_parts(path, &parts, length)) return NULL;
     for (size_t i = 0; i < *length; ++i) {
         const char *position = ps_position(parts[i]);
         if (position != parts[i]) {
@@ -112,7 +112,7 @@ ps_value *ps_design(const ps_value *design, const ps_value *data, const char *pa
     const ps_value *object = design && design->kind == PS_OBJECT ? design : NULL;
     size_t path_length = 0;
     char **path_parts = expression_path(path, &path_length);
-    if (!path_parts && *path) return NULL;
+    if (!path_parts && path_length) return NULL;
     ps_value *result = ps_object_value();
     ps_value *main = design_node(object, data, (const char *const *)path_parts, path_length);
     ps_value *label = design_node(object ? ps_get(object, "label") : NULL, data,
