@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-11 — Render form fields in C
+
+The C extension renders evaluated form fields as server HTML. The renderer
+supports leaf, group, repeated and language field structures and all current
+widget layouts. It preserves control attribute order, opaque event attributes,
+raw display content and script and style elements. Text, attributes, URL values
+and final CSS properties use the current rendering rules. Rendering does not
+change the evaluated field models.
+
+Focused C checks matched exact HTML for all 90 successful shared form fixtures
+and two additional escaping and CSS cases. The same cases passed with strict C11
+compiler warnings and undefined-behavior instrumentation. These changes are not
+deployed.
+
 ## 2026-09-11 — Bind form fields in C
 
 The C extension binds compiled templates to record data without changing either
