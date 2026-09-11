@@ -22,7 +22,7 @@ make test-native
 make docs-check
 ```
 
-`make test-native` builds and loads the extension, builds the JavaScript packages,
+`make test-native` builds the JavaScript packages, builds and loads the extension,
 runs generator package tests and compares JavaScript, PHP, Go, Rust and native PHP.
 The extension build reads the PHP executable, headers and build flags from
 `php-config`, compiles the C binding and links Cargo's locked Rust output directly.
