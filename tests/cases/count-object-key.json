@@ -1,7 +1,7 @@
 {
   "testSuite": "count-object-key",
   "version": "1.0.0",
-  "description": "객체키(__uid__) multiple group의 group-level mincount/maxcount 엔트리 카운트 회귀 잠금. multiple:true group의 데이터가 list가 아닌 __uid__ 키 객체로 올 때 엔트리 수를 카운트해야 한다(기준=legacy/PHP, count($value)). 배열 형태와 객체 형태가 동일 카운트로 수렴해야 한다. 빈 객체/빈 배열은 count 0. 4언어(js/php/go/rust) 동일 결과.",
+  "description": "객체키(__uid__) multiple group의 group-level mincount/maxcount 엔트리 카운트 회귀 잠금. multiple:true group의 데이터가 list가 아닌 __uid__ 키 객체로 올 때 엔트리 수를 카운트해야 한다(legacy/PHP 기준, count($value)). 배열 형태와 객체 형태가 동일 카운트로 수렴해야 한다. 빈 객체/빈 배열은 count 0. 4언어(js/php/go/rust) 동일 결과.",
   "tests": [
     {
       "id": "count-object-key-mincount-object-001",
