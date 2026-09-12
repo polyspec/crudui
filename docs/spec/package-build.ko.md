@@ -64,12 +64,12 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 - `npm ci --strict-allow-scripts`는 고정된 의존성을 설치하고 `npm run build`는
   선언된 validator·generator
   빌드를 의존성 순서로 실행한다.
-- validator·generator-core·generator-react는 패키지 소스 경로 import 없이 공개
+- validator·generator-core·generator-html·generator-react는 패키지 소스 경로 import 없이 공개
   CommonJS·ES 모듈 export로 로드된다.
 - 엄격한 소비자 검사는 공개 타입과 모든 하위 선언 import를 해석한다.
 - 소비자 검증은 각 워크스페이스를 해당 패키지 디렉터리에서 패키징한다. 현재 안정
-  npm의 `pack --json` 결과는 패키지 이름과 같은 속성을 정확히 하나 포함한다. 속성
-  값은 같은 패키지 이름과 아카이브 파일 이름 하나를 보고한다.
+  npm의 `pack --json` 결과는 패키지 record를 정확히 하나 포함한다. record는 같은
+  패키지 이름과 아카이브 파일 이름 하나를 보고한다.
 - React가 export한 스타일시트가 존재하고 선언한 소스 스타일시트와 일치한다.
 - 같은 입력의 반복 빌드는 공개 API를 유지하고 동일한 산출물을 생성한다.
 

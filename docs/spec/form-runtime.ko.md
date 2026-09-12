@@ -38,6 +38,13 @@
 배치합니다. 최초 마운트와 모든 갱신에 같은 순서를 적용하며 입력 요소를 교체하거나
 값을 변경하지 않습니다. 검사기는 결과 HTML을 수정하지 않고 비교합니다.
 
+`@crudui/generator-html` 패키지는 React, Vue, Svelte 없이 같은 평가 인스턴스와
+목록 모델을 HTML 문자열로 렌더링합니다. `renderForm(form)`은 외부 HTML `form`
+요소를 제외한 폼 내용을 반환합니다. 애플리케이션은 이를 호스트에 삽입한 뒤
+`connectForm`을 호출할 수 있습니다. `renderList(spec, rows, options)`는 선언된
+table 또는 card layout을 반환합니다. 이 패키지는 DOM 연결, 검증, 데이터 로드,
+위젯 실행을 수행하지 않습니다.
+
 ## 행 식별자
 
 반복 데이터는 행 식별자를 키로 사용하는 객체입니다. 키는 해당 부모 컬렉션

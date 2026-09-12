@@ -5,6 +5,7 @@
 - [Specification structure](spec/schema.md)
 - [Form runtime](spec/form-runtime.md)
 - [Feature and deployment status](features.md)
+- [Feature contracts](spec/feature-contracts.md)
 - [Form development and verification](operations/forms.md)
 - [Documentation maintenance](operations/documentation.md)
 - [Expression grammar](spec/expressions.md)

@@ -7,6 +7,7 @@ import {
   Form, createForm as createReactSession,
   type AnyWidget, type FormInstance as ReactFormInstance, type ListProps,
 } from '@crudui/generator-react';
+import { renderForm, renderList, type RenderListOptions } from '@crudui/generator-html';
 import {
   validate, type ComposedField, type FileSet, type ParseErrorContext,
   type ParseResult, type ValidateOptions,
@@ -19,6 +20,8 @@ const session: FormInstance = createForm(template, { name: 'Build check' });
 const snapshot: FormSnapshot = session.getSnapshot();
 const reactSession: ReactFormInstance = createReactSession(template, session.getData());
 const view: ReactElement = createElement(Form, { form: reactSession });
+const html: string = renderForm(session);
+const list: string = renderList({ columns: { name: { field: '.name' } } }, [{ name: 'Build check' }], {} satisfies RenderListOptions);
 const options: ValidateOptions = {};
 const result = validate(spec, session.getData(), options);
 const valid: boolean = result.valid;
@@ -26,8 +29,8 @@ const randomKey: string = createRowKey();
 const savedKey: string = sequenceRowKey('42');
 type PublicTypes = [
   ComposedField, FileSet, ParseErrorContext, ParseResult, FormConnection,
-  FieldShape, MultipleSettings, AnyWidget, ListProps,
+  FieldShape, MultipleSettings, AnyWidget, ListProps, RenderListOptions,
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, valid, randomKey, savedKey, publicTypes };
+export { template, session, snapshot, view, html, list, valid, randomKey, savedKey, publicTypes };

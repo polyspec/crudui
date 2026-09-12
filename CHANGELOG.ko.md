@@ -2,6 +2,23 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 프레임워크 독립 HTML 렌더링과 실행 가능한 기능 계약 추가
+
+`@crudui/generator-html`은 프레임워크 의존성 없이 현재 폼·목록 view model을
+HTML fragment로 렌더링합니다. 표·카드 목록, 현재 필드 구조, 위젯 레이아웃,
+escaping 규칙과 원본 표시 콘텐츠를 지원하며 브라우저 이벤트 연결은
+`@crudui/generator-core`가 담당합니다.
+
+`contracts/features.json`은 패키지 export, 기능 계약, fixture, 테스트 파일,
+지원 상태와 검증 명령을 기록합니다. manifest schema와 경로 검사기는 누락된
+연결을 거부합니다. `manifest:test`는 선언된 검증 명령을 실행하며 기능 계약
+페이지는 manifest에서 생성합니다. CI는 폼 검사 전에 manifest 검사와 명령 실행을
+수행합니다.
+
+HTML renderer 패키지 검사 110개가 통과했으며 폼 적합성 87개와 목록 적합성
+20개를 포함합니다. 공개 패키지 export, 선언, 소비자 빌드, API 문서와
+`make docs-check`가 통과했습니다. 패키지는 배포하지 않았습니다.
+
 ## 2026-09-12 — GitHub Pages로 정적 문서 게시
 
 문서 빌드는 `DOCS_BASE_PATH`를 지원하고 영어·한국어·API 문서에 명시적인
