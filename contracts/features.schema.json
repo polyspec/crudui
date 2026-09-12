@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://polyspec.github.io/crudui/contracts/features.schema.json",
+  "title": "CRUDUI feature contract manifest",
+  "type": "object",
+  "required": ["format", "version", "packages", "features", "examples", "fixtures", "supportValues"],
+  "properties": {
+    "format": { "const": "crudui/features-manifest" },
+    "version": { "type": "string" },
+    "supportValues": { "type": "array", "items": { "enum": ["pass", "partial", "unsupported"] }, "minItems": 1, "uniqueItems": true },
+    "packages": { "type": "array", "items": { "$ref": "#/definitions/package" }, "minItems": 1 },
+    "features": { "type": "array", "items": { "$ref": "#/definitions/feature" }, "minItems": 1 },
+    "examples": { "type": "array", "items": { "$ref": "#/definitions/example" } },
+    "fixtures": { "type": "array", "items": { "$ref": "#/definitions/fixture" } }
+  },
+  "definitions": {
+    "package": {
+      "type": "object",
+      "required": ["name", "path", "layer", "exports"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "pattern": "^packages/[^/]+$" },
+        "layer": { "enum": ["model", "renderer", "validation"] },
+        "exports": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    },
+    "feature": {
+      "type": "object",
+      "required": ["id", "owner", "signature", "input", "output", "status", "state", "errors", "fixtures", "tests", "docs", "support", "verification"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*$" },
+        "owner": { "type": "string", "minLength": 1 },
+        "signature": { "type": "string", "minLength": 1 },
+        "input": { "type": "string", "minLength": 1 },
+        "output": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["planned", "partial", "implemented"] },
+        "state": { "type": "string", "minLength": 1 },
+        "errors": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "fixtures": { "type": "array", "items": { "type": "string", "pattern": "^[^/].*" }, "minItems": 1 },
+        "tests": { "type": "array", "items": { "type": "string", "pattern": "^[^/].*" }, "minItems": 1 },
+        "docs": { "type": "array", "items": { "type": "string", "pattern": "^[^/].*" }, "minItems": 1 },
+        "support": { "type": "object", "additionalProperties": { "enum": ["pass", "partial", "unsupported"] }, "minProperties": 1 },
+        "verification": { "type": "array", "items": { "$ref": "#/definitions/verification" } }
+      },
+      "additionalProperties": false
+    },
+    "example": {
+      "type": "object",
+      "required": ["id", "input", "expected"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "input": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "fixture": {
+      "type": "object",
+      "required": ["path", "kind"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^[^/].*" },
+        "kind": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": ["id", "command"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "command": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

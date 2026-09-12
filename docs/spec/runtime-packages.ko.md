@@ -33,6 +33,7 @@ PHP 구현을 자동 로드합니다. [PHP API 계약](php-extension.ko.md)은 �
 | --- | --- | --- |
 | `packages/generator-core` | JavaScript 템플릿, 인스턴스, 계산된 모델 | JavaScript 조합과 표현식 모듈 |
 | `packages/generator-react`, `generator-vue`, `generator-svelte` | 프레임워크 통합, 브라우저 동작, 렌더링 | 공용 JavaScript 생성기 |
+| `packages/generator-html` | 프레임워크에 독립적인 JavaScript 폼·목록 HTML 렌더링 | 공용 JavaScript 생성기 |
 | `packages/generator-php` | PHP 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | PHP 조합과 표현식 모듈 |
 | `packages/generator-go` | Go 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | Go 조합과 표현식 모듈 |
 | `packages/generator-rust` | Rust 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | Rust 조합과 표현식 모듈 |

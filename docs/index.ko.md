@@ -5,6 +5,7 @@
 - [명세 구조](spec/schema.ko.md)
 - [폼 런타임](spec/form-runtime.ko.md)
 - [기능과 배포 상태](features.ko.md)
+- [기능 계약](spec/feature-contracts.ko.md)
 - [폼 개발과 검증](operations/forms.ko.md)
 - [문서 관리](operations/documentation.ko.md)
 - [표현식 문법](spec/expressions.ko.md)

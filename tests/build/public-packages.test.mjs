@@ -9,7 +9,7 @@ import ts from 'typescript';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
-const packages = ['validator-ts', 'generator-core', 'generator-react'].map((folder) => {
+const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react'].map((folder) => {
   const directory = resolve(root, 'packages', folder);
   const manifest = JSON.parse(readFileSync(resolve(directory, 'package.json'), 'utf8'));
   return { directory, manifest };
@@ -63,13 +63,15 @@ for (const mode of ['import', 'require']) {
       assert.equal(realpathSync(resolved), path);
       modules.push(mode === 'import' ? await import(pkg.manifest.name) : require(pkg.manifest.name));
     }
-    const [validator, core, generator] = modules;
+    const [validator, core, htmlGenerator, generator] = modules;
     for (const name of ['compileForm', 'createForm', 'createRowKey', 'sequenceRowKey']) {
       assert.equal(typeof core[name], 'function', `core.${name}`);
       assert.equal(typeof generator[name], 'function', `react.${name}`);
     }
     assert.equal(typeof validator.validate, 'function');
     assert.equal(typeof generator.Form, 'function');
+    assert.equal(typeof htmlGenerator.renderForm, 'function');
+    assert.equal(typeof htmlGenerator.renderList, 'function');
     const spec = { type: 'group', properties: { name: { type: 'text' } } };
     const template = core.compileForm(spec);
     const session = generator.createForm(template, { name: 'Build check' });
@@ -81,8 +83,9 @@ for (const mode of ['import', 'require']) {
     assert.ok(Array.isArray(result.errors));
     const React = require('react');
     const { renderToString } = require('react-dom/server');
-    const html = renderToString(React.createElement(generator.Form, { form: session }));
-    assert.match(html, /<input\b/);
+    const reactHtml = renderToString(React.createElement(generator.Form, { form: session }));
+    assert.match(reactHtml, /<input\b/);
+    assert.match(htmlGenerator.renderForm(session), /<input\b/);
   });
 }
 
@@ -127,7 +130,7 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
 });
 
 test('React exposes its complete stylesheet through the public styles.css export', () => {
-  const pkg = packages[2];
+  const pkg = packages.find(({ manifest }) => manifest.name === '@crudui/generator-react');
   const path = output(pkg, pkg.manifest.exports['./styles.css']);
   assert.equal(realpathSync(require.resolve(`${pkg.manifest.name}/styles.css`)), path);
   assert.equal(realpathSync(fileURLToPath(import.meta.resolve(`${pkg.manifest.name}/styles.css`))), path);

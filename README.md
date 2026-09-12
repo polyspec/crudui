@@ -4,7 +4,8 @@
 
 CRUDUI defines forms and validation in YAML or JavaScript objects. A shared
 core compiles form structure before data is available. React, Vue and Svelte
-render editable instances. PHP, Go and Rust provide form and list rendering and
+render editable instances. The framework-independent HTML renderer provides
+form and list HTML without a UI framework. PHP, Go and Rust provide form and list rendering and
 validation in their own processes. A PHP extension provides the same public PHP
 classes using native generation and validation.
 

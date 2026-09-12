@@ -26,7 +26,7 @@ function run(command, args, cwd = ROOT) {
 
 if (want('ts')) {
   check('ts:build', () => run('npm', ['run', 'build']));
-  if (results.at(-1).passed) for (const pkg of ['generator-core', 'validator-ts', 'generator-react', 'generator-vue', 'generator-svelte']) {
+  if (results.at(-1).passed) for (const pkg of ['generator-core', 'validator-ts', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte']) {
     const svelte = pkg === 'generator-svelte';
     check(`ts:${pkg}`, () => run(join(ROOT, 'node_modules/.bin/typedoc'), [
       '--options', join(ROOT, 'scripts/typedoc.check.json'),
