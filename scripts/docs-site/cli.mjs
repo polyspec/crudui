@@ -1,56 +1,25 @@
 #!/usr/bin/env node
-import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { createServer } from 'node:http';
-import { dirname, extname, join, normalize, relative, resolve, sep } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildDocumentationSite } from './build.mjs';
+import { documentationBasePath } from './paths.mjs';
+import { createDocumentationServer } from './server.mjs';
 import { watchDocumentation } from './watch.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DOCS = join(ROOT, 'docs');
 const OUTPUT = join(DOCS, '.site', 'dist');
-const MIME = new Map([
-  ['.css', 'text/css; charset=utf-8'], ['.html', 'text/html; charset=utf-8'],
-  ['.js', 'text/javascript; charset=utf-8'], ['.json', 'application/json; charset=utf-8'],
-  ['.svg', 'image/svg+xml'], ['.txt', 'text/plain; charset=utf-8'], ['.woff2', 'font/woff2'],
-]);
+const BASE_PATH = documentationBasePath(process.env.DOCS_BASE_PATH);
 
 async function build() {
-  const report = await buildDocumentationSite({ repositoryRoot: ROOT, docsDirectory: DOCS, outputDirectory: OUTPUT });
+  const report = await buildDocumentationSite({ repositoryRoot: ROOT, docsDirectory: DOCS, outputDirectory: OUTPUT, basePath: BASE_PATH });
   process.stdout.write(`[docs-site] ${report.documents} documents, ${report.pages} pages, ${report.assets} assets\n`);
 }
 
 function argument(name, defaultValue) {
   const index = process.argv.indexOf(name);
   return index === -1 ? defaultValue : process.argv[index + 1];
-}
-
-function safePath(pathname) {
-  const decoded = decodeURIComponent(pathname).replaceAll('\\', '/');
-  const path = normalize(decoded).replace(/^([/\\])+/, '');
-  if (path === '..' || path.startsWith(`..${sep}`)) return undefined;
-  return path;
-}
-
-async function responseFile(pathname) {
-  const path = safePath(pathname);
-  if (path === undefined) return undefined;
-  const candidates = path === '' ? ['index.html']
-    : extname(path) ? [path]
-      : pathname.endsWith('/') ? [join(path, 'index.html')] : [`${path}.html`, join(path, 'index.html')];
-  for (const candidate of candidates) {
-    const filename = resolve(OUTPUT, candidate);
-    const local = relative(OUTPUT, filename);
-    if (local === '..' || local.startsWith(`..${sep}`)) continue;
-    try {
-      if ((await stat(filename)).isFile()) return filename;
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-  }
-  return undefined;
 }
 
 async function serve(development) {
@@ -90,22 +59,7 @@ async function serve(development) {
       process.stderr.write(`[docs-site] rebuild failed: ${error.stack ?? error.message}\n`);
     };
   }
-  const server = createServer(async (request, response) => {
-    try {
-      const pathname = new URL(request.url, `http://${request.headers.host ?? host}`).pathname;
-      const filename = await responseFile(pathname) ?? join(OUTPUT, '404.html');
-      const missing = filename.endsWith('404.html');
-      response.writeHead(missing ? 404 : 200, {
-        'content-type': MIME.get(extname(filename)) ?? 'application/octet-stream',
-        'cache-control': 'no-store',
-      });
-      if (request.method === 'HEAD') response.end();
-      else createReadStream(filename).pipe(response);
-    } catch (error) {
-      response.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
-      response.end(`Documentation server error: ${error.message}\n`);
-    }
-  });
+  const server = createDocumentationServer({ outputDirectory: OUTPUT, basePath: BASE_PATH });
   try {
     await new Promise((accept, reject) => {
       server.once('error', reject);
@@ -115,7 +69,7 @@ async function serve(development) {
     sourceWatcher?.close();
     throw error;
   }
-  process.stdout.write(`[docs-site] http://${host}:${port}/\n`);
+  process.stdout.write(`[docs-site] http://${host}:${port}${BASE_PATH}\n`);
   let stopping = false;
   const stop = (status = 0) => {
     if (stopping) return;
