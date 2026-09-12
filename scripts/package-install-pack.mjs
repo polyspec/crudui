@@ -24,7 +24,13 @@ export function packPackage(source, destination, packageName, run) {
   } catch {
     assert.fail('npm pack returned invalid JSON');
   }
-  const results = Array.isArray(report) ? report : [report];
+  const results = Array.isArray(report)
+    ? report
+    : report && typeof report === 'object' && report.filename
+      ? [report]
+      : report && typeof report === 'object'
+        ? Object.values(report)
+        : [];
   assert.equal(results.length, 1,
     `npm pack must produce one archive; received ${results.length}`);
   const [result] = results;
