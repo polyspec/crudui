@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 
 /** Pack one workspace package from its own directory and return the archive path. */
@@ -8,6 +9,11 @@ export function packPackage(source, destination, packageName, run) {
     `Package destination must be absolute: ${destination}`);
   assert.equal(typeof packageName, 'string', 'Package name is required');
   assert.equal(typeof run, 'function', 'Package command runner is required');
+  const sourceManifest = JSON.parse(
+    fs.readFileSync(path.join(source, 'package.json'), 'utf8'),
+  );
+  assert.equal(sourceManifest.name, packageName,
+    'Package source name must match the expected package name');
 
   const output = run('npm', [
     'pack', '.', '--json', '--pack-destination', destination, '--workspaces=false',
@@ -22,7 +28,9 @@ export function packPackage(source, destination, packageName, run) {
   assert.equal(results.length, 1,
     `npm pack must produce one archive; received ${results.length}`);
   const [result] = results;
-  assert.equal(result?.name, packageName, 'npm pack report name must match the package name');
+  if (result?.name !== undefined) {
+    assert.equal(result.name, packageName, 'npm pack report name must match the package name');
+  }
   const filename = result?.filename;
   assert.equal(typeof filename, 'string', 'npm pack report must include the archive filename');
   assert.equal(path.basename(filename), filename,
