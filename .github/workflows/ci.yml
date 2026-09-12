@@ -429,6 +429,9 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - run: npm i -g npm@latest && npm ci --strict-allow-scripts
+      - run: npm run manifest:check
+      - run: npm run manifest:docs:check
+      - run: npm run manifest:test
       - run: npm run test:forms
 
   form-comparison:

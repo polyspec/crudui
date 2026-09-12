@@ -1,0 +1,412 @@
+{
+  "format": "crudui/features-manifest",
+  "version": "0.0.1",
+  "packages": [
+    {
+      "name": "@crudui/generator-core",
+      "path": "packages/generator-core",
+      "layer": "model",
+      "exports": [
+        "compileForm",
+        "bindForm",
+        "FormInstance",
+        "createForm",
+        "connectForm",
+        "buildList"
+      ]
+    },
+    {
+      "name": "@crudui/generator-html",
+      "path": "packages/generator-html",
+      "layer": "renderer",
+      "exports": [
+        "renderForm",
+        "renderList"
+      ]
+    },
+    {
+      "name": "@crudui/generator-react",
+      "path": "packages/generator-react",
+      "layer": "renderer",
+      "exports": [
+        "Form",
+        "renderForm",
+        "renderList"
+      ]
+    },
+    {
+      "name": "@crudui/generator-vue",
+      "path": "packages/generator-vue",
+      "layer": "renderer",
+      "exports": [
+        "Form",
+        "renderForm",
+        "renderList"
+      ]
+    },
+    {
+      "name": "@crudui/generator-svelte",
+      "path": "packages/generator-svelte",
+      "layer": "renderer",
+      "exports": [
+        "Form",
+        "renderForm",
+        "renderList"
+      ]
+    },
+    {
+      "name": "@crudui/validator",
+      "path": "packages/validator-ts",
+      "layer": "validation",
+      "exports": [
+        "validate",
+        "validateList"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "id": "form-instance",
+      "input": "packages/generator-html/README.md",
+      "expected": "tests/fixtures/form-render/cases.json"
+    },
+    {
+      "id": "list-render",
+      "input": "tests/fixtures/list-render/cases.json",
+      "expected": "tests/fixtures/list-render/cases.json"
+    },
+    {
+      "id": "validation",
+      "input": "tests/fixtures/validate/cases.json",
+      "expected": "tests/fixtures/validate/cases.json"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/fixtures/compose/cases.json",
+      "kind": "composition"
+    },
+    {
+      "path": "tests/fixtures/expr/cases.json",
+      "kind": "expression"
+    },
+    {
+      "path": "tests/fixtures/validate/cases.json",
+      "kind": "validation"
+    },
+    {
+      "path": "tests/fixtures/form-render/cases.json",
+      "kind": "form-html"
+    },
+    {
+      "path": "tests/fixtures/list-render/cases.json",
+      "kind": "list-html"
+    },
+    {
+      "path": "tests/fixtures/form-session/scenario.mjs",
+      "kind": "browser-session"
+    }
+  ],
+  "supportValues": [
+    "pass",
+    "partial",
+    "unsupported"
+  ],
+  "features": [
+    {
+      "id": "compileForm",
+      "owner": "@crudui/generator-core",
+      "signature": "compileForm(spec, options?) -> FormTemplate",
+      "input": "group form specification",
+      "output": "immutable data-independent form template",
+      "errors": [
+        "TypeError",
+        "ComposeLoadError"
+      ],
+      "fixtures": [
+        "tests/fixtures/compose/cases.json",
+        "tests/fixtures/form-render/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/form.test.ts",
+        "packages/generator-react/src/__tests__/form-render.conformance.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/operations/forms.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/form.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/form-render.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "bindForm",
+      "owner": "@crudui/generator-core",
+      "signature": "bindForm(template, data, options?) -> FieldViewModel[]",
+      "input": "compiled template and record data",
+      "output": "evaluated field view models",
+      "errors": [
+        "TypeError",
+        "UnsupportedFieldTypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-render/cases.json",
+        "tests/fixtures/form-session/controls.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/form.test.ts",
+        "packages/generator-react/src/__tests__/form-render.conformance.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/operations/forms.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/form.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/form-render.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "createForm",
+      "owner": "@crudui/generator-core",
+      "signature": "createForm(template, data?, options?) -> FormInstance",
+      "input": "compiled template and keyed record data",
+      "output": "independent editable form instance",
+      "errors": [
+        "TypeError",
+        "FormError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs",
+        "tests/fixtures/form-session/initialization.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "instance only",
+      "tests": [
+        "packages/generator-core/src/form.test.ts",
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/operations/forms.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/form.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "node --test tests/fixtures/form-session/scenario.mjs"
+        }
+      ]
+    },
+    {
+      "id": "renderForm",
+      "owner": "@crudui/generator-html",
+      "signature": "renderForm(form) -> string",
+      "input": "editable form instance",
+      "output": "HTML fragment without outer form element",
+      "errors": [
+        "UnsupportedFieldTypeError",
+        "ComposeLoadError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-render/cases.json",
+        "tests/form-inspector/form-snapshot.test.mjs"
+      ],
+      "support": {
+        "javascript-html": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-html/src/conformance.test.ts",
+        "packages/generator-react/src/__tests__/form-render.conformance.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/operations/forms.md",
+        "packages/generator-html/README.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-html -- --run src/conformance.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/form-render.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "renderList",
+      "owner": "@crudui/generator-html",
+      "signature": "renderList(spec, rows, options?) -> string",
+      "input": "list specification and supplied rows",
+      "output": "table or card HTML fragment",
+      "errors": [
+        "ComposeLoadError"
+      ],
+      "fixtures": [
+        "tests/fixtures/list-render/cases.json"
+      ],
+      "support": {
+        "javascript-html": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-html/src/list-conformance.test.ts",
+        "packages/generator-react/src/__tests__/list-render.conformance.test.ts"
+      ],
+      "docs": [
+        "docs/spec/schema.md",
+        "docs/spec/form-runtime.md",
+        "packages/generator-html/README.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-html -- --run src/list-conformance.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/list-render.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "connectForm",
+      "owner": "@crudui/generator-core",
+      "signature": "connectForm(element, form) -> FormConnection",
+      "input": "HTML host containing renderer output and form instance",
+      "output": "event connection with disconnect and sync",
+      "errors": [
+        "TypeError",
+        "FormError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs",
+        "tests/fixtures/form-session/controls.mjs"
+      ],
+      "support": {
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass"
+      },
+      "status": "implemented",
+      "state": "form instance and host controls through owned events",
+      "tests": [
+        "packages/generator-core/src/widget-controls.test.ts",
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/operations/forms.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/widget-controls.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "node --test tests/fixtures/form-session/scenario.mjs"
+        }
+      ]
+    },
+    {
+      "id": "validate",
+      "owner": "@crudui/validator",
+      "signature": "validate(spec, data, options?) -> ValidationResult",
+      "input": "specification and submitted keyed data",
+      "output": "valid flag and complete error entries",
+      "errors": [
+        "ComposeLoadError",
+        "SchemaError"
+      ],
+      "fixtures": [
+        "tests/fixtures/validate/cases.json",
+        "tests/fixtures/expr/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/validator-ts/src/validate.conformance.test.ts",
+        "tests/fixtures/validate/cases.json"
+      ],
+      "docs": [
+        "docs/spec/validation-rules.md",
+        "docs/operations/validation.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/validator -- --run src/validate.conformance.test.ts"
+        }
+      ]
+    }
+  ]
+}

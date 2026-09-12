@@ -1,0 +1,17 @@
+# Feature contracts
+
+[한국어](feature-contracts.ko.md).
+
+This page is generated from [contracts/features.json](../../contracts/features.json). Each feature connects its input, output, state, errors, support status, fixtures, executable tests and documentation. `planned` and `partial` are incomplete states.
+
+| Feature | Status | Owner package | Support status | Verification |
+| --- | --- | --- | --- | --- |
+| `compileForm` | implemented | `@crudui/generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass | 2 command(s) |
+| `bindForm` | implemented | `@crudui/generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass | 2 command(s) |
+| `createForm` | implemented | `@crudui/generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass | 2 command(s) |
+| `renderForm` | implemented | `@crudui/generator-html` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass | 2 command(s) |
+| `renderList` | implemented | `@crudui/generator-html` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass | 2 command(s) |
+| `connectForm` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 2 command(s) |
+| `validate` | implemented | `@crudui/validator` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass | 1 command(s) |
+
+Run `npm run manifest:check` to validate structure and links. Run `npm run manifest:test` to execute the declared test commands.

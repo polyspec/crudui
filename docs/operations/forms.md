@@ -57,6 +57,19 @@ also accept the `form` prop. Framework packages export the same core functions.
 Each framework exports `renderForm(form)` for SSR; Vue returns a promise.
 Compile `$ref` files before rendering.
 
+For framework-independent HTML, use the peer renderer package:
+
+```ts
+import { renderForm, renderList } from '@crudui/generator-html';
+
+host.innerHTML = renderForm(form);
+const connection = connectForm(host, form);
+const listHtml = renderList(listSpec, rows, { layout: 'table' });
+```
+
+The HTML renderer returns fragments and does not create the outer `form` element,
+bind browser events, validate data or load records.
+
 Validate `submission` with `Validator` from `@crudui/validator` and the original
 spec. The server assigns saved sequences; apply each returned key to its specific
 collection path. Never replace a token across the entire data object.

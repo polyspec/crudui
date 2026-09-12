@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const packages = ['validator-ts', 'generator-core', 'generator-react', 'generator-vue', 'generator-svelte'];
+const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
 
 function outputs() {
   const files = [];

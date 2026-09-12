@@ -57,6 +57,19 @@ const submission = form.getData();
 각 프레임워크는 SSR용 `renderForm(form)`을 export하며 Vue는 Promise를 반환합니다.
 `$ref` 파일은 렌더링 전에 컴파일합니다.
 
+프레임워크에 독립적인 HTML은 동등한 renderer 패키지를 사용합니다.
+
+```ts
+import { renderForm, renderList } from '@crudui/generator-html';
+
+host.innerHTML = renderForm(form);
+const connection = connectForm(host, form);
+const listHtml = renderList(listSpec, rows, { layout: 'table' });
+```
+
+HTML renderer는 fragment를 반환하며 외부 `form` 요소를 만들거나 브라우저 이벤트를
+연결하거나 데이터를 검증하거나 레코드를 로드하지 않습니다.
+
 `@crudui/validator`의 `Validator`와 원본 명세로 `submission`을 검증합니다.
 서버가 저장된 seq를 생성하면 해당 컬렉션 경로의 키를 변경합니다.
 데이터 객체 전체에서 토큰을 치환하지 않습니다.
