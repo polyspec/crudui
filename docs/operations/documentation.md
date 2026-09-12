@@ -12,9 +12,9 @@
 | `docs/plans/` | Proposals awaiting approval; remove after incorporation into the specification. |
 | `AGENTS.md` | Development procedures and required checks. |
 
-
-translation uses `.ko.md`. Update both in the same change and compare their
-meaning. Store personal preferences and conversation context outside Git.
+Each subject has an English document and a corresponding `.ko.md` translation.
+Update both in the same change and compare their meaning. Store personal
+preferences and conversation context outside Git.
 
 Site navigation uses English and includes a Korean document index. API navigation
 includes the validator, shared generator core and all three framework packages,

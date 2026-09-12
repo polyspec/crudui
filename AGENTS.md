@@ -1,8 +1,7 @@
 # Development
 
 - Update the authoritative specification before changing behavior or direction.
-
-  with the same information.
+- Update the corresponding `.ko.md` files with the same information.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, and actual changes in
   `CHANGELOG.md`.
