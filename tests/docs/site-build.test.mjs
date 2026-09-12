@@ -81,6 +81,8 @@ test('documentation build preserves page routes, titles, links and public files'
   assert.match(index, /<h1 id="home">Home<\/h1>/);
   assert.match(index, /href="\/guide\/start\.html#install"/);
   assert.match(index, /src="\/assets\/fixture\.txt"/);
+  const sidebar = index.match(/<aside class="sidebar"[\s\S]*?<\/aside>/)?.[0] ?? '';
+  assert.doesNotMatch(sidebar, /README\.ko|Korean/);
   assert.match(guide, /<html lang="en-US">/);
   assert.match(guide, /<title>Guide &amp; usage \| CRUDUI<\/title>/);
   assert.match(guide, /<h1 id="guide-usage">Guide &amp; usage<\/h1>/);

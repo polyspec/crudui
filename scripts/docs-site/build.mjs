@@ -206,8 +206,15 @@ async function walk(directory, predicate = () => true) {
 }
 
 function navigation(pages, current, basePath) {
+  const korean = current.sourceFile.endsWith('.ko.md');
+  const visiblePages = pages.filter(page => {
+    const path = posix(relative(page.docsDirectory, page.sourceFile));
+    if (path === 'README.md' || path === 'README.ko.md') return false;
+    if (path.startsWith('api/')) return true;
+    return page.sourceFile.endsWith(korean ? '.ko.md' : '.md');
+  });
   const groups = new Map();
-  for (const page of pages) {
+  for (const page of visiblePages) {
     const path = posix(relative(page.docsDirectory, page.sourceFile));
     const top = path.includes('/') ? path.split('/')[0] : 'Documentation';
     const label = top === 'api' ? 'API reference'
