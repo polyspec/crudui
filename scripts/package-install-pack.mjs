@@ -18,10 +18,10 @@ export function packPackage(source, destination, packageName, run) {
   } catch {
     assert.fail('npm pack returned invalid JSON');
   }
-  assert.ok(Array.isArray(report), 'npm pack report must be an array');
-  assert.equal(report.length, 1,
-    `npm pack must produce one archive; received ${report.length}`);
-  const [result] = report;
+  const results = Array.isArray(report) ? report : [report];
+  assert.equal(results.length, 1,
+    `npm pack must produce one archive; received ${results.length}`);
+  const [result] = results;
   assert.equal(result?.name, packageName, 'npm pack report name must match the package name');
   const filename = result?.filename;
   assert.equal(typeof filename, 'string', 'npm pack report must include the archive filename');
