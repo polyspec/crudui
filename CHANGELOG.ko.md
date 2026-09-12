@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-12 — GitHub Pages로 정적 문서 게시
+
+문서 빌드는 `DOCS_BASE_PATH`를 지원하고 영어·한국어·API 문서에 명시적인
+정적 HTML 링크를 생성합니다. 개발·미리보기·404 페이지는 같은 URL 접두
+경로를 사용합니다. CI는 문서를 검사한 뒤 `main`에서 생성한 사이트를
+`https://polyspec.github.io/crudui/`에 배포합니다.
+
+`DOCS_BASE_PATH=/crudui/`에서 `make docs-check`와
+`make docs-verify-idempotent`가 통과했습니다. 데스크톱·모바일 화면, 한국어
+탐색, 스타일시트와 중첩 경로의 404 페이지 브라우저 검사도 통과했습니다.
+
 ## 2026-09-11 — 비교 배포 명령 이름 명확화
 
 로컬 비교 배포 진입점 이름을

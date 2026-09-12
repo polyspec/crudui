@@ -76,6 +76,24 @@ and `docs/plans/`. Older reference documents outside those directories are not
 included in translation coverage. The check compares code examples and status
 fields between translations; prose equivalence requires review.
 
+## GitHub Pages
+
+The documentation URL is `https://polyspec.github.io/crudui/`. The repository's
+Pages publishing source is **GitHub Actions**. [CI](../../.github/workflows/ci.yml)
+runs `make docs-check` with `DOCS_BASE_PATH=/crudui/`, uploads `docs/.site/dist`,
+and deploys it to the `github-pages` environment. A `main` push or manual CI run
+on `main` publishes the site; pull requests only run checks.
+
+Preview the published path from the repository root:
+
+```sh
+DOCS_BASE_PATH=/crudui/ npm run docs:preview
+```
+
+Open `http://127.0.0.1:4173/crudui/`. Confirm the GitHub deployment result and
+the public index, a Korean page, an API entry and the stylesheet before updating
+[deployment status](../features.md).
+
 ## Repository writing
 
 Maintained documentation, comments, change records and user-visible text describe

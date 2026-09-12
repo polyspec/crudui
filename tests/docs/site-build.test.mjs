@@ -5,6 +5,7 @@ import { join, relative } from 'node:path';
 import test from 'node:test';
 
 import { buildDocumentationSite } from '../../scripts/docs-site/build.mjs';
+import { createDocumentationServer } from '../../scripts/docs-site/server.mjs';
 
 async function files(directory) {
   const result = [];
@@ -78,7 +79,7 @@ test('documentation build preserves page routes, titles, links and public files'
   const guide = await readFile(join(outputDirectory, 'guide', 'start.html'), 'utf8');
   assert.match(index, /<title>Home \| CRUDUI<\/title>/);
   assert.match(index, /<h1 id="home">Home<\/h1>/);
-  assert.match(index, /href="\/guide\/start#install"/);
+  assert.match(index, /href="\/guide\/start\.html#install"/);
   assert.match(index, /src="\/assets\/fixture\.txt"/);
   assert.match(guide, /<html lang="en-US">/);
   assert.match(guide, /<title>Guide &amp; usage \| CRUDUI<\/title>/);
@@ -172,4 +173,69 @@ test('documentation builds are deterministic', async t => {
   await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory: first });
   await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory: second });
   assert.deepEqual(await contents(first), await contents(second));
+});
+
+for (const basePath of ['/', '/crudui/']) {
+  test(`documentation serves static links and error pages under ${basePath}`, async t => {
+    const repositoryRoot = await mkdtemp(join(tmpdir(), 'crudui-doc-prefix-'));
+    t.after(() => rm(repositoryRoot, { recursive: true, force: true }));
+    const docsDirectory = join(repositoryRoot, 'docs');
+    const outputDirectory = join(repositoryRoot, 'output');
+    await mkdir(join(docsDirectory, 'guide'), { recursive: true });
+    await mkdir(join(docsDirectory, 'public', 'api'), { recursive: true });
+    await writeFile(join(docsDirectory, 'index.md'), '# Home\n\n[한국어](index.ko.md)\n');
+    await writeFile(join(docsDirectory, 'index.ko.md'), '# 한국어 문서\n\n[Guide](guide/start.md)\n');
+    await writeFile(join(docsDirectory, 'guide', 'start.md'), [
+      '# Guide', '', '## Install', '',
+      '[Home](../index.md)',
+      '[Korean](/index.ko?lang=ko)',
+      '[Install](/guide/start.html?example=1#install)',
+      '[Native API](../public/api/index.html)',
+      '![Icon](/icon.svg?version=1)',
+    ].join('\n'));
+    await writeFile(join(docsDirectory, 'public', 'icon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+    await writeFile(join(docsDirectory, 'public', 'api', 'index.html'), '<h1>Native API</h1>');
+    await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory, basePath });
+    const guide = await readFile(join(outputDirectory, 'guide', 'start.html'), 'utf8');
+    for (const url of [basePath, `${basePath}index.ko.html?lang=ko`, `${basePath}guide/start.html?example=1#install`, `${basePath}api/index.html`, `${basePath}assets/site.css`]) {
+      assert.ok(guide.includes(`href="${url}"`), url);
+    }
+    assert.ok(guide.includes(`src="${basePath}icon.svg?version=1"`));
+    const server = createDocumentationServer({ outputDirectory, basePath });
+    await new Promise((accept, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', accept);
+    });
+    t.after(() => new Promise((accept, reject) => server.close(error => error ? reject(error) : accept())));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    for (const route of ['', 'index.ko.html', 'guide/start.html', 'api/index.html', 'icon.svg', 'assets/site.css']) {
+      const response = await fetch(origin + basePath + route);
+      assert.equal(response.status, 200, route);
+      assert.ok((await response.text()).length > 0, route);
+    }
+    const missing = await fetch(origin + basePath + 'missing/nested/page');
+    assert.equal(missing.status, 404);
+    const html = await missing.text();
+    assert.ok(html.includes(`href="${basePath}"`));
+    assert.ok(html.includes(`href="${basePath}assets/site.css"`));
+    if (basePath !== '/') {
+      const outside = await fetch(origin + '/index.html');
+      assert.equal(outside.status, 404);
+      await outside.text();
+    }
+  });
+}
+
+test('documentation rejects malformed base paths before writing output', async t => {
+  const repositoryRoot = await mkdtemp(join(tmpdir(), 'crudui-doc-base-'));
+  t.after(() => rm(repositoryRoot, { recursive: true, force: true }));
+  const docsDirectory = join(repositoryRoot, 'docs');
+  await mkdir(docsDirectory);
+  await writeFile(join(docsDirectory, 'index.md'), '# Home');
+  for (const basePath of ['', null, 'crudui/', '/crudui', '//host/', '/../', '/crudui/?query=1', '/a\\b/', '/a%20b/']) {
+    await assert.rejects(buildDocumentationSite({
+      repositoryRoot, docsDirectory, outputDirectory: join(repositoryRoot, 'output'), basePath,
+    }), /DOCS_BASE_PATH/);
+  }
+  assert.deepEqual(await readdir(repositoryRoot), ['docs']);
 });

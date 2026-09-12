@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import MarkdownIt from 'markdown-it';
 
 import { repositoryLink } from '../documentation-links.mjs';
+import { documentationBasePath, documentationUrl } from './paths.mjs';
 
 const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 const SITE_CSS = join(SOURCE_DIRECTORY, 'site.css');
@@ -69,6 +70,10 @@ function outputPath(sourceFile, docsDirectory) {
   return posix(relative(docsDirectory, sourceFile)).replace(/\.md$/, '.html');
 }
 
+function pageUrl(page, basePath) {
+  return documentationUrl(page.output.replace(/(^|\/)index\.html$/, '$1'), basePath);
+}
+
 function splitHref(href) {
   const hashAt = href.indexOf('#');
   const beforeHash = hashAt === -1 ? href : href.slice(0, hashAt);
@@ -118,13 +123,13 @@ function resolveSiteLink(href, page, site) {
     const targetPage = pageForRoute(pathname, site.pagesByRoute);
     if (targetPage) {
       validateFragment(targetPage, fragment, page.sourceFile);
-      return `${targetPage.route}${suffix(query, fragment)}`;
+      return `${pageUrl(targetPage, site.basePath)}${suffix(query, fragment)}`;
     }
     const staticPath = decodeURIComponent(pathname).replace(/^\/+/, '');
     if (!site.publicFiles.has(staticPath) && staticPath !== 'assets/site.css') {
       throw new Error(`Missing documentation target in ${page.sourceFile}: ${href}`);
     }
-    return href;
+    return documentationUrl(pathname, site.basePath) + suffix(query, fragment);
   }
 
   const decodedPath = decodeURIComponent(pathname);
@@ -138,7 +143,7 @@ function resolveSiteLink(href, page, site) {
     if (!site.publicFiles.has(staticPath)) {
       throw new Error(`Missing documentation target in ${page.sourceFile}: ${href}`);
     }
-    return `/${staticPath}${suffix(query, fragment)}`;
+    return documentationUrl(staticPath, site.basePath) + suffix(query, fragment);
   }
 
   let targetPage = site.pagesBySource.get(target);
@@ -148,7 +153,7 @@ function resolveSiteLink(href, page, site) {
     throw new Error(`Missing documentation target in ${page.sourceFile}: ${href}`);
   }
   validateFragment(targetPage, fragment, page.sourceFile);
-  return `${targetPage.route}${suffix(query, fragment)}`;
+  return `${pageUrl(targetPage, site.basePath)}${suffix(query, fragment)}`;
 }
 
 function markdownRenderer() {
@@ -200,7 +205,7 @@ async function walk(directory, predicate = () => true) {
   return result;
 }
 
-function navigation(pages, current) {
+function navigation(pages, current, basePath) {
   const groups = new Map();
   for (const page of pages) {
     const path = posix(relative(page.docsDirectory, page.sourceFile));
@@ -214,7 +219,7 @@ function navigation(pages, current) {
   return [...groups.entries()].map(([label, entries]) => {
     const links = entries.map(page => {
       const active = page.route === current.route ? ' aria-current="page"' : '';
-      return `<li><a href="${escapeHtml(page.route)}"${active}>${escapeHtml(page.title)}</a></li>`;
+      return `<li><a href="${escapeHtml(pageUrl(page, basePath))}"${active}>${escapeHtml(page.title)}</a></li>`;
     }).join('');
     const open = label !== 'API reference' || current.route.startsWith('/api/') ? ' open' : '';
     return `<details${open}><summary>${escapeHtml(label)}</summary><ul>${links}</ul></details>`;
@@ -228,7 +233,7 @@ function outline(page) {
     `<li class="level-${heading.level}"><a href="#${escapeHtml(heading.id)}">${escapeHtml(heading.text)}</a></li>`).join('')}</ul></nav>`;
 }
 
-function documentHtml(page, body, pages) {
+function documentHtml(page, body, pages, basePath) {
   const language = page.sourceFile.endsWith('.ko.md') ? 'ko-KR' : 'en-US';
   const description = language === 'ko-KR'
     ? 'YAML 폼 명세, 다중 언어 검증과 React, Vue, Svelte 렌더링'
@@ -240,16 +245,16 @@ function documentHtml(page, body, pages) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="${escapeHtml(description)}">
   <title>${escapeHtml(page.title)} | CRUDUI</title>
-  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="${basePath}assets/site.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
-    <a class="brand" href="/">CRUDUI</a>
-    <nav aria-label="Primary"><a href="/README">Guide</a><a href="/README.ko">한국어</a><a href="/spec/schema">Specification</a><a href="/spec/validation-rules">Validation</a><a href="/api/">API</a><a href="https://github.com/polyspec/crudui">GitHub</a></nav>
+    <a class="brand" href="${basePath}">CRUDUI</a>
+    <nav aria-label="Primary"><a href="${basePath}README.html">Guide</a><a href="${basePath}README.ko.html">한국어</a><a href="${basePath}spec/schema.html">Specification</a><a href="${basePath}spec/validation-rules.html">Validation</a><a href="${basePath}api/">API</a><a href="https://github.com/polyspec/crudui">GitHub</a></nav>
   </header>
   <div class="site-layout">
-    <aside class="sidebar" aria-label="Documentation">${navigation(pages, page)}</aside>
+    <aside class="sidebar" aria-label="Documentation">${navigation(pages, page, basePath)}</aside>
     <main id="main"><article>${body}</article></main>
     ${outline(page)}
   </div>
@@ -259,11 +264,11 @@ function documentHtml(page, body, pages) {
 `;
 }
 
-function notFoundHtml() {
+function notFoundHtml(basePath) {
   return `<!doctype html>
 <html lang="en-US">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>404 | CRUDUI</title><link rel="stylesheet" href="/assets/site.css"></head>
-<body><main class="not-found"><p class="error-code">404</p><p>Page not found</p><p><a href="/">Open the documentation index</a></p></main></body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>404 | CRUDUI</title><link rel="stylesheet" href="${basePath}assets/site.css"></head>
+<body><main class="not-found"><p class="error-code">404</p><p>Page not found</p><p><a href="${basePath}">Open the documentation index</a></p></main></body>
 </html>
 `;
 }
@@ -273,7 +278,8 @@ async function writeOutput(filename, content) {
   await writeFile(filename, content);
 }
 
-export async function buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory }) {
+export async function buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory, basePath: baseInput }) {
+  const basePath = documentationBasePath(baseInput);
   const root = resolve(repositoryRoot);
   const docs = resolve(docsDirectory);
   const output = resolve(outputDirectory);
@@ -322,7 +328,7 @@ export async function buildDocumentationSite({ repositoryRoot, docsDirectory, ou
     outputs.add(staticPath);
   }
 
-  const site = { repositoryRoot: root, docsDirectory: docs, publicDirectory, publicFiles, pagesBySource, pagesByRoute };
+  const site = { repositoryRoot: root, docsDirectory: docs, publicDirectory, publicFiles, pagesBySource, pagesByRoute, basePath };
   const parent = dirname(output);
   await mkdir(parent, { recursive: true });
   const temporary = await mkdtemp(join(parent, '.site-build-'));
@@ -331,9 +337,9 @@ export async function buildDocumentationSite({ repositoryRoot, docsDirectory, ou
     for (const page of pages) {
       const environment = { page, site };
       const body = renderer.renderer.render(page.tokens, renderer.options, environment);
-      await writeOutput(join(temporary, page.output), documentHtml(page, body, pages));
+      await writeOutput(join(temporary, page.output), documentHtml(page, body, pages, basePath));
     }
-    await writeOutput(join(temporary, '404.html'), notFoundHtml());
+    await writeOutput(join(temporary, '404.html'), notFoundHtml(basePath));
     await writeOutput(join(temporary, 'assets/site.css'), await readFile(SITE_CSS));
     for (const [staticPath, sourceFile] of publicFiles) {
       const destination = join(temporary, staticPath);
