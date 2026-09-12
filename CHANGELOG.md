@@ -2,6 +2,24 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Add framework-independent HTML rendering and executable feature contracts
+
+`@crudui/generator-html` renders current form and list view models as HTML
+fragments without framework dependencies. It supports table and card lists,
+current field shapes, widget layouts, escaping rules and raw display content;
+browser event binding remains in `@crudui/generator-core`.
+
+`contracts/features.json` now records package exports, feature contracts,
+fixtures, test files, support status and verification commands. The manifest
+schema and path checker reject missing links. `manifest:test` executes the
+declared verification commands, and feature contract pages are generated from
+the manifest. CI runs the manifest checks and commands before form tests.
+
+The HTML renderer passed 110 package tests, including 87 form conformance cases
+and 20 list conformance cases. Public package exports, declarations, consumer
+builds, API documentation and `make docs-check` passed. The package is not
+deployed.
+
 ## 2026-09-12 — Publish static documentation through GitHub Pages
 
 The documentation build supports `DOCS_BASE_PATH` and generates explicit static

@@ -11,7 +11,7 @@ import { packPackage } from './package-consumer-pack.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
 const directory = mkdtempSync(join(tmpdir(), 'crudui-consumer-'));
-const packages = ['validator-ts', 'generator-core', 'generator-react', 'generator-vue', 'generator-svelte'];
+const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
 const dependencies = {};
 const { allowScripts } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 console.log(`Consumer project: ${directory}`);

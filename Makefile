@@ -73,6 +73,8 @@ docs-check: docs-check-documents docs-check-libs docs-check-servers ## doc-cover
 docs-check-all: docs-check ## docs-check 별칭 (라이브러리 + 서버)
 
 docs-check-documents:
+	npm run manifest:check
+	npm run manifest:docs:check
 	node scripts/check-documents.mjs
 	node --test scripts/documentation-links.test.mjs
 	node --test scripts/gen-api-docs.test.mjs

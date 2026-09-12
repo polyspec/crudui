@@ -28,7 +28,7 @@ npm run test:packages
 않은 생명주기 스크립트, 정확한 패키지 버전을 명시하지 않은 스크립트 승인을
 거부합니다.
 
-`test:build`는 validator·generator-core·generator-react를 공개 CommonJS·ESM
+`test:build`는 validator·generator-core·generator-html·generator-react를 공개 CommonJS·ESM
 export로 로드합니다. `skipLibCheck: false`인 엄격한 NodeNext 타입 소비자를
 컴파일하고 전체 선언 참조와 React가 export한 스타일시트를 검사합니다.
 네 TypeScript 패키지 설정 모두 공개 타입에 오류가 있으면 선언을 생성하지

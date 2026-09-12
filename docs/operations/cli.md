@@ -22,6 +22,7 @@ node --import tsx packages/cli/bin/crudui.mjs describe --json
 node --import tsx packages/cli/bin/crudui.mjs list-widgets --json
 node --import tsx packages/cli/bin/crudui.mjs check packages/cli/test/fixtures/valid-leaf-type.yml
 node --import tsx packages/cli/bin/crudui.mjs explain packages/cli/test/fixtures/valid-leaf-type.yml --lang en
+npm run manifest:check
 ```
 
 | Command | Input and output |
@@ -30,6 +31,7 @@ node --import tsx packages/cli/bin/crudui.mjs explain packages/cli/test/fixtures
 | `list-widgets` | Returns widget names, layouts and aliases. `--json` selects a JSON array. |
 | `check <path>` | Parses JSON or YAML, checks the schema and forbidden keys, composes fields and checks leaf widget types. Returns `{ ok, errors }`. |
 | `explain <path>` | Describes a JSON or YAML specification. `--lang en` selects English; the default is Korean. It does not validate input data. |
+| `manifest` | Prints the executable contract manifest. JSON is the default; `--md` selects Markdown. |
 
 `check` errors contain `path`, `reason` and an optional `key`. An unresolved
 composition is an error; checking the original uncomposed input is not a substitute.
@@ -46,6 +48,6 @@ The catalog contains `meta`, `widgets`, `layouts`, `rules`, `slots`, `buckets`,
 shape is defined by [DescribeResult](../../packages/cli/src/describe.ts).
 Do not maintain a separate copied widget or rule catalog.
 
-Run `npm test --workspace @crudui/cli` to check catalog consistency, static
+Run `npm run manifest:check` to verify package, feature, fixture, test and document links. Run `npm run manifest:test` to execute the commands declared by the feature manifest. Run `npm test --workspace @crudui/cli` to check catalog consistency, static
 checking and descriptions. Implementation and deployment results belong in
 [feature status](../features.md).

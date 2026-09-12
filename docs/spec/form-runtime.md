@@ -40,6 +40,13 @@ framework renders a checkbox or radio input, the shared DOM binding places its
 mounting and every update without replacing the input or changing its value.
 The inspector compares the resulting HTML without rewriting it.
 
+The `@crudui/generator-html` package renders the same evaluated instance and list
+models as HTML strings without React, Vue or Svelte. `renderForm(form)` returns
+form content without an outer HTML `form` element; applications insert it into
+their host and may then call `connectForm`. `renderList(spec, rows, options)`
+returns the declared table or card layout. The package performs no DOM binding,
+validation, data loading or widget execution.
+
 ## Row identity
 
 Repeated data uses objects keyed by row identity. A key identifies a row only

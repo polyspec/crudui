@@ -42,6 +42,12 @@ async function main() {
       process.stdout.write(explainFile(file, { lang }) + '\n');
       return;
     }
+    case 'manifest': {
+      const { loadManifest, renderManifestMarkdown } = await import('../src/manifest.ts');
+      const manifest = loadManifest();
+      process.stdout.write((rest.includes('--md') ? renderManifestMarkdown(manifest) : JSON.stringify(manifest, null, 2)) + '\n');
+      return;
+    }
     case undefined:
     case '--help':
     case '-h':
@@ -62,6 +68,7 @@ const USAGE = `crudui <subcommand>
   list-widgets [--json]    widget kinds + layout + aliases
   check <spec.{yml,json}>  meta-schema + forbidden-scan
   explain <spec> [--lang ko|en]  spec → natural-language back-check
+  manifest [--json|--md]       executable contract manifest
 
 Run through the tsx loader: node --import tsx bin/crudui.mjs <subcommand>
 `;
