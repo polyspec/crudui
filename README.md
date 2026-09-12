@@ -23,6 +23,9 @@ mounting and injecting data.
 
 ## Documentation
 
+[Online documentation](https://polyspec.github.io/crudui/) provides the English
+and Korean guides, specifications and generated API references.
+
 - [Specification structure](docs/spec/schema.md)
 - [Form runtime contract](docs/spec/form-runtime.md)
 - [Runtime packages and APIs](docs/spec/runtime-packages.md)

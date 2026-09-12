@@ -23,6 +23,9 @@ npm run test:forms
 
 ## 문서
 
+[온라인 문서](https://polyspec.github.io/crudui/)에서 영어·한국어 안내,
+명세와 생성한 API 참조를 제공합니다.
+
 - [명세 구조](docs/spec/schema.ko.md)
 - [폼 런타임 계약](docs/spec/form-runtime.ko.md)
 - [런타임 패키지와 API](docs/spec/runtime-packages.ko.md)

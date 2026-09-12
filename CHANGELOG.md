@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-12 — Publish static documentation through GitHub Pages
+
+The documentation build supports `DOCS_BASE_PATH` and generates explicit static
+HTML links for English, Korean and API documents. Development, preview and 404
+pages use the same URL prefix. CI checks documentation,
+then deploys the generated site to `https://polyspec.github.io/crudui/` from
+`main`.
+
+`make docs-check` and `make docs-verify-idempotent` passed with
+`DOCS_BASE_PATH=/crudui/`. Browser checks passed for desktop and mobile layouts,
+Korean navigation, stylesheets and nested 404 pages.
+
 ## 2026-09-11 — Name the comparison deployment command explicitly
 
 The local comparison deployment entry point is now named
