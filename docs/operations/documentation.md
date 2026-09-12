@@ -104,8 +104,7 @@ and result. A necessary cause is stated in one sentence. Test results use
 These records do not use metaphors, personification, color-coded test status,
 informal conversation or implementation-origin history. They do not identify
 an external project unless its identity, API or
-path is required to run the current operation. English documentation is
-authoritative, and the corresponding Korean document provides the same
+path is required to run the current operation. Language versions provide the same
 information.
 
 `npm run test:docs` checks maintained Markdown, source comments and descriptive
