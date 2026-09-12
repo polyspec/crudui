@@ -186,10 +186,10 @@ The documentation site build reads Markdown from `docs/` after API reference
 generation. Every Markdown document must contain exactly one level-one heading.
 The heading becomes the document heading and the browser title is
 `<heading> | CRUDUI`. `index.md` maps to the directory route; every other
-Markdown filename maps to the same clean route without the `.md` suffix. The
+Markdown filename maps to the same path with an `.html` suffix. The
 build also creates a `404.html` page.
 
-Documentation-relative links use clean site routes. The build verifies every
+Documentation-relative links use generated HTML routes. The build verifies every
 local target and fragment. A relative link outside `docs/` requires an existing
 repository file or directory and becomes a repository source link in generated
 HTML. Files under `docs/public/` are copied to the site root. Missing targets,
@@ -202,6 +202,13 @@ per-page headings and responsive styles. English documents use `en-US` and
 output to `docs/.site/dist/`; repeated builds from unchanged inputs must produce
 identical files. Development and preview commands serve the same generated
 output and return a nonzero status when the initial build fails.
+
+`DOCS_BASE_PATH` sets the URL prefix for build, development and preview. It defaults
+to `/` when omitted. Explicit values must start and end with `/` and contain only
+letters, digits, `_` or `-` in each path segment. Invalid values fail the command.
+Navigation, document links, images, styles and the 404 page use that prefix.
+GitHub Pages publishes the checked site at `https://polyspec.github.io/crudui/`
+after the CI documentation job succeeds on `main`.
 
 ## PHP dependencies
 

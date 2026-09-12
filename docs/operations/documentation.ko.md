@@ -72,6 +72,23 @@ Go 참조는 조합·표현식·검증과 명시적인 레거시 패키지를 �
 검사는 번역 파일 사이의 코드 예제와 상태 항목을 비교하며 본문의 의미 일치는
 검토로 확인합니다.
 
+## GitHub Pages
+
+문서 URL은 `https://polyspec.github.io/crudui/`입니다. 저장소 Pages의 게시 소스는
+**GitHub Actions**입니다. [CI](../../.github/workflows/ci.yml)는
+`DOCS_BASE_PATH=/crudui/`로 `make docs-check`를 실행하고 `docs/.site/dist`를
+업로드한 뒤 `github-pages` 환경에 배포합니다. `main` 푸시 또는 `main`의 CI
+수동 실행은 사이트를 게시하며 pull request는 검사만 실행합니다.
+
+저장소 루트에서 게시 경로로 미리보기를 실행합니다.
+
+```sh
+DOCS_BASE_PATH=/crudui/ npm run docs:preview
+```
+
+`http://127.0.0.1:4173/crudui/`를 엽니다. GitHub 배포 결과와 공개 색인·한국어
+페이지·API 진입점·스타일시트를 확인한 뒤 [배포 상태](../features.ko.md)를 갱신합니다.
+
 ## 저장소 문장 작성
 
 관리하는 문서·주석·변경 기록·사용자 출력은 현재 동작을 직접 설명합니다. 각 문장은
