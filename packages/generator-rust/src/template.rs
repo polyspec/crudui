@@ -120,7 +120,10 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
             }
         }
     }
-    if spec.get("lang").is_some_and(|v| !v.is_boolean() && !v.is_object()) {
+    if spec
+        .get("lang")
+        .is_some_and(|v| !v.is_boolean() && !v.is_object())
+    {
         return fail("lang", "a boolean or an object");
     }
     if let Some(only) = spec
@@ -160,7 +163,10 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
                 };
                 for key in ["class", "style"] {
                     if value.get(key).is_some_and(|v| !condition_value(v)) {
-                        return fail(&format!("design.{node}.{key}"), "a string or a condition map");
+                        return fail(
+                            &format!("design.{node}.{key}"),
+                            "a string or a condition map",
+                        );
                     }
                 }
             }
@@ -172,7 +178,9 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
 /// Reject a wrong root `action` or `buttons` declaration.
 fn check_form_declarations(spec: &Map<String, Value>) -> FormResult<()> {
     let fail = |key: &str, expected: &str| -> FormResult<()> {
-        Err(FormError::input(format!("Invalid {key} at form: expected {expected}")))
+        Err(FormError::input(format!(
+            "Invalid {key} at form: expected {expected}"
+        )))
     };
     if let Some(action) = spec.get("action") {
         let Some(action) = action.as_object() else {
@@ -205,7 +213,9 @@ fn check_form_declarations(spec: &Map<String, Value>) -> FormResult<()> {
             }
         }
         // A button type without interface text needs declared text.
-        if crate::buttons::button_text(crate::messages::form_messages("ko")?, kind).is_empty() && !button.contains_key("text") {
+        if crate::buttons::button_text(crate::messages::form_messages("ko")?, kind).is_empty()
+            && !button.contains_key("text")
+        {
             return fail(&format!("{key}.text"), "content for this button type");
         }
         if kind == "link" && !button.contains_key("href") {
@@ -264,8 +274,14 @@ pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<Fo
         key_prefix: options.key_prefix.clone(),
         fields: fields(&properties, "")?,
         buttons: match spec.get("buttons").and_then(Value::as_array) {
-            Some(declared) => declared.iter().filter_map(|b| b.as_object().cloned()).collect(),
-            None => vec![Map::from_iter([("type".to_string(), Value::from("submit"))])],
+            Some(declared) => declared
+                .iter()
+                .filter_map(|b| b.as_object().cloned())
+                .collect(),
+            None => vec![Map::from_iter([(
+                "type".to_string(),
+                Value::from("submit"),
+            )])],
         },
         action: spec.get("action").and_then(Value::as_object).cloned(),
     })

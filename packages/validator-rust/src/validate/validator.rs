@@ -156,9 +156,21 @@ impl Validator {
                                     path_to_string(&row_path)
                                 )));
                             }
-                            self.validate_properties(child_props, row, &row_path, all_data, errors)?;
+                            self.validate_properties(
+                                child_props,
+                                row,
+                                &row_path,
+                                all_data,
+                                errors,
+                            )?;
                         }
-                        self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
+                        self.validate_field_rules(
+                            field,
+                            &field_value,
+                            &field_path,
+                            all_data,
+                            errors,
+                        );
                     }
                 } else {
                     if present.is_some_and(|value| !value.is_object()) {

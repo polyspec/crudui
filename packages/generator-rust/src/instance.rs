@@ -84,7 +84,11 @@ fn normalize_row(field: &FieldTemplate, value: Option<&Value>, path: &str) -> Fo
 }
 
 /// Normalize record data; `path` is the full data path, empty at the root.
-fn normalize_fields(fields: &[FieldTemplate], value: Option<&Value>, path: &str) -> FormResult<Value> {
+fn normalize_fields(
+    fields: &[FieldTemplate],
+    value: Option<&Value>,
+    path: &str,
+) -> FormResult<Value> {
     let mut data = match value {
         None => Map::new(),
         Some(Value::Object(map)) => map.clone(),
@@ -113,7 +117,8 @@ fn normalize_fields(fields: &[FieldTemplate], value: Option<&Value>, path: &str)
                 Some(Value::Object(map)) => {
                     for (key, value) in map {
                         check_key(key)?;
-                        let row = normalize_row(field, Some(value), &format!("{field_path}.{key}"))?;
+                        let row =
+                            normalize_row(field, Some(value), &format!("{field_path}.{key}"))?;
                         rows.insert(key.clone(), row);
                     }
                 }
@@ -327,7 +332,10 @@ impl Form {
         let row_path = format!("{}.{key}", checked_segments(path)?.join("."));
         entries.insert(
             at,
-            (key.clone(), normalize_row(field, options.value.as_ref(), &row_path)?),
+            (
+                key.clone(),
+                normalize_row(field, options.value.as_ref(), &row_path)?,
+            ),
         );
         self.commit(put_at(
             &self.data,

@@ -672,7 +672,9 @@ mod tests {
 
     #[test]
     fn multiple_dependency_isolated_under_multiple() {
-        let f = parse(r#"{ "type": "group", "multiple": { "min": 1, "max": 5, "sortable": true, "title": "name", "controls": "footer", "header": "sticky" } }"#);
+        let f = parse(
+            r#"{ "type": "group", "multiple": { "min": 1, "max": 5, "sortable": true, "title": "name", "controls": "footer", "header": "sticky" } }"#,
+        );
         match f.multiple {
             Some(Polymorphic::Config(m)) => {
                 assert_eq!(m.min, Some(Value::from(1)));

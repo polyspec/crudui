@@ -361,15 +361,27 @@ fn header(node: &Value) -> String {
                 &json!({"class":"crudui-node__label","for":target}),
                 &part_text(label),
             ),
-            _ => element("span", &json!({"class":"crudui-node__label"}), &part_text(label)),
+            _ => element(
+                "span",
+                &json!({"class":"crudui-node__label"}),
+                &part_text(label),
+            ),
         };
     }
     if let Some(description) = header.get("description") {
-        parts += &element("p", &json!({"class":"crudui-node__description"}), &part_text(description));
+        parts += &element(
+            "p",
+            &json!({"class":"crudui-node__description"}),
+            &part_text(description),
+        );
     }
     for key in ["number", "title"] {
         if let Some(value) = header.get(key) {
-            parts += &element("span", &json!({"class":format!("crudui-node__{key}")}), &part_text(value));
+            parts += &element(
+                "span",
+                &json!({"class":format!("crudui-node__{key}")}),
+                &part_text(value),
+            );
         }
     }
     if let Some(summary) = header.get("summary") {
@@ -380,7 +392,11 @@ fn header(node: &Value) -> String {
         parts += &element("span", &attrs, &part_text(summary));
     }
     if let Some(count) = header.get("count") {
-        parts += &element("span", &json!({"class":"crudui-node__count"}), &part_text(count));
+        parts += &element(
+            "span",
+            &json!({"class":"crudui-node__count"}),
+            &part_text(count),
+        );
     }
     if node["controls"]["placement"] == "header" {
         parts += &controls(&node["controls"]);
@@ -411,7 +427,11 @@ fn body(node: &Value) -> String {
             input["checked"] = "".into();
         }
         element("input", &input, "")
-            + &element("label", &json!({"for":checkbox["id"]}), &escape(str_at(checkbox, "caption")))
+            + &element(
+                "label",
+                &json!({"for":checkbox["id"]}),
+                &escape(str_at(checkbox, "caption")),
+            )
     } else if node.get("widget").is_some() {
         widget(&node["widget"])
     } else {
@@ -424,10 +444,17 @@ fn body(node: &Value) -> String {
 fn node(node: &Value) -> String {
     let kind = str_at(node, "kind");
     let modifier = format!("crudui-node--{kind}");
-    let sticky = if node["sticky"] == true { "crudui-node--sticky" } else { "" };
+    let sticky = if node["sticky"] == true {
+        "crudui-node--sticky"
+    } else {
+        ""
+    };
     // A sticky row carries its depth on the root; the stylesheet derives its sticky line from it.
     let depth = if node["sticky"] == true {
-        format!("--crudui-sticky-depth: {}", node["stickyDepth"].as_u64().unwrap_or(0))
+        format!(
+            "--crudui-sticky-depth: {}",
+            node["stickyDepth"].as_u64().unwrap_or(0)
+        )
     } else {
         String::new()
     };
@@ -452,7 +479,11 @@ fn node(node: &Value) -> String {
         attrs["hidden"] = "".into();
     }
     let footer = if node["controls"]["placement"] == "footer" {
-        element("div", &json!({"class":"crudui-node__footer"}), &controls(&node["controls"]))
+        element(
+            "div",
+            &json!({"class":"crudui-node__footer"}),
+            &controls(&node["controls"]),
+        )
     } else {
         String::new()
     };
@@ -476,7 +507,12 @@ pub(crate) fn render_fields(fields: &[Value]) -> String {
 }
 
 /// Render fields and the form buttons for a record as form HTML.
-pub(crate) fn render_form_html(fields: &[Value], template: &crate::FormTemplate, data: &Value, language: &str) -> FormResult<String> {
+pub(crate) fn render_form_html(
+    fields: &[Value],
+    template: &crate::FormTemplate,
+    data: &Value,
+    language: &str,
+) -> FormResult<String> {
     let messages = crate::messages::form_messages(language)?;
     let body = render_fields(fields);
     let footer = element(
@@ -488,10 +524,19 @@ pub(crate) fn render_form_html(fields: &[Value], template: &crate::FormTemplate,
             &crate::buttons::form_buttons_html(&template.buttons, data, language, messages),
         ),
     );
-    Ok(format!("{}{footer}</div>", body.strip_suffix("</div>").expect("form markup ends with its closing tag")))
+    Ok(format!(
+        "{}{footer}</div>",
+        body.strip_suffix("</div>")
+            .expect("form markup ends with its closing tag")
+    ))
 }
 
 /// Render an instance as HTML without executing scripts or browser operations.
 pub fn render_form(form: &Form) -> FormResult<String> {
-    render_form_html(form.fields(), form.template(), &form.get_data(), form.language())
+    render_form_html(
+        form.fields(),
+        form.template(),
+        &form.get_data(),
+        form.language(),
+    )
 }
