@@ -380,13 +380,6 @@ static bool write_header(render_buffer *out, const ps_value *node)
     if (!class_part(&classes, "crudui-node__header") ||
         !class_part(&classes, string_member(header, "className"))) classes.failed = true;
     if (*header_style && !text(&style, header_style)) style.failed = true;
-    if (bool_member(node, "sticky")) {
-        char *depth = member(node, "stickyDepth") ? ps_scalar_string(member(node, "stickyDepth"))
-                                                  : ps_string_join("0", "", "");
-        if (!depth || (style.length && !text(&style, "; ")) ||
-            !text(&style, "--crudui-sticky-depth: ") || !text(&style, depth)) style.failed = true;
-        free(depth);
-    }
     char *class_name = take(&classes), *style_text = take(&style);
     ps_value *attrs = ps_object_value();
     ok = class_name && style_text && attrs && attr_string(attrs, "class", class_name) &&
@@ -449,17 +442,29 @@ static bool write_node(render_buffer *out, const ps_value *node)
         !class_part(&classes, string_member(node, "className"))) classes.failed = true;
     free(modifier);
     char *class_name = take(&classes);
+    /* A sticky row carries its depth on the root; the stylesheet derives its sticky line from it. */
+    render_buffer style = {0};
+    const char *node_style = string_member(node, "style");
+    if (*node_style && !text(&style, node_style)) style.failed = true;
+    if (bool_member(node, "sticky")) {
+        char *depth = member(node, "stickyDepth") ? ps_scalar_string(member(node, "stickyDepth"))
+                                                  : ps_string_join("0", "", "");
+        if (!depth || (style.length && !text(&style, "; ")) ||
+            !text(&style, "--crudui-sticky-depth: ") || !text(&style, depth)) style.failed = true;
+        free(depth);
+    }
+    char *style_text = take(&style);
     bool path = strcmp(kind, "row") && strcmp(kind, "lang-item") && member(node, "path");
     ps_value *attrs = ps_object_value();
-    bool ok = class_name && attrs && attr_string(attrs, "class", class_name) &&
-        (!*string_member(node, "style") || attr_clone(attrs, "style", member(node, "style"))) &&
+    bool ok = class_name && style_text && attrs && attr_string(attrs, "class", class_name) &&
+        (!*style_text || attr_string(attrs, "style", style_text)) &&
         (!path || attr_clone(attrs, "data-field-path", member(node, "path"))) &&
         (!member(node, "key") || attr_clone(attrs, "data-crudui-row-key", member(node, "key"))) &&
         (!member(node, "lang") || attr_clone(attrs, "data-lang", member(node, "lang"))) &&
         (!bool_member(node, "hidden") || attr_string(attrs, "hidden", "")) &&
         start_element(out, "div", attrs, false, false) &&
         write_header(out, node) && write_body(out, node);
-    free(class_name); ps_value_free(attrs);
+    free(class_name); free(style_text); ps_value_free(attrs);
     const ps_value *controls = member(node, "controls");
     if (ok && ps_is_string(member(controls, "placement"), "footer")) {
         ps_value *footer = ps_object_value();

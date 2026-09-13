@@ -158,9 +158,16 @@ A row operation moves focus to the row it affects, whether a pointer or the
 keyboard activated it. Adding or copying focuses the new row and moving focuses
 the moved row. Removing focuses the previous row, then the next row, then the
 enclosing row, then the collection's Add button. Focus goes to the row's first
-enabled visible input, or to its toggle or Add button when it has none. The row
-scrolls only as far as needed to show it below sticky headers. Toggling, selecting
-and undoing keep the focused control, including a focused action button.
+enabled visible input, or to its toggle or Add button when it has none.
+
+One rule decides the current row: the scroll position. The current row is the last
+row whose top reached its sticky line (`connectRows`); the pinned labels, the
+structure map selection and the highlighted border all follow it. Moving to a row,
+after a row operation or from the structure map, is scrolling that row (or the Add
+button of an emptied collection) to its line with `alignRow`. Focus and typing never
+scroll or select, and the bindings never restore scroll positions. The stylesheet
+lets the last row reach its line and no further. Toggling, selecting and undoing
+keep the focused control, including a focused action button.
 
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,

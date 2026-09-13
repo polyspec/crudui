@@ -30,6 +30,22 @@ function levelData(index) {
 const spec = { type: 'group', properties: { [levels[0]]: levelSpec(0) } };
 const data = { [levels[0]]: levelData(0) };
 
+// Two stores, the second like the reference form's 판교점 after 강남점 with its nested rows.
+const second = '__0000000000002__';
+const siblingData = { [levels[0]]: { [key]: { ...levelData(0)[key], name: 'ACME', stores: { ...levelData(1), [second]: { name: 'Pangyo', note: '', departments: {} } } } } };
+
+// Short rows without notes, so the last row is shorter than the viewport.
+function shortLevel(index) {
+  const properties = { name: { type: 'text', label: 'Name' } };
+  if (index + 1 < 3) properties[levels[index + 1]] = shortLevel(index + 1);
+  return { type: 'group', label: levels[index], multiple: { header: 'sticky', title: 'name' }, properties };
+}
+const shortSpec = { type: 'group', properties: { [levels[0]]: shortLevel(0) } };
+const shortData = { [levels[0]]: { [key]: { name: 'ACME', stores: {
+  [key]: { name: 'Gangnam', departments: { [key]: { name: 'Sales' }, [second]: { name: 'Support' } } },
+  [second]: { name: 'Pangyo', departments: { [key]: { name: 'Ops' } } },
+} } } };
+
 const browserSource = `
 import '/packages/generator-core/styles/form.css';
 import { compileForm, connectForm, createForm } from '@crudui/generator-core';
@@ -40,7 +56,12 @@ window.formStylesTest = {
   mount(spec, data) {
     const form = createForm(compileForm(spec), data, { language: 'en' });
     element.innerHTML = renderForm(form);
-    connectForm(element, form);
+    const connection = connectForm(element, form);
+    // Render every change and synchronize, as an HTML renderer application does.
+    form.subscribe(() => {
+      element.innerHTML = renderForm(form);
+      connection.sync();
+    });
   },
 };
 `;
@@ -61,7 +82,7 @@ before(async () => {
           if (request.url !== '/form-styles') return next();
           try {
             // Tall note fields give every level room to stay stuck while scrolling.
-            const html = await vite.transformIndexHtml('/form-styles', `<!doctype html><html><head><link rel="icon" href="data:,"><style>body{margin:0}textarea{height:900px}</style></head><body><div id="form"></div><script type="module" src="${entry}"></script></body></html>`);
+            const html = await vite.transformIndexHtml('/form-styles', `<!doctype html><html><head><link rel="icon" href="data:,"><style>body{margin:0;padding-top:40px}textarea{height:900px}</style></head><body><div id="form"></div><script type="module" src="${entry}"></script></body></html>`);
             response.setHeader('Content-Type', 'text/html');
             response.end(html);
           } catch (error) { next(error); }
@@ -148,5 +169,108 @@ test('sticky row headers stack at exactly one header height per level', async ()
     const hidden = await page.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header > .crudui-node__label')]
       .map(label => getComputedStyle(label).display));
     assert.ok(hidden.every(display => display === 'none'), 'Level labels are hidden while headers are not stuck');
+  } finally { await page.close(); }
+});
+
+test('the scroll position alone decides the current row; moving to a row scrolls it to its line', async () => {
+  const page = await browser.newPage();
+  const failures = [];
+  page.on('pageerror', error => failures.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });
+  try {
+    await page.setViewport({ width: 1000, height: 700 });
+    await page.goto(url);
+    await page.waitForFunction(() => window.formStylesTest !== undefined);
+    await page.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
+    const stores = `${levels[0]}.${key}.stores`;
+    const frame = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const state = () => page.evaluate(() => {
+      const current = document.querySelector('[data-crudui-current]');
+      const header = current.firstElementChild;
+      return {
+        currentKey: current.getAttribute('data-crudui-row-key'),
+        currentName: current.querySelector('input[name$="[name]"]')?.value,
+        headerTop: header.getBoundingClientRect().top,
+        line: parseFloat(getComputedStyle(header).top),
+        stuck: current.hasAttribute('data-crudui-stuck'),
+        label: getComputedStyle(header.querySelector('.crudui-node__label')).display,
+        active: document.activeElement.getAttribute('name'),
+        scrollY: window.scrollY,
+        maxScrollY: document.scrollingElement.scrollHeight - window.innerHeight,
+        currentCount: document.querySelectorAll('[data-crudui-current]').length,
+      };
+    });
+
+    // Moving to a row (here: the row an Add action creates) scrolls it to its line, which makes it current.
+    await page.evaluate((path, rowKey) => {
+      const scope = [...document.querySelectorAll('[data-field-path]')].find(node => node.getAttribute('data-field-path') === path);
+      const row = [...scope.querySelectorAll('[data-crudui-row-key]')].find(node => node.getAttribute('data-crudui-row-key') === rowKey && node.parentElement.closest('[data-field-path]') === scope);
+      [...row.querySelectorAll('[data-crudui-action="add-row"]')].find(button => button.closest('[data-crudui-row-key]') === row).click();
+    }, stores, key);
+    await frame();
+    const moved = await state();
+    assert.deepEqual(failures, []);
+    assert.equal(moved.currentCount, 1, 'Exactly one current row');
+    assert.ok(Math.abs(moved.headerTop - moved.line) < 0.5, `The new row header sits on its line: ${moved.headerTop} vs ${moved.line}`);
+    assert.equal(moved.stuck, true, 'The row at its line is stuck');
+    assert.notEqual(moved.label, 'none', 'Its level label shows');
+    assert.equal(moved.active.endsWith('[name]'), true, 'Focus moved into the new row');
+
+    // Focus stays put while the user scrolls away; the scroll alone moves the current row.
+    await page.evaluate(() => document.querySelector('input[name$="[name]"]').focus());
+    const focused = (await state()).active;
+    for (let step = 0; step < 40; step++) {
+      await page.mouse.wheel({ deltaY: 400 });
+      await frame();
+    }
+    const end = await state();
+    assert.ok(Math.abs(end.scrollY - end.maxScrollY) < 0.5, `Scrolling reaches the end with focus elsewhere: ${end.scrollY} vs ${end.maxScrollY}`);
+    assert.equal(end.active, focused, 'Scrolling does not move focus');
+    assert.equal(end.currentName, 'Pangyo', 'At the end the last row is current');
+    assert.equal(end.stuck, true, 'At the end the last row has reached its line');
+  } finally { await page.close(); }
+});
+
+test('the row at the end of the form limits scrolling at its line, with no blank inside rows', async () => {
+  const page = await browser.newPage();
+  const failures = [];
+  page.on('pageerror', error => failures.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });
+  try {
+    await page.setViewport({ width: 1000, height: 700 });
+    await page.goto(url);
+    await page.waitForFunction(() => window.formStylesTest !== undefined);
+    await page.evaluate((spec, data) => window.formStylesTest.mount(spec, data), shortSpec, shortData);
+    for (let step = 0; step < 20; step++) {
+      await page.mouse.wheel({ deltaY: 400 });
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    }
+    const rows = await page.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky')].map(row => {
+      const header = row.firstElementChild;
+      return {
+        name: row.querySelector('input[name$="[name]"]').value,
+        rowTop: row.getBoundingClientRect().top,
+        alignedTop: parseFloat(getComputedStyle(row).scrollMarginTop),
+        headerTop: header.getBoundingClientRect().top,
+        naturalHeaderTop: row.getBoundingClientRect().top + row.clientTop,
+        bodyGap: header.nextElementSibling.getBoundingClientRect().top - header.getBoundingClientRect().bottom,
+        minHeight: getComputedStyle(row).minHeight,
+        current: row.hasAttribute('data-crudui-current'),
+        scrollY: window.scrollY,
+        maxScrollY: document.scrollingElement.scrollHeight - window.innerHeight,
+      };
+    }));
+    const pangyo = rows.find(row => row.name === 'Pangyo');
+    const ops = rows.find(row => row.name === 'Ops');
+    const support = rows.find(row => row.name === 'Support');
+    assert.deepEqual(failures, []);
+    assert.ok(Math.abs(pangyo.scrollY - pangyo.maxScrollY) < 0.5, 'Scrolled to the end');
+    // Ops is the deepest row at the end of the form; its top stops exactly on its line.
+    assert.ok(Math.abs(ops.rowTop - ops.alignedTop) < 0.5, `Scrolling ends when the end row reaches its line: ${ops.rowTop} vs ${ops.alignedTop}`);
+    assert.equal(ops.current, true, 'The end row is current');
+    for (const row of rows.filter(row => Math.abs(row.headerTop - row.naturalHeaderTop) < 0.5)) {
+      assert.ok(Math.abs(row.bodyGap) < 0.5, `${row.name}: the body follows the header without a gap (${row.bodyGap})`);
+    }
+    assert.ok(['0px', 'auto'].includes(support.minHeight), `Support, a last row followed by other content, has no minimum height: ${support.minHeight}`);
   } finally { await page.close(); }
 });
