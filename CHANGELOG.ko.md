@@ -2,6 +2,19 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 폼 비교 소스 검사 전에 generator-core 빌드
+
+`main`에 머지한 뒤 CI 작업 "Form comparison runner regressions"가 실패했습니다.
+`examples/form-comparison/src/bind-form-controller.test.mjs`가
+`@crudui/generator-core/dist/index.mjs`를 불러오지 못했습니다. 비교 `bindForm` 컨트롤러는 이
+브랜치에서부터 generator-core의 뷰 상태·이력 함수를 사용하는데, 그 CI 작업은 패키지를 빌드하지 않은
+깨끗한 체크아웃에서 `npm run test:form-comparison`을 실행합니다. 로컬에서는 이전 빌드가 `dist`를
+남겨 두어서만 통과했습니다. 이제 `test:form-comparison:source`는 `test:forms`가 패키지를 빌드하듯,
+비교 소스가 불러오는 유일한 패키지인 `@crudui/generator-core`를 먼저 빌드합니다.
+
+`packages/generator-core/dist`를 지운 상태에서 `npm run test:form-comparison:source`가 패키지를
+빌드하고 테스트 140개를 통과했습니다.
+
 ## 2026-09-14 — 화면 높이 프레임 후보 검증과 배포 기록
 
 `node examples/form-comparison/candidate-verification.mjs`가 f3109ad에서 통과했습니다. PHP,

@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Build generator-core before the form comparison source checks
+
+After the merge into `main`, the CI job "Form comparison runner regressions" failed:
+`examples/form-comparison/src/bind-form-controller.test.mjs` could not load
+`@crudui/generator-core/dist/index.mjs`. The comparison `bindForm` controller has used
+generator-core's view-state and history functions since this branch, and that CI job
+runs `npm run test:form-comparison` on a clean checkout without building packages. It
+passed locally only because an earlier build had left `dist` in place.
+`test:form-comparison:source` now builds `@crudui/generator-core`, the only package the
+comparison sources import, before running, as `test:forms` builds its packages.
+
+With `packages/generator-core/dist` removed, `npm run test:form-comparison:source`
+built the package and passed 140 tests.
+
 ## 2026-09-14 — Record the screen-sized frame candidate run and its deployment
 
 `node examples/form-comparison/candidate-verification.mjs` passed for f3109ad: PHP, the
