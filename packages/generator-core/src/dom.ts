@@ -57,13 +57,22 @@ function rowTarget(row: HTMLElement): { path: string; key: string } | undefined 
   return path && key ? { path, key } : undefined;
 }
 
-/** The nearest scrolling ancestor of an element, or the document's scrolling element. */
+/**
+ * The scroll container of an element, as `position: sticky` resolves it: the nearest
+ * ancestor whose vertical overflow scrolls, whether or not its content overflows yet,
+ * or the document's scrolling element.
+ */
 function scrollParent(element: HTMLElement): HTMLElement {
   const view = element.ownerDocument.defaultView!;
   for (let parent = element.parentElement; parent; parent = parent.parentElement) {
-    if (/(auto|scroll)/.test(view.getComputedStyle(parent).overflowY) && parent.scrollHeight > parent.clientHeight) return parent;
+    if (/(auto|scroll)/.test(view.getComputedStyle(parent).overflowY)) return parent;
   }
-  return element.ownerDocument.scrollingElement as HTMLElement;
+  return documentScroller(element.ownerDocument);
+}
+
+/** The element that scrolls a document: its scrolling element, or its root where a DOM has none. */
+function documentScroller(document: Document): HTMLElement {
+  return (document.scrollingElement ?? document.documentElement) as HTMLElement;
 }
 
 /**
@@ -91,24 +100,25 @@ export function connectRows(element: HTMLElement): RowTracking {
   let frame = 0;
   let last = '';
   /**
-   * Publish the end row lengths for the trailing space rule: the extent from the top
-   * of the deepest row at the end of the form to the end of the outermost such row,
-   * and that row's aligned top (its scroll-margin-top).
+   * Publish the lengths of the trailing space rule: the height of the scroll container,
+   * the extent from the top of the deepest row at the end of the form to the end of the
+   * outermost such row, and that row's aligned top (its scroll-margin-top).
    */
-  const publishEnd = () => {
+  const publishEnd = (scroller: HTMLElement) => {
     const ends = Array.from(element.querySelectorAll<HTMLElement>(FORM_ROWS + ':last-child'))
       .filter(row => row.closest('.crudui-form__body :not(:last-child)') === null);
     const deepest = ends[ends.length - 1];
     // Published on the connected element, which rendering never replaces; the form
     // inherits them, so a re-render cannot drop the space and pull the scroll back.
+    element.style.setProperty('--crudui-scroll-height', `${scroller.clientHeight}px`);
     element.style.setProperty('--crudui-form-end-extent', deepest ? `${ends[0]!.getBoundingClientRect().bottom - deepest.getBoundingClientRect().top}px` : '100vh');
     element.style.setProperty('--crudui-form-end-top', deepest ? view.getComputedStyle(deepest).scrollMarginTop : '0px');
   };
   const measure = () => {
     frame = 0;
-    publishEnd();
     const scroller = scrollParent(element);
-    const top = scroller === element.ownerDocument.scrollingElement ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop;
+    publishEnd(scroller);
+    const top = scroller === documentScroller(element.ownerDocument) ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop;
     const rows = Array.from(element.querySelectorAll<HTMLElement>(FORM_ROWS));
     let current: HTMLElement | undefined;
     for (const row of rows) {
