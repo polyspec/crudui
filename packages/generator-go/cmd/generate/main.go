@@ -68,7 +68,7 @@ func action(f *gen.Form, method string, args []any) (any, error) {
 	case "setData":
 		o := obj(arg(args, 0))
 		if o == nil {
-			return nil, fmt.Errorf("Group data must be an object")
+			return nil, fmt.Errorf("Form data must be an object")
 		}
 		return nil, f.SetData(o)
 	case "getData":
@@ -129,7 +129,7 @@ func run(request *gen.Object) (any, error) {
 		}
 		data := obj(val(request, "data"))
 		if data == nil && request.Has("data") {
-			return nil, fmt.Errorf("Group data must be an object")
+			return nil, fmt.Errorf("Form data must be an object")
 		}
 		if str(val(request, "operation")) == "bindForm" {
 			return gen.BindForm(&template, data, bindOptions(options))

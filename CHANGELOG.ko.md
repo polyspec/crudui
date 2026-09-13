@@ -2,6 +2,26 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 구현 간 생성기 오류 메시지 비교
+
+네이티브 생성기 검사는 오류 코드와 위치만 비교했고 README는 언어마다 메시지가
+달라도 된다고 허용했습니다. 모든 구현이 동일해야 한다는 요구와 모순되므로 코드,
+메시지, 위치가 모두 일치해야 한다는 규칙으로 바꿨습니다. 거부된 폼 입력은
+JavaScript와 전체 기록으로 비교합니다.
+
+강화한 비교로 기존 차이 12건을 찾아 수정했습니다.
+
+- PHP, Go, Rust 생성기 CLI는 객체가 아닌 `data`를 각각 `Data must be an object`,
+  `Group data must be an object`, `data must be an object`로 보고했습니다. 모두
+  `Form data must be an object`로 보고합니다.
+- Go와 Rust는 지원하지 않는 필드 형식 메시지 표기가 달랐습니다. 둘 다
+  `Unsupported field type "{type}" at "{path}"`로 보고합니다.
+- Go는 잘못된 행 키 메시지에 `SequenceRowKey`를 표기했으나 다른 구현과 같이
+  `sequenceRowKey`를 표기합니다.
+
+`make test-native`가 생성기 검사 786개, 구성별 PHP API 검사 361개, 각 PHP 구현의
+검증 사례 100개를 통과했습니다.
+
 ## 2026-09-13 — 검증기 로드 실패와 입력 실패를 동일하게 보고
 
 TypeScript, PHP, C PHP 확장, Go, Rust 검증기는 형태가 잘못된 제출 데이터를 건너뛰거나
