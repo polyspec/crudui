@@ -308,3 +308,71 @@ test('the row at the end of the form limits scrolling at its line, with no blank
       `The trailing space is the form's outside margin: ${JSON.stringify(outside)}`);
   } finally { await page.close(); }
 });
+
+test('a form in a scrolling box follows the same sticky, current row and end rules as in the page', async () => {
+  const page = await browser.newPage();
+  const failures = [];
+  page.on('pageerror', error => failures.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });
+  try {
+    await page.setViewport({ width: 1000, height: 700 });
+    await page.goto(url);
+    await page.waitForFunction(() => window.formStylesTest !== undefined);
+    // The box is shorter than the page viewport and does not overflow before the form mounts.
+    await page.evaluate(() => {
+      const box = document.createElement('div');
+      box.id = 'box';
+      box.style.cssText = 'height:420px;overflow:auto;margin:60px 40px';
+      document.body.prepend(box);
+      box.append(document.getElementById('form'));
+    });
+    await page.evaluate((spec, data) => window.formStylesTest.mount(spec, data), shortSpec, shortData);
+    const frame = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await frame();
+    await page.evaluate(() => {
+      window.scrollLog = [];
+      document.getElementById('box').addEventListener('scroll', event => window.scrollLog.push(event.target.scrollTop), { passive: true });
+    });
+    await page.mouse.move(500, 300);
+    const stacks = [];
+    for (let step = 0; step < 20; step++) {
+      await page.mouse.wheel({ deltaY: 200 });
+      await frame();
+      stacks.push(await page.evaluate(() => {
+        const top = document.getElementById('box').getBoundingClientRect().top;
+        return [...document.querySelectorAll('.crudui-node--sticky[data-crudui-stuck]')].map(row => {
+          const header = row.firstElementChild;
+          return { offset: header.getBoundingClientRect().top - top, line: parseFloat(getComputedStyle(header).top) };
+        });
+      }));
+    }
+    const log = await page.evaluate(() => window.scrollLog);
+    const end = await page.evaluate(() => {
+      const box = document.getElementById('box');
+      const top = box.getBoundingClientRect().top;
+      const ops = [...document.querySelectorAll('.crudui-node--sticky')].find(row => row.querySelector('input[name$="[name]"]').value === 'Ops');
+      return {
+        scrollTop: box.scrollTop,
+        maxScrollTop: box.scrollHeight - box.clientHeight,
+        pageScrollY: window.scrollY,
+        opsOffset: ops.getBoundingClientRect().top - top,
+        opsAligned: parseFloat(getComputedStyle(ops).scrollMarginTop),
+        opsCurrent: ops.hasAttribute('data-crudui-current'),
+        scrollHeight: getComputedStyle(document.getElementById('form')).getPropertyValue('--crudui-scroll-height'),
+        clientHeight: box.clientHeight,
+      };
+    });
+    assert.deepEqual(failures, []);
+    assert.ok(log.length > 0 && log.every((y, index) => index === 0 || y >= log[index - 1] - 0.5),
+      `Scrolling down never moves back up: ${JSON.stringify(log)}`);
+    assert.ok(stacks.some(stack => stack.length > 1), 'Nested headers stick while the box scrolls');
+    for (const stack of stacks) {
+      for (const { offset, line } of stack) assert.ok(offset <= line + 0.5, `A stuck header sits on or above its line in the box: ${offset} vs ${line}`);
+    }
+    assert.equal(end.pageScrollY, 0, 'Only the box scrolls');
+    assert.ok(Math.abs(end.scrollTop - end.maxScrollTop) < 0.5, 'Scrolled to the end of the box');
+    assert.ok(Math.abs(end.opsOffset - end.opsAligned) < 0.5, `Scrolling ends when the end row reaches its line in the box: ${end.opsOffset} vs ${end.opsAligned}`);
+    assert.equal(end.opsCurrent, true, 'The end row is current');
+    assert.equal(end.scrollHeight, `${end.clientHeight}px`, 'The published scroll height is the box height');
+  } finally { await page.close(); }
+});

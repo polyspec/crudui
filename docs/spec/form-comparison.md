@@ -142,8 +142,8 @@ DOM unchanged: every element, attribute value and text in child order.
 Attribute order is not part of the DOM (React sets `type`, `value` and `name` after
 other input attributes), so it is not compared; the byte-identical HTML of the string
 renderers is checked by the generation checks. The comparison leaves out the state the
-browser binding writes (`data-crudui-stuck`, `data-crudui-current` and the end-row
-lengths published on the connected element) and the nodes frameworks keep as rendering
+browser binding writes (`data-crudui-stuck`, `data-crudui-current` and the scroll
+and end-row lengths published on the connected element) and the nodes frameworks keep as rendering
 anchors, which render nothing: comments (Vue) and empty text nodes (Svelte). The right frame (`initialization=csr`) mounts the form without
 data before it requests the saved record, then injects the record into the existing
 form. A frame URL without one of these values fails. SSR documents link to the `ssr`
