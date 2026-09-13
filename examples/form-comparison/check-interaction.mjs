@@ -8,15 +8,27 @@ const collectionSelector = '[data-field-path="companies"]';
 const storeSelector = 'input[name$="[stores][__0000000000001__][name]"]';
 
 /** Whether focus is on the first enabled visible input of the collection's row at `index`, inside the frame viewport. */
-function newRowFocus(frame, index) {
-  return frame.evaluate((selector, position) => {
+/**
+ * Whether the first input of a collection row has focus and is visible to the user:
+ * inside the frame viewport and inside the main page viewport. The row focus rule
+ * scrolls the frame and the page only as far as needed to show the row.
+ */
+async function newRowFocus(frame, index) {
+  const iframe = await frame.frameElement();
+  return iframe.evaluate((element, selector, position) => {
+    const document = element.contentDocument;
+    const view = element.contentWindow;
     const row = document.querySelector(`${selector} > .crudui-node__body`).children[position];
     const input = Array.from(row.querySelectorAll('input:not([type=hidden]),select,textarea'))
       .find(control => !control.disabled && !control.closest('[hidden]'));
     const rect = input.getBoundingClientRect();
+    const frameRect = element.getBoundingClientRect();
+    const top = frameRect.top + element.clientTop + rect.top;
+    const left = frameRect.left + element.clientLeft + rect.left;
     return {
       focused: document.activeElement === input,
-      visible: rect.top >= 0 && rect.bottom <= innerHeight && rect.left >= 0 && rect.right <= innerWidth,
+      inFrame: rect.top >= 0 && rect.bottom <= view.innerHeight && rect.left >= 0 && rect.right <= view.innerWidth,
+      inPage: top >= 0 && top + rect.height <= innerHeight && left >= 0 && left + rect.width <= innerWidth,
     };
   }, collectionSelector, index);
 }
@@ -73,14 +85,12 @@ export async function checkInteraction(page, servers) {
                 await frame.evaluate(() => window.comparison.idle());
                 const selector = `${collectionSelector} > .crudui-node__footer [data-crudui-action="add-row"]`;
                 await (await frame.$(selector)).focus();
-                const parentScroll = await page.evaluate(() => window.scrollY);
                 await page.keyboard.press('Enter');
                 await frame.evaluate(() => window.comparison.idle());
                 const focus = await newRowFocus(frame, 0);
                 assert.equal(focus.focused, true, 'Empty addition focuses the first input of the new row');
-                assert.equal(focus.visible, true, 'The focused input is inside the frame viewport');
-                assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - parentScroll) <= 1,
-                  'Empty addition preserves page scroll');
+                assert.equal(focus.inFrame, true, 'The focused input is inside the frame viewport');
+                assert.equal(focus.inPage, true, 'The focused input is inside the page viewport');
               } else if (action === 'validation') {
                 const input = await frame.$(storeSelector);
                 await input.click({ count: 3 });
@@ -157,7 +167,6 @@ export async function checkInteraction(page, servers) {
                     ? document.querySelector('input[name]') : selectedButton;
                   active.focus({ preventScroll: true });
                 }, button, action);
-                const parentScroll = await page.evaluate(() => window.scrollY);
                 if (action === 'pointer') await button.click();
                 else await page.keyboard.press('Enter');
                 await frame.evaluate(() => window.comparison.idle());
@@ -165,9 +174,8 @@ export async function checkInteraction(page, servers) {
                   element => element.children.length), 2, 'Addition creates one row');
                 const focus = await newRowFocus(frame, 1);
                 assert.equal(focus.focused, true, `${action} addition focuses the first input of the new row`);
-                assert.equal(focus.visible, true, 'The focused input is inside the frame viewport');
-                assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - parentScroll) <= 1,
-                  'Parent page scrolled');
+                assert.equal(focus.inFrame, true, 'The focused input is inside the frame viewport');
+                assert.equal(focus.inPage, true, 'The focused input is inside the page viewport');
               }
             } catch (cause) {
               error = cause.stack ?? cause.message;
