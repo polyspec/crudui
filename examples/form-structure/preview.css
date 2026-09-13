@@ -10,7 +10,8 @@ body {
   gap: 1.5rem;
   max-width: 96rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  /* Nothing follows the form, so scrolling ends where its last row reaches its line. */
+  padding: 1.5rem 1rem 0;
 }
 
 .preview__heading {

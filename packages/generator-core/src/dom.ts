@@ -11,6 +11,14 @@ export interface FormConnection {
   disconnect(): void;
 }
 
+/** Row tracking lifecycle. */
+export interface RowTracking {
+  /** Measure rows now, after rendering replaced or moved them. */
+  update(): void;
+  /** Remove event listeners and cancel a pending measurement. */
+  disconnect(): void;
+}
+
 /** The element whose `data-field-path` equals a path. */
 function scopeElement(root: ParentNode, path: string): HTMLElement | undefined {
   return Array.from(root.querySelectorAll<HTMLElement>('[data-field-path]'))
@@ -39,6 +47,74 @@ function firstRowControl(row: HTMLElement): HTMLElement | undefined {
   return input ?? rowButton(row, 'toggle-row') ?? rowButton(row, 'add-row');
 }
 
+/** The collection path and key of a row element. */
+function rowTarget(row: HTMLElement): { path: string; key: string } | undefined {
+  const path = row.parentElement?.closest('[data-field-path]')?.getAttribute('data-field-path');
+  const key = row.getAttribute('data-crudui-row-key');
+  return path && key ? { path, key } : undefined;
+}
+
+/** The nearest scrolling ancestor of an element, or the document's scrolling element. */
+function scrollParent(element: HTMLElement): HTMLElement {
+  const view = element.ownerDocument.defaultView!;
+  for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+    if (/(auto|scroll)/.test(view.getComputedStyle(parent).overflowY) && parent.scrollHeight > parent.clientHeight) return parent;
+  }
+  return element.ownerDocument.scrollingElement as HTMLElement;
+}
+
+/**
+ * Make a row current: scroll it to the top of its scroll container. The row's
+ * `scroll-margin-top` puts its header on its sticky line (zero for a row without a
+ * sticky header), so the scroll position then names this row as current.
+ */
+export function alignRow(row: HTMLElement): void {
+  row.scrollIntoView({ block: 'start' });
+}
+
+/**
+ * Track rows by scroll position. A row has reached its line when its top is at or
+ * above its `scroll-margin-top`; a reached row with a sticky header is marked
+ * `data-crudui-stuck`. The current row is the last reached row in document order, or
+ * the first row before any is reached; it is marked `data-crudui-current` and passed
+ * to `onCurrent`. Rows are measured on scroll (captured, so inner scroll containers
+ * count) and resize, at most once per animation frame, and on `update()`.
+ */
+export function connectRows(element: HTMLElement, onCurrent: (row: HTMLElement | undefined) => void): RowTracking {
+  const view = element.ownerDocument.defaultView!;
+  let frame = 0;
+  const measure = () => {
+    frame = 0;
+    const scroller = scrollParent(element);
+    const top = scroller === element.ownerDocument.scrollingElement ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop;
+    const rows = Array.from(element.querySelectorAll<HTMLElement>('[data-crudui-row-key]'));
+    let current: HTMLElement | undefined;
+    for (const row of rows) {
+      const reached = row.getBoundingClientRect().top - top <= (parseFloat(view.getComputedStyle(row).scrollMarginTop) || 0) + 0.5;
+      const header = row.firstElementChild as HTMLElement | null;
+      row.toggleAttribute('data-crudui-stuck', reached && header !== null && view.getComputedStyle(header).position === 'sticky');
+      if (reached) current = row;
+    }
+    current ??= rows[0];
+    for (const row of rows) row.toggleAttribute('data-crudui-current', row === current);
+    onCurrent(current);
+  };
+  const schedule = () => {
+    if (!frame) frame = view.requestAnimationFrame(measure);
+  };
+  view.addEventListener('scroll', schedule, { capture: true, passive: true });
+  view.addEventListener('resize', schedule);
+  return {
+    update: measure,
+    disconnect() {
+      if (frame) view.cancelAnimationFrame(frame);
+      frame = 0;
+      view.removeEventListener('scroll', schedule, { capture: true });
+      view.removeEventListener('resize', schedule);
+    },
+  };
+}
+
 /** Browser event delegation for all adapters, including raw leaf controls. */
 export function connectForm(element: HTMLElement, session: FormInstance): FormConnection {
   type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -49,14 +125,11 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     start: number | null;
     end: number | null;
     direction?: 'forward' | 'backward' | 'none';
-    scroll: Array<{ element: HTMLElement; top: number; left: number }>;
   } | undefined;
   // Focus destination of the last action, applied after the next render.
   let destination: FocusTarget | undefined;
   // Whether the DOM has been synchronized since the last commit.
   let synced = true;
-  // Pending animation frame that marks stuck sticky headers.
-  let frame = 0;
   const controls = () => Array.from(element.querySelectorAll<Control>('input[name],select[name],textarea[name]'));
   const pathOf = (name: string) => {
     const segments = parsePathString(name);
@@ -81,10 +154,6 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     }) | null;
     focus = undefined;
     if (active && element.contains(active)) {
-      const scroll = [];
-      for (let parent = active.parentElement; parent; parent = parent.parentElement) {
-        scroll.push({ element: parent, top: parent.scrollTop, left: parent.scrollLeft });
-      }
       const action = active.matches('button[data-crudui-action]') ? resolveAction(active) : undefined;
       focus = {
         active,
@@ -93,11 +162,10 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         start: active.selectionStart ?? null,
         end: active.selectionEnd ?? null,
         direction: active.selectionDirection ?? undefined,
-        scroll,
       };
     }
   };
-  /** Keep the focused control, its text selection and ancestor scroll positions. */
+  /** Keep the focused control and its text selection; scroll positions belong to the user. */
   const restoreFocus = () => {
     if (!focus) return;
     const control = element.contains(focus.active) ? focus.active
@@ -109,10 +177,6 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
       }
     }
-    for (const position of focus.scroll) {
-      position.element.scrollTop = position.top;
-      position.element.scrollLeft = position.left;
-    }
   };
   /** Focus the row an action affected, or the enclosing row or Add button of an emptied collection. */
   const moveFocus = ({ path, key }: FocusTarget) => {
@@ -123,24 +187,8 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       : Array.from(element.querySelectorAll<HTMLButtonElement>('[data-crudui-action="add-row"]'))
         .find(button => !button.disabled && resolveAction(button)?.path === path);
     if (!control) return;
-    // Scroll before focusing: focusing selects the row, and a renderer that
-    // synchronizes inside that commit replaces these elements.
-    // The row header carries the sticky scroll margin; the control follows it.
-    (row?.firstElementChild ?? control).scrollIntoView({ block: 'nearest' });
-    control.scrollIntoView({ block: 'nearest' });
+    alignRow(row ?? control);
     control.focus({ preventScroll: true });
-  };
-  // Focusing a control selects its row. Buttons are excluded: a selection
-  // re-render would replace the button before its click is delivered.
-  const onFocusIn = (event: FocusEvent) => {
-    const control = event.target as Element;
-    if (!control?.matches?.('input,select,textarea')) return;
-    const row = control.closest('[data-crudui-row-key]');
-    if (!row) return;
-    const scope = row.parentElement?.closest('[data-field-path]');
-    const path = scope?.getAttribute('data-field-path');
-    const key = row.getAttribute('data-crudui-row-key');
-    if (path && key) session.selectRow(path, key);
   };
   const onInput = (event: Event) => {
     const control = event.target as Control;
@@ -180,25 +228,12 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     if (synced) moveFocus(result.focus);
     else destination = result.focus;
   };
-  /** Mark sticky row headers that are currently stuck. */
-  // A sticky header is stuck when it has left its natural place at the top of its
-  // row. Measured on scroll (captured, so inner scroll containers count) and
-  // resize, at most once per animation frame, for rows of any height.
-  const markStuck = () => {
-    frame = 0;
-    for (const row of element.querySelectorAll<HTMLElement>('[data-crudui-row-key]')) {
-      const header = row.firstElementChild as HTMLElement | null;
-      if (!header || getComputedStyle(header).position !== 'sticky') {
-        row.removeAttribute('data-crudui-stuck');
-        continue;
-      }
-      const offset = header.getBoundingClientRect().top - row.getBoundingClientRect().top - row.clientTop;
-      row.toggleAttribute('data-crudui-stuck', offset > 0.5);
-    }
-  };
-  const scheduleStuck = () => {
-    if (!frame) frame = requestAnimationFrame(markStuck);
-  };
+  // The selected row follows the scroll position.
+  const rows = connectRows(element, row => {
+    const target = row && rowTarget(row);
+    const selection = session.getSnapshot().selection;
+    if (target && (selection?.path !== target.path || selection.key !== target.key)) session.selectRow(target.path, target.key);
+  });
   const sync = () => {
     // React's SSR-compatible controls use defaultValue. Injection must update
     // live DOM properties too, including inputs that the user has already edited.
@@ -237,7 +272,6 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         if (control.value !== next) control.value = next;
       }
     }
-    markStuck();
     synced = true;
     if (destination) {
       const target = destination;
@@ -248,33 +282,26 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       restoreFocus();
       focus = undefined;
     }
+    rows.update();
   };
-  const view = element.ownerDocument.defaultView!;
   const unsubscribe = session.subscribe(captureFocus);
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
-  element.addEventListener('focusin', onFocusIn);
-  view.addEventListener('scroll', scheduleStuck, { capture: true, passive: true });
-  view.addEventListener('resize', scheduleStuck);
   sync();
   return {
     sync,
     disconnect() {
       unsubscribe();
-      if (frame) cancelAnimationFrame(frame);
-      frame = 0;
-      view.removeEventListener('scroll', scheduleStuck, { capture: true });
-      view.removeEventListener('resize', scheduleStuck);
+      rows.disconnect();
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
-      element.removeEventListener('focusin', onFocusIn);
     },
   };
 }
 
-/** Connect a rendered structure map: its buttons act on the form and selection scrolls to the row. */
+/** Connect a rendered structure map: its buttons act on the form and selecting a row aligns the form row. */
 export function connectOutline(element: HTMLElement, session: FormInstance, formElement: HTMLElement): FormConnection {
   const onClick = (event: Event) => {
     const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
@@ -284,7 +311,7 @@ export function connectOutline(element: HTMLElement, session: FormInstance, form
     event.preventDefault();
     if (target.name === 'select-row' && target.path && target.key) {
       const row = rowElement(formElement, target.path, target.key);
-      row?.scrollIntoView({ block: 'start' });
+      if (row) alignRow(row);
     }
   };
   element.addEventListener('click', onClick);
