@@ -68,19 +68,14 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   expect(session.getValue(`${storesPath}.${storeKey}.name`)).toBe('서울 수정');
   expect(element.ownerDocument.activeElement.name).toBe(inputName(storeKey));
 
-  control(inputName(storeKey)).setSelectionRange(1, 3, 'backward');
-  const pointer = new element.ownerDocument.defaultView.MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 });
-  button(storeKey, 'add-row').dispatchEvent(pointer);
-  expect(pointer.defaultPrevented).toBe(true);
+  // A row operation moves focus to the first input of the row it affects.
   button(storeKey, 'add-row').click();
   await flush();
-  expect(element.ownerDocument.activeElement.name).toBe(inputName(storeKey));
-  expect(element.ownerDocument.activeElement.selectionStart).toBe(1);
-  expect(element.ownerDocument.activeElement.selectionEnd).toBe(3);
-  expect(element.ownerDocument.activeElement.selectionDirection).toBe('backward');
   const added = Object.keys(session.getValue(storesPath))[1];
+  expect(element.ownerDocument.activeElement.name).toBe(inputName(added));
   button(added, 'remove-row').click();
   await flush();
+  expect(element.ownerDocument.activeElement.name).toBe(inputName(storeKey));
 
   button(storeKey, 'copy-row').click();
   await flush();
@@ -88,9 +83,20 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   const copied = keys[1];
   expect(copied).not.toBe(storeKey);
   expect(control(inputName(copied)).value).toBe('서울 수정');
+  expect(element.ownerDocument.activeElement.name).toBe(inputName(copied));
   button(copied, 'move-up').click();
   await flush();
   expect(Object.keys(session.getValue(storesPath))[0]).toBe(copied);
+  expect(element.ownerDocument.activeElement.name).toBe(inputName(copied));
+  // Toggling keeps the focused toggle button of the same row.
+  for (const expanded of ['false', 'true']) {
+    button(copied, 'toggle-row').focus();
+    button(copied, 'toggle-row').click();
+    await flush();
+    expect(element.ownerDocument.activeElement.getAttribute('data-crudui-action')).toBe('toggle-row');
+    expect(element.ownerDocument.activeElement.closest('[data-crudui-row-key]')).toBe(row(copied));
+    expect(element.ownerDocument.activeElement.getAttribute('aria-expanded')).toBe(expanded);
+  }
   expect(control(inputName(storeKey)).value).toBe('서울 수정');
 
   const savedKey = '__0000000000042__';
@@ -122,12 +128,13 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   button(savedKey, 'remove-row').click();
   await flush();
   expect(session.getValue(storesPath)).toEqual({});
+  // Removing the last row focuses the enclosing company row.
+  expect(element.ownerDocument.activeElement.name).toBe(`form[companies][${companyKey}][name]`);
   const wrapper = Array.from(element.querySelectorAll('[data-field-path]')).find(node => node.dataset.fieldPath === storesPath);
   const emptyAdd = wrapper.querySelector('[data-crudui-action="add-row"]');
   emptyAdd.focus();
   emptyAdd.click();
   await flush();
-  expect(Object.keys(session.getValue(storesPath))).toHaveLength(1);
-  expect(element.ownerDocument.activeElement.matches('[data-crudui-action="add-row"]')).toBe(true);
-  expect(element.ownerDocument.activeElement.closest('[data-field-path]')).toBe(wrapper);
+  const [first] = Object.keys(session.getValue(storesPath));
+  expect(element.ownerDocument.activeElement.name).toBe(inputName(first));
 }

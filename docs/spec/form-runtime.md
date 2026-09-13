@@ -148,11 +148,13 @@ preceding event. After rendering completes, the active control value, instance
 value and revision represent the last input event. Replacing a control during
 rendering must not interrupt the active editing sequence.
 
-Adding or copying a row preserves the active control, its text selection and
-ancestor scroll positions. Pointer activation of a row button retains the current
-input focus. Keyboard activation retains button focus. Focus restoration does not
-scroll the document to the control. When addition replaces an empty collection's
-Add button, focus moves to the Add button in that same collection.
+A row operation moves focus to the row it affects, whether a pointer or the
+keyboard activated it. Adding or copying focuses the new row and moving focuses
+the moved row. Removing focuses the previous row, then the next row, then the
+enclosing row, then the collection's Add button. Focus goes to the row's first
+enabled visible input, or to its toggle or Add button when it has none. The row
+scrolls only as far as needed to show it below sticky headers. Toggling, selecting
+and undoing keep the focused control, including a focused action button.
 
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,
@@ -184,8 +186,8 @@ application.
 5. Apply a saved sequence key and update field names and rule paths correctly.
 6. Reject invalid operations atomically and permit adding after deleting all rows.
 7. Verify keyed scalar and group validation with shared four-language cases.
-8. Activate row addition with pointer and keyboard input; preserve focus, text
-   selection and scroll positions in React, Vue and Svelte.
+8. Run row operations with pointer and keyboard input and verify the focused row
+   in React, Vue and Svelte.
 9. Send consecutive native input events across framework renders; retain every
    accepted edit and finish with matching control and instance values.
 
