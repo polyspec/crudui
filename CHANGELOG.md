@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Record the passing four-server candidate runs for crudui.css and the legacy removal
+
+`node examples/form-comparison/candidate-verification.mjs` passed for 0ab3c93 (form
+styling with `crudui.css` alone) and for eb9f7b7 (after removing the legacy UI paths
+and fixing the build and dependency checks). In each run PHP, the PHP extension, Go
+and Rust passed 1,452 checks with no failure, the browser verification recorded
+5,808 checks with no failure, and the command returned status 0.
+
 ## 2026-09-13 — Fix the build and dependency checks that CI runs
 
 `npm run test:build` and `npm run test:dependencies` were failing, and the form
