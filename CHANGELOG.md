@@ -71,9 +71,11 @@ margin and pull the scroll back; the connected element is never replaced.
 
 The form comparison servers (PHP, PHP extension, Go, Rust) appended their own
 `_form_complete` submit button after the rendered form, which now rendered a second
-submit button in its footer. The comparison spec declares that button instead, the
-servers no longer append one, and the generation checks require exactly one submit
-button in the document.
+submit button in its footer. The comparison spec, and the specs of the Go, Rust and
+PHP generation tests, declare that button instead, the servers no longer append one,
+and the generation checks require exactly one submit button in the document. The
+first four-server candidate run of this change failed in the PHP generation test,
+whose own spec did not yet declare the button.
 
 Validation passed: generator-core, HTML, React, Vue and Svelte passed 108, 116, 705,
 348 and 349 tests, the Svelte client 10, the normalizer 6 and the Chromium style
