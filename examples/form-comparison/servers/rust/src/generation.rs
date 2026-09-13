@@ -89,19 +89,16 @@ fn render(request: &Value, options: &Map<String, Value>) -> Result<Value> {
     }
     let template: FormTemplate = serde_json::from_value(object(request, "template")?.clone())
         .map_err(|error| bad(error.to_string()))?;
-    let mut binding = BindOptions {
-        key_prefix: string_option(options, "keyPrefix")?,
-        ..Default::default()
+    // An absent option is null so the generator applies its default.
+    let option = |name| -> Result<Value> {
+        Ok(string_option(options, name)?.map_or(Value::Null, Value::String))
     };
-    if let Some(value) = string_option(options, "idPrefix")? {
-        binding.id_prefix = value;
-    }
-    if let Some(value) = string_option(options, "language")? {
-        binding.language = value;
-    }
-    if let Some(value) = string_option(options, "unsupported")? {
-        binding.unsupported = value;
-    }
+    let binding = BindOptions {
+        key_prefix: option("keyPrefix")?,
+        id_prefix: option("idPrefix")?,
+        language: option("language")?,
+        unsupported: option("unsupported")?,
+    };
     let form = Form::new(template, object(request, "data")?, binding)
         .map_err(|error| bad(error.to_string()))?;
     let html = render_form(&form).map_err(|error| bad(error.to_string()))?;
@@ -217,7 +214,7 @@ fn document(
         template,
         &data,
         BindOptions {
-            language: language.clone(),
+            language: Value::String(language.clone()),
             ..Default::default()
         },
     )
