@@ -22,7 +22,7 @@ function origin(value) {
 
 function aggregate(summaries) {
   return Object.fromEntries(browserPaths.map(renderingPath => [renderingPath,
-    Object.fromEntries(['scenarios', 'interactions', 'mounts', 'documents'].map(section =>
+    Object.fromEntries(['scenarios', 'initializations', 'interactions', 'mounts', 'documents'].map(section =>
       [section, {
         total: summaries.reduce((sum, report) =>
           sum + report[section][renderingPath].total, 0),

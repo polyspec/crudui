@@ -86,7 +86,7 @@ foreach (['bindForm', 'createForm'] as $renderingPath) foreach (['react', 'vue',
     checkGeneration($xpath->query('//form//input[@name="form[companies][__0000000000007__][stores][__0000000000042__][name]"]')->length === 1, 'SSR controls must exist before JavaScript');
     checkGeneration($xpath->query('//form//input[@type="hidden"]')->length === 0, 'SSR must not add hidden identity controls');
     checkGeneration($xpath->query('//form/button[@type="submit" and @name="_form_complete" and @value="1"]')->length === 1, 'The submit button must provide the native request completion marker');
-    checkGeneration($xpath->query('//a')->item(0)->getAttribute('href') === "/frames/$renderingPath-$framework/?lang=$language&server=$runtime", 'SSR must link to the selected interactive example');
+    checkGeneration($xpath->query('//a')->item(0)->getAttribute('href') === "/frames/$renderingPath-$framework/?lang=$language&server=$runtime&initialization=data", 'SSR must link to the selected interactive example');
     checkGeneration($xpath->query('//script[not(@type="application/json")]')->length === 0, 'SSR does not require executable JavaScript');
     equalGeneration($provenance, json_decode($xpath->query('//script[@id="generator"]')->item(0)->textContent, true, 512, JSON_THROW_ON_ERROR), 'SSR provenance must match the selected implementation');
 }

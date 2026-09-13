@@ -4,8 +4,8 @@ import { bindFormController } from './bind-form-controller.mjs';
 import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
 import { encodeJson, readJson } from './json.mjs';
-import { formSnapshot, styleSnapshot, compareSnapshots, identical, snapshotHash } from './form-snapshot.mjs';
-import { appendInitializationEvidence } from './initialization-report.mjs';
+import { formInitializations } from './runtime-paths.mjs';
+import { identical } from './form-snapshot.mjs';
 import { serverGeneration } from './server-generation.mjs';
 import { createActionCompletion } from './action-completion.mjs';
 
@@ -14,6 +14,8 @@ const framework = __FRAMEWORK__;
 const server = new URLSearchParams(location.search).get('server') ?? 'php';
 if (!['php', 'php-ext', 'go', 'rust'].includes(server)) throw new Error('Unknown server');
 const language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'ko';
+const initialization = new URLSearchParams(location.search).get('initialization');
+if (!formInitializations.includes(initialization)) throw new Error('Unknown initialization path');
 const t = translations(language);
 const form = document.querySelector('#form');
 const view = document.querySelector('#view');
@@ -23,14 +25,13 @@ const generation = serverGeneration(server, renderingPath, framework);
 let driver;
 let validation;
 let running = false;
-let initializationEvidence;
 const actionCompletion = createActionCompletion();
 
-for (const id of ['create', 'load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks', 'initialization-check']) document.querySelector(`#${id}`).textContent = t[id];
+for (const id of ['create', 'load', 'blank', 'save', 'validate', 'reset', 'nonsequential', 'checks']) document.querySelector(`#${id}`).textContent = t[id];
 for (const id of ['results', 'names', 'state', 'server-data']) document.querySelector(`#${id}-label`).textContent = t[id];
 document.querySelector('#transport-label').textContent = t.transportLabel;
 for (const option of transport.options) option.textContent = t[`${option.value}Transport`];
-document.querySelector('#revision').textContent = `${t[renderingPath]} · ${t.serverNames[server]} · ${framework}`;
+document.querySelector('#revision').textContent = `${t[`${initialization}Initialization`]} · ${t[renderingPath]} · ${t.serverNames[server]} · ${framework}`;
 document.querySelector('#commit').textContent = __SOURCE_COMMIT__;
 document.querySelector('#method').textContent = t[renderingPath + 'Note'];
 document.querySelector('#save-note').textContent = t.saveNote;
@@ -369,8 +370,9 @@ const checks = [
       button.focus({ preventScroll: true });
       button.click(); await settle();
       equal(collectionRows(wrapper).length, 1, 'add into empty collection');
-      assert(document.activeElement.matches('[data-crudui-action="add-row"]'), 'Empty addition retains button focus');
-      equal(document.activeElement.closest('[data-field-path]'), wrapper, 'Focused button belongs to the same collection');
+      const created = Array.from(collectionRows(wrapper)[0].querySelectorAll('input:not([type=hidden]),select,textarea'))
+        .find(control => !control.disabled && !control.closest('[hidden]'));
+      assert(created && document.activeElement === created, 'Empty addition focuses the first input of the new row');
     }
     const departmentName = row => row.querySelector('input[name$="[name]"]');
     equal(departments(stores(companies()[0])[1]).length, 0, 'empty departments');
@@ -563,117 +565,6 @@ const checks = [
     same(result.normalized, keyedData, 'keyed native values without hidden sequence fields');
     same(Object.keys(result.normalized.companies), Object.keys(keyedData.companies), 'native keyed document order');
   }],
-  ['initialization', async () => {
-    const baseline = new Map();
-    initializationEvidence = {
-      generatedAt: new Date().toISOString(), server, path: renderingPath, framework,
-      transport: transport.value, commit: __SOURCE_COMMIT__,
-      stages: [], comparisons: [], cssFailures: {}, randomSource: 'Repeated deterministic 7-byte inputs during row actions only',
-    };
-    const categories = ['html', 'dom', 'controls', 'fields', 'css', 'data', 'focus', 'response'];
-    function compare(actual, expected, label, keys = categories) {
-      const results = compareSnapshots(actual, expected, keys);
-      initializationEvidence.comparisons.push({ label, results });
-      if (results.some(result => result.category === 'css' && !result.passed)) {
-        initializationEvidence.cssFailures[label] = { expected: expected.css, actual: actual.css };
-      }
-    }
-    const descriptor = Object.getOwnPropertyDescriptor(crypto, 'getRandomValues');
-    const random = crypto.getRandomValues.bind(crypto);
-    let counter = 0;
-    const repeatableRandom = bytes => {
-      if (!(bytes instanceof Uint8Array) || bytes.length !== 7) return random(bytes);
-      const seed = counter++;
-      for (let index = 0; index < bytes.length; index++) bytes[index] = (171 + seed * 17 + index * 29) % 256;
-      return bytes;
-    };
-    const restoreRandom = () => {
-      if (descriptor) Object.defineProperty(crypto, 'getRandomValues', descriptor);
-      else delete crypto.getRandomValues;
-    };
-    async function capture(route, stage, response) {
-      await settle();
-      const snapshot = formSnapshot(view, form);
-      snapshot.css = styleSnapshot(view);
-      snapshot.data = encodeJson(driver.getData());
-      const active = document.activeElement;
-      snapshot.focus = view.contains(active) ? {
-        name: active.getAttribute('name'), class: active.getAttribute('class'),
-        row: active.closest('[data-crudui-row-key]')?.getAttribute('data-crudui-row-key'),
-        start: active.selectionStart, end: active.selectionEnd, direction: active.selectionDirection,
-      } : null;
-      snapshot.response = response;
-      const cssHash = await snapshotHash(snapshot.css);
-      initializationEvidence.stages.push({ route, stage, ...snapshot, css: undefined, cssHash });
-      if (route === 'initial') baseline.set(stage, snapshot);
-      else {
-        const expected = baseline.get(stage);
-        assert(expected, `Missing initial-data snapshot for ${stage}`);
-        compare(snapshot, expected, `initial/injected/${stage}`);
-      }
-      return snapshot;
-    }
-    await document.fonts.ready;
-    try {
-      for (const route of ['initial', 'injected']) {
-        const source = (await request('reset', new URLSearchParams({ fixture: 'populated' }))).data;
-        await mount(route === 'initial' ? source : {});
-        if (route === 'injected') {
-          assert(view.querySelector('input[name]'), 'A form must exist before record injection');
-          await driver.load(source);
-        }
-        const mounted = await capture(route, 'mounted');
-        const template = JSON.stringify(driver.template);
-        for (let attempt = 1; attempt <= 2; attempt++) {
-          await driver.load(source);
-          const again = await capture(route, `reinjected-${attempt}`);
-          compare(again, mounted, `${route}/idempotence-${attempt}`);
-          identical(JSON.stringify(driver.template), template, 'cached template');
-        }
-        const changed = structuredClone(source);
-        Object.values(Object.values(changed.companies)[0].stores)[0].enabled = '';
-        await driver.load(changed);
-        await capture(route, 'data-hidden');
-        await driver.load(source);
-        const restored = await capture(route, 'data-restored');
-        compare(restored, mounted, `${route}/record-restoration`);
-        await edit(companyName(companies()[0]), 'Initialization company');
-        await edit(storeName(stores(companies()[0])[0]), 'Initialization store');
-        const notes = stores(companies()[0])[0].querySelector('textarea');
-        await edit(notes, 'Initialization notes');
-        stores(companies()[0])[0].querySelector('input[type=checkbox]').click();
-        await capture(route, 'edited');
-        const saved = await save();
-        equal(saved.status, 200, 'initialization save status');
-        await capture(route, 'saved', { validation: saved.validation, records: storageRows(saved.storage), keyChanges: saved.keyChanges });
-        await load();
-        await capture(route, 'reloaded');
-        counter = 0;
-        crypto.getRandomValues = repeatableRandom;
-        await click(companies()[0], 'copy-row');
-        await capture(route, 'copied');
-        await click(companies()[1], 'move-up');
-        await capture(route, 'moved');
-        await click(companies()[0], 'remove-row');
-        await capture(route, 'copy-removed');
-        await click(companies()[0], 'add-row');
-        await edit(companyName(companies()[1]), 'Added company');
-        await edit(storeName(stores(companies()[1])[0]), 'Added store');
-        await capture(route, 'added');
-        const added = await save();
-        equal(added.status, 200, 'added initialization save status');
-        await capture(route, 'saved-new', { validation: added.validation, records: storageRows(added.storage), keyChanges: added.keyChanges });
-        restoreRandom();
-        await driver.load({ companies: {} });
-        await capture(route, 'empty');
-        await driver.load(source);
-        await capture(route, 'restored');
-      }
-    } finally { restoreRandom(); }
-    const failures = initializationEvidence.comparisons.flatMap(comparison =>
-      comparison.results.filter(result => !result.passed).map(result => `${comparison.label}/${result.error}`));
-    assert(failures.length === 0, failures.join('\n'));
-  }],
   ['cache', async () => {
     assert(driver.template && driver.referenceReads, 'This example adapter does not prepare a cached structure');
     let compileRequests;
@@ -725,10 +616,9 @@ async function runChecks(method = transport.value, only) {
   try {
     for (const [id, test] of checks) {
       if (only && id !== only) continue;
-      if (id === 'initialization') initializationEvidence = undefined;
       let error;
       try { await reset(); await test(); } catch (e) { error = e.message; }
-      const item = { id, passed: !error, ...(error ? { error } : {}), ...(id === 'initialization' ? { evidence: initializationEvidence } : {}) };
+      const item = { id, passed: !error, ...(error ? { error } : {}) };
       results.push(item);
       const line = document.createElement('div');
       line.className = error ? 'fail' : 'pass';
@@ -740,12 +630,11 @@ async function runChecks(method = transport.value, only) {
         const raw = document.createElement('pre'); raw.textContent = error;
         detail.append(summary, raw); line.append(detail);
       }
-      if (id === 'initialization' && initializationEvidence) appendInitializationEvidence(line, initializationEvidence, t);
       output.append(line);
     }
     await reset();
     const report = {
-      server, path: renderingPath, framework, transport: method,
+      kind: 'scenario', server, path: renderingPath, framework, transport: method,
       commit: __SOURCE_COMMIT__, results,
     };
     window.comparison.lastReport = report;
@@ -778,7 +667,6 @@ action('validate', async () => { if (validation.validate(driver.getData()).valid
 action('reset', () => reset());
 action('nonsequential', () => reset('nonsequential'));
 action('checks', runChecks);
-action('initialization-check', () => runChecks(transport.value, 'initialization'));
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (running) return;
@@ -786,15 +674,135 @@ form.addEventListener('submit', async event => {
   catch (error) { document.querySelector('#results').textContent = error.message; }
 });
 for (const name of ['input', 'change', 'click']) view.addEventListener(name, async () => { await settle(); inspect(); });
-await mount();
-await load();
+async function inject(data) {
+  validation?.clear();
+  await driver.load(data); await settle(); inspect();
+}
+// Initialization comparison: both columns run these stages in turn against a reset repository.
+let stageSource;
+let stageTemplate;
+let randomCounter = 0;
+const randomDescriptor = Object.getOwnPropertyDescriptor(crypto, 'getRandomValues');
+const systemRandom = crypto.getRandomValues.bind(crypto);
+/** Repeat the 7-byte row key inputs so both columns create the same row keys. */
+function repeatableRandom(bytes) {
+  if (!(bytes instanceof Uint8Array) || bytes.length !== 7) return systemRandom(bytes);
+  const seed = randomCounter++;
+  for (let index = 0; index < bytes.length; index++) bytes[index] = (171 + seed * 17 + index * 29) % 256;
+  return bytes;
+}
+function endInitialization() {
+  if (randomDescriptor) Object.defineProperty(crypto, 'getRandomValues', randomDescriptor);
+  else delete crypto.getRandomValues;
+}
+function focusState() {
+  const active = document.activeElement;
+  return view.contains(active) ? {
+    name: active.getAttribute('name'), class: active.getAttribute('class'),
+    row: active.closest('[data-crudui-row-key]')?.getAttribute('data-crudui-row-key') ?? null,
+    start: active.selectionStart ?? null, end: active.selectionEnd ?? null,
+    direction: active.selectionDirection ?? null,
+  } : null;
+}
+/** Run one initialization stage and return the server response of a save stage. */
+async function initializationStage(stage) {
+  let response;
+  switch (stage) {
+    case 'mounted':
+      endInitialization();
+      stageSource = (await request('reset', new URLSearchParams({ fixture: 'populated' }))).data;
+      if (initialization === 'data') await mount(stageSource);
+      else {
+        await mount();
+        assert(view.querySelector('input[name]'), 'A form must exist before record injection');
+        await driver.load(stageSource);
+      }
+      stageTemplate = JSON.stringify(driver.template);
+      break;
+    case 'reinjected-1':
+    case 'reinjected-2':
+      await driver.load(stageSource);
+      identical(JSON.stringify(driver.template), stageTemplate, 'cached template');
+      break;
+    case 'data-hidden': {
+      const changed = structuredClone(stageSource);
+      Object.values(Object.values(changed.companies)[0].stores)[0].enabled = '';
+      await driver.load(changed);
+      break;
+    }
+    case 'data-restored':
+    case 'restored':
+      await driver.load(stageSource);
+      break;
+    case 'edited':
+      await edit(companyName(companies()[0]), 'Initialization company');
+      await edit(storeName(stores(companies()[0])[0]), 'Initialization store');
+      await edit(stores(companies()[0])[0].querySelector('textarea'), 'Initialization notes');
+      stores(companies()[0])[0].querySelector('input[type=checkbox]').click();
+      break;
+    case 'saved':
+    case 'saved-new': {
+      const saved = await save();
+      equal(saved.status, 200, `${stage} status`);
+      if (stage === 'saved-new') endInitialization();
+      response = { validation: saved.validation, records: storageRows(saved.storage), keyChanges: saved.keyChanges };
+      break;
+    }
+    case 'reloaded':
+      await load();
+      break;
+    case 'copied':
+      randomCounter = 0;
+      crypto.getRandomValues = repeatableRandom;
+      await click(companies()[0], 'copy-row');
+      break;
+    case 'moved':
+      await click(companies()[1], 'move-up');
+      break;
+    case 'copy-removed':
+      await click(companies()[0], 'remove-row');
+      break;
+    case 'added':
+      await click(companies()[0], 'add-row');
+      await edit(companyName(companies()[1]), 'Added company');
+      await edit(storeName(stores(companies()[1])[0]), 'Added store');
+      break;
+    case 'collapsed-all':
+    case 'expanded-all':
+    case 'undone': {
+      const action = { 'collapsed-all': 'collapse-all', 'expanded-all': 'expand-all', undone: 'undo' }[stage];
+      const button = view.querySelector(`[data-crudui-action="${action}"]`);
+      assert(button && !button.disabled, `The structure map ${action} button must be enabled`);
+      button.focus();
+      button.click();
+      break;
+    }
+    case 'empty':
+      await driver.load({ companies: {} });
+      break;
+    default:
+      throw new Error(`Unknown initialization stage: ${stage}`);
+  }
+  await settle(); inspect();
+  return response;
+}
+if (initialization === 'data') {
+  const result = await request('load');
+  equal(result.status, 200, 'load status');
+  await mount(result.data);
+} else {
+  await mount();
+  await load();
+}
 window.comparison = {
-  runChecks, reset, inspect, submit, save, load, idle: settle, server,
+  runChecks, reset, inspect, submit, save, load, inject, idle: settle, server,
+  initializationStage, endInitialization, focusState,
+  encodedData: () => encodeJson(driver.getData()),
   nextAction: actionCompletion.next, cancelAction: actionCompletion.cancel,
   actionCompletion: actionCompletion.completion,
-  path: renderingPath, framework,
+  path: renderingPath, framework, initialization,
   commit: __SOURCE_COMMIT__,
 };
 window.parent.postMessage({
-  type: 'crudui:frame-ready', server, framework, path: renderingPath,
+  type: 'crudui:frame-ready', server, framework, path: renderingPath, initialization,
 }, location.origin);

@@ -19,7 +19,9 @@ export type { NodeVM, WidgetModel } from '@crudui/generator-core';
 export { default as Node } from './components/Node.svelte';
 export { default as Controls } from './components/Controls.svelte';
 export { default as Outline } from './components/Outline.svelte';
+export { default as OutlineView } from './components/OutlineView.svelte';
 export { default as DataView } from './components/DataView.svelte';
+export { default as DataPanel } from './components/DataPanel.svelte';
 export { default as Widget } from './components/Widget.svelte';
 
 // List models and rendering.

@@ -125,6 +125,12 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 펼쳐지고 선택이 없는 초기 뷰를 사용합니다. 구조 맵과 현재 데이터 보기는
 [폼 마크업](form-markup.ko.md)에서 정의합니다.
 
+generator-core는 이 규칙을 불변 값에 대한 순수 함수로 export합니다. 뷰 상태는
+`initialView`, `toggleRowView`, `setAllExpandedView`, `selectRowView`,
+`removeRowView`, `rekeyRowView`, `collapsibleRows`이고, 이력은 `emptyHistory`,
+`recordChange`, `canUndo`, `undoChange`입니다. `bindForm`으로 데이터를 직접 관리하는
+응용 프로그램도 같은 함수를 사용합니다.
+
 ## 렌더링과 검증
 
 입력 이름과 래퍼 식별자는 실제 행 키를 포함합니다. 규칙 경로는 키의 패턴이

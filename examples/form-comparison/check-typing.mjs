@@ -33,9 +33,10 @@ try {
   for (const framework of formFrameworks) {
     for (const renderingPath of formRenderingPaths) {
       await page.goto(base.origin + '/frames/' + renderingPath + '-' + framework
-        + '/?server=php', { waitUntil: 'load' });
+        + '/?server=php&initialization=inject', { waitUntil: 'load' });
       assert.deepEqual(await page.evaluate(() => globalThis.cruduiFrameReady), {
         type: 'crudui:frame-ready', server: 'php', framework, path: renderingPath,
+        initialization: 'inject',
       });
       const selector = 'input[name$="[stores][__0000000000001__][name]"]';
       for (const delay of [0, 10, 50]) {

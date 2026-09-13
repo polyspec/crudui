@@ -41,8 +41,8 @@ function assertMetadata(value, expected, label) {
 
 function browserCounts(summary) {
   const expected = {
-    bindForm: { scenarios: 480, interactions: 120, mounts: 12, documents: 12 },
-    createForm: { scenarios: 480, interactions: 120, mounts: 12, documents: 12 },
+    bindForm: { scenarios: 456, initializations: 2304, interactions: 120, mounts: 12, documents: 12 },
+    createForm: { scenarios: 456, initializations: 2304, interactions: 120, mounts: 12, documents: 12 },
   };
   let checks = 0;
   assert.deepEqual(Object.keys(summary.verification ?? {}).sort(),

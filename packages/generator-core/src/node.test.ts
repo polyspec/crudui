@@ -1,11 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
+  HISTORY_LIMIT,
   bindForm,
   buildOutline,
   compileForm,
   createForm,
+  emptyHistory,
   formMessages,
+  initialView,
+  recordChange,
+  rekeyRowView,
+  removeRowView,
   runAction,
+  selectRowView,
+  setAllExpandedView,
+  toggleRowView,
+  undoChange,
   type NodeVM,
 } from './index';
 
@@ -228,5 +238,36 @@ describe('structure map and actions', () => {
     const members = `teams.${k1}.members`;
     expect(runAction(form, { name: 'remove-row', path: members, key: k1 })).toEqual({ focus: { path: members, key: k2 } });
     expect(runAction(form, { name: 'remove-row', path: members, key: k2 })).toEqual({ focus: { path: members } });
+  });
+});
+
+describe('pure view state and history rules', () => {
+  it('records, merges, limits and undoes history entries', () => {
+    let history = emptyHistory<number>();
+    history = recordChange(history, 0, 'a');
+    history = recordChange(history, 1, 'a');
+    history = recordChange(history, 2);
+    expect(history.entries).toEqual([0, 2]);
+    for (let value = 0; value < 150; value++) history = recordChange(history, value);
+    expect(history.entries).toHaveLength(HISTORY_LIMIT);
+    const { history: rest, value } = undoChange(history);
+    expect(value).toBe(149);
+    expect(rest.entries).toHaveLength(HISTORY_LIMIT - 1);
+    expect(rest.lastPath).toBeUndefined();
+    expect(() => undoChange(emptyHistory())).toThrow('Nothing to undo');
+  });
+
+  it('drops, renames and resets the view state of rows', () => {
+    let view = selectRowView(toggleRowView(initialView(), `teams.${k1}`), `teams.${k1}.members`, k2);
+    view = toggleRowView(view, `teams.${k2}`);
+    expect(selectRowView(view, `teams.${k1}.members`, k2)).toBe(view);
+    expect(rekeyRowView(view, `teams.${k1}`, 'teams.__0000000000009__')).toEqual({
+      collapsed: new Set(['teams.__0000000000009__', `teams.${k2}`]),
+      selection: { path: 'teams.__0000000000009__.members', key: k2 },
+    });
+    expect(removeRowView(view, `teams.${k1}`)).toEqual({ collapsed: new Set([`teams.${k2}`]) });
+    expect(setAllExpandedView(view, bindForm(compileForm(spec), data), false).collapsed)
+      .toEqual(new Set([`teams.${k1}`, `teams.${k2}`]));
+    expect(initialView()).toEqual({ collapsed: new Set() });
   });
 });

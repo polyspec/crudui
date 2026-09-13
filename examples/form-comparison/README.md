@@ -13,10 +13,12 @@ member order determines display and storage order. OrderedJSON processes JSON
 requests, responses and repository files without converting keyed objects to
 arrays.
 
-The browser mounts a data-independent serialized template before requesting
-saved data. It then injects data, edits rows and verifies repeated injection.
-Initialization evidence retains raw HTML, DOM structure, attributes, control
-state, computed CSS, focus, selection, submitted data and stored records.
+The main page shows two initialization paths side by side: the left frame creates
+the form with the saved record, and the right frame mounts a data-independent
+serialized template before requesting the record and injecting it. Each column runs the same injection,
+edit, save, copy, move, add, structure map and focus stages in turn, and a list at the top
+compares every stage: raw HTML, DOM, attributes, control state, computed CSS,
+submitted fields, data, focus and save responses.
 
 Run the source checks from the repository root:
 

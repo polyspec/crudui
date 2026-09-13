@@ -1,3 +1,8 @@
+import {
+  bindForm, canUndo, emptyHistory, initialView, recordChange, rekeyRowView, removeRowView,
+  resolveAction, selectRowView, setAllExpandedView, toggleRowView, undoChange,
+} from '@crudui/generator-core';
+
 const inputSegments = name => name.match(/[^\[\]]+/g)?.slice(1) ?? [];
 const pathSegments = path => path.split('.').filter(Boolean);
 const valueAt = (data, segments) => segments.reduce((value, segment) => value?.[segment], data);
@@ -160,6 +165,10 @@ export function bindFormController(element, mount, template, language, initialDa
 
   rememberAttributeOrder();
 
+  // View state and history live outside the record data and follow generator-core's rules.
+  let view = initialView();
+  let history = emptyHistory();
+
   function capture() {
     const active = element.ownerDocument.activeElement;
     if (!active || !element.contains(active)) return null;
@@ -167,26 +176,28 @@ export function bindFormController(element, mount, template, language, initialDa
     for (let parent = active.parentElement; parent; parent = parent.parentElement) {
       scroll.push({ parent, top: parent.scrollTop, left: parent.scrollLeft });
     }
-    const scope = active.closest('[data-field-path]');
-    const row = active.closest('[data-crudui-row-key]');
     return {
       active, name: active.getAttribute?.('name') ?? undefined,
-      emptyCollection: active.matches?.('[data-crudui-action="add-row"]') && !(row && scope?.contains(row))
-        ? scope?.getAttribute('data-field-path') : undefined,
+      action: active.matches?.('button[data-crudui-action]') ? resolveAction(active) : undefined,
       start: active.selectionStart ?? null, end: active.selectionEnd ?? null,
       direction: active.selectionDirection ?? undefined, scroll,
     };
   }
 
+  /** The rendered button requesting the same action on the same path and key. */
+  function actionButton(target) {
+    return Array.from(element.querySelectorAll('button[data-crudui-action]')).find(button => {
+      const other = resolveAction(button);
+      return other?.name === target.name && other.path === target.path && other.key === target.key;
+    });
+  }
+
   function restore(focus) {
     if (!focus) return;
-    let active = element.contains(focus.active) ? focus.active
-      : focus.name ? Array.from(element.querySelectorAll('[name]'))
-        .find(control => control.getAttribute('name') === focus.name) : undefined;
-    if (!active && focus.emptyCollection) {
-      active = Array.from(element.querySelectorAll('[data-crudui-action="add-row"]')).find(button =>
-        button.closest('[data-field-path]')?.getAttribute('data-field-path') === focus.emptyCollection);
-    }
+    const active = element.contains(focus.active) ? focus.active
+      : focus.action ? actionButton(focus.action)
+        : focus.name ? Array.from(element.querySelectorAll('[name]'))
+          .find(control => control.getAttribute('name') === focus.name) : undefined;
     active?.focus({ preventScroll: true });
     if (focus.start !== null && active?.setSelectionRange) {
       active.setSelectionRange(focus.start, focus.end, focus.direction);
@@ -197,23 +208,98 @@ export function bindFormController(element, mount, template, language, initialDa
     }
   }
 
-  async function render(focus, version = inputVersion) {
-    await renderer.load(data);
-    synchronizeControls();
-    if (version === inputVersion) restore(focus);
+  const pathOf = node => node.closest('[data-field-path]')?.getAttribute('data-field-path');
+
+  // The form renders before the structure map, so the first matching element is the form's.
+  function scopeElement(path) {
+    return Array.from(element.querySelectorAll('[data-field-path]'))
+      .find(node => node.getAttribute('data-field-path') === path);
   }
 
-  function schedule(next, focus, version = inputVersion) {
+  function rowElement(path, key) {
+    const scope = scopeElement(path);
+    return Array.from(scope?.querySelectorAll('[data-crudui-row-key]') ?? []).find(node =>
+      node.getAttribute('data-crudui-row-key') === key
+      && node.parentElement.closest('[data-field-path]') === scope);
+  }
+
+  /** A row's first enabled visible input, or its own toggle or Add button when it has none. */
+  function firstRowControl(row) {
+    const own = action => Array.from(row.querySelectorAll(`[data-crudui-action="${action}"]`))
+      .find(button => !button.disabled && button.closest('[data-crudui-row-key]') === row);
+    return Array.from(row.querySelectorAll('input:not([type=hidden]),select,textarea'))
+      .find(control => !control.disabled && !control.closest('[hidden]'))
+      ?? own('toggle-row') ?? own('add-row');
+  }
+
+  /** Focus the affected row, or the enclosing row or Add button of an emptied collection. */
+  function moveFocus({ path, key }) {
+    const row = key === undefined
+      ? scopeElement(path)?.parentElement?.closest('[data-crudui-row-key]')
+      : rowElement(path, key);
+    const control = row ? firstRowControl(row)
+      : Array.from(element.querySelectorAll('[data-crudui-action="add-row"]'))
+        .find(button => !button.disabled && pathOf(button) === path);
+    if (!control) return;
+    control.focus({ preventScroll: true });
+    (row?.firstElementChild ?? control).scrollIntoView({ block: 'nearest' });
+    control.scrollIntoView({ block: 'nearest' });
+  }
+
+  async function render(focus, version, target) {
+    await renderer.load(data, {
+      collapsed: view.collapsed, canUndo: canUndo(history),
+      ...(view.selection ? { selection: view.selection } : {}),
+    });
+    synchronizeControls();
+    if (version !== inputVersion) return;
+    if (target) moveFocus(target);
+    else restore(focus);
+  }
+
+  function schedule(next, focus, version = inputVersion, target) {
     data = normalizeFields(template.fields, next);
-    pending = pending.then(() => version === inputVersion ? render(focus, version) : undefined);
+    pending = pending.then(() => version === inputVersion ? render(focus, version, target) : undefined);
     return pending;
   }
 
-  function onPointerDown(event) {
-    const button = event.target.closest?.('button');
-    const active = element.ownerDocument.activeElement;
-    if (event.button === 0 && button && !button.disabled && element.contains(active)
-        && active.matches('input,textarea,select')) event.preventDefault();
+  /** Normalize a data change and record history; a failure leaves data, history and view unchanged. */
+  function commit(next, change = {}) {
+    const normalized = normalizeFields(template.fields, next);
+    history = change.reset ? emptyHistory() : recordChange(history, data, change.path);
+    view = change.reset ? initialView() : change.view ?? view;
+    return normalized;
+  }
+
+  /** Canonical row path after checking that the row exists. */
+  function rowPath(path, key) {
+    const rows = valueAt(data, pathSegments(path));
+    if (!record(rows) || !Object.hasOwn(rows, key)) throw new Error(`Unknown row: ${key}`);
+    return `${path}.${key}`;
+  }
+
+  function toggleRow(path, key) {
+    view = toggleRowView(view, rowPath(path, key));
+    return schedule(data, capture());
+  }
+
+  function setAllExpanded(expanded) {
+    view = setAllExpandedView(view, bindForm(template, data, { language, collapsed: view.collapsed }), expanded);
+    return schedule(data, capture());
+  }
+
+  function selectRow(path, key) {
+    rowPath(path, key);
+    const next = selectRowView(view, path, key);
+    if (next === view) return pending;
+    view = next;
+    return schedule(data, capture());
+  }
+
+  function undo() {
+    const result = undoChange(history);
+    history = result.history;
+    return schedule(result.value, capture());
   }
 
   function onInput(event) {
@@ -231,24 +317,51 @@ export function bindFormController(element, mount, template, language, initialDa
     if (Object.is(valueAt(next, segments), value)) return;
     put(next, segments, value);
     const focus = capture();
+    const normalized = commit(next, { path: segments.join('.') });
     const version = ++inputVersion;
-    schedule(next, focus, version);
+    schedule(normalized, focus, version);
+  }
+
+  // Focusing a control selects its row; buttons are excluded as in connectForm.
+  function onFocusIn(event) {
+    const control = event.target;
+    if (!control?.matches?.('input,select,textarea')) return;
+    const row = control.closest('[data-crudui-row-key]');
+    const path = row && pathOf(row.parentElement);
+    if (path) selectRow(path, row.getAttribute('data-crudui-row-key'));
   }
 
   function onClick(event) {
-    const button = event.target.closest?.('button');
+    const button = event.target.closest?.('button[data-crudui-action]');
     if (!button || button.disabled || !element.contains(button)) return;
-    const action = button.getAttribute('data-crudui-action');
-    if (!['add-row', 'copy-row', 'remove-row', 'move-up', 'move-down'].includes(action)) return;
-    const wrapper = button.closest('[data-field-path]');
-    const path = wrapper?.getAttribute('data-field-path');
-    if (!path) return;
+    const target = resolveAction(button);
+    if (!target) return;
+    const { name: action, path, key } = target;
+    if (action === 'expand-all' || action === 'collapse-all') {
+      event.preventDefault();
+      setAllExpanded(action === 'expand-all');
+      return;
+    }
+    if (action === 'undo') {
+      event.preventDefault();
+      undo();
+      return;
+    }
+    if (!path || (action !== 'add-row' && key === undefined)) return;
+    if (action === 'toggle-row') {
+      event.preventDefault();
+      toggleRow(path, key);
+      return;
+    }
+    if (action === 'select-row') {
+      // Selecting from the structure map scrolls the form row into view, as connectOutline does.
+      event.preventDefault();
+      selectRow(path, key).then(() => rowElement(path, key)?.scrollIntoView({ block: 'start' }));
+      return;
+    }
     const segments = pathSegments(path);
     const field = fieldAt(template.fields, segments);
     if (!repeated(field)) return;
-    // A row outside the collection element belongs to an ancestor collection.
-    const row = button.closest('[data-crudui-row-key]');
-    const key = row && wrapper.contains(row) ? row.getAttribute('data-crudui-row-key') : undefined;
     const next = structuredClone(data);
     const rows = valueAt(next, segments);
     if (!record(rows)) throw new Error(`Not a keyed collection: ${path}`);
@@ -258,36 +371,48 @@ export function bindFormController(element, mount, template, language, initialDa
     const settings = record(field.spec.multiple) ? field.spec.multiple : {};
     if (['add-row', 'copy-row'].includes(action) && entries.length >= (settings.max ?? Infinity)) return;
     if (action === 'remove-row' && entries.length <= (settings.min ?? 0)) return;
+    // Focus follows the affected row: the new row, the moved row, or a neighbour of a removed row.
+    let focusKey = key;
+    const change = {};
     if (action === 'add-row') {
-      const created = freshKey(rows);
-      entries.splice(index + 1, 0, [created, normalizeRow(field, undefined, `${path}.${created}`)]);
+      focusKey = freshKey(rows);
+      entries.splice(index + 1, 0, [focusKey, normalizeRow(field, undefined, `${path}.${focusKey}`)]);
     } else if (action === 'copy-row') {
-      const created = freshKey(rows);
-      entries.splice(index + 1, 0, [created, copyRow(field, rows[key], `${path}.${created}`)]);
-    } else if (action === 'remove-row') entries.splice(index, 1);
-    else {
-      const target = index + (action === 'move-up' ? -1 : 1);
-      if (target < 0 || target >= entries.length) return;
-      entries.splice(target, 0, entries.splice(index, 1)[0]);
+      focusKey = freshKey(rows);
+      entries.splice(index + 1, 0, [focusKey, copyRow(field, rows[key], `${path}.${focusKey}`)]);
+    } else if (action === 'remove-row') {
+      focusKey = (entries[index - 1] ?? entries[index + 1])?.[0];
+      entries.splice(index, 1);
+      change.view = removeRowView(view, `${path}.${key}`);
+    } else {
+      const position = index + (action === 'move-up' ? -1 : 1);
+      if (position < 0 || position >= entries.length) return;
+      entries.splice(position, 0, entries.splice(index, 1)[0]);
     }
     put(next, segments, Object.fromEntries(entries));
     event.preventDefault();
-    schedule(next, capture());
+    schedule(commit(next, change), undefined, inputVersion, { path, key: focusKey });
   }
 
-  element.addEventListener('pointerdown', onPointerDown);
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
+  element.addEventListener('focusin', onFocusIn);
 
   return {
     template, fromSerializedTemplate: true,
     getData: () => structuredClone(data),
-    load(next) { return schedule(next, capture()); },
+    /** Collapsed row paths, selection and undo availability, matching a createForm snapshot. */
+    getView: () => ({
+      collapsed: [...view.collapsed], canUndo: canUndo(history),
+      ...(view.selection ? { selection: { ...view.selection } } : {}),
+    }),
+    load(next) { return schedule(commit(next, { reset: true }), capture()); },
+    toggleRow, setAllExpanded, selectRow, undo,
     rekeyRows(changes) {
-      const next = structuredClone(data);
       for (const { path, oldKey, newKey } of changes) {
         checkKey(newKey);
+        const next = structuredClone(data);
         const segments = pathSegments(path);
         const rows = valueAt(next, segments);
         if (!record(rows) || !Object.hasOwn(rows, oldKey) || Object.hasOwn(rows, newKey)) {
@@ -295,15 +420,23 @@ export function bindFormController(element, mount, template, language, initialDa
         }
         put(next, segments, Object.fromEntries(Object.entries(rows)
           .map(([key, value]) => [key === oldKey ? newKey : key, value])));
+        data = commit(next, { view: rekeyRowView(view, `${path}.${oldKey}`, `${path}.${newKey}`) });
       }
-      return schedule(next, capture());
+      return schedule(data, capture());
     },
-    idle: () => pending,
+    /** Resolve after every scheduled render, including renders a render scheduled. */
+    async idle() {
+      let current;
+      do {
+        current = pending;
+        await current;
+      } while (current !== pending);
+    },
     async dispose() {
-      element.removeEventListener('pointerdown', onPointerDown);
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
+      element.removeEventListener('focusin', onFocusIn);
       await pending;
       await renderer.dispose();
     },
