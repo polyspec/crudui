@@ -2,6 +2,26 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 잘못된 multiple·design 값 형식을 컴파일에서 거부
+
+TypeScript, PHP, Go, Rust와 C PHP 확장의 폼 컴파일은 `multiple`과 `design`의 값
+형식이 잘못되어도 무시했습니다. 형식이 잘못된 행 설정은 버려지고 잘못된 design은
+빈 design이 되었습니다. 이제 컴파일이 `INVALID_FORM_INPUT`와
+`Invalid {key} at {path}: expected {expected}`로 거부하며 `{path}`는 필드의 구조
+경로입니다. `multiple`은 불리언 또는 객체이고 `min`·`max`는 숫자, `copy`·`sortable`은
+불리언이어야 합니다. `design`은 불리언 또는 객체입니다. `show`는 표현식, 불리언
+또는 조건 맵입니다. `class`와 `style`, 그리고 `label`·`wrapper`·`group`·`prepend`
+노드의 `class`와 `style`은 문자열 또는 조건 맵이며 노드는 객체여야 합니다. 조건 맵은
+JSON 스키마와 같이 비어 있지 않은 객체입니다. 이 버킷의 알 수 없는 키는 검사하지
+않습니다. 스키마 명세가 규칙을 정의합니다.
+
+C 템플릿은 엔진 검사에서 값·오류·합성 모듈과만 링크되므로 메시지를 지역 도우미로
+만듭니다. 네이티브 검사는 컴파일 거부 8건을 전체 기록으로 비교합니다.
+
+`make test-native`가 생성기 검사 886개(구현별 177개), 구성별 PHP API 검사 361개,
+각 PHP 구현의 검증 사례 100개를 통과했습니다. generator-core 타입 검사와 89개
+검사, `npm run test:forms`, `make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 형태가 잘못된 생성기 데이터를 전체 경로로 거부
 
 TypeScript, PHP, Go, Rust와 C PHP 확장의 `bindForm`과 편집 인스턴스는 검증기와

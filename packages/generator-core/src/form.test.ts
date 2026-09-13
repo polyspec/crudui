@@ -93,6 +93,22 @@ describe('cached structure and nested row lifecycle', () => {
   });
 });
 
+it('rejects a wrong value type in multiple and design declarations at compilation', () => {
+  const compile = (field: Record<string, unknown>) => () =>
+    compileForm({ type: 'group', properties: { rows: field } });
+  expect(compile({ type: 'text', multiple: 'yes' })).toThrow('Invalid multiple at rows: expected a boolean or an object');
+  expect(compile({ type: 'text', multiple: { max: '2' } })).toThrow('Invalid multiple.max at rows: expected a number');
+  expect(compile({ type: 'text', multiple: { sortable: 1 } })).toThrow('Invalid multiple.sortable at rows: expected a boolean');
+  expect(compile({ type: 'text', design: 'hidden' })).toThrow('Invalid design at rows: expected a boolean or an object');
+  expect(compile({ type: 'text', design: { show: [] } })).toThrow('Invalid design.show at rows: expected an expression, a boolean or a condition map');
+  expect(compile({ type: 'text', design: { style: 3 } })).toThrow('Invalid design.style at rows: expected a string or a condition map');
+  expect(compile({ type: 'text', design: { group: true } })).toThrow('Invalid design.group at rows: expected an object');
+  expect(compile({ type: 'group', properties: { name: { type: 'text', design: { prepend: { class: {} } } } } }))
+    .toThrow('Invalid design.prepend.class at rows.name: expected a string or a condition map');
+  expect(compile({ type: 'text', multiple: { min: 0, copy: true }, design: { show: '.on', class: { '.on': 'a', true: '' }, label: {} } }))
+    .not.toThrow();
+});
+
 it('preserves sequence row keys in names and generates distinct stable DOM scopes', () => {
   const template = compileForm({ type: 'group', properties: {
     rows: { type: 'group', multiple: true, properties: { value: { type: 'text', label: 'Value' } } },

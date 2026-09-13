@@ -320,6 +320,27 @@ for (const target of targets) {
     ['scalar-group', groupSpec, { address: 'Seoul' }, 'Group data must be an object: address'],
     ['array-nested-group', groupSpec, { address: { city: 'Seoul', geo: [] } }, 'Group data must be an object: address.geo'],
   ];
+  const declarationRejections = [
+    ['multiple-string', { type: 'text', multiple: 'yes' }, 'Invalid multiple at rows: expected a boolean or an object'],
+    ['multiple-min-string', { type: 'text', multiple: { min: '1' } }, 'Invalid multiple.min at rows: expected a number'],
+    ['multiple-copy-object', { type: 'text', multiple: { copy: {} } }, 'Invalid multiple.copy at rows: expected a boolean'],
+    ['design-array', { type: 'text', design: [] }, 'Invalid design at rows: expected a boolean or an object'],
+    ['design-show-number', { type: 'text', design: { show: 1 } }, 'Invalid design.show at rows: expected an expression, a boolean or a condition map'],
+    ['design-class-empty-map', { type: 'text', design: { class: {} } }, 'Invalid design.class at rows: expected a string or a condition map'],
+    ['design-node-string', { type: 'text', design: { wrapper: 'box' } }, 'Invalid design.wrapper at rows: expected an object'],
+    ['nested-design-node-style', { type: 'group', properties: { name: { type: 'text', design: { label: { style: null } } } } }, 'Invalid design.label.style at rows.name: expected a string or a condition map'],
+  ];
+  for (const [name, field, message] of declarationRejections) await check(target, `compile-reject:${name}`, async () => {
+    const request = { operation: 'compileForm', spec: { type: 'group', properties: { rows: field } } };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the declaration rejection contract');
+    let error;
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'A declaration with a wrong value type was accepted');
+    compareError(error, expected);
+    return { error: expected };
+  });
   for (const [name, spec, data, message] of shapeRejections) for (const operation of ['bindForm', 'form']) await check(target, `${operation}-shape-reject:${name}`, async () => {
     const request = { operation, template: oracle({ operation: 'compileForm', spec }), data };
     let expected;

@@ -56,23 +56,110 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &FormTemplate{Kind: "crudui/form-template", KeyPrefix: options.KeyPrefix, keyPrefixProvided: options.KeyPrefixProvided || options.KeyPrefix != "", Fields: compileFields(p)}, nil
+	fields, e := compileFields(p, "")
+	if e != nil {
+		return nil, e
+	}
+	return &FormTemplate{Kind: "crudui/form-template", KeyPrefix: options.KeyPrefix, keyPrefixProvided: options.KeyPrefixProvided || options.KeyPrefix != "", Fields: fields}, nil
 }
-func compileFields(p *Object) []FieldTemplate {
+func compileFields(p *Object, parent string) ([]FieldTemplate, error) {
 	out := []FieldTemplate{}
 	if p == nil {
-		return out
+		return out, nil
 	}
 	for _, name := range p.Keys() {
 		raw := object(read(p, name))
 		if raw == nil {
 			continue
 		}
+		path := name
+		if parent != "" {
+			path = parent + "." + name
+		}
+		if e := checkDeclarations(raw, path); e != nil {
+			return nil, e
+		}
+		children, e := compileFields(object(read(raw, "properties")), path)
+		if e != nil {
+			return nil, e
+		}
 		s := copyValue(raw).(*Object)
 		s.Delete("properties")
-		out = append(out, FieldTemplate{Name: name, Spec: s, Children: compileFields(object(read(raw, "properties")))})
+		out = append(out, FieldTemplate{Name: name, Spec: s, Children: children})
 	}
-	return out
+	return out, nil
+}
+
+// conditionValue reports a string or a condition map, which is a non-empty object.
+func conditionValue(v any) bool {
+	if _, ok := v.(string); ok {
+		return true
+	}
+	o := object(v)
+	return o != nil && len(o.Keys()) > 0
+}
+
+// checkDeclarations rejects a wrong value type in one field's multiple and design declarations.
+func checkDeclarations(spec *Object, path string) error {
+	fail := func(key, expected string) error {
+		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+	}
+	if spec.Has("multiple") {
+		multiple := read(spec, "multiple")
+		_, isBool := multiple.(bool)
+		settings := object(multiple)
+		if !isBool && settings == nil {
+			return fail("multiple", "a boolean or an object")
+		}
+		if settings != nil {
+			for _, key := range []string{"min", "max"} {
+				if _, ok := asNumber(read(settings, key)); settings.Has(key) && !ok {
+					return fail("multiple."+key, "a number")
+				}
+			}
+			for _, key := range []string{"copy", "sortable"} {
+				if _, ok := read(settings, key).(bool); settings.Has(key) && !ok {
+					return fail("multiple."+key, "a boolean")
+				}
+			}
+		}
+	}
+	if spec.Has("design") {
+		design := read(spec, "design")
+		_, isBool := design.(bool)
+		d := object(design)
+		if !isBool && d == nil {
+			return fail("design", "a boolean or an object")
+		}
+		if d == nil {
+			return nil
+		}
+		if show := read(d, "show"); d.Has("show") {
+			if _, ok := show.(bool); !ok && !conditionValue(show) {
+				return fail("design.show", "an expression, a boolean or a condition map")
+			}
+		}
+		for _, key := range []string{"class", "style"} {
+			if d.Has(key) && !conditionValue(read(d, key)) {
+				return fail("design."+key, "a string or a condition map")
+			}
+		}
+		for _, node := range []string{"label", "wrapper", "group", "prepend"} {
+			if !d.Has(node) {
+				continue
+			}
+			n := object(read(d, node))
+			if n == nil {
+				return fail("design."+node, "an object")
+			}
+			for _, key := range []string{"class", "style"} {
+				if n.Has(key) && !conditionValue(read(n, key)) {
+					return fail("design."+node+"."+key, "a string or a condition map")
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // UnmarshalJSON preserves declaration order inside field specifications.
