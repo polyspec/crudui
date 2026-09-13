@@ -215,7 +215,7 @@ final class FieldSpec
         ],
         'multiple' => [
             'location' => 'multiple',
-            'keys'     => ['max', 'copy', 'sortable', 'onclick'],
+            'keys'     => ['min', 'max', 'copy', 'sortable', 'onclick'],
         ],
         'lang' => [
             'location' => 'lang',

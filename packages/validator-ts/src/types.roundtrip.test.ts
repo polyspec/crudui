@@ -46,7 +46,7 @@ describe('FieldSpec round-trip (canonical JSON shape)', () => {
       default: '',
       properties: { first: { type: 'text' }, second: { type: 'text' } },
       items: { model: 'User', method: 'all' },
-      multiple: { max: 5, copy: true, sortable: true },
+      multiple: { min: 1, max: 5, copy: true, sortable: true },
       lang: { mode: 'append', only: ['ko', 'en'] },
       description: 'desc',
       placeholder: 'you@example.com',
