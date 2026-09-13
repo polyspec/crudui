@@ -40,7 +40,7 @@ Widget internals such as `input-group` and `form-control` are a separate contrac
 | `data-crudui-action` | Operation of a button |
 | `hidden` | `design.show` is false; a collapsed row body; the summary of an expanded row |
 | `aria-expanded`, `aria-controls` | Row toggle state and the controlled body |
-| `aria-current="true"` | Selected row in the structure map |
+| `aria-current="true"` | The structure map row of the current row (set by the browser binding) |
 | `data-crudui-stuck` | A sticky row whose top reached its sticky line (set by the browser binding) |
 | `data-crudui-current` | The current row: the last row, in document order, whose top reached its line (set by the browser binding) |
 
@@ -101,9 +101,9 @@ input's own label inside the body, and its header holds only a description. A
   disabled when the row count reaches `multiple.max`; `remove-row` when it is at
   or below `multiple.min`.
 - `multiple.controls` places row controls in the row `header` (default) or
-  `footer`. With `outline` the row controls move to the structure map line of the
-  selected row; an empty collection's Add control is not a row control and stays
-  in the collection footer.
+  `footer`. With `outline` the row controls move to the structure map lines, and the
+  stylesheet shows them on the current row's line only; an empty collection's Add
+  control is not a row control and stays in the collection footer.
 - `multiple.header: sticky` adds `crudui-node--sticky`, and the row root style sets
   `--crudui-sticky-depth` to the number of enclosing sticky rows. The row's sticky
   line is that depth times `--crudui-node-header-height`. Three stylesheet rules
@@ -117,10 +117,12 @@ input's own label inside the body, and its header holds only a description. A
   `connectRows` publishes those two lengths on the connected element, which
   rendering never replaces. The limit is exact when nothing follows the form in its
   scroll container; content after the form, such as page padding, adds its own height.
-- `connectRows(element, onCurrent)` marks a row whose top reached its line: a sticky
+- `connectRows(element)` marks the form rows whose top reached their line: a sticky
   row gets `data-crudui-stuck`, and the last such row in document order (the first
-  row before any) gets `data-crudui-current` and is passed to `onCurrent`. The level
-  label shows only on a stuck header, and the current row has a highlighted border.
+  row before any) gets `data-crudui-current`. When another row becomes current it
+  dispatches `crudui-current` on the element. It only writes these attributes, so
+  scrolling changes no state and renders nothing. The level label shows only on a
+  stuck header, and the current row has a highlighted border.
 
 ## Form buttons
 
@@ -141,20 +143,23 @@ container at `--crudui-form-footer-height`, as sticky row headers pin to the top
 
 ## Structure map and data view
 
-The structure map has one rule: one line per form row. `buildOutline(nodes,
-selection)` returns the form's rows, each with the rows nested in it, so the map
-nests exactly as the form does; collections, counts and empty collections are not
-rows and stay in the form. Each row has a `select-row` button with its number and
-title, and the selected row has `aria-current="true"`. A nested row body indents
+The structure map has one rule: one line per form row. `buildOutline(nodes)`
+returns the form's rows, each with the rows nested in it, so the map nests exactly
+as the form does; collections, counts and empty collections are not rows and stay in
+the form. Each row has a `select-row` button with its number and title, and the row
+of the form's current row has `aria-current="true"`. A nested row body indents
 one step. Its header holds `expand-all`, `collapse-all` and `undo`
 (disabled when nothing can be undone). React, Vue and Svelte provide `Outline`
 and `DataView`, and the stateless `OutlineView` and `DataPanel` (Vue: `outlineVNode`
 and `dataVNode`) for applications that own their data with `bindForm`; the HTML renderer provides `renderOutline(form)` and
 `renderData(form)`, and `renderOutlineView(state, messages)` and
 `renderDataPanel(data, messages)` for the same applications. All four renderers
-reproduce the shared [structure map fixture](../../tests/fixtures/form-outline/cases.json). `connectForm` runs actions in the form and selects the current row that
-`connectRows` reports. `connectOutline(element, form, formElement)` runs
-structure-map actions and aligns the selected form row.
+reproduce the shared [structure map fixture](../../tests/fixtures/form-outline/cases.json). `connectForm` runs actions in the form and tracks its rows with
+`connectRows`. `connectOutline(element, form, formElement)` runs structure-map
+actions, aligns the form row a `select-row` button names, and marks the current row
+with `markOutline(outline, form)` whenever `crudui-current` is dispatched or the map
+is rendered again. An application that renders the map next to its own form calls
+`markOutline` the same way.
 
 ## Interface messages
 
@@ -186,6 +191,7 @@ The reference form that motivated this grammar differs in these deliberate ways:
 4. Depth is unlimited; one recursive node replaces per-depth components.
 5. `multiple.max` is enforced.
 6. Undo records every data change and merges consecutive edits of one path.
-7. Scrolling does not change the selection.
+7. The current row follows the scroll position without time-based locks, and
+   following it changes no state, so nothing renders while scrolling.
 8. A row shows one number; there is no separate position counter.
 9. Layout options are declared in the specification, not chosen in a panel.

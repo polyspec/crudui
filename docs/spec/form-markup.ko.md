@@ -39,7 +39,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `data-crudui-action` | 버튼의 작업 |
 | `hidden` | `design.show`가 false인 노드, 접힌 행 본문, 펼친 행의 요약 |
 | `aria-expanded`, `aria-controls` | 행 토글 상태와 제어하는 본문 |
-| `aria-current="true"` | 구조 맵에서 선택한 행 |
+| `aria-current="true"` | 현재 행에 해당하는 구조 맵 행(브라우저 바인딩이 설정) |
 | `data-crudui-stuck` | 행 상단이 고정선에 닿은 고정 행(브라우저 바인딩이 설정) |
 | `data-crudui-current` | 현재 행: 문서 순서상 마지막으로 행 상단이 고정선에 닿은 행(브라우저 바인딩이 설정) |
 
@@ -97,8 +97,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
   `move-down`은 비활성입니다. 행 수가 `multiple.max`에 도달하면 `add-row`와
   `copy-row`를, `multiple.min` 이하이면 `remove-row`를 비활성합니다.
 - `multiple.controls`는 행 컨트롤을 행 `header`(기본) 또는 `footer`에 둡니다.
-  `outline`이면 행 컨트롤은 선택한 행의 구조 맵 줄로 옮겨지고, 빈 컬렉션의 추가
-  컨트롤은 행 컨트롤이 아니므로 컬렉션 푸터에 남습니다.
+  `outline`이면 행 컨트롤은 구조 맵 줄로 옮겨지고 스타일시트는 현재 행의 줄에서만
+  보여 줍니다. 빈 컬렉션의 추가 컨트롤은 행 컨트롤이 아니므로 컬렉션 푸터에 남습니다.
 - `multiple.header: sticky`는 `crudui-node--sticky`를 추가하고, 행 루트 스타일이
   `--crudui-sticky-depth`를 상위 고정 행의 수로 설정합니다. 행의 고정선은 그 수에
   `--crudui-node-header-height`를 곱한 값입니다. 스타일시트는 이 값에서 세 규칙을 따릅니다.
@@ -110,10 +110,11 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
   두 길이를 렌더링이 교체하지 않는 연결 요소에 게시합니다. 이 한계는 스크롤 영역에서 폼
   뒤에 아무것도 없을 때 정확하며, 페이지 여백처럼 폼 뒤에 있는 내용은 그 높이만큼 더
   스크롤됩니다.
-- `connectRows(element, onCurrent)`는 상단이 고정선에 닿은 행을 표시합니다. 고정 행에는
+- `connectRows(element)`는 상단이 고정선에 닿은 폼 행을 표시합니다. 고정 행에는
   `data-crudui-stuck`을, 그중 문서 순서상 마지막 행(아직 없으면 첫 행)에는
-  `data-crudui-current`를 붙이고 `onCurrent`에 전달합니다. 단계 레이블은 고정된 헤더에만
-  보이고, 현재 행은 테두리가 강조됩니다.
+  `data-crudui-current`를 붙이고, 다른 행이 현재 행이 되면 요소에 `crudui-current`
+  이벤트를 보냅니다. 이 속성만 쓰므로 스크롤은 상태를 바꾸지 않고 아무것도 렌더링하지
+  않습니다. 단계 레이블은 고정된 헤더에만 보이고, 현재 행은 테두리가 강조됩니다.
 
 ## 폼 버튼
 
@@ -133,18 +134,20 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 
 ## 구조 맵과 현재 데이터 보기
 
-구조 맵의 규칙은 하나입니다. 맵의 한 줄은 폼의 행 하나입니다. `buildOutline(nodes,
-selection)`은 폼의 행과 각 행에 중첩된 행을 반환하므로 맵은 폼과 똑같이 중첩되며,
-컬렉션·개수·빈 컬렉션은 행이 아니므로 폼에만 남습니다. 각 행은 번호와 제목을 담은
-`select-row` 버튼을 가지며 선택한 행은 `aria-current="true"`를 가집니다. 중첩된 행 본문은
+구조 맵의 규칙은 하나입니다. 맵의 한 줄은 폼의 행 하나입니다. `buildOutline(nodes)`은
+폼의 행과 각 행에 중첩된 행을 반환하므로 맵은 폼과 똑같이 중첩되며, 컬렉션·개수·빈
+컬렉션은 행이 아니므로 폼에만 남습니다. 각 행은 번호와 제목을 담은 `select-row` 버튼을
+가지며, 폼의 현재 행에 해당하는 행은 `aria-current="true"`를 가집니다. 중첩된 행 본문은
 한 단계 들여씁니다. 헤더에는 `expand-all`,
 `collapse-all`, `undo`(되돌릴 이력이 없으면 비활성)를 둡니다. React, Vue, Svelte는
 `Outline`과 `DataView`를, `bindForm`으로 데이터를 직접 관리하는 응용 프로그램에는
 상태 없는 `OutlineView`와 `DataPanel`(Vue: `outlineVNode`, `dataVNode`)을, HTML 렌더러는 `renderOutline(form)`과 `renderData(form)`, 같은 애플리케이션용
 `renderOutlineView(state, messages)`와 `renderDataPanel(data, messages)`를 제공합니다.
-네 렌더러 모두 공유 [구조 맵 사례](../../tests/fixtures/form-outline/cases.json)를 재현합니다. `connectForm`은 폼 안의 작업을 실행하고 `connectRows`가 알려 주는 현재 행을
-선택합니다. `connectOutline(element, form, formElement)`는 구조 맵의 작업을 실행하고
-선택한 폼 행을 정렬합니다.
+네 렌더러 모두 공유 [구조 맵 사례](../../tests/fixtures/form-outline/cases.json)를 재현합니다. `connectForm`은 폼 안의 작업을 실행하고 `connectRows`로 행을 추적합니다.
+`connectOutline(element, form, formElement)`는 구조 맵의 작업을 실행하고, `select-row`
+버튼이 가리키는 폼 행을 정렬하며, `crudui-current` 이벤트가 오거나 맵이 다시 렌더링될 때마다
+`markOutline(outline, form)`으로 현재 행을 표시합니다. 자체 폼 옆에 맵을 렌더링하는 응용
+프로그램도 같은 방식으로 `markOutline`을 호출합니다.
 
 ## 화면 문구
 
@@ -174,6 +177,7 @@ selection)`은 폼의 행과 각 행에 중첩된 행을 반환하므로 맵은 
 4. 깊이에 제한이 없으며 깊이별 컴포넌트 대신 재귀 노드 하나를 사용합니다.
 5. `multiple.max`를 적용합니다.
 6. 되돌리기는 모든 데이터 변경을 기록하며 같은 경로의 연속 입력을 병합합니다.
-7. 스크롤은 선택을 바꾸지 않습니다.
+7. 현재 행은 시간 기반 잠금 없이 스크롤 위치를 따르며, 따르는 일은 상태를 바꾸지 않으므로
+   스크롤하는 동안 아무것도 렌더링하지 않습니다.
 8. 행에는 번호 하나만 표시하며 별도 위치 표기는 없습니다.
 9. 배치 옵션은 설정 패널이 아닌 명세에 선언합니다.

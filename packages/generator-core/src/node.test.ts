@@ -14,7 +14,6 @@ import {
   rekeyRowView,
   removeRowView,
   runAction,
-  selectRowView,
   setAllExpandedView,
   toggleRowView,
   undoChange,
@@ -179,35 +178,29 @@ describe('instance view state and undo', () => {
     const form = createForm(compileForm(spec), data);
     form.removeRow(`teams.${k1}.members`, k2);
     form.toggleRow('teams', k1);
-    form.selectRow('teams', k2);
     form.setData(data);
     const snapshot = form.getSnapshot();
     expect(snapshot.canUndo).toBe(false);
-    expect(snapshot.selection).toBeUndefined();
     expect(snapshot.fields[0]!.children!.map(row => row.expanded)).toEqual([true, true]);
   });
 
   it('keeps view state attached to rows through removal and rekeying', () => {
     const form = createForm(compileForm(spec), data);
     form.toggleRow('teams', k2);
-    form.selectRow('teams', k2);
     form.rekeyRow('teams', k2, '__0000000000042__');
-    expect(form.getSnapshot().selection).toEqual({ path: 'teams', key: '__0000000000042__' });
     expect(form.getSnapshot().fields[0]!.children![1]!.expanded).toBe(false);
     form.removeRow('teams', '__0000000000042__');
-    expect(form.getSnapshot().selection).toBeUndefined();
     form.undo();
     expect(form.getSnapshot().fields[0]!.children![1]!.expanded).toBe(true);
   });
 });
 
 describe('structure map and actions', () => {
-  it('maps rows only, nested as in the form, marking the selected row', () => {
+  it('maps rows only, nested as in the form', () => {
     const form = createForm(compileForm(spec), data, { language: 'en' });
-    form.selectRow('teams', k2);
-    const rows = buildOutline(form.getSnapshot().fields, form.getSnapshot().selection);
-    expect(rows.map(row => [row.path, row.number, row.title, row.current])).toEqual([
-      ['teams', '1', 'Sales', false], ['teams', '2', '(untitled)', true],
+    const rows = buildOutline(form.getSnapshot().fields);
+    expect(rows.map(row => [row.path, row.number, row.title])).toEqual([
+      ['teams', '1', 'Sales'], ['teams', '2', '(untitled)'],
     ]);
     expect(rows[0]!.rows.map(row => [row.path, row.number])).toEqual([[`teams.${k1}.members`, '1.1'], [`teams.${k1}.members`, '1.2']]);
     expect(rows[1]!.rows).toEqual([]);
@@ -222,6 +215,10 @@ describe('structure map and actions', () => {
     expect(runAction(form, { name: 'remove-row', path: 'teams' })).toBeUndefined();
     expect(runAction(form, { name: 'toggle-row', path: 'teams', key: k1 })).toEqual({});
     expect(form.getSnapshot().fields[0]!.children![0]!.expanded).toBe(false);
+    // Selecting changes no state; it names the row to move to.
+    const revision = form.getSnapshot();
+    expect(runAction(form, { name: 'select-row', path: 'teams', key: k1 })).toEqual({ focus: { path: 'teams', key: k1 } });
+    expect(form.getSnapshot()).toBe(revision);
     expect(runAction(form, { name: 'undo' })).toEqual({});
     expect(form.getValue(members)).toEqual({});
   });
@@ -262,15 +259,13 @@ describe('pure view state and history rules', () => {
   });
 
   it('drops, renames and resets the view state of rows', () => {
-    let view = selectRowView(toggleRowView(initialView(), `teams.${k1}`), `teams.${k1}.members`, k2);
+    let view = toggleRowView(toggleRowView(initialView(), `teams.${k1}`), `teams.${k1}.members.${k2}`);
     view = toggleRowView(view, `teams.${k2}`);
-    expect(selectRowView(view, `teams.${k1}.members`, k2)).toBe(view);
     expect(rekeyRowView(view, `teams.${k1}`, 'teams.__0000000000009__')).toEqual({
-      collapsed: new Set(['teams.__0000000000009__', `teams.${k2}`]),
-      selection: { path: 'teams.__0000000000009__.members', key: k2 },
+      collapsed: new Set(['teams.__0000000000009__', `teams.__0000000000009__.members.${k2}`, `teams.${k2}`]),
     });
     expect(removeRowView(view, `teams.${k1}`)).toEqual({ collapsed: new Set([`teams.${k2}`]) });
-    expect(setAllExpandedView(view, bindForm(compileForm(spec), data), false).collapsed)
+    expect(setAllExpandedView(bindForm(compileForm(spec), data), false).collapsed)
       .toEqual(new Set([`teams.${k1}`, `teams.${k2}`]));
     expect(initialView()).toEqual({ collapsed: new Set() });
   });

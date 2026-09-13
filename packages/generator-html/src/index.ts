@@ -311,7 +311,6 @@ function outlineRow(row: OutlineRow): string {
     class: 'crudui-node crudui-node--row',
     'data-field-path': row.path,
     'data-crudui-row-key': row.key,
-    'aria-current': row.current ? 'true' : undefined,
   });
   return `<div${root}>` +
     element('div', { class: 'crudui-node__header' }, select + (row.controls ? controlsHtml(row.controls) : '')) +
@@ -326,7 +325,7 @@ export function renderOutlineView(state: OutlineState, messages: FormMessages): 
     textAction('undo', messages.undo, !state.canUndo));
   return element('div', { class: 'crudui-outline' },
     element('div', { class: 'crudui-outline__header' }, controls) +
-    element('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(outlineRow).join('')));
+    element('div', { class: 'crudui-outline__body' }, buildOutline(state.fields).map(outlineRow).join('')));
 }
 
 /** Render the structure map of a form instance with its form controls. */

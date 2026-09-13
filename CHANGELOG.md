@@ -2,6 +2,34 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Scrolling renders nothing: the current row is no longer instance state
+
+Scrolling past a row made it current, and `connectForm` then called
+`selectRow`, which published a new snapshot. Applications re-render on every
+snapshot, so each row boundary crossed while scrolling replaced the whole form, the
+structure map and the data view, and restored the focused control and its text
+selection. With a control focused, the scroll was pulled back toward it. The
+selection existed only to mark the map, so it is removed rather than guarded:
+`FormInstance.selectRow`, the snapshot and view state `selection`, `RowSelection`,
+`selectRowView` and `OutlineRow.current` are gone, and `setAllExpandedView` takes
+only the nodes and the expansion. `connectRows(element)` tracks only form rows (map
+rows carry their own `data-field-path`) and dispatches `crudui-current` when another
+row becomes current. The new `markOutline(outline, form)` sets `aria-current` on the
+map row of the form's current row; `connectOutline` calls it on that event and
+whenever the map is rendered again, and the comparison `bindForm` controller calls it
+for its map. `select-row` changes no state: `runAction` returns the row to move to and
+the binding aligns it. With `multiple.controls: outline` the map renders every row's
+controls and the stylesheet shows those of the current row.
+
+The Chromium style checks now render the structure map next to the form and assert
+that scrolling through the rows renders nothing and that the map marks exactly the
+current form row at every step. A puppeteer probe of the preview, with two members
+added and a control focused, measured one or two full renders per scroll gesture
+before the change and none after it. generator-core, HTML, React, Vue and Svelte
+passed 108, 116, 705, 348 and 349 tests with the regenerated structure map fixture,
+the Svelte client 10, the Node checks (normalizer, styles and naming) 11, the form
+comparison source checks 140 and its Chromium checks 3, and `make docs-check` passed.
+
 ## 2026-09-13 — Check the markup naming rules and the collapse and undo DOM paths
 
 The class naming rules of the form markup (N1–N3: `crudui-{block}`,

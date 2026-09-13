@@ -48,19 +48,25 @@ const shortData = { [levels[0]]: { [key]: { name: 'ACME', stores: {
 
 const browserSource = `
 import '/packages/generator-core/styles/form.css';
-import { compileForm, connectForm, createForm } from '@crudui/generator-core';
-import { renderForm } from '@crudui/generator-html';
+import { compileForm, connectForm, connectOutline, createForm } from '@crudui/generator-core';
+import { renderForm, renderOutline } from '@crudui/generator-html';
 
 const element = document.getElementById('form');
+const outline = document.getElementById('outline');
 window.formStylesTest = {
+  renders: 0,
   mount(spec, data) {
     const form = createForm(compileForm(spec), data, { language: 'en' });
     element.innerHTML = renderForm(form);
+    outline.innerHTML = renderOutline(form);
     const connection = connectForm(element, form);
+    connectOutline(outline, form, element);
     // Render every change and synchronize, as an HTML renderer application does.
     form.subscribe(() => {
+      window.formStylesTest.renders++;
       element.innerHTML = renderForm(form);
       connection.sync();
+      outline.innerHTML = renderOutline(form);
     });
   },
 };
@@ -82,7 +88,7 @@ before(async () => {
           if (request.url !== '/form-styles') return next();
           try {
             // Tall note fields give every level room to stay stuck while scrolling.
-            const html = await vite.transformIndexHtml('/form-styles', `<!doctype html><html><head><link rel="icon" href="data:,"><style>body{margin:0;padding-top:40px}textarea{height:900px}</style></head><body><div id="form"></div><script type="module" src="${entry}"></script></body></html>`);
+            const html = await vite.transformIndexHtml('/form-styles', `<!doctype html><html><head><link rel="icon" href="data:,"><style>body{margin:0;padding-top:40px}textarea{height:900px}</style></head><body><div id="form"></div><div id="outline" style="position:fixed;top:0;right:0;width:12rem"></div><script type="module" src="${entry}"></script></body></html>`);
             response.setHeader('Content-Type', 'text/html');
             response.end(html);
           } catch (error) { next(error); }
@@ -219,11 +225,23 @@ test('the scroll position alone decides the current row; moving to a row scrolls
     // Focus stays put while the user scrolls away; the scroll alone moves the current row.
     await page.evaluate(() => document.querySelector('input[name$="[name]"]').focus());
     const focused = (await state()).active;
+    const rendersBefore = await page.evaluate(() => window.formStylesTest.renders);
+    const mapped = [];
     for (let step = 0; step < 40; step++) {
       await page.mouse.wheel({ deltaY: 400 });
       await frame();
+      mapped.push(await page.evaluate(() => {
+        const marked = [...document.querySelectorAll('#outline [aria-current="true"]')];
+        return { marked: marked.map(row => row.getAttribute('data-crudui-row-key')), current: document.querySelector('#form [data-crudui-current]').getAttribute('data-crudui-row-key') };
+      }));
     }
     const end = await state();
+    // Following the current row changes no state, so scrolling renders nothing.
+    assert.equal(await page.evaluate(() => window.formStylesTest.renders), rendersBefore, 'Scrolling renders nothing');
+    for (const { marked, current } of mapped) {
+      assert.deepEqual(marked, [current], 'The structure map marks exactly the current form row');
+    }
+    assert.ok(new Set(mapped.map(entry => entry.current)).size > 1, 'Scrolling changed the current row');
     assert.ok(Math.abs(end.scrollY - end.maxScrollY) < 0.5, `Scrolling reaches the end with focus elsewhere: ${end.scrollY} vs ${end.maxScrollY}`);
     assert.equal(end.active, focused, 'Scrolling does not move focus');
     assert.equal(end.currentName, 'Pangyo', 'At the end the last row is current');
@@ -241,7 +259,7 @@ test('the row at the end of the form limits scrolling at its line, with no blank
     await page.goto(url);
     await page.waitForFunction(() => window.formStylesTest !== undefined);
     await page.evaluate((spec, data) => window.formStylesTest.mount(spec, data), shortSpec, shortData);
-    // The page re-renders the form whenever the current row changes; scrolling must never be pulled back.
+    // Scrolling must never be pulled back.
     await page.evaluate(() => {
       window.scrollLog = [];
       window.addEventListener('scroll', () => window.scrollLog.push(window.scrollY), { passive: true });

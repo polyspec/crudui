@@ -452,9 +452,9 @@
     {
       "id": "buildOutline",
       "owner": "@crudui/generator-core",
-      "signature": "buildOutline(nodes, selection?) -> OutlineRow[]",
-      "input": "evaluated nodes and the selected row",
-      "output": "the form rows, each with its nested rows, marking the selected row",
+      "signature": "buildOutline(nodes) -> OutlineRow[]",
+      "input": "evaluated nodes",
+      "output": "the form rows, each with its nested rows and the row controls placed in the map",
       "errors": [
         "TypeError"
       ],
@@ -489,7 +489,7 @@
       "owner": "@crudui/generator-core",
       "signature": "connectOutline(element, form, formElement) -> FormConnection",
       "input": "rendered structure map, form instance and rendered form host",
-      "output": "event connection that runs map actions and scrolls to the selected row",
+      "output": "event connection that runs map actions, scrolls to the selected row and marks the form's current row in the map",
       "errors": [
         "TypeError",
         "FormError"
@@ -521,9 +521,9 @@
     {
       "id": "connectRows",
       "owner": "@crudui/generator-core",
-      "signature": "connectRows(element, onCurrent) -> RowTracking",
-      "input": "rendered form host and a callback for the current row",
-      "output": "row tracking that marks rows at their sticky line, reports the current row and publishes the end row lengths for the space after the form",
+      "signature": "connectRows(element) -> RowTracking",
+      "input": "rendered form host",
+      "output": "row tracking that marks rows at their sticky line and the current row, dispatches crudui-current when it changes and publishes the end row lengths for the space after the form",
       "errors": [
         "TypeError"
       ],
@@ -545,6 +545,39 @@
       "docs": [
         "docs/spec/form-markup.md",
         "docs/spec/form-runtime.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "node --test tests/form-styles.test.mjs"
+        }
+      ]
+    },
+    {
+      "id": "markOutline",
+      "owner": "@crudui/generator-core",
+      "signature": "markOutline(outline, form) -> void",
+      "input": "rendered structure map and the element holding the tracked form rows",
+      "output": "aria-current on the map row of the form's current row",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-outline/cases.json"
+      ],
+      "support": {
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass"
+      },
+      "status": "implemented",
+      "state": "aria-current attributes from the form's data-crudui-current row",
+      "tests": [
+        "tests/form-styles.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -628,9 +661,9 @@
     {
       "id": "viewState",
       "owner": "@crudui/generator-core",
-      "signature": "initialView() -> ViewState; toggleRowView | setAllExpandedView | selectRowView | removeRowView | rekeyRowView(view, ...) -> ViewState",
+      "signature": "initialView() -> ViewState; toggleRowView | removeRowView | rekeyRowView(view, ...) -> ViewState; setAllExpandedView(nodes, expanded) -> ViewState",
       "input": "current view state, row paths and evaluated nodes",
-      "output": "new view state with collapsed row paths and selection",
+      "output": "new view state with collapsed row paths",
       "errors": [
         "TypeError"
       ],

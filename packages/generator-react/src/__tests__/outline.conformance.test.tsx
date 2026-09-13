@@ -10,7 +10,7 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
-import { bindForm, compileForm, formMessages, type RowSelection } from '@crudui/generator-core';
+import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
 import { DataPanel, OutlineView } from '../index';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
@@ -21,7 +21,6 @@ interface OutlineCase {
   spec: Record<string, unknown>;
   data: Record<string, unknown>;
   options: { language: string };
-  selection?: RowSelection;
   canUndo: boolean;
   expected_outline_html: string;
   expected_data_html: string;
@@ -34,7 +33,7 @@ describe('structure map and data view: React reproduces the fixture', () => {
     test(c.name, () => {
       const messages = formMessages(c.options.language);
       const fields = bindForm(compileForm(c.spec), c.data, c.options as never);
-      const state = { fields, canUndo: c.canUndo, ...(c.selection ? { selection: c.selection } : {}) };
+      const state = { fields, canUndo: c.canUndo };
       expect(normalizeHtml(renderToStaticMarkup(<OutlineView state={state} messages={messages} />))).toBe(c.expected_outline_html);
       expect(normalizeHtml(renderToStaticMarkup(<DataPanel data={c.data} messages={messages} />))).toBe(c.expected_data_html);
     });
