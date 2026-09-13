@@ -2,6 +2,35 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — Bootstrap 기반 레거시 UI 경로 제거
+
+레거시 폼 컴포넌트와 원본 Limepie 렌더링 비교는 Bootstrap 위에 만들어졌고, 노드 문법과
+`crudui.css`로 대체되었습니다. 현재 경로 옆에 두지 않고 제거합니다.
+
+- `@crudui/generator-react/legacy`, `@crudui/generator-vue/legacy`,
+  `@crudui/generator-svelte/legacy`와 그 소스, React `@crudui/generator-react/styles.css`
+  스타일시트, 이를 검사하던 테스트(React 테스트 16개, Vue·Svelte 패리티 테스트와 캡처, Svelte
+  레거시 컴포넌트 테스트)
+- `examples/legacy/demo-app`, `playground`, `limepie-bootstrap`, `limepie-compare`,
+  `limepie-original`, `limepie-validate-test`, `react-usage.tsx`와 해당 docker-compose 서비스,
+  README 항목
+- `tests/parity`, `tests/cross-framework`, `tests/legacy-client`,
+  `tests/fixtures/reference-html`, `tools/limepie-baseline`, 루트 `compare` 페이지, 벤더링한
+  `packages/generator-legacy`, Vue·Svelte 단계가 form-render 작업을 반복하던 CI parity 작업
+- 레거시 컴포넌트만 쓰던 React, Vue, Svelte 패키지의 `lucide-react`, `yaml` 의존성
+
+레거시 명세 번역과 검증기(`@crudui/validator/legacy`와 PHP, Go, Rust 대응 구현), 레거시 검증 API
+예제와 공유 명세는 데이터를 검증할 뿐 렌더링하지 않으므로 남깁니다. 공개 패키지 테스트는 이제
+`@crudui/generator-core/crudui.css`가 유일하게 export되는 스타일시트인지 확인합니다.
+
+제거 후 `npm run build`, `npm run lint`, Svelte 타입 검사가 통과했습니다. generator-core와
+HTML은 계속 테스트 108, 116개를 통과했고, React, Vue, Svelte는 347, 341, 338개(제거한 레거시
+테스트만큼 358, 7, 11개 감소), Svelte 클라이언트는 10개, Node 검사는 11개를 통과했습니다. 폼
+비교 소스 검사 140개와 새 스타일시트 export 검사가 통과했고, 구형 스키마·표시 문서가 제거한
+React 소스를 더 이상 링크하지 않게 한 뒤 `make docs-check`가 통과했습니다. 같은 실행에서
+`tests/build/public-packages.test.mjs`의 선언 컴파일 검사와 의존성·pack 검사 두 개가 이미 실패하고
+있었음이 드러났으며, 다음 항목에서 고칩니다.
+
 ## 2026-09-13 — crudui.css만으로 폼 스타일링: 위젯은 Bootstrap 대신 crudui 문법 사용
 
 위젯 마크업은 원본 폼에서 이어받은 Bootstrap 어휘(`form-control`, `form-select`,

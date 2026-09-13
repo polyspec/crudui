@@ -147,38 +147,6 @@ jobs:
         run: cargo test
         working-directory: packages/validator-rust
 
-  parity:
-    name: HTML parity (React/Vue/Svelte)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.node-version'
-          cache: npm
-
-      - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci --strict-allow-scripts
-
-      - name: Build generators (validator + react/vue/svelte)
-        run: npm run build
-
-      - name: React parity
-        run: |
-          npm ci --strict-allow-scripts
-          npm test
-        working-directory: tests/parity
-
-      - name: Vue parity
-        run: npm test
-        working-directory: packages/generator-vue
-
-      - name: Svelte parity
-        run: npm test
-        working-directory: packages/generator-svelte
-
   docs-coverage:
     name: doc-coverage gate
     runs-on: ubuntu-latest

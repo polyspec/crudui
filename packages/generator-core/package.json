@@ -32,8 +32,7 @@
     "form-builder",
     "yaml",
     "spec",
-    "validation",
-    "limepie"
+    "validation"
   ],
   "author": "",
   "license": "MIT",

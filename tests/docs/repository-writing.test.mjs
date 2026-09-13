@@ -9,10 +9,6 @@ const excludedPrefixes = [
   'docs/api/',
   'docs/.site/',
   'docs/.vitepress/',
-  'packages/generator-legacy/limepie/vendor/',
-  'examples/legacy/limepie-compare/js/',
-  'examples/legacy/limepie-original/assets/',
-  'examples/legacy/limepie-validate-test/',
 ];
 const sourceExtensions = new Set([
   '.c', '.cjs', '.go', '.js', '.mjs', '.mts', '.php', '.rs', '.sh', '.ts', '.tsx', '.vue',
