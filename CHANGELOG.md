@@ -2,6 +2,31 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Take over sticky rows identically in React
+
+The candidate run of 338d060 failed in `browser-php`: the SSR takeover in React
+differed on the first sticky row, whose style the server writes as
+`--crudui-sticky-depth:0` and React as `--crudui-sticky-depth: 0;`. The local shared
+takeover test had not caught it because its specification had no sticky rows; I had
+declared sticky rows only in the comparison example.
+
+- A `style` attribute is a CSS declaration block, so the takeover comparison, in the
+  comparison frame and in `compareServerTakeover`, compares it as the CSS object model
+  serializes its declarations.
+- The shared form session specification declares sticky rows for companies and stores,
+  so the React, Vue and Svelte form tests render and compare them.
+- That exposed a React fault present since f7f814e: `resolvedStyleProps` removed and
+  re-added the style attribute each time React called its ref, on every render, so a
+  re-rendered row's style moved after the `data-crudui-current` attribute the browser
+  binding had written, and a form given its data later differed in raw HTML from one
+  created with it. The style attribute is now placed after the rendered attributes
+  only when an element first connects, and later declarations replace it in place.
+
+`make format-check`, `npm run test:forms` (core 108, HTML 116, React 350, Vue 341,
+Svelte 338 and 10 client tests), `npm run test:form-comparison:source`,
+`npm run test:build`, `npm run test:dependencies`, `make docs-check` and the Chromium
+style checks (5) passed.
+
 ## 2026-09-14 — Count the content after the form in the trailing space
 
 The trailing space after the form ignored the content that already follows the form in
