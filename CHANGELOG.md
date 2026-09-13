@@ -2,6 +2,34 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Apply the sticky rules in any scroll container and declare sticky rows in the comparison example
+
+The comparison page showed no sticky headers because its example specification did
+not declare `multiple.header: sticky`; the local preview declared it, so the same
+generator behaved differently between the two examples. Checking why exposed a fault
+that would appear wherever a form sits in a scrolling box, a dialog or a frame rather
+than the page: `crudui.css` computed the trailing space after the form from `100vh`,
+the page viewport, while the sticky headers follow their scroll container, and
+`connectRows` treated an ancestor as the scroll container only while its content
+already overflowed, unlike `position: sticky`. In a 420 px scrolling box inside a
+700 px page, scrolling went on until the end row was 193 px above the box instead of
+stopping with it on its 87 px line.
+
+- `connectRows` resolves the scroll container as `position: sticky` does (the nearest
+  ancestor whose vertical overflow is `auto` or `scroll`, otherwise the document) and
+  publishes its height as `--crudui-scroll-height` with the two end-row lengths;
+  `crudui.css` uses it in place of `100vh`. The SSR takeover comparisons leave it out
+  with the other binding state. A DOM without `scrollingElement`, such as jsdom, uses
+  its root element as the document scroller, and the comparison controller test's
+  stand-in document has a root element like a real one.
+- The comparison example declares `header: sticky` and `title: name` for companies,
+  stores and departments, so every server and framework renders and compares sticky
+  rows.
+- A Chromium check mounts a form in a scrolling box and verifies stuck headers on
+  their lines, no scroll pull-back, the end row stopping on its line and being current,
+  and the published height. Before the change it failed with the end row at −193 px
+  against its 87 px line.
+
 ## 2026-09-13 — Record the passing SSR/CSR candidate run and its deployment
 
 `node examples/form-comparison/candidate-verification.mjs` passed for 8d0d467. PHP,

@@ -14,9 +14,9 @@ test('returns an independent current browser form specification', () => {
   const companies = second.properties.companies;
   const stores = companies.properties.stores;
   const departments = stores.properties.departments;
-  assert.deepEqual(companies.multiple, { copy: true, sortable: true, max: 4 });
-  assert.deepEqual(stores.multiple, { copy: true, sortable: true, max: 4 });
-  assert.equal(departments.multiple, true);
+  assert.deepEqual(companies.multiple, { copy: true, sortable: true, max: 4, header: 'sticky', title: 'name' });
+  assert.deepEqual(stores.multiple, { copy: true, sortable: true, max: 4, header: 'sticky', title: 'name' });
+  assert.deepEqual(departments.multiple, { header: 'sticky', title: 'name' });
   assert.equal(companies.properties.name.validate.required, true);
   assert.equal(stores.properties.name.validate.required, true);
   assert.equal(stores.properties.detail.design.show, '.enabled');

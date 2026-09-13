@@ -4,7 +4,7 @@ import { domSnapshot, formSnapshot } from '../../form-inspector/form-snapshot.mj
 
 /**
  * Parsed DOM of a rendered form without the state the browser binding writes (the
- * `data-crudui-stuck` and `data-crudui-current` row marks and the end-row lengths
+ * `data-crudui-stuck` and `data-crudui-current` row marks and the scroll and end-row lengths
  * published on the connected element) and without the nodes frameworks use as rendering
  * anchors, which render nothing: comments and empty text. Attribute order is not part of
  * the DOM.
@@ -22,6 +22,7 @@ function formDom(form) {
     element.removeAttribute('data-crudui-current');
     element.removeAttribute('data-crudui-stuck');
   }
+  copy.style.removeProperty('--crudui-scroll-height');
   copy.style.removeProperty('--crudui-form-end-extent');
   copy.style.removeProperty('--crudui-form-end-top');
   if (copy.getAttribute('style') === '') copy.removeAttribute('style');
