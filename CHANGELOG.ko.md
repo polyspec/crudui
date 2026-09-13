@@ -2,6 +2,21 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — CSS 전용 고정 행 후보 검증과 배포 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 3578158에서 통과했습니다. PHP,
+PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
+실패 없이 기록했습니다. 앞선 실행은 멈췄습니다. 338d060은 React의 고정 행 SSR 인계에서,
+5fbcf5a는 Chromium 스크린샷 오류로 실패했고 둘 다 이후 커밋에서 고쳐지거나 대체되었으며,
+3578158의 첫 실행은 디스크가 가득 차 이미지 구성 중 실패했습니다. 컨테이너 이미지 빌더가 반복된
+후보 빌드로 약 75GB의 빌드 캐시를 갖고 있었고, `container prune`, `container image prune --all`,
+빌더 삭제(다음 빌드에서 캐시를 다시 만듦)로 83GiB를 확보했으며 실행 중인 컨테이너와 볼륨은
+건드리지 않았습니다. `node examples/form-comparison/comparison-deployment.mjs --commit 3578158…`가
+이를 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 브라우저에서 SSR과 CSR
+열은 8/8 일치하고, 각 프레임은 고정 행 4개를 가지며 `data-crudui-stuck`, `data-crudui-current`,
+게시 길이가 없고, SSR 프레임을 스크롤하면 회사 헤더가 고정선에 붙어 레이블을 보이며 아직 고정되지
+않은 Busan 헤더는 레이블을 숨깁니다.
+
 ## 2026-09-14 — 고정 행을 CSS만으로 동작하게 하고 스크롤 측정 제거
 
 고정 행이 프레임에서 페이지와 같게 동작하지 않은 것은 브라우저 바인딩이 스크롤 위치를 스크립트로
