@@ -2,6 +2,27 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Compare generator error messages across implementations
+
+The native generator suite compared only error code and location, and its README
+allowed messages to differ by language. That contradicts the requirement that all
+implementations behave identically, so the rule now requires matching code,
+message and location. Rejected form inputs are compared as complete records
+against JavaScript.
+
+The stricter comparison found 12 existing differences, now fixed:
+
+- The PHP, Go and Rust generator CLIs reported non-object `data` as `Data must be
+  an object`, `Group data must be an object` and `data must be an object`. All now
+  report `Form data must be an object`.
+- Go and Rust worded unsupported field types differently. Both now report
+  `Unsupported field type "{type}" at "{path}"`.
+- Go named `SequenceRowKey` in the invalid row key message; it now names
+  `sequenceRowKey` like the other implementations.
+
+`make test-native` passed 786 generator checks, 361 PHP API checks per
+configuration and 100 validation cases in each PHP implementation.
+
 ## 2026-09-13 — Report validator load and input failures identically
 
 The TypeScript, PHP, C PHP extension, Go and Rust validators reject submitted

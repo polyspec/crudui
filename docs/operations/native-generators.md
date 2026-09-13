@@ -37,8 +37,9 @@ than one PHP release can be selected.
 The PHP API check uses three separate processes: Composer classes, the extension
 without Composer, and the extension with Composer. Reflection verifies the actual
 class implementation and all public method signatures. The shared generator
-suite compares templates, evaluated fields, data, row operations and original
-HTML. It records hashes before and after execution and fails if an input changes.
+suite compares templates, evaluated fields, data, row operations, original HTML
+and each rejection's complete code, message and location. It records hashes
+before and after execution and fails if an input changes.
 
 The default report is `.git/native-generators/report.json`. `NATIVE_REPORT` selects
 another report path. The [suite procedure](../../tests/native-generators/README.md)
