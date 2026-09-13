@@ -40,8 +40,8 @@ func findTestCasesDir() (string, error) {
 	// Try different paths relative to where tests might be run from
 	candidatePaths := []string{
 		"../../../../tests/cases", // From packages/validator-go/validator
-		"../../tests/cases",    // From packages/validator-go
-		"tests/cases",          // From project root
+		"../../tests/cases",       // From packages/validator-go
+		"tests/cases",             // From project root
 	}
 
 	for _, path := range candidatePaths {

@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-native
+.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-native format-check
 .NOTPARALLEL: docs docs-site docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -34,6 +34,7 @@ help: ## 타겟 설명
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
 	@echo "  make build-php-extension   Build and load the native PHP module"
 	@echo "  make test-native           Test PHP, Go, Rust and native PHP generation"
+	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
@@ -159,3 +160,12 @@ test-native: build-php-extension
 	node --test tests/native-generators/protocol.test.mjs
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)"
 	node --test tests/widget-scripts.test.mjs
+
+# Every tracked Rust crate must match rustfmt and every tracked Go file gofmt.
+format-check:
+	@for manifest in $$(git ls-files '*Cargo.toml'); do \
+		node scripts/run-rust-command.mjs fmt --check --manifest-path "$$manifest" || exit 1; \
+	done
+	@unformatted="$$(gofmt -l $$(git ls-files '*.go'))"; \
+	if [ -n "$$unformatted" ]; then echo "gofmt differences:"; echo "$$unformatted"; exit 1; fi
+	@echo "[make] format-check: Rust crates and Go files are formatted"
