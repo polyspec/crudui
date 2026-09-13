@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Record the passing four-server candidate run for the buttons and scrolling changes
+
+`node examples/form-comparison/candidate-verification.mjs --ref <commit>` passed:
+PHP, the PHP extension, Go and Rust each passed 1,452 checks with no failure, the
+browser verification recorded 5,808 checks with no failure, and the command returned
+status 0. It covers the form buttons, the naming and DOM scenario checks,
+rendering nothing while scrolling and the two comparison fixes
+the earlier runs found: one run failed in the PHP generation test
+and the next failed in the reference compilation check; both are fixed.
+
 ## 2026-09-13 — Scrolling renders nothing: the current row is no longer instance state
 
 Scrolling past a row made it current, and `connectForm` then called
