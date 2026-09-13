@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Restore the React form session tests removed with the legacy UI
+
+d26ecce deleted `packages/generator-react/src/__tests__/Form.test.tsx` together with
+the legacy FormBuilder test in the same file, so React stopped running the shared
+initialization, session DOM, control and focus scenarios that Vue and Svelte run. The
+file is restored without the legacy test and also runs `compareServerTakeover`.
+React passes 350 tests.
+
 ## 2026-09-13 — Make Vue and Svelte take over server-rendered forms without changing them
 
 The first candidate run of d80a3a0 failed in the SSR column. Vue keeps comment nodes as
