@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Remove check directories after passing runs
+
+`tests/native-generators/run.mjs` created a `crudui-native-generators-*` build
+directory on every run and never removed it. `scripts/check-packages.mjs` left a
+145 MB `crudui-consumer-*` project after every run. Repeated runs helped fill the
+disk. A passing run now removes its directory. A failing run keeps it, prints its
+path, and records it in the report (`buildDirectory`) or with `failure.log`. The
+other test files already removed their temporary directories.
+
+`make test-native` passed 886 checks and left no build directory.
+`npm run test:packages` passed and left no consumer project. `make docs-check`
+passed.
+
 ## 2026-09-13 — Reject wrong multiple and design value types at compilation
 
 Form compilation in TypeScript, PHP, Go, Rust and the C PHP extension previously
