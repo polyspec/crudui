@@ -261,7 +261,7 @@ function checkDocument(parse, markup, expected, server, renderingPath, framework
   assert.ok(links.some(url => url.pathname === `/frames/${renderingPath}-${framework}/`
     && url.searchParams.get('server') === server
     && url.searchParams.get('lang') === language
-    && url.searchParams.get('initialization') === 'data'),
+    && url.searchParams.get('initialization') === 'ssr'),
   'Missing corresponding interactive form link');
   if (server === 'php' || server === 'php-ext') {
     const metadata = oneNode(nodes, node => node.tagName === 'script' && attr(node, 'id') === 'generator', 'Missing SSR PHP provenance');

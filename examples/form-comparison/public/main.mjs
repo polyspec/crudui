@@ -16,7 +16,7 @@ const initialServer = new URLSearchParams(location.search).get('server') ?? 'php
 if (!formServers.includes(initialServer)) throw new Error('Unknown server');
 serverSelector.value = initialServer;
 const frames = formInitializations.map(initialization => document.querySelector(`#${initialization}`));
-const [dataFrame, injectFrame] = frames;
+const [ssrFrame, csrFrame] = frames;
 let reports = [];
 let running = false;
 let activeJob;
@@ -56,13 +56,13 @@ async function capture(frame, response) {
 async function compareMounted() {
   renderInitialization([{
     label: 'mounted',
-    results: compareSnapshots(await capture(injectFrame), await capture(dataFrame), initializationCategories),
+    results: compareSnapshots(await capture(csrFrame), await capture(ssrFrame), initializationCategories),
   }]);
 }
 
 /**
- * Run every stage in the `data` column, reset, then in the `inject` column with the same
- * row keys. Each `inject` stage is compared with the stored `data` stage without normalization.
+ * Run every stage in the `ssr` column, reset, then in the `csr` column with the same
+ * row keys. Each `csr` stage is compared with the stored `ssr` stage without normalization.
  */
 async function compareInitialization() {
   const comparisons = [];
@@ -131,7 +131,7 @@ async function initializationReport(server, path, framework) {
   const { comparisons, stages, cssFailures } = await compareInitialization();
   return {
     kind: 'initialization', server, path, framework,
-    commit: dataFrame.contentWindow.comparison.commit,
+    commit: ssrFrame.contentWindow.comparison.commit,
     results: comparisons.flatMap(comparison => comparison.results.map(result =>
       ({ label: comparison.label, ...result }))),
     stages, cssFailures,
@@ -223,7 +223,7 @@ async function runAll(servers, publish) {
             initializationReport(server, path, framework)));
           for (const transport of formTransports) {
             reports.push(await publish([server, path, framework, transport].join('/'), () =>
-              dataFrame.contentWindow.comparison.runChecks(transport)));
+              ssrFrame.contentWindow.comparison.runChecks(transport)));
           }
           renderReport();
         }

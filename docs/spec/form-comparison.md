@@ -132,13 +132,18 @@ updates keyed data and binds the fields again after input and row operations. Th
 the session for data replacement and row operations. Compile failures are returned
 as failures; the browser does not compile a replacement template.
 
-The main page selects a server, framework and rendering path and shows two
-initialization paths side by side with the same template, record and language.
-The left frame (`initialization=data`) requests the saved record and creates the
-form with it. The right frame (`initialization=inject`) mounts the form without
-data before it requests the saved record, then injects the record into the
-existing form. A frame URL without one of these values fails. SSR documents link
-to the `data` path. Frames and SSR documents load `@crudui/generator-core/crudui.css`
+The main page selects a server, framework and rendering path and shows server-side
+and client-side rendering of the same form side by side, with the same template,
+record and language. The left frame (`initialization=ssr`) requests the saved
+record, lets the selected server (PHP, the PHP extension, Go or Rust) render the
+form with it, places that HTML in the page and lets the selected framework take the
+form over with the same template and data. Taking it over must leave the form markup
+unchanged; the comparison leaves out only the state the browser binding writes
+(`data-crudui-stuck`, `data-crudui-current` and the end-row lengths published on the
+connected element). The right frame (`initialization=csr`) mounts the form without
+data before it requests the saved record, then injects the record into the existing
+form. A frame URL without one of these values fails. SSR documents link to the `ssr`
+path. Frames and SSR documents load `@crudui/generator-core/crudui.css`
 before the page stylesheet, so computed CSS is compared with the grammar styles; the
 page stylesheet does not style anything inside `#view`. Each frame
 renders the form, the structure map and the data view inside the compared element.
@@ -159,7 +164,7 @@ reports:
 - two transports for scenario reports: native multipart form and ordered JSON.
 
 Every report uses the same specification, compiled template, data and checks.
-Scenario checks run in the `data` frame.
+Scenario checks run in the `ssr` frame.
 Native and JSON saves must produce the same records, identifiers, parent
 identifiers and positions. Ordered JSON preserves object member order at every
 depth.
@@ -205,7 +210,8 @@ repository, then runs the same stages in the right frame. Row key inputs repeat
 from the `copied` stage to `saved-new` in both runs, so both columns create the
 same keys. The stages are:
 
-- `mounted`: reset the repository and create (left) or mount and inject (right);
+- `mounted`: reset the repository, then render on the server and take over (left) or
+  mount and inject (right);
 - `reinjected-1`, `reinjected-2`: inject the saved record again with the same
   cached template;
 - `data-hidden`, `data-restored`: inject a record that hides a conditional field,
