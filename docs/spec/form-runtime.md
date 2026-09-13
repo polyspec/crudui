@@ -67,10 +67,23 @@ submission follows control order. Keyed JSON uses document member order as row
 order, preserved through parsing, editing, persistence and serialization. Form
 data contains no auxiliary order or identity fields. Numeric object keys and
 keys containing path separators are rejected by editable instances. Callers use `sequenceRowKey` when
-constructing data from database sequences. Form binding and editable instances
-reject repeated data that is not a keyed object; they do not convert arrays or
-infer hidden identity fields. Field paths contain row keys only; no path segment
-encodes an array position.
+constructing data from database sequences. Field paths contain row keys only; no
+path segment encodes an array position.
+
+Form binding and editable instances reject data with the wrong shape. They do not
+convert arrays or infer hidden identity fields. Each rejection has code
+`INVALID_FORM_INPUT` and an empty location. `{path}` is the full data path,
+including row keys:
+
+| Data | Message |
+| --- | --- |
+| Root data that is not an object | `Form data must be an object` |
+| A present group value or group row that is not an object | `Group data must be an object: {path}` |
+| A present repeated value that is not a keyed object | `Repeated data must be a keyed object: {path}` |
+
+Missing group or repeated data is not a failure. Checks follow template field order,
+depth first; a collection is checked before its rows, and rows follow data order.
+`addRow` checks a supplied group row value at `{collection}.{key}`.
 
 ## Row operations
 

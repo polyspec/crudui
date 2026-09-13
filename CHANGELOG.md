@@ -2,6 +2,28 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Reject generator data with the wrong shape at its full path
+
+`bindForm` and editable instances in TypeScript, PHP, Go, Rust and the C PHP
+extension now apply the validators' data shape rules. Root data that is not an
+object fails with `Form data must be an object`. A present group value or
+repeated group row that is not an object fails with `Group data must be an
+object: {path}`. A present repeated value that is not a keyed object fails with
+`Repeated data must be a keyed object: {path}`. `{path}` is the full data path,
+including row keys; instances previously reported only the field name, and
+`bindForm` did not check group data. `addRow` checks a supplied group row value
+at `{collection}.{key}`. The form runtime specification documents the rules and
+check order. The form comparison controller's copy of instance normalization
+uses the same messages and has a test for them.
+
+The native suite checks eight data shapes through both `bindForm` and instances,
+and the rejected-operation scenario adds nested `setValue` and `addRow` cases.
+
+`make test-native` passed 846 generator checks (169 per implementation), 361 PHP
+API checks per configuration and 100 validation cases in each PHP implementation.
+generator-core passed its typecheck and 88 tests, the form comparison controller
+passed 5 tests, and `npm run test:forms` and `make docs-check` passed.
+
 ## 2026-09-13 — Compare generator error messages across implementations
 
 The native generator suite compared only error code and location, and its README
