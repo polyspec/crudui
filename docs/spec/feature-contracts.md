@@ -14,6 +14,7 @@ This page is generated from [contracts/features.json](../../contracts/features.j
 | `connectForm` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 2 command(s) |
 | `buildOutline` | implemented | `@crudui/generator-core` | javascript: pass<br>php: unsupported<br>go: unsupported<br>rust: unsupported<br>php-native: unsupported | 1 command(s) |
 | `connectOutline` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 1 command(s) |
+| `runAction` | implemented | `@crudui/generator-core` | javascript: pass<br>php: unsupported<br>go: unsupported<br>rust: unsupported<br>php-native: unsupported | 1 command(s) |
 | `validate` | implemented | `@crudui/validator` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass | 1 command(s) |
 
 Run `npm run manifest:check` to validate structure and links. Run `npm run manifest:test` to execute the declared test commands.

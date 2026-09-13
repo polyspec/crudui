@@ -445,6 +445,43 @@
       ]
     },
     {
+      "id": "runAction",
+      "owner": "@crudui/generator-core",
+      "signature": "runAction(form, target) -> ActionResult | undefined",
+      "input": "form instance and an action target from resolveAction(button)",
+      "output": "the row, collection or view action applied to the instance and the row that receives focus",
+      "errors": [
+        "RangeError",
+        "FormError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "form instance data, view state and undo history",
+      "tests": [
+        "packages/generator-core/src/node.test.ts",
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
       "id": "validate",
       "owner": "@crudui/validator",
       "signature": "validate(spec, data, options?) -> ValidationResult",
