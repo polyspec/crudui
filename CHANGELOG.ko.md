@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — crudui.css와 레거시 제거의 네 서버 후보 검증 통과 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 0ab3c93(`crudui.css`만으로 폼
+스타일링)과 eb9f7b7(레거시 UI 경로 제거, 빌드·의존성 검사 수정 후)에서 통과했습니다. 두 실행
+모두 PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사
+5,808개를 실패 없이 기록했으며 명령은 상태 0을 반환했습니다.
+
 ## 2026-09-13 — CI가 실행하는 빌드·의존성 검사 수정
 
 `npm run test:build`와 `npm run test:dependencies`가 실패하고 있었으며, 이번 작업에서 사용한
