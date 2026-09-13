@@ -306,14 +306,7 @@ func headerHTML(vm *Object) string {
 	if parts == "" {
 		return ""
 	}
-	styles := []string{}
-	if st := stringAt(header, "style"); st != "" {
-		styles = append(styles, st)
-	}
-	if read(vm, "sticky") == true {
-		styles = append(styles, "--crudui-sticky-depth: "+stringAt(vm, "stickyDepth"))
-	}
-	return element("div", NewObject("class", classes("crudui-node__header", stringAt(header, "className")), "style", strings.Join(styles, "; ")), parts)
+	return element("div", NewObject("class", classes("crudui-node__header", stringAt(header, "className")), "style", stringAt(header, "style")), parts)
 }
 func bodyHTML(vm *Object) string {
 	body := read(vm, "body")
@@ -346,7 +339,18 @@ func nodeHTML(vm *Object) string {
 		sticky = "crudui-node--sticky"
 	}
 	a := NewObject("class", classes("crudui-node", "crudui-node--"+kind, sticky, stringAt(vm, "className")))
-	if has(vm, "style") {
+	if read(vm, "sticky") == true {
+		// A sticky row carries its depth on the root; the stylesheet derives its sticky line from it.
+		depth := stringAt(vm, "stickyDepth")
+		if depth == "" {
+			depth = "0"
+		}
+		styles := []string{}
+		if st := stringAt(vm, "style"); st != "" {
+			styles = append(styles, st)
+		}
+		a.Set("style", strings.Join(append(styles, "--crudui-sticky-depth: "+depth), "; "))
+	} else if has(vm, "style") {
 		a.Set("style", stringAt(vm, "style"))
 	}
 	if kind != "row" && kind != "lang-item" && has(vm, "path") {

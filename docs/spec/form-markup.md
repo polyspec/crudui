@@ -41,7 +41,8 @@ Widget internals such as `input-group` and `form-control` are a separate contrac
 | `hidden` | `design.show` is false; a collapsed row body; the summary of an expanded row |
 | `aria-expanded`, `aria-controls` | Row toggle state and the controlled body |
 | `aria-current="true"` | Selected row in the structure map |
-| `data-crudui-stuck` | A sticky row header is currently stuck (set by the browser binding) |
+| `data-crudui-stuck` | A sticky row whose top reached its sticky line (set by the browser binding) |
+| `data-crudui-current` | The current row: the last row, in document order, whose top reached its line (set by the browser binding) |
 
 A button's collection path is the nearest `[data-field-path]` at or above it. Its
 row key is the nearest `[data-crudui-row-key]` inside that element; without one
@@ -102,12 +103,21 @@ input's own label inside the body, and its header holds only a description. A
 - `multiple.controls` places row controls in the row `header` (default) or
   `footer`. With `outline` the form renders no row or empty collection controls;
   the structure map shows them for the selected row and empty collection.
-- `multiple.header: sticky` adds `crudui-node--sticky`. The header style sets
-  `--crudui-sticky-depth` to the number of enclosing sticky rows, and each level
-  sticks one `--crudui-node-header-height` below its enclosing sticky header. A
-  sticky header has exactly that height, border included, does not wrap and
-  truncates a long title, so pinned levels meet without overlap. The label is
-  shown only while the header is stuck.
+- `multiple.header: sticky` adds `crudui-node--sticky`, and the row root style sets
+  `--crudui-sticky-depth` to the number of enclosing sticky rows. The row's sticky
+  line is that depth times `--crudui-node-header-height`. Three stylesheet rules
+  follow from it: the header pins on the line and has exactly the header height,
+  border included, without wrapping (a long title is truncated), so pinned levels
+  meet without overlap; the row's `scroll-margin-top` places its header on the line,
+  so `alignRow(row)` is `scrollIntoView({ block: 'start' })`; and the last row is at
+  least the viewport below its aligned top less the bottom edges of its enclosing
+  rows, so scrolling ends exactly when its header reaches its line. The limit is exact
+  when nothing follows the form in its scroll container; content after the form,
+  such as page padding, adds its own height.
+- `connectRows(element, onCurrent)` marks a row whose top reached its line: a sticky
+  row gets `data-crudui-stuck`, and the last such row in document order (the first
+  row before any) gets `data-crudui-current` and is passed to `onCurrent`. The level
+  label shows only on a stuck header, and the current row has a highlighted border.
 
 ## Structure map and data view
 

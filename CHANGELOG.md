@@ -2,6 +2,38 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Align rows to their sticky line and follow the scroll with the current row
+
+Sticky rows now follow rules derived from one value instead of computed offsets.
+The row root carries `--crudui-sticky-depth` (moved from the header style in all
+five implementations), and its sticky line is that depth times the header height.
+The header pins on the line; the row's `scroll-margin-top` puts the header on the
+line, so `alignRow` is `scrollIntoView({ block: 'start' })`; and the last row is at
+least the viewport below its aligned top, so scrolling ends exactly when its header
+reaches the line. An earlier draft of this change added one viewport of trailing
+space, which let the page scroll past that point; it is not kept.
+
+One rule decides the current row: the scroll position. `connectRows` marks rows
+whose top reached their line (`data-crudui-stuck` on sticky rows) and the current
+row, the last such row (`data-crudui-current`, with a highlighted border); the
+selected row and the structure map follow it. Moving to a row after a row operation
+or from the structure map scrolls it to its line. Focus no longer selects or scrolls,
+and the bindings no longer restore scroll positions. A draft that also aligned the
+row of a newly focused control, and restored captured scroll positions after
+rendering, pulled the page back to the focused row when the user scrolled to the end
+with an input focused elsewhere; both are removed. The comparison page controller
+uses the same core functions.
+
+`npm run test:forms` passed core 104, HTML 116, React 705, Vue 348, Svelte 349, ten
+normalizer checks and nine node checks, including three Chromium checks: stacking at
+exact header heights, the current row following the scroll with focus elsewhere, and
+the end row stopping exactly at its line with no blank inside rows. Form comparison
+source checks passed 140 and its Chromium checks 3. `make test-native` passed 976
+generator checks after the depth moved to the row root in all five implementations.
+`make docs-check` passed. In Chrome, with focus in the company name, wheel scrolling
+reached the end without any backward jump, kept the focus, made 판교점 current and
+stopped its top 0.2px from its aligned position.
+
 ## 2026-09-13 — Stack sticky row headers at their exact height
 
 Sticky row headers (`multiple.header: sticky`) stack by offsetting each level by

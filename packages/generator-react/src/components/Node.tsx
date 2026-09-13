@@ -46,9 +46,8 @@ function Header({ vm }: { vm: NodeVM }): React.ReactElement | null {
   if (header?.count !== undefined) parts.push(<span key="count" className="crudui-node__count">{header.count}</span>);
   if (vm.controls?.placement === 'header') parts.push(<Controls key="controls" controls={vm.controls} />);
   if (!parts.length) return null;
-  const style = [header?.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ');
   return (
-    <div className={classes('crudui-node__header', header?.className)} {...resolvedStyleProps(styleObject(style))}>
+    <div className={classes('crudui-node__header', header?.className)} {...resolvedStyleProps(styleObject(header?.style))}>
       {parts}
     </div>
   );
@@ -88,7 +87,7 @@ export function Node({ vm }: { vm: NodeVM }): React.ReactElement {
   return (
     <div
       className={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)}
-      {...resolvedStyleProps(styleObject(vm.style))}
+      {...resolvedStyleProps(styleObject([vm.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ')))}
       {...(pathAttribute !== undefined ? { 'data-field-path': pathAttribute } : {})}
       {...(vm.key !== undefined ? { 'data-crudui-row-key': vm.key } : {})}
       {...(vm.lang !== undefined ? { 'data-lang': vm.lang } : {})}

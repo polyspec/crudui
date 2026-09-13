@@ -8,7 +8,7 @@
   import Widget from './Widget.svelte';
   import Self from './Node.svelte';
   import { widgetRootRaw } from './widget';
-  import { classes, headerStyle } from './field';
+  import { classes, rootStyle } from './field';
 
   let { vm }: { vm: NodeVM } = $props();
 
@@ -19,9 +19,9 @@
   const pathAttribute = $derived(vm.kind === 'row' || vm.kind === 'lang-item' ? undefined : vm.path);
 </script>
 
-<div class={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)} style={vm.style} data-field-path={pathAttribute} data-crudui-row-key={vm.key} data-lang={vm.lang} hidden={vm.hidden}>
+<div class={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)} style={rootStyle(vm)} data-field-path={pathAttribute} data-crudui-row-key={vm.key} data-lang={vm.lang} hidden={vm.hidden}>
   {#if hasHeader}
-    <div class={classes('crudui-node__header', header?.className)} style={headerStyle(vm)}>
+    <div class={classes('crudui-node__header', header?.className)} style={header?.style}>
       {#if vm.collapsible}
         <button type="button" class="crudui-action" data-crudui-action="toggle-row" aria-expanded={vm.expanded === true ? 'true' : 'false'} aria-controls={vm.body.id} aria-label={vm.toggleLabel}></button>
       {/if}

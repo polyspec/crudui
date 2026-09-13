@@ -102,7 +102,12 @@ final class Rendering
 
     private static function node(stdClass $vm): string
     {
-        $attrs = ['class' => self::classes('crudui-node', 'crudui-node--' . $vm->kind, ($vm->sticky ?? false) ? 'crudui-node--sticky' : '', $vm->className), 'style' => $vm->style ?? null];
+        $style = $vm->style ?? null;
+        if ($vm->sticky ?? false) {
+            // A sticky row carries its depth on the root; the stylesheet derives its sticky line from it.
+            $style = implode('; ', array_filter([$vm->style ?? '', '--crudui-sticky-depth: ' . ($vm->stickyDepth ?? 0)], static fn ($part) => $part !== ''));
+        }
+        $attrs = ['class' => self::classes('crudui-node', 'crudui-node--' . $vm->kind, ($vm->sticky ?? false) ? 'crudui-node--sticky' : '', $vm->className), 'style' => $style];
         if ($vm->kind !== 'row' && $vm->kind !== 'lang-item' && isset($vm->path)) {
             $attrs['data-field-path'] = $vm->path;
         }
@@ -147,8 +152,7 @@ final class Rendering
         if ($parts === '') {
             return '';
         }
-        $style = implode('; ', array_filter([$header->style ?? '', ($vm->sticky ?? false) ? '--crudui-sticky-depth: ' . ($vm->stickyDepth ?? 0) : ''], static fn ($part) => $part !== ''));
-        return self::element('div', ['class' => self::classes('crudui-node__header', $header->className ?? ''), 'style' => $style], $parts);
+        return self::element('div', ['class' => self::classes('crudui-node__header', $header->className ?? ''), 'style' => $header->style ?? ''], $parts);
     }
 
     private static function body(stdClass $vm): string
