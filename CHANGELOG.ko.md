@@ -2,6 +2,23 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — CI가 실행하는 빌드·의존성 검사 수정
+
+`npm run test:build`와 `npm run test:dependencies`가 실패하고 있었으며, 이번 작업에서 사용한
+폼 검사 묶음은 이를 실행하지 않았습니다.
+
+- `tests/build/public-types.mts`와 `public-types.cts`는 노드 뷰모델이 제거한 `FieldShape`와
+  `MultipleSettings`를 여전히 참조했습니다. 이제 현재 공개 타입 `NodeVM`과 `ButtonVM`을
+  참조합니다.
+- 폼 비교 컨트롤러는 7a2b73a부터 `@crudui/generator-core`를 import하지만 루트 패키지가 이를
+  선언하지 않았습니다. 이제 루트 패키지가 워크스페이스 패키지를 개발 의존성으로 선언합니다.
+- `tests/build/package-consumer-pack.test.mjs`는 존재하지 않는 경로를 넘겼는데, `packPackage`는
+  07e8f9f부터 패키지 이름을 확인하려고 원본 manifest를 읽습니다. 이제 테스트가 임시 디렉터리에
+  manifest를 만듭니다.
+
+`npm run test:build`, `npm run test:dependencies`, `npm run test:runtimes`와 `tests/build`,
+`tests/docs`의 테스트 67개가 모두 통과했습니다.
+
 ## 2026-09-13 — Bootstrap 기반 레거시 UI 경로 제거
 
 레거시 폼 컴포넌트와 원본 Limepie 렌더링 비교는 Bootstrap 위에 만들어졌고, 노드 문법과
