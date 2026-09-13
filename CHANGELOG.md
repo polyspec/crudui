@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Record the screen-sized frame candidate run and its deployment
+
+`node examples/form-comparison/candidate-verification.mjs` passed for f3109ad: PHP, the
+PHP extension, Go and Rust each passed 1,452 checks with no failure, and the browser
+verification recorded 5,808 checks with no failure. `node
+examples/form-comparison/comparison-deployment.mjs --commit f3109ad…` deployed it at
+`https://crudui.test/` and passed the identical reapplication. In a 798 px browser
+window the frame is 798 px tall and the SSR and CSR columns match 8/8. With the page
+scrolled to the frame and the frame scrolled by 700 px, the company header is at the
+top of the screen on its 0 px line and the store header at 39 px on its 38.5 px line,
+both showing their level labels, while the department and Busan headers, not stuck,
+hide theirs. A measurement taken right after scrolling, before the page rendered,
+still read the labels as hidden; measured again after rendering they showed.
+
 ## 2026-09-14 — Size the comparison frames to the screen
 
 After sticky rows became CSS only, the comparison page still behaved differently from a
