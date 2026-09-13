@@ -32,6 +32,14 @@ test('caches server templates by specification and compile options', async () =>
   await generation.prepare(spec, { keyPrefix: 'other' });
   await generation.prepare({ ...spec, properties: {} }, { keyPrefix: 'form' });
   assert.equal(generation.compileRequests(), 3);
+
+  // Root declarations stay on the form root; only the fields are referenced.
+  const buttons = [{ type: 'submit', name: '_form_complete', value: '1' }];
+  await generation.prepare({ ...spec, buttons }, { keyPrefix: 'form' });
+  assert.deepEqual(calls.at(-1).payload, {
+    spec: { type: 'group', buttons, properties: { $ref: '/__crudui_browser_form__.json' } },
+    options: { keyPrefix: 'form', files: { '/__crudui_browser_form__.json': spec } },
+  });
 });
 
 test('uses a cached template after compilation becomes unavailable', async () => {
