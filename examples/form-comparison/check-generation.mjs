@@ -359,7 +359,9 @@ async function main() {
       });
       await check(server, renderingPath, framework, 'compile-reference', async () => {
         assert.ok(source && template, 'Shared library preparation failed');
-        const payload = { spec: { type: 'group', properties: { $ref: 'current-fields.json' } }, options: { keyPrefix: 'form', files: { 'current-fields.json': publicSpec } } };
+        // Fields come by reference; root declarations such as buttons stay on the form root.
+        const { properties, ...root } = publicSpec;
+        const payload = { spec: { ...root, properties: { $ref: 'current-fields.json' } }, options: { keyPrefix: 'form', files: { 'current-fields.json': { type: 'group', properties } } } };
         const expected = compileForm(payload.spec, payload.options);
         const response = await request(endpoint('compile'), payload, server);
         assertGenerationProvenance(response.generator, server, source, options.library);

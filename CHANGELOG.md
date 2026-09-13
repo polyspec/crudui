@@ -75,7 +75,12 @@ submit button in its footer. The comparison spec, and the specs of the Go, Rust 
 PHP generation tests, declare that button instead, the servers no longer append one,
 and the generation checks require exactly one submit button in the document. The
 first four-server candidate run of this change failed in the PHP generation test,
-whose own spec did not yet declare the button.
+whose own spec did not yet declare the button. The second failed in the generation
+check that compiles the published spec through a reference: it put the whole spec,
+buttons included, in the referenced file, and composition takes only its fields, so
+the referenced template got the default button. The frames compile through the
+servers the same way, so their templates silently dropped the declared button too.
+Both now keep the root declarations on the root and reference only the fields.
 
 Validation passed: generator-core, HTML, React, Vue and Svelte passed 108, 116, 705,
 348 and 349 tests, the Svelte client 10, the normalizer 6 and the Chromium style
