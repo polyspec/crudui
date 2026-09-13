@@ -2,6 +2,29 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Stack sticky row headers at their exact height
+
+Sticky row headers (`multiple.header: sticky`) stack by offsetting each level by
+`--crudui-node-header-height`, but a header's real height was its padding, content
+and bottom border: 45px against a 44px offset in the reference preview, and more
+when a long title or the controls wrapped. Each pinned level overlapped the one
+above. A sticky header now has exactly that height, border included, never wraps,
+and truncates a long title, so pinned levels meet without overlap. A stuck header
+gets a solid background and a shadow, and its level label still shows only while
+it is stuck. Stuck detection used an IntersectionObserver with thresholds 0 and 1,
+which never fires for a row taller than the viewport, so the outermost pinned
+level showed no label. `connectForm` now marks a header stuck when it has left its
+natural place at the top of its row, measured on scroll and resize at most once
+per animation frame. A Chromium check, `tests/form-styles.test.mjs`, runs in
+`npm run test:forms` because jsdom has no layout. The form-structure preview declares sticky headers on all five
+levels, which it did not before, so the sequential pinning was not visible there.
+
+`npm run test:forms` passed core 104, HTML 116, React 705, Vue 348, Svelte 349, ten
+normalizer checks and seven node checks, including the new Chromium check. That
+check timed out waiting for the outermost stuck header before the detection change.
+In Chrome the preview pinned all five levels in order with their labels and no
+overlap.
+
 ## 2026-09-13 — Compare the two initialization paths side by side
 
 The form comparison page now puts the two initialization paths in two columns:
