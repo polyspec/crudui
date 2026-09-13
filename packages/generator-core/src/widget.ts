@@ -98,13 +98,13 @@ export interface WidgetModel {
   kind: string;
   /** Layout family for the adapter (how to wrap the control). */
   layout:
-    | 'input-group' // prepend? + control + append? inside .input-group
+    | 'widget' // prepend? + control + append? inside .crudui-widget
     | 'bare' // control alone (password/hidden/datetime)
     | 'host-script' // control + trailing <script> chrome (editors/tagify)
-    | 'btn-group' // radios/checkboxes inside .btn-group
-    | 'file' // image/file/cover file-input cluster inside .input-group
+    | 'choices' // radios/checkboxes inside .crudui-choices
+    | 'file' // image/file/cover file-input cluster inside .crudui-widget
     | 'display' // dummy/dummy-input/image-viewer display-only
-    | 'search' // select2 host: style?/script + .input-group field-search
+    | 'search' // select2 host: style?/script + .crudui-widget--search
     | 'button'; // action: script + hidden + button
   /** Main control element name ('input'|'select'|'textarea'|'div'). */
   tag?: 'input' | 'select' | 'textarea' | 'div';
@@ -169,7 +169,7 @@ function prependAffix(ctx: WidgetCtx): Affix | undefined {
   if (!text) return undefined;
   return {
     text,
-    class: joinClass('input-group-text', ctx.design.prepend.class),
+    class: joinClass('crudui-widget__affix', ctx.design.prepend.class),
     style: styleString(ctx.design.prepend.style),
   };
 }
@@ -180,7 +180,7 @@ function appendAffix(ctx: WidgetCtx): Affix | undefined {
   if (content === undefined || content === null || content === '') return undefined;
   const text = ctx.t(content as never);
   if (!text) return undefined;
-  return { text, class: 'input-group-text' };
+  return { text, class: 'crudui-widget__affix' };
 }
 
 /** placeholder attribute value, or '' when absent/empty. */
@@ -324,7 +324,7 @@ function textLike(inputType: string): Evaluator {
       type: inputType,
       name: bracketName(ctx),
       value: displayValue,
-      class: mainClass(ctx, 'valid-target form-control'),
+      class: mainClass(ctx, 'valid-target crudui-input'),
       ...(placeholder(ctx) ? { placeholder: placeholder(ctx) } : {}),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
       ...behaviorAttrs(ctx),
@@ -332,7 +332,7 @@ function textLike(inputType: string): Evaluator {
     };
     return {
       kind: inputType,
-      layout: 'input-group',
+      layout: 'widget',
       tag: 'input',
       attrs,
       prepend: prependAffix(ctx),
@@ -349,7 +349,7 @@ const password: Evaluator = (ctx) => ({
     type: 'password',
     name: bracketName(ctx),
     value: phpString(ctx.value),
-    class: mainClass(ctx, 'valid-target form-control'),
+    class: mainClass(ctx, 'valid-target crudui-input'),
     ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
     ...dataAttrs(ctx),
   },
@@ -357,12 +357,12 @@ const password: Evaluator = (ctx) => ({
 
 const textarea: Evaluator = (ctx) => ({
   kind: 'textarea',
-  layout: 'input-group',
+  layout: 'widget',
   tag: 'textarea',
   text: applyDefaultString(ctx.value, ctx.spec.default),
   attrs: {
     name: bracketName(ctx),
-    class: mainClass(ctx, 'valid-target form-control'),
+    class: mainClass(ctx, 'valid-target crudui-input'),
     rows: '5',
     ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
     ...behaviorAttrs(ctx),
@@ -382,11 +382,11 @@ const select: Evaluator = (ctx) => {
   if (isDynamicItemsSource(items)) {
     return {
       kind: 'select',
-      layout: 'input-group',
+      layout: 'widget',
       tag: 'select',
       attrs: {
         name: bracketName(ctx),
-        class: mainClass(ctx, 'valid-target form-select valid-target-async'),
+        class: mainClass(ctx, 'valid-target crudui-input crudui-input--select valid-target-async'),
         ...dynamicSourceAttrs(items),
         ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
         ...behaviorAttrs(ctx),
@@ -412,11 +412,11 @@ const select: Evaluator = (ctx) => {
 
   return {
     kind: 'select',
-    layout: 'input-group',
+    layout: 'widget',
     tag: 'select',
     attrs: {
       name: bracketName(ctx),
-      class: mainClass(ctx, 'valid-target form-select'),
+      class: mainClass(ctx, 'valid-target crudui-input crudui-input--select'),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
@@ -452,15 +452,14 @@ const choice: Evaluator = (ctx) => {
     ...(onchange ? { onchange } : {}),
     ...(onclick ? { onclick } : {}),
   };
-  const labelClass = joinClass('btn btn-switch', ctx.design.main.class);
+  const labelClass = joinClass('crudui-choices__label', ctx.design.main.class);
 
   if (isDynamicItemsSource(items)) {
     return {
       kind: 'choice',
-      layout: 'btn-group',
+      layout: 'choices',
       attrs: {
-        class: 'btn-group btn-group-toggle',
-        'data-toggle': 'buttons',
+        class: 'crudui-choices',
         ...dynamicSourceAttrs(items),
       },
       source: dynamicSourceAttrs(items),
@@ -494,8 +493,8 @@ const choice: Evaluator = (ctx) => {
 
   return {
     kind: 'choice',
-    layout: 'btn-group',
-    attrs: { class: 'btn-group btn-group-toggle', 'data-toggle': 'buttons' },
+    layout: 'choices',
+    attrs: { class: 'crudui-choices' },
     source: null,
     options,
     itemLabelClass: labelClass,
@@ -518,14 +517,14 @@ const multichoice: Evaluator = (ctx) => {
   const dataName = leafName(ctx.path, ctx.rowSegments);
   const dataRuleName = ruleNameForPath(ctx.path, ctx.rowSegments);
   const onchange = behaviorScript(ctx, 'onchange');
-  const labelClass = joinClass('btn btn-switch btn-mswitch', ctx.design.main.class);
+  const labelClass = joinClass('crudui-choices__label', ctx.design.main.class);
 
   if (isDynamicItemsSource(items)) {
     return {
       kind: 'multichoice',
-      layout: 'btn-group',
+      layout: 'choices',
       attrs: {
-        class: 'btn-group flex-wrap btn-group-toggle',
+        class: 'crudui-choices crudui-choices--multiple',
         ...dynamicSourceAttrs(items),
       },
       source: dynamicSourceAttrs(items),
@@ -562,8 +561,8 @@ const multichoice: Evaluator = (ctx) => {
 
   return {
     kind: 'multichoice',
-    layout: 'btn-group',
-    attrs: { class: 'btn-group flex-wrap btn-group-toggle' },
+    layout: 'choices',
+    attrs: { class: 'crudui-choices crudui-choices--multiple' },
     source: null,
     options,
     itemLabelClass: labelClass,
@@ -582,13 +581,13 @@ const date: Evaluator = (ctx) => {
   const rawValue = applyDefaultString(ctx.value, ctx.spec.default);
   return {
     kind: 'date',
-    layout: 'input-group',
+    layout: 'widget',
     tag: 'input',
     attrs: {
       type: 'date',
       name: bracketName(ctx),
       value: formatDateValue(rawValue, 'YYYY-MM-DD'),
-      class: mainClass(ctx, 'valid-target form-control'),
+      class: mainClass(ctx, 'valid-target crudui-input'),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
@@ -608,7 +607,7 @@ const datetime: Evaluator = (ctx) => {
       type: 'datetime-local',
       name: bracketName(ctx),
       value: formatDateValue(rawValue, 'YYYY-MM-DDTHH:mm:ss'),
-      class: mainClass(ctx, 'valid-target form-control'),
+      class: mainClass(ctx, 'valid-target crudui-input'),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
@@ -650,14 +649,14 @@ const dummyInput: Evaluator = (ctx) => {
   const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
   return {
     kind: 'dummy-input',
-    layout: 'input-group',
+    layout: 'widget',
     tag: 'input',
     attrs: {
       type: 'text',
       name: bracketName(ctx),
       value: displayValue,
       readonly: '',
-      class: mainClass(ctx, 'form-control'),
+      class: mainClass(ctx, 'crudui-input'),
       ...(placeholder(ctx) ? { placeholder: placeholder(ctx) } : {}),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
       'data-default': phpString(ctx.spec.default),
@@ -670,10 +669,7 @@ const dummyInput: Evaluator = (ctx) => {
 const image: Evaluator = (ctx) => {
   const name = bracketName(ctx);
   const accept = acceptAttr(ctx, 'image/*');
-  const fileClass = joinClass(
-    'valid-target form-control-file form-control-image',
-    ctx.design.main.class
-  );
+  const fileClass = joinClass('valid-target crudui-input crudui-input--file', ctx.design.main.class);
   return {
     kind: 'image',
     layout: 'file',
@@ -682,7 +678,7 @@ const image: Evaluator = (ctx) => {
     extra: {
       display: {
         type: 'text',
-        class: 'form-control form-control-file',
+        class: 'crudui-input',
         value: '',
         readonly: '',
       },
@@ -704,7 +700,7 @@ const image: Evaluator = (ctx) => {
 const file: Evaluator = (ctx) => {
   const name = bracketName(ctx);
   const accept = acceptAttr(ctx, '*/*');
-  const fileClass = joinClass('valid-target form-control-file', ctx.design.main.class);
+  const fileClass = joinClass('valid-target crudui-input crudui-input--file', ctx.design.main.class);
   return {
     kind: 'file',
     layout: 'file',
@@ -713,7 +709,7 @@ const file: Evaluator = (ctx) => {
     extra: {
       display: {
         type: 'text',
-        class: 'form-control form-control-file',
+        class: 'crudui-input',
         value: '',
         readonly: '',
       },
@@ -735,10 +731,7 @@ const file: Evaluator = (ctx) => {
 const cover: Evaluator = (ctx) => {
   const name = bracketName(ctx);
   const accept = acceptAttr(ctx, 'image/*');
-  const fileClass = joinClass(
-    'valid-target form-control-file form-control-filetext form-control-image',
-    ctx.design.main.class
-  );
+  const fileClass = joinClass('valid-target crudui-input crudui-input--file', ctx.design.main.class);
   return {
     kind: 'cover',
     layout: 'file',
@@ -819,7 +812,9 @@ const search: Evaluator = (ctx) => {
   const sourceAttrs = dynamic ? dynamicSourceAttrs(items as Record<string, unknown>) : null;
   const selectClass = mainClass(
     ctx,
-    dynamic ? 'valid-target form-control valid-target-async' : 'valid-target form-control'
+    dynamic
+      ? 'valid-target crudui-input crudui-input--select valid-target-async'
+      : 'valid-target crudui-input crudui-input--select'
   );
 
   const selectAttrs: Attrs = {
@@ -902,7 +897,7 @@ const tinymce: Evaluator = (ctx) => {
     text: displayValue,
     attrs: {
       id: editorId,
-      class: mainClass(ctx, 'valid-target form-control tinymcearea'),
+      class: mainClass(ctx, 'valid-target crudui-input tinymcearea'),
       name: bracketName(ctx),
       rows,
       'data-type': String(ctx.spec.type ?? 'tinymce'),
@@ -917,7 +912,7 @@ const tinymce: Evaluator = (ctx) => {
 
 const summernote = editorTextarea(
   'summernote',
-  'valid-target form-control summernote',
+  'valid-target crudui-input summernote',
   '5',
   () => ({}),
   (ctx, id) => `$(function() {editor_summernote('#'+CSS.escape(${scriptString(id)}), ${scriptString(optWith(ctx, 'upload', 'upload'))});});`
@@ -925,7 +920,7 @@ const summernote = editorTextarea(
 
 const editorjs = editorTextarea(
   'editorjs',
-  'valid-target form-control contentjs',
+  'valid-target crudui-input contentjs',
   '3',
   (ctx) => ({ 'data-fileserver': optWith(ctx, 'fileserver', '') }),
   (ctx, id) => `$(function() {editor_editorjs('#'+CSS.escape(${scriptString(id)}), ${scriptString(optWith(ctx, 'fileserver', ''))});});`
@@ -933,7 +928,7 @@ const editorjs = editorTextarea(
 
 const tui = editorTextarea(
   'tui',
-  'valid-target form-control tuiarea',
+  'valid-target crudui-input tuiarea',
   '3',
   (ctx) => ({ 'data-fileserver': optWith(ctx, 'fileserver', '') }),
   (ctx, id) => `$(function() {editor_tui('#'+CSS.escape(${scriptString(id)}), ${scriptString(optWith(ctx, 'fileserver', ''))});});`
@@ -960,7 +955,7 @@ const button: Evaluator = (ctx) => {
     buttonText: textVal,
     attrs: {
       type: 'button',
-      class: mainClass(ctx, 'btn'),
+      class: mainClass(ctx, 'crudui-action crudui-action--text'),
       name: `btn${name}`,
       id,
       value: textVal,
@@ -968,7 +963,7 @@ const button: Evaluator = (ctx) => {
     extra: {
       hidden: {
         type: 'hidden',
-        class: 'valid-target form-control',
+        class: 'valid-target',
         readonly: '',
         name,
         'data-name': leafName(ctx.path, ctx.rowSegments),
@@ -991,7 +986,7 @@ const tagify: Evaluator = (ctx) => {
     attrs: {
       type: 'text',
       id,
-      class: mainClass(ctx, 'valid-target form-control'),
+      class: mainClass(ctx, 'valid-target crudui-input'),
       name: bracketName(ctx),
       value: displayValue,
       'data-max-tags': maxTags,
@@ -1015,7 +1010,7 @@ const tagify2: Evaluator = (ctx) => {
     attrs: {
       type: 'text',
       id,
-      class: mainClass(ctx, 'valid-target form-control'),
+      class: mainClass(ctx, 'valid-target crudui-input'),
       name: bracketName(ctx),
       value: displayValue,
       'data-max-tags': maxTags,
@@ -1157,7 +1152,7 @@ export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefine
     widget.attrs.id = id;
   }
   if (widget.extra?.file) widget.extra.file.id = id;
-  if (widget.layout === 'btn-group') {
+  if (widget.layout === 'choices') {
     for (const [index, option] of (widget.options ?? []).entries()) option.id = `${id}:${index}`;
   }
   return widget;

@@ -232,7 +232,7 @@ fn document(
         "Open interactive form"
     };
     let document = format!(
-        r#"<!doctype html><html lang="{language}" data-language="{language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/{rendering_path}-{framework}/?server=rust&amp;lang={language}&amp;initialization=data">{interactive}</a></header><form id="form" method="post" action="/api/rust/save/{rendering_path}/{framework}" data-generator-runtime="rust" data-generator-commit="{commit}"><div id="view">{markup}</div></form></body></html>"#,
+        r#"<!doctype html><html lang="{language}" data-language="{language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/crudui.css"><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/{rendering_path}-{framework}/?server=rust&amp;lang={language}&amp;initialization=data">{interactive}</a></header><form id="form" method="post" action="/api/rust/save/{rendering_path}/{framework}" data-generator-runtime="rust" data-generator-commit="{commit}"><div id="view">{markup}</div></form></body></html>"#,
         commit = escape(COMMIT)
     );
     Ok((

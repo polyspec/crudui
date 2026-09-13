@@ -511,16 +511,20 @@ static ps_value *build_lang(const ps_value *spec, const char *path, const ps_val
     const ps_value *lang = member(spec, "lang");
     const ps_value *settings = lang && lang->kind == PS_OBJECT ? lang : NULL;
     const ps_value *frame = member(settings, "frame");
+    /* A framed language group is a node modifier; the stylesheet draws the frame around its body. */
     const char *frame_class = frame && frame->kind == PS_BOOL && !frame->data.boolean
-        ? "lang-group p-0 border-0" : "lang-group";
+        ? "" : "crudui-node--framed";
     char *title = NULL;
     bool ok = translated(member(settings, "title"), context->language, &title);
-    char *group_class = ok ? ps_join_classes(frame_class, string_member(settings, "group_class"), NULL) : NULL;
+    char *root_class = ok ? ps_join_classes(frame_class,
+        string_member(member(design, "wrapper"), "class"), NULL) : NULL;
+    char *group_class = root_class ? ps_join_classes(string_member(settings, "group_class"), NULL, NULL) : NULL;
     ps_value *node = group_class ? node_root("lang", path, design) : NULL;
     header_part header[] = {{"label", label}, {"description", description}, {"title", title}};
-    ok = node && attach_header(node, design, header, 3) &&
+    ok = node && set_string(node, "className", root_class) &&
+        attach_header(node, design, header, 3) &&
         attach_body(node, group_class, "", NULL);
-    free(title); free(group_class);
+    free(title); free(root_class); free(group_class);
     ps_value *children = ok ? ps_array_value() : NULL;
     ok = children != NULL;
     const ps_value *only = member(settings, "only");

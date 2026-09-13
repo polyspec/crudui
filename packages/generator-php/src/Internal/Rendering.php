@@ -221,22 +221,22 @@ final class Rendering
     private static function widget(stdClass $widget): string
     {
         if ($widget->unsupported ?? false) {
-            return self::element('div', ['class' => 'form-element-unsupported', 'data-unsupported-type' => $widget->type]);
+            return self::element('div', ['class' => 'crudui-widget crudui-widget--unsupported','data-unsupported-type' => $widget->type]);
         }
         $raw = self::hasEvents($widget->attrs);
         switch ($widget->layout) {
-            case 'input-group':
-                return self::element('div', ['class' => 'input-group'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
+            case 'widget':
+                return self::element('div', ['class' => 'crudui-widget'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
             case 'bare':
                 return self::control($widget, $raw);
             case 'host-script':
                 return self::control($widget, $raw) . self::script($widget->script ?? '');
-            case 'btn-group':
+            case 'choices':
                 $body = '';
                 $radio = $widget->kind === 'choice';
                 $raw = self::hasEvents($widget->extra->input ?? new stdClass());
                 foreach ($widget->options as $option) {
-                    $attrs = [...(array) ($widget->extra->input ?? new stdClass()), 'type' => $radio ? 'radio' : 'checkbox', 'value' => $option->value, 'autocomplete' => 'off', 'class' => 'valid-target btn-check', 'id' => $option->id];
+                    $attrs = [...(array) ($widget->extra->input ?? new stdClass()), 'type' => $radio ? 'radio' : 'checkbox', 'value' => $option->value, 'autocomplete' => 'off', 'class' => 'valid-target crudui-choices__input', 'id' => $option->id];
                     if ($radio) {
                         $attrs['data-is-default'] = $option->isDefault ? '1' : '';
                     }
@@ -255,14 +255,14 @@ final class Rendering
                 }
                 $body .= self::input($widget->extra->file, $raw);
                 if (isset($widget->extra->display)) {
-                    $body .= self::element('button', ['class' => 'btn btn-search btn-file-search', 'type' => 'button'], '&nbsp;');
+                    $body .= self::element('button', ['class' => 'crudui-widget__button', 'type' => 'button'], '&nbsp;');
                 }
-                return self::element('div', ['class' => 'input-group'], $body);
+                return self::element('div', ['class' => 'crudui-widget'], $body);
             case 'display':
                 return self::element('div', self::controlAttrs($widget->attrs), $widget->rawHtml ?? '');
             case 'search':
                 $raw = true;
-                return (($widget->styleChrome ?? '') !== '' ? self::element('style', ['nonce' => ''], $widget->styleChrome) : '') . self::script($widget->script ?? '') . self::element('div', ['class' => 'input-group field-search'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
+                return (($widget->styleChrome ?? '') !== '' ? self::element('style', ['nonce' => ''], $widget->styleChrome) : '') . self::script($widget->script ?? '') . self::element('div', ['class' => 'crudui-widget crudui-widget--search'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
             case 'button':
                 return self::script($widget->script ?? '') . self::input($widget->extra->hidden) . self::input($widget->attrs);
         }

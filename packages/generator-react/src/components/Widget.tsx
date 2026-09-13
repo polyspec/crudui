@@ -3,7 +3,7 @@
  *
  * Each component receives the core's evaluated `WidgetModel` (markup-free) and
  * returns a real React element tree: `<input>` / `<select><option>` / `<textarea>`
- * / `<div className="input-group">`. It RECOMPUTES NOTHING — every class string,
+ * / `<div className="crudui-widget">`. It RECOMPUTES NOTHING — every class string,
  * data-* value, item list, and script is already evaluated by the core. React
  * performs all attribute/text escaping (no util.escAttr/escText here).
  *
@@ -87,12 +87,12 @@ function rawControl(w: WidgetModel): string {
   return rawVoid('input', w.attrs);
 }
 
-/** input-group layout: prepend? + control + append? inside .input-group. */
-function InputGroup({ w }: { w: WidgetModel }): React.ReactElement {
-  // Opaque on* attrs → serialize the whole input-group body raw (container JSX).
+/** widget layout: prepend? + control + append? inside .crudui-widget. */
+function WidgetGroup({ w }: { w: WidgetModel }): React.ReactElement {
+  // Opaque on* attrs → serialize the whole widget body raw (container JSX).
   if (hasEventAttr(w.attrs)) {
     const html = affixHtml(w.prepend) + rawControl(w) + affixHtml(w.append);
-    return <div className="input-group" dangerouslySetInnerHTML={{ __html: html }} />;
+    return <div className="crudui-widget" dangerouslySetInnerHTML={{ __html: html }} />;
   }
   let control: React.ReactElement;
   if (w.tag === 'select') {
@@ -103,7 +103,7 @@ function InputGroup({ w }: { w: WidgetModel }): React.ReactElement {
     control = <input {...inputProps(w.attrs)} />;
   }
   return (
-    <div className="input-group">
+    <div className="crudui-widget">
       {w.prepend ? <AffixSpan affix={w.prepend} /> : null}
       {control}
       {w.append ? <AffixSpan affix={w.append} /> : null}
@@ -124,7 +124,7 @@ function Bare({ w }: { w: WidgetModel }): React.ReactElement {
  * Only the bare layout with opaque on* attrs needs this (datetime + behavior):
  * the control is a direct child of the node body, so an extra wrapper
  * would break parity. Every other on*-bearing layout has a real container
- * (`.input-group` / `.btn-group`) that absorbs the raw body.
+ * (`.crudui-widget` / `.crudui-choices`) that absorbs the raw body.
  */
 export function widgetRootRaw(w: AnyWidget): string | null {
   if (isUnsupported(w)) return null;
@@ -153,7 +153,7 @@ function HostScript({ w }: { w: WidgetModel }): React.ReactElement {
   );
 }
 
-/** Raw serialization of a single btn-group button (input + label). */
+/** Raw serialization of a single choice (input + label). */
 function groupButtonHtml(
   o: OptionModel,
   type: 'radio' | 'checkbox',
@@ -165,7 +165,7 @@ function groupButtonHtml(
     type,
     value: o.value,
     autocomplete: 'off',
-    class: 'valid-target btn-check',
+    class: 'valid-target crudui-choices__input',
     ...(o.id ? { id: o.id } : {}),
   };
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
@@ -202,7 +202,7 @@ function GroupButton({
     type,
     value: o.value,
     autoComplete: 'off',
-    className: 'valid-target btn-check',
+    className: 'valid-target crudui-choices__input',
     ...(o.id ? { id: o.id } : {}),
   };
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
@@ -216,8 +216,8 @@ function GroupButton({
   );
 }
 
-/** btn-group layout: choice (radios) / multichoice (checkboxes). */
-function BtnGroup({ w }: { w: WidgetModel }): React.ReactElement {
+/** choices layout: choice (radios) / multichoice (checkboxes). */
+function Choices({ w }: { w: WidgetModel }): React.ReactElement {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
   const shared = (w.extra?.input ?? {}) as Attrs;
   const props = plainProps(w.attrs);
@@ -244,24 +244,24 @@ function FileGroup({ w }: { w: WidgetModel }): React.ReactElement {
   const fileAttrs = w.extra?.file ?? {};
   const fileEl = hasEventAttr(fileAttrs) ? null : <input {...inputProps(fileAttrs)} />;
   if (!fileEl) {
-    // file input carries opaque on* attrs → serialize input-group body raw.
+    // file input carries opaque on* attrs → serialize the widget body raw.
     const html =
       affixHtml(w.prepend) +
       (display
         ? `<input class="${escAttr(display.class ?? '')}" readonly="" type="text" value="">`
         : '') +
       rawVoid('input', fileAttrs) +
-      (display ? `<button class="btn btn-search btn-file-search" type="button">&nbsp;</button>` : '');
-    return <div className="input-group" dangerouslySetInnerHTML={{ __html: html }} />;
+      (display ? `<button class="crudui-widget__button" type="button">&nbsp;</button>` : '');
+    return <div className="crudui-widget" dangerouslySetInnerHTML={{ __html: html }} />;
   }
   return (
-    <div className="input-group">
+    <div className="crudui-widget">
       {w.prepend ? <AffixSpan affix={w.prepend} /> : null}
       {display ? <input {...inputProps(display)} /> : null}
       {fileEl}
       {display ? (
         <button
-          className="btn btn-search btn-file-search"
+          className="crudui-widget__button"
           type="button"
           dangerouslySetInnerHTML={{ __html: '&nbsp;' }}
         />
@@ -273,20 +273,20 @@ function FileGroup({ w }: { w: WidgetModel }): React.ReactElement {
 /** display layout: dummy/dummy-input/image-viewer. */
 function Display({ w }: { w: WidgetModel }): React.ReactElement {
   if (w.kind === 'dummy-input') {
-    // dummy-input is an input-group control, not a RAW div.
-    return <InputGroup w={w} />;
+    // dummy-input is a widget control, not a RAW div.
+    return <WidgetGroup w={w} />;
   }
   // RAW html display (dummy/image-viewer) — unescaped legacy parity content.
   const props = plainProps(w.attrs);
   return <div {...props} dangerouslySetInnerHTML={{ __html: w.rawHtml ?? '' }} />;
 }
 
-/** search layout: style?/script chrome + select2 host select inside .input-group. */
+/** search layout: style?/script chrome + select2 host select inside .crudui-widget--search. */
 function Search({ w }: { w: WidgetModel }): React.ReactElement {
   // The select2 host <select> needs `selected="selected"` (legacy select2 contract),
   // which React cannot emit via defaultValue. The select is part of the select2
   // host chrome → its options render through the sanctioned chrome passthrough,
-  // but the `.input-group field-search` div itself is a real JSX element.
+  // but the `.crudui-widget--search` div itself is a real JSX element.
   const innerHtml =
     affixHtml(w.prepend) +
     rawElement('select', w.attrs, rawOptions(w.options ?? [], 'selected')) +
@@ -297,7 +297,7 @@ function Search({ w }: { w: WidgetModel }): React.ReactElement {
         <style nonce="" dangerouslySetInnerHTML={{ __html: w.styleChrome }} />
       ) : null}
       <script nonce="" dangerouslySetInnerHTML={{ __html: w.script ?? '' }} />
-      <div className="input-group field-search" dangerouslySetInnerHTML={{ __html: innerHtml }} />
+      <div className="crudui-widget crudui-widget--search" dangerouslySetInnerHTML={{ __html: innerHtml }} />
     </>
   );
 }
@@ -317,17 +317,17 @@ function ActionButton({ w }: { w: WidgetModel }): React.ReactElement {
 /** Render one widget model (or surfaced unsupported marker) as JSX. */
 export function Widget({ w }: { w: AnyWidget }): React.ReactElement | null {
   if (isUnsupported(w)) {
-    return <div className="form-element-unsupported" data-unsupported-type={w.type} />;
+    return <div className="crudui-widget crudui-widget--unsupported" data-unsupported-type={w.type} />;
   }
   switch (w.layout) {
-    case 'input-group':
-      return <InputGroup w={w} />;
+    case 'widget':
+      return <WidgetGroup w={w} />;
     case 'bare':
       return <Bare w={w} />;
     case 'host-script':
       return <HostScript w={w} />;
-    case 'btn-group':
-      return <BtnGroup w={w} />;
+    case 'choices':
+      return <Choices w={w} />;
     case 'file':
       return <FileGroup w={w} />;
     case 'display':

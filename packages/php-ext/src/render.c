@@ -134,7 +134,7 @@ static bool write_choice_group(render_buffer *out, const ps_value *model)
         if (!attrs || !attr_string(attrs, "type", radio ? "radio" : "checkbox") ||
             !attr_clone(attrs, "value", member(option, "value")) ||
             !attr_string(attrs, "autocomplete", "off") ||
-            !attr_string(attrs, "class", "valid-target btn-check") ||
+            !attr_string(attrs, "class", "valid-target crudui-choices__input") ||
             (member(option, "id") && !attr_clone(attrs, "id", member(option, "id"))) ||
             (radio && !attr_string(attrs, "data-is-default",
                                    bool_member(option, "isDefault") ? "1" : "")) ||
@@ -168,7 +168,7 @@ static bool write_file_group(render_buffer *out, const ps_value *model)
     const ps_value *display = member(extra, "display");
     bool raw = has_events(file);
     ps_value *group = ps_object_value();
-    if (!group || !attr_string(group, "class", "input-group")) { ps_value_free(group); return false; }
+    if (!group || !attr_string(group, "class", "crudui-widget")) { ps_value_free(group); return false; }
     bool ok = start_element(out, "div", group, false, false) &&
         write_affix(out, member(model, "prepend"), raw);
     ps_value_free(group);
@@ -189,7 +189,7 @@ static bool write_file_group(render_buffer *out, const ps_value *model)
     if (!start_element(out, "input", file, raw, false)) return false;
     if (display && display->kind == PS_OBJECT) {
         ps_value *attrs = ps_object_value();
-        if (!attrs || !attr_string(attrs, "class", "btn btn-search btn-file-search") ||
+        if (!attrs || !attr_string(attrs, "class", "crudui-widget__button") ||
             !attr_string(attrs, "type", "button")) { ps_value_free(attrs); return false; }
         ok = start_element(out, "button", attrs, false, false) && text(out, "&nbsp;") &&
             end_element(out, "button", false);
@@ -212,7 +212,7 @@ static bool write_search(render_buffer *out, const ps_value *model)
     }
     if (!write_script(out, string_member(model, "script"))) return false;
     ps_value *attrs = ps_object_value();
-    if (!attrs || !attr_string(attrs, "class", "input-group field-search")) {
+    if (!attrs || !attr_string(attrs, "class", "crudui-widget crudui-widget--search")) {
         ps_value_free(attrs);
         return false;
     }
@@ -230,7 +230,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
     if (!model || model->kind != PS_OBJECT) return false;
     if (bool_member(model, "unsupported")) {
         ps_value *attrs = ps_object_value();
-        if (!attrs || !attr_string(attrs, "class", "form-element-unsupported") ||
+        if (!attrs || !attr_string(attrs, "class", "crudui-widget crudui-widget--unsupported") ||
             !attr_string(attrs, "data-unsupported-type", string_member(model, "type"))) {
             ps_value_free(attrs);
             return false;
@@ -241,9 +241,9 @@ static bool write_widget(render_buffer *out, const ps_value *model)
         return ok;
     }
     const char *layout = string_member(model, "layout");
-    if (!strcmp(layout, "input-group")) {
+    if (!strcmp(layout, "widget")) {
         ps_value *attrs = ps_object_value();
-        if (!attrs || !attr_string(attrs, "class", "input-group")) { ps_value_free(attrs); return false; }
+        if (!attrs || !attr_string(attrs, "class", "crudui-widget")) { ps_value_free(attrs); return false; }
         bool raw = has_events(member(model, "attrs"));
         bool ok = start_element(out, "div", attrs, false, false) &&
             write_affix(out, member(model, "prepend"), raw) &&
@@ -256,7 +256,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
     if (!strcmp(layout, "bare")) return write_control(out, model, false);
     if (!strcmp(layout, "host-script"))
         return write_control(out, model, false) && write_script(out, string_member(model, "script"));
-    if (!strcmp(layout, "btn-group")) return write_choice_group(out, model);
+    if (!strcmp(layout, "choices")) return write_choice_group(out, model);
     if (!strcmp(layout, "file")) return write_file_group(out, model);
     if (!strcmp(layout, "display"))
         return start_element(out, "div", member(model, "attrs"), false, false) &&

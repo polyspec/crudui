@@ -200,21 +200,21 @@ fn widget(model: &Value) -> String {
     if model["unsupported"] == true {
         return element(
             "div",
-            &json!({"class":"form-element-unsupported","data-unsupported-type":model["type"]}),
+            &json!({"class":"crudui-widget crudui-widget--unsupported","data-unsupported-type":model["type"]}),
             "",
         );
     }
     match str_at(model, "layout") {
-        "input-group" => element(
+        "widget" => element(
             "div",
-            &json!({"class":"input-group"}),
+            &json!({"class":"crudui-widget"}),
             &(affix(&model["prepend"], has_events(&model["attrs"]))
                 + &control(model, false)
                 + &affix(&model["append"], has_events(&model["attrs"]))),
         ),
         "bare" => control(model, false),
         "host-script" => control(model, false) + &script(str_at(model, "script")),
-        "btn-group" => {
+        "choices" => {
             let radio = model["kind"] == "choice";
             let content = model["options"]
                 .as_array()
@@ -231,7 +231,7 @@ fn widget(model: &Value) -> String {
                     );
                     attrs.insert("value".into(), option["value"].clone());
                     attrs.insert("autocomplete".into(), "off".into());
-                    attrs.insert("class".into(), "valid-target btn-check".into());
+                    attrs.insert("class".into(), "valid-target crudui-choices__input".into());
                     if option["id"].is_string() {
                         attrs.insert("id".into(), option["id"].clone());
                     }
@@ -274,11 +274,11 @@ fn widget(model: &Value) -> String {
             if model["extra"]["display"].is_object() {
                 content += &element(
                     "button",
-                    &json!({"class":"btn btn-search btn-file-search","type":"button"}),
+                    &json!({"class":"crudui-widget__button","type":"button"}),
                     "&nbsp;",
                 );
             }
-            element("div", &json!({"class":"input-group"}), &content)
+            element("div", &json!({"class":"crudui-widget"}), &content)
         }
         "display" => element("div", &model["attrs"], str_at(model, "rawHtml")),
         "search" => {
@@ -290,7 +290,7 @@ fn widget(model: &Value) -> String {
             content
                 + &element(
                     "div",
-                    &json!({"class":"input-group field-search"}),
+                    &json!({"class":"crudui-widget crudui-widget--search"}),
                     &(affix(&model["prepend"], true)
                         + &control(model, true)
                         + &affix(&model["append"], true)),

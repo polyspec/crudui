@@ -19,7 +19,10 @@ Words inside a name are joined by one hyphen (`lang-item`). A modifier is always
 used together with its block class (`class="crudui-node crudui-node--row"`).
 An element name has one level; elements have no modifiers. Classes carry style
 only: browser behavior reads the data and ARIA attributes below, never classes.
-Widget internals such as `input-group` and `form-control` are a separate contract.
+Widgets follow the same forms; the only other classes a renderer writes are
+`valid-target` and `valid-target-async`, which mark validated controls, the editor
+hosts `tinymcearea`, `summernote`, `contentjs` and `tuiarea`, and the classes a
+spec declares in `design`.
 
 ## Blocks and attributes
 
@@ -31,6 +34,9 @@ Widget internals such as `input-group` and `form-control` are a separate contrac
 | `crudui-action` | A button with `data-crudui-action`; `crudui-action--text` shows its label as text. |
 | `crudui-outline` | Structure map with `__header` form controls and `__body` nodes. |
 | `crudui-data` | Current data view with `__header` and a `pre` `__body`. |
+| `crudui-widget` | A control with its `__affix` prepend and append texts and a file widget's `__button`; `--search` holds a search select and `--unsupported` marks a type without a widget. |
+| `crudui-input` | A native input, textarea or select; `--select` for a select and `--file` for a file input. |
+| `crudui-choices` | Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. |
 
 | Attribute | Meaning |
 | --- | --- |
@@ -64,7 +70,7 @@ to the control and `design.prepend` to the widget prepend.
 | `group` | `__label` and `__description` | Child nodes |
 | `collection` | `__label`, `__description` and `__count` | Row nodes; the footer holds the `add-row` control when there are no rows |
 | `row` | Toggle, `__label`, `__number`, `__title`, `__summary`, controls | Widget of a scalar row, or child nodes of a group row |
-| `lang` | `__label`, `__description` and `__title` (`lang.title`) | lang-item nodes |
+| `lang` | `__label`, `__description` and `__title` (`lang.title`) | lang-item nodes; the node has `crudui-node--framed` when `lang.frame` is true (the default) |
 | `lang-item` | `__label` with the language code | Widget |
 
 A label is a `label` element targeting the control when the body has exactly one
@@ -174,10 +180,12 @@ its default.
 
 ## Styles
 
-`@crudui/generator-core/styles.css` styles the grammar: slot layout, row cards,
-control icons, sticky headers, the structure map and the data view. It hides
-`[hidden]` elements. The form, structure map and data view share one set of
-`--crudui-*` custom properties.
+`@crudui/generator-core/crudui.css` is the only stylesheet a form needs: slot
+layout, row cards, widgets, control icons, sticky headers, the structure map and the
+data view. Every rule is scoped to a crudui block, including box sizing and hiding
+`[hidden]` elements, and none depends on page styles or a CSS framework. The page
+styles its own layout and nothing inside the crudui blocks. The form, structure map
+and data view share one set of `--crudui-*` custom properties.
 
 ## Behavior not adopted from the reference form
 

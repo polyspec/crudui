@@ -1,12 +1,20 @@
 /*
- * CRUDUI form node grammar.
+ * CRUDUI stylesheet: the form node grammar, its widgets, the structure map and the
+ * data view.
  *
  * Every data node is `crudui-node` with one `crudui-node--{kind}` modifier and
- * the shared `__header`, `__body` and `__footer` slots. Behavior reads data and
- * ARIA attributes; these rules only style the grammar.
+ * the shared `__header`, `__body` and `__footer` slots. Every rule is scoped to a
+ * crudui block, and a page needs no other stylesheet to render a form: box sizing,
+ * controls, choices and affixes are defined here. Behavior reads data and ARIA
+ * attributes; these rules only style the grammar.
  */
 
-[hidden] {
+:where(.crudui-form, .crudui-outline, .crudui-data),
+:where(.crudui-form, .crudui-outline, .crudui-data) :where(*, ::before, ::after) {
+  box-sizing: border-box;
+}
+
+:where(.crudui-form, .crudui-outline, .crudui-data) [hidden] {
   display: none !important;
 }
 
@@ -91,6 +99,145 @@
   width: 1rem;
   height: 1rem;
   margin: 0;
+}
+
+/* Widgets: a control with its affixes, a set of choices, or a file or search widget. */
+.crudui-widget {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.crudui-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.375rem;
+  background: var(--crudui-surface);
+  color: inherit;
+  font: inherit;
+  line-height: 1.5;
+}
+
+textarea.crudui-input {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.crudui-input:focus {
+  border-color: var(--crudui-accent);
+  outline: 2px solid color-mix(in srgb, var(--crudui-accent) 30%, transparent);
+  outline-offset: 0;
+}
+
+.crudui-input[readonly] {
+  background: var(--crudui-subtle);
+}
+
+.crudui-input--file {
+  padding: 0.25rem 0.5rem;
+}
+
+.crudui-widget > .crudui-input {
+  flex: 1 1 auto;
+}
+
+/* Parts of one widget share their inner borders. */
+.crudui-widget > :not(:first-child) {
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.crudui-widget > :not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.crudui-widget__affix {
+  display: flex;
+  align-items: center;
+  padding: 0 0.625rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.375rem;
+  background: var(--crudui-subtle);
+  color: var(--crudui-muted);
+  white-space: nowrap;
+}
+
+.crudui-widget__button {
+  flex: none;
+  min-width: 2.25rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.375rem;
+  background: var(--crudui-subtle);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.crudui-widget--unsupported {
+  min-height: 2.25rem;
+  border: 1px dashed var(--crudui-border);
+  border-radius: 0.375rem;
+}
+
+/* Choices: each option is a visually hidden radio or checkbox and its label button. */
+.crudui-choices {
+  position: relative;
+  display: flex;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.crudui-choices--multiple {
+  flex-wrap: wrap;
+}
+
+.crudui-choices__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.crudui-choices__label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.375rem;
+  background: var(--crudui-surface);
+  cursor: pointer;
+  user-select: none;
+}
+
+.crudui-choices__input:checked + .crudui-choices__label {
+  border-color: var(--crudui-accent);
+  background: var(--crudui-accent);
+  color: #ffffff;
+}
+
+.crudui-choices__input:focus-visible + .crudui-choices__label {
+  outline: 2px solid var(--crudui-accent);
+  outline-offset: 1px;
+}
+
+.crudui-choices__input:disabled + .crudui-choices__label {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 /* Collections list their rows as cards. */
@@ -233,6 +380,8 @@
   border-radius: 0.375rem;
   background: var(--crudui-surface);
   color: #374151;
+  font: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -383,6 +532,13 @@
   font-size: 0.75rem;
   overflow: auto;
   white-space: pre;
+}
+
+/* A framed language group (lang.frame, the default) draws a frame around its items. */
+.crudui-node--framed > .crudui-node__body {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.5rem;
 }
 
 .crudui-node--lang-item {

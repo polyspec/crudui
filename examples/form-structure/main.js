@@ -1,8 +1,7 @@
 import YAML from 'yaml';
 import { compileForm, connectForm, connectOutline, createForm } from '@crudui/generator-core';
 import { renderData, renderForm, renderOutline } from '@crudui/generator-html';
-import '../../packages/generator-core/styles/form.css';
-import './preview.css';
+import '../../packages/generator-core/styles/crudui.css';
 import specText from './spec.yml?raw';
 import data from './data.json';
 

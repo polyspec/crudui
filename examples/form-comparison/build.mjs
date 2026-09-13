@@ -27,9 +27,9 @@ await cp(path.join(exampleDirectory, 'src/runtime-paths.mjs'),
   path.join(publicDirectory, 'runtime-paths.mjs'));
 await cp(path.join(exampleDirectory, 'src/form-snapshot.mjs'),
   path.join(publicDirectory, 'form-snapshot.mjs'));
-// Frames render with the grammar stylesheet so computed CSS is compared with the real styles.
-await cp(path.join(source, 'packages/generator-core/styles/form.css'),
-  path.join(publicDirectory, 'generator-core.css'));
+// Frames and SSR documents style the form with crudui.css alone, so computed CSS is compared with the real styles.
+await cp(path.join(source, 'packages/generator-core/styles/crudui.css'),
+  path.join(publicDirectory, 'crudui.css'));
 await cp(path.join(exampleDirectory, 'fixtures/records.json'),
   path.join(publicDirectory, 'records.json'));
 await writeFile(path.join(publicDirectory, 'metadata.json'),
