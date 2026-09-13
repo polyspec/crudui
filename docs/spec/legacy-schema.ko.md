@@ -35,25 +35,19 @@ properties:
 [폼 인스턴스 순서 계약](form-runtime.ko.md)과 다릅니다.
 
 `display_switch`와 `display_target`은 구형 검증을 비활성화할 수 있습니다.
-렌더러 표시 처리는 별도입니다. [구형 표시](legacy-visibility.ko.md)를 참고합니다.
-현재 스키마는 해당 키를 거부하며 `design`과 `validate`를 분리합니다.
+[구형 표시](legacy-visibility.ko.md)를 참고합니다. 현재 스키마는 해당 키를 거부하며
+`design`과 `validate`를 분리합니다.
 
-## 렌더러와 제출 선언
-
-구형 렌더러 타입은 검증기 필드 모델에 콘텐츠·위젯·표시 설정을 추가합니다.
-React `FormBuilder`는 파싱한 스펙 또는 YAML 텍스트를 받습니다. 언어 설정은
-번역 콘텐츠를 선택합니다. 동적 `items` 선언은 외부 소스를 설명하며 선언만으로
-데이터를 조회하지 않습니다.
+## 제출 선언
 
 루트의 `action`은 `method`, `url`, `enctype`, `buttons`를 선언할 수 있습니다.
-버튼 선언에는 `label`, `class`, `type`, `href`, `onclick`을 포함할 수 있습니다.
-애플리케이션 제출과 서버 저장은 별도 작업입니다.
+버튼 선언에는 `label`, `class`, `type`, `href`, `onclick`을 포함할 수 있습니다. 구형 선언을
+읽는 렌더러는 없으며, 구형 번역기가 현재 루트 `action`과 `buttons`로 변환합니다
+([스키마](schema.ko.md) 참고). 애플리케이션 제출과 서버 저장은 별도 작업입니다.
 
 ## 소스 정의
 
 - [구형 검증기 타입](../../packages/validator-ts/src/legacy/types.ts)
-- [구형 React 렌더러 타입](../../packages/generator-react/src/legacy/types.ts)
-- [구형 필드 등록부](../../packages/generator-react/src/legacy/components/fields/index.ts)
 - [구형 검증기 순회](../../packages/validator-ts/src/legacy/Validator.ts)
 - [예제 색인](../../examples/README.ko.md)
 

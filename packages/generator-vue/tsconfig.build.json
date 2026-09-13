@@ -6,8 +6,7 @@
     "noEmitOnError": true
   },
   "files": [
-    "src/index.ts",
-    "src/legacy/index.ts"
+    "src/index.ts"
   ],
   "include": []
 }

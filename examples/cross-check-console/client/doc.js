@@ -27,8 +27,8 @@ export const docSections = [
     title: '합성 ($ref / $patch)',
     body:
       'compose 패스가 $ref/$patch 를 단일 스펙으로 확장한다. ' +
-      '미해결 $ref 는 LOAD 에러이지 valid:false 가 아니다 — ' +
-      '4언어 loadError{code:REF_FILE_NOT_FOUND}, 3프레임워크 error 로 표면화. ' +
+      '미해결 $ref 는 로드 실패이지 valid:false 가 아니다 — ' +
+      '4언어 failure{code:REF_FILE_NOT_FOUND, message, at}, 3프레임워크 error 로 표면화. ' +
       'legacy 갭(LargeForm.yml:873, silent skip) 폐쇄. ' +
       '출처: form-render compose-ref-unresolved-load-error.',
   },
@@ -110,6 +110,6 @@ export const listDocSections = [
       'React의 SSR resource hint(<link rel="preload">)는 비교 전에 제거한다. ' +
       'layout 옵션은 프레임워크별 키가 다르다. React는 layout, Svelte는 mode, Vue는 layout(card→cards)을 사용한다. ' +
       'HTTP gateway는 단일 layout 값을 각 키로 매핑한다. ' +
-      '미해결 $ref 는 LOAD 에러(REF_FILE_NOT_FOUND)로 표면화되지 silent skip 이 아니다.',
+      '미해결 $ref 는 로드 실패(REF_FILE_NOT_FOUND)로 표면화되지 silent skip 이 아니다.',
   },
 ];

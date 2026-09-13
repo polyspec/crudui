@@ -2,12 +2,14 @@
 #![deny(missing_docs)]
 
 mod binding;
+mod buttons;
 mod css;
 mod date;
 mod design;
 mod error;
 mod instance;
 mod list;
+mod messages;
 mod number;
 mod render;
 mod template;

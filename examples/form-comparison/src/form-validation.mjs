@@ -25,7 +25,7 @@ export function formValidation(view, output, spec, text) {
           input.setAttribute('aria-invalid', 'true');
           const message = document.createElement('p');
           message.dataset.validationError = ''; message.className = 'fail'; message.textContent = error.message;
-          input.closest('.form-element-wrapper').append(message);
+          input.closest('[data-field-path]').append(message);
         }
       }
     }

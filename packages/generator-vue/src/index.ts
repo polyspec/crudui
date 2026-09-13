@@ -10,9 +10,11 @@ export { makeTranslate } from '@crudui/generator-core';
 export type { Language } from '@crudui/generator-core';
 export type { UnsupportedMode } from '@crudui/generator-core';
 
-// Field and widget rendering.
-export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
-export { fieldVNode } from './components/Field';
+// Node and widget rendering.
+export type { NodeVM, WidgetModel } from '@crudui/generator-core';
+export { nodeVNode, controlsVNode } from './components/Node';
+export { Outline, outlineVNode } from './components/Outline';
+export { DataView, dataVNode } from './components/DataView';
 export { Widget } from './components/Widget';
 export type { AnyWidget } from './components/Widget';
 

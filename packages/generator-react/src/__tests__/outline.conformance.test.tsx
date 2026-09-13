@@ -1,0 +1,41 @@
+/**
+ * Structure map and data view conformance — React reference verification.
+ *
+ * tests/fixtures/form-outline/cases.json holds the normalized static markup of
+ * `OutlineView` and `DataPanel`. This test re-renders both components for each
+ * case so the fixture stays the React output; the HTML, Vue and Svelte renderers
+ * load the same file.
+ */
+
+import * as React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, test } from 'vitest';
+import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
+import { DataPanel, OutlineView } from '../index';
+// @ts-expect-error — shared JS normalizer (cross-framework).
+import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
+import fixtureCases from '../../../../tests/fixtures/form-outline/cases.json';
+
+interface OutlineCase {
+  name: string;
+  spec: Record<string, unknown>;
+  data: Record<string, unknown>;
+  options: { language: string };
+  canUndo: boolean;
+  expected_outline_html: string;
+  expected_data_html: string;
+}
+
+const cases = fixtureCases as unknown as OutlineCase[];
+
+describe('structure map and data view: React reproduces the fixture', () => {
+  for (const c of cases) {
+    test(c.name, () => {
+      const messages = formMessages(c.options.language);
+      const fields = bindForm(compileForm(c.spec), c.data, c.options as never);
+      const state = { fields, canUndo: c.canUndo };
+      expect(normalizeHtml(renderToStaticMarkup(<OutlineView state={state} messages={messages} />))).toBe(c.expected_outline_html);
+      expect(normalizeHtml(renderToStaticMarkup(<DataPanel data={c.data} messages={messages} />))).toBe(c.expected_data_html);
+    });
+  }
+});

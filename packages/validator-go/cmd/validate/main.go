@@ -19,10 +19,15 @@
 //     SAME load wire applies (an unresolved $ref / forbidden meta key is a fatal
 //     load envelope). The form path is untouched — list is an additive branch.
 //
-// A compose LOAD failure (unresolved $ref / $patch / forbidden meta key) is NOT
-// valid:false — it is reported as a fatal {"error": …} envelope on stdout. The
-// gateway distinguishes a load failure from a validation result. valid:false
-// carries field errors; a load failure carries no validation result at all.
+// Failures (identical in every language):
+//   - A composition load failure (unresolved $ref / $patch / forbidden meta key)
+//     or a form input failure (root, group or repeated data with the wrong shape)
+//     produces no validation result. It exits 2 with stdout
+//     {"error": <message>, "code": <code>, "at": <trace joined with "." or "">}.
+//   - A malformed request exits 1 with stdout {"error": <message>}.
+//
+// An omitted "data" member validates {}. A supplied "data" value is validated as
+// decoded.
 package main
 
 import (
@@ -30,6 +35,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
@@ -79,12 +85,13 @@ func main() {
 		return
 	}
 	if err != nil {
-		// A compose LOAD failure (ComposeLoadError) or a decode failure is NOT a
-		// validation result. Report it as a fatal {error} envelope — never
-		// valid:false. The gateway keys off the absence of "valid".
 		var loadErr *compose.ComposeLoadError
 		if asLoadError(err, &loadErr) {
-			fatalLoad(loadErr)
+			failure(loadErr.Message, string(loadErr.Code), strings.Join(loadErr.Trace, "."))
+			return
+		}
+		if inputErr, ok := err.(*validate.FormInputError); ok {
+			failure(inputErr.Message, inputErr.Code(), "")
 			return
 		}
 		fatal(err.Error())
@@ -132,15 +139,13 @@ func fatal(msg string) {
 	os.Exit(1)
 }
 
-// fatalLoad emits a structured compose-load-failure envelope (code + message +
-// trace) so the gateway can surface WHY the spec failed to come into existence,
-// distinct from a plain validation failure.
-func fatalLoad(le *compose.ComposeLoadError) {
+// failure emits a load or input failure without a validation result and exits 2.
+func failure(message, code, at string) {
 	out, _ := json.Marshal(map[string]any{
-		"error": le.Message,
-		"code":  string(le.Code),
-		"trace": le.Trace,
+		"error": message,
+		"code":  code,
+		"at":    at,
 	})
 	fmt.Println(string(out))
-	os.Exit(1)
+	os.Exit(2)
 }

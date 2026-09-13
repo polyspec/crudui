@@ -98,6 +98,8 @@ try {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => $error->getPath()]);
 } catch (\CRUDUI\Validator\Compose\ComposeLoadError $error) {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'trace' => $error->getCompositionTrace()]);
+} catch (\CRUDUI\Validator\Validate\FormInputError $error) {
+    respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => '']);
 } catch (InvalidArgumentException | JsonException | UnexpectedValueException | TypeError $error) {
     respond(400, ['error' => $error->getMessage()]);
 } catch (Throwable $error) {

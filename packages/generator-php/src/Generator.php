@@ -25,10 +25,10 @@ final class Generator
         return Binding::bind($template, $data, $options);
     }
 
-    /** Render the current instance inside its form-group container. */
+    /** Render the current instance inside its crudui-form block. */
     public static function renderForm(Form $form): string
     {
-        return Rendering::element('div', ['class' => 'form-group'], Rendering::fields($form->getFields()));
+        return Rendering::form($form->getFields(), $form->getButtons(), $form->getMessages());
     }
 
     /** Render supplied list rows using the table or card layout. */

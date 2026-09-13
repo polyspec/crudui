@@ -31,8 +31,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 `compile_form`은 파싱된 조합 문서 `files`, 명시적 `loader`, `basepath`,
 `key_prefix`를 받습니다. `bind_form`은 로더 호출이나 레코드 변경 없이 캐시된
-템플릿을 평가합니다. `BindOptions`에는 `language`, `id_prefix`, `key_prefix`,
-`unsupported`(`throw` 또는 `marker`)가 있습니다. 호스트가 HTML `form` 요소를
+템플릿을 평가합니다. `BindOptions`에는 `language`(`ko`, `en`, `ja`, `zh`),
+`id_prefix`, `key_prefix`, `unsupported`(`throw` 또는 `marker`)가 JSON 값으로
+있습니다. null은 기본값을 쓰고, 그 밖의 문자열이 아닌 값은 거부됩니다. 호스트가 HTML `form` 요소를
 제공하고 요청을 처리합니다. 렌더링은 브라우저 스크립트를 실행하지 않습니다.
 
 `Form`은 `set_data`, `get_data`, `set_value`, `get_value`, `add_row`, `copy_row`,

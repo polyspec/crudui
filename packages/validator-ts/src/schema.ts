@@ -176,6 +176,13 @@ export interface FieldSpec {
    */
   options?: Slot<OptionsSlot>;
 
+  // -- Form root declarations --
+
+  /** Form buttons rendered in the form footer. Honored on the form root only. */
+  buttons?: FormButton[];
+  /** Submission target kept for the application. Honored on the form root only. */
+  action?: FormAction;
+
   // -- Composition (SPEC §5) --
 
   /**
@@ -188,6 +195,34 @@ export interface FieldSpec {
    * set, e.g. `'field.validate.required': '.other'`.
    */
   $patch?: PatchDirective;
+}
+
+/** One form button. A button or link needs text; a link needs href. */
+export interface FormButton {
+  /** Button type; a link renders an anchor. */
+  type: 'submit' | 'reset' | 'button' | 'link';
+  /** Button text; submit and reset default to interface text. */
+  text?: LocalizedText;
+  /** Submitted name. */
+  name?: string;
+  /** Submitted value. */
+  value?: string;
+  /** Link target. */
+  href?: string;
+  /** Button appearance. */
+  design?: Slot<DesignSlot>;
+  /** Opaque behavior scripts. */
+  behavior?: Slot<BehaviorSlot>;
+}
+
+/** Submission target of the form, kept for the application. */
+export interface FormAction {
+  /** HTTP method. */
+  method?: string;
+  /** Submission URL. */
+  url?: string;
+  /** Submission encoding. */
+  enctype?: string;
 }
 
 /**
@@ -479,16 +514,12 @@ export type StaticItem =
  * sub). `true` is the bare default (repetition on, no settings); an object
  * carries the repetition settings.
  *
- * Row identity (G4) is NOT a `multiple` field. At RUNTIME a repeated row's
- * identity is a hidden server PK carried in the SUBMITTED DATA (an existing row
- * has one, a new row has none); serialization order is the array order. The
- * current build-time model has no `id` field and no id-emitting code — row
- * identity lives in the data layer the server reconciles, not in this spec.
- * (The data-layer id is exactly why a translator drops the legacy
- * `seqtokey`/`__13hex__` synthesized id keys — they were never spec fields.)
+ * Row identity is not a `multiple` field. Repeated data is an object keyed by
+ * row identity, and object member order is row order; the specification has no
+ * hidden identity or order field (see docs/spec/form-runtime.md).
  *
  * The named keys are the canonical `dependency_buckets.multiple.keys`
- * (`max`/`copy`/`sortable`/`onclick`). Legacy names are NOT recognition keys
+ * (`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`). Legacy names are NOT recognition keys
  * here (R2 anti-duplication, R4 no magic tokens); a translator maps them in:
  * `multiple_max`→`max`, `sortable*`→`sortable`, `add_buttons`/
  * `remove_list_button`/`list_button_text`→`copy`, `multiple_button_onclick`→
@@ -498,12 +529,20 @@ export type Multiple = boolean | MultipleSettings;
 
 /** Repeated-row settings object (kept under `multiple`). */
 export interface MultipleSettings {
+  /** Minimum number of rows. */
+  min?: number;
   /** Maximum number of rows. */
   max?: number;
-  /** Whether a row can be copied/added/removed (absorbs the legacy button keys). */
+  /** Whether rows provide a copy control (absorbs the legacy button keys). */
   copy?: boolean;
   /** Whether rows are sortable. */
   sortable?: boolean;
+  /** Direct child field of a repeated group whose value titles each row. */
+  title?: string;
+  /** Position of row controls. */
+  controls?: 'header' | 'footer' | 'outline';
+  /** Whether row headers stay visible while scrolling. */
+  header?: 'static' | 'sticky';
   /** Row-level click handler (opaque script). */
   onclick?: string;
   /** Index signature for additional multiple-dependent keys (forbidden keys excluded by the schema layer). */

@@ -16,15 +16,14 @@
 //! Both modes re-implement nothing and never touch the legacy model
 //! (`crate::legacy::validator`, R7 parallel run).
 //!
-//! Error envelope (never a `valid:false` masquerade):
+//! Failure envelope (identical in every language, never a `valid:false` result):
 //!   - stdin/JSON parse / missing spec → exit 1, `{ "error": "…" }`
-//!   - composition LOAD failure (`ComposeLoadError`, e.g. unresolved `$ref`, OR a
-//!     forbidden meta key) → exit 2, `{ "error": "…", "code": "…", "at": "…" }`.
-//!     A LOAD failure is NOT `valid:false`; `at` is the dotted trace to the
-//!     offending node (empty when the error carries no trace).
+//!   - composition load failure (unresolved `$ref` or forbidden meta key) or form
+//!     input failure (root, group or repeated data with the wrong shape) → exit 2,
+//!     `{ "error": <message>, "code": "…", "at": "…" }`. `at` is the composition
+//!     trace joined with `.`, or empty for an input failure.
 //!
-//! Distinct exit codes let the gateway tell a bad request from a load failure
-//! without parsing the message.
+//! An omitted `data` member validates `{}`; a supplied value is validated as is.
 
 use std::io::{self, Read, Write};
 
@@ -70,13 +69,12 @@ fn main() {
                 valid: true,
                 errors: Vec::new(),
             }),
-            // ComposeLoadError (unresolved $ref OR forbidden meta key) is a LOAD
-            // failure, never a validation result. Carry the dotted trace in `at`.
-            Err(err) => fail_load(&err.to_string(), err.code.as_str(), &err.trace.join(".")),
+            // A composition failure produces no validation result.
+            Err(err) => failure(&err.message, err.code.as_str(), &err.trace.join(".")),
         }
     }
 
-    // `data` defaults to an empty object (JS `data ?? {}`).
+    // An omitted `data` member validates an empty object.
     let data = req
         .get("data")
         .cloned()
@@ -90,9 +88,8 @@ fn main() {
 
     match validate(&spec, &data, &options) {
         Ok(result) => emit_result(&result),
-        // ComposeLoadError is a LOAD failure (e.g. unresolved $ref), NOT a
-        // validation failure. Surface it as an error envelope, never valid:false.
-        Err(err) => fail_load(&err.to_string(), err.code.as_str(), &err.trace.join(".")),
+        // Load and input failures produce no validation result.
+        Err(err) => failure(err.message(), err.code(), &err.at()),
     }
 }
 
@@ -114,10 +111,10 @@ fn fail_request(msg: &str) -> ! {
     std::process::exit(1);
 }
 
-/// Composition LOAD failure. Exit 2 (distinct from a bad request). `at` is the
-/// dotted trace to the offending node (empty when the error carries no trace).
-fn fail_load(msg: &str, code: &str, at: &str) -> ! {
-    let obj = serde_json::json!({ "error": msg, "code": code, "at": at });
+/// Load or input failure. Exit 2 (distinct from a bad request). `at` is the
+/// composition trace joined with `.`, or empty for an input failure.
+fn failure(message: &str, code: &str, at: &str) -> ! {
+    let obj = serde_json::json!({ "error": message, "code": code, "at": at });
     write_line(&obj);
     std::process::exit(2);
 }

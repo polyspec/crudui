@@ -77,6 +77,14 @@ final class FieldSpecTest extends TestCase
     }
 
     /**
+     * The multiple bucket accepts every canonical repeated-row key.
+     */
+    public function testMultipleBucketAcceptsCanonicalKeys(): void
+    {
+        self::assertSame([], FieldSpec::validate(['multiple' => ['min' => 1, 'max' => 5, 'copy' => true, 'sortable' => true, 'title' => 'name', 'controls' => 'footer', 'header' => 'sticky', 'onclick' => 'add()']]));
+    }
+
+    /**
      * An open bucket accepts a type-introduced extension key but still blocks a
      * forbidden key beside it.
      */

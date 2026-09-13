@@ -200,7 +200,7 @@ fn failed_operations_are_atomic_and_empty_collections_remain_empty() {
     assert_eq!(html, render_form(&form).unwrap());
     form.set_data(&json!({"companies":{}})).unwrap();
     assert!(form.get_data()["companies"].as_object().unwrap().is_empty());
-    assert!(render_form(&form).unwrap().contains("aria-label=\"+\""));
+    assert!(render_form(&form).unwrap().contains("<div class=\"crudui-node__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"컬렉션 컨트롤\"><button type=\"button\" class=\"crudui-action\" data-crudui-action=\"add-row\" aria-label=\"추가\"></button></div></div>"));
     form.add_row("companies", AddRowOptions::default()).unwrap();
     assert_eq!(form.get_data()["companies"].as_object().unwrap().len(), 1);
 }
@@ -255,8 +255,197 @@ fn appearance_uses_the_validator_expression_recognizer() {
         &BindOptions::default(),
     )
     .unwrap();
-    assert_eq!(fields[0]["design"]["main"]["class"], "true");
-    assert_eq!(fields[0]["design"]["main"]["style"], "color: red!important");
+    let attrs = &fields[0]["widget"]["attrs"];
+    assert!(attrs["class"]
+        .as_str()
+        .unwrap()
+        .split(' ')
+        .any(|class| class == "true"));
+    assert_eq!(attrs["style"], "color: red!important");
+    assert!(fields[0].get("design").is_none());
+}
+
+#[test]
+fn rows_have_ordered_controls_titles_and_sticky_headers() {
+    let template = compile_form(&json!({"type":"group","properties":{
+        "items":{"type":"group","label":"Items","multiple":{"min":1,"max":2,"copy":true,"sortable":true,"title":"name","header":"sticky"},"properties":{
+            "name":{"type":"text"},
+            "tags":{"type":"text","multiple":{"controls":"footer","header":"sticky"}}
+        }}
+    }}), &CompileOptions::default()).unwrap();
+    let data = json!({"items":{"first":{"name":"One","tags":{"a":"x","b":"y"}},"second":{"name":"","tags":{}}}});
+    let options = BindOptions {
+        language: "en".into(),
+        ..Default::default()
+    };
+    let fields = bind_form(&template, &data, &options).unwrap();
+    let collection = &fields[0];
+    assert_eq!(collection["kind"], "collection");
+    assert_eq!(
+        collection["header"],
+        json!({"className":"","label":"Items","count":"Rows: 2"})
+    );
+    let first = &collection["children"][0];
+    let names = first["controls"]["actions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|action| (action["name"].as_str().unwrap(), action["disabled"] == true))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        names,
+        [
+            ("move-up", true),
+            ("move-down", false),
+            ("add-row", true),
+            ("copy-row", true),
+            ("remove-row", false)
+        ]
+    );
+    assert_eq!(
+        first["header"],
+        json!({"className":"","label":"Items","number":"1","title":"One","summary":"Nested rows: 2"})
+    );
+    assert_eq!(
+        (first["sticky"].clone(), first["stickyDepth"].clone()),
+        (json!(true), json!(0))
+    );
+    assert_eq!(first["body"]["id"], "crudui:items.first:body");
+    assert_eq!(collection["children"][1]["header"]["title"], "(untitled)");
+    let tag = &first["children"][1]["children"][1];
+    assert_eq!(
+        (tag["header"]["number"].clone(), tag["stickyDepth"].clone()),
+        (json!("1.2"), json!(1))
+    );
+    let empty = &collection["children"][1]["children"][1];
+    assert_eq!(empty["controls"]["placement"], "footer");
+    let html = crate::render::render_fields(&fields);
+    assert!(html.starts_with("<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items\">"));
+    assert!(html.contains("<div class=\"crudui-node crudui-node--row crudui-node--sticky\" style=\"--crudui-sticky-depth:0\" data-crudui-row-key=\"first\"><div class=\"crudui-node__header\"><button type=\"button\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" aria-expanded=\"true\" aria-controls=\"crudui:items.first:body\" aria-label=\"Expand or collapse\"></button>"));
+    assert!(html.contains("<span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 2</span>"));
+    let error = bind_form(
+        &template,
+        &data,
+        &BindOptions {
+            language: "fr".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap_err();
+    assert_eq!(error.message, "Unsupported language: fr");
+    for (language, message) in [
+        (json!(5), "Language must be a string"),
+        (json!(true), "Language must be a string"),
+        (json!(["en"]), "Language must be a string"),
+        (json!({"en": 1}), "Language must be a string"),
+        (json!(""), "Unsupported language: "),
+    ] {
+        let options = BindOptions {
+            language,
+            ..Default::default()
+        };
+        let error = Form::new(template.clone(), &data, options).err().unwrap();
+        assert_eq!(
+            (
+                error.code.as_str(),
+                error.message.as_str(),
+                error.at.as_str()
+            ),
+            ("INVALID_FORM_INPUT", message, "")
+        );
+    }
+    let options = BindOptions {
+        language: Value::Null,
+        ..Default::default()
+    };
+    assert_eq!(
+        bind_form(&template, &data, &options).unwrap()[0]["header"]["count"],
+        "2개"
+    );
+    for (options, message) in [
+        (
+            json!({"language":5,"keyPrefix":5}),
+            "Language must be a string",
+        ),
+        (
+            json!({"language":"fr","keyPrefix":5,"idPrefix":5}),
+            "keyPrefix must be a string",
+        ),
+        (
+            json!({"language":"fr","idPrefix":[],"unsupported":true}),
+            "idPrefix must be a string",
+        ),
+        (
+            json!({"language":"fr","unsupported":true}),
+            "unsupported must be throw or marker",
+        ),
+        (
+            json!({"language":"fr","unsupported":"other"}),
+            "unsupported must be throw or marker",
+        ),
+        (
+            json!({"language":"fr","idPrefix":null,"keyPrefix":null,"unsupported":null}),
+            "Unsupported language: fr",
+        ),
+    ] {
+        let options: BindOptions = serde_json::from_value(options).unwrap();
+        for error in [
+            bind_form(&template, &data, &options).unwrap_err(),
+            Form::new(template.clone(), &data, options.clone())
+                .err()
+                .unwrap(),
+        ] {
+            assert_eq!(
+                (
+                    error.code.as_str(),
+                    error.message.as_str(),
+                    error.at.as_str()
+                ),
+                ("INVALID_FORM_INPUT", message, "")
+            );
+        }
+    }
+    let nulls: BindOptions = serde_json::from_value(
+        json!({"idPrefix":null,"keyPrefix":null,"unsupported":null,"language":null}),
+    )
+    .unwrap();
+    assert_eq!(
+        bind_form(&template, &data, &nulls).unwrap(),
+        bind_form(&template, &data, &BindOptions::default()).unwrap()
+    );
+    let error = Form::new(
+        template.clone(),
+        &json!({"items":[]}),
+        BindOptions {
+            key_prefix: json!(5),
+            ..Default::default()
+        },
+    )
+    .err()
+    .unwrap();
+    assert_eq!(error.message, "Repeated data must be a keyed object: items");
+}
+
+#[test]
+fn repeated_declarations_reject_titles_controls_and_headers() {
+    for (field, message) in [
+        (json!({"type":"text","multiple":{"title":"name"}}), "Invalid multiple.title at rows: expected a repeated group"),
+        (json!({"type":"group","multiple":{"title":"missing"},"properties":{"name":{"type":"text"}}}), "Invalid multiple.title at rows: expected the name of a direct child field without multiple, properties or lang"),
+        (json!({"type":"group","multiple":{"title":"name"},"properties":{"name":{"type":"text","lang":true}}}), "Invalid multiple.title at rows: expected the name of a direct child field without multiple, properties or lang"),
+        (json!({"type":"text","multiple":{"controls":"side","header":"fixed"}}), "Invalid multiple.controls at rows: expected header, footer or outline"),
+        (json!({"type":"text","multiple":{"header":"fixed"}}), "Invalid multiple.header at rows: expected static or sticky"),
+        (json!({"type":"text","lang":null}), "Invalid lang at rows: expected a boolean or an object"),
+        (json!({"type":"text","lang":"ko"}), "Invalid lang at rows: expected a boolean or an object"),
+        (json!({"type":"text","lang":["ko"]}), "Invalid lang at rows: expected a boolean or an object"),
+        (json!({"type":"text","multiple":"yes","lang":null}), "Invalid multiple at rows: expected a boolean or an object"),
+        (json!({"type":"text","lang":null,"design":[]}), "Invalid lang at rows: expected a boolean or an object"),
+        (json!({"type":"text","lang":{"only":"ko"}}), "Invalid lang.only at rows: expected a list of language codes or an object"),
+        (json!({"type":"text","lang":{"only":null}}), "Invalid lang.only at rows: expected a list of language codes or an object"),
+        (json!({"type":"text","lang":{"only":["ko",3]},"design":[]}), "Invalid lang.only at rows: expected a list of language codes or an object"),
+    ] {
+        let spec = json!({"type":"group","properties":{"rows":field}});
+        assert_eq!(compile_form(&spec, &CompileOptions::default()).unwrap_err().message, message);
+    }
 }
 
 #[test]
@@ -299,7 +488,10 @@ fn native_fixture_records() {
         let result=compile_form(&case["spec"],&options).and_then(|template| {
             let bind:BindOptions=serde_json::from_value(case.get("options").cloned().unwrap_or(json!({}))).unwrap();
             let fields=bind_form(&template,case.get("data").unwrap_or(&json!({})),&bind)?;
-            Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":crate::render::render_fields(&fields)}))
+            let data=case.get("data").cloned().unwrap_or(json!({}));
+            let language=case["options"]["language"].as_str().unwrap_or("ko");
+            let html=crate::render::render_form_html(&fields,&template,&data,language)?;
+            Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":html}))
         });
         if let Some(expected)=case.get("expectError") {
             assert_eq!(result.as_ref().unwrap_err().code,expected["code"].as_str().unwrap(),"{}",case["name"]);
@@ -482,6 +674,77 @@ fn display_defaults_do_not_replace_explicit_null() {
             bind_form(&template, &json!({"display":null}), &BindOptions::default()).unwrap()[0]
                 ["widget"]["rawHtml"],
             ""
+        );
+    }
+}
+
+#[test]
+fn form_buttons_default_declared_and_rejected() {
+    let plain = compile_form(
+        &json!({"type":"group","properties":{"name":{"type":"text"}}}),
+        &CompileOptions::default(),
+    )
+    .unwrap();
+    assert_eq!(
+        serde_json::to_value(&plain.buttons).unwrap(),
+        json!([{"type":"submit"}])
+    );
+    let form = Form::new(
+        plain,
+        &json!({}),
+        BindOptions {
+            language: "en".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(render_form(&form).unwrap().ends_with("</div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div>"));
+    let declared = compile_form(&json!({"type":"group","action":{"method":"post","url":"/save"},"buttons":[
+        {"type":"submit","name":"__submitted__","value":"go","text":{"ko":"저장하기","en":"Save now"},"design":{"class":"primary"}},
+        {"type":"reset"},
+        {"type":"button","text":"Cancel","behavior":{"onclick":"history.back()"}},
+        {"type":"link","text":"List","href":"../?a=1&b=\"2\""}],"properties":{"name":{"type":"text"}}}), &CompileOptions::default()).unwrap();
+    assert_eq!(
+        serde_json::to_value(&declared.action).unwrap(),
+        json!({"method":"post","url":"/save"})
+    );
+    let form = Form::new(declared, &json!({}), BindOptions::default()).unwrap();
+    assert!(render_form(&form).unwrap().contains("<button type=\"submit\" class=\"crudui-action crudui-action--text primary\" name=\"__submitted__\" value=\"go\">저장하기</button><button type=\"reset\" class=\"crudui-action crudui-action--text\">초기화</button><button type=\"button\" class=\"crudui-action crudui-action--text\" onclick=\"history.back()\">Cancel</button><a class=\"crudui-action crudui-action--text\" href=\"../?a=1&amp;b=&quot;2&quot;\">List</a>"));
+    for (spec, message) in [
+        (
+            json!({"type":"group","buttons":{},"properties":{}}),
+            "Invalid buttons at form: expected a list of buttons",
+        ),
+        (
+            json!({"type":"group","buttons":[{"type":"image"}],"properties":{}}),
+            "Invalid buttons.0.type at form: expected submit, reset, button or link",
+        ),
+        (
+            json!({"type":"group","buttons":[{"type":"button"}],"properties":{}}),
+            "Invalid buttons.0.text at form: expected content for this button type",
+        ),
+        (
+            json!({"type":"group","buttons":[{"type":"link","text":"List"}],"properties":{}}),
+            "Invalid buttons.0.href at form: expected a link target",
+        ),
+        (
+            json!({"type":"group","buttons":[{"type":"submit","value":1}],"properties":{}}),
+            "Invalid buttons.0.value at form: expected a string",
+        ),
+        (
+            json!({"type":"group","action":"post","properties":{}}),
+            "Invalid action at form: expected an object",
+        ),
+        (
+            json!({"type":"group","properties":{"rows":{"type":"group","buttons":[],"properties":{}}}}),
+            "Invalid buttons at rows: expected the form root",
+        ),
+    ] {
+        assert_eq!(
+            compile_form(&spec, &CompileOptions::default())
+                .unwrap_err()
+                .message,
+            message
         );
     }
 }

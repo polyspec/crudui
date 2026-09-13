@@ -38,7 +38,7 @@ properties:
   {
     id: 'complex',
     name: 'complex — condition-map min + design.show + i18n + multiple rows',
-    note: 'condition-map min:{".vip":10, true:1} (first-truthy), design.show ".subscribe", bilingual label, multiple:true two rows (data-uniqid 0/1, clone-element). VIP qty=5 < 10 → invalid@qty:min.',
+    note: 'condition-map min:{".vip":10, true:1} (first-truthy), design.show ".subscribe", bilingual label, multiple:true two keyed row nodes (data-crudui-row-key). VIP qty=5 < 10 → invalid@qty:min.',
     spec: `type: group
 properties:
   vip:
@@ -79,7 +79,7 @@ properties:
   {
     id: 'edge-ref',
     name: 'edge — unresolved $ref (REF_FILE_NOT_FOUND)',
-    note: 'compose/$ref → Missing.yml not in files → LOAD error, NOT valid:false. 4 langs return loadError{code:REF_FILE_NOT_FOUND}; 3 frameworks return error{code:REF_FILE_NOT_FOUND}. legacy gap (LargeForm.yml:873) closed.',
+    note: 'compose/$ref → Missing.yml not in files → load failure, NOT valid:false. 4 langs return failure{code:REF_FILE_NOT_FOUND, message, at:"Missing.yml"}; 3 frameworks return error{code:REF_FILE_NOT_FOUND}. legacy gap (LargeForm.yml:873) closed.',
     spec: `type: group
 properties:
   $ref: Missing.yml`,

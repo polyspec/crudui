@@ -14,9 +14,9 @@ package main
 // through stdin from the package root. It fails on a wrong exit code, a missing
 // field or a load error reported as a validation result.
 //
-// Go LOAD wire (mirrors JS/Rust on absence of "valid"; carries a trace): exit 1,
-// stdout {error, code, trace}, NO "valid" key. A bad request: exit 1, {error}
-// with no "code". The CLI must reproduce the fixture output on stdout.
+// Failure wire (identical in every language): a load or input failure exits 2
+// with stdout exactly {error, code, at} and no "valid" key. A bad request exits 1
+// with {error} and no "code". The CLI must reproduce the fixture output on stdout.
 
 import (
 	"bytes"
@@ -38,9 +38,28 @@ type cliCase struct {
 		Valid  bool              `json:"valid"`
 		Errors []json.RawMessage `json:"errors"`
 	} `json:"expected"`
-	ExpectLoadError *struct {
-		Code string `json:"code"`
-	} `json:"expectLoadError"`
+	ExpectFailure *struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		At      string `json:"at"`
+	} `json:"expectFailure"`
+}
+
+// assertFailureWire checks a load or input failure: exit 2 and exactly
+// {error, code, at} on stdout.
+func assertFailureWire(t *testing.T, run cliRun, message, code, at string) {
+	t.Helper()
+	if run.exit != 2 {
+		t.Fatalf("failure exit: want 2, got %d (stderr: %s)", run.exit, run.stderr)
+	}
+	var out map[string]any
+	if err := json.Unmarshal(run.stdout, &out); err != nil {
+		t.Fatalf("failure stdout not JSON: %q (%v)", run.stdout, err)
+	}
+	want := map[string]any{"error": message, "code": code, "at": at}
+	if !reflect.DeepEqual(out, want) {
+		t.Fatalf("failure stdout mismatch\n want: %v\n  got: %v", want, out)
+	}
 }
 
 // cliBin is the compiled CLI built once in TestMain.
@@ -158,24 +177,11 @@ func TestCliBoundaryMatchesFixture(t *testing.T) {
 		t.Run(c.Name, func(t *testing.T) {
 			run := runCli(t, requestOf(t, c))
 
-			if c.ExpectLoadError != nil {
-				// Go LOAD wire: exit 1, {error, code, trace}, NO "valid" key.
-				if run.exit != 1 {
-					t.Fatalf("LOAD case exit: want 1, got %d (stderr: %s)", run.exit, run.stderr)
-				}
-				var out map[string]any
-				if err := json.Unmarshal(run.stdout, &out); err != nil {
-					t.Fatalf("LOAD stdout not JSON: %q (%v)", run.stdout, err)
-				}
-				if _, hasValid := out["valid"]; hasValid {
-					t.Fatalf("LOAD failure must not carry a \"valid\" key: %s", run.stdout)
-				}
-				if got, _ := out["code"].(string); got != c.ExpectLoadError.Code {
-					t.Fatalf("LOAD code: want %s, got %v", c.ExpectLoadError.Code, out["code"])
-				}
-				if msg, _ := out["error"].(string); msg == "" {
-					t.Fatalf("LOAD failure must carry a non-empty error message: %s", run.stdout)
-				}
+			if (c.Expected == nil) == (c.ExpectFailure == nil) {
+				t.Fatalf("case %q must declare exactly one of expected or expectFailure", c.Name)
+			}
+			if c.ExpectFailure != nil {
+				assertFailureWire(t, run, c.ExpectFailure.Message, c.ExpectFailure.Code, c.ExpectFailure.At)
 				return
 			}
 
@@ -272,48 +278,27 @@ func TestCliListModeCleanIsValid(t *testing.T) {
 }
 
 // TestCliListModeForbiddenKeyLoadWire: mode:list over a list-spec carrying a §6
-// forbidden meta key routes onto the SAME Go LOAD wire the form path uses — exit
-// 1, stdout {error, code: FORBIDDEN_META_KEY, trace}, NO "valid" key.
+// forbidden meta key uses the same failure wire as the form path — exit 2,
+// stdout exactly {error, code: FORBIDDEN_META_KEY, at}.
 func TestCliListModeForbiddenKeyLoadWire(t *testing.T) {
 	run := runCli(t, listRequest(t, `{"columns":{"name":{"field":".name"},"display_switch":{"field":".x"}}}`, nil))
-	if run.exit != 1 {
-		t.Fatalf("forbidden-key list exit: want 1, got %d (stderr: %s)", run.exit, run.stderr)
-	}
 	var out map[string]any
 	if err := json.Unmarshal(run.stdout, &out); err != nil {
-		t.Fatalf("LOAD stdout not JSON: %q (%v)", run.stdout, err)
+		t.Fatalf("failure stdout not JSON: %q (%v)", run.stdout, err)
 	}
-	if _, hasValid := out["valid"]; hasValid {
-		t.Fatalf("LOAD failure must not carry a \"valid\" key: %s", run.stdout)
+	message, _ := out["error"].(string)
+	at, _ := out["at"].(string)
+	if message == "" || at == "" {
+		t.Fatalf("forbidden-key failure must name the key and its location: %s", run.stdout)
 	}
-	if got, _ := out["code"].(string); got != "FORBIDDEN_META_KEY" {
-		t.Fatalf("LOAD code: want FORBIDDEN_META_KEY, got %v", out["code"])
-	}
-	if msg, _ := out["error"].(string); msg == "" {
-		t.Fatalf("LOAD failure must carry a non-empty error message: %s", run.stdout)
-	}
-	if _, hasTrace := out["trace"]; !hasTrace {
-		t.Fatalf("LOAD failure must carry a trace: %s", run.stdout)
-	}
+	assertFailureWire(t, run, message, "FORBIDDEN_META_KEY", at)
 }
 
-// TestCliListModeUnresolvedRefLoadWire: an unresolved $ref in a list is a LOAD
-// failure (never a silent empty table) — exit 1, {error, code, trace}, no "valid".
+// TestCliListModeUnresolvedRefLoadWire: an unresolved $ref in a list is a load
+// failure (never a silent empty table) — exit 2, exactly {error, code, at}.
 func TestCliListModeUnresolvedRefLoadWire(t *testing.T) {
 	run := runCli(t, listRequest(t, `{"columns":{"$ref":"missing-columns.yml"}}`, nil))
-	if run.exit != 1 {
-		t.Fatalf("unresolved-$ref list exit: want 1, got %d (stderr: %s)", run.exit, run.stderr)
-	}
-	var out map[string]any
-	if err := json.Unmarshal(run.stdout, &out); err != nil {
-		t.Fatalf("LOAD stdout not JSON: %q (%v)", run.stdout, err)
-	}
-	if _, hasValid := out["valid"]; hasValid {
-		t.Fatalf("LOAD failure must not carry a \"valid\" key: %s", run.stdout)
-	}
-	if got, _ := out["code"].(string); got != "REF_FILE_NOT_FOUND" {
-		t.Fatalf("LOAD code: want REF_FILE_NOT_FOUND, got %v", out["code"])
-	}
+	assertFailureWire(t, run, "$ref file not found: missing-columns.yml", "REF_FILE_NOT_FOUND", "missing-columns.yml")
 }
 
 // TestCliListModeRefResolvesAndScansClean: a list whose columns $ref points at a

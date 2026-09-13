@@ -2,6 +2,805 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Record the screen-sized frame candidate run and its deployment
+
+`node examples/form-comparison/candidate-verification.mjs` passed for f3109ad: PHP, the
+PHP extension, Go and Rust each passed 1,452 checks with no failure, and the browser
+verification recorded 5,808 checks with no failure. `node
+examples/form-comparison/comparison-deployment.mjs --commit f3109ad…` deployed it at
+`https://crudui.test/` and passed the identical reapplication. In a 798 px browser
+window the frame is 798 px tall and the SSR and CSR columns match 8/8. With the page
+scrolled to the frame and the frame scrolled by 700 px, the company header is at the
+top of the screen on its 0 px line and the store header at 39 px on its 38.5 px line,
+both showing their level labels, while the department and Busan headers, not stuck,
+hide theirs. A measurement taken right after scrolling, before the page rendered,
+still read the labels as hidden; measured again after rendering they showed.
+
+## 2026-09-14 — Size the comparison frames to the screen
+
+After sticky rows became CSS only, the comparison page still behaved differently from a
+page. The cause was its layout, not script: each frame was fixed at 1,450 px on a
+798 px screen, so the page and the frame both scrolled, and the frame's top edge,
+where sticky headers pin, left the screen as soon as the page scrolled. A scrolling box
+taller than the screen behaves the same way. Each frame is now `100vh` tall, so its
+scroll area is exactly what the viewer sees. Two comments that still said the scroll
+position decides the current row (`actions.ts`, `instance.ts`) were corrected; the only
+script left around scrolling is focusing a row's control after an action or a map
+selection.
+
+The generator-core tests (108) and `npm run test:form-comparison:source` (140) passed.
+
+## 2026-09-14 — Record the CSS-only sticky candidate run and its deployment
+
+`node examples/form-comparison/candidate-verification.mjs` passed for 3578158. PHP,
+the PHP extension, Go and Rust each passed 1,452 checks with no failure, and the
+browser verification recorded 5,808 checks with no failure. Earlier runs had stopped:
+338d060 failed in the React SSR takeover of sticky rows and 5fbcf5a on a Chromium
+screenshot error, both fixed or superseded by later commits, and the first run of
+3578158 failed while building the image because the disk was full. The container
+image builder held about 75 GB of build cache from the repeated candidate builds;
+`container prune`, `container image prune --all` and deleting the builder (which
+rebuilds its cache on the next build) left 83 GiB free, and the running containers
+and volumes were not touched. `node examples/form-comparison/comparison-deployment.mjs
+--commit 3578158…` deployed it at `https://crudui.test/` and passed the identical
+reapplication. In a browser the SSR and CSR columns match 8/8, each frame has four
+sticky rows and no `data-crudui-stuck`, `data-crudui-current` or published lengths,
+and after scrolling the SSR frame the company header sits on its line with its label
+shown while the not yet stuck Busan header hides its label.
+
+## 2026-09-14 — Make sticky rows CSS only and remove scroll measuring
+
+Sticky rows did not behave the same in a frame as in a page because the browser
+binding measured the scroll position in script: `connectRows` decided which rows were
+stuck and current from bounding rectangles, published lengths for a computed space
+after the form, and `alignRow` scrolled rows with `scrollIntoView`, which also scrolls
+every enclosing document. Each fix to one of those calculations (the scroll container,
+the content after the form) exposed another place where the reference was wrong. The
+user decided to keep only what CSS can do.
+
+- Removed: `connectRows`, `RowTracking`, `markOutline`, `alignRow`, the
+  `data-crudui-stuck` and `data-crudui-current` attributes, the `crudui-current` event,
+  the structure map's `aria-current` marking, the published
+  `--crudui-scroll-height` and `--crudui-form-end-*` lengths, the space after the form,
+  the current row border and the rule that showed `controls: outline` on the current
+  map line only (map lines now always show their controls). The jsdom stand-in for
+  `scrollIntoView` and the takeover comparisons' exclusions for those attributes are
+  gone with them, and `contracts/features.json` no longer lists the three functions.
+- `crudui.css`: sticky headers still stack on `--crudui-sticky-depth` lines; the level
+  label shows only while its header is stuck, through a `scroll-state(stuck: top)`
+  container query; controls in a sticky row keep a top scroll margin of the headers
+  pinned above them (`--crudui-sticky-cover`) and every form control a bottom scroll
+  margin of the footer.
+- Moving to a row after a row operation or a structure map selection focuses its
+  control, and the browser scrolls it into view (Chromium centres it); the same code
+  runs in `connectForm`, `connectOutline` and the comparison `bindForm` controller.
+- The Chromium style checks run every case in a page, in a scrolling box and in a
+  frame: stacked headers on their lines with labels only while stuck, and focus after
+  adding a row and after a map selection clear of the pinned headers and the footer.
+
+`make format-check`, `npm run test:forms` (core 108, HTML 116, React 350, Vue 341,
+Svelte 338 and 10 client tests), `npm run test:form-comparison:source` (140),
+`npm run test:build`, `npm run test:dependencies`, `make docs-check` and the Chromium
+style checks (6: two in each host) passed. The last `make docs-check` run first failed
+because the disk was full while rebuilding the Rust crates; after removing the stopped
+5fbcf5a candidate container, image and directory it passed.
+
+## 2026-09-14 — Take over sticky rows identically in React
+
+The candidate run of 338d060 failed in `browser-php`: the SSR takeover in React
+differed on the first sticky row, whose style the server writes as
+`--crudui-sticky-depth:0` and React as `--crudui-sticky-depth: 0;`. The local shared
+takeover test had not caught it because its specification had no sticky rows; I had
+declared sticky rows only in the comparison example.
+
+- A `style` attribute is a CSS declaration block, so the takeover comparison, in the
+  comparison frame and in `compareServerTakeover`, compares it as the CSS object model
+  serializes its declarations.
+- The shared form session specification declares sticky rows for companies and stores,
+  so the React, Vue and Svelte form tests render and compare them.
+- That exposed a React fault present since f7f814e: `resolvedStyleProps` removed and
+  re-added the style attribute each time React called its ref, on every render, so a
+  re-rendered row's style moved after the `data-crudui-current` attribute the browser
+  binding had written, and a form given its data later differed in raw HTML from one
+  created with it. The style attribute is now placed after the rendered attributes
+  only when an element first connects, and later declarations replace it in place.
+
+`make format-check`, `npm run test:forms` (core 108, HTML 116, React 350, Vue 341,
+Svelte 338 and 10 client tests), `npm run test:form-comparison:source`,
+`npm run test:build`, `npm run test:dependencies`, `make docs-check` and the Chromium
+style checks (5) passed.
+
+## 2026-09-14 — Count the content after the form in the trailing space
+
+The trailing space after the form ignored the content that already follows the form in
+its scroll container. In the comparison frame, where the results follow the form, it
+added 1,037 px (the 1,448 px frame less the 362 px end-row extent and the 49 px footer),
+leaving a blank area between the form and the results, and the end row scrolled past
+its line by the height of that content. The rule now subtracts the content after the
+form, apart from the form's own margin, measured by `connectRows` and published as
+`--crudui-form-end-after`, and never goes below zero. Scrolling stops with the end row
+on its line when the content after the form is shorter than the space it needs, and
+longer content scrolls into view with no space added. The documentation no longer
+describes the limit as exact only when nothing follows the form.
+
+Two Chromium checks cover it: 60 px of content after a form in a scrolling box, where
+the end row stopped 60 px past its line before the change (27 px against 87 px), and
+600 px of content, where no space is added and the content scrolls to its end.
+
+## 2026-09-14 — Apply the sticky rules in any scroll container and declare sticky rows in the comparison example
+
+The comparison page showed no sticky headers because its example specification did
+not declare `multiple.header: sticky`; the local preview declared it, so the same
+generator behaved differently between the two examples. Checking why exposed a fault
+that would appear wherever a form sits in a scrolling box, a dialog or a frame rather
+than the page: `crudui.css` computed the trailing space after the form from `100vh`,
+the page viewport, while the sticky headers follow their scroll container, and
+`connectRows` treated an ancestor as the scroll container only while its content
+already overflowed, unlike `position: sticky`. In a 420 px scrolling box inside a
+700 px page, scrolling went on until the end row was 193 px above the box instead of
+stopping with it on its 87 px line.
+
+- `connectRows` resolves the scroll container as `position: sticky` does (the nearest
+  ancestor whose vertical overflow is `auto` or `scroll`, otherwise the document) and
+  publishes its height as `--crudui-scroll-height` with the two end-row lengths;
+  `crudui.css` uses it in place of `100vh`. The SSR takeover comparisons leave it out
+  with the other binding state. A DOM without `scrollingElement`, such as jsdom, uses
+  its root element as the document scroller, and the comparison controller test's
+  stand-in document has a root element like a real one.
+- The comparison example declares `header: sticky` and `title: name` for companies,
+  stores and departments, so every server and framework renders and compares sticky
+  rows.
+- A Chromium check mounts a form in a scrolling box and verifies stuck headers on
+  their lines, no scroll pull-back, the end row stopping on its line and being current,
+  and the published height. Before the change it failed with the end row at −193 px
+  against its 87 px line.
+
+## 2026-09-13 — Record the passing SSR/CSR candidate run and its deployment
+
+`node examples/form-comparison/candidate-verification.mjs` passed for 8d0d467. PHP,
+the PHP extension, Go and Rust each passed 1,452 checks with no failure, including
+192 initialization comparisons per server, rendering path and framework with the SSR
+takeover. The browser verification recorded 5,808 checks with no failure. The first
+run of 8d0d467 stopped during image construction because the disk was full; the Go
+build cache and temporary check directories were removed and the same commit was run
+again. `node examples/form-comparison/comparison-deployment.mjs --commit 8d0d467…`
+deployed it at `https://crudui.test/` and passed the identical reapplication. In a
+browser the page shows the SSR and CSR columns (side by side above 1,000 px wide)
+with 8/8 comparisons matching for PHP, React and bindForm.
+
+## 2026-09-13 — Use the SSR and CSR column names in the browser interaction checks
+
+The candidate run of 4607254 failed in `browser-php` before any interaction ran: the
+interaction check still looked for the frame with `initialization=data`, and the initial
+mount check still looked for `initialization=inject`, the column names 880cb11 replaced.
+The interaction check now uses the `ssr` frame, the initial mount check the `csr` frame,
+and the report test fixture the `ssr` column. These checks run only inside the candidate
+container, so the local source checks (140 passed) did not reveal the old names.
+
+## 2026-09-13 — Restore the React form session tests removed with the legacy UI
+
+d26ecce deleted `packages/generator-react/src/__tests__/Form.test.tsx` together with
+the legacy FormBuilder test in the same file, so React stopped running the shared
+initialization, session DOM, control and focus scenarios that Vue and Svelte run. The
+file is restored without the legacy test and also runs `compareServerTakeover`.
+React passes 350 tests.
+
+## 2026-09-13 — Make Vue and Svelte take over server-rendered forms without changing them
+
+The first candidate run of d80a3a0 failed in the SSR column. Vue keeps comment nodes as
+anchors for conditional blocks, and Svelte 5 kept the whitespace between sibling
+elements of its templates as text nodes, left empty text anchors, and did not write the
+`value` attribute of inputs, the text of textareas or the `checked` attribute of
+checkboxes into the browser DOM. Comments and empty text render nothing, so the takeover
+comparison leaves them out in the comparison frame and in a new shared test,
+`compareServerTakeover`, which the Vue and Svelte form tests run against the HTML
+renderer's output for the same session. The Svelte templates are written without
+whitespace between sibling nodes, and inputs, textareas and checkboxes set both the
+server attribute or text and `defaultValue`/`defaultChecked`, so Svelte's server output
+and its browser DOM equal the other renderers'.
+
+`make format-check`, `npm run test:forms` (core 108, HTML 116, Vue 341, Svelte 338 and
+10 client tests), `npm run test:form-comparison:source`,
+`npm run test:build`, `npm run test:dependencies`, `make docs-check` and `svelte-check`
+passed. The candidate verification is recorded in a separate entry.
+
+## 2026-09-13 — Compare server-side and client-side rendering on the comparison page
+
+The comparison page showed two client-side columns, "create with data" and "mount,
+then inject data", so it never showed that the server languages and the browser
+frameworks render the same form. The columns are now SSR and CSR. In the SSR column
+(`initialization=ssr`) the selected server (PHP, the PHP extension, Go or Rust)
+renders the form with the saved record, the frame places that HTML in the page, and
+the selected framework takes the form over with the same template and data; the
+takeover must leave the parsed form DOM (every element, attribute value, text and
+comment) unchanged, apart from the state the browser binding writes
+(`data-crudui-stuck`, `data-crudui-current` and the end-row lengths). The first
+candidate run compared serialized HTML and failed only on attribute order: React sets
+an input's `type`, `value` and `name` after its other attributes. Attribute order is
+not part of the DOM, and the string renderers' byte-identical HTML stays covered by the
+generation checks, so the takeover compares the parsed DOM.
+The CSR column (`initialization=csr`) mounts the form without data and injects the
+record. Every stage is then compared between the columns as before. The comparison
+labels, the SSR document links, the frame readiness and typing checks and the
+documentation use the new names.
+
+The form comparison source checks passed 140, the Go and Rust comparison server tests
+passed, and `make docs-check` passed. The SSR takeover itself runs only in the
+four-server candidate verification, recorded in a separate entry.
+
+## 2026-09-13 — Record the passing four-server candidate runs for crudui.css and the legacy removal
+
+`node examples/form-comparison/candidate-verification.mjs` passed for 0ab3c93 (form
+styling with `crudui.css` alone) and for eb9f7b7 (after removing the legacy UI paths
+and fixing the build and dependency checks). In each run PHP, the PHP extension, Go
+and Rust passed 1,452 checks with no failure, the browser verification recorded
+5,808 checks with no failure, and the command returned status 0.
+
+## 2026-09-13 — Fix the build and dependency checks that CI runs
+
+`npm run test:build` and `npm run test:dependencies` were failing, and the form
+suites used during this work did not run them:
+
+- `tests/build/public-types.mts` and `public-types.cts` still named `FieldShape` and
+  `MultipleSettings`, which the node view model removed. They now name the current
+  public types `NodeVM` and `ButtonVM`.
+- The form comparison controller imports `@crudui/generator-core` (since 7a2b73a),
+  but the root package did not declare it. The root package now declares the
+  workspace package as a development dependency.
+- `tests/build/package-consumer-pack.test.mjs` passed paths that do not exist, while
+  `packPackage` reads the source manifest to check the package name (since 07e8f9f).
+  The tests now write a manifest in a temporary directory.
+
+`npm run test:build`, `npm run test:dependencies` and `npm run test:runtimes` passed,
+as did every `tests/build` and `tests/docs` test (67).
+
+## 2026-09-13 — Remove the Bootstrap-based legacy UI paths
+
+The legacy form components and the original Legacy rendering comparisons were
+built on Bootstrap and are replaced by the node grammar and `crudui.css`. They are
+removed rather than kept beside the current path:
+
+- `@crudui/generator-react/legacy`, `@crudui/generator-vue/legacy` and
+  `@crudui/generator-svelte/legacy` with their sources, the React
+  `@crudui/generator-react/styles.css` stylesheet, and the tests that exercised them
+  (16 React tests, the Vue and Svelte parity tests and captures, the Svelte legacy
+  component test);
+- `examples/legacy/demo-app`, `playground`, `legacy-bootstrap`, `legacy-compare`,
+  `legacy-original`, `legacy-validate-test` and `react-usage.tsx`, with their
+  docker-compose services and README entries;
+- `tests/parity`, `tests/cross-framework`, `tests/legacy-client`,
+  `tests/fixtures/reference-html`, `tools/legacy-baseline`, the root `compare`
+  pages, the vendored `packages/generator-legacy` and the CI parity job, whose Vue and
+  Svelte steps repeated the form-render job;
+- the `lucide-react` and `yaml` dependencies of the React, Vue and Svelte packages,
+  which only the legacy components used.
+
+The legacy specification translation and validators (`@crudui/validator/legacy`
+and its PHP, Go and Rust counterparts), the legacy validation API examples and their
+shared specifications stay: they validate data and render nothing. The public
+package test now checks that `@crudui/generator-core/crudui.css` is the only exported
+stylesheet.
+
+After the removal `npm run build`, `npm run lint` and the Svelte type check passed.
+generator-core and HTML still passed 108 and 116 tests; React, Vue and Svelte passed
+347, 341 and 338 (358, 7 and 11 fewer: the removed legacy tests), the Svelte client
+10 and the Node checks 11. The form comparison source checks passed 140, the new
+stylesheet export check passed, and `make docs-check` passed after the legacy schema
+and visibility documents stopped linking the removed React sources. The same run
+showed that the declaration compile check in `tests/build/public-packages.test.mjs`
+and two dependency and pack checks were already failing; the next entry fixes them.
+
+## 2026-09-13 — Style a form with crudui.css alone: widgets use the crudui grammar instead of Bootstrap
+
+Widget markup still used the Bootstrap vocabulary inherited from the original form
+(`form-control`, `form-select`, `input-group`, `input-group-text`, `btn`,
+`btn-group`, `btn-check`, `btn-switch`, `flex-wrap`, a `data-toggle="buttons"`
+attribute, and `p-0 border-0` on an unframed language group), and the core
+stylesheet did not style any of it. The preview loaded Bootstrap from a CDN and the
+comparison page styled the controls inside `#view`, so a form looked right only with
+styles from outside the library. Widgets now follow the class grammar in all five
+implementations and eight renderers: `crudui-widget` with `__affix`, `__button`,
+`--search` and `--unsupported`; `crudui-input` with `--select` and `--file`;
+`crudui-choices` with `__input`, `__label` and `--multiple`; an action widget button
+is `crudui-action crudui-action--text`; and a framed language group is
+`crudui-node--framed`. The widget model layouts `input-group` and `btn-group` are
+now `widget` and `choices`. The only other classes a renderer writes are the
+validation hooks `valid-target` and `valid-target-async`, the editor hosts and the
+classes a spec declares, and the naming check now fails on any other class.
+
+The core stylesheet is `@crudui/generator-core/crudui.css` (the `./styles.css` export
+is removed). It styles every widget, and every rule is scoped to a crudui block,
+including box sizing and hiding `[hidden]` elements. Pages style only their own
+layout: the preview keeps its layout in the page and no longer loads Bootstrap, the
+comparison page stylesheet no longer styles anything inside `#view`, and the SSR
+documents of the comparison servers load `crudui.css`. The Go and PHP package
+examples also take the form styles from `crudui.css` and no longer append their own
+submit button, which duplicated the form footer's.
+
+`make format-check` passed. generator-core, HTML, React, Vue and Svelte passed 108,
+116, 705, 348 and 349 tests with the regenerated form-render and structure map
+fixtures, the Svelte client 10, and the Node checks 11, including the naming check
+that rejects classes outside the grammar. `make test-native` passed all 976 generator
+checks (195 per implementation) with PHP API checks 361 per configuration and 103
+validation cases. The comparison Go and Rust server tests, the comparison source
+checks 140 and its Chromium checks 3, and `make docs-check` passed. In Chrome the
+preview loads two stylesheets, its own layout and `crudui.css`, and renders inputs,
+selects, textareas, checkboxes, language frames, the structure map and the footer
+buttons without Bootstrap.
+
+## 2026-09-13 — Format every Rust crate and Go file, and check it with `make format-check`
+
+No check ran rustfmt or gofmt, so formatting drifted: five Rust crates had 62
+rustfmt differences (54 in generator-rust, including code from the recent form
+changes) and two Go files had gofmt differences. `tests/runner/go/run_test.go`
+repeated its import alias (`validator validator "…"`) and did not compile at all.
+All crates and files are now formatted and the import is fixed. `make format-check`
+runs `cargo fmt --check` for every tracked `Cargo.toml` through the shared Rust
+command entry point and `gofmt -l` for every tracked Go file, and fails on any
+difference. The comparison Rust server test that compiles the spec by reference now
+keeps `buttons` on the root, as the comparison checks do.
+
+`make format-check` passed. generator-rust passed 20 and 4 tests, validator-rust
+all its test targets, the comparison Rust server 4, `go test` for the legacy Go
+validator and the Go test runner passed, the legacy Rust API and the Rust bench
+built, and `make test-native` passed all 976 generator checks.
+
+## 2026-09-13 — Record the passing four-server candidate run for the buttons and scrolling changes
+
+`node examples/form-comparison/candidate-verification.mjs --ref e3f8c00` passed:
+PHP, the PHP extension, Go and Rust each passed 1,452 checks with no failure, the
+browser verification recorded 5,808 checks with no failure, and the command returned
+status 0. It covers the form buttons (dd37759), the naming and DOM scenario checks
+(6912b31), rendering nothing while scrolling (67f510e) and the two comparison fixes
+the earlier runs found: the run for 67f510e failed in the PHP generation test
+(fixed in fc2ee17) and the run for fc2ee17 failed in the reference compilation check
+(fixed in e3f8c00).
+
+## 2026-09-13 — Scrolling renders nothing: the current row is no longer instance state
+
+Scrolling past a row made it current, and `connectForm` then called
+`selectRow`, which published a new snapshot. Applications re-render on every
+snapshot, so each row boundary crossed while scrolling replaced the whole form, the
+structure map and the data view, and restored the focused control and its text
+selection. With a control focused, the scroll was pulled back toward it. The
+selection existed only to mark the map, so it is removed rather than guarded:
+`FormInstance.selectRow`, the snapshot and view state `selection`, `RowSelection`,
+`selectRowView` and `OutlineRow.current` are gone, and `setAllExpandedView` takes
+only the nodes and the expansion. `connectRows(element)` tracks only form rows (map
+rows carry their own `data-field-path`) and dispatches `crudui-current` when another
+row becomes current. The new `markOutline(outline, form)` sets `aria-current` on the
+map row of the form's current row; `connectOutline` calls it on that event and
+whenever the map is rendered again, and the comparison `bindForm` controller calls it
+for its map. `select-row` changes no state: `runAction` returns the row to move to and
+the binding aligns it. With `multiple.controls: outline` the map renders every row's
+controls and the stylesheet shows those of the current row.
+
+The Chromium style checks now render the structure map next to the form and assert
+that scrolling through the rows renders nothing and that the map marks exactly the
+current form row at every step. A puppeteer probe of the preview, with two members
+added and a control focused, measured one or two full renders per scroll gesture
+before the change and none after it. generator-core, HTML, React, Vue and Svelte
+passed 108, 116, 705, 348 and 349 tests with the regenerated structure map fixture,
+the Svelte client 10, the Node checks (normalizer, styles and naming) 11, the form
+comparison source checks 140 and its Chromium checks 3, and `make docs-check` passed.
+
+## 2026-09-13 — Check the markup naming rules and the collapse and undo DOM paths
+
+The class naming rules of the form markup (N1–N3: `crudui-{block}`,
+`__{element}`, `--{modifier}` with its block, parts inside a node header, nodes
+inside a body) were documented but not checked. `tests/form-markup/naming.test.mjs`
+now checks every `crudui-` class in the form render and structure map fixtures
+against the allowed blocks, elements and modifiers, and rejects five broken samples;
+`npm run test:forms` runs it. The shared DOM scenario also collapses and expands
+every row, checking each toggle's `aria-expanded` and the `hidden` body it names
+with `aria-controls`, and undoes an edit, checking the control and instance values.
+
+The naming check passed 2 tests, and React, Vue and Svelte ran the extended scenario
+in their 705, 348 and 349 passing tests.
+
+## 2026-09-13 — Form buttons in a pinned footer, and the space after the form outside it
+
+Specs declare form buttons at the root (`buttons`, with a submission `action`), but
+the schema rejected them and compilation kept only `properties`, so declared save,
+cancel and back buttons disappeared. Buttons are now part of the form contract in
+all five implementations. `buttons` is a list of `{ type: submit | reset | button |
+link, text, name, value, href, design, behavior }`; a spec without `buttons` gets one
+submit button. Submit and reset default to interface text; a button or link needs
+`text` and a link needs `href`. `action` (`method`, `url`, `enctype`) is kept in the
+template for the application. Both are rejected below the form root. The template
+carries `buttons` and `action`, `bindButtons` evaluates them and the snapshot holds
+them, and every renderer puts them in `crudui-form__footer`, one controls group whose
+markup comes from `formButtonsHtml`. The footer pins to the bottom of the scroll
+container at `--crudui-form-footer-height`, as sticky row headers pin to the top. The
+JSON schema, the four validators, the CLI and the legacy translator accept the
+declarations.
+
+The row at the end of the form now reaches its line through space outside the form
+instead of a minimum height inside the last row, which left a blank inside nested
+cards. `connectRows` publishes two measured lengths on the connected element (the
+extent from that row's top to the end of the form content, and its aligned top), and
+the stylesheet gives `.crudui-form` a bottom margin of the viewport less those lengths
+and the footer. Publishing on the form element itself let a re-render drop the
+margin and pull the scroll back; the connected element is never replaced.
+
+The form comparison servers (PHP, PHP extension, Go, Rust) appended their own
+`_form_complete` submit button after the rendered form, which now rendered a second
+submit button in its footer. The comparison spec, and the specs of the Go, Rust and
+PHP generation tests, declare that button instead, the servers no longer append one,
+and the generation checks require exactly one submit button in the document. The
+first four-server candidate run of this change failed in the PHP generation test,
+whose own spec did not yet declare the button. The second failed in the generation
+check that compiles the published spec through a reference: it put the whole spec,
+buttons included, in the referenced file, and composition takes only its fields, so
+the referenced template got the default button. The frames compile through the
+servers the same way, so their templates silently dropped the declared button too.
+Both now keep the root declarations on the root and reference only the fields.
+
+Validation passed: generator-core, HTML, React, Vue and Svelte passed 108, 116, 705,
+348 and 349 tests, the Svelte client 10, the normalizer 6 and the Chromium style
+checks 3. `make test-native` passed all 976 generator checks, with 361 PHP API checks
+per configuration and 103 validation cases. The JSON schema passed 70 checks, the
+TypeScript and PHP validators 1629 and 1461, the Rust validator 62, the Go validator
+and the CLI 37. The PHP extension engine passed 22 tests, the cross-check console 117,
+the form comparison source checks 140 and its Chromium checks 3, the Go and Rust
+comparison server tests passed, and `make docs-check` passed. In Chrome the end row
+stopped 0.2px from its line without a minimum height, and the space after the form was
+a 200px margin outside it.
+
+## 2026-09-13 — Show only form rows in the structure map
+
+The structure map repeated every level twice: a collection line with its count
+(for example "Stores 2") and then the row lines, each with its own guide line, and
+it listed empty collections. It now follows one rule: one line per form row.
+`buildOutline` returns `OutlineRow[]`, each row with the rows nested in it, so the
+map nests exactly as the form does; `OutlineCollection` is removed. Collections,
+counts and empty collections are not rows and stay in the form, and a nested row
+body indents one step without guide lines. With `multiple.controls: outline`, row
+controls still move to the selected row's map line, but an empty collection's Add
+control is not a row control and now always stays in the collection footer in all
+five implementations.
+
+generator-core passed its typecheck and 104 tests; the HTML, React, Vue and Svelte
+suites passed 116, 705, 348 and 349 with the regenerated structure map fixture;
+form comparison source checks passed 140; and `make test-native` passed 976 generator
+checks after the empty collection placement change in all five implementations. In
+Chrome the map lists only rows with one indentation step per level. The four-server
+candidate run for dad977d, the previous change, passed 1,452 checks per server
+(5,808 browser checks) with no failure.
+
+## 2026-09-13 — Align rows to their sticky line and follow the scroll with the current row
+
+Sticky rows now follow rules derived from one value instead of computed offsets.
+The row root carries `--crudui-sticky-depth` (moved from the header style in all
+five implementations), and its sticky line is that depth times the header height.
+The header pins on the line; the row's `scroll-margin-top` puts the header on the
+line, so `alignRow` is `scrollIntoView({ block: 'start' })`; and the last row is at
+least the viewport below its aligned top, so scrolling ends exactly when its header
+reaches the line. An earlier draft of this change added one viewport of trailing
+space, which let the page scroll past that point; it is not kept.
+
+One rule decides the current row: the scroll position. `connectRows` marks rows
+whose top reached their line (`data-crudui-stuck` on sticky rows) and the current
+row, the last such row (`data-crudui-current`, with a highlighted border); the
+selected row and the structure map follow it. Moving to a row after a row operation
+or from the structure map scrolls it to its line. Focus no longer selects or scrolls,
+and the bindings no longer restore scroll positions. A draft that also aligned the
+row of a newly focused control, and restored captured scroll positions after
+rendering, pulled the page back to the focused row when the user scrolled to the end
+with an input focused elsewhere; both are removed. The comparison page controller
+uses the same core functions.
+
+`npm run test:forms` passed core 104, HTML 116, React 705, Vue 348, Svelte 349, ten
+normalizer checks and nine node checks, including three Chromium checks: stacking at
+exact header heights, the current row following the scroll with focus elsewhere, and
+the end row stopping exactly at its line with no blank inside rows. Form comparison
+source checks passed 140 and its Chromium checks 3. `make test-native` passed 976
+generator checks after the depth moved to the row root in all five implementations.
+`make docs-check` passed. In Chrome, with focus in the company name, wheel scrolling
+reached the end without any backward jump, kept the focus, made 판교점 current and
+stopped its top 0.2px from its aligned position.
+
+## 2026-09-13 — Stack sticky row headers at their exact height
+
+Sticky row headers (`multiple.header: sticky`) stack by offsetting each level by
+`--crudui-node-header-height`, but a header's real height was its padding, content
+and bottom border: 45px against a 44px offset in the reference preview, and more
+when a long title or the controls wrapped. Each pinned level overlapped the one
+above. A sticky header now has exactly that height, border included, never wraps,
+and truncates a long title, so pinned levels meet without overlap. A stuck header
+gets a solid background and a shadow, and its level label still shows only while
+it is stuck. Stuck detection used an IntersectionObserver with thresholds 0 and 1,
+which never fires for a row taller than the viewport, so the outermost pinned
+level showed no label. `connectForm` now marks a header stuck when it has left its
+natural place at the top of its row, measured on scroll and resize at most once
+per animation frame. A Chromium check, `tests/form-styles.test.mjs`, runs in
+`npm run test:forms` because jsdom has no layout. The form-structure preview declares sticky headers on all five
+levels, which it did not before, so the sequential pinning was not visible there.
+
+`npm run test:forms` passed core 104, HTML 116, React 705, Vue 348, Svelte 349, ten
+normalizer checks and seven node checks, including the new Chromium check. That
+check timed out waiting for the outermost stuck header before the detection change.
+In Chrome the preview pinned all five levels in order with their labels and no
+overlap.
+
+## 2026-09-13 — Fix comparison checks that failed the four-server candidate run
+
+The first candidate run of the initialization comparison failed 36 of 1,452 PHP
+checks, and the other servers did not run. The empty-collection scenario step
+excluded the Add button of a collection inside a row; that condition came from
+the recursive node change. The bindForm controller focused the new row before
+scrolling it, so the selection render restored the earlier scroll positions and
+left the input outside the frame. It now scrolls first, like core. The createForm
+checks asserted that the main page does not scroll, which contradicts the row
+focus rule for a 1,450px frame; the checks now require the focused input to be
+visible in both the frame viewport and the main page viewport. The local source
+and Chromium suites do not run these checks; only candidate verification does.
+
+The candidate run for e4d1375 then passed: PHP, the PHP extension, Go and Rust each
+passed 1,452 checks with no failure, 5,808 browser checks in total, and the command
+returned status 0.
+
+## 2026-09-13 — Compare the two initialization paths side by side
+
+The form comparison page now puts the two initialization paths in two columns:
+the left frame creates the form with its data, and the right frame mounts an
+empty form and then injects the data. The API choice (bindForm or createForm)
+moved to a selector, next to the server, framework and language selectors.
+Both columns run the same stages with the same fixed row keys: mounting,
+repeated injection, hiding and restoring data, editing, saving, reloading,
+copying, moving, removing, adding, saving the new row, emptying, restoring,
+and the structure map's expand all, collapse all and undo. The columns run
+one after the other because both save to the same record, and each right
+stage is compared with the stored left stage. Raw HTML, DOM, control state,
+fields, computed CSS, submitted data, focus and save responses are compared
+without normalization. The list at the top updates as each stage completes.
+The frames load the grammar stylesheet, so computed CSS reflects the real
+styles. The in-frame initialization check is removed.
+
+The bindForm path now supports the same actions as createForm (toggle, select,
+expand all, collapse all, undo) with the same view state, history and focus
+rules. generator-core exports those rules as pure view-state and history
+functions, which the form instance and the bindForm controller both use. Both
+paths render the structure map and the data view in their frames. React, Vue
+and Svelte provide stateless `OutlineView` and `DataPanel` (Vue: `outlineVNode`,
+`dataVNode`), and the HTML renderer adds `renderOutlineView` and
+`renderDataPanel`. A shared fixture, `tests/fixtures/form-outline/cases.json`,
+holds the React markup for four languages, top-level and nested selection,
+`controls: outline` and data escaping, and all four renderers reproduce it. The
+feature contract manifest records the view-state and history functions and the
+new fixture.
+
+`make test-native` passed 976 generator checks (195 per implementation), 361
+PHP API checks per configuration and 100 validation cases in each PHP
+implementation. `npm run test:forms` passed core 104, HTML 116, React 705, Vue
+348, Svelte 349 and ten normalizer checks. The structure map fixture passed four
+cases in each of the four renderers. Form comparison source checks passed 140
+and the Chromium checks passed 3. `make docs-check` passed after documenting the
+`UndoResult` type, a type-only change made after the native run. The full
+candidate run with the four servers had not run when this change was committed.
+
+## 2026-09-13 — Move focus to the affected row after row operations
+
+Row operations previously kept the active control, its text selection and the
+scroll positions, and a pointer press on a row button was prevented from moving
+focus. The runtime now follows the focus rule of the reference form: adding or
+copying focuses the new row, moving focuses the moved row, and removing focuses
+the previous row, then the next row, then the enclosing row, then the collection's
+Add button. Focus goes to the row's first enabled visible input, or to its toggle
+or Add button, and the row scrolls only as far as needed. Toggling, selecting and
+undoing keep the focused control, including a focused action button. Pointer and
+keyboard activation behave the same. `runAction` returns `{ focus }` for the row
+that receives focus, or `undefined` when the target is incomplete.
+
+generator-core passed its typecheck and 102 tests. `npm run test:forms` passed
+HTML 112, React 701, Vue 344, Svelte 345 and ten normalizer checks, with the shared
+DOM scenario asserting the focused row after add, remove, copy, move, toggle and
+removal of the last row. jsdom does not implement scrolling, so the tests stub
+`scrollIntoView`. In Chrome, the form-structure preview focused the new row after
+an add and the previous row after a removal. Instrumenting the calls showed the
+row scrolls before focus, which prevents scrolling elements that a synchronous
+re-render replaces. The automation tab did not scroll the window, so actual
+viewport placement was not measured there. The comparison page focus checks move
+to the same rule in the next change.
+
+## 2026-09-13 — Render forms as recursive nodes with row cards
+
+Every form renderer (HTML, React, Vue, Svelte, PHP, Go, Rust and the C PHP
+extension) now produces one recursive node grammar instead of per-shape wrappers.
+Each field, group, collection, row, language field and language item is a
+`crudui-node` with `__header`, `__body` and `__footer` slots. Kinds are modifiers
+(`crudui-node--row`), and behavior reads only `data-field-path`,
+`data-crudui-row-key`, `data-lang`, `data-crudui-action`, `hidden` and ARIA
+attributes. `bindForm` returns `NodeVM[]` with the same JSON model in every
+implementation. The [form markup](docs/spec/form-markup.md) specification defines
+the grammar and records the reference-form behavior that was not adopted.
+
+- **Row cards:** rows show a hierarchical number, an optional title from
+  `multiple.title`, and a count or nested-row summary. Move, add, copy and remove
+  controls come in a fixed order, with disabled states computed from `min`, `max`
+  and position in every renderer; the browser no longer adjusts them after
+  rendering. `multiple.controls` (`header`, `footer`, `outline`) and
+  `multiple.header` (`static`, `sticky`) are declared in the JSON schema, the four
+  validators and the CLI.
+- **Messages:** control labels, counts and summaries come from one ko/en/ja/zh
+  table shared by all implementations.
+- **Runtime:** form instances keep collapsed rows, the selected row and an undo
+  history (100 entries, consecutive edits of one path merged) outside the record
+  data. `buildOutline`, `connectOutline`, `resolveAction` and `runAction` are
+  exported. React, Vue and Svelte provide `Outline` and `DataView`, and the HTML
+  renderer provides `renderOutline` and `renderData`.
+- **Styles:** `@crudui/generator-core/styles.css` holds the grammar styles.
+- **Input rules** in all five implementations: `lang` must be a boolean or an
+  object and `lang.only` a list of language-code strings or an object, at
+  compilation. Binding rejects, in order, a non-string language, a non-string
+  `keyPrefix` or `idPrefix`, an `unsupported` other than `throw` or `marker`, and
+  an unsupported language. Previously TypeScript crashed on `lang: null`, the C
+  extension read past its default language list for non-string `only` entries,
+  and TypeScript treated any `unsupported` string other than `throw` as marker
+  mode while PHP threw.
+- **API changes:** Go `BindOptions.Language`, `IDPrefix`, `KeyPrefix` and
+  `Unsupported` are `any`, `KeyPrefixProvided` is removed, and an empty `IDPrefix`
+  is used as given. Rust `BindOptions` string options are JSON values.
+
+`examples/form-structure` is a local preview of a five-level reference form.
+The form comparison page, the shared DOM scenario and the cross-check console
+now select by attributes.
+
+`make test-native` passed 976 generator checks (195 per implementation plus the
+unchanged-input check), 361 PHP API checks per configuration and 100 validation
+cases in each PHP implementation, after reinstalling the copied PHP validator. `npm run test:forms` passed core 101, HTML 112, React 701, Vue 344,
+Svelte 345 and ten normalizer checks. Form comparison source checks passed 137,
+the cross-check console passed 117 after rebuilding the Go and Rust validator
+binaries, and `make docs-check` passed.
+## 2026-09-13 — Remove check directories after passing runs
+
+`tests/native-generators/run.mjs` created a `crudui-native-generators-*` build
+directory on every run and never removed it. `scripts/check-packages.mjs` left a
+145 MB `crudui-consumer-*` project after every run. Repeated runs helped fill the
+disk. A passing run now removes its directory. A failing run keeps it, prints its
+path, and records it in the report (`buildDirectory`) or with `failure.log`. The
+other test files already removed their temporary directories.
+
+`make test-native` passed 886 checks and left no build directory.
+`npm run test:packages` passed and left no consumer project. `make docs-check`
+passed.
+
+## 2026-09-13 — Reject wrong multiple and design value types at compilation
+
+Form compilation in TypeScript, PHP, Go, Rust and the C PHP extension previously
+ignored a wrong value type in `multiple` and `design`: row settings with the wrong
+type were dropped, and an invalid design became an empty design. Compilation now
+rejects them with `INVALID_FORM_INPUT` and `Invalid {key} at {path}: expected
+{expected}`, where `{path}` is the field's structural path. `multiple` must be a
+boolean or an object, with numeric `min` and `max` and boolean `copy` and
+`sortable`. `design` must be a boolean or an object. Its `show` must be an
+expression, a boolean or a condition map. Its `class` and `style` and those of the
+`label`, `wrapper`, `group` and `prepend` nodes must be strings or condition maps,
+and the nodes must be objects. A condition map is a non-empty object, as the JSON
+schema requires. Unknown keys in these buckets are not checked. The schema
+specification documents the rules.
+
+The C template builds messages with a local helper because its engine tests link
+only the value, error and composition modules. The native suite adds eight
+compile rejections compared as complete records.
+
+`make test-native` passed 886 generator checks (177 per implementation), 361 PHP
+API checks per configuration and 100 validation cases in each PHP implementation.
+generator-core passed its typecheck and 89 tests; `npm run test:forms` and
+`make docs-check` passed.
+
+## 2026-09-13 — Reject generator data with the wrong shape at its full path
+
+`bindForm` and editable instances in TypeScript, PHP, Go, Rust and the C PHP
+extension now apply the validators' data shape rules. Root data that is not an
+object fails with `Form data must be an object`. A present group value or
+repeated group row that is not an object fails with `Group data must be an
+object: {path}`. A present repeated value that is not a keyed object fails with
+`Repeated data must be a keyed object: {path}`. `{path}` is the full data path,
+including row keys; instances previously reported only the field name, and
+`bindForm` did not check group data. `addRow` checks a supplied group row value
+at `{collection}.{key}`. The form runtime specification documents the rules and
+check order. The form comparison controller's copy of instance normalization
+uses the same messages and has a test for them.
+
+The native suite checks eight data shapes through both `bindForm` and instances,
+and the rejected-operation scenario adds nested `setValue` and `addRow` cases.
+
+`make test-native` passed 846 generator checks (169 per implementation), 361 PHP
+API checks per configuration and 100 validation cases in each PHP implementation.
+generator-core passed its typecheck and 88 tests, the form comparison controller
+passed 5 tests, and `npm run test:forms` and `make docs-check` passed.
+
+## 2026-09-13 — Compare generator error messages across implementations
+
+The native generator suite compared only error code and location, and its README
+allowed messages to differ by language. That contradicts the requirement that all
+implementations behave identically, so the rule now requires matching code,
+message and location. Rejected form inputs are compared as complete records
+against JavaScript.
+
+The stricter comparison found 12 existing differences, now fixed:
+
+- The PHP, Go and Rust generator CLIs reported non-object `data` as `Data must be
+  an object`, `Group data must be an object` and `data must be an object`. All now
+  report `Form data must be an object`.
+- Go and Rust worded unsupported field types differently. Both now report
+  `Unsupported field type "{type}" at "{path}"`.
+- Go named `SequenceRowKey` in the invalid row key message; it now names
+  `sequenceRowKey` like the other implementations.
+
+`make test-native` passed 786 generator checks, 361 PHP API checks per
+configuration and 100 validation cases in each PHP implementation.
+
+## 2026-09-13 — Report validator load and input failures identically
+
+The TypeScript, PHP, C PHP extension, Go and Rust validators reject submitted
+data with the wrong shape as an input failure instead of skipping it or
+converting it. Root data must be an object (`Form data must be an object`),
+checked before composition. A present group value or repeated group row must be
+an object (`Group data must be an object: {path}`). A present repeated value must
+be a keyed object (`Repeated data must be a keyed object: {path}`). Each language
+has `FormInputError` with code `INVALID_FORM_INPUT` and an empty location; Rust
+returns `ValidateError::Load` or `ValidateError::Input`. Keyed rows are traversed
+in sorted key order everywhere.
+
+All four validator CLIs now share one process contract. A result exits 0 with
+`{valid, errors}`, a load or input failure exits 2 with exactly
+`{error, code, at}`, and a malformed request exits 1 with `{error}`. Before this
+change, TypeScript and Go exited 1 without `at`, and PHP exited 0 with a
+`rule: "compose"` error. Validation fixtures replace `expectLoadError: {code}`
+with `expectFailure: {code, message, at}` and add six input-failure cases. Former
+array-row cases use keyed rows. The fixture generator now contains the seven
+end-date cases that commit `8688990` had added only to `cases.json`, so they are
+no longer dropped on regeneration. The cross-check console compares the complete
+`failure` record. The comparison and example servers answer an input failure with
+HTTP 400.
+
+Comparing complete records exposed a Go-only divergence. Go list validation
+prefixed forbidden-key locations with `list.`, and a Go test pinned that
+prefix. The shared list fixture and the other implementations use
+`columns.<name>`, so Go now does too.
+
+The C extension's allocation-failure fixture uses keyed rows, which need 4 and 3
+allocations. Engine fixtures now emit only the C helpers they call. Before
+testing, the ignored Go and Rust CLI binaries used by the console were rebuilt,
+and generator-php's copied validator was reinstalled; all three predated the
+source changes.
+
+TypeScript validator 1618, PHP validator 1458, `go test ./...`, `cargo test` and
+cross-check console 117 tests passed. `make test-native` passed 786 generator
+checks, 361 PHP API checks per configuration and 100 validation cases in each PHP
+implementation. `make docs-check` passed.
+
+## 2026-09-13 — Bind repeated rows from keyed objects only
+
+`bindForm` in TypeScript, PHP, Go, Rust and the C PHP extension creates repeated
+rows only from keyed objects. Missing collection data creates one row keyed
+`__0000000000000__`. An array, null or scalar collection fails with
+`INVALID_FORM_INPUT` and the message `Repeated data must be a keyed object:
+{path}`. Field paths no longer carry `#N` array-position segments, so the
+position helpers were removed from all five implementations. Go's unused
+`rowPosition` function was removed. The shared form fixture uses keyed data, and
+the HTML conformance suite now includes the former array cases.
+
+`npm run test:forms` passed (core 88, HTML 112, React 701, Vue 344, Svelte 345,
+normalizer 10). `make test-native` passed 786 generator checks, including new
+checks that require identical rejection code, message and path in all five
+implementations. `make docs-check` passed.
+
+## 2026-09-13 — Align repeated-row declarations across schema, validators and CLI
+
+`multiple.min` is declared in the TypeScript, Go and Rust specification models,
+accepted by the PHP `multiple` bucket and reported by `crudui explain` and
+`crudui describe`. The PHP bucket previously rejected `min`, although the JSON
+schema and form runtime define it. `multiple.copy` is a boolean in the JSON
+schema; the object form had no runtime meaning. Model comments describe keyed
+row identity instead of hidden identifiers and array order.
+
+Schema checks (58 cases), TypeScript validator tests (1606), PHP validator
+tests (1446), Go and Rust validator tests, CLI tests (37) and `make docs-check`
+passed.
+
 ## 2026-09-13 — Add framework-independent HTML rendering and executable feature contracts
 
 `@crudui/generator-html` renders current form and list view models as HTML

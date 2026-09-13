@@ -121,7 +121,14 @@ func renderGeneration(request, options *object) (*object, error) {
 	if err := json.Unmarshal(encoded, &template); err != nil {
 		return nil, err
 	}
-	form, err := generator.NewForm(&template, data, generator.BindOptions{IDPrefix: values["idPrefix"], Language: values["language"], KeyPrefix: values["keyPrefix"], KeyPrefixProvided: options.Has("keyPrefix"), Unsupported: values["unsupported"]})
+	// An absent option is nil so the generator applies its default.
+	option := func(name string) any {
+		if options.Has(name) {
+			return values[name]
+		}
+		return nil
+	}
+	form, err := generator.NewForm(&template, data, generator.BindOptions{IDPrefix: option("idPrefix"), Language: option("language"), KeyPrefix: option("keyPrefix"), Unsupported: option("unsupported")})
 	if err != nil {
 		return nil, err
 	}
@@ -229,11 +236,11 @@ func (s server) serveGeneratedDocument(w http.ResponseWriter, r *http.Request, r
 		failure(w, http.StatusInternalServerError, err)
 		return
 	}
-	save, interactive := "Save", "Open interactive form"
+	interactive := "Open interactive form"
 	if language == "ko" {
-		save, interactive = "저장", "입력 화면 열기"
+		interactive = "입력 화면 열기"
 	}
-	document := fmt.Sprintf(`<!doctype html><html lang="%s" data-language="%s"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/%s-%s/?server=go&amp;lang=%s">%s</a></header><form id="form" method="post" action="/api/go/save/%s/%s" data-generator-runtime="go" data-generator-commit="%s"><div id="view">%s</div><button type="submit" name="_form_complete" value="1">%s</button></form></body></html>`, language, language, renderingPath, framework, language, interactive, renderingPath, framework, html.EscapeString(sourceCommit), markup, save)
+	document := fmt.Sprintf(`<!doctype html><html lang="%s" data-language="%s"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/crudui.css"><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/%s-%s/?server=go&amp;lang=%s&amp;initialization=ssr">%s</a></header><form id="form" method="post" action="/api/go/save/%s/%s" data-generator-runtime="go" data-generator-commit="%s"><div id="view">%s</div></form></body></html>`, language, language, renderingPath, framework, language, interactive, renderingPath, framework, html.EscapeString(sourceCommit), markup)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)

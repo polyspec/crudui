@@ -411,6 +411,21 @@ function translateSpec(legacy: LegacySpec, path: string[], notes: TranslateNote[
       continue;
     }
 
+    // -- form root declarations (the form root only) --
+    if (path.length === 0 && key === 'buttons') {
+      out.buttons = [...(Array.isArray(out.buttons) ? out.buttons : []), ...translateButtons(value, ['buttons'], notes)];
+      continue;
+    }
+    if (path.length === 0 && key === 'action' && isObject(value)) {
+      const { buttons, ...target } = value as Record<string, unknown>;
+      if (Object.keys(target).length > 0) out.action = target;
+      if (buttons !== undefined) {
+        note(notes, path, 'action.buttons', 'ACTION_BUTTONS_HOIST', 'action.buttons hoisted into the root buttons list');
+        out.buttons = [...(Array.isArray(out.buttons) ? out.buttons : []), ...translateButtons(buttons, ['action', 'buttons'], notes)];
+      }
+      continue;
+    }
+
     // -- everything else: type-dependent → options (open bucket) --
     options[key] = value;
   }
@@ -456,6 +471,29 @@ function translateSpec(legacy: LegacySpec, path: string[], notes: TranslateNote[
   }
 
   return out;
+}
+
+/**
+ * Legacy buttons (a list, or a name → button map) → FormButton list:
+ * `a` → `link`, `class` → `design.class`, `onclick` → `behavior.onclick`,
+ * `label` → `text`.
+ */
+function translateButtons(value: unknown, path: string[], notes: TranslateNote[]): unknown[] {
+  const list = Array.isArray(value) ? value : isObject(value) ? Object.values(value as Record<string, unknown>) : [];
+  return list.map((button, index) => {
+    if (!isObject(button)) return button;
+    const out: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(button as Record<string, unknown>)) {
+      if (key === 'type') out.type = item === 'a' ? 'link' : item;
+      else if (key === 'class') out.design = { class: item };
+      else if (key === 'onclick') out.behavior = { onclick: item };
+      else if (key === 'label') {
+        note(notes, [...path, String(index)], 'label', 'BUTTON_LABEL_TO_TEXT', 'button label renamed to text');
+        out.text = item;
+      } else out[key] = item;
+    }
+    return out;
+  });
 }
 
 /**

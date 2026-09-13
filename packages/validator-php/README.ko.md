@@ -26,7 +26,9 @@ assert($result->valid);
 메타데이터를 검사하고, 제출한 데이터를 검증합니다. `Validator::validateList`는
 목록 명세의 합성과 메타데이터를 검사하며 행 데이터는 검증하지 않습니다.
 옵션은 `files` 객체와 `basepath`를 받습니다. 합성 실패는
-`CRUDUI\Validator\Compose\ComposeLoadError`를 발생시킵니다.
+`CRUDUI\Validator\Compose\ComposeLoadError`를 발생시킵니다. 형태가 잘못된 제출
+데이터는 코드 `INVALID_FORM_INPUT`인 `CRUDUI\Validator\Validate\FormInputError`를
+발생시킵니다.
 `getCompositionTrace()`는 명세 경로를 반환하고, `getTrace()`는 예외 스택을
 반환합니다.
 
@@ -50,10 +52,12 @@ php packages/validator-php/bin/validate.php < request.json
 
 CLI는 `{ "spec": {}, "data": {}, "files": {}, "basepath": "", "mode": "form" }`을
 수신합니다. `spec`만 필수입니다. `mode`는 `form` 또는 `list`이며 기본값은
-`form`입니다. 실행에 성공하면 `{ "valid": true, "errors": [] }` 또는 데이터 오류를
-출력합니다. 합성 실패는 종료 코드 0과 함께 오류 코드와 메시지를 포함한
-`rule: "compose"` 오류를 출력합니다. 잘못된 요청은 표준 오류에 오류를 출력하고
-종료 코드 1로 종료합니다. 이 CLI 전송 계약은 라이브러리의 예외와 구분됩니다.
+`form`입니다. 실행에 성공하면 종료 코드 0과 함께 `{ "valid": true, "errors": [] }`
+또는 데이터 오류를 출력합니다. `data` 항목을 생략하면 `{}`를 검증하며, 값을
+제공하면 JSON 객체여야 합니다. 로드 또는 입력 실패는 정확히
+`{ "error", "code", "at" }`를 출력하고 종료 코드 2로 종료합니다. 잘못된 요청은
+`{ "error" }`를 출력하고 종료 코드 1로 종료합니다. 모든 언어의 CLI가 이 계약을
+사용합니다.
 
 `composer test:current`는 합성, 표현식, 현재 검증과 필드 모델 검사를 실행합니다.
 `composer test`는 유지하는 레거시 규칙 검사와 공개 심볼 문서 검사도 실행합니다.

@@ -48,7 +48,7 @@ const browser = await puppeteer.launch({ headless: true, protocolTimeout: 60_000
 let page;
 let completedReports = [];
 let scenarioJob = {
-  status: 'idle', completedReports: 0, totalReports: 12, current: null,
+  status: 'idle', completedReports: 0, totalReports: 18, current: null,
 };
 let finalReport;
 const startedAt = new Date().toISOString();
@@ -119,7 +119,10 @@ try {
       `/api/(${formServers.join('|')})/load/(${formRenderingPaths.join('|')})/(${formFrameworks.join('|')})$`,
     ).exec(request.url());
     const key = match?.slice(1).join('/');
-    if (key && !initialMounts.has(key)) {
+    // The SSR column loads the record before the server renders; only the CSR column mounts first.
+    const csrColumn = match
+      && new URL(request.frame().url()).searchParams.get('initialization') === 'csr';
+    if (csrColumn && !initialMounts.has(key)) {
       const result = {
         server: match[1], path: match[2], framework: match[3], passed: false,
       };
@@ -171,7 +174,8 @@ try {
   const report = {
     scope: 'verification', startedAt, origin: base.origin,
     metadata: scenarioJob.result?.metadata, activity, scenarioJob,
-    reports: completedReports,
+    reports: completedReports.filter(item => item.kind === 'scenario'),
+    initializations: completedReports.filter(item => item.kind === 'initialization'),
   };
   finalReport = report;
   report.interactions = await checkInteraction(page, [selectedServer]);
@@ -182,19 +186,16 @@ try {
   report.pageErrors = errors;
   report.initializationArtifacts =
     `initialization-${startedAt.replaceAll(':', '-')}`;
-  for (const result of report.reports) {
-    const evidence = result.results.find(check => check.id === 'initialization')?.evidence;
-    if (!evidence) continue;
+  for (const result of report.initializations) {
     const directory = path.join(
-      output, report.initializationArtifacts, result.server, result.path,
-      result.framework, result.transport,
+      output, report.initializationArtifacts, result.server, result.path, result.framework,
     );
     await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, 'comparisons.json'), JSON.stringify({
-      comparisons: evidence.comparisons, cssFailures: evidence.cssFailures,
+      results: result.results, cssFailures: result.cssFailures,
     }, null, 2) + '\n');
-    await Promise.all(evidence.stages.map(async ({ html, ...state }) => {
-      const name = `${state.route}-${state.stage}`;
+    await Promise.all(result.stages.map(async ({ html, ...state }) => {
+      const name = `${state.column}-${state.stage}`;
       await writeFile(path.join(directory, `${name}.html`), html);
       await writeFile(path.join(directory, `${name}.json`),
         JSON.stringify(state, null, 2) + '\n');
@@ -204,6 +205,14 @@ try {
   report.completedAt = new Date().toISOString();
   report.generatedAt = report.completedAt;
   report.durationMs = Math.max(0, performance.now() - startedClock);
+  for (const result of report.initializations) {
+    process.stdout.write(
+      `${result.server}/${result.path}/${result.framework}/initialization: ${result.results.filter(item => item.passed).length}/${result.results.length}\n`,
+    );
+    for (const check of result.results.filter(item => !item.passed)) {
+      process.stdout.write(`  FAIL ${check.label}/${check.category}: ${check.error}\n`);
+    }
+  }
   for (const result of report.reports) {
     process.stdout.write(
       `${result.server}/${result.path}/${result.framework}/${result.transport}: ${result.results.filter(item => item.passed).length}/${result.results.length}\n`,
@@ -229,7 +238,7 @@ try {
     failedChecks: verification.failedChecks, performance: verification.performance,
   });
   await writeFile(path.join(output, reportFile), JSON.stringify(report) + '\n');
-  const checked = ['scenarios', 'interactions', 'mounts', 'documents']
+  const checked = ['scenarios', 'initializations', 'interactions', 'mounts', 'documents']
     .reduce((sum, section) => sum + Object.values(verification[section])
       .reduce((count, item) => count + item.total, 0), 0);
   process.stdout.write(
@@ -244,14 +253,16 @@ try {
   const current = await page?.evaluate(() =>
     window.comparison?.getReports() ?? []).catch(() => []) ?? [];
   const key = report =>
-    [report.server, report.path, report.framework, report.transport].join('/');
+    [report.server, report.path, report.framework, report.transport ?? report.kind].join('/');
   const reports = [...new Map([...completedReports, ...current]
     .map(report => [key(report), report])).values()];
   const failedAt = new Date().toISOString();
   const incomplete = {
     ...(finalReport ?? {}), generatedAt: failedAt, startedAt, completedAt: failedAt,
     durationMs: Math.max(0, performance.now() - startedClock),
-    origin: base.origin, activity, scenarioJob, reports,
+    origin: base.origin, activity, scenarioJob,
+    reports: reports.filter(item => item.kind === 'scenario'),
+    initializations: reports.filter(item => item.kind === 'initialization'),
     error: error?.stack ?? String(error),
   };
   await writeFile(

@@ -13,6 +13,7 @@
 typedef struct {
     const ps_value *data;
     ps_value *errors;
+    ps_value *failure;
 } validation_context;
 
 static bool string_in(const char *value, const char *const *items, size_t count)
@@ -553,6 +554,28 @@ static bool validate_rules(const ps_value *field, const ps_value *value,
 static int compare_keys(const void *left, const void *right)
 { return strcmp(*(const char *const *)left, *(const char *const *)right); }
 
+/* Record a form input failure for the data path and stop traversal. */
+static bool input_failure(validation_context *context, const char *label,
+                          char *const *path, size_t length)
+{
+    char *full = path_text(path, length, NULL);
+    char *message = full ? ps_string_join(label, full, "") : NULL;
+    context->failure = message ? ps_error("input", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
+    free(full); free(message);
+    return false;
+}
+
+/* Row keys of a keyed collection in sorted order; NULL only on allocation failure. */
+static char **sorted_row_keys(const ps_value *rows, size_t *count)
+{
+    *count = ps_size(rows);
+    char **keys = calloc(*count ? *count : 1, sizeof(*keys));
+    if (!keys) return NULL;
+    for (size_t j = 0; j < *count; ++j) keys[j] = (char *)ps_key_at(rows, j);
+    qsort(keys, *count, sizeof(*keys), compare_keys);
+    return keys;
+}
+
 static bool validate_properties(const ps_value *properties, const ps_value *data,
                                 validation_context *context, char **path, size_t length)
 {
@@ -567,72 +590,59 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
         bool repeated = multiple && (multiple->kind == PS_OBJECT || (multiple->kind == PS_BOOL && multiple->data.boolean));
         const ps_value *children = ps_get(field, "properties");
         bool group = ps_is_string(ps_get(field, "type"), "group") && children && children->kind == PS_OBJECT;
+        if (repeated && value && value->kind != PS_OBJECT) {
+            input_failure(context, "Repeated data must be a keyed object: ", path, length + 1);
+            free(path); return false;
+        }
         if (group) {
-            if (repeated && value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT)) {
-                size_t count = ps_size(value); char **keys = calloc(count, sizeof(*keys));
-                if (!keys && count) { free(path); return false; }
-                size_t allocated_keys = 0;
-                bool valid = true;
-                for (size_t j = 0; j < count; ++j) {
-                    if (value->kind == PS_OBJECT) keys[j] = (char *)ps_key_at(value, j);
-                    else {
-                        keys[j] = malloc(32);
-                        if (!keys[j]) { valid = false; break; }
-                        allocated_keys++;
-                        snprintf(keys[j], 32, "%zu", j);
+            if (repeated) {
+                if (value) {
+                    /* Keyed rows use sorted-key traversal in every implementation. */
+                    size_t count = 0; char **keys = sorted_row_keys(value, &count);
+                    if (!keys) { free(path); return false; }
+                    bool valid = true;
+                    for (size_t j = 0; valid && j < count; ++j) {
+                        const ps_value *item = ps_get(value, keys[j]);
+                        char **item_path = malloc((length + 2) * sizeof(*item_path));
+                        if (!item_path) { valid = false; break; }
+                        memcpy(item_path, path, (length + 1) * sizeof(*item_path)); item_path[length + 1] = keys[j];
+                        if (!item || item->kind != PS_OBJECT) {
+                            input_failure(context, "Group data must be an object: ", item_path, length + 2);
+                            free(item_path); valid = false; break;
+                        }
+                        if (!validate_properties(children, item, context, item_path, length + 2))
+                            valid = false;
                     }
+                    if (valid)
+                        valid = validate_rules(field, value, context, path, length + 1, false, false);
+                    free(keys);
+                    if (!valid) { free(path); return false; }
                 }
-                if (valid && value->kind == PS_OBJECT)
-                    qsort(keys, count, sizeof(*keys), compare_keys);
-                for (size_t j = 0; valid && j < count; ++j) {
-                    const ps_value *item = value->kind == PS_OBJECT ? ps_get(value, keys[j]) : ps_at(value, j);
-                    char **item_path = malloc((length + 2) * sizeof(*item_path));
-                    if (!item_path) { valid = false; break; }
-                    memcpy(item_path, path, (length + 1) * sizeof(*item_path)); item_path[length + 1] = keys[j];
-                    if (!validate_properties(children, item, context, item_path, length + 2))
-                        valid = false;
+            } else {
+                if (value && value->kind != PS_OBJECT) {
+                    input_failure(context, "Group data must be an object: ", path, length + 1);
+                    free(path); return false;
                 }
-                if (valid)
-                    valid = validate_rules(field, value, context, path, length + 1, false, false);
-                if (value->kind == PS_ARRAY)
-                    for (size_t j = 0; j < allocated_keys; ++j) free(keys[j]);
-                free(keys);
-                if (!valid) { free(path); return false; }
-            } else if (!repeated) {
                 char **child_path = malloc((length + 1) * sizeof(*child_path));
                 if (!child_path) { free(path); return false; } memcpy(child_path, path, (length + 1) * sizeof(*child_path));
                 if (!validate_properties(children, value, context, child_path, length + 1) ||
                     !validate_rules(field, value, context, path, length + 1, false, false)) { free(path); return false; }
             }
-        } else if (repeated && value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT)) {
+        } else if (repeated && value) {
             size_t before = ps_size(context->errors);
             if (!validate_rules(field, value, context, path, length + 1, true, false)) { free(path); return false; }
             if (ps_size(context->errors) == before) {
-                size_t count = ps_size(value); char **keys = calloc(count, sizeof(*keys));
-                if (!keys && count) { free(path); return false; }
-                size_t allocated_keys = 0;
+                size_t count = 0; char **keys = sorted_row_keys(value, &count);
+                if (!keys) { free(path); return false; }
                 bool valid = true;
-                for (size_t j = 0; j < count; ++j) {
-                    if (value->kind == PS_OBJECT) keys[j] = (char *)ps_key_at(value, j);
-                    else {
-                        keys[j] = malloc(32);
-                        if (!keys[j]) { valid = false; break; }
-                        allocated_keys++;
-                        snprintf(keys[j], 32, "%zu", j);
-                    }
-                }
-                if (valid && value->kind == PS_OBJECT)
-                    qsort(keys, count, sizeof(*keys), compare_keys);
                 for (size_t j = 0; valid && j < count; ++j) {
-                    const ps_value *item = value->kind == PS_OBJECT ? ps_get(value, keys[j]) : ps_at(value, j);
+                    const ps_value *item = ps_get(value, keys[j]);
                     char **item_path = malloc((length + 2) * sizeof(*item_path));
                     if (!item_path) { valid = false; break; }
                     memcpy(item_path, path, (length + 1) * sizeof(*item_path)); item_path[length + 1] = keys[j];
                     valid = validate_rules(field, item, context, item_path, length + 2, false, true);
                     free(item_path);
                 }
-                if (value->kind == PS_ARRAY)
-                    for (size_t j = 0; j < allocated_keys; ++j) free(keys[j]);
                 free(keys);
                 if (!valid) { free(path); return false; }
             }
@@ -664,6 +674,9 @@ static const char *option_basepath(const ps_value *options)
 
 ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value *options)
 {
+    /* Root data is a request precondition, checked before composition. */
+    if (!data || data->kind != PS_OBJECT)
+        return ps_fail("input", "INVALID_FORM_INPUT", "Form data must be an object", "");
     const ps_value *files = option_files(options); ps_value *error = NULL, *properties = NULL;
     if (spec && spec->kind == PS_OBJECT && (ps_has(spec, "$ref") || ps_has(spec, "$patch")) &&
         (!ps_get(spec, "properties") || ps_get(spec, "properties")->kind != PS_OBJECT))
@@ -677,10 +690,17 @@ ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value
     char **root_path = malloc(sizeof(*root_path)); if (root_path) root_path[0] = "properties";
     error = scan_forbidden(properties, root_path, 1);
     free(root_path);
+    /* The form root declarations are scanned like the fields they sit beside. */
+    static const char *const form_keys[] = {"buttons", "action"};
+    for (size_t i = 0; !error && spec && spec->kind == PS_OBJECT && i < 2; ++i) {
+        char *form_path[1] = {(char *)form_keys[i]};
+        if (ps_get(spec, form_keys[i])) error = scan_forbidden(ps_get(spec, form_keys[i]), form_path, 1);
+    }
     if (error) { ps_value_free(properties); return (ps_result){NULL, error}; }
-    validation_context context = {data, ps_array_value()};
+    validation_context context = {data, ps_array_value(), NULL};
     if (!context.errors || !validate_properties(properties, data, &context, NULL, 0)) {
         ps_value_free(properties); ps_value_free(context.errors);
+        if (context.failure) return (ps_result){NULL, context.failure};
         return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
     }
     ps_value_free(properties); return validation_result(context.errors);

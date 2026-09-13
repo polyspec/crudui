@@ -15,16 +15,16 @@
 //! expression engine reuses `crate::expr`. Nothing re-implements them, and
 //! nothing touches the legacy model (R7 parallel run).
 
+pub mod errors;
 pub mod rules;
 pub mod validator;
 
+pub use errors::{FormInputError, ValidateError};
 pub use validator::{ValidationError, ValidationResult, Validator};
 
 use serde_json::{Map, Value};
 
-use crate::compose::{
-    compose_properties, compose_spec, ComposeLoadError, ComposeOptions, FileLoader, MemoryLoader,
-};
+use crate::compose::{compose_properties, compose_spec, ComposeOptions, FileLoader, MemoryLoader};
 use crate::forbidden_scan::scan_forbidden_keys;
 
 /// Options for a CRUDUI validation run.
@@ -40,8 +40,8 @@ pub struct ValidateOptions<'a> {
 
 /// Validate `data` against a CRUDUI spec. The spec may carry `$ref`/`$patch`; they are
 /// expanded first via the compose pass. An unresolved composition returns
-/// `Err(ComposeLoadError)` (caller distinguishes a LOAD failure from
-/// `valid:false`).
+/// `Err(ValidateError::Load)` and data with the wrong shape returns
+/// `Err(ValidateError::Input)`; neither produces a validation result.
 ///
 /// Two entry shapes (JS `validate`):
 ///   (a) a full root group spec `{ type:'group', properties:{…} }` — compose the
@@ -52,7 +52,11 @@ pub fn validate(
     spec: &Value,
     data: &Value,
     options: &ValidateOptions,
-) -> Result<ValidationResult, ComposeLoadError> {
+) -> Result<ValidationResult, ValidateError> {
+    // Root data is a request precondition, checked before composition.
+    if !data.is_object() {
+        return Err(FormInputError::new("Form data must be an object").into());
+    }
     let owned_loader;
     let loader: &dyn FileLoader = match options.loader {
         Some(l) => l,
@@ -88,7 +92,13 @@ pub fn validate(
     // This closes the deep-nesting leak the typed model alone could not (R1).
     let props_value = Value::Object(properties.clone());
     scan_forbidden_keys(&props_value, &["properties".to_string()])?;
+    // The form root declarations are scanned like the fields they sit beside.
+    for key in ["buttons", "action"] {
+        if let Some(declared) = spec.get(key) {
+            scan_forbidden_keys(declared, &[key.to_string()])?;
+        }
+    }
 
     let validator = Validator::new(properties);
-    Ok(validator.validate(data))
+    Ok(validator.validate(data)?)
 }

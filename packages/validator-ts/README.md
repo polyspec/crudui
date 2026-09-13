@@ -14,9 +14,13 @@ validate) reused by `@crudui/generator-core`.
   errors: [] }`.
 - `composeProperties`, `MemoryLoader`, `ComposeLoadError` — composition surfaces
   consumed by the generators.
+- `FormInputError` — submitted data with the wrong shape (`INVALID_FORM_INPUT`).
 
 An unresolved `$ref`/`$patch` or a forbidden meta key is a `ComposeLoadError`
-(a LOAD failure), never `valid:false`.
+(a load failure). Root data that is not an object, group data that is not an
+object and repeated data that is not a keyed object throw `FormInputError`. Neither
+failure is `valid:false`; the
+[validation procedure](../../docs/operations/validation.md) defines the messages.
 
 ## CRUDUI CLI — `bin/validate.mjs`
 
@@ -31,8 +35,9 @@ node --import tsx bin/validate.mjs < request.json
 - stdout: `{"valid": <bool>, "errors": [{path, field, rule, message, value}, ...]}`
 
 `mode` defaults to `form`. `list` runs `validateList` (structure only; `data`
-is ignored). A `ComposeLoadError` is emitted as `{"error", "code"}` with exit 1
-(no `valid` key); a malformed request is `{"error"}` with exit 1.
+is ignored). An omitted `data` member validates `{}`. A load or input failure
+exits 2 with exactly `{"error", "code", "at"}` (no `valid` key); a malformed
+request is `{"error"}` with exit 1. Every language's CLI uses this contract.
 
 ## Test
 

@@ -30,7 +30,8 @@ func compileOptions(o *gen.Object) gen.CompileOptions {
 	return gen.CompileOptions{Files: files, Basepath: str(val(o, "basepath")), KeyPrefix: str(val(o, "keyPrefix")), KeyPrefixProvided: o != nil && o.Has("keyPrefix")}
 }
 func bindOptions(o *gen.Object) gen.BindOptions {
-	return gen.BindOptions{IDPrefix: str(val(o, "idPrefix")), Language: str(val(o, "language")), KeyPrefix: str(val(o, "keyPrefix")), Unsupported: str(val(o, "unsupported")), KeyPrefixProvided: o != nil && o.Has("keyPrefix")}
+	// Decoded values are passed unchanged; BindForm defaults nil and rejects non-string values.
+	return gen.BindOptions{IDPrefix: val(o, "idPrefix"), Language: val(o, "language"), KeyPrefix: val(o, "keyPrefix"), Unsupported: val(o, "unsupported")}
 }
 func errorObject(err error) *gen.Object {
 	code, message, at := "INVALID_FORM_INPUT", err.Error(), ""
@@ -68,7 +69,7 @@ func action(f *gen.Form, method string, args []any) (any, error) {
 	case "setData":
 		o := obj(arg(args, 0))
 		if o == nil {
-			return nil, fmt.Errorf("Group data must be an object")
+			return nil, fmt.Errorf("Form data must be an object")
 		}
 		return nil, f.SetData(o)
 	case "getData":
@@ -129,7 +130,7 @@ func run(request *gen.Object) (any, error) {
 		}
 		data := obj(val(request, "data"))
 		if data == nil && request.Has("data") {
-			return nil, fmt.Errorf("Group data must be an object")
+			return nil, fmt.Errorf("Form data must be an object")
 		}
 		if str(val(request, "operation")) == "bindForm" {
 			return gen.BindForm(&template, data, bindOptions(options))

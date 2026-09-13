@@ -11,7 +11,8 @@ child definition per nested group. Repeated groups do not require example rows.
 The template can be serialized as JSON and reused by multiple form instances.
 
 `bindForm(template, data, options)` evaluates values, language and display
-conditions. It returns field view models without modifying the template or data.
+conditions. It returns node view models, defined by the [form markup](form-markup.md),
+without modifying the template or data.
 It does not load composition files. Evaluated values and display conditions are
 instance state and must not be stored in a shared template cache.
 
@@ -67,8 +68,23 @@ submission follows control order. Keyed JSON uses document member order as row
 order, preserved through parsing, editing, persistence and serialization. Form
 data contains no auxiliary order or identity fields. Numeric object keys and
 keys containing path separators are rejected by editable instances. Callers use `sequenceRowKey` when
-constructing data from database sequences. Editable instances do not convert
-arrays or infer hidden identity fields.
+constructing data from database sequences. Field paths contain row keys only; no
+path segment encodes an array position.
+
+Form binding and editable instances reject data with the wrong shape. They do not
+convert arrays or infer hidden identity fields. Each rejection has code
+`INVALID_FORM_INPUT` and an empty location. `{path}` is the full data path,
+including row keys:
+
+| Data | Message |
+| --- | --- |
+| Root data that is not an object | `Form data must be an object` |
+| A present group value or group row that is not an object | `Group data must be an object: {path}` |
+| A present repeated value that is not a keyed object | `Repeated data must be a keyed object: {path}` |
+
+Missing group or repeated data is not a failure. Checks follow template field order,
+depth first; a collection is checked before its rows, and rows follow data order.
+`addRow` checks a supplied group row value at `{collection}.{key}`.
 
 ## Row operations
 
@@ -89,9 +105,33 @@ scope. Key collisions, unknown rows and invalid positions fail without changing
 the current data or view. `multiple.min` and `multiple.max` constrain row count.
 
 Missing repeated data creates one editable row. Explicit `{}` means zero rows.
-Removing the last row leaves an add button. Adding a row does not restore deleted
+Removing the last row leaves the collection's `add-row` control. Adding a row does not restore deleted
 data. Default values apply only when input data is missing.
 Rendering rules are defined in [empty collections](empty-collections.md).
+
+## View state and history
+
+An editable instance also owns view state and an undo history, separate from the
+record. View state is never submitted or serialized with the data.
+
+| Operation | Result |
+| --- | --- |
+| `toggleRow(path, key)` | Expand or collapse one row. |
+| `setAllExpanded(expanded)` | Expand or collapse every collapsible row. |
+| `undo()` | Restore the record before the last data change; fails when nothing can be undone. |
+
+The snapshot reports `canUndo`. History keeps up to 100 records. Consecutive
+`setValue` calls on the same path share one entry. `setData` restarts history and
+collapsed rows. Removing a row drops its view state; rekeying a row moves it to the
+new key. View changes do not change `revision`. Server rendering uses the initial
+view: every row expanded. The [form markup](form-markup.md) defines the structure
+map and data view.
+
+generator-core exports these rules as pure functions over immutable values:
+`initialView`, `toggleRowView`, `setAllExpandedView`, `removeRowView`,
+`rekeyRowView` and `collapsibleRows` for view state, and
+`emptyHistory`, `recordChange`, `canUndo` and `undoChange` for history. An
+application that owns its data with `bindForm` applies the same functions.
 
 ## Rendering and validation
 
@@ -113,11 +153,18 @@ preceding event. After rendering completes, the active control value, instance
 value and revision represent the last input event. Replacing a control during
 rendering must not interrupt the active editing sequence.
 
-Adding or copying a row preserves the active control, its text selection and
-ancestor scroll positions. Pointer activation of a row button retains the current
-input focus. Keyboard activation retains button focus. Focus restoration does not
-scroll the document to the control. When addition replaces an empty collection's
-Add button, focus moves to the Add button in that same collection.
+A row operation moves focus to the row it affects, whether a pointer or the
+keyboard activated it. Adding or copying focuses the new row and moving focuses
+the moved row. Removing focuses the previous row, then the next row, then the
+enclosing row, then the collection's Add button. Focus goes to the row's first
+enabled visible input, or to its toggle or Add button when it has none.
+
+Moving to a row, after a row operation or from the structure map, is focusing that
+row's control (or the Add button of an emptied collection); the browser scrolls it
+into view only as far as needed, and the stylesheet's scroll margins keep it clear of
+the sticky headers and the footer. No script follows the scroll position, and the
+bindings never restore scroll positions. Toggling, selecting and undoing keep the
+focused control, including a focused action button, without scrolling.
 
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,
@@ -149,8 +196,8 @@ application.
 5. Apply a saved sequence key and update field names and rule paths correctly.
 6. Reject invalid operations atomically and permit adding after deleting all rows.
 7. Verify keyed scalar and group validation with shared four-language cases.
-8. Activate row addition with pointer and keyboard input; preserve focus, text
-   selection and scroll positions in React, Vue and Svelte.
+8. Run row operations with pointer and keyboard input and verify the focused row
+   in React, Vue and Svelte.
 9. Send consecutive native input events across framework renders; retain every
    accepted edit and finish with matching control and instance values.
 

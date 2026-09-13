@@ -71,6 +71,9 @@ export const formScenarios = [
       { method: 'setData', args: [{ companies: null }] },
       { method: 'setValue', args: ['__proto__.companies', {}] },
       { method: 'addRow', args: ['companies', { value: null, key: 'null_company' }] },
+      { method: 'setValue', args: [`companies.${five}.stores`, []] },
+      { method: 'setValue', args: [`companies.${five}.stores.${five}`, 'Store'] },
+      { method: 'addRow', args: [`companies.${five}.stores`, { key: row(99), value: 'Store' }] },
     ],
   },
   {

@@ -10,40 +10,28 @@ p { margin: 10px 0; }
 a { color: #155999; }
 #language { position: absolute; right: 0; top: 0; }
 .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
-button, select { font: inherit; color: #243850; background: #fff; border: 1px solid #b9c6d3; border-radius: 5px; padding: 7px 10px; }
-button { cursor: pointer; }
-button:hover:enabled { background: #eaf2fc; border-color: #4685c6; }
-button:disabled { opacity: .45; cursor: default; }
+/* Page controls only; the form inside #view takes every style from crudui.css. */
+button:not(#view *), select:not(#view *) { font: inherit; color: #243850; background: #fff; border: 1px solid #b9c6d3; border-radius: 5px; padding: 7px 10px; }
+button:not(#view *) { cursor: pointer; }
+button:not(#view *):hover:enabled { background: #eaf2fc; border-color: #4685c6; }
+button:not(#view *):disabled { opacity: .45; cursor: default; }
 #all-checks, #save { background: #155999; color: white; border-color: #155999; }
 .frames { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 22px; }
-iframe { width: 100%; height: 1450px; border: 1px solid #ced8e2; border-radius: 8px; background: white; }
+/* A frame is one screen tall, so its scroll area is what the viewer sees, as in a page. */
+iframe { width: 100%; height: 100vh; border: 1px solid #ced8e2; border-radius: 8px; background: white; }
 .frame { padding: 18px; background: white; }
 #commit { font-size: 11px; color: #6b7d91; overflow-wrap: anywhere; }
 #method, .muted { font-size: 12px; color: #526579; }
 #view { margin: 18px 0; }
-.form-element-wrapper { margin: 10px 0; min-width: 0; }
-.form-element-wrapper h6 { font-size: 13px; margin: 5px 0; font-weight: 600; }
-.form-element-wrapper:has(> .form-element > .input-group-wrapper > input[type=hidden]) { display: none; }
-.input-group-wrapper > .form-group { padding: 10px; border: 1px solid #d7e0e9; border-radius: 5px; background: #f8fafc; }
-.form-group .form-group .form-group { background: white; border-left: 3px solid #b5cde4; }
-.form-element > .input-group-wrapper:has(> .form-group) { margin: 12px 0; }
-input:not([type=checkbox]):not([type=hidden]), textarea, .form-element select { font: inherit; width: 100%; padding: 7px 9px; border: 1px solid #bdcbd8; border-radius: 4px; color: #152a40; background: white; }
-input:focus, textarea:focus { outline: 2px solid #8bb7e3; outline-offset: 1px; }
-textarea { min-height: 58px; resize: vertical; }
-.checkbox h6 { display: inline-block; }
-.checkbox span { margin-left: 5px; }
-.lang-child { display: flex; gap: 6px; align-items: center; margin: 5px 0; }
-.lang-code { font-size: 11px; color: #667d93; width: 24px; }
-.btn-group { display: flex; gap: 5px; margin: 8px 0 14px; }
-.btn { font-size: 12px; padding: 4px 8px; }
-.btn-plus::before { content: '+ Add'; }.btn-copy::before { content: 'Copy'; }.btn-minus::before { content: '− Remove'; }.btn-move-up::before { content: '↑'; }.btn-move-down::before { content: '↓'; }
-[data-language=ko] .btn-plus::before { content: '+ 추가'; }[data-language=ko] .btn-copy::before { content: '복사'; }[data-language=ko] .btn-minus::before { content: '− 제거'; }
 details { border-top: 1px solid #dce3ea; margin-top: 12px; padding: 12px 0; }
 summary { cursor: pointer; font-weight: 600; }
 pre { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; background: #f0f4f8; padding: 12px; max-height: 500px; overflow: auto; }
 .pass { color: #126644; }.fail { color: #a92d30; }
 #results p { font-size: 12px; overflow-wrap: anywhere; }
-#results .initialization-evidence { color: #172334; }
+#initialization { background: white; border: 1px solid #dae3ec; border-radius: 8px; padding: 12px 16px; margin: 14px 0; }
+#initialization h2 { font-size: 16px; }
+#initialization-results details { border-top: 1px solid #edf1f5; margin: 0; padding: 6px 0; }
+#initialization-results summary { font-weight: 500; font-size: 12px; overflow-wrap: anywhere; }
 #report { overflow: auto; }
 table { border-collapse: collapse; width: 100%; margin: 18px 0; background: white; font-size: 12px; }
 th, td { text-align: left; padding: 10px; border: 1px solid #dae3ec; vertical-align: top; }

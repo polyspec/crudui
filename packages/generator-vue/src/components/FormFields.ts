@@ -1,12 +1,13 @@
 import { h, type VNode, type VNodeRef } from 'vue';
-import type { FieldViewModel } from '@crudui/generator-core';
-import { fieldVNode } from './Field';
+import { formButtonsHtml, type ButtonVM, type FormMessages, type NodeVM } from '@crudui/generator-core';
+import { nodeVNode } from './Node';
 
-/** Build the `.form-group` envelope vnode around the top-level fields. */
-export function FormFields(fields: FieldViewModel[], rootRef?: VNodeRef): VNode {
-  return h(
-    'div',
-    { class: 'form-group', ref: rootRef },
-    fields.map((vm) => fieldVNode(vm))
-  );
+/** Build the `crudui-form` block vnode: the top-level nodes and the footer with the form buttons. */
+export function FormFields(fields: NodeVM[], buttons: ButtonVM[], messages: FormMessages, rootRef?: VNodeRef): VNode {
+  return h('div', { class: 'crudui-form', ref: rootRef }, [
+    h('div', { class: 'crudui-form__body' }, fields.map((vm) => nodeVNode(vm))),
+    h('div', { class: 'crudui-form__footer' }, [
+      h('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formActions, innerHTML: formButtonsHtml(buttons) }),
+    ]),
+  ]);
 }

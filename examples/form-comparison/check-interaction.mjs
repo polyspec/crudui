@@ -7,6 +7,32 @@ const actions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboa
 const collectionSelector = '[data-field-path="companies"]';
 const storeSelector = 'input[name$="[stores][__0000000000001__][name]"]';
 
+/** Whether focus is on the first enabled visible input of the collection's row at `index`, inside the frame viewport. */
+/**
+ * Whether the first input of a collection row has focus and is visible to the user:
+ * inside the frame viewport and inside the main page viewport. The row focus rule
+ * scrolls the frame and the page only as far as needed to show the row.
+ */
+async function newRowFocus(frame, index) {
+  const iframe = await frame.frameElement();
+  return iframe.evaluate((element, selector, position) => {
+    const document = element.contentDocument;
+    const view = element.contentWindow;
+    const row = document.querySelector(`${selector} > .crudui-node__body`).children[position];
+    const input = Array.from(row.querySelectorAll('input:not([type=hidden]),select,textarea'))
+      .find(control => !control.disabled && !control.closest('[hidden]'));
+    const rect = input.getBoundingClientRect();
+    const frameRect = element.getBoundingClientRect();
+    const top = frameRect.top + element.clientTop + rect.top;
+    const left = frameRect.left + element.clientLeft + rect.left;
+    return {
+      focused: document.activeElement === input,
+      inFrame: rect.top >= 0 && rect.bottom <= view.innerHeight && rect.left >= 0 && rect.right <= view.innerWidth,
+      inPage: top >= 0 && top + rect.height <= innerHeight && left >= 0 && left + rect.width <= innerWidth,
+    };
+  }, collectionSelector, index);
+}
+
 async function clickAction(frame, id) {
   const action = await frame.evaluate(operation =>
     window.comparison.nextAction(operation), id);
@@ -37,11 +63,13 @@ export async function checkInteraction(page, servers) {
   const combinations = interactionCombinations(servers);
   for (const server of servers) {
     for (const framework of formFrameworks) {
-      await page.evaluate(([selectedFramework, selectedServer]) =>
-        window.comparison.show(selectedFramework, selectedServer), [framework, server]);
       for (const path of formRenderingPaths) {
+        await page.evaluate(([selectedFramework, selectedServer, selectedPath]) =>
+          window.comparison.show(selectedFramework, selectedServer, selectedPath),
+        [framework, server, path]);
         const frame = page.frames().find(item =>
-          new URL(item.url()).pathname === `/frames/${path}-${framework}/`);
+          new URL(item.url()).pathname === `/frames/${path}-${framework}/`
+          && new URL(item.url()).searchParams.get('initialization') === 'ssr');
         assert.ok(frame, `${path}/${framework}: frame`);
         for (const transport of formTransports) {
           await frame.select('#transport', transport);
@@ -51,29 +79,18 @@ export async function checkInteraction(page, servers) {
               await frame.evaluate(() => window.comparison.reset());
               if (action === 'empty-keyboard') {
                 const remove = await frame.$(
-                  `${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-minus`,
+                  `${collectionSelector} > .crudui-node__body > [data-crudui-row-key] > .crudui-node__header [data-crudui-action="remove-row"]`,
                 );
                 await remove.click();
                 await frame.evaluate(() => window.comparison.idle());
-                const selector = `${collectionSelector} > .form-element > button.btn-plus`;
+                const selector = `${collectionSelector} > .crudui-node__footer [data-crudui-action="add-row"]`;
                 await (await frame.$(selector)).focus();
-                const before = await frame.evaluate(() => document.scrollingElement.scrollTop);
-                const parentScroll = await page.evaluate(() => window.scrollY);
                 await page.keyboard.press('Enter');
                 await frame.evaluate(() => window.comparison.idle());
-                const active = await frame.evaluate(selectorValue => ({
-                  isAdd: document.activeElement.matches('button.btn-plus'),
-                  sameCollection: document.activeElement.closest('.form-element-wrapper')
-                    === document.querySelector(selectorValue),
-                  scroll: document.scrollingElement.scrollTop,
-                }), collectionSelector);
-                assert.equal(active.isAdd, true, 'Empty addition retains Add button focus');
-                assert.equal(active.sameCollection, true,
-                  'Focused button belongs to the same collection');
-                assert.ok(Math.abs(active.scroll - before) <= 1,
-                  'Empty addition preserves frame scroll');
-                assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - parentScroll) <= 1,
-                  'Empty addition preserves page scroll');
+                const focus = await newRowFocus(frame, 0);
+                assert.equal(focus.focused, true, 'Empty addition focuses the first input of the new row');
+                assert.equal(focus.inFrame, true, 'The focused input is inside the frame viewport');
+                assert.equal(focus.inPage, true, 'The focused input is inside the page viewport');
               } else if (action === 'validation') {
                 const input = await frame.$(storeSelector);
                 await input.click({ count: 3 });
@@ -135,54 +152,30 @@ export async function checkInteraction(page, servers) {
                 await (await frame.$(selector)).click();
                 await frame.evaluate(() => window.comparison.idle());
                 assert.equal(await frame.$eval('textarea', item =>
-                  item.closest('.form-element-wrapper').style.display), 'none');
+                  item.closest('[data-field-path]').hidden), true);
                 await (await frame.$(selector)).click();
                 await frame.evaluate(() => window.comparison.idle());
-                assert.notEqual(await frame.$eval('textarea', item =>
-                  item.closest('.form-element-wrapper').style.display), 'none');
+                assert.equal(await frame.$eval('textarea', item =>
+                  item.closest('[data-field-path]').hidden), false);
               } else {
                 const button = await frame.$(
-                  `${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-plus`,
+                  `${collectionSelector} > .crudui-node__body > [data-crudui-row-key] > .crudui-node__header [data-crudui-action="add-row"]`,
                 );
                 await button.scrollIntoView();
-                const before = await frame.evaluate((selectedButton, selectedAction) => {
-                  const input = document.querySelector('input[name]');
-                  const active = selectedAction === 'pointer' ? input : selectedButton;
+                await frame.evaluate((selectedButton, selectedAction) => {
+                  const active = selectedAction === 'pointer'
+                    ? document.querySelector('input[name]') : selectedButton;
                   active.focus({ preventScroll: true });
-                  if (selectedAction === 'pointer') input.setSelectionRange(2, 5, 'backward');
-                  return {
-                    name: input.name, scroll: document.scrollingElement.scrollTop,
-                    buttonY: selectedButton.getBoundingClientRect().top,
-                  };
                 }, button, action);
-                const parentScroll = await page.evaluate(() => window.scrollY);
                 if (action === 'pointer') await button.click();
                 else await page.keyboard.press('Enter');
                 await frame.evaluate(() => window.comparison.idle());
-                assert.equal(await frame.$eval(`${collectionSelector} > .form-element`,
+                assert.equal(await frame.$eval(`${collectionSelector} > .crudui-node__body`,
                   element => element.children.length), 2, 'Addition creates one row');
-                const after = await frame.evaluate(selectedButton => ({
-                  name: document.activeElement.name,
-                  start: document.activeElement.selectionStart,
-                  end: document.activeElement.selectionEnd,
-                  direction: document.activeElement.selectionDirection,
-                  buttonFocused: document.activeElement === selectedButton,
-                  scroll: document.scrollingElement.scrollTop,
-                  buttonY: selectedButton.getBoundingClientRect().top,
-                }), button);
-                if (action === 'pointer') {
-                  assert.equal(after.name, before.name, 'Active input after pointer addition');
-                  assert.equal(after.start, 2);
-                  assert.equal(after.end, 5);
-                  assert.equal(after.direction, 'backward');
-                } else assert.equal(after.buttonFocused, true,
-                  'Active button after keyboard addition');
-                assert.ok(Math.abs(after.scroll - before.scroll) <= 1,
-                  `Frame scroll changed: ${before.scroll} -> ${after.scroll}`);
-                assert.ok(Math.abs(after.buttonY - before.buttonY) <= 1,
-                  `Button position changed: ${before.buttonY} -> ${after.buttonY}`);
-                assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - parentScroll) <= 1,
-                  'Parent page scrolled');
+                const focus = await newRowFocus(frame, 1);
+                assert.equal(focus.focused, true, `${action} addition focuses the first input of the new row`);
+                assert.equal(focus.inFrame, true, 'The focused input is inside the frame viewport');
+                assert.equal(focus.inPage, true, 'The focused input is inside the page viewport');
               }
             } catch (cause) {
               error = cause.stack ?? cause.message;

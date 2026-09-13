@@ -89,19 +89,16 @@ fn render(request: &Value, options: &Map<String, Value>) -> Result<Value> {
     }
     let template: FormTemplate = serde_json::from_value(object(request, "template")?.clone())
         .map_err(|error| bad(error.to_string()))?;
-    let mut binding = BindOptions {
-        key_prefix: string_option(options, "keyPrefix")?,
-        ..Default::default()
+    // An absent option is null so the generator applies its default.
+    let option = |name| -> Result<Value> {
+        Ok(string_option(options, name)?.map_or(Value::Null, Value::String))
     };
-    if let Some(value) = string_option(options, "idPrefix")? {
-        binding.id_prefix = value;
-    }
-    if let Some(value) = string_option(options, "language")? {
-        binding.language = value;
-    }
-    if let Some(value) = string_option(options, "unsupported")? {
-        binding.unsupported = value;
-    }
+    let binding = BindOptions {
+        key_prefix: option("keyPrefix")?,
+        id_prefix: option("idPrefix")?,
+        language: option("language")?,
+        unsupported: option("unsupported")?,
+    };
     let form = Form::new(template, object(request, "data")?, binding)
         .map_err(|error| bad(error.to_string()))?;
     let html = render_form(&form).map_err(|error| bad(error.to_string()))?;
@@ -217,7 +214,7 @@ fn document(
         template,
         &data,
         BindOptions {
-            language: language.clone(),
+            language: Value::String(language.clone()),
             ..Default::default()
         },
     )
@@ -229,13 +226,13 @@ fn document(
         status: StatusCode::INTERNAL_SERVER_ERROR,
         message: error.to_string(),
     })?;
-    let (save, interactive) = if language == "ko" {
-        ("저장", "입력 화면 열기")
+    let interactive = if language == "ko" {
+        "입력 화면 열기"
     } else {
-        ("Save", "Open interactive form")
+        "Open interactive form"
     };
     let document = format!(
-        r#"<!doctype html><html lang="{language}" data-language="{language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/{rendering_path}-{framework}/?server=rust&amp;lang={language}">{interactive}</a></header><form id="form" method="post" action="/api/rust/save/{rendering_path}/{framework}" data-generator-runtime="rust" data-generator-commit="{commit}"><div id="view">{markup}</div><button type="submit" name="_form_complete" value="1">{save}</button></form></body></html>"#,
+        r#"<!doctype html><html lang="{language}" data-language="{language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/crudui.css"><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/{rendering_path}-{framework}/?server=rust&amp;lang={language}&amp;initialization=ssr">{interactive}</a></header><form id="form" method="post" action="/api/rust/save/{rendering_path}/{framework}" data-generator-runtime="rust" data-generator-commit="{commit}"><div id="view">{markup}</div></form></body></html>"#,
         commit = escape(COMMIT)
     );
     Ok((

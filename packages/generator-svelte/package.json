@@ -11,11 +11,7 @@
       "types": "./dist/index.d.ts",
       "svelte": "./dist/index.js"
     },
-    "./package.json": "./package.json",
-    "./legacy": {
-      "types": "./dist/legacy/index.d.ts",
-      "svelte": "./dist/legacy/index.js"
-    }
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
@@ -35,15 +31,13 @@
     "form-builder",
     "yaml",
     "spec",
-    "validation",
-    "legacy"
+    "validation"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@crudui/generator-core": "0.0.1",
-    "@crudui/validator": "0.0.1",
-    "yaml": "^2.3.0"
+    "@crudui/validator": "0.0.1"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.5.8",

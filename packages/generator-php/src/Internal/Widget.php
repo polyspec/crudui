@@ -53,7 +53,7 @@ final class Widget
         if (isset($model->extra->file)) {
             $model->extra->file->id = $ctx->id;
         }
-        if ($model->layout === 'btn-group') {
+        if ($model->layout === 'choices') {
             foreach ($model->options as $i => $option) {
                 $option->id = $ctx->id . ':' . $i;
             }
@@ -115,7 +115,7 @@ final class Widget
         if ($text === '') {
             return Missing::Value;
         }
-        return Value::record(['text' => $text, 'class' => $kind === 'prepend' ? Value::classes('input-group-text', $this->design->prepend->class) : 'input-group-text', 'style' => $kind === 'prepend' ? Value::style($this->design->prepend->style) ?? Missing::Value : Missing::Value]);
+        return Value::record(['text' => $text, 'class' => $kind === 'prepend' ? Value::classes('crudui-widget__affix', $this->design->prepend->class) : 'crudui-widget__affix', 'style' => $kind === 'prepend' ? Value::style($this->design->prepend->style) ?? Missing::Value : Missing::Value]);
     }
 
     private function displayValue(): string
@@ -148,7 +148,7 @@ final class Widget
         if ($kind === 'dummy-input') {
             $attrs['readonly'] = '';
         }
-        $attrs['class'] = $this->main($kind === 'hidden' ? 'valid-target' : ($kind === 'dummy-input' ? 'form-control' : 'valid-target form-control'));
+        $attrs['class'] = $this->main($kind === 'hidden' ? 'valid-target' : ($kind === 'dummy-input' ? 'crudui-input' : 'valid-target crudui-input'));
         if (in_array($kind, ['text', 'email', 'number', 'dummy-input'], true)) {
             $attrs = array_replace($attrs, $this->placeholder());
         }
@@ -160,12 +160,12 @@ final class Widget
         }
         $attrs = array_replace($attrs, $kind === 'dummy-input' ? ['data-default' => Value::scalar($this->spec->default ?? null)] : $this->data());
         $bare = in_array($kind, ['password', 'hidden', 'datetime'], true);
-        return $this->model($kind, $bare ? 'bare' : 'input-group', $attrs, ['tag' => 'input', ...$bare ? [] : $this->affixes()]);
+        return $this->model($kind, $bare ? 'bare' : 'widget', $attrs, ['tag' => 'input', ...$bare ? [] : $this->affixes()]);
     }
 
     private function textarea(): stdClass
     {
-        return $this->model('textarea', 'input-group', ['name' => $this->name, 'class' => $this->main('valid-target form-control'), 'rows' => '5', ...$this->style(), ...$this->behavior(), ...$this->data()], ['tag' => 'textarea', 'text' => $this->displayValue(), ...$this->affixes()]);
+        return $this->model('textarea', 'widget', ['name' => $this->name, 'class' => $this->main('valid-target crudui-input'), 'rows' => '5', ...$this->style(), ...$this->behavior(), ...$this->data()], ['tag' => 'textarea', 'text' => $this->displayValue(), ...$this->affixes()]);
     }
 
     private function dynamic(): bool
@@ -205,12 +205,12 @@ final class Widget
             $options = [(object) ['value' => '', 'label' => 'select', 'selected' => false, 'isDefault' => false]];
         }
         if ($kind === 'select') {
-            $attrs = ['name' => $this->name, 'class' => $this->main($dynamic ? 'valid-target form-select valid-target-async' : 'valid-target form-select'), ...(array) $source, ...$this->style(), ...$this->behavior(), ...$this->data()];
-            return $this->model('select', 'input-group', $attrs, ['tag' => 'select', 'source' => $source, 'options' => $options, ...$this->affixes()]);
+            $attrs = ['name' => $this->name, 'class' => $this->main($dynamic ? 'valid-target crudui-input crudui-input--select valid-target-async' : 'valid-target crudui-input crudui-input--select'), ...(array) $source, ...$this->style(), ...$this->behavior(), ...$this->data()];
+            return $this->model('select', 'widget', $attrs, ['tag' => 'select', 'source' => $source, 'options' => $options, ...$this->affixes()]);
         }
         $min = $this->opt('keyword_min_length', '2');
         $delay = $this->opt('delay', '250');
-        $attrs = ['class' => $this->main($dynamic ? 'valid-target form-control valid-target-async' : 'valid-target form-control'), ...$this->style(), 'name' => $this->name, 'data-keyword-min-length' => $min, 'data-delay' => $delay, 'data-api-server' => $this->opt('api_server', ''), ...(array) $source, 'data-name' => Value::leaf($this->path, $this->rows), 'data-rule-name' => Value::rule($this->path, $this->rows), 'id' => $this->id];
+        $attrs = ['class' => $this->main($dynamic ? 'valid-target crudui-input crudui-input--select valid-target-async' : 'valid-target crudui-input crudui-input--select'), ...$this->style(), 'name' => $this->name, 'data-keyword-min-length' => $min, 'data-delay' => $delay, 'data-api-server' => $this->opt('api_server', ''), ...(array) $source, 'data-name' => Value::leaf($this->path, $this->rows), 'data-rule-name' => Value::rule($this->path, $this->rows), 'id' => $this->id];
         if (isset($this->behavior()['onchange'])) {
             $attrs['onchange'] = $this->behavior()['onchange'];
         }
@@ -226,13 +226,10 @@ final class Widget
     private function choices(string $kind): stdClass
     {
         $radio = $kind === 'choice';
-        $attrs = ['class' => $radio ? 'btn-group btn-group-toggle' : 'btn-group flex-wrap btn-group-toggle'];
-        if ($radio) {
-            $attrs['data-toggle'] = 'buttons';
-        }
-        $labelClass = $this->main($radio ? 'btn btn-switch' : 'btn btn-switch btn-mswitch');
+        $attrs = ['class' => $radio ? 'crudui-choices' : 'crudui-choices crudui-choices--multiple'];
+        $labelClass = $this->main('crudui-choices__label');
         if ($this->dynamic()) {
-            return $this->model($kind, 'btn-group', [...$attrs, ...(array) $this->source()], ['source' => $this->source(), 'options' => [], 'itemLabelClass' => $labelClass]);
+            return $this->model($kind, 'choices', [...$attrs, ...(array) $this->source()], ['source' => $this->source(), 'options' => [], 'itemLabelClass' => $labelClass]);
         }
         $options = $this->options($radio);
         if (!$radio) {
@@ -248,14 +245,13 @@ final class Widget
                 $shared[$action] = $script;
             }
         }
-        return $this->model($kind, 'btn-group', $attrs, ['source' => null, 'options' => $options, 'itemLabelClass' => $labelClass, 'extra' => (object) ['input' => (object) $shared]]);
+        return $this->model($kind, 'choices', $attrs, ['source' => null, 'options' => $options, 'itemLabelClass' => $labelClass, 'extra' => (object) ['input' => (object) $shared]]);
     }
 
     private function file(string $kind): stdClass
     {
         $cover = $kind === 'cover';
-        $base = 'valid-target form-control-file' . ($cover ? ' form-control-filetext form-control-image' : ($kind === 'image' ? ' form-control-image' : ''));
-        $file = ['type' => 'file', 'class' => $this->main($base)];
+        $file = ['type' => 'file', 'class' => $this->main('valid-target crudui-input crudui-input--file')];
         foreach (['max_width', 'min_width', 'max_height', 'min_height', 'preview_max_width', 'preview_max_height'] as $size) {
             $file['data-' . str_replace('_', '-', $size)] = $this->opt($size, '0');
         }
@@ -270,7 +266,7 @@ final class Widget
         $file['accept'] = Value::scalar($accept);
         $extra = [];
         if (!$cover) {
-            $extra['display'] = (object) ['type' => 'text', 'class' => 'form-control form-control-file', 'value' => '', 'readonly' => ''];
+            $extra['display'] = (object) ['type' => 'text', 'class' => 'crudui-input', 'value' => '', 'readonly' => ''];
         }
         $extra['file'] = (object) $file;
         return $this->model($kind, 'file', [], ['prepend' => $this->affix('prepend'), 'extra' => (object) $extra]);
@@ -309,11 +305,11 @@ final class Widget
         $tagify = $kind === 'tagify' || $kind === 'tagify2';
         $height = $this->opt('height', '300');
         $base = match ($kind) {
-            'tinymce' => 'valid-target form-control tinymcearea',
-            'summernote' => 'valid-target form-control summernote',
-            'editorjs' => 'valid-target form-control contentjs',
-            'tui' => 'valid-target form-control tuiarea',
-            default => 'valid-target form-control',
+            'tinymce' => 'valid-target crudui-input tinymcearea',
+            'summernote' => 'valid-target crudui-input summernote',
+            'editorjs' => 'valid-target crudui-input contentjs',
+            'tui' => 'valid-target crudui-input tuiarea',
+            default => 'valid-target crudui-input',
         };
         $attrs = $tagify ? ['type' => 'text', 'id' => $this->id, 'class' => $this->main($base), 'name' => $this->name, 'value' => $this->displayValue(), 'data-max-tags' => $this->opt('max_tags', '0')] : ['id' => $this->id, 'class' => $this->main($base), 'name' => $this->name, 'rows' => $this->opt('rows', $kind === 'summernote' ? '5' : '3')];
         if ($kind === 'tinymce') {
@@ -347,7 +343,7 @@ final class Widget
         $onclick = $this->behavior()['onclick'] ?? '';
         $script = "\n\$(function() {\n    " . $init . "\n    \$(document.getElementById(" . self::js($id) . ")).on('click', function() {\n        " . $onclick . "\n    });\n});\n";
         $text = property_exists($this->spec, 'content') ? $this->t($this->spec->content) : $this->t($this->spec->text ?? null);
-        return $this->model('button', 'button', ['type' => 'button', 'class' => $this->main('btn'), 'name' => 'btn' . $this->name, 'id' => $id, 'value' => $text], ['script' => $script, 'buttonText' => $text, 'extra' => (object) ['hidden' => (object) ['type' => 'hidden', 'class' => 'valid-target form-control', 'readonly' => '', 'name' => $this->name, 'data-name' => Value::leaf($this->path, $this->rows), 'data-rule-name' => Value::rule($this->path, $this->rows), 'value' => $this->displayValue(), 'data-default' => Value::scalar($this->spec->default ?? null)]]]);
+        return $this->model('button', 'button', ['type' => 'button', 'class' => $this->main('crudui-action crudui-action--text'), 'name' => 'btn' . $this->name, 'id' => $id, 'value' => $text], ['script' => $script, 'buttonText' => $text, 'extra' => (object) ['hidden' => (object) ['type' => 'hidden', 'class' => 'valid-target', 'readonly' => '', 'name' => $this->name, 'data-name' => Value::leaf($this->path, $this->rows), 'data-rule-name' => Value::rule($this->path, $this->rows), 'value' => $this->displayValue(), 'data-default' => Value::scalar($this->spec->default ?? null)]]]);
     }
 
     private static function js(string $value): string

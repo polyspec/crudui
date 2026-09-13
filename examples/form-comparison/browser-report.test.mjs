@@ -10,6 +10,7 @@ import {
   browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers,
   browserTransports, summarizeBrowserReports,
 } from './check-browser-reports.mjs';
+import { browserInitializationResultIds } from './browser-report-policy.mjs';
 
 const origin = 'http://127.0.0.1:8080';
 const metadata = {
@@ -18,31 +19,25 @@ const metadata = {
 const startedAt = '2026-09-10T00:00:00.000Z';
 const completedAt = '2026-09-10T00:05:00.000Z';
 
-function evidence(item) {
+function initialization(server, renderingPath, framework) {
   return {
-    generatedAt: completedAt,
-    server: item.server,
-    path: item.path,
-    framework: item.framework,
-    transport: item.transport,
-    commit: item.commit,
-    randomSource: 'test-sequence',
-    stages: [{ route: 'initial', stage: 'mounted' }],
-    comparisons: [{ label: 'initial/injected/mounted', results: [] }],
+    kind: 'initialization', server, path: renderingPath, framework,
+    commit: metadata.source.commit, startedAt, completedAt, durationMs: 1_000,
+    results: browserInitializationResultIds.map(id => {
+      const separator = id.lastIndexOf('/');
+      return { label: id.slice(0, separator), category: id.slice(separator + 1), passed: true };
+    }),
+    stages: [{ column: 'ssr', stage: 'mounted', html: '' }],
     cssFailures: {},
   };
 }
 
 function scenario(server, renderingPath, framework, transport) {
   const item = {
-    server, path: renderingPath, framework, transport, commit: metadata.source.commit,
-    startedAt, completedAt, durationMs: 1_000,
+    kind: 'scenario', server, path: renderingPath, framework, transport,
+    commit: metadata.source.commit, startedAt, completedAt, durationMs: 1_000,
   };
-  item.results = browserScenarioCheckIds.map(id => ({
-    id,
-    passed: true,
-    ...(id === 'initialization' ? { evidence: evidence(item) } : {}),
-  }));
+  item.results = browserScenarioCheckIds.map(id => ({ id, passed: true }));
   return item;
 }
 
@@ -67,10 +62,12 @@ function report(server, sha256 = 'f'.repeat(64)) {
       lastResponseAt: '2026-09-10T00:04:59.500Z',
     },
     scenarioJob: {
-      status: 'completed', completedReports: 12, totalReports: 12, current: null,
+      status: 'completed', completedReports: 18, totalReports: 18, current: null,
       startedAt, completedAt, durationMs: 299_000,
     },
     reports: combinations,
+    initializations: browserPaths.flatMap(renderingPath => browserFrameworks.map(framework =>
+      initialization(server, renderingPath, framework))),
     interactions,
     initialMounts: documents.map(({ sha256: _sha256, ...item }) => item),
     staticDocuments: documents,
@@ -90,8 +87,9 @@ test('passes only a complete four-server verification with zero failures', () =>
   assert.equal(summary.passed, true);
   assert.equal(summary.performancePassed, true);
   assert.equal(summary.failedChecks, 0);
-  assert.deepEqual(summary.verification.bindForm.scenarios, { total: 480, failed: 0 });
-  assert.deepEqual(summary.verification.createForm.scenarios, { total: 480, failed: 0 });
+  assert.deepEqual(summary.verification.bindForm.scenarios, { total: 456, failed: 0 });
+  assert.deepEqual(summary.verification.createForm.scenarios, { total: 456, failed: 0 });
+  assert.deepEqual(summary.verification.bindForm.initializations, { total: 2304, failed: 0 });
 });
 
 test('rejects a missing server report', () => {
@@ -121,15 +119,34 @@ test('rejects non-boolean results and mismatched source commits', () => {
     /source commit/);
 });
 
-test('rejects missing activity and initialization evidence', () => {
+test('rejects missing activity and incomplete initialization reports', () => {
   const noActivity = completeReports();
   delete noActivity.php.activity;
   assert.throws(() => summarizeBrowserReports(noActivity, origin, metadata), /activity/);
 
-  const noEvidence = completeReports();
-  delete noEvidence.php.reports[0].results.find(item => item.id === 'initialization').evidence;
-  assert.throws(() => summarizeBrowserReports(noEvidence, origin, metadata),
-    /initialization evidence/);
+  const noStages = completeReports();
+  noStages.php.initializations[0].stages = [];
+  assert.throws(() => summarizeBrowserReports(noStages, origin, metadata),
+    /initialization stages/);
+
+  const missingComparison = completeReports();
+  missingComparison.go.initializations[1].results.pop();
+  assert.throws(() => summarizeBrowserReports(missingComparison, origin, metadata),
+    /comparison IDs/);
+
+  const missingReport = completeReports();
+  missingReport.rust.initializations.pop();
+  assert.throws(() => summarizeBrowserReports(missingReport, origin, metadata),
+    /initialization report count/);
+});
+
+test('fails when an initialization comparison differs', () => {
+  const reports = completeReports();
+  reports.php.initializations[0].results[0].passed = false;
+  const summary = summarizeBrowserReports(reports, origin, metadata);
+  assert.equal(summary.passed, false);
+  assert.equal(summary.failedChecks, 1);
+  assert.deepEqual(summary.verification.bindForm.initializations, { total: 2304, failed: 1 });
 });
 
 test('fails when corresponding static HTML differs between servers', () => {

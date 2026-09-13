@@ -21,18 +21,24 @@ import (
 const specification = `{"type":"group","properties":{"name":{"type":"text","label":{"en":"Name","ko":"이름"},"validate":{"required":true,"minlength":2}},"email":{"type":"email","label":{"en":"Email","ko":"이메일"},"validate":{"required":true,"email":true}}}}`
 
 type server struct {
-	spec     *generator.Object
-	template *generator.FormTemplate
-	file     string
-	mu       sync.Mutex
+	spec       *generator.Object
+	template   *generator.FormTemplate
+	file       string
+	stylesheet string
+	mu         sync.Mutex
 }
 
 func main() {
 	address := flag.String("listen", "127.0.0.1:8087", "HTTP listen address")
 	file := flag.String("data", "", "Explicit JSON record file path")
+	stylesheetFile := flag.String("stylesheet", "../generator-core/styles/crudui.css", "The crudui.css stylesheet the form takes every style from")
 	flag.Parse()
 	if *file == "" {
 		log.Fatal("-data must specify the JSON record file")
+	}
+	stylesheet, e := os.ReadFile(*stylesheetFile)
+	if e != nil {
+		log.Fatal(e)
 	}
 	decoded, e := generator.DecodeJSON([]byte(specification))
 	if e != nil {
@@ -43,7 +49,7 @@ func main() {
 	if e != nil {
 		log.Fatal(e)
 	}
-	app := &server{spec: spec, template: template, file: *file}
+	app := &server{spec: spec, template: template, file: *file, stylesheet: string(stylesheet)}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.form)
 	mux.HandleFunc("/data", app.data)
@@ -121,7 +127,8 @@ func (s *server) form(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, `<!doctype html><html lang="en"><meta charset="utf-8"><title>CRUDUI Go form</title><style>body{max-width:42rem;margin:3rem auto;font-family:system-ui}input{padding:.6rem;width:95%}h6{font-size:1rem;margin-bottom:.5rem}button{margin-top:1rem;padding:.6rem}</style><h1>CRUDUI Go form</h1><form method="post">`+html+`<button type="submit">Save</button></form><p><a href="/data">Stored JSON</a> · <a href="/template">Compiled template</a></p></html>`)
+		// The page styles only its own layout; the form, including its submit button, takes every style from crudui.css.
+		fmt.Fprint(w, `<!doctype html><html lang="en"><meta charset="utf-8"><title>CRUDUI Go form</title><style>body{max-width:42rem;margin:3rem auto;font-family:system-ui}</style><style>`+s.stylesheet+`</style><h1>CRUDUI Go form</h1><form method="post">`+html+`</form><p><a href="/data">Stored JSON</a> · <a href="/template">Compiled template</a></p></html>`)
 	case http.MethodPost:
 		s.submit(w, r)
 	default:
@@ -199,6 +206,10 @@ func (s *server) submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	result, e := validate.Validate(s.spec, lookup, validate.Options{})
+	if _, input := e.(*validate.FormInputError); input {
+		http.Error(w, e.Error(), http.StatusBadRequest)
+		return
+	}
 	if e != nil {
 		http.Error(w, e.Error(), http.StatusInternalServerError)
 		return

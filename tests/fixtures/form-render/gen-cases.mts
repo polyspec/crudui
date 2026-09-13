@@ -88,11 +88,11 @@ const NEW: FixtureCase[] = [
     G({ em: { type: 'email', label: { ko: '이메일' } } }), {}, { language: 'ko' }),
   pass('email-with-data', 'email with value → value rendered verbatim.',
     G({ em: { type: 'email', label: { ko: '이메일' } } }), { em: 'a@b.com' }, { language: 'ko' }),
-  pass('checkbox-bare', 'checkbox → .checkbox > h6 special envelope, value=1 input, no value.',
+  pass('checkbox-bare', 'checkbox → input with its own caption label in the node body, value=1, no value.',
     G({ agree: { type: 'checkbox', label: { ko: '동의' } } }), {}, { language: 'ko' }),
   pass('checkbox-with-data', 'checkbox with value 1 renders checked.',
     G({ agree: { type: 'checkbox', label: { ko: '동의' } } }), { agree: 1 }, { language: 'ko' }),
-  pass('switcher-bare', 'switcher → same special envelope as checkbox (alias path), no value.',
+  pass('switcher-bare', 'switcher → same node body markup as checkbox (alias path), no value.',
     G({ on: { type: 'switcher', label: { ko: '켜기' } } }), {}, { language: 'ko' }),
 
   // ---- B. NEW WIDGETS — empty + with-data (high-freq first) ------------------
@@ -204,7 +204,7 @@ const NEW: FixtureCase[] = [
   pass('date-design-prepend', 'date design.prepend.class + prepend content.',
     G({ dt: { type: 'date', label: { ko: '날짜' }, prepend: { ko: '📅' }, design: { prepend: { class: 'pre' } } } }),
     {}, { language: 'ko' }),
-  pass('choice-design-show-false', 'design.show:false → wrapper display:none kept; choice inner present.',
+  pass('choice-design-show-false', 'design.show:false → node hidden attribute; choice inner present.',
     G({ c: { type: 'choice', label: { ko: '선택' }, items: { a: { ko: '가' } }, design: { show: false } } }),
     {}, { language: 'ko' }),
 
