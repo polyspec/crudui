@@ -56,6 +56,7 @@ final class Binding
                 $rowDesign = Design::resolve($spec->design ?? null, $data, Value::segments($rowPath));
                 $row = ['uniqid' => $key, 'wrapperClass' => Value::classes('input-group-wrapper', $i > 0 ? 'clone-element' : '', $rowDesign->wrapper->class)];
                 if ($type === 'group') {
+                    self::checkGroup(Value::path($data, $rowPath), $rowPath);
                     $row['groupClass'] = Value::classes('form-group', $rowDesign->group->class);
                     $row['children'] = self::children($field, $rowPath, $data, $options, $segments);
                 } else {
@@ -66,6 +67,7 @@ final class Binding
             return Value::record(array_replace($base, ['shape' => $type === 'group' ? 'multiple-group' : 'multiple-leaf', 'rows' => $rows, 'multiple' => (object) $settings]));
         }
         if ($type === 'group') {
+            self::checkGroup(Value::path($data, $path), $path);
             return Value::record(array_replace($base, ['shape' => 'group', 'groupClass' => Value::classes('form-group', $design->group->class), 'groupStyle' => Value::style($design->group->style) ?? Missing::Value, 'children' => self::children($field, $path, $data, $options, $rowSegments)]));
         }
         $lang = $spec->lang ?? null;
@@ -87,6 +89,14 @@ final class Binding
         }
         $base['widget'] = Widget::evaluate($spec, $value, $path, $design, $options, $rowSegments);
         return Value::record($base);
+    }
+
+    /** Present group data, including a repeated group row, must be an object. */
+    private static function checkGroup(mixed $value, string $path): void
+    {
+        if ($value !== Missing::Value && !$value instanceof stdClass) {
+            throw new FormError('INVALID_FORM_INPUT', 'Group data must be an object: ' . $path);
+        }
     }
 
     private static function children(stdClass $field, string $path, stdClass $data, array $options, array $rows): array

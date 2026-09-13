@@ -199,6 +199,13 @@ function rowIdentities(value: unknown, path: string): RowIdentity[] {
   return Object.keys(value).map((k) => ({ seg: k, uniqid: k }));
 }
 
+/** Present group data, including a repeated group row, must be an object. */
+function checkGroupData(value: unknown, path: string): void {
+  if (value !== undefined && (value === null || typeof value !== 'object' || Array.isArray(value))) {
+    throw new TypeError(`Group data must be an object: ${path}`);
+  }
+}
+
 function inputGroupWrapperClass(design: ResolvedDesign, rowIndex = 0): string {
   return joinClass(
     'input-group-wrapper',
@@ -334,6 +341,7 @@ function buildGroup(
     return buildMultipleGroup(spec, path, design, label, description, multiple, state, templateChildren);
   }
 
+  checkGroupData(getValueByPath(state.data, path), path);
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
   const uniqid = elementId('', path);
   const groupClass = joinClass('form-group', design.group.class);
@@ -415,6 +423,7 @@ function buildMultipleGroup(
 
   const rows: RowVM[] = identities.map((row, rowIndex) => {
     const rowBase = `${path}.${row.seg}`;
+    checkGroupData(getValueByPath(state.data, rowBase), rowBase);
     const rowCtx = makeContext(parsePathString(rowBase), state.data);
     const rowDesign = resolveDesign(spec.design, rowCtx);
     const children = buildChildren(rowBase, rowState, templateChildren);

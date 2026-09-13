@@ -69,6 +69,31 @@ test('rejects row keys outside the current keyed data contract', () => {
   }
 });
 
+test('rejects data with the wrong shape at its full data path', () => {
+  const key = '__0000000000001__';
+  const nestedTemplate = {
+    fields: [
+      { name: 'address', spec: { type: 'group' }, children: [{ name: 'city', spec: { type: 'text' }, children: [] }] },
+      {
+        name: 'companies', spec: { type: 'group', multiple: true },
+        children: [{ name: 'stores', spec: { type: 'group', multiple: true }, children: [] }],
+      },
+    ],
+  };
+  for (const [data, message] of [
+    [null, 'Form data must be an object'],
+    [{ address: 'Seoul' }, 'Group data must be an object: address'],
+    [{ companies: [] }, 'Repeated data must be a keyed object: companies'],
+    [{ companies: { [key]: 'One' } }, `Group data must be an object: companies.${key}`],
+    [{ companies: { [key]: { stores: [] } } }, `Repeated data must be a keyed object: companies.${key}.stores`],
+  ]) {
+    assert.throws(
+      () => bindFormController({}, () => { throw new Error('mount called'); }, nestedTemplate, 'en', data),
+      { name: 'TypeError', message },
+    );
+  }
+});
+
 test('accepts saved, unsaved and empty keyed collections', async () => {
   const renders = [];
   const listeners = new Map();

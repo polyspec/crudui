@@ -141,7 +141,7 @@ export class FormInstance {
     const entries = Object.entries(rows);
     const at = options.afterKey === undefined ? entries.length : entries.findIndex(([k]) => k === options.afterKey) + 1;
     if (options.afterKey !== undefined && at === 0) throw new Error(`Unknown row: ${options.afterKey}`);
-    entries.splice(at, 0, [key, this.normalizeRow(field, options.value)]);
+    entries.splice(at, 0, [key, this.normalizeRow(field, options.value, [...checkedSegments(path), key].join('.'))]);
     this.commit(putAt(this.data, checkedSegments(path), Object.fromEntries(entries)));
     return key;
   }
@@ -212,25 +212,29 @@ export class FormInstance {
     throw new Error('Unable to generate an unused row key');
   }
 
-  private normalizeFields(fields: readonly FormFieldTemplate[], value: unknown): Record<string, unknown> {
-    if (value !== undefined && !isRecord(value)) throw new TypeError('Group data must be an object');
+  /** Normalize record data; `path` is the full data path, empty at the root. */
+  private normalizeFields(fields: readonly FormFieldTemplate[], value: unknown, path = ''): Record<string, unknown> {
+    if (value !== undefined && !isRecord(value)) {
+      throw new TypeError(path ? `Group data must be an object: ${path}` : 'Form data must be an object');
+    }
     const data = value === undefined ? {} : copyFormValue(value as Record<string, unknown>);
     for (const field of fields) {
       const raw = data[field.name];
+      const fieldPath = path ? `${path}.${field.name}` : field.name;
       if (repeats(field)) {
         const rows: Record<string, unknown> = {};
         // Missing data creates one usable prototype. Explicit {} means zero rows.
-        if (raw !== undefined && !isRecord(raw)) throw new TypeError(`Repeated data must be a keyed object: ${field.name}`);
+        if (raw !== undefined && !isRecord(raw)) throw new TypeError(`Repeated data must be a keyed object: ${fieldPath}`);
         const entries = raw === undefined ? [[this.freshKey(new Set()), undefined] as const]
           : Object.entries(raw as Record<string, unknown>);
         for (const [key, row] of entries) {
           checkKey(key);
           if (hasOwn(rows, key)) throw new Error(`Duplicate normalized row key: ${key}`);
-          rows[key] = this.normalizeRow(field, row);
+          rows[key] = this.normalizeRow(field, row, `${fieldPath}.${key}`);
         }
         data[field.name] = rows;
       } else if (field.spec.type === 'group') {
-        data[field.name] = this.normalizeFields(field.children, raw);
+        data[field.name] = this.normalizeFields(field.children, raw, fieldPath);
       } else if (raw === undefined && field.spec.default !== undefined) {
         data[field.name] = copyFormValue(field.spec.default);
       }
@@ -238,8 +242,8 @@ export class FormInstance {
     return data;
   }
 
-  private normalizeRow(field: FormFieldTemplate, value: unknown): unknown {
-    return field.spec.type === 'group' ? this.normalizeFields(field.children, value)
+  private normalizeRow(field: FormFieldTemplate, value: unknown, path: string): unknown {
+    return field.spec.type === 'group' ? this.normalizeFields(field.children, value, path)
       : copyFormValue(value === undefined ? field.spec.default ?? '' : value);
   }
 

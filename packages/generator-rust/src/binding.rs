@@ -92,6 +92,16 @@ fn rows(value: Option<&Value>, path: &str) -> FormResult<Vec<String>> {
     }
 }
 
+/// Present group data, including a repeated group row, must be an object.
+fn check_group(value: Option<&Value>, path: &str) -> FormResult<()> {
+    match value {
+        Some(value) if !value.is_object() => Err(FormError::input(format!(
+            "Group data must be an object: {path}"
+        ))),
+        _ => Ok(()),
+    }
+}
+
 impl Binding<'_> {
     fn widget(
         &self,
@@ -181,6 +191,7 @@ impl Binding<'_> {
                 let row_design = resolve_design(spec.get("design"),self.data,&row_path);
                 let mut row = json!({"uniqid": key, "wrapperClass": join_class(&["input-group-wrapper", if i>0 { "clone-element" } else { "" }, row_design["wrapper"]["class"].as_str().unwrap_or("")])});
                 if group {
+                    check_group(value_at(self.data, &row_path), &row_path)?;
                     row["groupClass"] = join_class(&["form-group", row_design["group"]["class"].as_str().unwrap_or("")]).into();
                     row["children"] = self.children(&field.children,&row_path,&nested_segments)?.into();
                 } else { row["widget"] = self.widget(&spec,&row_path,&row_design,&nested_segments)?; }
@@ -188,6 +199,7 @@ impl Binding<'_> {
             }).collect::<FormResult<Vec<_>>>()?;
             model["rows"] = bound.into();
         } else if kind == "group" {
+            check_group(value_at(self.data, path), path)?;
             model["shape"] = "group".into();
             model["groupClass"] = join_class(&[
                 "form-group",
