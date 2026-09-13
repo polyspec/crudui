@@ -1,5 +1,13 @@
-import { defineComponent, h, onBeforeUnmount, shallowRef, watch, type PropType } from 'vue';
-import type { FormInstance } from '@crudui/generator-core';
+import { defineComponent, h, onBeforeUnmount, shallowRef, watch, type PropType, type VNode } from 'vue';
+import type { FormInstance, FormMessages } from '@crudui/generator-core';
+
+/** Current data markup; applications that own their data render it directly. */
+export function dataVNode(data: unknown, messages: FormMessages): VNode {
+  return h('div', { class: 'crudui-data' }, [
+    h('div', { class: 'crudui-data__header' }, messages.data),
+    h('pre', { class: 'crudui-data__body' }, JSON.stringify(data, null, 2)),
+  ]);
+}
 
 /** Current submission data of a form instance. */
 export const DataView = defineComponent({
@@ -24,10 +32,7 @@ export const DataView = defineComponent({
     onBeforeUnmount(() => unsubscribe());
     return () => {
       void snapshot.value;
-      return h('div', { class: 'crudui-data' }, [
-        h('div', { class: 'crudui-data__header' }, props.form.messages.data),
-        h('pre', { class: 'crudui-data__body' }, JSON.stringify(props.form.getData(), null, 2)),
-      ]);
+      return dataVNode(props.form.getData(), props.form.messages);
     };
   },
 });

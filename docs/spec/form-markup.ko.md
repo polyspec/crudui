@@ -108,8 +108,10 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 반환합니다. 구조 맵도 노드 문법을 사용합니다. 각 행은 번호와 제목을 담은 `select-row`
 버튼을 가지며 선택한 행은 `aria-current="true"`를 가집니다. 헤더에는 `expand-all`,
 `collapse-all`, `undo`(되돌릴 이력이 없으면 비활성)를 둡니다. React, Vue, Svelte는
-`Outline`과 `DataView`를, HTML 렌더러는 `renderOutline(form)`과 `renderData(form)`를
-제공합니다. `connectForm`은 폼 안의 작업을 실행하고, 행의 컨트롤이 포커스를 받으면 그
+`Outline`과 `DataView`를, `bindForm`으로 데이터를 직접 관리하는 응용 프로그램에는
+상태 없는 `OutlineView`와 `DataPanel`(Vue: `outlineVNode`, `dataVNode`)을, HTML 렌더러는 `renderOutline(form)`과 `renderData(form)`, 같은 애플리케이션용
+`renderOutlineView(state, messages)`와 `renderDataPanel(data, messages)`를 제공합니다.
+네 렌더러 모두 공유 [구조 맵 사례](../../tests/fixtures/form-outline/cases.json)를 재현합니다. `connectForm`은 폼 안의 작업을 실행하고, 행의 컨트롤이 포커스를 받으면 그
 행을 선택합니다. `connectOutline(element, form, formElement)`는 구조 맵의 작업을
 실행하고 선택한 폼 행을 화면에 표시합니다.
 

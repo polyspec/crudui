@@ -2,6 +2,45 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Compare the two initialization paths side by side
+
+The form comparison page now puts the two initialization paths in two columns:
+the left frame creates the form with its data, and the right frame mounts an
+empty form and then injects the data. The API choice (bindForm or createForm)
+moved to a selector, next to the server, framework and language selectors.
+Both columns run the same stages with the same fixed row keys: mounting,
+repeated injection, hiding and restoring data, editing, saving, reloading,
+copying, moving, removing, adding, saving the new row, emptying, restoring,
+and the structure map's expand all, collapse all and undo. The columns run
+one after the other because both save to the same record, and each right
+stage is compared with the stored left stage. Raw HTML, DOM, control state,
+fields, computed CSS, submitted data, focus and save responses are compared
+without normalization. The list at the top updates as each stage completes.
+The frames load the grammar stylesheet, so computed CSS reflects the real
+styles. The in-frame initialization check is removed.
+
+The bindForm path now supports the same actions as createForm (toggle, select,
+expand all, collapse all, undo) with the same view state, history and focus
+rules. generator-core exports those rules as pure view-state and history
+functions, which the form instance and the bindForm controller both use. Both
+paths render the structure map and the data view in their frames. React, Vue
+and Svelte provide stateless `OutlineView` and `DataPanel` (Vue: `outlineVNode`,
+`dataVNode`), and the HTML renderer adds `renderOutlineView` and
+`renderDataPanel`. A shared fixture, `tests/fixtures/form-outline/cases.json`,
+holds the React markup for four languages, top-level and nested selection,
+`controls: outline` and data escaping, and all four renderers reproduce it. The
+feature contract manifest records the view-state and history functions and the
+new fixture.
+
+`make test-native` passed 976 generator checks (195 per implementation), 361
+PHP API checks per configuration and 100 validation cases in each PHP
+implementation. `npm run test:forms` passed core 104, HTML 116, React 705, Vue
+348, Svelte 349 and ten normalizer checks. The structure map fixture passed four
+cases in each of the four renderers. Form comparison source checks passed 140
+and the Chromium checks passed 3. `make docs-check` passed after documenting the
+`UndoResult` type, a type-only change made after the native run. The full
+candidate run with the four servers had not run when this change was committed.
+
 ## 2026-09-13 — Move focus to the affected row after row operations
 
 Row operations previously kept the active control, its text selection and the

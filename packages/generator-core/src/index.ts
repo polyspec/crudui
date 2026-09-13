@@ -4,13 +4,19 @@ export { compileForm, bindForm } from './form';
 export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
-export type { RowSelection } from './instance';
+export {
+  initialView, rowPathContains, collapsibleRows, toggleRowView, setAllExpandedView,
+  selectRowView, removeRowView, rekeyRowView,
+} from './view';
+export type { RowSelection, ViewState } from './view';
+export { HISTORY_LIMIT, emptyHistory, recordChange, canUndo, undoChange } from './history';
+export type { History, UndoResult } from './history';
 export { connectForm, connectOutline } from './dom';
 export type { FormConnection } from './dom';
 export { resolveAction, runAction } from './actions';
 export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';
 export { buildOutline } from './outline';
-export type { OutlineCollection, OutlineRow } from './outline';
+export type { OutlineCollection, OutlineRow, OutlineState } from './outline';
 export { parseStyle } from './css';
 export type { StyleDeclaration } from './css';
 

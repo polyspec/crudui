@@ -1,11 +1,13 @@
-import { defineComponent, h, onBeforeUnmount, onMounted, shallowRef, watch, type PropType, type VNode } from 'vue';
+import { defineComponent, h, onBeforeUnmount, onMounted, shallowRef, watch, type PropType, type ShallowRef, type VNode } from 'vue';
 import {
   buildOutline,
   connectOutline,
   type FormConnection,
   type FormInstance,
+  type FormMessages,
   type OutlineCollection,
   type OutlineRow,
+  type OutlineState,
 } from '@crudui/generator-core';
 import { controlsVNode } from './Node';
 
@@ -40,6 +42,20 @@ function rowVNode(row: OutlineRow): VNode {
       row.controls ? controlsVNode(row.controls) : null,
     ]),
     row.collections.length ? h('div', { class: 'crudui-node__body' }, row.collections.map(collectionVNode)) : null,
+  ]);
+}
+
+/** Structure map markup for evaluated nodes; applications that own their data render it from `bindForm`. */
+export function outlineVNode(state: OutlineState, messages: FormMessages, root?: ShallowRef<HTMLElement | undefined>): VNode {
+  return h('div', { class: 'crudui-outline', ...(root ? { ref: root } : {}) }, [
+    h('div', { class: 'crudui-outline__header' }, [
+      h('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formControls }, [
+        textActionVNode('expand-all', messages.expandAll),
+        textActionVNode('collapse-all', messages.collapseAll),
+        textActionVNode('undo', messages.undo, !state.canUndo),
+      ]),
+    ]),
+    h('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(collectionVNode)),
   ]);
 }
 
@@ -79,19 +95,6 @@ export const Outline = defineComponent({
       connect();
     });
     onBeforeUnmount(() => { binding?.disconnect(); unsubscribe(); });
-    return () => {
-      const messages = props.form.messages;
-      return h('div', { class: 'crudui-outline', ref: root }, [
-        h('div', { class: 'crudui-outline__header' }, [
-          h('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formControls }, [
-            textActionVNode('expand-all', messages.expandAll),
-            textActionVNode('collapse-all', messages.collapseAll),
-            textActionVNode('undo', messages.undo, !snapshot.value.canUndo),
-          ]),
-        ]),
-        h('div', { class: 'crudui-outline__body' },
-          buildOutline(snapshot.value.fields, snapshot.value.selection).map(collectionVNode)),
-      ]);
-    };
+    return () => outlineVNode(snapshot.value, props.form.messages, root);
   },
 });

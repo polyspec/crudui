@@ -99,6 +99,10 @@
       "kind": "form-html"
     },
     {
+      "path": "tests/fixtures/form-outline/cases.json",
+      "kind": "outline-html"
+    },
+    {
       "path": "tests/fixtures/list-render/cases.json",
       "kind": "list-html"
     },
@@ -386,7 +390,8 @@
         "TypeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mjs",
+        "tests/fixtures/form-outline/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -473,6 +478,76 @@
       "docs": [
         "docs/spec/form-runtime.md",
         "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "viewState",
+      "owner": "@crudui/generator-core",
+      "signature": "initialView() -> ViewState; toggleRowView | setAllExpandedView | selectRowView | removeRowView | rekeyRowView(view, ...) -> ViewState",
+      "input": "current view state, row paths and evaluated nodes",
+      "output": "new view state with collapsed row paths and selection",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "view state owned by a form instance or an application",
+      "tests": [
+        "packages/generator-core/src/node.test.ts",
+        "examples/form-comparison/src/bind-form-controller.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "formHistory",
+      "owner": "@crudui/generator-core",
+      "signature": "emptyHistory() -> History; recordChange(history, previous, path?) -> History; undoChange(history) -> UndoResult",
+      "input": "current history, the record before a change and the edited path",
+      "output": "history with at most HISTORY_LIMIT records and the restored record",
+      "errors": [
+        "RangeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "undo history owned by a form instance or an application",
+      "tests": [
+        "packages/generator-core/src/node.test.ts",
+        "examples/form-comparison/src/bind-form-controller.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md"
       ],
       "verification": [
         {

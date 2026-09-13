@@ -4,6 +4,8 @@ import {
   parseStyle,
   type OutlineCollection,
   type OutlineRow,
+  type OutlineState,
+  type FormMessages,
   type ActionVM,
   type Attrs,
   type BuildListOptions,
@@ -321,23 +323,31 @@ function outlineRow(row: OutlineRow): string {
     '</div>';
 }
 
-/** Render the structure map of a form instance with its form controls. */
-export function renderOutline(form: FormInstance): string {
-  const snapshot = form.getSnapshot();
-  const messages = form.messages;
+/** Render structure map markup for evaluated nodes; applications that own their data render it from `bindForm`. */
+export function renderOutlineView(state: OutlineState, messages: FormMessages): string {
   const controls = element('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formControls },
     textAction('expand-all', messages.expandAll) + textAction('collapse-all', messages.collapseAll) +
-    textAction('undo', messages.undo, !snapshot.canUndo));
+    textAction('undo', messages.undo, !state.canUndo));
   return element('div', { class: 'crudui-outline' },
     element('div', { class: 'crudui-outline__header' }, controls) +
-    element('div', { class: 'crudui-outline__body' }, buildOutline(snapshot.fields, snapshot.selection).map(outlineCollection).join('')));
+    element('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(outlineCollection).join('')));
+}
+
+/** Render the structure map of a form instance with its form controls. */
+export function renderOutline(form: FormInstance): string {
+  return renderOutlineView(form.getSnapshot(), form.messages);
+}
+
+/** Render current data markup; applications that own their data render it directly. */
+export function renderDataPanel(data: unknown, messages: FormMessages): string {
+  return element('div', { class: 'crudui-data' },
+    element('div', { class: 'crudui-data__header' }, escText(messages.data)) +
+    element('pre', { class: 'crudui-data__body' }, escText(JSON.stringify(data, null, 2))));
 }
 
 /** Render the current submission data of a form instance. */
 export function renderData(form: FormInstance): string {
-  return element('div', { class: 'crudui-data' },
-    element('div', { class: 'crudui-data__header' }, escText(form.messages.data)) +
-    element('pre', { class: 'crudui-data__body' }, escText(JSON.stringify(form.getData(), null, 2))));
+  return renderDataPanel(form.getData(), form.messages);
 }
 
 /** Render the current form instance as framework-independent HTML. */

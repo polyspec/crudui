@@ -65,7 +65,8 @@ It then runs browser verification once per server in PHP, PHP extension, Go and
 Rust order and creates the aggregate report. These checks are sequential because
 they measure focus, selection and scroll in one browser environment.
 
-The aggregate requires 960 successful scenario checks, 240 successful interaction
+The aggregate requires 912 successful scenario checks, 4,608 successful
+initialization comparisons, 240 successful interaction
 checks, 24 successful mount checks, 24 matching static-document checks and four
 successful performance results. Each server has a 900,000 millisecond absolute
 limit and a 300,000 millisecond no-progress limit. A failed, missing, malformed or

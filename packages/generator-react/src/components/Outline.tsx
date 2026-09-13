@@ -3,8 +3,10 @@ import {
   buildOutline,
   connectOutline,
   type FormInstance,
+  type FormMessages,
   type OutlineCollection,
   type OutlineRow,
+  type OutlineState,
 } from '@crudui/generator-core';
 import { Controls } from './Controls';
 
@@ -55,6 +57,36 @@ function RowItem({ row }: { row: OutlineRow }): React.ReactElement {
   );
 }
 
+/** Props for the stateless structure map. */
+export interface OutlineViewProps {
+  /** Evaluated nodes, selection and undo availability, such as a form snapshot. */
+  state: OutlineState;
+  /** Interface text. */
+  messages: FormMessages;
+  /** Root element used by the browser binding. */
+  rootRef?: React.Ref<HTMLDivElement>;
+}
+
+/** Structure map markup for evaluated nodes; applications that own their data render it from `bindForm`. */
+export function OutlineView({ state, messages, rootRef }: OutlineViewProps): React.ReactElement {
+  return (
+    <div className="crudui-outline" ref={rootRef}>
+      <div className="crudui-outline__header">
+        <div className="crudui-controls" role="group" aria-label={messages.formControls}>
+          <TextAction name="expand-all" label={messages.expandAll} />
+          <TextAction name="collapse-all" label={messages.collapseAll} />
+          <TextAction name="undo" label={messages.undo} disabled={!state.canUndo} />
+        </div>
+      </div>
+      <div className="crudui-outline__body">
+        {buildOutline(state.fields, state.selection).map((collection) => (
+          <CollectionItem key={collection.path} collection={collection} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Props for the structure map. */
 export interface OutlineProps {
   /** Form instance whose rows are mapped. */
@@ -72,21 +104,5 @@ export function Outline({ form, formRef }: OutlineProps): React.ReactElement {
     const connection = connectOutline(root.current, form, formRef.current as HTMLElement);
     return () => connection.disconnect();
   }, [form, formRef]);
-  const messages = form.messages;
-  return (
-    <div className="crudui-outline" ref={root}>
-      <div className="crudui-outline__header">
-        <div className="crudui-controls" role="group" aria-label={messages.formControls}>
-          <TextAction name="expand-all" label={messages.expandAll} />
-          <TextAction name="collapse-all" label={messages.collapseAll} />
-          <TextAction name="undo" label={messages.undo} disabled={!snapshot.canUndo} />
-        </div>
-      </div>
-      <div className="crudui-outline__body">
-        {buildOutline(snapshot.fields, snapshot.selection).map((collection) => (
-          <CollectionItem key={collection.path} collection={collection} />
-        ))}
-      </div>
-    </div>
-  );
+  return <OutlineView state={snapshot} messages={form.messages} rootRef={root} />;
 }
