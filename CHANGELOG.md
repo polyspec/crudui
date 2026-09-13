@@ -2,6 +2,25 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Compare server-side and client-side rendering on the comparison page
+
+The comparison page showed two client-side columns, "create with data" and "mount,
+then inject data", so it never showed that the server languages and the browser
+frameworks render the same form. The columns are now SSR and CSR. In the SSR column
+(`initialization=ssr`) the selected server (PHP, the PHP extension, Go or Rust)
+renders the form with the saved record, the frame places that HTML in the page, and
+the selected framework takes the form over with the same template and data; the
+takeover must leave the form markup unchanged, apart from the state the browser
+binding writes (`data-crudui-stuck`, `data-crudui-current` and the end-row lengths).
+The CSR column (`initialization=csr`) mounts the form without data and injects the
+record. Every stage is then compared between the columns as before. The comparison
+labels, the SSR document links, the frame readiness and typing checks and the
+documentation use the new names.
+
+The form comparison source checks passed 140, the Go and Rust comparison server tests
+passed, and `make docs-check` passed. The SSR takeover itself runs only in the
+four-server candidate verification, recorded in a separate entry.
+
 ## 2026-09-13 — Record the passing four-server candidate runs for crudui.css and the legacy removal
 
 `node examples/form-comparison/candidate-verification.mjs` passed for 0ab3c93 (form

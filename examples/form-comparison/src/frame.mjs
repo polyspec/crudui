@@ -127,6 +127,44 @@ async function mount(data = {}, formSpec = spec) {
   validation = formValidation(view, document.querySelector('#validation'), formSpec, t);
   await settle(); inspect();
 }
+/**
+ * Markup of the rendered form without the state the browser binding writes: the
+ * `data-crudui-stuck` and `data-crudui-current` row marks and the lengths published
+ * on the connected element (form-markup: "set by the browser binding").
+ */
+function renderedFormMarkup() {
+  const rendered = view.querySelector('.crudui-form');
+  assert(rendered, 'A rendered form must exist');
+  const copy = rendered.cloneNode(true);
+  for (const element of [copy, ...copy.querySelectorAll('[data-crudui-current],[data-crudui-stuck]')]) {
+    element.removeAttribute('data-crudui-current');
+    element.removeAttribute('data-crudui-stuck');
+  }
+  copy.style.removeProperty('--crudui-form-end-extent');
+  copy.style.removeProperty('--crudui-form-end-top');
+  if (copy.getAttribute('style') === '') copy.removeAttribute('style');
+  return copy.outerHTML;
+}
+/**
+ * SSR: the selected server renders the form with the record, and the framework takes that
+ * form over with the same template and data. Taking it over must not change the markup.
+ */
+async function serverRender(data) {
+  const compiled = await generation.prepare(spec, { keyPrefix: 'form' });
+  const response = await fetch(`/api/${server}/render/${renderingPath}/${framework}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: encodeJson({ template: compiled.template, data, options: { language } }),
+  });
+  const rendered = await readJson(response);
+  equal(response.status, 200, 'server render status');
+  if (driver) await driver.dispose();
+  driver = undefined;
+  view.innerHTML = rendered.html;
+  const serverMarkup = renderedFormMarkup();
+  await mount(rendered.data);
+  identical(renderedFormMarkup(), serverMarkup, 'framework takeover of the server-rendered form');
+}
 async function reset(fixture = 'populated') {
   const result = await request('reset', new URLSearchParams({ fixture }));
   equal(result.status, 200, 'reset status');
@@ -716,7 +754,7 @@ async function initializationStage(stage) {
     case 'mounted':
       endInitialization();
       stageSource = (await request('reset', new URLSearchParams({ fixture: 'populated' }))).data;
-      if (initialization === 'data') await mount(stageSource);
+      if (initialization === 'ssr') await serverRender(stageSource);
       else {
         await mount();
         assert(view.querySelector('input[name]'), 'A form must exist before record injection');
@@ -791,10 +829,10 @@ async function initializationStage(stage) {
   await settle(); inspect();
   return response;
 }
-if (initialization === 'data') {
+if (initialization === 'ssr') {
   const result = await request('load');
   equal(result.status, 200, 'load status');
-  await mount(result.data);
+  await serverRender(result.data);
 } else {
   await mount();
   await load();
