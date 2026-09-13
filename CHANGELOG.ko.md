@@ -2,6 +2,22 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — Vue와 Svelte가 서버 렌더링 폼을 바꾸지 않고 넘겨받기
+
+d80a3a0의 첫 후보 검증은 SSR 열에서 실패했습니다. Vue는 조건 블록의 기준점으로 주석 노드를
+두고, Svelte 5는 템플릿 형제 요소 사이 공백을 텍스트 노드로 남기고 빈 텍스트 기준점을 두었으며
+input의 `value` 속성, textarea 텍스트, checkbox의 `checked` 속성을 브라우저 DOM에 쓰지
+않았습니다. 주석과 빈 텍스트는 아무것도 그리지 않으므로, 비교 프레임과 새 공유 테스트
+`compareServerTakeover`의 인계 비교에서 뺍니다. Vue·Svelte 폼 테스트는 같은 세션의 HTML
+렌더러 출력과 이 테스트로 비교합니다. Svelte 템플릿은 형제 노드 사이 공백 없이 작성하고, input·
+textarea·checkbox는 서버용 속성·텍스트와 `defaultValue`/`defaultChecked`를 함께 설정해 Svelte의
+서버 출력과 브라우저 DOM이 다른 렌더러와 같습니다.
+
+`make format-check`, `npm run test:forms`(core 108, HTML 116, Vue 341, Svelte 338과 클라이언트
+10), `npm run test:form-comparison:source`, `npm run test:build`,
+`npm run test:dependencies`, `make docs-check`, `svelte-check`가 통과했습니다. 후보 검증은 별도
+항목에 기록합니다.
+
 ## 2026-09-13 — 비교 페이지에서 서버 렌더링과 클라이언트 렌더링 비교
 
 비교 페이지는 "데이터와 함께 생성"과 "마운트 후 데이터 주입"이라는 두 클라이언트 열을 보여
