@@ -497,10 +497,13 @@ function buildLang(
 ): NodeVM {
   const title = lang.title ? state.t(lang.title as never) : '';
   const header = nodeHeader({ label, description, title }, design);
+  const root = nodeRoot('lang', path, design);
   return {
-    ...nodeRoot('lang', path, design),
+    ...root,
+    // A framed language group is a node modifier; the stylesheet draws the frame around its body.
+    className: joinClass(lang.frame ? 'crudui-node--framed' : '', root.className),
     ...(header ? { header } : {}),
-    body: nodeBody(joinClass(lang.frame ? 'lang-group' : 'lang-group p-0 border-0', lang.groupClass)),
+    body: nodeBody(joinClass(lang.groupClass)),
     children: lang.langs.map((code) => {
       const langPath = `${path}.${code}`;
       const langDesign = resolveDesign(spec.design, makeContext(parsePathString(langPath), state.data));

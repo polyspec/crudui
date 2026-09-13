@@ -132,9 +132,9 @@ literal = STRING | NUMBER | BOOLEAN | NULL ;
 
 ```yaml
 class:
-  ".status == 'active'": text-success
-  ".status == 'pending'": text-warning
-  true: form-control
+  ".status == 'active'": status-active
+  ".status == 'pending'": status-pending
+  true: status-default
 ```
 
 맵 값은 표현식 평가 없이 반환합니다. 기본 키가 아닌 각 키는 단독 조건과

@@ -11,7 +11,7 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./styles.css": "./styles/form.css",
+    "./crudui.css": "./styles/crudui.css",
     "./package.json": "./package.json"
   },
   "files": [

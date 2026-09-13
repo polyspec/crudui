@@ -155,19 +155,19 @@ func renderWidget(w *Object) string {
 		return ""
 	}
 	if read(w, "unsupported") == true {
-		return element("div", NewObject("class", "form-element-unsupported", "data-unsupported-type", stringAt(w, "type")), "")
+		return element("div", NewObject("class", "crudui-widget crudui-widget--unsupported", "data-unsupported-type", stringAt(w, "type")), "")
 	}
 	a := object(read(w, "attrs"))
 	raw := eventAttrs(a)
 	script := `<script nonce="">` + stringAt(w, "script") + `</script>`
 	switch stringAt(w, "layout") {
-	case "input-group":
-		return `<div class="input-group">` + affixHTML(read(w, "prepend"), raw) + controlHTML(w, raw, "") + affixHTML(read(w, "append"), raw) + `</div>`
+	case "widget":
+		return `<div class="crudui-widget">` + affixHTML(read(w, "prepend"), raw) + controlHTML(w, raw, "") + affixHTML(read(w, "append"), raw) + `</div>`
 	case "bare":
 		return controlHTML(w, raw, "")
 	case "host-script":
 		return controlHTML(w, raw, "") + script
-	case "btn-group":
+	case "choices":
 		shared := object(read(read(w, "extra"), "input"))
 		raw = eventAttrs(shared)
 		body := ""
@@ -181,7 +181,7 @@ func renderWidget(w *Object) string {
 			at.Set("type", typ)
 			at.Set("value", stringAt(o, "value"))
 			at.Set("autocomplete", "off")
-			at.Set("class", "valid-target btn-check")
+			at.Set("class", "valid-target crudui-choices__input")
 			if id := stringAt(o, "id"); id != "" {
 				at.Set("id", id)
 			}
@@ -222,9 +222,9 @@ func renderWidget(w *Object) string {
 		}
 		body += inputHTML(file, raw)
 		if display != nil {
-			body += `<button class="btn btn-search btn-file-search" type="button">&nbsp;</button>`
+			body += `<button class="crudui-widget__button" type="button">&nbsp;</button>`
 		}
-		return `<div class="input-group">` + body + `</div>`
+		return `<div class="crudui-widget">` + body + `</div>`
 	case "display":
 		return "<div" + attrs(a, false, false) + ">" + stringAt(w, "rawHtml") + "</div>"
 	case "search":
@@ -232,7 +232,7 @@ func renderWidget(w *Object) string {
 		if s := stringAt(w, "styleChrome"); s != "" {
 			style = `<style nonce="">` + s + `</style>`
 		}
-		return style + script + `<div class="input-group field-search">` + affixHTML(read(w, "prepend"), true) + controlHTML(w, true, "selected") + affixHTML(read(w, "append"), true) + `</div>`
+		return style + script + `<div class="crudui-widget crudui-widget--search">` + affixHTML(read(w, "prepend"), true) + controlHTML(w, true, "selected") + affixHTML(read(w, "append"), true) + `</div>`
 	case "button":
 		return script + inputHTML(object(read(read(w, "extra"), "hidden")), false) + inputHTML(a, false)
 	}

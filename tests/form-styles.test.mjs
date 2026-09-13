@@ -1,4 +1,4 @@
-// Chromium layout checks for the core form stylesheet (@crudui/generator-core/styles.css).
+// Chromium layout checks for the core stylesheet (@crudui/generator-core/crudui.css).
 // jsdom has no layout, so sticky stacking is verified in a real browser.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
@@ -47,7 +47,7 @@ const shortData = { [levels[0]]: { [key]: { name: 'ACME', stores: {
 } } } };
 
 const browserSource = `
-import '/packages/generator-core/styles/form.css';
+import '/packages/generator-core/styles/crudui.css';
 import { compileForm, connectForm, connectOutline, createForm } from '@crudui/generator-core';
 import { renderForm, renderOutline } from '@crudui/generator-html';
 

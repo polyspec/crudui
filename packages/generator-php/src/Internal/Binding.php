@@ -212,7 +212,10 @@ final class Binding
             $children[] = (object) ['kind' => 'lang-item', 'lang' => $code, 'className' => '', 'hidden' => false, 'header' => (object) ['className' => '', 'label' => $code], 'body' => self::body(), 'widget' => Widget::evaluate($spec, Value::path($data, $langPath), $langPath, $langDesign, $state, $state['rowSegments'])];
         }
         $header = self::header(['label' => $label, 'description' => $description, 'title' => $title], $design);
-        return Value::record([...self::root('lang', $path, $design), 'header' => $header, 'body' => self::body(Value::classes($frame ? 'lang-group' : 'lang-group p-0 border-0', $groupClass)), 'children' => $children]);
+        $root = self::root('lang', $path, $design);
+        // A framed language group is a node modifier; the stylesheet draws the frame around its body.
+        $root['className'] = Value::classes($frame ? 'crudui-node--framed' : '', $root['className']);
+        return Value::record([...$root, 'header' => $header, 'body' => self::body(Value::classes($groupClass)), 'children' => $children]);
     }
 
     /** Present group data, including a repeated group row, must be an object. */

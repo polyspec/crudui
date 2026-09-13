@@ -133,9 +133,9 @@ static bool set_affix(const widget_context *context, ps_value *model,
     if (!*text) { free(text); return true; }
     ps_value *affix = ps_object_value();
     char *class_name = !strcmp(kind, "prepend")
-        ? ps_join_classes("input-group-text",
+        ? ps_join_classes("crudui-widget__affix",
             string_member(design_node(context, "prepend"), "class"), NULL)
-        : ps_string_join("input-group-text", "", "");
+        : ps_string_join("crudui-widget__affix", "", "");
     char *style = !strcmp(kind, "prepend")
         ? ps_style_string(string_member(design_node(context, "prepend"), "style")) : NULL;
     bool result = affix && class_name && set_string(affix, "text", text) &&
@@ -303,7 +303,7 @@ static ps_value *text_control(const char *kind, const widget_context *context)
                            : context_value(context);
     if (date && value) { char *formatted = ps_format_date(value, !strcmp(kind, "datetime")); free(value); value = formatted; }
     char *class_name = context_class(context, hidden ? "valid-target" :
-        dummy ? "form-control" : "valid-target form-control");
+        dummy ? "crudui-input" : "valid-target crudui-input");
     bool ok = attrs && name && value && class_name;
     if (ok && !textarea) ok = set_string(attrs, "type", dummy ? "text" :
         !strcmp(kind, "datetime") ? "datetime-local" : kind);
@@ -319,12 +319,12 @@ static ps_value *text_control(const char *kind, const widget_context *context)
     if (ok && dummy) ok = set_text(attrs, "data-default", ps_scalar_string(member(context->spec, "default")));
     else if (ok) ok = add_data(context, attrs);
     ps_value *model = ps_object_value();
-    const char *layout = hidden || password || !strcmp(kind, "datetime") ? "bare" : "input-group";
+    const char *layout = hidden || password || !strcmp(kind, "datetime") ? "bare" : "widget";
     if (ok) ok = model && set_string(model, "kind", kind) && set_string(model, "layout", layout) &&
         set_string(model, "tag", textarea ? "textarea" : "input") &&
         (!textarea || set_string(model, "text", value)) && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
-    if (ok && !strcmp(layout, "input-group"))
+    if (ok && !strcmp(layout, "widget"))
         ok = set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
     free(name); free(value); free(class_name);
     if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
@@ -336,7 +336,7 @@ static ps_value *select_control(const widget_context *context)
     ps_value *source = source_model(member(context->spec, "items"));
     ps_value *attrs = ps_object_value();
     char *name = context_name(context);
-    char *class_name = context_class(context, source ? "valid-target form-select valid-target-async" : "valid-target form-select");
+    char *class_name = context_class(context, source ? "valid-target crudui-input crudui-input--select valid-target-async" : "valid-target crudui-input crudui-input--select");
     bool ok = attrs && name && class_name && set_string(attrs, "name", name) &&
         set_string(attrs, "class", class_name) && extend_object(attrs, source) &&
         set_nonempty(attrs, "style", context_style(context)) && add_behavior(context, attrs) &&
@@ -345,7 +345,7 @@ static ps_value *select_control(const widget_context *context)
     if (options && !ps_size(options) && !ps_append(options, empty_option())) ok = false;
     ps_value *model = ps_object_value();
     if (ok) ok = options && model && set_string(model, "kind", "select") &&
-        set_string(model, "layout", "input-group") && set_string(model, "tag", "select") &&
+        set_string(model, "layout", "widget") && set_string(model, "tag", "select") &&
         ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
     if (ok) ok = ps_set(model, "source", source ? source : ps_null_value());
@@ -364,14 +364,13 @@ static ps_value *choices(const char *kind, const widget_context *context)
     ps_value *source = source_model(member(context->spec, "items"));
     ps_value *attrs = ps_object_value();
     bool ok = attrs && set_string(attrs, "class", multiple ?
-        "btn-group flex-wrap btn-group-toggle" : "btn-group btn-group-toggle");
-    if (ok && !multiple) ok = set_string(attrs, "data-toggle", "buttons");
+        "crudui-choices crudui-choices--multiple" : "crudui-choices");
     if (ok) ok = extend_object(attrs, source);
     ps_value *options = ok ? option_models(context, multiple, !multiple) : NULL;
-    char *label_class = context_class(context, multiple ? "btn btn-switch btn-mswitch" : "btn btn-switch");
+    char *label_class = context_class(context, "crudui-choices__label");
     ps_value *model = ps_object_value();
     if (ok) ok = options && label_class && model && set_string(model, "kind", kind) &&
-        set_string(model, "layout", "btn-group") && ps_set(model, "attrs", attrs);
+        set_string(model, "layout", "choices") && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
     if (ok) ok = ps_set(model, "source", source ? source : ps_null_value());
     if (ok) source = NULL;
@@ -406,9 +405,7 @@ static ps_value *choices(const char *kind, const widget_context *context)
 static ps_value *file_control(const char *kind, const widget_context *context)
 {
     bool cover = !strcmp(kind, "cover");
-    const char *base = cover ? "valid-target form-control-file form-control-filetext form-control-image"
-        : !strcmp(kind, "image") ? "valid-target form-control-file form-control-image"
-        : "valid-target form-control-file";
+    const char *base = "valid-target crudui-input crudui-input--file";
     ps_value *file = ps_object_value();
     char *class_name = context_class(context, base);
     bool ok = file && class_name && set_string(file, "type", "file") &&
@@ -437,7 +434,7 @@ static ps_value *file_control(const char *kind, const widget_context *context)
     if (ok && !cover) {
         ps_value *display = ps_object_value();
         ok = display && set_string(display, "type", "text") &&
-            set_string(display, "class", "form-control form-control-file") &&
+            set_string(display, "class", "crudui-input") &&
             set_string(display, "value", "") && set_string(display, "readonly", "") &&
             ps_set(extra, "display", display);
         if (!ok) ps_value_free(display);
@@ -518,7 +515,7 @@ static ps_value *search_control(const widget_context *context)
 {
     ps_value *source = source_model(member(context->spec, "items"));
     ps_value *attrs = ps_object_value();
-    char *class_name = context_class(context, source ? "valid-target form-control valid-target-async" : "valid-target form-control");
+    char *class_name = context_class(context, source ? "valid-target crudui-input crudui-input--select valid-target-async" : "valid-target crudui-input crudui-input--select");
     char *name = context_name(context), *minimum = context_option(context, "keyword_min_length", "2");
     char *delay = context_option(context, "delay", "250"), *server = context_option(context, "api_server", "");
     bool ok = attrs && class_name && name && minimum && delay && server &&
@@ -581,10 +578,10 @@ static ps_value *search_control(const widget_context *context)
 static ps_value *editor_control(const char *kind, const widget_context *context)
 {
     bool tagify = !strncmp(kind, "tagify", 6);
-    const char *base = !strcmp(kind, "tinymce") ? "valid-target form-control tinymcearea"
-        : !strcmp(kind, "summernote") ? "valid-target form-control summernote"
-        : !strcmp(kind, "editorjs") ? "valid-target form-control contentjs"
-        : !strcmp(kind, "tui") ? "valid-target form-control tuiarea" : "valid-target form-control";
+    const char *base = !strcmp(kind, "tinymce") ? "valid-target crudui-input tinymcearea"
+        : !strcmp(kind, "summernote") ? "valid-target crudui-input summernote"
+        : !strcmp(kind, "editorjs") ? "valid-target crudui-input contentjs"
+        : !strcmp(kind, "tui") ? "valid-target crudui-input tuiarea" : "valid-target crudui-input";
     ps_value *attrs = ps_object_value();
     char *class_name = context_class(context, base), *name = context_name(context);
     bool ok = attrs && class_name && name;
@@ -663,7 +660,7 @@ static ps_value *button_control(const widget_context *context)
     if (script) { char *next = ps_string_join(script, quoted_id, "))"); free(script); script = next; }
     if (script) { char *next = ps_string_join(script, ".on('click', function() {\n        ", onclick); free(script); script = next; }
     if (script) { char *next = ps_string_join(script, "\n    });\n});\n", ""); free(script); script = next; }
-    char *class_name = context_class(context, "btn");
+    char *class_name = context_class(context, "crudui-action crudui-action--text");
     char *button_name = name ? ps_string_join("btn", name, "") : NULL;
     ps_value *attrs = ps_object_value();
     bool ok = name && init && onclick && text && script && class_name && button_name && attrs &&
@@ -675,7 +672,7 @@ static ps_value *button_control(const widget_context *context)
     char *rule = ps_rule_name(context->path, context->rows, context->row_count);
     char *value = context_value(context), *default_value = ps_scalar_string(member(context->spec, "default"));
     if (ok) ok = hidden && extra && leaf && rule && value && default_value &&
-        set_string(hidden, "type", "hidden") && set_string(hidden, "class", "valid-target form-control") &&
+        set_string(hidden, "type", "hidden") && set_string(hidden, "class", "valid-target") &&
         set_string(hidden, "readonly", "") && set_string(hidden, "name", name) &&
         set_string(hidden, "data-name", leaf) && set_string(hidden, "data-rule-name", rule) &&
         set_string(hidden, "value", value) && set_string(hidden, "data-default", default_value) &&
@@ -723,7 +720,7 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
             !set_string(ps_get_mut(model, "attrs"), "id", id)) { ps_value_free(model); model = NULL; }
         ps_value *file = ps_get_mut(ps_get_mut(model, "extra"), "file");
         if (model && file && !set_string(file, "id", id)) { ps_value_free(model); model = NULL; }
-        if (model && ps_is_string(member(model, "layout"), "btn-group")) {
+        if (model && ps_is_string(member(model, "layout"), "choices")) {
             ps_value *options = ps_get_mut(model, "options");
             for (size_t i = 0; options && i < ps_size(options); ++i) {
                 char index[32]; snprintf(index, sizeof(index), ":%zu", i);

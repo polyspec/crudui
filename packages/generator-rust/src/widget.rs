@@ -64,7 +64,7 @@ impl WidgetContext<'_> {
     fn affixes(&self, model: &mut Value, append: bool) {
         let text = self.text("prepend");
         if !text.is_empty() {
-            let mut affix = json!({"text":text,"class":join_class(&["input-group-text",self.design["prepend"]["class"].as_str().unwrap_or("")])});
+            let mut affix = json!({"text":text,"class":join_class(&["crudui-widget__affix",self.design["prepend"]["class"].as_str().unwrap_or("")])});
             let style = style(self.design["prepend"]["style"].as_str().unwrap_or(""));
             if !style.is_empty() {
                 affix["style"] = style.into();
@@ -73,7 +73,7 @@ impl WidgetContext<'_> {
         }
         let text = self.text("append");
         if append && !text.is_empty() {
-            model["append"] = json!({"text":text,"class":"input-group-text"});
+            model["append"] = json!({"text":text,"class":"crudui-widget__affix"});
         }
     }
 }
@@ -215,9 +215,9 @@ fn text_control(kind: &str, ctx: &WidgetContext<'_>) -> Value {
         ctx.class(if hidden {
             "valid-target"
         } else if dummy {
-            "form-control"
+            "crudui-input"
         } else {
-            "valid-target form-control"
+            "valid-target crudui-input"
         }),
     );
     if textarea {
@@ -240,13 +240,13 @@ fn text_control(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     let layout = if hidden || password || kind == "datetime" {
         "bare"
     } else {
-        "input-group"
+        "widget"
     };
     let mut model = json!({"kind":kind,"layout":layout,"tag":if textarea{"textarea"}else{"input"},"attrs":attrs});
     if textarea {
         model["text"] = ctx.value().into();
     }
-    if layout == "input-group" {
+    if layout == "widget" {
         ctx.affixes(&mut model, true);
     }
     model
@@ -254,7 +254,7 @@ fn text_control(kind: &str, ctx: &WidgetContext<'_>) -> Value {
 
 fn select_control(ctx: &WidgetContext<'_>) -> Value {
     let source = source(&ctx.spec["items"]);
-    let mut attrs = json!({"name":ctx.name(),"class":ctx.class(if source.is_some(){"valid-target form-select valid-target-async"}else{"valid-target form-select"})}).as_object().unwrap().clone();
+    let mut attrs = json!({"name":ctx.name(),"class":ctx.class(if source.is_some(){"valid-target crudui-input crudui-input--select valid-target-async"}else{"valid-target crudui-input crudui-input--select"})}).as_object().unwrap().clone();
     if let Some(ref source) = source {
         attrs.extend(source.as_object().unwrap().clone());
     }
@@ -265,7 +265,7 @@ fn select_control(ctx: &WidgetContext<'_>) -> Value {
     if options.is_empty() {
         options.push(empty_option());
     }
-    let mut model = json!({"kind":"select","layout":"input-group","tag":"select","attrs":attrs,"source":source,"options":options});
+    let mut model = json!({"kind":"select","layout":"widget","tag":"select","attrs":attrs,"source":source,"options":options});
     ctx.affixes(&mut model, true);
     model
 }
@@ -273,15 +273,16 @@ fn select_control(ctx: &WidgetContext<'_>) -> Value {
 fn choices(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     let multi = kind == "multichoice";
     let source = source(&ctx.spec["items"]);
-    let mut attrs = json!({"class":if multi {"btn-group flex-wrap btn-group-toggle"}else{"btn-group btn-group-toggle"}}).as_object().unwrap().clone();
-    if !multi {
-        put_string(&mut attrs, "data-toggle", "buttons");
-    }
+    let mut attrs =
+        json!({"class":if multi {"crudui-choices crudui-choices--multiple"}else{"crudui-choices"}})
+            .as_object()
+            .unwrap()
+            .clone();
     if let Some(ref source) = source {
         attrs.extend(source.as_object().unwrap().clone());
     }
-    let mut model = json!({"kind":kind,"layout":"btn-group","attrs":attrs,"source":source,"options":options(ctx,multi,!multi),
-        "itemLabelClass":ctx.class(if multi {"btn btn-switch btn-mswitch"}else{"btn btn-switch"})});
+    let mut model = json!({"kind":kind,"layout":"choices","attrs":attrs,"source":source,"options":options(ctx,multi,!multi),
+        "itemLabelClass":ctx.class("crudui-choices__label")});
     if source.is_none() {
         let mut input = json!({"name":ctx.name()+if multi{"[]"}else{""},"data-name":leaf_name(ctx.path,ctx.row_segments),"data-rule-name":rule_name(ctx.path,ctx.row_segments)}).as_object().unwrap().clone();
         put_nonempty(&mut input, "onchange", ctx.script("onchange"));
@@ -294,11 +295,7 @@ fn choices(kind: &str, ctx: &WidgetContext<'_>) -> Value {
 }
 
 fn file_control(kind: &str, ctx: &WidgetContext<'_>) -> Value {
-    let base = match kind {
-        "cover" => "valid-target form-control-file form-control-filetext form-control-image",
-        "image" => "valid-target form-control-file form-control-image",
-        _ => "valid-target form-control-file",
-    };
+    let base = "valid-target crudui-input crudui-input--file";
     let mut file = json!({"type":"file","class":ctx.class(base)})
         .as_object()
         .unwrap()
@@ -344,7 +341,7 @@ fn file_control(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     put_string(&mut file, "accept", accept);
     let mut extra = json!({"file":file});
     if kind != "cover" {
-        extra["display"] = json!({"type":"text","class":"form-control form-control-file","value":"","readonly":""});
+        extra["display"] = json!({"type":"text","class":"crudui-input","value":"","readonly":""});
     }
     let mut model = json!({"kind":kind,"layout":"file","attrs":{},"extra":extra});
     ctx.affixes(&mut model, false);
@@ -400,7 +397,7 @@ fn search(ctx: &WidgetContext<'_>) -> Value {
     let min = ctx.opt("keyword_min_length", "2");
     let delay = ctx.opt("delay", "250");
     let source = source(&ctx.spec["items"]);
-    let mut attrs = json!({"class":ctx.class(if source.is_some(){"valid-target form-control valid-target-async"}else{"valid-target form-control"})}).as_object().unwrap().clone();
+    let mut attrs = json!({"class":ctx.class(if source.is_some(){"valid-target crudui-input crudui-input--select valid-target-async"}else{"valid-target crudui-input crudui-input--select"})}).as_object().unwrap().clone();
     put_nonempty(&mut attrs, "style", ctx.style());
     for (key, value) in [
         ("name", ctx.name()),
@@ -459,11 +456,11 @@ fn editor(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     let id = ctx.id;
     let selector = format!("'#'+CSS.escape({})", script_string(id));
     let base = match kind {
-        "tinymce" => "valid-target form-control tinymcearea",
-        "summernote" => "valid-target form-control summernote",
-        "editorjs" => "valid-target form-control contentjs",
-        "tui" => "valid-target form-control tuiarea",
-        _ => "valid-target form-control",
+        "tinymce" => "valid-target crudui-input tinymcearea",
+        "summernote" => "valid-target crudui-input summernote",
+        "editorjs" => "valid-target crudui-input contentjs",
+        "tui" => "valid-target crudui-input tuiarea",
+        _ => "valid-target crudui-input",
     };
     let mut attrs = Map::new();
     if tagify {
@@ -543,8 +540,8 @@ fn button(ctx: &WidgetContext<'_>) -> Value {
         ctx.text("text")
     };
     json!({"kind":"button","layout":"button","script":format!("\n$(function() {{\n    {init}\n    $(document.getElementById({})).on('click', function() {{\n        {onclick}\n    }});\n}});\n",script_string(id)),
-        "buttonText":text,"attrs":{"type":"button","class":ctx.class("btn"),"name":format!("btn{name}"),"id":id,"value":text},
-        "extra":{"hidden":{"type":"hidden","class":"valid-target form-control","readonly":"","name":name,
+        "buttonText":text,"attrs":{"type":"button","class":ctx.class("crudui-action crudui-action--text"),"name":format!("btn{name}"),"id":id,"value":text},
+        "extra":{"hidden":{"type":"hidden","class":"valid-target","readonly":"","name":name,
             "data-name":leaf_name(ctx.path,ctx.row_segments),"data-rule-name":rule_name(ctx.path,ctx.row_segments),"value":ctx.value(),"data-default":scalar(ctx.spec.get("default"))}}})
 }
 
@@ -571,7 +568,7 @@ pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Opti
     if model["extra"].get("file").is_some() {
         model["extra"]["file"]["id"] = id.clone().into();
     }
-    if model["layout"] == "btn-group" {
+    if model["layout"] == "choices" {
         for (i, option) in model["options"]
             .as_array_mut()
             .unwrap()

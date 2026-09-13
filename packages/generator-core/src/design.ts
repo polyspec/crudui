@@ -36,13 +36,13 @@ export interface ResolvedDesign {
   show: boolean;
   /** Main (input) node appearance. */
   main: ResolvedNode;
-  /** Label (`<h6>`) node appearance. */
+  /** Header (`crudui-node__header`) appearance. */
   label: ResolvedNode;
-  /** Wrapper (.form-element-wrapper / .input-group-wrapper) node appearance. */
+  /** Node root (`crudui-node`) appearance. */
   wrapper: ResolvedNode;
-  /** Group (.form-group) node appearance. */
+  /** Group body (`crudui-node__body`) appearance. */
   group: ResolvedNode;
-  /** Prepend (`<span class="input-group-text">`) node appearance. */
+  /** Prepend affix (`crudui-widget__affix`) appearance. */
   prepend: ResolvedNode;
 }
 

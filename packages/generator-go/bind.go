@@ -376,9 +376,9 @@ func buildLang(spec *Object, path string, d *Object, label, description string, 
 	if a := list(read(l, "only")); len(a) > 0 {
 		langs = a
 	}
-	frame := "lang-group"
-	if read(l, "frame") == false {
-		frame = "lang-group p-0 border-0"
+	frame := ""
+	if read(l, "frame") != false {
+		frame = "crudui-node--framed"
 	}
 	groupClass, _ := read(l, "group_class").(string)
 	title := ""
@@ -386,8 +386,10 @@ func buildLang(spec *Object, path string, d *Object, label, description string, 
 		title = translate(read(l, "title"), s.language)
 	}
 	vm := nodeRoot("lang", path, d)
+	// A framed language group is a node modifier; the stylesheet draws the frame around its body.
+	vm.Set("className", joinClass(frame, stringAt(vm, "className")))
 	setHeader(vm, d, "label", label, "description", description, "title", title)
-	vm.Set("body", nodeBody(joinClass(frame, groupClass), "", ""))
+	vm.Set("body", nodeBody(joinClass(groupClass), "", ""))
 	children := []*Object{}
 	for _, code := range langs {
 		p := path + "." + jsString(code)
