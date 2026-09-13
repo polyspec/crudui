@@ -141,7 +141,9 @@ form over with the same template and data. Taking it over must leave the parsed 
 DOM unchanged: every element, attribute value and text in child order.
 Attribute order is not part of the DOM (React sets `type`, `value` and `name` after
 other input attributes), so it is not compared; the byte-identical HTML of the string
-renderers is checked by the generation checks. The comparison leaves out the state the
+renderers is checked by the generation checks. A `style` attribute is a CSS declaration
+block, so it is compared as the CSS object model serializes its declarations: React
+writes a sticky row's `--crudui-sticky-depth:0` as `--crudui-sticky-depth: 0;`. The comparison leaves out the state the
 browser binding writes (`data-crudui-stuck`, `data-crudui-current` and the scroll
 and end-row lengths published on the connected element) and the nodes frameworks keep as rendering
 anchors, which render nothing: comments (Vue) and empty text nodes (Svelte). The right frame (`initialization=csr`) mounts the form without
