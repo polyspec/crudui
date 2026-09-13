@@ -97,6 +97,10 @@ export function validate(
   // A hit throws ComposeLoadError (a LOAD failure), never `valid:false`. This
   // closes the deep-nesting leak the typed models alone could not (R1).
   scanForbiddenKeys(properties, ['properties']);
+  // The form root declarations are scanned like the fields they sit beside.
+  for (const key of ['buttons', 'action']) {
+    if (key in spec) scanForbiddenKeys((spec as Record<string, unknown>)[key], [key]);
+  }
 
   return new Validator({ type: 'group', properties }).validate(data);
 }

@@ -1408,5 +1408,214 @@
     "roundtrip": {
       "reversible": false
     }
+  },
+  {
+    "name": "form-buttons-root-list",
+    "note": "root buttons list → buttons: a → link, class → design.class, onclick → behavior.onclick; action method/url pass through; round-trips 1:1.",
+    "legacy": {
+      "type": "group",
+      "name": "contact_form",
+      "action": {
+        "method": "post",
+        "url": "/api/contact"
+      },
+      "buttons": [
+        {
+          "type": "submit",
+          "name": "__submitted__",
+          "value": "send",
+          "class": "btn btn-primary",
+          "text": {
+            "ko": "문의 보내기",
+            "en": "Send Inquiry"
+          }
+        },
+        {
+          "type": "button",
+          "class": "btn btn-secondary",
+          "onclick": "history.back()",
+          "text": "취소"
+        },
+        {
+          "type": "a",
+          "href": "../",
+          "class": "btn-list",
+          "text": "리스트로"
+        }
+      ],
+      "properties": {
+        "name": {
+          "type": "text"
+        }
+      }
+    },
+    "schema": {
+      "type": "group",
+      "name": "contact_form",
+      "action": {
+        "method": "post",
+        "url": "/api/contact"
+      },
+      "buttons": [
+        {
+          "type": "submit",
+          "name": "__submitted__",
+          "value": "send",
+          "design": {
+            "class": "btn btn-primary"
+          },
+          "text": {
+            "ko": "문의 보내기",
+            "en": "Send Inquiry"
+          }
+        },
+        {
+          "type": "button",
+          "design": {
+            "class": "btn btn-secondary"
+          },
+          "behavior": {
+            "onclick": "history.back()"
+          },
+          "text": "취소"
+        },
+        {
+          "type": "link",
+          "href": "../",
+          "design": {
+            "class": "btn-list"
+          },
+          "text": "리스트로"
+        }
+      ],
+      "properties": {
+        "name": {
+          "type": "text"
+        }
+      }
+    },
+    "notes": [],
+    "roundtrip": {
+      "reversible": true,
+      "lossless": true,
+      "back": {
+        "type": "group",
+        "name": "contact_form",
+        "action": {
+          "method": "post",
+          "url": "/api/contact"
+        },
+        "buttons": [
+          {
+            "type": "submit",
+            "name": "__submitted__",
+            "value": "send",
+            "class": "btn btn-primary",
+            "text": {
+              "ko": "문의 보내기",
+              "en": "Send Inquiry"
+            }
+          },
+          {
+            "type": "button",
+            "class": "btn btn-secondary",
+            "onclick": "history.back()",
+            "text": "취소"
+          },
+          {
+            "type": "a",
+            "href": "../",
+            "class": "btn-list",
+            "text": "리스트로"
+          }
+        ],
+        "properties": {
+          "name": {
+            "type": "text"
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "form-action-buttons-hoist",
+    "note": "action.buttons name → button map hoisted into the root buttons list, label → text; action keeps method/url; irreversible.",
+    "legacy": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text"
+        }
+      },
+      "action": {
+        "method": "POST",
+        "url": "/api/submit/registration",
+        "buttons": {
+          "submit": {
+            "label": "Create Account",
+            "type": "submit",
+            "class": "btn btn-primary btn-lg"
+          },
+          "cancel": {
+            "label": "Cancel",
+            "type": "button",
+            "href": "/",
+            "class": "btn btn-outline-secondary"
+          }
+        }
+      }
+    },
+    "schema": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text"
+        }
+      },
+      "action": {
+        "method": "POST",
+        "url": "/api/submit/registration"
+      },
+      "buttons": [
+        {
+          "text": "Create Account",
+          "type": "submit",
+          "design": {
+            "class": "btn btn-primary btn-lg"
+          }
+        },
+        {
+          "text": "Cancel",
+          "type": "button",
+          "href": "/",
+          "design": {
+            "class": "btn btn-outline-secondary"
+          }
+        }
+      ]
+    },
+    "notes": [
+      {
+        "path": "",
+        "legacyKey": "action.buttons",
+        "reason": "ACTION_BUTTONS_HOIST",
+        "detail": "action.buttons hoisted into the root buttons list"
+      },
+      {
+        "path": "action.buttons.0",
+        "legacyKey": "label",
+        "reason": "BUTTON_LABEL_TO_TEXT",
+        "detail": "button label renamed to text"
+      },
+      {
+        "path": "action.buttons.1",
+        "legacyKey": "label",
+        "reason": "BUTTON_LABEL_TO_TEXT",
+        "detail": "button label renamed to text"
+      }
+    ],
+    "roundtrip": {
+      "reversible": false
+    }
   }
 ]

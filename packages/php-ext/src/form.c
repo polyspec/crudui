@@ -732,15 +732,32 @@ ps_form *ps_form_clone(const ps_form *form)
     return copy;
 }
 
+/* The interface language of a bound form: its option, or Korean. */
+static const char *form_language(const ps_form *form)
+{
+    const ps_value *language = member(form->options, "language");
+    return language && language->kind == PS_STRING ? ps_string(language) : "ko";
+}
+
 ps_result ps_form_read(const ps_form *form, uint8_t member_index)
 {
     if (!form) return (ps_result){NULL, input_error("Form is not initialized")};
+    const ps_form_messages *messages = ps_form_messages_for(form_language(form));
     if (member_index == 0) return ps_ok(ps_value_clone(form->template));
     if (member_index == 1) return ps_ok(ps_value_clone(form->data));
     if (member_index == 2) return ps_ok(ps_value_clone(form->fields));
     if (member_index == 3) return ps_ok(ps_int_value(form->revision));
+    if (member_index == 5 || member_index == 6) {
+        ps_value *value = member_index == 5
+            ? ps_bind_buttons(form->template, form->data, form_language(form))
+            : messages ? ps_form_messages_value(messages) : NULL;
+        return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
+    }
     if (member_index == 4) {
-        char *html = ps_render_fields(form->fields);
+        ps_value *buttons = ps_bind_buttons(form->template, form->data, form_language(form));
+        char *html = buttons && messages
+            ? ps_render_form(form->fields, buttons, messages->form_actions) : NULL;
+        ps_value_free(buttons);
         if (!html) return (ps_result){NULL, internal_error()};
         ps_value *value = ps_string_value(html);
         free(html);

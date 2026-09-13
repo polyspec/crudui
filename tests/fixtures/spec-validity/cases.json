@@ -362,5 +362,47 @@
       }
     },
     "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.validate.required.when" }
+  },
+  {
+    "name": "ok-form-buttons-and-action",
+    "note": "Root buttons and action are form declarations; the forbidden-key check covers them and finds nothing.",
+    "spec": {
+      "type": "group",
+      "action": { "method": "post", "url": "/save" },
+      "buttons": [
+        { "type": "submit", "text": { "ko": "저장", "en": "Save" }, "design": { "class": "primary" } },
+        { "type": "link", "text": "List", "href": "../", "behavior": { "onclick": "history.back()" } }
+      ],
+      "properties": {
+        "name": { "type": "text" }
+      }
+    },
+    "expect": "ok"
+  },
+  {
+    "name": "err-form-button-forbidden-key",
+    "note": "A forbidden meta key inside a root button is rejected at its button path.",
+    "spec": {
+      "type": "group",
+      "buttons": [
+        { "type": "submit", "design": { "when": ".flag" } }
+      ],
+      "properties": {
+        "name": { "type": "text" }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "buttons.0.design.when" }
+  },
+  {
+    "name": "err-form-action-forbidden-key",
+    "note": "A forbidden meta key inside the root action is rejected at its action path.",
+    "spec": {
+      "type": "group",
+      "action": { "url": "/save", "if": ".flag" },
+      "properties": {
+        "name": { "type": "text" }
+      }
+    },
+    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "action.if" }
   }
 ]

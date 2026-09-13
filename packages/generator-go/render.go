@@ -381,7 +381,17 @@ func RenderForm(form *Form) (string, error) {
 	if form == nil {
 		return "", fmt.Errorf("Form instance is required")
 	}
-	return `<div class="crudui-form"><div class="crudui-form__body">` + nodesHTML(form.fields) + `</div></div>`, nil
+	language := "ko"
+	if s, ok := form.options.Language.(string); ok {
+		language = s
+	}
+	m, e := messagesFor(language)
+	if e != nil {
+		return "", e
+	}
+	footer := element("div", NewObject("class", "crudui-form__footer"),
+		element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", m.formActions), formButtonsHTML(form.template.Buttons, form.data, language, m)))
+	return `<div class="crudui-form"><div class="crudui-form__body">` + nodesHTML(form.fields) + `</div>` + footer + `</div>`, nil
 }
 
 var javascriptProtocolRE = regexp.MustCompile(`(?i)^[\x00-\x1f ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:`)

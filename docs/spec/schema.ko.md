@@ -135,7 +135,8 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 
 폼 컴파일은 `multiple`, `lang`, `design`의 값 형식이 잘못되면 `INVALID_FORM_INPUT`와
 `Invalid {key} at {path}: expected {expected}` 메시지로 거부합니다. `{path}`는
-`companies.name`처럼 필드의 구조 경로입니다. 조건 맵은 비어 있지 않은 객체입니다.
+`companies.name`처럼 필드의 구조 경로입니다. 조건 맵은 비어 있지 않은 객체입니다. `buttons`가 없는 폼은 제출 버튼 하나를 가지며, `button`과 `link`는 `text`가,
+`link`는 `href`가 필요합니다([폼 마크업](form-markup.ko.md) 참고).
 
 | 키 | 허용 값 |
 | --- | --- |
@@ -148,6 +149,8 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 | `lang` | 불리언 또는 객체 |
 | `lang.only` | 언어 코드 문자열 목록 또는 객체 |
 | `design` | 불리언 또는 객체 |
+| `buttons` | 버튼 목록(`type`: `submit`, `reset`, `button`, `link`); 폼 루트에서만 |
+| `action` | 문자열 `method`, `url`, `enctype`을 가진 객체; 폼 루트에서만 |
 | `design.show` | 표현식, 불리언 또는 조건 맵 |
 | `design.class`, `design.style` | 문자열 또는 조건 맵 |
 | `design.label`, `design.wrapper`, `design.group`, `design.prepend` | 객체 |

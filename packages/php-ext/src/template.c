@@ -1,5 +1,6 @@
 #include "engine_internal.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -82,9 +83,14 @@ static bool one_of(const ps_value *value, const char *const *allowed, size_t cou
     return false;
 }
 
-/* Reject a wrong value type in one field's multiple and design declarations. */
+/* Reject a wrong value type in one field's multiple, lang and design declarations. */
 static bool declarations_valid(const ps_value *spec, const char *path, ps_value **error)
 {
+    /* Buttons and the submission target belong to the form, not to a field. */
+    static const char *const form_keys[] = {"buttons", "action"};
+    for (size_t i = 0; i < 2; ++i)
+        if (ps_has(spec, form_keys[i]))
+            return declaration_error(form_keys[i], path, "the form root", error);
     static const char *const placements[] = {"header", "footer", "outline"};
     static const char *const headers[] = {"static", "sticky"};
     static const char *const numbers[][2] = {{"min", "multiple.min"}, {"max", "multiple.max"}};
@@ -166,6 +172,66 @@ static bool declarations_valid(const ps_value *spec, const char *path, ps_value 
     return true;
 }
 
+/* Reject a wrong root action or buttons declaration. */
+static bool form_declarations_valid(const ps_value *spec, ps_value **error)
+{
+    static const char *const types[] = {"submit", "reset", "button", "link"};
+    /* Button types with interface text (the submit and reset messages); template.c
+       links only value, engine_error and compose, so it cannot read the messages table. */
+    static const char *const texts[] = {"submit", "reset"};
+    static const char *const action_keys[][2] = {
+        {"method", "action.method"}, {"url", "action.url"}, {"enctype", "action.enctype"},
+    };
+    static const char *const strings[] = {"name", "value", "href"};
+    const ps_value *action = ps_get(spec, "action");
+    if (action) {
+        if (action->kind != PS_OBJECT) return declaration_error("action", "form", "an object", error);
+        for (size_t i = 0; i < 3; ++i) {
+            const ps_value *value = ps_get(action, action_keys[i][0]);
+            if (value && value->kind != PS_STRING)
+                return declaration_error(action_keys[i][1], "form", "a string", error);
+        }
+    }
+    const ps_value *buttons = ps_get(spec, "buttons");
+    if (!buttons) return true;
+    if (buttons->kind != PS_ARRAY) return declaration_error("buttons", "form", "a list of buttons", error);
+    for (size_t i = 0; i < ps_size(buttons); ++i) {
+        const ps_value *button = ps_at(buttons, i);
+        char key[64], path[64];
+        snprintf(key, sizeof(key), "buttons.%zu", i);
+        if (!button || button->kind != PS_OBJECT) return declaration_error(key, "form", "an object", error);
+        const ps_value *type = ps_get(button, "type");
+        snprintf(key, sizeof(key), "buttons.%zu.type", i);
+        if (!one_of(type, types, 4))
+            return declaration_error(key, "form", "submit, reset, button or link", error);
+        for (size_t j = 0; j < 3; ++j) {
+            const ps_value *value = ps_get(button, strings[j]);
+            snprintf(key, sizeof(key), "buttons.%zu.%s", i, strings[j]);
+            if (value && value->kind != PS_STRING) return declaration_error(key, "form", "a string", error);
+        }
+        snprintf(key, sizeof(key), "buttons.%zu.text", i);
+        if (!one_of(type, texts, 2) && !ps_has(button, "text"))
+            return declaration_error(key, "form", "content for this button type", error);
+        snprintf(key, sizeof(key), "buttons.%zu.href", i);
+        if (ps_is_string(type, "link") && !ps_has(button, "href"))
+            return declaration_error(key, "form", "a link target", error);
+        snprintf(path, sizeof(path), "form.buttons.%zu", i);
+        if (!declarations_valid(button, path, error)) return false;
+    }
+    return true;
+}
+
+/* The buttons of a form whose spec declares none: one submit button. */
+static ps_value *default_buttons(void)
+{
+    ps_value *buttons = ps_array_value();
+    ps_value *submit = ps_object_value();
+    if (!buttons || !submit || !ps_set(submit, "type", ps_string_value("submit")) || !ps_append(buttons, submit)) {
+        ps_value_free(buttons); ps_value_free(submit); return NULL;
+    }
+    return buttons;
+}
+
 static ps_value *compile_fields(const ps_value *properties, const char *parent,
                                 ps_value **error)
 {
@@ -208,6 +274,10 @@ ps_result ps_compile_form(const ps_value *spec, const ps_value *options)
     if (!spec || spec->kind != PS_OBJECT || !ps_is_string(ps_get(spec, "type"), "group") ||
         !ps_get(spec, "properties") || ps_get(spec, "properties")->kind != PS_OBJECT)
         return input_error("A form spec must be a group with properties");
+    ps_value *form_failure = NULL;
+    if (!form_declarations_valid(spec, &form_failure))
+        return form_failure ? (ps_result){NULL, form_failure}
+                            : ps_fail("internal", "INTERNAL_ERROR", "C form compilation failed", "");
     if (!options || options->kind != PS_OBJECT) return input_error("Expected an object");
 
     const ps_value *files = option(options, "files");
@@ -238,11 +308,16 @@ ps_result ps_compile_form(const ps_value *spec, const ps_value *options)
     ps_value_free(properties);
     if (!fields && declaration_failure) return (ps_result){NULL, declaration_failure};
     ps_value *template = ps_object_value();
-    if (!template || !fields ||
+    const ps_value *declared_buttons = ps_get(spec, "buttons");
+    const ps_value *action = ps_get(spec, "action");
+    ps_value *buttons = declared_buttons ? ps_value_clone(declared_buttons) : default_buttons();
+    if (!template || !fields || !buttons ||
         !ps_set(template, "kind", ps_string_value("crudui/form-template")) ||
         (key_prefix && !ps_set(template, "keyPrefix", ps_string_value(key_prefix))) ||
-        !ps_set(template, "fields", fields)) {
-        ps_value_free(template); ps_value_free(fields);
+        !ps_set(template, "fields", fields) ||
+        !ps_set(template, "buttons", buttons) ||
+        (action && action->kind == PS_OBJECT && !ps_set(template, "action", ps_value_clone(action)))) {
+        ps_value_free(template);
         return ps_fail("internal", "INTERNAL_ERROR", "C form compilation failed", "");
     }
     return ps_ok(template);

@@ -690,6 +690,12 @@ ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value
     char **root_path = malloc(sizeof(*root_path)); if (root_path) root_path[0] = "properties";
     error = scan_forbidden(properties, root_path, 1);
     free(root_path);
+    /* The form root declarations are scanned like the fields they sit beside. */
+    static const char *const form_keys[] = {"buttons", "action"};
+    for (size_t i = 0; !error && spec && spec->kind == PS_OBJECT && i < 2; ++i) {
+        char *form_path[1] = {(char *)form_keys[i]};
+        if (ps_get(spec, form_keys[i])) error = scan_forbidden(ps_get(spec, form_keys[i]), form_path, 1);
+    }
     if (error) { ps_value_free(properties); return (ps_result){NULL, error}; }
     validation_context context = {data, ps_array_value(), NULL};
     if (!context.errors || !validate_properties(properties, data, &context, NULL, 0)) {

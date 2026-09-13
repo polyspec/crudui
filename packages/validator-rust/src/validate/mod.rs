@@ -94,6 +94,12 @@ pub fn validate(
     // This closes the deep-nesting leak the typed model alone could not (R1).
     let props_value = Value::Object(properties.clone());
     scan_forbidden_keys(&props_value, &["properties".to_string()])?;
+    // The form root declarations are scanned like the fields they sit beside.
+    for key in ["buttons", "action"] {
+        if let Some(declared) = spec.get(key) {
+            scan_forbidden_keys(declared, &[key.to_string()])?;
+        }
+    }
 
     let validator = Validator::new(properties);
     Ok(validator.validate(data)?)

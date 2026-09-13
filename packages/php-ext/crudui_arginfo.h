@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 16e96693d67f39e63e982dd8c44b08fa497c5450 */
+ * Stub hash: c503f0f638e051768da1d667aa1d57517f358111 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_CRUDUI_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -48,6 +48,10 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Form_getFields, 0, 0, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
+
+#define arginfo_class_CRUDUI_Form_getButtons arginfo_class_CRUDUI_Form_getFields
+
+#define arginfo_class_CRUDUI_Form_getMessages arginfo_class_CRUDUI_Form_getFields
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Form_getRevision, 0, 0, IS_LONG, 0)
 ZEND_END_ARG_INFO()
@@ -140,6 +144,8 @@ ZEND_METHOD(CRUDUI_Validator, validateList);
 ZEND_METHOD(CRUDUI_Form, __construct);
 ZEND_METHOD(CRUDUI_Form, getTemplate);
 ZEND_METHOD(CRUDUI_Form, getFields);
+ZEND_METHOD(CRUDUI_Form, getButtons);
+ZEND_METHOD(CRUDUI_Form, getMessages);
 ZEND_METHOD(CRUDUI_Form, getRevision);
 ZEND_METHOD(CRUDUI_Form, getData);
 ZEND_METHOD(CRUDUI_Form, getValue);
@@ -181,6 +187,8 @@ static const zend_function_entry class_CRUDUI_Form_methods[] = {
 	ZEND_ME(CRUDUI_Form, __construct, arginfo_class_CRUDUI_Form___construct, ZEND_ACC_PUBLIC)
 	ZEND_ME(CRUDUI_Form, getTemplate, arginfo_class_CRUDUI_Form_getTemplate, ZEND_ACC_PUBLIC)
 	ZEND_ME(CRUDUI_Form, getFields, arginfo_class_CRUDUI_Form_getFields, ZEND_ACC_PUBLIC)
+	ZEND_ME(CRUDUI_Form, getButtons, arginfo_class_CRUDUI_Form_getButtons, ZEND_ACC_PUBLIC)
+	ZEND_ME(CRUDUI_Form, getMessages, arginfo_class_CRUDUI_Form_getMessages, ZEND_ACC_PUBLIC)
 	ZEND_ME(CRUDUI_Form, getRevision, arginfo_class_CRUDUI_Form_getRevision, ZEND_ACC_PUBLIC)
 	ZEND_ME(CRUDUI_Form, getData, arginfo_class_CRUDUI_Form_getData, ZEND_ACC_PUBLIC)
 	ZEND_ME(CRUDUI_Form, getValue, arginfo_class_CRUDUI_Form_getValue, ZEND_ACC_PUBLIC)

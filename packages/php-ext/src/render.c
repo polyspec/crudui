@@ -476,7 +476,44 @@ static bool write_node(render_buffer *out, const ps_value *node)
     return ok && end_element(out, "div", false);
 }
 
-char *ps_render_fields(const ps_value *fields)
+/* Button escaping: attribute values escape & " <, text escapes & < >. */
+static bool button_escaped(render_buffer *out, const char *value, bool attribute)
+{
+    for (const char *c = value; *c; ++c) {
+        const char *entity = *c == '&' ? "&amp;" : *c == '<' ? "&lt;"
+            : attribute && *c == '"' ? "&quot;" : !attribute && *c == '>' ? "&gt;" : NULL;
+        if (entity ? !text(out, entity) : !character(out, *c)) return false;
+    }
+    return true;
+}
+
+static bool write_buttons(render_buffer *out, const ps_value *buttons, const char *label)
+{
+    ps_value *footer = ps_object_value();
+    ps_value *controls = ps_object_value();
+    bool ok = footer && controls && attr_string(footer, "class", "crudui-form__footer") &&
+        attr_string(controls, "class", "crudui-controls") && attr_string(controls, "role", "group") &&
+        attr_string(controls, "aria-label", label) &&
+        start_element(out, "div", footer, false, false) && start_element(out, "div", controls, false, false);
+    ps_value_free(footer); ps_value_free(controls);
+    for (size_t i = 0; ok && i < ps_size(buttons); ++i) {
+        const ps_value *button = ps_at(buttons, i);
+        const char *tag = string_member(button, "tag");
+        const ps_value *attrs = member(button, "attrs");
+        ok = character(out, '<') && text(out, tag);
+        for (size_t j = 0; ok && attrs && j < ps_size(attrs); ++j) {
+            const ps_value *value = ps_at(attrs, j);
+            ok = character(out, ' ') && text(out, ps_key_at(attrs, j)) && text(out, "=\"") &&
+                button_escaped(out, value && value->kind == PS_STRING ? ps_string(value) : "", true) &&
+                character(out, '"');
+        }
+        ok = ok && character(out, '>') && button_escaped(out, string_member(button, "text"), false) &&
+            text(out, "</") && text(out, tag) && character(out, '>');
+    }
+    return ok && end_element(out, "div", false) && end_element(out, "div", false);
+}
+
+static char *render_form(const ps_value *fields, const ps_value *buttons, const char *label)
 {
     if (!fields || fields->kind != PS_ARRAY) return NULL;
     render_buffer out = {0};
@@ -487,7 +524,20 @@ char *ps_render_fields(const ps_value *fields)
         start_element(&out, "div", form, false, false) &&
         start_element(&out, "div", body, false, false);
     for (size_t i = 0; ok && i < ps_size(fields); ++i) ok = write_node(&out, ps_at(fields, i));
-    if (!ok || !end_element(&out, "div", false) || !end_element(&out, "div", false)) out.failed = true;
+    ok = ok && end_element(&out, "div", false) &&
+        (!buttons || write_buttons(&out, buttons, label));
+    if (!ok || !end_element(&out, "div", false)) out.failed = true;
     ps_value_free(form); ps_value_free(body);
     return take(&out);
+}
+
+char *ps_render_fields(const ps_value *fields)
+{
+    return render_form(fields, NULL, NULL);
+}
+
+char *ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label)
+{
+    if (!buttons || buttons->kind != PS_ARRAY || !actions_label) return NULL;
+    return render_form(fields, buttons, actions_label);
 }

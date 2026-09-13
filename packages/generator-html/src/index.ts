@@ -1,11 +1,13 @@
 import {
   buildList,
   buildOutline,
+  formButtonsHtml,
   parseStyle,
   type OutlineRow,
   type OutlineState,
   type FormMessages,
   type ActionVM,
+  type ButtonVM,
   type Attrs,
   type BuildListOptions,
   type CellVM,
@@ -344,10 +346,18 @@ export function renderData(form: FormInstance): string {
   return renderDataPanel(form.getData(), form.messages);
 }
 
+/** The form footer: the form buttons in one controls group. */
+function formFooterHtml(buttons: readonly ButtonVM[], messages: FormMessages): string {
+  return element('div', { class: 'crudui-form__footer' },
+    element('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formActions }, formButtonsHtml(buttons)));
+}
+
 /** Render the current form instance as framework-independent HTML. */
 export function renderForm(form: FormInstance): string {
+  const snapshot = form.getSnapshot();
   return element('div', { class: 'crudui-form' },
-    element('div', { class: 'crudui-form__body' }, form.getSnapshot().fields.map(node).join('')));
+    element('div', { class: 'crudui-form__body' }, snapshot.fields.map(node).join('')) +
+    formFooterHtml(snapshot.buttons, form.messages));
 }
 
 /** Compose, evaluate and render a list without a framework or database. */

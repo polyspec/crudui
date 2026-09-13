@@ -251,9 +251,10 @@ function checkDocument(parse, markup, expected, server, renderingPath, framework
   assert.equal(raw, expected.html, 'SSR response contains different raw form HTML');
   const html = oneNode(nodes, node => node.tagName === 'html', 'Missing document element');
   assert.equal(attr(html, 'lang'), language, 'SSR language differs');
-  const buttons = allNodes(form).filter(node => node.tagName === 'button' && attr(node, 'name') === '_form_complete');
-  assert.equal(buttons.length, 1, 'SSR must use one named completion button');
-  assert.equal(attr(buttons[0], 'type'), 'submit');
+  // The spec declares the one submit button; the generated form footer renders it.
+  const buttons = allNodes(form).filter(node => node.tagName === 'button' && attr(node, 'type') === 'submit');
+  assert.equal(buttons.length, 1, 'SSR must render one submit button');
+  assert.equal(attr(buttons[0], 'name'), '_form_complete');
   assert.equal(attr(buttons[0], 'value'), '1');
   assert.equal(allNodes(form).some(node => node.tagName === 'input' && attr(node, 'type') === 'hidden'), false, 'SSR must not add hidden controls');
   const links = nodes.filter(node => node.tagName === 'a').map(node => new URL(attr(node, 'href'), base));

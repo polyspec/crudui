@@ -159,7 +159,8 @@ func TestGenerationRejectsMalformedRequests(t *testing.T) {
 func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 	s, host := currentServer(t)
 	defer host.Close()
-	spec := record("type", "group", "properties", record("companies", record("type", "group", "multiple", true, "properties", record("name", record("type", "text", "validate", record("required", true))))))
+	spec := record("type", "group", "properties", record("companies", record("type", "group", "multiple", true, "properties", record("name", record("type", "text", "validate", record("required", true))))),
+		"buttons", []any{record("type", "submit", "name", "_form_complete", "value", "1")})
 	encoded, err := encodeJSON(spec)
 	if err != nil {
 		t.Fatal(err)

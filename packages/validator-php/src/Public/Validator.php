@@ -41,6 +41,12 @@ final class Validator
             $properties = JsonValue::members($composed['properties'] ?? null);
         }
         ForbiddenScan::scan($properties, ['properties']);
+        // The form root declarations are scanned like the fields they sit beside.
+        foreach (['buttons', 'action'] as $key) {
+            if (array_key_exists($key, $spec)) {
+                ForbiddenScan::scan($spec[$key], [$key]);
+            }
+        }
         $result = (new DataValidator(['type' => 'group', 'properties' => $properties]))->validate((array) $data);
         return (object) ['valid' => $result->valid, 'errors' => array_map(static fn ($error) => JsonValue::copy((object) $error), $result->errors)];
     }

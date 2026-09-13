@@ -241,10 +241,18 @@ test('the row at the end of the form limits scrolling at its line, with no blank
     await page.goto(url);
     await page.waitForFunction(() => window.formStylesTest !== undefined);
     await page.evaluate((spec, data) => window.formStylesTest.mount(spec, data), shortSpec, shortData);
+    // The page re-renders the form whenever the current row changes; scrolling must never be pulled back.
+    await page.evaluate(() => {
+      window.scrollLog = [];
+      window.addEventListener('scroll', () => window.scrollLog.push(window.scrollY), { passive: true });
+    });
     for (let step = 0; step < 20; step++) {
       await page.mouse.wheel({ deltaY: 400 });
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     }
+    const log = await page.evaluate(() => window.scrollLog);
+    assert.ok(log.length > 0 && log.every((y, index) => index === 0 || y >= log[index - 1] - 0.5),
+      `Scrolling down never moves back up: ${JSON.stringify(log)}`);
     const rows = await page.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky')].map(row => {
       const header = row.firstElementChild;
       return {
@@ -272,5 +280,13 @@ test('the row at the end of the form limits scrolling at its line, with no blank
       assert.ok(Math.abs(row.bodyGap) < 0.5, `${row.name}: the body follows the header without a gap (${row.bodyGap})`);
     }
     assert.ok(['0px', 'auto'].includes(support.minHeight), `Support, a last row followed by other content, has no minimum height: ${support.minHeight}`);
+    assert.ok(['0px', 'auto'].includes(ops.minHeight), `The end row keeps its content height: ${ops.minHeight}`);
+    // The space that lets the end row reach its line is outside the form.
+    const outside = await page.evaluate(() => {
+      const form = document.querySelector('.crudui-form');
+      return { formBottomToDocumentEnd: document.scrollingElement.scrollHeight - (form.getBoundingClientRect().bottom + window.scrollY), marginBottom: parseFloat(getComputedStyle(form).marginBottom) };
+    });
+    assert.ok(outside.marginBottom > 0 && Math.abs(outside.formBottomToDocumentEnd - outside.marginBottom) < 1,
+      `The trailing space is the form's outside margin: ${JSON.stringify(outside)}`);
   } finally { await page.close(); }
 });

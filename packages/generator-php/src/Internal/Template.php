@@ -19,8 +19,15 @@ final class Template
         if (($spec->type ?? null) !== 'group' || !($spec->properties ?? null) instanceof stdClass) {
             throw new FormError('INVALID_FORM_INPUT', 'A form spec must be a group with properties');
         }
+        self::checkFormDeclarations($spec);
         $properties = Compose::properties((array) $spec->properties, self::loader($options), $options['basepath'] ?? '');
-        return Value::record(['kind' => 'crudui/form-template', 'keyPrefix' => $options['keyPrefix'] ?? Missing::Value, 'fields' => self::fields($properties)]);
+        return Value::record([
+            'kind' => 'crudui/form-template',
+            'keyPrefix' => $options['keyPrefix'] ?? Missing::Value,
+            'fields' => self::fields($properties),
+            'buttons' => Value::copy(property_exists($spec, 'buttons') ? $spec->buttons : Buttons::DEFAULT),
+            'action' => self::isObject($spec->action ?? null) ? Value::copy($spec->action) : Missing::Value,
+        ]);
     }
 
     /** Create the composition loader from explicitly supplied file objects. */
@@ -78,12 +85,67 @@ final class Template
         return ($child['type'] ?? null) !== 'group' && !array_key_exists('properties', $child) && !$repeated && !$lang;
     }
 
-    /** Reject a wrong value type in one field's multiple and design declarations. */
+    /** Reject a wrong root action or buttons declaration. */
+    private static function checkFormDeclarations(stdClass $spec): void
+    {
+        $fail = static function (string $key, string $expected): never {
+            throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at form: expected %s', $key, $expected));
+        };
+        if (property_exists($spec, 'action')) {
+            if (!self::isObject($spec->action)) {
+                $fail('action', 'an object');
+            }
+            $action = (array) $spec->action;
+            foreach (['method', 'url', 'enctype'] as $key) {
+                if (array_key_exists($key, $action) && !is_string($action[$key])) {
+                    $fail('action.' . $key, 'a string');
+                }
+            }
+        }
+        if (!property_exists($spec, 'buttons')) {
+            return;
+        }
+        if (!is_array($spec->buttons) || !array_is_list($spec->buttons)) {
+            $fail('buttons', 'a list of buttons');
+        }
+        // A button type without interface text needs declared text.
+        $texts = Messages::forLanguage('ko');
+        foreach ($spec->buttons as $index => $button) {
+            $key = 'buttons.' . $index;
+            if (!self::isObject($button)) {
+                $fail($key, 'an object');
+            }
+            $declared = (array) $button;
+            if (!in_array($declared['type'] ?? null, Buttons::TYPES, true)) {
+                $fail($key . '.type', 'submit, reset, button or link');
+            }
+            foreach (['name', 'value', 'href'] as $name) {
+                if (array_key_exists($name, $declared) && !is_string($declared[$name])) {
+                    $fail($key . '.' . $name, 'a string');
+                }
+            }
+            if (!array_key_exists($declared['type'], $texts) && !array_key_exists('text', $declared)) {
+                $fail($key . '.text', 'content for this button type');
+            }
+            if ($declared['type'] === 'link' && !array_key_exists('href', $declared)) {
+                $fail($key . '.href', 'a link target');
+            }
+            self::checkDeclarations($declared, 'form.' . $key);
+        }
+    }
+
+    /** Reject a wrong value type in one field's multiple, lang and design declarations. */
     private static function checkDeclarations(array $spec, string $path): void
     {
         $fail = static function (string $key, string $expected) use ($path): never {
             throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at %s: expected %s', $key, $path, $expected));
         };
+        // Buttons and the submission target belong to the form, not to a field.
+        foreach (['buttons', 'action'] as $key) {
+            if (array_key_exists($key, $spec)) {
+                $fail($key, 'the form root');
+            }
+        }
         if (array_key_exists('multiple', $spec)) {
             $multiple = $spec['multiple'];
             if (!is_bool($multiple) && !self::isObject($multiple)) {
