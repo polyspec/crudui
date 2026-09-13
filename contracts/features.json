@@ -383,9 +383,9 @@
     {
       "id": "buildOutline",
       "owner": "@crudui/generator-core",
-      "signature": "buildOutline(nodes, selection?) -> OutlineCollection[]",
+      "signature": "buildOutline(nodes, selection?) -> OutlineRow[]",
       "input": "evaluated nodes and the selected row",
-      "output": "structure map collections and rows",
+      "output": "the form rows, each with its nested rows, marking the selected row",
       "errors": [
         "TypeError"
       ],

@@ -285,12 +285,8 @@ func buildCollection(f FieldTemplate, path string, d *Object, label, description
 	vm.Set("body", nodeBody("", "", ""))
 	vm.Set("item", item)
 	if len(keys) == 0 {
-		placement := "footer"
-		if m.controls == "outline" {
-			placement = "outline"
-		}
 		full := m.hasMax && 0 >= m.max
-		vm.Set("controls", NewObject("placement", placement, "label", s.messages.collectionControls, "actions", []*Object{actionModel("add-row", s.messages.addRow, full)}))
+		vm.Set("controls", NewObject("placement", "footer", "label", s.messages.collectionControls, "actions", []*Object{actionModel("add-row", s.messages.addRow, full)}))
 	}
 	vm.Set("children", rows)
 	return vm, nil

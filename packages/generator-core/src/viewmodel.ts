@@ -398,7 +398,7 @@ function buildCollection(
     item,
     ...(keys.length === 0 ? {
       controls: {
-        placement: settings.controls === 'outline' ? 'outline' : 'footer',
+        placement: 'footer',
         label: state.messages.collectionControls,
         actions: [action('add-row', state.messages.addRow, full)],
       },

@@ -101,8 +101,9 @@ input's own label inside the body, and its header holds only a description. A
   disabled when the row count reaches `multiple.max`; `remove-row` when it is at
   or below `multiple.min`.
 - `multiple.controls` places row controls in the row `header` (default) or
-  `footer`. With `outline` the form renders no row or empty collection controls;
-  the structure map shows them for the selected row and empty collection.
+  `footer`. With `outline` the row controls move to the structure map line of the
+  selected row; an empty collection's Add control is not a row control and stays
+  in the collection footer.
 - `multiple.header: sticky` adds `crudui-node--sticky`, and the row root style sets
   `--crudui-sticky-depth` to the number of enclosing sticky rows. The row's sticky
   line is that depth times `--crudui-node-header-height`. Three stylesheet rules
@@ -121,18 +122,20 @@ input's own label inside the body, and its header holds only a description. A
 
 ## Structure map and data view
 
-`buildOutline(nodes, selection)` returns the collections and rows of the nodes,
-looking through plain groups. The structure map uses the node grammar: each row
-has a `select-row` button with its number and title, and the selected row has
-`aria-current="true"`. Its header holds `expand-all`, `collapse-all` and `undo`
+The structure map has one rule: one line per form row. `buildOutline(nodes,
+selection)` returns the form's rows, each with the rows nested in it, so the map
+nests exactly as the form does; collections, counts and empty collections are not
+rows and stay in the form. Each row has a `select-row` button with its number and
+title, and the selected row has `aria-current="true"`. A nested row body indents
+one step. Its header holds `expand-all`, `collapse-all` and `undo`
 (disabled when nothing can be undone). React, Vue and Svelte provide `Outline`
 and `DataView`, and the stateless `OutlineView` and `DataPanel` (Vue: `outlineVNode`
 and `dataVNode`) for applications that own their data with `bindForm`; the HTML renderer provides `renderOutline(form)` and
 `renderData(form)`, and `renderOutlineView(state, messages)` and
 `renderDataPanel(data, messages)` for the same applications. All four renderers
-reproduce the shared [structure map fixture](../../tests/fixtures/form-outline/cases.json). `connectForm` runs actions in the form and selects a row when
-one of its controls receives focus. `connectOutline(element, form, formElement)`
-runs structure-map actions and scrolls the selected form row into view.
+reproduce the shared [structure map fixture](../../tests/fixtures/form-outline/cases.json). `connectForm` runs actions in the form and selects the current row that
+`connectRows` reports. `connectOutline(element, form, formElement)` runs
+structure-map actions and aligns the selected form row.
 
 ## Interface messages
 
