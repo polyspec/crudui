@@ -16,9 +16,6 @@ This page is generated from [contracts/features.json](../../contracts/features.j
 | `connectForm` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 2 command(s) |
 | `buildOutline` | implemented | `@crudui/generator-core` | javascript: pass<br>php: unsupported<br>go: unsupported<br>rust: unsupported<br>php-native: unsupported | 1 command(s) |
 | `connectOutline` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 1 command(s) |
-| `connectRows` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 1 command(s) |
-| `markOutline` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 1 command(s) |
-| `alignRow` | implemented | `@crudui/generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 1 command(s) |
 | `runAction` | implemented | `@crudui/generator-core` | javascript: pass<br>php: unsupported<br>go: unsupported<br>rust: unsupported<br>php-native: unsupported | 1 command(s) |
 | `viewState` | implemented | `@crudui/generator-core` | javascript: pass<br>php: unsupported<br>go: unsupported<br>rust: unsupported<br>php-native: unsupported | 1 command(s) |
 | `formHistory` | implemented | `@crudui/generator-core` | javascript: pass<br>php: unsupported<br>go: unsupported<br>rust: unsupported<br>php-native: unsupported | 1 command(s) |

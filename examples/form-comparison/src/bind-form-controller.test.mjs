@@ -133,7 +133,7 @@ test('accepts saved, unsaved and empty keyed collections', async () => {
   };
   const controller = bindFormController(element, mount, template, 'ko', initial);
   assert.deepEqual(controller.getData(), initial);
-  assert.deepEqual([...listeners.keys()], ['crudui-current', 'input', 'change', 'click']);
+  assert.deepEqual([...listeners.keys()], ['input', 'change', 'click']);
   await controller.load({ companies: {} });
   assert.deepEqual(controller.getData(), { companies: {} });
   assert.deepEqual(renders, [initial, { companies: {} }]);
@@ -199,10 +199,6 @@ test('checkbox restoration retains its initial attribute order', async () => {
 test('row operations focus the affected row after rendering', async () => {
   const { JSDOM } = await import('jsdom');
   const { window } = new JSDOM('<form><div id="view"></div></form>');
-  const scrolled = [];
-  window.HTMLElement.prototype.scrollIntoView = function scrollIntoView(options) {
-    scrolled.push({ row: this.hasAttribute('data-crudui-row-key'), block: options.block });
-  };
   const { document } = window;
   const element = document.querySelector('#view');
   const actions = ['move-up', 'add-row', 'copy-row', 'remove-row'];
@@ -257,9 +253,6 @@ test('row operations focus the affected row after rendering', async () => {
     'removing the last row focuses the collection Add button');
   await act(undefined, 'add-row');
   assert.equal(focusedKey(), keys()[0], 'adding into an empty collection focuses the new row');
-  // Moving to a row, or to the Add button of an emptied collection, scrolls it to its line.
-  assert.ok(scrolled.some(call => call.row) && scrolled.some(call => !call.row), 'rows and the Add button were targets');
-  assert.ok(scrolled.every(call => call.block === 'start'), 'every move scrolls its target with block start');
   await controller.dispose();
 });
 
@@ -267,7 +260,6 @@ test('view state, history and focus retention match a createForm instance', asyn
   const { JSDOM } = await import('jsdom');
   const { bindForm, compileForm, createForm } = await import('@crudui/generator-core');
   const { window } = new JSDOM('<div id="view"></div>');
-  window.HTMLElement.prototype.scrollIntoView = () => {};
   const { document } = window;
   const element = document.querySelector('#view');
   const compiled = compileForm({ type: 'group', properties: {
@@ -299,19 +291,13 @@ test('view state, history and focus retention match a createForm instance', asyn
       snapshot.fields[0].children.map(row => String(row.expanded)), `${label}: expanded rows`);
     assert.equal(controller.getView().canUndo, snapshot.canUndo, `${label}: undo availability`);
   }
-  // The scroll position decides the current row; connectRows marks exactly one, and no state follows it.
-  function followCurrent() {
-    assert.equal(element.querySelectorAll('[data-crudui-current]').length, 1, 'exactly one current row');
-  }
   async function type(key, value) {
     const input = element.querySelector(`input[name="form[companies][${key}][name]"]`);
     input.focus();
     input.value = value;
     input.dispatchEvent(new window.Event('input', { bubbles: true }));
     await controller.idle();
-    session.setValue(`companies.${key}.name`, value);
-    followCurrent();
-  }
+    session.setValue(`companies.${key}.name`, value);  }
   async function press(key, action) {
     const button = element.querySelector(`[data-crudui-row-key="${key}"] [data-crudui-action="${action}"]`);
     button.focus();
@@ -319,8 +305,6 @@ test('view state, history and focus retention match a createForm instance', asyn
     await controller.idle();
     return button;
   }
-
-  followCurrent();
   same('initial');
   await type(k1, 'S');
   await type(k1, 'Sa');
@@ -340,28 +324,20 @@ test('view state, history and focus retention match a createForm instance', asyn
   session.setAllExpanded(true);
   same('expand all');
   await controller.toggleRow('companies', k2);
-  session.toggleRow('companies', k2);
-  followCurrent();
-  same('toggle second');
+  session.toggleRow('companies', k2);  same('toggle second');
   await press(k2, 'remove-row');
   session.removeRow('companies', k2);
   // Focus moved to the previous row's input.
-  assert.equal(document.activeElement.name, `form[companies][${k1}][name]`);
-  followCurrent();
-  same('remove');
+  assert.equal(document.activeElement.name, `form[companies][${k1}][name]`);  same('remove');
   for (const step of ['undo remove', 'undo second edit', 'undo merged edits']) {
     await controller.undo();
-    session.undo();
-    followCurrent();
-    same(step);
+    session.undo();    same(step);
   }
   assert.equal(controller.getView().canUndo, false);
   assert.throws(() => controller.undo(), /Nothing to undo/);
   await controller.toggleRow('companies', k1);
   session.toggleRow('companies', k1);
   await controller.load(initial);
-  session.setData(initial);
-  followCurrent();
-  same('replace record');
+  session.setData(initial);  same('replace record');
   await controller.dispose();
 });

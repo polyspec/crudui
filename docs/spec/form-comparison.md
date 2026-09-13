@@ -143,10 +143,9 @@ Attribute order is not part of the DOM (React sets `type`, `value` and `name` af
 other input attributes), so it is not compared; the byte-identical HTML of the string
 renderers is checked by the generation checks. A `style` attribute is a CSS declaration
 block, so it is compared as the CSS object model serializes its declarations: React
-writes a sticky row's `--crudui-sticky-depth:0` as `--crudui-sticky-depth: 0;`. The comparison leaves out the state the
-browser binding writes (`data-crudui-stuck`, `data-crudui-current` and the scroll
-and end-row lengths published on the connected element) and the nodes frameworks keep as rendering
-anchors, which render nothing: comments (Vue) and empty text nodes (Svelte). The right frame (`initialization=csr`) mounts the form without
+writes a sticky row's `--crudui-sticky-depth:0` as `--crudui-sticky-depth: 0;`. The comparison leaves out the nodes frameworks
+keep as rendering anchors, which render nothing: comments (Vue) and empty text nodes
+(Svelte). The right frame (`initialization=csr`) mounts the form without
 data before it requests the saved record, then injects the record into the existing
 form. A frame URL without one of these values fails. SSR documents link to the `ssr`
 path. Frames and SSR documents load `@crudui/generator-core/crudui.css`
@@ -157,9 +156,8 @@ renders the form, the structure map and the data view inside the compared elemen
 The `bindForm` controller supports the same actions as a `createForm` instance:
 row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
 `undo`. It keeps collapsed rows and the undo history outside the keyed data using
-generator-core's view-state and history functions, marks the structure map row of
-the current row with `markOutline`, and moves or keeps focus by the form runtime's
-focus rule.
+generator-core's view-state and history functions, and moves or keeps focus by the
+form runtime's focus rule.
 
 The complete browser matrix contains 48 scenario reports and 24 initialization
 reports:

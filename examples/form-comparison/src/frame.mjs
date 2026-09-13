@@ -129,10 +129,8 @@ async function mount(data = {}, formSpec = spec) {
 }
 /**
  * Parsed DOM of the rendered form (every element, attribute and text in child order;
- * attribute order has no meaning in the DOM) without the state the browser binding writes
- * (the `data-crudui-stuck` and `data-crudui-current` row marks and the lengths published
- * on the connected element) and without the nodes frameworks use as rendering anchors,
- * which render nothing: comments and empty text.
+ * attribute order has no meaning in the DOM) without the nodes frameworks use as rendering
+ * anchors, which render nothing: comments and empty text.
  */
 function renderedFormDom() {
   const rendered = view.querySelector('.crudui-form');
@@ -144,14 +142,6 @@ function renderedFormDom() {
     if (node.nodeType === Node.COMMENT_NODE || node.nodeValue === '') anchors.push(node);
   }
   for (const node of anchors) node.remove();
-  for (const element of [copy, ...copy.querySelectorAll('[data-crudui-current],[data-crudui-stuck]')]) {
-    element.removeAttribute('data-crudui-current');
-    element.removeAttribute('data-crudui-stuck');
-  }
-  copy.style.removeProperty('--crudui-scroll-height');
-  copy.style.removeProperty('--crudui-form-end-extent');
-  copy.style.removeProperty('--crudui-form-end-top');
-  copy.style.removeProperty('--crudui-form-end-after');
   // A style attribute is a CSS declaration block: compare its declarations as the CSS object
   // model serializes them, as React writes `name: value;` for the markup's `name:value`.
   for (const element of [copy, ...copy.querySelectorAll('[style]')]) {

@@ -1,4 +1,3 @@
-import '../../../tests/fixtures/form-session/jsdom.mjs';
 import { mount, unmount, tick } from 'svelte';
 import { expect, it } from 'vitest';
 import { compileForm, createForm } from '@crudui/generator-core';
