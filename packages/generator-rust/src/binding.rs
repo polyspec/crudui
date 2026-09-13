@@ -119,7 +119,7 @@ impl Binding<'_> {
             }
             None => Err(FormError {
                 code: "UNSUPPORTED_FIELD_TYPE".into(),
-                message: format!("Unsupported field type '{kind}' at '{path}'"),
+                message: format!("Unsupported field type \"{kind}\" at \"{path}\""),
                 at: path.into(),
                 trace: Vec::new(),
             }),
