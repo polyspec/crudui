@@ -1,5 +1,6 @@
 import { composeProperties, MemoryLoader, type FileLoader } from '@crudui/validator';
 import { makeTranslate, type Language } from './content';
+import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
 import { formMessages } from './messages';
 import { buildField, type BuildState, type NodeVM, type UnsupportedMode } from './viewmodel';
 
@@ -21,6 +22,10 @@ export interface FormTemplate {
   readonly keyPrefix?: string;
   /** Top-level field definitions. */
   readonly fields: readonly FormFieldTemplate[];
+  /** Form buttons in declaration order; one submit button when the spec declares none. */
+  readonly buttons: readonly Readonly<Record<string, unknown>>[];
+  /** Submission target declared by the spec, kept for the application. */
+  readonly action?: Readonly<Record<string, unknown>>;
 }
 
 /** Composition inputs used only when preparing a template. */
@@ -90,6 +95,10 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
   const fail = (key: string, expected: string): never => {
     throw new TypeError(`Invalid ${key} at ${path}: expected ${expected}`);
   };
+  // Buttons and the submission target belong to the form, not to a field.
+  for (const key of ['buttons', 'action']) {
+    if (has(spec, key)) fail(key, 'the form root');
+  }
   if (has(spec, 'multiple')) {
     const multiple = spec.multiple;
     if (typeof multiple !== 'boolean' && !isRecord(multiple)) fail('multiple', 'a boolean or an object');
@@ -147,6 +156,38 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
   }
 }
 
+/** Reject a wrong root `action` or `buttons` declaration. */
+function checkFormDeclarations(spec: Record<string, unknown>): void {
+  const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+  const fail = (key: string, expected: string): never => {
+    throw new TypeError(`Invalid ${key} at form: expected ${expected}`);
+  };
+  if (has(spec, 'action')) {
+    if (!isRecord(spec.action)) fail('action', 'an object');
+    for (const key of ['method', 'url', 'enctype']) {
+      if (has(spec.action as Record<string, unknown>, key) && typeof (spec.action as Record<string, unknown>)[key] !== 'string') {
+        fail(`action.${key}`, 'a string');
+      }
+    }
+  }
+  if (!has(spec, 'buttons')) return;
+  if (!Array.isArray(spec.buttons)) fail('buttons', 'a list of buttons');
+  // A button type without interface text needs declared text.
+  const texts = formMessages('ko') as unknown as Record<string, unknown>;
+  (spec.buttons as unknown[]).forEach((button, index) => {
+    const key = `buttons.${index}`;
+    if (!isRecord(button)) fail(key, 'an object');
+    const declared = button as Record<string, unknown>;
+    if (!FORM_BUTTON_TYPES.includes(declared.type as never)) fail(`${key}.type`, 'submit, reset, button or link');
+    for (const name of ['name', 'value', 'href']) {
+      if (has(declared, name) && typeof declared[name] !== 'string') fail(`${key}.${name}`, 'a string');
+    }
+    if (!has(texts, declared.type as string) && !has(declared, 'text')) fail(`${key}.text`, 'content for this button type');
+    if (declared.type === 'link' && !has(declared, 'href')) fail(`${key}.href`, 'a link target');
+    checkDeclarations(declared, `form.${key}`);
+  });
+}
+
 function compileFields(properties: Record<string, unknown>, parent = ''): FormFieldTemplate[] {
   return Object.entries(properties).flatMap(([name, raw]) => {
     if (!isRecord(raw)) return [];
@@ -170,6 +211,7 @@ export function compileForm(
       typeof rootSpec.properties !== 'object' || Array.isArray(rootSpec.properties)) {
     throw new TypeError('A form spec must be a group with properties');
   }
+  checkFormDeclarations(rootSpec);
   const properties = composeProperties(
     (rootSpec.properties as Record<string, unknown>) ?? {},
     options.loader ?? new MemoryLoader(options.files ?? {}),
@@ -179,6 +221,8 @@ export function compileForm(
     kind: 'crudui/form-template' as const,
     keyPrefix: options.keyPrefix,
     fields: compileFields(copyFormValue(properties)),
+    buttons: copyFormValue((rootSpec.buttons as Record<string, unknown>[] | undefined) ?? [...DEFAULT_FORM_BUTTONS]),
+    ...(isRecord(rootSpec.action) ? { action: copyFormValue(rootSpec.action) } : {}),
   });
 }
 

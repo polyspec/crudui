@@ -1,4 +1,5 @@
 import { bindForm, copyFormValue, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
+import { bindButtons, type ButtonVM } from './buttons';
 import { formMessages, type FormMessages } from './messages';
 import type { NodeVM } from './viewmodel';
 import { getValueByPath, parsePathString } from './util';
@@ -43,6 +44,8 @@ export interface AddRowOptions {
 export interface FormSnapshot {
   /** Evaluated fields for the current data and view. */
   readonly fields: NodeVM[];
+  /** Evaluated form buttons for the current data. */
+  readonly buttons: ButtonVM[];
   /** Number of successful data updates. */
   readonly revision: number;
   /** Whether `undo` can restore an earlier record. */
@@ -119,7 +122,12 @@ export class FormInstance {
     this.template = template;
     this.options = { ...options };
     this.data = this.normalizeFields(template.fields, data);
-    this.snapshot = { fields: this.build(this.data, this.view.collapsed), revision: 0, canUndo: false };
+    this.snapshot = {
+      fields: this.build(this.data, this.view.collapsed),
+      buttons: bindButtons(template, this.data, this.options),
+      revision: 0,
+      canUndo: false,
+    };
   }
 
   /** Subscribe to injection, editing, row operations and view changes. Returns an unsubscribe function. */
@@ -263,6 +271,7 @@ export class FormInstance {
   private publish(fields: NodeVM[], revision: number): void {
     this.snapshot = {
       fields,
+      buttons: bindButtons(this.template, this.data, this.options),
       revision,
       canUndo: canUndo(this.history),
       ...(this.view.selection ? { selection: this.view.selection } : {}),

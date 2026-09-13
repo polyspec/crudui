@@ -28,7 +28,7 @@ final class Generator
     /** Render the current instance inside its crudui-form block. */
     public static function renderForm(Form $form): string
     {
-        return Rendering::form($form->getFields());
+        return Rendering::form($form->getFields(), $form->getButtons(), $form->getMessages());
     }
 
     /** Render supplied list rows using the table or card layout. */

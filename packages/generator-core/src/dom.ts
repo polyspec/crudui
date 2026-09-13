@@ -83,8 +83,23 @@ export function alignRow(row: HTMLElement): void {
 export function connectRows(element: HTMLElement, onCurrent: (row: HTMLElement | undefined) => void): RowTracking {
   const view = element.ownerDocument.defaultView!;
   let frame = 0;
+  /**
+   * Publish the end row lengths for the trailing space rule: the extent from the top
+   * of the deepest row at the end of the form to the end of the outermost such row,
+   * and that row's aligned top (its scroll-margin-top).
+   */
+  const publishEnd = () => {
+    const ends = Array.from(element.querySelectorAll<HTMLElement>('[data-crudui-row-key]:last-child'))
+      .filter(row => row.closest('.crudui-form__body :not(:last-child)') === null);
+    const deepest = ends[ends.length - 1];
+    // Published on the connected element, which rendering never replaces; the form
+    // inherits them, so a re-render cannot drop the space and pull the scroll back.
+    element.style.setProperty('--crudui-form-end-extent', deepest ? `${ends[0]!.getBoundingClientRect().bottom - deepest.getBoundingClientRect().top}px` : '100vh');
+    element.style.setProperty('--crudui-form-end-top', deepest ? view.getComputedStyle(deepest).scrollMarginTop : '0px');
+  };
   const measure = () => {
     frame = 0;
+    publishEnd();
     const scroller = scrollParent(element);
     const top = scroller === element.ownerDocument.scrollingElement ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop;
     const rows = Array.from(element.querySelectorAll<HTMLElement>('[data-crudui-row-key]'));
@@ -104,9 +119,13 @@ export function connectRows(element: HTMLElement, onCurrent: (row: HTMLElement |
   };
   view.addEventListener('scroll', schedule, { capture: true, passive: true });
   view.addEventListener('resize', schedule);
+  // Content that grows or shrinks without scrolling changes the end row extent.
+  const resized = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(schedule) : undefined;
+  resized?.observe(element);
   return {
     update: measure,
     disconnect() {
+      resized?.disconnect();
       if (frame) view.cancelAnimationFrame(frame);
       frame = 0;
       view.removeEventListener('scroll', schedule, { capture: true });

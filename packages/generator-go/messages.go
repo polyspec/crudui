@@ -11,6 +11,7 @@ type formMessages struct {
 	moveUp, moveDown, addRow, copyRow, removeRow, toggleRow string
 	expandAll, collapseAll, undo                            string
 	rowControls, collectionControls, formControls           string
+	formActions, submit, reset                              string
 	outline, data, untitled, collapsed, count, children     string
 }
 
@@ -28,6 +29,9 @@ var messageTables = map[string]formMessages{
 		rowControls:        "행 컨트롤",
 		collectionControls: "컬렉션 컨트롤",
 		formControls:       "폼 컨트롤",
+		formActions:        "폼 작업",
+		submit:             "저장",
+		reset:              "초기화",
 		outline:            "구조 맵",
 		data:               "현재 데이터",
 		untitled:           "(이름 없음)",
@@ -48,6 +52,9 @@ var messageTables = map[string]formMessages{
 		rowControls:        "Row controls",
 		collectionControls: "Collection controls",
 		formControls:       "Form controls",
+		formActions:        "Form actions",
+		submit:             "Save",
+		reset:              "Reset",
 		outline:            "Structure map",
 		data:               "Current data",
 		untitled:           "(untitled)",
@@ -68,6 +75,9 @@ var messageTables = map[string]formMessages{
 		rowControls:        "行の操作",
 		collectionControls: "コレクションの操作",
 		formControls:       "フォームの操作",
+		formActions:        "フォームのアクション",
+		submit:             "保存",
+		reset:              "リセット",
 		outline:            "構造マップ",
 		data:               "現在のデータ",
 		untitled:           "(名前なし)",
@@ -88,6 +98,9 @@ var messageTables = map[string]formMessages{
 		rowControls:        "行操作",
 		collectionControls: "集合操作",
 		formControls:       "表单操作",
+		formActions:        "表单动作",
+		submit:             "保存",
+		reset:              "重置",
 		outline:            "结构图",
 		data:               "当前数据",
 		untitled:           "(未命名)",

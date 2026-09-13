@@ -24,7 +24,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 | 블록 | 구조 |
 | --- | --- |
-| `crudui-form` | `crudui-form__body`를 가진 폼 루트입니다. |
+| `crudui-form` | `crudui-form__body`와 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다. |
 | `crudui-node` | 데이터 노드 하나입니다. 종류는 아래와 같습니다. |
 | `crudui-controls` | `role="group"`과 접근성 이름을 가진 버튼 묶음입니다. |
 | `crudui-action` | `data-crudui-action`을 가진 버튼입니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
@@ -104,14 +104,32 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
   `--crudui-node-header-height`를 곱한 값입니다. 스타일시트는 이 값에서 세 규칙을 따릅니다.
   헤더는 고정선에 고정되고 테두리를 포함해 정확히 헤더 높이이며 줄바꿈하지 않으므로(긴
   제목은 줄임표) 고정된 단계가 겹치지 않고 맞닿습니다. 행의 `scroll-margin-top`은 헤더를
-  고정선에 놓으므로 `alignRow(row)`는 `scrollIntoView({ block: 'start' })`입니다. 마지막
-  행은 정렬된 상단 아래 화면 높이에서 상위 행들의 아래 테두리·여백을 뺀 높이 이상이므로,
-  그 헤더가 고정선에 닿을 때 스크롤이 끝납니다. 이 한계는 스크롤 영역에서 폼 뒤에 아무것도
-  없을 때 정확하며, 페이지 여백처럼 폼 뒤에 있는 내용은 그 높이만큼 더 스크롤됩니다.
+  고정선에 놓으므로 `alignRow(row)`는 `scrollIntoView({ block: 'start' })`입니다. 폼 바깥의
+  아래 여백은 화면 높이에서 폼 끝 행 상단부터 폼 내용 끝까지의 범위, 그 행의 정렬 위치,
+  푸터 높이를 뺀 값이므로 그 헤더가 고정선에 닿을 때 스크롤이 끝납니다. `connectRows`는 이
+  두 길이를 렌더링이 교체하지 않는 연결 요소에 게시합니다. 이 한계는 스크롤 영역에서 폼
+  뒤에 아무것도 없을 때 정확하며, 페이지 여백처럼 폼 뒤에 있는 내용은 그 높이만큼 더
+  스크롤됩니다.
 - `connectRows(element, onCurrent)`는 상단이 고정선에 닿은 행을 표시합니다. 고정 행에는
   `data-crudui-stuck`을, 그중 문서 순서상 마지막 행(아직 없으면 첫 행)에는
   `data-crudui-current`를 붙이고 `onCurrent`에 전달합니다. 단계 레이블은 고정된 헤더에만
   보이고, 현재 행은 테두리가 강조됩니다.
+
+## 폼 버튼
+
+스펙은 루트의 `buttons`로 폼 버튼을 선언합니다. `buttons`는 `{ type, text, name, value,
+href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `link` 중 하나입니다.
+`buttons`가 없는 스펙은 제출 버튼 하나를 가집니다. `text`가 없는 제출·초기화 버튼은 유형의
+인터페이스 문구를 표시하고, button과 link는 `text`가, link는 `href`가 필요합니다.
+`action`(`method`, `url`, `enctype`)은 제출 대상이며 애플리케이션을 위해 템플릿에 보존합니다.
+두 키는 폼 루트에 속합니다.
+
+모든 폼은 `crudui-form__footer`로 끝나며, 폼 작업 문구를 접근 가능한 이름으로 가진
+`crudui-controls` 그룹 하나를 담습니다. `bindButtons(template, data, options)`가 버튼을
+평가하고(디자인 클래스와 스타일은 필드 디자인 규칙을 따름), `formButtonsHtml(buttons)`가 유일한
+마크업 생성기입니다. link는 `a`, 나머지 유형은 `button` 요소이며 속성 순서는 `type`, `class`,
+`style`, `name`, `value`, `href`, `onclick`입니다. 푸터는 고정 행 헤더가 위에 붙듯 스크롤 영역
+하단에 `--crudui-form-footer-height` 높이로 붙습니다.
 
 ## 구조 맵과 현재 데이터 보기
 

@@ -13,7 +13,8 @@ fn spec() -> Value {
             "title":{"type":"text","lang":{"only":["ko","en"]}},
             "departments":{"type":"group","multiple":true,"properties":{"name":{"type":"text","validate":{"required":true}}}}
         }}
-    }}}})
+    }}},
+    "buttons":[{"type":"submit","name":"_form_complete","value":"1","text":{"en":"Save","ko":"저장"}}]})
 }
 
 fn fixture() -> (tempfile::TempDir, Arc<Server>) {
@@ -286,9 +287,10 @@ async fn server_html_uses_framework_storage_and_native_submission() {
     assert!(html.contains(&format!("data-generator-commit=\"{COMMIT}\"")));
     assert!(html.contains("action=\"/api/rust/save/createForm/react\""));
     assert!(html.contains("/frames/createForm-react/?server=rust&amp;lang=en&amp;initialization=data"));
-    assert!(
-        html.contains("<button type=\"submit\" name=\"_form_complete\" value=\"1\">Save</button>")
-    );
+    assert_eq!(html.matches("type=\"submit\"").count(), 1);
+    assert!(html.contains(
+        "<button type=\"submit\" class=\"crudui-action crudui-action--text\" name=\"_form_complete\" value=\"1\">Save</button>"
+    ));
     assert!(!html.contains("type=\"hidden\""));
     assert!(!html.contains("[company_seq]"));
     assert!(html.find("Company 5").unwrap() < html.find("Company 7").unwrap());

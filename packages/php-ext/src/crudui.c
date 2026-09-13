@@ -207,6 +207,17 @@ FORM_READER(getTemplate, 0)
 FORM_READER(getData, 1)
 FORM_READER(getFields, 2)
 FORM_READER(getRevision, 3)
+FORM_READER(getButtons, 5)
+
+PHP_METHOD(CRUDUI_Form, getMessages)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    ps_form *form = require_form(Z_OBJ_P(ZEND_THIS));
+    if (!form) return;
+    /* Interface text keyed by message name, as an array like the PHP implementation. */
+    crudui_return(ps_form_read(form, 6), return_value);
+    if (Z_TYPE_P(return_value) == IS_OBJECT) convert_to_array(return_value);
+}
 
 static void apply_form(zend_object *object, uint8_t method, size_t count, zval **values, const bool *objects, zval *return_value)
 {

@@ -176,6 +176,13 @@ export interface FieldSpec {
    */
   options?: Slot<OptionsSlot>;
 
+  // -- Form root declarations --
+
+  /** Form buttons rendered in the form footer. Honored on the form root only. */
+  buttons?: FormButton[];
+  /** Submission target kept for the application. Honored on the form root only. */
+  action?: FormAction;
+
   // -- Composition (SPEC §5) --
 
   /**
@@ -188,6 +195,34 @@ export interface FieldSpec {
    * set, e.g. `'field.validate.required': '.other'`.
    */
   $patch?: PatchDirective;
+}
+
+/** One form button. A button or link needs text; a link needs href. */
+export interface FormButton {
+  /** Button type; a link renders an anchor. */
+  type: 'submit' | 'reset' | 'button' | 'link';
+  /** Button text; submit and reset default to interface text. */
+  text?: LocalizedText;
+  /** Submitted name. */
+  name?: string;
+  /** Submitted value. */
+  value?: string;
+  /** Link target. */
+  href?: string;
+  /** Button appearance. */
+  design?: Slot<DesignSlot>;
+  /** Opaque behavior scripts. */
+  behavior?: Slot<BehaviorSlot>;
+}
+
+/** Submission target of the form, kept for the application. */
+export interface FormAction {
+  /** HTTP method. */
+  method?: string;
+  /** Submission URL. */
+  url?: string;
+  /** Submission encoding. */
+  enctype?: string;
 }
 
 /**

@@ -121,7 +121,7 @@ export interface DescribeResult {
   };
   classification: {
     source: string;
-    firstClass: { structure: string[]; content: string[]; roleSlots: string[] };
+    firstClass: { structure: string[]; content: string[]; roleSlots: string[]; form: string[] };
     dependencyIsolation: Array<{ trigger: string; target: string; note: string }>;
     roleDistribution: Array<{ role: string; target: string }>;
   };
@@ -339,9 +339,11 @@ function collectClassification(schema: SchemaDoc): DescribeResult['classificatio
   const structure = ['type', 'name', 'default', 'properties', 'items', 'multiple', 'lang'];
   const content = ['label', 'description', 'placeholder', 'prepend', 'append', 'help'];
   const roleSlots = ['validate', 'design', 'behavior', 'options'];
+  // Form declarations: honored on the form root only.
+  const form = ['buttons', 'action'];
   return {
     source: 'docs/spec/schema.md',
-    firstClass: { structure, content, roleSlots },
+    firstClass: { structure, content, roleSlots, form },
     dependencyIsolation: [
       { trigger: 'type (scalar)', target: 'options', note: 'type-dependent settings + container chrome + type scripts/callbacks' },
       { trigger: 'multiple (repeat)', target: 'multiple', note: 'min/max/copy/sortable/title/controls/header/onclick — repeat-dependent' },

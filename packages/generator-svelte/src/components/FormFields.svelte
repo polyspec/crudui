@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { NodeVM } from '@crudui/generator-core';
+  import { formButtonsHtml, type ButtonVM, type FormMessages, type NodeVM } from '@crudui/generator-core';
   import Node from './Node.svelte';
 
-  let { fields, root = $bindable() }: { fields: NodeVM[]; root?: HTMLDivElement } = $props();
+  let { fields, buttons, messages, root = $bindable() }: { fields: NodeVM[]; buttons: ButtonVM[]; messages: FormMessages; root?: HTMLDivElement } = $props();
 </script>
 
 <div class="crudui-form" bind:this={root}>
@@ -10,5 +10,8 @@
     {#each fields as vm (vm.path)}
       <Node {vm} />
     {/each}
+  </div>
+  <div class="crudui-form__footer">
+    <div class="crudui-controls" role="group" aria-label={messages.formActions}>{@html formButtonsHtml(buttons)}</div>
   </div>
 </div>

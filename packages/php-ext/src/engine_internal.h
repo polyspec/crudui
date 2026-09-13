@@ -101,6 +101,9 @@ typedef struct {
     const char *row_controls;
     const char *collection_controls;
     const char *form_controls;
+    const char *form_actions;
+    const char *submit;
+    const char *reset;
     const char *outline;
     const char *data;
     const char *untitled;
@@ -121,6 +124,12 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
                     const char *id_prefix, const char *language,
                     const size_t *row_segments, size_t row_count);
 char *ps_render_fields(const ps_value *fields);
+/* Evaluate the template buttons for a record: type, tag, text and attrs in output order. */
+ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, const char *language);
+/* Form markup: the field body, then the footer controls group holding the buttons. */
+char *ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label);
+/* Every interface text as an object keyed by message name. */
+ps_value *ps_form_messages_value(const ps_form_messages *messages);
 
 ps_value *ps_expression_value(const char *expression, const ps_value *data,
                               const char *const *current_path, size_t path_length,

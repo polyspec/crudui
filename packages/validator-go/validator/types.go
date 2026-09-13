@@ -126,6 +126,42 @@ type FieldSpec struct {
 	// Options is the type-dependent role slot — the type defines and validates
 	// it; the core does not participate.
 	Options *OptionsSlot `json:"options,omitempty"`
+
+	// Buttons are the form buttons rendered in the form footer. Honored on the
+	// form root only.
+	Buttons []FormButton `json:"buttons,omitempty"`
+
+	// Action is the submission target kept for the application. Honored on the
+	// form root only.
+	Action *FormAction `json:"action,omitempty"`
+}
+
+// FormButton is one form button. A button or link needs text; a link needs href.
+type FormButton struct {
+	// Type is submit, reset, button or link.
+	Type string `json:"type"`
+	// Text is the button text, optionally a language map.
+	Text *Content `json:"text,omitempty"`
+	// Name is the submitted name.
+	Name string `json:"name,omitempty"`
+	// Value is the submitted value.
+	Value string `json:"value,omitempty"`
+	// Href is the link target.
+	Href string `json:"href,omitempty"`
+	// Design is the button appearance.
+	Design *DesignSlot `json:"design,omitempty"`
+	// Behavior holds opaque behavior scripts.
+	Behavior *BehaviorSlot `json:"behavior,omitempty"`
+}
+
+// FormAction is the submission target of the form, kept for the application.
+type FormAction struct {
+	// Method is the HTTP method.
+	Method string `json:"method,omitempty"`
+	// URL is the submission URL.
+	URL string `json:"url,omitempty"`
+	// Enctype is the submission encoding.
+	Enctype string `json:"enctype,omitempty"`
 }
 
 // fieldSpecAlias avoids UnmarshalJSON recursion and lets the decoder reject any
