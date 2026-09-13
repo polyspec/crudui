@@ -364,8 +364,13 @@ const checks = [
       equal(collectionRows(wrapper).length, 0, 'empty collection row count');
       equal(wrapper.querySelectorAll('input[name],textarea[name],select[name]').length, 0, 'empty collection has no submitted row controls');
       assert(!wrapper.hidden, 'Empty collection remains visible');
+      // The collection's own Add button: no row between it and the collection
+      // (the collection itself may sit inside an enclosing row).
       const button = Array.from(wrapper.querySelectorAll('[data-crudui-action="add-row"]'))
-        .find(item => item.closest('[data-field-path]') === wrapper && !item.closest('[data-crudui-row-key]'));
+        .find(item => {
+          const row = item.closest('[data-crudui-row-key]');
+          return item.closest('[data-field-path]') === wrapper && !(row && wrapper.contains(row));
+        });
       assert(button, 'Empty collection must have an Add button');
       button.focus({ preventScroll: true });
       button.click(); await settle();

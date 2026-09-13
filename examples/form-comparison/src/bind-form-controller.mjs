@@ -241,9 +241,11 @@ export function bindFormController(element, mount, template, language, initialDa
       : Array.from(element.querySelectorAll('[data-crudui-action="add-row"]'))
         .find(button => !button.disabled && pathOf(button) === path);
     if (!control) return;
-    control.focus({ preventScroll: true });
+    // Scroll before focusing, as core connectForm does: focusing selects the row,
+    // and that render restores the scroll positions captured at selection time.
     (row?.firstElementChild ?? control).scrollIntoView({ block: 'nearest' });
     control.scrollIntoView({ block: 'nearest' });
+    control.focus({ preventScroll: true });
   }
 
   async function render(focus, version, target) {

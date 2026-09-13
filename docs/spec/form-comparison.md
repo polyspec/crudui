@@ -233,8 +233,8 @@ data, focus, response and CSS digest, and the expected and actual CSS of any
 failed CSS comparison.
 
 Pointer and keyboard checks verify that a row addition focuses the first input of
-the new row, that the input is inside the frame viewport, and that the main page
-does not scroll.
+the new row and that the input is visible inside both the frame viewport and the
+main page viewport; the frame and the page scroll only as far as needed.
 Static browser-entry checks cover both rendering paths and every framework and
 compare corresponding documents from all four servers by SHA-256. Generation
 verification checks Korean and English SSR output for every server and
