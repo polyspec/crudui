@@ -1,7 +1,7 @@
 import {
   compileForm, createForm, createRowKey, sequenceRowKey,
-  type FieldShape, type FormConnection, type FormTemplate, type FormInstance,
-  type FormSnapshot, type MultipleSettings,
+  type ButtonVM, type FormConnection, type FormTemplate, type FormInstance,
+  type FormSnapshot, type NodeVM,
 } from '@crudui/generator-core';
 import {
   Form, createForm as createReactSession,
@@ -29,7 +29,7 @@ const randomKey: string = createRowKey();
 const savedKey: string = sequenceRowKey('42');
 type PublicTypes = [
   ComposedField, FileSet, ParseErrorContext, ParseResult, FormConnection,
-  FieldShape, MultipleSettings, AnyWidget, ListProps, RenderListOptions,
+  NodeVM, ButtonVM, AnyWidget, ListProps, RenderListOptions,
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
