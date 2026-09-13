@@ -52,10 +52,7 @@ fn main() {
 
     let config = Config { port, specs_dir };
 
-    println!(
-        "Form Validator API server running on port {}",
-        config.port
-    );
+    println!("Form Validator API server running on port {}", config.port);
     println!("Specs directory: {}", config.specs_dir.display());
     println!();
     println!("Available endpoints:");
@@ -153,11 +150,7 @@ fn read_request(stream: &mut TcpStream) -> Option<Request> {
         reader.read_exact(&mut body).ok()?;
     }
 
-    Some(Request {
-        method,
-        path,
-        body,
-    })
+    Some(Request { method, path, body })
 }
 
 /// route applies CORS, answers OPTIONS preflight, and dispatches exactly like

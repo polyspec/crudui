@@ -25,7 +25,11 @@ fn button_label(button: &Map<String, Value>, language: &str, fallback: &str) -> 
         Some(Value::String(text)) => text.clone(),
         Some(text @ Value::Object(_)) => {
             let label = translate(Some(text), language);
-            if label.is_empty() { fallback.into() } else { label }
+            if label.is_empty() {
+                fallback.into()
+            } else {
+                label
+            }
         }
         _ => fallback.into(),
     }
@@ -34,11 +38,20 @@ fn button_label(button: &Map<String, Value>, language: &str, fallback: &str) -> 
 /// A non-empty behavior script: a string or the script of a `{ label, script }` action.
 fn button_script(button: &Map<String, Value>, action: &str) -> String {
     let value = button.get("behavior").map_or(&Value::Null, |b| &b[action]);
-    value.as_str().or_else(|| value["script"].as_str()).unwrap_or("").into()
+    value
+        .as_str()
+        .or_else(|| value["script"].as_str())
+        .unwrap_or("")
+        .into()
 }
 
 /// Render the form buttons for a record; every implementation emits this markup.
-pub(crate) fn form_buttons_html(buttons: &[Map<String, Value>], data: &Value, language: &str, messages: &Messages) -> String {
+pub(crate) fn form_buttons_html(
+    buttons: &[Map<String, Value>],
+    data: &Value,
+    language: &str,
+    messages: &Messages,
+) -> String {
     buttons
         .iter()
         .map(|button| {
@@ -50,7 +63,14 @@ pub(crate) fn form_buttons_html(buttons: &[Map<String, Value>], data: &Value, la
                 attrs.push(("type", kind.into()));
             }
             let class = design["main"]["class"].as_str().unwrap_or("");
-            attrs.push(("class", if class.is_empty() { "crudui-action crudui-action--text".into() } else { format!("crudui-action crudui-action--text {class}") }));
+            attrs.push((
+                "class",
+                if class.is_empty() {
+                    "crudui-action crudui-action--text".into()
+                } else {
+                    format!("crudui-action crudui-action--text {class}")
+                },
+            ));
             let style = style_string(design["main"]["style"].as_str().unwrap_or(""));
             if !style.is_empty() {
                 attrs.push(("style", style));
@@ -64,8 +84,14 @@ pub(crate) fn form_buttons_html(buttons: &[Map<String, Value>], data: &Value, la
             if !script.is_empty() {
                 attrs.push(("onclick", script));
             }
-            let attributes = attrs.iter().map(|(name, value)| format!(" {name}=\"{}\"", raw_attribute(value))).collect::<String>();
-            format!("<{tag}{attributes}>{}</{tag}>", raw_text(&button_label(button, language, button_text(messages, kind))))
+            let attributes = attrs
+                .iter()
+                .map(|(name, value)| format!(" {name}=\"{}\"", raw_attribute(value)))
+                .collect::<String>();
+            format!(
+                "<{tag}{attributes}>{}</{tag}>",
+                raw_text(&button_label(button, language, button_text(messages, kind)))
+            )
         })
         .collect()
 }

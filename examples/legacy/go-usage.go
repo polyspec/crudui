@@ -538,9 +538,9 @@ type ValidationRequest struct {
 
 // ValidationResponse represents the validation response
 type ValidationResponse struct {
-	Valid  bool                       `json:"valid"`
+	Valid  bool                        `json:"valid"`
 	Errors []validator.ValidationError `json:"errors,omitempty"`
-	Error  string                     `json:"error,omitempty"`
+	Error  string                      `json:"error,omitempty"`
 }
 
 // loadSpec loads a spec from YAML file
@@ -876,10 +876,10 @@ func patternMatchingExample() {
 
 	// Test cases
 	testCases := []map[string]interface{}{
-		{"phone": "010-1234-5678", "postal_code": "12345", "username": "user123"},      // Valid
-		{"phone": "1234567890", "postal_code": "12345", "username": "user123"},         // Invalid phone
-		{"phone": "010-1234-5678", "postal_code": "1234", "username": "user123"},       // Invalid postal
-		{"phone": "010-1234-5678", "postal_code": "12345", "username": "123user"},      // Invalid username
+		{"phone": "010-1234-5678", "postal_code": "12345", "username": "user123"}, // Valid
+		{"phone": "1234567890", "postal_code": "12345", "username": "user123"},    // Invalid phone
+		{"phone": "010-1234-5678", "postal_code": "1234", "username": "user123"},  // Invalid postal
+		{"phone": "010-1234-5678", "postal_code": "12345", "username": "123user"}, // Invalid username
 	}
 
 	for i, data := range testCases {

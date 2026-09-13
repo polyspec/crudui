@@ -73,15 +73,41 @@ fn cli_rejects_trailing_or_malformed_json_and_missing_operations() {
 fn cli_passes_option_values_of_any_type_to_binding() {
     let (_, template) = execute(&json!({"operation":"compileForm","spec":{"type":"group","properties":{"name":{"type":"text"}}}}).to_string());
     for (operation, options, message) in [
-        ("bindForm", json!({"language":5}), "Language must be a string"),
-        ("form", json!({"language":"fr","keyPrefix":5}), "keyPrefix must be a string"),
-        ("bindForm", json!({"idPrefix":[]}), "idPrefix must be a string"),
-        ("form", json!({"unsupported":true}), "unsupported must be throw or marker"),
-        ("bindForm", json!({"language":"fr","unsupported":"other"}), "unsupported must be throw or marker"),
+        (
+            "bindForm",
+            json!({"language":5}),
+            "Language must be a string",
+        ),
+        (
+            "form",
+            json!({"language":"fr","keyPrefix":5}),
+            "keyPrefix must be a string",
+        ),
+        (
+            "bindForm",
+            json!({"idPrefix":[]}),
+            "idPrefix must be a string",
+        ),
+        (
+            "form",
+            json!({"unsupported":true}),
+            "unsupported must be throw or marker",
+        ),
+        (
+            "bindForm",
+            json!({"language":"fr","unsupported":"other"}),
+            "unsupported must be throw or marker",
+        ),
     ] {
-        let (success, result) = execute(&json!({"operation":operation,"template":template,"data":{},"options":options}).to_string());
+        let (success, result) = execute(
+            &json!({"operation":operation,"template":template,"data":{},"options":options})
+                .to_string(),
+        );
         assert!(!success);
-        assert_eq!(result["error"], json!({"code":"INVALID_FORM_INPUT","message":message,"at":""}));
+        assert_eq!(
+            result["error"],
+            json!({"code":"INVALID_FORM_INPUT","message":message,"at":""})
+        );
     }
     let (success, _) = execute(&json!({"operation":"form","template":template,"data":{},"options":{"language":null,"idPrefix":null,"keyPrefix":null,"unsupported":null}}).to_string());
     assert!(success);

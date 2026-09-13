@@ -199,7 +199,11 @@ fn node_root(kind: &str, path: &str, design: &Value) -> Map<String, Value> {
     put_string(&mut node, "kind", kind);
     put_string(&mut node, "path", path);
     put_string(&mut node, "className", text_at(design, "wrapper", "class"));
-    put_nonempty(&mut node, "style", style(text_at(design, "wrapper", "style")));
+    put_nonempty(
+        &mut node,
+        "style",
+        style(text_at(design, "wrapper", "style")),
+    );
     node.insert("hidden".into(), (design["show"] != true).into());
     node
 }
@@ -215,7 +219,11 @@ fn node_header(parts: Vec<(&str, Option<String>)>, design: &Value) -> Option<Val
     }
     let mut header = Map::new();
     put_string(&mut header, "className", text_at(design, "label", "class"));
-    put_nonempty(&mut header, "style", style(text_at(design, "label", "style")));
+    put_nonempty(
+        &mut header,
+        "style",
+        style(text_at(design, "label", "style")),
+    );
     for (key, value) in present {
         put_string(&mut header, key, value);
     }
@@ -254,7 +262,7 @@ impl Binding<'_> {
         design: &Value,
         row_segments: &[usize],
     ) -> FormResult<Value> {
-        let id = control_id(self.id_prefix,path);
+        let id = control_id(self.id_prefix, path);
         let context = WidgetContext {
             spec,
             value: value_at(self.data, path),
@@ -268,9 +276,7 @@ impl Binding<'_> {
         let kind = spec["type"].as_str().unwrap_or("");
         match evaluate_widget(kind, &context) {
             Some(widget) => Ok(widget),
-            None if self.unsupported == "marker" => {
-                Ok(json!({"unsupported": true, "type": kind}))
-            }
+            None if self.unsupported == "marker" => Ok(json!({"unsupported": true, "type": kind})),
             None => Err(FormError {
                 code: "UNSUPPORTED_FIELD_TYPE".into(),
                 message: format!("Unsupported field type \"{kind}\" at \"{path}\""),
@@ -280,7 +286,12 @@ impl Binding<'_> {
         }
     }
 
-    fn children(&self, fields: &[FieldTemplate], path: &str, scope: &Scope) -> FormResult<Vec<Value>> {
+    fn children(
+        &self,
+        fields: &[FieldTemplate],
+        path: &str,
+        scope: &Scope,
+    ) -> FormResult<Vec<Value>> {
         fields
             .iter()
             .map(|field| self.field(field, &format!("{path}.{}", field.name), scope))
@@ -299,19 +310,38 @@ impl Binding<'_> {
             .filter(|v| !v.is_empty());
         let description = Some(translate(spec.get("description"), language));
         if let Some(settings) = multiple(&spec) {
-            return self.collection(field, &spec, path, &design, label, description, &settings, scope);
+            return self.collection(
+                field,
+                &spec,
+                path,
+                &design,
+                label,
+                description,
+                &settings,
+                scope,
+            );
         }
         if spec["type"] == "group" {
             check_group(value_at(self.data, path), path)?;
             let mut node = node_root("group", path, &design);
-            if let Some(header) = node_header(vec![("label", label), ("description", description)], &design) {
+            if let Some(header) = node_header(
+                vec![("label", label), ("description", description)],
+                &design,
+            ) {
                 node.insert("header".into(), header);
             }
             node.insert(
                 "body".into(),
-                node_body(text_at(&design, "group", "class"), text_at(&design, "group", "style"), None),
+                node_body(
+                    text_at(&design, "group", "class"),
+                    text_at(&design, "group", "style"),
+                    None,
+                ),
             );
-            node.insert("children".into(), self.children(&field.children, path, scope)?.into());
+            node.insert(
+                "children".into(),
+                self.children(&field.children, path, scope)?.into(),
+            );
             return Ok(node.into());
         }
         if let Some(settings) = lang(&spec) {
@@ -356,7 +386,11 @@ impl Binding<'_> {
         let widget = self.widget(spec, path, design, &scope.row_segments)?;
         if kind != "hidden" {
             let label_for = label.as_ref().and_then(|_| label_target(&widget));
-            let parts = vec![("label", label), ("labelFor", label_for), ("description", description)];
+            let parts = vec![
+                ("label", label),
+                ("labelFor", label_for),
+                ("description", description),
+            ];
             if let Some(header) = node_header(parts, design) {
                 node.insert("header".into(), header);
             }
@@ -379,16 +413,39 @@ impl Binding<'_> {
         scope: &Scope,
     ) -> FormResult<Value> {
         let keys = rows(value_at(self.data, path), path)?;
-        let item = if spec["type"] == "group" { "group" } else { "field" };
+        let item = if spec["type"] == "group" {
+            "group"
+        } else {
+            "field"
+        };
         let full = settings.max.is_some_and(|max| keys.len() as f64 >= max);
         let children = keys
             .iter()
             .enumerate()
-            .map(|(index, key)| self.row(field, spec, path, key, index, keys.len(), &label, settings, scope))
+            .map(|(index, key)| {
+                self.row(
+                    field,
+                    spec,
+                    path,
+                    key,
+                    index,
+                    keys.len(),
+                    &label,
+                    settings,
+                    scope,
+                )
+            })
             .collect::<FormResult<Vec<_>>>()?;
         let count = Some(format_count(self.messages.count, keys.len()));
         let mut node = node_root("collection", path, design);
-        if let Some(header) = node_header(vec![("label", label), ("description", description), ("count", count)], design) {
+        if let Some(header) = node_header(
+            vec![
+                ("label", label),
+                ("description", description),
+                ("count", count),
+            ],
+            design,
+        ) {
             node.insert("header".into(), header);
         }
         node.insert("body".into(), node_body("", "", None));
@@ -457,12 +514,19 @@ impl Binding<'_> {
         if let Some(label) = label {
             put_string(&mut header, "label", label.as_str());
         }
-        let number = inner.row_numbers.iter().map(usize::to_string).collect::<Vec<_>>();
+        let number = inner
+            .row_numbers
+            .iter()
+            .map(usize::to_string)
+            .collect::<Vec<_>>();
         put_string(&mut header, "number", number.join("."));
         if spec["type"] != "group" {
             row.insert("header".into(), header.into());
             row.insert("body".into(), node_body("", "", None));
-            row.insert("widget".into(), self.widget(spec, &row_path, &design, &inner.row_segments)?);
+            row.insert(
+                "widget".into(),
+                self.widget(spec, &row_path, &design, &inner.row_segments)?,
+            );
             return Ok(row.into());
         }
         check_group(value_at(self.data, &row_path), &row_path)?;
@@ -490,10 +554,14 @@ impl Binding<'_> {
         }
         put_string(&mut header, "summary", summary);
         row.insert("header".into(), header.into());
-        let body_id = format!("{}:body", control_id(self.id_prefix,&row_path));
+        let body_id = format!("{}:body", control_id(self.id_prefix, &row_path));
         row.insert(
             "body".into(),
-            node_body(text_at(&design, "group", "class"), text_at(&design, "group", "style"), Some(body_id)),
+            node_body(
+                text_at(&design, "group", "class"),
+                text_at(&design, "group", "style"),
+                Some(body_id),
+            ),
         );
         row.insert("collapsible".into(), true.into());
         // Server rendering has no view state: every row is expanded.
@@ -516,11 +584,25 @@ impl Binding<'_> {
     ) -> FormResult<Value> {
         let title = Some(translate(settings.title, self.language));
         let mut node = node_root("lang", path, design);
-        if let Some(header) = node_header(vec![("label", label), ("description", description), ("title", title)], design) {
+        if let Some(header) = node_header(
+            vec![
+                ("label", label),
+                ("description", description),
+                ("title", title),
+            ],
+            design,
+        ) {
             node.insert("header".into(), header);
         }
-        let frame = if settings.frame { "lang-group" } else { "lang-group p-0 border-0" };
-        node.insert("body".into(), node_body(&join_class(&[frame, settings.group_class]), "", None));
+        let frame = if settings.frame {
+            "lang-group"
+        } else {
+            "lang-group p-0 border-0"
+        };
+        node.insert(
+            "body".into(),
+            node_body(&join_class(&[frame, settings.group_class]), "", None),
+        );
         let children = settings
             .codes
             .iter()

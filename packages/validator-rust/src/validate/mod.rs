@@ -24,9 +24,7 @@ pub use validator::{ValidationError, ValidationResult, Validator};
 
 use serde_json::{Map, Value};
 
-use crate::compose::{
-    compose_properties, compose_spec, ComposeOptions, FileLoader, MemoryLoader,
-};
+use crate::compose::{compose_properties, compose_spec, ComposeOptions, FileLoader, MemoryLoader};
 use crate::forbidden_scan::scan_forbidden_keys;
 
 /// Options for a CRUDUI validation run.
