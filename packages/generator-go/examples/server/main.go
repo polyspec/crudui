@@ -199,6 +199,10 @@ func (s *server) submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	result, e := validate.Validate(s.spec, lookup, validate.Options{})
+	if _, input := e.(*validate.FormInputError); input {
+		http.Error(w, e.Error(), http.StatusBadRequest)
+		return
+	}
 	if e != nil {
 		http.Error(w, e.Error(), http.StatusInternalServerError)
 		return

@@ -2,6 +2,41 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 검증기 로드 실패와 입력 실패를 동일하게 보고
+
+TypeScript, PHP, C PHP 확장, Go, Rust 검증기는 형태가 잘못된 제출 데이터를 건너뛰거나
+변환하지 않고 입력 실패로 거부합니다. 루트 데이터는 객체여야 하며 합성 전에
+검사합니다(`Form data must be an object`). 값이 있는 그룹 또는 반복 그룹 행은
+객체여야 합니다(`Group data must be an object: {path}`). 값이 있는 반복 데이터는
+키 기반 객체여야 합니다(`Repeated data must be a keyed object: {path}`). 각 언어는
+코드 `INVALID_FORM_INPUT`와 빈 위치를 가진 `FormInputError`를 제공하며, Rust는
+`ValidateError::Load` 또는 `ValidateError::Input`을 반환합니다. 모든 구현이 키 기반
+행을 정렬된 키 순서로 순회합니다.
+
+네 검증기 CLI는 하나의 프로세스 계약을 사용합니다. 결과는 종료 상태 0과
+`{valid, errors}`, 로드 또는 입력 실패는 종료 상태 2와 정확히 `{error, code, at}`,
+잘못된 요청은 종료 상태 1과 `{error}`를 출력합니다. 이전에는 TypeScript와 Go가
+`at` 없이 1로 종료했고 PHP는 `rule: "compose"` 오류와 함께 0으로 종료했습니다.
+검증 사례는 `expectLoadError: {code}`를 `expectFailure: {code, message, at}`로
+대체하고 입력 실패 사례 6개를 추가합니다. 이전 배열 행 사례는 키 기반 행을
+사용합니다. 사례 생성기에는 커밋 `8688990`이 `cases.json`에만 추가했던 종료일
+사례 7개를 넣어 재생성해도 사라지지 않습니다. 교차 검증 콘솔은 전체 `failure`
+기록을 비교합니다. 비교·예제 서버는 입력 실패에 HTTP 400으로 응답합니다.
+
+전체 기록을 비교하면서 Go에만 있던 차이가 드러났습니다. Go 목록 검증은 금지 키
+위치 앞에 `list.`을 붙였고 Go 테스트가 이 접두를 고정했습니다. 공유 목록 사례와
+다른 구현은 `columns.<이름>`을 사용하므로 Go도 같게 수정했습니다.
+
+C 확장의 할당 실패 fixture는 키 기반 행을 사용하며 할당 횟수는 4와 3입니다. 엔진
+fixture는 호출하는 C 도우미만 출력합니다. 검사 전에 콘솔이 사용하는 git 무시
+대상 Go·Rust CLI 바이너리를 다시 빌드하고 generator-php의 복사된 검증기를 다시
+설치했습니다. 셋 모두 소스 변경 이전 상태였습니다.
+
+TypeScript 검증기 1618, PHP 검증기 1458, `go test ./...`, `cargo test`, 교차 검증
+콘솔 117개 검사가 통과했습니다. `make test-native`는 생성기 검사 786개, 구성별
+PHP API 검사 361개, 각 PHP 구현의 검증 사례 100개를 통과했습니다.
+`make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 반복 행을 키 기반 객체에서만 바인딩
 
 TypeScript, PHP, Go, Rust와 C PHP extension의 `bindForm`은 키 기반 객체에서만

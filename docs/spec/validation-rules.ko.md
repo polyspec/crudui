@@ -3,8 +3,8 @@
 [English](validation-rules.md).
 
 현재 필드는 `validate` 아래에 규칙을 선언합니다. [스키마 계약](schema.ko.md)은
-필드 구조를, [검증 API](../operations/validation.ko.md)는 진입점과 로드 실패를
-정의합니다. 명시적인 legacy 모듈은 대신 `rules`를 사용합니다.
+필드 구조를, [검증 API](../operations/validation.ko.md)는 진입점과 로드 실패,
+입력 실패를 정의합니다. 명시적인 legacy 모듈은 대신 `rules`를 사용합니다.
 
 ## 등록 규칙
 
@@ -86,7 +86,7 @@ properties:
 각 오류는 필드 경로·필드 이름·실패 규칙·메시지를 포함하고 값이 있으면 값도
 포함합니다. 사용자 지정 메시지는 `match`와 `pattern`을 구분해 선언한 규칙 이름을
 사용합니다. 기본 메시지는 규칙 구현에 정의합니다.
-[사례 계약](test-fixtures.ko.md)은 기대 결과와 로드 오류 검사를 정의합니다.
+[사례 계약](test-fixtures.ko.md)은 기대 결과와 실패 기록을 정의합니다.
 
 [테스트 절차](../operations/testing.ko.md)로 네 검증기 패키지 검사를 모두 실행합니다.
 실제 결과는 [기능 상태](../features.ko.md)에 기록합니다. 모든 등록부에 같은 규칙

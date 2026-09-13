@@ -57,7 +57,7 @@ fn run(case: &Value) -> Result<(), String> {
         Ok(_) => Ok(()),
         // A load failure is the only relevant signal for this contract; carry the
         // code and path so the caller can assert them against the fixture.
-        Err(e) => Err(format!("{}|{}", e.code.as_str(), e.trace.join("."))),
+        Err(e) => Err(format!("{}|{}", e.code(), e.at())),
     }
 }
 

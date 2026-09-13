@@ -1,5 +1,5 @@
 /** CRUDUI validation, composition, expression and rule APIs. */
-export { validate, Validator, default } from './validate/index';
+export { validate, Validator, FormInputError, default } from './validate/index';
 export type { ComposedField, ValidateOptions } from './validate/index';
 export * from './schema';
 export * from './types';

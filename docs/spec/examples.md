@@ -14,12 +14,12 @@ member. `valid` is true exactly when the error array is empty. Missing fields,
 invalid types, contradictory results, process errors and signals fail comparison;
 the console does not fill missing fields or convert invalid values.
 
-Specification load failures are checked separately from data results. The current
-JavaScript and Go CLIs exit with `1`, and Rust exits with `2`, with nonempty
-string `code` and `error` members. The PHP CLI exits with `0` and returns one
-complete error with `valid: false`, `rule: "compose"`, nonempty string `code` and
-`message`, empty `path` and `field`, and `value: null`. A load response with
-another exit status or malformed fields fails comparison.
+Load and input failures are checked separately from data results. Every validator
+CLI exits with `2` and returns exactly the members `error` and `code` as nonempty
+strings and `at` as a string. The console records them as
+`failure: { code, message, at }` and compares the complete record across languages.
+A failure response with another exit status, missing or additional members, or
+malformed values fails comparison.
 
 Historical implementation comparisons run in an independent external workspace.
 That workspace preserves the source commits, container build inputs, HTTP

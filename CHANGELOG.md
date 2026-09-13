@@ -2,6 +2,46 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Report validator load and input failures identically
+
+The TypeScript, PHP, C PHP extension, Go and Rust validators reject submitted
+data with the wrong shape as an input failure instead of skipping it or
+converting it. Root data must be an object (`Form data must be an object`),
+checked before composition. A present group value or repeated group row must be
+an object (`Group data must be an object: {path}`). A present repeated value must
+be a keyed object (`Repeated data must be a keyed object: {path}`). Each language
+has `FormInputError` with code `INVALID_FORM_INPUT` and an empty location; Rust
+returns `ValidateError::Load` or `ValidateError::Input`. Keyed rows are traversed
+in sorted key order everywhere.
+
+All four validator CLIs now share one process contract. A result exits 0 with
+`{valid, errors}`, a load or input failure exits 2 with exactly
+`{error, code, at}`, and a malformed request exits 1 with `{error}`. Before this
+change, TypeScript and Go exited 1 without `at`, and PHP exited 0 with a
+`rule: "compose"` error. Validation fixtures replace `expectLoadError: {code}`
+with `expectFailure: {code, message, at}` and add six input-failure cases. Former
+array-row cases use keyed rows. The fixture generator now contains the seven
+end-date cases that commit `8688990` had added only to `cases.json`, so they are
+no longer dropped on regeneration. The cross-check console compares the complete
+`failure` record. The comparison and example servers answer an input failure with
+HTTP 400.
+
+Comparing complete records exposed a Go-only divergence. Go list validation
+prefixed forbidden-key locations with `list.`, and a Go test pinned that
+prefix. The shared list fixture and the other implementations use
+`columns.<name>`, so Go now does too.
+
+The C extension's allocation-failure fixture uses keyed rows, which need 4 and 3
+allocations. Engine fixtures now emit only the C helpers they call. Before
+testing, the ignored Go and Rust CLI binaries used by the console were rebuilt,
+and generator-php's copied validator was reinstalled; all three predated the
+source changes.
+
+TypeScript validator 1618, PHP validator 1458, `go test ./...`, `cargo test` and
+cross-check console 117 tests passed. `make test-native` passed 786 generator
+checks, 361 PHP API checks per configuration and 100 validation cases in each PHP
+implementation. `make docs-check` passed.
+
 ## 2026-09-13 — Bind repeated rows from keyed objects only
 
 `bindForm` in TypeScript, PHP, Go, Rust and the C PHP extension creates repeated
