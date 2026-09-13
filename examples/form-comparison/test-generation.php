@@ -71,7 +71,9 @@ foreach ([(object) ['template' => [] , 'data' => $data], (object) ['template' =>
     checkGeneration($rejected, 'Render must reject incorrect JSON object types');
 }
 
-$resolved = (object) ['type' => 'group', 'properties' => $files->{'companies.json'}->properties];
+// The comparison spec declares the native completion marker as its one submit button.
+$resolved = (object) ['type' => 'group', 'properties' => $files->{'companies.json'}->properties,
+    'buttons' => json_decode('[{"type":"submit","name":"_form_complete","value":"1","text":{"en":"Save","ko":"저장"}}]')];
 foreach (['bindForm', 'createForm'] as $renderingPath) foreach (['react', 'vue', 'svelte'] as $framework) foreach (['ko', 'en'] as $language) {
     $html = $generation->document($resolved, $data, $renderingPath, $framework, $language);
     $expectedForm = new CRUDUI\Form(CRUDUI\Generator::compileForm($resolved, ['keyPrefix' => 'form']), $data, ['language' => $language]);
