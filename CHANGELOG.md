@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Format every Rust crate and Go file, and check it with `make format-check`
+
+No check ran rustfmt or gofmt, so formatting drifted: five Rust crates had 62
+rustfmt differences (54 in generator-rust, including code from the recent form
+changes) and two Go files had gofmt differences. `tests/runner/go/run_test.go`
+repeated its import alias (`validator validator "…"`) and did not compile at all.
+All crates and files are now formatted and the import is fixed. `make format-check`
+runs `cargo fmt --check` for every tracked `Cargo.toml` through the shared Rust
+command entry point and `gofmt -l` for every tracked Go file, and fails on any
+difference. The comparison Rust server test that compiles the spec by reference now
+keeps `buttons` on the root, as the comparison checks do.
+
+`make format-check` passed. generator-rust passed 20 and 4 tests, validator-rust
+all its test targets, the comparison Rust server 4, `go test` for the legacy Go
+validator and the Go test runner passed, the legacy Rust API and the Rust bench
+built, and `make test-native` passed all 976 generator checks.
+
 ## 2026-09-13 — Record the passing four-server candidate run for the buttons and scrolling changes
 
 `node examples/form-comparison/candidate-verification.mjs --ref e3f8c00` passed:

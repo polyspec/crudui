@@ -2,6 +2,21 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 모든 Rust 크레이트와 Go 파일 포맷 정리, `make format-check`로 검사
+
+rustfmt나 gofmt를 실행하는 검사가 없어 포맷이 어긋나 있었습니다. Rust 크레이트 다섯 개에
+rustfmt 차이 62곳(최근 폼 변경 코드를 포함해 generator-rust에 54곳), Go 파일 두 개에 gofmt 차이가
+있었습니다. `tests/runner/go/run_test.go`는 import 별칭을 두 번 적어(`validator validator "…"`)
+아예 컴파일되지 않았습니다. 모든 크레이트와 파일을 정리하고 import를 고쳤습니다. `make
+format-check`는 추적 중인 모든 `Cargo.toml`에 대해 공용 Rust 명령 진입점으로 `cargo fmt --check`를,
+추적 중인 모든 Go 파일에 대해 `gofmt -l`을 실행하고 차이가 있으면 실패합니다. 스펙을 참조로
+컴파일하는 비교 Rust 서버 테스트도 비교 검사처럼 `buttons`를 루트에 둡니다.
+
+`make format-check`가 통과했습니다. generator-rust가 테스트 20개와 4개를, validator-rust가 모든
+테스트 대상을, 비교 Rust 서버가 4개를 통과했고, 레거시 Go 검증기와 Go 테스트 러너의 `go test`가
+통과했으며, 레거시 Rust API와 Rust 벤치가 빌드되었고, `make test-native`가 생성기 검사 976개를
+모두 통과했습니다.
+
 ## 2026-09-13 — 버튼·스크롤 변경의 네 서버 후보 검증 통과 기록
 
 `node examples/form-comparison/candidate-verification.mjs --ref e3f8c00`가 통과했습니다.
