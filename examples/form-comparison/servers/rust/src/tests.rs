@@ -127,7 +127,7 @@ async fn compilation_and_cached_rendering_use_rust_and_preserve_order() {
     )
     .await;
     assert_eq!(empty["data"], json!({"companies":{}}));
-    assert!(empty["html"].as_str().unwrap().contains("aria-label=\"+\""));
+    assert!(empty["html"].as_str().unwrap().contains("data-crudui-action=\"add-row\""));
     let generated = post(
         &app,
         "render",
