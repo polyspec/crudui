@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace CRUDUI;
 
 use CRUDUI\Generator\Binding;
+use CRUDUI\Generator\Buttons;
+use CRUDUI\Generator\Messages;
 use CRUDUI\Generator\Missing;
 use CRUDUI\Generator\Template;
 use CRUDUI\Generator\Value;
@@ -19,6 +21,8 @@ final class Form
 
     private array $fields;
 
+    private array $buttons;
+
     private int $revision = 0;
 
     private array $options;
@@ -31,6 +35,7 @@ final class Form
         $this->options = $options;
         $this->data = $this->normalizeFields($this->template->fields, Value::object($data));
         $this->fields = Binding::bind($this->template, $this->data, $options);
+        $this->buttons = Buttons::bind($this->template, $this->data, $this->language());
     }
 
     /** Return a detached copy of the compiled template. */
@@ -43,6 +48,18 @@ final class Form
     public function getFields(): array
     {
         return Value::copy($this->fields);
+    }
+
+    /** Return detached evaluated form buttons. */
+    public function getButtons(): array
+    {
+        return Value::copy($this->buttons);
+    }
+
+    /** Return the interface text for the instance language. */
+    public function getMessages(): array
+    {
+        return Messages::forLanguage($this->language());
     }
 
     /** Return the number of successful data updates. */
@@ -103,7 +120,7 @@ final class Form
             }
             $index = $found + 1;
         }
-        $value = $this->normalizeRow($field, array_key_exists('value', $options) ? Value::copy($options['value']) : Missing::Value);
+        $value = $this->normalizeRow($field, array_key_exists('value', $options) ? Value::copy($options['value']) : Missing::Value, implode('.', [...self::checkedPath($path), $key]));
         $next = (object) (array_slice($members, 0, $index, true) + [$key => $value] + array_slice($members, $index, null, true));
         $this->commit(self::put($this->data, self::checkedPath($path), $next));
         return $key;
@@ -181,14 +198,22 @@ final class Form
     private function commit(stdClass $data): void
     {
         $fields = Binding::bind($this->template, $data, $this->options);
+        $buttons = Buttons::bind($this->template, $data, $this->language());
         $this->data = $data;
         $this->fields = $fields;
+        $this->buttons = $buttons;
         $this->revision++;
+    }
+
+    /** The content and interface language, defaulting to Korean. */
+    private function language(): string
+    {
+        return $this->options['language'] ?? 'ko';
     }
 
     private static function checkedPath(string $path): array
     {
-        $segments = array_map(Value::index(...), Value::segments($path));
+        $segments = Value::segments($path);
         if (!$segments || array_intersect($segments, ['__proto__', 'prototype', 'constructor'])) {
             self::fail('Invalid form path: ' . $path);
         }
@@ -226,27 +251,29 @@ final class Form
         self::fail('Unable to generate an unused row key');
     }
 
-    private function normalizeFields(array $fields, mixed $value): stdClass
+    /** Normalize record data; `$path` is the full data path, empty at the root. */
+    private function normalizeFields(array $fields, mixed $value, string $path = ''): stdClass
     {
         if ($value !== Missing::Value && !$value instanceof stdClass) {
-            self::fail('Group data must be an object');
+            self::fail($path === '' ? 'Form data must be an object' : 'Group data must be an object: ' . $path);
         }
         $data = $value === Missing::Value ? new stdClass() : Value::copy($value);
         foreach ($fields as $field) {
             $raw = Value::get($data, $field->name);
+            $fieldPath = $path === '' ? $field->name : $path . '.' . $field->name;
             if (self::repeats($field)) {
                 if ($raw !== Missing::Value && !$raw instanceof stdClass) {
-                    self::fail('Repeated data must be a keyed object: ' . $field->name);
+                    self::fail('Repeated data must be a keyed object: ' . $fieldPath);
                 }
                 $rows = new stdClass();
                 $entries = $raw === Missing::Value ? (object) [self::freshKey([]) => Missing::Value] : $raw;
                 foreach ($entries as $key => $row) {
                     self::checkKey((string) $key);
-                    $rows->{$key} = $this->normalizeRow($field, $row);
+                    $rows->{$key} = $this->normalizeRow($field, $row, $fieldPath . '.' . $key);
                 }
                 $data->{$field->name} = $rows;
             } elseif (($field->spec->type ?? null) === 'group') {
-                $data->{$field->name} = $this->normalizeFields($field->children, $raw);
+                $data->{$field->name} = $this->normalizeFields($field->children, $raw, $fieldPath);
             } elseif ($raw === Missing::Value && property_exists($field->spec, 'default')) {
                 $data->{$field->name} = Value::copy($field->spec->default);
             }
@@ -254,9 +281,9 @@ final class Form
         return $data;
     }
 
-    private function normalizeRow(stdClass $field, mixed $value): mixed
+    private function normalizeRow(stdClass $field, mixed $value, string $path): mixed
     {
-        return ($field->spec->type ?? null) === 'group' ? $this->normalizeFields($field->children, $value) : Value::copy($value === Missing::Value ? $field->spec->default ?? '' : $value);
+        return ($field->spec->type ?? null) === 'group' ? $this->normalizeFields($field->children, $value, $path) : Value::copy($value === Missing::Value ? $field->spec->default ?? '' : $value);
     }
 
     private function copyRowValue(stdClass $field, mixed $value): mixed

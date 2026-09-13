@@ -65,6 +65,9 @@ final class FieldSpec
     /** Role slot: validate/design/behavior/options (§3 role distribution). */
     public const ROLE_SLOT = 'role_slot';
 
+    /** Form declaration: buttons/action, honored on the form root only. */
+    public const ROLE_FORM = 'form';
+
     /**
      * The closed set of top-level field keys, in declaration order, each with
      * its role. A CRUDUI field accepts these keys and nothing else; the schema
@@ -91,6 +94,8 @@ final class FieldSpec
         'design'      => self::ROLE_SLOT,
         'behavior'    => self::ROLE_SLOT,
         'options'     => self::ROLE_SLOT,
+        'buttons'     => self::ROLE_FORM,
+        'action'      => self::ROLE_FORM,
     ];
 
     // --- role slots ----------------------------------------------------------
@@ -215,7 +220,7 @@ final class FieldSpec
         ],
         'multiple' => [
             'location' => 'multiple',
-            'keys'     => ['max', 'copy', 'sortable', 'onclick'],
+            'keys'     => ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
         ],
         'lang' => [
             'location' => 'lang',

@@ -3,7 +3,7 @@
  *
  * Each layout receives the core's evaluated `WidgetModel` (markup-free) and
  * returns a genuine Vue vnode (or vnode array) for its CONTAINER structure
- * (`.input-group` / `.btn-group` / `.input-group field-search` / display `<div>` /
+ * (`.crudui-widget` / `.crudui-choices` / `.crudui-widget--search` / display `<div>` /
  * `<script>`/`<style>` chrome). It RECOMPUTES NOTHING — every class string, data-*
  * value, item list, and script is already evaluated by the core.
  *
@@ -67,7 +67,7 @@ function rawControl(w: WidgetModel, selectedAttr: 'empty' | 'selected' = 'empty'
   return rawVoid('input', w.attrs);
 }
 
-/** Raw serialization of one btn-group button (input + label). */
+/** Raw serialization of one choice (input + label). */
 function groupButtonHtml(
   o: OptionModel,
   type: 'radio' | 'checkbox',
@@ -79,7 +79,7 @@ function groupButtonHtml(
     type,
     value: o.value,
     autocomplete: 'off',
-    class: 'valid-target btn-check',
+    class: 'valid-target crudui-choices__input',
     ...(o.id ? { id: o.id } : {}),
   };
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
@@ -96,20 +96,20 @@ function groupButtonHtml(
 // container vnodes (real) with raw control bodies
 // ---------------------------------------------------------------------------
 
-/** input-group layout: prepend? + control + append? inside .input-group. */
-function inputGroupVNode(w: WidgetModel): VNode {
+/** widget layout: prepend? + control + append? inside .crudui-widget. */
+function widgetVNode(w: WidgetModel): VNode {
   const html = affixHtml(w.prepend) + rawControl(w) + affixHtml(w.append);
-  return h('div', { class: 'input-group', innerHTML: html });
+  return h('div', { class: 'crudui-widget', innerHTML: html });
 }
 
 /**
- * btn-group layout raw html: `<div {attrs}>` + per-item input/label pairs. The
+ * choices layout raw html: `<div {attrs}>` + per-item input/label pairs. The
  * container is serialized raw (not a vnode) because its own `w.attrs` may carry
  * empty-valued attributes (`data-source-method=""` on a dynamic stub) that Vue
  * would coerce to bare; the per-item inputs carry `data-is-default=""`/`checked=""`
- * the same way. Field injects this at the `.input-group-wrapper` root.
+ * the same way. The node renderer injects this into the node body.
  */
-function btnGroupHtml(w: WidgetModel): string {
+function choicesHtml(w: WidgetModel): string {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
   const shared = (w.extra?.input ?? {}) as Attrs;
   const labelClass = w.itemLabelClass ?? '';
@@ -129,15 +129,15 @@ function fileGroupVNode(w: WidgetModel): VNode {
       ? rawVoid('input', display)
       : '') +
     rawVoid('input', fileAttrs) +
-    (display ? `<button class="btn btn-search btn-file-search" type="button">&nbsp;</button>` : '');
-  return h('div', { class: 'input-group', innerHTML: html });
+    (display ? `<button class="crudui-widget__button" type="button">&nbsp;</button>` : '');
+  return h('div', { class: 'crudui-widget', innerHTML: html });
 }
 
 /** display layout: dummy/dummy-input/image-viewer. */
 function displayVNode(w: WidgetModel): VNode {
   if (w.kind === 'dummy-input') {
-    // dummy-input is an input-group control, not a RAW div.
-    return inputGroupVNode(w);
+    // dummy-input is a widget control, not a RAW div.
+    return widgetVNode(w);
   }
   // RAW html display (dummy/image-viewer) — unescaped legacy parity content, on a
   // real container vnode (the sanctioned verbatim-content boundary).
@@ -146,15 +146,15 @@ function displayVNode(w: WidgetModel): VNode {
 
 /**
  * search layout raw html: style?/script chrome (`nonce=""`, verbatim) + the
- * select2 host `<select>` inside `.input-group field-search`. Serialized raw (not
+ * select2 host `<select>` inside `.crudui-widget--search`. Serialized raw (not
  * vnodes) because the chrome's `nonce=""` and the select's `data-default=""` are
  * empty-valued, and the host select needs `selected="selected"` (legacy select2
- * contract) — all of which Vue's serializer would coerce. Field injects this at
- * the `.input-group-wrapper` root.
+ * contract) — all of which Vue's serializer would coerce. The node renderer
+ * injects this into the node body.
  */
 function searchHtml(w: WidgetModel): string {
   const fieldSearch =
-    `<div class="input-group field-search">` +
+    `<div class="crudui-widget crudui-widget--search">` +
     affixHtml(w.prepend) +
     rawElement('select', w.attrs, rawOptions(w.options ?? [], 'selected')) +
     affixHtml(w.append) +
@@ -165,13 +165,13 @@ function searchHtml(w: WidgetModel): string {
 }
 
 // ---------------------------------------------------------------------------
-// root-raw layouts (control is a direct child of .input-group-wrapper)
+// root-raw layouts (control is a direct child of the node body)
 // ---------------------------------------------------------------------------
 
 /**
- * When a widget's control(s) sit DIRECTLY under `.input-group-wrapper` (no
- * widget-level container element), return its raw html so Field injects it at the
- * wrapper root via innerHTML; else null and the widget renders as a real
+ * When a widget's control(s) sit DIRECTLY under the node body (no
+ * widget-level container element), return its raw html so the node renderer injects it
+ * into the body via innerHTML; else null and the widget renders as a real
  * container vnode. Covers bare (datetime/password/hidden/email), host-script
  * (editors/tagify), and button (script + hidden + button) — all carry empty/
  * boolean control attrs Vue would mangle as real vnodes.
@@ -190,7 +190,7 @@ export function widgetRootRaw(w: AnyWidget): string | null {
       rawVoid('input', w.attrs)
     );
   }
-  if (w.layout === 'btn-group') return btnGroupHtml(w);
+  if (w.layout === 'choices') return choicesHtml(w);
   if (w.layout === 'search') return searchHtml(w);
   return null;
 }
@@ -201,17 +201,17 @@ export function widgetRootRaw(w: AnyWidget): string | null {
 
 /**
  * Render one widget model as a real container vnode. Returns null for the
- * root-raw layouts (bare/host-script/button/btn-group/search) — Field renders
- * those via widgetRootRaw at the `.input-group-wrapper` root. Returns the
+ * root-raw layouts (bare/host-script/button/choices/search) — the node renderer
+ * renders those via widgetRootRaw in the node body. Returns the
  * unsupported marker as a real vnode.
  */
 export function Widget(w: AnyWidget): VNode | null {
   if (isUnsupported(w)) {
-    return h('div', { class: 'form-element-unsupported', 'data-unsupported-type': w.type });
+    return h('div', { class: 'crudui-widget crudui-widget--unsupported', 'data-unsupported-type': w.type });
   }
   switch (w.layout) {
-    case 'input-group':
-      return inputGroupVNode(w);
+    case 'widget':
+      return widgetVNode(w);
     case 'file':
       return fileGroupVNode(w);
     case 'display':
@@ -219,9 +219,9 @@ export function Widget(w: AnyWidget): VNode | null {
     case 'bare':
     case 'host-script':
     case 'button':
-    case 'btn-group':
+    case 'choices':
     case 'search':
-      // Root-raw layouts render at the .input-group-wrapper root (widgetRootRaw).
+      // Root-raw layouts render in the node body (widgetRootRaw).
       return null;
     default:
       return null;

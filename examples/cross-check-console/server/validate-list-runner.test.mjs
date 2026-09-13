@@ -7,8 +7,8 @@
  * carries no rows), then reduces the four per-language envelopes to the verdict
  * via the SAME compareIdempotency the form path uses. A clean load is
  * { valid:true, errors:[] }; a forbidden meta key / unresolved $ref surfaces as
- * the SAME loadError envelope as the form path, so the four agree on a LOAD
- * failure as much as on a clean structure.
+ * the SAME failure record as the form path, so the four agree on a load failure
+ * as much as on a clean structure.
  *
  * Two layers:
  *   (1) verdict reuse — validateAllList reduces through compareIdempotency, the
@@ -17,11 +17,11 @@
  *   (2) real 4-language list fan-out over representative list-validity fixture
  *       cases — the SAME cases.json the JS list conformance suite loads. An
  *       engine:"pass" case must agree on valid:true (idempotent); an
- *       engine:{code} case must agree on the SAME loadError code (idempotent on
- *       a LOAD failure, never a silent valid:true).
+ *       engine:{code, at} case must agree on the SAME failure code and location
+ *       (idempotent on a load failure, never a silent valid:true).
  *
  * The envelope shape under test is the gateway's own contract (validate-runner
- * runCli output): { lang, ok, valid, errors:[5-field], ms, loadError }.
+ * runCli output): { lang, ok, valid, errors:[5-field], ms, failure }.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -38,9 +38,10 @@ const allCases = JSON.parse(fs.readFileSync(LIST_VALIDITY_FIXTURE, 'utf8'));
 
 // The four-language engine has no shape opinion (no enum/required/closure): only
 // compose + forbidden-scan. So the engine verdict is keyed off `engine`, NOT
-// `expect`: engine:"pass" → clean load (valid:true); engine:{code,at} → a LOAD
-// failure carrying that code. A `clean` case is any engine:"pass" case (these
-// include several meta-schema failures that the engine intentionally accepts).
+// `expect`: engine:"pass" → clean load (valid:true); engine:{code,at} → a load
+// failure carrying that code and location. A `clean` case is any engine:"pass"
+// case (these include several meta-schema failures that the engine intentionally
+// accepts).
 const cleanCases = allCases.filter((c) => c.engine === 'pass');
 const loadFailCases = allCases.filter((c) => c.engine && typeof c.engine === 'object' && c.engine.code);
 
@@ -53,8 +54,8 @@ describe('validateAllList — real 4-language list fan-out (clean structure → 
       const failed = out.results.filter((r) => !r.ok);
       expect(failed.map((r) => `${r.lang}:${r.error}`)).toEqual([]);
 
-      // A clean list structure: no loadError, valid:true on every engine.
-      expect(out.results.every((r) => r.loadError === null)).toBe(true);
+      // A clean list structure: no failure, valid:true on every engine.
+      expect(out.results.every((r) => r.failure === null)).toBe(true);
       expect(out.results.every((r) => r.valid === true)).toBe(true);
       expect(out.results.every((r) => r.errors.length === 0)).toBe(true);
 
@@ -64,20 +65,20 @@ describe('validateAllList — real 4-language list fan-out (clean structure → 
   }
 });
 
-describe('validateAllList — real 4-language list fan-out (forbidden meta key → idempotent LOAD failure)', () => {
+describe('validateAllList — real 4-language list fan-out (forbidden meta key → idempotent load failure)', () => {
   for (const c of loadFailCases) {
-    test(`${c.name} — four engines agree on the SAME loadError code ${c.engine.code} (idempotent, never a silent valid:true)`, async () => {
+    test(`${c.name} — four engines agree on the SAME failure ${c.engine.code} at ${c.engine.at} (idempotent, never a silent valid:true)`, async () => {
       const out = await validateAllList({ spec: c.spec, files: c.files ?? {}, basepath: '' });
 
-      // Every engine must have run; a LOAD failure is a result, not a crash.
+      // Every engine must have run; a load failure is a result, not a crash.
       const failed = out.results.filter((r) => !r.ok);
       expect(failed.map((r) => `${r.lang}:${r.error}`)).toEqual([]);
 
-      // Every engine must carry the SAME loadError code — and NEVER valid:true.
-      expect(out.results.every((r) => r.loadError && r.loadError.code === c.engine.code)).toBe(true);
+      // Every engine must carry the SAME failure code and location — and NEVER valid:true.
+      expect(out.results.every((r) => r.failure && r.failure.code === c.engine.code && r.failure.at === c.engine.at)).toBe(true);
       expect(out.results.every((r) => r.valid === false)).toBe(true);
 
-      // Agreement on a LOAD failure is idempotent (the load-code signature path).
+      // Agreement on the complete failure record is idempotent.
       expect(out.idempotent, JSON.stringify(out.mismatch)).toBe(true);
     }, 60000);
   }
@@ -85,17 +86,19 @@ describe('validateAllList — real 4-language list fan-out (forbidden meta key �
 
 /**
  * A list per-language envelope (the SAME shape validateAllList's runCli emits): a
- * clean list load is { valid:true, errors:[], loadError:null }; a forbidden meta
- * key surfaces as { valid:false, loadError:{code} }. The list verdict reduces
- * through the SAME compareIdempotency the form path uses, so a forged single
- * language must break the verdict on the list surface too.
+ * clean list load is { valid:true, errors:[], failure:null }; a forbidden meta
+ * key surfaces as { valid:false, failure:{code, message, at} }. The list verdict
+ * reduces through the SAME compareIdempotency the form path uses, so a forged
+ * single language must break the verdict on the list surface too.
  */
-function listEnv(lang, { valid = true, loadError = null } = {}) {
-  return { lang, ok: true, valid, errors: [], ms: 1, loadError };
+function listEnv(lang, { valid = true, failure = null } = {}) {
+  return { lang, ok: true, valid, errors: [], ms: 1, failure };
 }
 
 describe('validateAllList — TAMPER (forged single-language list verdict → idempotent:false)', () => {
-  test('three engines clean-load a list while one is forged to a loadError → idempotent:false, forged lang isolated', () => {
+  const forbidden = { code: 'FORBIDDEN_META_KEY', message: 'Forbidden meta key: if', at: 'columns.name.if' };
+
+  test('three engines clean-load a list while one is forged to a failure → idempotent:false, forged lang isolated', () => {
     // js/php/go agree the list loads clean (valid:true); a fake-Rust result is
     // forged to a FORBIDDEN_META_KEY load failure. The verdict must break AND
     // name rust as the lone divergent group — a tampered list engine cannot pass
@@ -104,7 +107,7 @@ describe('validateAllList — TAMPER (forged single-language list verdict → id
       listEnv('js', { valid: true }),
       listEnv('php', { valid: true }),
       listEnv('go', { valid: true }),
-      listEnv('rust', { valid: false, loadError: { code: 'FORBIDDEN_META_KEY', message: 'forged' } }), // <-- TAMPERED
+      listEnv('rust', { valid: false, failure: forbidden }), // <-- TAMPERED
     ];
     const { idempotent, mismatch } = compareIdempotency(results);
     expect(idempotent).toBe(false);
@@ -116,24 +119,24 @@ describe('validateAllList — TAMPER (forged single-language list verdict → id
   });
 
   test('three engines reject a forbidden-key list while one is forged to valid:true → idempotent:false, forged lang isolated', () => {
-    // js/php/rust agree the list carries a forbidden meta key (the SAME loadError
-    // code); a fake-PHP result is forged to a clean valid:true (the legacy silent-pass
-    // difference this check detects). The result must identify PHP separately.
-    const code = 'FORBIDDEN_META_KEY';
+    // js/php/rust agree the list carries a forbidden meta key (the SAME failure
+    // record); a fake-PHP result is forged to a clean valid:true (the legacy
+    // silent-pass difference this check detects). The result must identify PHP
+    // separately.
     const results = [
-      listEnv('js', { valid: false, loadError: { code, message: 'if' } }),
+      listEnv('js', { valid: false, failure: forbidden }),
       listEnv('php', { valid: true }), // <-- TAMPERED: a forbidden key MUST NOT load clean
-      listEnv('go', { valid: false, loadError: { code, message: 'if' } }),
-      listEnv('rust', { valid: false, loadError: { code, message: 'if' } }),
+      listEnv('go', { valid: false, failure: forbidden }),
+      listEnv('rust', { valid: false, failure: forbidden }),
     ];
     const { idempotent, mismatch } = compareIdempotency(results);
     expect(idempotent).toBe(false);
     const phpGroup = mismatch.groups.find((g) => g.langs.includes('php'));
     expect(phpGroup.langs).toEqual(['php']);
-    // The forged clean verdict carries a distinct signature from the load-code
+    // The forged clean verdict carries a distinct signature from the failure
     // signature the other three share — it can never silently agree.
     expect(signature(results[1])).toBe('valid=true#');
-    expect(signature(results[0])).toBe(`load:${code}`);
+    expect(signature(results[0])).toBe(`failure:${forbidden.code}|${forbidden.message}|${forbidden.at}`);
     expect(signature(results[1])).not.toBe(signature(results[0]));
   });
 });

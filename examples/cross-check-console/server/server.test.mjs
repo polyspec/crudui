@@ -148,9 +148,9 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
   }, 60000);
 
   // The validate sister of /api/validate (SPEC §9). A list-spec carrying a §6
-  // forbidden meta key is a LOAD failure, NOT an HTTP error: still 200, with the
-  // SAME loadError code on all four engines (idempotent). Requires Go/Rust.
-  test('list-spec with a forbidden meta key → 200, loadError code on all four, idempotent:true', async () => {
+  // forbidden meta key is a load failure, NOT an HTTP error: still 200, with the
+  // SAME failure record on all four engines (idempotent). Requires Go/Rust.
+  test('list-spec with a forbidden meta key → 200, failure code on all four, idempotent:true', async () => {
     const listSpec = {
       columns: { name: { field: '.name' }, display_switch: { field: '.x' } },
     };
@@ -160,7 +160,7 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
     const failed = body.results.filter((r) => !r.ok);
     expect(failed.map((r) => `${r.lang}:${r.error}`)).toEqual([]);
     expect(body.idempotent, JSON.stringify(body.mismatch)).toBe(true);
-    expect(body.results.every((r) => r.loadError && r.loadError.code === 'FORBIDDEN_META_KEY')).toBe(true);
+    expect(body.results.every((r) => r.failure && r.failure.code === 'FORBIDDEN_META_KEY')).toBe(true);
     expect(body.results.every((r) => r.valid === false)).toBe(true);
   }, 60000);
 

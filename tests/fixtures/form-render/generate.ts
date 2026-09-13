@@ -47,7 +47,7 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'design-show-expr-falsy',
-    note: "design.show '.subscribe' falsy → wrapper carries display:none, DOM kept (legacy non-removal contract).",
+    note: "design.show '.subscribe' falsy → node carries the hidden attribute, DOM kept (non-removal contract).",
     spec: {
       type: 'group',
       properties: {
@@ -73,7 +73,7 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'design-show-condmap-non-admin',
-    note: 'Same condition-map show; non-admin → true fallback (false) → wrapper display:none, DOM kept.',
+    note: 'Same condition-map show; non-admin → true fallback (false) → node hidden attribute, DOM kept.',
     spec: {
       type: 'group',
       properties: {
@@ -132,7 +132,7 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'design-false-slot-off',
-    note: 'design:false → slot off: no appearance, default envelope (show stays true).',
+    note: 'design:false → slot off: no appearance, default node markup (show stays true).',
     spec: {
       type: 'group',
       properties: {
@@ -181,14 +181,14 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'multiple-leaf-two-rows',
-    note: 'multiple:true + 2 data rows → 2 input-group-wrapper (2nd clone-element), plus/minus buttons.',
+    note: 'multiple:true + 2 keyed rows → collection node with 2 row nodes, each with add-row and remove-row controls.',
     spec: {
       type: 'group',
       properties: {
         tags: { type: 'text', label: { ko: '태그' }, multiple: true },
       },
     },
-    data: { tags: ['a', 'b'] },
+    data: { tags: { tag_a: 'a', tag_b: 'b' } },
     options: { language: 'ko' },
   },
   {
@@ -205,19 +205,19 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'multiple-settings-bucket',
-    note: 'multiple:{ max:5, sortable:true, copy:true } → data-multiple-max, move-up/down, copy + btn-delete (canonical keys only).',
+    note: 'multiple:{ max:5, sortable:true, copy:true } → move-up/move-down, add-row, copy-row and remove-row controls with computed disabled states (canonical keys only).',
     spec: {
       type: 'group',
       properties: {
         rows: { type: 'text', label: { ko: '행' }, multiple: { max: 5, sortable: true, copy: true } },
       },
     },
-    data: { rows: ['x'] },
+    data: { rows: { row_x: 'x' } },
     options: { language: 'ko' },
   },
   {
     name: 'multiple-group-rows',
-    note: 'type:group + multiple:true + 1 row → form-group per row + row buttons (no __13hex__ position id leakage; data id is the row key).',
+    note: 'type:group + multiple:true + 1 row → collapsible row node with number, controls and child nodes (no position id leakage; the row key is the identity).',
     spec: {
       type: 'group',
       properties: {
@@ -236,7 +236,7 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'lang-default-langs',
-    note: 'lang:true → default ko/en/ja/zh language children, each a lang-code prepend span. Content label translation stays separate.',
+    note: 'lang:true → default ko/en/ja/zh lang-item nodes, each labelled with its code. Content label translation stays separate.',
     spec: {
       type: 'group',
       properties: {
@@ -262,7 +262,7 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'group-nested-properties',
-    note: 'type:group + properties:{a,b} → form-group envelope with 2 recursive children.',
+    note: 'type:group + properties:{a,b} → group node with 2 recursive child nodes.',
     spec: {
       type: 'group',
       properties: {
@@ -312,7 +312,7 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'content-langmap-with-show',
-    note: 'label LangMap {ko,en} + language=ko → h6 text 이메일; design.show expression applies independently (content axis vs appearance axis).',
+    note: 'label LangMap {ko,en} + language=ko → label text 이메일; design.show expression applies independently (content axis vs appearance axis).',
     spec: {
       type: 'group',
       properties: {
@@ -324,7 +324,7 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'content-langmap-en',
-    note: 'Same spec, language=en → h6 text Email (content translation switches with language).',
+    note: 'Same spec, language=en → label text Email (content translation switches with language).',
     spec: {
       type: 'group',
       properties: {

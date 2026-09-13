@@ -28,9 +28,11 @@ import type { FileLoader } from '../compose/index';
 import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 import { Validator } from './validator';
+import { FormInputError } from './errors';
 
 export { Validator, type ComposedField } from './validator';
 export { ComposeLoadError } from '../compose/index';
+export { FormInputError } from './errors';
 
 /** Options for a CRUDUI validation run. */
 export interface ValidateOptions {
@@ -48,16 +50,22 @@ export interface ValidateOptions {
  * `ComposeLoadError` (caller distinguishes a LOAD failure from `valid:false`).
  *
  * @param spec a CRUDUI root spec (a group with `properties`; may use composition).
- * @param data the form data to validate.
+ * @param data the form data to validate; root and group data are objects and
+ *        repeated data is a keyed object.
  * @param options compose loader / file set / basepath.
  * @returns `{ valid, errors }`.
  * @throws {ComposeLoadError} when composition cannot be resolved.
+ * @throws {FormInputError} when submitted data has the wrong shape.
  */
 export function validate(
   spec: Record<string, unknown>,
-  data: Record<string, unknown>,
+  data: unknown,
   options: ValidateOptions = {}
 ): ValidationResult {
+  // Root data is a request precondition, checked before composition.
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    throw new FormInputError('Form data must be an object');
+  }
   const loader: FileLoader =
     options.loader ?? new MemoryLoader(options.files ?? {});
   const opts = options.basepath ? { basepath: options.basepath } : {};
@@ -89,8 +97,12 @@ export function validate(
   // A hit throws ComposeLoadError (a LOAD failure), never `valid:false`. This
   // closes the deep-nesting leak the typed models alone could not (R1).
   scanForbiddenKeys(properties, ['properties']);
+  // The form root declarations are scanned like the fields they sit beside.
+  for (const key of ['buttons', 'action']) {
+    if (key in spec) scanForbiddenKeys((spec as Record<string, unknown>)[key], [key]);
+  }
 
-  return new Validator({ type: 'group', properties }).validate(data ?? {});
+  return new Validator({ type: 'group', properties }).validate(data);
 }
 
 export default validate;

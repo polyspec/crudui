@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -154,19 +155,19 @@ func renderWidget(w *Object) string {
 		return ""
 	}
 	if read(w, "unsupported") == true {
-		return element("div", NewObject("class", "form-element-unsupported", "data-unsupported-type", stringAt(w, "type")), "")
+		return element("div", NewObject("class", "crudui-widget crudui-widget--unsupported", "data-unsupported-type", stringAt(w, "type")), "")
 	}
 	a := object(read(w, "attrs"))
 	raw := eventAttrs(a)
 	script := `<script nonce="">` + stringAt(w, "script") + `</script>`
 	switch stringAt(w, "layout") {
-	case "input-group":
-		return `<div class="input-group">` + affixHTML(read(w, "prepend"), raw) + controlHTML(w, raw, "") + affixHTML(read(w, "append"), raw) + `</div>`
+	case "widget":
+		return `<div class="crudui-widget">` + affixHTML(read(w, "prepend"), raw) + controlHTML(w, raw, "") + affixHTML(read(w, "append"), raw) + `</div>`
 	case "bare":
 		return controlHTML(w, raw, "")
 	case "host-script":
 		return controlHTML(w, raw, "") + script
-	case "btn-group":
+	case "choices":
 		shared := object(read(read(w, "extra"), "input"))
 		raw = eventAttrs(shared)
 		body := ""
@@ -180,7 +181,7 @@ func renderWidget(w *Object) string {
 			at.Set("type", typ)
 			at.Set("value", stringAt(o, "value"))
 			at.Set("autocomplete", "off")
-			at.Set("class", "valid-target btn-check")
+			at.Set("class", "valid-target crudui-choices__input")
 			if id := stringAt(o, "id"); id != "" {
 				at.Set("id", id)
 			}
@@ -221,9 +222,9 @@ func renderWidget(w *Object) string {
 		}
 		body += inputHTML(file, raw)
 		if display != nil {
-			body += `<button class="btn btn-search btn-file-search" type="button">&nbsp;</button>`
+			body += `<button class="crudui-widget__button" type="button">&nbsp;</button>`
 		}
-		return `<div class="input-group">` + body + `</div>`
+		return `<div class="crudui-widget">` + body + `</div>`
 	case "display":
 		return "<div" + attrs(a, false, false) + ">" + stringAt(w, "rawHtml") + "</div>"
 	case "search":
@@ -231,121 +232,146 @@ func renderWidget(w *Object) string {
 		if s := stringAt(w, "styleChrome"); s != "" {
 			style = `<style nonce="">` + s + `</style>`
 		}
-		return style + script + `<div class="input-group field-search">` + affixHTML(read(w, "prepend"), true) + controlHTML(w, true, "selected") + affixHTML(read(w, "append"), true) + `</div>`
+		return style + script + `<div class="crudui-widget crudui-widget--search">` + affixHTML(read(w, "prepend"), true) + controlHTML(w, true, "selected") + affixHTML(read(w, "append"), true) + `</div>`
 	case "button":
 		return script + inputHTML(object(read(read(w, "extra"), "hidden")), false) + inputHTML(a, false)
 	}
 	return ""
 }
-func rowButtons(vm *Object) string {
-	s := object(read(vm, "multiple"))
-	if s == nil {
-		return ""
+
+// classes joins the nonempty class parts with single spaces.
+func classes(parts ...string) string {
+	out := []string{}
+	for _, p := range parts {
+		if p != "" {
+			out = append(out, p)
+		}
 	}
-	out := ""
-	if truthy(read(s, "sortable")) {
-		out += `<button type="button" class="btn btn-move-up"> </button><button type="button" class="btn btn-move-down"> </button>`
-	}
-	a := NewObject("type", "button", "class", "btn btn-plus")
-	if s.Has("max") {
-		a.Set("data-multiple-max", scalar(read(s, "max")))
-	}
-	out += element("button", a, " ")
-	minus := "btn btn-minus"
-	if truthy(read(s, "copy")) {
-		out += `<button type="button" class="btn btn-copy"> </button>`
-		minus += " btn-delete"
-	}
-	return out + element("button", NewObject("type", "button", "class", minus), " ")
+	return strings.Join(out, " ")
 }
-func labelHTML(vm *Object) string {
-	label := stringAt(vm, "label")
-	if label == "" || truthy(read(vm, "omitLabel")) {
-		return ""
-	}
-	d := object(read(vm, "design"))
-	a := NewObject()
-	if cls := nodeClass(d, "label"); cls != "" {
-		a.Set("class", cls)
-	}
-	if s := nodeStyle(d, "label"); s != "" {
-		a.Set("style", s)
-	}
-	body := escape(label)
-	w := read(vm, "widget")
-	id := stringAt(read(read(w, "extra"), "file"), "id")
-	if id == "" {
-		id = stringAt(read(w, "attrs"), "id")
-	}
-	if id != "" {
-		body = element("label", NewObject("for", id), body)
-	}
-	return element("h6", a, body)
-}
-func descriptionHTML(vm *Object) string {
-	if s := stringAt(vm, "description"); s != "" {
-		return element("p", NewObject("class", "description"), escape(s))
+
+// flag renders a valueless boolean attribute.
+func flag(name string, on bool) string {
+	if on {
+		return " " + name + `=""`
 	}
 	return ""
 }
-func fieldHTML(vm *Object) string {
-	d := object(read(vm, "design"))
-	wrapper := NewObject("class", joinClass("form-element-wrapper", nodeClass(d, "wrapper")), "data-field-path", stringAt(vm, "path"))
-	if s := wrapperStyle(d); s != "" {
-		wrapper.Set("style", s)
-	}
-	inputWrapper := NewObject("class", joinClass("input-group-wrapper", nodeClass(d, "wrapper")), "data-uniqid", stringAt(vm, "uniqid"))
+func controlsHTML(controls *Object) string {
 	body := ""
-	if truthy(read(vm, "checkbox")) {
-		a := NewObject("class", stringAt(vm, "checkboxClass"), "id", stringAt(vm, "checkboxId"), "name", stringAt(vm, "checkboxName"), "type", "checkbox", "value", "1")
-		if truthy(read(vm, "checkboxChecked")) {
-			a.Set("checked", true)
-		}
-		control := inputHTML(a, false) + element("label", NewObject("for", stringAt(vm, "checkboxId")), escape(stringAt(vm, "label")))
-		body = `<div class="checkbox"><h6>` + element("div", inputWrapper, "<div>"+control+"</div>") + `</h6>` + descriptionHTML(vm) + `</div>`
-		return element("div", wrapper, body)
+	for _, a := range objectList(read(controls, "actions")) {
+		body += "<button" + attrs(NewObject("type", "button", "class", "crudui-action", "data-crudui-action", stringAt(a, "name"), "aria-label", stringAt(a, "label")), false, false) + flag("disabled", read(a, "disabled") == true) + "></button>"
 	}
-	switch stringAt(vm, "shape") {
-	case "group":
-		group := NewObject("class", stringAt(vm, "groupClass"))
-		if st := stringAt(vm, "groupStyle"); st != "" {
-			group.Set("style", st)
-		}
-		body = element("div", inputWrapper, element("div", group, fieldsHTML(objectList(read(vm, "children")))))
-	case "multiple-leaf", "multiple-group":
-		rows := objectList(read(vm, "rows"))
-		for _, row := range rows {
-			inner := ""
-			if stringAt(vm, "shape") == "multiple-group" {
-				inner = element("div", NewObject("class", stringAt(row, "groupClass")), fieldsHTML(objectList(read(row, "children")))) + `<span class="btn-group input-group-btn">` + rowButtons(vm) + `</span>`
-			} else {
-				inner = renderWidget(object(read(row, "widget"))) + rowButtons(vm)
-			}
-			body += element("div", NewObject("class", stringAt(row, "wrapperClass"), "data-uniqid", stringAt(row, "uniqid")), inner)
-		}
-		if len(rows) == 0 {
-			body = `<button type="button" class="btn btn-plus" aria-label="+"> </button>`
-		}
-	case "lang":
-		l := read(vm, "lang")
-		inner := ""
-		if title := stringAt(l, "title"); title != "" {
-			inner = element("div", NewObject("class", "lang-title"), escape(title))
-		}
-		for _, child := range objectList(read(l, "children")) {
-			code := stringAt(child, "code")
-			inner += element("div", NewObject("class", "lang-child", "data-lang", code), element("span", NewObject("class", "input-group-text lang-code"), escape(code))+renderWidget(object(read(child, "widget"))))
-		}
-		body = element("div", inputWrapper, element("div", NewObject("class", stringAt(l, "groupClass")), inner))
-	default:
-		body = element("div", inputWrapper, renderWidget(object(read(vm, "widget"))))
-	}
-	return element("div", wrapper, labelHTML(vm)+descriptionHTML(vm)+`<div class="form-element">`+body+`</div>`)
+	return element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", stringAt(controls, "label")), body)
 }
-func fieldsHTML(fields []*Object) string {
+func headerHTML(vm *Object) string {
+	header := read(vm, "header")
+	expanded := read(vm, "expanded") == true
+	parts := ""
+	if read(vm, "collapsible") == true {
+		a := NewObject("type", "button", "class", "crudui-action", "data-crudui-action", "toggle-row", "aria-expanded", strconv.FormatBool(expanded))
+		if body := read(vm, "body"); has(body, "id") {
+			a.Set("aria-controls", stringAt(body, "id"))
+		}
+		if has(vm, "toggleLabel") {
+			a.Set("aria-label", stringAt(vm, "toggleLabel"))
+		}
+		parts += "<button" + attrs(a, false, false) + "></button>"
+	}
+	if has(header, "label") {
+		if target := stringAt(header, "labelFor"); target != "" {
+			parts += element("label", NewObject("class", "crudui-node__label", "for", target), escape(stringAt(header, "label")))
+		} else {
+			parts += element("span", NewObject("class", "crudui-node__label"), escape(stringAt(header, "label")))
+		}
+	}
+	if has(header, "description") {
+		parts += element("p", NewObject("class", "crudui-node__description"), escape(stringAt(header, "description")))
+	}
+	for _, part := range []string{"number", "title"} {
+		if has(header, part) {
+			parts += element("span", NewObject("class", "crudui-node__"+part), escape(stringAt(header, part)))
+		}
+	}
+	if has(header, "summary") {
+		parts += `<span class="crudui-node__summary"` + flag("hidden", expanded) + ">" + escape(stringAt(header, "summary")) + "</span>"
+	}
+	if has(header, "count") {
+		parts += element("span", NewObject("class", "crudui-node__count"), escape(stringAt(header, "count")))
+	}
+	controls := read(vm, "controls")
+	if stringAt(controls, "placement") == "header" {
+		parts += controlsHTML(object(controls))
+	}
+	if parts == "" {
+		return ""
+	}
+	return element("div", NewObject("class", classes("crudui-node__header", stringAt(header, "className")), "style", stringAt(header, "style")), parts)
+}
+func bodyHTML(vm *Object) string {
+	body := read(vm, "body")
+	a := NewObject("class", classes("crudui-node__body", stringAt(body, "className")))
+	for _, k := range []string{"style", "id"} {
+		if has(body, k) {
+			a.Set(k, stringAt(body, k))
+		}
+	}
+	inner := ""
+	if box := object(read(vm, "checkbox")); box != nil {
+		input := NewObject("class", stringAt(box, "className"), "id", stringAt(box, "id"), "name", stringAt(box, "name"), "type", "checkbox", "value", "1")
+		if read(box, "checked") == true {
+			input.Set("checked", true)
+		}
+		inner = inputHTML(input, false) + element("label", NewObject("for", stringAt(box, "id")), escape(stringAt(box, "caption")))
+	} else if w := object(read(vm, "widget")); w != nil {
+		inner = renderWidget(w)
+	} else {
+		inner = nodesHTML(objectList(read(vm, "children")))
+	}
+	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "collapsible") == true && read(vm, "expanded") != true) + ">" + inner + "</div>"
+}
+
+// nodeHTML renders one node of the recursive form grammar with its header, body and footer slots.
+func nodeHTML(vm *Object) string {
+	kind := stringAt(vm, "kind")
+	sticky := ""
+	if read(vm, "sticky") == true {
+		sticky = "crudui-node--sticky"
+	}
+	a := NewObject("class", classes("crudui-node", "crudui-node--"+kind, sticky, stringAt(vm, "className")))
+	if read(vm, "sticky") == true {
+		// A sticky row carries its depth on the root; the stylesheet derives its sticky line from it.
+		depth := stringAt(vm, "stickyDepth")
+		if depth == "" {
+			depth = "0"
+		}
+		styles := []string{}
+		if st := stringAt(vm, "style"); st != "" {
+			styles = append(styles, st)
+		}
+		a.Set("style", strings.Join(append(styles, "--crudui-sticky-depth: "+depth), "; "))
+	} else if has(vm, "style") {
+		a.Set("style", stringAt(vm, "style"))
+	}
+	if kind != "row" && kind != "lang-item" && has(vm, "path") {
+		a.Set("data-field-path", stringAt(vm, "path"))
+	}
+	if has(vm, "key") {
+		a.Set("data-crudui-row-key", stringAt(vm, "key"))
+	}
+	if has(vm, "lang") {
+		a.Set("data-lang", stringAt(vm, "lang"))
+	}
+	footer := ""
+	if controls := read(vm, "controls"); stringAt(controls, "placement") == "footer" {
+		footer = element("div", NewObject("class", "crudui-node__footer"), controlsHTML(object(controls)))
+	}
+	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "hidden") == true) + ">" + headerHTML(vm) + bodyHTML(vm) + footer + "</div>"
+}
+func nodesHTML(nodes []*Object) string {
 	var out strings.Builder
-	for _, f := range fields {
-		out.WriteString(fieldHTML(f))
+	for _, n := range nodes {
+		out.WriteString(nodeHTML(n))
 	}
 	return out.String()
 }
@@ -355,7 +381,17 @@ func RenderForm(form *Form) (string, error) {
 	if form == nil {
 		return "", fmt.Errorf("Form instance is required")
 	}
-	return `<div class="form-group">` + fieldsHTML(form.fields) + `</div>`, nil
+	language := "ko"
+	if s, ok := form.options.Language.(string); ok {
+		language = s
+	}
+	m, e := messagesFor(language)
+	if e != nil {
+		return "", e
+	}
+	footer := element("div", NewObject("class", "crudui-form__footer"),
+		element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", m.formActions), formButtonsHTML(form.template.Buttons, form.data, language, m)))
+	return `<div class="crudui-form"><div class="crudui-form__body">` + nodesHTML(form.fields) + `</div>` + footer + `</div>`, nil
 }
 
 var javascriptProtocolRE = regexp.MustCompile(`(?i)^[\x00-\x1f ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:`)

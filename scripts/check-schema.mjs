@@ -20,9 +20,27 @@ let checked = 0;
 for (const [multiple, expected] of [
   [{ min: 0, max: 3 }, true],
   [{ min: 'one' }, false],
+  [{ copy: true, sortable: true }, true],
+  [{ copy: {} }, false],
+  [{ title: 'name', controls: 'outline', header: 'sticky' }, true],
+  [{ controls: 'side' }, false],
+  [{ header: 'fixed' }, false],
 ]) {
   const spec = { type: 'group', properties: { rows: { type: 'text', multiple } } };
   assert.equal(validateForm(spec), expected, `multiple: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
+for (const [extra, expected] of [
+  [{ buttons: [{ type: 'submit', name: '__submitted__', value: 'go', text: { ko: '저장', en: 'Save' }, design: { class: 'primary' } }] }, true],
+  [{ buttons: [{ type: 'reset' }, { type: 'button', text: 'Cancel', behavior: { onclick: 'history.back()' } }] }, true],
+  [{ buttons: [{ type: 'link', text: 'List', href: '../' }], action: { method: 'post', url: '/save' } }, true],
+  [{ buttons: [{ type: 'image' }] }, false],
+  [{ buttons: [{ type: 'button' }] }, false],
+  [{ buttons: [{ type: 'link', text: 'List' }] }, false],
+  [{ action: { target: '_blank' } }, false],
+]) {
+  const spec = { type: 'group', properties: { name: { type: 'text' } }, ...extra };
+  assert.equal(validateForm(spec), expected, `buttons: ${JSON.stringify(extra)} ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
 for (const test of read('../tests/fixtures/list-validity/cases.json')) {

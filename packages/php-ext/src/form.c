@@ -105,27 +105,44 @@ static ps_value *fresh_key(const ps_value *used, ps_value **error)
 }
 
 static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
-                                  ps_value **error);
+                                  const char *path, ps_value **error);
 
 static ps_value *normalize_row(const ps_value *field, const ps_value *value,
-                               ps_value **error)
+                               const char *path, ps_value **error)
 {
     if (field_group(field))
-        return normalize_fields(member(field, "children"), value, error);
+        return normalize_fields(member(field, "children"), value, path, error);
     if (value) return ps_value_clone(value);
     const ps_value *fallback = member(member(field, "spec"), "default");
     return fallback ? ps_value_clone(fallback) : ps_string_value("");
 }
 
+/* Normalize one keyed row at "<collection path>.<key>". */
+static ps_value *normalize_keyed_row(const ps_value *field, const ps_value *value,
+                                     const char *collection_path, const char *key,
+                                     ps_value **error)
+{
+    char *row_path = ps_join_path(collection_path, key);
+    if (!row_path) {
+        *error = internal_error();
+        return NULL;
+    }
+    ps_value *row = normalize_row(field, value, row_path, error);
+    free(row_path);
+    return row;
+}
+
+/* Normalize record data; path is the full data path, empty at the root. */
 static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
-                                  ps_value **error)
+                                  const char *path, ps_value **error)
 {
     if (!fields || fields->kind != PS_ARRAY) {
         *error = input_error("Unsupported form template");
         return NULL;
     }
     if (value && value->kind != PS_OBJECT) {
-        *error = input_error("Group data must be an object");
+        *error = *path ? input_error_format("Group data must be an object: %s", path)
+                       : input_error("Form data must be an object");
         return NULL;
     }
     ps_value *data = value ? ps_value_clone(value) : ps_object_value();
@@ -133,6 +150,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
         *error = internal_error();
         return NULL;
     }
+    char *field_path = NULL;
     for (size_t index = 0; index < ps_size(fields); ++index) {
         const ps_value *field = ps_at(fields, index);
         const ps_value *name_value = member(field, "name");
@@ -143,10 +161,17 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
         const char *name = ps_string(name_value);
         const ps_value *raw = ps_get(data, name);
         ps_value *normalized = NULL;
+        if (field_repeats(field) || field_group(field)) {
+            field_path = *path ? ps_join_path(path, name) : ps_string_join(name, "", "");
+            if (!field_path) {
+                *error = internal_error();
+                goto fail;
+            }
+        }
         if (field_repeats(field)) {
             if (raw && raw->kind != PS_OBJECT) {
                 *error = input_error_format(
-                    "Repeated data must be a keyed object: %s", name);
+                    "Repeated data must be a keyed object: %s", field_path);
                 goto fail;
             }
             ps_value *rows = ps_object_value();
@@ -156,7 +181,8 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
             }
             if (!raw) {
                 ps_value *key = fresh_key(rows, error);
-                ps_value *row = key ? normalize_row(field, NULL, error) : NULL;
+                ps_value *row = key
+                    ? normalize_keyed_row(field, NULL, field_path, ps_string(key), error) : NULL;
                 if (!key || !row || !ps_set(rows, ps_string(key), row)) {
                     ps_value_free(key);
                     ps_value_free(rows);
@@ -172,7 +198,8 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
                         ps_value_free(rows);
                         goto fail;
                     }
-                    ps_value *row = normalize_row(field, ps_at(raw, row_index), error);
+                    ps_value *row = normalize_keyed_row(field, ps_at(raw, row_index),
+                                                        field_path, key, error);
                     if (!row || !ps_set(rows, key, row)) {
                         ps_value_free(rows);
                         if (!*error) *error = internal_error();
@@ -182,7 +209,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
             }
             normalized = rows;
         } else if (field_group(field)) {
-            normalized = normalize_fields(member(field, "children"), raw, error);
+            normalized = normalize_fields(member(field, "children"), raw, field_path, error);
         } else if (!raw) {
             const ps_value *fallback = member(member(field, "spec"), "default");
             if (fallback) normalized = ps_value_clone(fallback);
@@ -190,6 +217,8 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
         } else {
             continue;
         }
+        free(field_path);
+        field_path = NULL;
         if (!normalized || !ps_set(data, name, normalized)) {
             if (!*error) *error = internal_error();
             goto fail;
@@ -197,6 +226,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
     }
     return data;
 fail:
+    free(field_path);
     ps_value_free(data);
     return NULL;
 }
@@ -212,9 +242,6 @@ static form_path checked_path(const char *path, ps_value **error)
         return result;
     }
     for (size_t index = 0; index < result.length; ++index) {
-        const char *position = ps_position(result.items[index]);
-        if (position != result.items[index])
-            memmove(result.items[index], position, strlen(position) + 1);
         if (!strcmp(result.items[index], "__proto__") ||
             !strcmp(result.items[index], "prototype") ||
             !strcmp(result.items[index], "constructor")) {
@@ -313,7 +340,7 @@ static ps_result commit(ps_form *form, ps_value *data)
 static ps_result replace_data(ps_form *form, const ps_value *value)
 {
     ps_value *error = NULL;
-    ps_value *data = normalize_fields(member(form->template, "fields"), value, &error);
+    ps_value *data = normalize_fields(member(form->template, "fields"), value, "", &error);
     if (!data) return (ps_result){NULL, error ? error : internal_error()};
     return commit(form, data);
 }
@@ -469,7 +496,17 @@ static ps_result add_row(ps_form *form, const char *source, const ps_value *opti
         }
     }
     const ps_value *source_value = ps_has(options, "value") ? member(options, "value") : NULL;
-    ps_value *row = error ? NULL : normalize_row(field, source_value, &error);
+    /* A supplied row value is checked at "<collection path>.<key>". */
+    char *row_path = error ? NULL : ps_string_join(path.items[0], "", "");
+    for (size_t index = 1; row_path && index <= path.length; ++index) {
+        char *next = ps_join_path(row_path,
+            index < path.length ? path.items[index] : ps_string(key));
+        free(row_path);
+        row_path = next;
+    }
+    if (!error && !row_path) error = internal_error();
+    ps_value *row = error ? NULL : normalize_row(field, source_value, row_path, &error);
+    free(row_path);
     ps_value *next_rows = row
         ? object_with_insert(rows, ps_string(key), row, at) : NULL;
     ps_value *data = next_rows
@@ -644,7 +681,7 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
         !options || options->kind != PS_OBJECT)
         return (ps_form_result){NULL, input_error("Invalid form input")};
     ps_value *error = NULL;
-    ps_value *normalized = normalize_fields(member(template, "fields"), data, &error);
+    ps_value *normalized = normalize_fields(member(template, "fields"), data, "", &error);
     if (!normalized) return (ps_form_result){NULL, error ? error : internal_error()};
     ps_result binding = ps_bind_form(template, normalized, options);
     if (binding.error) {
@@ -695,15 +732,32 @@ ps_form *ps_form_clone(const ps_form *form)
     return copy;
 }
 
+/* The interface language of a bound form: its option, or Korean. */
+static const char *form_language(const ps_form *form)
+{
+    const ps_value *language = member(form->options, "language");
+    return language && language->kind == PS_STRING ? ps_string(language) : "ko";
+}
+
 ps_result ps_form_read(const ps_form *form, uint8_t member_index)
 {
     if (!form) return (ps_result){NULL, input_error("Form is not initialized")};
+    const ps_form_messages *messages = ps_form_messages_for(form_language(form));
     if (member_index == 0) return ps_ok(ps_value_clone(form->template));
     if (member_index == 1) return ps_ok(ps_value_clone(form->data));
     if (member_index == 2) return ps_ok(ps_value_clone(form->fields));
     if (member_index == 3) return ps_ok(ps_int_value(form->revision));
+    if (member_index == 5 || member_index == 6) {
+        ps_value *value = member_index == 5
+            ? ps_bind_buttons(form->template, form->data, form_language(form))
+            : messages ? ps_form_messages_value(messages) : NULL;
+        return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
+    }
     if (member_index == 4) {
-        char *html = ps_render_fields(form->fields);
+        ps_value *buttons = ps_bind_buttons(form->template, form->data, form_language(form));
+        char *html = buttons && messages
+            ? ps_render_form(form->fields, buttons, messages->form_actions) : NULL;
+        ps_value_free(buttons);
         if (!html) return (ps_result){NULL, internal_error()};
         ps_value *value = ps_string_value(html);
         free(html);
@@ -762,7 +816,7 @@ ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args)
         ps_value *updated = put_at(form->data, path.items, path.length, value);
         free_path(&path);
         if (!updated) return (ps_result){NULL, internal_error()};
-        ps_value *normalized = normalize_fields(member(form->template, "fields"), updated, &error);
+        ps_value *normalized = normalize_fields(member(form->template, "fields"), updated, "", &error);
         ps_value_free(updated);
         return normalized ? commit(form, normalized)
                           : (ps_result){NULL, error ? error : internal_error()};

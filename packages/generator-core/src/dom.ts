@@ -1,5 +1,5 @@
 import type { FormInstance } from './instance';
-import type { FieldViewModel } from './viewmodel';
+import { resolveAction, runAction, type ActionTarget, type FocusTarget } from './actions';
 import { formatDateValue } from './date';
 import { parsePathString } from './util';
 
@@ -11,18 +11,49 @@ export interface FormConnection {
   disconnect(): void;
 }
 
-/** Browser event delegation for all three adapters, including raw leaf controls. */
+/** The element whose `data-field-path` equals a path. */
+function scopeElement(root: ParentNode, path: string): HTMLElement | undefined {
+  return Array.from(root.querySelectorAll<HTMLElement>('[data-field-path]'))
+    .find(element => element.getAttribute('data-field-path') === path);
+}
+
+/** The form row element for a collection path and row key. */
+function rowElement(root: ParentNode, path: string, key: string): HTMLElement | undefined {
+  const scope = scopeElement(root, path);
+  if (!scope) return undefined;
+  return Array.from(scope.querySelectorAll<HTMLElement>('[data-crudui-row-key]'))
+    .find(row => row.getAttribute('data-crudui-row-key') === key &&
+      row.parentElement?.closest('[data-field-path]') === scope);
+}
+
+/** An enabled action button of a row itself, not of a nested row. */
+function rowButton(row: HTMLElement, action: string): HTMLButtonElement | undefined {
+  return Array.from(row.querySelectorAll<HTMLButtonElement>(`[data-crudui-action="${action}"]`))
+    .find(button => !button.disabled && button.closest('[data-crudui-row-key]') === row);
+}
+
+/** A row's first enabled visible input, or its toggle or Add button when it has none. */
+function firstRowControl(row: HTMLElement): HTMLElement | undefined {
+  const input = Array.from(row.querySelectorAll<HTMLInputElement>('input:not([type=hidden]),select,textarea'))
+    .find(control => !control.disabled && !control.closest('[hidden]'));
+  return input ?? rowButton(row, 'toggle-row') ?? rowButton(row, 'add-row');
+}
+
+/** Browser event delegation for all adapters, including raw leaf controls. */
 export function connectForm(element: HTMLElement, session: FormInstance): FormConnection {
   type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
   let focus: {
     active: HTMLElement;
     name?: string;
-    emptyAddWrapper?: string;
+    action?: ActionTarget;
     start: number | null;
     end: number | null;
     direction?: 'forward' | 'backward' | 'none';
-    scroll: Array<{ element: HTMLElement; top: number; left: number }>;
   } | undefined;
+  // Focus destination of the last action, applied after the next render.
+  let destination: FocusTarget | undefined;
+  // Whether the DOM has been synchronized since the last commit.
+  let synced = true;
   const controls = () => Array.from(element.querySelectorAll<Control>('input[name],select[name],textarea[name]'));
   const pathOf = (name: string) => {
     const segments = parsePathString(name);
@@ -33,51 +64,57 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     }
     return segments.length ? segments.join('.') : undefined;
   };
+  /** The rendered button requesting the same action on the same path and key. */
+  const actionButton = (target: ActionTarget) => Array.from(element.querySelectorAll<HTMLButtonElement>('button[data-crudui-action]'))
+    .find(button => {
+      const other = resolveAction(button);
+      return other?.name === target.name && other.path === target.path && other.key === target.key;
+    });
   const captureFocus = () => {
+    synced = false;
     const active = element.ownerDocument.activeElement as (HTMLElement & {
       name?: string; selectionStart?: number | null; selectionEnd?: number | null;
       selectionDirection?: 'forward' | 'backward' | 'none' | null;
     }) | null;
     focus = undefined;
     if (active && element.contains(active)) {
-      const scroll = [];
-      for (let parent = active.parentElement; parent; parent = parent.parentElement) {
-        scroll.push({ element: parent, top: parent.scrollTop, left: parent.scrollLeft });
-      }
-      const wrapper = active.closest('.form-element-wrapper[data-field-path]');
-      const row = active.closest('.input-group-wrapper[data-uniqid]');
-      const emptyAdd = active.matches('button.btn-plus') && row?.closest('.form-element-wrapper[data-field-path]') !== wrapper;
+      const action = active.matches('button[data-crudui-action]') ? resolveAction(active) : undefined;
       focus = {
         active,
-        emptyAddWrapper: emptyAdd ? wrapper?.getAttribute('data-field-path') ?? undefined : undefined,
+        ...(action ? { action } : {}),
         name: active.name,
         start: active.selectionStart ?? null,
         end: active.selectionEnd ?? null,
         direction: active.selectionDirection ?? undefined,
-        scroll,
       };
     }
   };
-  const onPointerDown = (event: PointerEvent) => {
-    const button = (event.target as Element)?.closest?.('button');
-    const active = element.ownerDocument.activeElement;
-    if (event.button !== 0 || !button || button.disabled || !element.contains(button) ||
-        !active?.matches('input,textarea,select') || !element.contains(active)) return;
-    if (['btn-plus', 'btn-copy', 'btn-minus', 'btn-move-up', 'btn-move-down'].some(cls => button.classList.contains(cls))) {
-      event.preventDefault();
+  /** Keep the focused control and its text selection; scroll positions belong to the user. */
+  const restoreFocus = () => {
+    if (!focus) return;
+    const control = element.contains(focus.active) ? focus.active
+      : focus.action ? actionButton(focus.action)
+        : controls().find(c => c.name === focus!.name);
+    if (control) {
+      control.focus({ preventScroll: true });
+      if (focus.start !== null && 'setSelectionRange' in control) {
+        (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
+      }
     }
   };
-  const fieldsByWrapper = () => {
-    const map = new Map<string, FieldViewModel>();
-    const visit = (fields: FieldViewModel[]) => {
-      for (const field of fields) {
-        map.set(field.path, field);
-        visit(field.children ?? []);
-        for (const row of field.rows ?? []) visit(row.children ?? []);
-      }
-    };
-    visit(session.getSnapshot().fields);
-    return map;
+  /**
+   * Focus the row an action affected, or the enclosing row or Add button of an emptied
+   * collection. The browser scrolls the focused control into view only as far as needed;
+   * the stylesheet's scroll margins keep it clear of the sticky headers and the footer.
+   */
+  const moveFocus = ({ path, key }: FocusTarget) => {
+    const row = key === undefined
+      ? scopeElement(element, path)?.parentElement?.closest<HTMLElement>('[data-crudui-row-key]') ?? undefined
+      : rowElement(element, path, key);
+    const control = row ? firstRowControl(row)
+      : Array.from(element.querySelectorAll<HTMLButtonElement>('[data-crudui-action="add-row"]'))
+        .find(button => !button.disabled && resolveAction(button)?.path === path);
+    control?.focus();
   };
   const onInput = (event: Event) => {
     const control = event.target as Control;
@@ -106,23 +143,16 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     session.setValue(path, value);
   };
   const onClick = (event: Event) => {
-    const button = (event.target as Element)?.closest?.('button');
+    const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
     if (!button || !element.contains(button) || button.disabled) return;
-    const wrapper = button.closest('.form-element-wrapper[data-field-path]');
-    const field = fieldsByWrapper().get(wrapper?.getAttribute('data-field-path') ?? '');
-    if (!field?.multiple) return;
-    const row = button.closest('.input-group-wrapper[data-uniqid]');
-    // An empty nested collection's add button can sit inside a parent row.
-    const key = row?.closest('.form-element-wrapper') === wrapper ? row.getAttribute('data-uniqid') ?? undefined : undefined;
-    const cls = button.classList;
-    if (cls.contains('btn-plus')) session.addRow(field.path, { afterKey: key });
-    else if (cls.contains('btn-copy') && key) session.copyRow(field.path, key);
-    else if (cls.contains('btn-minus') && key) session.removeRow(field.path, key);
-    else if (key && (cls.contains('btn-move-up') || cls.contains('btn-move-down'))) {
-      const from = field.rows?.findIndex(r => r.uniqid === key) ?? -1;
-      session.moveRow(field.path, key, from + (cls.contains('btn-move-up') ? -1 : 1));
-    } else return;
+    const target = resolveAction(button);
+    const result = target && runAction(session, target);
+    if (!result) return;
     event.preventDefault();
+    if (!result.focus) return;
+    // A renderer that synchronizes inside the commit has already rendered the row.
+    if (synced) moveFocus(result.focus);
+    else destination = result.focus;
   };
   const sync = () => {
     // React's SSR-compatible controls use defaultValue. Injection must update
@@ -162,38 +192,14 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         if (control.value !== next) control.value = next;
       }
     }
-    const fields = fieldsByWrapper();
-    for (const wrapper of element.querySelectorAll<HTMLElement>('.form-element-wrapper[data-field-path]')) {
-      const field = fields.get(wrapper.getAttribute('data-field-path') ?? '');
-      if (!field?.multiple) continue;
-      for (const button of wrapper.querySelectorAll<HTMLButtonElement>('button')) {
-        if (button.closest('.form-element-wrapper') !== wrapper) continue;
-        const key = button.closest('[data-uniqid]')?.getAttribute('data-uniqid');
-        const count = field.rows?.length ?? 0;
-        const index = field.rows?.findIndex(row => row.uniqid === key) ?? -1;
-        const cls = button.classList;
-        button.disabled = ((cls.contains('btn-plus') || cls.contains('btn-copy')) && count >= (field.multiple.max ?? Infinity)) ||
-          (cls.contains('btn-minus') && count <= (field.multiple.min ?? 0)) ||
-          (cls.contains('btn-move-up') && index <= 0) ||
-          (cls.contains('btn-move-down') && index >= count - 1);
-      }
-    }
-    if (focus) {
-      let control: HTMLElement | undefined = element.contains(focus.active) ? focus.active : controls().find(c => c.name === focus!.name);
-      if (!control && focus.emptyAddWrapper) {
-        control = Array.from(element.querySelectorAll<HTMLButtonElement>('button.btn-plus'))
-          .find(button => button.closest('.form-element-wrapper[data-field-path]')?.getAttribute('data-field-path') === focus!.emptyAddWrapper);
-      }
-      if (control) {
-        control.focus({ preventScroll: true });
-        if (focus.start !== null && 'setSelectionRange' in control) {
-          (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
-        }
-      }
-      for (const position of focus.scroll) {
-        position.element.scrollTop = position.top;
-        position.element.scrollLeft = position.left;
-      }
+    synced = true;
+    if (destination) {
+      const target = destination;
+      destination = undefined;
+      focus = undefined;
+      moveFocus(target);
+    } else {
+      restoreFocus();
       focus = undefined;
     }
   };
@@ -201,7 +207,6 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
-  element.addEventListener('pointerdown', onPointerDown);
   sync();
   return {
     sync,
@@ -210,7 +215,32 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
-      element.removeEventListener('pointerdown', onPointerDown);
+    },
+  };
+}
+
+/**
+ * Connect a rendered structure map: its buttons act on the form, and selecting a row
+ * focuses that form row's first control, which the browser scrolls into view.
+ */
+export function connectOutline(element: HTMLElement, session: FormInstance, formElement: HTMLElement): FormConnection {
+  const onClick = (event: Event) => {
+    const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
+    if (!button || !element.contains(button) || button.disabled) return;
+    const target = resolveAction(button);
+    const result = target && runAction(session, target);
+    if (!result) return;
+    event.preventDefault();
+    if (target.name === 'select-row' && result.focus?.key !== undefined) {
+      const row = rowElement(formElement, result.focus.path, result.focus.key);
+      if (row) firstRowControl(row)?.focus();
+    }
+  };
+  element.addEventListener('click', onClick);
+  return {
+    sync() {},
+    disconnect() {
+      element.removeEventListener('click', onClick);
     },
   };
 }

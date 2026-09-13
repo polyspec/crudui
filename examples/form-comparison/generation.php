@@ -88,10 +88,10 @@ final class FormGeneration
         if (!in_array($language, ['ko', 'en'], true)) throw new InvalidArgumentException('Expected language ko or en');
         $form = new Form(Generator::compileForm($spec, ['keyPrefix' => 'form']), $data, ['language' => $language]);
         $runtime = $this->generator['runtime'];
-        $link = '/frames/' . $renderingPath . '-' . $framework . '/?lang=' . $language . '&server=' . $runtime;
-        $text = $language === 'ko' ? ['link' => '대화형 폼', 'save' => '저장'] : ['link' => 'Interactive form', 'save' => 'Save'];
+        $link = '/frames/' . $renderingPath . '-' . $framework . '/?lang=' . $language . '&server=' . $runtime . '&initialization=ssr';
+        $text = $language === 'ko' ? ['link' => '대화형 폼'] : ['link' => 'Interactive form'];
         $provenance = json_encode($this->generator, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
-        return '<!doctype html><html lang="' . $language . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '">' . $text['link'] . '</a></header><form id="form" method="post" action="/api/' . $runtime . '/save/' . $renderingPath . '/' . $framework . '"><div id="view">' . Generator::renderForm($form) . '</div><button type="submit" name="_form_complete" value="1">' . $text['save'] . '</button></form><script type="application/json" id="generator">' . $provenance . '</script></body></html>';
+        return '<!doctype html><html lang="' . $language . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/crudui.css"><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '">' . $text['link'] . '</a></header><form id="form" method="post" action="/api/' . $runtime . '/save/' . $renderingPath . '/' . $framework . '"><div id="view">' . Generator::renderForm($form) . '</div></form><script type="application/json" id="generator">' . $provenance . '</script></body></html>';
     }
 
     private static function object(mixed $value, string $name): stdClass

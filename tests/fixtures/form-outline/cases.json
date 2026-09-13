@@ -1,0 +1,247 @@
+[
+  {
+    "name": "outline-rows-ko",
+    "note": "Korean map of top-level and nested rows with undo available; data view escapes markup characters.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": {
+            "ko": "팀",
+            "en": "Team",
+            "ja": "チーム",
+            "zh": "团队"
+          },
+          "multiple": {
+            "min": 1,
+            "max": 3,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": {
+                "ko": "멤버",
+                "en": "Member",
+                "ja": "メンバー",
+                "zh": "成员"
+              },
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Sales <b> & \"quotes\"",
+          "members": {
+            "__0000000000001__": {
+              "name": "Kim"
+            },
+            "__0000000000002__": {
+              "name": ""
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "",
+          "members": {}
+        }
+      }
+    },
+    "options": {
+      "language": "ko"
+    },
+    "canUndo": true,
+    "expected_outline_html": "<div class=\"crudui-outline\"><div class=\"crudui-outline__header\"><div aria-label=\"폼 컨트롤\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"expand-all\" type=\"button\">모두 펼치기</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"collapse-all\" type=\"button\">모두 접기</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"undo\" type=\"button\">되돌리기</button></div></div><div class=\"crudui-outline__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\" data-field-path=\"teams\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__title\">Sales &lt;b&gt; &amp; \"quotes\"</span></button></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\" data-field-path=\"teams.__0000000000001__.members\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1.1</span><span class=\"crudui-node__title\">Kim</span></button></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\" data-field-path=\"teams.__0000000000001__.members\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1.2</span><span class=\"crudui-node__title\">(이름 없음)</span></button></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\" data-field-path=\"teams\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__title\">(이름 없음)</span></button></div></div></div></div>",
+    "expected_data_html": "<div class=\"crudui-data\"><div class=\"crudui-data__header\">현재 데이터</div><pre class=\"crudui-data__body\">{\n  \"teams\": {\n    \"__0000000000001__\": {\n      \"name\": \"Sales &lt;b&gt; &amp; \\\"quotes\\\"\",\n      \"members\": {\n        \"__0000000000001__\": {\n          \"name\": \"Kim\"\n        },\n        \"__0000000000002__\": {\n          \"name\": \"\"\n        }\n      }\n    },\n    \"__0000000000002__\": {\n      \"name\": \"\",\n      \"members\": {}\n    }\n  }\n}</pre></div>"
+  },
+  {
+    "name": "outline-controls-in-map-en",
+    "note": "controls: outline puts every row's controls in the map, where the stylesheet shows those of the current row; empty collection controls stay in the form.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": {
+            "ko": "팀",
+            "en": "Team",
+            "ja": "チーム",
+            "zh": "团队"
+          },
+          "multiple": {
+            "min": 1,
+            "max": 3,
+            "sortable": true,
+            "copy": true,
+            "title": "name",
+            "controls": "outline"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": {
+                "ko": "멤버",
+                "en": "Member",
+                "ja": "メンバー",
+                "zh": "成员"
+              },
+              "multiple": {
+                "title": "name",
+                "controls": "outline"
+              },
+              "properties": {
+                "name": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Sales <b> & \"quotes\"",
+          "members": {
+            "__0000000000001__": {
+              "name": "Kim"
+            },
+            "__0000000000002__": {
+              "name": ""
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "",
+          "members": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "canUndo": false,
+    "expected_outline_html": "<div class=\"crudui-outline\"><div class=\"crudui-outline__header\"><div aria-label=\"Form controls\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"expand-all\" type=\"button\">Expand all</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"collapse-all\" type=\"button\">Collapse all</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"undo\" disabled=\"\" type=\"button\">Undo</button></div></div><div class=\"crudui-outline__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\" data-field-path=\"teams\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__title\">Sales &lt;b&gt; &amp; \"quotes\"</span></button><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Move up\" class=\"crudui-action\" data-crudui-action=\"move-up\" disabled=\"\" type=\"button\"></button><button aria-label=\"Move down\" class=\"crudui-action\" data-crudui-action=\"move-down\" type=\"button\"></button><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\" data-field-path=\"teams.__0000000000001__.members\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1.1</span><span class=\"crudui-node__title\">Kim</span></button><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\" data-field-path=\"teams.__0000000000001__.members\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1.2</span><span class=\"crudui-node__title\">(untitled)</span></button><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\" data-field-path=\"teams\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__title\">(untitled)</span></button><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Move up\" class=\"crudui-action\" data-crudui-action=\"move-up\" type=\"button\"></button><button aria-label=\"Move down\" class=\"crudui-action\" data-crudui-action=\"move-down\" disabled=\"\" type=\"button\"></button><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div></div></div>",
+    "expected_data_html": "<div class=\"crudui-data\"><div class=\"crudui-data__header\">Current data</div><pre class=\"crudui-data__body\">{\n  \"teams\": {\n    \"__0000000000001__\": {\n      \"name\": \"Sales &lt;b&gt; &amp; \\\"quotes\\\"\",\n      \"members\": {\n        \"__0000000000001__\": {\n          \"name\": \"Kim\"\n        },\n        \"__0000000000002__\": {\n          \"name\": \"\"\n        }\n      }\n    },\n    \"__0000000000002__\": {\n      \"name\": \"\",\n      \"members\": {}\n    }\n  }\n}</pre></div>"
+  },
+  {
+    "name": "outline-untitled-rows-ja",
+    "note": "Japanese map with row controls in the map; untitled rows show the untitled message.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": {
+            "ko": "팀",
+            "en": "Team",
+            "ja": "チーム",
+            "zh": "团队"
+          },
+          "multiple": {
+            "min": 1,
+            "max": 3,
+            "sortable": true,
+            "copy": true,
+            "title": "name",
+            "controls": "outline"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": {
+                "ko": "멤버",
+                "en": "Member",
+                "ja": "メンバー",
+                "zh": "成员"
+              },
+              "multiple": {
+                "title": "name",
+                "controls": "outline"
+              },
+              "properties": {
+                "name": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Sales <b> & \"quotes\"",
+          "members": {
+            "__0000000000001__": {
+              "name": "Kim"
+            },
+            "__0000000000002__": {
+              "name": ""
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "",
+          "members": {}
+        }
+      }
+    },
+    "options": {
+      "language": "ja"
+    },
+    "canUndo": false,
+    "expected_outline_html": "<div class=\"crudui-outline\"><div class=\"crudui-outline__header\"><div aria-label=\"フォームの操作\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"expand-all\" type=\"button\">すべて展開</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"collapse-all\" type=\"button\">すべて折りたたむ</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"undo\" disabled=\"\" type=\"button\">元に戻す</button></div></div><div class=\"crudui-outline__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\" data-field-path=\"teams\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__title\">Sales &lt;b&gt; &amp; \"quotes\"</span></button><div aria-label=\"行の操作\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"上へ\" class=\"crudui-action\" data-crudui-action=\"move-up\" disabled=\"\" type=\"button\"></button><button aria-label=\"下へ\" class=\"crudui-action\" data-crudui-action=\"move-down\" type=\"button\"></button><button aria-label=\"追加\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"複製\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"削除\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\" data-field-path=\"teams.__0000000000001__.members\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1.1</span><span class=\"crudui-node__title\">Kim</span></button><div aria-label=\"行の操作\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"追加\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"削除\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\" data-field-path=\"teams.__0000000000001__.members\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">1.2</span><span class=\"crudui-node__title\">(名前なし)</span></button><div aria-label=\"行の操作\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"追加\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"削除\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\" data-field-path=\"teams\"><div class=\"crudui-node__header\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"select-row\" type=\"button\"><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__title\">(名前なし)</span></button><div aria-label=\"行の操作\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"上へ\" class=\"crudui-action\" data-crudui-action=\"move-up\" type=\"button\"></button><button aria-label=\"下へ\" class=\"crudui-action\" data-crudui-action=\"move-down\" disabled=\"\" type=\"button\"></button><button aria-label=\"追加\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"複製\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"削除\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div></div></div>",
+    "expected_data_html": "<div class=\"crudui-data\"><div class=\"crudui-data__header\">現在のデータ</div><pre class=\"crudui-data__body\">{\n  \"teams\": {\n    \"__0000000000001__\": {\n      \"name\": \"Sales &lt;b&gt; &amp; \\\"quotes\\\"\",\n      \"members\": {\n        \"__0000000000001__\": {\n          \"name\": \"Kim\"\n        },\n        \"__0000000000002__\": {\n          \"name\": \"\"\n        }\n      }\n    },\n    \"__0000000000002__\": {\n      \"name\": \"\",\n      \"members\": {}\n    }\n  }\n}</pre></div>"
+  },
+  {
+    "name": "outline-no-collections-zh",
+    "note": "Chinese map for a form without repeated fields has controls and an empty body.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "title": {
+          "type": "text",
+          "label": "Title"
+        }
+      }
+    },
+    "data": {
+      "title": "Plain"
+    },
+    "options": {
+      "language": "zh"
+    },
+    "canUndo": false,
+    "expected_outline_html": "<div class=\"crudui-outline\"><div class=\"crudui-outline__header\"><div aria-label=\"表单操作\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"expand-all\" type=\"button\">全部展开</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"collapse-all\" type=\"button\">全部折叠</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"undo\" disabled=\"\" type=\"button\">撤销</button></div></div><div class=\"crudui-outline__body\"></div></div>",
+    "expected_data_html": "<div class=\"crudui-data\"><div class=\"crudui-data__header\">当前数据</div><pre class=\"crudui-data__body\">{\n  \"title\": \"Plain\"\n}</pre></div>"
+  }
+]

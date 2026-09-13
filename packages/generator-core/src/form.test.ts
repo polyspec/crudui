@@ -15,7 +15,7 @@ describe('cached structure and nested row lifecycle', () => {
     const cache = JSON.stringify(template);
     expect(cache).not.toContain('서울');
     const empty = bindForm(template);
-    expect(empty[0].rows?.[0].children?.find(f => f.type === 'text')?.widget).toBeTruthy();
+    expect(empty[0].children?.[0].children?.find(f => f.path?.endsWith('.name'))?.widget).toBeTruthy();
     const restored = JSON.parse(cache);
     expect(bindForm(restored, data)).toEqual(bindForm(template, data));
     bindForm(template, { companies: {} }, { language: 'en' });
@@ -41,8 +41,8 @@ describe('cached structure and nested row lifecycle', () => {
     a.rekeyRow(storesPath, copied, sequenceRowKey(42));
     expect(Object.keys(a.getValue(storesPath) as object)).toEqual([sequenceRowKey(42), storeKey, otherStoreKey]);
     expect(Object.keys(a.getData().companies as object)).toEqual([companyKey]);
-    const fields = a.getSnapshot().fields[0].rows![0].children!.find(f => f.path === storesPath)!;
-    const widget = fields.rows![0].children!.find(f => f.type === 'text')!.widget!;
+    const fields = a.getSnapshot().fields[0].children![0].children!.find(f => f.path === storesPath)!;
+    const widget = fields.children![0].children!.find(f => f.path?.endsWith('.name'))!.widget!;
     expect('attrs' in widget && widget.attrs.name).toBe(`form[companies][${companyKey}][stores][${sequenceRowKey(42)}][name]`);
     expect('attrs' in widget && widget.attrs['data-rule-name']).toBe('companies[][stores][][name]');
     a.rekeyRow('companies', companyKey, sequenceRowKey(99));
@@ -62,8 +62,8 @@ describe('cached structure and nested row lifecycle', () => {
     expect(session.getSnapshot()).toBe(full);
     for (const key of Object.keys(session.getValue(storesPath) as object)) session.removeRow(storesPath, key);
     expect(session.getValue(storesPath)).toEqual({});
-    const fields = session.getSnapshot().fields[0].rows![0].children!.find(f => f.path === storesPath)!;
-    expect(fields.rows).toEqual([]);
+    const fields = session.getSnapshot().fields[0].children![0].children!.find(f => f.path === storesPath)!;
+    expect(fields.children).toEqual([]);
     expect(session.addRow(storesPath)).toMatch(/^__[0-9a-f]{13}__$/);
     const fixed = createForm(compileForm({ type: 'group', properties: {
       rows: { type: 'text', multiple: { min: 1, max: 1 } },
@@ -76,6 +76,7 @@ describe('cached structure and nested row lifecycle', () => {
 
   it('rejects index arrays and keeps row identity on edits', () => {
     expect(() => createForm(compileForm(spec), { companies: [] })).toThrow('keyed object');
+    expect(() => bindForm(compileForm(spec), { companies: [] })).toThrow('Repeated data must be a keyed object: companies');
     const session = createForm(compileForm(spec), data);
     const company = Object.keys(session.getData().companies as object)[0];
     const path = `companies.${company}.stores`;
@@ -92,6 +93,22 @@ describe('cached structure and nested row lifecycle', () => {
   });
 });
 
+it('rejects a wrong value type in multiple and design declarations at compilation', () => {
+  const compile = (field: Record<string, unknown>) => () =>
+    compileForm({ type: 'group', properties: { rows: field } });
+  expect(compile({ type: 'text', multiple: 'yes' })).toThrow('Invalid multiple at rows: expected a boolean or an object');
+  expect(compile({ type: 'text', multiple: { max: '2' } })).toThrow('Invalid multiple.max at rows: expected a number');
+  expect(compile({ type: 'text', multiple: { sortable: 1 } })).toThrow('Invalid multiple.sortable at rows: expected a boolean');
+  expect(compile({ type: 'text', design: 'hidden' })).toThrow('Invalid design at rows: expected a boolean or an object');
+  expect(compile({ type: 'text', design: { show: [] } })).toThrow('Invalid design.show at rows: expected an expression, a boolean or a condition map');
+  expect(compile({ type: 'text', design: { style: 3 } })).toThrow('Invalid design.style at rows: expected a string or a condition map');
+  expect(compile({ type: 'text', design: { group: true } })).toThrow('Invalid design.group at rows: expected an object');
+  expect(compile({ type: 'group', properties: { name: { type: 'text', design: { prepend: { class: {} } } } } }))
+    .toThrow('Invalid design.prepend.class at rows.name: expected a string or a condition map');
+  expect(compile({ type: 'text', multiple: { min: 0, copy: true }, design: { show: '.on', class: { '.on': 'a', true: '' }, label: {} } }))
+    .not.toThrow();
+});
+
 it('preserves sequence row keys in names and generates distinct stable DOM scopes', () => {
   const template = compileForm({ type: 'group', properties: {
     rows: { type: 'group', multiple: true, properties: { value: { type: 'text', label: 'Value' } } },
@@ -100,7 +117,7 @@ it('preserves sequence row keys in names and generates distinct stable DOM scope
   const data = { rows: { [key]: { value: 'saved' } } };
   const first = createForm(template, data, { idPrefix: 'first' });
   const second = createForm(template, data, { idPrefix: 'second' });
-  const widget = (form: typeof first) => form.getSnapshot().fields[0].rows![0].children![0].widget!;
+  const widget = (form: typeof first) => form.getSnapshot().fields[0].children![0].children![0].widget!;
   const a = widget(first);
   const b = widget(second);
   if ('unsupported' in a || 'unsupported' in b) throw new Error('Text must be supported');

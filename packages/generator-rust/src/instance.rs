@@ -1,5 +1,5 @@
 use crate::template::repeats;
-use crate::util::{position, segments, value_at};
+use crate::util::{segments, value_at};
 use crate::{bind_form, BindOptions, FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -39,10 +39,7 @@ fn check_key(key: &str) -> FormResult<()> {
 }
 
 fn checked_segments(path: &str) -> FormResult<Vec<String>> {
-    let parts = segments(path)
-        .iter()
-        .map(|s| position(s).to_owned())
-        .collect::<Vec<_>>();
+    let parts = segments(path);
     if parts.is_empty()
         || parts
             .iter()
@@ -75,9 +72,9 @@ fn fresh_key(used: &Map<String, Value>) -> FormResult<String> {
     Err(FormError::input("Unable to generate an unused row key"))
 }
 
-fn normalize_row(field: &FieldTemplate, value: Option<&Value>) -> FormResult<Value> {
+fn normalize_row(field: &FieldTemplate, value: Option<&Value>, path: &str) -> FormResult<Value> {
     if field.spec.get("type").is_some_and(|t| t == "group") {
-        normalize_fields(&field.children, value)
+        normalize_fields(&field.children, value, path)
     } else {
         Ok(value
             .or_else(|| field.spec.get("default"))
@@ -86,36 +83,54 @@ fn normalize_row(field: &FieldTemplate, value: Option<&Value>) -> FormResult<Val
     }
 }
 
-fn normalize_fields(fields: &[FieldTemplate], value: Option<&Value>) -> FormResult<Value> {
+/// Normalize record data; `path` is the full data path, empty at the root.
+fn normalize_fields(
+    fields: &[FieldTemplate],
+    value: Option<&Value>,
+    path: &str,
+) -> FormResult<Value> {
     let mut data = match value {
         None => Map::new(),
         Some(Value::Object(map)) => map.clone(),
-        _ => return Err(FormError::input("Group data must be an object")),
+        _ if path.is_empty() => return Err(FormError::input("Form data must be an object")),
+        _ => {
+            return Err(FormError::input(format!(
+                "Group data must be an object: {path}"
+            )))
+        }
     };
     for field in fields {
         let raw = data.get(&field.name);
+        let field_path = if path.is_empty() {
+            field.name.clone()
+        } else {
+            format!("{path}.{}", field.name)
+        };
         if repeats(field) {
             let mut rows = Map::new();
             match raw {
                 None => {
-                    rows.insert(fresh_key(&rows)?, normalize_row(field, None)?);
+                    let key = fresh_key(&rows)?;
+                    let row = normalize_row(field, None, &format!("{field_path}.{key}"))?;
+                    rows.insert(key, row);
                 }
                 Some(Value::Object(map)) => {
                     for (key, value) in map {
                         check_key(key)?;
-                        rows.insert(key.clone(), normalize_row(field, Some(value))?);
+                        let row =
+                            normalize_row(field, Some(value), &format!("{field_path}.{key}"))?;
+                        rows.insert(key.clone(), row);
                     }
                 }
                 _ => {
                     return Err(FormError::input(format!(
-                        "Repeated data must be a keyed object: {}",
-                        field.name
+                        "Repeated data must be a keyed object: {field_path}"
                     )))
                 }
             }
             data.insert(field.name.clone(), rows.into());
         } else if field.spec.get("type").is_some_and(|t| t == "group") {
-            let group = normalize_fields(&field.children, raw)?;
+            let group = normalize_fields(&field.children, raw, &field_path)?;
             data.insert(field.name.clone(), group);
         } else if raw.is_none() {
             if let Some(default) = field.spec.get("default") {
@@ -188,7 +203,7 @@ pub struct Form {
 impl Form {
     /// Create an instance, prepare default data and evaluate fields.
     pub fn new(template: FormTemplate, data: &Value, options: BindOptions) -> FormResult<Self> {
-        let data = normalize_fields(&template.fields, Some(data))?;
+        let data = normalize_fields(&template.fields, Some(data), "")?;
         let fields = bind_form(&template, &data, &options)?;
         Ok(Self {
             template,
@@ -197,6 +212,11 @@ impl Form {
             options,
             revision: 0,
         })
+    }
+
+    /// Content and interface language of the instance, defaulting to Korean.
+    pub(crate) fn language(&self) -> &str {
+        self.options.language.as_str().unwrap_or("ko")
     }
 
     /// Return the shared structure without instance values.
@@ -221,7 +241,7 @@ impl Form {
 
     /// Replace record data and reevaluate the form atomically.
     pub fn set_data(&mut self, data: &Value) -> FormResult<()> {
-        self.commit(normalize_fields(&self.template.fields, Some(data))?)
+        self.commit(normalize_fields(&self.template.fields, Some(data), "")?)
     }
 
     /// Return a detached value relative to the data root.
@@ -309,9 +329,13 @@ impl Form {
                     + 1
             }
         };
+        let row_path = format!("{}.{key}", checked_segments(path)?.join("."));
         entries.insert(
             at,
-            (key.clone(), normalize_row(field, options.value.as_ref())?),
+            (
+                key.clone(),
+                normalize_row(field, options.value.as_ref(), &row_path)?,
+            ),
         );
         self.commit(put_at(
             &self.data,

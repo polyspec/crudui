@@ -12,5 +12,5 @@ export function Form({ form }: { form: FormInstance }): React.ReactElement {
     return () => { binding.current?.disconnect(); binding.current = null; };
   }, [form]);
   React.useLayoutEffect(() => { binding.current?.sync(); }, [snapshot]);
-  return <FormFields fields={snapshot.fields} rootRef={root} />;
+  return <FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} rootRef={root} />;
 }

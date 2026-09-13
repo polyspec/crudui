@@ -2,6 +2,684 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 화면 높이 프레임 후보 검증과 배포 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 f3109ad에서 통과했습니다. PHP,
+PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
+실패 없이 기록했습니다. `node examples/form-comparison/comparison-deployment.mjs --commit
+f3109ad…`가 이를 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 798px
+브라우저 창에서 프레임은 798px 높이이고 SSR과 CSR 열은 8/8 일치합니다. 페이지를 프레임까지
+스크롤하고 프레임을 700px 스크롤하면 회사 헤더는 화면 맨 위 0px 고정선에, 스토어 헤더는 38.5px
+고정선의 39px에 있으며 둘 다 단계 레이블을 보이고, 고정되지 않은 부서와 Busan 헤더는 레이블을
+숨깁니다. 스크롤 직후 페이지가 렌더링되기 전에 잰 값은 레이블을 여전히 숨김으로 읽었고, 렌더링 뒤
+다시 재자 표시되었습니다.
+
+## 2026-09-14 — 비교 프레임 높이를 화면에 맞춤
+
+고정 행이 CSS만으로 동작하게 된 뒤에도 비교 페이지는 일반 페이지와 다르게 동작했습니다. 원인은
+스크립트가 아니라 배치였습니다. 각 프레임이 798px 화면에서 1,450px로 고정되어 페이지와 프레임이
+모두 스크롤되었고, 고정 헤더가 붙는 프레임 위쪽 가장자리가 페이지를 스크롤하자마자 화면 밖으로
+나갔습니다. 화면보다 긴 스크롤 박스도 같게 동작합니다. 이제 각 프레임은 `100vh` 높이이므로 스크롤
+영역이 보는 화면과 같습니다. 스크롤 위치가 현재 행을 정한다고 남아 있던 주석 두 곳(`actions.ts`,
+`instance.ts`)을 바로잡았습니다. 스크롤과 관련해 남은 스크립트는 작업이나 맵 선택 뒤 행의 컨트롤에
+포커스하는 것뿐입니다.
+
+generator-core 테스트(108)와 `npm run test:form-comparison:source`(140)가 통과했습니다.
+
+## 2026-09-14 — CSS 전용 고정 행 후보 검증과 배포 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 3578158에서 통과했습니다. PHP,
+PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
+실패 없이 기록했습니다. 앞선 실행은 멈췄습니다. 338d060은 React의 고정 행 SSR 인계에서,
+5fbcf5a는 Chromium 스크린샷 오류로 실패했고 둘 다 이후 커밋에서 고쳐지거나 대체되었으며,
+3578158의 첫 실행은 디스크가 가득 차 이미지 구성 중 실패했습니다. 컨테이너 이미지 빌더가 반복된
+후보 빌드로 약 75GB의 빌드 캐시를 갖고 있었고, `container prune`, `container image prune --all`,
+빌더 삭제(다음 빌드에서 캐시를 다시 만듦)로 83GiB를 확보했으며 실행 중인 컨테이너와 볼륨은
+건드리지 않았습니다. `node examples/form-comparison/comparison-deployment.mjs --commit 3578158…`가
+이를 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 브라우저에서 SSR과 CSR
+열은 8/8 일치하고, 각 프레임은 고정 행 4개를 가지며 `data-crudui-stuck`, `data-crudui-current`,
+게시 길이가 없고, SSR 프레임을 스크롤하면 회사 헤더가 고정선에 붙어 레이블을 보이며 아직 고정되지
+않은 Busan 헤더는 레이블을 숨깁니다.
+
+## 2026-09-14 — 고정 행을 CSS만으로 동작하게 하고 스크롤 측정 제거
+
+고정 행이 프레임에서 페이지와 같게 동작하지 않은 것은 브라우저 바인딩이 스크롤 위치를 스크립트로
+측정했기 때문입니다. `connectRows`가 경계 사각형으로 고정 행과 현재 행을 정하고 계산된 폼 뒤
+여백을 위해 길이를 게시했으며, `alignRow`는 둘러싼 모든 문서까지 스크롤하는 `scrollIntoView`로
+행을 스크롤했습니다. 그 계산 중 하나(스크롤 컨테이너, 폼 뒤 내용)를 고칠 때마다 기준이 틀린 다른
+곳이 드러났습니다. 사용자는 CSS로 할 수 있는 것만 남기기로 결정했습니다.
+
+- 제거: `connectRows`, `RowTracking`, `markOutline`, `alignRow`, `data-crudui-stuck`과
+  `data-crudui-current` 속성, `crudui-current` 이벤트, 구조 맵의 `aria-current` 표시, 게시하던
+  `--crudui-scroll-height`와 `--crudui-form-end-*` 길이, 폼 뒤 여백, 현재 행 테두리, 현재 맵 줄에만
+  `controls: outline`을 보이던 규칙(맵 줄은 이제 항상 컨트롤을 보임). `scrollIntoView`의 jsdom
+  대역과 인계 비교에서 그 속성을 빼던 처리도 함께 없어졌고, `contracts/features.json`은 세 함수를
+  더 이상 나열하지 않습니다.
+- `crudui.css`: 고정 헤더는 계속 `--crudui-sticky-depth` 고정선에 쌓입니다. 단계 레이블은
+  `scroll-state(stuck: top)` 컨테이너 쿼리로 헤더가 고정된 동안에만 보입니다. 고정 행 안의
+  컨트롤은 위에 고정되는 헤더만큼의 위쪽 스크롤 여백(`--crudui-sticky-cover`)을, 모든 폼 컨트롤은
+  푸터만큼의 아래쪽 스크롤 여백을 가집니다.
+- 행 작업 뒤나 구조 맵 선택으로 행에 이동하면 그 컨트롤에 포커스하고 브라우저가 보이게
+  스크롤합니다(Chromium은 가운데에 둠). `connectForm`, `connectOutline`, 비교 페이지의 `bindForm`
+  컨트롤러가 같은 방식을 씁니다.
+- Chromium 스타일 검사는 모든 경우를 페이지, 스크롤 박스, 프레임에서 실행합니다. 고정선에 쌓인
+  헤더와 고정된 동안에만 보이는 레이블, 행 추가와 맵 선택 뒤 고정 헤더와 푸터에 가리지 않는
+  포커스를 확인합니다.
+
+`make format-check`, `npm run test:forms`(core 108, HTML 116, React 350, Vue 341, Svelte 338과
+클라이언트 10), `npm run test:form-comparison:source`(140), `npm run test:build`,
+`npm run test:dependencies`, `make docs-check`, Chromium 스타일 검사 6개(환경마다 2개)가
+통과했습니다. 마지막 `make docs-check`는 Rust 크레이트를 다시 빌드하다 디스크가 가득 차 먼저
+실패했고, 멈춘 5fbcf5a 후보 컨테이너·이미지·디렉터리를 지운 뒤 통과했습니다.
+
+## 2026-09-14 — React에서 고정 행을 동일하게 넘겨받기
+
+338d060의 후보 검증은 `browser-php`에서 실패했습니다. React의 SSR 인계가 첫 고정 행에서 달랐는데,
+서버는 그 style을 `--crudui-sticky-depth:0`으로, React는 `--crudui-sticky-depth: 0;`으로 씁니다.
+로컬 공유 인계 테스트는 스펙에 고정 행이 없어 이를 잡지 못했습니다. 저는 고정 행을 비교 예제에만
+선언했습니다.
+
+- `style` 속성은 CSS 선언 블록이므로, 비교 프레임과 `compareServerTakeover`의 인계 비교는 CSS
+  객체 모델이 직렬화한 선언으로 비교합니다.
+- 공유 폼 세션 스펙이 회사와 스토어에 고정 행을 선언하므로 React, Vue, Svelte 폼 테스트가 이를
+  렌더링하고 비교합니다.
+- 이로써 f7f814e부터 있던 React 결함이 드러났습니다. `resolvedStyleProps`는 React가 ref를 호출할
+  때마다, 즉 렌더링마다 style 속성을 지우고 다시 추가했으므로, 다시 렌더링된 행의 style이 브라우저
+  바인딩이 쓴 `data-crudui-current` 뒤로 옮겨졌고, 나중에 데이터를 받은 폼이 데이터와 함께 만든 폼과
+  원시 HTML에서 달랐습니다. 이제 style 속성은 요소가 처음 연결될 때만 렌더링된 속성 뒤에 놓이고,
+  이후 선언은 제자리에서 바뀝니다.
+
+`make format-check`, `npm run test:forms`(core 108, HTML 116, React 350, Vue 341, Svelte 338과
+클라이언트 10), `npm run test:form-comparison:source`, `npm run test:build`,
+`npm run test:dependencies`, `make docs-check`, Chromium 스타일 검사 5개가 통과했습니다.
+
+## 2026-09-14 — 폼 뒤 여백에 폼 뒤 내용 반영
+
+폼 뒤 여백은 스크롤 컨테이너에서 이미 폼 뒤에 있는 내용을 무시했습니다. 결과 영역이 폼 뒤에
+있는 비교 프레임에서는 1,037px(프레임 1,448px에서 끝 행 범위 362px와 푸터 49px를 뺀 값)을
+더해 폼과 결과 사이에 빈 영역이 생겼고, 끝 행은 그 내용 높이만큼 고정선을 지나 스크롤되었습니다.
+이제 규칙은 `connectRows`가 측정해 `--crudui-form-end-after`로 게시하는 폼 뒤 내용(폼 자신의
+여백 제외)을 빼며 0보다 작아지지 않습니다. 폼 뒤 내용이 끝 행에 필요한 공간보다 짧으면 끝 행이
+고정선에서 멈추고, 길면 여백을 더하지 않고 그 내용까지 스크롤됩니다. 문서는 더 이상 폼 뒤에
+아무것도 없을 때만 한계가 정확하다고 설명하지 않습니다.
+
+Chromium 검사 두 개가 이를 확인합니다. 스크롤 박스 안 폼 뒤에 60px 내용이 있으면 변경 전에는
+끝 행이 고정선을 60px 지나쳤고(87px 대신 27px), 600px 내용이면 여백 없이 그 내용 끝까지
+스크롤됩니다.
+
+## 2026-09-14 — 모든 스크롤 컨테이너에 고정 규칙 적용, 비교 예제에 고정 행 선언
+
+비교 페이지에 고정 헤더가 나오지 않은 것은 예제 스펙이 `multiple.header: sticky`를 선언하지
+않았기 때문입니다. 로컬 미리보기는 선언했으므로 같은 생성기가 두 예제에서 다르게 동작했습니다.
+원인을 확인하면서 폼이 페이지가 아닌 스크롤 박스, 대화상자, 프레임 안에 있을 때 드러날 결함을
+찾았습니다. `crudui.css`는 폼 뒤 여백을 페이지 뷰포트인 `100vh`로 계산했지만 고정 헤더는 자신의
+스크롤 컨테이너를 따르고, `connectRows`는 `position: sticky`와 달리 내용이 이미 넘칠 때만 조상을
+스크롤 컨테이너로 취급했습니다. 700px 페이지 안 420px 스크롤 박스에서는 끝 행이 87px 고정선에서
+멈추지 않고 박스 위 193px까지 스크롤되었습니다.
+
+- `connectRows`는 `position: sticky`와 같은 방식으로 스크롤 컨테이너(세로 overflow가 `auto`
+  또는 `scroll`인 가장 가까운 조상, 없으면 문서)를 정하고 그 높이를 끝 행 두 길이와 함께
+  `--crudui-scroll-height`로 게시합니다. `crudui.css`는 `100vh` 대신 이 값을 씁니다. SSR 인계
+  비교는 다른 바인딩 상태와 함께 이 값을 뺍니다. jsdom처럼 `scrollingElement`가 없는 DOM은 루트
+  요소를 문서 스크롤 요소로 쓰고, 비교 컨트롤러 테스트의 대역 문서도 실제 문서처럼 루트 요소를
+  가집니다.
+- 비교 예제는 회사, 스토어, 부서에 `header: sticky`와 `title: name`을 선언하므로 모든 서버와
+  프레임워크가 고정 행을 렌더링하고 비교합니다.
+- Chromium 검사가 스크롤 박스 안에 폼을 마운트해 고정선 위 고정 헤더, 스크롤 되돌림 없음, 끝 행이
+  고정선에서 멈추고 현재 행이 됨, 게시된 높이를 확인합니다. 변경 전에는 끝 행이 87px 고정선 대신
+  −193px에 있어 실패했습니다.
+
+## 2026-09-13 — SSR/CSR 후보 검증 통과와 배포 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 8d0d467에서 통과했습니다. PHP,
+PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 여기에는 서버·렌더링 경로·
+프레임워크마다 SSR 인계를 포함한 초기화 비교 192개가 들어 있습니다. 브라우저 검증은 검사
+5,808개를 실패 없이 기록했습니다. 8d0d467의 첫 실행은 디스크가 가득 차 이미지 구성 중에
+멈췄고, Go 빌드 캐시와 임시 검사 디렉터리를 지운 뒤 같은 커밋으로 다시 실행했습니다.
+`node examples/form-comparison/comparison-deployment.mjs --commit 8d0d467…`가 이를
+`https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 브라우저에서 페이지는 SSR과
+CSR 열(너비 1,000px 초과 시 좌우)을 보여 주며 PHP·React·bindForm에서 비교 8/8이 일치합니다.
+
+## 2026-09-13 — 브라우저 상호작용 검사에 SSR·CSR 열 이름 사용
+
+4607254의 후보 검증은 상호작용이 실행되기 전에 `browser-php`에서 실패했습니다. 상호작용 검사는
+여전히 `initialization=data` 프레임을, 초기 마운트 검사는 `initialization=inject` 프레임을
+찾았는데, 이는 880cb11이 바꾼 열 이름입니다. 이제 상호작용 검사는 `ssr` 프레임, 초기 마운트
+검사는 `csr` 프레임, 보고서 테스트 픽스처는 `ssr` 열을 사용합니다. 이 검사들은 후보 컨테이너
+안에서만 실행되므로 로컬 소스 검사(140개 통과)는 옛 이름을 드러내지 못했습니다.
+
+## 2026-09-13 — 레거시 UI와 함께 삭제된 React 폼 세션 테스트 복원
+
+d26ecce가 레거시 FormBuilder 테스트와 함께 같은 파일의
+`packages/generator-react/src/__tests__/Form.test.tsx` 전체를 삭제해, Vue와 Svelte가 실행하는
+공유 초기화·세션 DOM·컨트롤·포커스 시나리오를 React는 실행하지 않게 되었습니다. 레거시 테스트를
+뺀 파일을 복원하고 `compareServerTakeover`도 실행합니다. React는 테스트 350개를 통과합니다.
+
+## 2026-09-13 — Vue와 Svelte가 서버 렌더링 폼을 바꾸지 않고 넘겨받기
+
+d80a3a0의 첫 후보 검증은 SSR 열에서 실패했습니다. Vue는 조건 블록의 기준점으로 주석 노드를
+두고, Svelte 5는 템플릿 형제 요소 사이 공백을 텍스트 노드로 남기고 빈 텍스트 기준점을 두었으며
+input의 `value` 속성, textarea 텍스트, checkbox의 `checked` 속성을 브라우저 DOM에 쓰지
+않았습니다. 주석과 빈 텍스트는 아무것도 그리지 않으므로, 비교 프레임과 새 공유 테스트
+`compareServerTakeover`의 인계 비교에서 뺍니다. Vue·Svelte 폼 테스트는 같은 세션의 HTML
+렌더러 출력과 이 테스트로 비교합니다. Svelte 템플릿은 형제 노드 사이 공백 없이 작성하고, input·
+textarea·checkbox는 서버용 속성·텍스트와 `defaultValue`/`defaultChecked`를 함께 설정해 Svelte의
+서버 출력과 브라우저 DOM이 다른 렌더러와 같습니다.
+
+`make format-check`, `npm run test:forms`(core 108, HTML 116, Vue 341, Svelte 338과 클라이언트
+10), `npm run test:form-comparison:source`, `npm run test:build`,
+`npm run test:dependencies`, `make docs-check`, `svelte-check`가 통과했습니다. 후보 검증은 별도
+항목에 기록합니다.
+
+## 2026-09-13 — 비교 페이지에서 서버 렌더링과 클라이언트 렌더링 비교
+
+비교 페이지는 "데이터와 함께 생성"과 "마운트 후 데이터 주입"이라는 두 클라이언트 열을 보여
+주었으므로, 서버 언어와 브라우저 프레임워크가 같은 폼을 렌더링한다는 점을 드러내지
+못했습니다. 이제 두 열은 SSR과 CSR입니다. SSR 열(`initialization=ssr`)에서는 선택한
+서버(PHP, PHP 확장, Go, Rust)가 저장 레코드로 폼을 렌더링하고, 프레임이 그 HTML을 페이지에
+넣은 뒤 선택한 프레임워크가 같은 템플릿과 데이터로 폼을 넘겨받습니다. 넘겨받은 뒤에도 파싱한
+폼 DOM(모든 요소, 속성 값, 텍스트, 주석)은 브라우저 바인딩이 쓰는 상태(`data-crudui-stuck`,
+`data-crudui-current`, 끝 행 길이)를 제외하고 바뀌지 않아야 합니다. 첫 후보 검증은 직렬화한
+HTML을 비교했고 속성 순서에서만 실패했습니다. React는 input의 `type`, `value`, `name`을 다른 속성
+뒤에 설정합니다. 속성 순서는 DOM의 일부가 아니고 문자열 렌더러의 바이트 동일 HTML은 생성 검사가
+계속 확인하므로, 인계 검사는 파싱한 DOM을 비교합니다. CSR 열(`initialization=csr`)은 데이터 없이 폼을 마운트한 뒤
+레코드를 주입합니다. 이후 모든 단계는 전과 같이 두 열 사이에서 비교합니다. 비교 이름, SSR
+문서 링크, 프레임 준비·타이핑 검사와 문서가 새 이름을 사용합니다.
+
+폼 비교 소스 검사 140개와 Go·Rust 비교 서버 테스트, `make docs-check`가 통과했습니다. SSR
+인계 자체는 네 서버 후보 검증에서만 실행되며 별도 항목에 기록합니다.
+
+## 2026-09-13 — crudui.css와 레거시 제거의 네 서버 후보 검증 통과 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 0ab3c93(`crudui.css`만으로 폼
+스타일링)과 eb9f7b7(레거시 UI 경로 제거, 빌드·의존성 검사 수정 후)에서 통과했습니다. 두 실행
+모두 PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사
+5,808개를 실패 없이 기록했으며 명령은 상태 0을 반환했습니다.
+
+## 2026-09-13 — CI가 실행하는 빌드·의존성 검사 수정
+
+`npm run test:build`와 `npm run test:dependencies`가 실패하고 있었으며, 이번 작업에서 사용한
+폼 검사 묶음은 이를 실행하지 않았습니다.
+
+- `tests/build/public-types.mts`와 `public-types.cts`는 노드 뷰모델이 제거한 `FieldShape`와
+  `MultipleSettings`를 여전히 참조했습니다. 이제 현재 공개 타입 `NodeVM`과 `ButtonVM`을
+  참조합니다.
+- 폼 비교 컨트롤러는 7a2b73a부터 `@crudui/generator-core`를 import하지만 루트 패키지가 이를
+  선언하지 않았습니다. 이제 루트 패키지가 워크스페이스 패키지를 개발 의존성으로 선언합니다.
+- `tests/build/package-consumer-pack.test.mjs`는 존재하지 않는 경로를 넘겼는데, `packPackage`는
+  07e8f9f부터 패키지 이름을 확인하려고 원본 manifest를 읽습니다. 이제 테스트가 임시 디렉터리에
+  manifest를 만듭니다.
+
+`npm run test:build`, `npm run test:dependencies`, `npm run test:runtimes`와 `tests/build`,
+`tests/docs`의 테스트 67개가 모두 통과했습니다.
+
+## 2026-09-13 — Bootstrap 기반 레거시 UI 경로 제거
+
+레거시 폼 컴포넌트와 원본 Limepie 렌더링 비교는 Bootstrap 위에 만들어졌고, 노드 문법과
+`crudui.css`로 대체되었습니다. 현재 경로 옆에 두지 않고 제거합니다.
+
+- `@crudui/generator-react/legacy`, `@crudui/generator-vue/legacy`,
+  `@crudui/generator-svelte/legacy`와 그 소스, React `@crudui/generator-react/styles.css`
+  스타일시트, 이를 검사하던 테스트(React 테스트 16개, Vue·Svelte 패리티 테스트와 캡처, Svelte
+  레거시 컴포넌트 테스트)
+- `examples/legacy/demo-app`, `playground`, `limepie-bootstrap`, `limepie-compare`,
+  `limepie-original`, `limepie-validate-test`, `react-usage.tsx`와 해당 docker-compose 서비스,
+  README 항목
+- `tests/parity`, `tests/cross-framework`, `tests/legacy-client`,
+  `tests/fixtures/reference-html`, `tools/limepie-baseline`, 루트 `compare` 페이지, 벤더링한
+  `packages/generator-legacy`, Vue·Svelte 단계가 form-render 작업을 반복하던 CI parity 작업
+- 레거시 컴포넌트만 쓰던 React, Vue, Svelte 패키지의 `lucide-react`, `yaml` 의존성
+
+레거시 명세 번역과 검증기(`@crudui/validator/legacy`와 PHP, Go, Rust 대응 구현), 레거시 검증 API
+예제와 공유 명세는 데이터를 검증할 뿐 렌더링하지 않으므로 남깁니다. 공개 패키지 테스트는 이제
+`@crudui/generator-core/crudui.css`가 유일하게 export되는 스타일시트인지 확인합니다.
+
+제거 후 `npm run build`, `npm run lint`, Svelte 타입 검사가 통과했습니다. generator-core와
+HTML은 계속 테스트 108, 116개를 통과했고, React, Vue, Svelte는 347, 341, 338개(제거한 레거시
+테스트만큼 358, 7, 11개 감소), Svelte 클라이언트는 10개, Node 검사는 11개를 통과했습니다. 폼
+비교 소스 검사 140개와 새 스타일시트 export 검사가 통과했고, 구형 스키마·표시 문서가 제거한
+React 소스를 더 이상 링크하지 않게 한 뒤 `make docs-check`가 통과했습니다. 같은 실행에서
+`tests/build/public-packages.test.mjs`의 선언 컴파일 검사와 의존성·pack 검사 두 개가 이미 실패하고
+있었음이 드러났으며, 다음 항목에서 고칩니다.
+
+## 2026-09-13 — crudui.css만으로 폼 스타일링: 위젯은 Bootstrap 대신 crudui 문법 사용
+
+위젯 마크업은 원본 폼에서 이어받은 Bootstrap 어휘(`form-control`, `form-select`,
+`input-group`, `input-group-text`, `btn`, `btn-group`, `btn-check`, `btn-switch`,
+`flex-wrap`, `data-toggle="buttons"` 속성, 테두리 없는 언어 그룹의 `p-0 border-0`)를 그대로
+썼고, core 스타일시트는 이를 전혀 스타일링하지 않았습니다. 미리보기는 CDN에서 Bootstrap을
+불러왔고 비교 페이지는 `#view` 안의 컨트롤을 직접 스타일링했으므로, 폼은 라이브러리 밖의
+스타일이 있어야 제대로 보였습니다. 이제 위젯은 다섯 구현과 여덟 렌더러 모두에서 클래스 문법을
+따릅니다. `__affix`, `__button`, `--search`, `--unsupported`를 가진 `crudui-widget`, `--select`와
+`--file`을 가진 `crudui-input`, `__input`, `__label`, `--multiple`을 가진 `crudui-choices`이고,
+action 위젯 버튼은 `crudui-action crudui-action--text`, 테두리 있는 언어 그룹은
+`crudui-node--framed`입니다. 위젯 모델 layout `input-group`과 `btn-group`은 `widget`과
+`choices`가 되었습니다. 렌더러가 그 밖에 쓰는 클래스는 검증 훅 `valid-target`,
+`valid-target-async`, 에디터 호스트, 스펙이 선언한 클래스뿐이며, 명명 검사는 그 외 클래스가
+나오면 실패합니다.
+
+core 스타일시트는 `@crudui/generator-core/crudui.css`입니다(`./styles.css` export는 제거).
+모든 위젯을 스타일링하고, box-sizing과 `[hidden]` 요소 숨김을 포함한 모든 규칙이 crudui 블록
+범위 안에 있습니다. 페이지는 자기 레이아웃만 스타일링합니다. 미리보기는 레이아웃을 페이지 안에
+두고 더 이상 Bootstrap을 불러오지 않으며, 비교 페이지 스타일시트는 `#view` 안을 스타일링하지
+않고, 비교 서버의 SSR 문서는 `crudui.css`를 불러옵니다. Go와 PHP 패키지 예제도 폼 스타일을
+`crudui.css`에서 가져오며, 폼 푸터의 제출 버튼과 중복되던 자체 제출 버튼을 더 이상 붙이지 않습니다.
+
+`make format-check`가 통과했습니다. 다시 생성한 폼 렌더링·구조 맵 사례로 generator-core, HTML,
+React, Vue, Svelte가 테스트 108, 116, 705, 348, 349개를, Svelte 클라이언트가 10개, 문법 밖 클래스를
+거부하는 명명 검사를 포함한 Node 검사가 11개를 통과했습니다. `make test-native`가 생성기 검사
+976개(구현별 195개), 구성별 PHP API 검사 361개, 검증 사례 103개를 통과했습니다. 비교 Go·Rust 서버
+테스트, 비교 소스 검사 140개와 Chromium 검사 3개, `make docs-check`가 통과했습니다. Chrome에서
+미리보기는 자기 레이아웃과 `crudui.css` 두 스타일시트만 불러오며 Bootstrap 없이 입력, select,
+textarea, 체크박스, 언어 테두리, 구조 맵, 푸터 버튼을 그립니다.
+
+## 2026-09-13 — 모든 Rust 크레이트와 Go 파일 포맷 정리, `make format-check`로 검사
+
+rustfmt나 gofmt를 실행하는 검사가 없어 포맷이 어긋나 있었습니다. Rust 크레이트 다섯 개에
+rustfmt 차이 62곳(최근 폼 변경 코드를 포함해 generator-rust에 54곳), Go 파일 두 개에 gofmt 차이가
+있었습니다. `tests/runner/go/run_test.go`는 import 별칭을 두 번 적어(`validator validator "…"`)
+아예 컴파일되지 않았습니다. 모든 크레이트와 파일을 정리하고 import를 고쳤습니다. `make
+format-check`는 추적 중인 모든 `Cargo.toml`에 대해 공용 Rust 명령 진입점으로 `cargo fmt --check`를,
+추적 중인 모든 Go 파일에 대해 `gofmt -l`을 실행하고 차이가 있으면 실패합니다. 스펙을 참조로
+컴파일하는 비교 Rust 서버 테스트도 비교 검사처럼 `buttons`를 루트에 둡니다.
+
+`make format-check`가 통과했습니다. generator-rust가 테스트 20개와 4개를, validator-rust가 모든
+테스트 대상을, 비교 Rust 서버가 4개를 통과했고, 레거시 Go 검증기와 Go 테스트 러너의 `go test`가
+통과했으며, 레거시 Rust API와 Rust 벤치가 빌드되었고, `make test-native`가 생성기 검사 976개를
+모두 통과했습니다.
+
+## 2026-09-13 — 버튼·스크롤 변경의 네 서버 후보 검증 통과 기록
+
+`node examples/form-comparison/candidate-verification.mjs --ref e3f8c00`가 통과했습니다.
+PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
+실패 없이 기록했으며 명령은 상태 0을 반환했습니다. 이 검증은 폼 버튼(dd37759), 명명·DOM 시나리오
+검사(6912b31), 스크롤 중 렌더링 없음(67f510e), 앞선 검증이 찾은 비교 페이지 수정 두 건을
+포함합니다. 67f510e 검증은 PHP 생성 테스트에서 실패했고(fc2ee17에서 수정), fc2ee17 검증은 참조
+컴파일 검사에서 실패했습니다(e3f8c00에서 수정).
+
+## 2026-09-13 — 스크롤은 아무것도 렌더링하지 않음: 현재 행은 더 이상 인스턴스 상태가 아님
+
+스크롤로 행을 지나면 그 행이 현재 행이 되고, `connectForm`이 `selectRow`를 호출해 새
+스냅숏을 게시했습니다. 애플리케이션은 스냅숏마다 다시 렌더링하므로, 스크롤하며 행 경계를
+넘을 때마다 폼 전체와 구조 맵, 현재 데이터 보기가 교체되고 포커스를 받은 컨트롤과 텍스트
+선택이 복원되었습니다. 컨트롤에 포커스가 있으면 스크롤이 그 컨트롤 쪽으로 되돌아갔습니다.
+선택은 맵 표시에만 쓰였으므로 조건으로 막지 않고 제거했습니다. `FormInstance.selectRow`,
+스냅숏과 뷰 상태의 `selection`, `RowSelection`, `selectRowView`, `OutlineRow.current`를
+없앴고, `setAllExpandedView`는 노드와 펼침 여부만 받습니다. `connectRows(element)`는 폼
+행만 추적하며(맵 행은 자신의 `data-field-path`를 가짐) 다른 행이 현재 행이 되면
+`crudui-current` 이벤트를 보냅니다. 새 `markOutline(outline, form)`은 폼의 현재 행에 해당하는
+맵 행에 `aria-current`를 붙이고, `connectOutline`은 그 이벤트가 오거나 맵이 다시 렌더링될
+때마다 이를 호출하며, 비교 페이지의 `bindForm` 컨트롤러도 자기 맵에 호출합니다.
+`select-row`는 상태를 바꾸지 않습니다. `runAction`이 이동할 행을 반환하고 바인딩이 그 행을
+정렬합니다. `multiple.controls: outline`이면 맵은 모든 행의 컨트롤을 렌더링하고 스타일시트가
+현재 행의 컨트롤만 보여 줍니다.
+
+Chromium 스타일 검사는 이제 폼 옆에 구조 맵을 렌더링하고, 행을 스크롤하는 동안 아무것도
+렌더링하지 않으며 매 단계 맵이 폼의 현재 행 하나만 표시하는지 확인합니다. 멤버 두 명을 추가하고
+컨트롤에 포커스를 둔 미리보기를 puppeteer로 측정한 결과, 변경 전에는 스크롤 제스처마다 전체
+렌더링이 한두 번 일어났고 변경 후에는 한 번도 일어나지 않았습니다. 다시 생성한 구조 맵 사례로
+generator-core, HTML, React, Vue, Svelte가 테스트 108, 116, 705, 348, 349개를, Svelte
+클라이언트가 10개, Node 검사(정규화, 스타일, 명명)가 11개, 폼 비교 소스 검사가 140개, Chromium
+검사가 3개를 통과했고 `make docs-check`가 통과했습니다.
+
+## 2026-09-13 — 마크업 명명 규칙과 접기·되돌리기 DOM 경로 검사
+
+폼 마크업의 클래스 명명 규칙(N1–N3: `crudui-{block}`, `__{element}`, 블록과 함께 쓰는
+`--{modifier}`, 헤더 안의 부품, 본문 안의 노드)은 문서에만 있고 검사하지 않았습니다. 이제
+`tests/form-markup/naming.test.mjs`가 폼 렌더링과 구조 맵 사례의 모든 `crudui-` 클래스를 허용한
+블록·요소·수식자와 대조하고, 규칙을 어긴 예시 다섯 개를 거부하는지 확인하며, `npm run
+test:forms`가 이를 실행합니다. 공유 DOM 시나리오는 모든 행을 접고 펼쳐 각 토글의
+`aria-expanded`와 `aria-controls`가 가리키는 본문의 `hidden`을 확인하고, 편집 하나를 되돌려
+컨트롤 값과 인스턴스 값을 확인합니다.
+
+명명 검사가 테스트 2개를 통과했고, React, Vue, Svelte가 확장한 시나리오를 포함해 각각 705,
+348, 349개 테스트를 통과했습니다.
+
+## 2026-09-13 — 고정 푸터의 폼 버튼, 폼 바깥에 생기는 끝 여백
+
+스펙은 루트에 폼 버튼(`buttons`와 제출 대상 `action`)을 선언하지만, 스키마가 이를 거부했고
+컴파일은 `properties`만 보존해 선언한 저장·취소·이전 버튼이 사라졌습니다. 이제 버튼은 다섯
+구현 모두에서 폼 계약에 포함됩니다. `buttons`는 `{ type: submit | reset | button | link, text,
+name, value, href, design, behavior }` 목록이며, `buttons`가 없는 스펙은 제출 버튼 하나를 가집니다.
+제출·초기화 버튼은 인터페이스 문구를 기본값으로 쓰고, button·link는 `text`가, link는 `href`가
+필요합니다. `action`(`method`, `url`, `enctype`)은 애플리케이션을 위해 템플릿에 보존합니다. 두
+키는 폼 루트 아래에서는 거부됩니다. 템플릿이 `buttons`와 `action`을 담고, `bindButtons`가 이를
+평가하며 스냅숏이 보관하고, 모든 렌더러가 `formButtonsHtml`로 만든 마크업을 컨트롤 그룹 하나로
+`crudui-form__footer`에 넣습니다. 푸터는 고정 행 헤더가 위에 붙듯 스크롤 영역 하단에
+`--crudui-form-footer-height` 높이로 붙습니다. JSON 스키마, 검증기 네 개, CLI, 레거시 번역기가
+이 선언을 받아들입니다.
+
+폼 끝 행은 이제 마지막 행 안의 최소 높이(중첩 카드 안에 빈칸을 남김) 대신 폼 바깥 여백으로
+고정선에 닿습니다. `connectRows`는 측정한 두 길이(그 행 상단부터 폼 내용 끝까지의 범위와 정렬
+위치)를 연결 요소에 게시하고, 스타일시트는 `.crudui-form`의 아래 여백을 화면 높이에서 두 길이와
+푸터를 뺀 값으로 줍니다. 폼 요소 자체에 게시하면 재렌더링이 여백을 없애 스크롤을 되돌렸으므로,
+교체되지 않는 연결 요소에 게시합니다.
+
+폼 비교 서버(PHP, PHP 확장, Go, Rust)는 렌더링한 폼 뒤에 자체 `_form_complete` 제출 버튼을
+붙였는데, 이제 폼 푸터가 제출 버튼을 하나 더 그렸습니다. 비교 스펙과 Go·Rust·PHP 생성 테스트의
+스펙이 그 버튼을 선언하고 서버는 버튼을 붙이지 않으며, 생성 검사는 문서의 제출 버튼이 정확히
+하나인지 확인합니다. 이 변경의 첫 네 서버 후보 검증은 자체 스펙에 아직 버튼을 선언하지 않은 PHP
+생성 테스트에서 실패했습니다. 두 번째 검증은 공개 스펙을 참조로 컴파일하는 생성 검사에서
+실패했습니다. 이 검사는 버튼을 포함한 스펙 전체를 참조 파일에 넣었고, 합성은 파일의 필드만
+가져오므로 참조 템플릿에는 기본 버튼이 들어갔습니다. 프레임도 같은 방식으로 서버에서 컴파일해
+선언한 버튼이 템플릿에서 조용히 빠졌습니다. 이제 둘 다 루트 선언을 루트에 두고 필드만 참조합니다.
+
+검증 결과: generator-core, HTML, React, Vue, Svelte가 테스트 108, 116, 705, 348, 349개를,
+Svelte 클라이언트가 10개, 정규화가 6개, Chromium 스타일 검사가 3개를 통과했습니다.
+`make test-native`가 생성기 검사 976개 전부와 구성별 PHP API 검사 361개, 검증 사례 103개를
+통과했습니다. JSON 스키마가 검사 70개, TypeScript와 PHP 검증기가 1629, 1461개, Rust 검증기가
+62개를 통과했고 Go 검증기와 CLI 37개가 통과했습니다. PHP 확장 엔진 테스트 22개, 교차 검증 콘솔
+117개, 폼 비교 소스 검사 140개와 Chromium 검사 3개, Go·Rust 비교 서버 테스트, `make docs-check`가
+통과했습니다. Chrome에서 끝 행은 최소 높이 없이 고정선에서 0.2px 떨어져 멈췄고, 폼 뒤 공간은
+폼 바깥의 200px 여백이었습니다.
+
+## 2026-09-13 — 구조 맵에 폼의 행만 표시
+
+구조 맵은 단계마다 개수가 붙은 컬렉션 줄(예: "스토어 2개")과 그 아래 행 줄을 따로
+보여 주었고, 줄마다 가이드선이 붙었으며 빈 컬렉션도 나열했습니다. 이제 규칙 하나를
+따릅니다. 맵의 한 줄은 폼의 행 하나입니다. `buildOutline`은 각 행에 중첩된 행을 담은
+`OutlineRow[]`를 반환하므로 맵은 폼과 똑같이 중첩되며, `OutlineCollection`은 제거했습니다.
+컬렉션, 개수, 빈 컬렉션은 행이 아니므로 폼에만 남고, 중첩된 행 본문은 가이드선 없이 한 단계
+들여씁니다. `multiple.controls: outline`이면 행 컨트롤은 여전히 선택한 행의 맵 줄로 옮겨지지만,
+빈 컬렉션의 추가 컨트롤은 행 컨트롤이 아니므로 다섯 구현 모두에서 항상 컬렉션 푸터에 남습니다.
+
+generator-core가 타입 검사와 테스트 104개를 통과했고, 다시 생성한 구조 맵 사례로 HTML, React,
+Vue, Svelte가 116, 705, 348, 349개를 통과했습니다. 폼 비교 소스 검사 140개가 통과했고, 다섯 구현
+모두 빈 컬렉션 배치를 바꾼 뒤 `make test-native`가 생성기 검사 976개를 통과했습니다. Chrome에서
+맵은 단계마다 한 번씩 들여쓴 행만 보여 줍니다. 직전 변경 dad977d의 네 서버 후보 검증은 서버마다
+검사 1,452개(브라우저 검사 5,808개)를 실패 없이 통과했습니다.
+
+## 2026-09-13 — 행을 고정선에 정렬하고 현재 행이 스크롤을 따르게 함
+
+고정 행은 계산한 오프셋 대신 값 하나에서 나온 규칙을 따릅니다. 행 루트가
+`--crudui-sticky-depth`를 가지며(다섯 구현 모두 헤더 스타일에서 옮김), 고정선은 그 값에
+헤더 높이를 곱한 값입니다. 헤더는 고정선에 고정됩니다. 행의 `scroll-margin-top`이 헤더를
+고정선에 놓으므로 `alignRow`는 `scrollIntoView({ block: 'start' })`입니다. 마지막 행은 정렬된
+상단 아래 화면 높이 이상이므로, 그 헤더가 고정선에 닿을 때 스크롤이 끝납니다. 이 변경의
+중간 초안은 폼 끝에 화면 높이만큼 여백을 두어 그 지점을 넘어 스크롤되었고, 이 방식은
+남기지 않았습니다.
+
+현재 행은 규칙 하나, 스크롤 위치로 정합니다. `connectRows`는 상단이 고정선에 닿은 행(고정
+행에 `data-crudui-stuck`)과 그중 마지막인 현재 행(`data-crudui-current`, 테두리 강조)을
+표시하고, 선택된 행과 구조 맵이 현재 행을 따릅니다. 행 작업 뒤나 구조 맵에서 행으로 이동하면
+그 행을 고정선까지 스크롤합니다. 포커스는 선택하거나 스크롤하지 않고, 바인딩은 스크롤 위치를
+복원하지 않습니다. 새로 포커스를 받은 컨트롤의 행도 정렬하고 렌더링 뒤 캡처한 스크롤 위치를
+복원하던 초안은, 다른 입력에 포커스를 둔 채 끝까지 스크롤하면 포커스된 행으로 되돌렸으므로
+둘 다 제거했습니다. 비교 페이지 컨트롤러도 같은 core 함수를 사용합니다.
+
+`npm run test:forms`가 core 104, HTML 116, React 705, Vue 348, Svelte 349, 정규화 10개,
+node 검사 9개를 통과했습니다. node 검사에는 Chromium 검사 3개가 포함됩니다. 정확한 헤더
+높이로 쌓기, 다른 곳에 포커스가 있을 때 현재 행이 스크롤을 따르기, 끝 행이 행 안 빈칸 없이
+고정선에서 정확히 멈추기입니다. 폼 비교 소스 검사 140개와 Chromium 검사 3개가 통과했습니다.
+다섯 구현 모두 깊이 변수를 행 루트로 옮긴 뒤 `make test-native`가 생성기 검사 976개를
+통과했습니다. `make docs-check`가 통과했습니다. Chrome에서 회사명에 포커스를 둔 채 휠로
+스크롤하면 거꾸로 튀지 않고 끝에 도달했고, 포커스가 유지되었으며, 판교점이 현재 행이 되고
+그 상단이 정렬 위치와 0.2px 차이로 멈췄습니다.
+
+## 2026-09-13 — 고정 행 헤더를 정확한 높이로 쌓기
+
+고정 행 헤더(`multiple.header: sticky`)는 단계마다 `--crudui-node-header-height`만큼
+내려 쌓습니다. 그런데 헤더의 실제 높이는 패딩, 내용, 아래 테두리의 합이었습니다.
+기준 미리보기에서 44px 오프셋에 45px였고, 긴 제목이나 컨트롤이 줄바꿈되면 더
+높아졌습니다. 그래서 고정된 단계마다 위 단계와 겹쳤습니다. 이제 고정 헤더는 테두리를
+포함해 정확히 그 높이이고, 줄바꿈하지 않으며 긴 제목을 줄임표로 자릅니다. 고정된
+단계는 겹치지 않고 맞닿습니다. 고정된 헤더는 불투명 배경과 그림자를 가지며, 단계
+라벨은 여전히 고정된 동안에만 보입니다. 고정 판정은 임계값 0과 1의
+IntersectionObserver를 사용했는데, 화면보다 긴 행에서는 호출되지 않아 가장 바깥의 고정
+단계에 라벨이 보이지 않았습니다. 이제 `connectForm`은 헤더가 행 상단의 본래 위치를
+벗어났을 때 고정으로 표시하며, scroll과 resize에서 애니메이션 프레임당 최대 한 번
+측정합니다. jsdom에는 레이아웃이 없으므로 Chromium 검사 `tests/form-styles.test.mjs`를
+`npm run test:forms`에서 실행합니다. form-structure 미리보기는 이전에 고정 헤더를
+선언하지 않아 순차 고정이 보이지 않았고, 이제 다섯 단계 모두에 선언합니다.
+
+`npm run test:forms`가 core 104, HTML 116, React 705, Vue 348, Svelte 349, 정규화 10개,
+node 검사 7개를 통과했으며 새 Chromium 검사가 포함됩니다. 이 검사는 판정 변경 전에는
+가장 바깥의 고정 헤더를 기다리다 시간 초과로 실패했습니다. Chrome의 미리보기에서 다섯
+단계가 라벨과 함께 겹침 없이 차례로 고정되었습니다.
+
+## 2026-09-13 — 네 서버 후보 검증에서 실패한 비교 검사 수정
+
+초기화 비교의 첫 후보 검증에서 PHP 검사 1,452개 중 36개가 실패했고 다른 서버는
+실행되지 않았습니다. 빈 컬렉션 사례 단계는 행 안에 있는 컬렉션의 추가 버튼을
+제외했습니다. 이 조건은 재귀 노드 변경에서 들어갔습니다. bindForm 컨트롤러는 새 행에
+포커스를 준 뒤 스크롤해서, 선택 렌더링이 이전 스크롤 위치를 복원하고 입력이 프레임
+밖에 남았습니다. 이제 core처럼 먼저 스크롤합니다. createForm 검사는 메인 페이지가
+스크롤되지 않는다고 단정했는데, 1,450px 프레임에서는 행 포커스 규칙과 맞지 않습니다.
+이제 포커스를 받은 입력이 프레임 뷰포트와 메인 페이지 뷰포트 안에 모두 보여야 합니다.
+로컬 소스 검사와 Chromium 검사는 이 검사들을 실행하지 않으며, 후보 검증만 실행합니다.
+
+이후 e4d1375의 후보 검증이 통과했습니다. PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를
+실패 없이 통과해 브라우저 검사가 모두 5,808개였고, 명령은 상태 0으로 끝났습니다.
+
+## 2026-09-13 — 두 초기화 경로를 좌우로 비교
+
+폼 비교 페이지가 두 초기화 경로를 두 열로 보여 줍니다. 왼쪽 프레임은 데이터와 함께
+폼을 생성하고, 오른쪽 프레임은 빈 폼을 마운트한 뒤 데이터를 주입합니다. API
+선택(bindForm 또는 createForm)은 서버·프레임워크·언어 선택기 옆의 선택기로
+옮겼습니다. 두 열은 같은 고정 행 키로 같은 단계를 실행합니다. 단계는 마운트, 반복
+주입, 데이터 숨김과 복원, 편집, 저장, 다시 불러오기, 복사, 이동, 제거, 추가, 새 행
+저장, 비우기, 복원, 구조 맵의 모두 펼치기·모두 접기·되돌리기입니다. 두 열이 같은
+레코드에 저장하므로 차례로 실행하고, 오른쪽의 각 단계를 저장해 둔 왼쪽 단계와
+비교합니다. 원시 HTML, DOM, 컨트롤 상태, 필드, 계산된 CSS, 제출 데이터, 포커스,
+저장 응답을 정규화 없이 비교합니다. 상단 목록은 단계가 끝날 때마다 갱신됩니다.
+프레임은 문법 스타일시트를 불러오므로 계산된 CSS가 실제 스타일을 반영합니다. 프레임
+안의 초기화 검사는 제거했습니다.
+
+bindForm 경로도 createForm과 같은 작업(펼치기/접기, 선택, 모두 펼치기, 모두 접기,
+되돌리기)을 같은 뷰 상태·이력·포커스 규칙으로 지원합니다. generator-core는 이 규칙을
+순수 뷰 상태·이력 함수로 export하고, 폼 인스턴스와 bindForm 컨트롤러가 함께
+사용합니다. 두 경로 모두 프레임에 구조 맵과 현재 데이터 보기를 렌더링합니다. React,
+Vue, Svelte는 상태 없는 `OutlineView`와 `DataPanel`(Vue: `outlineVNode`, `dataVNode`)을
+제공하고, HTML 렌더러는 `renderOutlineView`와 `renderDataPanel`을 추가합니다. 공유 사례
+`tests/fixtures/form-outline/cases.json`은 네 언어, 상위·중첩 행 선택,
+`controls: outline`, 데이터 이스케이프에 대한 React 마크업을 담고, 네 렌더러가 모두
+재현합니다. 기능 계약 매니페스트에 뷰 상태·이력 함수와 새 사례를 기록했습니다.
+
+`make test-native`가 생성기 검사 976개(구현별 195개), 구성별 PHP API 검사 361개, PHP
+구현별 검증 사례 100개를 통과했습니다. `npm run test:forms`가 core 104, HTML 116, React
+705, Vue 348, Svelte 349, 정규화 10개 검사를 통과했습니다. 구조 맵 사례는 네 렌더러에서
+각각 4개를 통과했습니다. 폼 비교 소스 검사 140개와 Chromium 검사 3개가 통과했습니다.
+`UndoResult` 타입에 문서를 추가한 뒤 `make docs-check`가 통과했습니다. 이 타입 변경은
+네이티브 검사 뒤의 타입 전용 변경입니다. 네 서버를 사용하는 전체 후보 검증은 이 변경을
+커밋할 때 실행하지 않았습니다.
+
+## 2026-09-13 — 행 작업 후 대상 행으로 포커스 이동
+
+이전에는 행 작업이 활성 입력, 텍스트 선택, 스크롤 위치를 유지했고, 행 버튼을 포인터로
+누를 때 포커스 이동을 막았습니다. 이제 런타임은 기준 폼의 포커스 규칙을 따릅니다.
+추가나 복사는 새 행으로, 이동은 이동한 행으로 포커스를 옮기고, 제거는 이전 행, 다음
+행, 상위 행, 컬렉션의 추가 버튼 순으로 옮깁니다. 포커스는 행의 첫 번째 활성 표시
+입력이나 펼치기/접기·추가 버튼으로 가고, 행은 필요한 만큼만 스크롤합니다.
+펼치기/접기, 선택, 되돌리기는 포커스를 받은 작업 버튼을 포함해 현재 포커스를
+유지합니다. 포인터와 키보드 실행의 동작이 같습니다. `runAction`은 포커스를 받을 행을
+`{ focus }`로 반환하고, 대상이 불완전하면 `undefined`를 반환합니다.
+
+generator-core가 타입 검사와 테스트 102개를 통과했습니다. `npm run test:forms`가
+HTML 112, React 701, Vue 344, Svelte 345, 정규화 10개 검사를 통과했고, 공유 DOM 사례가
+추가·제거·복사·이동·펼치기/접기·마지막 행 제거 뒤 포커스를 받은 행을 확인합니다. jsdom은
+스크롤을 구현하지 않으므로 테스트에서 `scrollIntoView`를 대체합니다. Chrome의
+form-structure 미리보기에서 추가 뒤 새 행, 제거 뒤 이전 행으로 포커스가 이동했습니다.
+호출을 계측해 포커스 전에 행을 스크롤하는 것을 확인했습니다. 이 순서는 동기 재렌더링이
+교체한 요소를 스크롤하는 문제를 막습니다. 자동화 탭은 창을 스크롤하지 않아 실제 화면
+위치는 측정하지 못했습니다. 비교 페이지의 포커스 검사는 다음 변경에서 같은 규칙으로
+바뀝니다.
+
+## 2026-09-13 — 폼을 행 카드가 있는 재귀 노드로 렌더링
+
+모든 폼 렌더러(HTML, React, Vue, Svelte, PHP, Go, Rust, C PHP 확장)가 형태별 래퍼
+대신 하나의 재귀 노드 문법을 출력합니다. 필드, 그룹, 컬렉션, 행, 언어 필드, 언어
+항목은 모두 `__header`, `__body`, `__footer` 슬롯을 가진 `crudui-node`입니다. 종류는
+수식자(`crudui-node--row`)이며, 동작은 `data-field-path`, `data-crudui-row-key`,
+`data-lang`, `data-crudui-action`, `hidden`, ARIA 속성만 읽습니다. `bindForm`은 모든
+구현에서 같은 JSON 모델의 `NodeVM[]`을 반환합니다. [폼 마크업](docs/spec/form-markup.ko.md)
+명세가 문법을 정의하고 기준 폼에서 채택하지 않은 동작을 기록합니다.
+
+- **행 카드:** 행은 계층 번호, `multiple.title`로 지정한 제목, 개수 또는 하위 행
+  요약을 표시합니다. 이동·추가·복사·제거 컨트롤은 고정된 순서이며 비활성 상태를
+  `min`, `max`, 위치로 모든 렌더러가 계산합니다. 브라우저가 렌더링 후 고치지
+  않습니다. `multiple.controls`(`header`, `footer`, `outline`)와
+  `multiple.header`(`static`, `sticky`)를 JSON 스키마, 검증기 네 개, CLI에 선언합니다.
+- **문구:** 컨트롤 레이블, 개수, 요약은 모든 구현이 공유하는 ko/en/ja/zh 표 하나에서
+  가져옵니다.
+- **런타임:** 폼 인스턴스는 접힌 행, 선택한 행, 되돌리기 이력(100개, 같은 경로의
+  연속 입력 병합)을 레코드 데이터와 분리해 보관합니다. `buildOutline`,
+  `connectOutline`, `resolveAction`, `runAction`을 export합니다. React, Vue, Svelte는
+  `Outline`과 `DataView`를, HTML 렌더러는 `renderOutline`과 `renderData`를 제공합니다.
+- **스타일:** `@crudui/generator-core/styles.css`에 문법 스타일이 있습니다.
+- **입력 규칙**(다섯 구현): 컴파일에서 `lang`은 불리언 또는 객체, `lang.only`는 언어
+  코드 문자열 목록 또는 객체여야 합니다. 바인딩은 문자열이 아닌 언어, 문자열이 아닌
+  `keyPrefix`·`idPrefix`, `throw`·`marker`가 아닌 `unsupported`, 지원하지 않는 언어를
+  이 순서로 거부합니다. 이전에는 TypeScript가 `lang: null`에서 비정상 종료했고, C
+  확장은 문자열이 아닌 `only` 항목에서 기본 언어 목록 범위 밖을 읽었으며,
+  TypeScript는 `throw`가 아닌 모든 `unsupported` 문자열을 marker로, PHP는 오류로
+  처리했습니다.
+- **API 변경:** Go `BindOptions.Language`, `IDPrefix`, `KeyPrefix`, `Unsupported`는
+  `any`이고 `KeyPrefixProvided`를 제거했으며 빈 `IDPrefix`를 그대로 사용합니다. Rust
+  `BindOptions`의 문자열 옵션은 JSON 값입니다.
+
+`examples/form-structure`는 5단계 기준 폼의 로컬 미리보기입니다. 폼 비교 페이지, 공유
+DOM 사례, 교차 검증 콘솔은 속성으로 요소를 선택합니다.
+
+복사된 PHP 검증기를 다시 설치한 뒤 `make test-native`가 생성기 검사 976개(구현별 195개와
+입력 불변 검사), 구성별 PHP API 검사 361개, PHP 구현별 검증 사례 100개를 통과했습니다. `npm run test:forms`가 core 101, HTML 112, React 701, Vue 344, Svelte 345,
+정규화 10개 검사를 통과했습니다. 폼 비교 페이지 소스 검사 137개, Go·Rust 검증기
+바이너리를 다시 빌드한 뒤 교차 검증 콘솔 117개, `make docs-check`가 통과했습니다.
+## 2026-09-13 — 통과한 검사의 임시 디렉터리 삭제
+
+`tests/native-generators/run.mjs`는 실행마다 `crudui-native-generators-*` 빌드
+디렉터리를 만들고 삭제하지 않았습니다. `scripts/check-packages.mjs`도 실행마다
+145MB `crudui-consumer-*` 프로젝트를 남겼습니다. 반복 실행이 디스크를 채운 원인 중
+하나였습니다. 이제 통과한 실행은 디렉터리를 삭제합니다. 실패한 실행은 디렉터리를
+남기고 경로를 출력하며 보고서(`buildDirectory`) 또는 `failure.log`와 함께 기록합니다.
+다른 검사 파일은 이미 임시 디렉터리를 삭제하고 있었습니다.
+
+`make test-native`가 886개 검사를 통과하고 빌드 디렉터리를 남기지 않았습니다.
+`npm run test:packages`가 통과하고 소비자 프로젝트를 남기지 않았습니다.
+`make docs-check`가 통과했습니다.
+
+## 2026-09-13 — 잘못된 multiple·design 값 형식을 컴파일에서 거부
+
+TypeScript, PHP, Go, Rust와 C PHP 확장의 폼 컴파일은 `multiple`과 `design`의 값
+형식이 잘못되어도 무시했습니다. 형식이 잘못된 행 설정은 버려지고 잘못된 design은
+빈 design이 되었습니다. 이제 컴파일이 `INVALID_FORM_INPUT`와
+`Invalid {key} at {path}: expected {expected}`로 거부하며 `{path}`는 필드의 구조
+경로입니다. `multiple`은 불리언 또는 객체이고 `min`·`max`는 숫자, `copy`·`sortable`은
+불리언이어야 합니다. `design`은 불리언 또는 객체입니다. `show`는 표현식, 불리언
+또는 조건 맵입니다. `class`와 `style`, 그리고 `label`·`wrapper`·`group`·`prepend`
+노드의 `class`와 `style`은 문자열 또는 조건 맵이며 노드는 객체여야 합니다. 조건 맵은
+JSON 스키마와 같이 비어 있지 않은 객체입니다. 이 버킷의 알 수 없는 키는 검사하지
+않습니다. 스키마 명세가 규칙을 정의합니다.
+
+C 템플릿은 엔진 검사에서 값·오류·합성 모듈과만 링크되므로 메시지를 지역 도우미로
+만듭니다. 네이티브 검사는 컴파일 거부 8건을 전체 기록으로 비교합니다.
+
+`make test-native`가 생성기 검사 886개(구현별 177개), 구성별 PHP API 검사 361개,
+각 PHP 구현의 검증 사례 100개를 통과했습니다. generator-core 타입 검사와 89개
+검사, `npm run test:forms`, `make docs-check`가 통과했습니다.
+
+## 2026-09-13 — 형태가 잘못된 생성기 데이터를 전체 경로로 거부
+
+TypeScript, PHP, Go, Rust와 C PHP 확장의 `bindForm`과 편집 인스턴스는 검증기와
+같은 데이터 형태 규칙을 적용합니다. 객체가 아닌 루트 데이터는
+`Form data must be an object`로 실패합니다. 값이 있지만 객체가 아닌 그룹 값이나
+반복 그룹 행은 `Group data must be an object: {path}`로 실패합니다. 값이 있지만 키
+기반 객체가 아닌 반복 값은 `Repeated data must be a keyed object: {path}`로
+실패합니다. `{path}`는 행 키를 포함한 전체 데이터 경로입니다. 이전에는 인스턴스가
+필드 이름만 보고했고 `bindForm`은 그룹 데이터를 검사하지 않았습니다. `addRow`는
+제공한 그룹 행 값을 `{collection}.{key}`에서 검사합니다. 폼 런타임 명세가 규칙과
+검사 순서를 정의합니다. 폼 비교 컨트롤러의 인스턴스 정규화 사본도 같은 메시지를
+사용하며 이를 검사합니다.
+
+네이티브 검사는 데이터 형태 8가지를 `bindForm`과 인스턴스 양쪽으로 검사하며, 거부
+동작 시나리오에 중첩 경로의 `setValue`와 `addRow` 사례를 추가했습니다.
+
+`make test-native`가 생성기 검사 846개(구현별 169개), 구성별 PHP API 검사 361개,
+각 PHP 구현의 검증 사례 100개를 통과했습니다. generator-core 타입 검사와 88개
+검사, 폼 비교 컨트롤러 5개 검사, `npm run test:forms`, `make docs-check`가
+통과했습니다.
+
+## 2026-09-13 — 구현 간 생성기 오류 메시지 비교
+
+네이티브 생성기 검사는 오류 코드와 위치만 비교했고 README는 언어마다 메시지가
+달라도 된다고 허용했습니다. 모든 구현이 동일해야 한다는 요구와 모순되므로 코드,
+메시지, 위치가 모두 일치해야 한다는 규칙으로 바꿨습니다. 거부된 폼 입력은
+JavaScript와 전체 기록으로 비교합니다.
+
+강화한 비교로 기존 차이 12건을 찾아 수정했습니다.
+
+- PHP, Go, Rust 생성기 CLI는 객체가 아닌 `data`를 각각 `Data must be an object`,
+  `Group data must be an object`, `data must be an object`로 보고했습니다. 모두
+  `Form data must be an object`로 보고합니다.
+- Go와 Rust는 지원하지 않는 필드 형식 메시지 표기가 달랐습니다. 둘 다
+  `Unsupported field type "{type}" at "{path}"`로 보고합니다.
+- Go는 잘못된 행 키 메시지에 `SequenceRowKey`를 표기했으나 다른 구현과 같이
+  `sequenceRowKey`를 표기합니다.
+
+`make test-native`가 생성기 검사 786개, 구성별 PHP API 검사 361개, 각 PHP 구현의
+검증 사례 100개를 통과했습니다.
+
+## 2026-09-13 — 검증기 로드 실패와 입력 실패를 동일하게 보고
+
+TypeScript, PHP, C PHP 확장, Go, Rust 검증기는 형태가 잘못된 제출 데이터를 건너뛰거나
+변환하지 않고 입력 실패로 거부합니다. 루트 데이터는 객체여야 하며 합성 전에
+검사합니다(`Form data must be an object`). 값이 있는 그룹 또는 반복 그룹 행은
+객체여야 합니다(`Group data must be an object: {path}`). 값이 있는 반복 데이터는
+키 기반 객체여야 합니다(`Repeated data must be a keyed object: {path}`). 각 언어는
+코드 `INVALID_FORM_INPUT`와 빈 위치를 가진 `FormInputError`를 제공하며, Rust는
+`ValidateError::Load` 또는 `ValidateError::Input`을 반환합니다. 모든 구현이 키 기반
+행을 정렬된 키 순서로 순회합니다.
+
+네 검증기 CLI는 하나의 프로세스 계약을 사용합니다. 결과는 종료 상태 0과
+`{valid, errors}`, 로드 또는 입력 실패는 종료 상태 2와 정확히 `{error, code, at}`,
+잘못된 요청은 종료 상태 1과 `{error}`를 출력합니다. 이전에는 TypeScript와 Go가
+`at` 없이 1로 종료했고 PHP는 `rule: "compose"` 오류와 함께 0으로 종료했습니다.
+검증 사례는 `expectLoadError: {code}`를 `expectFailure: {code, message, at}`로
+대체하고 입력 실패 사례 6개를 추가합니다. 이전 배열 행 사례는 키 기반 행을
+사용합니다. 사례 생성기에는 커밋 `8688990`이 `cases.json`에만 추가했던 종료일
+사례 7개를 넣어 재생성해도 사라지지 않습니다. 교차 검증 콘솔은 전체 `failure`
+기록을 비교합니다. 비교·예제 서버는 입력 실패에 HTTP 400으로 응답합니다.
+
+전체 기록을 비교하면서 Go에만 있던 차이가 드러났습니다. Go 목록 검증은 금지 키
+위치 앞에 `list.`을 붙였고 Go 테스트가 이 접두를 고정했습니다. 공유 목록 사례와
+다른 구현은 `columns.<이름>`을 사용하므로 Go도 같게 수정했습니다.
+
+C 확장의 할당 실패 fixture는 키 기반 행을 사용하며 할당 횟수는 4와 3입니다. 엔진
+fixture는 호출하는 C 도우미만 출력합니다. 검사 전에 콘솔이 사용하는 git 무시
+대상 Go·Rust CLI 바이너리를 다시 빌드하고 generator-php의 복사된 검증기를 다시
+설치했습니다. 셋 모두 소스 변경 이전 상태였습니다.
+
+TypeScript 검증기 1618, PHP 검증기 1458, `go test ./...`, `cargo test`, 교차 검증
+콘솔 117개 검사가 통과했습니다. `make test-native`는 생성기 검사 786개, 구성별
+PHP API 검사 361개, 각 PHP 구현의 검증 사례 100개를 통과했습니다.
+`make docs-check`가 통과했습니다.
+
+## 2026-09-13 — 반복 행을 키 기반 객체에서만 바인딩
+
+TypeScript, PHP, Go, Rust와 C PHP extension의 `bindForm`은 키 기반 객체에서만
+반복 행을 생성합니다. 컬렉션 데이터가 없으면 `__0000000000000__` 키를 가진 행
+하나를 생성합니다. 배열, null, 스칼라 컬렉션은 `INVALID_FORM_INPUT` 오류와
+`Repeated data must be a keyed object: {path}` 메시지로 실패합니다. 필드 경로에
+`#N` 배열 위치 세그먼트가 없으므로 다섯 구현에서 위치 도우미를 제거했습니다.
+Go에서 사용하지 않던 `rowPosition` 함수도 제거했습니다. 공유 폼 사례는 키 기반
+데이터를 사용하며 HTML 적합성 검사는 이전 배열 사례를 포함합니다.
+
+`npm run test:forms`가 통과했습니다(core 88, HTML 112, React 701, Vue 344,
+Svelte 345, 정규화 10). `make test-native`가 786개 생성기 검사를 통과했으며
+다섯 구현의 거부 코드·메시지·경로가 같아야 하는 새 검사를 포함합니다.
+`make docs-check`가 통과했습니다.
+
+## 2026-09-13 — 스키마·검증기·CLI의 반복 행 선언 정렬
+
+`multiple.min`을 TypeScript, Go, Rust 명세 모델에 선언하고 PHP `multiple`
+버킷이 허용하며 `crudui explain`과 `crudui describe`가 표시합니다. JSON
+스키마와 폼 런타임은 `min`을 정의하지만 PHP 버킷은 이를 거부했습니다. JSON
+스키마에서 `multiple.copy`는 boolean이며 런타임 의미가 없던 객체 형태는
+제거했습니다. 모델 주석은 숨은 식별자와 배열 순서 대신 키 기반 행 식별을
+설명합니다.
+
+스키마 검사 58개, TypeScript 검증기 테스트 1606개, PHP 검증기 테스트 1446개,
+Go·Rust 검증기 테스트, CLI 테스트 37개와 `make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 프레임워크 독립 HTML 렌더링과 실행 가능한 기능 계약 추가
 
 `@crudui/generator-html`은 프레임워크 의존성 없이 현재 폼·목록 view model을

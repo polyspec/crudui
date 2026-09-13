@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFile, writeFile, mkdir, mkdtemp, stat, readdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, mkdtemp, stat, readdir, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -136,6 +136,7 @@ async function check(target, name, operation) {
 function compareError(actual, expected) {
   assert.ok(actual, 'Expected operation to fail');
   assert.equal(actual.code, expected.code, 'Error code differs');
+  assert.equal(actual.message, expected.message, 'Error message differs');
   assert.equal(actual.at, expected.at, 'Error path differs');
 }
 function compareForm(actual, expected, initial) {
@@ -297,11 +298,84 @@ for (const target of targets) {
   });
 
   for (const [name, data] of [['null-root', null], ['array-root', []], ['null-collection', { companies: null }], ['array-collection', { companies: [] }], ['numeric-row-key', { companies: { 5: { name: 'Five', stores: {} } } }]]) await check(target, `reject:${name}`, async () => {
-    const template = oracle({ operation: 'compileForm', spec: companySpec });
+    const request = { operation: 'form', template: oracle({ operation: 'compileForm', spec: companySpec }), data };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.equal(expected?.code, 'INVALID_FORM_INPUT', 'JavaScript accepted invalid form input');
     let error;
-    try { await invoke(target, { operation: 'form', template, data }); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
-    assert.ok(error, 'Invalid form input was accepted'); assert.equal(error.code, 'INVALID_FORM_INPUT');
-    return { errorCode: error.code };
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'Invalid form input was accepted');
+    compareError(error, expected);
+    return { error: expected };
+  });
+
+  const groupSpec = { type: 'group', properties: { address: { type: 'group', properties: { city: { type: 'text' }, geo: { type: 'group', properties: { lat: { type: 'text' } } } } } } };
+  const shapeRejections = [
+    ['array-collection', companySpec, { companies: [] }, 'Repeated data must be a keyed object: companies'],
+    ['null-collection', companySpec, { companies: null }, 'Repeated data must be a keyed object: companies'],
+    ['scalar-collection', companySpec, { companies: 'one' }, 'Repeated data must be a keyed object: companies'],
+    ['nested-array-collection', companySpec, { companies: { [row(1)]: { name: 'One', stores: [] } } }, `Repeated data must be a keyed object: companies.${row(1)}.stores`],
+    ['scalar-group-row', companySpec, { companies: { [row(1)]: 'One' } }, `Group data must be an object: companies.${row(1)}`],
+    ['null-nested-group-row', companySpec, { companies: { [row(1)]: { name: 'One', stores: { [row(2)]: null } } } }, `Group data must be an object: companies.${row(1)}.stores.${row(2)}`],
+    ['scalar-group', groupSpec, { address: 'Seoul' }, 'Group data must be an object: address'],
+    ['array-nested-group', groupSpec, { address: { city: 'Seoul', geo: [] } }, 'Group data must be an object: address.geo'],
+  ];
+  const declarationRejections = [
+    ['multiple-string', { type: 'text', multiple: 'yes' }, 'Invalid multiple at rows: expected a boolean or an object'],
+    ['multiple-min-string', { type: 'text', multiple: { min: '1' } }, 'Invalid multiple.min at rows: expected a number'],
+    ['multiple-copy-object', { type: 'text', multiple: { copy: {} } }, 'Invalid multiple.copy at rows: expected a boolean'],
+    ['design-array', { type: 'text', design: [] }, 'Invalid design at rows: expected a boolean or an object'],
+    ['design-show-number', { type: 'text', design: { show: 1 } }, 'Invalid design.show at rows: expected an expression, a boolean or a condition map'],
+    ['design-class-empty-map', { type: 'text', design: { class: {} } }, 'Invalid design.class at rows: expected a string or a condition map'],
+    ['design-node-string', { type: 'text', design: { wrapper: 'box' } }, 'Invalid design.wrapper at rows: expected an object'],
+    ['multiple-title-not-group', { type: 'text', multiple: { title: 'name' } }, 'Invalid multiple.title at rows: expected a repeated group'],
+    ['multiple-title-repeated-child', { type: 'group', multiple: { title: 'tags' }, properties: { tags: { type: 'text', multiple: true } } }, 'Invalid multiple.title at rows: expected the name of a direct child field without multiple, properties or lang'],
+    ['multiple-controls-unknown', { type: 'text', multiple: { controls: 'side' } }, 'Invalid multiple.controls at rows: expected header, footer or outline'],
+    ['multiple-header-unknown', { type: 'text', multiple: { header: 'fixed' } }, 'Invalid multiple.header at rows: expected static or sticky'],
+    ['lang-null', { type: 'text', lang: null }, 'Invalid lang at rows: expected a boolean or an object'],
+    ['lang-only-mixed', { type: 'text', lang: { only: ['ko', 3] } }, 'Invalid lang.only at rows: expected a list of language codes or an object'],
+    ['nested-design-node-style', { type: 'group', properties: { name: { type: 'text', design: { label: { style: null } } } } }, 'Invalid design.label.style at rows.name: expected a string or a condition map'],
+  ];
+  for (const [name, field, message] of declarationRejections) await check(target, `compile-reject:${name}`, async () => {
+    const request = { operation: 'compileForm', spec: { type: 'group', properties: { rows: field } } };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the declaration rejection contract');
+    let error;
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'A declaration with a wrong value type was accepted');
+    compareError(error, expected);
+    return { error: expected };
+  });
+  const optionRejections = [
+    ['language-number', { language: 5, keyPrefix: 5 }, 'Language must be a string'],
+    ['key-prefix-number', { language: 'fr', keyPrefix: 5 }, 'keyPrefix must be a string'],
+    ['id-prefix-array', { idPrefix: [] }, 'idPrefix must be a string'],
+    ['unsupported-boolean', { unsupported: true }, 'unsupported must be throw or marker'],
+    ['unsupported-other', { language: 'fr', unsupported: 'other' }, 'unsupported must be throw or marker'],
+    ['language-unsupported', { language: 'fr', idPrefix: null }, 'Unsupported language: fr'],
+  ];
+  for (const [name, options, message] of optionRejections) for (const operation of ['bindForm', 'form']) await check(target, `${operation}-option-reject:${name}`, async () => {
+    const request = { operation, template: oracle({ operation: 'compileForm', spec: companySpec }), data: companyData, options };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the option rejection contract');
+    let error;
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'An option with the wrong type was accepted');
+    compareError(error, expected);
+    return { error: expected };
+  });
+  for (const [name, spec, data, message] of shapeRejections) for (const operation of ['bindForm', 'form']) await check(target, `${operation}-shape-reject:${name}`, async () => {
+    const request = { operation, template: oracle({ operation: 'compileForm', spec }), data };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the data shape rejection contract');
+    let error;
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'Data with the wrong shape was accepted');
+    compareError(error, expected);
+    return { error: expected };
   });
 
   for (const timezone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) await check(target, `dates:${timezone}`, async () => {
@@ -349,6 +423,13 @@ try {
 report.completed = true;
 report.passed = report.targets.length === 5 && report.targets.every(target => target.available && target.passed) && report.checks.every(check => check.passed);
 report.summary = { passed: report.checks.filter(check => check.passed).length, failed: report.checks.filter(check => !check.passed).length, unavailable: report.targets.filter(target => !target.available).map(target => target.name) };
+// A passing run removes its build directory; a failing run keeps it for inspection.
+if (report.passed) {
+  await rm(buildDirectory, { recursive: true, force: true });
+  delete report.buildDirectory;
+} else {
+  process.stderr.write(`Build directory retained: ${buildDirectory}\n`);
+}
 if (reportPath) { await mkdir(path.dirname(reportPath), { recursive: true }); await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`); }
 process.stdout.write(`${JSON.stringify(report.summary)}\n`);
 if (!report.passed) process.exitCode = 1;

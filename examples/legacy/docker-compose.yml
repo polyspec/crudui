@@ -1,24 +1,4 @@
 services:
-  # Demo App - React application showcasing form generation
-  demo-app:
-    build:
-      context: ../..
-      dockerfile: examples/legacy/demo-app/Dockerfile
-    ports:
-      - "8010:80"
-    networks:
-      - form-generator-network
-    labels:
-      - "com.form-generator.service=demo-app"
-      - "com.form-generator.description=React demo application"
-    healthcheck:
-      test: ["CMD", "sh", "-c", "curl -sf http://localhost/ || wget -q --spider http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-
   # Node.js API - Express validation server
   node-api:
     build:
@@ -106,79 +86,6 @@ services:
       - "com.form-generator.description=Rust validation API"
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:8080/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    restart: unless-stopped
-
-  # Playground - Interactive form spec editor
-  playground:
-    build:
-      context: ../..
-      dockerfile: examples/legacy/playground/Dockerfile
-    ports:
-      - "8014:80"
-    networks:
-      - form-generator-network
-    labels:
-      - "com.form-generator.service=playground"
-      - "com.form-generator.description=Interactive form spec playground"
-    healthcheck:
-      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-
-  # Limepie Bootstrap - Bootstrap 5 styled form demo
-  limepie-bootstrap:
-    build:
-      context: ../..
-      dockerfile: examples/legacy/limepie-bootstrap/Dockerfile
-    ports:
-      - "8016:80"
-    volumes:
-      - ./shared-specs:/usr/share/nginx/html/specs:ro
-    networks:
-      - form-generator-network
-    labels:
-      - "com.form-generator.service=limepie-bootstrap"
-      - "com.form-generator.description=Limepie-style Bootstrap 5 form demo"
-    healthcheck:
-      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-
-  # Limepie Original - REAL Limepie PHP Form System
-  limepie-original:
-    build:
-      context: ./limepie-original
-      dockerfile: Dockerfile
-    ports:
-      - "8015:80"
-    volumes:
-      # composer vendor (symfony/yaml, ics-parser) — packages/generator-legacy/limepie 에 vendored
-      - ../../packages/generator-legacy/limepie/vendor:/var/www/vendor:ro
-      # 로컬 limepie 소스 체크아웃을 composer 패키지 경로로 중첩 마운트.
-      # yejune/limepie a47ccba 핀 — tools/limepie-baseline/README.md 참조.
-      - ${LIMEPIE_SRC:?Set LIMEPIE_SRC to the source checkout directory}:/var/www/vendor/yejune/limepie:ro
-      - ./limepie-original/public/index.php:/var/www/html/index.php:ro
-      # 스펙은 shared-specs 단일 소스에서 마운트 (limepie-original/specs 사본은 제거됨)
-      - ./shared-specs:/var/www/specs:ro
-      - ./limepie-original/assets/js:/var/www/html/assets/js:ro
-      - ./limepie-original/assets/css:/var/www/html/assets/css:ro
-    networks:
-      - form-generator-network
-    labels:
-      - "com.form-generator.service=limepie-original"
-      - "com.form-generator.description=REAL Limepie PHP Form System"
-    healthcheck:
-      test: ["CMD", "sh", "-c", "curl -f http://localhost/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

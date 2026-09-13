@@ -126,6 +126,42 @@ type FieldSpec struct {
 	// Options is the type-dependent role slot — the type defines and validates
 	// it; the core does not participate.
 	Options *OptionsSlot `json:"options,omitempty"`
+
+	// Buttons are the form buttons rendered in the form footer. Honored on the
+	// form root only.
+	Buttons []FormButton `json:"buttons,omitempty"`
+
+	// Action is the submission target kept for the application. Honored on the
+	// form root only.
+	Action *FormAction `json:"action,omitempty"`
+}
+
+// FormButton is one form button. A button or link needs text; a link needs href.
+type FormButton struct {
+	// Type is submit, reset, button or link.
+	Type string `json:"type"`
+	// Text is the button text, optionally a language map.
+	Text *Content `json:"text,omitempty"`
+	// Name is the submitted name.
+	Name string `json:"name,omitempty"`
+	// Value is the submitted value.
+	Value string `json:"value,omitempty"`
+	// Href is the link target.
+	Href string `json:"href,omitempty"`
+	// Design is the button appearance.
+	Design *DesignSlot `json:"design,omitempty"`
+	// Behavior holds opaque behavior scripts.
+	Behavior *BehaviorSlot `json:"behavior,omitempty"`
+}
+
+// FormAction is the submission target of the form, kept for the application.
+type FormAction struct {
+	// Method is the HTTP method.
+	Method string `json:"method,omitempty"`
+	// URL is the submission URL.
+	URL string `json:"url,omitempty"`
+	// Enctype is the submission encoding.
+	Enctype string `json:"enctype,omitempty"`
 }
 
 // fieldSpecAlias avoids UnmarshalJSON recursion and lets the decoder reject any
@@ -914,13 +950,9 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 // the multiple target — repetition-control keys live under it, never at top
 // level. Polymorphic false | {} | true.
 //
-// Row identity (G4) is NOT a Multiple field. At runtime a repeated row's
-// identity is a hidden server PK carried in the submitted data (an existing row
-// has one, a new row has none); serialization order is the array order. This
-// build-time model has no id field and no id-emitting code — row identity lives
-// in the data layer the server reconciles, not in this spec. (That data-layer id
-// is why a translator drops the legacy seqtokey / __13hex__ synthesized id keys
-// — they were never spec fields.)
+// Row identity is not a Multiple field. Repeated data is an object keyed by row
+// identity, and object member order is row order; the specification has no
+// hidden identity or order field (see docs/spec/form-runtime.md).
 //
 // Legacy multiple_max / sortable* / add_buttons / remove_list_button /
 // list_button_text / multiple_button_onclick are NOT fields here; their
@@ -933,12 +965,20 @@ type Multiple struct {
 	// Enabled is the true shape: the bare on switch with no body.
 	Enabled bool `json:"-"`
 
+	// Min is the minimum row count.
+	Min any `json:"min,omitempty"`
 	// Max caps the row count.
 	Max any `json:"max,omitempty"`
-	// Copy toggles row copy / add / remove buttons.
+	// Copy toggles the row copy control.
 	Copy any `json:"copy,omitempty"`
 	// Sortable toggles row reordering.
 	Sortable any `json:"sortable,omitempty"`
+	// Title names the direct child field whose value titles each row.
+	Title any `json:"title,omitempty"`
+	// Controls positions row controls: header, footer or outline.
+	Controls any `json:"controls,omitempty"`
+	// Header selects static or sticky row headers.
+	Header any `json:"header,omitempty"`
 	// Onclick is the row-action script.
 	Onclick any `json:"onclick,omitempty"`
 }

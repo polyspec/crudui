@@ -30,7 +30,7 @@ func (c widgetContext) option(k, def string) string {
 func (c widgetContext) dataAttrs() *Object {
 	return NewObject("data-name", leafName(c.path, c.state.rows), "data-rule-name", ruleName(c.path, c.state.rows), "data-default", scalar(read(c.spec, "default")))
 }
-func (c widgetContext) translate(v any) string { return translate(v, c.state.options.Language) }
+func (c widgetContext) translate(v any) string { return translate(v, c.state.language) }
 func (c widgetContext) display() string        { return defaultString(c.value, read(c.spec, "default")) }
 func (c widgetContext) behavior() *Object {
 	o := NewObject()
@@ -52,9 +52,9 @@ func (c widgetContext) affix(k string) *Object {
 	if text == "" {
 		return nil
 	}
-	a := NewObject("text", text, "class", "input-group-text")
+	a := NewObject("text", text, "class", "crudui-widget__affix")
 	if k == "prepend" {
-		a.Set("class", joinClass("input-group-text", nodeClass(c.design, "prepend")))
+		a.Set("class", joinClass("crudui-widget__affix", nodeClass(c.design, "prepend")))
 		if s := styleString(nodeStyle(c.design, "prepend")); s != "" {
 			a.Set("style", s)
 		}
@@ -133,33 +133,33 @@ func evalWidget(c widgetContext) *Object {
 	var w *Object
 	switch kind {
 	case "text", "email", "number":
-		a = NewObject("type", kind, "name", name, "value", c.display(), "class", c.class("valid-target form-control"))
+		a = NewObject("type", kind, "name", name, "value", c.display(), "class", c.class("valid-target crudui-input"))
 		c.attrsPlaceholder(a)
 		c.attrsStyle(a)
 		c.attrsBehaviorData(a)
-		w = c.withAffixes(widget(kind, "input-group", "input", a))
+		w = c.withAffixes(widget(kind, "widget", "input", a))
 	case "password":
-		a = NewObject("type", "password", "name", name, "value", scalar(c.value), "class", c.class("valid-target form-control"))
+		a = NewObject("type", "password", "name", name, "value", scalar(c.value), "class", c.class("valid-target crudui-input"))
 		c.attrsStyle(a)
 		merge(a, c.dataAttrs())
 		w = widget(kind, "bare", "input", a)
 	case "textarea":
-		a = NewObject("name", name, "class", c.class("valid-target form-control"), "rows", "5")
+		a = NewObject("name", name, "class", c.class("valid-target crudui-input"), "rows", "5")
 		c.attrsStyle(a)
 		c.attrsBehaviorData(a)
-		w = c.withAffixes(widget(kind, "input-group", "textarea", a))
+		w = c.withAffixes(widget(kind, "widget", "textarea", a))
 		w.Set("text", c.display())
 	case "hidden":
 		a = NewObject("type", "hidden", "name", name, "value", c.display(), "class", c.class("valid-target"))
 		merge(a, c.dataAttrs())
 		w = widget(kind, "bare", "input", a)
 	case "date", "datetime":
-		inputType, layout := kind, "input-group"
+		inputType, layout := kind, "widget"
 		v := dateValue(c.display())
 		if kind == "datetime" {
 			inputType, layout, v = "datetime-local", "bare", datetimeValue(c.display())
 		}
-		a = NewObject("type", inputType, "name", name, "value", v, "class", c.class("valid-target form-control"))
+		a = NewObject("type", inputType, "name", name, "value", v, "class", c.class("valid-target crudui-input"))
 		c.attrsStyle(a)
 		c.attrsBehaviorData(a)
 		w = widget(kind, layout, "input", a)
@@ -169,7 +169,7 @@ func evalWidget(c widgetContext) *Object {
 	case "select":
 		items := read(c.spec, "items")
 		dynamic := dynamicItems(items)
-		base := "valid-target form-select"
+		base := "valid-target crudui-input crudui-input--select"
 		if dynamic {
 			base += " valid-target-async"
 		}
@@ -181,7 +181,7 @@ func evalWidget(c widgetContext) *Object {
 		}
 		c.attrsStyle(a)
 		c.attrsBehaviorData(a)
-		w = c.withAffixes(widget(kind, "input-group", "select", a))
+		w = c.withAffixes(widget(kind, "widget", "select", a))
 		w.Set("source", source)
 		options := c.options([]string{c.display()}, nil)
 		if len(options) == 0 {
@@ -191,21 +191,17 @@ func evalWidget(c widgetContext) *Object {
 	case "choice", "multichoice":
 		items := read(c.spec, "items")
 		dynamic := dynamicItems(items)
-		class, label := "btn-group btn-group-toggle", "btn btn-switch"
+		class, label := "crudui-choices", "crudui-choices__label"
 		if kind == "multichoice" {
-			class = "btn-group flex-wrap btn-group-toggle"
-			label += " btn-mswitch"
+			class = "crudui-choices crudui-choices--multiple"
 		}
 		a = NewObject("class", class)
-		if kind == "choice" {
-			a.Set("data-toggle", "buttons")
-		}
 		var source any = nil
 		if dynamic {
 			source = sourceAttrs(items)
 			merge(a, source)
 		}
-		w = widget(kind, "btn-group", "", a)
+		w = widget(kind, "choices", "", a)
 		w.Set("source", source)
 		w.Set("itemLabelClass", joinClass(label, nodeClass(c.design, "main")))
 		selected := []string{}
@@ -275,20 +271,15 @@ func evalWidget(c widgetContext) *Object {
 		w = widget(kind, "display", "div", a)
 		w.Set("rawHtml", raw)
 	case "dummy-input":
-		a = NewObject("type", "text", "name", name, "value", c.display(), "readonly", "", "class", c.class("form-control"))
+		a = NewObject("type", "text", "name", name, "value", c.display(), "readonly", "", "class", c.class("crudui-input"))
 		c.attrsPlaceholder(a)
 		c.attrsStyle(a)
 		a.Set("data-default", scalar(read(c.spec, "default")))
-		w = c.withAffixes(widget(kind, "input-group", "input", a))
+		w = c.withAffixes(widget(kind, "widget", "input", a))
 	case "image", "file", "cover":
-		class := "valid-target form-control-file"
+		class := "valid-target crudui-input crudui-input--file"
 		accept := "*/*"
-		if kind == "image" {
-			class += " form-control-image"
-			accept = "image/*"
-		}
-		if kind == "cover" {
-			class += " form-control-filetext form-control-image"
+		if kind == "image" || kind == "cover" {
 			accept = "image/*"
 		}
 		accept = c.option("accept", accept)
@@ -313,7 +304,7 @@ func evalWidget(c widgetContext) *Object {
 		file.Set("id", c.id())
 		extra := NewObject()
 		if kind != "cover" {
-			extra.Set("display", NewObject("type", "text", "class", "form-control form-control-file", "value", "", "readonly", ""))
+			extra.Set("display", NewObject("type", "text", "class", "crudui-input", "value", "", "readonly", ""))
 		}
 		extra.Set("file", file)
 		w = widget(kind, "file", "", a)
@@ -350,11 +341,11 @@ func evalWidget(c widgetContext) *Object {
 		} else if c.spec.Has("text") {
 			text = c.translate(read(c.spec, "text"))
 		}
-		a = NewObject("type", "button", "class", c.class("btn"), "name", "btn"+name, "id", id, "value", text)
+		a = NewObject("type", "button", "class", c.class("crudui-action crudui-action--text"), "name", "btn"+name, "id", id, "value", text)
 		w = widget(kind, "button", "", a)
 		w.Set("buttonText", text)
 		w.Set("script", fmt.Sprintf("\n$(function() {\n    %s\n    $(document.getElementById(%s)).on('click', function() {\n        %s\n    });\n});\n", c.option("init_script", ""), scriptString(id), stringAt(c.behavior(), "onclick")))
-		hidden := NewObject("type", "hidden", "class", "valid-target form-control", "readonly", "", "name", name, "data-name", leafName(c.path, c.state.rows), "data-rule-name", ruleName(c.path, c.state.rows), "value", c.display(), "data-default", scalar(read(c.spec, "default")))
+		hidden := NewObject("type", "hidden", "class", "valid-target", "readonly", "", "name", name, "data-name", leafName(c.path, c.state.rows), "data-rule-name", ruleName(c.path, c.state.rows), "value", c.display(), "data-default", scalar(read(c.spec, "default")))
 		w.Set("extra", NewObject("hidden", hidden))
 	default:
 		return nil
@@ -371,7 +362,7 @@ func searchWidget(c widgetContext) *Object {
 	items := read(c.spec, "items")
 	dynamic := dynamicItems(items)
 	min, delay, api := c.option("keyword_min_length", "2"), c.option("delay", "250"), c.option("api_server", "")
-	base := "valid-target form-control"
+	base := "valid-target crudui-input crudui-input--select"
 	var source any = nil
 	if dynamic {
 		base += " valid-target-async"
@@ -412,7 +403,7 @@ func searchWidget(c widgetContext) *Object {
 }
 func editorWidget(kind string, c widgetContext) *Object {
 	id := c.id()
-	base, rows := "valid-target form-control", "3"
+	base, rows := "valid-target crudui-input", "3"
 	tag := "textarea"
 	if kind == "tinymce" {
 		base += " tinymcearea"

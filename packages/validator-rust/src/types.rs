@@ -250,6 +250,15 @@ pub struct FieldSpec {
     /// Type-specific options defined and validated by the field type.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub options: Option<Polymorphic<OptionsSlot>>,
+
+    // ---- Form root declarations ----
+    /// Form buttons rendered in the form footer. Honored on the form root only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub buttons: Option<Vec<FormButton>>,
+
+    /// Submission target kept for the application. Honored on the form root only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action: Option<FormAction>,
 }
 
 // ============================================================================
@@ -336,6 +345,48 @@ pub struct BehaviorSlot {
     pub extra: ExtraMap,
 }
 
+/// One form button. A button or link needs text; a link needs href.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FormButton {
+    /// Button type: submit, reset, button or link.
+    #[serde(rename = "type")]
+    pub button_type: String,
+    /// Button text, optionally represented as a language map.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<Content>,
+    /// Submitted name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// Submitted value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
+    /// Link target.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub href: Option<String>,
+    /// Button appearance.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub design: Option<Polymorphic<DesignSlot>>,
+    /// Opaque behavior scripts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub behavior: Option<Polymorphic<BehaviorSlot>>,
+}
+
+/// Submission target of the form, kept for the application.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FormAction {
+    /// HTTP method.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+    /// Submission URL.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    /// Submission encoding.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enctype: Option<String>,
+}
+
 /// Type-specific options. Field types define and validate their own option keys.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct OptionsSlot {
@@ -392,19 +443,31 @@ pub struct OptionsSlot {
 
 /// Repeated-row options stored under `multiple`.
 ///
-/// Row identity is supplied in runtime data, so this structure has no identifier
-/// field. Array order defines serialized row order.
+/// Row identity is not a field of this structure. Repeated data is an object
+/// keyed by row identity, and object member order is row order.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct MultipleSpec {
+    /// Minimum row count.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub min: Option<Value>,
     /// Maximum row count.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max: Option<Value>,
-    /// Row copy, add and remove controls.
+    /// Row copy control.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub copy: Option<Value>,
     /// Whether rows are sortable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sortable: Option<Value>,
+    /// Direct child field of a repeated group whose value titles each row.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title: Option<Value>,
+    /// Position of row controls: header, footer or outline.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub controls: Option<Value>,
+    /// Static or sticky row headers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub header: Option<Value>,
     /// Click behavior for repeated-row controls.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub onclick: Option<Value>,
@@ -609,9 +672,18 @@ mod tests {
 
     #[test]
     fn multiple_dependency_isolated_under_multiple() {
-        let f = parse(r#"{ "type": "group", "multiple": { "max": 5, "sortable": true } }"#);
+        let f = parse(
+            r#"{ "type": "group", "multiple": { "min": 1, "max": 5, "sortable": true, "title": "name", "controls": "footer", "header": "sticky" } }"#,
+        );
         match f.multiple {
-            Some(Polymorphic::Config(m)) => assert_eq!(m.max, Some(Value::from(5))),
+            Some(Polymorphic::Config(m)) => {
+                assert_eq!(m.min, Some(Value::from(1)));
+                assert_eq!(m.max, Some(Value::from(5)));
+                assert_eq!(m.title, Some(Value::from("name")));
+                assert_eq!(m.controls, Some(Value::from("footer")));
+                assert_eq!(m.header, Some(Value::from("sticky")));
+                assert!(m.extra.0.is_empty());
+            }
             other => panic!("expected multiple config, got {other:?}"),
         }
     }

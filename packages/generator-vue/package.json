@@ -1,7 +1,7 @@
 {
   "name": "@crudui/generator-vue",
   "version": "0.0.1",
-  "description": "Vue 3 form builder component library based on crudui YAML definitions (PHP Limepie parity)",
+  "description": "Vue 3 form builder component library based on crudui YAML definitions",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,20 +12,15 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./package.json": "./package.json",
-    "./legacy": {
-      "types": "./dist/legacy/index.d.ts",
-      "import": "./dist/legacy/index.js",
-      "require": "./dist/legacy/index.cjs"
-    }
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --clean --external vue && tsc --project tsconfig.build.json",
-    "dev": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --watch --external vue --onSuccess \"tsc --project tsconfig.build.json\"",
+    "build": "tsup src/index.ts --format cjs,esm --clean --external vue && tsc --project tsconfig.build.json",
+    "dev": "tsup src/index.ts --format cjs,esm --watch --external vue --onSuccess \"tsc --project tsconfig.build.json\"",
     "test": "vitest run",
     "test:current": "vitest run test/form-render.conformance.test.mjs test/list-render.conformance.test.mjs",
     "test:list": "vitest run test/list-render.conformance.test.mjs"
@@ -36,8 +31,7 @@
     "form-builder",
     "yaml",
     "spec",
-    "validation",
-    "limepie"
+    "validation"
   ],
   "license": "MIT",
   "peerDependencies": {
@@ -45,8 +39,7 @@
   },
   "dependencies": {
     "@crudui/generator-core": "0.0.1",
-    "@crudui/validator": "0.0.1",
-    "yaml": "^2.3.0"
+    "@crudui/validator": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

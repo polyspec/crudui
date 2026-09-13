@@ -60,7 +60,7 @@ g. **explain 역검증** — `crudui explain <spec>`로 스펙을 자연어로 �
   describe `rules`에 있는 것만.
 - **선택지** "A/B/C 중" → 정적: `items` 배열 또는 value→label 맵(`{ "0": "미사용", "1": "사용" }`).
   동적 "DB/모델에서" → `items.{ model, method, table, relations }`. type은 select|choice|multichoice.
-- **반복** "여러 개 / N개까지 / 추가·삭제 / 정렬" → `multiple: true` 또는 `multiple: { max, copy, sortable, onclick }`.
+- **반복** "여러 개 / N개까지 / 추가·삭제 / 정렬" → `multiple: true` 또는 `multiple: { min, max, copy, sortable, title, controls, header, onclick }`.
   레거시 `multiple_max`·`add_buttons` 금지 — `multiple` 하위로.
 - **다국어 입력** "ko/en 입력란 분리" → `lang: true` 또는 `lang: { only: [ko, en] | { ja: { validate: … } }, frame, title, group_class }`.
 - **콘텐츠 번역** "라벨 ko/en" → `label: { ko, en }`. 이건 콘텐츠(G3)이지 분류 대상이 아니다.

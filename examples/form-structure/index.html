@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Form structure preview</title>
+    <link rel="icon" href="data:," />
+    <!-- Page layout only; the form, structure map and data view take every style from crudui.css. -->
+    <style>
+      body {
+        margin: 0;
+        background: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 14px;
+      }
+
+      .preview {
+        display: grid;
+        grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr) minmax(14rem, 22rem);
+        gap: 1.5rem;
+        max-width: 96rem;
+        margin: 0 auto;
+        /* Nothing follows the form, so scrolling ends where its last row reaches its line. */
+        padding: 1.5rem 1rem 0;
+      }
+
+      .preview__heading {
+        margin: 0 0 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .preview__outline,
+      .preview__data {
+        position: sticky;
+        top: 1rem;
+        align-self: start;
+        max-height: calc(100vh - 2rem);
+        overflow: auto;
+      }
+
+      @media (max-width: 64rem) {
+        .preview {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .preview__outline,
+        .preview__data {
+          position: static;
+          max-height: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="preview">
+      <aside class="preview__outline">
+        <h2 class="preview__heading">구조 맵</h2>
+        <div id="outline"></div>
+      </aside>
+      <section class="preview__form">
+        <h1 class="preview__heading">폼 구조</h1>
+        <div id="form"></div>
+      </section>
+      <aside class="preview__data" id="data"></aside>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

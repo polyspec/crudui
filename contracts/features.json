@@ -99,6 +99,10 @@
       "kind": "form-html"
     },
     {
+      "path": "tests/fixtures/form-outline/cases.json",
+      "kind": "outline-html"
+    },
+    {
       "path": "tests/fixtures/list-render/cases.json",
       "kind": "list-html"
     },
@@ -158,9 +162,9 @@
     {
       "id": "bindForm",
       "owner": "@crudui/generator-core",
-      "signature": "bindForm(template, data, options?) -> FieldViewModel[]",
+      "signature": "bindForm(template, data, options?) -> NodeVM[]",
       "input": "compiled template and record data",
-      "output": "evaluated field view models",
+      "output": "evaluated nodes of the recursive form grammar",
       "errors": [
         "TypeError",
         "UnsupportedFieldTypeError"
@@ -180,11 +184,13 @@
       "state": "none",
       "tests": [
         "packages/generator-core/src/form.test.ts",
-        "packages/generator-react/src/__tests__/form-render.conformance.test.ts"
+        "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
+        "packages/generator-core/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
-        "docs/operations/forms.md"
+        "docs/operations/forms.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -194,6 +200,75 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-react -- --run src/__tests__/form-render.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "bindButtons",
+      "owner": "@crudui/generator-core",
+      "signature": "bindButtons(template, data?, options?) -> ButtonVM[]",
+      "input": "compiled template with root buttons, record data and language",
+      "output": "form buttons with text, element and ordered attributes; one submit button when the spec declares none",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-render/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md",
+        "docs/spec/schema.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "formButtonsHtml",
+      "owner": "@crudui/generator-core",
+      "signature": "formButtonsHtml(buttons) -> string",
+      "input": "evaluated form buttons",
+      "output": "button and anchor markup that every renderer inserts into the form footer controls group",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-render/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
         }
       ]
     },
@@ -219,14 +294,16 @@
         "php-native": "pass"
       },
       "status": "implemented",
-      "state": "instance only",
+      "state": "instance data, view state and undo history",
       "tests": [
         "packages/generator-core/src/form.test.ts",
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mjs",
+        "packages/generator-core/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
-        "docs/operations/forms.md"
+        "docs/operations/forms.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -272,7 +349,8 @@
       "docs": [
         "docs/spec/form-runtime.md",
         "docs/operations/forms.md",
-        "packages/generator-html/README.md"
+        "packages/generator-html/README.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -357,7 +435,8 @@
       ],
       "docs": [
         "docs/spec/form-runtime.md",
-        "docs/operations/forms.md"
+        "docs/operations/forms.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -367,6 +446,182 @@
         {
           "id": "test-2",
           "command": "node --test tests/fixtures/form-session/scenario.mjs"
+        }
+      ]
+    },
+    {
+      "id": "buildOutline",
+      "owner": "@crudui/generator-core",
+      "signature": "buildOutline(nodes) -> OutlineRow[]",
+      "input": "evaluated nodes",
+      "output": "the form rows, each with its nested rows and the row controls placed in the map",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs",
+        "tests/fixtures/form-outline/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "connectOutline",
+      "owner": "@crudui/generator-core",
+      "signature": "connectOutline(element, form, formElement) -> FormConnection",
+      "input": "rendered structure map, form instance and rendered form host",
+      "output": "event connection that runs map actions and focuses the selected form row",
+      "errors": [
+        "TypeError",
+        "FormError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass"
+      },
+      "status": "implemented",
+      "state": "form instance view state through owned events",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "runAction",
+      "owner": "@crudui/generator-core",
+      "signature": "runAction(form, target) -> ActionResult | undefined",
+      "input": "form instance and an action target from resolveAction(button)",
+      "output": "the row, collection or view action applied to the instance and the row that receives focus",
+      "errors": [
+        "RangeError",
+        "FormError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "form instance data, view state and undo history",
+      "tests": [
+        "packages/generator-core/src/node.test.ts",
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "viewState",
+      "owner": "@crudui/generator-core",
+      "signature": "initialView() -> ViewState; toggleRowView | removeRowView | rekeyRowView(view, ...) -> ViewState; setAllExpandedView(nodes, expanded) -> ViewState",
+      "input": "current view state, row paths and evaluated nodes",
+      "output": "new view state with collapsed row paths",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "view state owned by a form instance or an application",
+      "tests": [
+        "packages/generator-core/src/node.test.ts",
+        "examples/form-comparison/src/bind-form-controller.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "formHistory",
+      "owner": "@crudui/generator-core",
+      "signature": "emptyHistory() -> History; recordChange(history, previous, path?) -> History; undoChange(history) -> UndoResult",
+      "input": "current history, the record before a change and the edited path",
+      "output": "history with at most HISTORY_LIMIT records and the restored record",
+      "errors": [
+        "RangeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "undo history owned by a form instance or an application",
+      "tests": [
+        "packages/generator-core/src/node.test.ts",
+        "examples/form-comparison/src/bind-form-controller.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
         }
       ]
     },

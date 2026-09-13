@@ -11,11 +11,13 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./crudui.css": "./styles/crudui.css",
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "styles"
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --clean && tsc --project tsconfig.build.json",
@@ -30,8 +32,7 @@
     "form-builder",
     "yaml",
     "spec",
-    "validation",
-    "limepie"
+    "validation"
   ],
   "author": "",
   "license": "MIT",

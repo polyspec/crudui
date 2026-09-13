@@ -158,16 +158,6 @@ void ps_path_parts_free(char **parts, size_t length)
     free(parts);
 }
 
-const char *ps_position(const char *segment)
-{
-    if (segment && segment[0] == '#' && segment[1]) {
-        for (size_t i = 1; segment[i]; ++i)
-            if (!isdigit((unsigned char)segment[i])) return segment;
-        return segment + 1;
-    }
-    return segment;
-}
-
 char *ps_bracket_name(const char *path, const char *prefix)
 {
     size_t length = 0;
@@ -177,7 +167,7 @@ char *ps_bracket_name(const char *path, const char *prefix)
     bool has_prefix = prefix && *prefix;
     if (has_prefix && !buffer_text(&out, prefix)) goto fail;
     for (size_t i = 0; i < length; ++i) {
-        const char *part = ps_position(parts[i]);
+        const char *part = parts[i];
         if (!out.length) { if (!buffer_text(&out, part)) goto fail; }
         else if (!buffer_char(&out, '[') || !buffer_text(&out, part) ||
                  !buffer_char(&out, ']')) goto fail;
@@ -203,7 +193,7 @@ char *ps_rule_name(const char *path, const size_t *rows, size_t count)
     text_buffer out = {0};
     if (length && !buffer_text(&out, parts[0])) goto fail;
     for (size_t i = 1; i < length; ++i) {
-        if (row_segment(i, rows, count) || ps_position(parts[i]) != parts[i]) {
+        if (row_segment(i, rows, count)) {
             if (!buffer_text(&out, "[]")) goto fail;
         } else if (!buffer_char(&out, '[') || !buffer_text(&out, parts[i]) ||
                    !buffer_char(&out, ']')) goto fail;
@@ -222,8 +212,7 @@ char *ps_leaf_name(const char *path, const size_t *rows, size_t count)
     char **parts = NULL;
     if (!ps_path_parts(path, &parts, &length)) return NULL;
     const char *last = length ? parts[length - 1] : path;
-    bool repeated = length && (row_segment(length - 1, rows, count) ||
-                               ps_position(last) != last);
+    bool repeated = length && row_segment(length - 1, rows, count);
     const char *base = repeated ? (length > 1 ? parts[length - 2] : "") : last;
     size_t source_length = strlen(path);
     bool suffix = repeated || (source_length >= 2 && !strcmp(path + source_length - 2, "[]"));

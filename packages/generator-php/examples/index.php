@@ -5,6 +5,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use CRUDUI\Form;
 use CRUDUI\Generator;
 use CRUDUI\Validator;
+use CRUDUI\Validator\Validate\FormInputError;
 
 $path = getenv('CRUDUI_DATA_FILE');
 if ($path === false || $path === '') {
@@ -23,7 +24,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         exit('Form data must be an object.');
     }
     $submitted['topics'] ??= [];
-    $result = Validator::validate($spec, $submitted);
+    try {
+        $result = Validator::validate($spec, $submitted);
+    } catch (FormInputError $error) {
+        http_response_code(400);
+        exit($error->getMessage());
+    }
     $data = (object) $submitted;
     if ($result->valid) {
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
@@ -38,6 +44,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 }
 $template = Generator::compileForm($spec, ['keyPrefix' => 'form']);
 $form = new Form($template, $data, ['language' => 'en']);
+// The form takes every style from the core stylesheet; the page styles only its own layout.
+$stylesheet = file_get_contents(__DIR__ . '/../../generator-core/styles/crudui.css');
+if ($stylesheet === false) {
+    throw new RuntimeException('Stylesheet read failed');
+}
 header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!doctype html>
@@ -47,10 +58,11 @@ header('Content-Type: text/html; charset=UTF-8');
 <title>CRUDUI PHP</title>
 <style>
 body { font: 16px system-ui; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-h6 { font-size: 1rem; margin: 1rem 0 .5rem; }
-input[type=text], input[type=email], textarea { width: 100%; box-sizing: border-box; padding: .6rem; }
-.btn-group label { margin: 0 1rem 0 .25rem; }
-button { margin-top: 1rem; padding: .5rem 1rem; }
+</style>
+<style>
+<?php
+echo $stylesheet;
+?>
 </style>
 <h1>CRUDUI PHP</h1>
 <?php
@@ -66,6 +78,5 @@ foreach ($errors as $error) {
 <?php
 echo Generator::renderForm($form);
 ?>
-<button type="submit">Save</button>
 </form>
 </html>

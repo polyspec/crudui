@@ -18,11 +18,16 @@ export { makeTranslate } from '@crudui/generator-core';
 export type { Language } from '@crudui/generator-core';
 export type { UnsupportedMode } from '@crudui/generator-core';
 
-// Field and widget rendering.
-export type { FieldViewModel, WidgetModel } from '@crudui/generator-core';
-export { Field } from './components/Field';
+// Node, widget, structure map and data view rendering.
+export type { NodeVM, WidgetModel } from '@crudui/generator-core';
+export { Node } from './components/Node';
+export { Controls } from './components/Controls';
 export { Widget } from './components/Widget';
 export type { AnyWidget } from './components/Widget';
+export { Outline, OutlineView } from './components/Outline';
+export type { OutlineProps, OutlineViewProps } from './components/Outline';
+export { DataView, DataPanel } from './components/DataView';
+export type { DataPanelProps } from './components/DataView';
 
 // List models and rendering.
 export { buildList } from '@crudui/generator-core';

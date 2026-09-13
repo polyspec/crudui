@@ -1,0 +1,108 @@
+type: group
+buttons:
+  - type: link
+    text: 취소
+    href: ./
+  - type: submit
+    name: __submitted__
+    value: save
+    text: 저장
+properties:
+  companies:
+    type: group
+    label: 회사
+    multiple:
+      header: sticky
+      min: 1
+      sortable: true
+      title: name
+    properties:
+      name:
+        type: text
+        label: 회사명
+        placeholder: "예) ACME 홀딩스"
+      biz:
+        type: text
+        label: 사업자번호
+        placeholder: "000-00-00000"
+      stores:
+        type: group
+        label: 스토어
+        multiple:
+          header: sticky
+          copy: true
+          sortable: true
+          title: name
+        properties:
+          name:
+            type: text
+            label: 스토어명
+            placeholder: "예) 강남점"
+          use:
+            type: checkbox
+            label: 사용
+          memo:
+            type: textarea
+            label: 메모
+            placeholder: 운영 메모
+          title:
+            type: text
+            label: 제목
+            lang:
+              only: [ko, en]
+          departments:
+            type: group
+            label: 부서
+            multiple:
+              header: sticky
+              sortable: true
+              title: name
+            properties:
+              name:
+                type: text
+                label: 부서명
+                placeholder: "예) 영업부"
+              code:
+                type: select
+                label: 구분
+                items:
+                  영업: 영업
+                  개발: 개발
+                  지원: 지원
+              teams:
+                type: group
+                label: 팀
+                multiple:
+                  header: sticky
+                  copy: true
+                  sortable: true
+                  title: name
+                properties:
+                  name:
+                    type: text
+                    label: 팀명
+                    placeholder: "예) 세일즈 1팀"
+                  members:
+                    type: group
+                    label: 멤버
+                    multiple:
+                      header: sticky
+                      copy: true
+                      sortable: true
+                      title: name
+                    properties:
+                      name:
+                        type: text
+                        label: 이름
+                        placeholder: 이름
+                      role:
+                        type: select
+                        label: 역할
+                        items:
+                          리드: 리드
+                          멤버: 멤버
+                          게스트: 게스트
+                      email:
+                        type: text
+                        label: 이메일
+                        placeholder: name@company.com

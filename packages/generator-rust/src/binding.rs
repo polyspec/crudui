@@ -1,41 +1,68 @@
 use crate::design::resolve_design;
+use crate::messages::{form_messages, format_count, Messages};
 use crate::util::*;
 use crate::widget::{evaluate_widget, WidgetContext};
 use crate::{FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 
 /// Per-instance input names, content language and presentation.
+///
+/// Every option is kept as decoded JSON so that a value of the wrong type is rejected
+/// by binding, not by decoding. Null means the default.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct BindOptions {
-    /// Stable DOM identifier prefix.
-    pub id_prefix: String,
-    /// Content language.
-    pub language: String,
+    /// Stable DOM identifier prefix, `crudui` by default.
+    pub id_prefix: Value,
+    /// Content and interface language: `ko` (default), `en`, `ja` or `zh`.
+    pub language: Value,
     /// Input prefix overriding the template prefix.
-    pub key_prefix: Option<String>,
-    /// Unsupported field handling: `throw` or `marker`.
-    pub unsupported: String,
+    pub key_prefix: Value,
+    /// Unsupported field handling: `throw` (default) or `marker`.
+    pub unsupported: Value,
 }
 impl Default for BindOptions {
     fn default() -> Self {
         Self {
             id_prefix: "crudui".into(),
             language: "ko".into(),
-            key_prefix: None,
+            key_prefix: Value::Null,
             unsupported: "throw".into(),
         }
     }
 }
 
-struct Binding<'a> {
-    data: &'a Value,
-    options: &'a BindOptions,
-    key_prefix: Option<&'a str>,
+/// A present string option, or `None` for null.
+fn string_option<'a>(value: &'a Value, error: &str) -> FormResult<Option<&'a str>> {
+    match value {
+        Value::Null => Ok(None),
+        Value::String(text) => Ok(Some(text)),
+        _ => Err(FormError::input(error)),
+    }
 }
 
-/// Evaluate field models using a compiled template and independent record data.
+struct Binding<'a> {
+    data: &'a Value,
+    id_prefix: &'a str,
+    key_prefix: Option<&'a str>,
+    unsupported: &'a str,
+    language: &'a str,
+    messages: &'static Messages,
+}
+
+/// Enclosing repeated rows of a node.
+#[derive(Clone, Default)]
+struct Scope {
+    /// Repeated path segment positions, independent of their key encoding.
+    row_segments: Vec<usize>,
+    /// One-based positions of the enclosing rows.
+    row_numbers: Vec<usize>,
+    /// Number of enclosing rows with a sticky header.
+    sticky_depth: usize,
+}
+
+/// Evaluate the node grammar using a compiled template and independent record data.
 pub fn bind_form(
     template: &FormTemplate,
     data: &Value,
@@ -47,48 +74,184 @@ pub fn bind_form(
     if template.kind != "crudui/form-template" {
         return Err(FormError::input("Unsupported form template"));
     }
-    if !["throw", "marker"].contains(&options.unsupported.as_str()) {
-        return Err(FormError::input("unsupported must be throw or marker"));
-    }
+    let language = string_option(&options.language, "Language must be a string")?.unwrap_or("ko");
+    let key_prefix = string_option(&options.key_prefix, "keyPrefix must be a string")?;
+    let id_prefix = string_option(&options.id_prefix, "idPrefix must be a string")?;
+    let unsupported = match &options.unsupported {
+        Value::Null => "throw",
+        Value::String(mode) if mode == "throw" || mode == "marker" => mode.as_str(),
+        _ => return Err(FormError::input("unsupported must be throw or marker")),
+    };
+    let messages = form_messages(language)?;
     let state = Binding {
         data,
-        options,
-        key_prefix: options
-            .key_prefix
-            .as_deref()
-            .or(template.key_prefix.as_deref()),
+        id_prefix: id_prefix.unwrap_or("crudui"),
+        key_prefix: key_prefix.or(template.key_prefix.as_deref()),
+        unsupported,
+        language,
+        messages,
     };
     template
         .fields
         .iter()
-        .map(|field| state.field(field, &field.name, &[]))
+        .map(|field| state.field(field, &field.name, &Scope::default()))
         .collect()
 }
 
-fn multiple(spec: &Value) -> Option<Value> {
+/// Evaluated controls and limits for a repeated field.
+struct Multiple {
+    min: Option<f64>,
+    max: Option<f64>,
+    copy: bool,
+    sortable: bool,
+    title: Option<String>,
+    controls: &'static str,
+    sticky: bool,
+}
+
+fn multiple(spec: &Value) -> Option<Multiple> {
     match spec.get("multiple") {
-        Some(Value::Bool(true)) => Some(json!({"show": true})),
-        Some(Value::Object(m)) => {
-            let mut result = json!({"show": true, "copy": m.get("copy").is_some_and(|v| *v == true), "sortable": m.get("sortable").is_some_and(|v| *v == true)});
-            for key in ["min", "max"] {
-                if let Some(n) = m.get(key).filter(|v| v.is_number()) {
-                    result[key] = n.clone();
-                }
-            }
-            Some(result)
-        }
+        Some(Value::Bool(true)) => Some(Multiple {
+            min: None,
+            max: None,
+            copy: false,
+            sortable: false,
+            title: None,
+            controls: "header",
+            sticky: false,
+        }),
+        Some(Value::Object(m)) => Some(Multiple {
+            min: m.get("min").and_then(Value::as_f64),
+            max: m.get("max").and_then(Value::as_f64),
+            copy: m.get("copy").is_some_and(|v| *v == true),
+            sortable: m.get("sortable").is_some_and(|v| *v == true),
+            title: m.get("title").and_then(Value::as_str).map(str::to_owned),
+            controls: match m.get("controls").and_then(Value::as_str) {
+                Some("footer") => "footer",
+                Some("outline") => "outline",
+                _ => "header",
+            },
+            sticky: m.get("header").is_some_and(|v| v == "sticky"),
+        }),
         _ => None,
     }
 }
 
-fn rows(value: Option<&Value>) -> Vec<(String, String)> {
-    match value {
-        Some(Value::Array(a)) => (0..a.len())
-            .map(|i| (format!("#{i}"), i.to_string()))
-            .collect(),
-        Some(Value::Object(m)) => m.keys().map(|s| (s.clone(), s.clone())).collect(),
-        _ => vec![("#0".into(), "0".into())],
+/// Language codes, frame and title of a language field.
+struct Lang<'a> {
+    codes: Vec<Value>,
+    frame: bool,
+    title: Option<&'a Value>,
+    group_class: &'a str,
+}
+
+fn lang(spec: &Value) -> Option<Lang<'_>> {
+    let defaults = || ["ko", "en", "ja", "zh"].map(Value::from).to_vec();
+    match spec.get("lang") {
+        Some(Value::Bool(true)) => Some(Lang {
+            codes: defaults(),
+            frame: true,
+            title: None,
+            group_class: "",
+        }),
+        Some(Value::Object(l)) => Some(Lang {
+            codes: l
+                .get("only")
+                .and_then(Value::as_array)
+                .filter(|codes| !codes.is_empty())
+                .cloned()
+                .unwrap_or_else(defaults),
+            frame: l.get("frame").is_none_or(|v| *v != false),
+            title: l.get("title"),
+            group_class: l.get("group_class").and_then(Value::as_str).unwrap_or(""),
+        }),
+        _ => None,
     }
+}
+
+/// Row keys of a keyed collection. Missing data has one initial row.
+fn rows(value: Option<&Value>, path: &str) -> FormResult<Vec<String>> {
+    match value {
+        None => Ok(vec!["__0000000000000__".into()]),
+        Some(Value::Object(m)) => Ok(m.keys().cloned().collect()),
+        Some(_) => Err(FormError::input(format!(
+            "Repeated data must be a keyed object: {path}"
+        ))),
+    }
+}
+
+/// Present group data, including a repeated group row, must be an object.
+fn check_group(value: Option<&Value>, path: &str) -> FormResult<()> {
+    match value {
+        Some(value) if !value.is_object() => Err(FormError::input(format!(
+            "Group data must be an object: {path}"
+        ))),
+        _ => Ok(()),
+    }
+}
+
+fn text_at<'a>(value: &'a Value, node: &str, key: &str) -> &'a str {
+    value[node][key].as_str().unwrap_or("")
+}
+
+fn node_root(kind: &str, path: &str, design: &Value) -> Map<String, Value> {
+    let mut node = Map::new();
+    put_string(&mut node, "kind", kind);
+    put_string(&mut node, "path", path);
+    put_string(&mut node, "className", text_at(design, "wrapper", "class"));
+    put_nonempty(
+        &mut node,
+        "style",
+        style(text_at(design, "wrapper", "style")),
+    );
+    node.insert("hidden".into(), (design["show"] != true).into());
+    node
+}
+
+/// Header with the given parts, or `None` when every part is empty.
+fn node_header(parts: Vec<(&str, Option<String>)>, design: &Value) -> Option<Value> {
+    let present = parts
+        .into_iter()
+        .filter_map(|(key, value)| value.filter(|v| !v.is_empty()).map(|v| (key, v)))
+        .collect::<Vec<_>>();
+    if present.is_empty() {
+        return None;
+    }
+    let mut header = Map::new();
+    put_string(&mut header, "className", text_at(design, "label", "class"));
+    put_nonempty(
+        &mut header,
+        "style",
+        style(text_at(design, "label", "style")),
+    );
+    for (key, value) in present {
+        put_string(&mut header, key, value);
+    }
+    Some(header.into())
+}
+
+fn node_body(class: &str, inline: &str, id: Option<String>) -> Value {
+    let mut body = Map::new();
+    put_string(&mut body, "className", class);
+    put_nonempty(&mut body, "style", style(inline));
+    if let Some(id) = id {
+        put_nonempty(&mut body, "id", id);
+    }
+    body.into()
+}
+
+fn action(name: &str, label: &str, disabled: bool) -> Value {
+    json!({"name": name, "label": label, "disabled": disabled})
+}
+
+fn label_target(widget: &Value) -> Option<String> {
+    if widget["unsupported"] == true {
+        return None;
+    }
+    widget["extra"]["file"]["id"]
+        .as_str()
+        .or_else(|| widget["attrs"]["id"].as_str())
+        .map(str::to_owned)
 }
 
 impl Binding<'_> {
@@ -99,7 +262,7 @@ impl Binding<'_> {
         design: &Value,
         row_segments: &[usize],
     ) -> FormResult<Value> {
-        let id = control_id(&self.options.id_prefix, path);
+        let id = control_id(self.id_prefix, path);
         let context = WidgetContext {
             spec,
             value: value_at(self.data, path),
@@ -107,18 +270,16 @@ impl Binding<'_> {
             design,
             key_prefix: self.key_prefix,
             id: &id,
-            language: &self.options.language,
+            language: self.language,
             row_segments,
         };
         let kind = spec["type"].as_str().unwrap_or("");
         match evaluate_widget(kind, &context) {
             Some(widget) => Ok(widget),
-            None if self.options.unsupported == "marker" => {
-                Ok(json!({"unsupported": true, "type": kind}))
-            }
+            None if self.unsupported == "marker" => Ok(json!({"unsupported": true, "type": kind})),
             None => Err(FormError {
                 code: "UNSUPPORTED_FIELD_TYPE".into(),
-                message: format!("Unsupported field type '{kind}' at '{path}'"),
+                message: format!("Unsupported field type \"{kind}\" at \"{path}\""),
                 at: path.into(),
                 trace: Vec::new(),
             }),
@@ -129,123 +290,340 @@ impl Binding<'_> {
         &self,
         fields: &[FieldTemplate],
         path: &str,
-        row_segments: &[usize],
+        scope: &Scope,
     ) -> FormResult<Vec<Value>> {
         fields
             .iter()
-            .map(|field| self.field(field, &format!("{path}.{}", field.name), row_segments))
+            .map(|field| self.field(field, &format!("{path}.{}", field.name), scope))
             .collect()
     }
 
-    fn field(
+    /// Build the node for one composed field.
+    fn field(&self, field: &FieldTemplate, path: &str, scope: &Scope) -> FormResult<Value> {
+        let spec = Value::Object(field.spec.clone());
+        let design = resolve_design(spec.get("design"), self.data, path);
+        let language = self.language;
+        let label = spec
+            .get("label")
+            .filter(|v| crudui_validator::expr::is_truthy(v))
+            .map(|v| translate(Some(v), language))
+            .filter(|v| !v.is_empty());
+        let description = Some(translate(spec.get("description"), language));
+        if let Some(settings) = multiple(&spec) {
+            return self.collection(
+                field,
+                &spec,
+                path,
+                &design,
+                label,
+                description,
+                &settings,
+                scope,
+            );
+        }
+        if spec["type"] == "group" {
+            check_group(value_at(self.data, path), path)?;
+            let mut node = node_root("group", path, &design);
+            if let Some(header) = node_header(
+                vec![("label", label), ("description", description)],
+                &design,
+            ) {
+                node.insert("header".into(), header);
+            }
+            node.insert(
+                "body".into(),
+                node_body(
+                    text_at(&design, "group", "class"),
+                    text_at(&design, "group", "style"),
+                    None,
+                ),
+            );
+            node.insert(
+                "children".into(),
+                self.children(&field.children, path, scope)?.into(),
+            );
+            return Ok(node.into());
+        }
+        if let Some(settings) = lang(&spec) {
+            return self.lang(&spec, path, &design, label, description, &settings, scope);
+        }
+        self.leaf(&spec, path, &design, label, description, scope)
+    }
+
+    fn leaf(
+        &self,
+        spec: &Value,
+        path: &str,
+        design: &Value,
+        label: Option<String>,
+        description: Option<String>,
+        scope: &Scope,
+    ) -> FormResult<Value> {
+        let kind = spec["type"].as_str().unwrap_or("");
+        let mut node = node_root("field", path, design);
+        if kind == "checkbox" || kind == "switcher" {
+            if let Some(header) = node_header(vec![("description", description)], design) {
+                node.insert("header".into(), header);
+            }
+            node.insert("body".into(), node_body("", "", None));
+            let on = |v: &Value| v.as_f64() == Some(1.0) || *v == true || *v == "1";
+            let checked = match value_at(self.data, path) {
+                Some(value) => on(value),
+                None => spec.get("default").is_some_and(on),
+            };
+            node.insert(
+                "checkbox".into(),
+                json!({
+                    "id": control_id(self.id_prefix,path),
+                    "name": bracket(path, self.key_prefix),
+                    "className": join_class(&["valid-target", text_at(design, "main", "class")]),
+                    "checked": checked,
+                    "caption": label.unwrap_or_default(),
+                }),
+            );
+            return Ok(node.into());
+        }
+        let widget = self.widget(spec, path, design, &scope.row_segments)?;
+        if kind != "hidden" {
+            let label_for = label.as_ref().and_then(|_| label_target(&widget));
+            let parts = vec![
+                ("label", label),
+                ("labelFor", label_for),
+                ("description", description),
+            ];
+            if let Some(header) = node_header(parts, design) {
+                node.insert("header".into(), header);
+            }
+        }
+        node.insert("body".into(), node_body("", "", None));
+        node.insert("widget".into(), widget);
+        Ok(node.into())
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn collection(
         &self,
         field: &FieldTemplate,
+        spec: &Value,
         path: &str,
-        row_segments: &[usize],
+        design: &Value,
+        label: Option<String>,
+        description: Option<String>,
+        settings: &Multiple,
+        scope: &Scope,
     ) -> FormResult<Value> {
-        let spec = Value::Object(field.spec.clone());
-        let kind = spec["type"].as_str().unwrap_or("");
-        let design = resolve_design(spec.get("design"), self.data, path);
-        let wrapper = path.replace("[]", ".*");
-        let wrapper_name = match self.key_prefix.filter(|p| !p.is_empty()) {
-            Some(prefix) => format!("{prefix}.{wrapper}-layer"),
-            None => format!("{wrapper}-layer"),
-        };
-        let mut model = json!({"shape": "leaf", "type": kind, "path": path,
-            "wrapperName": wrapper_name, "uniqid": element_id("",path), "design": design,
-            "omitLabel": kind == "hidden"});
-        if spec
-            .get("label")
-            .is_some_and(crudui_validator::expr::is_truthy)
-        {
-            model["label"] = translate(spec.get("label"), &self.options.language).into();
-        }
-        let description = translate(spec.get("description"), &self.options.language);
-        if !description.is_empty() {
-            model["description"] = description.into();
-        }
-        if let Some(settings) = multiple(&spec) {
-            let group = kind == "group";
-            model["shape"] = if group {
-                "multiple-group"
-            } else {
-                "multiple-leaf"
-            }
-            .into();
-            model["multiple"] = settings;
-            let mut nested_segments = row_segments.to_vec();
-            nested_segments.push(segments(path).len());
-            let bound = rows(value_at(self.data,path)).into_iter().enumerate().map(|(i,(key,id))| {
-                let row_path = format!("{path}.{key}");
-                let row_design = resolve_design(spec.get("design"),self.data,&row_path);
-                let mut row = json!({"uniqid": id, "wrapperClass": join_class(&["input-group-wrapper", if i>0 { "clone-element" } else { "" }, row_design["wrapper"]["class"].as_str().unwrap_or("")])});
-                if group {
-                    row["groupClass"] = join_class(&["form-group", row_design["group"]["class"].as_str().unwrap_or("")]).into();
-                    row["children"] = self.children(&field.children,&row_path,&nested_segments)?.into();
-                } else { row["widget"] = self.widget(&spec,&row_path,&row_design,&nested_segments)?; }
-                Ok(row)
-            }).collect::<FormResult<Vec<_>>>()?;
-            model["rows"] = bound.into();
-        } else if kind == "group" {
-            model["shape"] = "group".into();
-            model["groupClass"] = join_class(&[
-                "form-group",
-                design["group"]["class"].as_str().unwrap_or(""),
-            ])
-            .into();
-            let style = style(design["group"]["style"].as_str().unwrap_or(""));
-            if !style.is_empty() {
-                model["groupStyle"] = style.into();
-            }
-            model["children"] = self.children(&field.children, path, row_segments)?.into();
-        } else if spec
-            .get("lang")
-            .is_some_and(|v| *v == true || v.is_object())
-        {
-            model["shape"] = "lang".into();
-            let lang = &spec["lang"];
-            let defaults = json!(["ko", "en", "ja", "zh"]);
-            let codes = lang
-                .get("only")
-                .and_then(Value::as_array)
-                .filter(|a| !a.is_empty())
-                .unwrap_or(defaults.as_array().unwrap());
-            let class = join_class(&[
-                if lang["frame"] == false {
-                    "lang-group p-0 border-0"
-                } else {
-                    "lang-group"
-                },
-                lang["group_class"].as_str().unwrap_or(""),
-            ]);
-            let children = codes.iter().map(|code| {
-                let path = format!("{path}.{}",js_string(code));
-                let design = resolve_design(spec.get("design"),self.data,&path);
-                Ok(json!({"code": code, "widget": self.widget(&spec,&path,&design,row_segments)?}))
-            }).collect::<FormResult<Vec<_>>>()?;
-            let mut language = json!({"groupClass": class, "children": children});
-            let title = translate(lang.get("title"), &self.options.language);
-            if !title.is_empty() {
-                language["title"] = title.into();
-            }
-            model["lang"] = language;
-        } else if kind == "checkbox" || kind == "switcher" {
-            model["omitLabel"] = false.into();
-            model["checkbox"] = true.into();
-            model["checkboxId"] = control_id(&self.options.id_prefix, path).into();
-            model["checkboxName"] = bracket(path, self.key_prefix).into();
-            model["checkboxClass"] = join_class(&[
-                "valid-target",
-                design["main"]["class"].as_str().unwrap_or(""),
-            ])
-            .into();
-            let checked = value_at(self.data, path)
-                .or_else(|| spec.get("default"))
-                .is_some_and(|v| *v == true || *v == 1 || *v == "1");
-            model["checkboxChecked"] = checked.into();
+        let keys = rows(value_at(self.data, path), path)?;
+        let item = if spec["type"] == "group" {
+            "group"
         } else {
-            model["widget"] = self.widget(&spec, path, &design, row_segments)?;
+            "field"
+        };
+        let full = settings.max.is_some_and(|max| keys.len() as f64 >= max);
+        let children = keys
+            .iter()
+            .enumerate()
+            .map(|(index, key)| {
+                self.row(
+                    field,
+                    spec,
+                    path,
+                    key,
+                    index,
+                    keys.len(),
+                    &label,
+                    settings,
+                    scope,
+                )
+            })
+            .collect::<FormResult<Vec<_>>>()?;
+        let count = Some(format_count(self.messages.count, keys.len()));
+        let mut node = node_root("collection", path, design);
+        if let Some(header) = node_header(
+            vec![
+                ("label", label),
+                ("description", description),
+                ("count", count),
+            ],
+            design,
+        ) {
+            node.insert("header".into(), header);
         }
-        Ok(model)
+        node.insert("body".into(), node_body("", "", None));
+        put_string(&mut node, "item", item);
+        if keys.is_empty() {
+            node.insert(
+                "controls".into(),
+                json!({
+                    "placement": "footer",
+                    "label": self.messages.collection_controls,
+                    "actions": [action("add-row", self.messages.add_row, full)],
+                }),
+            );
+        }
+        node.insert("children".into(), children.into());
+        Ok(node.into())
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn row(
+        &self,
+        field: &FieldTemplate,
+        spec: &Value,
+        collection: &str,
+        key: &str,
+        index: usize,
+        count: usize,
+        label: &Option<String>,
+        settings: &Multiple,
+        scope: &Scope,
+    ) -> FormResult<Value> {
+        let messages = self.messages;
+        let row_path = format!("{collection}.{key}");
+        let design = resolve_design(spec.get("design"), self.data, &row_path);
+        let mut inner = scope.clone();
+        inner.row_segments.push(segments(collection).len());
+        inner.row_numbers.push(index + 1);
+        inner.sticky_depth += usize::from(settings.sticky);
+        let full = settings.max.is_some_and(|max| count as f64 >= max);
+        let mut actions = Vec::new();
+        if settings.sortable {
+            actions.push(action("move-up", messages.move_up, index == 0));
+            actions.push(action("move-down", messages.move_down, index + 1 == count));
+        }
+        actions.push(action("add-row", messages.add_row, full));
+        if settings.copy {
+            actions.push(action("copy-row", messages.copy_row, full));
+        }
+        let minimum = settings.min.is_some_and(|min| count as f64 <= min);
+        actions.push(action("remove-row", messages.remove_row, minimum));
+        let mut row = Map::new();
+        put_string(&mut row, "kind", "row");
+        put_string(&mut row, "key", key);
+        put_string(&mut row, "className", "");
+        row.insert("hidden".into(), false.into());
+        row.insert(
+            "controls".into(),
+            json!({"placement": settings.controls, "label": messages.row_controls, "actions": actions}),
+        );
+        if settings.sticky {
+            row.insert("sticky".into(), true.into());
+            row.insert("stickyDepth".into(), scope.sticky_depth.into());
+        }
+        let mut header = Map::new();
+        put_string(&mut header, "className", "");
+        if let Some(label) = label {
+            put_string(&mut header, "label", label.as_str());
+        }
+        let number = inner
+            .row_numbers
+            .iter()
+            .map(usize::to_string)
+            .collect::<Vec<_>>();
+        put_string(&mut header, "number", number.join("."));
+        if spec["type"] != "group" {
+            row.insert("header".into(), header.into());
+            row.insert("body".into(), node_body("", "", None));
+            row.insert(
+                "widget".into(),
+                self.widget(spec, &row_path, &design, &inner.row_segments)?,
+            );
+            return Ok(row.into());
+        }
+        check_group(value_at(self.data, &row_path), &row_path)?;
+        let children = self.children(&field.children, &row_path, &inner)?;
+        let nested = children
+            .iter()
+            .filter(|child| child["kind"] == "collection")
+            .collect::<Vec<_>>();
+        let summary = if nested.is_empty() {
+            messages.collapsed.to_owned()
+        } else {
+            let total = nested
+                .iter()
+                .map(|child| child["children"].as_array().map_or(0, Vec::len))
+                .sum();
+            format_count(messages.children, total)
+        };
+        if let Some(title) = &settings.title {
+            let title = match value_at(self.data, &format!("{row_path}.{title}")) {
+                None | Some(Value::Null) => messages.untitled.to_owned(),
+                Some(Value::String(text)) if text.is_empty() => messages.untitled.to_owned(),
+                Some(value) => js_string(value),
+            };
+            put_string(&mut header, "title", title);
+        }
+        put_string(&mut header, "summary", summary);
+        row.insert("header".into(), header.into());
+        let body_id = format!("{}:body", control_id(self.id_prefix, &row_path));
+        row.insert(
+            "body".into(),
+            node_body(
+                text_at(&design, "group", "class"),
+                text_at(&design, "group", "style"),
+                Some(body_id),
+            ),
+        );
+        row.insert("collapsible".into(), true.into());
+        // Server rendering has no view state: every row is expanded.
+        row.insert("expanded".into(), true.into());
+        put_string(&mut row, "toggleLabel", messages.toggle_row);
+        row.insert("children".into(), children.into());
+        Ok(row.into())
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn lang(
+        &self,
+        spec: &Value,
+        path: &str,
+        design: &Value,
+        label: Option<String>,
+        description: Option<String>,
+        settings: &Lang<'_>,
+        scope: &Scope,
+    ) -> FormResult<Value> {
+        let title = Some(translate(settings.title, self.language));
+        let mut node = node_root("lang", path, design);
+        if let Some(header) = node_header(
+            vec![
+                ("label", label),
+                ("description", description),
+                ("title", title),
+            ],
+            design,
+        ) {
+            node.insert("header".into(), header);
+        }
+        // A framed language group is a node modifier; the stylesheet draws the frame around its body.
+        let frame = if settings.frame {
+            "crudui-node--framed"
+        } else {
+            ""
+        };
+        let class_name = join_class(&[frame, text_at(design, "wrapper", "class")]);
+        put_string(&mut node, "className", class_name);
+        node.insert(
+            "body".into(),
+            node_body(&join_class(&[settings.group_class]), "", None),
+        );
+        let children = settings
+            .codes
+            .iter()
+            .map(|code| {
+                let lang_path = format!("{path}.{}", js_string(code));
+                let lang_design = resolve_design(spec.get("design"), self.data, &lang_path);
+                Ok(json!({
+                    "kind": "lang-item",
+                    "lang": code,
+                    "className": "",
+                    "hidden": false,
+                    "header": {"className": "", "label": code},
+                    "body": node_body("", "", None),
+                    "widget": self.widget(spec, &lang_path, &lang_design, &scope.row_segments)?,
+                }))
+            })
+            .collect::<FormResult<Vec<_>>>()?;
+        node.insert("children".into(), children.into());
+        Ok(node.into())
     }
 }

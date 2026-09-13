@@ -1055,8 +1055,10 @@
       "$ref": "Missing.yml"
     },
     "data": {},
-    "expectLoadError": {
-      "code": "REF_FILE_NOT_FOUND"
+    "expectFailure": {
+      "code": "REF_FILE_NOT_FOUND",
+      "message": "$ref file not found: Missing.yml",
+      "at": "Missing.yml"
     }
   },
   {
@@ -1134,8 +1136,8 @@
     }
   },
   {
-    "name": "multiple-array-level-unique",
-    "note": "two equal tags meet mincount:2, then array-level unique fires",
+    "name": "multiple-collection-level-unique",
+    "note": "two equal keyed tags meet mincount:2, then collection-level unique fires",
     "spec": {
       "type": "group",
       "properties": {
@@ -1150,10 +1152,10 @@
       }
     },
     "data": {
-      "tags": [
-        "a",
-        "a"
-      ]
+      "tags": {
+        "tag_a": "a",
+        "tag_b": "a"
+      }
     },
     "expected": {
       "valid": false,
@@ -1163,17 +1165,17 @@
           "field": "tags",
           "rule": "unique",
           "message": "Values must be unique.",
-          "value": [
-            "a",
-            "a"
-          ]
+          "value": {
+            "tag_a": "a",
+            "tag_b": "a"
+          }
         }
       ]
     }
   },
   {
-    "name": "multiple-array-level-mincount",
-    "note": "tags has one element → mincount:2 fires",
+    "name": "multiple-collection-level-mincount",
+    "note": "tags has one keyed row → mincount:2 fires",
     "spec": {
       "type": "group",
       "properties": {
@@ -1188,9 +1190,9 @@
       }
     },
     "data": {
-      "tags": [
-        "a"
-      ]
+      "tags": {
+        "tag_a": "a"
+      }
     },
     "expected": {
       "valid": false,
@@ -1200,16 +1202,16 @@
           "field": "tags",
           "rule": "mincount",
           "message": "Please select at least 2 items.",
-          "value": [
-            "a"
-          ]
+          "value": {
+            "tag_a": "a"
+          }
         }
       ]
     }
   },
   {
-    "name": "multiple-group-index-path",
-    "note": "second item empty code → error path items.1.code",
+    "name": "multiple-group-row-key-path",
+    "note": "second row empty code → error path items.__b__.code",
     "spec": {
       "type": "group",
       "properties": {
@@ -1227,20 +1229,20 @@
       }
     },
     "data": {
-      "items": [
-        {
+      "items": {
+        "__a__": {
           "code": "x"
         },
-        {
+        "__b__": {
           "code": ""
         }
-      ]
+      }
     },
     "expected": {
       "valid": false,
       "errors": [
         {
-          "path": "items.1.code",
+          "path": "items.__b__.code",
           "field": "code",
           "rule": "required",
           "message": "This field is required.",
@@ -1351,16 +1353,16 @@
       }
     },
     "data": {
-      "rows": [
-        {
+      "rows": {
+        "__a__": {
           "active": 0,
           "code": "dup"
         },
-        {
+        "__b__": {
           "active": 0,
           "code": "dup"
         }
-      ]
+      }
     },
     "expected": {
       "valid": true,
@@ -1390,22 +1392,22 @@
       }
     },
     "data": {
-      "rows": [
-        {
+      "rows": {
+        "__a__": {
           "active": 1,
           "code": "dup"
         },
-        {
+        "__b__": {
           "active": 1,
           "code": "dup"
         }
-      ]
+      }
     },
     "expected": {
       "valid": false,
       "errors": [
         {
-          "path": "rows.1.code",
+          "path": "rows.__b__.code",
           "field": "code",
           "rule": "unique",
           "message": "Values must be unique.",
@@ -1891,6 +1893,169 @@
           "value": ""
         }
       ]
+    }
+  },
+  {
+    "name": "input-root-data-not-object",
+    "note": "root data is a non-empty array → INVALID_FORM_INPUT, no validation result",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": [
+      "a"
+    ],
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Form data must be an object",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-group-data-not-object",
+    "note": "group data is a string → INVALID_FORM_INPUT at the group path",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "addr": {
+          "type": "group",
+          "properties": {
+            "city": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "addr": "Seoul"
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Group data must be an object: addr",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-repeated-group-array",
+    "note": "repeated group data is an array → INVALID_FORM_INPUT at the collection path",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "code": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": [
+        {
+          "code": "x"
+        }
+      ]
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-repeated-scalar-null",
+    "note": "repeated scalar data is null → INVALID_FORM_INPUT at the collection path",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "multiple": true
+        }
+      }
+    },
+    "data": {
+      "tags": null
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: tags",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-repeated-group-row-not-object",
+    "note": "a repeated group row is a string → INVALID_FORM_INPUT at the row path",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "code": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": {
+        "__a__": "x"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Group data must be an object: items.__a__",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-nested-repeated-array",
+    "note": "a nested repeated collection is an array → INVALID_FORM_INPUT at its full path",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "companies": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "stores": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "name": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "companies": {
+        "__a__": {
+          "stores": []
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: companies.__a__.stores",
+      "at": ""
     }
   }
 ]

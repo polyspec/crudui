@@ -82,90 +82,105 @@ final class Rendering
         return '<script nonce="">' . $script . '</script>';
     }
 
-    /** Render evaluated fields in their existing order. */
-    public static function fields(array $fields): string
+    /** Render top-level nodes inside the crudui-form block. */
+    public static function form(array $nodes, array $buttons, array $messages): string
     {
-        return implode('', array_map(self::field(...), $fields));
+        $footer = self::element('div', ['class' => 'crudui-form__footer'], self::element('div', ['class' => 'crudui-controls', 'role' => 'group', 'aria-label' => $messages['formActions']], Buttons::html($buttons)));
+        return self::element('div', ['class' => 'crudui-form'], self::element('div', ['class' => 'crudui-form__body'], implode('', array_map(self::node(...), $nodes))) . $footer);
     }
 
-    private static function field(stdClass $vm): string
+    /** Join non-empty class names without normalizing their contents. */
+    private static function classes(string ...$parts): string
     {
-        $attrs = ['class' => Value::classes('form-element-wrapper', $vm->design->wrapper->class), 'data-field-path' => $vm->path];
-        $style = Value::style(($vm->design->show ? '' : 'display: none; ') . $vm->design->wrapper->style);
-        if ($style !== null) {
-            $attrs['style'] = $style;
+        return implode(' ', array_filter($parts, static fn ($part) => $part !== ''));
+    }
+
+    /** Open a div with an optional valueless hidden attribute last. */
+    private static function open(array $attrs, bool $hidden): string
+    {
+        return '<div' . self::attrs($attrs) . ($hidden ? ' hidden=""' : '') . '>';
+    }
+
+    private static function node(stdClass $vm): string
+    {
+        $style = $vm->style ?? null;
+        if ($vm->sticky ?? false) {
+            // A sticky row carries its depth on the root; the stylesheet derives its sticky line from it.
+            $style = implode('; ', array_filter([$vm->style ?? '', '--crudui-sticky-depth: ' . ($vm->stickyDepth ?? 0)], static fn ($part) => $part !== ''));
         }
-        $groupClass = Value::classes('input-group-wrapper', $vm->design->wrapper->class);
-        $description = ($vm->description ?? '') !== '' ? self::element('p', ['class' => 'description'], self::text($vm->description)) : '';
-        if ($vm->checkbox ?? false) {
-            $input = ['class' => $vm->checkboxClass, 'id' => $vm->checkboxId, 'name' => $vm->checkboxName, 'type' => 'checkbox', 'value' => '1'];
-            if ($vm->checkboxChecked) {
+        $attrs = ['class' => self::classes('crudui-node', 'crudui-node--' . $vm->kind, ($vm->sticky ?? false) ? 'crudui-node--sticky' : '', $vm->className), 'style' => $style];
+        if ($vm->kind !== 'row' && $vm->kind !== 'lang-item' && isset($vm->path)) {
+            $attrs['data-field-path'] = $vm->path;
+        }
+        if (isset($vm->key)) {
+            $attrs['data-crudui-row-key'] = $vm->key;
+        }
+        if (isset($vm->lang)) {
+            $attrs['data-lang'] = $vm->lang;
+        }
+        $footer = ($vm->controls->placement ?? null) === 'footer' ? self::element('div', ['class' => 'crudui-node__footer'], self::controls($vm->controls)) : '';
+        return self::open($attrs, $vm->hidden) . self::header($vm) . self::body($vm) . $footer . '</div>';
+    }
+
+    private static function header(stdClass $vm): string
+    {
+        $header = $vm->header ?? new stdClass();
+        $parts = '';
+        if ($vm->collapsible ?? false) {
+            $parts .= '<button' . self::attrs(['type' => 'button', 'class' => 'crudui-action', 'data-crudui-action' => 'toggle-row', 'aria-expanded' => ($vm->expanded ?? false) === true ? 'true' : 'false', 'aria-controls' => $vm->body->id ?? null, 'aria-label' => $vm->toggleLabel ?? null]) . '></button>';
+        }
+        if (isset($header->label)) {
+            $label = self::text(Value::scalar($header->label));
+            $parts .= ($header->labelFor ?? '') !== '' ? self::element('label', ['class' => 'crudui-node__label', 'for' => $header->labelFor], $label) : self::element('span', ['class' => 'crudui-node__label'], $label);
+        }
+        if (isset($header->description)) {
+            $parts .= self::element('p', ['class' => 'crudui-node__description'], self::text($header->description));
+        }
+        foreach (['number', 'title'] as $part) {
+            if (isset($header->{$part})) {
+                $parts .= self::element('span', ['class' => 'crudui-node__' . $part], self::text($header->{$part}));
+            }
+        }
+        if (isset($header->summary)) {
+            $parts .= '<span class="crudui-node__summary"' . (($vm->expanded ?? false) === true ? ' hidden=""' : '') . '>' . self::text($header->summary) . '</span>';
+        }
+        if (isset($header->count)) {
+            $parts .= self::element('span', ['class' => 'crudui-node__count'], self::text($header->count));
+        }
+        if (($vm->controls->placement ?? null) === 'header') {
+            $parts .= self::controls($vm->controls);
+        }
+        if ($parts === '') {
+            return '';
+        }
+        return self::element('div', ['class' => self::classes('crudui-node__header', $header->className ?? ''), 'style' => $header->style ?? ''], $parts);
+    }
+
+    private static function body(stdClass $vm): string
+    {
+        $attrs = ['class' => self::classes('crudui-node__body', $vm->body->className), 'style' => $vm->body->style ?? null, 'id' => $vm->body->id ?? null];
+        if (isset($vm->checkbox)) {
+            $box = $vm->checkbox;
+            $input = ['class' => $box->className, 'id' => $box->id, 'name' => $box->name, 'type' => 'checkbox', 'value' => '1'];
+            if ($box->checked) {
                 $input['checked'] = '';
             }
-            $body = self::element('div', [], self::input($input) . self::element('label', ['for' => $vm->checkboxId], self::text($vm->label ?? '')));
-            $body = self::element('h6', [], self::element('div', ['class' => $groupClass, 'data-uniqid' => $vm->uniqid], $body));
-            return self::element('div', $attrs, self::element('div', ['class' => 'checkbox'], $body . $description));
+            $inner = self::input($input) . self::element('label', ['for' => $box->id], self::text($box->caption));
+        } elseif (isset($vm->widget)) {
+            $inner = self::widget($vm->widget);
+        } else {
+            $inner = implode('', array_map(self::node(...), $vm->children ?? []));
         }
-        $label = '';
-        if (($vm->label ?? '') !== '' && !$vm->omitLabel) {
-            $labelAttrs = [];
-            if ($vm->design->label->class !== '') {
-                $labelAttrs['class'] = $vm->design->label->class;
-            }
-            if (($labelStyle = Value::style($vm->design->label->style)) !== null) {
-                $labelAttrs['style'] = $labelStyle;
-            }
-            $caption = self::text($vm->label);
-            $id = $vm->widget->extra->file->id ?? $vm->widget->attrs->id ?? null;
-            if ($id !== null) {
-                $caption = self::element('label', ['for' => $id], $caption);
-            }
-            $label = self::element('h6', $labelAttrs, $caption);
-        }
-        $body = '';
-        if ($vm->shape === 'leaf') {
-            $body = self::element('div', ['class' => $groupClass, 'data-uniqid' => $vm->uniqid], self::widget($vm->widget));
-        } elseif ($vm->shape === 'group') {
-            $inner = ['class' => $vm->groupClass];
-            if (isset($vm->groupStyle)) {
-                $inner['style'] = $vm->groupStyle;
-            }
-            $body = self::element('div', ['class' => $groupClass, 'data-uniqid' => $vm->uniqid], self::element('div', $inner, self::fields($vm->children)));
-        } elseif ($vm->shape === 'multiple-leaf' || $vm->shape === 'multiple-group') {
-            foreach ($vm->rows as $row) {
-                $rowBody = $vm->shape === 'multiple-group' ? self::element('div', ['class' => $row->groupClass], self::fields($row->children)) . self::element('span', ['class' => 'btn-group input-group-btn'], self::buttons($vm->multiple)) : self::widget($row->widget) . self::buttons($vm->multiple);
-                $body .= self::element('div', ['class' => $row->wrapperClass, 'data-uniqid' => $row->uniqid], $rowBody);
-            }
-            if ($vm->rows === []) {
-                $body = self::element('button', ['type' => 'button', 'class' => 'btn btn-plus', 'aria-label' => '+'], ' ');
-            }
-        } elseif ($vm->shape === 'lang') {
-            $lang = $vm->lang;
-            $children = isset($lang->title) ? self::element('div', ['class' => 'lang-title'], self::text($lang->title)) : '';
-            foreach ($lang->children as $child) {
-                $children .= self::element('div', ['class' => 'lang-child', 'data-lang' => $child->code], self::element('span', ['class' => 'input-group-text lang-code'], self::text($child->code)) . self::widget($child->widget));
-            }
-            $body = self::element('div', ['class' => $groupClass, 'data-uniqid' => $vm->uniqid], self::element('div', ['class' => $lang->groupClass], $children));
-        }
-        return self::element('div', $attrs, $label . $description . self::element('div', ['class' => 'form-element'], $body));
+        return self::open($attrs, ($vm->collapsible ?? false) === true && ($vm->expanded ?? false) !== true) . $inner . '</div>';
     }
 
-    private static function buttons(stdClass $settings): string
+    private static function controls(stdClass $controls): string
     {
-        $out = '';
-        if ($settings->sortable ?? false) {
-            $out .= self::element('button', ['type' => 'button', 'class' => 'btn btn-move-up'], ' ');
-            $out .= self::element('button', ['type' => 'button', 'class' => 'btn btn-move-down'], ' ');
+        $buttons = '';
+        foreach ($controls->actions as $action) {
+            $buttons .= '<button' . self::attrs(['type' => 'button', 'class' => 'crudui-action', 'data-crudui-action' => $action->name, 'aria-label' => $action->label]) . ($action->disabled ? ' disabled=""' : '') . '></button>';
         }
-        $plus = ['type' => 'button', 'class' => 'btn btn-plus'];
-        if (isset($settings->max)) {
-            $plus['data-multiple-max'] = (string) $settings->max;
-        }
-        $out .= self::element('button', $plus, ' ');
-        if ($settings->copy ?? false) {
-            $out .= self::element('button', ['type' => 'button', 'class' => 'btn btn-copy'], ' ');
-        }
-        return $out . self::element('button', ['type' => 'button', 'class' => $settings->copy ?? false ? 'btn btn-minus btn-delete' : 'btn btn-minus'], ' ');
+        return self::element('div', ['class' => 'crudui-controls', 'role' => 'group', 'aria-label' => $controls->label], $buttons);
     }
 
     private static function affix(?stdClass $affix, bool $raw = false): string
@@ -206,22 +221,22 @@ final class Rendering
     private static function widget(stdClass $widget): string
     {
         if ($widget->unsupported ?? false) {
-            return self::element('div', ['class' => 'form-element-unsupported', 'data-unsupported-type' => $widget->type]);
+            return self::element('div', ['class' => 'crudui-widget crudui-widget--unsupported','data-unsupported-type' => $widget->type]);
         }
         $raw = self::hasEvents($widget->attrs);
         switch ($widget->layout) {
-            case 'input-group':
-                return self::element('div', ['class' => 'input-group'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
+            case 'widget':
+                return self::element('div', ['class' => 'crudui-widget'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
             case 'bare':
                 return self::control($widget, $raw);
             case 'host-script':
                 return self::control($widget, $raw) . self::script($widget->script ?? '');
-            case 'btn-group':
+            case 'choices':
                 $body = '';
                 $radio = $widget->kind === 'choice';
                 $raw = self::hasEvents($widget->extra->input ?? new stdClass());
                 foreach ($widget->options as $option) {
-                    $attrs = [...(array) ($widget->extra->input ?? new stdClass()), 'type' => $radio ? 'radio' : 'checkbox', 'value' => $option->value, 'autocomplete' => 'off', 'class' => 'valid-target btn-check', 'id' => $option->id];
+                    $attrs = [...(array) ($widget->extra->input ?? new stdClass()), 'type' => $radio ? 'radio' : 'checkbox', 'value' => $option->value, 'autocomplete' => 'off', 'class' => 'valid-target crudui-choices__input', 'id' => $option->id];
                     if ($radio) {
                         $attrs['data-is-default'] = $option->isDefault ? '1' : '';
                     }
@@ -240,14 +255,14 @@ final class Rendering
                 }
                 $body .= self::input($widget->extra->file, $raw);
                 if (isset($widget->extra->display)) {
-                    $body .= self::element('button', ['class' => 'btn btn-search btn-file-search', 'type' => 'button'], '&nbsp;');
+                    $body .= self::element('button', ['class' => 'crudui-widget__button', 'type' => 'button'], '&nbsp;');
                 }
-                return self::element('div', ['class' => 'input-group'], $body);
+                return self::element('div', ['class' => 'crudui-widget'], $body);
             case 'display':
                 return self::element('div', self::controlAttrs($widget->attrs), $widget->rawHtml ?? '');
             case 'search':
                 $raw = true;
-                return (($widget->styleChrome ?? '') !== '' ? self::element('style', ['nonce' => ''], $widget->styleChrome) : '') . self::script($widget->script ?? '') . self::element('div', ['class' => 'input-group field-search'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
+                return (($widget->styleChrome ?? '') !== '' ? self::element('style', ['nonce' => ''], $widget->styleChrome) : '') . self::script($widget->script ?? '') . self::element('div', ['class' => 'crudui-widget crudui-widget--search'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
             case 'button':
                 return self::script($widget->script ?? '') . self::input($widget->extra->hidden) . self::input($widget->attrs);
         }

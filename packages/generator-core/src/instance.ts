@@ -1,6 +1,10 @@
 import { bindForm, copyFormValue, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
-import type { FieldViewModel } from './viewmodel';
-import { getValueByPath, valuePathSegments } from './util';
+import { bindButtons, type ButtonVM } from './buttons';
+import { formMessages, type FormMessages } from './messages';
+import type { NodeVM } from './viewmodel';
+import { getValueByPath, parsePathString } from './util';
+import { canUndo, emptyHistory, recordChange, undoChange, type History } from './history';
+import { initialView, rekeyRowView, removeRowView, setAllExpandedView, toggleRowView, type ViewState } from './view';
 
 /** Transport key for an existing database sequence. */
 export function sequenceRowKey(sequence: string | number | bigint): string {
@@ -31,12 +35,16 @@ export interface AddRowOptions {
   value?: unknown;
 }
 
-/** Stable subscription snapshot, changed only after a successful operation. */
+/** Stable subscription snapshot, changed only after a successful operation or view change. */
 export interface FormSnapshot {
-  /** Evaluated fields for the current data. */
-  readonly fields: FieldViewModel[];
-  /** Number of successful instance updates. */
+  /** Evaluated fields for the current data and view. */
+  readonly fields: NodeVM[];
+  /** Evaluated form buttons for the current data. */
+  readonly buttons: ButtonVM[];
+  /** Number of successful data updates. */
   readonly revision: number;
+  /** Whether `undo` can restore an earlier record. */
+  readonly canUndo: boolean;
 }
 
 function hasOwn(value: object, key: string): boolean {
@@ -53,7 +61,7 @@ function repeats(field: FormFieldTemplate): boolean {
 }
 
 function checkedSegments(path: string): string[] {
-  const segments = valuePathSegments(path);
+  const segments = parsePathString(path);
   if (!segments.length || segments.some(s => ['__proto__', 'prototype', 'constructor'].includes(s))) {
     throw new TypeError(`Invalid form path: ${path}`);
   }
@@ -75,15 +83,29 @@ function putAt(data: Record<string, unknown>, path: string[], value: unknown): R
     ? putAt(isRecord(data[head]) ? data[head] : {}, tail, value) : value };
 }
 
+/** Data and view changes applied together by one commit. */
+interface Change {
+  /** Path of a value edit; consecutive edits of one path share an undo entry. */
+  path?: string;
+  /** Replacement view state. */
+  view?: ViewState;
+  /** Replace the record: clear history and view state. */
+  reset?: boolean;
+}
+
 /**
  * One editable form instance over a shared template. All row operations are
  * scoped to a collection path; no global string replacement touches siblings.
+ * Data, undo history and view state (collapsed rows) are separate; view state is
+ * never submitted.
  */
 export class FormInstance {
   private data: Record<string, unknown>;
   private snapshot: FormSnapshot;
   private readonly listeners = new Set<() => void>();
   private readonly options: CreateFormOptions;
+  private history: History<Record<string, unknown>> = emptyHistory();
+  private view: ViewState = initialView();
 
   /** Shared immutable structure. */
   readonly template: FormTemplate;
@@ -93,10 +115,15 @@ export class FormInstance {
     this.template = template;
     this.options = { ...options };
     this.data = this.normalizeFields(template.fields, data);
-    this.snapshot = { fields: this.build(this.data), revision: 0 };
+    this.snapshot = {
+      fields: this.build(this.data, this.view.collapsed),
+      buttons: bindButtons(template, this.data, this.options),
+      revision: 0,
+      canUndo: false,
+    };
   }
 
-  /** Subscribe to injection, editing and row operations. Returns an unsubscribe function. */
+  /** Subscribe to injection, editing, row operations and view changes. Returns an unsubscribe function. */
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
     return () => { this.listeners.delete(listener); };
@@ -108,6 +135,9 @@ export class FormInstance {
   /** Effective root prefix for submitted input names. */
   get keyPrefix(): string | undefined { return this.options.keyPrefix ?? this.template.keyPrefix; }
 
+  /** Interface text for the instance language. */
+  get messages(): FormMessages { return formMessages(this.options.language ?? 'ko'); }
+
   /** Detached submission data, retaining keyed nested collections. */
   getData(): Record<string, unknown> { return copyFormValue(this.data); }
 
@@ -117,15 +147,16 @@ export class FormInstance {
     return copyFormValue(getValueByPath(this.data, path));
   }
 
-  /** Replace the record after an asynchronous load or save; keep the template. */
+  /** Replace the record after an asynchronous load or save; history and view state restart. */
   setData(data: Record<string, unknown>): void {
-    this.commit(this.normalizeFields(this.template.fields, data));
+    this.commit(this.normalizeFields(this.template.fields, data), { reset: true });
   }
 
   /** Update one data path and reevaluate affected form presentation. */
   setValue(path: string, value: unknown): void {
     const segments = checkedSegments(path);
-    this.commit(this.normalizeFields(this.template.fields, putAt(this.data, segments, copyFormValue(value))));
+    this.commit(this.normalizeFields(this.template.fields, putAt(this.data, segments, copyFormValue(value))),
+      { path: segments.join('.') });
   }
 
   /** Insert a blank/defaulted row, or supplied row data, with one new identity. */
@@ -141,7 +172,7 @@ export class FormInstance {
     const entries = Object.entries(rows);
     const at = options.afterKey === undefined ? entries.length : entries.findIndex(([k]) => k === options.afterKey) + 1;
     if (options.afterKey !== undefined && at === 0) throw new Error(`Unknown row: ${options.afterKey}`);
-    entries.splice(at, 0, [key, this.normalizeRow(field, options.value)]);
+    entries.splice(at, 0, [key, this.normalizeRow(field, options.value, [...checkedSegments(path), key].join('.'))]);
     this.commit(putAt(this.data, checkedSegments(path), Object.fromEntries(entries)));
     return key;
   }
@@ -162,8 +193,10 @@ export class FormInstance {
     if (typeof settings.min === 'number' && Object.keys(rows).length <= settings.min) {
       throw new RangeError(`Minimum row count reached: ${path}`);
     }
-    this.commit(putAt(this.data, checkedSegments(path),
-      Object.fromEntries(Object.entries(rows).filter(([k]) => k !== key))));
+    const segments = checkedSegments(path);
+    this.commit(putAt(this.data, segments, Object.fromEntries(Object.entries(rows).filter(([k]) => k !== key))), {
+      view: removeRowView(this.view, [...segments, key].join('.')),
+    });
   }
 
   /** Change order without changing row keys, values or descendant identities. */
@@ -181,26 +214,73 @@ export class FormInstance {
     this.commit(putAt(this.data, checkedSegments(path), Object.fromEntries(entries)));
   }
 
-  /** Apply a saved seq key to exactly one row. Descendant paths follow automatically. */
+  /** Apply a saved seq key to exactly one row. Descendant paths and view state follow. */
   rekeyRow(path: string, oldKey: string, newKey: string): void {
     const { rows } = this.collection(path);
     checkKey(newKey);
     if (!hasOwn(rows, oldKey)) throw new Error(`Unknown row: ${oldKey}`);
     if (oldKey === newKey) return;
     if (hasOwn(rows, newKey)) throw new Error(`Row key already exists: ${newKey}`);
-    this.commit(putAt(this.data, checkedSegments(path),
-      Object.fromEntries(Object.entries(rows).map(([key, value]) => [key === oldKey ? newKey : key, value]))));
+    const segments = checkedSegments(path);
+    this.commit(putAt(this.data, segments,
+      Object.fromEntries(Object.entries(rows).map(([key, value]) => [key === oldKey ? newKey : key, value]))), {
+      view: rekeyRowView(this.view, [...segments, oldKey].join('.'), [...segments, newKey].join('.')),
+    });
   }
 
-  private build(data: Record<string, unknown>): FieldViewModel[] {
-    return bindForm(this.template, data, this.options);
+  /** Expand a collapsed row or collapse an expanded one. */
+  toggleRow(path: string, key: string): void {
+    this.refreshView(toggleRowView(this.view, this.rowPath(path, key)));
   }
 
-  private commit(data: Record<string, unknown>): void {
-    const fields = this.build(data); // Failure leaves both data and view unchanged.
-    this.data = data;
-    this.snapshot = { fields, revision: this.snapshot.revision + 1 };
+  /** Expand or collapse every collapsible row. */
+  setAllExpanded(expanded: boolean): void {
+    this.refreshView(setAllExpandedView(this.snapshot.fields, expanded));
+  }
+
+  /** Restore the record before the last data change. */
+  undo(): void {
+    const { history, value: previous } = undoChange(this.history);
+    const fields = this.build(previous, this.view.collapsed);
+    this.history = history;
+    this.data = previous;
+    this.publish(fields, this.snapshot.revision + 1);
+  }
+
+  private build(data: Record<string, unknown>, collapsed: ReadonlySet<string>): NodeVM[] {
+    return bindForm(this.template, data, { ...this.options, collapsed });
+  }
+
+  private publish(fields: NodeVM[], revision: number): void {
+    this.snapshot = {
+      fields,
+      buttons: bindButtons(this.template, this.data, this.options),
+      revision,
+      canUndo: canUndo(this.history),
+    };
     for (const listener of this.listeners) listener();
+  }
+
+  private refreshView(view: ViewState): void {
+    const fields = this.build(this.data, view.collapsed);
+    this.view = view;
+    this.publish(fields, this.snapshot.revision);
+  }
+
+  private commit(data: Record<string, unknown>, change: Change = {}): void {
+    const view = change.reset ? initialView() : change.view ?? this.view;
+    const fields = this.build(data, view.collapsed); // Failure leaves data, history and view unchanged.
+    this.history = change.reset ? emptyHistory() : recordChange(this.history, this.data, change.path);
+    this.view = view;
+    this.data = data;
+    this.publish(fields, this.snapshot.revision + 1);
+  }
+
+  /** Canonical row path after checking that the row exists. */
+  private rowPath(path: string, key: string): string {
+    const { rows } = this.collection(path);
+    if (!hasOwn(rows, key)) throw new Error(`Unknown row: ${key}`);
+    return [...checkedSegments(path), key].join('.');
   }
 
   private freshKey(used: Set<string>): string {
@@ -212,25 +292,29 @@ export class FormInstance {
     throw new Error('Unable to generate an unused row key');
   }
 
-  private normalizeFields(fields: readonly FormFieldTemplate[], value: unknown): Record<string, unknown> {
-    if (value !== undefined && !isRecord(value)) throw new TypeError('Group data must be an object');
+  /** Normalize record data; `path` is the full data path, empty at the root. */
+  private normalizeFields(fields: readonly FormFieldTemplate[], value: unknown, path = ''): Record<string, unknown> {
+    if (value !== undefined && !isRecord(value)) {
+      throw new TypeError(path ? `Group data must be an object: ${path}` : 'Form data must be an object');
+    }
     const data = value === undefined ? {} : copyFormValue(value as Record<string, unknown>);
     for (const field of fields) {
       const raw = data[field.name];
+      const fieldPath = path ? `${path}.${field.name}` : field.name;
       if (repeats(field)) {
         const rows: Record<string, unknown> = {};
         // Missing data creates one usable prototype. Explicit {} means zero rows.
-        if (raw !== undefined && !isRecord(raw)) throw new TypeError(`Repeated data must be a keyed object: ${field.name}`);
+        if (raw !== undefined && !isRecord(raw)) throw new TypeError(`Repeated data must be a keyed object: ${fieldPath}`);
         const entries = raw === undefined ? [[this.freshKey(new Set()), undefined] as const]
           : Object.entries(raw as Record<string, unknown>);
         for (const [key, row] of entries) {
           checkKey(key);
           if (hasOwn(rows, key)) throw new Error(`Duplicate normalized row key: ${key}`);
-          rows[key] = this.normalizeRow(field, row);
+          rows[key] = this.normalizeRow(field, row, `${fieldPath}.${key}`);
         }
         data[field.name] = rows;
       } else if (field.spec.type === 'group') {
-        data[field.name] = this.normalizeFields(field.children, raw);
+        data[field.name] = this.normalizeFields(field.children, raw, fieldPath);
       } else if (raw === undefined && field.spec.default !== undefined) {
         data[field.name] = copyFormValue(field.spec.default);
       }
@@ -238,8 +322,8 @@ export class FormInstance {
     return data;
   }
 
-  private normalizeRow(field: FormFieldTemplate, value: unknown): unknown {
-    return field.spec.type === 'group' ? this.normalizeFields(field.children, value)
+  private normalizeRow(field: FormFieldTemplate, value: unknown, path: string): unknown {
+    return field.spec.type === 'group' ? this.normalizeFields(field.children, value, path)
       : copyFormValue(value === undefined ? field.spec.default ?? '' : value);
   }
 

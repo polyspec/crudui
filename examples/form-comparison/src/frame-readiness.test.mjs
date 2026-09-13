@@ -14,8 +14,8 @@ function fixture() {
     addEventListener: (name, listener) => emitter.on(name, listener),
     removeEventListener: (name, listener) => emitter.off(name, listener),
   };
-  const frames = ['bindForm', 'createForm'].map(path => ({
-    path,
+  const frames = ['ssr', 'csr'].map(initialization => ({
+    initialization,
     contentWindow: {},
     title: '',
     src: '',
@@ -29,7 +29,7 @@ function fixture() {
         source: frame.contentWindow,
         data: {
           type: 'crudui:frame-ready', server: 'php', framework: 'react',
-          path: frame.path, ...value,
+          path: 'createForm', initialization: frame.initialization, ...value,
         },
       });
     },
@@ -38,20 +38,24 @@ function fixture() {
 
 test('subscribes before navigation and resolves exact frame readiness events', async () => {
   const value = fixture();
+  const ready = [];
   const loading = loadComparisonFrames({
     host: value.host,
     frames: value.frames,
-    paths: ['bindForm', 'createForm'],
+    initializations: ['ssr', 'csr'], path: 'createForm',
     framework: 'react', server: 'php', language: 'ko',
-    title: path => path,
+    title: initialization => initialization,
+    onReady: initialization => ready.push(initialization),
   });
   assert.deepEqual(value.frames.map(frame => frame.src), [
-    '/frames/bindForm-react/?lang=ko&server=php',
-    '/frames/createForm-react/?lang=ko&server=php',
+    '/frames/createForm-react/?lang=ko&server=php&initialization=ssr',
+    '/frames/createForm-react/?lang=ko&server=php&initialization=csr',
   ]);
-  value.ready(value.frames[0]);
   value.ready(value.frames[1]);
+  assert.deepEqual(ready, ['csr']);
+  value.ready(value.frames[0]);
   await loading;
+  assert.deepEqual(ready, ['csr', 'ssr']);
 });
 
 test('rejects a readiness event with a different declared frame', async () => {
@@ -59,11 +63,12 @@ test('rejects a readiness event with a different declared frame', async () => {
   const loading = loadComparisonFrames({
     host: value.host,
     frames: value.frames,
-    paths: ['bindForm', 'createForm'],
+    initializations: ['ssr', 'csr'], path: 'createForm',
     framework: 'react', server: 'php', language: 'en',
-    title: path => path,
+    title: initialization => initialization,
+    onReady: () => {},
   });
-  value.ready(value.frames[0], { framework: 'vue' });
+  value.ready(value.frames[0], { initialization: 'csr' });
   await assert.rejects(loading, /Frame readiness differs/);
 });
 

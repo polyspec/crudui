@@ -33,7 +33,7 @@ try {
     root: repositoryRoot, configFile: false, logLevel: 'error', server: { middlewareMode: true },
     resolve: { alias: { '@crudui/validator': join(repositoryRoot, 'packages/validator-ts/src/index.ts') } },
   });
-  const { compileForm, bindForm, buildList } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-core/src/index.ts'));
+  const { compileForm, bindForm, bindButtons, formMessages, buildList } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-core/src/index.ts'));
   const { FormFields } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-react/src/components/FormFields.tsx'));
   const { List } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-react/src/components/List.tsx'));
   const serializable = value => JSON.parse(JSON.stringify(value));
@@ -52,7 +52,9 @@ try {
     const fields = bindForm(template, fixture.data, fixture.options);
     check(`${fixture.name}: template`, result.template, serializable(template), equalOrdered);
     check(`${fixture.name}: fields`, result.fields, serializable(fields), equalModels);
-    check(`${fixture.name}: exact HTML`, result.html, renderToStaticMarkup(createElement(FormFields, { fields })));
+    const buttons = bindButtons(template, fixture.data, fixture.options);
+    const messages = formMessages(fixture.options?.language ?? 'ko');
+    check(`${fixture.name}: exact HTML`, result.html, renderToStaticMarkup(createElement(FormFields, { fields, buttons, messages })));
     check(`${fixture.name}: layout`, normalizeHtml(result.html), fixture.expected_html);
   }
   for (let i = 0; i < lists.length; i++) {

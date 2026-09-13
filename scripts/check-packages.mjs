@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -103,9 +103,12 @@ validate(spec, data);
     await new Promise(resolve => server.httpServer.close(resolve));
   }
   console.log('Package exports, consumer types, production build and three-framework browser checks passed.');
+  // A passing check removes its consumer project; a failing check keeps it for inspection.
+  rmSync(directory, { recursive: true, force: true });
 } catch (error) {
   const detail = [error.message, error.stdout, error.stderr].filter(Boolean).join('\n');
   writeFileSync(join(directory, 'failure.log'), detail);
   console.error(detail);
+  console.error(`Consumer project retained: ${directory}`);
   process.exitCode = 1;
 }

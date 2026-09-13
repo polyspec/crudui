@@ -1,9 +1,13 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { FormFields } from '../components/FormFields';
-import { bindForm, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
+import { bindButtons, bindForm, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
 
 /** Render evaluated fields for layout conformance fixtures. */
 export function renderFields(template: FormTemplate, options: BindFormOptions & { data?: Record<string, unknown> } = {}): string {
-  return renderToStaticMarkup(React.createElement(FormFields, { fields: bindForm(template, options.data, options) }));
+  return renderToStaticMarkup(React.createElement(FormFields, {
+    fields: bindForm(template, options.data, options),
+    buttons: bindButtons(template, options.data, options),
+    messages: formMessages(options.language ?? 'ko'),
+  }));
 }

@@ -22,8 +22,8 @@ make docs-check
 
 Validator package suites cover their current and legacy cases. Current conformance
 checks use the shared fixtures described in the [fixture contract](../spec/test-fixtures.md).
-Compare the expected validation result and load-error code, not only agreement
-between implementations. Package checks verify exported files, declarations,
+Compare the expected validation result or complete failure record, not only
+agreement between implementations. Package checks verify exported files, declarations,
 consumer compilation and production rendering.
 
 ## Legacy comparison

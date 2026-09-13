@@ -19,9 +19,12 @@ go run ./cmd/validate < request.json
 
 `mode` defaults to `form` (`ValidateJSON`: compose → forbidden-scan → DATA
 validate). `list` runs `ValidateListJSON` (SPEC §9): compose + forbidden-scan
-only — a list carries no rows, so `data` is ignored. A compose LOAD failure
-(unresolved `$ref`/`$patch` or forbidden meta key) is reported as a fatal
-`{"error": ...}` envelope on stdout, never `valid:false`.
+only — a list carries no rows, so `data` is ignored. An omitted `data` member
+validates `{}`. A load failure (unresolved `$ref`/`$patch` or forbidden meta key,
+`*compose.ComposeLoadError`) or an input failure (data with the wrong shape,
+`*validate.FormInputError`) exits 2 with exactly `{"error", "code", "at"}`, never
+`valid:false`. A malformed request exits 1 with `{"error"}`. Every language's CLI
+uses this contract.
 
 ## Test
 

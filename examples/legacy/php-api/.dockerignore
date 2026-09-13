@@ -27,7 +27,6 @@
 **/.gitignore
 
 # Other examples and docs (not needed for php-api)
-examples/legacy/demo-app/
 examples/nextjs-app/
 docs/
 react/

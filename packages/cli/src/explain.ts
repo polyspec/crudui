@@ -56,9 +56,13 @@ interface Phrases {
   defaultValue: (v: string) => string;
   langDim: (langs: string[] | null) => string;
   multipleDim: (parts: string[]) => string;
+  multipleMin: (n: number) => string;
   multipleMax: (n: number) => string;
   multipleSortable: string;
   multipleCopy: string;
+  multipleTitle: (field: string) => string;
+  multipleControls: (placement: string) => string;
+  multipleSticky: string;
   itemsStatic: (values: string[]) => string;
   itemsDynamic: (source: string) => string;
   designShow: (expr: string) => string;
@@ -115,9 +119,13 @@ const PHRASES_KO: Phrases = {
       ? `다국어 입력 (${langs.join('/')} 입력란 분리)`
       : '다국어 입력',
   multipleDim: (parts) => `반복 행${parts.length ? ' — ' + parts.join(', ') : ''}`,
+  multipleMin: (n) => `최소 ${n}행`,
   multipleMax: (n) => `최대 ${n}행`,
   multipleSortable: '정렬 가능',
   multipleCopy: '행 복사 가능',
+  multipleTitle: (field) => `행 제목 \`${field}\``,
+  multipleControls: (placement) => `컨트롤 위치 ${({ header: '헤더', footer: '행 아래', outline: '구조 맵' } as Record<string, string>)[placement] ?? placement}`,
+  multipleSticky: '고정 헤더',
   itemsStatic: (values) => `정적 선택지 (${values.join(', ')})`,
   itemsDynamic: (source) => `동적 선택지 (소스: ${source})`,
   designShow: (expr) => `\`${expr}\` 일 때 표시`,
@@ -171,9 +179,13 @@ const PHRASES_EN: Phrases = {
   langDim: (langs) =>
     langs && langs.length ? `multilingual input (${langs.join('/')} fields)` : 'multilingual input',
   multipleDim: (parts) => `repeated rows${parts.length ? ' — ' + parts.join(', ') : ''}`,
+  multipleMin: (n) => `at least ${n} rows`,
   multipleMax: (n) => `up to ${n} rows`,
   multipleSortable: 'sortable',
   multipleCopy: 'row copy',
+  multipleTitle: (field) => `row title \`${field}\``,
+  multipleControls: (placement) => `controls in ${placement}`,
+  multipleSticky: 'sticky header',
   itemsStatic: (values) => `static options (${values.join(', ')})`,
   itemsDynamic: (source) => `dynamic options (source: ${source})`,
   designShow: (expr) => `shown when \`${expr}\``,
@@ -303,15 +315,19 @@ function explainLang(lang: unknown, p: Phrases): string | null {
   return null;
 }
 
-/** multiple slot → one clause, max/sortable/copy surfaced. */
+/** multiple slot → one clause, min/max/sortable/copy/title/controls/header surfaced. */
 function explainMultiple(multiple: unknown, p: Phrases): string | null {
   if (multiple === false) return null;
   if (multiple === true) return p.multipleDim([]);
   if (isObj(multiple)) {
     const parts: string[] = [];
+    if (typeof multiple.min === 'number') parts.push(p.multipleMin(multiple.min));
     if (typeof multiple.max === 'number') parts.push(p.multipleMax(multiple.max));
     if (multiple.sortable === true) parts.push(p.multipleSortable);
-    if (multiple.copy) parts.push(p.multipleCopy);
+    if (multiple.copy === true) parts.push(p.multipleCopy);
+    if (typeof multiple.title === 'string') parts.push(p.multipleTitle(multiple.title));
+    if (multiple.controls === 'footer' || multiple.controls === 'outline') parts.push(p.multipleControls(multiple.controls));
+    if (multiple.header === 'sticky') parts.push(p.multipleSticky);
     return p.multipleDim(parts);
   }
   return null;

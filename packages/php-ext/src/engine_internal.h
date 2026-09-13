@@ -70,7 +70,6 @@ char *ps_format_date(const char *source, bool datetime);
 char *ps_format_date_pattern(const char *source, const char *pattern);
 bool ps_path_parts(const char *path, char ***parts, size_t *length);
 void ps_path_parts_free(char **parts, size_t length);
-const char *ps_position(const char *segment);
 bool ps_condition_expression(const char *value);
 
 bool ps_html_bytes(ps_html_buffer *out, const char *value, size_t length);
@@ -88,6 +87,36 @@ bool ps_html_attr_string(ps_value *attrs, const char *name, const char *value);
 bool ps_html_attr_clone(ps_value *attrs, const char *name, const ps_value *value);
 ps_value *ps_html_appearance_attrs(const char *class_name, const char *style);
 
+/* Interface labels for row, collection and form controls; {count} is replaced by a number. */
+typedef struct {
+    const char *move_up;
+    const char *move_down;
+    const char *add_row;
+    const char *copy_row;
+    const char *remove_row;
+    const char *toggle_row;
+    const char *expand_all;
+    const char *collapse_all;
+    const char *undo;
+    const char *row_controls;
+    const char *collection_controls;
+    const char *form_controls;
+    const char *form_actions;
+    const char *submit;
+    const char *reset;
+    const char *outline;
+    const char *data;
+    const char *untitled;
+    const char *collapsed;
+    const char *count;
+    const char *children;
+} ps_form_messages;
+
+/* Interface text for a supported language (ko, en, ja, zh), or NULL. */
+const ps_form_messages *ps_form_messages_for(const char *language);
+/* Replace the first {count} in a counted message. */
+char *ps_format_count(const char *template, size_t count);
+
 ps_value *ps_design(const ps_value *design, const ps_value *data, const char *path);
 bool ps_widget_supported(const char *type);
 ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,
@@ -95,6 +124,12 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
                     const char *id_prefix, const char *language,
                     const size_t *row_segments, size_t row_count);
 char *ps_render_fields(const ps_value *fields);
+/* Evaluate the template buttons for a record: type, tag, text and attrs in output order. */
+ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, const char *language);
+/* Form markup: the field body, then the footer controls group holding the buttons. */
+char *ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label);
+/* Every interface text as an object keyed by message name. */
+ps_value *ps_form_messages_value(const ps_form_messages *messages);
 
 ps_value *ps_expression_value(const char *expression, const ps_value *data,
                               const char *const *current_path, size_t path_length,
