@@ -9,7 +9,6 @@ const excludedPrefixes = [
   'docs/api/',
   'docs/.site/',
   'docs/.vitepress/',
-  'examples/legacy/legacy-validate-test/',
 ];
 const sourceExtensions = new Set([
   '.c', '.cjs', '.go', '.js', '.mjs', '.mts', '.php', '.rs', '.sh', '.ts', '.tsx', '.vue',

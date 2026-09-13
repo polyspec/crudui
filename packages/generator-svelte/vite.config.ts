@@ -8,7 +8,6 @@ export default defineConfig({
     lib: {
       entry: {
         index: path.resolve(import.meta.dirname, 'src/index.ts'),
-        'legacy/index': path.resolve(import.meta.dirname, 'src/legacy/index.ts'),
       },
       formats: ['es'],
       fileName: (_format, entryName) => `${entryName}.js`,
