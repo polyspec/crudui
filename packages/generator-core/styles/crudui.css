@@ -45,7 +45,8 @@
 /* The space after the form, outside it: see sticky rule 3. */
 .crudui-form {
   margin-bottom: max(0px, calc(var(--crudui-scroll-height, 100vh) - var(--crudui-form-end-extent, 100vh)
-    - var(--crudui-form-end-top, 0px) - var(--crudui-form-footer-height)));
+    - var(--crudui-form-end-top, 0px) - var(--crudui-form-footer-height)
+    - var(--crudui-form-end-after, 0px)));
 }
 
 .crudui-node {
@@ -296,11 +297,14 @@ textarea.crudui-input {
  * 2. The row aligns to the line: scroll-margin-top places the header, inside the
  *    row's top border, on the line, so bringing a row to the top is
  *    scrollIntoView({ block: 'start' }).
- * 3. The row at the end of the form can reach the line, and no further. The space
- *    after the form, outside it, is the height of the scroll container (the one the
- *    sticky headers follow: the page, a frame or a scrolling box) less the extent
- *    from that row's top to the end of the form content, its aligned top and the
- *    footer. The browser binding publishes the three measured lengths.
+ * 3. The row at the end of the form can reach the line. The space after the form,
+ *    outside it, is what that takes beyond the content already there: the height of
+ *    the scroll container (the one the sticky headers follow: the page, a frame or a
+ *    scrolling box) less the extent from that row's top to the end of the form
+ *    content, its aligned top, the footer and the content that follows the form,
+ *    and never below zero. Scrolling stops with the row on its line unless longer
+ *    content follows the form, which then scrolls into view. The browser binding
+ *    publishes the four measured lengths.
  */
 .crudui-node--sticky {
   --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));

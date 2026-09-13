@@ -102,23 +102,29 @@ export function connectRows(element: HTMLElement): RowTracking {
   /**
    * Publish the lengths of the trailing space rule: the height of the scroll container,
    * the extent from the top of the deepest row at the end of the form to the end of the
-   * outermost such row, and that row's aligned top (its scroll-margin-top).
+   * outermost such row, that row's aligned top (its scroll-margin-top), and the content
+   * that follows the form in the scroll container, apart from the form's own margin.
+   * `top` is the viewport position of the scroll container's content edge.
    */
-  const publishEnd = (scroller: HTMLElement) => {
+  const publishEnd = (scroller: HTMLElement, top: number) => {
     const ends = Array.from(element.querySelectorAll<HTMLElement>(FORM_ROWS + ':last-child'))
       .filter(row => row.closest('.crudui-form__body :not(:last-child)') === null);
     const deepest = ends[ends.length - 1];
+    const form = element.querySelector<HTMLElement>('.crudui-form');
+    const contentEnd = top - scroller.scrollTop + scroller.scrollHeight;
+    const formEnd = form ? form.getBoundingClientRect().bottom + (parseFloat(view.getComputedStyle(form).marginBottom) || 0) : contentEnd;
     // Published on the connected element, which rendering never replaces; the form
     // inherits them, so a re-render cannot drop the space and pull the scroll back.
     element.style.setProperty('--crudui-scroll-height', `${scroller.clientHeight}px`);
     element.style.setProperty('--crudui-form-end-extent', deepest ? `${ends[0]!.getBoundingClientRect().bottom - deepest.getBoundingClientRect().top}px` : '100vh');
     element.style.setProperty('--crudui-form-end-top', deepest ? view.getComputedStyle(deepest).scrollMarginTop : '0px');
+    element.style.setProperty('--crudui-form-end-after', `${Math.max(0, contentEnd - formEnd)}px`);
   };
   const measure = () => {
     frame = 0;
     const scroller = scrollParent(element);
-    publishEnd(scroller);
     const top = scroller === documentScroller(element.ownerDocument) ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop;
+    publishEnd(scroller, top);
     const rows = Array.from(element.querySelectorAll<HTMLElement>(FORM_ROWS));
     let current: HTMLElement | undefined;
     for (const row of rows) {

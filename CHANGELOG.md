@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Count the content after the form in the trailing space
+
+The trailing space after the form ignored the content that already follows the form in
+its scroll container. In the comparison frame, where the results follow the form, it
+added 1,037 px (the 1,448 px frame less the 362 px end-row extent and the 49 px footer),
+leaving a blank area between the form and the results, and the end row scrolled past
+its line by the height of that content. The rule now subtracts the content after the
+form, apart from the form's own margin, measured by `connectRows` and published as
+`--crudui-form-end-after`, and never goes below zero. Scrolling stops with the end row
+on its line when the content after the form is shorter than the space it needs, and
+longer content scrolls into view with no space added. The documentation no longer
+describes the limit as exact only when nothing follows the form.
+
+Two Chromium checks cover it: 60 px of content after a form in a scrolling box, where
+the end row stopped 60 px past its line before the change (27 px against 87 px), and
+600 px of content, where no space is added and the content scrolls to its end.
+
 ## 2026-09-14 — Apply the sticky rules in any scroll container and declare sticky rows in the comparison example
 
 The comparison page showed no sticky headers because its example specification did
