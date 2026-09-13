@@ -97,7 +97,7 @@ interface Change {
  * One editable form instance over a shared template. All row operations are
  * scoped to a collection path; no global string replacement touches siblings.
  * Data, undo history and view state (collapsed rows) are separate; view state is
- * never submitted. The current row is not instance state: the scroll position decides it.
+ * never submitted.
  */
 export class FormInstance {
   private data: Record<string, unknown>;
