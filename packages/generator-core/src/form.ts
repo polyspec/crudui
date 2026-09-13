@@ -64,15 +64,67 @@ function freezeTree<T>(value: T): T {
   return value;
 }
 
-function compileFields(properties: Record<string, unknown>): FormFieldTemplate[] {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/** A string, or a condition map: a non-empty object. */
+function conditionValue(value: unknown): boolean {
+  return typeof value === 'string' || (isRecord(value) && Object.keys(value).length > 0);
+}
+
+/** Reject a wrong value type in one field's `multiple` and `design` declarations. */
+function checkDeclarations(spec: Record<string, unknown>, path: string): void {
+  const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+  const fail = (key: string, expected: string): never => {
+    throw new TypeError(`Invalid ${key} at ${path}: expected ${expected}`);
+  };
+  if (has(spec, 'multiple')) {
+    const multiple = spec.multiple;
+    if (typeof multiple !== 'boolean' && !isRecord(multiple)) fail('multiple', 'a boolean or an object');
+    if (isRecord(multiple)) {
+      for (const key of ['min', 'max']) {
+        if (has(multiple, key) && typeof multiple[key] !== 'number') fail(`multiple.${key}`, 'a number');
+      }
+      for (const key of ['copy', 'sortable']) {
+        if (has(multiple, key) && typeof multiple[key] !== 'boolean') fail(`multiple.${key}`, 'a boolean');
+      }
+    }
+  }
+  if (has(spec, 'design')) {
+    const design = spec.design;
+    if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
+    if (isRecord(design)) {
+      if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
+        fail('design.show', 'an expression, a boolean or a condition map');
+      }
+      for (const key of ['class', 'style']) {
+        if (has(design, key) && !conditionValue(design[key])) fail(`design.${key}`, 'a string or a condition map');
+      }
+      for (const node of ['label', 'wrapper', 'group', 'prepend']) {
+        if (!has(design, node)) continue;
+        const value = design[node];
+        if (!isRecord(value)) fail(`design.${node}`, 'an object');
+        for (const key of ['class', 'style']) {
+          if (has(value as Record<string, unknown>, key) && !conditionValue((value as Record<string, unknown>)[key])) {
+            fail(`design.${node}.${key}`, 'a string or a condition map');
+          }
+        }
+      }
+    }
+  }
+}
+
+function compileFields(properties: Record<string, unknown>, parent = ''): FormFieldTemplate[] {
   return Object.entries(properties).flatMap(([name, raw]) => {
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return [];
-    const { properties: children, ...spec } = raw as Record<string, unknown>;
+    if (!isRecord(raw)) return [];
+    const path = parent ? `${parent}.${name}` : name;
+    checkDeclarations(raw, path);
+    const { properties: children, ...spec } = raw;
     return [{
       name,
       spec,
-      children: children && typeof children === 'object' && !Array.isArray(children)
-        ? compileFields(children as Record<string, unknown>) : [],
+      children: isRecord(children) ? compileFields(children, path) : [],
     }];
   });
 }

@@ -135,6 +135,25 @@ Repeated fields accept `multiple.min` and `multiple.max` as numeric row-count
 limits. Instance collection keys identify rows; the schema does not define hidden
 identity fields. See [form runtime](form-runtime.md) for row operations.
 
+Form compilation rejects a wrong value type in `multiple` and `design` with
+`INVALID_FORM_INPUT` and the message `Invalid {key} at {path}: expected
+{expected}`. `{path}` is the field's structural path, such as `companies.name`.
+A condition map is a non-empty object.
+
+| Key | Accepted value |
+| --- | --- |
+| `multiple` | Boolean or object |
+| `multiple.min`, `multiple.max` | Number |
+| `multiple.copy`, `multiple.sortable` | Boolean |
+| `design` | Boolean or object |
+| `design.show` | Expression, boolean or condition map |
+| `design.class`, `design.style` | String or condition map |
+| `design.label`, `design.wrapper`, `design.group`, `design.prepend` | Object |
+| `class` and `style` of those nodes | String or condition map |
+
+Compilation checks fields in declaration order, each field before its children.
+It does not check unknown keys in these buckets.
+
 ## Widget and source settings
 
 `options` preserves settings for the corresponding widget. Declaration acceptance

@@ -2,6 +2,30 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Reject wrong multiple and design value types at compilation
+
+Form compilation in TypeScript, PHP, Go, Rust and the C PHP extension previously
+ignored a wrong value type in `multiple` and `design`: row settings with the wrong
+type were dropped, and an invalid design became an empty design. Compilation now
+rejects them with `INVALID_FORM_INPUT` and `Invalid {key} at {path}: expected
+{expected}`, where `{path}` is the field's structural path. `multiple` must be a
+boolean or an object, with numeric `min` and `max` and boolean `copy` and
+`sortable`. `design` must be a boolean or an object. Its `show` must be an
+expression, a boolean or a condition map. Its `class` and `style` and those of the
+`label`, `wrapper`, `group` and `prepend` nodes must be strings or condition maps,
+and the nodes must be objects. A condition map is a non-empty object, as the JSON
+schema requires. Unknown keys in these buckets are not checked. The schema
+specification documents the rules.
+
+The C template builds messages with a local helper because its engine tests link
+only the value, error and composition modules. The native suite adds eight
+compile rejections compared as complete records.
+
+`make test-native` passed 886 generator checks (177 per implementation), 361 PHP
+API checks per configuration and 100 validation cases in each PHP implementation.
+generator-core passed its typecheck and 89 tests; `npm run test:forms` and
+`make docs-check` passed.
+
 ## 2026-09-13 — Reject generator data with the wrong shape at its full path
 
 `bindForm` and editable instances in TypeScript, PHP, Go, Rust and the C PHP
