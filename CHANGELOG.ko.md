@@ -2,6 +2,18 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 화면 높이 프레임 후보 검증과 배포 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 f3109ad에서 통과했습니다. PHP,
+PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
+실패 없이 기록했습니다. `node examples/form-comparison/comparison-deployment.mjs --commit
+f3109ad…`가 이를 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 798px
+브라우저 창에서 프레임은 798px 높이이고 SSR과 CSR 열은 8/8 일치합니다. 페이지를 프레임까지
+스크롤하고 프레임을 700px 스크롤하면 회사 헤더는 화면 맨 위 0px 고정선에, 스토어 헤더는 38.5px
+고정선의 39px에 있으며 둘 다 단계 레이블을 보이고, 고정되지 않은 부서와 Busan 헤더는 레이블을
+숨깁니다. 스크롤 직후 페이지가 렌더링되기 전에 잰 값은 레이블을 여전히 숨김으로 읽었고, 렌더링 뒤
+다시 재자 표시되었습니다.
+
 ## 2026-09-14 — 비교 프레임 높이를 화면에 맞춤
 
 고정 행이 CSS만으로 동작하게 된 뒤에도 비교 페이지는 일반 페이지와 다르게 동작했습니다. 원인은
