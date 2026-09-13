@@ -2,6 +2,15 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Use the SSR and CSR column names in the browser interaction checks
+
+The candidate run of 4607254 failed in `browser-php` before any interaction ran: the
+interaction check still looked for the frame with `initialization=data`, and the initial
+mount check still looked for `initialization=inject`, the column names 880cb11 replaced.
+The interaction check now uses the `ssr` frame, the initial mount check the `csr` frame,
+and the report test fixture the `ssr` column. These checks run only inside the candidate
+container, so the local source checks (140 passed) did not reveal the old names.
+
 ## 2026-09-13 — Restore the React form session tests removed with the legacy UI
 
 d26ecce deleted `packages/generator-react/src/__tests__/Form.test.tsx` together with

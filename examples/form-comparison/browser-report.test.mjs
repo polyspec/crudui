@@ -27,7 +27,7 @@ function initialization(server, renderingPath, framework) {
       const separator = id.lastIndexOf('/');
       return { label: id.slice(0, separator), category: id.slice(separator + 1), passed: true };
     }),
-    stages: [{ column: 'data', stage: 'mounted', html: '' }],
+    stages: [{ column: 'ssr', stage: 'mounted', html: '' }],
     cssFailures: {},
   };
 }

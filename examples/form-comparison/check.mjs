@@ -119,10 +119,10 @@ try {
       `/api/(${formServers.join('|')})/load/(${formRenderingPaths.join('|')})/(${formFrameworks.join('|')})$`,
     ).exec(request.url());
     const key = match?.slice(1).join('/');
-    // The data column loads the record before mounting by design; only the inject column mounts first.
-    const injectColumn = match
-      && new URL(request.frame().url()).searchParams.get('initialization') === 'inject';
-    if (injectColumn && !initialMounts.has(key)) {
+    // The SSR column loads the record before the server renders; only the CSR column mounts first.
+    const csrColumn = match
+      && new URL(request.frame().url()).searchParams.get('initialization') === 'csr';
+    if (csrColumn && !initialMounts.has(key)) {
       const result = {
         server: match[1], path: match[2], framework: match[3], passed: false,
       };
