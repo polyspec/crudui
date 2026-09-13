@@ -5,13 +5,8 @@
   let { fields, buttons, messages, root = $bindable() }: { fields: NodeVM[]; buttons: ButtonVM[]; messages: FormMessages; root?: HTMLDivElement } = $props();
 </script>
 
-<div class="crudui-form" bind:this={root}>
-  <div class="crudui-form__body">
-    {#each fields as vm (vm.path)}
-      <Node {vm} />
-    {/each}
-  </div>
-  <div class="crudui-form__footer">
-    <div class="crudui-controls" role="group" aria-label={messages.formActions}>{@html formButtonsHtml(buttons)}</div>
-  </div>
-</div>
+<!-- Sibling nodes are written without whitespace between them; see Node.svelte. -->
+<div class="crudui-form" bind:this={root}
+  ><div class="crudui-form__body">{#each fields as vm (vm.path)}<Node {vm} />{/each}</div
+  ><div class="crudui-form__footer"><div class="crudui-controls" role="group" aria-label={messages.formActions}>{@html formButtonsHtml(buttons)}</div></div
+></div>

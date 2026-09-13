@@ -18,9 +18,10 @@
 {#if !model}
   <div class="crudui-widget crudui-widget--unsupported" data-unsupported-type={(w as { type: string }).type}></div>
 {:else if model.layout === 'bare' && usesStableControl(model)}
-  <input {...model.attrs} />
+  <!-- Server rendering writes value and text; defaultValue keeps them in the browser DOM. -->
+  <input {...model.attrs} defaultValue={model.attrs.value} />
 {:else if model.layout === 'widget' || (model.layout === 'display' && model.kind === 'dummy-input')}
-  <div class="crudui-widget">{#if usesStableControl(model)}{@html affixHtml(model.prepend)}{#if model.tag === 'textarea'}<textarea {...model.attrs}>{model.text ?? ''}</textarea>{:else}<input {...model.attrs} />{/if}{@html affixHtml(model.append)}{:else}{@html widgetBody(model)}{/if}</div>
+  <div class="crudui-widget">{#if usesStableControl(model)}{@html affixHtml(model.prepend)}{#if model.tag === 'textarea'}<textarea {...model.attrs} defaultValue={model.text ?? ''}>{model.text ?? ''}</textarea>{:else}<input {...model.attrs} defaultValue={model.attrs.value} />{/if}{@html affixHtml(model.append)}{:else}{@html widgetBody(model)}{/if}</div>
 {:else if model.layout === 'file'}
   <div class="crudui-widget">{@html fileGroupBody(model)}</div>
 {:else if isDisplayRaw}

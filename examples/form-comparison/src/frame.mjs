@@ -128,15 +128,22 @@ async function mount(data = {}, formSpec = spec) {
   await settle(); inspect();
 }
 /**
- * Parsed DOM of the rendered form (every element, attribute, text and comment in child
- * order; attribute order has no meaning in the DOM) without the state the browser binding
- * writes: the `data-crudui-stuck` and `data-crudui-current` row marks and the lengths
- * published on the connected element (form-markup: "set by the browser binding").
+ * Parsed DOM of the rendered form (every element, attribute and text in child order;
+ * attribute order has no meaning in the DOM) without the state the browser binding writes
+ * (the `data-crudui-stuck` and `data-crudui-current` row marks and the lengths published
+ * on the connected element) and without the nodes frameworks use as rendering anchors,
+ * which render nothing: comments and empty text.
  */
 function renderedFormDom() {
   const rendered = view.querySelector('.crudui-form');
   assert(rendered, 'A rendered form must exist');
   const copy = rendered.cloneNode(true);
+  const walker = document.createTreeWalker(copy, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT);
+  const anchors = [];
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.nodeType === Node.COMMENT_NODE || node.nodeValue === '') anchors.push(node);
+  }
+  for (const node of anchors) node.remove();
   for (const element of [copy, ...copy.querySelectorAll('[data-crudui-current],[data-crudui-stuck]')]) {
     element.removeAttribute('data-crudui-current');
     element.removeAttribute('data-crudui-stuck');
