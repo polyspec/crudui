@@ -158,9 +158,9 @@
     {
       "id": "bindForm",
       "owner": "@crudui/generator-core",
-      "signature": "bindForm(template, data, options?) -> FieldViewModel[]",
+      "signature": "bindForm(template, data, options?) -> NodeVM[]",
       "input": "compiled template and record data",
-      "output": "evaluated field view models",
+      "output": "evaluated nodes of the recursive form grammar",
       "errors": [
         "TypeError",
         "UnsupportedFieldTypeError"
@@ -180,11 +180,13 @@
       "state": "none",
       "tests": [
         "packages/generator-core/src/form.test.ts",
-        "packages/generator-react/src/__tests__/form-render.conformance.test.ts"
+        "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
+        "packages/generator-core/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
-        "docs/operations/forms.md"
+        "docs/operations/forms.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -219,14 +221,16 @@
         "php-native": "pass"
       },
       "status": "implemented",
-      "state": "instance only",
+      "state": "instance data, view state and undo history",
       "tests": [
         "packages/generator-core/src/form.test.ts",
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mjs",
+        "packages/generator-core/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
-        "docs/operations/forms.md"
+        "docs/operations/forms.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -272,7 +276,8 @@
       "docs": [
         "docs/spec/form-runtime.md",
         "docs/operations/forms.md",
-        "packages/generator-html/README.md"
+        "packages/generator-html/README.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -357,7 +362,8 @@
       ],
       "docs": [
         "docs/spec/form-runtime.md",
-        "docs/operations/forms.md"
+        "docs/operations/forms.md",
+        "docs/spec/form-markup.md"
       ],
       "verification": [
         {
@@ -367,6 +373,74 @@
         {
           "id": "test-2",
           "command": "node --test tests/fixtures/form-session/scenario.mjs"
+        }
+      ]
+    },
+    {
+      "id": "buildOutline",
+      "owner": "@crudui/generator-core",
+      "signature": "buildOutline(nodes, selection?) -> OutlineCollection[]",
+      "input": "evaluated nodes and the selected row",
+      "output": "structure map collections and rows",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "connectOutline",
+      "owner": "@crudui/generator-core",
+      "signature": "connectOutline(element, form, formElement) -> FormConnection",
+      "input": "rendered structure map, form instance and rendered form host",
+      "output": "event connection that runs map actions and scrolls to the selected row",
+      "errors": [
+        "TypeError",
+        "FormError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass"
+      },
+      "status": "implemented",
+      "state": "form instance view state through owned events",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
         }
       ]
     },

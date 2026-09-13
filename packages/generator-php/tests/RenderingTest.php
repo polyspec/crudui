@@ -32,6 +32,6 @@ final class RenderingTest extends TestCase
     {
         $spec = json_decode('{"type":"group","properties":{"display":{"type":"dummy","default":"Default"}}}');
         $form = new Form(Generator::compileForm($spec), ['display' => null]);
-        self::assertSame('<div class="form-group"><div class="form-element-wrapper" data-field-path="display"><div class="form-element"><div class="input-group-wrapper" data-uniqid="display"><div></div></div></div></div></div>', Generator::renderForm($form));
+        self::assertSame('<div class="crudui-form"><div class="crudui-form__body"><div class="crudui-node crudui-node--field" data-field-path="display"><div class="crudui-node__body"><div></div></div></div></div></div>', Generator::renderForm($form));
     }
 }

@@ -121,7 +121,7 @@ func (s *server) form(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, `<!doctype html><html lang="en"><meta charset="utf-8"><title>CRUDUI Go form</title><style>body{max-width:42rem;margin:3rem auto;font-family:system-ui}input{padding:.6rem;width:95%}h6{font-size:1rem;margin-bottom:.5rem}button{margin-top:1rem;padding:.6rem}</style><h1>CRUDUI Go form</h1><form method="post">`+html+`<button type="submit">Save</button></form><p><a href="/data">Stored JSON</a> · <a href="/template">Compiled template</a></p></html>`)
+		fmt.Fprint(w, `<!doctype html><html lang="en"><meta charset="utf-8"><title>CRUDUI Go form</title><style>body{max-width:42rem;margin:3rem auto;font-family:system-ui}input{padding:.6rem;width:95%}.crudui-node__label{display:block;font-weight:600;margin-bottom:.5rem}.crudui-node{margin-bottom:1rem}button{margin-top:1rem;padding:.6rem}</style><h1>CRUDUI Go form</h1><form method="post">`+html+`<button type="submit">Save</button></form><p><a href="/data">Stored JSON</a> · <a href="/template">Compiled template</a></p></html>`)
 	case http.MethodPost:
 		s.submit(w, r)
 	default:

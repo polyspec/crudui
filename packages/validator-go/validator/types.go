@@ -937,6 +937,12 @@ type Multiple struct {
 	Copy any `json:"copy,omitempty"`
 	// Sortable toggles row reordering.
 	Sortable any `json:"sortable,omitempty"`
+	// Title names the direct child field whose value titles each row.
+	Title any `json:"title,omitempty"`
+	// Controls positions row controls: header, footer or outline.
+	Controls any `json:"controls,omitempty"`
+	// Header selects static or sticky row headers.
+	Header any `json:"header,omitempty"`
 	// Onclick is the row-action script.
 	Onclick any `json:"onclick,omitempty"`
 }

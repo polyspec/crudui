@@ -122,7 +122,7 @@ function Bare({ w }: { w: WidgetModel }): React.ReactElement {
  * When a widget must be serialized raw AT its container root (no wrapper element
  * is allowed), return the raw html; else null and the widget renders as JSX.
  * Only the bare layout with opaque on* attrs needs this (datetime + behavior):
- * the control is a direct child of `.input-group-wrapper`, so an extra wrapper
+ * the control is a direct child of the node body, so an extra wrapper
  * would break parity. Every other on*-bearing layout has a real container
  * (`.input-group` / `.btn-group`) that absorbs the raw body.
  */

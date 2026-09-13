@@ -60,9 +60,33 @@ static bool declaration_error(const char *key, const char *path, const char *exp
     return false;
 }
 
+/* A multiple or lang declaration that enables the feature: true or an object. */
+static bool enabled_declaration(const ps_value *value)
+{
+    return value && ((value->kind == PS_BOOL && value->data.boolean) || value->kind == PS_OBJECT);
+}
+
+/* A child that renders one scalar value: not repeated, not a group and not a language field. */
+static bool scalar_child(const ps_value *child)
+{
+    return child && child->kind == PS_OBJECT && !ps_is_string(ps_get(child, "type"), "group") &&
+        !ps_has(child, "properties") && !enabled_declaration(ps_get(child, "multiple")) &&
+        !enabled_declaration(ps_get(child, "lang"));
+}
+
+/* A string equal to one of the allowed values. */
+static bool one_of(const ps_value *value, const char *const *allowed, size_t count)
+{
+    for (size_t i = 0; i < count; ++i)
+        if (ps_is_string(value, allowed[i])) return true;
+    return false;
+}
+
 /* Reject a wrong value type in one field's multiple and design declarations. */
 static bool declarations_valid(const ps_value *spec, const char *path, ps_value **error)
 {
+    static const char *const placements[] = {"header", "footer", "outline"};
+    static const char *const headers[] = {"static", "sticky"};
     static const char *const numbers[][2] = {{"min", "multiple.min"}, {"max", "multiple.max"}};
     static const char *const booleans[][2] = {{"copy", "multiple.copy"}, {"sortable", "multiple.sortable"}};
     static const char *const styles[][2] = {{"class", "design.class"}, {"style", "design.style"}};
@@ -86,6 +110,34 @@ static bool declarations_valid(const ps_value *spec, const char *path, ps_value 
             if (value && value->kind != PS_BOOL)
                 return declaration_error(booleans[i][1], path, "a boolean", error);
         }
+        if (multiple->kind == PS_OBJECT && ps_has(multiple, "title")) {
+            if (!ps_is_string(ps_get(spec, "type"), "group"))
+                return declaration_error("multiple.title", path, "a repeated group", error);
+            const ps_value *title = ps_get(multiple, "title");
+            const ps_value *properties = ps_get(spec, "properties");
+            const ps_value *child = title->kind == PS_STRING && properties &&
+                properties->kind == PS_OBJECT ? ps_get(properties, ps_string(title)) : NULL;
+            if (!scalar_child(child))
+                return declaration_error("multiple.title", path,
+                    "the name of a direct child field without multiple, properties or lang", error);
+        }
+        if (multiple->kind == PS_OBJECT && ps_has(multiple, "controls") &&
+            !one_of(ps_get(multiple, "controls"), placements, 3))
+            return declaration_error("multiple.controls", path, "header, footer or outline", error);
+        if (multiple->kind == PS_OBJECT && ps_has(multiple, "header") &&
+            !one_of(ps_get(multiple, "header"), headers, 2))
+            return declaration_error("multiple.header", path, "static or sticky", error);
+    }
+    const ps_value *lang = ps_get(spec, "lang");
+    if (lang && lang->kind != PS_BOOL && lang->kind != PS_OBJECT)
+        return declaration_error("lang", path, "a boolean or an object", error);
+    const ps_value *only = lang && lang->kind == PS_OBJECT ? ps_get(lang, "only") : NULL;
+    if (only && only->kind != PS_OBJECT) {
+        bool codes = only->kind == PS_ARRAY;
+        for (size_t i = 0; codes && i < ps_size(only); ++i)
+            codes = ps_at(only, i)->kind == PS_STRING;
+        if (!codes)
+            return declaration_error("lang.only", path, "a list of language codes or an object", error);
     }
     const ps_value *design = ps_get(spec, "design");
     if (!design) return true;

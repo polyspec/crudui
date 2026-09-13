@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Field } from '@crudui/generator-react';
+import { Node } from '@crudui/generator-react';
 
 import { requiredSourcePaths } from '../../../examples/form-comparison/prepare.mjs';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';
@@ -575,6 +575,27 @@ function sourceForFixtures() {
     lines.push(`  if (!ps_equal(${templateValue}, template_before) || !ps_equal(${dataValue}, data_before)) { fputs(${cString(`${fixture.name}: input changed\n`)}, stderr); return ${index + 1}; }`);
     lines.push(`  ps_value_free(template_before); ps_value_free(data_before); ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
   });
+  const template = dispatch({ operation: 'compileForm', spec: { type: 'group', properties: { name: { type: 'text' } } }, options: {} });
+  const optionRejections = [
+    [{ language: 'fr' }, 'Unsupported language: fr'], [{ language: '' }, 'Unsupported language: '],
+    [{ language: 5 }, 'Language must be a string'], [{ language: false }, 'Language must be a string'],
+    [{ language: ['ko'] }, 'Language must be a string'], [{ language: { ko: 'ko' } }, 'Language must be a string'],
+    [{ unsupported: true }, 'unsupported must be throw or marker'],
+    [{ language: 'fr', unsupported: 'other' }, 'unsupported must be throw or marker'],
+  ];
+  optionRejections.forEach(([options, message], index) => {
+    let languageError;
+    try { dispatch({ operation: 'bindForm', template, data: {}, options }); }
+    catch (error) { languageError = errorRecord(error); }
+    assert.deepEqual(languageError, { code: 'INVALID_FORM_INPUT', message, at: '' });
+    lines.push('  {', `  /* option-rejection-${index} */`);
+    const templateValue = builder.emit(JSON.parse(JSON.stringify(template)));
+    const dataValue = builder.emit({});
+    const optionsValue = builder.emit(options);
+    lines.push(`  ps_result actual = ps_bind_form(${templateValue}, ${dataValue}, ${optionsValue});`);
+    lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(languageError.code)}) || !ps_is_string(ps_get(actual.error, "message"), ${cString(languageError.message)}) || !ps_is_string(ps_get(actual.error, "at"), "")) { fputs(${cString(`option-rejection-${index}: error differs\n`)}, stderr); return ${bindFixtures.length + 1 + index}; }`);
+    lines.push(`  ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
+  });
   return fixtureProgram(lines);
 }
 
@@ -589,7 +610,7 @@ test('PHP extension engine binds every shared form fixture without changing inpu
       root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
       ],
     });
   } finally {
@@ -604,7 +625,7 @@ test('PHP extension engine binding has no undefined behavior findings', async ()
       root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -661,7 +682,7 @@ test('PHP extension engine reports supported widget construction failures as int
       root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'messages.c', 'binding.c',
       ],
     });
   } finally {
@@ -708,8 +729,9 @@ const allRenderFixtures = [...renderFixtures, ...edgeFixtures];
 
 function renderFields(fields) {
   return renderToStaticMarkup(createElement(
-    'div', { className: 'form-group' },
-    fields.map((vm, index) => createElement(Field, { key: index, vm })),
+    'div', { className: 'crudui-form' },
+    createElement('div', { className: 'crudui-form__body' },
+      fields.map(vm => createElement(Node, { key: vm.path, vm }))),
   ));
 }
 
@@ -752,7 +774,7 @@ test('PHP extension engine renders successful shared form fixtures and edge case
       root, directory, source: sourceForFixtures(), name: 'render-fixtures',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'binding.c', 'html.c', 'render.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
       ],
     });
   } finally {
@@ -767,7 +789,7 @@ test('PHP extension engine form rendering has no undefined behavior findings', a
       root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'binding.c', 'html.c', 'render.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -1097,7 +1119,7 @@ test('PHP extension engine updates form state atomically', async () => {
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
-        'binding.c', 'html.c', 'render.c', 'key.c', 'form.c',
+        'messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c',
       ],
     });
   } finally {

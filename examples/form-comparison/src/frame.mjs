@@ -38,13 +38,14 @@ document.documentElement.lang = language;
 document.documentElement.dataset.language = language;
 
 function collectionRows(container) {
-  const body = Array.from(container?.children ?? []).find(el => el.classList.contains('form-element'));
-  return Array.from(body?.children ?? []).filter(el => el.matches('.input-group-wrapper[data-uniqid]'));
+  // Rows of this collection, not rows of collections nested inside them.
+  return Array.from(container?.querySelectorAll('[data-crudui-row-key]') ?? [])
+    .filter(row => row.parentElement.closest('[data-field-path]') === container);
 }
 function collection(parent, field) {
   const attribute = 'data-field-path';
   const suffix = field;
-  return Array.from(parent.querySelectorAll(`.form-element-wrapper[${attribute}]`))
+  return Array.from(parent.querySelectorAll(`[${attribute}]`))
     .find(element => {
       const path = element.getAttribute(attribute);
       return path === suffix || path.endsWith(`.${suffix}`);
@@ -56,7 +57,7 @@ const departments = store => collectionRows(collection(store, 'departments'));
 const companyName = row => Array.from(row.querySelectorAll('input[name]')).find(el => /^form\[companies\]\[[^\]]+\]\[name\]$/.test(el.name));
 const storeName = row => Array.from(row.querySelectorAll('input[name]')).find(el => /^form\[companies\]\[[^\]]+\]\[stores\]\[[^\]]+\]\[name\]$/.test(el.name));
 function rowButton(row, action) {
-  return Array.from(row.querySelectorAll(`button.btn-${action}`)).find(button => button.closest('.input-group-wrapper[data-uniqid]') === row);
+  return Array.from(row.querySelectorAll(`[data-crudui-action="${action}"]`)).find(button => button.closest('[data-crudui-row-key]') === row);
 }
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function equal(actual, expected, label) { assert(actual === expected, `${label}: expected ${expected}, actual ${actual}`); }
@@ -178,7 +179,7 @@ const checks = [
       'native name');
   }],
   ['plus', async () => {
-    await click(companies()[0], 'plus');
+    await click(companies()[0], 'add-row');
     equal(companies().length, 2, 'company rows after plus');
     equal(companyName(companies()[0]).value, 'Company A', 'existing company');
     equal(companyName(companies()[1]).value, '', 'new company');
@@ -192,24 +193,24 @@ const checks = [
   ['copy', async () => {
     await edit(companyName(companies()[0]), 'Edited company');
     await edit(storeName(stores(companies()[0])[0]), 'Edited store');
-    await click(companies()[0], 'copy');
+    await click(companies()[0], 'copy-row');
     equal(companies().length, 2, 'company rows after copy');
     equal(companyName(companies()[1]).value, 'Edited company', 'copied company');
     equal(stores(companies()[1]).length, 2, 'copied stores');
     equal(storeName(stores(companies()[1])[0]).value, 'Edited store', 'copied current store');
     assert(storeName(stores(companies()[1])[0]).name !== storeName(stores(companies()[0])[0]).name, 'Descendant paths must be independent');
-    assert(stores(companies()[0])[0].dataset.uniqid !== stores(companies()[1])[0].dataset.uniqid,
+    assert(stores(companies()[0])[0].dataset.cruduiRowKey !== stores(companies()[1])[0].dataset.cruduiRowKey,
       'Copied store key must change');
-    assert(departments(stores(companies()[0])[0])[0].dataset.uniqid
-      !== departments(stores(companies()[1])[0])[0].dataset.uniqid,
+    assert(departments(stores(companies()[0])[0])[0].dataset.cruduiRowKey
+      !== departments(stores(companies()[1])[0])[0].dataset.cruduiRowKey,
     'Copied department key must change');
     await edit(storeName(stores(companies()[1])[0]), 'Independent copy');
     equal(storeName(stores(companies()[0])[0]).value, 'Edited store', 'existing row after copy edit');
-    await click(companies()[1], 'minus');
+    await click(companies()[1], 'remove-row');
     equal(companies().length, 1, 'company rows after removal');
   }],
   ['order', async () => {
-    await click(companies()[0], 'copy');
+    await click(companies()[0], 'copy-row');
     equal(companies().length, 2, 'company rows before ordering');
     await edit(companyName(companies()[1]), 'Moved company');
     await click(companies()[1], 'move-up');
@@ -245,7 +246,7 @@ const checks = [
   ['nonsequential', async () => {
     await reset('nonsequential');
     same(companies().map(row => companyName(row).value), ['Company 5', 'Company 7', 'Company 1'], 'loaded sequence order');
-    same(companies().map(row => row.dataset.uniqid),
+    same(companies().map(row => row.dataset.cruduiRowKey),
       ['__0000000000005__', '__0000000000007__', '__0000000000001__'],
       'keys are identities, not positions');
     const json = await request('save', driver.getData(), true);
@@ -255,13 +256,13 @@ const checks = [
     await load();
     same(companies().map(row => companyName(row).value),
       ['Company 5', 'Company 7', 'Company 1'], 'reloaded JSON document order');
-    await click(companies()[1], 'plus');
+    await click(companies()[1], 'add-row');
     equal(companies().length, 4, 'inserted company count');
     equal(companyName(companies()[3]).value, 'Company 1', 'company after inserted row');
-    assert(/^__[a-f0-9]{13}__$/.test(companies()[2].dataset.uniqid),
+    assert(/^__[a-f0-9]{13}__$/.test(companies()[2].dataset.cruduiRowKey),
       'new company key format');
     assert(!['__0000000000005__', '__0000000000007__', '__0000000000001__']
-      .includes(companies()[2].dataset.uniqid), 'new company key must be independent');
+      .includes(companies()[2].dataset.cruduiRowKey), 'new company key must be independent');
     await edit(companyName(companies()[2]), 'Company 8');
     await edit(storeName(stores(companies()[2])[0]), 'Store 8');
     const added = await save();
@@ -272,8 +273,8 @@ const checks = [
       'saved descendant path');
     await load();
     same(companies().map(row => companyName(row).value), ['Company 5', 'Company 7', 'Company 8', 'Company 1'], 'reloaded inserted order');
-    await click(companies()[2], 'minus'); await save();
-    await click(companies()[1], 'copy');
+    await click(companies()[2], 'remove-row'); await save();
+    await click(companies()[1], 'copy-row');
     await edit(companyName(companies()[2]), 'Copied company 7');
     const copied = await save();
     same(copied.storage.companies.map(row => row.company_seq), ['5', '7', '9', '1'], 'copied ID and order');
@@ -289,7 +290,7 @@ const checks = [
     same(companies().map(row => companyName(row).value), ['Company 1', 'Company 5', 'Company 7', 'Copied company 7'], 'reloaded moved order');
   }],
   ['saved', async () => {
-    await click(companies()[0], 'copy');
+    await click(companies()[0], 'copy-row');
     equal(companies().length, 2, 'copied company before save');
     await edit(companyName(companies()[1]), 'Saved copy');
     await edit(storeName(stores(companies()[1])[0]), 'Saved child');
@@ -334,7 +335,7 @@ const checks = [
     const hiddenSpec = structuredClone(spec);
     hiddenSpec.properties.companies.properties.stores.properties.name.design = { show: false };
     await mount(data, hiddenSpec);
-    equal(storeName(stores(companies()[0])[0]).closest('.form-element-wrapper').style.display, 'none', 'required field is hidden by design');
+    equal(storeName(stores(companies()[0])[0]).closest('[data-field-path]').hidden, true, 'required field is hidden by design');
     const hiddenClient = validation.validate(driver.getData());
     same(hiddenClient, client, 'hiding required input does not change validation');
     equal((await save()).status, null, 'hidden required input blocks browser submission');
@@ -361,14 +362,15 @@ const checks = [
     async function addEmpty(wrapper) {
       equal(collectionRows(wrapper).length, 0, 'empty collection row count');
       equal(wrapper.querySelectorAll('input[name],textarea[name],select[name]').length, 0, 'empty collection has no submitted row controls');
-      assert(wrapper.style.display !== 'none', 'Empty collection remains visible');
-      const button = wrapper.querySelector(':scope > .form-element > button.btn-plus');
+      assert(!wrapper.hidden, 'Empty collection remains visible');
+      const button = Array.from(wrapper.querySelectorAll('[data-crudui-action="add-row"]'))
+        .find(item => item.closest('[data-field-path]') === wrapper && !item.closest('[data-crudui-row-key]'));
       assert(button, 'Empty collection must have an Add button');
       button.focus({ preventScroll: true });
       button.click(); await settle();
       equal(collectionRows(wrapper).length, 1, 'add into empty collection');
-      assert(document.activeElement.matches('button.btn-plus'), 'Empty addition retains button focus');
-      equal(document.activeElement.closest('.form-element-wrapper'), wrapper, 'Focused button belongs to the same collection');
+      assert(document.activeElement.matches('[data-crudui-action="add-row"]'), 'Empty addition retains button focus');
+      equal(document.activeElement.closest('[data-field-path]'), wrapper, 'Focused button belongs to the same collection');
     }
     const departmentName = row => row.querySelector('input[name$="[name]"]');
     equal(departments(stores(companies()[0])[1]).length, 0, 'empty departments');
@@ -379,13 +381,13 @@ const checks = [
     const template = driver.template;
     const serialized = JSON.stringify(template);
     const departmentWrapper = () => collection(stores(companies()[0])[1], 'departments');
-    equal(departmentWrapper().style.display, 'none', 'hidden empty collection');
+    equal(departmentWrapper().hidden, true, 'hidden empty collection');
     equal(departments(stores(companies()[0])[1]).length, 0, 'hidden empty row count');
     stores(companies()[0])[1].querySelector('input[type=checkbox]').click(); await settle();
-    assert(departmentWrapper().style.display !== 'none', 'Empty collection becomes visible');
+    assert(!departmentWrapper().hidden, 'Empty collection becomes visible');
     equal(departments(stores(companies()[0])[1]).length, 0, 'showing does not add data');
     stores(companies()[0])[1].querySelector('input[type=checkbox]').click(); await settle();
-    equal(departmentWrapper().style.display, 'none', 'empty collection hides again');
+    equal(departmentWrapper().hidden, true, 'empty collection hides again');
     equal(driver.template, template, 'visibility reuses the same template');
     equal(JSON.stringify(template), serialized, 'visibility preserves template content');
     await mount(initial.data);
@@ -402,7 +404,7 @@ const checks = [
     same(blank.storage.stores, before.stores, 'unchanged sibling stores');
     same(blank.storage.departments.filter(row => row.store_seq === '1'), before.departments, 'unchanged sibling departments');
     await load(); equal(departments(stores(companies()[0])[1]).length, 1, 'reloaded blank department');
-    await click(departments(stores(companies()[0])[1])[0], 'minus');
+    await click(departments(stores(companies()[0])[1])[0], 'remove-row');
     const removed = await save();
     equal(removed.storage.departments.length, 1, 'last department removal');
     await load(); equal(departments(stores(companies()[0])[1]).length, 0, 'reloaded empty department collection');
@@ -413,7 +415,7 @@ const checks = [
     assertOwnership(restored.storage);
     await load(); equal(departmentName(departments(stores(companies()[0])[1])[0]).value, 'Support', 'recreated department reload');
 
-    while (stores(companies()[0]).length) await click(stores(companies()[0])[0], 'minus');
+    while (stores(companies()[0]).length) await click(stores(companies()[0])[0], 'remove-row');
     const noStores = await save();
     equal(noStores.storage.companies.length, 1, 'company remains after store deletion');
     equal(noStores.storage.stores.length, 0, 'stored empty stores');
@@ -426,7 +428,7 @@ const checks = [
     equal(newStore.storage.stores[0].company_seq, before.companies[0].company_seq, 'existing parent ID retained');
     await load(); equal(storeName(stores(companies()[0])[0]).value, 'New store', 'new store reload');
 
-    await click(companies()[0], 'minus');
+    await click(companies()[0], 'remove-row');
     equal(companies().length, 0, 'last company removal');
     const saved = await save();
     for (const table of ['companies', 'stores', 'departments']) equal(saved.storage[table].length, 0, `stored empty ${table}`);
@@ -447,7 +449,7 @@ const checks = [
     equal(storeName(stores(companies()[0])[0]).value, 'New child', 'recreated child reload');
   }],
   ['deletion', async () => {
-    await click(companies()[0], 'copy');
+    await click(companies()[0], 'copy-row');
     equal(companies().length, 2, 'copied company');
     await edit(companyName(companies()[1]), 'First company');
     await save();
@@ -455,7 +457,7 @@ const checks = [
     const reordered = await save();
     equal(reordered.storage.companies[0].company_seq, '2', 'persisted first ID');
     await load(); equal(companyName(companies()[0]).value, 'First company', 'persisted order');
-    await click(companies()[1], 'minus');
+    await click(companies()[1], 'remove-row');
     const deleted = await save();
     equal(deleted.storage.companies.length, 1, 'remaining company');
     assert(deleted.storage.stores.every(row => row.company_seq === '2'), 'Deleted company stores must be removed');
@@ -499,7 +501,7 @@ const checks = [
   }],
   ['equivalence', async () => {
     await reset('nonsequential');
-    await click(companies()[1], 'copy');
+    await click(companies()[1], 'copy-row');
     await edit(companyName(companies()[2]), 'Equivalent copy');
     await click(companies()[3], 'move-up');
     const data = driver.getData();
@@ -597,7 +599,7 @@ const checks = [
       const active = document.activeElement;
       snapshot.focus = view.contains(active) ? {
         name: active.getAttribute('name'), class: active.getAttribute('class'),
-        row: active.closest('[data-uniqid]')?.getAttribute('data-uniqid'),
+        row: active.closest('[data-crudui-row-key]')?.getAttribute('data-crudui-row-key'),
         start: active.selectionStart, end: active.selectionEnd, direction: active.selectionDirection,
       } : null;
       snapshot.response = response;
@@ -648,13 +650,13 @@ const checks = [
         await capture(route, 'reloaded');
         counter = 0;
         crypto.getRandomValues = repeatableRandom;
-        await click(companies()[0], 'copy');
+        await click(companies()[0], 'copy-row');
         await capture(route, 'copied');
         await click(companies()[1], 'move-up');
         await capture(route, 'moved');
-        await click(companies()[0], 'minus');
+        await click(companies()[0], 'remove-row');
         await capture(route, 'copy-removed');
-        await click(companies()[0], 'plus');
+        await click(companies()[0], 'add-row');
         await edit(companyName(companies()[1]), 'Added company');
         await edit(storeName(stores(companies()[1])[0]), 'Added store');
         await capture(route, 'added');

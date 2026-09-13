@@ -32,8 +32,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 `compile_form` accepts parsed composition `files`, an explicit `loader`, a
 `basepath` and a `key_prefix`. `bind_form` evaluates cached templates without a
-loader or record mutation. `BindOptions` contains `language`, `id_prefix`,
-`key_prefix` and `unsupported` (`throw` or `marker`). The host provides the HTML
+loader or record mutation. `BindOptions` contains `language` (`ko`, `en`, `ja`
+or `zh`), `id_prefix`, `key_prefix` and `unsupported` (`throw` or `marker`) as
+JSON values; null uses the default and any other non-string is rejected. The host provides the HTML
 `form` element and handles requests; rendering does not execute browser scripts.
 
 `Form` provides `set_data`, `get_data`, `set_value`, `get_value`, `add_row`,

@@ -8,6 +8,7 @@ mod design;
 mod error;
 mod instance;
 mod list;
+mod messages;
 mod number;
 mod render;
 mod template;

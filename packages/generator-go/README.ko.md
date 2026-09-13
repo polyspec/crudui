@@ -23,7 +23,9 @@ html, err := generator.RenderForm(form)
 
 `CompileForm`은 레코드 데이터 없이 합성을 처리합니다. 템플릿은 `encoding/json`으로
 직렬화하고 `FormTemplate`으로 디코딩할 수 있습니다. `BindForm`은 템플릿이나
-레코드를 변경하지 않고 전체 필드 모델을 반환합니다. `NewForm`은 템플릿과
+레코드를 변경하지 않고 폼 문법의 노드 모델(`field`, `group`, `collection`, `row`,
+`lang`, `lang-item`)을 반환합니다. `BindOptions.Language`는 내용과 컨트롤 문구의
+언어이며 `ko`(기본값), `en`, `ja`, `zh`만 허용합니다. `NewForm`은 템플릿과
 레코드를 복사하여 인스턴스를 생성합니다.
 
 `Form.SetData`는 레코드를 교체합니다. `GetData`, `GetValue`, `Fields`, `Template`은
@@ -60,10 +62,12 @@ RFC 2822 값은 하나의 엄격한 파서로 처리하고 잘못되거나 지�
 지정하려면 `ValueProvided: true`를 설정합니다. 두 필드를 모두 생략하면 필드
 기본값을 적용합니다. `Key`는 행 키, `AfterKey`는 삽입 위치를 지정합니다.
 
-명시적으로 빈 `KeyPrefix`를 지정하려면 `CompileOptions.KeyPrefixProvided` 또는
-`BindOptions.KeyPrefixProvided`를 설정합니다. 인스턴스 접두사를 생략하면 템플릿
-접두사를 사용합니다. 접두사 없이 컴파일하거나 인스턴스에 명시적인 빈 접두사를
-지정하면 해당 이름 구간을 생략합니다.
+명시적으로 빈 `KeyPrefix`로 컴파일하려면 `CompileOptions.KeyPrefixProvided`를
+설정합니다. `BindOptions` 필드는 `nil`이면 기본값을 사용합니다. `IDPrefix`는
+`crudui`, `Language`는 `ko`, `KeyPrefix`는 템플릿 접두사, `Unsupported`는
+`throw`입니다. 값을 지정하면 문자열이어야 하고 `Unsupported`는 `throw` 또는
+`marker`여야 하며, 그 외 값은 거부합니다. 접두사 없이 컴파일하거나 인스턴스에
+명시적인 빈 접두사(`KeyPrefix: ""`)를 지정하면 해당 이름 구간을 생략합니다.
 
 ## 실행과 검증
 

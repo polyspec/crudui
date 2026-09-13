@@ -130,9 +130,9 @@ export function searchHtml(w: WidgetModel): string {
 }
 
 /**
- * When a widget's control(s) sit DIRECTLY under `.input-group-wrapper` (no
- * widget-level container element), return its raw html so the field injects it at
- * the wrapper root via `{@html}`; else null and Widget.svelte renders a real
+ * When a widget's control(s) sit DIRECTLY under the node body (no
+ * widget-level container element), return its raw html so the node injects it into
+ * the body via `{@html}`; else null and Widget.svelte renders a real
  * container element. Covers bare (datetime/password/hidden/email), host-script
  * (editors/tagify), button (script + hidden + button), btn-group (choice/
  * multichoice) and search — all carry empty/boolean control attrs svelte/server
@@ -155,24 +155,4 @@ export function widgetRootRaw(w: AnyWidget): string | null {
   if (w.layout === 'btn-group') return btnGroupHtml(w);
   if (w.layout === 'search') return searchHtml(w);
   return null;
-}
-
-/** Row action buttons (plus/minus/copy/move) as a raw string (for root-raw rows). */
-export function rowButtonsHtml(s: {
-  show: boolean;
-  max?: number;
-  copy?: boolean;
-  sortable?: boolean;
-}): string {
-  let html = '';
-  if (s.sortable) {
-    html += `<button type="button" class="btn btn-move-up"> </button>`;
-    html += `<button type="button" class="btn btn-move-down"> </button>`;
-  }
-  const maxAttr = s.max !== undefined ? ` data-multiple-max="${s.max}"` : '';
-  html += `<button type="button" class="btn btn-plus"${maxAttr}> </button>`;
-  if (s.copy) html += `<button type="button" class="btn btn-copy"> </button>`;
-  const minusCls = s.copy ? 'btn btn-minus btn-delete' : 'btn btn-minus';
-  html += `<button type="button" class="${minusCls}"> </button>`;
-  return html;
 }

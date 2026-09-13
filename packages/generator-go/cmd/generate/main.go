@@ -30,7 +30,8 @@ func compileOptions(o *gen.Object) gen.CompileOptions {
 	return gen.CompileOptions{Files: files, Basepath: str(val(o, "basepath")), KeyPrefix: str(val(o, "keyPrefix")), KeyPrefixProvided: o != nil && o.Has("keyPrefix")}
 }
 func bindOptions(o *gen.Object) gen.BindOptions {
-	return gen.BindOptions{IDPrefix: str(val(o, "idPrefix")), Language: str(val(o, "language")), KeyPrefix: str(val(o, "keyPrefix")), Unsupported: str(val(o, "unsupported")), KeyPrefixProvided: o != nil && o.Has("keyPrefix")}
+	// Decoded values are passed unchanged; BindForm defaults nil and rejects non-string values.
+	return gen.BindOptions{IDPrefix: val(o, "idPrefix"), Language: val(o, "language"), KeyPrefix: val(o, "keyPrefix"), Unsupported: val(o, "unsupported")}
 }
 func errorObject(err error) *gen.Object {
 	code, message, at := "INVALID_FORM_INPUT", err.Error(), ""

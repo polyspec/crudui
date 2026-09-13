@@ -23,7 +23,10 @@ html, err := generator.RenderForm(form)
 
 `CompileForm` resolves composition without record data. The template can be
 serialized with `encoding/json` and decoded into `FormTemplate`. `BindForm`
-returns complete field models without modifying the template or record.
+returns the node models of the form grammar (`field`, `group`, `collection`,
+`row`, `lang` and `lang-item`) without modifying the template or record.
+`BindOptions.Language` selects content and control text: `ko` (default), `en`,
+`ja` or `zh`; other languages are rejected.
 `NewForm` creates an instance with a detached template and record.
 
 `Form.SetData` replaces a record. `GetData`, `GetValue`, `Fields` and `Template`
@@ -60,10 +63,12 @@ cannot replace a repeated collection.
 an explicit null scalar row; leaving both fields unset applies field defaults.
 `Key` sets a row key and `AfterKey` selects its insertion position.
 
-Set `CompileOptions.KeyPrefixProvided` or `BindOptions.KeyPrefixProvided` when
-supplying an explicit empty `KeyPrefix`. An omitted instance prefix uses the
-template prefix. Compilation without a prefix and an explicit empty instance
-prefix both omit that name segment.
+Set `CompileOptions.KeyPrefixProvided` when compiling with an explicit empty
+`KeyPrefix`. `BindOptions` fields are `nil` for their defaults: `IDPrefix`
+`crudui`, `Language` `ko`, the template's `KeyPrefix` and `Unsupported` `throw`.
+A present value must be a string, and `Unsupported` must be `throw` or `marker`;
+other values are rejected. Compilation without a prefix and an explicit empty
+instance prefix (`KeyPrefix: ""`) both omit that name segment.
 
 ## Run and verify
 

@@ -1,12 +1,16 @@
 import {
   buildList,
+  buildOutline,
   parseStyle,
+  type OutlineCollection,
+  type OutlineRow,
   type ActionVM,
   type Attrs,
   type BuildListOptions,
   type CellVM,
-  type FieldViewModel,
+  type ControlsVM,
   type FormInstance,
+  type NodeVM,
   type ListViewModel,
   type UnsupportedVM,
   type WidgetModel,
@@ -104,19 +108,6 @@ function groupButton(option: NonNullable<WidgetModel['options']>[number], widget
   return raw ? inputHtml + label : inputHtml + label;
 }
 
-function rowButtons(settings: FieldViewModel['multiple']): string {
-  if (!settings) return '';
-  const out: string[] = [];
-  const button = (className: string, extra: Attrs = {}) => element('button', { type: 'button', class: className, ...extra }, ' ');
-  if (settings.sortable) {
-    out.push(button('btn btn-move-up'), button('btn btn-move-down'));
-  }
-  out.push(button('btn btn-plus', settings.max === undefined ? {} : { 'data-multiple-max': String(settings.max) }));
-  if (settings.copy) out.push(button('btn btn-copy'));
-  out.push(button(settings.copy ? 'btn btn-minus btn-delete' : 'btn btn-minus'));
-  return out.join('');
-}
-
 function widget(widget: AnyWidget): string {
   if ('unsupported' in widget) return element('div', { class: 'form-element-unsupported', 'data-unsupported-type': widget.type });
   const rawAttrs = hasEvent(widget.attrs);
@@ -153,62 +144,74 @@ function widget(widget: AnyWidget): string {
   }
 }
 
-function wrapperAttrs(vm: FieldViewModel): Attrs {
-  const style = renderedStyle([vm.design.show ? '' : 'display: none', vm.design.wrapper.style].filter(Boolean).join('; '));
-  return { class: ['form-element-wrapper', vm.design.wrapper.class].filter(Boolean).join(' '), 'data-field-path': vm.path, ...(style ? { style } : {}) };
+function classes(...parts: Array<string | undefined | false>): string {
+  return parts.filter((part): part is string => typeof part === 'string' && part !== '').join(' ');
 }
 
-function groupClass(vm: FieldViewModel): string {
-  return ['input-group-wrapper', vm.design.wrapper.class].filter(Boolean).join(' ');
+/** `<div …>` with an optional valueless `hidden` attribute last. */
+function openDiv(values: Record<string, string | undefined>, hidden = false): string {
+  return `<div${attrs(values)}${hidden ? ' hidden=""' : ''}>`;
 }
 
-function fieldLabel(vm: FieldViewModel): string {
-  if (!vm.label || vm.omitLabel) return '';
-  const labelAttrs = { class: vm.design.label.class, style: vm.design.label.style };
-  const id = vm.widget && !('unsupported' in vm.widget) ? vm.widget.extra?.file?.id ?? vm.widget.attrs.id : undefined;
-  const body = id ? element('label', { for: id }, escText(vm.label)) : escText(vm.label);
-  return element('h6', labelAttrs, body);
+function controlsHtml(controls: ControlsVM): string {
+  return element('div', { class: 'crudui-controls', role: 'group', 'aria-label': controls.label },
+    controls.actions.map((action) =>
+      `<button${attrs({ type: 'button', class: 'crudui-action', 'data-crudui-action': action.name, 'aria-label': action.label })}${action.disabled ? ' disabled=""' : ''}></button>`).join(''));
 }
 
-function description(vm: FieldViewModel): string {
-  return vm.description ? element('p', { class: 'description' }, escText(vm.description)) : '';
+function headerHtml(vm: NodeVM): string {
+  const header = vm.header;
+  const parts: string[] = [];
+  if (vm.collapsible) {
+    parts.push(`<button${attrs({ type: 'button', class: 'crudui-action', 'data-crudui-action': 'toggle-row', 'aria-expanded': String(vm.expanded === true), 'aria-controls': vm.body.id, 'aria-label': vm.toggleLabel })}></button>`);
+  }
+  if (header?.label !== undefined) {
+    parts.push(header.labelFor
+      ? element('label', { class: 'crudui-node__label', for: header.labelFor }, escText(header.label))
+      : element('span', { class: 'crudui-node__label' }, escText(header.label)));
+  }
+  if (header?.description !== undefined) parts.push(element('p', { class: 'crudui-node__description' }, escText(header.description)));
+  if (header?.number !== undefined) parts.push(element('span', { class: 'crudui-node__number' }, escText(header.number)));
+  if (header?.title !== undefined) parts.push(element('span', { class: 'crudui-node__title' }, escText(header.title)));
+  if (header?.summary !== undefined) {
+    parts.push(`<span class="crudui-node__summary"${vm.expanded ? ' hidden=""' : ''}>${escText(header.summary)}</span>`);
+  }
+  if (header?.count !== undefined) parts.push(element('span', { class: 'crudui-node__count' }, escText(header.count)));
+  if (vm.controls?.placement === 'header') parts.push(controlsHtml(vm.controls));
+  if (!parts.length) return '';
+  const style = [header?.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ');
+  return element('div', { class: classes('crudui-node__header', header?.className), style: style || undefined }, parts.join(''));
 }
 
-function widgetContainer(widgetValue: AnyWidget | undefined, className: string, uniqid?: string, language?: string, buttons?: FieldViewModel['multiple']): string {
-  const body = (language === undefined ? '' : element('span', { class: 'input-group-text lang-code' }, escText(language))) +
-    (widgetValue ? widget(widgetValue) : '') + rowButtons(buttons);
-  return element('div', { class: className, ...(uniqid === undefined ? {} : { 'data-uniqid': uniqid }), ...(language === undefined ? {} : { 'data-lang': language }) }, body);
-}
-
-function field(vm: FieldViewModel): string {
+function bodyHtml(vm: NodeVM): string {
+  let inner: string;
   if (vm.checkbox) {
-    const checked = vm.checkboxChecked === true;
-    const check = input({ class: vm.checkboxClass, id: vm.checkboxId, name: vm.checkboxName, type: 'checkbox', value: '1' }, checked) +
-      element('label', { for: vm.checkboxId }, escText(vm.label ?? ''));
-    return element('div', wrapperAttrs(vm), element('div', { class: 'checkbox' }, element('h6', {}, element('div', { class: groupClass(vm), 'data-uniqid': vm.uniqid }, element('div', {}, check))) + description(vm)));
+    const box = vm.checkbox;
+    inner = input({ class: box.className, id: box.id, name: box.name, type: 'checkbox', value: '1' }, box.checked) +
+      element('label', { for: box.id }, escText(box.caption));
+  } else if (vm.widget) {
+    inner = widget(vm.widget);
+  } else {
+    inner = (vm.children ?? []).map(node).join('');
   }
-  let body: string;
-  switch (vm.shape) {
-    case 'group':
-      body = element('div', { class: groupClass(vm), 'data-uniqid': vm.uniqid }, element('div', { class: vm.groupClass, style: vm.groupStyle }, (vm.children ?? []).map(field).join('')));
-      break;
-    case 'multiple-leaf':
-      body = (vm.rows ?? []).map((row) => widgetContainer(row.widget, row.wrapperClass, row.uniqid, undefined, vm.multiple)).join('');
-      if ((vm.rows ?? []).length === 0) body = element('button', { type: 'button', class: 'btn btn-plus', 'aria-label': '+' }, ' ');
-      break;
-    case 'multiple-group':
-      body = (vm.rows ?? []).map((row) => element('div', { class: row.wrapperClass, 'data-uniqid': row.uniqid }, element('div', { class: row.groupClass }, (row.children ?? []).map(field).join('')) + element('span', { class: 'btn-group input-group-btn' }, rowButtons(vm.multiple)))).join('');
-      if ((vm.rows ?? []).length === 0) body = element('button', { type: 'button', class: 'btn btn-plus', 'aria-label': '+' }, ' ');
-      break;
-    case 'lang':
-      body = element('div', { class: groupClass(vm), 'data-uniqid': vm.uniqid }, element('div', { class: vm.lang?.groupClass }, (vm.lang?.title ? element('div', { class: 'lang-title' }, escText(vm.lang.title)) : '') + (vm.lang?.children ?? []).map((child) => widgetContainer(child.widget, 'lang-child', undefined, child.code)).join('')));
-      break;
-    case 'leaf':
-    default:
-      body = widgetContainer(vm.widget, groupClass(vm), vm.uniqid);
-      break;
-  }
-  return element('div', wrapperAttrs(vm), fieldLabel(vm) + description(vm) + element('div', { class: 'form-element' }, body));
+  return openDiv({ class: classes('crudui-node__body', vm.body.className), style: vm.body.style, id: vm.body.id },
+    vm.collapsible === true && vm.expanded !== true) + inner + '</div>';
+}
+
+function footerHtml(vm: NodeVM): string {
+  return vm.controls?.placement === 'footer' ? element('div', { class: 'crudui-node__footer' }, controlsHtml(vm.controls)) : '';
+}
+
+/** Render one node of the recursive form grammar. */
+function node(vm: NodeVM): string {
+  const root = {
+    class: classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className),
+    style: vm.style,
+    'data-field-path': vm.kind === 'row' || vm.kind === 'lang-item' ? undefined : vm.path,
+    'data-crudui-row-key': vm.key,
+    'data-lang': vm.lang,
+  };
+  return openDiv(root, vm.hidden) + headerHtml(vm) + bodyHtml(vm) + footerHtml(vm) + '</div>';
 }
 
 function cellBody(cell: CellVM): string {
@@ -289,9 +292,58 @@ function listHtml(vm: ListViewModel, layout: 'table' | 'card'): string {
   return element('div', { class: ['list-view', vm.design.wrapper.class].filter(Boolean).join(' '), style: vm.design.wrapper.style }, toolbar + body + pagination(vm));
 }
 
+function textAction(name: string, label: string, disabled = false): string {
+  return `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name })}${disabled ? ' disabled=""' : ''}>${escText(label)}</button>`;
+}
+
+function outlineCollection(collection: OutlineCollection): string {
+  const header = (collection.label !== undefined ? element('span', { class: 'crudui-node__label' }, escText(collection.label)) : '') +
+    (collection.count !== undefined ? element('span', { class: 'crudui-node__count' }, escText(collection.count)) : '') +
+    (collection.controls ? controlsHtml(collection.controls) : '');
+  return element('div', { class: 'crudui-node crudui-node--collection', 'data-field-path': collection.path },
+    element('div', { class: 'crudui-node__header' }, header) +
+    element('div', { class: 'crudui-node__body' }, collection.rows.map(outlineRow).join('')));
+}
+
+function outlineRow(row: OutlineRow): string {
+  const select = `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': 'select-row' })}>` +
+    (row.number !== undefined ? element('span', { class: 'crudui-node__number' }, escText(row.number)) : '') +
+    (row.title !== undefined ? element('span', { class: 'crudui-node__title' }, escText(row.title)) : '') + '</button>';
+  const root = attrs({
+    class: 'crudui-node crudui-node--row',
+    'data-field-path': row.path,
+    'data-crudui-row-key': row.key,
+    'aria-current': row.current ? 'true' : undefined,
+  });
+  return `<div${root}>` +
+    element('div', { class: 'crudui-node__header' }, select + (row.controls ? controlsHtml(row.controls) : '')) +
+    (row.collections.length ? element('div', { class: 'crudui-node__body' }, row.collections.map(outlineCollection).join('')) : '') +
+    '</div>';
+}
+
+/** Render the structure map of a form instance with its form controls. */
+export function renderOutline(form: FormInstance): string {
+  const snapshot = form.getSnapshot();
+  const messages = form.messages;
+  const controls = element('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formControls },
+    textAction('expand-all', messages.expandAll) + textAction('collapse-all', messages.collapseAll) +
+    textAction('undo', messages.undo, !snapshot.canUndo));
+  return element('div', { class: 'crudui-outline' },
+    element('div', { class: 'crudui-outline__header' }, controls) +
+    element('div', { class: 'crudui-outline__body' }, buildOutline(snapshot.fields, snapshot.selection).map(outlineCollection).join('')));
+}
+
+/** Render the current submission data of a form instance. */
+export function renderData(form: FormInstance): string {
+  return element('div', { class: 'crudui-data' },
+    element('div', { class: 'crudui-data__header' }, escText(form.messages.data)) +
+    element('pre', { class: 'crudui-data__body' }, escText(JSON.stringify(form.getData(), null, 2))));
+}
+
 /** Render the current form instance as framework-independent HTML. */
 export function renderForm(form: FormInstance): string {
-  return element('div', { class: 'form-group' }, form.getSnapshot().fields.map(field).join(''));
+  return element('div', { class: 'crudui-form' },
+    element('div', { class: 'crudui-form__body' }, form.getSnapshot().fields.map(node).join('')));
 }
 
 /** Compose, evaluate and render a list without a framework or database. */

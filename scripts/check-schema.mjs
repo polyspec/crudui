@@ -22,6 +22,9 @@ for (const [multiple, expected] of [
   [{ min: 'one' }, false],
   [{ copy: true, sortable: true }, true],
   [{ copy: {} }, false],
+  [{ title: 'name', controls: 'outline', header: 'sticky' }, true],
+  [{ controls: 'side' }, false],
+  [{ header: 'fixed' }, false],
 ]) {
   const spec = { type: 'group', properties: { rows: { type: 'text', multiple } } };
   assert.equal(validateForm(spec), expected, `multiple: ${JSON.stringify(validateForm.errors)}`);

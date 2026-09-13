@@ -25,7 +25,7 @@ function repeatedWidget(type: string, multipleLeaf = false): WidgetModel {
     },
   } };
   const data = { rows: { [key]: multipleLeaf ? 'a' : { value: 'a' } } };
-  const row = bindForm(compileForm(spec), data, options)[0].rows![0];
+  const row = bindForm(compileForm(spec), data, options)[0].children![0];
   const widget = multipleLeaf ? row.widget! : row.children![0].widget!;
   if ('unsupported' in widget) throw new Error('The fixture requires a supported widget');
   return widget;

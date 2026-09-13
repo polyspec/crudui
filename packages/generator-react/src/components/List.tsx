@@ -1,7 +1,7 @@
 /**
  * CRUDUI React list component — `<List>` renders a composed `ListViewModel`.
  *
- * The read sister of `<Form>`: where Form maps a core `FieldViewModel[]`
+ * The read sister of `<Form>`: where Form maps core `NodeVM[]`
  * (compose + design eval + i18n) to an input field tree, List maps a core
  * `ListViewModel` (the same engine, columns + cells) to a read TABLE (default)
  * or CARD layout. It is a pure presentational tree: no evaluation, no string

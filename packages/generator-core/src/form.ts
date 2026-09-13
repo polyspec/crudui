@@ -1,6 +1,7 @@
 import { composeProperties, MemoryLoader, type FileLoader } from '@crudui/validator';
 import { makeTranslate, type Language } from './content';
-import { buildField, type BuildState, type FieldViewModel, type UnsupportedMode } from './viewmodel';
+import { formMessages } from './messages';
+import { buildField, type BuildState, type NodeVM, type UnsupportedMode } from './viewmodel';
 
 /** A data-independent field blueprint. Repeated children are stored just once. */
 export interface FormFieldTemplate {
@@ -38,12 +39,14 @@ export interface CompileFormOptions {
 export interface BindFormOptions {
   /** Stable DOM identifier prefix; use distinct values for forms in one document. */
   idPrefix?: string;
-  /** Content language, defaulting to Korean. */
+  /** Content and interface language, defaulting to Korean. */
   language?: Language;
   /** Instance input prefix overriding the template prefix. */
   keyPrefix?: string;
   /** Unsupported widget handling. */
   unsupported?: UnsupportedMode;
+  /** Row paths (`{collection}.{key}`) rendered collapsed; omitted renders every row expanded. */
+  collapsed?: ReadonlySet<string>;
 }
 
 /** Copy JSON-shaped values, retaining browser File/Blob and other opaque values. */
@@ -73,7 +76,15 @@ function conditionValue(value: unknown): boolean {
   return typeof value === 'string' || (isRecord(value) && Object.keys(value).length > 0);
 }
 
-/** Reject a wrong value type in one field's `multiple` and `design` declarations. */
+/** A child that renders one scalar value: not repeated, not a group and not a language field. */
+function scalarChild(child: unknown): boolean {
+  if (!isRecord(child)) return false;
+  const repeated = child.multiple === true || isRecord(child.multiple);
+  const lang = child.lang === true || isRecord(child.lang);
+  return child.type !== 'group' && !('properties' in child) && !repeated && !lang;
+}
+
+/** Reject a wrong value type in one field's `multiple`, `lang` and `design` declarations. */
 function checkDeclarations(spec: Record<string, unknown>, path: string): void {
   const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
   const fail = (key: string, expected: string): never => {
@@ -89,7 +100,28 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
       for (const key of ['copy', 'sortable']) {
         if (has(multiple, key) && typeof multiple[key] !== 'boolean') fail(`multiple.${key}`, 'a boolean');
       }
+      if (has(multiple, 'title')) {
+        if (spec.type !== 'group') fail('multiple.title', 'a repeated group');
+        const properties = isRecord(spec.properties) ? spec.properties : {};
+        if (typeof multiple.title !== 'string' || !has(properties, multiple.title) || !scalarChild(properties[multiple.title])) {
+          fail('multiple.title', 'the name of a direct child field without multiple, properties or lang');
+        }
+      }
+      if (has(multiple, 'controls') && !['header', 'footer', 'outline'].includes(multiple.controls as string)) {
+        fail('multiple.controls', 'header, footer or outline');
+      }
+      if (has(multiple, 'header') && !['static', 'sticky'].includes(multiple.header as string)) {
+        fail('multiple.header', 'static or sticky');
+      }
     }
+  }
+  if (has(spec, 'lang') && typeof spec.lang !== 'boolean' && !isRecord(spec.lang)) {
+    fail('lang', 'a boolean or an object');
+  }
+  if (isRecord(spec.lang) && has(spec.lang, 'only')) {
+    const only = spec.lang.only;
+    const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
+    if (!codes && !isRecord(only)) fail('lang.only', 'a list of language codes or an object');
   }
   if (has(spec, 'design')) {
     const design = spec.design;
@@ -155,14 +187,29 @@ export function bindForm(
   template: FormTemplate,
   data: Record<string, unknown> = {},
   options: BindFormOptions = {}
-): FieldViewModel[] {
+): NodeVM[] {
   if (template.kind !== 'crudui/form-template') throw new TypeError('Unsupported form template');
+  const language = options.language ?? 'ko';
+  // Callers can pass decoded JSON; each text option is a string when present.
+  if (typeof language !== 'string') throw new TypeError('Language must be a string');
+  for (const name of ['keyPrefix', 'idPrefix'] as const) {
+    const value: unknown = options[name];
+    if (value !== undefined && value !== null && typeof value !== 'string') {
+      throw new TypeError(`${name} must be a string`);
+    }
+  }
+  const unsupported: unknown = options.unsupported;
+  if (unsupported !== undefined && unsupported !== null && unsupported !== 'throw' && unsupported !== 'marker') {
+    throw new TypeError('unsupported must be throw or marker');
+  }
   const state: BuildState = {
     data,
     idPrefix: options.idPrefix ?? 'crudui',
-    t: makeTranslate(options.language ?? 'ko'),
+    t: makeTranslate(language),
+    messages: formMessages(language),
     keyPrefix: options.keyPrefix ?? template.keyPrefix,
     unsupported: options.unsupported ?? 'throw',
+    ...(options.collapsed ? { collapsed: options.collapsed } : {}),
   };
   return template.fields.map(field => buildField(field.spec, field.name, state, field.children));
 }

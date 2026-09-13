@@ -2,6 +2,46 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 폼을 행 카드가 있는 재귀 노드로 렌더링
+
+모든 폼 렌더러(HTML, React, Vue, Svelte, PHP, Go, Rust, C PHP 확장)가 형태별 래퍼
+대신 하나의 재귀 노드 문법을 출력합니다. 필드, 그룹, 컬렉션, 행, 언어 필드, 언어
+항목은 모두 `__header`, `__body`, `__footer` 슬롯을 가진 `crudui-node`입니다. 종류는
+수식자(`crudui-node--row`)이며, 동작은 `data-field-path`, `data-crudui-row-key`,
+`data-lang`, `data-crudui-action`, `hidden`, ARIA 속성만 읽습니다. `bindForm`은 모든
+구현에서 같은 JSON 모델의 `NodeVM[]`을 반환합니다. [폼 마크업](docs/spec/form-markup.ko.md)
+명세가 문법을 정의하고 기준 폼에서 채택하지 않은 동작을 기록합니다.
+
+- **행 카드:** 행은 계층 번호, `multiple.title`로 지정한 제목, 개수 또는 하위 행
+  요약을 표시합니다. 이동·추가·복사·제거 컨트롤은 고정된 순서이며 비활성 상태를
+  `min`, `max`, 위치로 모든 렌더러가 계산합니다. 브라우저가 렌더링 후 고치지
+  않습니다. `multiple.controls`(`header`, `footer`, `outline`)와
+  `multiple.header`(`static`, `sticky`)를 JSON 스키마, 검증기 네 개, CLI에 선언합니다.
+- **문구:** 컨트롤 레이블, 개수, 요약은 모든 구현이 공유하는 ko/en/ja/zh 표 하나에서
+  가져옵니다.
+- **런타임:** 폼 인스턴스는 접힌 행, 선택한 행, 되돌리기 이력(100개, 같은 경로의
+  연속 입력 병합)을 레코드 데이터와 분리해 보관합니다. `buildOutline`,
+  `connectOutline`, `resolveAction`, `runAction`을 export합니다. React, Vue, Svelte는
+  `Outline`과 `DataView`를, HTML 렌더러는 `renderOutline`과 `renderData`를 제공합니다.
+- **스타일:** `@crudui/generator-core/styles.css`에 문법 스타일이 있습니다.
+- **입력 규칙**(다섯 구현): 컴파일에서 `lang`은 불리언 또는 객체, `lang.only`는 언어
+  코드 문자열 목록 또는 객체여야 합니다. 바인딩은 문자열이 아닌 언어, 문자열이 아닌
+  `keyPrefix`·`idPrefix`, `throw`·`marker`가 아닌 `unsupported`, 지원하지 않는 언어를
+  이 순서로 거부합니다. 이전에는 TypeScript가 `lang: null`에서 비정상 종료했고, C
+  확장은 문자열이 아닌 `only` 항목에서 기본 언어 목록 범위 밖을 읽었으며,
+  TypeScript는 `throw`가 아닌 모든 `unsupported` 문자열을 marker로, PHP는 오류로
+  처리했습니다.
+- **API 변경:** Go `BindOptions.Language`, `IDPrefix`, `KeyPrefix`, `Unsupported`는
+  `any`이고 `KeyPrefixProvided`를 제거했으며 빈 `IDPrefix`를 그대로 사용합니다. Rust
+  `BindOptions`의 문자열 옵션은 JSON 값입니다.
+
+`examples/form-structure`는 5단계 기준 폼의 로컬 미리보기입니다. 폼 비교 페이지, 공유
+DOM 사례, 교차 검증 콘솔은 속성으로 요소를 선택합니다.
+
+복사된 PHP 검증기를 다시 설치한 뒤 `make test-native`가 생성기 검사 976개(구현별 195개와
+입력 불변 검사), 구성별 PHP API 검사 361개, PHP 구현별 검증 사례 100개를 통과했습니다. `npm run test:forms`가 core 101, HTML 112, React 701, Vue 344, Svelte 345,
+정규화 10개 검사를 통과했습니다. 폼 비교 페이지 소스 검사 137개, Go·Rust 검증기
+바이너리를 다시 빌드한 뒤 교차 검증 콘솔 117개, `make docs-check`가 통과했습니다.
 ## 2026-09-13 — 통과한 검사의 임시 디렉터리 삭제
 
 `tests/native-generators/run.mjs`는 실행마다 `crudui-native-generators-*` 빌드

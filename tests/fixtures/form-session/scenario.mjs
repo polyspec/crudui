@@ -46,9 +46,12 @@ export const storesPath = `companies.${companyKey}.stores`;
 export async function exerciseSessionDom({ element, session, flush, expect }) {
   const inputName = key => `form[companies][${companyKey}][stores][${key}][name]`;
   const control = (name) => Array.from(element.querySelectorAll('[name]')).find(el => el.getAttribute('name') === name);
-  const row = key => control(inputName(key))?.closest('.input-group-wrapper[data-uniqid]')?.parentElement?.closest('.input-group-wrapper[data-uniqid]');
-  const button = (key, action) => Array.from(row(key).querySelectorAll(`button.btn-${action}`))
-    .find(b => b.closest('.input-group-wrapper[data-uniqid]') === row(key));
+  // Rows and actions are identified by attributes, never by style classes.
+  const row = key => Array.from(element.querySelectorAll('[data-crudui-row-key]'))
+    .find(node => node.getAttribute('data-crudui-row-key') === key &&
+      node.parentElement.closest('[data-field-path]')?.getAttribute('data-field-path') === storesPath);
+  const button = (key, action) => Array.from(row(key).querySelectorAll(`[data-crudui-action="${action}"]`))
+    .find(b => b.closest('[data-crudui-row-key]') === row(key));
   const edit = async (input, value) => {
     input.focus();
     input.value = value;
@@ -67,19 +70,19 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
 
   control(inputName(storeKey)).setSelectionRange(1, 3, 'backward');
   const pointer = new element.ownerDocument.defaultView.MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 });
-  button(storeKey, 'plus').dispatchEvent(pointer);
+  button(storeKey, 'add-row').dispatchEvent(pointer);
   expect(pointer.defaultPrevented).toBe(true);
-  button(storeKey, 'plus').click();
+  button(storeKey, 'add-row').click();
   await flush();
   expect(element.ownerDocument.activeElement.name).toBe(inputName(storeKey));
   expect(element.ownerDocument.activeElement.selectionStart).toBe(1);
   expect(element.ownerDocument.activeElement.selectionEnd).toBe(3);
   expect(element.ownerDocument.activeElement.selectionDirection).toBe('backward');
   const added = Object.keys(session.getValue(storesPath))[1];
-  button(added, 'minus').click();
+  button(added, 'remove-row').click();
   await flush();
 
-  button(storeKey, 'copy').click();
+  button(storeKey, 'copy-row').click();
   await flush();
   const keys = Object.keys(session.getValue(storesPath));
   const copied = keys[1];
@@ -104,7 +107,7 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   await flush();
   expect(session.getValue(`${storesPath}.${savedKey}.enabled`)).toBe('');
   const detail = control(inputName(savedKey).replace('[name]', '[detail]'));
-  expect(detail.closest('.form-element-wrapper').style.display).toBe('none');
+  expect(detail.closest('[data-field-path]').hidden).toBe(true);
 
   // Inject a new record over dirty controls, including textarea/select/lang/checkbox.
   session.setData({ companies: { [companyKey]: { stores: {
@@ -116,15 +119,15 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   expect(control(inputName(savedKey).replace('[name]', '[detail]')).value).toBe('새 메모');
   expect(control(inputName(savedKey).replace('[name]', '[category]')).value).toBe('b');
   expect(control(inputName(savedKey).replace('[name]', '[title][en]')).value).toBe('New');
-  button(savedKey, 'minus').click();
+  button(savedKey, 'remove-row').click();
   await flush();
   expect(session.getValue(storesPath)).toEqual({});
   const wrapper = Array.from(element.querySelectorAll('[data-field-path]')).find(node => node.dataset.fieldPath === storesPath);
-  const emptyAdd = wrapper.querySelector('button.btn-plus');
+  const emptyAdd = wrapper.querySelector('[data-crudui-action="add-row"]');
   emptyAdd.focus();
   emptyAdd.click();
   await flush();
   expect(Object.keys(session.getValue(storesPath))).toHaveLength(1);
-  expect(element.ownerDocument.activeElement.matches('button.btn-plus')).toBe(true);
-  expect(element.ownerDocument.activeElement.closest('.form-element-wrapper')).toBe(wrapper);
+  expect(element.ownerDocument.activeElement.matches('[data-crudui-action="add-row"]')).toBe(true);
+  expect(element.ownerDocument.activeElement.closest('[data-field-path]')).toBe(wrapper);
 }

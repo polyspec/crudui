@@ -1,22 +1,24 @@
 import * as React from 'react';
-import type { FieldViewModel } from '@crudui/generator-core';
-import { Field } from './Field';
+import type { NodeVM } from '@crudui/generator-core';
+import { Node } from './Node';
 
-/** Props for the CRUDUI form: the core-built top-level field view models. */
+/** Props for the CRUDUI form: the core-built top-level nodes. */
 export interface FormFieldsProps {
-  /** Evaluated fields. */
-  fields: FieldViewModel[];
+  /** Evaluated top-level nodes. */
+  fields: NodeVM[];
   /** Root element used by the browser binding. */
   rootRef?: React.Ref<HTMLDivElement>;
 }
 
-/** Render the `.form-group` envelope around the top-level fields. */
+/** Render the `crudui-form` block around the top-level nodes. */
 export function FormFields({ fields, rootRef }: FormFieldsProps): React.ReactElement {
   return (
-    <div className="form-group" ref={rootRef}>
-      {fields.map((vm) => (
-        <Field key={vm.path} vm={vm} />
-      ))}
+    <div className="crudui-form" ref={rootRef}>
+      <div className="crudui-form__body">
+        {fields.map((vm) => (
+          <Node key={vm.path} vm={vm} />
+        ))}
+      </div>
     </div>
   );
 }

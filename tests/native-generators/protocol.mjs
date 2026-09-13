@@ -20,34 +20,46 @@ export function validateError(error) {
   assert.notEqual(error.code, '', 'Error code must not be empty');
 }
 
-function validateFields(fields) {
-  assert.ok(Array.isArray(fields), 'Fields must be an array');
-  for (const field of fields) {
-    assert.ok(object(field), 'Field must be an object');
-    for (const key of ['shape', 'type', 'path', 'wrapperName', 'uniqid']) {
-      assert.equal(typeof field[key], 'string', `Field ${key} must be a string`);
+const nodeKinds = ['field', 'group', 'collection', 'row', 'lang', 'lang-item'];
+const actionNames = ['move-up', 'move-down', 'add-row', 'copy-row', 'remove-row'];
+
+function validateControls(controls) {
+  assert.ok(object(controls), 'Controls must be an object');
+  assert.ok(['header', 'footer', 'outline'].includes(controls.placement), 'Unknown controls placement');
+  assert.equal(typeof controls.label, 'string', 'Controls label must be a string');
+  assert.ok(Array.isArray(controls.actions), 'Control actions must be an array');
+  for (const action of controls.actions) {
+    assert.ok(actionNames.includes(action.name), 'Unknown control action');
+    assert.equal(typeof action.label, 'string', 'Action label must be a string');
+    assert.equal(typeof action.disabled, 'boolean', 'Action disabled must be a boolean');
+  }
+}
+
+/** Validate nodes of the recursive form grammar (docs/spec/form-markup.md). */
+function validateFields(nodes) {
+  assert.ok(Array.isArray(nodes), 'Nodes must be an array');
+  for (const node of nodes) {
+    assert.ok(object(node), 'Node must be an object');
+    assert.ok(nodeKinds.includes(node.kind), 'Unknown node kind');
+    assert.equal(typeof node.className, 'string', 'Node className must be a string');
+    assert.equal(typeof node.hidden, 'boolean', 'Node hidden must be a boolean');
+    assert.ok(object(node.body) && typeof node.body.className === 'string', 'Node body must have a className');
+    if (node.header !== undefined) {
+      assert.ok(object(node.header) && typeof node.header.className === 'string', 'Node header must have a className');
     }
-    assert.ok(['leaf', 'group', 'multiple-leaf', 'multiple-group', 'lang'].includes(field.shape), 'Unknown field shape');
-    assert.equal(typeof field.omitLabel, 'boolean', 'omitLabel must be a boolean');
-    assert.ok(object(field.design), 'Field design must be an object');
-    assert.equal(typeof field.design.show, 'boolean', 'Design show must be a boolean');
-    for (const node of ['main', 'label', 'wrapper', 'group', 'prepend']) {
-      assert.ok(object(field.design[node]), `Missing design node ${node}`);
-      assert.equal(typeof field.design[node].class, 'string');
-      assert.equal(typeof field.design[node].style, 'string');
+    if (node.controls !== undefined) validateControls(node.controls);
+    if (['field', 'group', 'collection', 'lang'].includes(node.kind)) {
+      assert.equal(typeof node.path, 'string', 'Node path must be a string');
     }
-    if (field.shape === 'group') validateFields(field.children);
-    if (field.shape.startsWith('multiple-')) {
-      assert.ok(Array.isArray(field.rows), 'Repeated rows must be an array');
-      for (const row of field.rows) {
-        assert.ok(object(row));
-        assert.equal(typeof row.uniqid, 'string');
-        if (field.shape === 'multiple-group') validateFields(row.children);
-        else assert.ok(object(row.widget), 'Repeated leaf must have a widget');
-      }
+    if (node.kind === 'row') assert.equal(typeof node.key, 'string', 'Row key must be a string');
+    if (node.kind === 'lang-item') assert.equal(typeof node.lang, 'string', 'Language code must be a string');
+    if (['group', 'collection', 'lang'].includes(node.kind) || (node.kind === 'row' && node.collapsible === true)) {
+      validateFields(node.children);
     }
-    if (field.shape === 'lang') assert.ok(Array.isArray(field.lang?.children), 'Language children must be an array');
-    if (field.shape === 'leaf') assert.ok(field.checkbox === true || object(field.widget), 'Leaf must have a control');
+    if (node.kind === 'field') assert.ok(object(node.checkbox) || object(node.widget), 'Field node must have a control');
+    if (node.kind === 'lang-item' || (node.kind === 'row' && node.collapsible !== true)) {
+      assert.ok(object(node.widget), 'Node must have a widget');
+    }
   }
 }
 
