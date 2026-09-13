@@ -31,13 +31,17 @@ type CompileOptions struct {
 	KeyPrefixProvided bool
 }
 
-// BindOptions selects control IDs, language, form-name prefix and unsupported-field handling.
+// BindOptions selects control IDs, content and interface language, form-name prefix and unsupported-field handling.
+// Each option is nil for its default; decoded JSON of another type or value is rejected.
 type BindOptions struct {
-	IDPrefix          string
-	Language          string
-	KeyPrefix         string
-	Unsupported       string
-	KeyPrefixProvided bool
+	// IDPrefix defaults to crudui.
+	IDPrefix any
+	// Language defaults to ko and must be ko, en, ja or zh, so an empty string is rejected.
+	Language any
+	// KeyPrefix defaults to the template prefix; an empty string removes it.
+	KeyPrefix any
+	// Unsupported is throw (default) or marker, which renders unsupported fields as markers.
+	Unsupported any
 }
 
 // CompileForm resolves field composition without binding record data.
@@ -99,6 +103,18 @@ func conditionValue(v any) bool {
 	return o != nil && len(o.Keys()) > 0
 }
 
+// scalarChild reports a child that renders one scalar value: not repeated, not a group and not a language field.
+func scalarChild(v any) bool {
+	child := object(v)
+	if child == nil {
+		return false
+	}
+	multiple, lang := read(child, "multiple"), read(child, "lang")
+	repeated := multiple == true || object(multiple) != nil
+	language := lang == true || object(lang) != nil
+	return stringAt(child, "type") != "group" && !child.Has("properties") && !repeated && !language
+}
+
 // checkDeclarations rejects a wrong value type in one field's multiple and design declarations.
 func checkDeclarations(spec *Object, path string) error {
 	fail := func(key, expected string) error {
@@ -122,6 +138,39 @@ func checkDeclarations(spec *Object, path string) error {
 					return fail("multiple."+key, "a boolean")
 				}
 			}
+			if settings.Has("title") {
+				if stringAt(spec, "type") != "group" {
+					return fail("multiple.title", "a repeated group")
+				}
+				title, ok := read(settings, "title").(string)
+				properties := object(read(spec, "properties"))
+				if !ok || !has(properties, title) || !scalarChild(read(properties, title)) {
+					return fail("multiple.title", "the name of a direct child field without multiple, properties or lang")
+				}
+			}
+			if c, _ := read(settings, "controls").(string); settings.Has("controls") && c != "header" && c != "footer" && c != "outline" {
+				return fail("multiple.controls", "header, footer or outline")
+			}
+			if h, _ := read(settings, "header").(string); settings.Has("header") && h != "static" && h != "sticky" {
+				return fail("multiple.header", "static or sticky")
+			}
+		}
+	}
+	if spec.Has("lang") {
+		if _, isBool := read(spec, "lang").(bool); !isBool && object(read(spec, "lang")) == nil {
+			return fail("lang", "a boolean or an object")
+		}
+	}
+	if lang := object(read(spec, "lang")); lang != nil && lang.Has("only") {
+		only := read(lang, "only")
+		codes, isList := only.([]any)
+		for _, code := range codes {
+			if _, ok := code.(string); !ok {
+				isList = false
+			}
+		}
+		if !isList && object(only) == nil {
+			return fail("lang.only", "a list of language codes or an object")
 		}
 	}
 	if spec.Has("design") {

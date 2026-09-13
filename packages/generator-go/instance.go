@@ -193,6 +193,7 @@ func freshKey(used *Object) (string, error) {
 	}
 	return "", fmt.Errorf("Unable to generate an unused row key")
 }
+
 // normalizeFields normalizes record data; path is the full data path, empty at the root.
 func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (*Object, error) {
 	if !isAbsent(value) && object(value) == nil {

@@ -144,28 +144,6 @@ pub(crate) fn leaf_name(path: &str, rows: &[usize]) -> String {
     }
 }
 
-pub(crate) fn element_id(prefix: &str, path: &str) -> String {
-    let clean = path
-        .replace("[]", "")
-        .replace("][", "-")
-        .replace(['[', ']'], "-");
-    let base: String = clean
-        .chars()
-        .map(|c| {
-            if c.is_ascii_alphanumeric() || c == '_' || c == '-' {
-                c
-            } else {
-                '-'
-            }
-        })
-        .collect();
-    if prefix.is_empty() {
-        base
-    } else {
-        format!("{prefix}-{base}")
-    }
-}
-
 fn encode_component(value: &str) -> String {
     let mut out = String::new();
     for b in value.bytes() {

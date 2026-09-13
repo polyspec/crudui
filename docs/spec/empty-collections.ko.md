@@ -9,10 +9,11 @@
 `Repeated data must be a keyed object: {path}` 메시지로 실패합니다. `{path}`는 행
 키를 포함한 전체 데이터 경로입니다. 모든 데이터 형태 거부는
 [폼 런타임](form-runtime.ko.md)에서 정의합니다.
-React, Vue, Svelte는 각 빈
-컬렉션 내부에 추가 버튼을 출력합니다. 버튼은 `btn-plus` 동작 클래스와 접근성
-레이블을 사용하며 값을 제출하지 않습니다. 애플리케이션 컨트롤러는 버튼의 컬렉션에 신규
-행을 삽입합니다. `design.show`는 행 개수와 별도로 표시 여부를 결정합니다.
+빈 컬렉션은 `crudui-node__footer`에, `multiple.controls`가 `outline`이면 구조 맵에
+`add-row` 컨트롤(`data-crudui-action="add-row"`) 하나를 출력합니다. 컨트롤은 화면
+문구 표의 접근성 레이블을 사용하고 값을 제출하지 않으며, `multiple.max`가 행을
+허용하지 않으면 비활성입니다. 공용 브라우저 바인딩이 컨트롤의 컬렉션에 새 행을
+삽입합니다. 노드 문법은 [폼 마크업](form-markup.ko.md)에서 정의합니다. `design.show`는 행 개수와 별도로 표시 여부를 결정합니다.
 컬렉션을 숨겨도 데이터를 유지하며 숨겨진 행의 이름 있는 컨트롤은 네이티브 제출에
 포함합니다.
 

@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/url"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -321,19 +320,6 @@ func ruleName(path string, rows []int) string {
 		}
 	}
 	return out + suffix
-}
-func cleanString(s string) string {
-	return strings.NewReplacer("[]", "", "][", "-", "[", "-", "]", "-").Replace(s)
-}
-
-var elementRE = regexp.MustCompile(`[^A-Za-z0-9_-]`)
-
-func elementID(prefix, path string) string {
-	base := elementRE.ReplaceAllString(cleanString(path), "-")
-	if prefix != "" {
-		return prefix + "-" + base
-	}
-	return base
 }
 func uriComponent(s string) string {
 	return strings.NewReplacer("+", "%20", "%21", "!", "%27", "'", "%28", "(", "%29", ")", "%2A", "*").Replace(url.QueryEscape(s))

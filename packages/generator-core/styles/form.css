@@ -1,0 +1,332 @@
+/*
+ * CRUDUI form node grammar.
+ *
+ * Every data node is `crudui-node` with one `crudui-node--{kind}` modifier and
+ * the shared `__header`, `__body` and `__footer` slots. Behavior reads data and
+ * ARIA attributes; these rules only style the grammar.
+ */
+
+[hidden] {
+  display: none !important;
+}
+
+/* The form, structure map and data view render independently and share one token set. */
+.crudui-form,
+.crudui-outline,
+.crudui-data {
+  --crudui-text: #111827;
+  --crudui-muted: #6b7280;
+  --crudui-border: #e5e7eb;
+  --crudui-surface: #ffffff;
+  --crudui-subtle: #f9fafb;
+  --crudui-accent: #1d4ed8;
+  --crudui-node-header-height: 2.75rem;
+  color: var(--crudui-text);
+}
+
+.crudui-form__body,
+.crudui-node__body {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.crudui-node {
+  display: grid;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.crudui-node__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+  min-width: 0;
+}
+
+.crudui-node__label {
+  font-weight: 600;
+}
+
+.crudui-node__description {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--crudui-muted);
+  font-size: 0.8125rem;
+}
+
+.crudui-node__number {
+  color: var(--crudui-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.crudui-node__title {
+  font-weight: 600;
+}
+
+.crudui-node__count,
+.crudui-node__summary {
+  color: var(--crudui-muted);
+  font-size: 0.8125rem;
+}
+
+/* A standalone checkbox sits beside its own caption. */
+.crudui-node--field > .crudui-node__body:has(> input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crudui-node--field > .crudui-node__body > input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+}
+
+/* Collections list their rows as cards. */
+.crudui-node--collection > .crudui-node__body {
+  gap: 0.5rem;
+}
+
+.crudui-node--row {
+  gap: 0;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.5rem;
+  background: var(--crudui-surface);
+}
+
+.crudui-node--row > .crudui-node__header {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--crudui-border);
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--crudui-subtle);
+}
+
+.crudui-node--row:has(> .crudui-node__body[hidden]) > .crudui-node__header {
+  border-bottom: 0;
+  border-radius: 0.5rem;
+}
+
+.crudui-node--row > .crudui-node__header > .crudui-node__label {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--crudui-accent) 10%, transparent);
+  color: var(--crudui-accent);
+  font-size: 0.75rem;
+}
+
+.crudui-node--row > .crudui-node__header > .crudui-controls {
+  margin-left: auto;
+}
+
+.crudui-node--row > .crudui-node__body {
+  padding: 0.75rem;
+}
+
+.crudui-node--row > .crudui-node__footer {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--crudui-border);
+}
+
+/* A sticky row header stacks below the sticky headers of its ancestor rows. */
+.crudui-node--sticky > .crudui-node__header {
+  position: sticky;
+  top: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
+  z-index: calc(20 - var(--crudui-sticky-depth, 0));
+  scroll-margin-top: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
+}
+
+.crudui-node--sticky:not([data-crudui-stuck]) > .crudui-node__header > .crudui-node__label {
+  display: none;
+}
+
+.crudui-controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.crudui-action {
+  --crudui-icon: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.375rem;
+  background: var(--crudui-surface);
+  color: #374151;
+  cursor: pointer;
+}
+
+.crudui-action::before {
+  content: '';
+  width: 1rem;
+  height: 1rem;
+  background: currentColor;
+  -webkit-mask: var(--crudui-icon) center / contain no-repeat;
+  mask: var(--crudui-icon) center / contain no-repeat;
+}
+
+.crudui-action:hover:not(:disabled) {
+  background: var(--crudui-subtle);
+}
+
+.crudui-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.crudui-action:focus-visible {
+  outline: 2px solid var(--crudui-accent);
+  outline-offset: 1px;
+}
+
+.crudui-action[data-crudui-action='move-up'] {
+  --crudui-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+}
+
+.crudui-action[data-crudui-action='move-down'] {
+  --crudui-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.crudui-action[data-crudui-action='add-row'] {
+  --crudui-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
+}
+
+.crudui-action[data-crudui-action='copy-row'] {
+  --crudui-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='11' height='11' rx='2'/%3E%3Cpath d='M5 15V5a2 2 0 0 1 2-2h10'/%3E%3C/svg%3E");
+}
+
+.crudui-action[data-crudui-action='remove-row'] {
+  --crudui-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+}
+
+.crudui-action[data-crudui-action='toggle-row'] {
+  --crudui-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+  border-color: transparent;
+  background: transparent;
+}
+
+.crudui-action[data-crudui-action='toggle-row'][aria-expanded='true']::before {
+  transform: rotate(90deg);
+}
+
+.crudui-action--text {
+  width: auto;
+  padding: 0 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.crudui-action--text::before {
+  content: none;
+}
+
+/* Structure map: the same node grammar, compact. */
+.crudui-outline {
+  display: grid;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.crudui-outline__body,
+.crudui-outline .crudui-node__body {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.crudui-outline .crudui-node {
+  gap: 0.125rem;
+}
+
+.crudui-outline .crudui-node__header {
+  flex-wrap: nowrap;
+}
+
+.crudui-outline .crudui-node--collection > .crudui-node__header {
+  padding-left: 0.5rem;
+  color: var(--crudui-muted);
+  font-size: 0.75rem;
+}
+
+.crudui-outline .crudui-node__body {
+  margin-left: 0.375rem;
+  padding-left: 0.375rem;
+  border-left: 1px solid var(--crudui-border);
+}
+
+.crudui-outline .crudui-node--row {
+  border: 0;
+  background: transparent;
+}
+
+.crudui-outline .crudui-node--row > .crudui-node__header {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.crudui-outline [data-crudui-action='select-row'] {
+  display: flex;
+  flex: 1;
+  gap: 0.375rem;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 1.75rem;
+  padding: 0.125rem 0.5rem;
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.crudui-outline [data-crudui-action='select-row'] > .crudui-node__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crudui-outline [aria-current='true'] > .crudui-node__header > [data-crudui-action='select-row'] {
+  background: color-mix(in srgb, var(--crudui-accent) 10%, transparent);
+  color: var(--crudui-accent);
+}
+
+.crudui-data {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.crudui-data__header {
+  font-weight: 600;
+}
+
+.crudui-data__body {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.5rem;
+  background: var(--crudui-surface);
+  font-size: 0.75rem;
+  overflow: auto;
+  white-space: pre;
+}
+
+.crudui-node--lang-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crudui-node--lang-item > .crudui-node__header > .crudui-node__label {
+  min-width: 2rem;
+  color: var(--crudui-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.crudui-node--lang-item > .crudui-node__body {
+  flex: 1;
+}

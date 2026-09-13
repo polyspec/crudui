@@ -45,6 +45,18 @@ fn condition_value(value: &Value) -> bool {
     value.is_string() || value.as_object().is_some_and(|map| !map.is_empty())
 }
 
+/// A child that renders one scalar value: not repeated, not a group and not a language field.
+fn scalar_child(child: &Value) -> bool {
+    let Some(child) = child.as_object() else {
+        return false;
+    };
+    let enabled = |key: &str| child.get(key).is_some_and(|v| *v == true || v.is_object());
+    child.get("type").is_none_or(|t| t != "group")
+        && !child.contains_key("properties")
+        && !enabled("multiple")
+        && !enabled("lang")
+}
+
 /// Reject a wrong value type in one field's `multiple` and `design` declarations.
 fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
     let fail = |key: &str, expected: &str| -> FormResult<()> {
@@ -67,6 +79,49 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
                     return fail(&format!("multiple.{key}"), "a boolean");
                 }
             }
+            if let Some(title) = settings.get("title") {
+                if spec.get("type").is_none_or(|t| t != "group") {
+                    return fail("multiple.title", "a repeated group");
+                }
+                let child = title.as_str().and_then(|name| {
+                    spec.get("properties")
+                        .and_then(Value::as_object)
+                        .and_then(|properties| properties.get(name))
+                });
+                if !child.is_some_and(scalar_child) {
+                    return fail(
+                        "multiple.title",
+                        "the name of a direct child field without multiple, properties or lang",
+                    );
+                }
+            }
+            if settings
+                .get("controls")
+                .is_some_and(|v| !["header", "footer", "outline"].iter().any(|p| v == p))
+            {
+                return fail("multiple.controls", "header, footer or outline");
+            }
+            if settings
+                .get("header")
+                .is_some_and(|v| !["static", "sticky"].iter().any(|p| v == p))
+            {
+                return fail("multiple.header", "static or sticky");
+            }
+        }
+    }
+    if spec.get("lang").is_some_and(|v| !v.is_boolean() && !v.is_object()) {
+        return fail("lang", "a boolean or an object");
+    }
+    if let Some(only) = spec
+        .get("lang")
+        .and_then(Value::as_object)
+        .and_then(|lang| lang.get("only"))
+    {
+        let codes = only
+            .as_array()
+            .is_some_and(|codes| codes.iter().all(Value::is_string));
+        if !codes && !only.is_object() {
+            return fail("lang.only", "a list of language codes or an object");
         }
     }
     if let Some(design) = spec.get("design") {

@@ -66,6 +66,18 @@ final class Template
         return is_string($value) || (self::isObject($value) && (array) $value !== []);
     }
 
+    /** A child that renders one scalar value: not repeated, not a group and not a language field. */
+    private static function scalarChild(mixed $child): bool
+    {
+        if (!self::isObject($child)) {
+            return false;
+        }
+        $child = (array) $child;
+        $repeated = ($child['multiple'] ?? null) === true || self::isObject($child['multiple'] ?? null);
+        $lang = ($child['lang'] ?? null) === true || self::isObject($child['lang'] ?? null);
+        return ($child['type'] ?? null) !== 'group' && !array_key_exists('properties', $child) && !$repeated && !$lang;
+    }
+
     /** Reject a wrong value type in one field's multiple and design declarations. */
     private static function checkDeclarations(array $spec, string $path): void
     {
@@ -89,6 +101,31 @@ final class Template
                         $fail('multiple.' . $key, 'a boolean');
                     }
                 }
+                if (array_key_exists('title', $settings)) {
+                    if (($spec['type'] ?? null) !== 'group') {
+                        $fail('multiple.title', 'a repeated group');
+                    }
+                    $properties = self::isObject($spec['properties'] ?? null) ? (array) $spec['properties'] : [];
+                    if (!is_string($settings['title']) || !array_key_exists($settings['title'], $properties) || !self::scalarChild($properties[$settings['title']])) {
+                        $fail('multiple.title', 'the name of a direct child field without multiple, properties or lang');
+                    }
+                }
+                if (array_key_exists('controls', $settings) && !in_array($settings['controls'], ['header', 'footer', 'outline'], true)) {
+                    $fail('multiple.controls', 'header, footer or outline');
+                }
+                if (array_key_exists('header', $settings) && !in_array($settings['header'], ['static', 'sticky'], true)) {
+                    $fail('multiple.header', 'static or sticky');
+                }
+            }
+        }
+        if (array_key_exists('lang', $spec) && !is_bool($spec['lang']) && !self::isObject($spec['lang'])) {
+            $fail('lang', 'a boolean or an object');
+        }
+        if (self::isObject($spec['lang'] ?? null) && array_key_exists('only', (array) $spec['lang'])) {
+            $only = ((array) $spec['lang'])['only'];
+            $codes = is_array($only) && array_is_list($only) && array_filter($only, static fn ($code) => !is_string($code)) === [];
+            if (!$codes && !self::isObject($only)) {
+                $fail('lang.only', 'a list of language codes or an object');
             }
         }
         if (!array_key_exists('design', $spec)) {

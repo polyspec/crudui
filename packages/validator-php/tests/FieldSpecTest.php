@@ -81,7 +81,7 @@ final class FieldSpecTest extends TestCase
      */
     public function testMultipleBucketAcceptsCanonicalKeys(): void
     {
-        self::assertSame([], FieldSpec::validate(['multiple' => ['min' => 1, 'max' => 5, 'copy' => true, 'sortable' => true, 'onclick' => 'add()']]));
+        self::assertSame([], FieldSpec::validate(['multiple' => ['min' => 1, 'max' => 5, 'copy' => true, 'sortable' => true, 'title' => 'name', 'controls' => 'footer', 'header' => 'sticky', 'onclick' => 'add()']]));
     }
 
     /**

@@ -1,6 +1,6 @@
 use serde_json::{json, Map, Value};
 
-use crate::util::{join_class, scalar, style};
+use crate::util::{js_string, scalar, style};
 use crate::{Form, FormResult};
 
 pub(crate) fn escape(value: &str) -> String {
@@ -305,198 +305,172 @@ fn widget(model: &Value) -> String {
     }
 }
 
-fn buttons(model: &Value) -> String {
-    let multiple = &model["multiple"];
-    let button = |class: &str| element("button", &json!({"type":"button","class":class}), " ");
-    let mut result = String::new();
-    if multiple["sortable"] == true {
-        result += &button("btn btn-move-up");
-        result += &button("btn btn-move-down");
-    }
-    let mut attrs = json!({"type":"button","class":"btn btn-plus"});
-    if let Some(max) = multiple.get("max") {
-        attrs["data-multiple-max"] = scalar(Some(max)).into();
-    }
-    result += &element("button", &attrs, " ");
-    if multiple["copy"] == true {
-        result += &button("btn btn-copy");
-    }
-    result
-        + &button(if multiple["copy"] == true {
-            "btn btn-minus btn-delete"
-        } else {
-            "btn btn-minus"
+fn classes(parts: &[&str]) -> String {
+    parts
+        .iter()
+        .filter(|part| !part.is_empty())
+        .copied()
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// A present model part as text: strings verbatim, other values as JavaScript strings.
+fn part_text(value: &Value) -> String {
+    escape(&js_string(value))
+}
+
+/// One control group of `data-crudui-action` buttons.
+fn controls(controls: &Value) -> String {
+    let buttons = controls["actions"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|action| {
+            let mut attrs = json!({"type":"button","class":"crudui-action","data-crudui-action":action["name"],"aria-label":action["label"]});
+            if action["disabled"] == true {
+                attrs["disabled"] = "".into();
+            }
+            element("button", &attrs, "")
         })
+        .collect::<String>();
+    element(
+        "div",
+        &json!({"class":"crudui-controls","role":"group","aria-label":controls["label"]}),
+        &buttons,
+    )
 }
 
-fn description(model: &Value) -> String {
-    let description = str_at(model, "description");
-    if description.is_empty() {
-        String::new()
-    } else {
-        element("p", &json!({"class":"description"}), &escape(description))
+fn header(node: &Value) -> String {
+    let header = &node["header"];
+    let mut parts = String::new();
+    if node["collapsible"] == true {
+        let mut attrs = json!({"type":"button","class":"crudui-action","data-crudui-action":"toggle-row",
+            "aria-expanded": (node["expanded"] == true).to_string()});
+        if let Some(id) = node["body"]["id"].as_str() {
+            attrs["aria-controls"] = id.into();
+        }
+        if let Some(label) = node["toggleLabel"].as_str() {
+            attrs["aria-label"] = label.into();
+        }
+        parts += &element("button", &attrs, "");
     }
-}
-
-fn field(model: &Value) -> String {
-    let design = &model["design"];
-    let hidden = if design["show"] == false {
-        "display: none"
+    if let Some(label) = header.get("label") {
+        parts += &match header.get("labelFor").and_then(Value::as_str) {
+            Some(target) if !target.is_empty() => element(
+                "label",
+                &json!({"class":"crudui-node__label","for":target}),
+                &part_text(label),
+            ),
+            _ => element("span", &json!({"class":"crudui-node__label"}), &part_text(label)),
+        };
+    }
+    if let Some(description) = header.get("description") {
+        parts += &element("p", &json!({"class":"crudui-node__description"}), &part_text(description));
+    }
+    for key in ["number", "title"] {
+        if let Some(value) = header.get(key) {
+            parts += &element("span", &json!({"class":format!("crudui-node__{key}")}), &part_text(value));
+        }
+    }
+    if let Some(summary) = header.get("summary") {
+        let mut attrs = json!({"class":"crudui-node__summary"});
+        if node["expanded"] == true {
+            attrs["hidden"] = "".into();
+        }
+        parts += &element("span", &attrs, &part_text(summary));
+    }
+    if let Some(count) = header.get("count") {
+        parts += &element("span", &json!({"class":"crudui-node__count"}), &part_text(count));
+    }
+    if node["controls"]["placement"] == "header" {
+        parts += &controls(&node["controls"]);
+    }
+    if parts.is_empty() {
+        return String::new();
+    }
+    let sticky = if node["sticky"] == true {
+        format!("--crudui-sticky-depth: {}", node["stickyDepth"].as_u64().unwrap_or(0))
     } else {
-        ""
+        String::new()
     };
-    let inline = [hidden, str_at(&design["wrapper"], "style")]
+    let inline = [str_at(header, "style"), sticky.as_str()]
         .into_iter()
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>()
         .join("; ");
-    let mut attrs = appearance_attrs(
-        join_class(&["form-element-wrapper", str_at(&design["wrapper"], "class")]),
-        &inline,
-    );
-    attrs["data-field-path"] = model["path"].clone();
-    if let Some(style) = attrs
-        .as_object_mut()
-        .and_then(|attrs| attrs.shift_remove("style"))
-    {
-        attrs["style"] = style;
+    element(
+        "div",
+        &json!({"class":classes(&["crudui-node__header", str_at(header, "className")]),"style":inline}),
+        &parts,
+    )
+}
+
+fn body(node: &Value) -> String {
+    let body = &node["body"];
+    let mut attrs = json!({"class":classes(&["crudui-node__body", str_at(body, "className")]),"style":str_at(body, "style")});
+    if let Some(id) = body["id"].as_str().filter(|id| !id.is_empty()) {
+        attrs["id"] = id.into();
     }
-    let group_class = join_class(&["input-group-wrapper", str_at(&design["wrapper"], "class")]);
-    let group_attrs = json!({"class":group_class,"data-uniqid":model["uniqid"]});
-    if model["checkbox"] == true {
-        let mut input_attrs = json!({"class":model["checkboxClass"],"id":model["checkboxId"],"name":model["checkboxName"],"type":"checkbox","value":"1"});
-        if model["checkboxChecked"] == true {
-            input_attrs["checked"] = "".into();
-        }
-        let content = element("input", &input_attrs, "")
-            + &element(
-                "label",
-                &json!({"for":model["checkboxId"]}),
-                &escape(str_at(model, "label")),
-            );
-        let heading = element(
-            "h6",
-            &json!({}),
-            &element("div", &group_attrs, &element("div", &json!({}), &content)),
-        );
-        return element(
-            "div",
-            &attrs,
-            &element(
-                "div",
-                &json!({"class":"checkbox"}),
-                &(heading + &description(model)),
-            ),
-        );
+    if node["collapsible"] == true && node["expanded"] != true {
+        attrs["hidden"] = "".into();
     }
-    let mut content = String::new();
-    if !str_at(model, "label").is_empty() && model["omitLabel"] != true {
-        let mut label = escape(str_at(model, "label"));
-        let widget = &model["widget"];
-        if let Some(id) = widget["extra"]["file"]["id"]
-            .as_str()
-            .or_else(|| widget["attrs"]["id"].as_str())
-        {
-            label = element("label", &json!({"for":id}), &label);
+    let content = if node["checkbox"].is_object() {
+        let checkbox = &node["checkbox"];
+        let mut input = json!({"class":checkbox["className"],"id":checkbox["id"],"name":checkbox["name"],"type":"checkbox","value":"1"});
+        if checkbox["checked"] == true {
+            input["checked"] = "".into();
         }
-        content += &element(
-            "h6",
-            &appearance_attrs(
-                str_at(&design["label"], "class").into(),
-                str_at(&design["label"], "style"),
-            ),
-            &label,
-        );
-    }
-    content += &description(model);
-    let body = match str_at(model, "shape") {
-        "group" => element(
-            "div",
-            &group_attrs,
-            &element(
-                "div",
-                &appearance_attrs(
-                    str_at(model, "groupClass").into(),
-                    str_at(model, "groupStyle"),
-                ),
-                &fields_value(&model["children"]),
-            ),
-        ),
-        "multiple-group" | "multiple-leaf" => {
-            let rows = model["rows"].as_array().map(Vec::as_slice).unwrap_or(&[]);
-            if rows.is_empty() {
-                element(
-                    "button",
-                    &json!({"type":"button","class":"btn btn-plus","aria-label":"+"}),
-                    " ",
-                )
-            } else {
-                rows.iter()
-                    .map(|row| {
-                        let body = if model["shape"] == "multiple-group" {
-                            element(
-                                "div",
-                                &json!({"class":row["groupClass"]}),
-                                &fields_value(&row["children"]),
-                            ) + &element(
-                                "span",
-                                &json!({"class":"btn-group input-group-btn"}),
-                                &buttons(model),
-                            )
-                        } else {
-                            widget(&row["widget"]) + &buttons(model)
-                        };
-                        element(
-                            "div",
-                            &json!({"class":row["wrapperClass"],"data-uniqid":row["uniqid"]}),
-                            &body,
-                        )
-                    })
-                    .collect()
-            }
-        }
-        "lang" => {
-            let language = &model["lang"];
-            let mut body = String::new();
-            if !str_at(language, "title").is_empty() {
-                body += &element(
-                    "div",
-                    &json!({"class":"lang-title"}),
-                    &escape(str_at(language, "title")),
-                );
-            }
-            for child in language["children"].as_array().into_iter().flatten() {
-                body += &element(
-                    "div",
-                    &json!({"class":"lang-child","data-lang":child["code"]}),
-                    &(element(
-                        "span",
-                        &json!({"class":"input-group-text lang-code"}),
-                        &escape(str_at(child, "code")),
-                    ) + &widget(&child["widget"])),
-                );
-            }
-            element(
-                "div",
-                &group_attrs,
-                &element("div", &json!({"class":language["groupClass"]}), &body),
-            )
-        }
-        _ => element("div", &group_attrs, &widget(&model["widget"])),
+        element("input", &input, "")
+            + &element("label", &json!({"for":checkbox["id"]}), &escape(str_at(checkbox, "caption")))
+    } else if node.get("widget").is_some() {
+        widget(&node["widget"])
+    } else {
+        nodes(&node["children"])
     };
-    content += &element("div", &json!({"class":"form-element"}), &body);
     element("div", &attrs, &content)
 }
 
-fn fields_value(fields: &Value) -> String {
-    fields.as_array().into_iter().flatten().map(field).collect()
+/// Render one node of the recursive form grammar.
+fn node(node: &Value) -> String {
+    let kind = str_at(node, "kind");
+    let modifier = format!("crudui-node--{kind}");
+    let sticky = if node["sticky"] == true { "crudui-node--sticky" } else { "" };
+    let mut attrs = json!({"class":classes(&["crudui-node", &modifier, sticky, str_at(node, "className")]),"style":str_at(node, "style")});
+    if kind != "row" && kind != "lang-item" {
+        if let Some(path) = node.get("path") {
+            attrs["data-field-path"] = js_string(path).into();
+        }
+    }
+    if let Some(key) = node.get("key") {
+        attrs["data-crudui-row-key"] = js_string(key).into();
+    }
+    if let Some(lang) = node.get("lang") {
+        attrs["data-lang"] = js_string(lang).into();
+    }
+    if node["hidden"] == true {
+        attrs["hidden"] = "".into();
+    }
+    let footer = if node["controls"]["placement"] == "footer" {
+        element("div", &json!({"class":"crudui-node__footer"}), &controls(&node["controls"]))
+    } else {
+        String::new()
+    };
+    element("div", &attrs, &(header(node) + &body(node) + &footer))
+}
+
+fn nodes(nodes: &Value) -> String {
+    nodes.as_array().into_iter().flatten().map(node).collect()
 }
 
 pub(crate) fn render_fields(fields: &[Value]) -> String {
     element(
         "div",
-        &json!({"class":"form-group"}),
-        &fields.iter().map(field).collect::<String>(),
+        &json!({"class":"crudui-form"}),
+        &element(
+            "div",
+            &json!({"class":"crudui-form__body"}),
+            &fields.iter().map(node).collect::<String>(),
+        ),
     )
 }
 

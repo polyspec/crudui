@@ -1,12 +1,10 @@
 import { h, type VNode, type VNodeRef } from 'vue';
-import type { FieldViewModel } from '@crudui/generator-core';
-import { fieldVNode } from './Field';
+import type { NodeVM } from '@crudui/generator-core';
+import { nodeVNode } from './Node';
 
-/** Build the `.form-group` envelope vnode around the top-level fields. */
-export function FormFields(fields: FieldViewModel[], rootRef?: VNodeRef): VNode {
-  return h(
-    'div',
-    { class: 'form-group', ref: rootRef },
-    fields.map((vm) => fieldVNode(vm))
-  );
+/** Build the `crudui-form` block vnode around the top-level nodes. */
+export function FormFields(fields: NodeVM[], rootRef?: VNodeRef): VNode {
+  return h('div', { class: 'crudui-form', ref: rootRef }, [
+    h('div', { class: 'crudui-form__body' }, fields.map((vm) => nodeVNode(vm))),
+  ]);
 }

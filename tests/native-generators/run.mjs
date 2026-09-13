@@ -328,6 +328,12 @@ for (const target of targets) {
     ['design-show-number', { type: 'text', design: { show: 1 } }, 'Invalid design.show at rows: expected an expression, a boolean or a condition map'],
     ['design-class-empty-map', { type: 'text', design: { class: {} } }, 'Invalid design.class at rows: expected a string or a condition map'],
     ['design-node-string', { type: 'text', design: { wrapper: 'box' } }, 'Invalid design.wrapper at rows: expected an object'],
+    ['multiple-title-not-group', { type: 'text', multiple: { title: 'name' } }, 'Invalid multiple.title at rows: expected a repeated group'],
+    ['multiple-title-repeated-child', { type: 'group', multiple: { title: 'tags' }, properties: { tags: { type: 'text', multiple: true } } }, 'Invalid multiple.title at rows: expected the name of a direct child field without multiple, properties or lang'],
+    ['multiple-controls-unknown', { type: 'text', multiple: { controls: 'side' } }, 'Invalid multiple.controls at rows: expected header, footer or outline'],
+    ['multiple-header-unknown', { type: 'text', multiple: { header: 'fixed' } }, 'Invalid multiple.header at rows: expected static or sticky'],
+    ['lang-null', { type: 'text', lang: null }, 'Invalid lang at rows: expected a boolean or an object'],
+    ['lang-only-mixed', { type: 'text', lang: { only: ['ko', 3] } }, 'Invalid lang.only at rows: expected a list of language codes or an object'],
     ['nested-design-node-style', { type: 'group', properties: { name: { type: 'text', design: { label: { style: null } } } } }, 'Invalid design.label.style at rows.name: expected a string or a condition map'],
   ];
   for (const [name, field, message] of declarationRejections) await check(target, `compile-reject:${name}`, async () => {
@@ -338,6 +344,25 @@ for (const target of targets) {
     let error;
     try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
     assert.ok(error, 'A declaration with a wrong value type was accepted');
+    compareError(error, expected);
+    return { error: expected };
+  });
+  const optionRejections = [
+    ['language-number', { language: 5, keyPrefix: 5 }, 'Language must be a string'],
+    ['key-prefix-number', { language: 'fr', keyPrefix: 5 }, 'keyPrefix must be a string'],
+    ['id-prefix-array', { idPrefix: [] }, 'idPrefix must be a string'],
+    ['unsupported-boolean', { unsupported: true }, 'unsupported must be throw or marker'],
+    ['unsupported-other', { language: 'fr', unsupported: 'other' }, 'unsupported must be throw or marker'],
+    ['language-unsupported', { language: 'fr', idPrefix: null }, 'Unsupported language: fr'],
+  ];
+  for (const [name, options, message] of optionRejections) for (const operation of ['bindForm', 'form']) await check(target, `${operation}-option-reject:${name}`, async () => {
+    const request = { operation, template: oracle({ operation: 'compileForm', spec: companySpec }), data: companyData, options };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the option rejection contract');
+    let error;
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'An option with the wrong type was accepted');
     compareError(error, expected);
     return { error: expected };
   });

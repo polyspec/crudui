@@ -1,5 +1,6 @@
 import { bindForm, copyFormValue, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
-import type { FieldViewModel } from './viewmodel';
+import { formMessages, type FormMessages } from './messages';
+import type { NodeVM } from './viewmodel';
 import { getValueByPath, parsePathString } from './util';
 
 /** Transport key for an existing database sequence. */
@@ -31,13 +32,28 @@ export interface AddRowOptions {
   value?: unknown;
 }
 
-/** Stable subscription snapshot, changed only after a successful operation. */
-export interface FormSnapshot {
-  /** Evaluated fields for the current data. */
-  readonly fields: FieldViewModel[];
-  /** Number of successful instance updates. */
-  readonly revision: number;
+/** A selected row: its collection path and key. */
+export interface RowSelection {
+  /** Collection data path. */
+  readonly path: string;
+  /** Row key. */
+  readonly key: string;
 }
+
+/** Stable subscription snapshot, changed only after a successful operation or view change. */
+export interface FormSnapshot {
+  /** Evaluated fields for the current data and view. */
+  readonly fields: NodeVM[];
+  /** Number of successful data updates. */
+  readonly revision: number;
+  /** Whether `undo` can restore an earlier record. */
+  readonly canUndo: boolean;
+  /** Selected row, if any. */
+  readonly selection?: RowSelection;
+}
+
+/** Maximum number of records kept for undo. */
+const HISTORY_LIMIT = 100;
 
 function hasOwn(value: object, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
@@ -75,15 +91,53 @@ function putAt(data: Record<string, unknown>, path: string[], value: unknown): R
     ? putAt(isRecord(data[head]) ? data[head] : {}, tail, value) : value };
 }
 
+/** Whether a data path is a row path or lies inside it. */
+function inside(path: string, rowPath: string): boolean {
+  return path === rowPath || path.startsWith(`${rowPath}.`);
+}
+
+/** Row paths (`{collection}.{key}`) of every collapsible row. */
+function collapsibleRows(nodes: readonly NodeVM[], out: string[] = []): string[] {
+  for (const node of nodes) {
+    if (node.kind === 'collection') {
+      for (const row of node.children ?? []) {
+        if (row.collapsible) out.push(`${node.path}.${row.key}`);
+        collapsibleRows(row.children ?? [], out);
+      }
+    } else {
+      collapsibleRows(node.children ?? [], out);
+    }
+  }
+  return out;
+}
+
+/** Data and view changes applied together by one commit. */
+interface Change {
+  /** Path of a value edit; consecutive edits of one path share an undo entry. */
+  path?: string;
+  /** Replacement collapsed row paths. */
+  collapsed?: Set<string>;
+  /** Replacement selection; null clears it. */
+  selection?: RowSelection | null;
+  /** Replace the record: clear history, collapsed rows and selection. */
+  reset?: boolean;
+}
+
 /**
  * One editable form instance over a shared template. All row operations are
  * scoped to a collection path; no global string replacement touches siblings.
+ * Data, undo history and view state (collapsed rows, selection) are separate;
+ * view state is never submitted.
  */
 export class FormInstance {
   private data: Record<string, unknown>;
   private snapshot: FormSnapshot;
   private readonly listeners = new Set<() => void>();
   private readonly options: CreateFormOptions;
+  private history: Record<string, unknown>[] = [];
+  private lastPath: string | undefined;
+  private collapsed = new Set<string>();
+  private selection: RowSelection | undefined;
 
   /** Shared immutable structure. */
   readonly template: FormTemplate;
@@ -93,10 +147,10 @@ export class FormInstance {
     this.template = template;
     this.options = { ...options };
     this.data = this.normalizeFields(template.fields, data);
-    this.snapshot = { fields: this.build(this.data), revision: 0 };
+    this.snapshot = { fields: this.build(this.data, this.collapsed), revision: 0, canUndo: false };
   }
 
-  /** Subscribe to injection, editing and row operations. Returns an unsubscribe function. */
+  /** Subscribe to injection, editing, row operations and view changes. Returns an unsubscribe function. */
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
     return () => { this.listeners.delete(listener); };
@@ -108,6 +162,9 @@ export class FormInstance {
   /** Effective root prefix for submitted input names. */
   get keyPrefix(): string | undefined { return this.options.keyPrefix ?? this.template.keyPrefix; }
 
+  /** Interface text for the instance language. */
+  get messages(): FormMessages { return formMessages(this.options.language ?? 'ko'); }
+
   /** Detached submission data, retaining keyed nested collections. */
   getData(): Record<string, unknown> { return copyFormValue(this.data); }
 
@@ -117,15 +174,16 @@ export class FormInstance {
     return copyFormValue(getValueByPath(this.data, path));
   }
 
-  /** Replace the record after an asynchronous load or save; keep the template. */
+  /** Replace the record after an asynchronous load or save; history and view state restart. */
   setData(data: Record<string, unknown>): void {
-    this.commit(this.normalizeFields(this.template.fields, data));
+    this.commit(this.normalizeFields(this.template.fields, data), { reset: true });
   }
 
   /** Update one data path and reevaluate affected form presentation. */
   setValue(path: string, value: unknown): void {
     const segments = checkedSegments(path);
-    this.commit(this.normalizeFields(this.template.fields, putAt(this.data, segments, copyFormValue(value))));
+    this.commit(this.normalizeFields(this.template.fields, putAt(this.data, segments, copyFormValue(value))),
+      { path: segments.join('.') });
   }
 
   /** Insert a blank/defaulted row, or supplied row data, with one new identity. */
@@ -162,8 +220,13 @@ export class FormInstance {
     if (typeof settings.min === 'number' && Object.keys(rows).length <= settings.min) {
       throw new RangeError(`Minimum row count reached: ${path}`);
     }
-    this.commit(putAt(this.data, checkedSegments(path),
-      Object.fromEntries(Object.entries(rows).filter(([k]) => k !== key))));
+    const segments = checkedSegments(path);
+    const rowPath = [...segments, key].join('.');
+    const selected = this.selection && inside(`${this.selection.path}.${this.selection.key}`, rowPath);
+    this.commit(putAt(this.data, segments, Object.fromEntries(Object.entries(rows).filter(([k]) => k !== key))), {
+      collapsed: new Set([...this.collapsed].filter(collapsedPath => !inside(collapsedPath, rowPath))),
+      ...(selected ? { selection: null } : {}),
+    });
   }
 
   /** Change order without changing row keys, values or descendant identities. */
@@ -181,26 +244,108 @@ export class FormInstance {
     this.commit(putAt(this.data, checkedSegments(path), Object.fromEntries(entries)));
   }
 
-  /** Apply a saved seq key to exactly one row. Descendant paths follow automatically. */
+  /** Apply a saved seq key to exactly one row. Descendant paths and view state follow. */
   rekeyRow(path: string, oldKey: string, newKey: string): void {
     const { rows } = this.collection(path);
     checkKey(newKey);
     if (!hasOwn(rows, oldKey)) throw new Error(`Unknown row: ${oldKey}`);
     if (oldKey === newKey) return;
     if (hasOwn(rows, newKey)) throw new Error(`Row key already exists: ${newKey}`);
-    this.commit(putAt(this.data, checkedSegments(path),
-      Object.fromEntries(Object.entries(rows).map(([key, value]) => [key === oldKey ? newKey : key, value]))));
+    const segments = checkedSegments(path);
+    const oldPath = [...segments, oldKey].join('.');
+    const newPath = [...segments, newKey].join('.');
+    const rename = (value: string) => inside(value, oldPath) ? newPath + value.slice(oldPath.length) : value;
+    let selection: RowSelection | undefined = this.selection;
+    if (selection) {
+      const renamed = rename(`${selection.path}.${selection.key}`);
+      const split = renamed.lastIndexOf('.');
+      selection = { path: renamed.slice(0, split), key: renamed.slice(split + 1) };
+    }
+    this.commit(putAt(this.data, segments,
+      Object.fromEntries(Object.entries(rows).map(([key, value]) => [key === oldKey ? newKey : key, value]))), {
+      collapsed: new Set([...this.collapsed].map(rename)),
+      ...(selection ? { selection } : {}),
+    });
   }
 
-  private build(data: Record<string, unknown>): FieldViewModel[] {
-    return bindForm(this.template, data, this.options);
+  /** Expand a collapsed row or collapse an expanded one. */
+  toggleRow(path: string, key: string): void {
+    const rowPath = this.rowPath(path, key);
+    const collapsed = new Set(this.collapsed);
+    if (!collapsed.delete(rowPath)) collapsed.add(rowPath);
+    this.refreshView(collapsed);
   }
 
-  private commit(data: Record<string, unknown>): void {
-    const fields = this.build(data); // Failure leaves both data and view unchanged.
-    this.data = data;
-    this.snapshot = { fields, revision: this.snapshot.revision + 1 };
+  /** Expand or collapse every collapsible row. */
+  setAllExpanded(expanded: boolean): void {
+    this.refreshView(new Set(expanded ? [] : collapsibleRows(this.snapshot.fields)));
+  }
+
+  /** Select one row. */
+  selectRow(path: string, key: string): void {
+    const rowPath = this.rowPath(path, key);
+    const collectionPath = rowPath.slice(0, rowPath.length - key.length - 1);
+    if (this.selection?.path === collectionPath && this.selection.key === key) return;
+    this.selection = { path: collectionPath, key };
+    this.publish(this.snapshot.fields, this.snapshot.revision);
+  }
+
+  /** Restore the record before the last data change. */
+  undo(): void {
+    const previous = this.history[this.history.length - 1];
+    if (!previous) throw new RangeError('Nothing to undo');
+    const fields = this.build(previous, this.collapsed);
+    this.history.pop();
+    this.lastPath = undefined;
+    this.data = previous;
+    this.publish(fields, this.snapshot.revision + 1);
+  }
+
+  private build(data: Record<string, unknown>, collapsed: ReadonlySet<string>): NodeVM[] {
+    return bindForm(this.template, data, { ...this.options, collapsed });
+  }
+
+  private publish(fields: NodeVM[], revision: number): void {
+    this.snapshot = {
+      fields,
+      revision,
+      canUndo: this.history.length > 0,
+      ...(this.selection ? { selection: this.selection } : {}),
+    };
     for (const listener of this.listeners) listener();
+  }
+
+  private refreshView(collapsed: Set<string>): void {
+    const fields = this.build(this.data, collapsed);
+    this.collapsed = collapsed;
+    this.publish(fields, this.snapshot.revision);
+  }
+
+  private commit(data: Record<string, unknown>, change: Change = {}): void {
+    const collapsed = change.reset ? new Set<string>() : change.collapsed ?? this.collapsed;
+    const fields = this.build(data, collapsed); // Failure leaves data, history and view unchanged.
+    if (change.reset) {
+      this.history = [];
+      this.lastPath = undefined;
+      this.selection = undefined;
+    } else {
+      if (change.path === undefined || change.path !== this.lastPath) {
+        this.history.push(this.data);
+        if (this.history.length > HISTORY_LIMIT) this.history.shift();
+      }
+      this.lastPath = change.path;
+      if (change.selection !== undefined) this.selection = change.selection ?? undefined;
+    }
+    this.collapsed = collapsed;
+    this.data = data;
+    this.publish(fields, this.snapshot.revision + 1);
+  }
+
+  /** Canonical row path after checking that the row exists. */
+  private rowPath(path: string, key: string): string {
+    const { rows } = this.collection(path);
+    if (!hasOwn(rows, key)) throw new Error(`Unknown row: ${key}`);
+    return [...checkedSegments(path), key].join('.');
   }
 
   private freshKey(used: Set<string>): string {
