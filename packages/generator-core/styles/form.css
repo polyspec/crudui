@@ -129,16 +129,42 @@
   border-top: 1px solid var(--crudui-border);
 }
 
-/* A sticky row header stacks below the sticky headers of its ancestor rows. */
+/*
+ * A sticky row header stacks below the sticky headers of its ancestor rows. Each
+ * stacked header offsets by exactly one header height, so a sticky header has that
+ * fixed height, border included, and never wraps; a long title is truncated.
+ */
 .crudui-node--sticky > .crudui-node__header {
   position: sticky;
   top: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
   z-index: calc(20 - var(--crudui-sticky-depth, 0));
+  box-sizing: border-box;
+  height: var(--crudui-node-header-height);
+  flex-wrap: nowrap;
+  overflow: hidden;
   scroll-margin-top: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
 }
 
+.crudui-node--sticky > .crudui-node__header > .crudui-node__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crudui-node--sticky > .crudui-node__header > .crudui-controls {
+  flex-wrap: nowrap;
+}
+
+/* The level label shows only while the header is stuck, where it names the pinned level. */
 .crudui-node--sticky:not([data-crudui-stuck]) > .crudui-node__header > .crudui-node__label {
   display: none;
+}
+
+.crudui-node--sticky[data-crudui-stuck] > .crudui-node__header {
+  border-radius: 0;
+  background: var(--crudui-surface);
+  box-shadow: 0 0.5rem 1rem -0.75rem rgb(16 24 40 / 50%);
 }
 
 .crudui-controls {
