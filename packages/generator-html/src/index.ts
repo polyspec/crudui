@@ -104,7 +104,7 @@ function rawControl(widget: WidgetModel, selectedMode: 'empty' | 'selected' = 'e
 
 function groupButton(option: NonNullable<WidgetModel['options']>[number], widget: WidgetModel, raw: boolean): string {
   const type = widget.kind === 'choice' ? 'radio' : 'checkbox';
-  const shared: Attrs = { ...(widget.extra?.input ?? {}), type, value: option.value, autocomplete: 'off', class: 'valid-target btn-check', ...(option.id ? { id: option.id } : {}) };
+  const shared: Attrs = { ...(widget.extra?.input ?? {}), type, value: option.value, autocomplete: 'off', class: 'valid-target crudui-choices__input', ...(option.id ? { id: option.id } : {}) };
   if (type === 'radio') shared['data-is-default'] = option.isDefault ? '1' : '';
   const inputHtml = input(shared, option.selected);
   const label = element('label', { for: option.id, class: widget.itemLabelClass ?? '' }, element('span', {}, escText(option.label)));
@@ -112,16 +112,16 @@ function groupButton(option: NonNullable<WidgetModel['options']>[number], widget
 }
 
 function widget(widget: AnyWidget): string {
-  if ('unsupported' in widget) return element('div', { class: 'form-element-unsupported', 'data-unsupported-type': widget.type });
+  if ('unsupported' in widget) return element('div', { class: 'crudui-widget crudui-widget--unsupported', 'data-unsupported-type': widget.type });
   const rawAttrs = hasEvent(widget.attrs);
   switch (widget.layout) {
-    case 'input-group':
-      return element('div', { class: 'input-group' }, rawAttrs ? rawAffix(widget.prepend) + rawControl(widget) + rawAffix(widget.append) : affix(widget.prepend) + control(widget) + affix(widget.append));
+    case 'widget':
+      return element('div', { class: 'crudui-widget' }, rawAttrs ? rawAffix(widget.prepend) + rawControl(widget) + rawAffix(widget.append) : affix(widget.prepend) + control(widget) + affix(widget.append));
     case 'bare':
       return rawAttrs ? rawControl(widget) : control(widget);
     case 'host-script':
       return (rawAttrs ? rawControl(widget) : control(widget)) + element('script', { nonce: '' }, widget.script ?? '');
-    case 'btn-group':
+    case 'choices':
       return element('div', widget.attrs, (widget.options ?? []).map((option) => groupButton(option, widget, hasEvent(widget.extra?.input))).join(''));
     case 'file': {
       const fileAttrs = widget.extra?.file ?? {};
@@ -130,16 +130,16 @@ function widget(widget: AnyWidget): string {
       let body = affix(widget.prepend);
       if (display) body += input(fileRaw ? { class: display.class ?? '', readonly: '', type: 'text', value: '' } : display);
       body += input(fileAttrs);
-      if (display) body += element('button', { class: 'btn btn-search btn-file-search', type: 'button' }, '&nbsp;');
-      return element('div', { class: 'input-group' }, body);
+      if (display) body += element('button', { class: 'crudui-widget__button', type: 'button' }, '&nbsp;');
+      return element('div', { class: 'crudui-widget' }, body);
     }
     case 'display':
-      if (widget.kind === 'dummy-input') return element('div', { class: 'input-group' }, affix(widget.prepend) + control(widget) + affix(widget.append));
+      if (widget.kind === 'dummy-input') return element('div', { class: 'crudui-widget' }, affix(widget.prepend) + control(widget) + affix(widget.append));
       return element('div', widget.attrs, widget.rawHtml ?? '');
     case 'search':
       return (widget.styleChrome ? element('style', { nonce: '' }, widget.styleChrome) : '') +
         element('script', { nonce: '' }, widget.script ?? '') +
-        element('div', { class: 'input-group field-search' }, rawAffix(widget.prepend) + rawControl(widget, 'selected') + rawAffix(widget.append));
+        element('div', { class: 'crudui-widget crudui-widget--search' }, rawAffix(widget.prepend) + rawControl(widget, 'selected') + rawAffix(widget.append));
     case 'button':
       return element('script', { nonce: '' }, widget.script ?? '') + input(widget.extra?.hidden ?? {}) + input(widget.attrs);
     default:

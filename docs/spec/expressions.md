@@ -135,9 +135,9 @@ the result is null.
 
 ```yaml
 class:
-  ".status == 'active'": text-success
-  ".status == 'pending'": text-warning
-  true: form-control
+  ".status == 'active'": status-active
+  ".status == 'pending'": status-pending
+  true: status-default
 ```
 
 Map values are returned without expression evaluation. Each non-default key uses

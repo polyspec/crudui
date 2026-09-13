@@ -44,6 +44,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 }
 $template = Generator::compileForm($spec, ['keyPrefix' => 'form']);
 $form = new Form($template, $data, ['language' => 'en']);
+// The form takes every style from the core stylesheet; the page styles only its own layout.
+$stylesheet = file_get_contents(__DIR__ . '/../../generator-core/styles/crudui.css');
+if ($stylesheet === false) {
+    throw new RuntimeException('Stylesheet read failed');
+}
 header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!doctype html>
@@ -53,10 +58,11 @@ header('Content-Type: text/html; charset=UTF-8');
 <title>CRUDUI PHP</title>
 <style>
 body { font: 16px system-ui; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-.crudui-node__label { display: block; font-weight: 600; margin: 1rem 0 .5rem; }
-input[type=text], input[type=email], textarea { width: 100%; box-sizing: border-box; padding: .6rem; }
-.btn-group label { margin: 0 1rem 0 .25rem; }
-button { margin-top: 1rem; padding: .5rem 1rem; }
+</style>
+<style>
+<?php
+echo $stylesheet;
+?>
 </style>
 <h1>CRUDUI PHP</h1>
 <?php
@@ -72,6 +78,5 @@ foreach ($errors as $error) {
 <?php
 echo Generator::renderForm($form);
 ?>
-<button type="submit">Save</button>
 </form>
 </html>

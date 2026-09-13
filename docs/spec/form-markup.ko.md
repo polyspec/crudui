@@ -18,7 +18,9 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 클래스와 함께 씁니다(`class="crudui-node crudui-node--row"`). 요소 이름은 한
 단계만 쓰며 요소에는 수식자를 두지 않습니다. 클래스는 스타일만 담당합니다.
 브라우저 동작은 아래의 data·ARIA 속성만 읽고 클래스를 읽지 않습니다.
-`input-group`, `form-control` 같은 위젯 내부는 별도 계약입니다.
+위젯도 같은 형태를 따릅니다. 렌더러가 그 밖에 쓰는 클래스는 검증 대상 컨트롤을 표시하는
+`valid-target`과 `valid-target-async`, 에디터 호스트 `tinymcearea`, `summernote`,
+`contentjs`, `tuiarea`, 그리고 스펙이 `design`으로 선언한 클래스뿐입니다.
 
 ## 블록과 속성
 
@@ -30,6 +32,9 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `crudui-action` | `data-crudui-action`을 가진 버튼입니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
 | `crudui-outline` | `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다. |
 | `crudui-data` | `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다. |
+| `crudui-widget` | 앞뒤 텍스트 `__affix`와 파일 위젯의 `__button`을 가진 컨트롤입니다. `--search`는 검색 select를 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다. |
+| `crudui-input` | 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`을 가집니다. |
+| `crudui-choices` | 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. |
 
 | 속성 | 의미 |
 | --- | --- |
@@ -62,7 +67,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `group` | `__label`, `__description` | 자식 노드 |
 | `collection` | `__label`, `__description`, `__count` | row 노드. 행이 없으면 푸터에 `add-row` 컨트롤 |
 | `row` | 토글, `__label`, `__number`, `__title`, `__summary`, 컨트롤 | 스칼라 행의 위젯 또는 group 행의 자식 노드 |
-| `lang` | `__label`, `__description`, `__title`(`lang.title`) | lang-item 노드 |
+| `lang` | `__label`, `__description`, `__title`(`lang.title`) | lang-item 노드. `lang.frame`이 true(기본값)이면 노드에 `crudui-node--framed`가 붙습니다 |
 | `lang-item` | 언어 코드를 담은 `__label` | 위젯 |
 
 본문에 레이블 대상 컨트롤이 정확히 하나이면 레이블은 그 컨트롤을 가리키는 `label`
@@ -161,9 +166,11 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 
 ## 스타일
 
-`@crudui/generator-core/styles.css`는 슬롯 배치, 행 카드, 컨트롤 아이콘, 고정 헤더,
-구조 맵, 현재 데이터 보기를 정의합니다. `[hidden]` 요소를 숨깁니다. 폼, 구조 맵,
-현재 데이터 보기는 `--crudui-*` 사용자 정의 속성 한 벌을 공유합니다.
+`@crudui/generator-core/crudui.css`는 폼에 필요한 유일한 스타일시트로 슬롯 배치, 행 카드,
+위젯, 컨트롤 아이콘, 고정 헤더, 구조 맵, 현재 데이터 보기를 정의합니다. box-sizing과
+`[hidden]` 요소 숨김을 포함한 모든 규칙은 crudui 블록 범위 안에 있으며 페이지 스타일이나 CSS
+프레임워크에 기대지 않습니다. 페이지는 자기 레이아웃만 스타일링하고 crudui 블록 안은 건드리지
+않습니다. 폼, 구조 맵, 현재 데이터 보기는 `--crudui-*` 사용자 정의 속성 한 벌을 공유합니다.
 
 ## 기준 폼에서 채택하지 않은 동작
 
