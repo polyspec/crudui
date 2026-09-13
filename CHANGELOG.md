@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Size the comparison frames to the screen
+
+After sticky rows became CSS only, the comparison page still behaved differently from a
+page. The cause was its layout, not script: each frame was fixed at 1,450 px on a
+798 px screen, so the page and the frame both scrolled, and the frame's top edge,
+where sticky headers pin, left the screen as soon as the page scrolled. A scrolling box
+taller than the screen behaves the same way. Each frame is now `100vh` tall, so its
+scroll area is exactly what the viewer sees. Two comments that still said the scroll
+position decides the current row (`actions.ts`, `instance.ts`) were corrected; the only
+script left around scrolling is focusing a row's control after an action or a map
+selection.
+
+The generator-core tests (108) and `npm run test:form-comparison:source` (140) passed.
+
 ## 2026-09-14 — Record the CSS-only sticky candidate run and its deployment
 
 `node examples/form-comparison/candidate-verification.mjs` passed for 3578158. PHP,
