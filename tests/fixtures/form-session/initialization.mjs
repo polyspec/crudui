@@ -3,11 +3,8 @@ import { data, companyKey, storeKey } from './scenario.mjs';
 import { domSnapshot, formSnapshot } from '../../form-inspector/form-snapshot.mjs';
 
 /**
- * Parsed DOM of a rendered form without the state the browser binding writes (the
- * `data-crudui-stuck` and `data-crudui-current` row marks and the scroll and end-row lengths
- * published on the connected element) and without the nodes frameworks use as rendering
- * anchors, which render nothing: comments and empty text. Attribute order is not part of
- * the DOM.
+ * Parsed DOM of a rendered form without the nodes frameworks use as rendering anchors,
+ * which render nothing: comments and empty text. Attribute order is not part of the DOM.
  */
 function formDom(form) {
   const copy = form.cloneNode(true);
@@ -18,14 +15,6 @@ function formDom(form) {
     if (node.nodeType === 8 || node.nodeValue === '') anchors.push(node);
   }
   for (const node of anchors) node.remove();
-  for (const element of [copy, ...copy.querySelectorAll('[data-crudui-current],[data-crudui-stuck]')]) {
-    element.removeAttribute('data-crudui-current');
-    element.removeAttribute('data-crudui-stuck');
-  }
-  copy.style.removeProperty('--crudui-scroll-height');
-  copy.style.removeProperty('--crudui-form-end-extent');
-  copy.style.removeProperty('--crudui-form-end-top');
-  copy.style.removeProperty('--crudui-form-end-after');
   // A style attribute is a CSS declaration block: compare its declarations as the CSS object
   // model serializes them, as React writes `name: value;` for the markup's `name:value`.
   for (const element of [copy, ...copy.querySelectorAll('[style]')]) {

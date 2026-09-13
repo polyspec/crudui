@@ -2,6 +2,43 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Make sticky rows CSS only and remove scroll measuring
+
+Sticky rows did not behave the same in a frame as in a page because the browser
+binding measured the scroll position in script: `connectRows` decided which rows were
+stuck and current from bounding rectangles, published lengths for a computed space
+after the form, and `alignRow` scrolled rows with `scrollIntoView`, which also scrolls
+every enclosing document. Each fix to one of those calculations (the scroll container,
+the content after the form) exposed another place where the reference was wrong. The
+user decided to keep only what CSS can do.
+
+- Removed: `connectRows`, `RowTracking`, `markOutline`, `alignRow`, the
+  `data-crudui-stuck` and `data-crudui-current` attributes, the `crudui-current` event,
+  the structure map's `aria-current` marking, the published
+  `--crudui-scroll-height` and `--crudui-form-end-*` lengths, the space after the form,
+  the current row border and the rule that showed `controls: outline` on the current
+  map line only (map lines now always show their controls). The jsdom stand-in for
+  `scrollIntoView` and the takeover comparisons' exclusions for those attributes are
+  gone with them, and `contracts/features.json` no longer lists the three functions.
+- `crudui.css`: sticky headers still stack on `--crudui-sticky-depth` lines; the level
+  label shows only while its header is stuck, through a `scroll-state(stuck: top)`
+  container query; controls in a sticky row keep a top scroll margin of the headers
+  pinned above them (`--crudui-sticky-cover`) and every form control a bottom scroll
+  margin of the footer.
+- Moving to a row after a row operation or a structure map selection focuses its
+  control, and the browser scrolls it into view (Chromium centres it); the same code
+  runs in `connectForm`, `connectOutline` and the comparison `bindForm` controller.
+- The Chromium style checks run every case in a page, in a scrolling box and in a
+  frame: stacked headers on their lines with labels only while stuck, and focus after
+  adding a row and after a map selection clear of the pinned headers and the footer.
+
+`make format-check`, `npm run test:forms` (core 108, HTML 116, React 350, Vue 341,
+Svelte 338 and 10 client tests), `npm run test:form-comparison:source` (140),
+`npm run test:build`, `npm run test:dependencies`, `make docs-check` and the Chromium
+style checks (6: two in each host) passed. The last `make docs-check` run first failed
+because the disk was full while rebuilding the Rust crates; after removing the stopped
+5fbcf5a candidate container, image and directory it passed.
+
 ## 2026-09-14 — Take over sticky rows identically in React
 
 The candidate run of 338d060 failed in `browser-php`: the SSR takeover in React

@@ -2,6 +2,37 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 고정 행을 CSS만으로 동작하게 하고 스크롤 측정 제거
+
+고정 행이 프레임에서 페이지와 같게 동작하지 않은 것은 브라우저 바인딩이 스크롤 위치를 스크립트로
+측정했기 때문입니다. `connectRows`가 경계 사각형으로 고정 행과 현재 행을 정하고 계산된 폼 뒤
+여백을 위해 길이를 게시했으며, `alignRow`는 둘러싼 모든 문서까지 스크롤하는 `scrollIntoView`로
+행을 스크롤했습니다. 그 계산 중 하나(스크롤 컨테이너, 폼 뒤 내용)를 고칠 때마다 기준이 틀린 다른
+곳이 드러났습니다. 사용자는 CSS로 할 수 있는 것만 남기기로 결정했습니다.
+
+- 제거: `connectRows`, `RowTracking`, `markOutline`, `alignRow`, `data-crudui-stuck`과
+  `data-crudui-current` 속성, `crudui-current` 이벤트, 구조 맵의 `aria-current` 표시, 게시하던
+  `--crudui-scroll-height`와 `--crudui-form-end-*` 길이, 폼 뒤 여백, 현재 행 테두리, 현재 맵 줄에만
+  `controls: outline`을 보이던 규칙(맵 줄은 이제 항상 컨트롤을 보임). `scrollIntoView`의 jsdom
+  대역과 인계 비교에서 그 속성을 빼던 처리도 함께 없어졌고, `contracts/features.json`은 세 함수를
+  더 이상 나열하지 않습니다.
+- `crudui.css`: 고정 헤더는 계속 `--crudui-sticky-depth` 고정선에 쌓입니다. 단계 레이블은
+  `scroll-state(stuck: top)` 컨테이너 쿼리로 헤더가 고정된 동안에만 보입니다. 고정 행 안의
+  컨트롤은 위에 고정되는 헤더만큼의 위쪽 스크롤 여백(`--crudui-sticky-cover`)을, 모든 폼 컨트롤은
+  푸터만큼의 아래쪽 스크롤 여백을 가집니다.
+- 행 작업 뒤나 구조 맵 선택으로 행에 이동하면 그 컨트롤에 포커스하고 브라우저가 보이게
+  스크롤합니다(Chromium은 가운데에 둠). `connectForm`, `connectOutline`, 비교 페이지의 `bindForm`
+  컨트롤러가 같은 방식을 씁니다.
+- Chromium 스타일 검사는 모든 경우를 페이지, 스크롤 박스, 프레임에서 실행합니다. 고정선에 쌓인
+  헤더와 고정된 동안에만 보이는 레이블, 행 추가와 맵 선택 뒤 고정 헤더와 푸터에 가리지 않는
+  포커스를 확인합니다.
+
+`make format-check`, `npm run test:forms`(core 108, HTML 116, React 350, Vue 341, Svelte 338과
+클라이언트 10), `npm run test:form-comparison:source`(140), `npm run test:build`,
+`npm run test:dependencies`, `make docs-check`, Chromium 스타일 검사 6개(환경마다 2개)가
+통과했습니다. 마지막 `make docs-check`는 Rust 크레이트를 다시 빌드하다 디스크가 가득 차 먼저
+실패했고, 멈춘 5fbcf5a 후보 컨테이너·이미지·디렉터리를 지운 뒤 통과했습니다.
+
 ## 2026-09-14 — React에서 고정 행을 동일하게 넘겨받기
 
 338d060의 후보 검증은 `browser-php`에서 실패했습니다. React의 SSR 인계가 첫 고정 행에서 달랐는데,
