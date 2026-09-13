@@ -2,7 +2,6 @@ import {
   buildList,
   buildOutline,
   parseStyle,
-  type OutlineCollection,
   type OutlineRow,
   type OutlineState,
   type FormMessages,
@@ -302,15 +301,6 @@ function textAction(name: string, label: string, disabled = false): string {
   return `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name })}${disabled ? ' disabled=""' : ''}>${escText(label)}</button>`;
 }
 
-function outlineCollection(collection: OutlineCollection): string {
-  const header = (collection.label !== undefined ? element('span', { class: 'crudui-node__label' }, escText(collection.label)) : '') +
-    (collection.count !== undefined ? element('span', { class: 'crudui-node__count' }, escText(collection.count)) : '') +
-    (collection.controls ? controlsHtml(collection.controls) : '');
-  return element('div', { class: 'crudui-node crudui-node--collection', 'data-field-path': collection.path },
-    element('div', { class: 'crudui-node__header' }, header) +
-    element('div', { class: 'crudui-node__body' }, collection.rows.map(outlineRow).join('')));
-}
-
 function outlineRow(row: OutlineRow): string {
   const select = `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': 'select-row' })}>` +
     (row.number !== undefined ? element('span', { class: 'crudui-node__number' }, escText(row.number)) : '') +
@@ -323,7 +313,7 @@ function outlineRow(row: OutlineRow): string {
   });
   return `<div${root}>` +
     element('div', { class: 'crudui-node__header' }, select + (row.controls ? controlsHtml(row.controls) : '')) +
-    (row.collections.length ? element('div', { class: 'crudui-node__body' }, row.collections.map(outlineCollection).join('')) : '') +
+    (row.rows.length ? element('div', { class: 'crudui-node__body' }, row.rows.map(outlineRow).join('')) : '') +
     '</div>';
 }
 
@@ -334,7 +324,7 @@ export function renderOutlineView(state: OutlineState, messages: FormMessages): 
     textAction('undo', messages.undo, !state.canUndo));
   return element('div', { class: 'crudui-outline' },
     element('div', { class: 'crudui-outline__header' }, controls) +
-    element('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(outlineCollection).join('')));
+    element('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(outlineRow).join('')));
 }
 
 /** Render the structure map of a form instance with its form controls. */

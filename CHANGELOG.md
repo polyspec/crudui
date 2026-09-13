@@ -2,6 +2,27 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Show only form rows in the structure map
+
+The structure map repeated every level twice: a collection line with its count
+(for example "Stores 2") and then the row lines, each with its own guide line, and
+it listed empty collections. It now follows one rule: one line per form row.
+`buildOutline` returns `OutlineRow[]`, each row with the rows nested in it, so the
+map nests exactly as the form does; `OutlineCollection` is removed. Collections,
+counts and empty collections are not rows and stay in the form, and a nested row
+body indents one step without guide lines. With `multiple.controls: outline`, row
+controls still move to the selected row's map line, but an empty collection's Add
+control is not a row control and now always stays in the collection footer in all
+five implementations.
+
+generator-core passed its typecheck and 104 tests; the HTML, React, Vue and Svelte
+suites passed 116, 705, 348 and 349 with the regenerated structure map fixture;
+form comparison source checks passed 140; and `make test-native` passed 976 generator
+checks after the empty collection placement change in all five implementations. In
+Chrome the map lists only rows with one indentation step per level. The four-server
+candidate run for dad977d, the previous change, passed 1,452 checks per server
+(5,808 browser checks) with no failure.
+
 ## 2026-09-13 — Align rows to their sticky line and follow the scroll with the current row
 
 Sticky rows now follow rules derived from one value instead of computed offsets.

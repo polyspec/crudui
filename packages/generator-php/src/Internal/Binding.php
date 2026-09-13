@@ -148,7 +148,7 @@ final class Binding
         $controls = Missing::Value;
         if ($keys === []) {
             $full = isset($settings['max']) && count($keys) >= $settings['max'];
-            $controls = (object) ['placement' => $settings['controls'] === 'outline' ? 'outline' : 'footer', 'label' => $messages['collectionControls'], 'actions' => [self::action('add-row', $messages['addRow'], $full)]];
+            $controls = (object) ['placement' => 'footer', 'label' => $messages['collectionControls'], 'actions' => [self::action('add-row', $messages['addRow'], $full)]];
         }
         $header = self::header(['label' => $label, 'description' => $description, 'count' => Messages::count($messages['count'], count($keys))], $design);
         return Value::record([...self::root('collection', $path, $design), 'header' => $header, 'body' => self::body(), 'item' => $item, 'controls' => $controls, 'children' => $rows]);

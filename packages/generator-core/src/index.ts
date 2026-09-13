@@ -16,7 +16,7 @@ export type { FormConnection, RowTracking } from './dom';
 export { resolveAction, runAction } from './actions';
 export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';
 export { buildOutline } from './outline';
-export type { OutlineCollection, OutlineRow, OutlineState } from './outline';
+export type { OutlineRow, OutlineState } from './outline';
 export { parseStyle } from './css';
 export type { StyleDeclaration } from './css';
 
