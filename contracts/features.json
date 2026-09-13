@@ -489,7 +489,7 @@
       "owner": "@crudui/generator-core",
       "signature": "connectOutline(element, form, formElement) -> FormConnection",
       "input": "rendered structure map, form instance and rendered form host",
-      "output": "event connection that runs map actions, scrolls to the selected row and marks the form's current row in the map",
+      "output": "event connection that runs map actions and focuses the selected form row",
       "errors": [
         "TypeError",
         "FormError"
@@ -515,109 +515,6 @@
         {
           "id": "test-1",
           "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
-        }
-      ]
-    },
-    {
-      "id": "connectRows",
-      "owner": "@crudui/generator-core",
-      "signature": "connectRows(element) -> RowTracking",
-      "input": "rendered form host",
-      "output": "row tracking that marks rows at their sticky line and the current row, dispatches crudui-current when it changes and publishes the end row lengths for the space after the form",
-      "errors": [
-        "TypeError"
-      ],
-      "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs"
-      ],
-      "support": {
-        "javascript-dom": "pass",
-        "react": "pass",
-        "vue": "pass",
-        "svelte": "pass"
-      },
-      "status": "implemented",
-      "state": "data-crudui-stuck and data-crudui-current attributes from the scroll position",
-      "tests": [
-        "tests/form-styles.test.mjs",
-        "examples/form-comparison/src/bind-form-controller.test.mjs"
-      ],
-      "docs": [
-        "docs/spec/form-markup.md",
-        "docs/spec/form-runtime.md"
-      ],
-      "verification": [
-        {
-          "id": "test-1",
-          "command": "node --test tests/form-styles.test.mjs"
-        }
-      ]
-    },
-    {
-      "id": "markOutline",
-      "owner": "@crudui/generator-core",
-      "signature": "markOutline(outline, form) -> void",
-      "input": "rendered structure map and the element holding the tracked form rows",
-      "output": "aria-current on the map row of the form's current row",
-      "errors": [
-        "TypeError"
-      ],
-      "fixtures": [
-        "tests/fixtures/form-outline/cases.json"
-      ],
-      "support": {
-        "javascript-dom": "pass",
-        "react": "pass",
-        "vue": "pass",
-        "svelte": "pass"
-      },
-      "status": "implemented",
-      "state": "aria-current attributes from the form's data-crudui-current row",
-      "tests": [
-        "tests/form-styles.test.mjs"
-      ],
-      "docs": [
-        "docs/spec/form-markup.md"
-      ],
-      "verification": [
-        {
-          "id": "test-1",
-          "command": "node --test tests/form-styles.test.mjs"
-        }
-      ]
-    },
-    {
-      "id": "alignRow",
-      "owner": "@crudui/generator-core",
-      "signature": "alignRow(row) -> void",
-      "input": "rendered form row element",
-      "output": "the row scrolled so its header sits on its sticky line",
-      "errors": [
-        "TypeError"
-      ],
-      "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs"
-      ],
-      "support": {
-        "javascript-dom": "pass",
-        "react": "pass",
-        "vue": "pass",
-        "svelte": "pass"
-      },
-      "status": "implemented",
-      "state": "scroll position only",
-      "tests": [
-        "tests/form-styles.test.mjs",
-        "examples/form-comparison/src/bind-form-controller.test.mjs"
-      ],
-      "docs": [
-        "docs/spec/form-markup.md",
-        "docs/spec/form-runtime.md"
-      ],
-      "verification": [
-        {
-          "id": "test-1",
-          "command": "node --test tests/form-styles.test.mjs"
         }
       ]
     },

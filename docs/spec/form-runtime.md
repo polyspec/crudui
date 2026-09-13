@@ -159,16 +159,12 @@ the moved row. Removing focuses the previous row, then the next row, then the
 enclosing row, then the collection's Add button. Focus goes to the row's first
 enabled visible input, or to its toggle or Add button when it has none.
 
-One rule decides the current row: the scroll position. The current row is the last
-row whose top reached its sticky line (`connectRows`); the pinned labels, the
-structure map's marked row and the highlighted border all follow it. The current row
-is not instance state: following it only marks rows, so scrolling changes no state
-and renders nothing. Moving to a row, after a row operation or from the structure
-map, is scrolling that row (or the Add button of an emptied collection) to its line
-with `alignRow`. Focus and typing never scroll or change the current row, and the
-bindings never restore scroll positions. The stylesheet
-lets the last row reach its line and no further. Toggling, selecting and undoing
-keep the focused control, including a focused action button.
+Moving to a row, after a row operation or from the structure map, is focusing that
+row's control (or the Add button of an emptied collection); the browser scrolls it
+into view only as far as needed, and the stylesheet's scroll margins keep it clear of
+the sticky headers and the footer. No script follows the scroll position, and the
+bindings never restore scroll positions. Toggling, selecting and undoing keep the
+focused control, including a focused action button, without scrolling.
 
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,
