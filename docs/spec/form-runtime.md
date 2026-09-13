@@ -11,7 +11,8 @@ child definition per nested group. Repeated groups do not require example rows.
 The template can be serialized as JSON and reused by multiple form instances.
 
 `bindForm(template, data, options)` evaluates values, language and display
-conditions. It returns field view models without modifying the template or data.
+conditions. It returns node view models, defined by the [form markup](form-markup.md),
+without modifying the template or data.
 It does not load composition files. Evaluated values and display conditions are
 instance state and must not be stored in a shared template cache.
 
@@ -104,9 +105,28 @@ scope. Key collisions, unknown rows and invalid positions fail without changing
 the current data or view. `multiple.min` and `multiple.max` constrain row count.
 
 Missing repeated data creates one editable row. Explicit `{}` means zero rows.
-Removing the last row leaves an add button. Adding a row does not restore deleted
+Removing the last row leaves the collection's `add-row` control. Adding a row does not restore deleted
 data. Default values apply only when input data is missing.
 Rendering rules are defined in [empty collections](empty-collections.md).
+
+## View state and history
+
+An editable instance also owns view state and an undo history, separate from the
+record. View state is never submitted or serialized with the data.
+
+| Operation | Result |
+| --- | --- |
+| `toggleRow(path, key)` | Expand or collapse one row. |
+| `setAllExpanded(expanded)` | Expand or collapse every collapsible row. |
+| `selectRow(path, key)` | Select one row for the structure map. |
+| `undo()` | Restore the record before the last data change; fails when nothing can be undone. |
+
+The snapshot reports `canUndo` and `selection`. History keeps up to 100 records.
+Consecutive `setValue` calls on the same path share one entry. `setData` restarts
+history, collapsed rows and selection. Removing a row drops its view state;
+rekeying a row moves it to the new key. View changes do not change `revision`.
+Server rendering uses the initial view: every row expanded and no selection. The
+[form markup](form-markup.md) defines the structure map and data view.
 
 ## Rendering and validation
 

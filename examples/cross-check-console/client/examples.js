@@ -38,7 +38,7 @@ properties:
   {
     id: 'complex',
     name: 'complex — condition-map min + design.show + i18n + multiple rows',
-    note: 'condition-map min:{".vip":10, true:1} (first-truthy), design.show ".subscribe", bilingual label, multiple:true two rows (data-uniqid 0/1, clone-element). VIP qty=5 < 10 → invalid@qty:min.',
+    note: 'condition-map min:{".vip":10, true:1} (first-truthy), design.show ".subscribe", bilingual label, multiple:true two keyed row nodes (data-crudui-row-key). VIP qty=5 < 10 → invalid@qty:min.',
     spec: `type: group
 properties:
   vip:

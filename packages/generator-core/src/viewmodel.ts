@@ -1,19 +1,18 @@
-/** Evaluate prepared form fields, values and conditions for framework adapters. */
+/** Evaluate prepared form fields, values and conditions into the node grammar. */
 
 import {
-  elementId,
   controlId,
   getValueByPath,
   joinClass,
   parsePathString,
   styleString,
   toBracketNotationWithPrefix,
-  wrapperLayerName,
 } from './util';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { makeContext } from './expr';
 import { UnsupportedFieldTypeError } from './errors';
 import type { Translate } from './content';
+import { formatCount, type FormMessages } from './messages';
 import { evalWidget, type WidgetCtx, type WidgetModel } from './widget';
 import type { FormFieldTemplate } from './form';
 
@@ -23,42 +22,25 @@ export type UnsupportedMode = 'throw' | 'marker';
 /** Per-build state threaded through the recursive tree builder. */
 export interface BuildState {
   /** Stable DOM identifier prefix. */
-  idPrefix?: string;
+  idPrefix: string;
   /** The root form data (the expr engine's formData). */
   data: Record<string, unknown>;
   /** Optional name/id prefix. */
   keyPrefix?: string;
   /** Content translator (active language). */
   t: Translate;
+  /** Interface text (active language). */
+  messages: FormMessages;
   /** Unsupported-type handling (default 'throw' — never silent). */
   unsupported: UnsupportedMode;
   /** Repeated path segment positions, independent of their key encoding. */
   rowSegments?: readonly number[];
-}
-
-/** Discriminator for the four field shapes. */
-export type FieldShape = 'leaf' | 'group' | 'multiple-leaf' | 'multiple-group' | 'lang';
-
-/** One repeated row and its evaluated fields. */
-export interface RowVM {
-  /** Row key used by the framework adapter and row operations. */
-  uniqid: string;
-  /** input-group-wrapper class for this row (clone-element when index>0). */
-  wrapperClass: string;
-  /** Leaf widget for a multiple-leaf row, else undefined. */
-  widget?: WidgetModel | UnsupportedVM;
-  /** .form-group class for a multiple-group row, else undefined. */
-  groupClass?: string;
-  /** Child fields for a multiple-group row, else undefined. */
-  children?: FieldViewModel[];
-}
-
-/** One language child of a lang field. */
-export interface LangChildVM {
-  /** Language code. */
-  code: string;
-  /** Evaluated language input. */
-  widget: WidgetModel | UnsupportedVM;
+  /** One-based positions of the enclosing repeated rows. */
+  rowNumbers?: readonly number[];
+  /** Number of enclosing rows with a sticky header. */
+  stickyDepth?: number;
+  /** Row paths rendered collapsed. */
+  collapsed?: ReadonlySet<string>;
 }
 
 /** A surfaced unsupported-type marker (only in 'marker' mode). */
@@ -69,57 +51,121 @@ export interface UnsupportedVM {
   type: string;
 }
 
-/** The fully-evaluated, markup-free description of one field node. */
-export interface FieldViewModel {
-  /** Field shape (how the adapter dispatches). */
-  shape: FieldShape;
-  /** Resolved field type. */
-  type: string;
-  /** Field path (debug/key). */
-  path: string;
-  /** Wrapper `name` attribute (`{dotName}-layer`). */
-  wrapperName: string;
-  /** data-uniqid for the single wrapper (leaf/group/lang). */
-  uniqid: string;
-  /** Resolved design (show + per-node appearance). */
-  design: ResolvedDesign;
-  /** Translated label, or undefined (hidden omits it). */
+/** Node kinds of the form grammar; each is a `crudui-node--{kind}` modifier. */
+export type NodeKind = 'field' | 'group' | 'collection' | 'row' | 'lang' | 'lang-item';
+
+/** Row and collection operations in control order. */
+export type RowActionName = 'move-up' | 'move-down' | 'add-row' | 'copy-row' | 'remove-row';
+
+/** One control button. */
+export interface ActionVM {
+  /** Operation name (`data-crudui-action`). */
+  name: RowActionName;
+  /** Accessible label. */
+  label: string;
+  /** Whether the operation is unavailable for the current data. */
+  disabled: boolean;
+}
+
+/** Where row controls are rendered. */
+export type ControlsPlacement = 'header' | 'footer' | 'outline';
+
+/** A group of controls for one row or empty collection. */
+export interface ControlsVM {
+  /** Rendering position. */
+  placement: ControlsPlacement;
+  /** Accessible group name. */
+  label: string;
+  /** Buttons in control order. */
+  actions: ActionVM[];
+}
+
+/** Header parts of a node (`crudui-node__header`). */
+export interface NodeHeader {
+  /** Header class (`design.label`). */
+  className: string;
+  /** Header inline style (`design.label`). */
+  style?: string;
+  /** Label text (`__label`). */
   label?: string;
-  /** True when the label must be omitted (hidden type). */
-  omitLabel: boolean;
-  /** Translated description, or undefined. */
+  /** Control identifier the label targets; absent renders a span. */
+  labelFor?: string;
+  /** Description text (`__description`). */
   description?: string;
-  /** Leaf widget model (leaf shape), or marker. */
-  widget?: WidgetModel | UnsupportedVM;
-  /** checkbox/switcher special envelope flag. */
-  checkbox?: boolean;
-  /** checkbox bracket name + caption (checkbox/switcher only). */
-  checkboxName?: string;
-  /** DOM identifier for a standalone checkbox. */
-  checkboxId?: string;
-  /** checkbox main class (valid-target + design.main). */
-  checkboxClass?: string;
+  /** Row number (`__number`). */
+  number?: string;
+  /** Row title (`__title`) or language section title. */
+  title?: string;
+  /** Collapsed row summary (`__summary`). */
+  summary?: string;
+  /** Collection row count (`__count`). */
+  count?: string;
+}
+
+/** Body slot of a node (`crudui-node__body`). */
+export interface NodeBody {
+  /** Body class (`design.group` for groups and group rows). */
+  className: string;
+  /** Body inline style. */
+  style?: string;
+  /** Body identifier targeted by a row toggle. */
+  id?: string;
+}
+
+/** A standalone checkbox or switcher whose caption is its own label. */
+export interface CheckboxVM {
+  /** Control identifier. */
+  id: string;
+  /** Submission name. */
+  name: string;
+  /** Control class. */
+  className: string;
   /** Checked state from the bound data. */
-  checkboxChecked?: boolean;
-  /** Group children (group shape). */
-  children?: FieldViewModel[];
-  /** .form-group class + style (group shape). */
-  groupClass?: string;
-  /** Resolved group inline style. */
-  groupStyle?: string;
-  /** Repeated rows (multiple-leaf/multiple-group shape). */
-  rows?: RowVM[];
-  /** Row buttons settings (multiple shape). */
-  multiple?: MultipleSettings;
-  /** Lang container (lang shape). */
-  lang?: {
-    /** Language container class. */
-    groupClass: string;
-    /** Translated language section title. */
-    title?: string;
-    /** One input model per language. */
-    children: LangChildVM[];
-  };
+  checked: boolean;
+  /** Caption text. */
+  caption: string;
+}
+
+/** One evaluated node of the recursive form grammar. */
+export interface NodeVM {
+  /** Node kind. */
+  kind: NodeKind;
+  /** Data path relative to the form root (field, group, collection and lang nodes). */
+  path?: string;
+  /** Row key (row nodes). */
+  key?: string;
+  /** Language code (lang-item nodes). */
+  lang?: string;
+  /** Root class (`design.wrapper`). */
+  className: string;
+  /** Root inline style (`design.wrapper`). */
+  style?: string;
+  /** Whether `design.show` hides the node. */
+  hidden: boolean;
+  /** Header slot, present only with content. */
+  header?: NodeHeader;
+  /** Body slot. */
+  body: NodeBody;
+  /** Row or empty collection controls. */
+  controls?: ControlsVM;
+  /** Collection item kind. */
+  item?: 'field' | 'group';
+  /** Whether a row body contains child nodes that can be collapsed. */
+  collapsible?: boolean;
+  /** Whether a collapsible row is expanded. */
+  expanded?: boolean;
+  /** Accessible label of the row toggle. */
+  toggleLabel?: string;
+  /** Whether the row header sticks while scrolling. */
+  sticky?: boolean;
+  /** Number of enclosing sticky row headers. */
+  stickyDepth?: number;
+  /** Widget of a field, scalar row or language item. */
+  widget?: WidgetModel | UnsupportedVM;
+  /** Standalone checkbox or switcher. */
+  checkbox?: CheckboxVM;
+  /** Child nodes in the body. */
+  children?: NodeVM[];
 }
 
 // ---------------------------------------------------------------------------
@@ -127,34 +173,30 @@ export interface FieldViewModel {
 // ---------------------------------------------------------------------------
 
 /** Evaluated controls and limits for a repeated field. */
-export interface MultipleSettings {
-  /** Whether repeated rows and their controls are displayed. */
-  show: boolean;
-  /** Minimum allowed row count. */
+interface MultipleSettings {
   min?: number;
-  /** Maximum allowed row count. */
   max?: number;
-  /** Whether the adapter provides row copy controls. */
-  copy?: boolean;
-  /** Whether the adapter provides row reordering controls. */
-  sortable?: boolean;
+  copy: boolean;
+  sortable: boolean;
+  title?: string;
+  controls: ControlsPlacement;
+  header: 'static' | 'sticky';
 }
 
 function resolveMultiple(spec: Record<string, unknown>): MultipleSettings | null {
   const m = spec.multiple;
-  if (m === undefined || m === false) return null;
-  if (m === true) return { show: true };
-  if (typeof m === 'object' && !Array.isArray(m)) {
-    const o = m as Record<string, unknown>;
-    return {
-      show: true,
-      min: typeof o.min === 'number' ? o.min : undefined,
-      max: typeof o.max === 'number' ? o.max : undefined,
-      copy: o.copy === true,
-      sortable: o.sortable === true,
-    };
-  }
-  return null;
+  if (m === true) return { copy: false, sortable: false, controls: 'header', header: 'static' };
+  if (!m || typeof m !== 'object' || Array.isArray(m)) return null;
+  const o = m as Record<string, unknown>;
+  return {
+    ...(typeof o.min === 'number' ? { min: o.min } : {}),
+    ...(typeof o.max === 'number' ? { max: o.max } : {}),
+    copy: o.copy === true,
+    sortable: o.sortable === true,
+    ...(typeof o.title === 'string' ? { title: o.title } : {}),
+    controls: o.controls === 'footer' || o.controls === 'outline' ? o.controls : 'header',
+    header: o.header === 'sticky' ? 'sticky' : 'static',
+  };
 }
 
 const DEFAULT_LANGS = ['ko', 'en', 'ja', 'zh'];
@@ -183,20 +225,13 @@ function resolveLang(spec: Record<string, unknown>): LangSettings | null {
   return null;
 }
 
-interface RowIdentity {
-  seg: string;
-  uniqid: string;
-}
-
 /** Row keys of a keyed collection. Missing data has one initial row. */
-function rowIdentities(value: unknown, path: string): RowIdentity[] {
-  if (value === undefined) {
-    return [{ seg: '__0000000000000__', uniqid: '__0000000000000__' }];
-  }
+function rowKeys(value: unknown, path: string): string[] {
+  if (value === undefined) return ['__0000000000000__'];
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`Repeated data must be a keyed object: ${path}`);
   }
-  return Object.keys(value).map((k) => ({ seg: k, uniqid: k }));
+  return Object.keys(value);
 }
 
 /** Present group data, including a repeated group row, must be an object. */
@@ -206,12 +241,35 @@ function checkGroupData(value: unknown, path: string): void {
   }
 }
 
-function inputGroupWrapperClass(design: ResolvedDesign, rowIndex = 0): string {
-  return joinClass(
-    'input-group-wrapper',
-    rowIndex > 0 ? 'clone-element' : '',
-    design.wrapper.class
-  );
+// ---------------------------------------------------------------------------
+// Node parts
+// ---------------------------------------------------------------------------
+
+function nodeRoot(kind: NodeKind, path: string, design: ResolvedDesign): Pick<NodeVM, 'kind' | 'path' | 'className' | 'style' | 'hidden'> {
+  const style = styleString(design.wrapper.style);
+  return { kind, path, className: design.wrapper.class, ...(style ? { style } : {}), hidden: !design.show };
+}
+
+/** Header with the given parts, or undefined when every part is empty. */
+function nodeHeader(parts: Omit<NodeHeader, 'className' | 'style'>, design?: ResolvedDesign): NodeHeader | undefined {
+  const present = Object.entries(parts).filter(([, value]) => value !== undefined && value !== '');
+  if (!present.length) return undefined;
+  const style = design ? styleString(design.label.style) : undefined;
+  return { className: design?.label.class ?? '', ...(style ? { style } : {}), ...Object.fromEntries(present) };
+}
+
+function nodeBody(className = '', style?: string, id?: string): NodeBody {
+  const resolved = styleString(style);
+  return { className, ...(resolved ? { style: resolved } : {}), ...(id ? { id } : {}) };
+}
+
+function action(name: RowActionName, label: string, disabled: boolean): ActionVM {
+  return { name, label, disabled };
+}
+
+function labelTarget(widget: WidgetModel | UnsupportedVM): string | undefined {
+  if ('unsupported' in widget) return undefined;
+  return widget.extra?.file?.id ?? widget.attrs.id;
 }
 
 // ---------------------------------------------------------------------------
@@ -245,38 +303,25 @@ function buildWidget(
 }
 
 // ---------------------------------------------------------------------------
-// field tree builder
+// Node tree builder
 // ---------------------------------------------------------------------------
 
-/** Build the view model for one already-composed field spec. */
+/** Build the node for one already-composed field spec. */
 export function buildField(
   spec: Record<string, unknown>,
   path: string,
   state: BuildState,
   children: readonly FormFieldTemplate[]
-): FieldViewModel {
-  const fieldType = String(spec.type ?? '');
-  const ctx = makeContext(parsePathString(path), state.data);
-  const design = resolveDesign(spec.design, ctx);
+): NodeVM {
+  const design = resolveDesign(spec.design, makeContext(parsePathString(path), state.data));
   const label = spec.label ? state.t(spec.label as never) : undefined;
   const description = spec.description ? state.t(spec.description as never) : undefined;
-  const wrapperName = wrapperLayerName(path, state.keyPrefix);
-
-  if (fieldType === 'group') {
-    return buildGroup(spec, path, design, label, description, state, children);
-  }
-
   const multiple = resolveMultiple(spec);
-  if (multiple) {
-    return buildMultipleLeaf(spec, path, design, label, description, multiple, state);
-  }
-
+  if (multiple) return buildCollection(spec, path, design, label, description, multiple, state, children);
+  if (spec.type === 'group') return buildGroup(path, design, label, description, state, children);
   const lang = resolveLang(spec);
-  if (lang) {
-    return buildLangLeaf(spec, path, design, label, description, lang, state);
-  }
-
-  return buildLeaf(spec, path, design, label, description, wrapperName, state);
+  if (lang) return buildLang(spec, path, design, label, description, lang, state);
+  return buildLeaf(spec, path, design, label, description, state);
 }
 
 function buildLeaf(
@@ -285,168 +330,150 @@ function buildLeaf(
   design: ResolvedDesign,
   label: string | undefined,
   description: string | undefined,
-  wrapperName: string,
   state: BuildState
-): FieldViewModel {
+): NodeVM {
   const fieldType = String(spec.type ?? '');
-  const uniqid = elementId('', path);
   const value = getValueByPath(state.data, path);
-
-  // checkbox / switcher special envelope.
+  const root = nodeRoot('field', path, design);
   if (fieldType === 'checkbox' || fieldType === 'switcher') {
+    const header = nodeHeader({ description }, design);
     return {
-      shape: 'leaf',
-      type: fieldType,
-      path,
-      wrapperName,
-      uniqid,
-      design,
-      label,
-      omitLabel: false,
-      description: description || undefined,
-      checkbox: true,
-      checkboxId: controlId(state.idPrefix ?? 'crudui', path),
-      checkboxName: toBracketNotationWithPrefix(path, state.keyPrefix),
-      checkboxClass: joinClass('valid-target', design.main.class),
-      checkboxChecked: value === true || value === 1 || value === '1' ||
-        (value === undefined && (spec.default === true || spec.default === 1 || spec.default === '1')),
+      ...root,
+      ...(header ? { header } : {}),
+      body: nodeBody(),
+      checkbox: {
+        id: controlId(state.idPrefix, path),
+        name: toBracketNotationWithPrefix(path, state.keyPrefix),
+        className: joinClass('valid-target', design.main.class),
+        checked: value === true || value === 1 || value === '1' ||
+          (value === undefined && (spec.default === true || spec.default === 1 || spec.default === '1')),
+        caption: label ?? '',
+      },
     };
   }
-
-  return {
-    shape: 'leaf',
-    type: fieldType,
-    path,
-    wrapperName,
-    uniqid,
-    design,
-    label,
-    omitLabel: fieldType === 'hidden',
-    description: description || undefined,
-    widget: buildWidget(spec, value, path, design, state),
-  };
+  const widget = buildWidget(spec, value, path, design, state);
+  if (fieldType === 'hidden') return { ...root, body: nodeBody(), widget };
+  const labelFor = label ? labelTarget(widget) : undefined;
+  const header = nodeHeader({ label, ...(labelFor ? { labelFor } : {}), description }, design);
+  return { ...root, ...(header ? { header } : {}), body: nodeBody(), widget };
 }
 
 function buildGroup(
-  spec: Record<string, unknown>,
   path: string,
   design: ResolvedDesign,
   label: string | undefined,
   description: string | undefined,
   state: BuildState,
-  templateChildren: readonly FormFieldTemplate[]
-): FieldViewModel {
-  const multiple = resolveMultiple(spec);
-  if (multiple) {
-    return buildMultipleGroup(spec, path, design, label, description, multiple, state, templateChildren);
-  }
-
+  templates: readonly FormFieldTemplate[]
+): NodeVM {
   checkGroupData(getValueByPath(state.data, path), path);
-  const wrapperName = wrapperLayerName(path, state.keyPrefix);
-  const uniqid = elementId('', path);
-  const groupClass = joinClass('form-group', design.group.class);
-  const groupStyle = styleString(design.group.style);
-
-  const children = buildChildren(path, state, templateChildren);
-
+  const header = nodeHeader({ label, description }, design);
   return {
-    shape: 'group',
-    type: 'group',
-    path,
-    wrapperName,
-    uniqid,
-    design,
-    label,
-    omitLabel: false,
-    description: description || undefined,
-    groupClass,
-    groupStyle,
-    children,
+    ...nodeRoot('group', path, design),
+    ...(header ? { header } : {}),
+    body: nodeBody(design.group.class, design.group.style),
+    children: buildChildren(path, state, templates),
   };
 }
 
-function buildMultipleLeaf(
+function buildCollection(
   spec: Record<string, unknown>,
   path: string,
   design: ResolvedDesign,
   label: string | undefined,
   description: string | undefined,
-  multiple: MultipleSettings,
-  state: BuildState
-): FieldViewModel {
-  const fieldType = String(spec.type ?? '');
-  const wrapperName = wrapperLayerName(path, state.keyPrefix);
-  const value = getValueByPath(state.data, path);
-  const identities = rowIdentities(value, path);
-  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), parsePathString(path).length] };
+  settings: MultipleSettings,
+  state: BuildState,
+  templates: readonly FormFieldTemplate[]
+): NodeVM {
+  const keys = rowKeys(getValueByPath(state.data, path), path);
+  const item = spec.type === 'group' ? 'group' : 'field';
+  const full = settings.max !== undefined && keys.length >= settings.max;
+  const rows = keys.map((key, index) => buildRow(spec, path, key, index, keys.length, item, label, settings, state, templates));
+  const header = nodeHeader({ label, description, count: formatCount(state.messages.count, keys.length) }, design);
+  return {
+    ...nodeRoot('collection', path, design),
+    ...(header ? { header } : {}),
+    body: nodeBody(),
+    item,
+    ...(keys.length === 0 ? {
+      controls: {
+        placement: settings.controls === 'outline' ? 'outline' : 'footer',
+        label: state.messages.collectionControls,
+        actions: [action('add-row', state.messages.addRow, full)],
+      },
+    } : {}),
+    children: rows,
+  };
+}
 
-  const rows: RowVM[] = identities.map((row, rowIndex) => {
-    const rowPath = `${path}.${row.seg}`;
-    const rowCtx = makeContext(parsePathString(rowPath), state.data);
-    const rowDesign = resolveDesign(spec.design, rowCtx);
+function buildRow(
+  spec: Record<string, unknown>,
+  collectionPath: string,
+  key: string,
+  index: number,
+  count: number,
+  item: 'field' | 'group',
+  label: string | undefined,
+  settings: MultipleSettings,
+  state: BuildState,
+  templates: readonly FormFieldTemplate[]
+): NodeVM {
+  const messages = state.messages;
+  const rowPath = `${collectionPath}.${key}`;
+  const rowDesign = resolveDesign(spec.design, makeContext(parsePathString(rowPath), state.data));
+  const numbers = [...(state.rowNumbers ?? []), index + 1];
+  const sticky = settings.header === 'sticky';
+  const rowState: BuildState = {
+    ...state,
+    rowSegments: [...(state.rowSegments ?? []), parsePathString(collectionPath).length],
+    rowNumbers: numbers,
+    stickyDepth: (state.stickyDepth ?? 0) + (sticky ? 1 : 0),
+  };
+  const full = settings.max !== undefined && count >= settings.max;
+  const actions: ActionVM[] = [];
+  if (settings.sortable) {
+    actions.push(action('move-up', messages.moveUp, index === 0), action('move-down', messages.moveDown, index === count - 1));
+  }
+  actions.push(action('add-row', messages.addRow, full));
+  if (settings.copy) actions.push(action('copy-row', messages.copyRow, full));
+  actions.push(action('remove-row', messages.removeRow, settings.min !== undefined && count <= settings.min));
+  const row = {
+    kind: 'row' as const,
+    key,
+    className: '',
+    hidden: false,
+    controls: { placement: settings.controls, label: messages.rowControls, actions },
+    ...(sticky ? { sticky: true, stickyDepth: state.stickyDepth ?? 0 } : {}),
+  };
+  const number = numbers.join('.');
+  if (item === 'field') {
     return {
-      uniqid: row.uniqid,
-      wrapperClass: inputGroupWrapperClass(rowDesign, rowIndex),
+      ...row,
+      header: { className: '', ...(label ? { label } : {}), number },
+      body: nodeBody(),
       widget: buildWidget(spec, getValueByPath(state.data, rowPath), rowPath, rowDesign, rowState),
     };
-  });
-
+  }
+  checkGroupData(getValueByPath(state.data, rowPath), rowPath);
+  const children = buildChildren(rowPath, rowState, templates);
+  const nested = children.filter(child => child.kind === 'collection');
+  const summary = nested.length
+    ? formatCount(messages.children, nested.reduce((total, child) => total + (child.children?.length ?? 0), 0))
+    : messages.collapsed;
+  let title: string | undefined;
+  if (settings.title !== undefined) {
+    const value = getValueByPath(state.data, `${rowPath}.${settings.title}`);
+    title = value === undefined || value === null || value === '' ? messages.untitled : String(value);
+  }
   return {
-    shape: 'multiple-leaf',
-    type: fieldType,
-    path,
-    wrapperName,
-    uniqid: elementId('', path),
-    design,
-    label,
-    omitLabel: fieldType === 'hidden',
-    description: description || undefined,
-    rows,
-    multiple,
-  };
-}
-
-function buildMultipleGroup(
-  spec: Record<string, unknown>,
-  path: string,
-  design: ResolvedDesign,
-  label: string | undefined,
-  description: string | undefined,
-  multiple: MultipleSettings,
-  state: BuildState,
-  templateChildren: readonly FormFieldTemplate[]
-): FieldViewModel {
-  const wrapperName = wrapperLayerName(path, state.keyPrefix);
-  const value = getValueByPath(state.data, path);
-  const identities = rowIdentities(value, path);
-  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), parsePathString(path).length] };
-
-  const rows: RowVM[] = identities.map((row, rowIndex) => {
-    const rowBase = `${path}.${row.seg}`;
-    checkGroupData(getValueByPath(state.data, rowBase), rowBase);
-    const rowCtx = makeContext(parsePathString(rowBase), state.data);
-    const rowDesign = resolveDesign(spec.design, rowCtx);
-    const children = buildChildren(rowBase, rowState, templateChildren);
-    return {
-      uniqid: row.uniqid,
-      wrapperClass: inputGroupWrapperClass(rowDesign, rowIndex),
-      groupClass: joinClass('form-group', rowDesign.group.class),
-      children,
-    };
-  });
-
-  return {
-    shape: 'multiple-group',
-    type: 'group',
-    path,
-    wrapperName,
-    uniqid: elementId('', path),
-    design,
-    label,
-    omitLabel: false,
-    description: description || undefined,
-    rows,
-    multiple,
+    ...row,
+    header: { className: '', ...(label ? { label } : {}), number, ...(title !== undefined ? { title } : {}), summary },
+    body: nodeBody(rowDesign.group.class, rowDesign.group.style, `${controlId(state.idPrefix, rowPath)}:body`),
+    collapsible: true,
+    expanded: !state.collapsed?.has(rowPath),
+    toggleLabel: messages.toggleRow,
+    children,
   };
 }
 
@@ -454,12 +481,12 @@ function buildChildren(
   path: string,
   state: BuildState,
   templates: readonly FormFieldTemplate[]
-): FieldViewModel[] {
+): NodeVM[] {
   return templates.map(field =>
     buildField(field.spec, `${path}.${field.name}`, state, field.children));
 }
 
-function buildLangLeaf(
+function buildLang(
   spec: Record<string, unknown>,
   path: string,
   design: ResolvedDesign,
@@ -467,45 +494,25 @@ function buildLangLeaf(
   description: string | undefined,
   lang: LangSettings,
   state: BuildState
-): FieldViewModel {
-  const fieldType = String(spec.type ?? '');
-  const wrapperName = wrapperLayerName(path, state.keyPrefix);
-  const uniqid = elementId('', path);
-
-  const frameClass = lang.frame ? 'lang-group' : 'lang-group p-0 border-0';
-  const groupClass = joinClass(frameClass, lang.groupClass);
+): NodeVM {
   const title = lang.title ? state.t(lang.title as never) : '';
-
-  const children: LangChildVM[] = lang.langs.map((code) => {
-    const langPath = `${path}.${code}`;
-    const langCtx = makeContext(parsePathString(langPath), state.data);
-    const langDesign = resolveDesign(spec.design, langCtx);
-    return {
-      code,
-      widget: buildWidget(
-        spec,
-        getValueByPath(state.data, langPath),
-        langPath,
-        langDesign,
-        state
-      ),
-    };
-  });
-
+  const header = nodeHeader({ label, description, title }, design);
   return {
-    shape: 'lang',
-    type: fieldType,
-    path,
-    wrapperName,
-    uniqid,
-    design,
-    label,
-    omitLabel: fieldType === 'hidden',
-    description: description || undefined,
-    lang: {
-      groupClass,
-      title: title || undefined,
-      children,
-    },
+    ...nodeRoot('lang', path, design),
+    ...(header ? { header } : {}),
+    body: nodeBody(joinClass(lang.frame ? 'lang-group' : 'lang-group p-0 border-0', lang.groupClass)),
+    children: lang.langs.map((code) => {
+      const langPath = `${path}.${code}`;
+      const langDesign = resolveDesign(spec.design, makeContext(parsePathString(langPath), state.data));
+      return {
+        kind: 'lang-item' as const,
+        lang: code,
+        className: '',
+        hidden: false,
+        header: { className: '', label: code },
+        body: nodeBody(),
+        widget: buildWidget(spec, getValueByPath(state.data, langPath), langPath, langDesign, state),
+      };
+    }),
   };
 }

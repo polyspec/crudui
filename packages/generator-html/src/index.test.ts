@@ -20,7 +20,7 @@ describe('framework-independent form rendering', () => {
     expect(html).toContain('data-field-path="name"');
     expect(html).toContain('value="&lt;Ada &amp; Lin>"');
     expect(html).toContain('<option value="admin" selected="">Admin</option>');
-    expect(html).toContain('class="btn btn-plus"');
+    expect(html).toContain('data-crudui-action="add-row"');
     expect(html).not.toContain('<form');
     expect(after).toBe(before);
   });

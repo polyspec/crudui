@@ -1,12 +1,14 @@
 <script lang="ts">
-  import type { FieldViewModel } from '@crudui/generator-core';
-  import Field from './Field.svelte';
+  import type { NodeVM } from '@crudui/generator-core';
+  import Node from './Node.svelte';
 
-  let { fields, root = $bindable() }: { fields: FieldViewModel[]; root?: HTMLDivElement } = $props();
+  let { fields, root = $bindable() }: { fields: NodeVM[]; root?: HTMLDivElement } = $props();
 </script>
 
-<div class="form-group" bind:this={root}>
-  {#each fields as vm (vm.path)}
-    <Field {vm} />
-  {/each}
+<div class="crudui-form" bind:this={root}>
+  <div class="crudui-form__body">
+    {#each fields as vm (vm.path)}
+      <Node {vm} />
+    {/each}
+  </div>
 </div>

@@ -33,7 +33,7 @@ final class RenderingConformanceTest extends TestCase
             $options = (array) ($case->options ?? new stdClass());
             $template = Generator::compileForm($case->spec, $options);
             $fields = Generator::bindForm($template, $case->data ?? [], $options);
-            $actual = Rendering::element('div', ['class' => 'form-group'], Rendering::fields($fields));
+            $actual = Rendering::form($fields);
         } catch (\Throwable $error) {
             if (!isset($case->expectError)) {
                 throw $error;
@@ -44,7 +44,7 @@ final class RenderingConformanceTest extends TestCase
         }
         self::assertFalse(isset($case->expectError), 'Expected generation error');
         self::assertSame(self::html($case->expected_html), self::html($actual));
-        self::assertSame($actual, Rendering::element('div', ['class' => 'form-group'], Rendering::fields(Generator::bindForm($template, $case->data ?? [], $options))));
+        self::assertSame($actual, Rendering::form(Generator::bindForm($template, $case->data ?? [], $options)));
     }
 
     /** Parse layout structure while retaining all field identifiers, values and script text. */

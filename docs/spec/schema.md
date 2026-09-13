@@ -132,10 +132,14 @@ server pagination. Page metadata is supplied by the caller.
    frameworks; verify editable form behavior with mounted views.
 
 Repeated fields accept `multiple.min` and `multiple.max` as numeric row-count
-limits. Instance collection keys identify rows; the schema does not define hidden
+limits, `multiple.copy` and `multiple.sortable` for row controls, `multiple.title`
+for the child field whose value titles each row, `multiple.controls` for the
+control position (default `header`) and `multiple.header` for static (default) or
+sticky row headers. The [form markup](form-markup.md) defines their rendering.
+Instance collection keys identify rows; the schema does not define hidden
 identity fields. See [form runtime](form-runtime.md) for row operations.
 
-Form compilation rejects a wrong value type in `multiple` and `design` with
+Form compilation rejects a wrong value type in `multiple`, `lang` and `design` with
 `INVALID_FORM_INPUT` and the message `Invalid {key} at {path}: expected
 {expected}`. `{path}` is the field's structural path, such as `companies.name`.
 A condition map is a non-empty object.
@@ -145,6 +149,11 @@ A condition map is a non-empty object.
 | `multiple` | Boolean or object |
 | `multiple.min`, `multiple.max` | Number |
 | `multiple.copy`, `multiple.sortable` | Boolean |
+| `multiple.title` | Name of a direct child of a repeated group that is not repeated, not a group and has no `lang` |
+| `multiple.controls` | `header`, `footer` or `outline` |
+| `multiple.header` | `static` or `sticky` |
+| `lang` | Boolean or object |
+| `lang.only` | List of language-code strings or object |
 | `design` | Boolean or object |
 | `design.show` | Expression, boolean or condition map |
 | `design.class`, `design.style` | String or condition map |

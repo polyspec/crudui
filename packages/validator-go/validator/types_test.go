@@ -66,7 +66,7 @@ func TestRoundTripSlotPolymorphism(t *testing.T) {
 
 	roundTrip(t, `{"multiple":false}`)
 	roundTrip(t, `{"multiple":true}`)
-	roundTrip(t, `{"multiple":{"min":1,"max":5,"copy":true,"sortable":true,"onclick":"add()"}}`)
+	roundTrip(t, `{"multiple":{"min":1,"max":5,"copy":true,"sortable":true,"title":"name","controls":"footer","header":"sticky","onclick":"add()"}}`)
 
 	roundTrip(t, `{"lang":false}`)
 	roundTrip(t, `{"lang":true}`)

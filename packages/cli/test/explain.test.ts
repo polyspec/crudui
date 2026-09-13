@@ -42,7 +42,7 @@ const SPEC = {
     members: {
       type: 'group',
       label: { ko: '구성원', en: 'Members' },
-      multiple: { min: 1, max: 5, sortable: true },
+      multiple: { min: 1, max: 5, sortable: true, title: 'name', header: 'sticky' },
       properties: {
         name: {
           type: 'text',
@@ -102,6 +102,8 @@ descTest('explain — spec → natural-language back-check (역검증)', () => {
     expect(out).toContain('최소 1행'); // multiple.min
     expect(out).toContain('최대 5행'); // multiple.max
     expect(out).toMatch(/정렬/); // sortable
+    expect(out).toContain('행 제목 `name`'); // title
+    expect(out).toContain('고정 헤더'); // header
   });
 
   it('nested group children are explained recursively (members.name)', () => {

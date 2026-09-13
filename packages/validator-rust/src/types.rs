@@ -408,6 +408,15 @@ pub struct MultipleSpec {
     /// Whether rows are sortable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sortable: Option<Value>,
+    /// Direct child field of a repeated group whose value titles each row.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title: Option<Value>,
+    /// Position of row controls: header, footer or outline.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub controls: Option<Value>,
+    /// Static or sticky row headers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub header: Option<Value>,
     /// Click behavior for repeated-row controls.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub onclick: Option<Value>,
@@ -612,11 +621,14 @@ mod tests {
 
     #[test]
     fn multiple_dependency_isolated_under_multiple() {
-        let f = parse(r#"{ "type": "group", "multiple": { "min": 1, "max": 5, "sortable": true } }"#);
+        let f = parse(r#"{ "type": "group", "multiple": { "min": 1, "max": 5, "sortable": true, "title": "name", "controls": "footer", "header": "sticky" } }"#);
         match f.multiple {
             Some(Polymorphic::Config(m)) => {
                 assert_eq!(m.min, Some(Value::from(1)));
                 assert_eq!(m.max, Some(Value::from(5)));
+                assert_eq!(m.title, Some(Value::from("name")));
+                assert_eq!(m.controls, Some(Value::from("footer")));
+                assert_eq!(m.header, Some(Value::from("sticky")));
                 assert!(m.extra.0.is_empty());
             }
             other => panic!("expected multiple config, got {other:?}"),

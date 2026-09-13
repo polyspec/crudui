@@ -109,12 +109,12 @@ describe('form rendering: eval is never used (no legacy condition metadata)', ()
   }
 
   // 3: G4 data identity — a real row id (e.g. people.p1) is preserved verbatim
-  // as data-uniqid in the RAW output, never replaced by a synthesized position
+  // as data-crudui-row-key in the RAW output, never replaced by a synthesized position
   // token (no __13hex__ position-id leakage; README coverage line).
   test('multiple-group-rows — real data row id survives unmasked (G4)', () => {
     const c = cases.find((x) => x.name === 'multiple-group-rows');
     expect(c, 'fixture must contain multiple-group-rows').toBeTruthy();
     const raw = render(c!);
-    expect(raw).toContain('data-uniqid="p1"');
+    expect(raw).toContain('data-crudui-row-key="p1"');
   });
 });

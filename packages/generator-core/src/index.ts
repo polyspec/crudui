@@ -4,21 +4,32 @@ export { compileForm, bindForm } from './form';
 export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
-export { connectForm } from './dom';
+export type { RowSelection } from './instance';
+export { connectForm, connectOutline } from './dom';
 export type { FormConnection } from './dom';
+export { resolveAction, runAction } from './actions';
+export type { FormActionName, ActionTarget } from './actions';
+export { buildOutline } from './outline';
+export type { OutlineCollection, OutlineRow } from './outline';
 export { parseStyle } from './css';
 export type { StyleDeclaration } from './css';
 
 export type {
-  FieldShape,
-  FieldViewModel,
+  NodeVM,
+  NodeKind,
+  NodeHeader,
+  NodeBody,
+  CheckboxVM,
+  ControlsVM,
+  ControlsPlacement,
+  ActionVM as RowActionVM,
+  RowActionName,
   UnsupportedMode,
-  RowVM,
-  LangChildVM,
   UnsupportedVM,
   BuildState,
-  MultipleSettings,
 } from './viewmodel';
+export { LANGUAGES, formMessages, formatCount } from './messages';
+export type { FormMessages } from './messages';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';
 export { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL, hasWidget } from './widget';
 

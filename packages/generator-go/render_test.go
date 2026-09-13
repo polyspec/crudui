@@ -44,7 +44,7 @@ func TestEveryRepeatedControlUsesStructuralRulePaths(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			child := objectList(read(objectList(read(fields[0], "rows"))[0], "children"))[0]
+			child := objectList(read(objectList(read(fields[0], "children"))[0], "children"))[0]
 			w := read(child, "widget")
 			attrs := object(read(w, "attrs"))
 			switch typ {

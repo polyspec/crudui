@@ -83,6 +83,7 @@ export async function buildCRUDUIPhpExtension(options = {}) {
       'src/date.c',
       'src/design.c',
       'src/widget.c',
+      'src/messages.c',
       'src/binding.c',
       'src/html.c',
       'src/render.c',

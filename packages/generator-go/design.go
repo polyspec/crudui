@@ -3,7 +3,6 @@ package generator
 import (
 	"github.com/polyspec/crudui/packages/validator-go/validator/expr"
 	"regexp"
-	"strings"
 )
 
 func evalCondition(s string, data map[string]any, path []string) bool {
@@ -89,16 +88,3 @@ func resolveDesign(v any, data map[string]any, path []string) *Object {
 }
 func nodeClass(design *Object, node string) string { return stringAt(read(design, node), "class") }
 func nodeStyle(design *Object, node string) string { return stringAt(read(design, node), "style") }
-func wrapperStyle(design *Object) string {
-	s := ""
-	if !truthy(read(design, "show")) {
-		s = "display: none"
-	}
-	if extra := strings.TrimSpace(nodeStyle(design, "wrapper")); extra != "" {
-		if s != "" {
-			s += "; "
-		}
-		s += extra
-	}
-	return s
-}

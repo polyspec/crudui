@@ -2,6 +2,55 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Render forms as recursive nodes with row cards
+
+Every form renderer (HTML, React, Vue, Svelte, PHP, Go, Rust and the C PHP
+extension) now produces one recursive node grammar instead of per-shape wrappers.
+Each field, group, collection, row, language field and language item is a
+`crudui-node` with `__header`, `__body` and `__footer` slots. Kinds are modifiers
+(`crudui-node--row`), and behavior reads only `data-field-path`,
+`data-crudui-row-key`, `data-lang`, `data-crudui-action`, `hidden` and ARIA
+attributes. `bindForm` returns `NodeVM[]` with the same JSON model in every
+implementation. The [form markup](docs/spec/form-markup.md) specification defines
+the grammar and records the reference-form behavior that was not adopted.
+
+- **Row cards:** rows show a hierarchical number, an optional title from
+  `multiple.title`, and a count or nested-row summary. Move, add, copy and remove
+  controls come in a fixed order, with disabled states computed from `min`, `max`
+  and position in every renderer; the browser no longer adjusts them after
+  rendering. `multiple.controls` (`header`, `footer`, `outline`) and
+  `multiple.header` (`static`, `sticky`) are declared in the JSON schema, the four
+  validators and the CLI.
+- **Messages:** control labels, counts and summaries come from one ko/en/ja/zh
+  table shared by all implementations.
+- **Runtime:** form instances keep collapsed rows, the selected row and an undo
+  history (100 entries, consecutive edits of one path merged) outside the record
+  data. `buildOutline`, `connectOutline`, `resolveAction` and `runAction` are
+  exported. React, Vue and Svelte provide `Outline` and `DataView`, and the HTML
+  renderer provides `renderOutline` and `renderData`.
+- **Styles:** `@crudui/generator-core/styles.css` holds the grammar styles.
+- **Input rules** in all five implementations: `lang` must be a boolean or an
+  object and `lang.only` a list of language-code strings or an object, at
+  compilation. Binding rejects, in order, a non-string language, a non-string
+  `keyPrefix` or `idPrefix`, an `unsupported` other than `throw` or `marker`, and
+  an unsupported language. Previously TypeScript crashed on `lang: null`, the C
+  extension read past its default language list for non-string `only` entries,
+  and TypeScript treated any `unsupported` string other than `throw` as marker
+  mode while PHP threw.
+- **API changes:** Go `BindOptions.Language`, `IDPrefix`, `KeyPrefix` and
+  `Unsupported` are `any`, `KeyPrefixProvided` is removed, and an empty `IDPrefix`
+  is used as given. Rust `BindOptions` string options are JSON values.
+
+`examples/form-structure` is a local preview of a five-level reference form.
+The form comparison page, the shared DOM scenario and the cross-check console
+now select by attributes.
+
+`make test-native` passed 976 generator checks (195 per implementation plus the
+unchanged-input check), 361 PHP API checks per configuration and 100 validation
+cases in each PHP implementation, after reinstalling the copied PHP validator. `npm run test:forms` passed core 101, HTML 112, React 701, Vue 344,
+Svelte 345 and ten normalizer checks. Form comparison source checks passed 137,
+the cross-check console passed 117 after rebuilding the Go and Rust validator
+binaries, and `make docs-check` passed.
 ## 2026-09-13 — Remove check directories after passing runs
 
 `tests/native-generators/run.mjs` created a `crudui-native-generators-*` build

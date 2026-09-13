@@ -126,11 +126,14 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 5. 4개 언어의 공유 검증 사례와 3개 프레임워크의 SSR 출력을 비교하고 마운트한
    뷰에서 폼 편집 동작을 검증합니다.
 
-반복 필드는 행 개수 제한으로 숫자형 `multiple.min`과 `multiple.max`를
-받습니다. 인스턴스의 컬렉션 키가 행을 식별하며 스키마는 숨김 식별자 필드를
-정의하지 않습니다. 행 연산은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
+반복 필드는 행 개수 제한으로 숫자형 `multiple.min`과 `multiple.max`를,
+행 컨트롤로 `multiple.copy`와 `multiple.sortable`을, 각 행의 제목이 되는 자식 필드로
+`multiple.title`을, 컨트롤 위치로 `multiple.controls`(기본 `header`)를, 행 헤더
+고정 여부로 `multiple.header`(기본 `static`, 또는 `sticky`)를 받습니다. 렌더링은
+[폼 마크업](form-markup.ko.md)에서 정의합니다. 인스턴스의 컬렉션 키가 행을 식별하며
+스키마는 숨김 식별자 필드를 정의하지 않습니다. 행 연산은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
 
-폼 컴파일은 `multiple`과 `design`의 값 형식이 잘못되면 `INVALID_FORM_INPUT`와
+폼 컴파일은 `multiple`, `lang`, `design`의 값 형식이 잘못되면 `INVALID_FORM_INPUT`와
 `Invalid {key} at {path}: expected {expected}` 메시지로 거부합니다. `{path}`는
 `companies.name`처럼 필드의 구조 경로입니다. 조건 맵은 비어 있지 않은 객체입니다.
 
@@ -139,6 +142,11 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 | `multiple` | 불리언 또는 객체 |
 | `multiple.min`, `multiple.max` | 숫자 |
 | `multiple.copy`, `multiple.sortable` | 불리언 |
+| `multiple.title` | 반복 그룹의 직속 자식 중 반복·그룹·`lang`이 아닌 필드 이름 |
+| `multiple.controls` | `header`, `footer` 또는 `outline` |
+| `multiple.header` | `static` 또는 `sticky` |
+| `lang` | 불리언 또는 객체 |
+| `lang.only` | 언어 코드 문자열 목록 또는 객체 |
 | `design` | 불리언 또는 객체 |
 | `design.show` | 표현식, 불리언 또는 조건 맵 |
 | `design.class`, `design.style` | 문자열 또는 조건 맵 |

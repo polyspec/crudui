@@ -107,7 +107,7 @@ function inputGroupVNode(w: WidgetModel): VNode {
  * container is serialized raw (not a vnode) because its own `w.attrs` may carry
  * empty-valued attributes (`data-source-method=""` on a dynamic stub) that Vue
  * would coerce to bare; the per-item inputs carry `data-is-default=""`/`checked=""`
- * the same way. Field injects this at the `.input-group-wrapper` root.
+ * the same way. The node renderer injects this into the node body.
  */
 function btnGroupHtml(w: WidgetModel): string {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
@@ -149,8 +149,8 @@ function displayVNode(w: WidgetModel): VNode {
  * select2 host `<select>` inside `.input-group field-search`. Serialized raw (not
  * vnodes) because the chrome's `nonce=""` and the select's `data-default=""` are
  * empty-valued, and the host select needs `selected="selected"` (legacy select2
- * contract) — all of which Vue's serializer would coerce. Field injects this at
- * the `.input-group-wrapper` root.
+ * contract) — all of which Vue's serializer would coerce. The node renderer
+ * injects this into the node body.
  */
 function searchHtml(w: WidgetModel): string {
   const fieldSearch =
@@ -165,13 +165,13 @@ function searchHtml(w: WidgetModel): string {
 }
 
 // ---------------------------------------------------------------------------
-// root-raw layouts (control is a direct child of .input-group-wrapper)
+// root-raw layouts (control is a direct child of the node body)
 // ---------------------------------------------------------------------------
 
 /**
- * When a widget's control(s) sit DIRECTLY under `.input-group-wrapper` (no
- * widget-level container element), return its raw html so Field injects it at the
- * wrapper root via innerHTML; else null and the widget renders as a real
+ * When a widget's control(s) sit DIRECTLY under the node body (no
+ * widget-level container element), return its raw html so the node renderer injects it
+ * into the body via innerHTML; else null and the widget renders as a real
  * container vnode. Covers bare (datetime/password/hidden/email), host-script
  * (editors/tagify), and button (script + hidden + button) — all carry empty/
  * boolean control attrs Vue would mangle as real vnodes.
@@ -201,8 +201,8 @@ export function widgetRootRaw(w: AnyWidget): string | null {
 
 /**
  * Render one widget model as a real container vnode. Returns null for the
- * root-raw layouts (bare/host-script/button/btn-group/search) — Field renders
- * those via widgetRootRaw at the `.input-group-wrapper` root. Returns the
+ * root-raw layouts (bare/host-script/button/btn-group/search) — the node renderer
+ * renders those via widgetRootRaw in the node body. Returns the
  * unsupported marker as a real vnode.
  */
 export function Widget(w: AnyWidget): VNode | null {
@@ -221,7 +221,7 @@ export function Widget(w: AnyWidget): VNode | null {
     case 'button':
     case 'btn-group':
     case 'search':
-      // Root-raw layouts render at the .input-group-wrapper root (widgetRootRaw).
+      // Root-raw layouts render in the node body (widgetRootRaw).
       return null;
     default:
       return null;

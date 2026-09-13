@@ -124,7 +124,7 @@ test('SSR renderers receive identical generated row identities', async () => {
   const result = await renderAll({ spec, data: {} });
   const identities = result.results.map(rendered => {
     expect(rendered.ok, rendered.error?.message).toBe(true);
-    const keys = [...rendered.html.matchAll(/data-uniqid="([^"]+)"/g)].map(match => match[1]);
+    const keys = [...rendered.html.matchAll(/data-crudui-row-key="([^"]+)"/g)].map(match => match[1]);
     expect(keys.length).toBeGreaterThan(0);
     return keys;
   });
