@@ -26,28 +26,32 @@ function freshKey(rows) {
   throw new Error('Unable to generate an unused row key');
 }
 
-function normalizeRow(field, value) {
-  if (field.spec.type === 'group') return normalizeFields(field.children, value);
+function normalizeRow(field, value, path) {
+  if (field.spec.type === 'group') return normalizeFields(field.children, value, path);
   if (value === undefined) return structuredClone(field.spec.default ?? '');
   return structuredClone(value);
 }
 
-function normalizeFields(fields, value = {}) {
-  if (!record(value)) throw new TypeError('Group data must be an object');
-  const data = structuredClone(value);
+/** Normalize record data; `path` is the full data path, empty at the root. */
+function normalizeFields(fields, value, path = '') {
+  if (value !== undefined && !record(value)) {
+    throw new TypeError(path ? `Group data must be an object: ${path}` : 'Form data must be an object');
+  }
+  const data = value === undefined ? {} : structuredClone(value);
   for (const field of fields) {
     const raw = data[field.name];
+    const fieldPath = path ? `${path}.${field.name}` : field.name;
     if (repeated(field)) {
       if (raw !== undefined && !record(raw)) {
-        throw new TypeError(`Repeated data must be a keyed object: ${field.name}`);
+        throw new TypeError(`Repeated data must be a keyed object: ${fieldPath}`);
       }
       const rows = raw === undefined ? { [freshKey({})]: undefined } : raw;
       data[field.name] = Object.fromEntries(Object.entries(rows).map(([key, row]) => {
         checkKey(key);
-        return [key, normalizeRow(field, row)];
+        return [key, normalizeRow(field, row, `${fieldPath}.${key}`)];
       }));
     } else if (field.spec.type === 'group') {
-      data[field.name] = normalizeFields(field.children, raw);
+      data[field.name] = normalizeFields(field.children, raw, fieldPath);
     } else if (raw === undefined && Object.hasOwn(field.spec, 'default')) {
       data[field.name] = structuredClone(field.spec.default);
     }
@@ -73,9 +77,9 @@ function put(data, segments, value) {
   parent[segments.at(-1)] = value;
 }
 
-function copyRow(field, value) {
+function copyRow(field, value, path) {
   if (field.spec.type !== 'group') return structuredClone(value);
-  const row = normalizeFields(field.children, value);
+  const row = normalizeFields(field.children, value, path);
   for (const child of field.children) {
     if (!repeated(child)) continue;
     const rows = row[child.name];
@@ -83,7 +87,7 @@ function copyRow(field, value) {
     row[child.name] = Object.fromEntries(Object.values(rows).map(item => {
       const key = freshKey(used);
       used[key] = true;
-      return [key, copyRow(child, item)];
+      return [key, copyRow(child, item, `${path}.${child.name}.${key}`)];
     }));
   }
   return row;
@@ -259,10 +263,10 @@ export function bindFormController(element, mount, template, language, initialDa
     if (action === 'minus' && entries.length <= (settings.min ?? 0)) return;
     if (action === 'plus') {
       const created = freshKey(rows);
-      entries.splice(index + 1, 0, [created, normalizeRow(field, undefined)]);
+      entries.splice(index + 1, 0, [created, normalizeRow(field, undefined, `${path}.${created}`)]);
     } else if (action === 'copy') {
       const created = freshKey(rows);
-      entries.splice(index + 1, 0, [created, copyRow(field, rows[key])]);
+      entries.splice(index + 1, 0, [created, copyRow(field, rows[key], `${path}.${created}`)]);
     } else if (action === 'minus') entries.splice(index, 1);
     else {
       const target = index + (action === 'move-up' ? -1 : 1);

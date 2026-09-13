@@ -309,15 +309,26 @@ for (const target of targets) {
     return { error: expected };
   });
 
-  for (const [name, data] of [['array-collection', { companies: [] }], ['null-collection', { companies: null }], ['scalar-collection', { companies: 'one' }], ['nested-array-collection', { companies: { __0000000000001__: { name: 'One', stores: [] } } }]]) await check(target, `bind-reject:${name}`, async () => {
-    const request = { operation: 'bindForm', template: oracle({ operation: 'compileForm', spec: companySpec }), data };
+  const groupSpec = { type: 'group', properties: { address: { type: 'group', properties: { city: { type: 'text' }, geo: { type: 'group', properties: { lat: { type: 'text' } } } } } } };
+  const shapeRejections = [
+    ['array-collection', companySpec, { companies: [] }, 'Repeated data must be a keyed object: companies'],
+    ['null-collection', companySpec, { companies: null }, 'Repeated data must be a keyed object: companies'],
+    ['scalar-collection', companySpec, { companies: 'one' }, 'Repeated data must be a keyed object: companies'],
+    ['nested-array-collection', companySpec, { companies: { [row(1)]: { name: 'One', stores: [] } } }, `Repeated data must be a keyed object: companies.${row(1)}.stores`],
+    ['scalar-group-row', companySpec, { companies: { [row(1)]: 'One' } }, `Group data must be an object: companies.${row(1)}`],
+    ['null-nested-group-row', companySpec, { companies: { [row(1)]: { name: 'One', stores: { [row(2)]: null } } } }, `Group data must be an object: companies.${row(1)}.stores.${row(2)}`],
+    ['scalar-group', groupSpec, { address: 'Seoul' }, 'Group data must be an object: address'],
+    ['array-nested-group', groupSpec, { address: { city: 'Seoul', geo: [] } }, 'Group data must be an object: address.geo'],
+  ];
+  for (const [name, spec, data, message] of shapeRejections) for (const operation of ['bindForm', 'form']) await check(target, `${operation}-shape-reject:${name}`, async () => {
+    const request = { operation, template: oracle({ operation: 'compileForm', spec }), data };
     let expected;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
-    assert.ok(expected, 'JavaScript accepted collection data that is not a keyed object');
+    assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the data shape rejection contract');
     let error;
     try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
-    assert.ok(error, 'Collection data that is not a keyed object was accepted');
-    assert.deepEqual({ code: error.code, message: error.message, at: error.at }, expected);
+    assert.ok(error, 'Data with the wrong shape was accepted');
+    compareError(error, expected);
     return { error: expected };
   });
 

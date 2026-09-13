@@ -88,7 +88,7 @@ func NewForm(template *FormTemplate, data *Object, options BindOptions) (*Form, 
 	if data == nil {
 		input = absent
 	}
-	d, e := f.normalizeFields(t.Fields, input)
+	d, e := f.normalizeFields(t.Fields, input, "")
 	if e != nil {
 		return nil, e
 	}
@@ -136,9 +136,9 @@ func (f *Form) SetData(data *Object) error {
 		return e
 	}
 	if data == nil {
-		return fmt.Errorf("Group data must be an object")
+		return fmt.Errorf("Form data must be an object")
 	}
-	d, e := f.normalizeFields(f.template.Fields, data)
+	d, e := f.normalizeFields(f.template.Fields, data, "")
 	if e != nil {
 		return e
 	}
@@ -154,7 +154,7 @@ func (f *Form) SetValue(path string, value any) error {
 	if e != nil {
 		return e
 	}
-	d, e := f.normalizeFields(f.template.Fields, putAt(f.data, s, copyValue(value)))
+	d, e := f.normalizeFields(f.template.Fields, putAt(f.data, s, copyValue(value)), "")
 	if e != nil {
 		return e
 	}
@@ -193,9 +193,13 @@ func freshKey(used *Object) (string, error) {
 	}
 	return "", fmt.Errorf("Unable to generate an unused row key")
 }
-func (f *Form) normalizeFields(fields []FieldTemplate, value any) (*Object, error) {
+// normalizeFields normalizes record data; path is the full data path, empty at the root.
+func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (*Object, error) {
 	if !isAbsent(value) && object(value) == nil {
-		return nil, fmt.Errorf("Group data must be an object")
+		if path == "" {
+			return nil, fmt.Errorf("Form data must be an object")
+		}
+		return nil, fmt.Errorf("Group data must be an object: %s", path)
 	}
 	data := NewObject()
 	if !isAbsent(value) {
@@ -203,9 +207,13 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any) (*Object, erro
 	}
 	for _, field := range fields {
 		raw := read(data, field.Name)
+		fieldPath := field.Name
+		if path != "" {
+			fieldPath = path + "." + field.Name
+		}
 		if repeated(field) {
 			if !isAbsent(raw) && object(raw) == nil {
-				return nil, fmt.Errorf("Repeated data must be a keyed object: %s", field.Name)
+				return nil, fmt.Errorf("Repeated data must be a keyed object: %s", fieldPath)
 			}
 			rows := NewObject()
 			if isAbsent(raw) {
@@ -213,7 +221,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any) (*Object, erro
 				if e != nil {
 					return nil, e
 				}
-				v, e := f.normalizeRow(field, absent)
+				v, e := f.normalizeRow(field, absent, fieldPath+"."+k)
 				if e != nil {
 					return nil, e
 				}
@@ -223,7 +231,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any) (*Object, erro
 					if e := checkKey(k); e != nil {
 						return nil, e
 					}
-					v, e := f.normalizeRow(field, read(raw, k))
+					v, e := f.normalizeRow(field, read(raw, k), fieldPath+"."+k)
 					if e != nil {
 						return nil, e
 					}
@@ -232,7 +240,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any) (*Object, erro
 			}
 			data.Set(field.Name, rows)
 		} else if stringAt(field.Spec, "type") == "group" {
-			v, e := f.normalizeFields(field.Children, raw)
+			v, e := f.normalizeFields(field.Children, raw, fieldPath)
 			if e != nil {
 				return nil, e
 			}
@@ -243,9 +251,9 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any) (*Object, erro
 	}
 	return data, nil
 }
-func (f *Form) normalizeRow(field FieldTemplate, value any) (any, error) {
+func (f *Form) normalizeRow(field FieldTemplate, value any, path string) (any, error) {
 	if stringAt(field.Spec, "type") == "group" {
-		return f.normalizeFields(field.Children, value)
+		return f.normalizeFields(field.Children, value, path)
 	}
 	if isAbsent(value) {
 		value = read(field.Spec, "default")
@@ -321,7 +329,8 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 	if options.ValueProvided || options.Value != nil {
 		v = options.Value
 	}
-	v, e = f.normalizeRow(field, v)
+	segs, _ := checkedSegments(path)
+	v, e = f.normalizeRow(field, v, strings.Join(append(append([]string{}, segs...), key), "."))
 	if e != nil {
 		return "", e
 	}
@@ -335,7 +344,6 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 	if options.AfterKey == "" {
 		out.Set(key, v)
 	}
-	segs, _ := checkedSegments(path)
 	if e = f.commit(putAt(f.data, segs, out)); e != nil {
 		return "", e
 	}

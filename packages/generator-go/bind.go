@@ -53,6 +53,13 @@ func buildChildren(fields []FieldTemplate, path string, s bindState) ([]*Object,
 	}
 	return out, nil
 }
+// checkGroupData requires present group data, including a repeated group row, to be an object.
+func checkGroupData(value any, path string) error {
+	if !isAbsent(value) && object(value) == nil {
+		return fmt.Errorf("Group data must be an object: %s", path)
+	}
+	return nil
+}
 func repeated(f FieldTemplate) bool {
 	return read(f.Spec, "multiple") == true || object(read(f.Spec, "multiple")) != nil
 }
@@ -130,6 +137,9 @@ func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 			}
 			row := NewObject("uniqid", key, "wrapperClass", joinClass("input-group-wrapper", clone, nodeClass(rd, "wrapper")))
 			if typ == "group" {
+				if e := checkGroupData(getPath(s.data, p), p); e != nil {
+					return nil, e
+				}
 				children, e := buildChildren(f.Children, p, rowState)
 				if e != nil {
 					return nil, e
@@ -149,6 +159,9 @@ func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 		return vm, nil
 	}
 	if typ == "group" {
+		if e := checkGroupData(value, path); e != nil {
+			return nil, e
+		}
 		vm.Set("shape", "group")
 		vm.Set("omitLabel", false)
 		vm.Set("groupClass", joinClass("form-group", nodeClass(d, "group")))
