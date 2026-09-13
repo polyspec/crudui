@@ -40,22 +40,93 @@ pub struct CompileOptions<'a> {
     pub key_prefix: Option<String>,
 }
 
-fn fields(properties: &Map<String, Value>) -> Vec<FieldTemplate> {
-    properties
-        .iter()
-        .filter_map(|(name, value)| {
-            let mut spec = value.as_object()?.clone();
-            let children = spec
-                .shift_remove("properties")
-                .and_then(|v| v.as_object().map(fields))
-                .unwrap_or_default();
-            Some(FieldTemplate {
-                name: name.clone(),
-                spec,
-                children,
-            })
-        })
-        .collect()
+/// A string, or a condition map: a non-empty object.
+fn condition_value(value: &Value) -> bool {
+    value.is_string() || value.as_object().is_some_and(|map| !map.is_empty())
+}
+
+/// Reject a wrong value type in one field's `multiple` and `design` declarations.
+fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
+    let fail = |key: &str, expected: &str| -> FormResult<()> {
+        Err(FormError::input(format!(
+            "Invalid {key} at {path}: expected {expected}"
+        )))
+    };
+    if let Some(multiple) = spec.get("multiple") {
+        if !multiple.is_boolean() && !multiple.is_object() {
+            return fail("multiple", "a boolean or an object");
+        }
+        if let Some(settings) = multiple.as_object() {
+            for key in ["min", "max"] {
+                if settings.get(key).is_some_and(|v| !v.is_number()) {
+                    return fail(&format!("multiple.{key}"), "a number");
+                }
+            }
+            for key in ["copy", "sortable"] {
+                if settings.get(key).is_some_and(|v| !v.is_boolean()) {
+                    return fail(&format!("multiple.{key}"), "a boolean");
+                }
+            }
+        }
+    }
+    if let Some(design) = spec.get("design") {
+        if !design.is_boolean() && !design.is_object() {
+            return fail("design", "a boolean or an object");
+        }
+        if let Some(design) = design.as_object() {
+            if design
+                .get("show")
+                .is_some_and(|v| !v.is_boolean() && !condition_value(v))
+            {
+                return fail("design.show", "an expression, a boolean or a condition map");
+            }
+            for key in ["class", "style"] {
+                if design.get(key).is_some_and(|v| !condition_value(v)) {
+                    return fail(&format!("design.{key}"), "a string or a condition map");
+                }
+            }
+            for node in ["label", "wrapper", "group", "prepend"] {
+                let Some(value) = design.get(node) else {
+                    continue;
+                };
+                let Some(value) = value.as_object() else {
+                    return fail(&format!("design.{node}"), "an object");
+                };
+                for key in ["class", "style"] {
+                    if value.get(key).is_some_and(|v| !condition_value(v)) {
+                        return fail(&format!("design.{node}.{key}"), "a string or a condition map");
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn fields(properties: &Map<String, Value>, parent: &str) -> FormResult<Vec<FieldTemplate>> {
+    let mut out = Vec::new();
+    for (name, value) in properties {
+        let Some(raw) = value.as_object() else {
+            continue;
+        };
+        let path = if parent.is_empty() {
+            name.clone()
+        } else {
+            format!("{parent}.{name}")
+        };
+        check_declarations(raw, &path)?;
+        let mut spec = raw.clone();
+        let children = match spec.shift_remove("properties") {
+            Some(Value::Object(children)) => fields(&children, &path)?,
+            _ => Vec::new(),
+        };
+        out.push(FieldTemplate {
+            name: name.clone(),
+            spec,
+            children,
+        });
+    }
+    Ok(out)
 }
 
 /// Compile a complete form structure before record data is available.
@@ -77,7 +148,7 @@ pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<Fo
     Ok(FormTemplate {
         kind: "crudui/form-template".into(),
         key_prefix: options.key_prefix.clone(),
-        fields: fields(&properties),
+        fields: fields(&properties, "")?,
     })
 }
 

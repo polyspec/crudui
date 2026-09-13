@@ -130,6 +130,24 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 받습니다. 인스턴스의 컬렉션 키가 행을 식별하며 스키마는 숨김 식별자 필드를
 정의하지 않습니다. 행 연산은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
 
+폼 컴파일은 `multiple`과 `design`의 값 형식이 잘못되면 `INVALID_FORM_INPUT`와
+`Invalid {key} at {path}: expected {expected}` 메시지로 거부합니다. `{path}`는
+`companies.name`처럼 필드의 구조 경로입니다. 조건 맵은 비어 있지 않은 객체입니다.
+
+| 키 | 허용 값 |
+| --- | --- |
+| `multiple` | 불리언 또는 객체 |
+| `multiple.min`, `multiple.max` | 숫자 |
+| `multiple.copy`, `multiple.sortable` | 불리언 |
+| `design` | 불리언 또는 객체 |
+| `design.show` | 표현식, 불리언 또는 조건 맵 |
+| `design.class`, `design.style` | 문자열 또는 조건 맵 |
+| `design.label`, `design.wrapper`, `design.group`, `design.prepend` | 객체 |
+| 해당 노드의 `class`와 `style` | 문자열 또는 조건 맵 |
+
+컴파일은 선언 순서로 필드를 검사하며 자식보다 필드를 먼저 검사합니다. 이 버킷의
+알 수 없는 키는 검사하지 않습니다.
+
 ## 위젯과 소스 설정
 
 `options`는 해당 위젯의 설정을 보존합니다. 선언을 허용하는 것이 코어가 외부
