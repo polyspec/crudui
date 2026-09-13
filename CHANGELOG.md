@@ -25,6 +25,23 @@ check timed out waiting for the outermost stuck header before the detection chan
 In Chrome the preview pinned all five levels in order with their labels and no
 overlap.
 
+## 2026-09-13 — Fix comparison checks that failed the four-server candidate run
+
+The first candidate run of the initialization comparison failed 36 of 1,452 PHP
+checks, and the other servers did not run. The empty-collection scenario step
+excluded the Add button of a collection inside a row; that condition came from
+the recursive node change. The bindForm controller focused the new row before
+scrolling it, so the selection render restored the earlier scroll positions and
+left the input outside the frame. It now scrolls first, like core. The createForm
+checks asserted that the main page does not scroll, which contradicts the row
+focus rule for a 1,450px frame; the checks now require the focused input to be
+visible in both the frame viewport and the main page viewport. The local source
+and Chromium suites do not run these checks; only candidate verification does.
+
+The candidate run for e4d1375 then passed: PHP, the PHP extension, Go and Rust each
+passed 1,452 checks with no failure, 5,808 browser checks in total, and the command
+returned status 0.
+
 ## 2026-09-13 — Compare the two initialization paths side by side
 
 The form comparison page now puts the two initialization paths in two columns:
