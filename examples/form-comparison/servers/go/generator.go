@@ -121,7 +121,14 @@ func renderGeneration(request, options *object) (*object, error) {
 	if err := json.Unmarshal(encoded, &template); err != nil {
 		return nil, err
 	}
-	form, err := generator.NewForm(&template, data, generator.BindOptions{IDPrefix: values["idPrefix"], Language: values["language"], KeyPrefix: values["keyPrefix"], KeyPrefixProvided: options.Has("keyPrefix"), Unsupported: values["unsupported"]})
+	// An absent option is nil so the generator applies its default.
+	option := func(name string) any {
+		if options.Has(name) {
+			return values[name]
+		}
+		return nil
+	}
+	form, err := generator.NewForm(&template, data, generator.BindOptions{IDPrefix: option("idPrefix"), Language: option("language"), KeyPrefix: option("keyPrefix"), Unsupported: option("unsupported")})
 	if err != nil {
 		return nil, err
 	}
