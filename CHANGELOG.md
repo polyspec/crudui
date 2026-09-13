@@ -2,6 +2,24 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Fix the build and dependency checks that CI runs
+
+`npm run test:build` and `npm run test:dependencies` were failing, and the form
+suites used during this work did not run them:
+
+- `tests/build/public-types.mts` and `public-types.cts` still named `FieldShape` and
+  `MultipleSettings`, which the node view model removed. They now name the current
+  public types `NodeVM` and `ButtonVM`.
+- The form comparison controller imports `@crudui/generator-core` (since 7a2b73a),
+  but the root package did not declare it. The root package now declares the
+  workspace package as a development dependency.
+- `tests/build/package-consumer-pack.test.mjs` passed paths that do not exist, while
+  `packPackage` reads the source manifest to check the package name (since 07e8f9f).
+  The tests now write a manifest in a temporary directory.
+
+`npm run test:build`, `npm run test:dependencies` and `npm run test:runtimes` passed,
+as did every `tests/build` and `tests/docs` test (67).
+
 ## 2026-09-13 — Remove the Bootstrap-based legacy UI paths
 
 The legacy form components and the original Legacy rendering comparisons were

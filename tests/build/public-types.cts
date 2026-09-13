@@ -19,8 +19,8 @@ const randomKey: string = core.createRowKey();
 const savedKey: string = core.sequenceRowKey('42');
 type PublicTypes = [
   validator.ComposedField, validator.FileSet, validator.ParseErrorContext,
-  validator.ParseResult, core.FormConnection, core.FieldShape,
-  core.MultipleSettings, generator.AnyWidget, generator.ListProps, html.RenderListOptions,
+  validator.ParseResult, core.FormConnection, core.NodeVM,
+  core.ButtonVM, generator.AnyWidget, generator.ListProps, html.RenderListOptions,
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
