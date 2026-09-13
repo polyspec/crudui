@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 레거시 UI와 함께 삭제된 React 폼 세션 테스트 복원
+
+d26ecce가 레거시 FormBuilder 테스트와 함께 같은 파일의
+`packages/generator-react/src/__tests__/Form.test.tsx` 전체를 삭제해, Vue와 Svelte가 실행하는
+공유 초기화·세션 DOM·컨트롤·포커스 시나리오를 React는 실행하지 않게 되었습니다. 레거시 테스트를
+뺀 파일을 복원하고 `compareServerTakeover`도 실행합니다. React는 테스트 350개를 통과합니다.
+
 ## 2026-09-13 — Vue와 Svelte가 서버 렌더링 폼을 바꾸지 않고 넘겨받기
 
 d80a3a0의 첫 후보 검증은 SSR 열에서 실패했습니다. Vue는 조건 블록의 기준점으로 주석 노드를
