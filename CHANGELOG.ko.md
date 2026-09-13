@@ -2,6 +2,27 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — React에서 고정 행을 동일하게 넘겨받기
+
+338d060의 후보 검증은 `browser-php`에서 실패했습니다. React의 SSR 인계가 첫 고정 행에서 달랐는데,
+서버는 그 style을 `--crudui-sticky-depth:0`으로, React는 `--crudui-sticky-depth: 0;`으로 씁니다.
+로컬 공유 인계 테스트는 스펙에 고정 행이 없어 이를 잡지 못했습니다. 저는 고정 행을 비교 예제에만
+선언했습니다.
+
+- `style` 속성은 CSS 선언 블록이므로, 비교 프레임과 `compareServerTakeover`의 인계 비교는 CSS
+  객체 모델이 직렬화한 선언으로 비교합니다.
+- 공유 폼 세션 스펙이 회사와 스토어에 고정 행을 선언하므로 React, Vue, Svelte 폼 테스트가 이를
+  렌더링하고 비교합니다.
+- 이로써 f7f814e부터 있던 React 결함이 드러났습니다. `resolvedStyleProps`는 React가 ref를 호출할
+  때마다, 즉 렌더링마다 style 속성을 지우고 다시 추가했으므로, 다시 렌더링된 행의 style이 브라우저
+  바인딩이 쓴 `data-crudui-current` 뒤로 옮겨졌고, 나중에 데이터를 받은 폼이 데이터와 함께 만든 폼과
+  원시 HTML에서 달랐습니다. 이제 style 속성은 요소가 처음 연결될 때만 렌더링된 속성 뒤에 놓이고,
+  이후 선언은 제자리에서 바뀝니다.
+
+`make format-check`, `npm run test:forms`(core 108, HTML 116, React 350, Vue 341, Svelte 338과
+클라이언트 10), `npm run test:form-comparison:source`, `npm run test:build`,
+`npm run test:dependencies`, `make docs-check`, Chromium 스타일 검사 5개가 통과했습니다.
+
 ## 2026-09-14 — 폼 뒤 여백에 폼 뒤 내용 반영
 
 폼 뒤 여백은 스크롤 컨테이너에서 이미 폼 뒤에 있는 내용을 무시했습니다. 결과 영역이 폼 뒤에

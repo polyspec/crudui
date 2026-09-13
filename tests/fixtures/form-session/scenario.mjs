@@ -6,11 +6,11 @@ export const spec = {
   type: 'group',
   properties: {
     companies: {
-      type: 'group', multiple: { copy: true, sortable: true },
+      type: 'group', multiple: { copy: true, sortable: true, header: 'sticky' },
       properties: {
         name: { type: 'text' },
         stores: {
-          type: 'group', multiple: { copy: true, sortable: true, max: 4 },
+          type: 'group', multiple: { copy: true, sortable: true, max: 4, header: 'sticky' },
           properties: {
             name: { type: 'text', validate: { required: true } },
             enabled: { type: 'checkbox', default: 1 },
