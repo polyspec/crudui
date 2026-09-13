@@ -81,13 +81,14 @@ fn multiple(spec: &Value) -> Option<Value> {
     }
 }
 
-fn rows(value: Option<&Value>) -> Vec<(String, String)> {
+/// Row keys of a keyed collection. Missing data has one initial row.
+fn rows(value: Option<&Value>, path: &str) -> FormResult<Vec<String>> {
     match value {
-        Some(Value::Array(a)) => (0..a.len())
-            .map(|i| (format!("#{i}"), i.to_string()))
-            .collect(),
-        Some(Value::Object(m)) => m.keys().map(|s| (s.clone(), s.clone())).collect(),
-        _ => vec![("#0".into(), "0".into())],
+        None => Ok(vec!["__0000000000000__".into()]),
+        Some(Value::Object(m)) => Ok(m.keys().cloned().collect()),
+        Some(_) => Err(FormError::input(format!(
+            "Repeated data must be a keyed object: {path}"
+        ))),
     }
 }
 
@@ -175,10 +176,10 @@ impl Binding<'_> {
             model["multiple"] = settings;
             let mut nested_segments = row_segments.to_vec();
             nested_segments.push(segments(path).len());
-            let bound = rows(value_at(self.data,path)).into_iter().enumerate().map(|(i,(key,id))| {
+            let bound = rows(value_at(self.data,path), path)?.into_iter().enumerate().map(|(i,key)| {
                 let row_path = format!("{path}.{key}");
                 let row_design = resolve_design(spec.get("design"),self.data,&row_path);
-                let mut row = json!({"uniqid": id, "wrapperClass": join_class(&["input-group-wrapper", if i>0 { "clone-element" } else { "" }, row_design["wrapper"]["class"].as_str().unwrap_or("")])});
+                let mut row = json!({"uniqid": key, "wrapperClass": join_class(&["input-group-wrapper", if i>0 { "clone-element" } else { "" }, row_design["wrapper"]["class"].as_str().unwrap_or("")])});
                 if group {
                     row["groupClass"] = join_class(&["form-group", row_design["group"]["class"].as_str().unwrap_or("")]).into();
                     row["children"] = self.children(&field.children,&row_path,&nested_segments)?.into();

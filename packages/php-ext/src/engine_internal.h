@@ -70,7 +70,6 @@ char *ps_format_date(const char *source, bool datetime);
 char *ps_format_date_pattern(const char *source, const char *pattern);
 bool ps_path_parts(const char *path, char ***parts, size_t *length);
 void ps_path_parts_free(char **parts, size_t length);
-const char *ps_position(const char *segment);
 bool ps_condition_expression(const char *value);
 
 bool ps_html_bytes(ps_html_buffer *out, const char *value, size_t length);

@@ -24,11 +24,10 @@ function renderFixture(item: FixtureCase): string {
 }
 
 describe('framework-independent HTML renderer conformance', () => {
-  // The array-shaped cases exercise the internal layout adapter path. Public
-  // FormInstance data is keyed, so those cases remain covered by framework
-  // renderFields tests and are excluded from this public-instance suite.
+  // A form instance gives missing repeated data a random row key, so the
+  // missing-data case's fixed bindForm key cannot match this public-instance path.
   const publicCases = fixtures.filter((fixture) =>
-    !fixture.expectError && !['multiple-leaf-two-rows', 'multiple-leaf-empty-placeholder', 'multiple-settings-bucket'].includes(fixture.name));
+    !fixture.expectError && fixture.name !== 'multiple-leaf-empty-placeholder');
   for (const item of publicCases) {
     test(item.name, () => {
       expect(normalizeHtml(renderFixture(item))).toBe(item.expected_html);

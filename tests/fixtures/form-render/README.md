@@ -9,10 +9,8 @@ require the recorded composition error.
 
 These fixtures exercise the internal `renderFields` evaluation and rendering
 path. They cover appearance, conditions, composition, translated content,
-language inputs, repetition and widget output. Array-shaped fixture data tests
-layout evaluation; it does not define the public editable form data contract.
-Editable forms use keyed collections as defined in the
-[form runtime](../../../docs/spec/form-runtime.md).
+language inputs, repetition and widget output. Repeated fixture data uses keyed
+collections as defined in the [form runtime](../../../docs/spec/form-runtime.md).
 
 ## Normalization
 

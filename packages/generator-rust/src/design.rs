@@ -1,4 +1,4 @@
-use crate::util::{js_string, position, segments};
+use crate::util::{js_string, segments};
 use crudui_validator::expr::condition_map;
 use crudui_validator::expr::{is_truthy, Evaluator, Expression, Node};
 use crudui_validator::validate::rules::is_condition_expression;
@@ -65,10 +65,7 @@ fn has_ternary_text(s: &str) -> bool {
 pub(crate) fn resolve_design(design: Option<&Value>, data: &Value, path: &str) -> Value {
     let empty = json!({});
     let design = design.filter(|v| v.is_object()).unwrap_or(&empty);
-    let path = segments(path)
-        .iter()
-        .map(|s| position(s).to_owned())
-        .collect::<Vec<_>>();
+    let path = segments(path);
     let node = |value: &Value| {
         json!({
             "class": appearance(value.get("class"),data,&path),

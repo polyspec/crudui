@@ -76,6 +76,7 @@ describe('cached structure and nested row lifecycle', () => {
 
   it('rejects index arrays and keeps row identity on edits', () => {
     expect(() => createForm(compileForm(spec), { companies: [] })).toThrow('keyed object');
+    expect(() => bindForm(compileForm(spec), { companies: [] })).toThrow('Repeated data must be a keyed object: companies');
     const session = createForm(compileForm(spec), data);
     const company = Object.keys(session.getData().companies as object)[0];
     const path = `companies.${company}.stores`;

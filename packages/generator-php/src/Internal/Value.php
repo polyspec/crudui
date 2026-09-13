@@ -44,7 +44,7 @@ final class Value
     public static function path(mixed $value, string $path): mixed
     {
         foreach (self::segments($path) as $part) {
-            $value = self::get($value, self::index($part));
+            $value = self::get($value, $part);
         }
         return $value;
     }
@@ -75,12 +75,6 @@ final class Value
             $segments[] = $current;
         }
         return $segments;
-    }
-
-    /** Convert an internal positional segment to its decimal index. */
-    public static function index(string $segment): string
-    {
-        return preg_match('/^#\d+$/', $segment) ? substr($segment, 1) : $segment;
     }
 
     /** Format a scalar value for a form control; objects and null are empty. */
@@ -135,7 +129,7 @@ final class Value
         if (!$parts) {
             return $prefix ? $prefix . '[]' : '';
         }
-        return self::index(array_shift($parts)) . implode('', array_map(static fn ($p) => '[' . self::index($p) . ']', $parts));
+        return array_shift($parts) . implode('', array_map(static fn ($p) => '[' . $p . ']', $parts));
     }
 
     /** Create a validation rule name with anonymous repeated segments. */
@@ -145,7 +139,7 @@ final class Value
         $parts = self::segments($path);
         $out = $parts[0] ?? '';
         foreach (array_slice($parts, 1) as $i => $part) {
-            $out .= in_array($i + 1, $rows, true) || str_starts_with($part, '#') ? '[]' : '[' . $part . ']';
+            $out .= in_array($i + 1, $rows, true) ? '[]' : '[' . $part . ']';
         }
         return $out . $suffix;
     }
@@ -155,7 +149,7 @@ final class Value
     {
         $parts = self::segments($path);
         $last = end($parts);
-        return in_array(count($parts) - 1, $rows, true) || str_starts_with($last, '#') ? ($parts[count($parts) - 2] ?? '') . '[]' : $last;
+        return in_array(count($parts) - 1, $rows, true) ? ($parts[count($parts) - 2] ?? '') . '[]' : $last;
     }
 
     /** Convert a field path to its structural element identifier. */
