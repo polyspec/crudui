@@ -137,8 +137,12 @@ and client-side rendering of the same form side by side, with the same template,
 record and language. The left frame (`initialization=ssr`) requests the saved
 record, lets the selected server (PHP, the PHP extension, Go or Rust) render the
 form with it, places that HTML in the page and lets the selected framework take the
-form over with the same template and data. Taking it over must leave the form markup
-unchanged; the comparison leaves out only the state the browser binding writes
+form over with the same template and data. Taking it over must leave the parsed form
+DOM unchanged: every element, attribute value, text and comment in child order.
+Attribute order is not part of the DOM (React sets `type`, `value` and `name` after
+other input attributes), so it is not compared; the byte-identical HTML of the string
+renderers is checked by the generation checks. The comparison leaves out only the
+state the browser binding writes
 (`data-crudui-stuck`, `data-crudui-current` and the end-row lengths published on the
 connected element). The right frame (`initialization=csr`) mounts the form without
 data before it requests the saved record, then injects the record into the existing
