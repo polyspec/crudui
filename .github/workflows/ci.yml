@@ -390,6 +390,9 @@ jobs:
   form-runtime:
     name: Form instances and data injection
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -397,6 +400,8 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - run: npm i -g npm@latest && npm ci --strict-allow-scripts
+      - name: Verify sandboxed Chrome
+        run: node scripts/check-ci-browser.mjs
       - run: npm run manifest:check
       - run: npm run manifest:docs:check
       - run: npm run manifest:test
