@@ -2,6 +2,42 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Remove the Bootstrap-based legacy UI paths
+
+The legacy form components and the original Legacy rendering comparisons were
+built on Bootstrap and are replaced by the node grammar and `crudui.css`. They are
+removed rather than kept beside the current path:
+
+- `@crudui/generator-react/legacy`, `@crudui/generator-vue/legacy` and
+  `@crudui/generator-svelte/legacy` with their sources, the React
+  `@crudui/generator-react/styles.css` stylesheet, and the tests that exercised them
+  (16 React tests, the Vue and Svelte parity tests and captures, the Svelte legacy
+  component test);
+- `examples/legacy/demo-app`, `playground`, `legacy-bootstrap`, `legacy-compare`,
+  `legacy-original`, `legacy-validate-test` and `react-usage.tsx`, with their
+  docker-compose services and README entries;
+- `tests/parity`, `tests/cross-framework`, `tests/legacy-client`,
+  `tests/fixtures/reference-html`, `tools/legacy-baseline`, the root `compare`
+  pages, the vendored `packages/generator-legacy` and the CI parity job, whose Vue and
+  Svelte steps repeated the form-render job;
+- the `lucide-react` and `yaml` dependencies of the React, Vue and Svelte packages,
+  which only the legacy components used.
+
+The legacy specification translation and validators (`@crudui/validator/legacy`
+and its PHP, Go and Rust counterparts), the legacy validation API examples and their
+shared specifications stay: they validate data and render nothing. The public
+package test now checks that `@crudui/generator-core/crudui.css` is the only exported
+stylesheet.
+
+After the removal `npm run build`, `npm run lint` and the Svelte type check passed.
+generator-core and HTML still passed 108 and 116 tests; React, Vue and Svelte passed
+347, 341 and 338 (358, 7 and 11 fewer: the removed legacy tests), the Svelte client
+10 and the Node checks 11. The form comparison source checks passed 140, the new
+stylesheet export check passed, and `make docs-check` passed after the legacy schema
+and visibility documents stopped linking the removed React sources. The same run
+showed that the declaration compile check in `tests/build/public-packages.test.mjs`
+and two dependency and pack checks were already failing; the next entry fixes them.
+
 ## 2026-09-13 — Style a form with crudui.css alone: widgets use the crudui grammar instead of Bootstrap
 
 Widget markup still used the Bootstrap vocabulary inherited from the original form

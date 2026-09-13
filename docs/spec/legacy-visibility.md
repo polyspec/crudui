@@ -2,8 +2,8 @@
 
 [한국어](legacy-visibility.ko.md).
 
-This document describes the explicit legacy validators and renderers. Current
-schemas use `design.show`, which does not disable data validation; see
+This document describes the explicit legacy validators. Current schemas use
+`design.show`, which does not disable data validation; see
 [schema structure](schema.md) and [data validation](../operations/validation.md).
 
 ## Validator conditions
@@ -35,24 +35,9 @@ Here an empty `card_number` fails only when `payment_type` is `card`.
 empty strings, empty arrays and empty objects skip validation. Numeric zero and
 the string `"0"` count as present.
 
-These validator conditions do not define browser presentation. Legacy renderers
-have separate presentation processing, described below. Do not infer identical
-renderer and validator behavior from a shared property name.
-
-## Renderer presentation
-
-Legacy generators also accept a map-form `display_switch`. Its preprocessing
-updates sibling presentation fields, including target condition classes and
-styles. It is not the validator's string-expression form.
-
-`display_target_condition_class` and `display_target_condition_style` select
-wrapper presentation. Their presence changes how the renderer processes
-`display_target`; these maps are not validator rules.
-
-The legacy React renderer's `element.all_of` checks every declared condition.
-An array of expected values accepts any matching value for that condition.
-It applies the matching class/style settings or the `not` settings. Validators
-do not evaluate these presentation settings.
+These validator conditions do not define browser presentation. No renderer reads
+legacy declarations: current forms render the [current schema](schema.md), where
+`design.show` controls presentation.
 
 ## Sources and verification
 
@@ -60,10 +45,7 @@ do not evaluate these presentation settings.
 - [PHP legacy validator](../../packages/validator-php/src/Legacy/Validator.php)
 - [Go legacy validator](../../packages/validator-go/validator/legacy/validator.go)
 - [Rust legacy validator](../../packages/validator-rust/src/legacy/validator.rs)
-- [React presentation preprocessing](../../packages/generator-react/src/legacy/hooks/legacyDisplay.ts)
-- [React condition evaluation](../../packages/generator-react/src/legacy/hooks/useConditional.ts)
 - [Shared legacy validator cases](../../tests/cases/display-switch.json)
 
 Test results and deployment status are maintained separately in
-[feature status](../features.md). Passing validator cases do not prove renderer
-equivalence.
+[feature status](../features.md).
