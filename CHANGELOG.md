@@ -2,6 +2,25 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Make Vue and Svelte take over server-rendered forms without changing them
+
+The first candidate run of d80a3a0 failed in the SSR column. Vue keeps comment nodes as
+anchors for conditional blocks, and Svelte 5 kept the whitespace between sibling
+elements of its templates as text nodes, left empty text anchors, and did not write the
+`value` attribute of inputs, the text of textareas or the `checked` attribute of
+checkboxes into the browser DOM. Comments and empty text render nothing, so the takeover
+comparison leaves them out in the comparison frame and in a new shared test,
+`compareServerTakeover`, which the Vue and Svelte form tests run against the HTML
+renderer's output for the same session. The Svelte templates are written without
+whitespace between sibling nodes, and inputs, textareas and checkboxes set both the
+server attribute or text and `defaultValue`/`defaultChecked`, so Svelte's server output
+and its browser DOM equal the other renderers'.
+
+`make format-check`, `npm run test:forms` (core 108, HTML 116, Vue 341, Svelte 338 and
+10 client tests), `npm run test:form-comparison:source`,
+`npm run test:build`, `npm run test:dependencies`, `make docs-check` and `svelte-check`
+passed. The candidate verification is recorded in a separate entry.
+
 ## 2026-09-13 — Compare server-side and client-side rendering on the comparison page
 
 The comparison page showed two client-side columns, "create with data" and "mount,

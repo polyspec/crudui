@@ -4,7 +4,7 @@ import { expect, it } from 'vitest';
 import { compileForm, createForm } from '@crudui/generator-core';
 import Form from '../src/components/Form.svelte';
 import { spec, data, exerciseSessionDom } from '../../../tests/fixtures/form-session/scenario.mjs';
-import { compareInitialization } from '../../../tests/fixtures/form-session/initialization.mjs';
+import { compareInitialization, compareServerTakeover } from '../../../tests/fixtures/form-session/initialization.mjs';
 
 it('renders identical HTML and control state with initial or repeatedly injected data', async () => {
   const template = compileForm(spec, { keyPrefix: 'form' });
@@ -12,7 +12,10 @@ it('renders identical HTML and control state with initial or repeatedly injected
   const deferred = { session: createForm(template), element: document.createElement('form') };
   const apps = [initial, deferred].map(({ session, element }) => mount(Form, { target: element, props: { form: session } }));
   await tick();
-  try { await compareInitialization({ initial, deferred, expect, flush: tick }); }
+  try {
+    compareServerTakeover({ element: initial.element, session: initial.session, expect });
+    await compareInitialization({ initial, deferred, expect, flush: tick });
+  }
   finally { await Promise.all(apps.map(app => unmount(app))); }
 });
 
