@@ -69,7 +69,7 @@ export async function checkInteraction(page, servers) {
         [framework, server, path]);
         const frame = page.frames().find(item =>
           new URL(item.url()).pathname === `/frames/${path}-${framework}/`
-          && new URL(item.url()).searchParams.get('initialization') === 'data');
+          && new URL(item.url()).searchParams.get('initialization') === 'ssr');
         assert.ok(frame, `${path}/${framework}: frame`);
         for (const transport of formTransports) {
           await frame.select('#transport', transport);
