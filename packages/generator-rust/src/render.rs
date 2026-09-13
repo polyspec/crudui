@@ -388,19 +388,9 @@ fn header(node: &Value) -> String {
     if parts.is_empty() {
         return String::new();
     }
-    let sticky = if node["sticky"] == true {
-        format!("--crudui-sticky-depth: {}", node["stickyDepth"].as_u64().unwrap_or(0))
-    } else {
-        String::new()
-    };
-    let inline = [str_at(header, "style"), sticky.as_str()]
-        .into_iter()
-        .filter(|s| !s.is_empty())
-        .collect::<Vec<_>>()
-        .join("; ");
     element(
         "div",
-        &json!({"class":classes(&["crudui-node__header", str_at(header, "className")]),"style":inline}),
+        &json!({"class":classes(&["crudui-node__header", str_at(header, "className")]),"style":str_at(header, "style")}),
         &parts,
     )
 }
@@ -435,7 +425,18 @@ fn node(node: &Value) -> String {
     let kind = str_at(node, "kind");
     let modifier = format!("crudui-node--{kind}");
     let sticky = if node["sticky"] == true { "crudui-node--sticky" } else { "" };
-    let mut attrs = json!({"class":classes(&["crudui-node", &modifier, sticky, str_at(node, "className")]),"style":str_at(node, "style")});
+    // A sticky row carries its depth on the root; the stylesheet derives its sticky line from it.
+    let depth = if node["sticky"] == true {
+        format!("--crudui-sticky-depth: {}", node["stickyDepth"].as_u64().unwrap_or(0))
+    } else {
+        String::new()
+    };
+    let style = [str_at(node, "style"), depth.as_str()]
+        .into_iter()
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("; ");
+    let mut attrs = json!({"class":classes(&["crudui-node", &modifier, sticky, str_at(node, "className")]),"style":style});
     if kind != "row" && kind != "lang-item" {
         if let Some(path) = node.get("path") {
             attrs["data-field-path"] = js_string(path).into();

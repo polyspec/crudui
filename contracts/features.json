@@ -450,6 +450,76 @@
       ]
     },
     {
+      "id": "connectRows",
+      "owner": "@crudui/generator-core",
+      "signature": "connectRows(element, onCurrent) -> RowTracking",
+      "input": "rendered form host and a callback for the current row",
+      "output": "row tracking that marks rows at their sticky line and reports the current row",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass"
+      },
+      "status": "implemented",
+      "state": "data-crudui-stuck and data-crudui-current attributes from the scroll position",
+      "tests": [
+        "tests/form-styles.test.mjs",
+        "examples/form-comparison/src/bind-form-controller.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md",
+        "docs/spec/form-runtime.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "node --test tests/form-styles.test.mjs"
+        }
+      ]
+    },
+    {
+      "id": "alignRow",
+      "owner": "@crudui/generator-core",
+      "signature": "alignRow(row) -> void",
+      "input": "rendered form row element",
+      "output": "the row scrolled so its header sits on its sticky line",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/scenario.mjs"
+      ],
+      "support": {
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass"
+      },
+      "status": "implemented",
+      "state": "scroll position only",
+      "tests": [
+        "tests/form-styles.test.mjs",
+        "examples/form-comparison/src/bind-form-controller.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md",
+        "docs/spec/form-runtime.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "node --test tests/form-styles.test.mjs"
+        }
+      ]
+    },
+    {
       "id": "runAction",
       "owner": "@crudui/generator-core",
       "signature": "runAction(form, target) -> ActionResult | undefined",

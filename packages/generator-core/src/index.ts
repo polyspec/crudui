@@ -11,8 +11,8 @@ export {
 export type { RowSelection, ViewState } from './view';
 export { HISTORY_LIMIT, emptyHistory, recordChange, canUndo, undoChange } from './history';
 export type { History, UndoResult } from './history';
-export { connectForm, connectOutline } from './dom';
-export type { FormConnection } from './dom';
+export { alignRow, connectForm, connectOutline, connectRows } from './dom';
+export type { FormConnection, RowTracking } from './dom';
 export { resolveAction, runAction } from './actions';
 export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';
 export { buildOutline } from './outline';

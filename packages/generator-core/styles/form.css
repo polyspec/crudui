@@ -21,6 +21,8 @@
   --crudui-subtle: #f9fafb;
   --crudui-accent: #1d4ed8;
   --crudui-node-header-height: 2.75rem;
+  --crudui-row-padding: 0.75rem;
+  --crudui-row-border: 1px;
   color: var(--crudui-text);
 }
 
@@ -89,9 +91,11 @@
   gap: 0.5rem;
 }
 
+/* Extra height, such as the last sticky row's minimum, collects below the row content. */
 .crudui-node--row {
+  align-content: start;
   gap: 0;
-  border: 1px solid var(--crudui-border);
+  border: var(--crudui-row-border) solid var(--crudui-border);
   border-radius: 0.5rem;
   background: var(--crudui-surface);
 }
@@ -121,7 +125,7 @@
 }
 
 .crudui-node--row > .crudui-node__body {
-  padding: 0.75rem;
+  padding: var(--crudui-row-padding);
 }
 
 .crudui-node--row > .crudui-node__footer {
@@ -130,19 +134,37 @@
 }
 
 /*
- * A sticky row header stacks below the sticky headers of its ancestor rows. Each
- * stacked header offsets by exactly one header height, so a sticky header has that
- * fixed height, border included, and never wraps; a long title is truncated.
+ * Sticky rows follow three rules from one value. A sticky row carries
+ * --crudui-sticky-depth, the number of enclosing sticky rows; its sticky line is
+ * depth × header height.
+ * 1. The header pins on the line. Every header has exactly the header height and
+ *    never wraps, so pinned levels meet without overlap.
+ * 2. The row aligns to the line: scroll-margin-top places the header, inside the
+ *    row's top border, on the line, so bringing a row to the top is
+ *    scrollIntoView({ block: 'start' }).
+ * 3. The row at the end of the form can reach the line, and no further: when it and
+ *    every enclosing element in the form body are last children, it is at least the
+ *    viewport below its aligned top, less the bottom edges of its enclosing rows.
  */
+.crudui-node--sticky {
+  --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
+  scroll-margin-top: calc(var(--crudui-sticky-line) - var(--crudui-row-border));
+}
+
+.crudui-node--sticky:last-child:not(.crudui-form__body :not(:last-child) *) {
+  box-sizing: border-box;
+  min-height: calc(100vh - var(--crudui-sticky-line) + var(--crudui-row-border)
+    - var(--crudui-sticky-depth, 0) * (var(--crudui-row-padding) + var(--crudui-row-border)));
+}
+
 .crudui-node--sticky > .crudui-node__header {
   position: sticky;
-  top: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
+  top: var(--crudui-sticky-line);
   z-index: calc(20 - var(--crudui-sticky-depth, 0));
   box-sizing: border-box;
   height: var(--crudui-node-header-height);
   flex-wrap: nowrap;
   overflow: hidden;
-  scroll-margin-top: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
 }
 
 .crudui-node--sticky > .crudui-node__header > .crudui-node__title {
@@ -165,6 +187,12 @@
   border-radius: 0;
   background: var(--crudui-surface);
   box-shadow: 0 0.5rem 1rem -0.75rem rgb(16 24 40 / 50%);
+}
+
+/* The current row, the last row whose top reached its line, has a highlighted border. */
+.crudui-node--row[data-crudui-current] {
+  border-color: var(--crudui-accent);
+  box-shadow: 0 0 0 1px var(--crudui-accent);
 }
 
 .crudui-controls {

@@ -40,7 +40,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `hidden` | `design.show`가 false인 노드, 접힌 행 본문, 펼친 행의 요약 |
 | `aria-expanded`, `aria-controls` | 행 토글 상태와 제어하는 본문 |
 | `aria-current="true"` | 구조 맵에서 선택한 행 |
-| `data-crudui-stuck` | 고정 행 헤더가 현재 고정된 상태(브라우저 바인딩이 설정) |
+| `data-crudui-stuck` | 행 상단이 고정선에 닿은 고정 행(브라우저 바인딩이 설정) |
+| `data-crudui-current` | 현재 행: 문서 순서상 마지막으로 행 상단이 고정선에 닿은 행(브라우저 바인딩이 설정) |
 
 버튼의 컬렉션 경로는 버튼 자신 또는 가장 가까운 상위 `[data-field-path]`입니다.
 행 키는 그 요소 안에서 가장 가까운 `[data-crudui-row-key]`이며, 없으면 작업은
@@ -98,11 +99,19 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 - `multiple.controls`는 행 컨트롤을 행 `header`(기본) 또는 `footer`에 둡니다.
   `outline`이면 폼은 행 컨트롤과 빈 컬렉션 컨트롤을 출력하지 않으며, 구조 맵이 선택한
   행과 빈 컬렉션의 컨트롤을 표시합니다.
-- `multiple.header: sticky`는 `crudui-node--sticky`를 추가합니다. 헤더 스타일은
-  `--crudui-sticky-depth`를 상위 고정 행의 수로 설정하고, 각 단계는 상위 고정 헤더보다
-  `--crudui-node-header-height`만큼 아래에 고정됩니다. 고정 헤더는 테두리를 포함해 정확히
-  그 높이이며 줄바꿈하지 않고 긴 제목을 줄임표로 자르므로, 고정된 단계가 겹치지 않고
-  맞닿습니다. 레이블은 헤더가 고정된 동안에만 표시합니다.
+- `multiple.header: sticky`는 `crudui-node--sticky`를 추가하고, 행 루트 스타일이
+  `--crudui-sticky-depth`를 상위 고정 행의 수로 설정합니다. 행의 고정선은 그 수에
+  `--crudui-node-header-height`를 곱한 값입니다. 스타일시트는 이 값에서 세 규칙을 따릅니다.
+  헤더는 고정선에 고정되고 테두리를 포함해 정확히 헤더 높이이며 줄바꿈하지 않으므로(긴
+  제목은 줄임표) 고정된 단계가 겹치지 않고 맞닿습니다. 행의 `scroll-margin-top`은 헤더를
+  고정선에 놓으므로 `alignRow(row)`는 `scrollIntoView({ block: 'start' })`입니다. 마지막
+  행은 정렬된 상단 아래 화면 높이에서 상위 행들의 아래 테두리·여백을 뺀 높이 이상이므로,
+  그 헤더가 고정선에 닿을 때 스크롤이 끝납니다. 이 한계는 스크롤 영역에서 폼 뒤에 아무것도
+  없을 때 정확하며, 페이지 여백처럼 폼 뒤에 있는 내용은 그 높이만큼 더 스크롤됩니다.
+- `connectRows(element, onCurrent)`는 상단이 고정선에 닿은 행을 표시합니다. 고정 행에는
+  `data-crudui-stuck`을, 그중 문서 순서상 마지막 행(아직 없으면 첫 행)에는
+  `data-crudui-current`를 붙이고 `onCurrent`에 전달합니다. 단계 레이블은 고정된 헤더에만
+  보이고, 현재 행은 테두리가 강조됩니다.
 
 ## 구조 맵과 현재 데이터 보기
 

@@ -209,7 +209,7 @@ final class FormTest extends TestCase
         self::assertSame('{"className":"","label":"Items","number":"1","title":"(untitled)","summary":"Nested rows: 2"}', json_encode($row->header));
         self::assertSame([true, true], [$row->controls->actions[0]->disabled, !property_exists($row->children[1], 'controls')]);
         $html = Generator::renderForm($form);
-        self::assertStringContainsString('<div class="crudui-node crudui-node--row crudui-node--sticky" data-crudui-row-key="first"><div class="crudui-node__header" style="--crudui-sticky-depth:0">', $html);
+        self::assertStringContainsString('<div class="crudui-node crudui-node--row crudui-node--sticky" style="--crudui-sticky-depth:0" data-crudui-row-key="first"><div class="crudui-node__header">', $html);
         self::assertStringContainsString('<span class="crudui-node__title">Second</span>', $html);
         self::assertStringContainsString('<div class="crudui-node__footer"><div class="crudui-controls" role="group" aria-label="Row controls">', $html);
         self::assertStringNotContainsString('Collection controls', $html);

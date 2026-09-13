@@ -54,8 +54,7 @@ function headerVNode(vm: NodeVM): VNode | null {
   if (header?.count !== undefined) parts.push(h('span', { class: 'crudui-node__count' }, header.count));
   if (vm.controls?.placement === 'header') parts.push(controlsVNode(vm.controls));
   if (!parts.length) return null;
-  const style = [header?.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ');
-  return h('div', { class: classes('crudui-node__header', header?.className), ...(style ? { style } : {}) }, parts);
+  return h('div', { class: classes('crudui-node__header', header?.className), ...(header?.style ? { style: header.style } : {}) }, parts);
 }
 
 function bodyVNode(vm: NodeVM): VNode {
@@ -83,10 +82,11 @@ function bodyVNode(vm: NodeVM): VNode {
 /** Build the vnode for one node of the recursive form grammar. */
 export function nodeVNode(vm: NodeVM): VNode {
   const pathAttribute = vm.kind === 'row' || vm.kind === 'lang-item' ? undefined : vm.path;
+  const rootStyle = [vm.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ');
   return h('div', {
     key: vm.key ?? vm.path ?? vm.lang,
     class: classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className),
-    ...(vm.style ? { style: vm.style } : {}),
+    ...(rootStyle ? { style: rootStyle } : {}),
     ...(pathAttribute !== undefined ? { 'data-field-path': pathAttribute } : {}),
     ...(vm.key !== undefined ? { 'data-crudui-row-key': vm.key } : {}),
     ...(vm.lang !== undefined ? { 'data-lang': vm.lang } : {}),

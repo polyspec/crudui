@@ -1,6 +1,6 @@
 import {
   bindForm, canUndo, emptyHistory, initialView, recordChange, rekeyRowView, removeRowView,
-  resolveAction, selectRowView, setAllExpandedView, toggleRowView, undoChange,
+  alignRow, connectRows, resolveAction, selectRowView, setAllExpandedView, toggleRowView, undoChange,
 } from '@crudui/generator-core';
 
 const inputSegments = name => name.match(/[^\[\]]+/g)?.slice(1) ?? [];
@@ -172,15 +172,11 @@ export function bindFormController(element, mount, template, language, initialDa
   function capture() {
     const active = element.ownerDocument.activeElement;
     if (!active || !element.contains(active)) return null;
-    const scroll = [];
-    for (let parent = active.parentElement; parent; parent = parent.parentElement) {
-      scroll.push({ parent, top: parent.scrollTop, left: parent.scrollLeft });
-    }
     return {
       active, name: active.getAttribute?.('name') ?? undefined,
       action: active.matches?.('button[data-crudui-action]') ? resolveAction(active) : undefined,
       start: active.selectionStart ?? null, end: active.selectionEnd ?? null,
-      direction: active.selectionDirection ?? undefined, scroll,
+      direction: active.selectionDirection ?? undefined,
     };
   }
 
@@ -201,10 +197,6 @@ export function bindFormController(element, mount, template, language, initialDa
     active?.focus({ preventScroll: true });
     if (focus.start !== null && active?.setSelectionRange) {
       active.setSelectionRange(focus.start, focus.end, focus.direction);
-    }
-    for (const position of focus.scroll) {
-      position.parent.scrollTop = position.top;
-      position.parent.scrollLeft = position.left;
     }
   }
 
@@ -241,10 +233,7 @@ export function bindFormController(element, mount, template, language, initialDa
       : Array.from(element.querySelectorAll('[data-crudui-action="add-row"]'))
         .find(button => !button.disabled && pathOf(button) === path);
     if (!control) return;
-    // Scroll before focusing, as core connectForm does: focusing selects the row,
-    // and that render restores the scroll positions captured at selection time.
-    (row?.firstElementChild ?? control).scrollIntoView({ block: 'nearest' });
-    control.scrollIntoView({ block: 'nearest' });
+    alignRow(row ?? control);
     control.focus({ preventScroll: true });
   }
 
@@ -257,6 +246,7 @@ export function bindFormController(element, mount, template, language, initialDa
     if (version !== inputVersion) return;
     if (target) moveFocus(target);
     else restore(focus);
+    rows.update();
   }
 
   function schedule(next, focus, version = inputVersion, target) {
@@ -324,14 +314,11 @@ export function bindFormController(element, mount, template, language, initialDa
     schedule(normalized, focus, version);
   }
 
-  // Focusing a control selects its row; buttons are excluded as in connectForm.
-  function onFocusIn(event) {
-    const control = event.target;
-    if (!control?.matches?.('input,select,textarea')) return;
-    const row = control.closest('[data-crudui-row-key]');
+  // The selected row follows the scroll position, as in connectForm.
+  const rows = connectRows(element, row => {
     const path = row && pathOf(row.parentElement);
     if (path) selectRow(path, row.getAttribute('data-crudui-row-key'));
-  }
+  });
 
   function onClick(event) {
     const button = event.target.closest?.('button[data-crudui-action]');
@@ -356,9 +343,12 @@ export function bindFormController(element, mount, template, language, initialDa
       return;
     }
     if (action === 'select-row') {
-      // Selecting from the structure map scrolls the form row into view, as connectOutline does.
+      // Selecting from the structure map aligns the form row, as connectOutline does.
       event.preventDefault();
-      selectRow(path, key).then(() => rowElement(path, key)?.scrollIntoView({ block: 'start' }));
+      selectRow(path, key).then(() => {
+        const row = rowElement(path, key);
+        if (row) alignRow(row);
+      });
       return;
     }
     const segments = pathSegments(path);
@@ -399,7 +389,8 @@ export function bindFormController(element, mount, template, language, initialDa
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
-  element.addEventListener('focusin', onFocusIn);
+  // Mark the current row of the first render, as connectForm does when it connects.
+  rows.update();
 
   return {
     template, fromSerializedTemplate: true,
@@ -435,10 +426,10 @@ export function bindFormController(element, mount, template, language, initialDa
       } while (current !== pending);
     },
     async dispose() {
+      rows.disconnect();
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
-      element.removeEventListener('focusin', onFocusIn);
       await pending;
       await renderer.dispose();
     },
