@@ -493,7 +493,7 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
         ps_value *actions = ps_array_value();
         bool full = settings->has_max && 0 >= settings->max;
         ok = actions && append_action(actions, "add-row", context->messages->add_row, full) &&
-            attach_controls(node, !strcmp(settings->controls, "outline") ? "outline" : "footer",
+            attach_controls(node, "footer",
                             context->messages->collection_controls, &actions);
         ps_value_free(actions);
     }

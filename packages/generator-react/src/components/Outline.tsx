@@ -4,7 +4,6 @@ import {
   connectOutline,
   type FormInstance,
   type FormMessages,
-  type OutlineCollection,
   type OutlineRow,
   type OutlineState,
 } from '@crudui/generator-core';
@@ -15,21 +14,6 @@ function TextAction({ name, label, disabled = false }: { name: string; label: st
     <button type="button" className="crudui-action crudui-action--text" data-crudui-action={name} disabled={disabled}>
       {label}
     </button>
-  );
-}
-
-function CollectionItem({ collection }: { collection: OutlineCollection }): React.ReactElement {
-  return (
-    <div className="crudui-node crudui-node--collection" data-field-path={collection.path}>
-      <div className="crudui-node__header">
-        {collection.label !== undefined ? <span className="crudui-node__label">{collection.label}</span> : null}
-        {collection.count !== undefined ? <span className="crudui-node__count">{collection.count}</span> : null}
-        {collection.controls ? <Controls controls={collection.controls} /> : null}
-      </div>
-      <div className="crudui-node__body">
-        {collection.rows.map((row) => <RowItem key={row.key} row={row} />)}
-      </div>
-    </div>
   );
 }
 
@@ -48,9 +32,9 @@ function RowItem({ row }: { row: OutlineRow }): React.ReactElement {
         </button>
         {row.controls ? <Controls controls={row.controls} /> : null}
       </div>
-      {row.collections.length ? (
+      {row.rows.length ? (
         <div className="crudui-node__body">
-          {row.collections.map((collection) => <CollectionItem key={collection.path} collection={collection} />)}
+          {row.rows.map((nested) => <RowItem key={nested.key} row={nested} />)}
         </div>
       ) : null}
     </div>
@@ -79,9 +63,7 @@ export function OutlineView({ state, messages, rootRef }: OutlineViewProps): Rea
         </div>
       </div>
       <div className="crudui-outline__body">
-        {buildOutline(state.fields, state.selection).map((collection) => (
-          <CollectionItem key={collection.path} collection={collection} />
-        ))}
+        {buildOutline(state.fields, state.selection).map((row) => <RowItem key={row.key} row={row} />)}
       </div>
     </div>
   );
