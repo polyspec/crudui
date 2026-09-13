@@ -2,6 +2,31 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 스크롤은 아무것도 렌더링하지 않음: 현재 행은 더 이상 인스턴스 상태가 아님
+
+스크롤로 행을 지나면 그 행이 현재 행이 되고, `connectForm`이 `selectRow`를 호출해 새
+스냅숏을 게시했습니다. 애플리케이션은 스냅숏마다 다시 렌더링하므로, 스크롤하며 행 경계를
+넘을 때마다 폼 전체와 구조 맵, 현재 데이터 보기가 교체되고 포커스를 받은 컨트롤과 텍스트
+선택이 복원되었습니다. 컨트롤에 포커스가 있으면 스크롤이 그 컨트롤 쪽으로 되돌아갔습니다.
+선택은 맵 표시에만 쓰였으므로 조건으로 막지 않고 제거했습니다. `FormInstance.selectRow`,
+스냅숏과 뷰 상태의 `selection`, `RowSelection`, `selectRowView`, `OutlineRow.current`를
+없앴고, `setAllExpandedView`는 노드와 펼침 여부만 받습니다. `connectRows(element)`는 폼
+행만 추적하며(맵 행은 자신의 `data-field-path`를 가짐) 다른 행이 현재 행이 되면
+`crudui-current` 이벤트를 보냅니다. 새 `markOutline(outline, form)`은 폼의 현재 행에 해당하는
+맵 행에 `aria-current`를 붙이고, `connectOutline`은 그 이벤트가 오거나 맵이 다시 렌더링될
+때마다 이를 호출하며, 비교 페이지의 `bindForm` 컨트롤러도 자기 맵에 호출합니다.
+`select-row`는 상태를 바꾸지 않습니다. `runAction`이 이동할 행을 반환하고 바인딩이 그 행을
+정렬합니다. `multiple.controls: outline`이면 맵은 모든 행의 컨트롤을 렌더링하고 스타일시트가
+현재 행의 컨트롤만 보여 줍니다.
+
+Chromium 스타일 검사는 이제 폼 옆에 구조 맵을 렌더링하고, 행을 스크롤하는 동안 아무것도
+렌더링하지 않으며 매 단계 맵이 폼의 현재 행 하나만 표시하는지 확인합니다. 멤버 두 명을 추가하고
+컨트롤에 포커스를 둔 미리보기를 puppeteer로 측정한 결과, 변경 전에는 스크롤 제스처마다 전체
+렌더링이 한두 번 일어났고 변경 후에는 한 번도 일어나지 않았습니다. 다시 생성한 구조 맵 사례로
+generator-core, HTML, React, Vue, Svelte가 테스트 108, 116, 705, 348, 349개를, Svelte
+클라이언트가 10개, Node 검사(정규화, 스타일, 명명)가 11개, 폼 비교 소스 검사가 140개, Chromium
+검사가 3개를 통과했고 `make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 마크업 명명 규칙과 접기·되돌리기 DOM 경로 검사
 
 폼 마크업의 클래스 명명 규칙(N1–N3: `crudui-{block}`, `__{element}`, 블록과 함께 쓰는

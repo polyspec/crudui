@@ -20,7 +20,6 @@ function rowVNode(row: OutlineRow): VNode {
     class: 'crudui-node crudui-node--row',
     'data-field-path': row.path,
     'data-crudui-row-key': row.key,
-    ...(row.current ? { 'aria-current': 'true' } : {}),
   }, [
     h('div', { class: 'crudui-node__header' }, [
       h('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': 'select-row' }, [
@@ -43,7 +42,7 @@ export function outlineVNode(state: OutlineState, messages: FormMessages, root?:
         textActionVNode('undo', messages.undo, !state.canUndo),
       ]),
     ]),
-    h('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(rowVNode)),
+    h('div', { class: 'crudui-outline__body' }, buildOutline(state.fields).map(rowVNode)),
   ]);
 }
 

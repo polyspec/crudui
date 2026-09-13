@@ -53,6 +53,7 @@ function formElement(controls) {
     ownerDocument: { activeElement: null, defaultView: fakeWindow },
     style: { setProperty() {} },
     contains: () => false,
+    querySelector: () => null,
     querySelectorAll: selector =>
       ['[name]', 'input[name],textarea[name],select[name]'].includes(selector)
         ? controls : [],
@@ -111,6 +112,7 @@ test('accepts saved, unsaved and empty keyed collections', async () => {
     ownerDocument: { activeElement: null, defaultView: fakeWindow },
     style: { setProperty() {} },
     contains: () => false,
+    querySelector: () => null,
     querySelectorAll: () => [],
     addEventListener: (name, listener) => listeners.set(name, listener),
     removeEventListener: name => listeners.delete(name),
@@ -131,7 +133,7 @@ test('accepts saved, unsaved and empty keyed collections', async () => {
   };
   const controller = bindFormController(element, mount, template, 'ko', initial);
   assert.deepEqual(controller.getData(), initial);
-  assert.deepEqual([...listeners.keys()], ['input', 'change', 'click']);
+  assert.deepEqual([...listeners.keys()], ['crudui-current', 'input', 'change', 'click']);
   await controller.load({ companies: {} });
   assert.deepEqual(controller.getData(), { companies: {} });
   assert.deepEqual(renders, [initial, { companies: {} }]);
@@ -296,13 +298,10 @@ test('view state, history and focus retention match a createForm instance', asyn
       Array.from(element.querySelectorAll('[data-crudui-action="toggle-row"]'), button => button.getAttribute('aria-expanded')),
       snapshot.fields[0].children.map(row => String(row.expanded)), `${label}: expanded rows`);
     assert.equal(controller.getView().canUndo, snapshot.canUndo, `${label}: undo availability`);
-    assert.deepEqual(controller.getView().selection, snapshot.selection, `${label}: selection`);
   }
-  // The selection follows the current row, the one row connectRows marks; mirror it on the instance.
+  // The scroll position decides the current row; connectRows marks exactly one, and no state follows it.
   function followCurrent() {
-    const current = element.querySelectorAll('[data-crudui-current]');
-    assert.equal(current.length, 1, 'exactly one current row');
-    session.selectRow('companies', current[0].getAttribute('data-crudui-row-key'));
+    assert.equal(element.querySelectorAll('[data-crudui-current]').length, 1, 'exactly one current row');
   }
   async function type(key, value) {
     const input = element.querySelector(`input[name="form[companies][${key}][name]"]`);
@@ -343,10 +342,10 @@ test('view state, history and focus retention match a createForm instance', asyn
   await controller.toggleRow('companies', k2);
   session.toggleRow('companies', k2);
   followCurrent();
-  same('select');
+  same('toggle second');
   await press(k2, 'remove-row');
   session.removeRow('companies', k2);
-  // Focus moved to the previous row's input; the selection follows the current row.
+  // Focus moved to the previous row's input.
   assert.equal(document.activeElement.name, `form[companies][${k1}][name]`);
   followCurrent();
   same('remove');

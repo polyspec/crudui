@@ -7,13 +7,12 @@ export { bindButtons, formButtonsHtml, FORM_BUTTON_TYPES, DEFAULT_FORM_BUTTONS }
 export type { ButtonVM, FormButtonType, BindButtonsOptions } from './buttons';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
 export {
-  initialView, rowPathContains, collapsibleRows, toggleRowView, setAllExpandedView,
-  selectRowView, removeRowView, rekeyRowView,
+  initialView, rowPathContains, collapsibleRows, toggleRowView, setAllExpandedView, removeRowView, rekeyRowView,
 } from './view';
-export type { RowSelection, ViewState } from './view';
+export type { ViewState } from './view';
 export { HISTORY_LIMIT, emptyHistory, recordChange, canUndo, undoChange } from './history';
 export type { History, UndoResult } from './history';
-export { alignRow, connectForm, connectOutline, connectRows } from './dom';
+export { alignRow, connectForm, connectOutline, connectRows, markOutline } from './dom';
 export type { FormConnection, RowTracking } from './dom';
 export { resolveAction, runAction } from './actions';
 export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';

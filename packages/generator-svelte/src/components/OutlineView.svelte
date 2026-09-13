@@ -1,5 +1,5 @@
 <!-- @component
-  Render structure map markup for evaluated nodes, selection and undo availability.
+  Render structure map markup for evaluated nodes and undo availability.
   Applications that own their data render it from `bindForm`.
 -->
 <script lang="ts">
@@ -8,11 +8,11 @@
 
   let { state, messages, root = $bindable() }: { state: OutlineState; messages: FormMessages; root?: HTMLDivElement } = $props();
 
-  const rows = $derived(buildOutline(state.fields, state.selection));
+  const rows = $derived(buildOutline(state.fields));
 </script>
 
 {#snippet outlineRow(row: OutlineRow)}
-  <div class="crudui-node crudui-node--row" data-field-path={row.path} data-crudui-row-key={row.key} aria-current={row.current ? 'true' : undefined}>
+  <div class="crudui-node crudui-node--row" data-field-path={row.path} data-crudui-row-key={row.key}>
     <div class="crudui-node__header">
       <button type="button" class="crudui-action crudui-action--text" data-crudui-action="select-row">
         {#if row.number !== undefined}<span class="crudui-node__number">{row.number}</span>{/if}

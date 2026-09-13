@@ -118,19 +118,18 @@ record. View state is never submitted or serialized with the data.
 | --- | --- |
 | `toggleRow(path, key)` | Expand or collapse one row. |
 | `setAllExpanded(expanded)` | Expand or collapse every collapsible row. |
-| `selectRow(path, key)` | Select one row for the structure map. |
 | `undo()` | Restore the record before the last data change; fails when nothing can be undone. |
 
-The snapshot reports `canUndo` and `selection`. History keeps up to 100 records.
-Consecutive `setValue` calls on the same path share one entry. `setData` restarts
-history, collapsed rows and selection. Removing a row drops its view state;
-rekeying a row moves it to the new key. View changes do not change `revision`.
-Server rendering uses the initial view: every row expanded and no selection. The
-[form markup](form-markup.md) defines the structure map and data view.
+The snapshot reports `canUndo`. History keeps up to 100 records. Consecutive
+`setValue` calls on the same path share one entry. `setData` restarts history and
+collapsed rows. Removing a row drops its view state; rekeying a row moves it to the
+new key. View changes do not change `revision`. Server rendering uses the initial
+view: every row expanded. The [form markup](form-markup.md) defines the structure
+map and data view.
 
 generator-core exports these rules as pure functions over immutable values:
-`initialView`, `toggleRowView`, `setAllExpandedView`, `selectRowView`,
-`removeRowView`, `rekeyRowView` and `collapsibleRows` for view state, and
+`initialView`, `toggleRowView`, `setAllExpandedView`, `removeRowView`,
+`rekeyRowView` and `collapsibleRows` for view state, and
 `emptyHistory`, `recordChange`, `canUndo` and `undoChange` for history. An
 application that owns its data with `bindForm` applies the same functions.
 
@@ -162,10 +161,12 @@ enabled visible input, or to its toggle or Add button when it has none.
 
 One rule decides the current row: the scroll position. The current row is the last
 row whose top reached its sticky line (`connectRows`); the pinned labels, the
-structure map selection and the highlighted border all follow it. Moving to a row,
-after a row operation or from the structure map, is scrolling that row (or the Add
-button of an emptied collection) to its line with `alignRow`. Focus and typing never
-scroll or select, and the bindings never restore scroll positions. The stylesheet
+structure map's marked row and the highlighted border all follow it. The current row
+is not instance state: following it only marks rows, so scrolling changes no state
+and renders nothing. Moving to a row, after a row operation or from the structure
+map, is scrolling that row (or the Add button of an emptied collection) to its line
+with `alignRow`. Focus and typing never scroll or change the current row, and the
+bindings never restore scroll positions. The stylesheet
 lets the last row reach its line and no further. Toggling, selecting and undoing
 keep the focused control, including a focused action button.
 

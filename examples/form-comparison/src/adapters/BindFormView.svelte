@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import type { ButtonVM, FormMessages, NodeVM, RowSelection } from '@crudui/generator-core';
+  import type { ButtonVM, FormMessages, NodeVM } from '@crudui/generator-core';
   import FormFields from '#svelte/FormFields.svelte';
   import OutlineView from '#svelte/OutlineView.svelte';
   import DataPanel from '#svelte/DataPanel.svelte';
@@ -9,7 +9,6 @@
     fields: NodeVM[];
     buttons: ButtonVM[];
     data: Record<string, unknown>;
-    selection?: RowSelection;
     canUndo: boolean;
   }
 

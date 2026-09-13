@@ -23,7 +23,6 @@ function RowItem({ row }: { row: OutlineRow }): React.ReactElement {
       className="crudui-node crudui-node--row"
       data-field-path={row.path}
       data-crudui-row-key={row.key}
-      {...(row.current ? { 'aria-current': 'true' as const } : {})}
     >
       <div className="crudui-node__header">
         <button type="button" className="crudui-action crudui-action--text" data-crudui-action="select-row">
@@ -43,7 +42,7 @@ function RowItem({ row }: { row: OutlineRow }): React.ReactElement {
 
 /** Props for the stateless structure map. */
 export interface OutlineViewProps {
-  /** Evaluated nodes, selection and undo availability, such as a form snapshot. */
+  /** Evaluated nodes and undo availability, such as a form snapshot. */
   state: OutlineState;
   /** Interface text. */
   messages: FormMessages;
@@ -63,7 +62,7 @@ export function OutlineView({ state, messages, rootRef }: OutlineViewProps): Rea
         </div>
       </div>
       <div className="crudui-outline__body">
-        {buildOutline(state.fields, state.selection).map((row) => <RowItem key={row.key} row={row} />)}
+        {buildOutline(state.fields).map((row) => <RowItem key={row.key} row={row} />)}
       </div>
     </div>
   );

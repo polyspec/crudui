@@ -19,6 +19,9 @@ export interface RowTracking {
   disconnect(): void;
 }
 
+/** Form rows. A structure map row names its own collection path, so it carries `data-field-path`. */
+const FORM_ROWS = '[data-crudui-row-key]:not([data-field-path])';
+
 /** The element whose `data-field-path` equals a path. */
 function scopeElement(root: ParentNode, path: string): HTMLElement | undefined {
   return Array.from(root.querySelectorAll<HTMLElement>('[data-field-path]'))
@@ -73,23 +76,27 @@ export function alignRow(row: HTMLElement): void {
 }
 
 /**
- * Track rows by scroll position. A row has reached its line when its top is at or
- * above its `scroll-margin-top`; a reached row with a sticky header is marked
- * `data-crudui-stuck`. The current row is the last reached row in document order, or
- * the first row before any is reached; it is marked `data-crudui-current` and passed
- * to `onCurrent`. Rows are measured on scroll (captured, so inner scroll containers
- * count) and resize, at most once per animation frame, and on `update()`.
+ * Track the form rows inside an element by scroll position. A row has reached its line
+ * when its top is at or above its `scroll-margin-top`; a reached row with a sticky
+ * header is marked `data-crudui-stuck`. The current row is the last reached row in
+ * document order, or the first row before any is reached; it is marked
+ * `data-crudui-current`, and a `crudui-current` event is dispatched on the element
+ * when another row becomes current. Tracking only writes these attributes: it never
+ * changes instance state, so scrolling renders nothing. Rows are measured on scroll
+ * (captured, so inner scroll containers count) and resize, at most once per animation
+ * frame, and on `update()`.
  */
-export function connectRows(element: HTMLElement, onCurrent: (row: HTMLElement | undefined) => void): RowTracking {
+export function connectRows(element: HTMLElement): RowTracking {
   const view = element.ownerDocument.defaultView!;
   let frame = 0;
+  let last = '';
   /**
    * Publish the end row lengths for the trailing space rule: the extent from the top
    * of the deepest row at the end of the form to the end of the outermost such row,
    * and that row's aligned top (its scroll-margin-top).
    */
   const publishEnd = () => {
-    const ends = Array.from(element.querySelectorAll<HTMLElement>('[data-crudui-row-key]:last-child'))
+    const ends = Array.from(element.querySelectorAll<HTMLElement>(FORM_ROWS + ':last-child'))
       .filter(row => row.closest('.crudui-form__body :not(:last-child)') === null);
     const deepest = ends[ends.length - 1];
     // Published on the connected element, which rendering never replaces; the form
@@ -102,7 +109,7 @@ export function connectRows(element: HTMLElement, onCurrent: (row: HTMLElement |
     publishEnd();
     const scroller = scrollParent(element);
     const top = scroller === element.ownerDocument.scrollingElement ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop;
-    const rows = Array.from(element.querySelectorAll<HTMLElement>('[data-crudui-row-key]'));
+    const rows = Array.from(element.querySelectorAll<HTMLElement>(FORM_ROWS));
     let current: HTMLElement | undefined;
     for (const row of rows) {
       const reached = row.getBoundingClientRect().top - top <= (parseFloat(view.getComputedStyle(row).scrollMarginTop) || 0) + 0.5;
@@ -112,7 +119,12 @@ export function connectRows(element: HTMLElement, onCurrent: (row: HTMLElement |
     }
     current ??= rows[0];
     for (const row of rows) row.toggleAttribute('data-crudui-current', row === current);
-    onCurrent(current);
+    const target = current && rowTarget(current);
+    const identity = target ? `${target.path}\n${target.key}` : '';
+    if (identity !== last) {
+      last = identity;
+      element.dispatchEvent(new view.Event('crudui-current'));
+    }
   };
   const schedule = () => {
     if (!frame) frame = view.requestAnimationFrame(measure);
@@ -247,12 +259,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     if (synced) moveFocus(result.focus);
     else destination = result.focus;
   };
-  // The selected row follows the scroll position.
-  const rows = connectRows(element, row => {
-    const target = row && rowTarget(row);
-    const selection = session.getSnapshot().selection;
-    if (target && (selection?.path !== target.path || selection.key !== target.key)) session.selectRow(target.path, target.key);
-  });
+  const rows = connectRows(element);
   const sync = () => {
     // React's SSR-compatible controls use defaultValue. Injection must update
     // live DOM properties too, including inputs that the user has already edited.
@@ -320,22 +327,56 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   };
 }
 
-/** Connect a rendered structure map: its buttons act on the form and selecting a row aligns the form row. */
+/**
+ * Mark the structure map row of the form's current row with `aria-current="true"`.
+ * The form rows inside `form` carry `data-crudui-current` from `connectRows`; the map
+ * rows inside `outline` name their collection path and key themselves.
+ */
+export function markOutline(outline: HTMLElement, form: HTMLElement): void {
+  const current = form.querySelector<HTMLElement>(`${FORM_ROWS}[data-crudui-current]`);
+  const target = current ? rowTarget(current) : undefined;
+  for (const row of outline.querySelectorAll<HTMLElement>('[data-field-path][data-crudui-row-key]')) {
+    const matches = target !== undefined && row.getAttribute('data-field-path') === target.path &&
+      row.getAttribute('data-crudui-row-key') === target.key;
+    if (matches !== (row.getAttribute('aria-current') === 'true')) {
+      if (matches) row.setAttribute('aria-current', 'true');
+      else row.removeAttribute('aria-current');
+    }
+  }
+}
+
+/**
+ * Connect a rendered structure map: its buttons act on the form, selecting a row aligns
+ * the form row, and the map marks the form's current row whenever it changes or the map
+ * is rendered again.
+ */
 export function connectOutline(element: HTMLElement, session: FormInstance, formElement: HTMLElement): FormConnection {
+  const view = element.ownerDocument.defaultView!;
+  const mark = () => markOutline(element, formElement);
   const onClick = (event: Event) => {
     const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
     if (!button || !element.contains(button) || button.disabled) return;
     const target = resolveAction(button);
-    if (!target || !runAction(session, target)) return;
+    const result = target && runAction(session, target);
+    if (!result) return;
     event.preventDefault();
-    if (target.name === 'select-row' && target.path && target.key) {
-      const row = rowElement(formElement, target.path, target.key);
+    if (target.name === 'select-row' && result.focus?.key !== undefined) {
+      const row = rowElement(formElement, result.focus.path, result.focus.key);
       if (row) alignRow(row);
     }
   };
+  // Rendering replaces map rows; child list changes mark the new rows.
+  const rendered = new view.MutationObserver(mark);
+  rendered.observe(element, { childList: true, subtree: true });
+  formElement.addEventListener('crudui-current', mark);
   element.addEventListener('click', onClick);
+  mark();
   return {
-    sync() {},
-    disconnect() { element.removeEventListener('click', onClick); },
+    sync: mark,
+    disconnect() {
+      rendered.disconnect();
+      formElement.removeEventListener('crudui-current', mark);
+      element.removeEventListener('click', onClick);
+    },
   };
 }
