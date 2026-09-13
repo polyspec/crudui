@@ -42,13 +42,6 @@
   min-width: 0;
 }
 
-/* The space after the form, outside it: see sticky rule 3. */
-.crudui-form {
-  margin-bottom: max(0px, calc(var(--crudui-scroll-height, 100vh) - var(--crudui-form-end-extent, 100vh)
-    - var(--crudui-form-end-top, 0px) - var(--crudui-form-footer-height)
-    - var(--crudui-form-end-after, 0px)));
-}
-
 .crudui-node {
   display: grid;
   gap: 0.375rem;
@@ -289,26 +282,26 @@ textarea.crudui-input {
 }
 
 /*
- * Sticky rows follow three rules from one value. A sticky row carries
+ * Sticky rows are CSS only, from one value. A sticky row carries
  * --crudui-sticky-depth, the number of enclosing sticky rows; its sticky line is
  * depth × header height.
- * 1. The header pins on the line. Every header has exactly the header height and
- *    never wraps, so pinned levels meet without overlap.
- * 2. The row aligns to the line: scroll-margin-top places the header, inside the
- *    row's top border, on the line, so bringing a row to the top is
- *    scrollIntoView({ block: 'start' }).
- * 3. The row at the end of the form can reach the line. The space after the form,
- *    outside it, is what that takes beyond the content already there: the height of
- *    the scroll container (the one the sticky headers follow: the page, a frame or a
- *    scrolling box) less the extent from that row's top to the end of the form
- *    content, its aligned top, the footer and the content that follows the form,
- *    and never below zero. Scrolling stops with the row on its line unless longer
- *    content follows the form, which then scrolls into view. The browser binding
- *    publishes the four measured lengths.
+ * 1. The header pins on the line in whatever scrolls it (a page, a frame or a
+ *    scrolling box). Every header has exactly the header height and never wraps, so
+ *    pinned levels meet without overlap.
+ * 2. The level label shows only while its header is stuck (a scroll-state container
+ *    query).
+ * 3. A control inside a sticky row keeps a top scroll margin of the pinned headers
+ *    above it, and every form control keeps a bottom scroll margin of the footer, so
+ *    focusing a control scrolls it into view clear of them.
  */
 .crudui-node--sticky {
   --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
-  scroll-margin-top: calc(var(--crudui-sticky-line) - var(--crudui-row-border));
+  --crudui-sticky-cover: calc(var(--crudui-sticky-line) + var(--crudui-node-header-height));
+}
+
+.crudui-form :is(input, select, textarea, button) {
+  scroll-margin-top: var(--crudui-sticky-cover, 0px);
+  scroll-margin-bottom: var(--crudui-form-footer-height);
 }
 
 .crudui-node--sticky > .crudui-node__header {
@@ -319,6 +312,13 @@ textarea.crudui-input {
   height: var(--crudui-node-header-height);
   flex-wrap: nowrap;
   overflow: hidden;
+  container-type: scroll-state;
+}
+
+@container scroll-state(not (stuck: top)) {
+  .crudui-node__header > .crudui-node__label {
+    display: none;
+  }
 }
 
 .crudui-node--sticky > .crudui-node__header > .crudui-node__title {
@@ -349,23 +349,6 @@ textarea.crudui-input {
   padding: 0 var(--crudui-row-padding);
   border-top: var(--crudui-row-border) solid var(--crudui-border);
   background: var(--crudui-surface);
-}
-
-/* The level label shows only while the header is stuck, where it names the pinned level. */
-.crudui-node--sticky:not([data-crudui-stuck]) > .crudui-node__header > .crudui-node__label {
-  display: none;
-}
-
-.crudui-node--sticky[data-crudui-stuck] > .crudui-node__header {
-  border-radius: 0;
-  background: var(--crudui-surface);
-  box-shadow: 0 0.5rem 1rem -0.75rem rgb(16 24 40 / 50%);
-}
-
-/* The current row, the last row whose top reached its line, has a highlighted border. */
-.crudui-node--row[data-crudui-current] {
-  border-color: var(--crudui-accent);
-  box-shadow: 0 0 0 1px var(--crudui-accent);
 }
 
 .crudui-controls {
@@ -507,16 +490,6 @@ textarea.crudui-input {
 .crudui-outline [data-crudui-action='select-row'] > .crudui-node__title {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.crudui-outline [aria-current='true'] > .crudui-node__header > [data-crudui-action='select-row'] {
-  background: color-mix(in srgb, var(--crudui-accent) 10%, transparent);
-  color: var(--crudui-accent);
-}
-
-/* Row controls placed in the map (controls: outline) show on the current row only. */
-.crudui-outline .crudui-node--row:not([aria-current='true']) > .crudui-node__header > .crudui-controls {
-  display: none;
 }
 
 .crudui-data {

@@ -1,6 +1,6 @@
 import {
   bindForm, canUndo, emptyHistory, initialView, recordChange, rekeyRowView, removeRowView,
-  alignRow, connectRows, markOutline, resolveAction, setAllExpandedView, toggleRowView, undoChange,
+  resolveAction, setAllExpandedView, toggleRowView, undoChange,
 } from '@crudui/generator-core';
 
 const inputSegments = name => name.match(/[^\[\]]+/g)?.slice(1) ?? [];
@@ -224,7 +224,10 @@ export function bindFormController(element, mount, template, language, initialDa
       ?? own('toggle-row') ?? own('add-row');
   }
 
-  /** Focus the affected row, or the enclosing row or Add button of an emptied collection. */
+  /**
+   * Focus the affected row, or the enclosing row or Add button of an emptied collection;
+   * the browser scrolls the focused control into view, as connectForm does.
+   */
   function moveFocus({ path, key }) {
     const row = key === undefined
       ? scopeElement(path)?.parentElement?.closest('[data-crudui-row-key]')
@@ -232,9 +235,7 @@ export function bindFormController(element, mount, template, language, initialDa
     const control = row ? firstRowControl(row)
       : Array.from(element.querySelectorAll('[data-crudui-action="add-row"]'))
         .find(button => !button.disabled && pathOf(button) === path);
-    if (!control) return;
-    alignRow(row ?? control);
-    control.focus({ preventScroll: true });
+    control?.focus();
   }
 
   async function render(focus, version, target) {
@@ -243,8 +244,6 @@ export function bindFormController(element, mount, template, language, initialDa
     if (version !== inputVersion) return;
     if (target) moveFocus(target);
     else restore(focus);
-    rows.update();
-    markCurrent();
   }
 
   function schedule(next, focus, version = inputVersion, target) {
@@ -304,12 +303,6 @@ export function bindFormController(element, mount, template, language, initialDa
     schedule(normalized, focus, version);
   }
 
-  // The scroll position decides the current row, as in connectForm; the structure map,
-  // rendered in the same element, marks it without changing any state.
-  const rows = connectRows(element);
-  const markCurrent = () => markOutline(element, element);
-  element.addEventListener('crudui-current', markCurrent);
-
   function onClick(event) {
     const button = event.target.closest?.('button[data-crudui-action]');
     if (!button || button.disabled || !element.contains(button)) return;
@@ -333,10 +326,10 @@ export function bindFormController(element, mount, template, language, initialDa
       return;
     }
     if (action === 'select-row') {
-      // Selecting from the structure map aligns the form row, as connectOutline does.
+      // Selecting from the structure map focuses the form row, as connectOutline does.
       event.preventDefault();
       const row = rowElement(path, key);
-      if (row) alignRow(row);
+      if (row) firstRowControl(row)?.focus();
       return;
     }
     const segments = pathSegments(path);
@@ -377,9 +370,6 @@ export function bindFormController(element, mount, template, language, initialDa
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
-  // Mark the current row of the first render, as connectForm does when it connects.
-  rows.update();
-  markCurrent();
 
   return {
     template, fromSerializedTemplate: true,
@@ -412,8 +402,6 @@ export function bindFormController(element, mount, template, language, initialDa
       } while (current !== pending);
     },
     async dispose() {
-      rows.disconnect();
-      element.removeEventListener('crudui-current', markCurrent);
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
