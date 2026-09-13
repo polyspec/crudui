@@ -144,8 +144,9 @@ renders the form, the structure map and the data view inside the compared elemen
 
 The `bindForm` controller supports the same actions as a `createForm` instance:
 row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
-`undo`. It keeps collapsed rows, the selected row and the undo history outside the
-keyed data using generator-core's view-state and history functions, and moves or keeps focus by the form runtime's
+`undo`. It keeps collapsed rows and the undo history outside the keyed data using
+generator-core's view-state and history functions, marks the structure map row of
+the current row with `markOutline`, and moves or keeps focus by the form runtime's
 focus rule.
 
 The complete browser matrix contains 48 scenario reports and 24 initialization

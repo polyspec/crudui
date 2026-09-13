@@ -360,6 +360,11 @@
   color: var(--crudui-accent);
 }
 
+/* Row controls placed in the map (controls: outline) show on the current row only. */
+.crudui-outline .crudui-node--row:not([aria-current='true']) > .crudui-node__header > .crudui-controls {
+  display: none;
+}
+
 .crudui-data {
   display: grid;
   gap: 0.5rem;

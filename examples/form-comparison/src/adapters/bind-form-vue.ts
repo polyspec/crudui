@@ -16,7 +16,7 @@ export function mountView(element, template, language, data = {}) {
   const app = createApp({
     render: () => [
       FormFields(state.value.fields, state.value.buttons, messages),
-      outlineVNode({ fields: state.value.fields, selection: state.value.view.selection, canUndo: state.value.view.canUndo }, messages),
+      outlineVNode({ fields: state.value.fields, canUndo: state.value.view.canUndo }, messages),
       dataVNode(state.value.data, messages),
     ],
   });

@@ -9,7 +9,7 @@ export function mountView(element, template, language, data = {}) {
   const evaluate = (next, view = emptyView) => ({
     fields: bindForm(template, next, { language, collapsed: view.collapsed }),
     buttons: bindButtons(template, next, { language }),
-    data: next, selection: view.selection, canUndo: view.canUndo,
+    data: next, canUndo: view.canUndo,
   });
   const app = flushSync(() => mount(BindFormView, {
     target: element, props: { initial: evaluate(data), messages },

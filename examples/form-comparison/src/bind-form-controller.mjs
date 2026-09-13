@@ -1,6 +1,6 @@
 import {
   bindForm, canUndo, emptyHistory, initialView, recordChange, rekeyRowView, removeRowView,
-  alignRow, connectRows, resolveAction, selectRowView, setAllExpandedView, toggleRowView, undoChange,
+  alignRow, connectRows, markOutline, resolveAction, setAllExpandedView, toggleRowView, undoChange,
 } from '@crudui/generator-core';
 
 const inputSegments = name => name.match(/[^\[\]]+/g)?.slice(1) ?? [];
@@ -238,15 +238,13 @@ export function bindFormController(element, mount, template, language, initialDa
   }
 
   async function render(focus, version, target) {
-    await renderer.load(data, {
-      collapsed: view.collapsed, canUndo: canUndo(history),
-      ...(view.selection ? { selection: view.selection } : {}),
-    });
+    await renderer.load(data, { collapsed: view.collapsed, canUndo: canUndo(history) });
     synchronizeControls();
     if (version !== inputVersion) return;
     if (target) moveFocus(target);
     else restore(focus);
     rows.update();
+    markCurrent();
   }
 
   function schedule(next, focus, version = inputVersion, target) {
@@ -276,15 +274,7 @@ export function bindFormController(element, mount, template, language, initialDa
   }
 
   function setAllExpanded(expanded) {
-    view = setAllExpandedView(view, bindForm(template, data, { language, collapsed: view.collapsed }), expanded);
-    return schedule(data, capture());
-  }
-
-  function selectRow(path, key) {
-    rowPath(path, key);
-    const next = selectRowView(view, path, key);
-    if (next === view) return pending;
-    view = next;
+    view = setAllExpandedView(bindForm(template, data, { language, collapsed: view.collapsed }), expanded);
     return schedule(data, capture());
   }
 
@@ -314,11 +304,11 @@ export function bindFormController(element, mount, template, language, initialDa
     schedule(normalized, focus, version);
   }
 
-  // The selected row follows the scroll position, as in connectForm.
-  const rows = connectRows(element, row => {
-    const path = row && pathOf(row.parentElement);
-    if (path) selectRow(path, row.getAttribute('data-crudui-row-key'));
-  });
+  // The scroll position decides the current row, as in connectForm; the structure map,
+  // rendered in the same element, marks it without changing any state.
+  const rows = connectRows(element);
+  const markCurrent = () => markOutline(element, element);
+  element.addEventListener('crudui-current', markCurrent);
 
   function onClick(event) {
     const button = event.target.closest?.('button[data-crudui-action]');
@@ -345,10 +335,8 @@ export function bindFormController(element, mount, template, language, initialDa
     if (action === 'select-row') {
       // Selecting from the structure map aligns the form row, as connectOutline does.
       event.preventDefault();
-      selectRow(path, key).then(() => {
-        const row = rowElement(path, key);
-        if (row) alignRow(row);
-      });
+      const row = rowElement(path, key);
+      if (row) alignRow(row);
       return;
     }
     const segments = pathSegments(path);
@@ -391,17 +379,15 @@ export function bindFormController(element, mount, template, language, initialDa
   element.addEventListener('click', onClick);
   // Mark the current row of the first render, as connectForm does when it connects.
   rows.update();
+  markCurrent();
 
   return {
     template, fromSerializedTemplate: true,
     getData: () => structuredClone(data),
-    /** Collapsed row paths, selection and undo availability, matching a createForm snapshot. */
-    getView: () => ({
-      collapsed: [...view.collapsed], canUndo: canUndo(history),
-      ...(view.selection ? { selection: { ...view.selection } } : {}),
-    }),
+    /** Collapsed row paths and undo availability, matching a createForm snapshot. */
+    getView: () => ({ collapsed: [...view.collapsed], canUndo: canUndo(history) }),
     load(next) { return schedule(commit(next, { reset: true }), capture()); },
-    toggleRow, setAllExpanded, selectRow, undo,
+    toggleRow, setAllExpanded, undo,
     rekeyRows(changes) {
       for (const { path, oldKey, newKey } of changes) {
         checkKey(newKey);
@@ -427,6 +413,7 @@ export function bindFormController(element, mount, template, language, initialDa
     },
     async dispose() {
       rows.disconnect();
+      element.removeEventListener('crudui-current', markCurrent);
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);

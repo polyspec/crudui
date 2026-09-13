@@ -4,12 +4,7 @@ import { formMessages, type FormMessages } from './messages';
 import type { NodeVM } from './viewmodel';
 import { getValueByPath, parsePathString } from './util';
 import { canUndo, emptyHistory, recordChange, undoChange, type History } from './history';
-import {
-  initialView, rekeyRowView, removeRowView, selectRowView, setAllExpandedView, toggleRowView,
-  type RowSelection, type ViewState,
-} from './view';
-
-export type { RowSelection } from './view';
+import { initialView, rekeyRowView, removeRowView, setAllExpandedView, toggleRowView, type ViewState } from './view';
 
 /** Transport key for an existing database sequence. */
 export function sequenceRowKey(sequence: string | number | bigint): string {
@@ -50,8 +45,6 @@ export interface FormSnapshot {
   readonly revision: number;
   /** Whether `undo` can restore an earlier record. */
   readonly canUndo: boolean;
-  /** Selected row, if any. */
-  readonly selection?: RowSelection;
 }
 
 function hasOwn(value: object, key: string): boolean {
@@ -103,8 +96,8 @@ interface Change {
 /**
  * One editable form instance over a shared template. All row operations are
  * scoped to a collection path; no global string replacement touches siblings.
- * Data, undo history and view state (collapsed rows, selection) are separate;
- * view state is never submitted.
+ * Data, undo history and view state (collapsed rows) are separate; view state is
+ * never submitted. The current row is not instance state: the scroll position decides it.
  */
 export class FormInstance {
   private data: Record<string, unknown>;
@@ -242,17 +235,7 @@ export class FormInstance {
 
   /** Expand or collapse every collapsible row. */
   setAllExpanded(expanded: boolean): void {
-    this.refreshView(setAllExpandedView(this.view, this.snapshot.fields, expanded));
-  }
-
-  /** Select one row. */
-  selectRow(path: string, key: string): void {
-    const rowPath = this.rowPath(path, key);
-    const collectionPath = rowPath.slice(0, rowPath.length - key.length - 1);
-    const view = selectRowView(this.view, collectionPath, key);
-    if (view === this.view) return;
-    this.view = view;
-    this.publish(this.snapshot.fields, this.snapshot.revision);
+    this.refreshView(setAllExpandedView(this.snapshot.fields, expanded));
   }
 
   /** Restore the record before the last data change. */
@@ -274,7 +257,6 @@ export class FormInstance {
       buttons: bindButtons(this.template, this.data, this.options),
       revision,
       canUndo: canUndo(this.history),
-      ...(this.view.selection ? { selection: this.view.selection } : {}),
     };
     for (const listener of this.listeners) listener();
   }

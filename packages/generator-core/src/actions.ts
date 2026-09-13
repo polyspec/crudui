@@ -93,8 +93,8 @@ export function runAction(form: FormInstance, target: ActionTarget): ActionResul
       form.toggleRow(path, key);
       return {};
     case 'select-row':
-      form.selectRow(path, key);
-      return {};
+      // Selecting changes no state: it moves to the row, which the scroll position then makes current.
+      return { focus: { path, key } };
     default: {
       const keys = Object.keys(form.getValue(path) as Record<string, unknown>);
       form.moveRow(path, key, keys.indexOf(key) + (name === 'move-up' ? -1 : 1));
