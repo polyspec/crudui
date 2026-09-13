@@ -200,13 +200,15 @@ describe('instance view state and undo', () => {
 });
 
 describe('structure map and actions', () => {
-  it('maps collections and rows, marking the selected row', () => {
+  it('maps rows only, nested as in the form, marking the selected row', () => {
     const form = createForm(compileForm(spec), data, { language: 'en' });
     form.selectRow('teams', k2);
-    const [teams] = buildOutline(form.getSnapshot().fields, form.getSnapshot().selection);
-    expect(teams).toMatchObject({ path: 'teams', label: 'Team', count: 'Rows: 2' });
-    expect(teams!.rows.map(row => [row.number, row.title, row.current])).toEqual([['1', 'Sales', false], ['2', '(untitled)', true]]);
-    expect(teams!.rows[0]!.collections[0]).toMatchObject({ path: `teams.${k1}.members`, count: 'Rows: 2' });
+    const rows = buildOutline(form.getSnapshot().fields, form.getSnapshot().selection);
+    expect(rows.map(row => [row.path, row.number, row.title, row.current])).toEqual([
+      ['teams', '1', 'Sales', false], ['teams', '2', '(untitled)', true],
+    ]);
+    expect(rows[0]!.rows.map(row => [row.path, row.number])).toEqual([[`teams.${k1}.members`, '1.1'], [`teams.${k1}.members`, '1.2']]);
+    expect(rows[1]!.rows).toEqual([]);
   });
 
   it('runs resolved actions against the instance', () => {

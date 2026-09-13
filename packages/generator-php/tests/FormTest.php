@@ -212,7 +212,8 @@ final class FormTest extends TestCase
         self::assertStringContainsString('<div class="crudui-node crudui-node--row crudui-node--sticky" style="--crudui-sticky-depth:0" data-crudui-row-key="first"><div class="crudui-node__header">', $html);
         self::assertStringContainsString('<span class="crudui-node__title">Second</span>', $html);
         self::assertStringContainsString('<div class="crudui-node__footer"><div class="crudui-controls" role="group" aria-label="Row controls">', $html);
-        self::assertStringNotContainsString('Collection controls', $html);
+        // An empty collection keeps its controls in the form even with multiple.controls: outline.
+        self::assertStringContainsString('<div class="crudui-node__footer"><div class="crudui-controls" role="group" aria-label="Collection controls">', $html);
     }
 
     public function testMultipleDeclarationsAndLanguagesAreRejected(): void

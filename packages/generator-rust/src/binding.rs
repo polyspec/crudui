@@ -397,7 +397,7 @@ impl Binding<'_> {
             node.insert(
                 "controls".into(),
                 json!({
-                    "placement": if settings.controls == "outline" { "outline" } else { "footer" },
+                    "placement": "footer",
                     "label": self.messages.collection_controls,
                     "actions": [action("add-row", self.messages.add_row, full)],
                 }),

@@ -5,7 +5,6 @@ import {
   type FormConnection,
   type FormInstance,
   type FormMessages,
-  type OutlineCollection,
   type OutlineRow,
   type OutlineState,
 } from '@crudui/generator-core';
@@ -13,17 +12,6 @@ import { controlsVNode } from './Node';
 
 function textActionVNode(name: string, label: string, disabled = false): VNode {
   return h('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name, disabled }, label);
-}
-
-function collectionVNode(collection: OutlineCollection): VNode {
-  return h('div', { key: collection.path, class: 'crudui-node crudui-node--collection', 'data-field-path': collection.path }, [
-    h('div', { class: 'crudui-node__header' }, [
-      collection.label !== undefined ? h('span', { class: 'crudui-node__label' }, collection.label) : null,
-      collection.count !== undefined ? h('span', { class: 'crudui-node__count' }, collection.count) : null,
-      collection.controls ? controlsVNode(collection.controls) : null,
-    ]),
-    h('div', { class: 'crudui-node__body' }, collection.rows.map(rowVNode)),
-  ]);
 }
 
 function rowVNode(row: OutlineRow): VNode {
@@ -41,7 +29,7 @@ function rowVNode(row: OutlineRow): VNode {
       ]),
       row.controls ? controlsVNode(row.controls) : null,
     ]),
-    row.collections.length ? h('div', { class: 'crudui-node__body' }, row.collections.map(collectionVNode)) : null,
+    row.rows.length ? h('div', { class: 'crudui-node__body' }, row.rows.map(rowVNode)) : null,
   ]);
 }
 
@@ -55,7 +43,7 @@ export function outlineVNode(state: OutlineState, messages: FormMessages, root?:
         textActionVNode('undo', messages.undo, !state.canUndo),
       ]),
     ]),
-    h('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(collectionVNode)),
+    h('div', { class: 'crudui-outline__body' }, buildOutline(state.fields, state.selection).map(rowVNode)),
   ]);
 }
 
