@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — SSR/CSR 후보 검증 통과와 배포 기록
+
+`node examples/form-comparison/candidate-verification.mjs`가 8d0d467에서 통과했습니다. PHP,
+PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 여기에는 서버·렌더링 경로·
+프레임워크마다 SSR 인계를 포함한 초기화 비교 192개가 들어 있습니다. 브라우저 검증은 검사
+5,808개를 실패 없이 기록했습니다. 8d0d467의 첫 실행은 디스크가 가득 차 이미지 구성 중에
+멈췄고, Go 빌드 캐시와 임시 검사 디렉터리를 지운 뒤 같은 커밋으로 다시 실행했습니다.
+`node examples/form-comparison/comparison-deployment.mjs --commit 8d0d467…`가 이를
+`https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 브라우저에서 페이지는 SSR과
+CSR 열(너비 1,000px 초과 시 좌우)을 보여 주며 PHP·React·bindForm에서 비교 8/8이 일치합니다.
+
 ## 2026-09-13 — 브라우저 상호작용 검사에 SSR·CSR 열 이름 사용
 
 4607254의 후보 검증은 상호작용이 실행되기 전에 `browser-php`에서 실패했습니다. 상호작용 검사는

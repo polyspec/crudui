@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Record the passing SSR/CSR candidate run and its deployment
+
+`node examples/form-comparison/candidate-verification.mjs` passed for 8d0d467. PHP,
+the PHP extension, Go and Rust each passed 1,452 checks with no failure, including
+192 initialization comparisons per server, rendering path and framework with the SSR
+takeover. The browser verification recorded 5,808 checks with no failure. The first
+run of 8d0d467 stopped during image construction because the disk was full; the Go
+build cache and temporary check directories were removed and the same commit was run
+again. `node examples/form-comparison/comparison-deployment.mjs --commit 8d0d467…`
+deployed it at `https://crudui.test/` and passed the identical reapplication. In a
+browser the page shows the SSR and CSR columns (side by side above 1,000 px wide)
+with 8/8 comparisons matching for PHP, React and bindForm.
+
 ## 2026-09-13 — Use the SSR and CSR column names in the browser interaction checks
 
 The candidate run of 4607254 failed in `browser-php` before any interaction ran: the
