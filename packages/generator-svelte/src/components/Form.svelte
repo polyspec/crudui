@@ -21,4 +21,4 @@
   $effect(() => { snapshot; binding?.sync(); });
 </script>
 
-<FormFields fields={snapshot.fields} bind:root />
+<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} bind:root />

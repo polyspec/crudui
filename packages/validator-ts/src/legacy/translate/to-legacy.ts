@@ -111,11 +111,28 @@ function reverseSpec(schema: SchemaSpec): LegacySpec {
         reverseItems(value, out);
         break;
 
+      case 'buttons':
+        out.buttons = Array.isArray(value) ? value.map(reverseButton) : value;
+        break;
+
       default:
         // Unknown / irreversible residue ($patch, etc.) — carry verbatim.
         out[key] = value;
         break;
     }
+  }
+  return out;
+}
+
+/** FormButton → legacy button: link → a, design.class → class, behavior.onclick → onclick. */
+function reverseButton(button: unknown): unknown {
+  if (!isObject(button)) return button;
+  const out: LegacySpec = {};
+  for (const [key, value] of Object.entries(button as Record<string, unknown>)) {
+    if (key === 'type') out.type = value === 'link' ? 'a' : value;
+    else if (key === 'design' && isObject(value) && 'class' in value) out.class = (value as Record<string, unknown>).class;
+    else if (key === 'behavior' && isObject(value) && 'onclick' in value) out.onclick = (value as Record<string, unknown>).onclick;
+    else out[key] = value;
   }
   return out;
 }

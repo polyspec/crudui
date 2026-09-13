@@ -209,6 +209,11 @@ impl Form {
         })
     }
 
+    /// Content and interface language of the instance, defaulting to Korean.
+    pub(crate) fn language(&self) -> &str {
+        self.options.language.as_str().unwrap_or("ko")
+    }
+
     /// Return the shared structure without instance values.
     pub fn template(&self) -> &FormTemplate {
         &self.template

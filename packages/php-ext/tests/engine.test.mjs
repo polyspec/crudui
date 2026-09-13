@@ -371,7 +371,7 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form and list cases', async () => {
-  assert.equal(validationCases.length + specCases.length + listCases.length, 100,
+  assert.equal(validationCases.length + specCases.length + listCases.length, 103,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   try {

@@ -90,6 +90,14 @@ func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, err
 	if scanErr := model.ScanForbiddenKeys(properties, []string{"properties"}); scanErr != nil {
 		return ValidationResult{}, scanErr
 	}
+	// The form root declarations are scanned like the fields they sit beside.
+	for _, key := range []string{"buttons", "action"} {
+		if declared, ok := spec.Get(key); ok {
+			if scanErr := model.ScanForbiddenKeys(declared, []string{key}); scanErr != nil {
+				return ValidationResult{}, scanErr
+			}
+		}
+	}
 
 	return NewValidator(properties).Validate(data)
 }

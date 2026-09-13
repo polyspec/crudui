@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace CRUDUI;
 
 use CRUDUI\Generator\Binding;
+use CRUDUI\Generator\Buttons;
+use CRUDUI\Generator\Messages;
 use CRUDUI\Generator\Missing;
 use CRUDUI\Generator\Template;
 use CRUDUI\Generator\Value;
@@ -19,6 +21,8 @@ final class Form
 
     private array $fields;
 
+    private array $buttons;
+
     private int $revision = 0;
 
     private array $options;
@@ -31,6 +35,7 @@ final class Form
         $this->options = $options;
         $this->data = $this->normalizeFields($this->template->fields, Value::object($data));
         $this->fields = Binding::bind($this->template, $this->data, $options);
+        $this->buttons = Buttons::bind($this->template, $this->data, $this->language());
     }
 
     /** Return a detached copy of the compiled template. */
@@ -43,6 +48,18 @@ final class Form
     public function getFields(): array
     {
         return Value::copy($this->fields);
+    }
+
+    /** Return detached evaluated form buttons. */
+    public function getButtons(): array
+    {
+        return Value::copy($this->buttons);
+    }
+
+    /** Return the interface text for the instance language. */
+    public function getMessages(): array
+    {
+        return Messages::forLanguage($this->language());
     }
 
     /** Return the number of successful data updates. */
@@ -181,9 +198,17 @@ final class Form
     private function commit(stdClass $data): void
     {
         $fields = Binding::bind($this->template, $data, $this->options);
+        $buttons = Buttons::bind($this->template, $data, $this->language());
         $this->data = $data;
         $this->fields = $fields;
+        $this->buttons = $buttons;
         $this->revision++;
+    }
+
+    /** The content and interface language, defaulting to Korean. */
+    private function language(): string
+    {
+        return $this->options['language'] ?? 'ko';
     }
 
     private static function checkedPath(string $path): array

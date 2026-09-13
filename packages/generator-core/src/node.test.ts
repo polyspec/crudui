@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   HISTORY_LIMIT,
+  bindButtons,
   bindForm,
   buildOutline,
   compileForm,
   createForm,
   emptyHistory,
+  formButtonsHtml,
   formMessages,
   initialView,
   recordChange,
@@ -271,5 +273,55 @@ describe('pure view state and history rules', () => {
     expect(setAllExpandedView(view, bindForm(compileForm(spec), data), false).collapsed)
       .toEqual(new Set([`teams.${k1}`, `teams.${k2}`]));
     expect(initialView()).toEqual({ collapsed: new Set() });
+  });
+});
+
+describe('form buttons', () => {
+  const root = (extra: Record<string, unknown>) => ({ type: 'group', properties: { name: { type: 'text' } }, ...extra });
+
+  it('keeps one submit button when the spec declares none', () => {
+    const template = compileForm(root({}));
+    expect(template.buttons).toEqual([{ type: 'submit' }]);
+    expect(bindButtons(template, {}, { language: 'en' })).toEqual([
+      { type: 'submit', tag: 'button', text: 'Save', attrs: { type: 'submit', class: 'crudui-action crudui-action--text' } },
+    ]);
+  });
+
+  it('evaluates declared buttons in order with text, design and behavior', () => {
+    const template = compileForm(root({
+      action: { method: 'post', url: '/save' },
+      buttons: [
+        { type: 'submit', name: '__submitted__', value: 'go', text: { ko: '저장하기', en: 'Save now' }, design: { class: 'primary' } },
+        { type: 'reset' },
+        { type: 'button', text: 'Cancel', behavior: { onclick: 'history.back()' } },
+        { type: 'link', text: 'List', href: '../?a=1&b="2"' },
+      ],
+    }));
+    expect(template.action).toEqual({ method: 'post', url: '/save' });
+    const buttons = bindButtons(template, {}, { language: 'ko' });
+    expect(buttons.map(button => [button.tag, button.text, button.attrs])).toEqual([
+      ['button', '저장하기', { type: 'submit', class: 'crudui-action crudui-action--text primary', name: '__submitted__', value: 'go' }],
+      ['button', '초기화', { type: 'reset', class: 'crudui-action crudui-action--text' }],
+      ['button', 'Cancel', { type: 'button', class: 'crudui-action crudui-action--text', onclick: 'history.back()' }],
+      ['a', 'List', { class: 'crudui-action crudui-action--text', href: '../?a=1&b="2"' }],
+    ]);
+    expect(formButtonsHtml(buttons.slice(3))).toBe('<a class="crudui-action crudui-action--text" href="../?a=1&amp;b=&quot;2&quot;">List</a>');
+  });
+
+  it('rejects wrong button and action declarations', () => {
+    const compile = (extra: Record<string, unknown>) => () => compileForm(root(extra));
+    expect(compile({ buttons: {} })).toThrow('Invalid buttons at form: expected a list of buttons');
+    expect(compile({ buttons: [{ type: 'image' }] })).toThrow('Invalid buttons.0.type at form: expected submit, reset, button or link');
+    expect(compile({ buttons: [{ type: 'button' }] })).toThrow('Invalid buttons.0.text at form: expected content for this button type');
+    expect(compile({ buttons: [{ type: 'link', text: 'List' }] })).toThrow('Invalid buttons.0.href at form: expected a link target');
+    expect(compile({ buttons: [{ type: 'submit', value: 1 }] })).toThrow('Invalid buttons.0.value at form: expected a string');
+    expect(compile({ action: 'post' })).toThrow('Invalid action at form: expected an object');
+    expect(() => compileForm({ type: 'group', properties: { rows: { type: 'group', buttons: [], properties: {} } } }))
+      .toThrow('Invalid buttons at rows: expected the form root');
+  });
+
+  it('carries evaluated buttons in the instance snapshot', () => {
+    const form = createForm(compileForm(root({ buttons: [{ type: 'submit', design: { class: { '.name': 'filled' } } }] })), { name: 'Ada' }, { language: 'en' });
+    expect(form.getSnapshot().buttons[0]!.attrs.class).toBe('crudui-action crudui-action--text filled');
   });
 });

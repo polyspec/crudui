@@ -65,7 +65,11 @@ export type IrreversibleReason =
   /** empty properties:null normalized to {type:group, properties:{}} — an empty group, not a typeless options node; the empty map adds no field. */
   | 'EMPTY_PROPERTIES_GROUP'
   /** numeric/non-string item label normalized to a string (G3 content) — ItemLabel is string|LangMap|null, never a number. */
-  | 'ITEM_LABEL_STRINGIFY';
+  | 'ITEM_LABEL_STRINGIFY'
+  /** action.buttons name → button map hoisted into the root buttons list — the map names and the nesting under action are lost. */
+  | 'ACTION_BUTTONS_HOIST'
+  /** legacy button label renamed to text — legacy used both spellings, and the inverse writes text. */
+  | 'BUTTON_LABEL_TO_TEXT';
 
 /**
  * The full translator key table — every legacy key family the analysis lists,
@@ -185,6 +189,12 @@ export const KEY_MAPPINGS: readonly KeyMapping[] = [
 
   // -- items dynamic source vs HTTP verb --
   { legacy: 'method (lone, no model/table/relations/items sibling)', schema: 'options.method (form/field HTTP verb, NOT items source)', reversible: true },
+
+  // -- form root declarations (form root only) --
+  { legacy: 'buttons (root list): type a / class / onclick', schema: 'buttons: type link / design.class / behavior.onclick', reversible: true },
+  { legacy: 'buttons label', schema: 'buttons text', reversible: false, reason: 'BUTTON_LABEL_TO_TEXT' },
+  { legacy: 'action: method / url / enctype', schema: 'action (passthrough)', reversible: true },
+  { legacy: 'action.buttons (name → button map)', schema: 'root buttons list', reversible: false, reason: 'ACTION_BUTTONS_HOIST' },
 ];
 
 /** Result of translating a single legacy spec tree into schema, with a translation log. */

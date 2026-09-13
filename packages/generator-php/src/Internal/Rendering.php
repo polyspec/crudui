@@ -83,9 +83,10 @@ final class Rendering
     }
 
     /** Render top-level nodes inside the crudui-form block. */
-    public static function form(array $nodes): string
+    public static function form(array $nodes, array $buttons, array $messages): string
     {
-        return self::element('div', ['class' => 'crudui-form'], self::element('div', ['class' => 'crudui-form__body'], implode('', array_map(self::node(...), $nodes))));
+        $footer = self::element('div', ['class' => 'crudui-form__footer'], self::element('div', ['class' => 'crudui-controls', 'role' => 'group', 'aria-label' => $messages['formActions']], Buttons::html($buttons)));
+        return self::element('div', ['class' => 'crudui-form'], self::element('div', ['class' => 'crudui-form__body'], implode('', array_map(self::node(...), $nodes))) . $footer);
     }
 
     /** Join non-empty class names without normalizing their contents. */

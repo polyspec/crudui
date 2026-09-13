@@ -141,6 +141,79 @@ int main(void)
         }
         ps_value_free(declared);
     }
+    /* Root buttons and action: copied after the fields, or one submit button by default. */
+    ps_value *plain = object(); set(plain, "type", ps_string_value("group"));
+    ps_value *plain_properties = object(); set(plain_properties, "name", field("text"));
+    set(plain, "properties", plain_properties);
+    result = ps_compile_form(plain, options);
+    assert(result.value && !result.error);
+    assert(!strcmp(ps_key_at(result.value, 3), "buttons") && !ps_has(result.value, "action"));
+    const ps_value *defaults = ps_get(result.value, "buttons");
+    assert(defaults && defaults->kind == PS_ARRAY && ps_size(defaults) == 1 && ps_size(ps_at(defaults, 0)) == 1);
+    assert(ps_is_string(ps_get(ps_at(defaults, 0), "type"), "submit"));
+    ps_value_free(result.value);
+    ps_value *link = field("link"); set(link, "text", ps_string_value("List")); set(link, "href", ps_string_value("../"));
+    ps_value *declared_buttons = array(); assert(ps_append(declared_buttons, field("reset")) && ps_append(declared_buttons, link));
+    ps_value *action = object(); set(action, "method", ps_string_value("post"));
+    set(plain, "buttons", declared_buttons); set(plain, "action", action);
+    result = ps_compile_form(plain, options);
+    assert(result.value && !result.error);
+    assert(!strcmp(ps_key_at(result.value, 3), "buttons") && !strcmp(ps_key_at(result.value, 4), "action"));
+    assert(ps_equal(ps_get(result.value, "buttons"), ps_get(plain, "buttons")));
+    assert(ps_equal(ps_get(result.value, "action"), ps_get(plain, "action")));
+    ps_value_free(result.value); ps_value_free(plain);
+
+    ps_value *untitled = field("button");
+    ps_value *unnamed = field("submit"); set(unnamed, "name", ps_int_value(1));
+    ps_value *unlinked = field("link"); set(unlinked, "text", ps_string_value("List"));
+    ps_value *styled = field("submit"); set(styled, "design", ps_string_value("x"));
+    ps_value *nested = field("submit"); set(nested, "buttons", array());
+    ps_value *unknown = field("image");
+    ps_value *wrong_action = object(); set(wrong_action, "enctype", ps_int_value(1));
+    const struct { const char *key; ps_value *value; const char *message; } forms[] = {
+        {"action", ps_string_value("post"), "Invalid action at form: expected an object"},
+        {"action", wrong_action, "Invalid action.enctype at form: expected a string"},
+        {"buttons", object(), "Invalid buttons at form: expected a list of buttons"},
+        {"buttons", ps_int_value(1), "Invalid buttons.0 at form: expected an object"},
+        {"buttons", unknown, "Invalid buttons.0.type at form: expected submit, reset, button or link"},
+        {"buttons", unnamed, "Invalid buttons.0.name at form: expected a string"},
+        {"buttons", untitled, "Invalid buttons.0.text at form: expected content for this button type"},
+        {"buttons", unlinked, "Invalid buttons.0.href at form: expected a link target"},
+        {"buttons", styled, "Invalid design at form.buttons.0: expected a boolean or an object"},
+        {"buttons", nested, "Invalid buttons at form.buttons.0: expected the form root"},
+    };
+    for (size_t i = 0; i < sizeof(forms) / sizeof(forms[0]); ++i) {
+        ps_value *declared = object(); set(declared, "type", ps_string_value("group"));
+        ps_value *declared_properties = object(); set(declared_properties, "name", field("text"));
+        set(declared, "properties", declared_properties);
+        ps_value *value = forms[i].value;
+        /* Entries after the list check hold one button declaration. */
+        if (i > 2) { ps_value *list = array(); assert(ps_append(list, value)); value = list; }
+        set(declared, forms[i].key, value);
+        result = ps_compile_form(declared, options);
+        assert(!result.value && result.error);
+        assert(ps_is_string(ps_get(result.error, "code"), "INVALID_FORM_INPUT"));
+        assert(ps_is_string(ps_get(result.error, "message"), forms[i].message));
+        ps_value_free(result.error); ps_value_free(declared);
+    }
+    /* The action is checked before the buttons. */
+    ps_value *both = object(); set(both, "type", ps_string_value("group"));
+    ps_value *both_properties = object(); set(both_properties, "name", field("text"));
+    set(both, "properties", both_properties);
+    set(both, "buttons", object()); set(both, "action", ps_int_value(1));
+    result = ps_compile_form(both, options);
+    assert(!result.value && result.error);
+    assert(ps_is_string(ps_get(result.error, "message"), "Invalid action at form: expected an object"));
+    ps_value_free(result.error); ps_value_free(both);
+    ps_value *rows = field("text"); set(rows, "action", object());
+    ps_value *declared = object(); set(declared, "type", ps_string_value("group"));
+    ps_value *declared_properties = object(); set(declared_properties, "rows", rows);
+    set(declared, "properties", declared_properties);
+    result = ps_compile_form(declared, options);
+    assert(!result.value && result.error);
+    assert(ps_is_string(ps_get(result.error, "message"), "Invalid action at rows: expected the form root"));
+    ps_value_free(result.error); ps_value_free(declared);
+
     ps_value_free(options); ps_value_free(spec);
     return 0;
 }

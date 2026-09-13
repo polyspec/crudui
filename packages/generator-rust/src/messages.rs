@@ -29,6 +29,12 @@ pub(crate) struct Messages {
     pub collection_controls: &'static str,
     /// Accessible name of the form controls.
     pub form_controls: &'static str,
+    /// Accessible name of the form buttons in the form footer.
+    pub form_actions: &'static str,
+    /// Default text of a submit button.
+    pub submit: &'static str,
+    /// Default text of a reset button.
+    pub reset: &'static str,
     /// Structure map heading.
     pub outline: &'static str,
     /// Current data heading.
@@ -47,6 +53,7 @@ const KO: Messages = Messages {
     move_up: "위로", move_down: "아래로", add_row: "추가", copy_row: "복사", remove_row: "제거",
     toggle_row: "펼치기/접기", expand_all: "모두 펼치기", collapse_all: "모두 접기", undo: "되돌리기",
     row_controls: "행 컨트롤", collection_controls: "컬렉션 컨트롤", form_controls: "폼 컨트롤",
+    form_actions: "폼 작업", submit: "저장", reset: "초기화",
     outline: "구조 맵", data: "현재 데이터", untitled: "(이름 없음)", collapsed: "접힘",
     count: "{count}개", children: "하위 {count}개",
 };
@@ -55,6 +62,7 @@ const EN: Messages = Messages {
     move_up: "Move up", move_down: "Move down", add_row: "Add", copy_row: "Copy", remove_row: "Remove",
     toggle_row: "Expand or collapse", expand_all: "Expand all", collapse_all: "Collapse all", undo: "Undo",
     row_controls: "Row controls", collection_controls: "Collection controls", form_controls: "Form controls",
+    form_actions: "Form actions", submit: "Save", reset: "Reset",
     outline: "Structure map", data: "Current data", untitled: "(untitled)", collapsed: "Collapsed",
     count: "Rows: {count}", children: "Nested rows: {count}",
 };
@@ -63,6 +71,7 @@ const JA: Messages = Messages {
     move_up: "上へ", move_down: "下へ", add_row: "追加", copy_row: "複製", remove_row: "削除",
     toggle_row: "展開/折りたたみ", expand_all: "すべて展開", collapse_all: "すべて折りたたむ", undo: "元に戻す",
     row_controls: "行の操作", collection_controls: "コレクションの操作", form_controls: "フォームの操作",
+    form_actions: "フォームのアクション", submit: "保存", reset: "リセット",
     outline: "構造マップ", data: "現在のデータ", untitled: "(名前なし)", collapsed: "折りたたみ中",
     count: "{count}件", children: "下位 {count}件",
 };
@@ -71,6 +80,7 @@ const ZH: Messages = Messages {
     move_up: "上移", move_down: "下移", add_row: "添加", copy_row: "复制", remove_row: "删除",
     toggle_row: "展开/折叠", expand_all: "全部展开", collapse_all: "全部折叠", undo: "撤销",
     row_controls: "行操作", collection_controls: "集合操作", form_controls: "表单操作",
+    form_actions: "表单动作", submit: "保存", reset: "重置",
     outline: "结构图", data: "当前数据", untitled: "(未命名)", collapsed: "已折叠",
     count: "{count} 项", children: "子项 {count} 项",
 };

@@ -2,6 +2,7 @@
 #![deny(missing_docs)]
 
 mod binding;
+mod buttons;
 mod css;
 mod date;
 mod design;

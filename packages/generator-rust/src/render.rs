@@ -19,7 +19,7 @@ pub(crate) fn raw_text(value: &str) -> String {
         .replace('>', "&gt;")
 }
 
-fn raw_attribute(value: &str) -> String {
+pub(crate) fn raw_attribute(value: &str) -> String {
     value
         .replace('&', "&amp;")
         .replace('"', "&quot;")
@@ -475,7 +475,23 @@ pub(crate) fn render_fields(fields: &[Value]) -> String {
     )
 }
 
+/// Render fields and the form buttons for a record as form HTML.
+pub(crate) fn render_form_html(fields: &[Value], template: &crate::FormTemplate, data: &Value, language: &str) -> FormResult<String> {
+    let messages = crate::messages::form_messages(language)?;
+    let body = render_fields(fields);
+    let footer = element(
+        "div",
+        &json!({"class":"crudui-form__footer"}),
+        &element(
+            "div",
+            &json!({"class":"crudui-controls","role":"group","aria-label":messages.form_actions}),
+            &crate::buttons::form_buttons_html(&template.buttons, data, language, messages),
+        ),
+    );
+    Ok(format!("{}{footer}</div>", body.strip_suffix("</div>").expect("form markup ends with its closing tag")))
+}
+
 /// Render an instance as HTML without executing scripts or browser operations.
 pub fn render_form(form: &Form) -> FormResult<String> {
-    Ok(render_fields(form.fields()))
+    render_form_html(form.fields(), form.template(), &form.get_data(), form.language())
 }

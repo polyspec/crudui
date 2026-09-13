@@ -388,7 +388,10 @@ fn native_fixture_records() {
         let result=compile_form(&case["spec"],&options).and_then(|template| {
             let bind:BindOptions=serde_json::from_value(case.get("options").cloned().unwrap_or(json!({}))).unwrap();
             let fields=bind_form(&template,case.get("data").unwrap_or(&json!({})),&bind)?;
-            Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":crate::render::render_fields(&fields)}))
+            let data=case.get("data").cloned().unwrap_or(json!({}));
+            let language=case["options"]["language"].as_str().unwrap_or("ko");
+            let html=crate::render::render_form_html(&fields,&template,&data,language)?;
+            Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":html}))
         });
         if let Some(expected)=case.get("expectError") {
             assert_eq!(result.as_ref().unwrap_err().code,expected["code"].as_str().unwrap(),"{}",case["name"]);
@@ -574,3 +577,31 @@ fn display_defaults_do_not_replace_explicit_null() {
         );
     }
 }
+
+#[test]
+fn form_buttons_default_declared_and_rejected() {
+    let plain = compile_form(&json!({"type":"group","properties":{"name":{"type":"text"}}}), &CompileOptions::default()).unwrap();
+    assert_eq!(serde_json::to_value(&plain.buttons).unwrap(), json!([{"type":"submit"}]));
+    let form = Form::new(plain, &json!({}), BindOptions { language: "en".into(), ..Default::default() }).unwrap();
+    assert!(render_form(&form).unwrap().ends_with("</div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div>"));
+    let declared = compile_form(&json!({"type":"group","action":{"method":"post","url":"/save"},"buttons":[
+        {"type":"submit","name":"__submitted__","value":"go","text":{"ko":"저장하기","en":"Save now"},"design":{"class":"primary"}},
+        {"type":"reset"},
+        {"type":"button","text":"Cancel","behavior":{"onclick":"history.back()"}},
+        {"type":"link","text":"List","href":"../?a=1&b=\"2\""}],"properties":{"name":{"type":"text"}}}), &CompileOptions::default()).unwrap();
+    assert_eq!(serde_json::to_value(&declared.action).unwrap(), json!({"method":"post","url":"/save"}));
+    let form = Form::new(declared, &json!({}), BindOptions::default()).unwrap();
+    assert!(render_form(&form).unwrap().contains("<button type=\"submit\" class=\"crudui-action crudui-action--text primary\" name=\"__submitted__\" value=\"go\">저장하기</button><button type=\"reset\" class=\"crudui-action crudui-action--text\">초기화</button><button type=\"button\" class=\"crudui-action crudui-action--text\" onclick=\"history.back()\">Cancel</button><a class=\"crudui-action crudui-action--text\" href=\"../?a=1&amp;b=&quot;2&quot;\">List</a>"));
+    for (spec, message) in [
+        (json!({"type":"group","buttons":{},"properties":{}}), "Invalid buttons at form: expected a list of buttons"),
+        (json!({"type":"group","buttons":[{"type":"image"}],"properties":{}}), "Invalid buttons.0.type at form: expected submit, reset, button or link"),
+        (json!({"type":"group","buttons":[{"type":"button"}],"properties":{}}), "Invalid buttons.0.text at form: expected content for this button type"),
+        (json!({"type":"group","buttons":[{"type":"link","text":"List"}],"properties":{}}), "Invalid buttons.0.href at form: expected a link target"),
+        (json!({"type":"group","buttons":[{"type":"submit","value":1}],"properties":{}}), "Invalid buttons.0.value at form: expected a string"),
+        (json!({"type":"group","action":"post","properties":{}}), "Invalid action at form: expected an object"),
+        (json!({"type":"group","properties":{"rows":{"type":"group","buttons":[],"properties":{}}}}), "Invalid buttons at rows: expected the form root"),
+    ] {
+        assert_eq!(compile_form(&spec, &CompileOptions::default()).unwrap_err().message, message);
+    }
+}
+

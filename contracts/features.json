@@ -204,6 +204,75 @@
       ]
     },
     {
+      "id": "bindButtons",
+      "owner": "@crudui/generator-core",
+      "signature": "bindButtons(template, data?, options?) -> ButtonVM[]",
+      "input": "compiled template with root buttons, record data and language",
+      "output": "form buttons with text, element and ordered attributes; one submit button when the spec declares none",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-render/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md",
+        "docs/spec/schema.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "formButtonsHtml",
+      "owner": "@crudui/generator-core",
+      "signature": "formButtonsHtml(buttons) -> string",
+      "input": "evaluated form buttons",
+      "output": "button and anchor markup that every renderer inserts into the form footer controls group",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-render/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/node.test.ts"
+      ],
+      "docs": [
+        "docs/spec/form-markup.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+        }
+      ]
+    },
+    {
       "id": "createForm",
       "owner": "@crudui/generator-core",
       "signature": "createForm(template, data?, options?) -> FormInstance",
@@ -454,7 +523,7 @@
       "owner": "@crudui/generator-core",
       "signature": "connectRows(element, onCurrent) -> RowTracking",
       "input": "rendered form host and a callback for the current row",
-      "output": "row tracking that marks rows at their sticky line and reports the current row",
+      "output": "row tracking that marks rows at their sticky line, reports the current row and publishes the end row lengths for the space after the form",
       "errors": [
         "TypeError"
       ],

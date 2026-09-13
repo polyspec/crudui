@@ -51,6 +51,7 @@ function formElement(controls) {
   return {
     listeners,
     ownerDocument: { activeElement: null, defaultView: fakeWindow },
+    style: { setProperty() {} },
     contains: () => false,
     querySelectorAll: selector =>
       ['[name]', 'input[name],textarea[name],select[name]'].includes(selector)
@@ -108,6 +109,7 @@ test('accepts saved, unsaved and empty keyed collections', async () => {
   const listeners = new Map();
   const element = {
     ownerDocument: { activeElement: null, defaultView: fakeWindow },
+    style: { setProperty() {} },
     contains: () => false,
     querySelectorAll: () => [],
     addEventListener: (name, listener) => listeners.set(name, listener),

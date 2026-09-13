@@ -33,6 +33,6 @@ export const Form = defineComponent({
     });
     onUpdated(() => { binding?.sync(); });
     onBeforeUnmount(() => { binding?.disconnect(); unsubscribe?.(); });
-    return () => FormFields(snapshot.value.fields, root);
+    return () => FormFields(snapshot.value.fields, snapshot.value.buttons, props.form.messages, root);
   },
 });

@@ -3,6 +3,8 @@
 export { compileForm, bindForm } from './form';
 export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
+export { bindButtons, formButtonsHtml, FORM_BUTTON_TYPES, DEFAULT_FORM_BUTTONS } from './buttons';
+export type { ButtonVM, FormButtonType, BindButtonsOptions } from './buttons';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
 export {
   initialView, rowPathContains, collapsibleRows, toggleRowView, setAllExpandedView,
