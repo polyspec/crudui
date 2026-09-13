@@ -10,8 +10,13 @@ frameworks render the same form. The columns are now SSR and CSR. In the SSR col
 (`initialization=ssr`) the selected server (PHP, the PHP extension, Go or Rust)
 renders the form with the saved record, the frame places that HTML in the page, and
 the selected framework takes the form over with the same template and data; the
-takeover must leave the form markup unchanged, apart from the state the browser
-binding writes (`data-crudui-stuck`, `data-crudui-current` and the end-row lengths).
+takeover must leave the parsed form DOM (every element, attribute value, text and
+comment) unchanged, apart from the state the browser binding writes
+(`data-crudui-stuck`, `data-crudui-current` and the end-row lengths). The first
+candidate run compared serialized HTML and failed only on attribute order: React sets
+an input's `type`, `value` and `name` after its other attributes. Attribute order is
+not part of the DOM, and the string renderers' byte-identical HTML stays covered by the
+generation checks, so the takeover compares the parsed DOM.
 The CSR column (`initialization=csr`) mounts the form without data and injects the
 record. Every stage is then compared between the columns as before. The comparison
 labels, the SSR document links, the frame readiness and typing checks and the
