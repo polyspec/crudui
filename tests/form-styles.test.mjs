@@ -309,7 +309,7 @@ test('the row at the end of the form limits scrolling at its line, with no blank
   } finally { await page.close(); }
 });
 
-test('a form in a scrolling box follows the same sticky, current row and end rules as in the page', async () => {
+test('a form in a scrolling box, followed by other content, follows the same sticky, current row and end rules as in the page', async () => {
   const page = await browser.newPage();
   const failures = [];
   page.on('pageerror', error => failures.push(error.message));
@@ -318,13 +318,17 @@ test('a form in a scrolling box follows the same sticky, current row and end rul
     await page.setViewport({ width: 1000, height: 700 });
     await page.goto(url);
     await page.waitForFunction(() => window.formStylesTest !== undefined);
-    // The box is shorter than the page viewport and does not overflow before the form mounts.
+    // The box is shorter than the page viewport and does not overflow before the form
+    // mounts; content shorter than the space the end row needs follows the form in the box.
     await page.evaluate(() => {
       const box = document.createElement('div');
       box.id = 'box';
       box.style.cssText = 'height:420px;overflow:auto;margin:60px 40px';
       document.body.prepend(box);
-      box.append(document.getElementById('form'));
+      const after = document.createElement('div');
+      after.id = 'after';
+      after.style.height = '60px';
+      box.append(document.getElementById('form'), after);
     });
     await page.evaluate((spec, data) => window.formStylesTest.mount(spec, data), shortSpec, shortData);
     const frame = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -374,5 +378,45 @@ test('a form in a scrolling box follows the same sticky, current row and end rul
     assert.ok(Math.abs(end.opsOffset - end.opsAligned) < 0.5, `Scrolling ends when the end row reaches its line in the box: ${end.opsOffset} vs ${end.opsAligned}`);
     assert.equal(end.opsCurrent, true, 'The end row is current');
     assert.equal(end.scrollHeight, `${end.clientHeight}px`, 'The published scroll height is the box height');
+  } finally { await page.close(); }
+});
+
+test('content after the form longer than the end row needs adds no space and scrolls into view', async () => {
+  const page = await browser.newPage();
+  const failures = [];
+  page.on('pageerror', error => failures.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });
+  try {
+    await page.setViewport({ width: 1000, height: 700 });
+    await page.goto(url);
+    await page.waitForFunction(() => window.formStylesTest !== undefined);
+    await page.evaluate(() => {
+      const box = document.createElement('div');
+      box.id = 'box';
+      box.style.cssText = 'height:420px;overflow:auto;margin:60px 40px';
+      document.body.prepend(box);
+      const after = document.createElement('div');
+      after.id = 'after';
+      after.style.height = '600px';
+      box.append(document.getElementById('form'), after);
+    });
+    await page.evaluate((spec, data) => window.formStylesTest.mount(spec, data), shortSpec, shortData);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const layout = await page.evaluate(() => {
+      const box = document.getElementById('box');
+      box.scrollTop = box.scrollHeight;
+      const form = document.querySelector('.crudui-form');
+      const after = document.getElementById('after');
+      return {
+        margin: getComputedStyle(form).marginBottom,
+        gap: after.getBoundingClientRect().top - form.getBoundingClientRect().bottom,
+        afterBottom: after.getBoundingClientRect().bottom,
+        boxBottom: box.getBoundingClientRect().bottom,
+      };
+    });
+    assert.deepEqual(failures, []);
+    assert.equal(layout.margin, '0px', 'No space is added after the form');
+    assert.ok(Math.abs(layout.gap) < 0.5, `The following content starts right after the form: ${layout.gap}`);
+    assert.ok(Math.abs(layout.afterBottom - layout.boxBottom) < 0.5, 'The following content scrolls into view to its end');
   } finally { await page.close(); }
 });

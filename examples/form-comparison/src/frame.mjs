@@ -151,6 +151,7 @@ function renderedFormDom() {
   copy.style.removeProperty('--crudui-scroll-height');
   copy.style.removeProperty('--crudui-form-end-extent');
   copy.style.removeProperty('--crudui-form-end-top');
+  copy.style.removeProperty('--crudui-form-end-after');
   if (copy.getAttribute('style') === '') copy.removeAttribute('style');
   return JSON.stringify(domSnapshot(copy));
 }
