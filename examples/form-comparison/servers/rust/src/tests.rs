@@ -285,7 +285,7 @@ async fn server_html_uses_framework_storage_and_native_submission() {
     assert!(html.contains("data-generator-runtime=\"rust\""));
     assert!(html.contains(&format!("data-generator-commit=\"{COMMIT}\"")));
     assert!(html.contains("action=\"/api/rust/save/createForm/react\""));
-    assert!(html.contains("/frames/createForm-react/?server=rust&amp;lang=en"));
+    assert!(html.contains("/frames/createForm-react/?server=rust&amp;lang=en&amp;initialization=data"));
     assert!(
         html.contains("<button type=\"submit\" name=\"_form_complete\" value=\"1\">Save</button>")
     );

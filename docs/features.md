@@ -36,6 +36,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-markup | Recursive node markup, row cards and interface messages in five implementations | implemented | passed | not-deployed | [Form markup](spec/form-markup.md) |
 | form-view-state | Row collapse, selection and merged undo history outside record data | implemented | passed | not-deployed | [Node tests](../packages/generator-core/src/node.test.ts) |
 | form-outline | Structure map and current data view | implemented | passed | not-deployed | [Form markup](spec/form-markup.md) |
+| form-initialization-comparison | Side-by-side stage comparison of forms created with data and forms injected after mounting | implemented | passed | not-deployed | [Form comparison](spec/form-comparison.md) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
 | docs-check | Document checks and event-driven development rebuilds | implemented | passed | not-deployed | [Documentation procedure](operations/documentation.md) |
 | docs-pages | Static documentation with English, Korean and API pages | implemented | passed | deployed | [Page tests](../tests/docs/site-build.test.mjs), [publication procedure](operations/documentation.md), [published site](https://polyspec.github.io/crudui/) |

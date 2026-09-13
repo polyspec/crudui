@@ -62,7 +62,8 @@ function serverReport() {
 
 function browserSummary() {
   const sections = {
-    scenarios: { total: 480, failed: 0 }, interactions: { total: 120, failed: 0 },
+    scenarios: { total: 456, failed: 0 }, initializations: { total: 2304, failed: 0 },
+    interactions: { total: 120, failed: 0 },
     mounts: { total: 12, failed: 0 }, documents: { total: 12, failed: 0 },
   };
   return {
@@ -96,7 +97,7 @@ test('accepts complete candidate evidence for one exact commit', async t => {
   assert.equal(result.generation.requests, expectedGenerationRequests);
   assert.equal(result.generation.combinations, expectedGenerationCombinations);
   assert.equal(result.persistence.results, 120);
-  assert.equal(result.browser.checks, 1_248);
+  assert.equal(result.browser.checks, 5_808);
 });
 
 test('rejects failed, incomplete and stale candidate evidence', async t => {

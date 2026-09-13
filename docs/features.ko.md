@@ -36,6 +36,7 @@
 | form-markup | 다섯 구현의 재귀 노드 마크업, 행 카드, 인터페이스 문구 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
 | form-view-state | 레코드 데이터와 분리된 행 접기, 선택, 병합 되돌리기 이력 | implemented | passed | not-deployed | [노드 테스트](../packages/generator-core/src/node.test.ts) |
 | form-outline | 구조 맵과 현재 데이터 보기 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
+| form-initialization-comparison | 데이터와 함께 생성한 폼과 마운트 후 주입한 폼의 단계별 좌우 비교 | implemented | passed | not-deployed | [폼 비교](spec/form-comparison.ko.md) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
 | docs-check | 문서 검사와 이벤트 기반 개발 빌드 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
 | docs-pages | 영어·한국어·API 페이지를 제공하는 정적 문서 | implemented | passed | deployed | [페이지 검사](../tests/docs/site-build.test.mjs), [게시 절차](operations/documentation.ko.md), [게시 사이트](https://polyspec.github.io/crudui/) |

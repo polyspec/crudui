@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 
+import { initializationCategories, initializationComparisons } from './src/runtime-paths.mjs';
+
 export const browserServers = ['php', 'php-ext', 'go', 'rust'];
 export const browserPaths = ['bindForm', 'createForm'];
 export const browserFrameworks = ['react', 'vue', 'svelte'];
@@ -8,9 +10,10 @@ export const browserServerRunBudgetMs = 15 * 60 * 1000;
 export const browserScenarioCheckIds = [
   'identity', 'render', 'plus', 'copy', 'order', 'inject', 'transport',
   'nonsequential', 'saved', 'serverValid', 'serverInvalid', 'exact',
-  'empty', 'deletion', 'shape', 'equivalence', 'jsonSyntax', 'keyedNames',
-  'initialization', 'cache',
+  'empty', 'deletion', 'shape', 'equivalence', 'jsonSyntax', 'keyedNames', 'cache',
 ];
+export const browserInitializationResultIds = initializationComparisons.flatMap(label =>
+  initializationCategories.map(category => `${label}/${category}`));
 
 const interactionActions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboard'];
 
@@ -69,22 +72,18 @@ function verifyActivity(activity, report, label) {
   }
 }
 
-function verifyInitializationEvidence(evidence, item, label) {
-  assert.ok(evidence && typeof evidence === 'object' && !Array.isArray(evidence),
-    `${label}: initialization evidence`);
-  for (const field of ['server', 'path', 'framework', 'transport', 'commit']) {
-    assert.equal(evidence[field], item[field], `${label}: initialization evidence ${field}`);
-  }
-  assert.ok(typeof evidence.generatedAt === 'string' && !Number.isNaN(Date.parse(evidence.generatedAt)),
-    `${label}: initialization evidence generatedAt`);
-  assert.ok(typeof evidence.randomSource === 'string' && evidence.randomSource.length > 0,
-    `${label}: initialization evidence random source`);
-  assert.ok(Array.isArray(evidence.stages) && evidence.stages.length > 0,
-    `${label}: initialization evidence stages`);
-  assert.ok(Array.isArray(evidence.comparisons) && evidence.comparisons.length > 0,
-    `${label}: initialization evidence comparisons`);
-  assert.ok(evidence.cssFailures && typeof evidence.cssFailures === 'object'
-    && !Array.isArray(evidence.cssFailures), `${label}: initialization evidence CSS failures`);
+function verifyInitialization(item, report, label) {
+  verifyTiming(item, label);
+  assert.equal(item.kind, 'initialization', `${label}: report kind`);
+  assert.equal(item.commit, report.metadata?.source?.commit, `${label}: source commit`);
+  assert.ok(Array.isArray(item.results), `${label}: comparison results`);
+  assert.deepEqual(item.results.map(result => `${result.label}/${result.category}`),
+    browserInitializationResultIds, `${label}: comparison IDs`);
+  assert.ok(item.results.every(result => typeof result.passed === 'boolean'),
+    `${label}: comparison result`);
+  assert.ok(Array.isArray(item.stages) && item.stages.length > 0, `${label}: initialization stages`);
+  assert.ok(item.cssFailures && typeof item.cssFailures === 'object'
+    && !Array.isArray(item.cssFailures), `${label}: initialization CSS failures`);
 }
 
 export function verifyServerReport(report, expectedServer) {
@@ -95,7 +94,7 @@ export function verifyServerReport(report, expectedServer) {
   verifyTiming(report, `${label}: server run`);
   assert.deepEqual(
     { status: report.scenarioJob?.status, completedReports: report.scenarioJob?.completedReports, totalReports: report.scenarioJob?.totalReports },
-    { status: 'completed', completedReports: 12, totalReports: 12 },
+    { status: 'completed', completedReports: 18, totalReports: 18 },
     `${label}: scenario job`,
   );
   verifyTiming(report.scenarioJob, `${label}: scenario job`);
@@ -117,10 +116,18 @@ export function verifyServerReport(report, expectedServer) {
     verifyTiming(item, itemLabel);
     assert.equal(item.commit, report.metadata?.source?.commit, `${itemLabel}: source commit`);
     assert.deepEqual(item.results.map(result => result.id), browserScenarioCheckIds, `${itemLabel}: check IDs`);
+    assert.equal(item.kind, 'scenario', `${itemLabel}: report kind`);
     assert.ok(item.results.every(result => typeof result.passed === 'boolean'), `${itemLabel}: check result`);
-    verifyInitializationEvidence(
-      item.results.find(result => result.id === 'initialization')?.evidence, item, itemLabel,
-    );
+  }
+
+  assert.ok(Array.isArray(report.initializations), `${label}: initialization reports`);
+  assert.equal(report.initializations.length, 6, `${label}: initialization report count`);
+  assert.ok(report.initializations.every(item => item.server === expectedServer),
+    `${label}: initialization server`);
+  exactKeys(report.initializations.map(item => `${item.path}/${item.framework}`),
+    documentCombinations(), `${label}: initialization`);
+  for (const item of report.initializations) {
+    verifyInitialization(item, report, `${expectedServer}/${item.path}/${item.framework}/initialization`);
   }
 
   assert.ok(Array.isArray(report.interactions), `${label}: interactions`);
@@ -145,10 +152,13 @@ export function verifyServerReport(report, expectedServer) {
   }
 
   const scenarios = pathSummary(report.reports, true);
+  const initializations = pathSummary(report.initializations, true);
   const interactions = pathSummary(report.interactions, false);
   const mounts = pathSummary(report.initialMounts, false);
   const documents = pathSummary(report.staticDocuments, false);
   const resultCount = report.reports.reduce(
+    (total, item) => total + item.results.filter(result => !result.passed).length, 0,
+  ) + report.initializations.reduce(
     (total, item) => total + item.results.filter(result => !result.passed).length, 0,
   ) + report.interactions.filter(item => !item.passed).length
     + report.initialMounts.filter(item => !item.passed).length
@@ -166,7 +176,7 @@ export function verifyServerReport(report, expectedServer) {
     browser: report.browser,
     complete: true,
     performance,
-    scenarios, interactions, mounts, documents,
+    scenarios, initializations, interactions, mounts, documents,
   };
   const failedChecks = resultCount + report.pageErrors.length;
   return { ...common, passed: failedChecks === 0 && performance.passed, failedChecks };

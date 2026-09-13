@@ -1,11 +1,11 @@
-/** Navigate comparison frames after subscribing to their exact readiness messages. */
+/** Navigate the initialization-path frames after subscribing to their exact readiness messages. */
 export async function loadComparisonFrames({
-  host, frames, paths, framework, server, language, title,
+  host, frames, initializations, path, framework, server, language, title, onReady,
 }) {
-  if (frames.length !== paths.length) {
-    throw new Error('Frame readiness requires one frame per rendering path');
+  if (frames.length !== initializations.length) {
+    throw new Error('Frame readiness requires one frame per initialization path');
   }
-  const expected = new Map(frames.map((frame, index) => [frame.contentWindow, paths[index]]));
+  const expected = new Map(frames.map((frame, index) => [frame.contentWindow, initializations[index]]));
   let resolve;
   let reject;
   const readiness = new Promise((ready, fail) => { resolve = ready; reject = fail; });
@@ -13,23 +13,24 @@ export async function loadComparisonFrames({
   function receive(event) {
     if (event.origin !== host.location.origin || !expected.has(event.source)
         || event.data?.type !== 'crudui:frame-ready') return;
-    const path = expected.get(event.source);
+    const initialization = expected.get(event.source);
     const value = event.data;
-    if (value.server !== server || value.framework !== framework
-        || value.path !== path || Object.keys(value).length !== 4) {
+    if (value.server !== server || value.framework !== framework || value.path !== path
+        || value.initialization !== initialization || Object.keys(value).length !== 5) {
       reject(new Error('Frame readiness differs'));
       return;
     }
     expected.delete(event.source);
+    onReady(initialization);
     if (expected.size === 0) resolve();
   }
 
   host.addEventListener('message', receive);
   try {
-    for (const [index, path] of paths.entries()) {
-      frames[index].title = title(path);
+    for (const [index, initialization] of initializations.entries()) {
+      frames[index].title = title(initialization);
       frames[index].src = '/frames/' + path + '-' + framework
-        + '/?lang=' + language + '&server=' + server;
+        + '/?lang=' + language + '&server=' + server + '&initialization=' + initialization;
     }
     await readiness;
   } finally {
