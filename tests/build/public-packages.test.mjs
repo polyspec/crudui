@@ -129,14 +129,15 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
   }
 });
 
-test('React exposes its complete stylesheet through the public styles.css export', () => {
-  const pkg = packages.find(({ manifest }) => manifest.name === '@crudui/generator-react');
-  const path = output(pkg, pkg.manifest.exports['./styles.css']);
-  assert.equal(realpathSync(require.resolve(`${pkg.manifest.name}/styles.css`)), path);
-  assert.equal(realpathSync(fileURLToPath(import.meta.resolve(`${pkg.manifest.name}/styles.css`))), path);
-  const css = readFileSync(path);
-  assert.ok(css.length > 0, 'public stylesheet must not be empty');
-  assert.deepEqual(css, readFileSync(resolve(pkg.directory, 'src/styles/crudui.css')));
+test('generator-core exposes the only form stylesheet through the public crudui.css export', () => {
+  const pkg = packages.find(({ manifest }) => manifest.name === '@crudui/generator-core');
+  const path = realpathSync(resolve(pkg.directory, pkg.manifest.exports['./crudui.css']));
+  assert.equal(realpathSync(require.resolve(`${pkg.manifest.name}/crudui.css`)), path);
+  assert.equal(realpathSync(fileURLToPath(import.meta.resolve(`${pkg.manifest.name}/crudui.css`))), path);
+  assert.ok(readFileSync(path).length > 0, 'public stylesheet must not be empty');
+  for (const other of packages.filter(({ manifest }) => manifest.name !== '@crudui/generator-core')) {
+    assert.ok(!Object.keys(other.manifest.exports ?? {}).some(key => key.endsWith('.css')), `${other.manifest.name} must not export a stylesheet`);
+  }
 });
 
 

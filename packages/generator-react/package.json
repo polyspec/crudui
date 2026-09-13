@@ -11,25 +11,15 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./styles.css": "./dist/styles.css",
-    "./package.json": "./package.json",
-    "./legacy": {
-      "types": "./dist/legacy/index.d.ts",
-      "import": "./dist/legacy/index.mjs",
-      "require": "./dist/legacy/index.js"
-    }
+    "./package.json": "./package.json"
   },
-  "sideEffects": [
-    "*.css"
-  ],
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --clean --external react --external react-dom && tsc --project tsconfig.build.json && npm run build:css",
-    "build:css": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/styles/crudui.css','dist/styles.css')\"",
-    "dev": "tsup src/index.ts src/legacy/index.ts --format cjs,esm --watch --external react --external react-dom --onSuccess \"tsc --project tsconfig.build.json\"",
+    "build": "tsup src/index.ts --format cjs,esm --clean --external react --external react-dom && tsc --project tsconfig.build.json",
+    "dev": "tsup src/index.ts --format cjs,esm --watch --external react --external react-dom --onSuccess \"tsc --project tsconfig.build.json\"",
     "test": "vitest",
     "test:current": "vitest run src/__tests__/form-render.conformance.test.ts src/__tests__/list-render.conformance.test.ts",
     "test:list": "vitest run src/__tests__/list-render.conformance.test.ts",
@@ -44,8 +34,7 @@
     "form-builder",
     "yaml",
     "spec",
-    "validation",
-    "legacy"
+    "validation"
   ],
   "author": "",
   "license": "MIT",
@@ -55,9 +44,7 @@
   },
   "dependencies": {
     "@crudui/generator-core": "0.0.1",
-    "@crudui/validator": "0.0.1",
-    "lucide-react": "^1.18.0",
-    "yaml": "^2.3.0"
+    "@crudui/validator": "0.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
