@@ -208,6 +208,15 @@ static bool replace_shape(ps_value *model, const char *shape)
     return ps_set(model, "shape", ps_string_value(shape));
 }
 
+/* Input failure for present group data, including a repeated group row, that is not an object. */
+static ps_value *group_data_error(const char *path)
+{
+    char *message = ps_string_join("Group data must be an object: ", path, "");
+    ps_value *error = message ? ps_error("form", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
+    free(message);
+    return error;
+}
+
 static ps_value *build_multiple(const ps_value *field, const ps_value *spec,
                                 const char *type, const char *path,
                                 const bind_context *context, const size_t *rows,
@@ -255,6 +264,11 @@ static ps_value *build_multiple(const ps_value *field, const ps_value *spec,
             ps_string(member(member(row_design, "wrapper"), "class"))) : NULL;
         bool ok = row_path && row_design && row && wrapper &&
             set_string(row, "uniqid", uniqid) && set_string(row, "wrapperClass", wrapper);
+        const ps_value *group_row = ok && group ? ps_path(context->data, row_path) : NULL;
+        if (group_row && group_row->kind != PS_OBJECT) {
+            *error = group_data_error(row_path);
+            ok = false;
+        }
         if (ok && group) {
             char *group_class = ps_join_classes("form-group",
                 ps_string(member(member(row_design, "group"), "class")), NULL);
@@ -297,6 +311,12 @@ static ps_value *build_group(const ps_value *field, const ps_value *spec,
     ps_value *settings = multiple_settings(member(spec, "multiple"));
     if (settings) return build_multiple(field, spec, type, path, context, rows,
                                         row_count, design, settings, error);
+    const ps_value *value = ps_path(context->data, path);
+    if (value && value->kind != PS_OBJECT) {
+        *error = group_data_error(path);
+        ps_value_free(design);
+        return NULL;
+    }
     ps_value *model = field_base(spec, type, path, context, design);
     const ps_value *group_node = model ? member(member(model, "design"), "group") : NULL;
     char *group_class = model ? ps_join_classes("form-group",

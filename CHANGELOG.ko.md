@@ -2,6 +2,27 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 형태가 잘못된 생성기 데이터를 전체 경로로 거부
+
+TypeScript, PHP, Go, Rust와 C PHP 확장의 `bindForm`과 편집 인스턴스는 검증기와
+같은 데이터 형태 규칙을 적용합니다. 객체가 아닌 루트 데이터는
+`Form data must be an object`로 실패합니다. 값이 있지만 객체가 아닌 그룹 값이나
+반복 그룹 행은 `Group data must be an object: {path}`로 실패합니다. 값이 있지만 키
+기반 객체가 아닌 반복 값은 `Repeated data must be a keyed object: {path}`로
+실패합니다. `{path}`는 행 키를 포함한 전체 데이터 경로입니다. 이전에는 인스턴스가
+필드 이름만 보고했고 `bindForm`은 그룹 데이터를 검사하지 않았습니다. `addRow`는
+제공한 그룹 행 값을 `{collection}.{key}`에서 검사합니다. 폼 런타임 명세가 규칙과
+검사 순서를 정의합니다. 폼 비교 컨트롤러의 인스턴스 정규화 사본도 같은 메시지를
+사용하며 이를 검사합니다.
+
+네이티브 검사는 데이터 형태 8가지를 `bindForm`과 인스턴스 양쪽으로 검사하며, 거부
+동작 시나리오에 중첩 경로의 `setValue`와 `addRow` 사례를 추가했습니다.
+
+`make test-native`가 생성기 검사 846개(구현별 169개), 구성별 PHP API 검사 361개,
+각 PHP 구현의 검증 사례 100개를 통과했습니다. generator-core 타입 검사와 88개
+검사, 폼 비교 컨트롤러 5개 검사, `npm run test:forms`, `make docs-check`가
+통과했습니다.
+
 ## 2026-09-13 — 구현 간 생성기 오류 메시지 비교
 
 네이티브 생성기 검사는 오류 코드와 위치만 비교했고 README는 언어마다 메시지가

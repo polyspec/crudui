@@ -6,7 +6,9 @@
 scalar fields, including nested collections. Missing data creates one initial row
 keyed `__0000000000000__`. Collection data that is present and is not a keyed
 object, including an array or null, fails with `INVALID_FORM_INPUT` and the
-message `Repeated data must be a keyed object: {path}`.
+message `Repeated data must be a keyed object: {path}`, where `{path}` is the full
+data path including row keys. The [form runtime](form-runtime.md) defines all data
+shape rejections.
 React, Vue and Svelte render an Add button inside each empty collection.
 The button uses the `btn-plus` action class, has an accessible label and does not submit a value.
 Application controllers insert the new row into the button's collection.
