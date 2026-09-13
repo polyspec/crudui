@@ -16,6 +16,7 @@ use serde_json::{Map, Value};
 
 use crate::expr::{Evaluator, Expression, Node};
 
+use super::errors::FormInputError;
 use super::rules::{get_rule, is_condition_expression, RuleContext};
 
 /// A single validation error (JS `ValidationError`: path/field/rule/message/value).
@@ -91,16 +92,18 @@ impl Validator {
         Validator { properties }
     }
 
-    /// Validate `data` against the composed CRUDUI spec.
-    pub fn validate(&self, data: &Value) -> ValidationResult {
+    /// Validate `data` against the composed CRUDUI spec. Root, group and repeated
+    /// data with the wrong shape return a `FormInputError` and no result.
+    pub fn validate(&self, data: &Value) -> Result<ValidationResult, FormInputError> {
+        if !data.is_object() {
+            return Err(FormInputError::new("Form data must be an object"));
+        }
         let mut errors: Vec<ValidationError> = Vec::new();
-        let empty = Value::Object(Map::new());
-        let data = if data.is_object() { data } else { &empty };
-        self.validate_properties(&self.properties, data, &[], data, &mut errors);
-        ValidationResult {
+        self.validate_properties(&self.properties, data, &[], data, &mut errors)?;
+        Ok(ValidationResult {
             valid: errors.is_empty(),
             errors,
-        }
+        })
     }
 
     // =====================================================================
@@ -114,7 +117,8 @@ impl Validator {
         current_path: &[String],
         all_data: &Value,
         errors: &mut Vec<ValidationError>,
-    ) {
+    ) -> Result<(), FormInputError> {
+        let empty = Value::Object(Map::new());
         for (property_key, field) in properties {
             if !field.is_object() {
                 continue;
@@ -122,74 +126,56 @@ impl Validator {
             let is_multiple = is_multiple(field);
             let mut field_path = current_path.to_vec();
             field_path.push(property_key.clone());
-            let field_value = match data {
-                Value::Object(m) => m.get(property_key).cloned().unwrap_or(Value::Null),
-                _ => Value::Null,
-            };
+            let present = data.get(property_key);
+            let field_value = present.cloned().unwrap_or(Value::Null);
+
+            if is_multiple && present.is_some_and(|value| !value.is_object()) {
+                return Err(FormInputError::new(format!(
+                    "Repeated data must be a keyed object: {}",
+                    path_to_string(&field_path)
+                )));
+            }
 
             let is_group = field.get("type").and_then(Value::as_str) == Some("group");
             let child_props = field.get("properties").and_then(Value::as_object);
 
             if let (true, Some(child_props)) = (is_group, child_props) {
-                let is_array_multiple = is_multiple && field_value.is_array();
-                let is_object_multiple = is_multiple && field_value.is_object();
-
-                if is_array_multiple {
-                    let arr = field_value.as_array().unwrap();
-                    for (i, item) in arr.iter().enumerate() {
-                        let mut item_path = field_path.clone();
-                        item_path.push(i.to_string());
-                        let item_obj = if item.is_object() {
-                            item.clone()
-                        } else {
-                            Value::Object(Map::new())
-                        };
-                        self.validate_properties(
-                            child_props,
-                            &item_obj,
-                            &item_path,
-                            all_data,
-                            errors,
-                        );
+                if is_multiple {
+                    if let Some(Value::Object(rows)) = present {
+                        // Keyed rows use sorted-key traversal so the first reported
+                        // error is identical in every implementation.
+                        let mut keys: Vec<&String> = rows.keys().collect();
+                        keys.sort();
+                        for key in keys {
+                            let mut row_path = field_path.clone();
+                            row_path.push(key.clone());
+                            let row = &rows[key.as_str()];
+                            if !row.is_object() {
+                                return Err(FormInputError::new(format!(
+                                    "Group data must be an object: {}",
+                                    path_to_string(&row_path)
+                                )));
+                            }
+                            self.validate_properties(child_props, row, &row_path, all_data, errors)?;
+                        }
+                        self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
                     }
-                    self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
-                } else if is_object_multiple {
-                    // Object-key multiple: deterministic sorted-key traversal.
-                    let obj = field_value.as_object().unwrap();
-                    let mut keys: Vec<&String> = obj.keys().collect();
-                    keys.sort();
-                    for key in keys {
-                        let mut item_path = field_path.clone();
-                        item_path.push(key.clone());
-                        let item = obj.get(key).cloned().unwrap_or(Value::Null);
-                        let item_obj = if item.is_object() {
-                            item
-                        } else {
-                            Value::Object(Map::new())
-                        };
-                        self.validate_properties(
-                            child_props,
-                            &item_obj,
-                            &item_path,
-                            all_data,
-                            errors,
-                        );
+                } else {
+                    if present.is_some_and(|value| !value.is_object()) {
+                        return Err(FormInputError::new(format!(
+                            "Group data must be an object: {}",
+                            path_to_string(&field_path)
+                        )));
                     }
-                    self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
-                } else if !is_multiple {
-                    let nested = if field_value.is_object() {
-                        field_value.clone()
-                    } else {
-                        Value::Object(Map::new())
-                    };
-                    self.validate_properties(child_props, &nested, &field_path, all_data, errors);
+                    let nested = present.unwrap_or(&empty);
+                    self.validate_properties(child_props, nested, &field_path, all_data, errors)?;
                     self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
                 }
-                // multiple set but shape mismatch: skip (legacy parity).
-            } else if is_multiple && (field_value.is_array() || field_value.is_object()) {
+            } else if let (true, Some(Value::Object(rows))) = (is_multiple, present) {
                 self.validate_multiple_field_rules(
                     field,
                     &field_value,
+                    rows,
                     &field_path,
                     all_data,
                     errors,
@@ -198,35 +184,26 @@ impl Validator {
                 self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
             }
         }
+        Ok(())
     }
 
     // =====================================================================
     // validate-slot evaluation (SPEC §3 slots.validate).
     // =====================================================================
 
-    /// Array-level + element rules for a non-group `multiple` field.
+    /// Collection rules and per-row rules for a repeated scalar field.
     fn validate_multiple_field_rules(
         &self,
         field: &Value,
         values: &Value,
+        rows: &Map<String, Value>,
         field_path: &[String],
         all_data: &Value,
         errors: &mut Vec<ValidationError>,
     ) {
         let messages = field.get("messages");
-        let entries: Vec<(String, &Value)> = match values {
-            Value::Array(arr) => arr
-                .iter()
-                .enumerate()
-                .map(|(i, v)| (i.to_string(), v))
-                .collect(),
-            Value::Object(map) => {
-                let mut entries: Vec<_> = map.iter().map(|(k, v)| (k.clone(), v)).collect();
-                entries.sort_by(|a, b| a.0.cmp(&b.0));
-                entries
-            }
-            _ => Vec::new(),
-        };
+        let mut entries: Vec<(String, &Value)> = rows.iter().map(|(k, v)| (k.clone(), v)).collect();
+        entries.sort_by(|a, b| a.0.cmp(&b.0));
 
         // 1. Array-level rules in declaration order; first error wins.
         if let Some(rules) = normalize_validate_slot(field) {
@@ -249,7 +226,7 @@ impl Validator {
             }
         }
 
-        // 2. Element-level rules per index (items.i).
+        // 2. Row rules in sorted row-key order.
         for (key, value) in entries {
             let mut item_path = field_path.to_vec();
             item_path.push(key);

@@ -211,7 +211,8 @@ final class Validator
             $fieldName = (string) $propertyKey;
             $isMultiple = $this->isMultiple($field);
             $fieldPath = [...$currentPath, $fieldName];
-            $fieldValue = $data[$fieldName] ?? null;
+            $present = array_key_exists($fieldName, $data);
+            $fieldValue = $present ? $data[$fieldName] : null;
 
             // No display_switch or display_target condition exists (G1: those meta keys
             // do not exist in CRUDUI; visibility-conditioned requiredness is
@@ -219,60 +220,49 @@ final class Validator
 
             $childProps = $this->childProperties($field);
 
-            if (($field['type'] ?? null) === 'group' && $childProps !== null) {
-                $isArrayMultiple = $isMultiple && is_array($fieldValue) && array_is_list($fieldValue);
-                $isObjectMultiple = $isMultiple
-                    && ($fieldValue instanceof \stdClass || (is_array($fieldValue) && !array_is_list($fieldValue)));
+            if ($isMultiple && $present && !self::isObject($fieldValue)) {
+                throw new FormInputError('Repeated data must be a keyed object: ' . implode('.', $fieldPath));
+            }
 
-                if ($isArrayMultiple) {
-                    // Repeatable group: each index is items.i.
-                    foreach ($fieldValue as $i => $itemData) {
-                        $this->validateProperties(
-                            $childProps,
-                            is_array($itemData) || $itemData instanceof \stdClass ? (array) $itemData : [],
-                            [...$fieldPath, (string) $i],
-                            $allData,
-                            $errors,
-                        );
+            if (($field['type'] ?? null) === 'group' && $childProps !== null) {
+                if ($isMultiple) {
+                    if ($present) {
+                        // Keyed rows use sorted-key traversal so the first reported
+                        // error is identical in every implementation.
+                        $rows = (array) $fieldValue;
+                        $keys = array_map('strval', array_keys($rows));
+                        sort($keys, SORT_STRING);
+                        foreach ($keys as $key) {
+                            $row = $rows[$key];
+                            $rowPath = [...$fieldPath, $key];
+                            if (!self::isObject($row)) {
+                                throw new FormInputError('Group data must be an object: ' . implode('.', $rowPath));
+                            }
+                            $this->validateProperties($childProps, (array) $row, $rowPath, $allData, $errors);
+                        }
+                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
                     }
-                    $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
-                } elseif ($isObjectMultiple) {
-                    // Object-key multiple: deterministic sorted-key traversal so
-                    // the first reported error matches JS/Go/Rust (their maps
-                    // carry no insertion order). Keys (items.__uid__) preserved.
-                    $keys = array_keys((array) $fieldValue);
-                    sort($keys);
-                    foreach ($keys as $key) {
-                        $itemData = ((array) $fieldValue)[$key];
-                        $this->validateProperties(
-                            $childProps,
-                            is_array($itemData) || $itemData instanceof \stdClass ? (array) $itemData : [],
-                            [...$fieldPath, (string) $key],
-                            $allData,
-                            $errors,
-                        );
+                } else {
+                    if ($present && !self::isObject($fieldValue)) {
+                        throw new FormInputError('Group data must be an object: ' . implode('.', $fieldPath));
                     }
-                    $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
-                } elseif (!$isMultiple) {
-                    // Single nested group.
-                    $this->validateProperties(
-                        $childProps,
-                        is_array($fieldValue) || $fieldValue instanceof \stdClass ? (array) $fieldValue : [],
-                        $fieldPath,
-                        $allData,
-                        $errors,
-                    );
+                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $allData, $errors);
                     $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
                 }
-                // multiple set but data shape mismatched: skip (legacy parity).
-            } elseif ($isMultiple && (is_array($fieldValue) || $fieldValue instanceof \stdClass)) {
-                // Non-group multiple field: array-level rules on the whole array,
-                // the rest on each element.
+            } elseif ($isMultiple && $present) {
+                // Repeated scalar field: collection rules on the keyed object, the
+                // rest on each row value.
                 $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
             } else {
                 $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
             }
         }
+    }
+
+    /** A JSON object value: stdClass or a non-empty associative array. */
+    private static function isObject(mixed $value): bool
+    {
+        return $value instanceof \stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
     }
 
     /** Whether a CRUDUI field repeats (multiple:true or multiple:{ … }). */
@@ -301,9 +291,9 @@ final class Validator
     // =========================================================================
 
     /**
-     * Array-level + element rules for a non-group `multiple` field.
+     * Collection rules and per-row rules for a repeated scalar field.
      *
-     * @param list<mixed>  $values
+     * @param array<string, mixed>|\stdClass $values keyed rows
      * @param list<string> $fieldPath
      * @param array<string, mixed> $allData
      * @param array<int, array<string, mixed>> $errors
@@ -332,11 +322,9 @@ final class Validator
             }
         }
 
-        // 2. Element-level rules per index (items.i).
-        if ($values instanceof \stdClass || !array_is_list($values)) {
-            $values = (array) $values;
-            ksort($values, SORT_STRING);
-        }
+        // 2. Row rules in sorted row-key order.
+        $values = (array) $values;
+        ksort($values, SORT_STRING);
         foreach ($values as $i => $value) {
             $this->validateElementRules($field, $value, [...$fieldPath, (string) $i], $allData, $errors);
         }

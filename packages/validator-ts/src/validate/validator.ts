@@ -37,6 +37,7 @@ import type {
   MessagesSpec,
 } from '../types';
 import { getRule } from '../rules/index';
+import { FormInputError } from './errors';
 import {
   parseCondition,
   isConditionExpression,
@@ -113,6 +114,11 @@ function normalizeValidateSlot(
   return undefined;
 }
 
+/** True for a JSON object value; arrays and null are not objects. */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 /** Read the per-field custom messages (CRUDUI keeps the legacy `messages` map). */
 function fieldMessages(field: ComposedField): MessagesSpec | undefined {
   const m = field.messages;
@@ -141,10 +147,17 @@ export class Validator {
         : {};
   }
 
-  /** Validate `data` against the composed CRUDUI spec. */
-  validate(data: Record<string, unknown>): ValidationResult {
+  /**
+   * Validate `data` against the composed CRUDUI spec.
+   *
+   * @throws {FormInputError} when root, group or repeated data has the wrong shape.
+   */
+  validate(data: unknown): ValidationResult {
+    if (!isPlainObject(data)) {
+      throw new FormInputError('Form data must be an object');
+    }
     const errors: ValidationError[] = [];
-    this.validateProperties(this.properties, data ?? {}, [], data ?? {}, errors);
+    this.validateProperties(this.properties, data, [], data, errors);
     return { valid: errors.length === 0, errors };
   }
 
@@ -166,73 +179,58 @@ export class Validator {
       const fieldName = propertyKey;
       const isMultiple = this.isMultiple(field);
       const fieldPath = [...currentPath, fieldName];
-      const fieldValue = data?.[fieldName];
+      const present = Object.prototype.hasOwnProperty.call(data, fieldName);
+      const fieldValue = data[fieldName];
 
       // No display_switch or display_target condition exists (G1: those meta keys do
       // not exist in CRUDUI; visibility-conditioned requiredness is required:'<expr>').
 
       const childProps = this.childProperties(field);
 
-      if (field.type === 'group' && childProps) {
-        const isArrayMultiple = isMultiple && Array.isArray(fieldValue);
-        const isObjectMultiple =
-          isMultiple &&
-          fieldValue !== null &&
-          typeof fieldValue === 'object' &&
-          !Array.isArray(fieldValue);
+      if (isMultiple && present && !isPlainObject(fieldValue)) {
+        throw new FormInputError(
+          `Repeated data must be a keyed object: ${pathToString(fieldPath)}`
+        );
+      }
 
-        if (isArrayMultiple) {
-          // Repeatable group: each index is items.i.
-          for (let i = 0; i < (fieldValue as unknown[]).length; i++) {
-            const itemData = (fieldValue as unknown[])[i] as Record<
-              string,
-              unknown
-            >;
-            this.validateProperties(
-              childProps,
-              itemData ?? {},
-              [...fieldPath, String(i)],
-              allData,
-              errors
+      if (field.type === 'group' && childProps) {
+        if (isMultiple) {
+          if (present) {
+            // Keyed rows use sorted-key traversal so the first reported error
+            // is identical in every implementation. Row keys stay in paths.
+            const rows = fieldValue as Record<string, unknown>;
+            for (const key of Object.keys(rows).sort()) {
+              const row = rows[key];
+              if (!isPlainObject(row)) {
+                throw new FormInputError(
+                  `Group data must be an object: ${pathToString([...fieldPath, key])}`
+                );
+              }
+              this.validateProperties(childProps, row, [...fieldPath, key], allData, errors);
+            }
+            this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
+          }
+        } else {
+          if (present && !isPlainObject(fieldValue)) {
+            throw new FormInputError(
+              `Group data must be an object: ${pathToString(fieldPath)}`
             );
           }
-          this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
-        } else if (isObjectMultiple) {
-          // Object-key multiple: deterministic sorted-key traversal so the
-          // first reported error matches Go/Rust/PHP (their maps carry no
-          // insertion order). Keys (items.__uid__) are preserved.
-          const objectValue = fieldValue as Record<
-            string,
-            Record<string, unknown>
-          >;
-          for (const key of Object.keys(objectValue).sort()) {
-            this.validateProperties(
-              childProps,
-              objectValue[key] ?? {},
-              [...fieldPath, key],
-              allData,
-              errors
-            );
-          }
-          this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
-        } else if (!isMultiple) {
-          // Single nested group.
           this.validateProperties(
             childProps,
-            (fieldValue as Record<string, unknown>) ?? {},
+            present ? (fieldValue as Record<string, unknown>) : {},
             fieldPath,
             allData,
             errors
           );
           this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
         }
-        // multiple set but data shape mismatched: skip (legacy parity).
-      } else if (isMultiple && fieldValue !== null && typeof fieldValue === 'object') {
-        // Non-group multiple field: array-level rules on the whole array, the
-        // rest on each element.
+      } else if (isMultiple && present) {
+        // Repeated scalar field: collection rules on the keyed object, the rest
+        // on each row value.
         this.validateMultipleFieldRules(
           field,
-          fieldValue as unknown[] | Record<string, unknown>,
+          fieldValue as Record<string, unknown>,
           fieldPath,
           allData,
           errors
@@ -264,10 +262,10 @@ export class Validator {
   // validate-slot evaluation (SPEC §3 slots.validate).
   // =========================================================================
 
-  /** Array-level + element rules for a non-group `multiple` field. */
+  /** Collection rules and per-row rules for a repeated scalar field. */
   private validateMultipleFieldRules(
     field: ComposedField,
-    values: unknown[] | Record<string, unknown>,
+    values: Record<string, unknown>,
     fieldPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
@@ -303,10 +301,9 @@ export class Validator {
       }
     }
 
-    // 2. Element-level rules per index (items.i).
-    const entries = Array.isArray(values) ? values.map((value, i) => [String(i), value] as const)
-      : Object.keys(values).sort().map(key => [key, values[key]] as const);
-    for (const [key, value] of entries) {
+    // 2. Row rules in sorted row-key order.
+    for (const key of Object.keys(values).sort()) {
+      const value = values[key];
       this.validateElementRules(
         field,
         value,

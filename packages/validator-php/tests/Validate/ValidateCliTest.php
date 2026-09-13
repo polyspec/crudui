@@ -20,9 +20,9 @@ use PHPUnit\Framework\TestCase;
  * request through stdin. A wrong exit code, a missing field or a load error
  * reported as a normal validation failure fails this test.
  *
- * PHP LOAD wire (distinct from JS/Go/Rust): exit 0, stdout
- * {valid:false, errors:[{rule:"compose", code, message, ...}]}. A bad request
- * (no spec / bad JSON) writes STDERR and exits 1 with empty stdout.
+ * Failure wire (identical in every language): a load or input failure exits 2
+ * with stdout exactly {error, code, at}. A bad request (no spec / bad JSON)
+ * exits 1 with stdout {error}.
  *
  * Do not weaken assertions. The fixture is the JS reference engine's own output;
  * the CLI must reproduce it verbatim on stdout.
@@ -95,7 +95,7 @@ final class ValidateCliTest extends TestCase
     {
         return \json_encode([
             'spec' => $case['spec'],
-            'data' => $case['data'] ?? [],
+            'data' => $case['data'],
             'files' => $case['files'] ?? [],
             'basepath' => $case['basepath'] ?? '',
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
@@ -120,32 +120,22 @@ final class ValidateCliTest extends TestCase
     public function testCliBoundary(array $case): void
     {
         self::assertTrue(
-            \array_key_exists('expected', $case) || \array_key_exists('expectLoadError', $case),
-            "case {$case['name']} must declare expected or expectLoadError",
+            \array_key_exists('expected', $case) !== \array_key_exists('expectFailure', $case),
+            "case {$case['name']} must declare exactly one of expected or expectFailure",
         );
 
         $run = self::runCli(self::requestOf($case));
 
-        if (\array_key_exists('expectLoadError', $case)) {
-            // PHP LOAD wire: exit 0, {valid:false, errors:[{rule:"compose", code}]}.
-            /** @var array{code: string} $expect */
-            $expect = $case['expectLoadError'];
-            self::assertSame(0, $run['status'], "LOAD case exit should be 0; stderr: {$run['stderr']}");
-
-            /** @var array<string, mixed>|null $out */
+        if (\array_key_exists('expectFailure', $case)) {
+            /** @var array{code: string, message: string, at: string} $expect */
+            $expect = $case['expectFailure'];
+            self::assertSame(2, $run['status'], "failure exit should be 2; stderr: {$run['stderr']}");
             $out = \json_decode(\trim($run['stdout']), true);
-            self::assertIsArray($out, "non-JSON stdout: {$run['stdout']}");
-            self::assertFalse($out['valid'], 'LOAD failure must surface valid:false on the PHP wire');
-            self::assertIsArray($out['errors']);
-            $compose = null;
-            foreach ($out['errors'] as $e) {
-                if (\is_array($e) && ($e['rule'] ?? null) === 'compose') {
-                    $compose = $e;
-                    break;
-                }
-            }
-            self::assertNotNull($compose, 'LOAD failure must carry a rule:"compose" error');
-            self::assertSame($expect['code'], $compose['code'], "LOAD code mismatch for {$case['name']}");
+            self::assertSame(
+                ['error' => $expect['message'], 'code' => $expect['code'], 'at' => $expect['at']],
+                $out,
+                "failure stdout mismatch for {$case['name']}",
+            );
             return;
         }
 
@@ -165,25 +155,28 @@ final class ValidateCliTest extends TestCase
         );
     }
 
+    /** A malformed request exits 1 with exactly one non-empty {error} member. */
+    private static function assertRequestFailure(array $run): void
+    {
+        self::assertSame(1, $run['status'], "malformed request must exit 1; stderr: {$run['stderr']}");
+        $out = \json_decode(\trim($run['stdout']), true);
+        self::assertIsArray($out, "malformed request stdout must be JSON: {$run['stdout']}");
+        self::assertSame(['error'], \array_keys($out), 'malformed request must carry only {error}');
+        self::assertNotSame('', $out['error']);
+    }
+
     public function testMalformedEmptyStdinExits1(): void
     {
-        $run = self::runCli('');
-        self::assertSame(1, $run['status'], 'empty stdin must exit 1');
-        self::assertSame('', \trim($run['stdout']), 'empty stdin must not emit a result on stdout');
-        self::assertNotSame('', \trim($run['stderr']), 'empty stdin must write a diagnostic to STDERR');
+        self::assertRequestFailure(self::runCli(''));
     }
 
     public function testMalformedBadJsonExits1(): void
     {
-        $run = self::runCli('{not json');
-        self::assertSame(1, $run['status'], 'bad JSON must exit 1');
-        self::assertSame('', \trim($run['stdout']));
+        self::assertRequestFailure(self::runCli('{not json'));
     }
 
     public function testMalformedNonObjectSpecExits1(): void
     {
-        $run = self::runCli(\json_encode(['spec' => 'not-an-object', 'data' => []]));
-        self::assertSame(1, $run['status'], 'non-object spec must exit 1');
-        self::assertSame('', \trim($run['stdout']));
+        self::assertRequestFailure(self::runCli(\json_encode(['spec' => 'not-an-object', 'data' => new \stdClass()])));
     }
 }

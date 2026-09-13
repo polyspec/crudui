@@ -91,10 +91,14 @@ list specification, display rows and rendering options.
 `valid` and `errors`. Error entries preserve `path`, `field`, `rule`, `message`
 and `value`. `CRUDUI\Validator::validateList(spec, options)` checks a list specification.
 Composition inputs use an explicit `files` map and `basepath`.
-Specification and composition failures raise exceptions; they are not validation
-results. Validation uses the shared rules and conformance cases.
+Specification, composition and data-shape failures raise exceptions; they are not
+validation results. Validation uses the shared rules and conformance cases.
 
-Composition errors use `CRUDUI\Validator\Compose\ComposeLoadError`. Generator
+Composition errors use `CRUDUI\Validator\Compose\ComposeLoadError`. Submitted data
+with the wrong shape raises `CRUDUI\Validator\Validate\FormInputError`, constructed
+with `message`; `getErrorCode()` returns `INVALID_FORM_INPUT`. A non-empty
+sequential root array raises it before composition; the
+[validation procedure](../operations/validation.md) defines the messages. Generator
 operation errors use `CRUDUI\FormError`, constructed with `errorCode`, `message`
 and optional `path`; `getErrorCode()` and `getPath()` return the operation details.
 Unsupported fields use `UNSUPPORTED_FIELD_TYPE`; other invalid form operations

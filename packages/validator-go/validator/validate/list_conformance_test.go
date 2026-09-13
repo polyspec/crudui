@@ -206,8 +206,8 @@ func TestValidateListCleanListIsValid(t *testing.T) {
 }
 
 // TestValidateListForbiddenTraceIntoListTree pins that the forbidden-scan trace
-// points INTO the list tree (root prefix "list" + the path to the offending key),
-// so a load failure says WHERE in the list a forbidden key sits.
+// is the path from the list root to the offending key, so a load failure says
+// WHERE in the list a forbidden key sits.
 func TestValidateListForbiddenTraceIntoListTree(t *testing.T) {
 	spec := []byte(`{"columns":{"name":{"field":".name"},"display_switch":{"field":".x"}}}`)
 	_, err := ValidateListJSON(spec, nil, "")
@@ -216,7 +216,7 @@ func TestValidateListForbiddenTraceIntoListTree(t *testing.T) {
 		t.Fatalf("expected *compose.ComposeLoadError, got %T: %v", err, err)
 	}
 	got := strings.Join(le.Trace, ".")
-	want := "list.columns.display_switch"
+	want := "columns.display_switch"
 	if got != want {
 		t.Fatalf("forbidden trace: want %s, got %s", want, got)
 	}

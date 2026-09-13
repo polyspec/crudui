@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 54661aa4483564c81b95d7a7868b84dfee2d6292 */
+ * Stub hash: 16e96693d67f39e63e982dd8c44b08fa497c5450 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_CRUDUI_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -123,6 +123,12 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Validator_Compose_C
 	ZEND_ARG_TYPE_INFO(0, name, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_class_CRUDUI_Validator_Validate_FormInputError___construct, 0, 0, 1)
+	ZEND_ARG_TYPE_INFO(0, message, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_CRUDUI_Validator_Validate_FormInputError_getErrorCode arginfo_class_CRUDUI_Generator_createRowKey
+
 ZEND_METHOD(CRUDUI_Generator, compileForm);
 ZEND_METHOD(CRUDUI_Generator, bindForm);
 ZEND_METHOD(CRUDUI_Generator, renderForm);
@@ -152,6 +158,8 @@ ZEND_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, getErrorCode);
 ZEND_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, getCompositionTrace);
 ZEND_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __get);
 ZEND_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __isset);
+ZEND_METHOD(CRUDUI_Validator_Validate_FormInputError, __construct);
+ZEND_METHOD(CRUDUI_Validator_Validate_FormInputError, getErrorCode);
 
 static const zend_function_entry class_CRUDUI_Generator_methods[] = {
 	ZEND_ME(CRUDUI_Generator, compileForm, arginfo_class_CRUDUI_Generator_compileForm, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
@@ -199,6 +207,12 @@ static const zend_function_entry class_CRUDUI_Validator_Compose_ComposeLoadError
 	ZEND_ME(CRUDUI_Validator_Compose_ComposeLoadError, getCompositionTrace, arginfo_class_CRUDUI_Validator_Compose_ComposeLoadError_getCompositionTrace, ZEND_ACC_PUBLIC)
 	ZEND_ME(CRUDUI_Validator_Compose_ComposeLoadError, __get, arginfo_class_CRUDUI_Validator_Compose_ComposeLoadError___get, ZEND_ACC_PUBLIC)
 	ZEND_ME(CRUDUI_Validator_Compose_ComposeLoadError, __isset, arginfo_class_CRUDUI_Validator_Compose_ComposeLoadError___isset, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+static const zend_function_entry class_CRUDUI_Validator_Validate_FormInputError_methods[] = {
+	ZEND_ME(CRUDUI_Validator_Validate_FormInputError, __construct, arginfo_class_CRUDUI_Validator_Validate_FormInputError___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME(CRUDUI_Validator_Validate_FormInputError, getErrorCode, arginfo_class_CRUDUI_Validator_Validate_FormInputError_getErrorCode, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -270,6 +284,22 @@ static zend_class_entry *register_class_CRUDUI_Validator_Compose_ComposeLoadErro
 	zend_string *property_compositionTrace_name = zend_string_init("compositionTrace", sizeof("compositionTrace") - 1, 1);
 	zend_declare_typed_property(class_entry, property_compositionTrace_name, &property_compositionTrace_default_value, ZEND_ACC_PRIVATE|ZEND_ACC_READONLY, NULL, (zend_type) ZEND_TYPE_INIT_MASK(MAY_BE_ARRAY));
 	zend_string_release(property_compositionTrace_name);
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_CRUDUI_Validator_Validate_FormInputError(zend_class_entry *class_entry_RuntimeException)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_NS_CLASS_ENTRY(ce, "CRUDUI\\Validator\\Validate", "FormInputError", class_CRUDUI_Validator_Validate_FormInputError_methods);
+	class_entry = zend_register_internal_class_with_flags(&ce, class_entry_RuntimeException, ZEND_ACC_FINAL);
+
+	zval property_errorCode_default_value;
+	ZVAL_UNDEF(&property_errorCode_default_value);
+	zend_string *property_errorCode_name = zend_string_init("errorCode", sizeof("errorCode") - 1, 1);
+	zend_declare_typed_property(class_entry, property_errorCode_name, &property_errorCode_default_value, ZEND_ACC_PRIVATE|ZEND_ACC_READONLY, NULL, (zend_type) ZEND_TYPE_INIT_MASK(MAY_BE_STRING));
+	zend_string_release(property_errorCode_name);
 
 	return class_entry;
 }

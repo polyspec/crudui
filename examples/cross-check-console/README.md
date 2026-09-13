@@ -15,7 +15,7 @@ Responsibilities in one process (`server/server.mjs`):
   validate sister of `/api/validate` (SPEC §9): the SAME four CLIs route on
   `mode:"list"` (compose → forbidden-scan over the list tree). A list carries NO
   rows (they are injected, DB-agnostic), so there is no DATA pass — `data` is
-  omitted. A forbidden meta key surfaces as the SAME `loadError` envelope.
+  omitted. A forbidden meta key surfaces as the SAME `failure` record.
 - `POST /api/render` — 3-framework CRUDUI FORM SSR. React / Svelte (sync) and Vue
   (async) all render in-process through the CRUDUI entries the conformance tests import
   (the Svelte adapter compiles `.svelte` files, so a bundler-free CLI is impossible
@@ -52,10 +52,10 @@ toggle) so its OWN judgement can be re-checked against the source data. See
 
 ```
 POST /api/validate      { spec, data, files?, basepath? }
-  → 200 { results:[{lang,ok,valid,errors,ms,loadError}], idempotent, mismatch }
+  → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
 
 POST /api/validate-list { listSpec | spec, files?, basepath? }   # no data — a list has no rows
-  → 200 { results:[{lang,ok,valid,errors,ms,loadError}], idempotent, mismatch }
+  → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
 
 POST /api/render        { spec, data, options:{language,unsupported} }
   → 200 { results:[{fw,ok,html,normalized,ms,error}], parity, mismatch }
@@ -70,9 +70,11 @@ GET  /                  → static console (client/)
 `spec` (and `listSpec`) may be a YAML string OR an already-parsed object; both are
 accepted. For the list endpoints `listSpec` is the canonical key and `spec` is
 accepted as an alias. Validation/render FAILURE is never an HTTP error — it is a
-result surface (always 200). An unresolved `$ref`/`$patch`/forbidden key is a LOAD
-failure (`loadError` / `error` with a stable `code`), distinct from `valid:false`.
-Only real server faults use 4xx/5xx with `{ error }`.
+result surface (always 200). An unresolved `$ref`/`$patch`/forbidden key is a load
+failure, and root, group or repeated data with the wrong shape is an input
+failure. Every validator CLI reports both with exit status 2 and exactly
+`{ error, code, at }`; the gateway exposes them as `failure: { code, message, at }`,
+distinct from `valid:false`. Only real server faults use 4xx/5xx with `{ error }`.
 
 ## Run
 
@@ -116,7 +118,7 @@ switching only toggles which `<main>` is visible.
   1. `POST /api/validate-list` — the 4-language list STRUCTURE validate
      (compose → forbidden-scan; no rows). Drawn through the SAME idempotency
      matrix the form tab uses; a forbidden meta key surfaces as the SAME
-     `loadError` cell.
+     `failure` cell.
   2. `POST /api/render` of `listSpec.search` — the embedded `search` slot IS a
      form-spec, rendered through the SAME form endpoint to prove it round-trips
      unchanged. The list renderers ignore the `search` slot (they read only
@@ -140,7 +142,7 @@ every run it recomputes both from the raw per-entry results, so the on-screen
 badge is independently derived:
 
 - `idempotent` (validate / validate-list) — a stable per-language signature
-  (valid + load code + sorted 5-field errors, numeric `value` collapsed so a
+  (the complete failure record, or valid + sorted 5-field errors, numeric `value` collapsed so a
   Rust-f64-vs-int serialization never trips a false mismatch). A failed CLI
   (`ok:false`) carries a distinct signature and never silently agrees. Fewer than
   two languages ran → undetermined (null), not false.
@@ -160,7 +162,7 @@ Each tab serializes its current run into the matching `cases.json` shape and
 downloads it, one case per language/framework:
 
 - form tab → `tests/fixtures/{validate,form-render}/cases.json` shapes: validate
-  `{name,note,spec,data,expected:{valid,errors}}` (or `{loadError}`) and form-render
+  `{name,note,spec,data,expected:{valid,errors}}` (or `expectFailure:{code,message,at}`) and form-render
   `{name,note,spec,data,options,expected_html}` (or `{expected_error}`).
 - list tab → `tests/fixtures/list-render/cases.json` shape:
   `{name,note,spec,rows,options,expected_html|expected_error}`. `spec` carries the
@@ -178,10 +180,10 @@ curl -s -X POST localhost:4000/api/validate -H 'Content-Type: application/json' 
   -d '{"spec":{"type":"group","properties":{"subscribe":{"type":"checkbox"},"email":{"type":"email","validate":{"required":".subscribe"}}}},"data":{"subscribe":true,"email":""}}'
 # → idempotent:true, every lang valid:false with required@email
 
-# validate: unresolved $ref → LOAD error in all 4 langs (NOT valid:false)
+# validate: unresolved $ref → load failure in all 4 langs (NOT valid:false)
 curl -s -X POST localhost:4000/api/validate -H 'Content-Type: application/json' \
   -d '{"spec":{"type":"group","properties":{"$ref":"Missing.yml"}},"data":{}}'
-# → idempotent:true, every lang loadError.code REF_FILE_NOT_FOUND
+# → idempotent:true, every lang failure.code REF_FILE_NOT_FOUND
 
 # render: email field → 3 frameworks parity, normalized == fixture expected_html
 curl -s -X POST localhost:4000/api/render -H 'Content-Type: application/json' \
@@ -198,10 +200,10 @@ curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/j
   -d '{"listSpec":{"columns":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}}}}}'
 # → idempotent:true, every lang valid:true (mode:list, compose → forbidden-scan)
 
-# validate-list: forbidden meta key in a list → LOAD error in all 4 langs
+# validate-list: unresolved column $ref in a list → load failure in all 4 langs
 curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/json' \
   -d '{"listSpec":{"columns":{"$ref":"Missing.yml"}}}'
-# → idempotent:true, every lang loadError.code REF_FILE_NOT_FOUND
+# → idempotent:true, every lang failure.code REF_FILE_NOT_FOUND
 
 # render-list: 2 injected rows + a column → 3 frameworks parity on the same table
 curl -s -X POST localhost:4000/api/render-list -H 'Content-Type: application/json' \
