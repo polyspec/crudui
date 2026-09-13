@@ -2,6 +2,24 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Record the CSS-only sticky candidate run and its deployment
+
+`node examples/form-comparison/candidate-verification.mjs` passed for 3578158. PHP,
+the PHP extension, Go and Rust each passed 1,452 checks with no failure, and the
+browser verification recorded 5,808 checks with no failure. Earlier runs had stopped:
+338d060 failed in the React SSR takeover of sticky rows and 5fbcf5a on a Chromium
+screenshot error, both fixed or superseded by later commits, and the first run of
+3578158 failed while building the image because the disk was full. The container
+image builder held about 75 GB of build cache from the repeated candidate builds;
+`container prune`, `container image prune --all` and deleting the builder (which
+rebuilds its cache on the next build) left 83 GiB free, and the running containers
+and volumes were not touched. `node examples/form-comparison/comparison-deployment.mjs
+--commit 3578158…` deployed it at `https://crudui.test/` and passed the identical
+reapplication. In a browser the SSR and CSR columns match 8/8, each frame has four
+sticky rows and no `data-crudui-stuck`, `data-crudui-current` or published lengths,
+and after scrolling the SSR frame the company header sits on its line with its label
+shown while the not yet stuck Busan header hides its label.
+
 ## 2026-09-14 — Make sticky rows CSS only and remove scroll measuring
 
 Sticky rows did not behave the same in a frame as in a page because the browser
