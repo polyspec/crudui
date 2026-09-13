@@ -2,7 +2,6 @@ package generator
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -89,7 +88,7 @@ func makeWidget(spec *Object, value any, path string, design *Object, s bindStat
 func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 	spec := f.Spec
 	typ := stringAt(spec, "type")
-	d := resolveDesign(read(spec, "design"), s.lookup, valueSegments(path))
+	d := resolveDesign(read(spec, "design"), s.lookup, parsePath(path))
 	wrapper := strings.ReplaceAll(path, "[]", ".*") + "-layer"
 	if s.options.KeyPrefix != "" {
 		wrapper = s.options.KeyPrefix + "." + wrapper
@@ -112,20 +111,19 @@ func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 		vm.Set("multiple", m)
 		rows := []*Object{}
 		rowState := s
-		rowState.rows = append(append([]int{}, s.rows...), len(valueSegments(path)))
-		rowKeys := keys(value)
-		if object(value) == nil {
-			if _, array := value.([]any); !array {
-				rowKeys = []string{"0"}
-			}
+		rowState.rows = append(append([]int{}, s.rows...), len(parsePath(path)))
+		var rowKeys []string
+		switch {
+		case isAbsent(value):
+			rowKeys = []string{"__0000000000000__"}
+		case object(value) != nil:
+			rowKeys = object(value).Keys()
+		default:
+			return nil, fmt.Errorf("Repeated data must be a keyed object: %s", path)
 		}
 		for i, key := range rowKeys {
-			seg := key
-			if object(value) == nil {
-				seg = "#" + key
-			}
-			p := path + "." + seg
-			rd := resolveDesign(read(spec, "design"), s.lookup, valueSegments(p))
+			p := path + "." + key
+			rd := resolveDesign(read(spec, "design"), s.lookup, parsePath(p))
 			clone := ""
 			if i > 0 {
 				clone = "clone-element"
@@ -182,7 +180,7 @@ func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 		children := []*Object{}
 		for _, code := range langs {
 			p := path + "." + jsString(code)
-			ld := resolveDesign(read(spec, "design"), s.lookup, valueSegments(p))
+			ld := resolveDesign(read(spec, "design"), s.lookup, parsePath(p))
 			w, e := makeWidget(spec, getPath(s.data, p), p, ld, s)
 			if e != nil {
 				return nil, e
@@ -213,4 +211,3 @@ func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 	vm.Set("widget", w)
 	return vm, nil
 }
-func rowPosition(i int) string { return "#" + strconv.Itoa(i) }

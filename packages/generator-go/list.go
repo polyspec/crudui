@@ -107,7 +107,7 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 				v = getPath(row, field)
 			}
 			format := object(read(col, "format"))
-			display, e := renderCell(format, v, row, rowLookup, valueSegments(field), options.Language)
+			display, e := renderCell(format, v, row, rowLookup, parsePath(field), options.Language)
 			if e != nil {
 				return nil, e
 			}
@@ -116,7 +116,7 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 				cell.Set("value", v)
 			}
 			cell.Set("display", display)
-			cell.Set("design", resolveDesign(read(read(columns, stringAt(col, "key")), "design"), rowLookup, valueSegments(field)))
+			cell.Set("design", resolveDesign(read(read(columns, stringAt(col, "key")), "design"), rowLookup, parsePath(field)))
 			cells = append(cells, cell)
 		}
 		rowModels = append(rowModels, NewObject("cells", cells))

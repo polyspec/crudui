@@ -2,9 +2,12 @@
 
 [한국어](empty-collections.ko.md).
 
-`bindForm` generates zero rows for explicit empty arrays and objects in repeated
-groups and scalar fields, including nested collections. Missing data creates an initial
-row. React, Vue and Svelte render an Add button inside each empty collection.
+`bindForm` generates zero rows for an explicit empty object in repeated groups and
+scalar fields, including nested collections. Missing data creates one initial row
+keyed `__0000000000000__`. Collection data that is present and is not a keyed
+object, including an array or null, fails with `INVALID_FORM_INPUT` and the
+message `Repeated data must be a keyed object: {path}`.
+React, Vue and Svelte render an Add button inside each empty collection.
 The button uses the `btn-plus` action class, has an accessible label and does not submit a value.
 Application controllers insert the new row into the button's collection.
 `design.show` controls visibility independently of row count. Hiding a collection

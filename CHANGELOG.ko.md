@@ -2,6 +2,21 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 반복 행을 키 기반 객체에서만 바인딩
+
+TypeScript, PHP, Go, Rust와 C PHP extension의 `bindForm`은 키 기반 객체에서만
+반복 행을 생성합니다. 컬렉션 데이터가 없으면 `__0000000000000__` 키를 가진 행
+하나를 생성합니다. 배열, null, 스칼라 컬렉션은 `INVALID_FORM_INPUT` 오류와
+`Repeated data must be a keyed object: {path}` 메시지로 실패합니다. 필드 경로에
+`#N` 배열 위치 세그먼트가 없으므로 다섯 구현에서 위치 도우미를 제거했습니다.
+Go에서 사용하지 않던 `rowPosition` 함수도 제거했습니다. 공유 폼 사례는 키 기반
+데이터를 사용하며 HTML 적합성 검사는 이전 배열 사례를 포함합니다.
+
+`npm run test:forms`가 통과했습니다(core 88, HTML 112, React 701, Vue 344,
+Svelte 345, 정규화 10). `make test-native`가 786개 생성기 검사를 통과했으며
+다섯 구현의 거부 코드·메시지·경로가 같아야 하는 새 검사를 포함합니다.
+`make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 스키마·검증기·CLI의 반복 행 선언 정렬
 
 `multiple.min`을 TypeScript, Go, Rust 명세 모델에 선언하고 PHP `multiple`

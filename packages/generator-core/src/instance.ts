@@ -1,6 +1,6 @@
 import { bindForm, copyFormValue, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
 import type { FieldViewModel } from './viewmodel';
-import { getValueByPath, valuePathSegments } from './util';
+import { getValueByPath, parsePathString } from './util';
 
 /** Transport key for an existing database sequence. */
 export function sequenceRowKey(sequence: string | number | bigint): string {
@@ -53,7 +53,7 @@ function repeats(field: FormFieldTemplate): boolean {
 }
 
 function checkedSegments(path: string): string[] {
-  const segments = valuePathSegments(path);
+  const segments = parsePathString(path);
   if (!segments.length || segments.some(s => ['__proto__', 'prototype', 'constructor'].includes(s))) {
     throw new TypeError(`Invalid form path: ${path}`);
   }

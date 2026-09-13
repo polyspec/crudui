@@ -181,14 +181,14 @@ const SCENARIOS: FixtureCase[] = [
   },
   {
     name: 'multiple-leaf-two-rows',
-    note: 'multiple:true + 2 data rows → 2 input-group-wrapper (2nd clone-element), plus/minus buttons.',
+    note: 'multiple:true + 2 keyed rows → 2 input-group-wrapper (2nd clone-element), plus/minus buttons.',
     spec: {
       type: 'group',
       properties: {
         tags: { type: 'text', label: { ko: '태그' }, multiple: true },
       },
     },
-    data: { tags: ['a', 'b'] },
+    data: { tags: { tag_a: 'a', tag_b: 'b' } },
     options: { language: 'ko' },
   },
   {
@@ -212,7 +212,7 @@ const SCENARIOS: FixtureCase[] = [
         rows: { type: 'text', label: { ko: '행' }, multiple: { max: 5, sortable: true, copy: true } },
       },
     },
-    data: { rows: ['x'] },
+    data: { rows: { row_x: 'x' } },
     options: { language: 'ko' },
   },
   {

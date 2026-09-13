@@ -267,7 +267,7 @@
   },
   {
     "name": "multiple-leaf-two-rows",
-    "note": "multiple:true + 2 data rows → 2 input-group-wrapper (2nd clone-element), plus/minus buttons.",
+    "note": "multiple:true + 2 keyed rows → 2 input-group-wrapper (2nd clone-element), plus/minus buttons.",
     "spec": {
       "type": "group",
       "properties": {
@@ -281,15 +281,15 @@
       }
     },
     "data": {
-      "tags": [
-        "a",
-        "b"
-      ]
+      "tags": {
+        "tag_a": "a",
+        "tag_b": "b"
+      }
     },
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tags\"><h6>태그</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"0\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.%230\" name=\"tags[0]\" type=\"text\" value=\"a\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div><div class=\"input-group-wrapper clone-element\" data-uniqid=\"1\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.%231\" name=\"tags[1]\" type=\"text\" value=\"b\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tags\"><h6>태그</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"tag_a\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.tag_a\" name=\"tags[tag_a]\" type=\"text\" value=\"a\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div><div class=\"input-group-wrapper clone-element\" data-uniqid=\"tag_b\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.tag_b\" name=\"tags[tag_b]\" type=\"text\" value=\"b\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div></div></div></div>"
   },
   {
     "name": "multiple-leaf-empty-placeholder",
@@ -310,7 +310,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tags\"><h6>태그</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"0\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.%230\" name=\"tags[0]\" type=\"text\" value=\"\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"tags\"><h6>태그</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"__0000000000000__\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__0000000000000__\" name=\"tags[__0000000000000__]\" type=\"text\" value=\"\"></div><button class=\"btn btn-plus\" type=\"button\"></button><button class=\"btn btn-minus\" type=\"button\"></button></div></div></div></div>"
   },
   {
     "name": "multiple-settings-bucket",
@@ -332,14 +332,14 @@
       }
     },
     "data": {
-      "rows": [
-        "x"
-      ]
+      "rows": {
+        "row_x": "x"
+      }
     },
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"rows\"><h6>행</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"0\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.%230\" name=\"rows[0]\" type=\"text\" value=\"x\"></div><button class=\"btn btn-move-up\" type=\"button\"></button><button class=\"btn btn-move-down\" type=\"button\"></button><button class=\"btn btn-plus\" data-multiple-max=\"5\" type=\"button\"></button><button class=\"btn btn-copy\" type=\"button\"></button><button class=\"btn btn-minus btn-delete\" type=\"button\"></button></div></div></div></div>"
+    "expected_html": "<div class=\"form-group\"><div class=\"form-element-wrapper\" data-field-path=\"rows\"><h6>행</h6><div class=\"form-element\"><div class=\"input-group-wrapper\" data-uniqid=\"row_x\"><div class=\"input-group\"><input class=\"valid-target form-control\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.row_x\" name=\"rows[row_x]\" type=\"text\" value=\"x\"></div><button class=\"btn btn-move-up\" type=\"button\"></button><button class=\"btn btn-move-down\" type=\"button\"></button><button class=\"btn btn-plus\" data-multiple-max=\"5\" type=\"button\"></button><button class=\"btn btn-copy\" type=\"button\"></button><button class=\"btn btn-minus btn-delete\" type=\"button\"></button></div></div></div></div>"
   },
   {
     "name": "multiple-group-rows",

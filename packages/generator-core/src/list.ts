@@ -8,7 +8,7 @@ import {
 import { makeTranslate, type Language, type LocalizedText } from './content';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { evalShow, makeContext } from './expr';
-import { valuePathSegments, getValueByPath } from './util';
+import { parsePathString, getValueByPath } from './util';
 import {
   normalizeFormat,
   renderCell,
@@ -270,7 +270,7 @@ export function buildList(
       const value = col.field ? getValueByPath(row, stripLeadingDot(col.field)) : undefined;
       // Per-cell expr context: the row is the formData, the field path is current.
       const cellExpr = makeContext(
-        col.field ? valuePathSegments(stripLeadingDot(col.field)) : [],
+        col.field ? parsePathString(stripLeadingDot(col.field)) : [],
         row
       );
       const cellDesign = resolveDesign(colSpecs[i]?.design, cellExpr);

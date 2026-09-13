@@ -212,9 +212,6 @@ static form_path checked_path(const char *path, ps_value **error)
         return result;
     }
     for (size_t index = 0; index < result.length; ++index) {
-        const char *position = ps_position(result.items[index]);
-        if (position != result.items[index])
-            memmove(result.items[index], position, strlen(position) + 1);
         if (!strcmp(result.items[index], "__proto__") ||
             !strcmp(result.items[index], "prototype") ||
             !strcmp(result.items[index], "constructor")) {
