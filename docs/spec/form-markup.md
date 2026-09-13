@@ -119,14 +119,17 @@ input's own label inside the body, and its header holds only a description. A
   so `alignRow(row)` is `scrollIntoView({ block: 'start' })`; and the form's bottom
   margin, outside the form, is the height of the scroll container less the extent
   from the top of the row at the end of the form to the end of the form content, that
-  row's aligned top and the footer height, so scrolling ends exactly when its header
-  reaches its line. The scroll container is the one the sticky headers follow: the
-  nearest ancestor whose vertical overflow is `auto` or `scroll`, whether or not its
-  content overflows yet, otherwise the document, so a form in a page, a frame or a
-  scrolling box behaves the same. `connectRows` publishes those three lengths
-  (`--crudui-scroll-height`, `--crudui-form-end-extent`, `--crudui-form-end-top`) on
-  the connected element, which rendering never replaces. The limit is exact when nothing follows the form in its
-  scroll container; content after the form, such as page padding, adds its own height.
+  row's aligned top, the footer height and the content that already follows the form
+  in the scroll container, never below zero. Scrolling therefore ends exactly when its
+  header reaches its line, unless the content after the form is longer than that
+  space; then there is no added space and that content scrolls into view.
+  The scroll container is the one the sticky headers follow: the nearest ancestor whose
+  vertical overflow is `auto` or `scroll`, whether or not its content overflows yet,
+  otherwise the document, so a form in a page, a frame or a scrolling box, with or
+  without content after it, behaves the same. `connectRows` publishes those four
+  lengths (`--crudui-scroll-height`, `--crudui-form-end-extent`,
+  `--crudui-form-end-top`, `--crudui-form-end-after`) on the connected element, which
+  rendering never replaces.
 - `connectRows(element)` marks the form rows whose top reached their line: a sticky
   row gets `data-crudui-stuck`, and the last such row in document order (the first
   row before any) gets `data-crudui-current`. When another row becomes current it
