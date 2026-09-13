@@ -135,7 +135,7 @@ fn generate(request: &Value) -> FormResult<Value> {
         }
         Some("bindForm") => {
             let template: FormTemplate = decode(&request["template"])?;
-            let data = object(request.get("data").unwrap_or(&empty), "data")?;
+            let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
             Ok(bind_form(&template, data, &decode::<BindOptions>(options)?)?.into())
         }
         Some("renderList") => {
@@ -163,7 +163,7 @@ fn generate(request: &Value) -> FormResult<Value> {
         }
         Some("form") => {
             let template: FormTemplate = decode(&request["template"])?;
-            let data = object(request.get("data").unwrap_or(&empty), "data")?;
+            let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
             let mut form = Form::new(template, data, decode(options)?)?;
             let mut steps = Vec::new();
             let actions = match request.get("actions") {

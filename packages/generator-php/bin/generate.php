@@ -19,7 +19,7 @@ function state(Form $form): array
 function record(mixed $value): stdClass
 {
     if (!$value instanceof stdClass) {
-        throw new InvalidArgumentException('Data must be an object');
+        throw new InvalidArgumentException('Form data must be an object');
     }
     return $value;
 }

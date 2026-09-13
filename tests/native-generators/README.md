@@ -57,5 +57,5 @@ Each CLI accepts one JSON value on stdin. Operations are `compileForm`,
 `bindForm`, `form` and `renderList`. A successful response exits with status 0;
 a top-level operation error is `{ "error": { "code", "message", "at" } }` and
 exits with status 1. A form action failure is included in its step and execution
-continues. Error messages may differ by language; codes, paths and preserved
-state must match.
+continues. Error code, message and location must match in every implementation,
+as must preserved state.

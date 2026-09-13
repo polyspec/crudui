@@ -136,6 +136,7 @@ async function check(target, name, operation) {
 function compareError(actual, expected) {
   assert.ok(actual, 'Expected operation to fail');
   assert.equal(actual.code, expected.code, 'Error code differs');
+  assert.equal(actual.message, expected.message, 'Error message differs');
   assert.equal(actual.at, expected.at, 'Error path differs');
 }
 function compareForm(actual, expected, initial) {
@@ -297,11 +298,15 @@ for (const target of targets) {
   });
 
   for (const [name, data] of [['null-root', null], ['array-root', []], ['null-collection', { companies: null }], ['array-collection', { companies: [] }], ['numeric-row-key', { companies: { 5: { name: 'Five', stores: {} } } }]]) await check(target, `reject:${name}`, async () => {
-    const template = oracle({ operation: 'compileForm', spec: companySpec });
+    const request = { operation: 'form', template: oracle({ operation: 'compileForm', spec: companySpec }), data };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.equal(expected?.code, 'INVALID_FORM_INPUT', 'JavaScript accepted invalid form input');
     let error;
-    try { await invoke(target, { operation: 'form', template, data }); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
-    assert.ok(error, 'Invalid form input was accepted'); assert.equal(error.code, 'INVALID_FORM_INPUT');
-    return { errorCode: error.code };
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'Invalid form input was accepted');
+    compareError(error, expected);
+    return { error: expected };
   });
 
   for (const [name, data] of [['array-collection', { companies: [] }], ['null-collection', { companies: null }], ['scalar-collection', { companies: 'one' }], ['nested-array-collection', { companies: { __0000000000001__: { name: 'One', stores: [] } } }]]) await check(target, `bind-reject:${name}`, async () => {

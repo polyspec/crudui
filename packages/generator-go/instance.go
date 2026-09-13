@@ -40,7 +40,7 @@ func CreateRowKey() (string, error) {
 }
 func checkKey(k string) error {
 	if !rowKeyRE.MatchString(k) || numericKeyRE.MatchString(k) || k == "__proto__" || k == "prototype" || k == "constructor" {
-		return fmt.Errorf("Invalid row key: %s; use SequenceRowKey for numeric ids", k)
+		return fmt.Errorf("Invalid row key: %s; use sequenceRowKey for numeric ids", k)
 	}
 	return nil
 }

@@ -135,7 +135,7 @@ type UnsupportedFieldTypeError struct {
 
 // Error returns the unsupported type and its structural field path.
 func (e *UnsupportedFieldTypeError) Error() string {
-	return fmt.Sprintf("Unsupported field type %q at %s", e.Type, e.Path)
+	return "Unsupported field type \"" + e.Type + "\" at \"" + e.Path + "\""
 }
 
 // Code returns the shared unsupported-field error code.
