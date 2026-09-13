@@ -9,9 +9,12 @@ object, including an array or null, fails with `INVALID_FORM_INPUT` and the
 message `Repeated data must be a keyed object: {path}`, where `{path}` is the full
 data path including row keys. The [form runtime](form-runtime.md) defines all data
 shape rejections.
-React, Vue and Svelte render an Add button inside each empty collection.
-The button uses the `btn-plus` action class, has an accessible label and does not submit a value.
-Application controllers insert the new row into the button's collection.
+An empty collection renders one `add-row` control (`data-crudui-action="add-row"`)
+in its `crudui-node__footer`, or in the structure map when `multiple.controls` is
+`outline`. The control has an accessible label from the interface messages and
+does not submit a value; it is disabled when `multiple.max` allows no row.
+The shared browser binding inserts the new row into the control's collection.
+The [form markup](form-markup.md) defines the node grammar.
 `design.show` controls visibility independently of row count. Hiding a collection
 preserves its data; named controls in hidden rows remain part of native submission.
 

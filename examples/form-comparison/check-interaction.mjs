@@ -51,19 +51,19 @@ export async function checkInteraction(page, servers) {
               await frame.evaluate(() => window.comparison.reset());
               if (action === 'empty-keyboard') {
                 const remove = await frame.$(
-                  `${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-minus`,
+                  `${collectionSelector} > .crudui-node__body > [data-crudui-row-key] > .crudui-node__header [data-crudui-action="remove-row"]`,
                 );
                 await remove.click();
                 await frame.evaluate(() => window.comparison.idle());
-                const selector = `${collectionSelector} > .form-element > button.btn-plus`;
+                const selector = `${collectionSelector} > .crudui-node__footer [data-crudui-action="add-row"]`;
                 await (await frame.$(selector)).focus();
                 const before = await frame.evaluate(() => document.scrollingElement.scrollTop);
                 const parentScroll = await page.evaluate(() => window.scrollY);
                 await page.keyboard.press('Enter');
                 await frame.evaluate(() => window.comparison.idle());
                 const active = await frame.evaluate(selectorValue => ({
-                  isAdd: document.activeElement.matches('button.btn-plus'),
-                  sameCollection: document.activeElement.closest('.form-element-wrapper')
+                  isAdd: document.activeElement.matches('[data-crudui-action="add-row"]'),
+                  sameCollection: document.activeElement.closest('[data-field-path]')
                     === document.querySelector(selectorValue),
                   scroll: document.scrollingElement.scrollTop,
                 }), collectionSelector);
@@ -135,14 +135,14 @@ export async function checkInteraction(page, servers) {
                 await (await frame.$(selector)).click();
                 await frame.evaluate(() => window.comparison.idle());
                 assert.equal(await frame.$eval('textarea', item =>
-                  item.closest('.form-element-wrapper').style.display), 'none');
+                  item.closest('[data-field-path]').hidden), true);
                 await (await frame.$(selector)).click();
                 await frame.evaluate(() => window.comparison.idle());
-                assert.notEqual(await frame.$eval('textarea', item =>
-                  item.closest('.form-element-wrapper').style.display), 'none');
+                assert.equal(await frame.$eval('textarea', item =>
+                  item.closest('[data-field-path]').hidden), false);
               } else {
                 const button = await frame.$(
-                  `${collectionSelector} > .form-element > .input-group-wrapper > .input-group-btn > .btn-plus`,
+                  `${collectionSelector} > .crudui-node__body > [data-crudui-row-key] > .crudui-node__header [data-crudui-action="add-row"]`,
                 );
                 await button.scrollIntoView();
                 const before = await frame.evaluate((selectedButton, selectedAction) => {
@@ -159,7 +159,7 @@ export async function checkInteraction(page, servers) {
                 if (action === 'pointer') await button.click();
                 else await page.keyboard.press('Enter');
                 await frame.evaluate(() => window.comparison.idle());
-                assert.equal(await frame.$eval(`${collectionSelector} > .form-element`,
+                assert.equal(await frame.$eval(`${collectionSelector} > .crudui-node__body`,
                   element => element.children.length), 2, 'Addition creates one row');
                 const after = await frame.evaluate(selectedButton => ({
                   name: document.activeElement.name,

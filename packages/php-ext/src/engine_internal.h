@@ -87,6 +87,33 @@ bool ps_html_attr_string(ps_value *attrs, const char *name, const char *value);
 bool ps_html_attr_clone(ps_value *attrs, const char *name, const ps_value *value);
 ps_value *ps_html_appearance_attrs(const char *class_name, const char *style);
 
+/* Interface labels for row, collection and form controls; {count} is replaced by a number. */
+typedef struct {
+    const char *move_up;
+    const char *move_down;
+    const char *add_row;
+    const char *copy_row;
+    const char *remove_row;
+    const char *toggle_row;
+    const char *expand_all;
+    const char *collapse_all;
+    const char *undo;
+    const char *row_controls;
+    const char *collection_controls;
+    const char *form_controls;
+    const char *outline;
+    const char *data;
+    const char *untitled;
+    const char *collapsed;
+    const char *count;
+    const char *children;
+} ps_form_messages;
+
+/* Interface text for a supported language (ko, en, ja, zh), or NULL. */
+const ps_form_messages *ps_form_messages_for(const char *language);
+/* Replace the first {count} in a counted message. */
+char *ps_format_count(const char *template, size_t count);
+
 ps_value *ps_design(const ps_value *design, const ps_value *data, const char *path);
 bool ps_widget_supported(const char *type);
 ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,

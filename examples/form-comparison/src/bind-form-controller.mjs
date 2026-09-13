@@ -167,13 +167,12 @@ export function bindFormController(element, mount, template, language, initialDa
     for (let parent = active.parentElement; parent; parent = parent.parentElement) {
       scroll.push({ parent, top: parent.scrollTop, left: parent.scrollLeft });
     }
-    const wrapper = active.closest('.form-element-wrapper[data-field-path]');
-    const row = active.closest('.input-group-wrapper[data-uniqid]');
+    const scope = active.closest('[data-field-path]');
+    const row = active.closest('[data-crudui-row-key]');
     return {
       active, name: active.getAttribute?.('name') ?? undefined,
-      emptyCollection: active.matches?.('button.btn-plus')
-        && row?.closest('.form-element-wrapper[data-field-path]') !== wrapper
-        ? wrapper?.getAttribute('data-field-path') : undefined,
+      emptyCollection: active.matches?.('[data-crudui-action="add-row"]') && !(row && scope?.contains(row))
+        ? scope?.getAttribute('data-field-path') : undefined,
       start: active.selectionStart ?? null, end: active.selectionEnd ?? null,
       direction: active.selectionDirection ?? undefined, scroll,
     };
@@ -185,9 +184,8 @@ export function bindFormController(element, mount, template, language, initialDa
       : focus.name ? Array.from(element.querySelectorAll('[name]'))
         .find(control => control.getAttribute('name') === focus.name) : undefined;
     if (!active && focus.emptyCollection) {
-      active = Array.from(element.querySelectorAll('button.btn-plus')).find(button =>
-        button.closest('.form-element-wrapper[data-field-path]')
-          ?.getAttribute('data-field-path') === focus.emptyCollection);
+      active = Array.from(element.querySelectorAll('[data-crudui-action="add-row"]')).find(button =>
+        button.closest('[data-field-path]')?.getAttribute('data-field-path') === focus.emptyCollection);
     }
     active?.focus({ preventScroll: true });
     if (focus.start !== null && active?.setSelectionRange) {
@@ -240,18 +238,17 @@ export function bindFormController(element, mount, template, language, initialDa
   function onClick(event) {
     const button = event.target.closest?.('button');
     if (!button || button.disabled || !element.contains(button)) return;
-    const action = ['plus', 'copy', 'minus', 'move-up', 'move-down']
-      .find(name => button.classList.contains(`btn-${name}`));
-    if (!action) return;
-    const wrapper = button.closest('.form-element-wrapper[data-field-path]');
+    const action = button.getAttribute('data-crudui-action');
+    if (!['add-row', 'copy-row', 'remove-row', 'move-up', 'move-down'].includes(action)) return;
+    const wrapper = button.closest('[data-field-path]');
     const path = wrapper?.getAttribute('data-field-path');
     if (!path) return;
     const segments = pathSegments(path);
     const field = fieldAt(template.fields, segments);
     if (!repeated(field)) return;
-    const row = button.closest('.input-group-wrapper[data-uniqid]');
-    const key = row?.closest('.form-element-wrapper[data-field-path]') === wrapper
-      ? row.getAttribute('data-uniqid') : undefined;
+    // A row outside the collection element belongs to an ancestor collection.
+    const row = button.closest('[data-crudui-row-key]');
+    const key = row && wrapper.contains(row) ? row.getAttribute('data-crudui-row-key') : undefined;
     const next = structuredClone(data);
     const rows = valueAt(next, segments);
     if (!record(rows)) throw new Error(`Not a keyed collection: ${path}`);
@@ -259,15 +256,15 @@ export function bindFormController(element, mount, template, language, initialDa
     const index = key === undefined ? -1 : entries.findIndex(([name]) => name === key);
     if (key !== undefined && index < 0) throw new Error(`Unknown row: ${key}`);
     const settings = record(field.spec.multiple) ? field.spec.multiple : {};
-    if (['plus', 'copy'].includes(action) && entries.length >= (settings.max ?? Infinity)) return;
-    if (action === 'minus' && entries.length <= (settings.min ?? 0)) return;
-    if (action === 'plus') {
+    if (['add-row', 'copy-row'].includes(action) && entries.length >= (settings.max ?? Infinity)) return;
+    if (action === 'remove-row' && entries.length <= (settings.min ?? 0)) return;
+    if (action === 'add-row') {
       const created = freshKey(rows);
       entries.splice(index + 1, 0, [created, normalizeRow(field, undefined, `${path}.${created}`)]);
-    } else if (action === 'copy') {
+    } else if (action === 'copy-row') {
       const created = freshKey(rows);
       entries.splice(index + 1, 0, [created, copyRow(field, rows[key], `${path}.${created}`)]);
-    } else if (action === 'minus') entries.splice(index, 1);
+    } else if (action === 'remove-row') entries.splice(index, 1);
     else {
       const target = index + (action === 'move-up' ? -1 : 1);
       if (target < 0 || target >= entries.length) return;

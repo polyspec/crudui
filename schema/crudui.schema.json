@@ -362,6 +362,9 @@
             "max": { "description": "Maximum repeated row count.", "type": "number" },
             "copy": { "description": "Whether repeated rows provide a copy control.", "type": "boolean" },
             "sortable": { "description": "Whether repeated rows can be reordered.", "type": "boolean" },
+            "title": { "description": "Direct child field of a repeated group whose value titles each row.", "type": "string" },
+            "controls": { "description": "Position of row controls.", "enum": ["header", "footer", "outline"] },
+            "header": { "description": "Whether row headers stay visible while scrolling.", "enum": ["static", "sticky"] },
             "onclick": { "description": "Opaque repeated-row button action.", "$ref": "#/definitions/BehaviorAction" }
           }
         }

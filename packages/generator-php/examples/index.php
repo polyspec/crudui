@@ -53,7 +53,7 @@ header('Content-Type: text/html; charset=UTF-8');
 <title>CRUDUI PHP</title>
 <style>
 body { font: 16px system-ui; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-h6 { font-size: 1rem; margin: 1rem 0 .5rem; }
+.crudui-node__label { display: block; font-weight: 600; margin: 1rem 0 .5rem; }
 input[type=text], input[type=email], textarea { width: 100%; box-sizing: border-box; padding: .6rem; }
 .btn-group label { margin: 0 1rem 0 .25rem; }
 button { margin-top: 1rem; padding: .5rem 1rem; }

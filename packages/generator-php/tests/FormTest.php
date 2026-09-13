@@ -63,7 +63,7 @@ final class FormTest extends TestCase
         $other->note = 'Replacement';
         $other->options = [];
         $injected->setData($other);
-        self::assertStringContainsString('display:none', Generator::renderForm($injected));
+        self::assertStringContainsString('<div class="crudui-node crudui-node--field" data-field-path="note" hidden="">', Generator::renderForm($injected));
         $injected->setData(self::record());
         self::assertSame($html, Generator::renderForm($injected));
         self::assertSame($cache, json_encode($template, JSON_THROW_ON_ERROR));
@@ -135,7 +135,7 @@ final class FormTest extends TestCase
         }
         self::assertInstanceOf(stdClass::class, $form->getData()->companies);
         self::assertSame('{}', json_encode($form->getData()->companies));
-        self::assertStringContainsString('aria-label="+"', Generator::renderForm($form));
+        self::assertStringContainsString('<div class="crudui-node__footer"><div class="crudui-controls" role="group" aria-label="컬렉션 컨트롤"><button type="button" class="crudui-action" data-crudui-action="add-row" aria-label="추가"></button></div></div>', Generator::renderForm($form));
         $form->addRow('companies', ['key' => 'blank', 'value' => ['stores' => new stdClass()]]);
         self::assertSame('New company', $form->getData()->companies->blank->name);
         self::assertSame('{}', json_encode($form->getData()->companies->blank->stores));
@@ -198,6 +198,77 @@ final class FormTest extends TestCase
         $form->setValue('note', '<script>bad</script> & "quoted"');
         self::assertStringContainsString('&lt;script&gt;bad&lt;/script&gt; &amp; &quot;quoted&quot;', Generator::renderForm($form));
         self::assertStringNotContainsString('<script>bad</script>', Generator::renderForm($form));
+    }
+
+    public function testRowsHaveTitlesStickyHeadersAndControlPlacement(): void
+    {
+        $template = Generator::compileForm(self::object('{"type":"group","properties":{"items":{"type":"group","label":"Items","multiple":{"title":"name","controls":"footer","header":"sticky","max":2},"properties":{"name":{"type":"text"},"tags":{"type":"text","multiple":{"controls":"outline"}}}}}}'));
+        $form = new Form($template, ['items' => ['first' => ['name' => '', 'tags' => ['a' => 'x', 'b' => 'y']], 'second' => ['name' => 'Second', 'tags' => new stdClass()]]], ['language' => 'en', 'idPrefix' => 'f']);
+        $row = $form->getFields()[0]->children[0];
+        self::assertSame(['kind', 'key', 'className', 'hidden', 'controls', 'sticky', 'stickyDepth', 'header', 'body', 'collapsible', 'expanded', 'toggleLabel', 'children'], array_keys((array) $row));
+        self::assertSame('{"className":"","label":"Items","number":"1","title":"(untitled)","summary":"Nested rows: 2"}', json_encode($row->header));
+        self::assertSame([true, true], [$row->controls->actions[0]->disabled, !property_exists($row->children[1], 'controls')]);
+        $html = Generator::renderForm($form);
+        self::assertStringContainsString('<div class="crudui-node crudui-node--row crudui-node--sticky" data-crudui-row-key="first"><div class="crudui-node__header" style="--crudui-sticky-depth:0">', $html);
+        self::assertStringContainsString('<span class="crudui-node__title">Second</span>', $html);
+        self::assertStringContainsString('<div class="crudui-node__footer"><div class="crudui-controls" role="group" aria-label="Row controls">', $html);
+        self::assertStringNotContainsString('Collection controls', $html);
+    }
+
+    public function testMultipleDeclarationsAndLanguagesAreRejected(): void
+    {
+        $cases = [
+            ['{"type":"text","multiple":{"title":"name"}}', 'Invalid multiple.title at rows: expected a repeated group'],
+            ['{"type":"group","multiple":{"title":"missing"},"properties":{"name":{"type":"text"}}}', 'Invalid multiple.title at rows: expected the name of a direct child field without multiple, properties or lang'],
+            ['{"type":"group","multiple":{"title":"name"},"properties":{"name":{"type":"text","lang":true}}}', 'Invalid multiple.title at rows: expected the name of a direct child field without multiple, properties or lang'],
+            ['{"type":"group","multiple":{"controls":"side"},"properties":{}}', 'Invalid multiple.controls at rows: expected header, footer or outline'],
+            ['{"type":"text","multiple":{"header":true}}', 'Invalid multiple.header at rows: expected static or sticky'],
+            ['{"type":"text","lang":null}', 'Invalid lang at rows: expected a boolean or an object'],
+            ['{"type":"text","lang":"ko"}', 'Invalid lang at rows: expected a boolean or an object'],
+            ['{"type":"text","lang":["ko"]}', 'Invalid lang at rows: expected a boolean or an object'],
+            ['{"type":"text","multiple":"yes","lang":null}', 'Invalid multiple at rows: expected a boolean or an object'],
+            ['{"type":"text","lang":null,"design":[]}', 'Invalid lang at rows: expected a boolean or an object'],
+            ['{"type":"text","lang":{"only":"ko"}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],
+            ['{"type":"text","lang":{"only":null}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],
+            ['{"type":"text","lang":{"only":["ko",3]}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],
+        ];
+        foreach (['{"type":"text","lang":{"only":[]}}', '{"type":"text","lang":{"only":{}}}', '{"type":"text","lang":{"only":["ko","en"]}}'] as $field) {
+            self::assertCount(1, Generator::compileForm(self::object('{"type":"group","properties":{"rows":' . $field . '}}'))->fields);
+        }
+        $options = [[['language' => 5, 'keyPrefix' => 1], 'Language must be a string'], [['language' => 'fr', 'keyPrefix' => 1], 'keyPrefix must be a string'], [['idPrefix' => ['x'], 'unsupported' => true], 'idPrefix must be a string'], [['language' => 'fr', 'unsupported' => false], 'unsupported must be throw or marker'], [['language' => 'fr', 'unsupported' => 'other'], 'unsupported must be throw or marker'], [['idPrefix' => 'x', 'unsupported' => 'Marker'], 'unsupported must be throw or marker'], [['language' => 'fr', 'idPrefix' => null, 'keyPrefix' => null, 'unsupported' => null], 'Unsupported language: fr']];
+        foreach ($options as [$option, $message]) {
+            foreach ([fn () => Generator::bindForm(self::template(), [], $option), fn () => new Form(self::template(), [], $option)] as $operation) {
+                try {
+                    $operation();
+                    self::fail('Invalid option must fail');
+                } catch (FormError $error) {
+                    self::assertSame(['INVALID_FORM_INPUT', $message, ''], [$error->getErrorCode(), $error->getMessage(), $error->getPath()]);
+                }
+            }
+        }
+        foreach (['{"type":"text","lang":{}}', '{"type":"text","lang":false}', '{"type":"text","lang":{"only":["en"]}}'] as $field) {
+            self::assertCount(1, Generator::compileForm(self::object('{"type":"group","properties":{"rows":' . $field . '}}'))->fields);
+        }
+        foreach ($cases as [$field, $message]) {
+            try {
+                Generator::compileForm(self::object('{"type":"group","properties":{"rows":' . $field . '}}'));
+                self::fail('Invalid declaration must fail');
+            } catch (FormError $error) {
+                self::assertSame(['INVALID_FORM_INPUT', $message], [$error->getErrorCode(), $error->getMessage()]);
+            }
+        }
+        $languages = [['fr', 'Unsupported language: fr'], ['', 'Unsupported language: '], [5, 'Language must be a string'], [true, 'Language must be a string'], [['ko'], 'Language must be a string'], [(object) ['ko' => 1], 'Language must be a string']];
+        foreach ($languages as [$language, $message]) {
+            foreach ([fn () => Generator::bindForm(self::template(), [], ['language' => $language]), fn () => new Form(self::template(), [], ['language' => $language])] as $operation) {
+                try {
+                    $operation();
+                    self::fail('Unsupported language must fail');
+                } catch (FormError $error) {
+                    self::assertSame(['INVALID_FORM_INPUT', $message, ''], [$error->getErrorCode(), $error->getMessage(), $error->getPath()]);
+                }
+            }
+        }
+        self::assertSame('0개', Generator::bindForm(self::template(), ['companies' => new stdClass()], ['language' => null])[3]->header->count);
     }
 
     public function testUnsupportedTypeHasStableCodeAndPath(): void

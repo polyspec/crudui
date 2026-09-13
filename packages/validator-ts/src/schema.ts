@@ -484,7 +484,7 @@ export type StaticItem =
  * hidden identity or order field (see docs/spec/form-runtime.md).
  *
  * The named keys are the canonical `dependency_buckets.multiple.keys`
- * (`min`/`max`/`copy`/`sortable`/`onclick`). Legacy names are NOT recognition keys
+ * (`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`). Legacy names are NOT recognition keys
  * here (R2 anti-duplication, R4 no magic tokens); a translator maps them in:
  * `multiple_max`→`max`, `sortable*`→`sortable`, `add_buttons`/
  * `remove_list_button`/`list_button_text`→`copy`, `multiple_button_onclick`→
@@ -502,6 +502,12 @@ export interface MultipleSettings {
   copy?: boolean;
   /** Whether rows are sortable. */
   sortable?: boolean;
+  /** Direct child field of a repeated group whose value titles each row. */
+  title?: string;
+  /** Position of row controls. */
+  controls?: 'header' | 'footer' | 'outline';
+  /** Whether row headers stay visible while scrolling. */
+  header?: 'static' | 'sticky';
   /** Row-level click handler (opaque script). */
   onclick?: string;
   /** Index signature for additional multiple-dependent keys (forbidden keys excluded by the schema layer). */

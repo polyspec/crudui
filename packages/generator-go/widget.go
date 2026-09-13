@@ -30,7 +30,7 @@ func (c widgetContext) option(k, def string) string {
 func (c widgetContext) dataAttrs() *Object {
 	return NewObject("data-name", leafName(c.path, c.state.rows), "data-rule-name", ruleName(c.path, c.state.rows), "data-default", scalar(read(c.spec, "default")))
 }
-func (c widgetContext) translate(v any) string { return translate(v, c.state.options.Language) }
+func (c widgetContext) translate(v any) string { return translate(v, c.state.language) }
 func (c widgetContext) display() string        { return defaultString(c.value, read(c.spec, "default")) }
 func (c widgetContext) behavior() *Object {
 	o := NewObject()
