@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Align repeated-row declarations across schema, validators and CLI
+
+`multiple.min` is declared in the TypeScript, Go and Rust specification models,
+accepted by the PHP `multiple` bucket and reported by `crudui explain` and
+`crudui describe`. The PHP bucket previously rejected `min`, although the JSON
+schema and form runtime define it. `multiple.copy` is a boolean in the JSON
+schema; the object form had no runtime meaning. Model comments describe keyed
+row identity instead of hidden identifiers and array order.
+
+Schema checks (58 cases), TypeScript validator tests (1606), PHP validator
+tests (1446), Go and Rust validator tests, CLI tests (37) and `make docs-check`
+passed.
+
 ## 2026-09-13 — Add framework-independent HTML rendering and executable feature contracts
 
 `@crudui/generator-html` renders current form and list view models as HTML

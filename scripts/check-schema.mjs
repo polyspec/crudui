@@ -20,6 +20,8 @@ let checked = 0;
 for (const [multiple, expected] of [
   [{ min: 0, max: 3 }, true],
   [{ min: 'one' }, false],
+  [{ copy: true, sortable: true }, true],
+  [{ copy: {} }, false],
 ]) {
   const spec = { type: 'group', properties: { rows: { type: 'text', multiple } } };
   assert.equal(validateForm(spec), expected, `multiple: ${JSON.stringify(validateForm.errors)}`);

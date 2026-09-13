@@ -392,14 +392,17 @@ pub struct OptionsSlot {
 
 /// Repeated-row options stored under `multiple`.
 ///
-/// Row identity is supplied in runtime data, so this structure has no identifier
-/// field. Array order defines serialized row order.
+/// Row identity is not a field of this structure. Repeated data is an object
+/// keyed by row identity, and object member order is row order.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct MultipleSpec {
+    /// Minimum row count.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub min: Option<Value>,
     /// Maximum row count.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max: Option<Value>,
-    /// Row copy, add and remove controls.
+    /// Row copy control.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub copy: Option<Value>,
     /// Whether rows are sortable.
@@ -609,9 +612,13 @@ mod tests {
 
     #[test]
     fn multiple_dependency_isolated_under_multiple() {
-        let f = parse(r#"{ "type": "group", "multiple": { "max": 5, "sortable": true } }"#);
+        let f = parse(r#"{ "type": "group", "multiple": { "min": 1, "max": 5, "sortable": true } }"#);
         match f.multiple {
-            Some(Polymorphic::Config(m)) => assert_eq!(m.max, Some(Value::from(5))),
+            Some(Polymorphic::Config(m)) => {
+                assert_eq!(m.min, Some(Value::from(1)));
+                assert_eq!(m.max, Some(Value::from(5)));
+                assert!(m.extra.0.is_empty());
+            }
             other => panic!("expected multiple config, got {other:?}"),
         }
     }

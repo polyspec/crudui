@@ -2,6 +2,18 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 스키마·검증기·CLI의 반복 행 선언 정렬
+
+`multiple.min`을 TypeScript, Go, Rust 명세 모델에 선언하고 PHP `multiple`
+버킷이 허용하며 `crudui explain`과 `crudui describe`가 표시합니다. JSON
+스키마와 폼 런타임은 `min`을 정의하지만 PHP 버킷은 이를 거부했습니다. JSON
+스키마에서 `multiple.copy`는 boolean이며 런타임 의미가 없던 객체 형태는
+제거했습니다. 모델 주석은 숨은 식별자와 배열 순서 대신 키 기반 행 식별을
+설명합니다.
+
+스키마 검사 58개, TypeScript 검증기 테스트 1606개, PHP 검증기 테스트 1446개,
+Go·Rust 검증기 테스트, CLI 테스트 37개와 `make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 프레임워크 독립 HTML 렌더링과 실행 가능한 기능 계약 추가
 
 `@crudui/generator-html`은 프레임워크 의존성 없이 현재 폼·목록 view model을
