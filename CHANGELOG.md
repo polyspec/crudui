@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Run the form suite's Chromium checks with the sandboxed CI Chrome
+
+The same `main` CI run also failed the "Form instances and data injection" job: the six
+Chromium style checks that this branch added to `npm run test:forms` could not launch
+the browser ("No usable sandbox!"). That job was not a browser job before, so it used
+Puppeteer's downloaded Chrome, which has no usable sandbox on the Ubuntu runners, while
+the other browser jobs select the regular Chrome at `/opt/google/chrome/chrome`, skip
+the Puppeteer download and verify the sandbox with `scripts/check-ci-browser.mjs`. The
+job now does the same, and the CI policy test that lists the browser jobs includes it
+and checks that `tests/form-styles.test.mjs` never disables the sandbox. Against the
+previous workflow the policy test failed with the three missing settings of
+`form-runtime`; with the change `npm run test:runtimes` passed 20 tests.
+
 ## 2026-09-14 — Build generator-core before the form comparison source checks
 
 After the merge into `main`, the CI job "Form comparison runner regressions" failed:

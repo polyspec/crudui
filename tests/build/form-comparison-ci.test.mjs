@@ -59,7 +59,7 @@ test('native report upload uses the current Node.js 24 artifact action', async (
 test('browser CI jobs select the regular sandboxed Chrome executable', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const failures = [];
-  for (const name of ['form-comparison', 'package-browser', 'native-generators']) {
+  for (const name of ['form-runtime', 'form-comparison', 'package-browser', 'native-generators']) {
     const job = workflowJob(workflow, name);
     if (!/PUPPETEER_EXECUTABLE_PATH:\s*\/opt\/google\/chrome\/chrome/.test(job)) {
       failures.push(`${name}: missing regular Chrome executable`);
@@ -74,11 +74,11 @@ test('browser CI jobs select the regular sandboxed Chrome executable', async () 
       failures.push(`${name}: disables the Chrome sandbox`);
     }
   }
-  const widgetChecks = await readFile(
-    path.join(repository, 'tests/widget-scripts.test.mjs'), 'utf8',
-  );
-  if (/--no-sandbox|--disable-setuid-sandbox/.test(widgetChecks)) {
-    failures.push('tests/widget-scripts.test.mjs: disables the Chrome sandbox');
+  for (const file of ['tests/widget-scripts.test.mjs', 'tests/form-styles.test.mjs']) {
+    const checks = await readFile(path.join(repository, file), 'utf8');
+    if (/--no-sandbox|--disable-setuid-sandbox/.test(checks)) {
+      failures.push(`${file}: disables the Chrome sandbox`);
+    }
   }
   assert.deepEqual(failures, []);
 });
