@@ -37,7 +37,7 @@ final class Template
         return new MemoryLoader($maps);
     }
 
-    private static function fields(array $properties): array
+    private static function fields(array $properties, string $parent = ''): array
     {
         $out = [];
         foreach ($properties as $name => $raw) {
@@ -45,11 +45,85 @@ final class Template
                 continue;
             }
             $raw = (array) $raw;
+            $path = $parent === '' ? (string) $name : $parent . '.' . $name;
+            self::checkDeclarations($raw, $path);
             $children = $raw['properties'] ?? null;
             unset($raw['properties']);
-            $out[] = (object) ['name' => (string) $name, 'spec' => Value::copy((object) $raw), 'children' => $children instanceof stdClass || is_array($children) && !array_is_list($children) ? self::fields((array) $children) : []];
+            $out[] = (object) ['name' => (string) $name, 'spec' => Value::copy((object) $raw), 'children' => $children instanceof stdClass || is_array($children) && !array_is_list($children) ? self::fields((array) $children, $path) : []];
         }
         return $out;
+    }
+
+    /** Objects are stdClass values or non-list associative arrays. */
+    private static function isObject(mixed $value): bool
+    {
+        return $value instanceof stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
+    }
+
+    /** A string, or a condition map: a non-empty object. */
+    private static function conditionValue(mixed $value): bool
+    {
+        return is_string($value) || (self::isObject($value) && (array) $value !== []);
+    }
+
+    /** Reject a wrong value type in one field's multiple and design declarations. */
+    private static function checkDeclarations(array $spec, string $path): void
+    {
+        $fail = static function (string $key, string $expected) use ($path): never {
+            throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at %s: expected %s', $key, $path, $expected));
+        };
+        if (array_key_exists('multiple', $spec)) {
+            $multiple = $spec['multiple'];
+            if (!is_bool($multiple) && !self::isObject($multiple)) {
+                $fail('multiple', 'a boolean or an object');
+            }
+            if (self::isObject($multiple)) {
+                $settings = (array) $multiple;
+                foreach (['min', 'max'] as $key) {
+                    if (array_key_exists($key, $settings) && !is_int($settings[$key]) && !is_float($settings[$key])) {
+                        $fail('multiple.' . $key, 'a number');
+                    }
+                }
+                foreach (['copy', 'sortable'] as $key) {
+                    if (array_key_exists($key, $settings) && !is_bool($settings[$key])) {
+                        $fail('multiple.' . $key, 'a boolean');
+                    }
+                }
+            }
+        }
+        if (!array_key_exists('design', $spec)) {
+            return;
+        }
+        $design = $spec['design'];
+        if (!is_bool($design) && !self::isObject($design)) {
+            $fail('design', 'a boolean or an object');
+        }
+        if (is_bool($design)) {
+            return;
+        }
+        $design = (array) $design;
+        if (array_key_exists('show', $design) && !is_bool($design['show']) && !self::conditionValue($design['show'])) {
+            $fail('design.show', 'an expression, a boolean or a condition map');
+        }
+        foreach (['class', 'style'] as $key) {
+            if (array_key_exists($key, $design) && !self::conditionValue($design[$key])) {
+                $fail('design.' . $key, 'a string or a condition map');
+            }
+        }
+        foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
+            if (!array_key_exists($node, $design)) {
+                continue;
+            }
+            if (!self::isObject($design[$node])) {
+                $fail('design.' . $node, 'an object');
+            }
+            $values = (array) $design[$node];
+            foreach (['class', 'style'] as $key) {
+                if (array_key_exists($key, $values) && !self::conditionValue($values[$key])) {
+                    $fail('design.' . $node . '.' . $key, 'a string or a condition map');
+                }
+            }
+        }
     }
 
     /** Reject values without the compiled form template kind and field list. */
