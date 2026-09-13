@@ -105,7 +105,9 @@ packaged files. The package build of a project compiles components for its brows
 
 Run `npm run test:packages` to build and pack all JavaScript packages, install
 them into an isolated install project, check exported files and declarations,
-and compile a production application using all three form components.
+and compile a production application using all three form components. A passing
+check removes the temporary install project. A failing check keeps it with
+`failure.log` and prints its path.
 
 ## Package declaration checks
 

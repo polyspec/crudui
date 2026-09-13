@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFile, writeFile, mkdir, mkdtemp, stat, readdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, mkdtemp, stat, readdir, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -398,6 +398,13 @@ try {
 report.completed = true;
 report.passed = report.targets.length === 5 && report.targets.every(target => target.available && target.passed) && report.checks.every(check => check.passed);
 report.summary = { passed: report.checks.filter(check => check.passed).length, failed: report.checks.filter(check => !check.passed).length, unavailable: report.targets.filter(target => !target.available).map(target => target.name) };
+// A passing run removes its build directory; a failing run keeps it for inspection.
+if (report.passed) {
+  await rm(buildDirectory, { recursive: true, force: true });
+  delete report.buildDirectory;
+} else {
+  process.stderr.write(`Build directory retained: ${buildDirectory}\n`);
+}
 if (reportPath) { await mkdir(path.dirname(reportPath), { recursive: true }); await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`); }
 process.stdout.write(`${JSON.stringify(report.summary)}\n`);
 if (!report.passed) process.exitCode = 1;
