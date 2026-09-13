@@ -2,6 +2,17 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Build the validator before generator-core in the form comparison checks
+
+The next `main` CI run failed the same job again, one step earlier: building
+`@crudui/generator-core` stopped with `Cannot find module '@crudui/validator'`, because
+generator-core's declarations import the validator package, which had not been built.
+The previous check removed only `packages/generator-core/dist`, so a local validator
+build hid it. `test:form-comparison:source` now runs `build:validator` before building
+generator-core, the same order `test:forms` uses. With both `packages/validator-ts/dist`
+and `packages/generator-core/dist` removed, `npm run test:form-comparison:source` built
+both packages and passed 140 tests.
+
 ## 2026-09-14 — Run the form suite's Chromium checks with the sandboxed CI Chrome
 
 The same `main` CI run also failed the "Form instances and data injection" job: the six
