@@ -6,9 +6,11 @@ const rootReference = '/__crudui_browser_form__.json';
 function compilePayload(spec, options) {
   const files = options.files ?? {};
   if (Object.hasOwn(files, rootReference)) throw new TypeError(`Compile files cannot replace ${rootReference}`);
+  // The fields come by reference; root declarations such as buttons stay on the form root.
+  const { properties, ...root } = spec;
   return {
-    spec: { type: 'group', properties: { $ref: rootReference } },
-    options: { ...options, files: { ...files, [rootReference]: spec } },
+    spec: { ...root, properties: { $ref: rootReference } },
+    options: { ...options, files: { ...files, [rootReference]: { type: 'group', properties } } },
   };
 }
 
