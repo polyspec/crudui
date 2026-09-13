@@ -50,7 +50,7 @@ function formElement(controls) {
   const listeners = new Map();
   return {
     listeners,
-    ownerDocument: { activeElement: null, defaultView: fakeWindow },
+    ownerDocument: { activeElement: null, defaultView: fakeWindow, documentElement: { clientHeight: 0 } },
     style: { setProperty() {} },
     contains: () => false,
     querySelector: () => null,
@@ -109,7 +109,7 @@ test('accepts saved, unsaved and empty keyed collections', async () => {
   const renders = [];
   const listeners = new Map();
   const element = {
-    ownerDocument: { activeElement: null, defaultView: fakeWindow },
+    ownerDocument: { activeElement: null, defaultView: fakeWindow, documentElement: { clientHeight: 0 } },
     style: { setProperty() {} },
     contains: () => false,
     querySelector: () => null,

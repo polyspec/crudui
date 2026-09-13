@@ -148,6 +148,7 @@ function renderedFormDom() {
     element.removeAttribute('data-crudui-current');
     element.removeAttribute('data-crudui-stuck');
   }
+  copy.style.removeProperty('--crudui-scroll-height');
   copy.style.removeProperty('--crudui-form-end-extent');
   copy.style.removeProperty('--crudui-form-end-top');
   if (copy.getAttribute('style') === '') copy.removeAttribute('style');
