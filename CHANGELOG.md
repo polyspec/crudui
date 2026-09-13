@@ -2,6 +2,30 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Move focus to the affected row after row operations
+
+Row operations previously kept the active control, its text selection and the
+scroll positions, and a pointer press on a row button was prevented from moving
+focus. The runtime now follows the focus rule of the reference form: adding or
+copying focuses the new row, moving focuses the moved row, and removing focuses
+the previous row, then the next row, then the enclosing row, then the collection's
+Add button. Focus goes to the row's first enabled visible input, or to its toggle
+or Add button, and the row scrolls only as far as needed. Toggling, selecting and
+undoing keep the focused control, including a focused action button. Pointer and
+keyboard activation behave the same. `runAction` returns `{ focus }` for the row
+that receives focus, or `undefined` when the target is incomplete.
+
+generator-core passed its typecheck and 102 tests. `npm run test:forms` passed
+HTML 112, React 701, Vue 344, Svelte 345 and ten normalizer checks, with the shared
+DOM scenario asserting the focused row after add, remove, copy, move, toggle and
+removal of the last row. jsdom does not implement scrolling, so the tests stub
+`scrollIntoView`. In Chrome, the form-structure preview focused the new row after
+an add and the previous row after a removal. Instrumenting the calls showed the
+row scrolls before focus, which prevents scrolling elements that a synchronous
+re-render replaces. The automation tab did not scroll the window, so actual
+viewport placement was not measured there. The comparison page focus checks move
+to the same rule in the next change.
+
 ## 2026-09-13 — Render forms as recursive nodes with row cards
 
 Every form renderer (HTML, React, Vue, Svelte, PHP, Go, Rust and the C PHP

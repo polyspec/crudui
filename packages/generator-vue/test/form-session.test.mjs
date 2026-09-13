@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../../../tests/fixtures/form-session/jsdom.mjs';
 import { createApp, h, nextTick } from 'vue';
 import { expect, it } from 'vitest';
 import { compileForm, createForm } from '@crudui/generator-core';

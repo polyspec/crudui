@@ -201,12 +201,32 @@ describe('structure map and actions', () => {
 
   it('runs resolved actions against the instance', () => {
     const form = createForm(compileForm(spec), { teams: { [k1]: { name: 'Sales', members: {} } } });
-    expect(runAction(form, { name: 'add-row', path: `teams.${k1}.members` })).toBe(true);
-    expect(Object.keys(form.getValue(`teams.${k1}.members`) as object)).toHaveLength(1);
-    expect(runAction(form, { name: 'remove-row', path: 'teams' })).toBe(false);
-    expect(runAction(form, { name: 'toggle-row', path: 'teams', key: k1 })).toBe(true);
+    const members = `teams.${k1}.members`;
+    const added = runAction(form, { name: 'add-row', path: members });
+    const [member] = Object.keys(form.getValue(members) as object);
+    expect(added).toEqual({ focus: { path: members, key: member } });
+    expect(runAction(form, { name: 'remove-row', path: 'teams' })).toBeUndefined();
+    expect(runAction(form, { name: 'toggle-row', path: 'teams', key: k1 })).toEqual({});
     expect(form.getSnapshot().fields[0]!.children![0]!.expanded).toBe(false);
-    expect(runAction(form, { name: 'undo' })).toBe(true);
-    expect(form.getValue(`teams.${k1}.members`)).toEqual({});
+    expect(runAction(form, { name: 'undo' })).toEqual({});
+    expect(form.getValue(members)).toEqual({});
+  });
+
+  it('returns the row that receives focus after copying, moving and removing', () => {
+    const form = createForm(compileForm(spec), data);
+    // teams allows at most two rows, so remove one before copying.
+    expect(runAction(form, { name: 'remove-row', path: 'teams', key: k1 })).toEqual({ focus: { path: 'teams', key: k2 } });
+    const copied = runAction(form, { name: 'copy-row', path: 'teams', key: k2 })!;
+    const [, copy] = Object.keys(form.getValue('teams') as object);
+    expect(copied).toEqual({ focus: { path: 'teams', key: copy } });
+    expect(runAction(form, { name: 'move-down', path: 'teams', key: k2 })).toEqual({ focus: { path: 'teams', key: k2 } });
+    expect(runAction(form, { name: 'remove-row', path: 'teams', key: k2 })).toEqual({ focus: { path: 'teams', key: copy } });
+    form.undo();
+    form.undo();
+    form.undo();
+    form.undo();
+    const members = `teams.${k1}.members`;
+    expect(runAction(form, { name: 'remove-row', path: members, key: k1 })).toEqual({ focus: { path: members, key: k2 } });
+    expect(runAction(form, { name: 'remove-row', path: members, key: k2 })).toEqual({ focus: { path: members } });
   });
 });

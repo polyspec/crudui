@@ -32,7 +32,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
 | form-typing | Native input updates with stable editable controls, focus and renderer completion | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
 | form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
-| form-focus | Focus, selection and scroll retention during row operations | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
+| form-focus | Focus movement to the affected row after row operations | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
 | form-markup | Recursive node markup, row cards and interface messages in five implementations | implemented | passed | not-deployed | [Form markup](spec/form-markup.md) |
 | form-view-state | Row collapse, selection and merged undo history outside record data | implemented | passed | not-deployed | [Node tests](../packages/generator-core/src/node.test.ts) |
 | form-outline | Structure map and current data view | implemented | passed | not-deployed | [Form markup](spec/form-markup.md) |

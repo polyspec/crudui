@@ -8,7 +8,7 @@ export type { RowSelection } from './instance';
 export { connectForm, connectOutline } from './dom';
 export type { FormConnection } from './dom';
 export { resolveAction, runAction } from './actions';
-export type { FormActionName, ActionTarget } from './actions';
+export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';
 export { buildOutline } from './outline';
 export type { OutlineCollection, OutlineRow } from './outline';
 export { parseStyle } from './css';

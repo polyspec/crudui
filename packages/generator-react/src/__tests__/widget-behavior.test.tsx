@@ -54,7 +54,7 @@ it('executes handlers, updates values and retains the existing row and language 
   } finally { view.unmount(); }
 });
 
-it('preserves exact injected HTML and focus when adding a row beside a raw editor', () => {
+it('preserves exact injected HTML and focuses the row added beside a raw editor', () => {
   const initial = createForm(template, data);
   const deferred = createForm(template, {});
   const first = render(<Form form={initial} />);
@@ -67,12 +67,9 @@ it('preserves exact injected HTML and focus when adding a row beside a raw edito
     note.focus();
     note.setSelectionRange(1, 2);
     const button = note.closest('[data-crudui-row-key]')!.querySelector('[data-crudui-action="add-row"]')!;
-    fireEvent.pointerDown(button);
     fireEvent.click(button);
-    const focused = document.activeElement as HTMLTextAreaElement;
-    expect(focused.name).toBe('notes[first]');
-    expect(focused.selectionStart).toBe(1);
-    expect(focused.selectionEnd).toBe(2);
+    const added = Object.keys(deferred.getData().notes as object)[1];
+    expect((document.activeElement as HTMLTextAreaElement).name).toBe(`notes[${added}]`);
     act(() => deferred.setData({ ...data, notes: {} }));
     act(() => deferred.setData(data));
     expect(second.container.innerHTML).toBe(original);

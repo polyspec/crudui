@@ -1,5 +1,5 @@
 import type { FormInstance } from './instance';
-import { resolveAction, runAction } from './actions';
+import { resolveAction, runAction, type ActionTarget, type FocusTarget } from './actions';
 import { formatDateValue } from './date';
 import { parsePathString } from './util';
 
@@ -11,14 +11,32 @@ export interface FormConnection {
   disconnect(): void;
 }
 
+/** The element whose `data-field-path` equals a path. */
+function scopeElement(root: ParentNode, path: string): HTMLElement | undefined {
+  return Array.from(root.querySelectorAll<HTMLElement>('[data-field-path]'))
+    .find(element => element.getAttribute('data-field-path') === path);
+}
+
 /** The form row element for a collection path and row key. */
 function rowElement(root: ParentNode, path: string, key: string): HTMLElement | undefined {
-  const scope = Array.from(root.querySelectorAll<HTMLElement>('[data-field-path]'))
-    .find(element => element.getAttribute('data-field-path') === path);
+  const scope = scopeElement(root, path);
   if (!scope) return undefined;
   return Array.from(scope.querySelectorAll<HTMLElement>('[data-crudui-row-key]'))
     .find(row => row.getAttribute('data-crudui-row-key') === key &&
       row.parentElement?.closest('[data-field-path]') === scope);
+}
+
+/** An enabled action button of a row itself, not of a nested row. */
+function rowButton(row: HTMLElement, action: string): HTMLButtonElement | undefined {
+  return Array.from(row.querySelectorAll<HTMLButtonElement>(`[data-crudui-action="${action}"]`))
+    .find(button => !button.disabled && button.closest('[data-crudui-row-key]') === row);
+}
+
+/** A row's first enabled visible input, or its toggle or Add button when it has none. */
+function firstRowControl(row: HTMLElement): HTMLElement | undefined {
+  const input = Array.from(row.querySelectorAll<HTMLInputElement>('input:not([type=hidden]),select,textarea'))
+    .find(control => !control.disabled && !control.closest('[hidden]'));
+  return input ?? rowButton(row, 'toggle-row') ?? rowButton(row, 'add-row');
 }
 
 /** Browser event delegation for all adapters, including raw leaf controls. */
@@ -27,12 +45,16 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   let focus: {
     active: HTMLElement;
     name?: string;
-    emptyCollection?: string;
+    action?: ActionTarget;
     start: number | null;
     end: number | null;
     direction?: 'forward' | 'backward' | 'none';
     scroll: Array<{ element: HTMLElement; top: number; left: number }>;
   } | undefined;
+  // Focus destination of the last action, applied after the next render.
+  let destination: FocusTarget | undefined;
+  // Whether the DOM has been synchronized since the last commit.
+  let synced = true;
   let observers: IntersectionObserver[] = [];
   const controls = () => Array.from(element.querySelectorAll<Control>('input[name],select[name],textarea[name]'));
   const pathOf = (name: string) => {
@@ -44,11 +66,14 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     }
     return segments.length ? segments.join('.') : undefined;
   };
-  // After an empty collection's add replaces its button, focus the first add
-  // control of the same collection, including the new row's.
-  const addButtonOf = (path: string) => Array.from(element.querySelectorAll<HTMLButtonElement>('[data-crudui-action="add-row"]'))
-    .find(button => resolveAction(button)?.path === path);
+  /** The rendered button requesting the same action on the same path and key. */
+  const actionButton = (target: ActionTarget) => Array.from(element.querySelectorAll<HTMLButtonElement>('button[data-crudui-action]'))
+    .find(button => {
+      const other = resolveAction(button);
+      return other?.name === target.name && other.path === target.path && other.key === target.key;
+    });
   const captureFocus = () => {
+    synced = false;
     const active = element.ownerDocument.activeElement as (HTMLElement & {
       name?: string; selectionStart?: number | null; selectionEnd?: number | null;
       selectionDirection?: 'forward' | 'backward' | 'none' | null;
@@ -59,10 +84,10 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       for (let parent = active.parentElement; parent; parent = parent.parentElement) {
         scroll.push({ element: parent, top: parent.scrollTop, left: parent.scrollLeft });
       }
-      const target = active.matches('[data-crudui-action="add-row"]') ? resolveAction(active) : undefined;
+      const action = active.matches('button[data-crudui-action]') ? resolveAction(active) : undefined;
       focus = {
         active,
-        emptyCollection: target && target.key === undefined ? target.path : undefined,
+        ...(action ? { action } : {}),
         name: active.name,
         start: active.selectionStart ?? null,
         end: active.selectionEnd ?? null,
@@ -71,12 +96,38 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       };
     }
   };
-  const onPointerDown = (event: PointerEvent) => {
-    const button = (event.target as Element)?.closest?.('button[data-crudui-action]');
-    const active = element.ownerDocument.activeElement;
-    if (event.button !== 0 || !button || (button as HTMLButtonElement).disabled || !element.contains(button) ||
-        !active?.matches('input,textarea,select') || !element.contains(active)) return;
-    event.preventDefault();
+  /** Keep the focused control, its text selection and ancestor scroll positions. */
+  const restoreFocus = () => {
+    if (!focus) return;
+    const control = element.contains(focus.active) ? focus.active
+      : focus.action ? actionButton(focus.action)
+        : controls().find(c => c.name === focus!.name);
+    if (control) {
+      control.focus({ preventScroll: true });
+      if (focus.start !== null && 'setSelectionRange' in control) {
+        (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
+      }
+    }
+    for (const position of focus.scroll) {
+      position.element.scrollTop = position.top;
+      position.element.scrollLeft = position.left;
+    }
+  };
+  /** Focus the row an action affected, or the enclosing row or Add button of an emptied collection. */
+  const moveFocus = ({ path, key }: FocusTarget) => {
+    const row = key === undefined
+      ? scopeElement(element, path)?.parentElement?.closest<HTMLElement>('[data-crudui-row-key]') ?? undefined
+      : rowElement(element, path, key);
+    const control = row ? firstRowControl(row)
+      : Array.from(element.querySelectorAll<HTMLButtonElement>('[data-crudui-action="add-row"]'))
+        .find(button => !button.disabled && resolveAction(button)?.path === path);
+    if (!control) return;
+    // Scroll before focusing: focusing selects the row, and a renderer that
+    // synchronizes inside that commit replaces these elements.
+    // The row header carries the sticky scroll margin; the control follows it.
+    (row?.firstElementChild ?? control).scrollIntoView({ block: 'nearest' });
+    control.scrollIntoView({ block: 'nearest' });
+    control.focus({ preventScroll: true });
   };
   // Focusing a control selects its row. Buttons are excluded: a selection
   // re-render would replace the button before its click is delivered.
@@ -120,7 +171,13 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
     if (!button || !element.contains(button) || button.disabled) return;
     const target = resolveAction(button);
-    if (target && runAction(session, target)) event.preventDefault();
+    const result = target && runAction(session, target);
+    if (!result) return;
+    event.preventDefault();
+    if (!result.focus) return;
+    // A renderer that synchronizes inside the commit has already rendered the row.
+    if (synced) moveFocus(result.focus);
+    else destination = result.focus;
   };
   /** Mark sticky row headers that are currently stuck. */
   const observeSticky = () => {
@@ -178,19 +235,14 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       }
     }
     observeSticky();
-    if (focus) {
-      let control: HTMLElement | undefined = element.contains(focus.active) ? focus.active : controls().find(c => c.name === focus!.name);
-      if (!control && focus.emptyCollection) control = addButtonOf(focus.emptyCollection);
-      if (control) {
-        control.focus({ preventScroll: true });
-        if (focus.start !== null && 'setSelectionRange' in control) {
-          (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
-        }
-      }
-      for (const position of focus.scroll) {
-        position.element.scrollTop = position.top;
-        position.element.scrollLeft = position.left;
-      }
+    synced = true;
+    if (destination) {
+      const target = destination;
+      destination = undefined;
+      focus = undefined;
+      moveFocus(target);
+    } else {
+      restoreFocus();
       focus = undefined;
     }
   };
@@ -198,7 +250,6 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
-  element.addEventListener('pointerdown', onPointerDown);
   element.addEventListener('focusin', onFocusIn);
   sync();
   return {
@@ -210,7 +261,6 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
-      element.removeEventListener('pointerdown', onPointerDown);
       element.removeEventListener('focusin', onFocusIn);
     },
   };
