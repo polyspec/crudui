@@ -2,6 +2,19 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — 통과한 검사의 임시 디렉터리 삭제
+
+`tests/native-generators/run.mjs`는 실행마다 `crudui-native-generators-*` 빌드
+디렉터리를 만들고 삭제하지 않았습니다. `scripts/check-packages.mjs`도 실행마다
+145MB `crudui-consumer-*` 프로젝트를 남겼습니다. 반복 실행이 디스크를 채운 원인 중
+하나였습니다. 이제 통과한 실행은 디렉터리를 삭제합니다. 실패한 실행은 디렉터리를
+남기고 경로를 출력하며 보고서(`buildDirectory`) 또는 `failure.log`와 함께 기록합니다.
+다른 검사 파일은 이미 임시 디렉터리를 삭제하고 있었습니다.
+
+`make test-native`가 886개 검사를 통과하고 빌드 디렉터리를 남기지 않았습니다.
+`npm run test:packages`가 통과하고 소비자 프로젝트를 남기지 않았습니다.
+`make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 잘못된 multiple·design 값 형식을 컴파일에서 거부
 
 TypeScript, PHP, Go, Rust와 C PHP 확장의 폼 컴파일은 `multiple`과 `design`의 값
