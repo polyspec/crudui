@@ -5,7 +5,7 @@ import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
 import { encodeJson, readJson } from './json.mjs';
 import { formInitializations } from './runtime-paths.mjs';
-import { identical } from './form-snapshot.mjs';
+import { domSnapshot, identical } from './form-snapshot.mjs';
 import { serverGeneration } from './server-generation.mjs';
 import { createActionCompletion } from './action-completion.mjs';
 
@@ -128,11 +128,12 @@ async function mount(data = {}, formSpec = spec) {
   await settle(); inspect();
 }
 /**
- * Markup of the rendered form without the state the browser binding writes: the
- * `data-crudui-stuck` and `data-crudui-current` row marks and the lengths published
- * on the connected element (form-markup: "set by the browser binding").
+ * Parsed DOM of the rendered form (every element, attribute, text and comment in child
+ * order; attribute order has no meaning in the DOM) without the state the browser binding
+ * writes: the `data-crudui-stuck` and `data-crudui-current` row marks and the lengths
+ * published on the connected element (form-markup: "set by the browser binding").
  */
-function renderedFormMarkup() {
+function renderedFormDom() {
   const rendered = view.querySelector('.crudui-form');
   assert(rendered, 'A rendered form must exist');
   const copy = rendered.cloneNode(true);
@@ -143,11 +144,11 @@ function renderedFormMarkup() {
   copy.style.removeProperty('--crudui-form-end-extent');
   copy.style.removeProperty('--crudui-form-end-top');
   if (copy.getAttribute('style') === '') copy.removeAttribute('style');
-  return copy.outerHTML;
+  return JSON.stringify(domSnapshot(copy));
 }
 /**
  * SSR: the selected server renders the form with the record, and the framework takes that
- * form over with the same template and data. Taking it over must not change the markup.
+ * form over with the same template and data. Taking it over must not change the form DOM.
  */
 async function serverRender(data) {
   const compiled = await generation.prepare(spec, { keyPrefix: 'form' });
@@ -161,9 +162,9 @@ async function serverRender(data) {
   if (driver) await driver.dispose();
   driver = undefined;
   view.innerHTML = rendered.html;
-  const serverMarkup = renderedFormMarkup();
+  const serverDom = renderedFormDom();
   await mount(rendered.data);
-  identical(renderedFormMarkup(), serverMarkup, 'framework takeover of the server-rendered form');
+  identical(renderedFormDom(), serverDom, 'framework takeover of the server-rendered form');
 }
 async function reset(fixture = 'populated') {
   const result = await request('reset', new URLSearchParams({ fixture }));
