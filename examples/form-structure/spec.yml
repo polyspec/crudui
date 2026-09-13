@@ -1,4 +1,12 @@
 type: group
+buttons:
+  - type: link
+    text: 취소
+    href: ./
+  - type: submit
+    name: __submitted__
+    value: save
+    text: 저장
 properties:
   companies:
     type: group

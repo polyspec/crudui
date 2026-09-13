@@ -25,6 +25,11 @@ pub struct FormTemplate {
     pub key_prefix: Option<String>,
     /// Top-level field definitions.
     pub fields: Vec<FieldTemplate>,
+    /// Form buttons in declaration order; one submit button when the spec declares none.
+    pub buttons: Vec<Map<String, Value>>,
+    /// Submission target declared by the spec, kept for the application.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action: Option<Map<String, Value>>,
 }
 
 /// Inputs used only during structure compilation.
@@ -64,6 +69,12 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
             "Invalid {key} at {path}: expected {expected}"
         )))
     };
+    // Buttons and the submission target belong to the form, not to a field.
+    for key in ["buttons", "action"] {
+        if spec.contains_key(key) {
+            return fail(key, "the form root");
+        }
+    }
     if let Some(multiple) = spec.get("multiple") {
         if !multiple.is_boolean() && !multiple.is_object() {
             return fail("multiple", "a boolean or an object");
@@ -158,6 +169,53 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
     Ok(())
 }
 
+/// Reject a wrong root `action` or `buttons` declaration.
+fn check_form_declarations(spec: &Map<String, Value>) -> FormResult<()> {
+    let fail = |key: &str, expected: &str| -> FormResult<()> {
+        Err(FormError::input(format!("Invalid {key} at form: expected {expected}")))
+    };
+    if let Some(action) = spec.get("action") {
+        let Some(action) = action.as_object() else {
+            return fail("action", "an object");
+        };
+        for key in ["method", "url", "enctype"] {
+            if action.get(key).is_some_and(|v| !v.is_string()) {
+                return fail(&format!("action.{key}"), "a string");
+            }
+        }
+    }
+    let Some(buttons) = spec.get("buttons") else {
+        return Ok(());
+    };
+    let Some(buttons) = buttons.as_array() else {
+        return fail("buttons", "a list of buttons");
+    };
+    for (index, button) in buttons.iter().enumerate() {
+        let key = format!("buttons.{index}");
+        let Some(button) = button.as_object() else {
+            return fail(&key, "an object");
+        };
+        let kind = button.get("type").and_then(Value::as_str).unwrap_or("");
+        if !crate::buttons::FORM_BUTTON_TYPES.contains(&kind) {
+            return fail(&format!("{key}.type"), "submit, reset, button or link");
+        }
+        for name in ["name", "value", "href"] {
+            if button.get(name).is_some_and(|v| !v.is_string()) {
+                return fail(&format!("{key}.{name}"), "a string");
+            }
+        }
+        // A button type without interface text needs declared text.
+        if crate::buttons::button_text(crate::messages::form_messages("ko")?, kind).is_empty() && !button.contains_key("text") {
+            return fail(&format!("{key}.text"), "content for this button type");
+        }
+        if kind == "link" && !button.contains_key("href") {
+            return fail(&format!("{key}.href"), "a link target");
+        }
+        check_declarations(button, &format!("form.{key}"))?;
+    }
+    Ok(())
+}
+
 fn fields(properties: &Map<String, Value>, parent: &str) -> FormResult<Vec<FieldTemplate>> {
     let mut out = Vec::new();
     for (name, value) in properties {
@@ -191,6 +249,7 @@ pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<Fo
             "A form spec must be a group with properties",
         ));
     }
+    check_form_declarations(spec.as_object().expect("checked group"))?;
     let memory = MemoryLoader::new(options.files.clone());
     let properties = compose_properties(
         spec["properties"]
@@ -204,6 +263,11 @@ pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<Fo
         kind: "crudui/form-template".into(),
         key_prefix: options.key_prefix.clone(),
         fields: fields(&properties, "")?,
+        buttons: match spec.get("buttons").and_then(Value::as_array) {
+            Some(declared) => declared.iter().filter_map(|b| b.as_object().cloned()).collect(),
+            None => vec![Map::from_iter([("type".to_string(), Value::from("submit"))])],
+        },
+        action: spec.get("action").and_then(Value::as_object).cloned(),
     })
 }
 

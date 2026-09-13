@@ -656,3 +656,68 @@ ps_result ps_bind_form(const ps_value *template, const ps_value *data,
     }
     return ps_ok(fields);
 }
+
+/* A behavior script: a string, or the script of a label and script action. */
+static const char *behavior_script(const ps_value *behavior, const char *action)
+{
+    const ps_value *entry = member(behavior, action);
+    const ps_value *script = entry && entry->kind == PS_OBJECT ? ps_get(entry, "script") : entry;
+    return script && script->kind == PS_STRING && script->data.string.length ? ps_string(script) : NULL;
+}
+
+/* Declared content, or the interface text of the button type when nothing translates. */
+static char *button_text(const ps_value *declared, const char *language, const char *fallback)
+{
+    if (declared && (declared->kind == PS_STRING || declared->kind == PS_OBJECT)) {
+        char *text = ps_translate(declared, language);
+        if (!text || *text || declared->kind == PS_STRING) return text;
+        free(text);
+    }
+    return ps_string_join(fallback, "", "");
+}
+
+ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, const char *language)
+{
+    static const char *const optional[] = {"name", "value", "href"};
+    const ps_form_messages *messages = ps_form_messages_for(language);
+    const ps_value *declared = member(template, "buttons");
+    ps_value *buttons = ps_array_value();
+    if (!messages || !buttons) { ps_value_free(buttons); return NULL; }
+    for (size_t i = 0; declared && declared->kind == PS_ARRAY && i < ps_size(declared); ++i) {
+        const ps_value *spec = ps_at(declared, i);
+        const ps_value *type_value = member(spec, "type");
+        const char *type = type_value && type_value->kind == PS_STRING ? ps_string(type_value) : "";
+        bool link = !strcmp(type, "link");
+        const char *fallback = !strcmp(type, "submit") ? messages->submit
+            : !strcmp(type, "reset") ? messages->reset : "";
+        ps_value *design = ps_design(member(spec, "design"), data, "");
+        const ps_value *main_node = member(design, "main");
+        const ps_value *design_class = member(main_node, "class");
+        const ps_value *design_style = member(main_node, "style");
+        const char *extra = design_class && design_class->kind == PS_STRING ? ps_string(design_class) : "";
+        char *style = ps_style_string(design_style && design_style->kind == PS_STRING ? ps_string(design_style) : "");
+        char *class_name = ps_string_join("crudui-action crudui-action--text", *extra ? " " : "", extra);
+        char *text = button_text(member(spec, "text"), language, fallback);
+        const char *script = behavior_script(member(spec, "behavior"), "onclick");
+        ps_value *attrs = ps_object_value();
+        ps_value *button = ps_object_value();
+        bool ok = design && main_node && style && class_name && text && attrs && button &&
+            (link || ps_set(attrs, "type", ps_string_value(type))) &&
+            ps_set(attrs, "class", ps_string_value(class_name)) &&
+            (!*style || ps_set(attrs, "style", ps_string_value(style)));
+        for (size_t j = 0; ok && j < 3; ++j) {
+            const ps_value *value = member(spec, optional[j]);
+            if (value && value->kind == PS_STRING) ok = ps_set(attrs, optional[j], ps_value_clone(value));
+        }
+        ok = ok && (!script || ps_set(attrs, "onclick", ps_string_value(script))) &&
+            ps_set(button, "type", ps_string_value(type)) &&
+            ps_set(button, "tag", ps_string_value(link ? "a" : "button")) &&
+            ps_set(button, "text", ps_string_value(text));
+        if (ok) { ok = ps_set(button, "attrs", attrs); attrs = NULL; }
+        if (ok) { ok = ps_append(buttons, button); button = NULL; }
+        ps_value_free(design); ps_value_free(attrs); ps_value_free(button);
+        free(style); free(class_name); free(text);
+        if (!ok) { ps_value_free(buttons); return NULL; }
+    }
+    return buttons;
+}

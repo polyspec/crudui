@@ -250,6 +250,15 @@ pub struct FieldSpec {
     /// Type-specific options defined and validated by the field type.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub options: Option<Polymorphic<OptionsSlot>>,
+
+    // ---- Form root declarations ----
+    /// Form buttons rendered in the form footer. Honored on the form root only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub buttons: Option<Vec<FormButton>>,
+
+    /// Submission target kept for the application. Honored on the form root only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action: Option<FormAction>,
 }
 
 // ============================================================================
@@ -334,6 +343,48 @@ pub struct BehaviorSlot {
     /// Additional behavior properties.
     #[serde(flatten)]
     pub extra: ExtraMap,
+}
+
+/// One form button. A button or link needs text; a link needs href.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FormButton {
+    /// Button type: submit, reset, button or link.
+    #[serde(rename = "type")]
+    pub button_type: String,
+    /// Button text, optionally represented as a language map.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<Content>,
+    /// Submitted name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// Submitted value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
+    /// Link target.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub href: Option<String>,
+    /// Button appearance.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub design: Option<Polymorphic<DesignSlot>>,
+    /// Opaque behavior scripts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub behavior: Option<Polymorphic<BehaviorSlot>>,
+}
+
+/// Submission target of the form, kept for the application.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FormAction {
+    /// HTTP method.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+    /// Submission URL.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    /// Submission encoding.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enctype: Option<String>,
 }
 
 /// Type-specific options. Field types define and validate their own option keys.

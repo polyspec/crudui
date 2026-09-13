@@ -5,9 +5,7 @@
   "description": "Validates form and list declarations, including field structure, validation, appearance, behavior and composition.",
   "$comment": "Form declarations use the root entry. List declarations use definitions/List. Resolve external references before runtime rendering.",
   "$ref": "#/definitions/Field",
-
   "definitions": {
-
     "ForbiddenKeyNames": {
       "$comment": "Restrictions on reserved declaration property names. Reused by field maps and settings objects.",
       "allOf": [
@@ -38,88 +36,127 @@
         }
       ]
     },
-
     "Expression": {
       "description": "Expression string supporting relative paths, comparisons, logic, membership and conditional values. Behavior scripts are separate.",
       "type": "string"
     },
-
     "ConditionMap": {
       "description": "Evaluates conditions in declaration order and selects the first matching value. The true key supplies the default.",
       "type": "object",
       "minProperties": 1,
-      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" }
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      }
     },
-
     "ConditionalValue": {
       "description": "Literal value, expression string or condition map. The consuming setting determines the evaluated value type.",
       "anyOf": [
-        { "$ref": "#/definitions/Expression" },
-        { "type": ["boolean", "number", "null"] },
-        { "type": "array" },
-        { "$ref": "#/definitions/ConditionMap" }
+        {
+          "$ref": "#/definitions/Expression"
+        },
+        {
+          "type": [
+            "boolean",
+            "number",
+            "null"
+          ]
+        },
+        {
+          "type": "array"
+        },
+        {
+          "$ref": "#/definitions/ConditionMap"
+        }
       ]
     },
-
     "LangMap": {
       "description": "Content translations indexed by language code. A null translation represents absent content.",
       "type": "object",
       "minProperties": 1,
-      "additionalProperties": { "type": ["string", "null"] }
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
     },
-
     "Content": {
       "description": "Content text or a language map. Null represents absent content.",
       "anyOf": [
-        { "type": "string" },
-        { "$ref": "#/definitions/LangMap" },
-        { "type": "null" }
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/LangMap"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
-
     "ItemLabel": {
       "description": "Choice display label, optionally translated. The choice value is separate from its label.",
       "anyOf": [
-        { "type": "string" },
-        { "$ref": "#/definitions/LangMap" },
-        { "type": "null" }
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/LangMap"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
-
     "Validate": {
       "description": "Validation settings. Rule values can use expressions or condition maps.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "type": "object",
-          "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
           "properties": {
             "required": {
               "description": "Requires a nonempty value when enabled.",
               "anyOf": [
-                { "type": "boolean" },
-                { "$ref": "#/definitions/Expression" }
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/Expression"
+                }
               ]
             },
             "email": {
               "description": "Requires a syntactically valid email address when enabled.",
               "anyOf": [
-                { "type": "boolean" },
-                { "$ref": "#/definitions/ConditionalValue" }
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/ConditionalValue"
+                }
               ]
             },
             "match": {
               "description": "Regular expression requirement, optionally selected by a condition map.",
               "anyOf": [
-                { "type": "string" },
-                { "$ref": "#/definitions/ConditionMap" }
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
               ]
             }
           }
         }
       ]
     },
-
     "DesignNode": {
       "description": "CSS classes and inline styles for a named DOM node.",
       "type": "object",
@@ -128,24 +165,33 @@
         "class": {
           "description": "CSS classes, optionally selected by an expression or condition map.",
           "anyOf": [
-            { "type": "string" },
-            { "$ref": "#/definitions/ConditionMap" }
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ConditionMap"
+            }
           ]
         },
         "style": {
           "description": "Inline styles, optionally selected by an expression or condition map.",
           "anyOf": [
-            { "type": "string" },
-            { "$ref": "#/definitions/ConditionMap" }
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ConditionMap"
+            }
           ]
         }
       }
     },
-
     "Design": {
       "description": "Visibility and appearance settings for the main node and named label, wrapper, group and prepend nodes.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "type": "object",
           "additionalProperties": false,
@@ -153,23 +199,37 @@
             "show": {
               "description": "Visibility expression or condition map.",
               "anyOf": [
-                { "$ref": "#/definitions/Expression" },
-                { "type": "boolean" },
-                { "$ref": "#/definitions/ConditionMap" }
+                {
+                  "$ref": "#/definitions/Expression"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
               ]
             },
             "class": {
               "description": "CSS classes, optionally selected by an expression or condition map.",
               "anyOf": [
-                { "type": "string" },
-                { "$ref": "#/definitions/ConditionMap" }
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
               ]
             },
             "style": {
               "description": "Inline styles, optionally selected by an expression or condition map.",
               "anyOf": [
-                { "type": "string" },
-                { "$ref": "#/definitions/ConditionMap" }
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
               ]
             },
             "label": {
@@ -192,209 +252,471 @@
         }
       ]
     },
-
     "BehaviorAction": {
       "description": "Opaque script string or an object containing a label and script. The expression engine does not execute scripts.",
       "anyOf": [
-        { "type": "string" },
+        {
+          "type": "string"
+        },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "label": { "$ref": "#/definitions/Content" },
-            "script": { "type": "string" }
+            "label": {
+              "$ref": "#/definitions/Content"
+            },
+            "script": {
+              "type": "string"
+            }
           }
         }
       ]
     },
-
     "Behavior": {
       "description": "Named client behavior scripts preserved independently of expression evaluation.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "onchange": { "$ref": "#/definitions/BehaviorAction" },
-            "onclick": { "$ref": "#/definitions/BehaviorAction" },
-            "onload": { "$ref": "#/definitions/BehaviorAction" }
+            "onchange": {
+              "$ref": "#/definitions/BehaviorAction"
+            },
+            "onclick": {
+              "$ref": "#/definitions/BehaviorAction"
+            },
+            "onload": {
+              "$ref": "#/definitions/BehaviorAction"
+            }
           }
         }
       ]
     },
-
+    "FormAction": {
+      "description": "Submission target of the form, kept for the application. Honored on the form root only.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "description": "HTTP method.",
+          "type": "string"
+        },
+        "url": {
+          "description": "Submission URL.",
+          "type": "string"
+        },
+        "enctype": {
+          "description": "Submission encoding.",
+          "type": "string"
+        }
+      }
+    },
+    "FormButton": {
+      "description": "One form button rendered in the form footer. A button or link needs text; a link needs href.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "description": "Button type. A link renders an anchor.",
+          "enum": [
+            "submit",
+            "reset",
+            "button",
+            "link"
+          ]
+        },
+        "text": {
+          "description": "Button text, optionally translated. Submit and reset default to interface text.",
+          "$ref": "#/definitions/Content"
+        },
+        "name": {
+          "description": "Submitted name.",
+          "type": "string"
+        },
+        "value": {
+          "description": "Submitted value.",
+          "type": "string"
+        },
+        "href": {
+          "description": "Link target.",
+          "type": "string"
+        },
+        "design": {
+          "description": "Button appearance.",
+          "$ref": "#/definitions/Design"
+        },
+        "behavior": {
+          "description": "Opaque behavior scripts.",
+          "$ref": "#/definitions/Behavior"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "button",
+                  "link"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "text"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "link"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "href"
+            ]
+          }
+        }
+      ]
+    },
     "Options": {
       "description": "Widget-specific settings preserved for the corresponding widget implementation.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "type": "object",
-          "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
           "properties": {
-            "keyword_min_length": { "description": "Minimum search keyword length." },
-            "marker_draggable": { "description": "Whether the map marker can be dragged." },
-            "zoom": { "description": "Map zoom setting." },
-            "geometry_type": { "description": "Geometry type setting." },
-            "max_tags": { "description": "Maximum tag count." },
-            "checkbox_label": { "description": "Checkbox label content." },
-            "on_label": { "description": "Enabled toggle label content." },
-            "collapse": { "description": "Container collapse setting." },
-            "expend": { "description": "Container expansion setting." },
-            "view_total": { "description": "Container total display setting." },
-            "stepper": { "description": "Container stepper setting." },
-            "blank_message": { "description": "Empty container message." },
-            "callback": { "description": "Opaque widget callback script." },
-            "event": { "description": "Opaque widget event setting." }
+            "keyword_min_length": {
+              "description": "Minimum search keyword length."
+            },
+            "marker_draggable": {
+              "description": "Whether the map marker can be dragged."
+            },
+            "zoom": {
+              "description": "Map zoom setting."
+            },
+            "geometry_type": {
+              "description": "Geometry type setting."
+            },
+            "max_tags": {
+              "description": "Maximum tag count."
+            },
+            "checkbox_label": {
+              "description": "Checkbox label content."
+            },
+            "on_label": {
+              "description": "Enabled toggle label content."
+            },
+            "collapse": {
+              "description": "Container collapse setting."
+            },
+            "expend": {
+              "description": "Container expansion setting."
+            },
+            "view_total": {
+              "description": "Container total display setting."
+            },
+            "stepper": {
+              "description": "Container stepper setting."
+            },
+            "blank_message": {
+              "description": "Empty container message."
+            },
+            "callback": {
+              "description": "Opaque widget callback script."
+            },
+            "event": {
+              "description": "Opaque widget event setting."
+            }
           }
         }
       ]
     },
-
     "ItemsModel": {
       "description": "Dynamic choice model descriptor with table, relations and display keys. The application executes data queries.",
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
       "properties": {
-        "table": { "description": "Source table descriptor.", "type": "string" },
-        "relations": { "description": "Source relation descriptors.", "type": "array" },
-        "keys": { "description": "Fields used to construct choice labels.", "type": "array" }
+        "table": {
+          "description": "Source table descriptor.",
+          "type": "string"
+        },
+        "relations": {
+          "description": "Source relation descriptors.",
+          "type": "array"
+        },
+        "keys": {
+          "description": "Fields used to construct choice labels.",
+          "type": "array"
+        }
       }
     },
-
     "ItemsSource": {
       "description": "Dynamic choice source descriptor. The application loads records and executes source callbacks.",
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
       "properties": {
         "model": {
           "description": "Source model name or a descriptor containing table, relations and keys.",
           "anyOf": [
-            { "type": "string" },
-            { "$ref": "#/definitions/ItemsModel" }
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ItemsModel"
+            }
           ]
         },
-        "method": { "description": "Source model method name.", "type": "string" },
-        "table": { "description": "Source table descriptor.", "type": "string" },
-        "relations": { "description": "Source relation descriptors." },
-        "api_server": { "description": "Opaque endpoint callback preserved for the application.", "type": "string" },
+        "method": {
+          "description": "Source model method name.",
+          "type": "string"
+        },
+        "table": {
+          "description": "Source table descriptor.",
+          "type": "string"
+        },
+        "relations": {
+          "description": "Source relation descriptors."
+        },
+        "api_server": {
+          "description": "Opaque endpoint callback preserved for the application.",
+          "type": "string"
+        },
         "items": {
           "description": "Static initial choices within a dynamic source.",
           "anyOf": [
-            { "type": "array" },
+            {
+              "type": "array"
+            },
             {
               "type": "object",
-              "additionalProperties": { "$ref": "#/definitions/ItemLabel" }
+              "additionalProperties": {
+                "$ref": "#/definitions/ItemLabel"
+              }
             }
           ]
         }
       }
     },
-
     "Items": {
       "description": "Static choice array, value-to-label map or dynamic source descriptor. Labels may contain translations.",
       "anyOf": [
-        { "type": "array" },
-        { "$ref": "#/definitions/ItemsSource" },
+        {
+          "type": "array"
+        },
+        {
+          "$ref": "#/definitions/ItemsSource"
+        },
         {
           "type": "object",
-          "additionalProperties": { "$ref": "#/definitions/ItemLabel" }
+          "additionalProperties": {
+            "$ref": "#/definitions/ItemLabel"
+          }
         }
       ]
     },
-
     "LangOverrideMap": {
       "description": "Language-code map containing per-language validation, appearance, behavior and widget-option overrides.",
       "type": "object",
       "minProperties": 1,
-      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+        "propertyNames": {
+          "$ref": "#/definitions/ForbiddenKeyNames"
+        },
         "properties": {
-          "validate": { "description": "Validation rules.", "$ref": "#/definitions/Validate" },
-          "design": { "description": "Visibility and node appearance settings.", "$ref": "#/definitions/Design" },
-          "behavior": { "description": "Opaque behavior scripts.", "$ref": "#/definitions/Behavior" },
-          "options": { "description": "Widget-specific settings.", "$ref": "#/definitions/Options" }
+          "validate": {
+            "description": "Validation rules.",
+            "$ref": "#/definitions/Validate"
+          },
+          "design": {
+            "description": "Visibility and node appearance settings.",
+            "$ref": "#/definitions/Design"
+          },
+          "behavior": {
+            "description": "Opaque behavior scripts.",
+            "$ref": "#/definitions/Behavior"
+          },
+          "options": {
+            "description": "Widget-specific settings.",
+            "$ref": "#/definitions/Options"
+          }
         }
       }
     },
-
     "Lang": {
       "description": "Language input settings, separate from content translations. Values are stored by language code.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "mode": { "description": "Language input mode.", "type": "string" },
+            "mode": {
+              "description": "Language input mode.",
+              "type": "string"
+            },
             "only": {
               "description": "Language-code list or per-language override map.",
               "anyOf": [
                 {
                   "type": "array",
-                  "items": { "type": "string" }
+                  "items": {
+                    "type": "string"
+                  }
                 },
-                { "$ref": "#/definitions/LangOverrideMap" }
+                {
+                  "$ref": "#/definitions/LangOverrideMap"
+                }
               ]
             },
-            "name": { "description": "Language group name.", "type": "string" },
-            "key": { "description": "Language group key.", "type": "string" },
-            "frame": { "description": "Language group frame setting.", "anyOf": [ { "type": "boolean" }, { "type": "string" } ] },
-            "title": { "description": "Language group title setting.", "anyOf": [ { "type": "boolean" }, { "$ref": "#/definitions/Content" } ] },
-            "group_class": { "description": "Language group CSS classes.", "type": "string" }
+            "name": {
+              "description": "Language group name.",
+              "type": "string"
+            },
+            "key": {
+              "description": "Language group key.",
+              "type": "string"
+            },
+            "frame": {
+              "description": "Language group frame setting.",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "title": {
+              "description": "Language group title setting.",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/Content"
+                }
+              ]
+            },
+            "group_class": {
+              "description": "Language group CSS classes.",
+              "type": "string"
+            }
           }
         }
       ]
     },
-
     "Multiple": {
       "description": "Repeated rows use keyed instance data. Repetition options belong under multiple; row identity is carried by collection keys, without hidden identity fields.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "min": { "description": "Minimum repeated row count.", "type": "number" },
-            "max": { "description": "Maximum repeated row count.", "type": "number" },
-            "copy": { "description": "Whether repeated rows provide a copy control.", "type": "boolean" },
-            "sortable": { "description": "Whether repeated rows can be reordered.", "type": "boolean" },
-            "title": { "description": "Direct child field of a repeated group whose value titles each row.", "type": "string" },
-            "controls": { "description": "Position of row controls.", "enum": ["header", "footer", "outline"] },
-            "header": { "description": "Whether row headers stay visible while scrolling.", "enum": ["static", "sticky"] },
-            "onclick": { "description": "Opaque repeated-row button action.", "$ref": "#/definitions/BehaviorAction" }
+            "min": {
+              "description": "Minimum repeated row count.",
+              "type": "number"
+            },
+            "max": {
+              "description": "Maximum repeated row count.",
+              "type": "number"
+            },
+            "copy": {
+              "description": "Whether repeated rows provide a copy control.",
+              "type": "boolean"
+            },
+            "sortable": {
+              "description": "Whether repeated rows can be reordered.",
+              "type": "boolean"
+            },
+            "title": {
+              "description": "Direct child field of a repeated group whose value titles each row.",
+              "type": "string"
+            },
+            "controls": {
+              "description": "Position of row controls.",
+              "enum": [
+                "header",
+                "footer",
+                "outline"
+              ]
+            },
+            "header": {
+              "description": "Whether row headers stay visible while scrolling.",
+              "enum": [
+                "static",
+                "sticky"
+              ]
+            },
+            "onclick": {
+              "description": "Opaque repeated-row button action.",
+              "$ref": "#/definitions/BehaviorAction"
+            }
           }
         }
       ]
     },
-
     "Patch": {
       "description": "Composition operations for adding, removing or replacing definition properties.",
       "type": "object"
     },
-
     "Properties": {
       "description": "Child field map supporting composition references and patches. Child names must satisfy the property-name rules.",
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
       "properties": {
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
           "type": "string"
         },
-        "$patch": { "$ref": "#/definitions/Patch" }
+        "$patch": {
+          "$ref": "#/definitions/Patch"
+        }
       },
-      "additionalProperties": { "$ref": "#/definitions/Field" }
+      "additionalProperties": {
+        "$ref": "#/definitions/Field"
+      }
     },
-
     "Field": {
       "description": "Field declaration with structure, content, validation, appearance, behavior, type options and composition. Unrecognized field properties are rejected.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "properties": {
         "type": {
           "description": "Field widget type.",
@@ -463,6 +785,17 @@
           "description": "Widget-specific settings.",
           "$ref": "#/definitions/Options"
         },
+        "buttons": {
+          "description": "Form buttons in the form footer; one submit button when absent. Honored on the form root only.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FormButton"
+          }
+        },
+        "action": {
+          "description": "Submission target of the form. Honored on the form root only.",
+          "$ref": "#/definitions/FormAction"
+        },
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
           "type": "string"
@@ -473,58 +806,103 @@
         }
       }
     },
-
     "CellFormat": {
       "description": "Cell display format as a type name or an object with format-specific settings.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "description": "Cell format type name without additional settings.",
           "type": "string"
         },
         {
           "type": "object",
-          "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
           "properties": {
             "type": {
               "description": "Cell format type.",
               "type": "string"
             },
-            "truncate": { "description": "Maximum displayed text length." },
-            "pattern": { "description": "Date and time display pattern.", "type": "string" },
-            "decimals": { "description": "Displayed decimal places." },
-            "thousands": { "description": "Thousands separator setting." },
-            "prefix": { "description": "Content before a number.", "$ref": "#/definitions/Content" },
-            "suffix": { "description": "Content after a number.", "$ref": "#/definitions/Content" },
+            "truncate": {
+              "description": "Maximum displayed text length."
+            },
+            "pattern": {
+              "description": "Date and time display pattern.",
+              "type": "string"
+            },
+            "decimals": {
+              "description": "Displayed decimal places."
+            },
+            "thousands": {
+              "description": "Thousands separator setting."
+            },
+            "prefix": {
+              "description": "Content before a number.",
+              "$ref": "#/definitions/Content"
+            },
+            "suffix": {
+              "description": "Content after a number.",
+              "$ref": "#/definitions/Content"
+            },
             "map": {
               "description": "Value-to-badge mapping with optional translated labels.",
               "type": "object",
-              "additionalProperties": { "$ref": "#/definitions/ItemLabel" }
+              "additionalProperties": {
+                "$ref": "#/definitions/ItemLabel"
+              }
             },
             "href": {
               "description": "Link destination supporting field interpolation.",
               "anyOf": [
-                { "type": "string" },
-                { "$ref": "#/definitions/ConditionMap" }
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
               ]
             },
-            "target": { "description": "Link target.", "type": "string" },
-            "text": { "description": "Link text, optionally translated. The value is used when text is absent.", "$ref": "#/definitions/Content" },
+            "target": {
+              "description": "Link target.",
+              "type": "string"
+            },
+            "text": {
+              "description": "Link text, optionally translated. The value is used when text is absent.",
+              "$ref": "#/definitions/Content"
+            },
             "items": {
               "description": "Static choices or a dynamic choice source descriptor.",
               "$ref": "#/definitions/Items"
             },
-            "as": { "description": "Boolean display mode: text, icon or check.", "type": "string" },
-            "true": { "description": "True-value label, optionally translated.", "$ref": "#/definitions/Content" },
-            "false": { "description": "False-value label, optionally translated.", "$ref": "#/definitions/Content" },
-            "width": { "description": "Image width." },
-            "height": { "description": "Image height." },
-            "alt": { "description": "Image alternative text supporting field interpolation.", "$ref": "#/definitions/Content" }
+            "as": {
+              "description": "Boolean display mode: text, icon or check.",
+              "type": "string"
+            },
+            "true": {
+              "description": "True-value label, optionally translated.",
+              "$ref": "#/definitions/Content"
+            },
+            "false": {
+              "description": "False-value label, optionally translated.",
+              "$ref": "#/definitions/Content"
+            },
+            "width": {
+              "description": "Image width."
+            },
+            "height": {
+              "description": "Image height."
+            },
+            "alt": {
+              "description": "Image alternative text supporting field interpolation.",
+              "$ref": "#/definitions/Content"
+            }
           }
         }
       ]
     },
-
     "Column": {
       "description": "List column declaration specifying the value path, label, display format, appearance and sorting availability.",
       "type": "object",
@@ -549,8 +927,12 @@
         "sortable": {
           "description": "Whether sorting by this column is available. The application applies sorting.",
           "anyOf": [
-            { "type": "boolean" },
-            { "$ref": "#/definitions/Expression" }
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/definitions/Expression"
+            }
           ]
         },
         "$ref": {
@@ -563,68 +945,109 @@
         }
       }
     },
-
     "Sort": {
       "description": "Sort declaration. The application applies the requested ordering to row data.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "field": { "description": "Row value path.", "$ref": "#/definitions/Expression" },
-        "dir": { "description": "Sort direction: asc or desc.", "type": "string", "enum": ["asc", "desc"] }
+        "field": {
+          "description": "Row value path.",
+          "$ref": "#/definitions/Expression"
+        },
+        "dir": {
+          "description": "Sort direction: asc or desc.",
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        }
       }
     },
-
     "Pagination": {
       "description": "Pagination declaration. The application selects the corresponding page of row data.",
       "anyOf": [
-        { "type": "boolean" },
+        {
+          "type": "boolean"
+        },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "per_page": { "description": "Requested rows per page.", "type": "number" },
-            "mode": { "description": "Pagination mode: pages, offset, cursor or none.", "type": "string", "enum": ["pages", "offset", "cursor", "none"] }
+            "per_page": {
+              "description": "Requested rows per page.",
+              "type": "number"
+            },
+            "mode": {
+              "description": "Pagination mode: pages, offset, cursor or none.",
+              "type": "string",
+              "enum": [
+                "pages",
+                "offset",
+                "cursor",
+                "none"
+              ]
+            }
           }
         }
       ]
     },
-
     "ListAction": {
       "description": "List action script or an object containing label, format, behavior and appearance settings.",
       "anyOf": [
-        { "$ref": "#/definitions/BehaviorAction" },
+        {
+          "$ref": "#/definitions/BehaviorAction"
+        },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "label": { "description": "Display label, optionally translated.", "$ref": "#/definitions/Content" },
-            "format": { "description": "Cell display format. The default is text.", "$ref": "#/definitions/CellFormat" },
-            "behavior": { "description": "Opaque behavior scripts.", "$ref": "#/definitions/Behavior" },
-            "design": { "description": "Visibility and node appearance settings.", "$ref": "#/definitions/Design" }
+            "label": {
+              "description": "Display label, optionally translated.",
+              "$ref": "#/definitions/Content"
+            },
+            "format": {
+              "description": "Cell display format. The default is text.",
+              "$ref": "#/definitions/CellFormat"
+            },
+            "behavior": {
+              "description": "Opaque behavior scripts.",
+              "$ref": "#/definitions/Behavior"
+            },
+            "design": {
+              "description": "Visibility and node appearance settings.",
+              "$ref": "#/definitions/Design"
+            }
           }
         }
       ]
     },
-
     "Columns": {
       "description": "Named list column map supporting composition references and patches.",
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
       "properties": {
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
           "type": "string"
         },
-        "$patch": { "$ref": "#/definitions/Patch" }
+        "$patch": {
+          "$ref": "#/definitions/Patch"
+        }
       },
-      "additionalProperties": { "$ref": "#/definitions/Column" }
+      "additionalProperties": {
+        "$ref": "#/definitions/Column"
+      }
     },
-
     "List": {
       "description": "List declaration with columns, search, sorting, pagination, actions and empty content. Row data is supplied separately. The server applies searching, sorting and pagination.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["columns"],
+      "required": [
+        "columns"
+      ],
       "properties": {
         "columns": {
           "description": "Named list column definitions.",
@@ -633,14 +1056,23 @@
         "search": {
           "description": "Search form declaration or reference.",
           "anyOf": [
-            { "type": "boolean" },
-            { "$ref": "#/definitions/Field" },
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/definitions/Field"
+            },
             {
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "$ref": { "description": "Composition reference resolved before evaluation.", "type": "string" },
-                "$patch": { "$ref": "#/definitions/Patch" }
+                "$ref": {
+                  "description": "Composition reference resolved before evaluation.",
+                  "type": "string"
+                },
+                "$patch": {
+                  "$ref": "#/definitions/Patch"
+                }
               }
             }
           ]
@@ -656,8 +1088,12 @@
         "actions": {
           "description": "Named list actions.",
           "type": "object",
-          "propertyNames": { "$ref": "#/definitions/ForbiddenKeyNames" },
-          "additionalProperties": { "$ref": "#/definitions/ListAction" }
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/ListAction"
+          }
         },
         "empty": {
           "description": "Empty-list content, optionally translated.",

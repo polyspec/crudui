@@ -2,6 +2,48 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Form buttons in a pinned footer, and the space after the form outside it
+
+Specs declare form buttons at the root (`buttons`, with a submission `action`), but
+the schema rejected them and compilation kept only `properties`, so declared save,
+cancel and back buttons disappeared. Buttons are now part of the form contract in
+all five implementations. `buttons` is a list of `{ type: submit | reset | button |
+link, text, name, value, href, design, behavior }`; a spec without `buttons` gets one
+submit button. Submit and reset default to interface text; a button or link needs
+`text` and a link needs `href`. `action` (`method`, `url`, `enctype`) is kept in the
+template for the application. Both are rejected below the form root. The template
+carries `buttons` and `action`, `bindButtons` evaluates them and the snapshot holds
+them, and every renderer puts them in `crudui-form__footer`, one controls group whose
+markup comes from `formButtonsHtml`. The footer pins to the bottom of the scroll
+container at `--crudui-form-footer-height`, as sticky row headers pin to the top. The
+JSON schema, the four validators, the CLI and the legacy translator accept the
+declarations.
+
+The row at the end of the form now reaches its line through space outside the form
+instead of a minimum height inside the last row, which left a blank inside nested
+cards. `connectRows` publishes two measured lengths on the connected element (the
+extent from that row's top to the end of the form content, and its aligned top), and
+the stylesheet gives `.crudui-form` a bottom margin of the viewport less those lengths
+and the footer. Publishing on the form element itself let a re-render drop the
+margin and pull the scroll back; the connected element is never replaced.
+
+The form comparison servers (PHP, PHP extension, Go, Rust) appended their own
+`_form_complete` submit button after the rendered form, which now rendered a second
+submit button in its footer. The comparison spec declares that button instead, the
+servers no longer append one, and the generation checks require exactly one submit
+button in the document.
+
+Validation passed: generator-core, HTML, React, Vue and Svelte passed 108, 116, 705,
+348 and 349 tests, the Svelte client 10, the normalizer 6 and the Chromium style
+checks 3. `make test-native` passed all 976 generator checks, with 361 PHP API checks
+per configuration and 103 validation cases. The JSON schema passed 70 checks, the
+TypeScript and PHP validators 1629 and 1461, the Rust validator 62, the Go validator
+and the CLI 37. The PHP extension engine passed 22 tests, the cross-check console 117,
+the form comparison source checks 140 and its Chromium checks 3, the Go and Rust
+comparison server tests passed, and `make docs-check` passed. In Chrome the end row
+stopped 0.2px from its line without a minimum height, and the space after the form was
+a 200px margin outside it.
+
 ## 2026-09-13 — Show only form rows in the structure map
 
 The structure map repeated every level twice: a collection line with its count

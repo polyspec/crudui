@@ -19,6 +19,8 @@ namespace CRUDUI {
         public function __construct(\stdClass $template, array|\stdClass $data = [], array $options = []) {}
         public function getTemplate(): \stdClass {}
         public function getFields(): array {}
+        public function getButtons(): array {}
+        public function getMessages(): array {}
         public function getRevision(): int {}
         public function getData(): \stdClass {}
         public function getValue(string $path): mixed {}

@@ -23,6 +23,7 @@
   --crudui-node-header-height: 2.75rem;
   --crudui-row-padding: 0.75rem;
   --crudui-row-border: 1px;
+  --crudui-form-footer-height: 3.5rem;
   color: var(--crudui-text);
 }
 
@@ -31,6 +32,12 @@
   display: grid;
   gap: 0.75rem;
   min-width: 0;
+}
+
+/* The space after the form, outside it: see sticky rule 3. */
+.crudui-form {
+  margin-bottom: max(0px, calc(100vh - var(--crudui-form-end-extent, 100vh)
+    - var(--crudui-form-end-top, 0px) - var(--crudui-form-footer-height)));
 }
 
 .crudui-node {
@@ -142,19 +149,14 @@
  * 2. The row aligns to the line: scroll-margin-top places the header, inside the
  *    row's top border, on the line, so bringing a row to the top is
  *    scrollIntoView({ block: 'start' }).
- * 3. The row at the end of the form can reach the line, and no further: when it and
- *    every enclosing element in the form body are last children, it is at least the
- *    viewport below its aligned top, less the bottom edges of its enclosing rows.
+ * 3. The row at the end of the form can reach the line, and no further. The space
+ *    after the form, outside it, is the viewport less the extent from that row's
+ *    top to the end of the form content, its aligned top and the footer. The
+ *    browser binding publishes the two measured lengths.
  */
 .crudui-node--sticky {
   --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
   scroll-margin-top: calc(var(--crudui-sticky-line) - var(--crudui-row-border));
-}
-
-.crudui-node--sticky:last-child:not(.crudui-form__body :not(:last-child) *) {
-  box-sizing: border-box;
-  min-height: calc(100vh - var(--crudui-sticky-line) + var(--crudui-row-border)
-    - var(--crudui-sticky-depth, 0) * (var(--crudui-row-padding) + var(--crudui-row-border)));
 }
 
 .crudui-node--sticky > .crudui-node__header {
@@ -176,6 +178,25 @@
 
 .crudui-node--sticky > .crudui-node__header > .crudui-controls {
   flex-wrap: nowrap;
+}
+
+/*
+ * Every form ends with its footer, which holds the form buttons (a submit button
+ * when the spec declares none). The footer pins to the bottom of the scroll
+ * container at exactly the footer height, as sticky row headers pin to the top.
+ */
+.crudui-form__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  box-sizing: border-box;
+  height: var(--crudui-form-footer-height);
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 var(--crudui-row-padding);
+  border-top: var(--crudui-row-border) solid var(--crudui-border);
+  background: var(--crudui-surface);
 }
 
 /* The level label shows only while the header is stuck, where it names the pinned level. */

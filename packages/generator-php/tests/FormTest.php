@@ -100,7 +100,7 @@ final class FormTest extends TestCase
     {
         $spec = self::object('{"type":"group","properties":{"value":{"type":"text","$patch":{"default.x":1,"remove":["default.x"]}}}}');
         $template = Generator::compileForm($spec);
-        self::assertSame('{"kind":"crudui/form-template","fields":[{"name":"value","spec":{"type":"text","default":{}},"children":[]}]}', json_encode($template, JSON_UNESCAPED_SLASHES));
+        self::assertSame('{"kind":"crudui/form-template","fields":[{"name":"value","spec":{"type":"text","default":{}},"children":[]}],"buttons":[{"type":"submit"}]}', json_encode($template, JSON_UNESCAPED_SLASHES));
         self::assertSame('{"value":{}}', json_encode((new Form($template))->getData()));
     }
 
@@ -270,6 +270,48 @@ final class FormTest extends TestCase
             }
         }
         self::assertSame('0개', Generator::bindForm(self::template(), ['companies' => new stdClass()], ['language' => null])[3]->header->count);
+    }
+
+    public function testFormButtonsAreDeclaredAtTheRootAndRenderedInTheFooter(): void
+    {
+        $spec = self::object('{"type":"group","action":{"method":"post","url":"/save"},"buttons":[{"type":"submit","name":"__submitted__","value":"go","text":{"ko":"저장하기","en":"Save now"},"design":{"class":{".name":"filled"}}},{"type":"reset"},{"type":"button","text":"Cancel <&>","behavior":{"onclick":{"label":"Go","script":"go(\\"x\\")"}}},{"type":"link","text":"List","href":"../?a=1&b=\\"2\\""}],"properties":{"name":{"type":"text"}}}');
+        $template = Generator::compileForm($spec);
+        self::assertSame('{"method":"post","url":"/save"}', json_encode($template->action, JSON_UNESCAPED_SLASHES));
+        $form = new Form($template, ['name' => 'Ada'], ['language' => 'en']);
+        self::assertSame(['submit', 'reset', 'button', 'link'], array_map(static fn ($button) => $button->type, $form->getButtons()));
+        self::assertSame('Save now', $form->getButtons()[0]->text);
+        self::assertSame('Reset', $form->getButtons()[1]->text);
+        self::assertStringEndsWith('<div class="crudui-form__footer"><div class="crudui-controls" role="group" aria-label="Form actions"><button type="submit" class="crudui-action crudui-action--text filled" name="__submitted__" value="go">Save now</button><button type="reset" class="crudui-action crudui-action--text">Reset</button><button type="button" class="crudui-action crudui-action--text" onclick="go(&quot;x&quot;)">Cancel &lt;&amp;&gt;</button><a class="crudui-action crudui-action--text" href="../?a=1&amp;b=&quot;2&quot;">List</a></div></div></div>', Generator::renderForm($form));
+        $form->setValue('name', '');
+        self::assertSame('crudui-action crudui-action--text', $form->getButtons()[0]->attrs->class);
+        self::assertSame('{"kind":"crudui/form-template","fields":[{"name":"name","spec":{"type":"text"},"children":[]}],"buttons":[{"type":"submit"}]}', json_encode(Generator::compileForm(self::object('{"type":"group","properties":{"name":{"type":"text"}}}')), JSON_UNESCAPED_SLASHES));
+        foreach ([
+            ['{"buttons":{}}', 'Invalid buttons at form: expected a list of buttons'],
+            ['{"buttons":[{"type":"image"}]}', 'Invalid buttons.0.type at form: expected submit, reset, button or link'],
+            ['{"buttons":[{"type":"button"}]}', 'Invalid buttons.0.text at form: expected content for this button type'],
+            ['{"buttons":[{"type":"link","text":"List"}]}', 'Invalid buttons.0.href at form: expected a link target'],
+            ['{"buttons":[{"type":"submit","value":1}]}', 'Invalid buttons.0.value at form: expected a string'],
+            ['{"buttons":[{"type":"submit","design":[]}]}', 'Invalid design at form.buttons.0: expected a boolean or an object'],
+            ['{"action":"post"}', 'Invalid action at form: expected an object'],
+            ['{"action":{"url":false}}', 'Invalid action.url at form: expected a string'],
+        ] as [$extra, $message]) {
+            $invalid = self::object('{"type":"group","properties":{"name":{"type":"text"}}}');
+            foreach ((array) self::object($extra) as $key => $value) {
+                $invalid->{$key} = $value;
+            }
+            try {
+                Generator::compileForm($invalid);
+                self::fail('Expected rejection: ' . $extra);
+            } catch (FormError $error) {
+                self::assertSame([$error->getErrorCode(), $error->getMessage(), $error->getPath()], ['INVALID_FORM_INPUT', $message, '']);
+            }
+        }
+        try {
+            Generator::compileForm(self::object('{"type":"group","properties":{"rows":{"type":"group","buttons":[],"properties":{}}}}'));
+            self::fail('Expected rejection below the root');
+        } catch (FormError $error) {
+            self::assertSame('Invalid buttons at rows: expected the form root', $error->getMessage());
+        }
     }
 
     public function testUnsupportedTypeHasStableCodeAndPath(): void

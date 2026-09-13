@@ -6,7 +6,10 @@ namespace CRUDUI\Generator\Tests;
 
 use PHPUnit\Framework\TestCase;
 use CRUDUI\Generator;
+use CRUDUI\Generator\Buttons;
+use CRUDUI\Generator\Messages;
 use CRUDUI\Generator\Rendering;
+use CRUDUI\Generator\Value;
 use stdClass;
 
 final class RenderingConformanceTest extends TestCase
@@ -33,7 +36,10 @@ final class RenderingConformanceTest extends TestCase
             $options = (array) ($case->options ?? new stdClass());
             $template = Generator::compileForm($case->spec, $options);
             $fields = Generator::bindForm($template, $case->data ?? [], $options);
-            $actual = Rendering::form($fields);
+            $language = $options['language'] ?? 'ko';
+            $buttons = Buttons::bind($template, Value::object($case->data ?? []), $language);
+            $messages = Messages::forLanguage($language);
+            $actual = Rendering::form($fields, $buttons, $messages);
         } catch (\Throwable $error) {
             if (!isset($case->expectError)) {
                 throw $error;
@@ -44,7 +50,7 @@ final class RenderingConformanceTest extends TestCase
         }
         self::assertFalse(isset($case->expectError), 'Expected generation error');
         self::assertSame(self::html($case->expected_html), self::html($actual));
-        self::assertSame($actual, Rendering::form(Generator::bindForm($template, $case->data ?? [], $options)));
+        self::assertSame($actual, Rendering::form(Generator::bindForm($template, $case->data ?? [], $options), $buttons, $messages));
     }
 
     /** Parse layout structure while retaining all field identifiers, values and script text. */

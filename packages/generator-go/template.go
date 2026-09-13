@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"strconv"
 )
 
 // FieldTemplate stores one resolved field specification and its ordered children.
@@ -16,9 +17,13 @@ type FieldTemplate struct {
 
 // FormTemplate stores reusable structure without record data.
 type FormTemplate struct {
-	Kind              string          `json:"kind"`
-	KeyPrefix         string          `json:"keyPrefix,omitempty"`
-	Fields            []FieldTemplate `json:"fields"`
+	Kind      string          `json:"kind"`
+	KeyPrefix string          `json:"keyPrefix,omitempty"`
+	Fields    []FieldTemplate `json:"fields"`
+	// Buttons lists the form buttons in declaration order; one submit button when the spec declares none.
+	Buttons []*Object `json:"buttons"`
+	// Action is the submission target declared by the spec, kept for the application.
+	Action            *Object `json:"action,omitempty"`
 	keyPrefixProvided bool
 }
 
@@ -52,6 +57,9 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if spec == nil || stringAt(spec, "type") != "group" || object(read(spec, "properties")) == nil {
 		return nil, fmt.Errorf("A form spec must be a group with properties")
 	}
+	if e := checkFormDeclarations(spec); e != nil {
+		return nil, e
+	}
 	loader := options.Loader
 	if loader == nil {
 		loader = compose.NewMemoryLoader(options.Files)
@@ -64,7 +72,70 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &FormTemplate{Kind: "crudui/form-template", KeyPrefix: options.KeyPrefix, keyPrefixProvided: options.KeyPrefixProvided || options.KeyPrefix != "", Fields: fields}, nil
+	buttons := []*Object{NewObject("type", "submit")}
+	if declared, ok := read(spec, "buttons").([]any); ok {
+		buttons = []*Object{}
+		for _, button := range declared {
+			buttons = append(buttons, copyValue(button).(*Object))
+		}
+	}
+	var action *Object
+	if declared := object(read(spec, "action")); declared != nil {
+		action = copyValue(declared).(*Object)
+	}
+	return &FormTemplate{Kind: "crudui/form-template", KeyPrefix: options.KeyPrefix, keyPrefixProvided: options.KeyPrefixProvided || options.KeyPrefix != "", Fields: fields, Buttons: buttons, Action: action}, nil
+}
+
+// checkFormDeclarations rejects a wrong root action or buttons declaration.
+func checkFormDeclarations(spec *Object) error {
+	fail := func(key, expected string) error {
+		return fmt.Errorf("Invalid %s at form: expected %s", key, expected)
+	}
+	if spec.Has("action") {
+		action := object(read(spec, "action"))
+		if action == nil {
+			return fail("action", "an object")
+		}
+		for _, key := range []string{"method", "url", "enctype"} {
+			if _, ok := read(action, key).(string); action.Has(key) && !ok {
+				return fail("action."+key, "a string")
+			}
+		}
+	}
+	if !spec.Has("buttons") {
+		return nil
+	}
+	declared, ok := read(spec, "buttons").([]any)
+	if !ok {
+		return fail("buttons", "a list of buttons")
+	}
+	for index, value := range declared {
+		key := "buttons." + strconv.Itoa(index)
+		button := object(value)
+		if button == nil {
+			return fail(key, "an object")
+		}
+		kind, _ := read(button, "type").(string)
+		if !formButtonTypes[kind] {
+			return fail(key+".type", "submit, reset, button or link")
+		}
+		for _, name := range []string{"name", "value", "href"} {
+			if _, ok := read(button, name).(string); button.Has(name) && !ok {
+				return fail(key+"."+name, "a string")
+			}
+		}
+		// A button type without interface text needs declared text.
+		if buttonText(messageTables["ko"], kind) == "" && !button.Has("text") {
+			return fail(key+".text", "content for this button type")
+		}
+		if kind == "link" && !button.Has("href") {
+			return fail(key+".href", "a link target")
+		}
+		if e := checkDeclarations(button, "form."+key); e != nil {
+			return e
+		}
+	}
+	return nil
 }
 func compileFields(p *Object, parent string) ([]FieldTemplate, error) {
 	out := []FieldTemplate{}
@@ -119,6 +190,12 @@ func scalarChild(v any) bool {
 func checkDeclarations(spec *Object, path string) error {
 	fail := func(key, expected string) error {
 		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+	}
+	// Buttons and the submission target belong to the form, not to a field.
+	for _, key := range []string{"buttons", "action"} {
+		if spec.Has(key) {
+			return fail(key, "the form root")
+		}
 	}
 	if spec.Has("multiple") {
 		multiple := read(spec, "multiple")
@@ -229,7 +306,19 @@ func (t *FormTemplate) UnmarshalJSON(data []byte) error {
 	if e != nil {
 		return e
 	}
-	*t = FormTemplate{Kind: "crudui/form-template", KeyPrefix: stringAt(o, "keyPrefix"), keyPrefixProvided: o.Has("keyPrefix"), Fields: fields}
+	declared, ok := read(o, "buttons").([]any)
+	if !ok {
+		return fmt.Errorf("Form template buttons must be an array")
+	}
+	buttons := []*Object{}
+	for _, value := range declared {
+		button := object(value)
+		if button == nil {
+			return fmt.Errorf("Malformed form button template")
+		}
+		buttons = append(buttons, button)
+	}
+	*t = FormTemplate{Kind: "crudui/form-template", KeyPrefix: stringAt(o, "keyPrefix"), keyPrefixProvided: o.Has("keyPrefix"), Fields: fields, Buttons: buttons, Action: object(read(o, "action"))}
 	return nil
 }
 func decodeFields(a []any) ([]FieldTemplate, error) {
@@ -284,5 +373,9 @@ func (t FormTemplate) MarshalJSON() ([]byte, error) {
 		o.Set("keyPrefix", t.KeyPrefix)
 	}
 	o.Set("fields", t.Fields)
+	o.Set("buttons", t.Buttons)
+	if t.Action != nil {
+		o.Set("action", t.Action)
+	}
 	return json.Marshal(o)
 }

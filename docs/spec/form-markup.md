@@ -25,7 +25,7 @@ Widget internals such as `input-group` and `form-control` are a separate contrac
 
 | Block | Structure |
 | --- | --- |
-| `crudui-form` | Form root with `crudui-form__body`. |
+| `crudui-form` | Form root with `crudui-form__body` and `crudui-form__footer` holding the form buttons. |
 | `crudui-node` | One data node; see the kinds below. |
 | `crudui-controls` | A button group with `role="group"` and an accessible name. |
 | `crudui-action` | A button with `data-crudui-action`; `crudui-action--text` shows its label as text. |
@@ -110,15 +110,34 @@ input's own label inside the body, and its header holds only a description. A
   follow from it: the header pins on the line and has exactly the header height,
   border included, without wrapping (a long title is truncated), so pinned levels
   meet without overlap; the row's `scroll-margin-top` places its header on the line,
-  so `alignRow(row)` is `scrollIntoView({ block: 'start' })`; and the last row is at
-  least the viewport below its aligned top less the bottom edges of its enclosing
-  rows, so scrolling ends exactly when its header reaches its line. The limit is exact
-  when nothing follows the form in its scroll container; content after the form,
-  such as page padding, adds its own height.
+  so `alignRow(row)` is `scrollIntoView({ block: 'start' })`; and the form's bottom
+  margin, outside the form, is the viewport less the extent from the top of the row
+  at the end of the form to the end of the form content, that row's aligned top and
+  the footer height, so scrolling ends exactly when its header reaches its line.
+  `connectRows` publishes those two lengths on the connected element, which
+  rendering never replaces. The limit is exact when nothing follows the form in its
+  scroll container; content after the form, such as page padding, adds its own height.
 - `connectRows(element, onCurrent)` marks a row whose top reached its line: a sticky
   row gets `data-crudui-stuck`, and the last such row in document order (the first
   row before any) gets `data-crudui-current` and is passed to `onCurrent`. The level
   label shows only on a stuck header, and the current row has a highlighted border.
+
+## Form buttons
+
+A spec declares form buttons at its root with `buttons`, a list of `{ type, text,
+name, value, href, design, behavior }` where `type` is `submit`, `reset`, `button` or
+`link`. A spec without `buttons` has one submit button. Submit and reset buttons
+without `text` show the interface text for their type; a button or link needs `text`,
+and a link needs `href`. `action` (`method`, `url`, `enctype`) is the submission
+target, kept in the template for the application. Both belong to the form root.
+
+Every form ends with `crudui-form__footer`, one `crudui-controls` group whose
+accessible name is the form actions text. `bindButtons(template, data, options)`
+evaluates the buttons (design classes and styles follow the field design rules), and
+`formButtonsHtml(buttons)` is the only markup builder: a link is an `a`, the other
+types are `button` elements, with attributes in the order `type`, `class`, `style`,
+`name`, `value`, `href`, `onclick`. The footer pins to the bottom of its scroll
+container at `--crudui-form-footer-height`, as sticky row headers pin to the top.
 
 ## Structure map and data view
 
