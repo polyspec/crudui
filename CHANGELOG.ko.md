@@ -2,6 +2,18 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 폼 검사의 Chromium 검사를 CI 샌드박스 Chrome으로 실행
+
+같은 `main` CI 실행에서 "Form instances and data injection" 작업도 실패했습니다. 이 브랜치가
+`npm run test:forms`에 추가한 Chromium 스타일 검사 6개가 브라우저를 실행하지 못했습니다("No usable
+sandbox!"). 그 작업은 전에는 브라우저 작업이 아니어서 Ubuntu 러너에서 쓸 수 있는 샌드박스가 없는
+Puppeteer 다운로드 Chrome을 사용했고, 다른 브라우저 작업은 `/opt/google/chrome/chrome`의 일반 Chrome을
+선택하고 Puppeteer 다운로드를 건너뛰며 `scripts/check-ci-browser.mjs`로 샌드박스를 확인합니다. 이제 그
+작업도 같게 하며, 브라우저 작업을 나열하는 CI 정책 테스트는 이 작업을 포함하고
+`tests/form-styles.test.mjs`가 샌드박스를 끄지 않는지도 확인합니다. 이전 워크플로에서 정책 테스트는
+`form-runtime`의 빠진 설정 세 가지로 실패했고, 변경 후 `npm run test:runtimes`가 테스트 20개를
+통과했습니다.
+
 ## 2026-09-14 — 폼 비교 소스 검사 전에 generator-core 빌드
 
 `main`에 머지한 뒤 CI 작업 "Form comparison runner regressions"가 실패했습니다.
