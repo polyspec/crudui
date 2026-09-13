@@ -99,6 +99,25 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   }
   expect(control(inputName(storeKey)).value).toBe('서울 수정');
 
+  // Collapsing and expanding every row: each toggle names its body with aria-controls.
+  const toggles = () => Array.from(element.querySelectorAll('[data-crudui-action="toggle-row"]'));
+  const bodyOf = toggle => element.ownerDocument.getElementById(toggle.getAttribute('aria-controls'));
+  session.setAllExpanded(false);
+  await flush();
+  expect(toggles().length).toBeGreaterThan(0);
+  expect(toggles().every(toggle => toggle.getAttribute('aria-expanded') === 'false' && bodyOf(toggle).hidden)).toBe(true);
+  session.setAllExpanded(true);
+  await flush();
+  expect(toggles().every(toggle => toggle.getAttribute('aria-expanded') === 'true' && !bodyOf(toggle).hidden)).toBe(true);
+
+  // Undo restores the control value of the last edit.
+  await edit(control(inputName(copied)), '되돌릴 값');
+  expect(session.getValue(`${storesPath}.${copied}.name`)).toBe('되돌릴 값');
+  session.undo();
+  await flush();
+  expect(control(inputName(copied)).value).toBe('서울 수정');
+  expect(session.getValue(`${storesPath}.${copied}.name`)).toBe('서울 수정');
+
   const savedKey = '__0000000000042__';
   session.rekeyRow(storesPath, copied, savedKey);
   await flush();

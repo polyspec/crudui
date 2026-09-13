@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Check the markup naming rules and the collapse and undo DOM paths
+
+The class naming rules of the form markup (N1–N3: `crudui-{block}`,
+`__{element}`, `--{modifier}` with its block, parts inside a node header, nodes
+inside a body) were documented but not checked. `tests/form-markup/naming.test.mjs`
+now checks every `crudui-` class in the form render and structure map fixtures
+against the allowed blocks, elements and modifiers, and rejects five broken samples;
+`npm run test:forms` runs it. The shared DOM scenario also collapses and expands
+every row, checking each toggle's `aria-expanded` and the `hidden` body it names
+with `aria-controls`, and undoes an edit, checking the control and instance values.
+
+The naming check passed 2 tests, and React, Vue and Svelte ran the extended scenario
+in their 705, 348 and 349 passing tests.
+
 ## 2026-09-13 — Form buttons in a pinned footer, and the space after the form outside it
 
 Specs declare form buttons at the root (`buttons`, with a submission `action`), but
