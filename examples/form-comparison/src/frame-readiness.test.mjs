@@ -14,7 +14,7 @@ function fixture() {
     addEventListener: (name, listener) => emitter.on(name, listener),
     removeEventListener: (name, listener) => emitter.off(name, listener),
   };
-  const frames = ['data', 'inject'].map(initialization => ({
+  const frames = ['ssr', 'csr'].map(initialization => ({
     initialization,
     contentWindow: {},
     title: '',
@@ -42,20 +42,20 @@ test('subscribes before navigation and resolves exact frame readiness events', a
   const loading = loadComparisonFrames({
     host: value.host,
     frames: value.frames,
-    initializations: ['data', 'inject'], path: 'createForm',
+    initializations: ['ssr', 'csr'], path: 'createForm',
     framework: 'react', server: 'php', language: 'ko',
     title: initialization => initialization,
     onReady: initialization => ready.push(initialization),
   });
   assert.deepEqual(value.frames.map(frame => frame.src), [
-    '/frames/createForm-react/?lang=ko&server=php&initialization=data',
-    '/frames/createForm-react/?lang=ko&server=php&initialization=inject',
+    '/frames/createForm-react/?lang=ko&server=php&initialization=ssr',
+    '/frames/createForm-react/?lang=ko&server=php&initialization=csr',
   ]);
   value.ready(value.frames[1]);
-  assert.deepEqual(ready, ['inject']);
+  assert.deepEqual(ready, ['csr']);
   value.ready(value.frames[0]);
   await loading;
-  assert.deepEqual(ready, ['inject', 'data']);
+  assert.deepEqual(ready, ['csr', 'ssr']);
 });
 
 test('rejects a readiness event with a different declared frame', async () => {
@@ -63,12 +63,12 @@ test('rejects a readiness event with a different declared frame', async () => {
   const loading = loadComparisonFrames({
     host: value.host,
     frames: value.frames,
-    initializations: ['data', 'inject'], path: 'createForm',
+    initializations: ['ssr', 'csr'], path: 'createForm',
     framework: 'react', server: 'php', language: 'en',
     title: initialization => initialization,
     onReady: () => {},
   });
-  value.ready(value.frames[0], { initialization: 'inject' });
+  value.ready(value.frames[0], { initialization: 'csr' });
   await assert.rejects(loading, /Frame readiness differs/);
 });
 

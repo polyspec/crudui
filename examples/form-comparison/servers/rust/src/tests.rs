@@ -291,7 +291,7 @@ async fn server_html_uses_framework_storage_and_native_submission() {
     assert!(html.contains(&format!("data-generator-commit=\"{COMMIT}\"")));
     assert!(html.contains("action=\"/api/rust/save/createForm/react\""));
     assert!(
-        html.contains("/frames/createForm-react/?server=rust&amp;lang=en&amp;initialization=data")
+        html.contains("/frames/createForm-react/?server=rust&amp;lang=en&amp;initialization=ssr")
     );
     assert_eq!(html.matches("type=\"submit\"").count(), 1);
     assert!(html.contains(

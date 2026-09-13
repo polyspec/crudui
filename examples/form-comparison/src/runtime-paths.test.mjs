@@ -20,7 +20,7 @@ test('defines the complete current browser matrix', () => {
   assert.deepEqual(reportCombinations().at(-1), {
     path: 'createForm', framework: 'svelte', transport: 'json',
   });
-  assert.deepEqual(formInitializations, ['data', 'inject']);
+  assert.deepEqual(formInitializations, ['ssr', 'csr']);
   assert.deepEqual(initializationCombinations().length, 6);
   assert.equal(initializationStages.length, 18);
   assert.equal(initializationComparisons.length * initializationCategories.length, 192);
