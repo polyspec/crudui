@@ -138,8 +138,9 @@ The left frame (`initialization=data`) requests the saved record and creates the
 form with it. The right frame (`initialization=inject`) mounts the form without
 data before it requests the saved record, then injects the record into the
 existing form. A frame URL without one of these values fails. SSR documents link
-to the `data` path. Frames load `@crudui/generator-core/styles.css` before the
-page stylesheet, so computed CSS is compared with the grammar styles. Each frame
+to the `data` path. Frames and SSR documents load `@crudui/generator-core/crudui.css`
+before the page stylesheet, so computed CSS is compared with the grammar styles; the
+page stylesheet does not style anything inside `#view`. Each frame
 renders the form, the structure map and the data view inside the compared element.
 
 The `bindForm` controller supports the same actions as a `createForm` instance:

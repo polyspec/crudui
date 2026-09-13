@@ -8,22 +8,38 @@ import { parseFragment } from 'parse5';
 
 const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const fixtures = [
-  ...read('../fixtures/form-render/cases.json').filter(item => item.expected_html).map(item => [`form-render/${item.name}`, item.expected_html]),
+  ...read('../fixtures/form-render/cases.json').filter(item => item.expected_html).map(item => [`form-render/${item.name}`, item.expected_html, item.spec]),
   ...read('../fixtures/form-outline/cases.json').flatMap(item => [
-    [`form-outline/${item.name}/outline`, item.expected_outline_html],
-    [`form-outline/${item.name}/data`, item.expected_data_html],
+    [`form-outline/${item.name}/outline`, item.expected_outline_html, item.spec],
+    [`form-outline/${item.name}/data`, item.expected_data_html, item.spec],
   ]),
 ];
 
+/** Class tokens a spec declares: every class-shaped word of its string values, including quoted words in expressions. */
+function declaredTokens(spec) {
+  const tokens = new Set();
+  const visit = value => {
+    if (typeof value === 'string') for (const token of value.split(/[^A-Za-z0-9_-]+/)) tokens.add(token);
+    else if (value && typeof value === 'object') Object.values(value).forEach(visit);
+  };
+  visit(spec);
+  return tokens;
+}
+
 // N1/N4: blocks, their elements and their modifiers.
 const blocks = {
-  node: { elements: ['header', 'body', 'footer', 'label', 'description', 'number', 'title', 'summary', 'count'], modifiers: ['field', 'group', 'collection', 'row', 'lang', 'lang-item', 'sticky'] },
+  node: { elements: ['header', 'body', 'footer', 'label', 'description', 'number', 'title', 'summary', 'count'], modifiers: ['field', 'group', 'collection', 'row', 'lang', 'lang-item', 'sticky', 'framed'] },
   form: { elements: ['body', 'footer'], modifiers: [] },
   controls: { elements: [], modifiers: [] },
   action: { elements: [], modifiers: ['text'] },
   outline: { elements: ['header', 'body'], modifiers: [] },
   data: { elements: ['header', 'body'], modifiers: [] },
+  widget: { elements: ['affix', 'button'], modifiers: ['search', 'unsupported'] },
+  input: { elements: [], modifiers: ['select', 'file'] },
+  choices: { elements: ['input', 'label'], modifiers: ['multiple'] },
 };
+// Classes a renderer writes besides the crudui grammar: validation and editor hooks.
+const hooks = new Set(['valid-target', 'valid-target-async', 'tinymcearea', 'summernote', 'contentjs', 'tuiarea']);
 const name = '[a-z]+(?:-[a-z]+)*';
 const shape = new RegExp(`^crudui-(${name})(?:__(${name})|--(${name}))?$`);
 const parts = new Set(['label', 'description', 'number', 'title', 'summary', 'count']);
@@ -31,7 +47,11 @@ const parts = new Set(['label', 'description', 'number', 'title', 'summary', 'co
 const classesOf = node => (node.attrs?.find(attr => attr.name === 'class')?.value ?? '').split(/\s+/).filter(Boolean);
 const has = (node, token) => node !== undefined && classesOf(node).includes(token);
 
-function check(label, node, parent, slot) {
+function check(label, node, parent, slot, declared = new Set()) {
+  // Any other class is a validation or editor hook, or a class the spec declares (no CSS framework vocabulary).
+  for (const token of classesOf(node).filter(token => !token.startsWith('crudui-'))) {
+    assert.ok(hooks.has(token) || declared.has(token), `${label}: ${token} is neither a crudui class, a hook nor declared by the spec`);
+  }
   const classes = classesOf(node).filter(token => token.startsWith('crudui-'));
   for (const token of classes) {
     const match = shape.exec(token);
@@ -53,7 +73,7 @@ function check(label, node, parent, slot) {
       `${label}: crudui-node outside a body (parent ${classesOf(parent).join(' ') || parent.nodeName})`);
   }
   const enclosing = classes.find(token => /^crudui-node__(header|body|footer)$/.test(token)) ?? slot;
-  for (const child of node.childNodes ?? []) check(label, child, node.attrs ? node : parent, enclosing);
+  for (const child of node.childNodes ?? []) check(label, child, node.attrs ? node : parent, enclosing, declared);
 }
 
 test('the naming check rejects markup that breaks a rule', () => {
@@ -63,6 +83,7 @@ test('the naming check rejects markup that breaks a rule', () => {
     ['<div class="crudui-node"><div class="crudui-node__side"></div></div>', /unknown element crudui-node__side/],
     ['<div class="crudui-node"><div class="crudui-node__header"><div class="crudui-node crudui-node--field"></div></div></div>', /crudui-node outside a body/],
     ['<div class="crudui-node__header__label"></div>', /is not crudui-\{block\}/],
+    ['<div class="crudui-widget"><input class="valid-target form-control"></div>', /form-control is neither a crudui class/],
   ]) {
     assert.throws(() => { for (const root of parseFragment(broken).childNodes) check('broken', root, undefined); }, message);
   }
@@ -70,7 +91,8 @@ test('the naming check rejects markup that breaks a rule', () => {
 
 test('every crudui class in the rendered fixtures follows the naming rules', () => {
   assert.ok(fixtures.length > 90, 'fixtures loaded');
-  for (const [label, html] of fixtures) {
-    for (const root of parseFragment(html).childNodes) check(label, root, undefined);
+  for (const [label, html, spec] of fixtures) {
+    const declared = declaredTokens(spec);
+    for (const root of parseFragment(html).childNodes) check(label, root, undefined, undefined, declared);
   }
 });

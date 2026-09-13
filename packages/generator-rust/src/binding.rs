@@ -594,14 +594,17 @@ impl Binding<'_> {
         ) {
             node.insert("header".into(), header);
         }
+        // A framed language group is a node modifier; the stylesheet draws the frame around its body.
         let frame = if settings.frame {
-            "lang-group"
+            "crudui-node--framed"
         } else {
-            "lang-group p-0 border-0"
+            ""
         };
+        let class_name = join_class(&[frame, text_at(design, "wrapper", "class")]);
+        put_string(&mut node, "className", class_name);
         node.insert(
             "body".into(),
-            node_body(&join_class(&[frame, settings.group_class]), "", None),
+            node_body(&join_class(&[settings.group_class]), "", None),
         );
         let children = settings
             .codes

@@ -2,6 +2,44 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Style a form with crudui.css alone: widgets use the crudui grammar instead of Bootstrap
+
+Widget markup still used the Bootstrap vocabulary inherited from the original form
+(`form-control`, `form-select`, `input-group`, `input-group-text`, `btn`,
+`btn-group`, `btn-check`, `btn-switch`, `flex-wrap`, a `data-toggle="buttons"`
+attribute, and `p-0 border-0` on an unframed language group), and the core
+stylesheet did not style any of it. The preview loaded Bootstrap from a CDN and the
+comparison page styled the controls inside `#view`, so a form looked right only with
+styles from outside the library. Widgets now follow the class grammar in all five
+implementations and eight renderers: `crudui-widget` with `__affix`, `__button`,
+`--search` and `--unsupported`; `crudui-input` with `--select` and `--file`;
+`crudui-choices` with `__input`, `__label` and `--multiple`; an action widget button
+is `crudui-action crudui-action--text`; and a framed language group is
+`crudui-node--framed`. The widget model layouts `input-group` and `btn-group` are
+now `widget` and `choices`. The only other classes a renderer writes are the
+validation hooks `valid-target` and `valid-target-async`, the editor hosts and the
+classes a spec declares, and the naming check now fails on any other class.
+
+The core stylesheet is `@crudui/generator-core/crudui.css` (the `./styles.css` export
+is removed). It styles every widget, and every rule is scoped to a crudui block,
+including box sizing and hiding `[hidden]` elements. Pages style only their own
+layout: the preview keeps its layout in the page and no longer loads Bootstrap, the
+comparison page stylesheet no longer styles anything inside `#view`, and the SSR
+documents of the comparison servers load `crudui.css`. The Go and PHP package
+examples also take the form styles from `crudui.css` and no longer append their own
+submit button, which duplicated the form footer's.
+
+`make format-check` passed. generator-core, HTML, React, Vue and Svelte passed 108,
+116, 705, 348 and 349 tests with the regenerated form-render and structure map
+fixtures, the Svelte client 10, and the Node checks 11, including the naming check
+that rejects classes outside the grammar. `make test-native` passed all 976 generator
+checks (195 per implementation) with PHP API checks 361 per configuration and 103
+validation cases. The comparison Go and Rust server tests, the comparison source
+checks 140 and its Chromium checks 3, and `make docs-check` passed. In Chrome the
+preview loads two stylesheets, its own layout and `crudui.css`, and renders inputs,
+selects, textareas, checkboxes, language frames, the structure map and the footer
+buttons without Bootstrap.
+
 ## 2026-09-13 — Format every Rust crate and Go file, and check it with `make format-check`
 
 No check ran rustfmt or gofmt, so formatting drifted: five Rust crates had 62

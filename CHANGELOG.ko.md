@@ -2,6 +2,37 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-13 — crudui.css만으로 폼 스타일링: 위젯은 Bootstrap 대신 crudui 문법 사용
+
+위젯 마크업은 원본 폼에서 이어받은 Bootstrap 어휘(`form-control`, `form-select`,
+`input-group`, `input-group-text`, `btn`, `btn-group`, `btn-check`, `btn-switch`,
+`flex-wrap`, `data-toggle="buttons"` 속성, 테두리 없는 언어 그룹의 `p-0 border-0`)를 그대로
+썼고, core 스타일시트는 이를 전혀 스타일링하지 않았습니다. 미리보기는 CDN에서 Bootstrap을
+불러왔고 비교 페이지는 `#view` 안의 컨트롤을 직접 스타일링했으므로, 폼은 라이브러리 밖의
+스타일이 있어야 제대로 보였습니다. 이제 위젯은 다섯 구현과 여덟 렌더러 모두에서 클래스 문법을
+따릅니다. `__affix`, `__button`, `--search`, `--unsupported`를 가진 `crudui-widget`, `--select`와
+`--file`을 가진 `crudui-input`, `__input`, `__label`, `--multiple`을 가진 `crudui-choices`이고,
+action 위젯 버튼은 `crudui-action crudui-action--text`, 테두리 있는 언어 그룹은
+`crudui-node--framed`입니다. 위젯 모델 layout `input-group`과 `btn-group`은 `widget`과
+`choices`가 되었습니다. 렌더러가 그 밖에 쓰는 클래스는 검증 훅 `valid-target`,
+`valid-target-async`, 에디터 호스트, 스펙이 선언한 클래스뿐이며, 명명 검사는 그 외 클래스가
+나오면 실패합니다.
+
+core 스타일시트는 `@crudui/generator-core/crudui.css`입니다(`./styles.css` export는 제거).
+모든 위젯을 스타일링하고, box-sizing과 `[hidden]` 요소 숨김을 포함한 모든 규칙이 crudui 블록
+범위 안에 있습니다. 페이지는 자기 레이아웃만 스타일링합니다. 미리보기는 레이아웃을 페이지 안에
+두고 더 이상 Bootstrap을 불러오지 않으며, 비교 페이지 스타일시트는 `#view` 안을 스타일링하지
+않고, 비교 서버의 SSR 문서는 `crudui.css`를 불러옵니다. Go와 PHP 패키지 예제도 폼 스타일을
+`crudui.css`에서 가져오며, 폼 푸터의 제출 버튼과 중복되던 자체 제출 버튼을 더 이상 붙이지 않습니다.
+
+`make format-check`가 통과했습니다. 다시 생성한 폼 렌더링·구조 맵 사례로 generator-core, HTML,
+React, Vue, Svelte가 테스트 108, 116, 705, 348, 349개를, Svelte 클라이언트가 10개, 문법 밖 클래스를
+거부하는 명명 검사를 포함한 Node 검사가 11개를 통과했습니다. `make test-native`가 생성기 검사
+976개(구현별 195개), 구성별 PHP API 검사 361개, 검증 사례 103개를 통과했습니다. 비교 Go·Rust 서버
+테스트, 비교 소스 검사 140개와 Chromium 검사 3개, `make docs-check`가 통과했습니다. Chrome에서
+미리보기는 자기 레이아웃과 `crudui.css` 두 스타일시트만 불러오며 Bootstrap 없이 입력, select,
+textarea, 체크박스, 언어 테두리, 구조 맵, 푸터 버튼을 그립니다.
+
 ## 2026-09-13 — 모든 Rust 크레이트와 Go 파일 포맷 정리, `make format-check`로 검사
 
 rustfmt나 gofmt를 실행하는 검사가 없어 포맷이 어긋나 있었습니다. Rust 크레이트 다섯 개에

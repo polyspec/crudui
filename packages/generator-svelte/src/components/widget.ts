@@ -30,7 +30,7 @@ export function hasEventAttr(attrs: Attrs): boolean {
 
 /** Keep an ordinary editable control as one DOM element across value updates. */
 export function usesStableControl(w: WidgetModel): boolean {
-  return (w.layout === 'input-group' || w.layout === 'bare')
+  return (w.layout === 'widget' || w.layout === 'bare')
     && (w.tag === 'input' || w.tag === 'textarea') && !hasEventAttr(w.attrs);
 }
 
@@ -53,7 +53,7 @@ function rawControl(w: WidgetModel, selectedAttr: 'empty' | 'selected' = 'empty'
   return rawVoid('input', w.attrs);
 }
 
-/** Raw serialization of one btn-group button (input + label). */
+/** Raw serialization of one choice (input + label). */
 function groupButtonHtml(
   o: OptionModel,
   type: 'radio' | 'checkbox',
@@ -65,7 +65,7 @@ function groupButtonHtml(
     type,
     value: o.value,
     autocomplete: 'off',
-    class: 'valid-target btn-check',
+    class: 'valid-target crudui-choices__input',
     ...(o.id ? { id: o.id } : {}),
   };
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
@@ -82,13 +82,13 @@ function groupButtonHtml(
 // container-body html (the bytes injected into a real container element)
 // ---------------------------------------------------------------------------
 
-/** input-group body: prepend? + control + append?. */
-export function inputGroupBody(w: WidgetModel): string {
+/** widget body: prepend? + control + append?. */
+export function widgetBody(w: WidgetModel): string {
   return affixHtml(w.prepend) + rawControl(w) + affixHtml(w.append);
 }
 
-/** btn-group full html: `<div {attrs}>` + per-item input/label pairs. */
-export function btnGroupHtml(w: WidgetModel): string {
+/** choices full html: `<div {attrs}>` + per-item input/label pairs. */
+export function choicesHtml(w: WidgetModel): string {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
   const shared = (w.extra?.input ?? {}) as Attrs;
   const labelClass = w.itemLabelClass ?? '';
@@ -107,19 +107,19 @@ export function fileGroupBody(w: WidgetModel): string {
     (display ? rawVoid('input', display) : '') +
     rawVoid('input', fileAttrs) +
     (display
-      ? `<button class="btn btn-search btn-file-search" type="button">&nbsp;</button>`
+      ? `<button class="crudui-widget__button" type="button">&nbsp;</button>`
       : '')
   );
 }
 
 /**
  * search full html: style?/script chrome (`nonce=""`, verbatim) + the select2
- * host `<select>` inside `.input-group field-search`. The host select needs
+ * host `<select>` inside `.crudui-widget--search`. The host select needs
  * `selected="selected"` (legacy select2 contract), so the whole search body is raw.
  */
 export function searchHtml(w: WidgetModel): string {
   const fieldSearch =
-    `<div class="input-group field-search">` +
+    `<div class="crudui-widget crudui-widget--search">` +
     affixHtml(w.prepend) +
     rawElement('select', w.attrs, rawOptions(w.options ?? [], 'selected')) +
     affixHtml(w.append) +
@@ -134,7 +134,7 @@ export function searchHtml(w: WidgetModel): string {
  * widget-level container element), return its raw html so the node injects it into
  * the body via `{@html}`; else null and Widget.svelte renders a real
  * container element. Covers bare (datetime/password/hidden/email), host-script
- * (editors/tagify), button (script + hidden + button), btn-group (choice/
+ * (editors/tagify), button (script + hidden + button), choices (choice/
  * multichoice) and search — all carry empty/boolean control attrs svelte/server
  * would mangle as real elements.
  */
@@ -152,7 +152,7 @@ export function widgetRootRaw(w: AnyWidget): string | null {
       rawVoid('input', w.attrs)
     );
   }
-  if (w.layout === 'btn-group') return btnGroupHtml(w);
+  if (w.layout === 'choices') return choicesHtml(w);
   if (w.layout === 'search') return searchHtml(w);
   return null;
 }
