@@ -103,7 +103,10 @@ input's own label inside the body, and its header holds only a description. A
   `footer`. With `outline` the form renders no row or empty collection controls;
   the structure map shows them for the selected row and empty collection.
 - `multiple.header: sticky` adds `crudui-node--sticky`. The header style sets
-  `--crudui-sticky-depth` to the number of enclosing sticky rows. The label is
+  `--crudui-sticky-depth` to the number of enclosing sticky rows, and each level
+  sticks one `--crudui-node-header-height` below its enclosing sticky header. A
+  sticky header has exactly that height, border included, does not wrap and
+  truncates a long title, so pinned levels meet without overlap. The label is
   shown only while the header is stuck.
 
 ## Structure map and data view
@@ -144,7 +147,8 @@ control icons, sticky headers, the structure map and the data view. It hides
 The reference form that motivated this grammar differs in these deliberate ways:
 
 1. Readiness polling and time-based scroll locks are replaced by synchronization
-   after rendering and an IntersectionObserver for sticky headers.
+   after rendering. Sticky headers are marked stuck on scroll and resize events,
+   measured at most once per animation frame, for rows of any height.
 2. Expansion is view state, not record data.
 3. Rows are identified by keys, not array positions.
 4. Depth is unlimited; one recursive node replaces per-depth components.

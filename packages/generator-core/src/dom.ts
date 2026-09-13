@@ -55,7 +55,8 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   let destination: FocusTarget | undefined;
   // Whether the DOM has been synchronized since the last commit.
   let synced = true;
-  let observers: IntersectionObserver[] = [];
+  // Pending animation frame that marks stuck sticky headers.
+  let frame = 0;
   const controls = () => Array.from(element.querySelectorAll<Control>('input[name],select[name],textarea[name]'));
   const pathOf = (name: string) => {
     const segments = parsePathString(name);
@@ -180,21 +181,23 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     else destination = result.focus;
   };
   /** Mark sticky row headers that are currently stuck. */
-  const observeSticky = () => {
-    for (const observer of observers) observer.disconnect();
-    observers = [];
-    if (typeof IntersectionObserver === 'undefined') return;
+  // A sticky header is stuck when it has left its natural place at the top of its
+  // row. Measured on scroll (captured, so inner scroll containers count) and
+  // resize, at most once per animation frame, for rows of any height.
+  const markStuck = () => {
+    frame = 0;
     for (const row of element.querySelectorAll<HTMLElement>('[data-crudui-row-key]')) {
       const header = row.firstElementChild as HTMLElement | null;
-      if (!header || getComputedStyle(header).position !== 'sticky') continue;
-      const top = parseFloat(getComputedStyle(header).top) || 0;
-      const observer = new IntersectionObserver(([entry]) => {
-        const stuck = entry.isIntersecting && entry.boundingClientRect.top < (entry.rootBounds?.top ?? 0);
-        row.toggleAttribute('data-crudui-stuck', stuck);
-      }, { rootMargin: `-${Math.round(top) + 1}px 0px 0px 0px`, threshold: [0, 1] });
-      observer.observe(row);
-      observers.push(observer);
+      if (!header || getComputedStyle(header).position !== 'sticky') {
+        row.removeAttribute('data-crudui-stuck');
+        continue;
+      }
+      const offset = header.getBoundingClientRect().top - row.getBoundingClientRect().top - row.clientTop;
+      row.toggleAttribute('data-crudui-stuck', offset > 0.5);
     }
+  };
+  const scheduleStuck = () => {
+    if (!frame) frame = requestAnimationFrame(markStuck);
   };
   const sync = () => {
     // React's SSR-compatible controls use defaultValue. Injection must update
@@ -234,7 +237,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         if (control.value !== next) control.value = next;
       }
     }
-    observeSticky();
+    markStuck();
     synced = true;
     if (destination) {
       const target = destination;
@@ -246,18 +249,23 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       focus = undefined;
     }
   };
+  const view = element.ownerDocument.defaultView!;
   const unsubscribe = session.subscribe(captureFocus);
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
   element.addEventListener('focusin', onFocusIn);
+  view.addEventListener('scroll', scheduleStuck, { capture: true, passive: true });
+  view.addEventListener('resize', scheduleStuck);
   sync();
   return {
     sync,
     disconnect() {
       unsubscribe();
-      for (const observer of observers) observer.disconnect();
-      observers = [];
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      view.removeEventListener('scroll', scheduleStuck, { capture: true });
+      view.removeEventListener('resize', scheduleStuck);
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
