@@ -224,7 +224,10 @@ async fn handle(
     let data = form::normalize(&received)?;
     let spec = read_object(&server.specs.join("spec.json"))?;
     let validation = validate(&spec, &data, &ValidateOptions::default()).map_err(|e| Error {
-        status: StatusCode::INTERNAL_SERVER_ERROR,
+        status: match e {
+            crudui_validator::ValidateError::Input(_) => StatusCode::BAD_REQUEST,
+            crudui_validator::ValidateError::Load(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        },
         message: e.to_string(),
     })?;
     let errors: Vec<Value> = validation

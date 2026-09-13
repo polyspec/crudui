@@ -107,9 +107,28 @@ fn main() {
 
 A validation result contains a boolean and a flat error list. Each error identifies
 `path`, `field`, `rule` and `message`, with `value` when available. A required-input
-failure is a validation result. A missing composition reference or a forbidden
-schema key is a load failure: JavaScript and PHP throw; Go returns an error; Rust
-returns `Err`. Do not convert a load failure into successful validation.
+failure is a validation result.
+
+Two failures produce no validation result. A missing composition reference or a
+forbidden schema key is a load failure (`ComposeLoadError`). Submitted data with
+the wrong shape is an input failure (`FormInputError`, code `INVALID_FORM_INPUT`):
+
+| Data | Message |
+| --- | --- |
+| Root data that is not an object, checked before composition | `Form data must be an object` |
+| Present group data or a repeated group row that is not an object | `Group data must be an object: {path}` |
+| Present repeated data that is not a keyed object | `Repeated data must be a keyed object: {path}` |
+
+Missing group or repeated data is not a failure. JavaScript and PHP throw the
+failure; Go returns it as an error; Rust returns `Err(ValidateError)`. Every
+implementation reports the same code, message and location: a load failure's
+location is its composition trace joined with `.`, and an input failure's location
+is empty. Do not convert a failure into a validation result.
+
+The validation CLIs in all languages use one process contract. A validation result
+exits `0` with `{ valid, errors }`. A load or input failure exits `2` with exactly
+`{ error, code, at }`. A malformed request exits `1` with `{ error }`. An omitted
+`data` member validates `{}`; a supplied value must be a JSON object.
 
 Visibility does not disable validation. `design.show: false` hides a field but
 does not change its required rule. Conditional requirements use an expression in

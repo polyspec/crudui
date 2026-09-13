@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
@@ -13,18 +14,35 @@ import (
 // Validation conformance verifies SPEC §2 G5, §3 and §2 G1.
 //
 // The shared fixture tests/fixtures/validate/cases.json defines the expected
-// validity, errors, key order and messages for every runtime.
+// validity, errors, key order and messages for every runtime, or the exact
+// failure record of a load or input failure.
+
+type failureRecord struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	At      string `json:"at"`
+}
 
 type validateCase struct {
-	Name            string          `json:"name"`
-	Note            string          `json:"note"`
-	Spec            json.RawMessage `json:"spec"`
-	Data            json.RawMessage `json:"data"`
-	Files           json.RawMessage `json:"files"`
-	Expected        *expectedResult `json:"expected"`
-	ExpectLoadError *struct {
-		Code string `json:"code"`
-	} `json:"expectLoadError"`
+	Name          string          `json:"name"`
+	Note          string          `json:"note"`
+	Spec          json.RawMessage `json:"spec"`
+	Data          json.RawMessage `json:"data"`
+	Files         json.RawMessage `json:"files"`
+	Expected      *expectedResult `json:"expected"`
+	ExpectFailure *failureRecord  `json:"expectFailure"`
+}
+
+// failureOf returns the cross-language failure record of a validation failure.
+func failureOf(err error) *failureRecord {
+	switch e := err.(type) {
+	case *compose.ComposeLoadError:
+		return &failureRecord{Code: string(e.Code), Message: e.Message, At: strings.Join(e.Trace, ".")}
+	case *FormInputError:
+		return &failureRecord{Code: e.Code(), Message: e.Message, At: ""}
+	default:
+		return nil
+	}
 }
 
 type expectedResult struct {
@@ -67,29 +85,28 @@ func TestValidateMatchesFixture(t *testing.T) {
 
 			result, err := ValidateJSON(c.Spec, c.Data, files, "")
 
-			// Load-error case: the compose pass must fail with the exact code, and
-			// MUST NOT return valid:true (the LargeForm.yml:873 regression lock).
-			if c.ExpectLoadError != nil {
+			if (c.Expected == nil) == (c.ExpectFailure == nil) {
+				t.Fatalf("fixture case %q must declare exactly one of expected or expectFailure", c.Name)
+			}
+
+			// Failure case: no validation result, the exact failure record.
+			if c.ExpectFailure != nil {
 				if err == nil {
-					t.Fatalf("expected load error %s, but validated successfully (valid=%v)",
-						c.ExpectLoadError.Code, result.Valid)
+					t.Fatalf("expected failure %+v, but validated successfully (valid=%v)",
+						*c.ExpectFailure, result.Valid)
 				}
-				le, ok := err.(*compose.ComposeLoadError)
-				if !ok {
-					t.Fatalf("expected *compose.ComposeLoadError, got %T: %v", err, err)
+				got := failureOf(err)
+				if got == nil {
+					t.Fatalf("expected a load or input failure, got %T: %v", err, err)
 				}
-				if string(le.Code) != c.ExpectLoadError.Code {
-					t.Fatalf("error code mismatch: expected %s, got %s (%s)",
-						c.ExpectLoadError.Code, le.Code, le.Message)
+				if *got != *c.ExpectFailure {
+					t.Fatalf("failure mismatch\n want: %+v\n  got: %+v", *c.ExpectFailure, *got)
 				}
 				return
 			}
 
 			if err != nil {
 				t.Fatalf("expected success, got error: %v", err)
-			}
-			if c.Expected == nil {
-				t.Fatalf("fixture case %q has no expected result", c.Name)
 			}
 
 			if result.Valid != c.Expected.Valid {

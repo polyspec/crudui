@@ -2,10 +2,10 @@
  * Shared-fixture generator for the 4-language CRUDUI validator (SPEC §2 pipeline).
  *
  * Runs the JS reference CRUDUI validator for real and dumps, per case, the
- * validation result (`expected = { valid, errors }`) or the load-error code
- * (`expectLoadError = { code }`) when composition cannot be resolved. The other
- * three engines (PHP / Go / Rust) load the SAME `cases.json` and must reproduce
- * it bit-for-bit (SPEC G-B 4-language idempotence: identical `valid`+errors).
+ * validation result (`expected = { valid, errors }`) or the failure record
+ * (`expectFailure = { code, message, at }`) when composition cannot be resolved
+ * or submitted data has the wrong shape. The PHP, C extension, Go and Rust
+ * engines load the SAME `cases.json` and must reproduce it exactly.
  *
  * Each case is authored against the analysis (single truth) and VALIDATION-
  * RULES.md (the 1074 idempotence baseline). The JS engine GENERATES the
@@ -14,15 +14,16 @@
  * prove cross-language equality.
  *
  * Fixture format (per the task contract):
- *   { name, spec, data, expected: { valid, errors } }      — validation result
- *   { name, spec, data, expectLoadError: { code } }        — compose load error
+ *   { name, spec, data, expected: { valid, errors } }             — validation result
+ *   { name, spec, data, expectFailure: { code, message, at } }    — load or input failure
  *
  * `spec`   : a CRUDUI root spec. Inline `{ type:'group', properties:{…} }`, or a
  *            composition entry (`files` + `$ref`/`$patch`).
  * `files`  : optional virtual file set `$ref` resolves against (`{ key: doc }`).
  * `data`   : the form data validated against the (composed) spec.
  * `expected`: `{ valid, errors[] }` — first-error-per-field, declaration order.
- * `expectLoadError`: `{ code }` — the ComposeLoadError.code thrown by compose.
+ * `expectFailure`: a ComposeLoadError (`at` = trace joined with `.`) or a
+ *            FormInputError (`at` = "").
  *
  * Regenerate (from repo root):
  *   node_modules/.bin/tsx tests/fixtures/validate/generate.ts > tests/fixtures/validate/cases.json
@@ -31,6 +32,7 @@
 import {
   validate,
   ComposeLoadError,
+  FormInputError,
 } from '../../../packages/validator-ts/src/validate/index';
 
 interface CaseSpec {
@@ -38,7 +40,7 @@ interface CaseSpec {
   note: string;
   spec: Record<string, unknown>;
   files?: Record<string, Record<string, unknown>>;
-  data: Record<string, unknown>;
+  data: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -46,6 +48,39 @@ interface CaseSpec {
 // ---------------------------------------------------------------------------
 
 const SPECS: CaseSpec[] = [
+  ...['2026-01-01', '2026-01-02', '2026-01-03'].map(end => ({
+    name: `enddate-relative-path-${end}`,
+    note: 'The enddate parameter remains a field path.',
+    spec: { type: 'group', properties: {
+      period: { type: 'group', properties: {
+        start: { type: 'text' },
+        end: { type: 'text', validate: { enddate: '.start' } },
+      } },
+    } },
+    data: { period: { start: '2026-01-02', end } },
+  })),
+  {
+    name: 'enddate-parent-path',
+    note: 'The enddate parameter remains a field path.',
+    spec: { type: 'group', properties: {
+      period: { type: 'group', properties: {
+        end: { type: 'text', validate: { enddate: '..start' } },
+      } },
+      start: { type: 'text' },
+    } },
+    data: { period: { end: '2026-01-01' }, start: '2026-01-02' },
+  },
+  ...['2026-01-01', '2026-01-02', '2026-01-03'].map(end => ({
+    name: `enddate-field-path-${end}`,
+    note: 'The enddate parameter remains a field path.',
+    spec: { type: 'group', properties: {
+      period: { type: 'group', properties: {
+        start: { type: 'text' },
+        end: { type: 'text', validate: { enddate: 'period.start' } },
+      } },
+    } },
+    data: { period: { start: '2026-01-02', end } },
+  })),
   ...[false, true].flatMap(enabled => [5, 8].map(value => ({
     name: `ternary-field-limit-${enabled}-${value}`,
     note: 'The selected ternary branch resolves a field value as the validation limit.',
@@ -401,10 +436,10 @@ const SPECS: CaseSpec[] = [
     },
     data: { addr: { zip: 'abc' } },
   },
-  // 11. Multiple non-group — array-level unique fires for a duplicate.
+  // 11. Repeated scalar — collection-level unique fires for a duplicate.
   {
-    name: 'multiple-array-level-unique',
-    note: 'two equal tags meet mincount:2, then array-level unique fires',
+    name: 'multiple-collection-level-unique',
+    note: 'two equal keyed tags meet mincount:2, then collection-level unique fires',
     spec: {
       type: 'group',
       properties: {
@@ -415,12 +450,12 @@ const SPECS: CaseSpec[] = [
         },
       },
     },
-    data: { tags: ['a', 'a'] },
+    data: { tags: { tag_a: 'a', tag_b: 'a' } },
   },
-  // 12. Multiple non-group — mincount fires for too-few elements.
+  // 12. Repeated scalar — mincount fires for too few rows.
   {
-    name: 'multiple-array-level-mincount',
-    note: 'tags has one element → mincount:2 fires',
+    name: 'multiple-collection-level-mincount',
+    note: 'tags has one keyed row → mincount:2 fires',
     spec: {
       type: 'group',
       properties: {
@@ -431,12 +466,12 @@ const SPECS: CaseSpec[] = [
         },
       },
     },
-    data: { tags: ['a'] },
+    data: { tags: { tag_a: 'a' } },
   },
-  // 13. Multiple group — index path items.1.code on the second item.
+  // 13. Repeated group — row key path items.__b__.code on the second row.
   {
-    name: 'multiple-group-index-path',
-    note: 'second item empty code → error path items.1.code',
+    name: 'multiple-group-row-key-path',
+    note: 'second row empty code → error path items.__b__.code',
     spec: {
       type: 'group',
       properties: {
@@ -447,7 +482,7 @@ const SPECS: CaseSpec[] = [
         },
       },
     },
-    data: { items: [{ code: 'x' }, { code: '' }] },
+    data: { items: { __a__: { code: 'x' }, __b__: { code: '' } } },
   },
   // 14. Object-key multiple — sorted-key traversal, path rows.__a__.v first.
   {
@@ -494,10 +529,10 @@ const SPECS: CaseSpec[] = [
       },
     },
     data: {
-      rows: [
-        { active: 0, code: 'dup' },
-        { active: 0, code: 'dup' },
-      ],
+      rows: {
+        __a__: { active: 0, code: 'dup' },
+        __b__: { active: 0, code: 'dup' },
+      },
     },
   },
   // 17. unique filter — duplicate among active==1 items fires (item-level).
@@ -518,10 +553,10 @@ const SPECS: CaseSpec[] = [
       },
     },
     data: {
-      rows: [
-        { active: 1, code: 'dup' },
-        { active: 1, code: 'dup' },
-      ],
+      rows: {
+        __a__: { active: 1, code: 'dup' },
+        __b__: { active: 1, code: 'dup' },
+      },
     },
   },
   // 18. Verbatim regex param — match is not evaluated as a condition.
@@ -759,6 +794,80 @@ const SPECS: CaseSpec[] = [
     },
     data: { nickname: '' },
   },
+  // 34. Input shape — root data that is not an object is an input failure.
+  {
+    name: 'input-root-data-not-object',
+    note: 'root data is a non-empty array → INVALID_FORM_INPUT, no validation result',
+    spec: {
+      type: 'group',
+      properties: { name: { type: 'text', validate: { required: true } } },
+    },
+    data: ['a'],
+  },
+  // 35. Input shape — present group data must be an object.
+  {
+    name: 'input-group-data-not-object',
+    note: 'group data is a string → INVALID_FORM_INPUT at the group path',
+    spec: {
+      type: 'group',
+      properties: {
+        addr: { type: 'group', properties: { city: { type: 'text' } } },
+      },
+    },
+    data: { addr: 'Seoul' },
+  },
+  // 36. Input shape — repeated group data must be a keyed object.
+  {
+    name: 'input-repeated-group-array',
+    note: 'repeated group data is an array → INVALID_FORM_INPUT at the collection path',
+    spec: {
+      type: 'group',
+      properties: {
+        items: { type: 'group', multiple: true, properties: { code: { type: 'text' } } },
+      },
+    },
+    data: { items: [{ code: 'x' }] },
+  },
+  // 37. Input shape — present repeated scalar data must be a keyed object.
+  {
+    name: 'input-repeated-scalar-null',
+    note: 'repeated scalar data is null → INVALID_FORM_INPUT at the collection path',
+    spec: {
+      type: 'group',
+      properties: { tags: { type: 'text', multiple: true } },
+    },
+    data: { tags: null },
+  },
+  // 38. Input shape — each repeated group row must be an object.
+  {
+    name: 'input-repeated-group-row-not-object',
+    note: 'a repeated group row is a string → INVALID_FORM_INPUT at the row path',
+    spec: {
+      type: 'group',
+      properties: {
+        items: { type: 'group', multiple: true, properties: { code: { type: 'text' } } },
+      },
+    },
+    data: { items: { __a__: 'x' } },
+  },
+  // 39. Input shape — nested collections report their full path.
+  {
+    name: 'input-nested-repeated-array',
+    note: 'a nested repeated collection is an array → INVALID_FORM_INPUT at its full path',
+    spec: {
+      type: 'group',
+      properties: {
+        companies: {
+          type: 'group',
+          multiple: true,
+          properties: {
+            stores: { type: 'group', multiple: true, properties: { name: { type: 'text' } } },
+          },
+        },
+      },
+    },
+    data: { companies: { __a__: { stores: [] } } },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -781,7 +890,9 @@ function build(c: CaseSpec): Record<string, unknown> {
     base.expected = result;
   } catch (e) {
     if (e instanceof ComposeLoadError) {
-      base.expectLoadError = { code: e.code };
+      base.expectFailure = { code: e.code, message: e.message, at: e.trace.join('.') };
+    } else if (e instanceof FormInputError) {
+      base.expectFailure = { code: e.code, message: e.message, at: '' };
     } else {
       throw e;
     }

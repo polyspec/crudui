@@ -17,8 +17,9 @@ form tab:
 
 - `POST /api/validate` `{spec, data, files?, basepath?}` → 4-language CRUDUI FORM
   validation (`js` / `php` / `go` / `rust`). Each entry:
-  `{lang, ok, valid, errors[{path,field,rule,message,value}], ms, loadError}`.
-  `loadError` (unresolved `$ref`, forbidden key) is distinct from `valid:false`.
+  `{lang, ok, valid, errors[{path,field,rule,message,value}], ms, failure}`.
+  `failure` `{code, message, at}` (unresolved `$ref`, forbidden key, data with
+  the wrong shape) is distinct from `valid:false`.
 - `POST /api/render` `{spec, data, options}` → 3-framework CRUDUI FORM SSR
   (`react` / `vue` / `svelte`). Each entry:
   `{fw, ok, html, normalized, ms, error}`. `error` carries
@@ -29,7 +30,7 @@ list tab:
 - `POST /api/validate-list` `{listSpec, files?, basepath?}` → 4-language CRUDUI list
   STRUCTURE validation (compose → forbidden-scan; no rows — a list has no data).
   The validate sister of `/api/validate`: SAME per-entry envelope and idempotency
-  matrix, a forbidden meta key surfaces as the SAME `loadError`, a clean structure
+  matrix, a forbidden meta key surfaces as the SAME `failure`, a clean structure
   is `valid:true`.
 - `POST /api/render-list` `{listSpec, rows, options}` → 3-framework CRUDUI list SSR
   over the INJECTED rows. SAME per-entry envelope and parity matrix as
@@ -58,7 +59,8 @@ form tab:
   A parse failure disables the run button.
 - `검증 + 렌더 실행` button → `Promise.all` over `/api/validate` + `/api/render`.
 - Validate matrix: 4 columns (lang + ms), valid/invalid badge, error list
-  (`field: message (rule)`), yellow `LOAD-ERROR` badge for `loadError`. A green
+  (`field: message (rule)`), `FAILURE` badge with code, message and location for
+  `failure`. A green
   `4언어 멱등 일치` badge when all 4 agree; red `결과 불일치!` + per-lang diff
   table + red borders on the divergent columns otherwise.
 - Render matrix: 3 columns, sandboxed `srcdoc` iframe preview, toggle to raw

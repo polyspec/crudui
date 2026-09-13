@@ -23,8 +23,10 @@
 
 검증 사례 파일은 배열입니다. 각 항목은 `name`, `spec`, `data`를 포함하며 선택적인
 `files`는 조합 입력을 제공합니다. `note`는 사례를 설명합니다. `expected`는 전체
-`{ valid, errors }` 결과를 포함합니다. 로드 실패 사례는 대신
-`expectLoadError: { code }`를 사용합니다.
+`{ valid, errors }` 결과를 포함합니다. 로드 또는 입력 실패 사례는 대신
+`expectFailure: { code, message, at }`를 사용하며 각 사례는 둘 중 하나만
+선언합니다. 로드 실패의 `at`은 조합 경로를 `.`으로 연결한 값이고 입력 실패의
+`at`은 빈 문자열입니다.
 
 ```json
 {
@@ -39,8 +41,10 @@
 ```
 
 [TypeScript 적합성 검사](../../packages/validator-ts/src/validate.conformance.test.ts)는
-전체 결과를 엄격하게 비교하고 조합 오류 코드를 검사합니다. 기대 결과가 없는
-항목도 거부합니다. PHP·Go·Rust 패키지 검사도 같은 검증 사례 파일을 사용합니다.
+전체 결과 또는 실패 기록을 엄격하게 비교합니다. 기대값을 정확히 하나 선언하지 않은
+항목은 거부합니다. PHP·C PHP 확장·Go·Rust의 패키지 검사와 CLI 검사도 같은 검증
+사례 파일을 사용합니다. `tests/fixtures/validate/generate.ts`가 TypeScript 엔진으로
+사례 파일을 생성하므로 `cases.json`을 직접 수정하지 않고 다시 생성합니다.
 
 ## 구형 검증
 

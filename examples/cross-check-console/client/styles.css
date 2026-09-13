@@ -228,7 +228,7 @@ body {
 .cc-badge.ok { background: rgba(46,204,113,0.15); color: var(--ok); border-color: var(--ok); }
 .cc-badge.bad { background: rgba(239,68,68,0.15); color: var(--bad); border-color: var(--bad); }
 .cc-badge.idle { color: var(--muted); }
-.cc-badge.load { background: rgba(245,197,24,0.15); color: var(--warn); border-color: var(--warn); }
+.cc-badge.failure { background: rgba(245,197,24,0.15); color: var(--warn); border-color: var(--warn); }
 
 /* ---- matrices ---- */
 .cc-matrices { padding: 0 12px 16px; }
@@ -300,8 +300,8 @@ body {
 .cc-err-field { color: var(--text); font-weight: 600; }
 .cc-err-rule { color: var(--muted); }
 
-.cc-loadcode { margin-top: 6px; font-family: var(--mono); color: var(--warn); font-size: 12px; }
-.cc-loadmsg { margin-top: 2px; color: var(--muted); font-size: 11.5px; }
+.cc-failure-code { margin-top: 6px; font-family: var(--mono); color: var(--warn); font-size: 12px; }
+.cc-failure-message { margin-top: 2px; color: var(--muted); font-size: 11.5px; }
 
 .cc-raw {
   margin: 0;

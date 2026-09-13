@@ -34,9 +34,13 @@ type Options struct {
 // Validate validates data against a model spec given as the engine value model
 // (*compose.OMap, decoded with compose.DecodeOrdered). The spec may carry
 // $ref / $patch; they are expanded first. An unresolved composition returns a
-// *compose.ComposeLoadError (the caller distinguishes a LOAD failure from
-// valid:false). G5 → §3 → §2 G1.
-func Validate(spec *compose.OMap, data map[string]any, opts Options) (ValidationResult, error) {
+// *compose.ComposeLoadError, and data with the wrong shape returns a
+// *FormInputError; neither produces a validation result. G5 → §3 → §2 G1.
+func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, error) {
+	// Root data is a request precondition, checked before composition.
+	if _, ok := data.(map[string]any); !ok {
+		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
+	}
 	if spec == nil {
 		spec = compose.NewOMap()
 	}
@@ -87,14 +91,15 @@ func Validate(spec *compose.OMap, data map[string]any, opts Options) (Validation
 		return ValidationResult{}, scanErr
 	}
 
-	return NewValidator(properties).Validate(data), nil
+	return NewValidator(properties).Validate(data)
 }
 
 // ValidateJSON is a convenience wrapper that decodes a raw JSON spec and raw JSON
 // data, then runs Validate. The spec is decoded with compose.DecodeOrdered so
 // declaration order survives; data is decoded with encoding/json (objects →
-// map[string]any, arrays → []any, numbers → float64). Files is a { key: rawJSON }
-// map.
+// map[string]any, arrays → []any, numbers → float64). Empty data bytes validate
+// an empty object; any decoded data value is passed to Validate unchanged.
+// Files is a { key: rawJSON } map.
 func ValidateJSON(specJSON []byte, dataJSON []byte, filesJSON map[string][]byte, basepath string) (ValidationResult, error) {
 	specAny, err := compose.DecodeOrdered(specJSON)
 	if err != nil {
@@ -105,7 +110,7 @@ func ValidateJSON(specJSON []byte, dataJSON []byte, filesJSON map[string][]byte,
 		return ValidationResult{}, fmt.Errorf("validate: spec is not an object")
 	}
 
-	var data map[string]any
+	var data any = map[string]any{}
 	if len(dataJSON) > 0 {
 		if err := json.Unmarshal(dataJSON, &data); err != nil {
 			return ValidationResult{}, fmt.Errorf("validate: data decode: %w", err)

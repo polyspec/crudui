@@ -15,8 +15,6 @@ package validate
 // .show does NOT skip validation (SPEC R1 show/validate separation).
 
 import (
-	"strconv"
-
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator-go/validator/expr"
 )
@@ -61,18 +59,22 @@ func NewValidator(properties *compose.OMap) *Validator {
 	return &Validator{properties: properties}
 }
 
-// Validate validates data against the composed model spec.
-func (v *Validator) Validate(data map[string]any) ValidationResult {
-	if data == nil {
-		data = map[string]any{}
+// Validate validates data against the composed model spec. Root, group and
+// repeated data with the wrong shape return a *FormInputError and no result.
+func (v *Validator) Validate(data any) (ValidationResult, error) {
+	root, ok := data.(map[string]any)
+	if !ok {
+		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
 	}
 	var errors []ValidationError
-	v.validateProperties(v.properties, data, nil, data, &errors)
-	return ValidationResult{Valid: len(errors) == 0, Errors: errors}
+	if err := v.validateProperties(v.properties, root, nil, root, &errors); err != nil {
+		return ValidationResult{}, err
+	}
+	return ValidationResult{Valid: len(errors) == 0, Errors: errors}, nil
 }
 
 // validateProperties recurses a properties map (SPEC §3; JS validateProperties).
-func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath []string, allData map[string]any, errors *[]ValidationError) {
+func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath []string, allData map[string]any, errors *[]ValidationError) error {
 	for _, propertyKey := range properties.Keys() {
 		raw, _ := properties.Get(propertyKey)
 		field, ok := raw.(*compose.OMap)
@@ -83,48 +85,56 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 		fieldName := propertyKey
 		isMultiple := fieldIsMultiple(field)
 		fieldPath := appendPath(currentPath, fieldName)
-		fieldValue := data[fieldName]
+		fieldValue, present := data[fieldName]
 
 		childProps := childProperties(field)
 
-		if fieldType(field) == "group" && childProps != nil {
-			isArrayMultiple := isMultiple && isArray(fieldValue)
-			isObjectMultiple := isMultiple && isObject(fieldValue)
+		if isMultiple && present && !isObject(fieldValue) {
+			return &FormInputError{Message: "Repeated data must be a keyed object: " + pathToString(fieldPath)}
+		}
 
-			switch {
-			case isArrayMultiple:
-				arr := fieldValue.([]any)
-				for i := range arr {
-					itemData := asMap(arr[i])
-					v.validateProperties(childProps, itemData, appendPath(fieldPath, strconv.Itoa(i)), allData, errors)
+		if fieldType(field) == "group" && childProps != nil {
+			if isMultiple {
+				if present {
+					// Keyed rows use sorted-key traversal so the first reported
+					// error is identical in every implementation.
+					rows := fieldValue.(map[string]any)
+					for _, key := range sortedKeys(rows) {
+						rowPath := appendPath(fieldPath, key)
+						row, ok := rows[key].(map[string]any)
+						if !ok {
+							return &FormInputError{Message: "Group data must be an object: " + pathToString(rowPath)}
+						}
+						if err := v.validateProperties(childProps, row, rowPath, allData, errors); err != nil {
+							return err
+						}
+					}
+					v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
 				}
-				v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
-			case isObjectMultiple:
-				obj := fieldValue.(map[string]any)
-				for _, key := range sortedKeys(obj) {
-					itemData := asMap(obj[key])
-					v.validateProperties(childProps, itemData, appendPath(fieldPath, key), allData, errors)
-				}
-				v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
-			case !isMultiple:
-				v.validateProperties(childProps, asMap(fieldValue), fieldPath, allData, errors)
-				v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
+				continue
 			}
-			// multiple set but data shape mismatched: skip (JS parity).
+			if present && !isObject(fieldValue) {
+				return &FormInputError{Message: "Group data must be an object: " + pathToString(fieldPath)}
+			}
+			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, allData, errors); err != nil {
+				return err
+			}
+			v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
 			continue
 		}
 
-		if isMultiple && (isArray(fieldValue) || isObject(fieldValue)) {
-			v.validateMultipleFieldRules(field, fieldValue, fieldPath, allData, errors)
+		if isMultiple && present {
+			v.validateMultipleFieldRules(field, fieldValue.(map[string]any), fieldPath, allData, errors)
 		} else {
 			v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
 		}
 	}
+	return nil
 }
 
-// validateMultipleFieldRules runs array-level rules on the whole array, then
-// element-level rules per index (JS validateMultipleFieldRules).
-func (v *Validator) validateMultipleFieldRules(field *compose.OMap, values any, fieldPath []string, allData map[string]any, errors *[]ValidationError) {
+// validateMultipleFieldRules runs collection rules on the keyed rows, then row
+// rules in sorted row-key order (JS validateMultipleFieldRules).
+func (v *Validator) validateMultipleFieldRules(field *compose.OMap, values map[string]any, fieldPath []string, allData map[string]any, errors *[]ValidationError) {
 	rules := normalizeValidateSlot(field)
 	messages := fieldMessages(field)
 
@@ -145,15 +155,8 @@ func (v *Validator) validateMultipleFieldRules(field *compose.OMap, values any, 
 		}
 	}
 
-	switch rows := values.(type) {
-	case []any:
-		for i, value := range rows {
-			v.validateElementRules(field, value, appendPath(fieldPath, strconv.Itoa(i)), allData, errors)
-		}
-	case map[string]any:
-		for _, key := range sortedKeys(rows) {
-			v.validateElementRules(field, rows[key], appendPath(fieldPath, key), allData, errors)
-		}
+	for _, key := range sortedKeys(values) {
+		v.validateElementRules(field, values[key], appendPath(fieldPath, key), allData, errors)
 	}
 }
 

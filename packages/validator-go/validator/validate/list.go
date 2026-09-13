@@ -85,9 +85,9 @@ func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
 	// The scanner is a generic tree walker (form parity: index.go scans the
 	// composed properties), so it applies to the list tree unchanged — a forbidden
 	// key anywhere (column key, CellFormat options bucket, search sub-form, …) is a
-	// LOAD failure. Root prefix "list" makes the dotted trace point into the list
-	// tree.
-	if scanErr := model.ScanForbiddenKeys(composed, []string{"list"}); scanErr != nil {
+	// LOAD failure. The trace starts at the list root key (columns.<name>…), as
+	// in every implementation and the shared list-validity fixture.
+	if scanErr := model.ScanForbiddenKeys(composed, nil); scanErr != nil {
 		return ValidationResult{}, scanErr
 	}
 
