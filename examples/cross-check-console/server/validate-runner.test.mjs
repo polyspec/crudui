@@ -15,7 +15,7 @@
  *       fixture case and assert real four-language agreement (idempotent:true).
  *
  * The envelope shape under test is the gateway's own contract (validate-runner
- * runCli output): { lang, ok, valid, errors:[5-field], ms, loadError }.
+ * runCli output): { lang, ok, valid, errors:[5-field], ms, failure }.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -29,8 +29,8 @@ const ROOT = path.resolve(HERE, '../../..');
 const VALIDATE_FIXTURE = path.resolve(ROOT, 'tests/fixtures/validate/cases.json');
 
 /** A clean ok=true envelope. errors default to []. */
-function env(lang, { valid = false, errors = [], loadError = null } = {}) {
-  return { lang, ok: true, valid, errors, ms: 1, loadError };
+function env(lang, { valid = false, errors = [], failure = null } = {}) {
+  return { lang, ok: true, valid, errors, ms: 1, failure };
 }
 
 /** A complete validation error record. */
@@ -68,9 +68,9 @@ describe('compareIdempotency — agreement', () => {
     expect(mismatch).toBeNull();
   });
 
-  test('all four share one loadError code → idempotent:true', () => {
+  test('all four share one failure record → idempotent:true', () => {
     const results = ['js', 'php', 'go', 'rust'].map((l) =>
-      env(l, { loadError: { code: 'REF_FILE_NOT_FOUND', message: 'missing' } })
+      env(l, { failure: { code: 'REF_FILE_NOT_FOUND', message: 'missing', at: 'Missing.yml' } })
     );
     expect(compareIdempotency(results).idempotent).toBe(true);
   });
@@ -97,6 +97,19 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
     expect(others.langs.sort()).toEqual(['js', 'php', 'rust']);
   });
 
+  test('one language with the same failure code but a different message → idempotent:false, that language isolated', () => {
+    const record = { code: 'INVALID_FORM_INPUT', message: 'Repeated data must be a keyed object: items', at: '' };
+    const results = [
+      env('js', { failure: record }),
+      env('php', { failure: record }),
+      env('go', { failure: { ...record, message: 'Repeated data must be a keyed object: other' } }), // <-- TAMPERED
+      env('rust', { failure: record }),
+    ];
+    const { idempotent, mismatch } = compareIdempotency(results);
+    expect(idempotent).toBe(false);
+    expect(mismatch.groups.find((g) => g.langs.includes('go')).langs).toEqual(['go']);
+  });
+
   test('one language with a tampered errors[] (extra error) → idempotent:false, that language isolated', () => {
     const base = () => env('x', { valid: false, errors: [err()] });
     const results = [
@@ -115,7 +128,7 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
   test('a failed CLI makes the four-language comparison fail', () => {
     const results = [
       env('js', { valid: true }), env('php', { valid: true }), env('go', { valid: true }),
-      { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'binary missing' },
+      { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, failure: null, error: 'binary missing' },
     ];
     expect(compareIdempotency(results).idempotent).toBe(false);
     expect(compareIdempotency(results.slice(0, 3)).mismatch.missing).toEqual(['rust']);
@@ -129,8 +142,8 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
     const results = [
       env('js', { valid: true }),
       env('php', { valid: false, errors: [err()] }),
-      { lang: 'go', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'down' },
-      { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'down' },
+      { lang: 'go', ok: false, valid: false, errors: [], ms: 0, failure: null, error: 'down' },
+      { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, failure: null, error: 'down' },
     ];
     const { idempotent, mismatch } = compareIdempotency(results);
     expect(idempotent).toBe(false);
@@ -140,9 +153,9 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
   test('fewer than two runnable engines fail the comparison', () => {
     const results = [
       env('js', { valid: true }),
-      { lang: 'php', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'down' },
-      { lang: 'go', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'down' },
-      { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, loadError: null, error: 'down' },
+      { lang: 'php', ok: false, valid: false, errors: [], ms: 0, failure: null, error: 'down' },
+      { lang: 'go', ok: false, valid: false, errors: [], ms: 0, failure: null, error: 'down' },
+      { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, failure: null, error: 'down' },
     ];
     const { idempotent, mismatch } = compareIdempotency(results);
     expect(idempotent).toBe(false);

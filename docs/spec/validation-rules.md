@@ -4,7 +4,8 @@
 
 Current fields declare rules under `validate`. The [schema contract](schema.md)
 defines field structure; [validation APIs](../operations/validation.md) define
-entry points and load failures. Explicit legacy modules use `rules` instead.
+entry points, load failures and input failures. Explicit legacy modules use
+`rules` instead.
 
 ## Registered rules
 
@@ -92,7 +93,7 @@ Each error contains the field path, field name, failing rule, message and value
 when available. Custom messages use the declared rule name, including the
 distinction between `match` and `pattern`. Defaults are defined by the rule
 implementations. The [fixture contract](test-fixtures.md) defines expected
-results and load-error checks.
+results and failure records.
 
 Run all four validator package suites using the [testing procedure](../operations/testing.md).
 Record actual results in [feature status](../features.md); a rule name appearing

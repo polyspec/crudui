@@ -11,9 +11,10 @@
 //! through stdin. A wrong exit code, a missing field or a load error reported as
 //! valid fails this test.
 //!
-//! Rust LOAD wire (distinct exit from JS/Go): exit 2, stdout {error, code}, NO
-//! "valid" key. A bad request (no/non-object spec, bad JSON): exit 1, {error}
-//! with no "code". The CLI must reproduce the fixture output on stdout.
+//! Failure wire (identical in every language): a load or input failure exits 2
+//! with stdout exactly {error, code, at} and no "valid" key. A bad request
+//! (no/non-object spec, bad JSON): exit 1, {error} with no "code". The CLI must
+//! reproduce the fixture output on stdout.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -125,7 +126,7 @@ fn cli_boundary_matches_fixture() {
         let name = case.get("name").and_then(Value::as_str).unwrap_or("?");
         let run = run_cli(&request_of(case));
 
-        match (case.get("expected"), case.get("expectLoadError")) {
+        match (case.get("expected"), case.get("expectFailure")) {
             (Some(expected), None) => {
                 if run.code != Some(0) {
                     failures.push(format!(
@@ -163,15 +164,10 @@ fn cli_boundary_matches_fixture() {
                     ));
                 }
             }
-            (None, Some(expect_load_error)) => {
-                let want = expect_load_error
-                    .get("code")
-                    .and_then(Value::as_str)
-                    .unwrap_or("?");
-                // Rust LOAD wire: exit 2, {error, code}, NO "valid" key.
+            (None, Some(expect_failure)) => {
                 if run.code != Some(2) {
                     failures.push(format!(
-                        "[{}] LOAD case exit: want 2, got {:?} (stderr: {})",
+                        "[{}] failure exit: want 2, got {:?} (stderr: {})",
                         name, run.code, run.stderr
                     ));
                     continue;
@@ -180,40 +176,26 @@ fn cli_boundary_matches_fixture() {
                     Ok(v) => v,
                     Err(e) => {
                         failures.push(format!(
-                            "[{}] LOAD stdout not JSON: {:?} ({})",
+                            "[{}] failure stdout not JSON: {:?} ({})",
                             name, run.stdout, e
                         ));
                         continue;
                     }
                 };
-                if out.get("valid").is_some() {
+                let want = json!({
+                    "error": expect_failure.get("message").cloned().unwrap_or(Value::Null),
+                    "code": expect_failure.get("code").cloned().unwrap_or(Value::Null),
+                    "at": expect_failure.get("at").cloned().unwrap_or(Value::Null),
+                });
+                if out != want {
                     failures.push(format!(
-                        "[{}] LOAD failure must not carry a \"valid\" key: {}",
-                        name, out
-                    ));
-                    continue;
-                }
-                let got = out.get("code").and_then(Value::as_str).unwrap_or("?");
-                if got != want {
-                    failures.push(format!(
-                        "[{}] LOAD code mismatch: want {} got {} ({})",
-                        name, want, got, out
-                    ));
-                }
-                if out
-                    .get("error")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .is_empty()
-                {
-                    failures.push(format!(
-                        "[{}] LOAD failure must carry a non-empty error message: {}",
-                        name, out
+                        "[{}] failure stdout mismatch\n  expected: {}\n  actual:   {}",
+                        name, want, out
                     ));
                 }
             }
             _ => failures.push(format!(
-                "[{}] case has neither (or both) expected/expectLoadError",
+                "[{}] case must declare exactly one of expected/expectFailure",
                 name
             )),
         }

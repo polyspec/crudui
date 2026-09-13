@@ -21,10 +21,12 @@ checks forbidden keys and validates data. The `list` mode checks list structure
 and ignores `data`.
 
 A completed validation returns `valid` and `errors`. Each validation error
-contains `path`, `field`, `rule`, `message` and `value`. Invalid request syntax
-returns an `error` with exit status 1. Specification loading failures return
-`error`, `code` and `at` with exit status 2. A loading failure is not a data
-validation result.
+contains `path`, `field`, `rule`, `message` and `value`. An omitted `data` member
+validates `{}`. Invalid request syntax returns an `error` with exit status 1. A
+load failure (`ValidateError::Load`) or input failure (`ValidateError::Input`,
+data with the wrong shape) returns exactly `error`, `code` and `at` with exit
+status 2. A failure is not a data validation result. Every language's CLI uses
+this contract.
 
 ## Checks
 

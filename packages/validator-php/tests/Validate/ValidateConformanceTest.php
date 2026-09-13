@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Tests\Validate;
 
 use CRUDUI\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Validate\FormInputError;
 use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
  * CRUDUI validator conformance verifies SPEC §2 G5, §3 and §2 G1. The shared
  * fixture tests/fixtures/validate/cases.json defines each expected result or
- * load-error code. Result cases match `expected` (same valid +
- * errors[] including path/field/rule/message/value), error cases throw a
- * ComposeLoadError with the exact `expectLoadError.code`.
+ * failure record. Result cases match `expected` (same valid +
+ * errors[] including path/field/rule/message/value); failure cases throw a
+ * ComposeLoadError or FormInputError with the exact `expectFailure` code,
+ * message and location.
  */
 final class ValidateConformanceTest extends TestCase
 {
@@ -47,29 +49,28 @@ final class ValidateConformanceTest extends TestCase
     public function testValidateMatchesFixture(array $case): void
     {
         self::assertTrue(
-            \array_key_exists('expected', $case) || \array_key_exists('expectLoadError', $case),
-            "case {$case['name']} must declare expected or expectLoadError",
+            \array_key_exists('expected', $case) !== \array_key_exists('expectFailure', $case),
+            "case {$case['name']} must declare exactly one of expected or expectFailure",
         );
 
         /** @var array<string, mixed> $spec */
         $spec = $case['spec'];
-        /** @var array<string, mixed> $data */
-        $data = $case['data'] ?? [];
+        $data = $case['data'];
         /** @var array<string, array<string, mixed>>|null $files */
         $files = $case['files'] ?? null;
 
-        if (\array_key_exists('expectLoadError', $case)) {
-            /** @var array{code: string} $expect */
-            $expect = $case['expectLoadError'];
+        if (\array_key_exists('expectFailure', $case)) {
+            /** @var array{code: string, message: string, at: string} $expect */
+            $expect = $case['expectFailure'];
             try {
                 Validator::validate($spec, $data, ['files' => $files ?? []]);
-                self::fail("case {$case['name']} expected load error {$expect['code']} but validated successfully");
+                self::fail("case {$case['name']} expected failure {$expect['code']} but validated successfully");
             } catch (ComposeLoadError $e) {
-                self::assertSame(
-                    $expect['code'],
-                    $e->code,
-                    "error code mismatch for {$case['name']}: {$e->getMessage()}",
-                );
+                $actual = ['code' => $e->getErrorCode(), 'message' => $e->getMessage(), 'at' => implode('.', $e->getCompositionTrace())];
+                self::assertSame($expect, $actual, "failure mismatch for {$case['name']}");
+            } catch (FormInputError $e) {
+                $actual = ['code' => $e->getErrorCode(), 'message' => $e->getMessage(), 'at' => ''];
+                self::assertSame($expect, $actual, "failure mismatch for {$case['name']}");
             }
             return;
         }

@@ -18,9 +18,8 @@ use PHPUnit\Framework\TestCase;
  * The shared fixture tests/fixtures/list-validity/cases.json is the truth via
  * its `engine` field:
  *  - engine:"pass"       → a clean load → {valid:true, errors:[]} (exit 0).
- *  - engine:{code, at}   → a LOAD failure on the PHP wire: exit 0, {valid:false,
- *    errors:[{rule:"compose", code}]} (same wire the form mode uses for a load
- *    error, so the gateway distinguishes it from a data validation failure).
+ *  - engine:{code, at}   → a load failure on the failure wire shared by every
+ *    language and by form mode: exit 2, stdout exactly {error, code, at}.
  *
  * Do not weaken assertions.
  */
@@ -106,33 +105,25 @@ final class ListValidateCliTest extends TestCase
         self::assertArrayHasKey('engine', $case, "case {$case['name']} must declare an engine expectation");
 
         $run = self::runCli(self::requestOf($case));
-        self::assertSame(0, $run['status'], "list case exit should be 0; stderr: {$run['stderr']}");
-
         /** @var array<string, mixed>|null $out */
         $out = \json_decode(\trim($run['stdout']), true);
         self::assertIsArray($out, "non-JSON stdout: {$run['stdout']}");
-        self::assertSame(['valid', 'errors'], \array_keys($out), 'stdout must carry exactly {valid, errors}');
 
         if ($case['engine'] === 'pass') {
-            self::assertTrue($out['valid'], "case {$case['name']} should load clean: " . \json_encode($out['errors']));
-            self::assertSame([], $out['errors'], "case {$case['name']} must produce no errors on a clean load");
+            self::assertSame(0, $run['status'], "clean list exit should be 0; stderr: {$run['stderr']}");
+            self::assertSame(['valid' => true, 'errors' => []], $out, "case {$case['name']} should load clean");
             return;
         }
 
-        // engine:{code, at} — PHP LOAD wire: exit 0, {valid:false, errors:[{rule:"compose", code}]}.
+        // engine:{code, at} — load failure: exit 2, exactly {error, code, at}.
         /** @var array{code: string, at: string} $want */
         $want = $case['engine'];
-        self::assertFalse($out['valid'], "case {$case['name']} LOAD failure must surface valid:false");
-        self::assertIsArray($out['errors']);
-        $compose = null;
-        foreach ($out['errors'] as $e) {
-            if (\is_array($e) && ($e['rule'] ?? null) === 'compose') {
-                $compose = $e;
-                break;
-            }
-        }
-        self::assertNotNull($compose, "case {$case['name']} LOAD failure must carry a rule:\"compose\" error");
-        self::assertSame($want['code'], $compose['code'], "LOAD code mismatch for {$case['name']}");
+        self::assertSame(2, $run['status'], "list load failure exit should be 2; stderr: {$run['stderr']}");
+        self::assertSame(['error', 'code', 'at'], \array_keys($out), 'failure stdout must carry exactly {error, code, at}');
+        self::assertIsString($out['error']);
+        self::assertNotSame('', $out['error'], "case {$case['name']} failure must carry a message");
+        self::assertSame($want['code'], $out['code'], "failure code mismatch for {$case['name']}");
+        self::assertSame($want['at'], $out['at'], "failure location mismatch for {$case['name']}");
     }
 
     public function testFormModeUntouchedByListBranch(): void

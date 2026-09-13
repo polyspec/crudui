@@ -26,7 +26,8 @@ assert($result->valid);
 for unsupported metadata and validates submitted data. `Validator::validateList`
 checks list specification composition and metadata; it does not validate rows.
 Options accept a `files` object and `basepath`. Composition failures raise
-`CRUDUI\Validator\Compose\ComposeLoadError`.
+`CRUDUI\Validator\Compose\ComposeLoadError`. Submitted data with the wrong shape
+raises `CRUDUI\Validator\Validate\FormInputError` with code `INVALID_FORM_INPUT`.
 `getCompositionTrace()` returns the specification paths; `getTrace()` returns
 the exception stack.
 
@@ -51,11 +52,11 @@ php packages/validator-php/bin/validate.php < request.json
 
 The CLI reads `{ "spec": {}, "data": {}, "files": {}, "basepath": "", "mode": "form" }`.
 Only `spec` is required. `mode` is `form` or `list`; the default is `form`.
-Successful execution writes `{ "valid": true, "errors": [] }` or data errors.
-A composition failure uses exit code zero with a `rule: "compose"` error that
-includes its error code and message. A malformed request writes an error to
-stderr and exits with code one. This CLI transport contract is distinct from
-the library's exceptions.
+Successful execution writes `{ "valid": true, "errors": [] }` or data errors
+with exit code zero. An omitted `data` member validates `{}`; a supplied value
+must be a JSON object. A load or input failure writes exactly
+`{ "error", "code", "at" }` and exits with code two. A malformed request writes
+`{ "error" }` and exits with code one. Every language's CLI uses this contract.
 
 `composer test:current` runs composition, expression, current validation and
 field-model tests. `composer test` also runs the retained legacy rule suite and

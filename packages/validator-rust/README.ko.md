@@ -21,9 +21,12 @@ cargo run --bin validate < request.json
 `data`를 무시합니다.
 
 완료된 검증은 `valid`와 `errors`를 반환합니다. 각 검증 오류는 `path`,
-`field`, `rule`, `message`, `value`를 포함합니다. 요청 문법이 잘못되면
-`error`와 종료 상태 1을 반환합니다. 명세 로드 실패는 `error`, `code`, `at`과
-종료 상태 2를 반환합니다. 로드 실패는 데이터 검증 결과가 아닙니다.
+`field`, `rule`, `message`, `value`를 포함합니다. `data` 항목을 생략하면 `{}`를
+검증합니다. 요청 문법이 잘못되면 `error`와 종료 상태 1을 반환합니다. 로드 실패
+(`ValidateError::Load`) 또는 형태가 잘못된 데이터의 입력 실패
+(`ValidateError::Input`)는 정확히 `error`, `code`, `at`과 종료 상태 2를
+반환합니다. 실패는 데이터 검증 결과가 아닙니다. 모든 언어의 CLI가 이 계약을
+사용합니다.
 
 ## 검사
 

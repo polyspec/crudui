@@ -11,6 +11,7 @@ zend_class_entry *crudui_validator_ce;
 zend_class_entry *crudui_form_ce;
 zend_class_entry *crudui_form_error_ce;
 zend_class_entry *crudui_compose_error_ce;
+zend_class_entry *crudui_input_error_ce;
 static zend_object_handlers form_handlers;
 
 typedef struct {
@@ -121,6 +122,12 @@ PHP_METHOD(CRUDUI_Validator, validate)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    /* Root data is a request precondition; an empty PHP array is an empty object. */
+    if (Z_TYPE_P(data) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(data)) != 0 &&
+        zend_array_is_list(Z_ARRVAL_P(data))) {
+        crudui_input_failure("Form data must be an object");
+        return;
+    }
     call_three(spec, data, true, options, false, ps_validate, return_value);
 }
 
@@ -291,6 +298,7 @@ PHP_MINIT_FUNCTION(crudui)
     (void)module_number;
     crudui_form_error_ce = register_class_CRUDUI_FormError(spl_ce_RuntimeException);
     crudui_compose_error_ce = register_class_CRUDUI_Validator_Compose_ComposeLoadError(spl_ce_RuntimeException);
+    crudui_input_error_ce = register_class_CRUDUI_Validator_Validate_FormInputError(spl_ce_RuntimeException);
     crudui_generator_ce = register_class_CRUDUI_Generator();
     crudui_validator_ce = register_class_CRUDUI_Validator();
     crudui_form_ce = register_class_CRUDUI_Form();

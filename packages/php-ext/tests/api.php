@@ -7,6 +7,7 @@ use CRUDUI\FormError;
 use CRUDUI\Generator;
 use CRUDUI\Validator;
 use CRUDUI\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Validate\FormInputError;
 
 $native = ($argv[1] ?? '') === 'native';
 if (isset($argv[2])) require $argv[2];
@@ -32,7 +33,7 @@ function fails(callable $operation, string $class, ?string $code = null): Throwa
     throw new RuntimeException("Expected $class");
 }
 
-$classes = [Generator::class, Validator::class, Form::class, FormError::class, ComposeLoadError::class];
+$classes = [Generator::class, Validator::class, Form::class, FormError::class, ComposeLoadError::class, FormInputError::class];
 $signatures = [];
 foreach ($classes as $name) {
     $class = new ReflectionClass($name);
@@ -114,6 +115,12 @@ foreach ([['value'=>"\xFF"], (object)["\xFF"=>'value']] as $invalidUtf8) {
     fails(fn()=>new Form($template,$invalidUtf8), FormError::class, 'INVALID_FORM_INPUT');
     fails(fn()=>Validator::validate($spec,$invalidUtf8), InvalidArgumentException::class);
 }
+$inputError = fails(fn()=>Validator::validate($spec, ['a']), FormInputError::class, 'INVALID_FORM_INPUT');
+check($inputError->getMessage() === 'Form data must be an object', 'Root input failure message changed');
+$inputError = fails(fn()=>Validator::validate($spec, ['companies'=>[]]), FormInputError::class, 'INVALID_FORM_INPUT');
+check($inputError->getMessage() === 'Repeated data must be a keyed object: companies', 'Repeated input failure message changed');
+$explicitInput = new FormInputError('message');
+check($explicitInput->getMessage() === 'message' && $explicitInput->getErrorCode() === 'INVALID_FORM_INPUT', 'Explicit input failure changed');
 
 $validation = Validator::validate($spec, $data);
 same((object)['valid'=>true,'errors'=>[]], $validation, 'Native validation rejected valid data');

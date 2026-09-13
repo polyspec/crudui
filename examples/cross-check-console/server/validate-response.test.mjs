@@ -8,10 +8,8 @@ import { validateAll, validateAllList } from './validate-runner.mjs';
 const request = { spec: { type: 'group', properties: {} }, data: {} };
 const result = { valid: true, errors: [] };
 const error = { path: 'name', field: 'name', rule: 'required', message: 'Required.', value: '' };
-const loadError = { code: 'REF_FILE_NOT_FOUND', message: 'Missing specification.' };
-const phpLoadError = {
-  path: '', field: '', rule: 'compose', ...loadError, value: null,
-};
+const failure = { code: 'REF_FILE_NOT_FOUND', message: 'Missing specification.', at: 'Missing.yml' };
+const failureWire = { error: failure.message, code: failure.code, at: failure.at };
 
 beforeEach(() => spawnSync.mockReset());
 
@@ -34,18 +32,11 @@ describe('validator process responses', () => {
 
   test.each([
     ['form', validateAll], ['list', validateAllList],
-  ])('accepts documented %s load failures with their exit statuses', async (_, validate) => {
-    for (const [status, response] of [
-      [1, { code: loadError.code, error: loadError.message }],
-      [0, { valid: false, errors: [phpLoadError] }],
-      [1, { code: loadError.code, error: loadError.message, trace: [] }],
-      [2, { code: loadError.code, error: loadError.message, at: '' }],
-    ]) {
-      spawnSync.mockReturnValueOnce({ status, stdout: JSON.stringify(response), stderr: '' });
-    }
+  ])('accepts the shared %s failure response with exit 2', async (_, validate) => {
+    spawnSync.mockReturnValue({ status: 2, stdout: JSON.stringify(failureWire), stderr: '' });
     const actual = await validate(request);
     expect(actual.results.every(item => item.ok && item.valid === false)).toBe(true);
-    for (const item of actual.results) expect(item.loadError).toEqual(loadError);
+    for (const item of actual.results) expect(item.failure).toEqual(failure);
     expect(actual.idempotent).toBe(true);
   });
 
@@ -61,14 +52,22 @@ describe('validator process responses', () => {
     ['valid result with errors', { valid: true, errors: [error] }],
     ['invalid result without errors', { valid: false, errors: [] }],
     ['request error combined with validation', { ...result, error: 'failed' }],
-    ['invalid load error', { code: 1, error: 'failed' }],
-    ['load error without failure exit', { code: loadError.code, error: loadError.message }],
-    ['PHP load error without code', { valid: false, errors: [{ ...phpLoadError, code: undefined }] }],
-    ['PHP load error with numeric code', { valid: false, errors: [{ ...phpLoadError, code: 1 }] }],
-    ['PHP load error with field path', { valid: false, errors: [{ ...phpLoadError, path: 'name' }] }],
-    ['mixed PHP load and data errors', { valid: false, errors: [phpLoadError, error] }],
-  ])('rejects %s', async (_, response) => {
+    ['failure without exit 2', failureWire],
+  ])('rejects %s with exit 0', async (_, response) => {
     spawnSync.mockReturnValue({ status: 0, stdout: JSON.stringify(response), stderr: '' });
+    const actual = await validateAll(request);
+    expect(actual.results.every(item => item.ok === false)).toBe(true);
+    expect(actual.idempotent).toBe(false);
+  });
+
+  test.each([
+    ['numeric code', { ...failureWire, code: 1 }],
+    ['empty message', { ...failureWire, error: '' }],
+    ['missing location', { error: failure.message, code: failure.code }],
+    ['extra member', { ...failureWire, trace: [] }],
+    ['validation result', result],
+  ])('rejects a failure response with %s', async (_, response) => {
+    spawnSync.mockReturnValue({ status: 2, stdout: JSON.stringify(response), stderr: '' });
     const actual = await validateAll(request);
     expect(actual.results.every(item => item.ok === false)).toBe(true);
     expect(actual.idempotent).toBe(false);

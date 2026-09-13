@@ -50,3 +50,11 @@ namespace CRUDUI\Validator\Compose {
         public function __isset(string $name): bool {}
     }
 }
+
+namespace CRUDUI\Validator\Validate {
+    final class FormInputError extends \RuntimeException {
+        private readonly string $errorCode;
+        public function __construct(string $message) {}
+        public function getErrorCode(): string {}
+    }
+}

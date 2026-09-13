@@ -197,7 +197,11 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 500, err)
 		return
 	}
-	result, err := validate.Validate(spec, validatorData(data).(map[string]any), validate.Options{})
+	result, err := validate.Validate(spec, validatorData(data), validate.Options{})
+	if _, input := err.(*validate.FormInputError); input {
+		failure(w, 400, err)
+		return
+	}
 	if err != nil {
 		failure(w, 500, err)
 		return

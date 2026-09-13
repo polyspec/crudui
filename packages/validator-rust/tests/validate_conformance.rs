@@ -1,14 +1,14 @@
 //! CRUDUI validation-engine conformance (SPEC §2 pipeline, G-B 4-language idempotence).
 //!
 //! The shared fixture tests/fixtures/validate/cases.json defines the validation
-//! result (`expected = { valid, errors }`) or compose load-error code
-//! (`expectLoadError.code`).
+//! result (`expected = { valid, errors }`) or the exact failure record of a load
+//! or input failure (`expectFailure = { code, message, at }`).
 //!
 //! errors are compared IN ORDER (declaration / traversal order), key by key:
 //! path, field, rule, message, value. A reorder is a failure.
 
 use crudui_validator::validate::{validate, ValidateOptions};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use std::path::{Path, PathBuf};
 
 fn fixture_path() -> PathBuf {
@@ -83,7 +83,7 @@ fn validate_matches_fixture() {
 
         let result = validate(spec, &data, &options);
 
-        match (case.get("expected"), case.get("expectLoadError")) {
+        match (case.get("expected"), case.get("expectFailure")) {
             (Some(expected), None) => match result {
                 Ok(actual) => {
                     let actual_v = result_to_value(&actual);
@@ -95,35 +95,31 @@ fn validate_matches_fixture() {
                     }
                 }
                 Err(e) => failures.push(format!(
-                    "[{}] expected validation result but got load error {}: {}",
-                    name, e.code, e.message
+                    "[{}] expected validation result but got failure {}: {}",
+                    name,
+                    e.code(),
+                    e.message()
                 )),
             },
-            (None, Some(expect_load_error)) => {
-                let want = expect_load_error
-                    .get("code")
-                    .and_then(Value::as_str)
-                    .unwrap_or("?");
-                match result {
-                    Ok(actual) => failures.push(format!(
-                        "[{}] expected load error {} but validated successfully: {}",
-                        name,
-                        want,
-                        result_to_value(&actual)
-                    )),
-                    Err(e) => {
-                        let got = e.code.as_str();
-                        if got != want {
-                            failures.push(format!(
-                                "[{}] load-error code mismatch: expected {} got {} ({})",
-                                name, want, got, e.message
-                            ));
-                        }
+            (None, Some(expect_failure)) => match result {
+                Ok(actual) => failures.push(format!(
+                    "[{}] expected failure {} but validated successfully: {}",
+                    name,
+                    expect_failure,
+                    result_to_value(&actual)
+                )),
+                Err(e) => {
+                    let got = json!({ "code": e.code(), "message": e.message(), "at": e.at() });
+                    if &got != expect_failure {
+                        failures.push(format!(
+                            "[{}] failure mismatch\n  expected: {}\n  actual:   {}",
+                            name, expect_failure, got
+                        ));
                     }
                 }
-            }
+            },
             _ => failures.push(format!(
-                "[{}] case has neither (or both) expected/expectLoadError",
+                "[{}] case must declare exactly one of expected/expectFailure",
                 name
             )),
         }

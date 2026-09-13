@@ -46,19 +46,34 @@ export class EngineFixtureSource {
   }
 }
 
+/* Shared C value builders; a program includes only the helpers it calls. */
+const fixtureHelpers = [
+  ['put', [
+      'static void put(ps_value *object, const char *key, ps_value *value)',
+      '{ if (!value || !ps_set(object, key, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
+  ]],
+  ['push', [
+      'static void push(ps_value *array, ps_value *value)',
+      '{ if (!value || !ps_append(array, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
+  ]],
+  ['string_value', [
+      'static ps_value *string_value(const char *text, size_t length)',
+      '{ ps_value *value = ps_value_new(PS_NULL); if (!value || !ps_value_string(value, (const uint8_t *)text, length)) { ps_value_free(value); fputs("fixture string allocation failed\\n", stderr); abort(); } return value; }',,
+  ]],
+];
+
 export function fixtureProgram(body, declarations = []) {
+  const source = [...declarations, ...body].join('\n');
+  const helpers = fixtureHelpers
+    .filter(([name]) => new RegExp(`\\b${name}\\(`).test(source))
+    .flatMap(([, lines]) => lines);
   return [
     '#include "engine_internal.h"',
     '#include <stdio.h>',
     '#include <stdlib.h>',
     '#include <string.h>',
     '',
-    'static void put(ps_value *object, const char *key, ps_value *value)',
-    '{ if (!value || !ps_set(object, key, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',
-    'static void push(ps_value *array, ps_value *value)',
-    '{ if (!value || !ps_append(array, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',
-    'static ps_value *string_value(const char *text, size_t length)',
-    '{ ps_value *value = ps_value_new(PS_NULL); if (!value || !ps_value_string(value, (const uint8_t *)text, length)) { ps_value_free(value); fputs("fixture string allocation failed\\n", stderr); abort(); } return value; }',
+    ...helpers,
     '',
     ...declarations,
     'int main(void)',
@@ -284,11 +299,12 @@ function sourceForValidation() {
     const arguments_ = inputs.map(value => builder.emit(value));
     lines.push(`  ps_result actual = ${operation}(${arguments_.join(', ')});`);
     if (error) {
-      lines.push(`  if (actual.value || !actual.error ||`);
-      lines.push(`      !ps_is_string(ps_get(actual.error, "code"), ${cString(error.code)})${
-        error.at === undefined ? ')' : ` ||`}`);
+      const conditions = [`!ps_is_string(ps_get(actual.error, "code"), ${cString(error.code)})`];
+      if (error.message !== undefined)
+        conditions.push(`!ps_is_string(ps_get(actual.error, "message"), ${cString(error.message)})`);
       if (error.at !== undefined)
-        lines.push(`      !ps_is_string(ps_get(actual.error, "at"), ${cString(error.at)}))`);
+        conditions.push(`!ps_is_string(ps_get(actual.error, "at"), ${cString(error.at)})`);
+      lines.push(`  if (actual.value || !actual.error || ${conditions.join(' || ')})`);
       lines.push('  {');
       lines.push(`    fputs(${cString(`${name}: error differs\n`)}, stderr); return ${status};`);
       lines.push('  }');
@@ -321,11 +337,7 @@ function sourceForValidation() {
         ...(fixture.basepath === undefined ? {} : { basepath: fixture.basepath }),
       }],
       expected: fixture.expected,
-      error: fixture.expectLoadError && {
-        code: fixture.expectLoadError.code,
-        ...(fixture.expectLoadError.trace === undefined
-          ? {} : { at: fixture.expectLoadError.trace.join('.') }),
-      },
+      error: fixture.expectFailure,
     });
   }
   for (const fixture of specCases) {
@@ -359,7 +371,7 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form and list cases', async () => {
-  assert.equal(validationCases.length + specCases.length + listCases.length, 94,
+  assert.equal(validationCases.length + specCases.length + listCases.length, 100,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   try {
@@ -426,15 +438,15 @@ function sourceForValidationAllocationFailures() {
       properties: { name: { type: 'text' } },
     },
   });
-  const repeatedGroupData = builder.emit({ groups: [{ name: 'first' }] });
+  const repeatedGroupData = builder.emit({ groups: { first: { name: 'first' } } });
   const repeatedFieldProperties = builder.emit({
     tags: { type: 'text', multiple: true },
   });
-  const repeatedFieldData = builder.emit({ tags: ['first'] });
+  const repeatedFieldData = builder.emit({ tags: { first: 'first' } });
   builder.lines.push(
-    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 5);`,
+    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 4);`,
     '  if (status) return status;',
-    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 4);`,
+    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 3);`,
     '  if (status) return 10 + status;',
     `  ps_value_free(${repeatedGroupProperties}); ps_value_free(${repeatedGroupData});`,
     `  ps_value_free(${repeatedFieldProperties}); ps_value_free(${repeatedFieldData});`,
@@ -478,7 +490,7 @@ function sourceForValidationAllocationFailures() {
     '    const ps_value *properties, const ps_value *data, size_t allocation_count)',
     '{',
     '  for (size_t fail_at = 1; fail_at <= allocation_count; ++fail_at) {',
-    '    validation_context context = {data, ps_array_value()};',
+    '    validation_context context = {data, ps_array_value(), NULL};',
     '    if (!context.errors) return 1;',
     '    validation_allocation_index = 0;',
     '    validation_fail_at = fail_at;',
@@ -489,7 +501,7 @@ function sourceForValidationAllocationFailures() {
     '    if (!validation_allocation_failed) return 2;',
     '    if (result) return 3;',
     '  }',
-    '  validation_context context = {data, ps_array_value()};',
+    '  validation_context context = {data, ps_array_value(), NULL};',
     '  if (!context.errors) return 4;',
     '  validation_allocation_index = 0;',
     '  validation_fail_at = allocation_count + 1;',

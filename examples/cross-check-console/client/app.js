@@ -191,10 +191,10 @@ function normalizeValue(v) {
   return v;
 }
 
-/** Stable signature for one validate entry (load error distinct from valid:false). */
+/** Stable signature for one validate entry (a failure is distinct from valid:false). */
 function validateSignature(entry) {
   if (!entry || entry.ok === false) return '__error__';
-  if (entry.loadError) return `LOAD|${entry.loadError.code}`;
+  if (entry.failure) return `FAILURE|${entry.failure.code}|${entry.failure.message}|${entry.failure.at}`;
   return JSON.stringify({
     valid: Boolean(entry.valid),
     errors: normalizeErrors(entry.errors),
@@ -374,9 +374,9 @@ function buildFixtureExport() {
       note: `exported from cross-check console (lang=${r.lang}, idempotent=${state.validate.idempotent})`,
       spec: specObj,
       data: dataObj,
-      expected: r.loadError
-        ? { loadError: r.loadError }
-        : { valid: Boolean(r.valid), errors: normalizeErrors(r.errors) },
+      ...(r.failure
+        ? { expectFailure: r.failure }
+        : { expected: { valid: Boolean(r.valid), errors: normalizeErrors(r.errors) } }),
     }));
   }
 
@@ -821,10 +821,10 @@ function renderValidateMatrix() {
  * Generic 4-language idempotency matrix used by every validate endpoint (form
  * validate AND list-structure validate). It recomputes idempotency from the raw
  * per-language entries (computeIdempotent), paints divergent columns red, draws
- * the per-language mismatch diff, and shows each engine's valid/loadError/ms —
+ * the per-language mismatch diff, and shows each engine's valid/failure/ms —
  * identical surface for form and list so the two tabs read symmetrically. The
  * list path carries no `data` (a list has no rows); a clean structure is
- * valid:true, a forbidden meta key surfaces as the SAME loadError envelope.
+ * valid:true, a forbidden meta key surfaces as the SAME failure record.
  */
 function renderLangMatrix(host, v, title) {
   if (!host) return;
@@ -884,11 +884,12 @@ function validateColumn(lang, entry, divergent) {
     inner = `<div class="cc-cell-error">CLI 실행 실패<br/><code>${esc(
       entry.error?.message || entry.error || ''
     )}</code></div>`;
-  } else if (entry.loadError) {
+  } else if (entry.failure) {
     inner =
-      `<div class="cc-badge load">LOAD-ERROR</div>` +
-      `<div class="cc-loadcode">${esc(entry.loadError.code)}</div>` +
-      `<div class="cc-loadmsg">${esc(entry.loadError.message)}</div>`;
+      `<div class="cc-badge failure">FAILURE</div>` +
+      `<div class="cc-failure-code">${esc(entry.failure.code)}</div>` +
+      `<div class="cc-failure-message">${esc(entry.failure.message)}</div>` +
+      (entry.failure.at ? `<div class="cc-failure-message">${esc(entry.failure.at)}</div>` : '');
   } else {
     const validBadge = entry.valid
       ? `<div class="cc-valid valid">${iconOk()} 유효함</div>`
@@ -922,7 +923,7 @@ function validateMismatchPanel(results, groups) {
     let sig;
     if (!entry) sig = '(응답 없음)';
     else if (entry.ok === false) sig = '(CLI 실패)';
-    else if (entry.loadError) sig = `loadError ${entry.loadError.code}`;
+    else if (entry.failure) sig = `failure ${entry.failure.code} ${entry.failure.message} ${entry.failure.at}`;
     else
       sig = `valid=${Boolean(entry.valid)} errors=${JSON.stringify(
         normalizeErrors(entry.errors)
@@ -1014,7 +1015,7 @@ function renderFwMatrix(host, r, title) {
  * (/api/validate-list). The validate sister of the form tab's validate matrix,
  * drawn through the SAME renderLangMatrix: rows = js/php/go/rust, the badge is
  * the 4-language idempotency verdict, a forbidden meta key surfaces as the SAME
- * loadError cell. It sits ABOVE the search/list render matrices so the list tab
+ * failure cell. It sits ABOVE the search/list render matrices so the list tab
  * reads top-down as validate (4 langs) → render (3 frameworks), mirroring form.
  */
 function renderListValidateMatrix() {

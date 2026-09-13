@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use CRUDUI\Validator;
 use CRUDUI\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Validate\FormInputError;
 
 $native = ($argv[1] ?? '') === 'native';
 if (isset($argv[2])) require $argv[2];
@@ -13,15 +14,22 @@ $results = [];
 foreach (json_decode(file_get_contents($root.'/tests/fixtures/validate/cases.json'), false, 512, JSON_THROW_ON_ERROR) as $case) {
     $options = [];
     foreach (['files','basepath'] as $option) if (property_exists($case, $option)) $options[$option] = $case->{$option};
+    $failure = null;
     try {
         $actual = Validator::validate($case->spec, $case->data, $options);
-        if (!property_exists($case, 'expected')) throw new RuntimeException('Expected a composition exception');
-        if (json_encode($actual,JSON_THROW_ON_ERROR) !== json_encode($case->expected,JSON_THROW_ON_ERROR)) throw new RuntimeException('Validation result differs: '.json_encode($actual));
-        $results[] = ['case'=>$case->name,'result'=>$actual];
     } catch (ComposeLoadError $error) {
-        if (!property_exists($case,'expectLoadError') || $case->expectLoadError->code !== $error->getErrorCode()) throw $error;
-        $results[] = ['case'=>$case->name,'error'=>$error->getErrorCode()];
+        $failure = ['code'=>$error->getErrorCode(),'message'=>$error->getMessage(),'at'=>implode('.',$error->getCompositionTrace())];
+    } catch (FormInputError $error) {
+        $failure = ['code'=>$error->getErrorCode(),'message'=>$error->getMessage(),'at'=>''];
     }
+    if ($failure !== null) {
+        if (!property_exists($case,'expectFailure') || json_encode($failure,JSON_THROW_ON_ERROR) !== json_encode($case->expectFailure,JSON_THROW_ON_ERROR)) throw new RuntimeException($case->name.': failure differs: '.json_encode($failure));
+        $results[] = ['case'=>$case->name,'failure'=>$failure];
+        continue;
+    }
+    if (!property_exists($case, 'expected')) throw new RuntimeException($case->name.': expected a validation failure');
+    if (json_encode($actual,JSON_THROW_ON_ERROR) !== json_encode($case->expected,JSON_THROW_ON_ERROR)) throw new RuntimeException('Validation result differs: '.json_encode($actual));
+    $results[] = ['case'=>$case->name,'result'=>$actual];
 }
 foreach (['spec-validity','list-validity'] as $family) {
     foreach (json_decode(file_get_contents($root.'/tests/fixtures/'.$family.'/cases.json'), false, 512, JSON_THROW_ON_ERROR) as $case) {

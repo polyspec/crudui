@@ -2,7 +2,7 @@
  * Execute JavaScript, PHP, Go and Rust validator CLIs and compare their results.
  * Each process receives JSON on stdin and has a ten-second timeout. Responses
  * must match the CLI exit status and JSON contract. Data errors preserve path,
- * field, rule, message and value; specification failures use loadError.
+ * field, rule, message and value; load and input failures use failure.
  */
 
 import path from 'node:path';
@@ -78,13 +78,11 @@ function runRust(payload) {
 }
 
 /**
- * Execute a validator CLI and check its exit status and response fields.
- * Specification load failures use these process responses:
- *   PHP : exit 0, stdout { valid:false, errors:[{ rule:"compose", code, message }] }
- *   Go  : exit 1, stdout { error, code, trace }                (no "valid" key)
- *   Rust: exit 2, stdout { error, code }                       (no "valid" key)
- *   JS  : exit 1, stdout { error, code }                       (no "valid" key)
- *   data validation: exit 0, stdout { valid, errors:[5-field] }
+ * Execute a validator CLI and check its exit status and response fields. Every
+ * language uses the same responses:
+ *   validation result:     exit 0, stdout { valid, errors:[5-field] }
+ *   load or input failure: exit 2, stdout exactly { error, code, at }
+ *   malformed request:     exit 1, stdout { error }
  */
 function runCli(lang, cmd, args, cwd, payload) {
   const t0 = performance.now();
@@ -116,13 +114,12 @@ function runCli(lang, cmd, args, cwd, payload) {
     return cliFail(lang, ms, proc.stderr || `invalid ${lang} JSON response (exit ${proc.status})`);
   }
 
-  // JavaScript, Go and Rust report composition failures with a nonzero exit.
-  if (!Object.hasOwn(parsed, 'valid') && Object.hasOwn(parsed, 'code')) {
-    const loadExit = lang === 'rust' ? 2 : 1;
-    if (lang === 'php' || proc.status !== loadExit ||
+  if (proc.status === 2) {
+    if (Object.keys(parsed).sort().join(',') !== 'at,code,error' ||
         typeof parsed.code !== 'string' || !parsed.code ||
-        typeof parsed.error !== 'string' || !parsed.error) {
-      return cliFail(lang, ms, `invalid ${lang} load response (exit ${proc.status})`);
+        typeof parsed.error !== 'string' || !parsed.error ||
+        typeof parsed.at !== 'string') {
+      return cliFail(lang, ms, `invalid ${lang} failure response`);
     }
     return {
       lang,
@@ -130,7 +127,7 @@ function runCli(lang, cmd, args, cwd, payload) {
       valid: false,
       errors: [],
       ms,
-      loadError: { code: parsed.code, message: parsed.error },
+      failure: { code: parsed.code, message: parsed.error, at: parsed.at },
     };
   }
 
@@ -140,27 +137,8 @@ function runCli(lang, cmd, args, cwd, payload) {
   if (typeof parsed.valid !== 'boolean' || !Array.isArray(parsed.errors) ||
       !parsed.errors.every(isValidationError) ||
       parsed.valid !== (parsed.errors.length === 0) ||
-      Object.hasOwn(parsed, 'error') || Object.hasOwn(parsed, 'code')) {
+      Object.keys(parsed).length !== 2) {
     return cliFail(lang, ms, `invalid ${lang} validation response`);
-  }
-
-  // PHP reports composition failures as one complete error with a code.
-  const composeErr = parsed.errors.find(error => error.rule === 'compose');
-  if (composeErr) {
-    if (lang !== 'php' || parsed.errors.length !== 1 ||
-        typeof composeErr.code !== 'string' || !composeErr.code ||
-        !composeErr.message || composeErr.path !== '' || composeErr.field !== '' ||
-        composeErr.value !== null) {
-      return cliFail(lang, ms, `invalid ${lang} load response`);
-    }
-    return {
-      lang,
-      ok: true,
-      valid: false,
-      errors: [],
-      ms,
-      loadError: { code: composeErr.code, message: composeErr.message },
-    };
   }
 
   return {
@@ -169,7 +147,7 @@ function runCli(lang, cmd, args, cwd, payload) {
     valid: parsed.valid,
     errors: parsed.errors,
     ms,
-    loadError: null,
+    failure: null,
   };
 }
 
@@ -180,7 +158,7 @@ function cliFail(lang, ms, message) {
     valid: false,
     errors: [],
     ms,
-    loadError: null,
+    failure: null,
     error: String(message || '').trim() || `${lang} CLI failed`,
   };
 }
@@ -195,10 +173,10 @@ function isValidationError(error) {
     Object.hasOwn(error, 'value');
 }
 
-/** Stable comparison signature: valid + load code + sorted errors. */
+/** Stable comparison signature: the complete failure record, or valid + sorted errors. */
 export function signature(r) {
   if (!r.ok) return `__error__:${r.error || ''}`;
-  if (r.loadError) return `load:${r.loadError.code}`;
+  if (r.failure) return `failure:${r.failure.code}|${r.failure.message}|${r.failure.at}`;
   const sorted = [...r.errors].sort((a, b) =>
     (a.field + '|' + a.rule).localeCompare(b.field + '|' + b.rule)
   );
@@ -229,7 +207,7 @@ export function compareIdempotency(results) {
         lang: r.lang,
         ok: r.ok,
         valid: r.valid,
-        loadError: r.loadError,
+        failure: r.failure,
         errors: r.errors,
         error: r.error ?? null,
       })),

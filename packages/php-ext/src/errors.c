@@ -5,7 +5,29 @@ static void initialize_error(zend_class_entry *ce, zend_object *object, zend_str
     zend_update_property_str(ce, object, ZEND_STRL("message"), message);
     zend_update_property_str(ce, object, ZEND_STRL("errorCode"), code);
     if (ce == crudui_form_error_ce) zend_update_property(ce, object, ZEND_STRL("path"), detail);
-    else zend_update_property(ce, object, ZEND_STRL("compositionTrace"), detail);
+    else if (ce == crudui_compose_error_ce) zend_update_property(ce, object, ZEND_STRL("compositionTrace"), detail);
+}
+
+void crudui_input_failure(const char *message)
+{
+    zend_object *error = zend_throw_exception(crudui_input_error_ce, message, 0);
+    zend_string *code = zend_string_init("INVALID_FORM_INPUT", sizeof("INVALID_FORM_INPUT") - 1, false);
+    zend_string *text = zend_string_init(message, strlen(message), false);
+    initialize_error(crudui_input_error_ce, error, code, text, NULL);
+    zend_string_release(code);
+    zend_string_release(text);
+}
+
+PHP_METHOD(CRUDUI_Validator_Validate_FormInputError, __construct)
+{
+    (void)return_value;
+    zend_string *message;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(message)
+    ZEND_PARSE_PARAMETERS_END();
+    zend_string *code = zend_string_init("INVALID_FORM_INPUT", sizeof("INVALID_FORM_INPUT") - 1, false);
+    initialize_error(crudui_input_error_ce, Z_OBJ_P(ZEND_THIS), code, message, NULL);
+    zend_string_release(code);
 }
 
 void crudui_invalid_value(const char *message, bool form_error)
@@ -71,6 +93,12 @@ PHP_METHOD(CRUDUI_FormError, getPath)
     return_property(crudui_form_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("path"), return_value);
 }
 
+PHP_METHOD(CRUDUI_Validator_Validate_FormInputError, getErrorCode)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    return_property(crudui_input_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("errorCode"), return_value);
+}
+
 PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, getErrorCode)
 {
     ZEND_PARSE_PARAMETERS_NONE();
@@ -113,6 +141,8 @@ void crudui_throw(ps_value *error)
     bool composition = zend_string_equals_literal(Z_STR_P(kind), "compose");
     if (zend_string_equals_literal(Z_STR_P(kind), "internal")) {
         zend_throw_error(NULL, "%s", Z_STRVAL_P(message));
+    } else if (zend_string_equals_literal(Z_STR_P(kind), "input")) {
+        crudui_input_failure(Z_STRVAL_P(message));
     } else {
         zend_class_entry *ce = composition ? crudui_compose_error_ce : crudui_form_error_ce;
         zend_object *object = zend_throw_exception(ce, Z_STRVAL_P(message), 0);

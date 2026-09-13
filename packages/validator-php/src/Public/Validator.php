@@ -10,15 +10,24 @@ use CRUDUI\Validator\Compose\Patch;
 use CRUDUI\Validator\Compose\Ref;
 use CRUDUI\Validator\ForbiddenScan;
 use CRUDUI\Validator\Support\JsonValue;
+use CRUDUI\Validator\Validate\FormInputError;
 use CRUDUI\Validator\Validate\Validator as DataValidator;
 use stdClass;
 
 /** Compose specifications and validate submitted data or list declarations. */
 final class Validator
 {
-    /** Return object validation results; composition failures raise ComposeLoadError. */
+    /**
+     * Return object validation results. Root data that is a non-empty list raises
+     * FormInputError before composition; composition failures raise
+     * ComposeLoadError; group or repeated data with the wrong shape raises
+     * FormInputError.
+     */
     public static function validate(array|stdClass $spec, array|stdClass $data, array $options = []): stdClass
     {
+        if (is_array($data) && $data !== [] && array_is_list($data)) {
+            throw new FormInputError('Form data must be an object');
+        }
         $spec = (array) JsonValue::object($spec);
         $data = JsonValue::object($data);
         $loader = self::loader($options);

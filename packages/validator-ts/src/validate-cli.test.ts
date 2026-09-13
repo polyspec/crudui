@@ -13,8 +13,9 @@
  * valid:false, a dropped error field) turns this red — exactly what the gateway
  * would hit at runtime.
  *
- * JS load-failure wire (mirrors Go/Rust; distinct from PHP): exit 1, stdout
- * `{error, code}` with NO "valid" key. A LOAD failure is never valid:false.
+ * Failure wire (identical in every language): a load or input failure exits 2
+ * with stdout `{error, code, at}` and no "valid" key; a malformed request exits
+ * 1 with stdout `{error}`.
  *
  * Do not weaken assertions. The fixture is the JS reference engine's own output;
  * the CLI must reproduce it verbatim on stdout.
@@ -43,9 +44,9 @@ interface FixtureCase {
   spec: Record<string, unknown>;
   files?: Record<string, Record<string, unknown>>;
   basepath?: string;
-  data: Record<string, unknown>;
+  data: unknown;
   expected?: { valid: boolean; errors: unknown[] };
-  expectLoadError?: { code: string };
+  expectFailure?: { code: string; message: string; at: string };
 }
 
 const cases: FixtureCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
@@ -96,7 +97,7 @@ function normalize(v: unknown): unknown {
 function requestOf(c: FixtureCase) {
   return {
     spec: c.spec,
-    data: c.data ?? {},
+    data: c.data,
     files: c.files ?? {},
     basepath: c.basepath ?? '',
   };
@@ -118,21 +119,18 @@ describe('JS validate CLI — result cases stream {valid,errors} verbatim', () =
   }
 });
 
-describe('JS validate CLI — LOAD failure wire: exit 1, {error,code}, no valid', () => {
-  for (const c of cases.filter((x) => x.expectLoadError)) {
+describe('JS validate CLI — failure wire: exit 2, exactly {error, code, at}', () => {
+  for (const c of cases.filter((x) => x.expectFailure)) {
     test(c.name, () => {
       const run = runCli(requestOf(c));
-      // JS LOAD wire: exit 1.
-      expect(run.status).toBe(1);
+      expect(run.status, `stderr: ${run.stderr}`).toBe(2);
       expect(run.parsed, `non-JSON stdout: ${run.stdout}`).not.toBeNull();
-      const out = run.parsed as Record<string, unknown>;
-      // A LOAD failure is NOT valid:false — the "valid" key must be absent.
-      expect(out.valid, 'LOAD failure must not masquerade as valid:false').toBe(
-        undefined
-      );
-      expect(out.code).toBe(c.expectLoadError!.code);
-      expect(typeof out.error).toBe('string');
-      expect((out.error as string).length).toBeGreaterThan(0);
+      // A failure is not a validation result: no "valid" or "errors" key.
+      expect(run.parsed).toStrictEqual({
+        error: c.expectFailure!.message,
+        code: c.expectFailure!.code,
+        at: c.expectFailure!.at,
+      });
     });
   }
 });
@@ -179,11 +177,11 @@ describe('JS validate CLI — malformed request: exit 1, {error} with no code', 
 });
 
 describe('JS validate CLI — every fixture case is exercised at the boundary', () => {
-  test('no case is silently skipped', () => {
+  test('each case declares exactly one expectation', () => {
     for (const c of cases) {
       expect(
-        c.expected !== undefined || c.expectLoadError !== undefined,
-        `${c.name} must declare expected or expectLoadError`
+        (c.expected !== undefined) !== (c.expectFailure !== undefined),
+        `${c.name} must declare exactly one of expected or expectFailure`
       ).toBe(true);
     }
     expect(cases.length).toBeGreaterThan(0);

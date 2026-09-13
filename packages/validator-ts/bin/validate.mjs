@@ -28,21 +28,23 @@
  * This is a THIN wrapper: it adds no validation logic and never touches the legacy
  * Validator (R7 parallel run).
  *
- * Failure surfaces (mirrors the Rust wrapper exactly — exit 1, {error,code}):
- *   - A ComposeLoadError (unresolved $ref/$patch, or a forbidden meta key in the
- *     composed spec) is a LOAD failure, NOT valid:false: the spec never comes
- *     into existence. It is reported on stdout as {"error": <msg>, "code":
- *     <ComposeErrorCode>} with exit 1 (no "valid" key), so the gateway keys off
- *     the absence of "valid" to distinguish it from a data validation failure.
+ * Failure surfaces (identical in every language):
+ *   - A ComposeLoadError (unresolved $ref/$patch, or a forbidden meta key) and a
+ *     FormInputError (root, group or repeated data with the wrong shape) produce
+ *     no validation result. Both exit 2 with stdout {"error": <message>, "code":
+ *     <code>, "at": <composition trace joined with "." or "">}.
  *   - A malformed request (bad JSON, missing/non-object spec) is reported as
  *     {"error": <msg>} (no "code") with exit 1.
+ *
+ * An omitted `data` member validates `{}`. A supplied `data` value is passed to
+ * the validator unchanged.
  *
  * It loads the CRUDUI source (TypeScript / .ts imports) through the tsx loader, which
  * the gateway wires via `node --import tsx`. Do NOT embed spec/data in argv — the
  * request is raw JSON on stdin; no shell/string quoting is involved.
  */
 
-import { validate, ComposeLoadError } from '../src/validate/index.ts';
+import { validate, ComposeLoadError, FormInputError } from '../src/validate/index.ts';
 import { validateList } from '../src/validate-list/index.ts';
 
 /** Emit one JSON line to stdout, then exit with the given code. */
@@ -93,8 +95,9 @@ async function main() {
   // a list-spec STRUCTURE (compose + forbidden-scan) and ignores rows (SPEC §9).
   const mode = req.mode === 'list' ? 'list' : 'form';
 
-  // `data` defaults to {} (JS validate `data ?? {}`). Ignored in list mode.
-  const data = req.data && typeof req.data === 'object' && !Array.isArray(req.data) ? req.data : {};
+  // An omitted `data` member validates {}; a supplied value is validated as is.
+  // Ignored in list mode.
+  const data = Object.hasOwn(req, 'data') ? req.data : {};
 
   // Optional virtual file set + basepath for $ref resolution. The gateway sends
   // the same { files, basepath } every wrapper receives; omitting them here would
@@ -112,10 +115,12 @@ async function main() {
   try {
     result = mode === 'list' ? validateList(spec, opts) : validate(spec, data, opts);
   } catch (e) {
-    // ComposeLoadError is a LOAD failure (unresolved $ref / forbidden key), NOT
-    // a validation failure. Surface { error, code } — never valid:false.
+    // Load and input failures produce no validation result.
     if (e instanceof ComposeLoadError) {
-      emit({ error: e.message, code: e.code }, 1);
+      emit({ error: e.message, code: e.code, at: e.trace.join('.') }, 2);
+    }
+    if (e instanceof FormInputError) {
+      emit({ error: e.message, code: e.code, at: '' }, 2);
     }
     // Any other throw is an internal CLI failure: { error } with no code.
     emit({ error: 'validate failed: ' + (e && e.stack ? e.stack : String(e)) }, 1);
