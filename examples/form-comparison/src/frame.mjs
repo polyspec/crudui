@@ -152,7 +152,12 @@ function renderedFormDom() {
   copy.style.removeProperty('--crudui-form-end-extent');
   copy.style.removeProperty('--crudui-form-end-top');
   copy.style.removeProperty('--crudui-form-end-after');
-  if (copy.getAttribute('style') === '') copy.removeAttribute('style');
+  // A style attribute is a CSS declaration block: compare its declarations as the CSS object
+  // model serializes them, as React writes `name: value;` for the markup's `name:value`.
+  for (const element of [copy, ...copy.querySelectorAll('[style]')]) {
+    if (element.style.cssText === '') element.removeAttribute('style');
+    else element.setAttribute('style', element.style.cssText);
+  }
   return JSON.stringify(domSnapshot(copy));
 }
 /**
