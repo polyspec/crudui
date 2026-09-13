@@ -1,7 +1,17 @@
 /** Structure map model derived from evaluated nodes. */
 
-import type { RowSelection } from './instance';
+import type { RowSelection } from './view';
 import type { ControlsVM, NodeVM } from './viewmodel';
+
+/** What a structure map renders: evaluated nodes, selection and undo availability, such as a form snapshot. */
+export interface OutlineState {
+  /** Evaluated form nodes. */
+  readonly fields: NodeVM[];
+  /** Selected row, if any. */
+  readonly selection?: RowSelection;
+  /** Whether the undo control is enabled. */
+  readonly canUndo: boolean;
+}
 
 /** One collection in the structure map. */
 export interface OutlineCollection {

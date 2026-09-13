@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  formFrameworks, formRenderingPaths, formServers, formTransports,
-  framePath, parseFormApiPath, reportCombinations,
+  formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
+  framePath, initializationCategories, initializationCombinations, initializationComparisons,
+  initializationStages,
+  parseFormApiPath, reportCombinations,
 } from './runtime-paths.mjs';
 
 test('defines the complete current browser matrix', () => {
@@ -18,6 +20,10 @@ test('defines the complete current browser matrix', () => {
   assert.deepEqual(reportCombinations().at(-1), {
     path: 'createForm', framework: 'svelte', transport: 'json',
   });
+  assert.deepEqual(formInitializations, ['data', 'inject']);
+  assert.deepEqual(initializationCombinations().length, 6);
+  assert.equal(initializationStages.length, 18);
+  assert.equal(initializationComparisons.length * initializationCategories.length, 192);
 });
 
 test('parses only complete current API paths', () => {

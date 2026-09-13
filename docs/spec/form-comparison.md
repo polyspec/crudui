@@ -129,19 +129,35 @@ and the browser restores that template from JSON. The `bindForm` path evaluates
 field models from the template and current data; its application controller
 updates keyed data and binds the fields again after input and row operations. The
 `createForm` path creates an editable form session from the same template and uses
-the session for data replacement and row operations. Each frame mounts a form
-before it requests saved data, then injects the data into the existing rendering
-path. Compile failures are returned as failures; the browser does not compile a
-replacement template.
+the session for data replacement and row operations. Compile failures are returned
+as failures; the browser does not compile a replacement template.
 
-The complete browser matrix contains these 48 scenario reports:
+The main page selects a server, framework and rendering path and shows two
+initialization paths side by side with the same template, record and language.
+The left frame (`initialization=data`) requests the saved record and creates the
+form with it. The right frame (`initialization=inject`) mounts the form without
+data before it requests the saved record, then injects the record into the
+existing form. A frame URL without one of these values fails. SSR documents link
+to the `data` path. Frames load `@crudui/generator-core/styles.css` before the
+page stylesheet, so computed CSS is compared with the grammar styles. Each frame
+renders the form, the structure map and the data view inside the compared element.
+
+The `bindForm` controller supports the same actions as a `createForm` instance:
+row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
+`undo`. It keeps collapsed rows, the selected row and the undo history outside the
+keyed data using generator-core's view-state and history functions, and moves or keeps focus by the form runtime's
+focus rule.
+
+The complete browser matrix contains 48 scenario reports and 24 initialization
+reports:
 
 - four servers: PHP, PHP extension, Go and Rust;
 - three frameworks: React, Vue and Svelte;
-- two transports: native multipart form and ordered JSON.
-- two rendering paths: `bindForm` and `createForm`.
+- two rendering paths: `bindForm` and `createForm`;
+- two transports for scenario reports: native multipart form and ordered JSON.
 
 Every report uses the same specification, compiled template, data and checks.
+Scenario checks run in the `data` frame.
 Native and JSON saves must produce the same records, identifiers, parent
 identifiers and positions. Ordered JSON preserves object member order at every
 depth.
@@ -180,16 +196,45 @@ Each scenario report checks all of the following operations:
 - native and JSON transmission, malformed request rejection and exact reload;
 - empty company, store and department collection lifecycles;
 - parent ownership, stable sibling identifiers and non-reused deleted IDs;
-- cached structure reuse and compile-request stability;
-- initialization with data compared with mount-then-inject.
+- cached structure reuse and compile-request stability.
 
-Initialization comparison records raw HTML, parsed DOM, every attribute, live
-control state, native fields, ordered JSON data, focus, selection, computed CSS
-for elements and pseudo-elements, validation results and stored records. It
-compares both initialization paths at every stage without removing or replacing
-identifiers, attributes, styles or values. Repeated injection must be idempotent.
+Each initialization report runs 18 stages in the left frame, resets the
+repository, then runs the same stages in the right frame. Row key inputs repeat
+from the `copied` stage to `saved-new` in both runs, so both columns create the
+same keys. The stages are:
 
-Pointer and keyboard checks verify focus, selection and scroll preservation.
+- `mounted`: reset the repository and create (left) or mount and inject (right);
+- `reinjected-1`, `reinjected-2`: inject the saved record again with the same
+  cached template;
+- `data-hidden`, `data-restored`: inject a record that hides a conditional field,
+  then the saved record;
+- `edited`: edit the company name, store name and notes, and toggle the checkbox;
+- `saved`: save and record the validation result, stored records and key changes;
+- `reloaded`: reload the saved record;
+- `copied`, `moved`, `copy-removed`, `added`: copy, move, remove and add company
+  rows through their buttons, editing the added row;
+- `saved-new`: save the added row;
+- `collapsed-all`, `expanded-all`, `undone`: press the structure map's Collapse
+  all, Expand all and Undo buttons;
+- `empty`, `restored`: inject an empty company collection, then the saved record.
+
+Each right stage is compared with the stored left stage using `formSnapshot`,
+`styleSnapshot` and `compareSnapshots`: raw HTML, parsed DOM with every attribute,
+live control state, native fields, computed CSS for elements and pseudo-elements,
+ordered JSON data, focus and text selection, and the save response. Each column's
+reinjection and restoration stages are also compared with its own `mounted`
+stage. Nothing is removed, replaced or normalized. The report has 24 comparisons
+in eight categories, 192 results.
+
+The page shows both frames. After both frames load, the top list compares their
+`mounted` state; the comparison button and the complete check add each stage as
+it completes. The report retains each stage's HTML, DOM, control state, fields,
+data, focus, response and CSS digest, and the expected and actual CSS of any
+failed CSS comparison.
+
+Pointer and keyboard checks verify that a row addition focuses the first input of
+the new row, that the input is inside the frame viewport, and that the main page
+does not scroll.
 Static browser-entry checks cover both rendering paths and every framework and
 compare corresponding documents from all four servers by SHA-256. Generation
 verification checks Korean and English SSR output for every server and
@@ -208,14 +253,17 @@ It also fails after 300,000 milliseconds without a change to the current report,
 completed report count, request count or response count. Both failures retain
 the current state and every completed report.
 
-A complete server report requires 12 scenario reports, 60 interaction checks,
-six mount-before-load checks, six static-document checks, no browser or page
-errors, one matching candidate commit for both rendering paths and a duration
-within 900,000 milliseconds. Fields named `passed` must be booleans. Missing
-activity, initialization or timing evidence makes the report incomplete.
+A complete server report requires a browser job of 18 reports: 12 scenario
+reports with 19 checks each and six initialization reports with 192 comparison
+results each. It also requires 60 interaction checks, six mount-before-load checks
+of the `inject` frame, six static-document checks, no browser or page errors, one
+matching candidate commit for both rendering paths and a duration within 900,000
+milliseconds. Fields named `passed` must be booleans. Missing activity,
+initialization stages or timing evidence makes the report incomplete.
 
 The four-server aggregate requires one complete report from every server. It
-requires 960 successful scenario checks, 240 successful interaction checks, 24
+requires 912 successful scenario checks, 4,608 successful initialization
+comparisons, 240 successful interaction checks, 24
 successful mount checks, 24 successful static-document checks, equal corresponding
 static SSR documents across servers and four successful performance results. Any failed,
 missing, malformed or unequal result sets `passed: false` and returns status 1.

@@ -13,8 +13,8 @@ export type { UnsupportedMode } from '@crudui/generator-core';
 // Node and widget rendering.
 export type { NodeVM, WidgetModel } from '@crudui/generator-core';
 export { nodeVNode, controlsVNode } from './components/Node';
-export { Outline } from './components/Outline';
-export { DataView } from './components/DataView';
+export { Outline, outlineVNode } from './components/Outline';
+export { DataView, dataVNode } from './components/DataView';
 export { Widget } from './components/Widget';
 export type { AnyWidget } from './components/Widget';
 

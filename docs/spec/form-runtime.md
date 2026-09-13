@@ -128,6 +128,12 @@ rekeying a row moves it to the new key. View changes do not change `revision`.
 Server rendering uses the initial view: every row expanded and no selection. The
 [form markup](form-markup.md) defines the structure map and data view.
 
+generator-core exports these rules as pure functions over immutable values:
+`initialView`, `toggleRowView`, `setAllExpandedView`, `selectRowView`,
+`removeRowView`, `rekeyRowView` and `collapsibleRows` for view state, and
+`emptyHistory`, `recordChange`, `canUndo` and `undoChange` for history. An
+application that owns its data with `bindForm` applies the same functions.
+
 ## Rendering and validation
 
 Input names and wrapper identifiers include the actual row keys. Rule paths

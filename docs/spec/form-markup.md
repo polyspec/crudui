@@ -113,8 +113,11 @@ looking through plain groups. The structure map uses the node grammar: each row
 has a `select-row` button with its number and title, and the selected row has
 `aria-current="true"`. Its header holds `expand-all`, `collapse-all` and `undo`
 (disabled when nothing can be undone). React, Vue and Svelte provide `Outline`
-and `DataView`; the HTML renderer provides `renderOutline(form)` and
-`renderData(form)`. `connectForm` runs actions in the form and selects a row when
+and `DataView`, and the stateless `OutlineView` and `DataPanel` (Vue: `outlineVNode`
+and `dataVNode`) for applications that own their data with `bindForm`; the HTML renderer provides `renderOutline(form)` and
+`renderData(form)`, and `renderOutlineView(state, messages)` and
+`renderDataPanel(data, messages)` for the same applications. All four renderers
+reproduce the shared [structure map fixture](../../tests/fixtures/form-outline/cases.json). `connectForm` runs actions in the form and selects a row when
 one of its controls receives focus. `connectOutline(element, form, formElement)`
 runs structure-map actions and scrolls the selected form row into view.
 
