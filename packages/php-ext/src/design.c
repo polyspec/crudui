@@ -12,14 +12,6 @@ static char **expression_path(const char *path, size_t *length)
 {
     char **parts = NULL;
     if (!ps_path_parts(path, &parts, length)) return NULL;
-    for (size_t i = 0; i < *length; ++i) {
-        const char *position = ps_position(parts[i]);
-        if (position != parts[i]) {
-            char *copy = ps_string_join(position, "", "");
-            if (!copy) { ps_path_parts_free(parts, *length); return NULL; }
-            free(parts[i]); parts[i] = copy;
-        }
-    }
     return parts;
 }
 

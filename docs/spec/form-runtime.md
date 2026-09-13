@@ -67,8 +67,10 @@ submission follows control order. Keyed JSON uses document member order as row
 order, preserved through parsing, editing, persistence and serialization. Form
 data contains no auxiliary order or identity fields. Numeric object keys and
 keys containing path separators are rejected by editable instances. Callers use `sequenceRowKey` when
-constructing data from database sequences. Editable instances do not convert
-arrays or infer hidden identity fields.
+constructing data from database sequences. Form binding and editable instances
+reject repeated data that is not a keyed object; they do not convert arrays or
+infer hidden identity fields. Field paths contain row keys only; no path segment
+encodes an array position.
 
 ## Row operations
 

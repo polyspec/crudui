@@ -5,10 +5,9 @@ import {
   controlId,
   getValueByPath,
   joinClass,
-  positionSegment,
+  parsePathString,
   styleString,
   toBracketNotationWithPrefix,
-  valuePathSegments,
   wrapperLayerName,
 } from './util';
 import { resolveDesign, type ResolvedDesign } from './design';
@@ -189,16 +188,15 @@ interface RowIdentity {
   uniqid: string;
 }
 
-function rowIdentities(value: unknown): RowIdentity[] {
-  if (Array.isArray(value)) {
-    return value.map((_, i) => ({ seg: positionSegment(i), uniqid: String(i) }));
+/** Row keys of a keyed collection. Missing data has one initial row. */
+function rowIdentities(value: unknown, path: string): RowIdentity[] {
+  if (value === undefined) {
+    return [{ seg: '__0000000000000__', uniqid: '__0000000000000__' }];
   }
-  if (value !== null && typeof value === 'object') {
-    const keys = Object.keys(value as Record<string, unknown>);
-    return keys.map((k) => ({ seg: k, uniqid: k }));
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`Repeated data must be a keyed object: ${path}`);
   }
-  // Missing data creates one initial row.
-  return [{ seg: positionSegment(0), uniqid: '0' }];
+  return Object.keys(value).map((k) => ({ seg: k, uniqid: k }));
 }
 
 function inputGroupWrapperClass(design: ResolvedDesign, rowIndex = 0): string {
@@ -251,7 +249,7 @@ export function buildField(
   children: readonly FormFieldTemplate[]
 ): FieldViewModel {
   const fieldType = String(spec.type ?? '');
-  const ctx = makeContext(valuePathSegments(path), state.data);
+  const ctx = makeContext(parsePathString(path), state.data);
   const design = resolveDesign(spec.design, ctx);
   const label = spec.label ? state.t(spec.label as never) : undefined;
   const description = spec.description ? state.t(spec.description as never) : undefined;
@@ -371,12 +369,12 @@ function buildMultipleLeaf(
   const fieldType = String(spec.type ?? '');
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
   const value = getValueByPath(state.data, path);
-  const identities = rowIdentities(value);
-  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), valuePathSegments(path).length] };
+  const identities = rowIdentities(value, path);
+  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), parsePathString(path).length] };
 
   const rows: RowVM[] = identities.map((row, rowIndex) => {
     const rowPath = `${path}.${row.seg}`;
-    const rowCtx = makeContext(valuePathSegments(rowPath), state.data);
+    const rowCtx = makeContext(parsePathString(rowPath), state.data);
     const rowDesign = resolveDesign(spec.design, rowCtx);
     return {
       uniqid: row.uniqid,
@@ -412,12 +410,12 @@ function buildMultipleGroup(
 ): FieldViewModel {
   const wrapperName = wrapperLayerName(path, state.keyPrefix);
   const value = getValueByPath(state.data, path);
-  const identities = rowIdentities(value);
-  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), valuePathSegments(path).length] };
+  const identities = rowIdentities(value, path);
+  const rowState = { ...state, rowSegments: [...(state.rowSegments ?? []), parsePathString(path).length] };
 
   const rows: RowVM[] = identities.map((row, rowIndex) => {
     const rowBase = `${path}.${row.seg}`;
-    const rowCtx = makeContext(valuePathSegments(rowBase), state.data);
+    const rowCtx = makeContext(parsePathString(rowBase), state.data);
     const rowDesign = resolveDesign(spec.design, rowCtx);
     const children = buildChildren(rowBase, rowState, templateChildren);
     return {
@@ -471,7 +469,7 @@ function buildLangLeaf(
 
   const children: LangChildVM[] = lang.langs.map((code) => {
     const langPath = `${path}.${code}`;
-    const langCtx = makeContext(valuePathSegments(langPath), state.data);
+    const langCtx = makeContext(parsePathString(langPath), state.data);
     const langDesign = resolveDesign(spec.design, langCtx);
     return {
       code,

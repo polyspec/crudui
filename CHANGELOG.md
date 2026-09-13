@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-13 — Bind repeated rows from keyed objects only
+
+`bindForm` in TypeScript, PHP, Go, Rust and the C PHP extension creates repeated
+rows only from keyed objects. Missing collection data creates one row keyed
+`__0000000000000__`. An array, null or scalar collection fails with
+`INVALID_FORM_INPUT` and the message `Repeated data must be a keyed object:
+{path}`. Field paths no longer carry `#N` array-position segments, so the
+position helpers were removed from all five implementations. Go's unused
+`rowPosition` function was removed. The shared form fixture uses keyed data, and
+the HTML conformance suite now includes the former array cases.
+
+`npm run test:forms` passed (core 88, HTML 112, React 701, Vue 344, Svelte 345,
+normalizer 10). `make test-native` passed 786 generator checks, including new
+checks that require identical rejection code, message and path in all five
+implementations. `make docs-check` passed.
+
 ## 2026-09-13 — Align repeated-row declarations across schema, validators and CLI
 
 `multiple.min` is declared in the TypeScript, Go and Rust specification models,

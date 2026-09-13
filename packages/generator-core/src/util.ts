@@ -1,7 +1,7 @@
 /**
  * Shared string conversion, field paths, names and identifiers.
- * Editable forms use row keys in field paths. Internal array binding uses #N
- * path segments for array positions; rule paths replace repeated segments with [].
+ * Repeated rows use row keys in field paths; rule paths replace repeated
+ * segments with [].
  */
 
 import { styleString } from './css';
@@ -37,25 +37,6 @@ export function applyDefaultString(value: unknown, def: unknown): string {
     return phpString(def);
   }
   return v;
-}
-
-// ---------------------------------------------------------------------------
-// Array positions used by internal field binding.
-// ---------------------------------------------------------------------------
-
-/** Encode an array position for field binding and rule-path generation. */
-export function positionSegment(index: number): string {
-  return `#${index}`;
-}
-
-/** True when a path segment is an explicit position index (`#N`). */
-export function isPositionSegment(seg: string): boolean {
-  return /^#\d+$/.test(seg);
-}
-
-/** Bracket index for a position segment (`#3` → `3`); identity passthrough else. */
-export function bracketIndexForSegment(seg: string): string {
-  return isPositionSegment(seg) ? seg.slice(1) : seg;
 }
 
 /**
@@ -105,28 +86,19 @@ export function parsePathString(path: string): string[] {
   return segments;
 }
 
-/** Read the value at a dot/bracket path. A `#N` position segment reads index N. */
+/** Read the value at a dot/bracket path. */
 export function getValueByPath(obj: unknown, path: string): unknown {
   const segments = parsePathString(path);
   let current: unknown = obj;
   for (const segment of segments) {
     if (current === null || current === undefined) return undefined;
     if (typeof current === 'object') {
-      current = (current as Record<string, unknown>)[bracketIndexForSegment(segment)];
+      current = (current as Record<string, unknown>)[segment];
     } else {
       return undefined;
     }
   }
   return current;
-}
-
-/**
- * Position-resolved path segments for the expr engine context: every `#N`
- * position marker becomes the numeric index N (the validator's PathResolver
- * walks real array indices, never the name-only marker). Real keys pass through.
- */
-export function valuePathSegments(path: string): string[] {
-  return parsePathString(path).map(bracketIndexForSegment);
 }
 
 /** Convert dot path → bracket notation with optional key prefix. */
@@ -135,11 +107,8 @@ export function toBracketNotationWithPrefix(path: string, keyPrefix?: string): s
   const segments = parsePathString(path);
   if (keyPrefix) segments.unshift(keyPrefix);
   if (segments.length === 0) return '';
-  if (segments.length === 1) return bracketIndexForSegment(segments[0]!);
-  return (
-    bracketIndexForSegment(segments[0]!) +
-    segments.slice(1).map((s) => `[${bracketIndexForSegment(s)}]`).join('')
-  );
+  if (segments.length === 1) return segments[0]!;
+  return segments[0]! + segments.slice(1).map((s) => `[${s}]`).join('');
 }
 
 /**
@@ -163,7 +132,7 @@ function pathSegmentsLoose(path: string): string[] {
     .filter((s) => s !== '');
 }
 
-/** Leaf data-name for a dot path. A row position index collapses to `name[]`. */
+/** Leaf data-name for a dot path. A repeated row segment collapses to `name[]`. */
 export function leafName(path: string, rowSegments: readonly number[] = []): string {
   let suffix = '';
   let p = path;
@@ -173,7 +142,7 @@ export function leafName(path: string, rowSegments: readonly number[] = []): str
   }
   const segments = pathSegmentsLoose(p);
   const last = segments[segments.length - 1] ?? p;
-  if (isPositionSegment(last) || rowSegments.includes(segments.length - 1)) {
+  if (rowSegments.includes(segments.length - 1)) {
     return (segments[segments.length - 2] ?? '') + '[]';
   }
   return last + suffix;
@@ -193,7 +162,7 @@ export function ruleNameForPath(path: string, rowSegments: readonly number[] = [
     segments[0] +
     segments
       .slice(1)
-      .map((s, i) => (isPositionSegment(s) || rowSegments.includes(i + 1) ? '[]' : `[${s}]`))
+      .map((s, i) => (rowSegments.includes(i + 1) ? '[]' : `[${s}]`))
       .join('') +
     suffix
   );

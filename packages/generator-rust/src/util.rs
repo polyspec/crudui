@@ -81,19 +81,10 @@ pub(crate) fn segments(path: &str) -> Vec<String> {
     result
 }
 
-pub(crate) fn position(segment: &str) -> &str {
-    if let Some(rest) = segment.strip_prefix('#') {
-        if !rest.is_empty() && rest.bytes().all(|c| c.is_ascii_digit()) {
-            return rest;
-        }
-    }
-    segment
-}
-
 pub(crate) fn value_at<'a>(data: &'a Value, path: &str) -> Option<&'a Value> {
     let mut value = data;
     for segment in segments(path) {
-        let key = position(&segment);
+        let key = segment.as_str();
         value = match value {
             Value::Object(map) => map.get(key)?,
             Value::Array(list) => list.get(key.parse::<usize>().ok()?)?,
@@ -111,11 +102,7 @@ pub(crate) fn bracket(path: &str, prefix: Option<&str>) -> String {
     let Some((head, tail)) = parts.split_first() else {
         return String::new();
     };
-    position(head).to_owned()
-        + &tail
-            .iter()
-            .map(|s| format!("[{}]", position(s)))
-            .collect::<String>()
+    head.clone() + &tail.iter().map(|s| format!("[{s}]")).collect::<String>()
 }
 
 pub(crate) fn rule_name(path: &str, rows: &[usize]) -> String {
@@ -129,7 +116,7 @@ pub(crate) fn rule_name(path: &str, rows: &[usize]) -> String {
             .iter()
             .enumerate()
             .map(|(i, s)| {
-                if rows.contains(&(i + 1)) || position(s) != s {
+                if rows.contains(&(i + 1)) {
                     "[]".into()
                 } else {
                     format!("[{s}]")
@@ -144,7 +131,7 @@ pub(crate) fn leaf_name(path: &str, rows: &[usize]) -> String {
     let Some(last) = parts.last() else {
         return path.into();
     };
-    if rows.contains(&(parts.len() - 1)) || position(last) != last {
+    if rows.contains(&(parts.len() - 1)) {
         format!(
             "{}[]",
             parts

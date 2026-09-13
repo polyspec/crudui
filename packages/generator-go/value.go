@@ -249,17 +249,8 @@ func translate(v any, language string) string {
 func parsePath(path string) []string {
 	return strings.FieldsFunc(path, func(r rune) bool { return r == '.' || r == '[' || r == ']' })
 }
-func valueSegments(path string) []string {
-	a := parsePath(path)
-	for i, s := range a {
-		if positionRE.MatchString(s) {
-			a[i] = s[1:]
-		}
-	}
-	return a
-}
 func getPath(v any, path string) any {
-	for _, s := range valueSegments(path) {
+	for _, s := range parsePath(path) {
 		v = item(v, s)
 		if isAbsent(v) {
 			return v
@@ -268,10 +259,8 @@ func getPath(v any, path string) any {
 	return v
 }
 
-var positionRE = regexp.MustCompile(`^#\d+$`)
-
 func bracketName(path, prefix string) string {
-	segs := valueSegments(path)
+	segs := parsePath(path)
 	if prefix != "" {
 		segs = append([]string{prefix}, segs...)
 	}
@@ -308,7 +297,7 @@ func leafName(path string, rows []int) string {
 		return path + suffix
 	}
 	n := len(s) - 1
-	if (positionRE.MatchString(s[n]) || containsInt(rows, n)) && n > 0 {
+	if containsInt(rows, n) && n > 0 {
 		return s[n-1] + "[]"
 	}
 	return s[n] + suffix
@@ -325,7 +314,7 @@ func ruleName(path string, rows []int) string {
 	}
 	out := s[0]
 	for i, v := range s[1:] {
-		if positionRE.MatchString(v) || containsInt(rows, i+1) {
+		if containsInt(rows, i+1) {
 			out += "[]"
 		} else {
 			out += "[" + v + "]"

@@ -188,7 +188,7 @@ final class Form
 
     private static function checkedPath(string $path): array
     {
-        $segments = array_map(Value::index(...), Value::segments($path));
+        $segments = Value::segments($path);
         if (!$segments || array_intersect($segments, ['__proto__', 'prototype', 'constructor'])) {
             self::fail('Invalid form path: ' . $path);
         }

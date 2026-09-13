@@ -304,6 +304,18 @@ for (const target of targets) {
     return { errorCode: error.code };
   });
 
+  for (const [name, data] of [['array-collection', { companies: [] }], ['null-collection', { companies: null }], ['scalar-collection', { companies: 'one' }], ['nested-array-collection', { companies: { __0000000000001__: { name: 'One', stores: [] } } }]]) await check(target, `bind-reject:${name}`, async () => {
+    const request = { operation: 'bindForm', template: oracle({ operation: 'compileForm', spec: companySpec }), data };
+    let expected;
+    try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
+    assert.ok(expected, 'JavaScript accepted collection data that is not a keyed object');
+    let error;
+    try { await invoke(target, request); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; error = caught; }
+    assert.ok(error, 'Collection data that is not a keyed object was accepted');
+    assert.deepEqual({ code: error.code, message: error.message, at: error.at }, expected);
+    return { error: expected };
+  });
+
   for (const timezone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) await check(target, `dates:${timezone}`, async () => {
     const template = await invoke(target, { operation: 'compileForm', spec: dateFormSpec }, timezone);
     const request = { operation: 'form', template, data: dateFormData, options: { idPrefix: 'utc-dates' } };

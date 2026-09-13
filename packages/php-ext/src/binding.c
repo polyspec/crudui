@@ -235,19 +235,17 @@ static ps_value *build_multiple(const ps_value *field, const ps_value *spec,
     next_rows[row_count] = path_length;
     ps_path_parts_free(parts, path_length);
 
+    if (value && value->kind != PS_OBJECT) {
+        char *message = ps_string_join("Repeated data must be a keyed object: ", path, "");
+        *error = message ? ps_error("form", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
+        free(message); free(next_rows); ps_value_free(model); ps_value_free(settings);
+        return NULL;
+    }
     ps_value *models = ps_array_value();
-    size_t count = value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT)
-        ? ps_size(value) : 1;
+    size_t count = value ? ps_size(value) : 1;
     for (size_t i = 0; models && i < count; ++i) {
-        char position[64];
-        const char *segment;
-        const char *uniqid;
-        if (value && value->kind == PS_OBJECT) {
-            segment = uniqid = ps_key_at(value, i);
-        } else {
-            snprintf(position, sizeof(position), "#%zu", i);
-            segment = position; uniqid = position + 1;
-        }
+        const char *segment = value ? ps_key_at(value, i) : "__0000000000000__";
+        const char *uniqid = segment;
         char *row_path = ps_join_path(path, segment);
         ps_value *row_design = row_path
             ? ps_design(member(spec, "design"), context->data, row_path) : NULL;
