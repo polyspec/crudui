@@ -2,6 +2,16 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 폼 비교 검사에서 generator-core보다 검증기를 먼저 빌드
+
+다음 `main` CI 실행에서 같은 작업이 한 단계 앞에서 다시 실패했습니다. `@crudui/generator-core`
+빌드가 `Cannot find module '@crudui/validator'`로 멈췄는데, generator-core의 선언이 빌드되지 않은
+검증기 패키지를 가져오기 때문입니다. 이전 확인은 `packages/generator-core/dist`만 지웠으므로 로컬
+검증기 빌드가 이를 가렸습니다. 이제 `test:form-comparison:source`는 `test:forms`와 같은 순서로
+generator-core보다 먼저 `build:validator`를 실행합니다. `packages/validator-ts/dist`와
+`packages/generator-core/dist`를 모두 지운 상태에서 `npm run test:form-comparison:source`가 두 패키지를
+빌드하고 테스트 140개를 통과했습니다.
+
 ## 2026-09-14 — 폼 검사의 Chromium 검사를 CI 샌드박스 Chrome으로 실행
 
 같은 `main` CI 실행에서 "Form instances and data injection" 작업도 실패했습니다. 이 브랜치가
