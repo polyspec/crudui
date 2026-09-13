@@ -1,5 +1,5 @@
 use crate::template::repeats;
-use crate::util::{position, segments, value_at};
+use crate::util::{segments, value_at};
 use crate::{bind_form, BindOptions, FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -39,10 +39,7 @@ fn check_key(key: &str) -> FormResult<()> {
 }
 
 fn checked_segments(path: &str) -> FormResult<Vec<String>> {
-    let parts = segments(path)
-        .iter()
-        .map(|s| position(s).to_owned())
-        .collect::<Vec<_>>();
+    let parts = segments(path);
     if parts.is_empty()
         || parts
             .iter()

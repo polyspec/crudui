@@ -45,7 +45,7 @@ func checkKey(k string) error {
 	return nil
 }
 func checkedSegments(path string) ([]string, error) {
-	s := valueSegments(path)
+	s := parsePath(path)
 	if len(s) == 0 {
 		return nil, fmt.Errorf("Invalid form path: %s", path)
 	}

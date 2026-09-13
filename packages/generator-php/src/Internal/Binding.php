@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CRUDUI\Generator;
 
+use CRUDUI\FormError;
 use stdClass;
 
 /** Bind compiled fields to data without modifying either input. */
@@ -24,7 +25,7 @@ final class Binding
         $spec = $field->spec;
         $type = Value::string($spec->type ?? '');
         $language = $options['language'] ?? 'ko';
-        $design = Design::resolve($spec->design ?? null, $data, array_map(Value::index(...), Value::segments($path)));
+        $design = Design::resolve($spec->design ?? null, $data, Value::segments($path));
         $label = Value::truthy($spec->label ?? null) ? Value::translate($spec->label, $language) : Missing::Value;
         $description = Value::truthy($spec->description ?? null) ? Value::translate($spec->description, $language) : Missing::Value;
         $base = ['shape' => 'leaf', 'type' => $type, 'path' => $path, 'wrapperName' => ($options['keyPrefix'] ?? null ? $options['keyPrefix'] . '.' : '') . str_replace('[]', '.*', $path) . '-layer', 'uniqid' => Value::elementId('', $path), 'design' => $design, 'label' => $label, 'omitLabel' => $type === 'hidden', 'description' => Value::truthy($description) ? $description : Missing::Value];
@@ -41,24 +42,19 @@ final class Binding
                 $settings['sortable'] = ($multiple->sortable ?? null) === true;
             }
             $value = Value::path($data, $path);
-            $ids = [];
-            if ($value instanceof stdClass) {
-                foreach ($value as $key => $_) {
-                    $ids[] = [$key, $key];
-                }
-            } elseif (is_array($value)) {
-                foreach ($value as $index => $_) {
-                    $ids[] = ['#' . $index, (string) $index];
-                }
+            if ($value === Missing::Value) {
+                $keys = ['__0000000000000__'];
+            } elseif ($value instanceof stdClass) {
+                $keys = array_map('strval', array_keys(get_object_vars($value)));
             } else {
-                $ids[] = ['#0', '0'];
+                throw new FormError('INVALID_FORM_INPUT', 'Repeated data must be a keyed object: ' . $path);
             }
             $rows = [];
             $segments = [...$rowSegments, count(Value::segments($path))];
-            foreach ($ids as $i => [$key, $id]) {
+            foreach ($keys as $i => $key) {
                 $rowPath = $path . '.' . $key;
-                $rowDesign = Design::resolve($spec->design ?? null, $data, array_map(Value::index(...), Value::segments($rowPath)));
-                $row = ['uniqid' => $id, 'wrapperClass' => Value::classes('input-group-wrapper', $i > 0 ? 'clone-element' : '', $rowDesign->wrapper->class)];
+                $rowDesign = Design::resolve($spec->design ?? null, $data, Value::segments($rowPath));
+                $row = ['uniqid' => $key, 'wrapperClass' => Value::classes('input-group-wrapper', $i > 0 ? 'clone-element' : '', $rowDesign->wrapper->class)];
                 if ($type === 'group') {
                     $row['groupClass'] = Value::classes('form-group', $rowDesign->group->class);
                     $row['children'] = self::children($field, $rowPath, $data, $options, $segments);
@@ -78,7 +74,7 @@ final class Binding
             $children = [];
             foreach ($codes as $code) {
                 $langPath = $path . '.' . $code;
-                $langDesign = Design::resolve($spec->design ?? null, $data, array_map(Value::index(...), Value::segments($langPath)));
+                $langDesign = Design::resolve($spec->design ?? null, $data, Value::segments($langPath));
                 $children[] = (object) ['code' => $code, 'widget' => Widget::evaluate($spec, Value::path($data, $langPath), $langPath, $langDesign, $options, $rowSegments)];
             }
             $title = Value::truthy($lang->title ?? null) ? Value::translate($lang->title, $language) : '';
