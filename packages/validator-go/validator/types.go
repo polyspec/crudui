@@ -914,13 +914,9 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 // the multiple target — repetition-control keys live under it, never at top
 // level. Polymorphic false | {} | true.
 //
-// Row identity (G4) is NOT a Multiple field. At runtime a repeated row's
-// identity is a hidden server PK carried in the submitted data (an existing row
-// has one, a new row has none); serialization order is the array order. This
-// build-time model has no id field and no id-emitting code — row identity lives
-// in the data layer the server reconciles, not in this spec. (That data-layer id
-// is why a translator drops the legacy seqtokey / __13hex__ synthesized id keys
-// — they were never spec fields.)
+// Row identity is not a Multiple field. Repeated data is an object keyed by row
+// identity, and object member order is row order; the specification has no
+// hidden identity or order field (see docs/spec/form-runtime.md).
 //
 // Legacy multiple_max / sortable* / add_buttons / remove_list_button /
 // list_button_text / multiple_button_onclick are NOT fields here; their
@@ -933,9 +929,11 @@ type Multiple struct {
 	// Enabled is the true shape: the bare on switch with no body.
 	Enabled bool `json:"-"`
 
+	// Min is the minimum row count.
+	Min any `json:"min,omitempty"`
 	// Max caps the row count.
 	Max any `json:"max,omitempty"`
-	// Copy toggles row copy / add / remove buttons.
+	// Copy toggles the row copy control.
 	Copy any `json:"copy,omitempty"`
 	// Sortable toggles row reordering.
 	Sortable any `json:"sortable,omitempty"`

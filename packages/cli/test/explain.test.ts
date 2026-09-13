@@ -42,7 +42,7 @@ const SPEC = {
     members: {
       type: 'group',
       label: { ko: '구성원', en: 'Members' },
-      multiple: { max: 5, sortable: true },
+      multiple: { min: 1, max: 5, sortable: true },
       properties: {
         name: {
           type: 'text',
@@ -97,9 +97,10 @@ descTest('explain — spec → natural-language back-check (역검증)', () => {
     expect(out).toContain('en');
   });
 
-  it('multiple → "반복" with max and sortable surfaced', () => {
+  it('multiple → "반복" with min, max and sortable surfaced', () => {
     expect(out).toContain('반복');
-    expect(out).toContain('5'); // multiple.max
+    expect(out).toContain('최소 1행'); // multiple.min
+    expect(out).toContain('최대 5행'); // multiple.max
     expect(out).toMatch(/정렬/); // sortable
   });
 

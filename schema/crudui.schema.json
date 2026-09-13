@@ -360,7 +360,7 @@
           "properties": {
             "min": { "description": "Minimum repeated row count.", "type": "number" },
             "max": { "description": "Maximum repeated row count.", "type": "number" },
-            "copy": { "description": "Row copying configuration.", "anyOf": [ { "type": "boolean" }, { "type": "object" } ] },
+            "copy": { "description": "Whether repeated rows provide a copy control.", "type": "boolean" },
             "sortable": { "description": "Whether repeated rows can be reordered.", "type": "boolean" },
             "onclick": { "description": "Opaque repeated-row button action.", "$ref": "#/definitions/BehaviorAction" }
           }

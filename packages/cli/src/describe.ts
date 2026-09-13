@@ -344,7 +344,7 @@ function collectClassification(schema: SchemaDoc): DescribeResult['classificatio
     firstClass: { structure, content, roleSlots },
     dependencyIsolation: [
       { trigger: 'type (scalar)', target: 'options', note: 'type-dependent settings + container chrome + type scripts/callbacks' },
-      { trigger: 'multiple (repeat)', target: 'multiple', note: 'max/copy/sortable/onclick — repeat-dependent' },
+      { trigger: 'multiple (repeat)', target: 'multiple', note: 'min/max/copy/sortable/onclick — repeat-dependent' },
       { trigger: 'lang (multilingual input)', target: 'lang', note: 'mode/only/name/key/frame/title/group_class' },
       { trigger: 'dynamic option source', target: 'items', note: 'static array | value→label map | {model,...} dynamic source' },
     ],
