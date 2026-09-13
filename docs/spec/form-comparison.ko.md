@@ -124,9 +124,10 @@ PHP 상태·생성·SSR의 모든 출처 응답은 생성기 소스 디렉터리
 렌더링합니다.
 
 `bindForm` 컨트롤러는 `createForm` 인스턴스와 같은 작업을 지원합니다. 행 작업,
-`toggle-row`, `select-row`, `expand-all`, `collapse-all`, `undo`입니다. 접힌 행, 선택한
-행, 되돌리기 이력을 keyed 데이터와 분리해 generator-core의 뷰 상태·이력 함수로 유지하고, 폼 런타임의 포커스
-규칙에 따라 포커스를 옮기거나 유지합니다.
+`toggle-row`, `select-row`, `expand-all`, `collapse-all`, `undo`입니다. 접힌 행과
+되돌리기 이력을 keyed 데이터와 분리해 generator-core의 뷰 상태·이력 함수로 유지하고,
+`markOutline`으로 현재 행의 구조 맵 행을 표시하며, 폼 런타임의 포커스 규칙에 따라 포커스를
+옮기거나 유지합니다.
 
 전체 브라우저 행렬은 시나리오 보고서 48개와 초기화 보고서 24개를 포함합니다.
 

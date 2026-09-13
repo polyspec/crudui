@@ -20,7 +20,7 @@ describe('structure map and data view: Svelte reproduces the fixture', () => {
     test(c.name, () => {
       const messages = formMessages(c.options.language);
       const fields = bindForm(compileForm(c.spec), c.data, c.options);
-      const state = { fields, canUndo: c.canUndo, ...(c.selection ? { selection: c.selection } : {}) };
+      const state = { fields, canUndo: c.canUndo };
       expect(normalizeHtml(render(OutlineView, { props: { state, messages } }).body)).toBe(c.expected_outline_html);
       expect(normalizeHtml(render(DataPanel, { props: { data: c.data, messages } }).body)).toBe(c.expected_data_html);
     });

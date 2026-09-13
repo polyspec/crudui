@@ -1,7 +1,7 @@
 /**
  * Generates shared structure map and data view fixtures.
  *
- * Each case is `{ name, note, spec, data, options, selection?, canUndo,
+ * Each case is `{ name, note, spec, data, options, canUndo,
  * expected_outline_html, expected_data_html }`. The expected HTML is the
  * normalized static markup of the React reference components `OutlineView` and
  * `DataPanel`, never hand-written. The HTML, Vue and Svelte renderers must
@@ -17,7 +17,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { bindForm, compileForm, formMessages, type RowSelection } from '@crudui/generator-core';
+import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
 import { DataPanel, OutlineView } from '../../../packages/generator-react/src/index';
 // @ts-expect-error — JS normalizer shared across the fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
@@ -28,7 +28,6 @@ interface OutlineCase {
   spec: Record<string, unknown>;
   data: Record<string, unknown>;
   options: { language: 'ko' | 'en' | 'ja' | 'zh' };
-  selection?: RowSelection;
   canUndo: boolean;
   expected_outline_html?: string;
   expected_data_html?: string;
@@ -69,30 +68,27 @@ const data = {
 
 const CASES: OutlineCase[] = [
   {
-    name: 'outline-selected-row-ko',
-    note: 'Korean map with the second top-level row selected and undo available; data view escapes markup characters.',
+    name: 'outline-rows-ko',
+    note: 'Korean map of top-level and nested rows with undo available; data view escapes markup characters.',
     spec: teams(),
     data,
     options: { language: 'ko' },
-    selection: { path: 'teams', key: k2 },
     canUndo: true,
   },
   {
     name: 'outline-controls-in-map-en',
-    note: 'controls: outline puts the selected row controls and the empty collection controls in the map.',
+    note: 'controls: outline puts every row\'s controls in the map, where the stylesheet shows those of the current row; empty collection controls stay in the form.',
     spec: teams('outline'),
     data,
     options: { language: 'en' },
-    selection: { path: 'teams', key: k2 },
     canUndo: false,
   },
   {
-    name: 'outline-nested-selection-ja',
-    note: 'Japanese map with a nested row selected; untitled rows show the untitled message.',
+    name: 'outline-untitled-rows-ja',
+    note: 'Japanese map with row controls in the map; untitled rows show the untitled message.',
     spec: teams('outline'),
     data,
     options: { language: 'ja' },
-    selection: { path: `teams.${k1}.members`, key: k2 },
     canUndo: false,
   },
   {
@@ -108,7 +104,7 @@ const CASES: OutlineCase[] = [
 for (const item of CASES) {
   const fields = bindForm(compileForm(item.spec), item.data, item.options);
   const messages = formMessages(item.options.language);
-  const state = { fields, canUndo: item.canUndo, ...(item.selection ? { selection: item.selection } : {}) };
+  const state = { fields, canUndo: item.canUndo };
   item.expected_outline_html = normalizeHtml(renderToStaticMarkup(React.createElement(OutlineView, { state, messages })));
   item.expected_data_html = normalizeHtml(renderToStaticMarkup(React.createElement(DataPanel, { data: item.data, messages })));
 }

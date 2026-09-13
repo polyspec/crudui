@@ -15,7 +15,7 @@ export function mountView(element, template, language, data = {}) {
     const fields = bindForm(template, next, { language, collapsed: view.collapsed });
     root.render(<>
       <FormFields fields={fields} buttons={bindButtons(template, next, { language })} messages={messages} />
-      <OutlineView state={{ fields, selection: view.selection, canUndo: view.canUndo }} messages={messages} />
+      <OutlineView state={{ fields, canUndo: view.canUndo }} messages={messages} />
       <DataPanel data={next} messages={messages} />
     </>);
   });

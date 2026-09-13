@@ -24,7 +24,7 @@ describe('structure map and data view: Vue reproduces the fixture', () => {
     test(c.name, async () => {
       const messages = formMessages(c.options.language);
       const fields = bindForm(compileForm(c.spec), c.data, c.options);
-      const state = { fields, canUndo: c.canUndo, ...(c.selection ? { selection: c.selection } : {}) };
+      const state = { fields, canUndo: c.canUndo };
       expect(normalizeHtml(await ssr(() => outlineVNode(state, messages)))).toBe(c.expected_outline_html);
       expect(normalizeHtml(await ssr(() => dataVNode(c.data, messages)))).toBe(c.expected_data_html);
     });
