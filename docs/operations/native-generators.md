@@ -42,7 +42,8 @@ and each rejection's complete code, message and location. It records hashes
 before and after execution and fails if an input changes.
 
 The default report is `.git/native-generators/report.json`. `NATIVE_REPORT` selects
-another report path. The [suite procedure](../../tests/native-generators/README.md)
+another report path. A passing run removes its temporary build directory. A failing
+run keeps it, prints its path and records it as `buildDirectory` in the report. The [suite procedure](../../tests/native-generators/README.md)
 describes direct invocation with an explicit extension path and the comparison
 protocol. Missing executables, missing native classes and malformed responses
 fail the checks.

@@ -38,7 +38,8 @@ HTML과 각 거부의 코드·메시지·위치 전체를 비교합니다. 실�
 입력이 변경되면 실패합니다.
 
 기본 보고서는 `.git/native-generators/report.json`입니다. `NATIVE_REPORT`로 다른
-보고서 경로를 지정합니다. [검사 절차](../../tests/native-generators/README.ko.md)는
+보고서 경로를 지정합니다. 통과한 실행은 임시 빌드 디렉터리를 삭제합니다. 실패한
+실행은 디렉터리를 남기고 경로를 출력하며 보고서의 `buildDirectory`에 기록합니다. [검사 절차](../../tests/native-generators/README.ko.md)는
 명시적인 확장 경로를 사용하는 직접 실행과 비교 프로토콜을 설명합니다. 실행 파일이나
 네이티브 클래스가 없거나 응답 형식이 잘못되면 검사가 실패합니다.
 
