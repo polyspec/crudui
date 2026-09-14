@@ -466,7 +466,7 @@
         "javascript-html": "pass",
         "react": "pass",
         "vue": "pass",
-        "svelte": "unsupported",
+        "svelte": "pass",
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
@@ -477,7 +477,8 @@
       "tests": [
         "packages/generator-html/src/index.test.ts",
         "packages/generator-react/src/__tests__/detail-render.test.tsx",
-        "packages/generator-vue/src/__tests__/detail-render.test.ts"
+        "packages/generator-vue/src/__tests__/detail-render.test.ts",
+        "packages/generator-svelte/test/detail-render.test.mjs"
       ],
       "docs": [
         "docs/spec/schema.md",

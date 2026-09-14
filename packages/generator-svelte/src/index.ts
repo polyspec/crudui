@@ -2,9 +2,10 @@ import type { FormInstance } from '@crudui/generator-core';
 /** Form template binding, rendering and list rendering. */
 
 import { render } from 'svelte/server';
-import { buildList, type BuildListOptions } from '@crudui/generator-core';
+import { buildList, buildDetail, type BuildListOptions, type BuildDetailOptions } from '@crudui/generator-core';
 import Form from './components/Form.svelte';
 import List from './components/List.svelte';
+import Detail from './components/Detail.svelte';
 
 export { ComposeLoadError } from '@crudui/validator';
 export { UnsupportedFieldTypeError } from '@crudui/generator-core';
@@ -37,6 +38,9 @@ export type {
   CellDisplay,
 } from '@crudui/generator-core';
 export { default as List } from './components/List.svelte';
+export { default as Detail } from './components/Detail.svelte';
+export { buildDetail } from '@crudui/generator-core';
+export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from '@crudui/generator-core';
 
 /** Render the current form instance with Svelte hydration markers intact. */
 export function renderForm(form: FormInstance): string {
@@ -62,6 +66,16 @@ export function renderList(
   const vm = buildList(listSpec, rows, buildOpts);
   const { body } = render(List, { props: { vm, layout: layout ?? 'table' } });
   return body;
+}
+
+/** Compose, evaluate and render one read-only detail without data access. */
+export function renderDetail(
+  detailSpec: Record<string, unknown>,
+  record: Record<string, unknown> = {},
+  options: BuildDetailOptions = {},
+): string {
+  const vm = buildDetail(detailSpec, record, options);
+  return render(Detail, { props: { vm } }).body;
 }
 
 export { default as Form } from './components/Form.svelte';
