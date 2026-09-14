@@ -68,6 +68,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "crudui-generator"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "crudui-validator",
+ "getrandom",
+ "num-bigint",
+ "num-traits",
+ "regex",
+ "ryu-js",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "crudui-validator"
+version = "0.0.1"
+dependencies = [
+ "regex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -228,30 +252,6 @@ name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
-
-[[package]]
-name = "crudui-generator"
-version = "0.0.1"
-dependencies = [
- "chrono",
- "getrandom",
- "num-bigint",
- "num-traits",
- "crudui-validator",
- "regex",
- "ryu-js",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "crudui-validator"
-version = "0.0.1"
-dependencies = [
- "regex",
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "proc-macro2"
