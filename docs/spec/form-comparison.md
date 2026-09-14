@@ -159,11 +159,11 @@ row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
 generator-core's view-state and history functions, and moves or keeps focus by the
 form runtime's focus rule.
 
-The complete browser matrix contains 48 scenario reports and 24 initialization
+The complete browser matrix contains 64 scenario reports and 32 initialization
 reports:
 
 - four servers: PHP, PHP extension, Go and Rust;
-- three frameworks: React, Vue and Svelte;
+- four frameworks: React, Vue, Svelte and the HTML renderer;
 - two rendering paths: `bindForm` and `createForm`;
 - two transports for scenario reports: native multipart form and ordered JSON.
 
@@ -268,26 +268,26 @@ It also fails after 300,000 milliseconds without a change to the current report,
 completed report count, request count or response count. Both failures retain
 the current state and every completed report.
 
-A complete server report requires a browser job of 18 reports: 12 scenario
-reports with 19 checks each and six initialization reports with 168 comparison
-results each. It also requires 60 interaction checks, six mount-before-load checks
-of the `inject` frame, six static-document checks, no browser or page errors, one
+A complete server report requires a browser job of 24 reports: 16 scenario
+reports with 19 checks each and eight initialization reports with 168 comparison
+results each. It also requires 80 interaction checks, eight mount-before-load checks
+of the `csr` frame, eight static-document checks, no browser or page errors, one
 matching candidate commit for both rendering paths and a duration within 900,000
 milliseconds. Fields named `passed` must be booleans. Missing activity,
 initialization stages or timing evidence makes the report incomplete.
 
 The four-server aggregate requires one complete report from every server. It
-requires 912 successful scenario checks, 4,608 successful initialization
-comparisons, 240 successful interaction checks, 24
-successful mount checks, 24 successful static-document checks, equal corresponding
+requires 1,216 successful scenario checks, 5,376 successful initialization
+comparisons, 320 successful interaction checks, 32
+successful mount checks, 32 successful static-document checks, equal corresponding
 static SSR documents across servers and four successful performance results. Any failed,
 missing, malformed or unequal result sets `passed: false` and returns status 1.
 Only a complete aggregate with zero failures returns status 0.
 
 ## Additional verification
 
-Generation verification requires 290 successful results, 411 HTTP requests and
-all 24 server/rendering-path/framework combinations. Repository verification
+Generation verification requires 386 successful results, 547 HTTP requests and
+all 32 server/rendering-path/framework combinations. Repository verification
 checks atomic updates, locking, position-based loading, parent ownership,
 rejection without file changes, complete deletion and sequence allocation. Type
 verification checks the same scalar and collection rules in every server.
