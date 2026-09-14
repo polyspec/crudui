@@ -23,6 +23,8 @@ instance on the server. Data defaults and row identity are prepared by the insta
 before either renderer runs. Field-only rendering is an internal operation. `setData(data)`
 replaces the record after mounting, including previously edited input values.
 The template remains unchanged. `getData()` returns detached submission data.
+The React `Form` accepts `renderButtons={false}` when its host owns submission
+controls; this renders the CRUDUI fields without the declared form-button footer.
 
 The template and browser HTML, CSS and JavaScript can be served as static files.
 The browser can mount a form before requesting record data; server-side rendering
