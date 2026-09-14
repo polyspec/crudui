@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — Svelte 상세 렌더링 추가
+
+Svelte 생성기가 공용 읽기 전용 `Detail` 컴포넌트와 `renderDetail` SSR 진입점을
+제공합니다. 표시 분기는 코어 상세 모델을 소비하며 기존 raw HTML 표시 경계를
+유지합니다.
+
 ## 2026-09-14 — Vue 상세 렌더링 추가
 
 Vue 생성기가 공용 `Detail` 컴포넌트와 비동기 `renderDetail` SSR 진입점을
