@@ -2,6 +2,34 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 사용할 수 없는 조작을 aria-disabled로 표시
+
+Safari에서 배포된 9d6beec 페이지의 반복 주입 비교가 `restored`의 CSS와 포커스 차이를
+보고했습니다. 왼쪽 열은 비활성화된 되돌리기 버튼에 포커스와 포커스 테두리가 남았고 오른쪽 열은
+포커스가 없었습니다. Chrome(React, bindForm, PHP: 168/168), Playwright WebKit의 PHP 8개 조합(각
+168/168), 사용자의 Safari 전체 실행(보고서 96개, 실패 0개)에서는 재현되지 않았습니다.
+
+`undone` 단계는 되돌리기 버튼에 포커스하고 누릅니다. 이력이 비면 모든 렌더러가 그 버튼에
+`disabled`를 썼습니다. Playwright로 측정한 결과, 포커스된 버튼이 비활성화되면 Chromium은 포커스를
+유지하고 WebKit은 다음 렌더링 갱신에서 포커스를 해제합니다. 어느 엔진이든 같은 비활성 버튼으로
+교체하면 포커스를 잃습니다. 따라서 "되돌리기는 포커스된 조작 버튼을 유지한다"는 결과가 브라우저에
+따라, 그리고 WebKit의 포커스 해제가 프레임의 재렌더링·포커스 복원보다 먼저인지 나중인지에 따라
+달라졌습니다.
+
+이제 폼과 구조 맵의 모든 조작 버튼은 HTML·React·Vue·Svelte 렌더러와 Go·PHP·Rust·PHP 확장
+생성기에서 사용할 수 없는 조작을 `disabled` 대신 `aria-disabled="true"`로 표시합니다. 버튼은
+포커스를 받을 수 있고 클릭해도 아무 일도 하지 않습니다. `connectForm`, `connectOutline`, 비교
+페이지의 bindForm 컨트롤러는 `aria-disabled`를 읽고, 스타일시트는 `[aria-disabled='true']`에
+스타일을 적용합니다. 필드 컨트롤의 `disabled`는 선언된 데이터 상태이므로 그대로 둡니다. 공유 폼
+렌더·구조 맵 픽스처를 재생성했고 바뀐 것은 이 속성뿐입니다. 마크업 명명 검사는 조작 버튼의
+`disabled`와 `true`가 아닌 `aria-disabled` 값을 거부하고, 공유 DOM 시나리오는 사용할 수 없는
+위로 이동 버튼이 포커스를 유지하며 클릭해도 아무것도 바꾸지 않는지 확인합니다.
+
+`npm run test:forms`(core 110, HTML 207, React 352, Vue 342, Svelte 339·10, Chromium 14), `make
+test-native` 976/976, Go 생성기 테스트, Rust 생성기 테스트(20·4), PHP 생성기 테스트(163), `npm run
+test:form-comparison:source`(141)와 `:browser`(3), `make docs-check`, `make format-check`가
+통과했습니다.
+
 ## 2026-09-14 — 비교 저장소 작업을 한 번에 하나만 실행
 
 배포된 cf95123 페이지에서 왼쪽과 오른쪽 프레임의 검사 실행을 동시에 누르자 두 프레임 모두 여러

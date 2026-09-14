@@ -9,5 +9,5 @@
 </script>
 
 <div class="crudui-controls" role="group" aria-label={controls.label}
-  >{#each controls.actions as action (action.name)}<button type="button" class="crudui-action" data-crudui-action={action.name} aria-label={action.label} disabled={action.disabled}></button>{/each
+  >{#each controls.actions as action (action.name)}<button type="button" class="crudui-action" data-crudui-action={action.name} aria-label={action.label} aria-disabled={action.disabled ? 'true' : undefined}></button>{/each
 }</div>
