@@ -2,11 +2,11 @@
 
 [English](CHANGELOG.md).
 
-## 2026-09-14 — Go 상세 렌더링 추가
+## 2026-09-14 — Go 상세 모델과 SSR 렌더링 추가
 
-Go 생성기가 `BuildDetail`과 `RenderDetail`을 제공합니다. 두 API 모두 기존
-`BuildList` 경로에 필드 합성, 표시 형식, 외형 평가를 위임하며 상세 데이터는
-호출자가 소유합니다.
+Go 생성기가 `BuildList`에서 사용하는 기존 순서 보존 표시·합성 경로를 재사용하는
+`BuildDetail`과 `RenderDetail`을 제공합니다. 명령 어댑터는 `renderDetail` 작업에
+객체 레코드 하나를 받습니다.
 
 ## 2026-09-14 — Svelte 상세 렌더링 추가
 
