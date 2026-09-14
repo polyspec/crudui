@@ -2,6 +2,26 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Run one comparison storage operation at a time
+
+On the deployed cf95123 page, pressing Run checks in the left and right frames at the same
+time failed several checks in both frames with "Check error". Run in one frame alone, the
+same checks passed 19/19. Both frames, the page and every tab of the origin read and replace
+the same saved records, but each frame and the page guarded only itself with its own
+`running` flag, and the page's repeated injection comparison had no guard. The two runs reset
+and saved over each other's records.
+
+Operations started from the page now change the records only while they hold one origin lock
+through `navigator.locks` (`src/storage-lock.mjs`): frame buttons, form submission, the
+comparison button and the complete check. An operation started while another holds the lock
+does not run and reports that another check or save is running. The checks that the complete
+check and the verifier call directly run inside the operation that already holds the lock. A
+frame that is running its own checks still ignores its other buttons, so their messages do
+not replace the result list being written.
+
+`npm run test:form-comparison:source` passed 141 tests, including the lock's two tests,
+`npm run test:form-comparison:browser` passed 3 and `make docs-check` passed.
+
 ## 2026-09-14 — Query the collection again after an empty-collection addition
 
 The candidate run of cc8cd95, the first to build and run the HTML frames, passed generation
