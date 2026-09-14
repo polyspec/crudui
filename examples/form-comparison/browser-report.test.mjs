@@ -10,7 +10,9 @@ import {
   browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers,
   browserTransports, summarizeBrowserReports,
 } from './check-browser-reports.mjs';
-import { browserInitializationResultIds, expectedBrowserSections } from './browser-report-policy.mjs';
+import {
+  browserInitializationResultIds, browserJobReportCount, expectedBrowserSections,
+} from './browser-report-policy.mjs';
 
 const origin = 'http://127.0.0.1:8080';
 const metadata = {
@@ -62,7 +64,7 @@ function report(server, sha256 = 'f'.repeat(64)) {
       lastResponseAt: '2026-09-10T00:04:59.500Z',
     },
     scenarioJob: {
-      status: 'completed', completedReports: 18, totalReports: 18, current: null,
+      status: 'completed', completedReports: browserJobReportCount(), totalReports: browserJobReportCount(), current: null,
       startedAt, completedAt, durationMs: 299_000,
     },
     reports: combinations,
