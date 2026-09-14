@@ -16,7 +16,7 @@ versioned paths have no compatibility aliases.
 
 The machine-readable contract is maintained in
 [`schema/crudui.schema.json`](../../schema/crudui.schema.json). It validates
-form and list declaration shapes. `make docs-schema` checks this source against
+form, list and detail declaration shapes. `make docs-schema` checks this source against
 shared fixtures without generating or replacing its rules.
 
 ## Fields
@@ -121,6 +121,16 @@ text. Format-specific settings stay in that object. `sort`, `pagination`,
 `search` and `actions` declare application behavior. `empty` defines translated
 empty-state content. The core does not query a database, filter records or apply
 server pagination. Page metadata is supplied by the caller.
+
+## Details
+
+A detail declares `fields`; one record is supplied separately to
+`buildDetail(spec, record, options)`. Each field uses the same read-only display
+contract as a list cell: `field`, `label`, `format` and `design`. Detail fields
+share composition, conditions, appearance, content translation and cell formats
+with lists, but do not declare sorting, pagination or actions. `buildDetail`
+returns ordered display fields and the evaluated detail design; renderers consume
+that model without querying application data.
 
 ## Acceptance criteria
 

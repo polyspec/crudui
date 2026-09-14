@@ -2,6 +2,15 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Add the CRUDUI detail specification and shared read model
+
+CRUDUI now defines a `Detail` declaration with ordered read-only display fields.
+The core exports `buildDetail`, which delegates composition, conditions,
+localization and display formats to the existing list engine, and the HTML
+generator exports `renderDetail`. The TypeScript validator and schema checks
+cover the new entry point. Other runtime generators remain incomplete and the
+feature is recorded as partial.
+
 ## 2026-09-14 — Compare the HTML renderer on the comparison page
 
 The comparison page rendered the client columns with React, Vue and Svelte only;

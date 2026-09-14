@@ -1,0 +1,17 @@
+[
+  {
+    "name": "basic detail",
+    "expect": "ok",
+    "spec": {
+      "fields": {
+        "name": { "field": ".name", "label": "Name", "format": "text" },
+        "state": { "field": ".state", "format": { "type": "badge", "map": { "active": "success" } } }
+      }
+    }
+  },
+  {
+    "name": "detail rejects sortable",
+    "expect": "fail",
+    "spec": { "fields": { "name": { "field": ".name", "sortable": true } } }
+  }
+]
