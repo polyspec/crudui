@@ -60,6 +60,7 @@ for (const renderingPath of formRenderingPaths) {
           '#react': path.join(source, 'packages/generator-react/src/components'),
           '#vue': path.join(source, 'packages/generator-vue/src/components'),
           '#svelte': path.join(source, 'packages/generator-svelte/src/components'),
+          '#html': path.join(source, 'packages/generator-html/src/index.ts'),
           '@crudui/generator-core': path.join(source, 'packages/generator-core/src/index.ts'),
           '@crudui/validator': path.join(source, 'packages/validator-ts/src/index.ts'),
         },

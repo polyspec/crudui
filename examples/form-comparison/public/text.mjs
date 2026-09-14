@@ -10,7 +10,7 @@ const messages = {
   en: {
     ...shared,
     title: 'Nested form verification',
-    intro: 'The same keyed form is rendered on the server by PHP, the PHP extension, Go or Rust (SSR) and in the browser by React, Vue or Svelte through bindForm or createForm (CSR), and both must be identical.',
+    intro: 'The same keyed form is rendered on the server by PHP, the PHP extension, Go or Rust (SSR) and in the browser by React, Vue, Svelte or the HTML renderer through bindForm or createForm (CSR), and both must be identical.',
     manual: 'Select a server, framework and rendering path. Left, SSR: the server renders the form with the saved record and the framework takes it over without changing it. Right, CSR: the framework mounts the form without data and then receives the same record. The complete check runs every server, framework, rendering path and transport.',
     bindForm: 'bindForm', createForm: 'createForm',
     bindFormNote: 'The application owns keyed data and calls bindForm after input and row operations.',
@@ -56,7 +56,7 @@ const messages = {
     formTransport: '네이티브 폼', jsonTransport: 'JSON',
     serverNames: { php: 'PHP', 'php-ext': 'PHP 확장', go: 'Go', rust: 'Rust' },
     title: '중첩 폼 검증',
-    intro: '같은 keyed 폼을 서버에서 PHP, PHP 확장, Go, Rust로 렌더링(SSR)하고 브라우저에서 React, Vue, Svelte의 bindForm 또는 createForm으로 렌더링(CSR)하며, 두 결과는 같아야 합니다.',
+    intro: '같은 keyed 폼을 서버에서 PHP, PHP 확장, Go, Rust로 렌더링(SSR)하고 브라우저에서 React, Vue, Svelte, HTML 렌더러의 bindForm 또는 createForm으로 렌더링(CSR)하며, 두 결과는 같아야 합니다.',
     manual: '서버, 프레임워크, 렌더링 경로를 선택합니다. 왼쪽 SSR: 서버가 저장 레코드로 폼을 렌더링하고 프레임워크가 마크업을 바꾸지 않고 넘겨받습니다. 오른쪽 CSR: 프레임워크가 데이터 없이 폼을 마운트한 뒤 같은 레코드를 주입합니다. 전체 검사는 모든 서버, 프레임워크, 렌더링 경로, 전송 방식을 실행합니다.',
     bindForm: 'bindForm', createForm: 'createForm',
     bindFormNote: '애플리케이션이 keyed 데이터를 관리하고 입력과 행 작업 후 bindForm을 호출합니다.',

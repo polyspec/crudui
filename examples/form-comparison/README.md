@@ -4,7 +4,7 @@
 
 This example verifies nested keyed forms through PHP, the PHP extension, Go and
 Rust. Each server compiles, renders, validates and stores the same form data.
-React, Vue and Svelte run both `bindForm` and `createForm`. Native form and
+React, Vue, Svelte and the HTML renderer run both `bindForm` and `createForm`. Native form and
 ordered JSON submissions use the same validation and persistence contract.
 
 Repeated collections use keyed objects. Saved rows use 13 decimal digits and
