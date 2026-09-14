@@ -41,7 +41,9 @@
 `@crudui/generator-html` 패키지는 React, Vue, Svelte 없이 같은 평가 인스턴스와
 목록 모델을 HTML 문자열로 렌더링합니다. `renderForm(form)`은 외부 HTML `form`
 요소를 제외한 폼 내용을 반환합니다. 애플리케이션은 이를 호스트에 삽입한 뒤
-`connectForm`을 호출할 수 있습니다. `renderList(spec, rows, options)`는 선언된
+`connectForm`을 호출할 수 있습니다. `renderFormView(fields, buttons, messages)`는 React, Vue,
+Svelte의 `FormFields`처럼, 데이터를 직접 관리하는 애플리케이션을 위해 `bindForm`과 `bindButtons`로
+같은 내용을 렌더링합니다. `renderList(spec, rows, options)`는 선언된
 table 또는 card layout을 반환합니다. 이 패키지는 DOM 연결, 검증, 데이터 로드,
 위젯 실행을 수행하지 않습니다.
 

@@ -351,12 +351,20 @@ function formFooterHtml(buttons: readonly ButtonVM[], messages: FormMessages): s
     element('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formActions }, formButtonsHtml(buttons)));
 }
 
+/**
+ * Render the `crudui-form` block for evaluated nodes and form buttons; applications that own
+ * their data render it from `bindForm` and `bindButtons`.
+ */
+export function renderFormView(fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages): string {
+  return element('div', { class: 'crudui-form' },
+    element('div', { class: 'crudui-form__body' }, fields.map(node).join('')) +
+    formFooterHtml(buttons, messages));
+}
+
 /** Render the current form instance as framework-independent HTML. */
 export function renderForm(form: FormInstance): string {
   const snapshot = form.getSnapshot();
-  return element('div', { class: 'crudui-form' },
-    element('div', { class: 'crudui-form__body' }, snapshot.fields.map(node).join('')) +
-    formFooterHtml(snapshot.buttons, form.messages));
+  return renderFormView(snapshot.fields, snapshot.buttons, form.messages);
 }
 
 /** Compose, evaluate and render a list without a framework or database. */

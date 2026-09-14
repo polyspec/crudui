@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Render a bindForm form with the HTML renderer
+
+React, Vue and Svelte render a form an application owns with `bindForm` through the
+stateless `FormFields`, but `@crudui/generator-html` could render a form only from a
+`createForm` instance (`renderForm(form)`); its structure map and data view already had
+stateless `renderOutlineView` and `renderDataPanel`. `renderFormView(fields, buttons,
+messages)` now renders the `crudui-form` block from `bindForm`, `bindButtons` and
+`formMessages`, and `renderForm` uses it, so the markup is built in one place. The
+README and the form runtime specification describe it.
+
+The HTML renderer's conformance test renders every renderable form fixture through this
+path as well. That includes the missing-data case the instance path skips, because
+`bindForm` gives missing repeated data its fixed row key. `npm test -w
+@crudui/generator-html` passed 206 tests (116 before, plus 90 bindForm cases),
+`npm run build -w @crudui/generator-html` succeeded and `make docs-check` passed.
+
 ## 2026-09-14 — Correct the runtime contract on attribute order
 
 The form runtime specification still required the restored HTML string to match

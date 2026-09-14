@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm, type CompileFormOptions, type CreateFormOptions } from '@crudui/generator-core';
-import { renderForm } from './index';
+import {
+  bindButtons, bindForm, compileForm, createForm, formMessages,
+  type CompileFormOptions, type CreateFormOptions,
+} from '@crudui/generator-core';
+import { renderForm, renderFormView } from './index';
 // @ts-expect-error shared JavaScript fixture normalizer
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import cases from '../../../tests/fixtures/form-render/cases.json';
@@ -22,6 +25,23 @@ function renderFixture(item: FixtureCase): string {
   const formOptions = (item.options ?? {}) as CreateFormOptions;
   return renderForm(createForm(template, item.data ?? {}, formOptions));
 }
+
+/** Render a fixture as an application that owns its data does: bindForm, bindButtons and renderFormView. */
+function renderFixtureView(item: FixtureCase): string {
+  const template = compileForm(item.spec, (item.options ?? {}) as CompileFormOptions);
+  const options = (item.options ?? {}) as NonNullable<Parameters<typeof bindForm>[2]> & { language?: string };
+  const data = item.data ?? {};
+  return renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(options.language ?? 'ko'));
+}
+
+describe('stateless HTML form view conformance', () => {
+  // bindForm gives missing repeated data its fixed row key, so every renderable case applies.
+  for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
+    test(item.name, () => {
+      expect(normalizeHtml(renderFixtureView(item))).toBe(item.expected_html);
+    });
+  }
+});
 
 describe('framework-independent HTML renderer conformance', () => {
   // A form instance gives missing repeated data a random row key, so the
