@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 폼 스냅숏 모듈 하나만 유지
+
+`form-snapshot.mjs`와 그 테스트가 같은 내용으로 두 벌 있었습니다. 원본인 `tests/form-inspector/`와
+`examples/form-comparison/src/`의 복사본입니다. 변경을 두 곳에 해야 했고, 비교 검사는 복사본 테스트를,
+CI 네이티브 작업은 원본 테스트를 실행했습니다. 복사본과 그 테스트를 제거했습니다. 비교 프레임은
+원본을 가져오고, 비교 빌드는 원본을 페이지에 게시하며, `test:form-comparison:source`가 원본 테스트를
+실행하므로 로컬 검사와 비교 CI 작업이 계속 이를 확인합니다.
+
+`node --test tests/form-inspector/form-snapshot.test.mjs`가 테스트 18개를 통과했고,
+`npm run test:form-comparison`이 원본을 소스 검사에 포함해 통과했습니다.
+
 ## 2026-09-14 — 속성 순서 없이 브라우저 DOM을 비교하고 순서를 강제하던 코드 제거
 
 f3109ad에서 비교 페이지의 전체 검사를 Safari로 실행하자 네 서버 모두 Vue `bindForm`의
