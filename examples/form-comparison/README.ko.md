@@ -3,7 +3,7 @@
 [English](README.md).
 
 이 예제는 PHP, PHP 확장, Go, Rust에서 중첩 keyed 폼을 검증합니다. 각 서버는
-같은 폼 데이터를 컴파일·렌더링·검증·저장합니다. React·Vue·Svelte는
+같은 폼 데이터를 컴파일·렌더링·검증·저장합니다. React·Vue·Svelte·HTML 렌더러는
 `bindForm`과 `createForm`을 모두 실행합니다. 네이티브 폼과 ordered JSON 전송은
 같은 검증·저장 계약을 사용합니다.
 

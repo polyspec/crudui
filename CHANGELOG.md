@@ -2,6 +2,39 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Compare the HTML renderer on the comparison page
+
+The comparison page rendered the client columns with React, Vue and Svelte only;
+`@crudui/generator-html`, the framework-independent renderer, was never part of the
+browser matrix. `html` is now the fourth framework in `runtime-paths.json`, so the
+servers accept its routes and render its SSR documents, and every check covers it.
+
+- `create-form-html.ts` renders `renderForm`, `renderOutline` and `renderData` into the
+  frame, connects one `connectForm` binding (which runs both the form's and the
+  structure map's actions) before its rendering subscription, and renders again and
+  synchronizes on every change. `bind-form-html.ts` renders `renderFormView`,
+  `renderOutlineView` and `renderDataPanel` from `bindForm`. The frame build resolves
+  `#html` to the renderer source, and the page offers HTML in its framework selector
+  and names it in its introduction and README.
+- Tests that wrote matrix numbers now derive them: the generation test uses the exported
+  generation totals, the interaction test multiplies the matrix by its five actions, and
+  the runtime-path test compares the combination counts with the matrix.
+- The comparison specification states the new sizes: 64 scenario and 32 initialization
+  reports; per server a job of 24 reports (16 scenario, 8 initialization), 80
+  interaction, 8 mount-before-load and 8 static-document checks; an aggregate of
+  1,216 scenario checks, 5,376 initialization comparisons, 320 interaction, 32 mount
+  and 32 static-document checks; and generation verification of 386 results, 547
+  requests and 32 combinations. Two errors in that text are corrected with it: the
+  aggregate still said 4,608 initialization comparisons although a384cfc had reduced
+  the categories to seven, and it named the mount-before-load frame `inject`, the
+  column name 880cb11 replaced with `csr`. The runtime package and native generator
+  documents name the HTML renderer among the browser targets.
+
+`make format-check`, `npm run test:form-comparison` (source 139, library 10, browser
+job 3), `npm run test:runtimes` (20), `make docs-check`, the Go server tests and the Rust
+server tests (4) passed. The frames, including the HTML frames, are built and run
+against the four servers only by the candidate verification.
+
 ## 2026-09-14 — Render a bindForm form with the HTML renderer
 
 React, Vue and Svelte render a form an application owns with `bindForm` through the
