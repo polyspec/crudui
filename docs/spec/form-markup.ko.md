@@ -96,8 +96,14 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
   없습니다.
 - 컨트롤 순서는 `move-up`·`move-down`(`multiple.sortable`), `add-row`,
   `copy-row`(`multiple.copy`), `remove-row`입니다. 첫 행의 `move-up`과 마지막 행의
-  `move-down`은 비활성입니다. 행 수가 `multiple.max`에 도달하면 `add-row`와
-  `copy-row`를, `multiple.min` 이하이면 `remove-row`를 비활성합니다.
+  `move-down`은 사용할 수 없습니다. 행 수가 `multiple.max`에 도달하면 `add-row`와
+  `copy-row`를, `multiple.min` 이하이면 `remove-row`를 사용할 수 없습니다.
+- 폼과 구조 맵의 모든 조작 버튼(`data-crudui-action`)은 사용할 수 없는 조작을
+  `disabled`가 아니라 `aria-disabled="true"`로 표시합니다. 버튼은 포커스를 받을 수 있고
+  클릭해도 아무 일도 하지 않습니다. 포커스된 컨트롤이 비활성화되면 Chromium은 포커스를
+  유지하고 WebKit은 해제하므로, `disabled`를 쓰면 포커스가 브라우저와 렌더링 시점에 따라
+  달라집니다. 필드 컨트롤의 `disabled`는 선언된 데이터 상태이며 제출에서 제외되므로 그대로
+  씁니다.
 - `multiple.controls`는 행 컨트롤을 행 `header`(기본) 또는 `footer`에 둡니다.
   `outline`이면 행 컨트롤은 구조 맵 줄로 옮겨집니다. 빈 컬렉션의 추가 컨트롤은 행
   컨트롤이 아니므로 컬렉션 푸터에 남습니다.
@@ -135,7 +141,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 컬렉션은 행이 아니므로 폼에만 남습니다. 각 행은 번호와 제목을 담은 `select-row` 버튼을
 가집니다. 중첩된 행 본문은
 한 단계 들여씁니다. 헤더에는 `expand-all`,
-`collapse-all`, `undo`(되돌릴 이력이 없으면 비활성)를 둡니다. React, Vue, Svelte는
+`collapse-all`, `undo`(되돌릴 이력이 없으면 사용할 수 없음)를 둡니다. React, Vue, Svelte는
 `Outline`과 `DataView`를, `bindForm`으로 데이터를 직접 관리하는 응용 프로그램에는
 상태 없는 `OutlineView`와 `DataPanel`(Vue: `outlineVNode`, `dataVNode`)을, HTML 렌더러는 `renderOutline(form)`과 `renderData(form)`, 같은 애플리케이션용
 `renderOutlineView(state, messages)`와 `renderDataPanel(data, messages)`를 제공합니다.

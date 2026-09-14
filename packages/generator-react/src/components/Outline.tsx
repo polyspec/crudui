@@ -11,7 +11,7 @@ import { Controls } from './Controls';
 
 function TextAction({ name, label, disabled = false }: { name: string; label: string; disabled?: boolean }): React.ReactElement {
   return (
-    <button type="button" className="crudui-action crudui-action--text" data-crudui-action={name} disabled={disabled}>
+    <button type="button" className="crudui-action crudui-action--text" data-crudui-action={name} aria-disabled={disabled ? 'true' : undefined}>
       {label}
     </button>
   );

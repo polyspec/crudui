@@ -189,7 +189,7 @@ export function bindFormController(element, mount, template, language, initialDa
   /** A row's first enabled visible input, or its own toggle or Add button when it has none. */
   function firstRowControl(row) {
     const own = action => Array.from(row.querySelectorAll(`[data-crudui-action="${action}"]`))
-      .find(button => !button.disabled && button.closest('[data-crudui-row-key]') === row);
+      .find(button => button.getAttribute('aria-disabled') !== 'true' && button.closest('[data-crudui-row-key]') === row);
     return Array.from(row.querySelectorAll('input:not([type=hidden]),select,textarea'))
       .find(control => !control.disabled && !control.closest('[hidden]'))
       ?? own('toggle-row') ?? own('add-row');
@@ -205,7 +205,7 @@ export function bindFormController(element, mount, template, language, initialDa
       : rowElement(path, key);
     const control = row ? firstRowControl(row)
       : Array.from(element.querySelectorAll('[data-crudui-action="add-row"]'))
-        .find(button => !button.disabled && pathOf(button) === path);
+        .find(button => button.getAttribute('aria-disabled') !== 'true' && pathOf(button) === path);
     control?.focus();
   }
 
@@ -276,7 +276,7 @@ export function bindFormController(element, mount, template, language, initialDa
 
   function onClick(event) {
     const button = event.target.closest?.('button[data-crudui-action]');
-    if (!button || button.disabled || !element.contains(button)) return;
+    if (!button || button.getAttribute('aria-disabled') === 'true' || !element.contains(button)) return;
     const target = resolveAction(button);
     if (!target) return;
     const { name: action, path, key } = target;

@@ -99,10 +99,16 @@ input's own label inside the body, and its header holds only a description. A
   directly in the row body, or shows the collapsed message when there are none.
   Scalar rows have no toggle, title or summary.
 - Controls follow this order: `move-up` and `move-down` (`multiple.sortable`),
-  `add-row`, `copy-row` (`multiple.copy`) and `remove-row`. `move-up` is disabled
+  `add-row`, `copy-row` (`multiple.copy`) and `remove-row`. `move-up` is unavailable
   on the first row and `move-down` on the last. `add-row` and `copy-row` are
-  disabled when the row count reaches `multiple.max`; `remove-row` when it is at
+  unavailable when the row count reaches `multiple.max`; `remove-row` when it is at
   or below `multiple.min`.
+- Every action button (`data-crudui-action`), in the form and in the structure map,
+  marks an unavailable action with `aria-disabled="true"`, never `disabled`. It stays
+  focusable and a click on it does nothing. A focused control that becomes disabled
+  keeps focus in Chromium and loses it in WebKit, so `disabled` would make focus
+  depend on the browser and on rendering timing. Field controls keep `disabled`,
+  which is declared data state and excludes the field from submission.
 - `multiple.controls` places row controls in the row `header` (default) or
   `footer`. With `outline` the row controls move to the structure map lines; an
   empty collection's Add control is not a row control and stays in the collection
@@ -144,7 +150,7 @@ returns the form's rows, each with the rows nested in it, so the map nests exact
 as the form does; collections, counts and empty collections are not rows and stay in
 the form. Each row has a `select-row` button with its number and title. A nested row body indents
 one step. Its header holds `expand-all`, `collapse-all` and `undo`
-(disabled when nothing can be undone). React, Vue and Svelte provide `Outline`
+(unavailable when nothing can be undone). React, Vue and Svelte provide `Outline`
 and `DataView`, and the stateless `OutlineView` and `DataPanel` (Vue: `outlineVNode`
 and `dataVNode`) for applications that own their data with `bindForm`; the HTML renderer provides `renderOutline(form)` and
 `renderData(form)`, and `renderOutlineView(state, messages)` and

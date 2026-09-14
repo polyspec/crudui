@@ -309,7 +309,7 @@ func TestNodeGrammarRowsAndControls(t *testing.T) {
 		`<div class="crudui-form"><div class="crudui-form__body"><div class="crudui-node crudui-node--collection" data-field-path="items">`,
 		`<div class="crudui-node crudui-node--row crudui-node--sticky" style="--crudui-sticky-depth:0" data-crudui-row-key="first"><div class="crudui-node__header"><button type="button" class="crudui-action" data-crudui-action="toggle-row" aria-expanded="true" aria-controls="crudui:items.first:body" aria-label="Expand or collapse"></button>`,
 		`<span class="crudui-node__summary" hidden="">Nested rows: 2</span>`,
-		`data-crudui-action="move-up" aria-label="Move up" disabled=""></button>`,
+		`data-crudui-action="move-up" aria-label="Move up" aria-disabled="true"></button>`,
 	} {
 		if !strings.Contains(html, part) {
 			t.Fatalf("Missing %s in %s", part, html)

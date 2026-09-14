@@ -2,6 +2,37 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Mark unavailable actions with aria-disabled
+
+In Safari, the repeated injection comparison on the deployed 9d6beec page reported
+`restored` with CSS and focus differences: the left column kept focus, with its focus
+outline, on the disabled Undo button, and the right column had no focus. It did not
+reproduce in Chrome (React, bindForm, PHP: 168/168), in Playwright WebKit for all eight PHP
+combinations (168/168 each), or in the user's complete Safari run (96 reports, 0 failed).
+
+The `undone` stage focuses Undo and presses it; with the history empty, every renderer then
+wrote `disabled` on that button. Measured in Playwright: a focused button that becomes
+disabled keeps focus in Chromium, while WebKit clears focus at the next rendering update.
+Either button replaced by an equal disabled button loses focus. "Undoing keeps the focused
+action button" therefore depended on the browser and on whether WebKit's focus clearing ran
+before or after the frame re-rendered and restored focus.
+
+Every action button, in the form and the structure map, now marks an unavailable action with
+`aria-disabled="true"` instead of `disabled`, in the HTML, React, Vue and Svelte renderers and
+the Go, PHP, Rust and PHP extension generators. The button stays focusable and a click on it
+does nothing: `connectForm`, `connectOutline` and the comparison page's bindForm controller
+read `aria-disabled`, and the stylesheet styles `[aria-disabled='true']`. Field controls keep
+`disabled`, which is declared data state. The shared form render and structure map fixtures
+were regenerated; their only change is this attribute. The markup naming check rejects
+`disabled` and any `aria-disabled` value other than `true` on action buttons, and the shared
+DOM scenario checks that an unavailable Move up button keeps focus and changes nothing when
+clicked.
+
+`npm run test:forms` passed (core 110, HTML 207, React 352, Vue 342, Svelte 339 and 10,
+Chromium 14), `make test-native` passed 976/976, the Go generator tests, the Rust generator
+tests (20 and 4), the PHP generator tests (163), `npm run test:form-comparison:source` (141)
+and `:browser` (3), `make docs-check` and `make format-check` passed.
+
 ## 2026-09-14 — Run one comparison storage operation at a time
 
 On the deployed cf95123 page, pressing Run checks in the left and right frames at the same
