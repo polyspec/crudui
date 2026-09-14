@@ -2,6 +2,11 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — Vue 상세 렌더링 추가
+
+Vue 생성기가 공용 `Detail` 컴포넌트와 비동기 `renderDetail` SSR 진입점을
+제공합니다. 코어 상세 모델과 기존 목록 셀 표시 매핑을 소비합니다.
+
 ## 2026-09-14 — React 상세 렌더링 추가
 
 React 생성기가 공용 `Detail` 컴포넌트와 `renderDetail`을 제공합니다. 코어 상세
