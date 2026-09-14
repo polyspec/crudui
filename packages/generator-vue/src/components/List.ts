@@ -55,7 +55,7 @@ function styleProp(style: string): Record<string, string> {
  * display is handled by the host (cellVNode/card value) directly via innerHTML so
  * NO wrapper element is added.
  */
-function cellDisplayVNode(display: CellDisplay): VNode | string {
+export function cellDisplayVNode(display: CellDisplay): VNode | string {
   if (typeof display === 'string') return display;
   switch (display.kind) {
     case 'badge':

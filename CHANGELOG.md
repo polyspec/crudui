@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Add Vue detail rendering
+
+The Vue generator now exports the shared `Detail` component and asynchronous
+`renderDetail` SSR entry point. It consumes the core detail model and the
+existing list cell display mapping.
+
 ## 2026-09-14 — Add React detail rendering
 
 The React generator now exports the shared `Detail` component and
