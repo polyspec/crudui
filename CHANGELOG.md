@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — State that the comparison storage lock covers one browser
+
+While a Playwright WebKit comparison ran against the deployment, a check in the user's Safari
+did not finish, so the two runs shared the saved records although each page held its own
+storage lock. The lock from `navigator.locks` belongs to one browser. The comparison
+contract now states that other browsers, other people and automated runs against the same
+deployment read and replace the records without it, so checks from different browsers must
+not run at the same time. The servers keep one record store per server, rendering path and
+framework; separating stores per run was considered and not adopted.
+
 ## 2026-09-14 — Mark unavailable actions with aria-disabled
 
 In Safari, the repeated injection comparison on the deployed 9d6beec page reported
