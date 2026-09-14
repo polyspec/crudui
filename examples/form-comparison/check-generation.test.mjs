@@ -89,9 +89,10 @@ test('accepts the complete current generation matrix', () => {
   assert.doesNotThrow(() => assertGenerationReportInvariants(report));
   finalizeGenerationReport(report, '2026-09-09T00:00:00.000Z');
   assert.deepStrictEqual(report.invariants, {
-    passed: true, results: 290, requests: 411, combinations: 24,
+    passed: true, results: expectedGenerationResults,
+    requests: expectedGenerationRequests, combinations: expectedGenerationCombinations,
   });
-  assert.equal(report.passed, 290);
+  assert.equal(report.passed, expectedGenerationResults);
   assert.equal(report.failed, 0);
 });
 
@@ -128,7 +129,8 @@ test('rejects missing combinations and changed request totals', () => {
 
   const shortRequests = completeReport();
   shortRequests.requests.pop();
-  assert.throws(() => assertGenerationReportInvariants(shortRequests), /exactly 411 HTTP requests/);
+  assert.throws(() => assertGenerationReportInvariants(shortRequests),
+    new RegExp(`exactly ${expectedGenerationRequests} HTTP requests`));
 });
 
 test('records an invariant failure instead of allowing an incomplete run to pass', () => {
@@ -148,6 +150,6 @@ test('retains an ordinary check failure when the report structure is complete', 
   report.results.find(result => result.server === 'php-ext' && result.framework === 'svelte').passed = false;
   finalizeGenerationReport(report, '2026-09-09T00:00:00.000Z');
   assert.equal(report.invariants.passed, true);
-  assert.equal(report.passed, 289);
+  assert.equal(report.passed, expectedGenerationResults - 1);
   assert.equal(report.failed, 1);
 });

@@ -11,17 +11,18 @@ import {
 test('defines the complete current browser matrix', () => {
   assert.deepEqual(formRenderingPaths, ['bindForm', 'createForm']);
   assert.deepEqual(formServers, ['php', 'php-ext', 'go', 'rust']);
-  assert.deepEqual(formFrameworks, ['react', 'vue', 'svelte']);
+  assert.deepEqual(formFrameworks, ['react', 'vue', 'svelte', 'html']);
   assert.deepEqual(formTransports, ['form', 'json']);
-  assert.equal(reportCombinations().length, 12);
+  assert.equal(reportCombinations().length,
+    formRenderingPaths.length * formFrameworks.length * formTransports.length);
   assert.deepEqual(reportCombinations().at(0), {
     path: 'bindForm', framework: 'react', transport: 'form',
   });
   assert.deepEqual(reportCombinations().at(-1), {
-    path: 'createForm', framework: 'svelte', transport: 'json',
+    path: 'createForm', framework: 'html', transport: 'json',
   });
   assert.deepEqual(formInitializations, ['ssr', 'csr']);
-  assert.deepEqual(initializationCombinations().length, 6);
+  assert.deepEqual(initializationCombinations().length, formRenderingPaths.length * formFrameworks.length);
   assert.equal(initializationStages.length, 18);
   assert.equal(initializationComparisons.length * initializationCategories.length, 168);
 });

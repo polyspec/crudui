@@ -77,7 +77,7 @@ module loading; the test command establishes the recorded comparisons.
 
 Package examples demonstrate each language's library. The
 [form verification procedure](verification.md) defines the separate PHP,
-native PHP, Go and Rust HTTP targets with React, Vue and Svelte. Verify both form
+native PHP, Go and Rust HTTP targets with React, Vue, Svelte and the HTML renderer. Verify both form
 and ordered JSON submission, invalid requests, persistence and reload.
 
 A browser-generated form with a PHP, Go or Rust validation endpoint does not

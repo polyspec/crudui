@@ -71,7 +71,7 @@ container run --rm --cpus 4 --memory 4g \
 
 패키지 예제는 각 언어의 라이브러리 사용을 보여 줍니다.
 [폼 검증 절차](verification.ko.md)는 PHP, 네이티브 PHP, Go, Rust의 개별 HTTP
-대상과 React, Vue, Svelte 검사를 정의합니다. 폼과 순서 보존 JSON 전송, 잘못된 요청,
+대상과 React, Vue, Svelte, HTML 렌더러 검사를 정의합니다. 폼과 순서 보존 JSON 전송, 잘못된 요청,
 저장과 재조회를 모두 검증합니다.
 
 브라우저에서 생성한 폼과 PHP, Go, Rust 검증 엔드포인트만으로는 서버 렌더링이

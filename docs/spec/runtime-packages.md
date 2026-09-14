@@ -125,12 +125,12 @@ comparison cannot establish equality.
 For the same template, record, language and supplied row keys, initial data and
 later injection must produce identical HTML and submitted data. Repeated injection
 and record restoration must preserve that equality. Browser checks verify these
-paths in React, Vue and Svelte, including edits, labels, multiple selections, row
-actions, focus, selection and scrolling. SSR integration requires its own checks;
-client rendering with a non-JavaScript validation server does not verify SSR.
+paths in React, Vue, Svelte and the HTML renderer, including edits, labels, multiple
+selections, row actions, focus, selection and scrolling. SSR integration requires its
+own checks; client rendering with a non-JavaScript validation server does not verify SSR.
 
-HTTP examples cover PHP, PHP native, Go and Rust independently with all three
-browser frameworks: four server targets by three frameworks. Each target tests
+HTTP examples cover PHP, PHP native, Go and Rust independently with all four browser
+renderers: four server targets by React, Vue, Svelte and the HTML renderer. Each target tests
 form and ordered JSON submission, validation, persistence and reload. Core
 JavaScript generation and validation remain part of the shared conformance suite.
 An omitted runtime, process failure, malformed response or missing expectation

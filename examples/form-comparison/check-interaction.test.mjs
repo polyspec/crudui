@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { interactionCombinations } from './check-interaction.mjs';
+import { formFrameworks, formRenderingPaths, formTransports } from './src/runtime-paths.mjs';
 
 const interactionSource = await readFile(
   new URL('./check-interaction.mjs', import.meta.url), 'utf8',
@@ -13,13 +14,15 @@ const mainSource = await readFile(new URL('./public/main.mjs', import.meta.url),
 
 test('uses the complete current interaction matrix for each server', () => {
   const combinations = interactionCombinations(['php']);
-  assert.equal(combinations.length, 60);
+  // Five actions: pointer, keyboard, condition, validation and empty-keyboard.
+  assert.equal(combinations.length,
+    formRenderingPaths.length * formFrameworks.length * formTransports.length * 5);
   assert.deepEqual(combinations[0], {
     server: 'php', framework: 'react', path: 'bindForm',
     transport: 'form', action: 'pointer',
   });
   assert.deepEqual(combinations.at(-1), {
-    server: 'php', framework: 'svelte', path: 'createForm',
+    server: 'php', framework: formFrameworks.at(-1), path: 'createForm',
     transport: 'json', action: 'empty-keyboard',
   });
 });
