@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Correct the runtime contract on attribute order
+
+The form runtime specification still required the restored HTML string to match
+"including attribute order" and said the shared DOM binding places a checkbox's `checked`
+attribute last. That was the criterion a384cfc corrected, and the code that enforced it
+was removed there, but the contract text was left unchanged. The specification now states
+the corrected rule: attribute order is not part of the contract, the bindings never
+rearrange attributes, the comparisons use the parsed DOM, and the string renderers'
+byte-identical HTML is checked separately.
+
+`make docs-check` passed.
+
 ## 2026-09-14 — Derive the browser report counts from the matrix
 
 After the browser matrix moved to one file, the server report policy still wrote its
