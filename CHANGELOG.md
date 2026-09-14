@@ -2,11 +2,11 @@
 
 [한국어](CHANGELOG.ko.md).
 
-## 2026-09-14 — Add Go detail rendering
+## 2026-09-14 — Add Go detail model and SSR rendering
 
-The Go generator now provides `BuildDetail` and `RenderDetail`. Both delegate
-field composition, display formatting and design evaluation to the existing
-`BuildList` path and keep detail data caller-owned.
+The Go generator now provides `BuildDetail` and `RenderDetail`, reusing the
+existing ordered display and composition path used by `BuildList`. The command
+adapter accepts a single object record for the `renderDetail` operation.
 
 ## 2026-09-14 — Add Svelte detail rendering
 
