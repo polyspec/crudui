@@ -5,6 +5,7 @@ export * from './schema';
 export * from './types';
 export * from './compose/index';
 export * from './validate-list/index';
+export * from './validate-detail/index';
 // Parser exports
 export {
   Lexer,

@@ -62,6 +62,8 @@ export type {
   ActionVM,
   BuildListOptions,
 } from './list';
+export { buildDetail } from './detail';
+export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from './detail';
 export {
   renderCell,
   normalizeFormat,

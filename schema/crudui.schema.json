@@ -903,6 +903,37 @@
         }
       ]
     },
+    "DisplayField": {
+      "description": "Read-only display field declaration specifying the value path, label, display format and appearance.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "description": "Record value path.",
+          "$ref": "#/definitions/Expression"
+        },
+        "label": {
+          "description": "Display label, optionally translated.",
+          "$ref": "#/definitions/Content"
+        },
+        "format": {
+          "description": "Cell display format. The default is text.",
+          "$ref": "#/definitions/CellFormat"
+        },
+        "design": {
+          "description": "Visibility and node appearance settings.",
+          "$ref": "#/definitions/Design"
+        },
+        "$ref": {
+          "description": "Composition reference resolved before evaluation.",
+          "type": "string"
+        },
+        "$patch": {
+          "description": "Composition operations applied after reference resolution.",
+          "$ref": "#/definitions/Patch"
+        }
+      }
+    },
     "Column": {
       "description": "List column declaration specifying the value path, label, display format, appearance and sorting availability.",
       "type": "object",
@@ -1039,6 +1070,50 @@
       },
       "additionalProperties": {
         "$ref": "#/definitions/Column"
+      }
+    },
+    "DetailFields": {
+      "description": "Named detail field map supporting composition references and patches.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
+      "properties": {
+        "$ref": {
+          "description": "Composition reference resolved before evaluation.",
+          "type": "string"
+        },
+        "$patch": {
+          "$ref": "#/definitions/Patch"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/DisplayField"
+      }
+    },
+    "Detail": {
+      "description": "Detail declaration with ordered read-only display fields. One record is supplied separately.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fields"
+      ],
+      "properties": {
+        "fields": {
+          "description": "Named read-only display field definitions.",
+          "$ref": "#/definitions/DetailFields"
+        },
+        "design": {
+          "description": "Visibility and node appearance settings.",
+          "$ref": "#/definitions/Design"
+        },
+        "$ref": {
+          "description": "Composition reference resolved before evaluation.",
+          "type": "string"
+        },
+        "$patch": {
+          "$ref": "#/definitions/Patch"
+        }
       }
     },
     "List": {

@@ -8,9 +8,9 @@
 JavaScript, PHP, Go, Rust는 명세 조합, 폼 구조 컴파일, 데이터 바인딩,
 HTML 렌더링, 검증을 제공합니다. PHP 네이티브 실행은 폼 생성과 검증을
 모두 제공합니다. 서버 언어는 JavaScript 서버를 시작하거나 다른 언어의
-실행 파일을 호출하지 않고 폼을 렌더링할 수 있어야 합니다.
+실행 파일을 호출하지 않고 폼·목록·상세를 렌더링할 수 있어야 합니다.
 
-| 런타임 | 조합과 표현식 | 폼 컴파일과 바인딩 | 폼 HTML과 목록 렌더링 | 검증 |
+| 런타임 | 조합과 표현식 | 폼 컴파일과 바인딩 | 폼 HTML·목록·상세 렌더링 | 검증 |
 | --- | --- | --- | --- | --- |
 | JavaScript | 필수 | 필수 | 필수 | 필수 |
 | PHP | 필수 | 필수 | 필수 | 필수 |
@@ -33,10 +33,10 @@ PHP 구현을 자동 로드합니다. [PHP API 계약](php-extension.ko.md)은 �
 | --- | --- | --- |
 | `packages/generator-core` | JavaScript 템플릿, 인스턴스, 계산된 모델 | JavaScript 조합과 표현식 모듈 |
 | `packages/generator-react`, `generator-vue`, `generator-svelte` | 프레임워크 통합, 브라우저 동작, 렌더링 | 공용 JavaScript 생성기 |
-| `packages/generator-html` | 프레임워크에 독립적인 JavaScript 폼·목록 HTML 렌더링 | 공용 JavaScript 생성기 |
-| `packages/generator-php` | PHP 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | PHP 조합과 표현식 모듈 |
-| `packages/generator-go` | Go 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | Go 조합과 표현식 모듈 |
-| `packages/generator-rust` | Rust 템플릿 컴파일, 데이터 바인딩, 폼과 목록 HTML | Rust 조합과 표현식 모듈 |
+| `packages/generator-html` | 프레임워크에 독립적인 JavaScript 폼·목록·상세 HTML 렌더링 | 공용 JavaScript 생성기 |
+| `packages/generator-php` | PHP 템플릿 컴파일, 데이터 바인딩, 폼·목록·상세 HTML | PHP 조합과 표현식 모듈 |
+| `packages/generator-go` | Go 템플릿 컴파일, 데이터 바인딩, 폼·목록·상세 HTML | Go 조합과 표현식 모듈 |
+| `packages/generator-rust` | Rust 템플릿 컴파일, 데이터 바인딩, 폼·목록·상세 HTML | Rust 조합과 표현식 모듈 |
 | `packages/php-ext` | PHP 네이티브 생성과 검증 | PHP 패키지와 같은 공개 클래스이며 생성과 검증을 네이티브 코드에서 실행 |
 | `packages/validator-*` | 데이터와 명세 검증 | 기존 언어별 검증 규칙 구현과 공용 사례 |
 
@@ -60,6 +60,8 @@ PHP 호스트를 요구하지 않습니다.
 | 데이터 조회 | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
 | 폼 렌더링 | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
 | 목록 렌더링 | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
+| 상세 모델 생성 | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
+| 상세 렌더링 | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |
 | 검증 | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
 
 두 PHP 구현 모두 `CRUDUI\Generator`, `CRUDUI\Validator`,

@@ -10,7 +10,7 @@ compilation, data binding, HTML rendering and validation. PHP native execution
 provides both form generation and validation. A server language can render forms
 without starting a JavaScript server or invoking another language's executable.
 
-| Runtime | Composition and expressions | Form compilation and binding | Form HTML and list rendering | Validation |
+| Runtime | Composition and expressions | Form compilation and binding | Form HTML, list and detail rendering | Validation |
 | --- | --- | --- | --- | --- |
 | JavaScript | required | required | required | required |
 | PHP | required | required | required | required |
@@ -33,10 +33,10 @@ unavailable native module fails the native test target.
 | --- | --- | --- |
 | `packages/generator-core` | JavaScript templates, instances and evaluated models | JavaScript composition and expression modules |
 | `packages/generator-react`, `generator-vue`, `generator-svelte` | Framework integration, browser operation and rendering | Shared JavaScript generator |
-| `packages/generator-html` | Framework-independent JavaScript form and list HTML rendering | Shared JavaScript generator |
-| `packages/generator-php` | PHP template compilation, data binding, form and list HTML | PHP composition and expression modules |
-| `packages/generator-go` | Go template compilation, data binding, form and list HTML | Go composition and expression modules |
-| `packages/generator-rust` | Rust template compilation, data binding, form and list HTML | Rust composition and expression modules |
+| `packages/generator-html` | Framework-independent JavaScript form, list and detail HTML rendering | Shared JavaScript generator |
+| `packages/generator-php` | PHP template compilation, data binding, form, list and detail HTML | PHP composition and expression modules |
+| `packages/generator-go` | Go template compilation, data binding, form, list and detail HTML | Go composition and expression modules |
+| `packages/generator-rust` | Rust template compilation, data binding, form, list and detail HTML | Rust composition and expression modules |
 | `packages/php-ext` | PHP native generation and validation | The same public classes as the PHP packages; generation and validation execute in native code |
 | `packages/validator-*` | Data and specification validation | Existing language rule implementations and shared cases |
 
@@ -60,6 +60,8 @@ the same; no runtime selector is embedded in a field specification.
 | Read data | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
 | Render form | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
 | Render list | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
+| Build detail | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
+| Render detail | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |
 | Validate | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
 
 Both PHP implementations use the classes `CRUDUI\Generator`,
