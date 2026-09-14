@@ -8,13 +8,10 @@ import (
 	"mime"
 	"net/http"
 	"path/filepath"
-	"regexp"
 
 	generator "github.com/polyspec/crudui/packages/generator-go"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
-
-var generationRoute = regexp.MustCompile(`^/api/(compile|render|ssr)/(bindForm|createForm)/(react|vue|svelte)$`)
 
 // generationInfo identifies the library compiled into the Go HTTP process.
 func generationInfo() *object {
