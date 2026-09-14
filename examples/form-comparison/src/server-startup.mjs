@@ -5,6 +5,7 @@ import path from 'node:path';
 import { readGitArchiveCommit } from '../verify-candidate-context.mjs';
 import { phpClassNames, phpClassProvenanceFailure } from './php-provenance.mjs';
 import { sourceDirectory } from './server-layout.mjs';
+import { formServers } from './runtime-paths.mjs';
 
 /** Read the embedded commit without buffering the remaining archive into Git. */
 export function readSourceArchiveCommit(archiveFile, execute = spawnSync) {
@@ -66,8 +67,8 @@ export function waitForChildReadiness(child, ready) {
 /** Request and verify each child server once after all listening events arrive. */
 export async function verifyChildServers({ readiness, servers, ports, metadata,
   request = fetch }) {
-  assert.deepEqual(servers, ['php', 'php-ext', 'go', 'rust'],
-    'Child verification requires the four current servers');
+  assert.deepEqual(servers, [...formServers],
+    'Child verification requires the current servers');
   assert.equal(readiness.length, servers.length,
     'Child verification requires one readiness event per server');
   const readyServers = await Promise.all(readiness);

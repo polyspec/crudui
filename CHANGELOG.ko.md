@@ -2,6 +2,26 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 비교 브라우저 행렬을 한 곳에서 정의
+
+비교 페이지의 서버, 렌더링 경로, 프레임워크, 전송 방식, 초기화 경로, API 작업이 `runtime-paths.mjs`에
+적혀 있고, 브라우저 보고서 정책, 후보 검증·준비·시작 검사, 프레임, 배포 헬스체크, PHP API와 생성기,
+Go·Rust 서버와 그 테스트에 다시 적혀 있었습니다. 렌더러를 추가하려면 모든 목록을 찾아야 했고,
+프레임워크와 무관한 HTML 렌더러가 비교에 추가되지 않은 원인 중 하나였습니다.
+
+이제 행렬은 `examples/form-comparison/src/runtime-paths.json` 한 곳에서 정의합니다.
+`runtime-paths.mjs`가 이를 가져오고 모든 JavaScript 검사가 그 export를 사용합니다. 빌드는 이 파일을
+`spec.json` 옆에 게시합니다. Go 서버(`newServer`)와 Rust 서버(`Server::load`)는 시작할 때 한 번 읽어
+API 경로를 만들므로 캐시된 템플릿 렌더링은 여전히 파일을 읽지 않으며, 테스트도 같은 파일을 읽습니다.
+PHP API는 새 `matrix.php`의 `browserMatrix()`로 경로를 검사하고 PHP 생성 테스트도 이를 순회합니다.
+`FormGeneration::document()`는 API 경로가 이미 하는 렌더링 경로·프레임워크 검사를 반복하지 않습니다.
+처음에는 `FormGeneration` 안에서 행렬을 읽었는데 파일을 읽지 않아야 하는 요청 생성 검사가 깨져, 별도
+함수로 바꿨습니다.
+
+`npm run test:form-comparison`(소스 139, 라이브러리 10, 브라우저 작업 3), Go 서버 테스트, Rust 서버
+테스트 4개, 바꾼 PHP 파일의 `php -l`, `make format-check`가 통과했고, `browserMatrix()`가 파일에서 렌더링
+경로·프레임워크·작업을 읽었습니다.
+
 ## 2026-09-14 — 폼 스냅숏 모듈 하나만 유지
 
 `form-snapshot.mjs`와 그 테스트가 같은 내용으로 두 벌 있었습니다. 원본인 `tests/form-inspector/`와

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { watch } from 'node:fs';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
+import { formServers } from './runtime-paths.mjs';
 
 async function pathState(file) {
   try {
@@ -41,8 +42,8 @@ export async function waitForCandidateReadiness({ file, expected, start,
   watchDirectory = watch }) {
   assert.ok(typeof file === 'string' && path.isAbsolute(file),
     'Candidate readiness path must be absolute');
-  assert.deepEqual(expected?.servers, ['php', 'php-ext', 'go', 'rust'],
-    'Candidate readiness requires the four current servers');
+  assert.deepEqual(expected?.servers, [...formServers],
+    'Candidate readiness requires the current servers');
   assert.match(expected?.commit ?? '', /^[0-9a-f]{40}$/,
     'Candidate readiness commit is invalid');
   assert.equal(typeof start, 'function',

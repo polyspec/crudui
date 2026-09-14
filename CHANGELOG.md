@@ -2,6 +2,30 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Define the comparison browser matrix once
+
+The comparison page's servers, rendering paths, frameworks, transports, initializations
+and API actions were written in `runtime-paths.mjs` and again in the browser report
+policy, the candidate verification, readiness and startup checks, the frame, the
+deployment health check, the PHP API and generator, and the Go and Rust servers and
+their tests. Adding a renderer meant finding every list; the framework-independent HTML
+renderer was never added to the comparison, partly because of this.
+
+The matrix is now defined once in `examples/form-comparison/src/runtime-paths.json`.
+`runtime-paths.mjs` imports it and every JavaScript check uses its exports. The build
+publishes the file next to `spec.json`. The Go server (`newServer`) and the Rust server
+(`Server::load`) read it once at startup and build their API routes from it, so a
+cached-template render still reads no files; their tests load the same file. The PHP
+API validates routes with `browserMatrix()` in the new `matrix.php`, and the PHP
+generation test iterates it. `FormGeneration::document()` no longer repeats the rendering
+path and framework check the API route already makes; a first version that read the
+matrix inside `FormGeneration` broke the request-construction checks, which must not
+read files, and was replaced by the separate function.
+
+`npm run test:form-comparison` (source 139, library 10, browser job 3), the Go server
+tests, the Rust server tests (4), `php -l` for the changed PHP files and `make format-check`
+passed; `browserMatrix()` read the rendering paths, frameworks and actions from the file.
+
 ## 2026-09-14 — Keep one form snapshot module
 
 `form-snapshot.mjs` and its test existed twice with identical content:

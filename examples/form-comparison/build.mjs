@@ -25,6 +25,9 @@ await cp(path.join(exampleDirectory, 'src/frame-readiness.mjs'),
   path.join(publicDirectory, 'frame-readiness.mjs'));
 await cp(path.join(exampleDirectory, 'src/runtime-paths.mjs'),
   path.join(publicDirectory, 'runtime-paths.mjs'));
+// The browser matrix, read by the page and by the Go and Rust servers.
+await cp(path.join(exampleDirectory, 'src/runtime-paths.json'),
+  path.join(publicDirectory, 'runtime-paths.json'));
 await cp(path.join(source, 'tests/form-inspector/form-snapshot.mjs'),
   path.join(publicDirectory, 'form-snapshot.mjs'));
 // Frames and SSR documents style the form with crudui.css alone, so computed CSS is compared with the real styles.

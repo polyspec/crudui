@@ -20,7 +20,7 @@ if (!path.isAbsolute(output)) {
 const selectedServer = process.argv[2];
 if (!formServers.includes(selectedServer) || !process.argv[3] || process.argv[4]) {
   throw new Error(
-    'Usage: node check.mjs <php|php-ext|go|rust> <http-origin>',
+    `Usage: node check.mjs <${formServers.join('|')}> <http-origin>`,
   );
 }
 const base = new URL(process.argv[3]);

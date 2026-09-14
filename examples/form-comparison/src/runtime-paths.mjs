@@ -1,12 +1,16 @@
-export const formServers = Object.freeze(['php', 'php-ext', 'go', 'rust']);
-export const formRenderingPaths = Object.freeze(['bindForm', 'createForm']);
-export const formFrameworks = Object.freeze(['react', 'vue', 'svelte']);
-export const formTransports = Object.freeze(['form', 'json']);
+// The browser matrix is defined once in runtime-paths.json, which the PHP, Go and Rust
+// servers read as well.
+import matrix from './runtime-paths.json' with { type: 'json' };
+
+export const formServers = Object.freeze([...matrix.servers]);
+export const formRenderingPaths = Object.freeze([...matrix.renderingPaths]);
+export const formFrameworks = Object.freeze([...matrix.frameworks]);
+export const formTransports = Object.freeze([...matrix.transports]);
 /**
  * `ssr`: the selected server renders the form with the record and the framework takes it over;
  * `csr`: the framework mounts the form without data, then injects the record.
  */
-export const formInitializations = Object.freeze(['ssr', 'csr']);
+export const formInitializations = Object.freeze([...matrix.initializations]);
 /** Operation stages each initialization column runs, in order, with the same row keys. */
 export const initializationStages = Object.freeze([
   'mounted', 'reinjected-1', 'reinjected-2', 'data-hidden', 'data-restored',
@@ -32,9 +36,7 @@ export const initializationComparisons = Object.freeze([
 export const initializationCategories = Object.freeze([
   'dom', 'controls', 'fields', 'css', 'data', 'focus', 'response',
 ]);
-export const formActions = Object.freeze([
-  'load', 'save', 'validate', 'reset', 'compile', 'render', 'ssr',
-]);
+export const formActions = Object.freeze([...matrix.actions]);
 
 const apiPattern = new RegExp(
   `^/api/(${formServers.join('|')})/(${formActions.join('|')})/`

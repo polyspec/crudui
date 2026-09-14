@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 
-import { initializationCategories, initializationComparisons } from './src/runtime-paths.mjs';
+import {
+  formFrameworks, formRenderingPaths, formServers, formTransports,
+  initializationCategories, initializationComparisons,
+} from './src/runtime-paths.mjs';
 
-export const browserServers = ['php', 'php-ext', 'go', 'rust'];
-export const browserPaths = ['bindForm', 'createForm'];
-export const browserFrameworks = ['react', 'vue', 'svelte'];
-export const browserTransports = ['form', 'json'];
+export const browserServers = formServers;
+export const browserPaths = formRenderingPaths;
+export const browserFrameworks = formFrameworks;
+export const browserTransports = formTransports;
 export const browserServerRunBudgetMs = 15 * 60 * 1000;
 export const browserScenarioCheckIds = [
   'identity', 'render', 'plus', 'copy', 'order', 'inject', 'transport',

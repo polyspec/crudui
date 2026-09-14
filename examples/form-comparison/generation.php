@@ -83,8 +83,6 @@ final class FormGeneration
     /** Render a stored record as a complete document with native form submission. */
     public function document(stdClass $spec, array|stdClass $data, string $renderingPath, string $framework, string $language): string
     {
-        if (!in_array($renderingPath, ['bindForm', 'createForm'], true)) throw new InvalidArgumentException('Unknown rendering path');
-        if (!in_array($framework, ['react', 'vue', 'svelte'], true)) throw new InvalidArgumentException('Unknown framework');
         if (!in_array($language, ['ko', 'en'], true)) throw new InvalidArgumentException('Expected language ko or en');
         $form = new Form(Generator::compileForm($spec, ['keyPrefix' => 'form']), $data, ['language' => $language]);
         $runtime = $this->generator['runtime'];
