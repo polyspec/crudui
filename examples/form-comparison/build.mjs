@@ -25,7 +25,7 @@ await cp(path.join(exampleDirectory, 'src/frame-readiness.mjs'),
   path.join(publicDirectory, 'frame-readiness.mjs'));
 await cp(path.join(exampleDirectory, 'src/runtime-paths.mjs'),
   path.join(publicDirectory, 'runtime-paths.mjs'));
-await cp(path.join(exampleDirectory, 'src/form-snapshot.mjs'),
+await cp(path.join(source, 'tests/form-inspector/form-snapshot.mjs'),
   path.join(publicDirectory, 'form-snapshot.mjs'));
 // Frames and SSR documents style the form with crudui.css alone, so computed CSS is compared with the real styles.
 await cp(path.join(source, 'packages/generator-core/styles/crudui.css'),

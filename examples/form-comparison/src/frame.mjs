@@ -5,7 +5,7 @@ import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
 import { encodeJson, readJson } from './json.mjs';
 import { formInitializations } from './runtime-paths.mjs';
-import { domSnapshot, identical } from './form-snapshot.mjs';
+import { domSnapshot, identical } from '../../../tests/form-inspector/form-snapshot.mjs';
 import { serverGeneration } from './server-generation.mjs';
 import { createActionCompletion } from './action-completion.mjs';
 
