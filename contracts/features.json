@@ -33,7 +33,8 @@
       "exports": [
         "Form",
         "renderForm",
-        "renderList"
+        "renderList",
+        "renderDetail"
       ]
     },
     {
@@ -463,7 +464,7 @@
       ],
       "support": {
         "javascript-html": "pass",
-        "react": "unsupported",
+        "react": "pass",
         "vue": "unsupported",
         "svelte": "unsupported",
         "php": "unsupported",
@@ -474,7 +475,8 @@
       "status": "partial",
       "state": "none",
       "tests": [
-        "packages/generator-html/src/index.test.ts"
+        "packages/generator-html/src/index.test.ts",
+        "packages/generator-react/src/__tests__/detail-render.test.tsx"
       ],
       "docs": [
         "docs/spec/schema.md",
