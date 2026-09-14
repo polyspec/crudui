@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
 
-import { verifyServerReport } from './browser-report-policy.mjs';
+import { browserJobReportCount, verifyServerReport } from './browser-report-policy.mjs';
 import { checkInteraction } from './check-interaction.mjs';
 import { collectBrowserJob } from './src/browser-job.mjs';
 import { subscribeMainPageReadiness } from './src/main-page-readiness.mjs';
@@ -48,7 +48,7 @@ const browser = await puppeteer.launch({ headless: true, protocolTimeout: 60_000
 let page;
 let completedReports = [];
 let scenarioJob = {
-  status: 'idle', completedReports: 0, totalReports: 18, current: null,
+  status: 'idle', completedReports: 0, totalReports: browserJobReportCount(), current: null,
 };
 let finalReport;
 const startedAt = new Date().toISOString();
