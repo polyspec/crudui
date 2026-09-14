@@ -35,11 +35,10 @@ Removing a resolved inline style must remove the `style` attribute when no
 declarations remain. Data injection must not leave attributes from an earlier
 record. Replacing data with another record and restoring it must restore the
 same elements, attributes, control values and visibility.
-The restored HTML string must also match, including attribute order. After a
-framework renders a checkbox or radio input, the shared DOM binding places its
-`checked` attribute after the other attributes. This order applies to initial
-mounting and every update without replacing the input or changing its value.
-The inspector compares the resulting HTML without rewriting it.
+Attribute order is not part of this contract: frameworks and browser engines create
+attributes in different orders, so the bindings never rearrange attributes and these
+comparisons use the parsed DOM. The string renderers' byte-identical HTML is checked
+separately.
 
 The `@crudui/generator-html` package renders the same evaluated instance and list
 models as HTML strings without React, Vue or Svelte. `renderForm(form)` returns
