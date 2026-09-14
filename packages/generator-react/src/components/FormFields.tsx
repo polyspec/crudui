@@ -12,10 +12,12 @@ export interface FormFieldsProps {
   messages: FormMessages;
   /** Root element used by the browser binding. */
   rootRef?: React.Ref<HTMLDivElement>;
+  /** Whether the adapter renders the form's declared action buttons. */
+  renderButtons?: boolean;
 }
 
 /** Render the `crudui-form` block: the top-level nodes and the footer with the form buttons. */
-export function FormFields({ fields, buttons, messages, rootRef }: FormFieldsProps): React.ReactElement {
+export function FormFields({ fields, buttons, messages, rootRef, renderButtons = true }: FormFieldsProps): React.ReactElement {
   return (
     <div className="crudui-form" ref={rootRef}>
       <div className="crudui-form__body">
@@ -23,9 +25,9 @@ export function FormFields({ fields, buttons, messages, rootRef }: FormFieldsPro
           <Node key={vm.path} vm={vm} />
         ))}
       </div>
-      <div className="crudui-form__footer">
+      {renderButtons && <div className="crudui-form__footer">
         <div className="crudui-controls" role="group" aria-label={messages.formActions} dangerouslySetInnerHTML={{ __html: formButtonsHtml(buttons) }} />
-      </div>
+      </div>}
     </div>
   );
 }
