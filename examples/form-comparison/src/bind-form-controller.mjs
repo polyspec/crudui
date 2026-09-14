@@ -104,41 +104,13 @@ export function bindFormController(element, mount, template, language, initialDa
   const renderer = mount(element, template, language, data);
   let pending = Promise.resolve();
   let inputVersion = 0;
-  const attributeOrder = new WeakMap();
 
   function controls() {
     return Array.from(element.querySelectorAll('input[name],textarea[name],select[name]'));
   }
 
-  function rememberAttributeOrder() {
-    for (const control of controls()) {
-      if (!attributeOrder.has(control)) {
-        attributeOrder.set(control, control.getAttributeNames());
-      }
-    }
-  }
-
-  function restoreAttributeOrder(control) {
-    const initial = attributeOrder.get(control);
-    const current = control.getAttributeNames();
-    if (!initial) {
-      attributeOrder.set(control, current);
-      return;
-    }
-    const currentSet = new Set(current);
-    const expected = [
-      ...initial.filter(name => currentSet.has(name)),
-      ...current.filter(name => !initial.includes(name)),
-    ];
-    if (expected.every((name, index) => current[index] === name)) return;
-    const values = new Map(expected.map(name => [name, control.getAttribute(name)]));
-    for (const name of expected) control.removeAttribute(name);
-    for (const name of expected) control.setAttribute(name, values.get(name) ?? '');
-  }
-
   function synchronizeControls() {
     for (const control of controls()) {
-      restoreAttributeOrder(control);
       const value = valueAt(data, inputSegments(control.name));
       if (control.tagName === 'INPUT') {
         if (control.type === 'file') continue;
@@ -163,7 +135,6 @@ export function bindFormController(element, mount, template, language, initialDa
     }
   }
 
-  rememberAttributeOrder();
 
   // View state and history live outside the record data and follow generator-core's rules.
   let view = initialView();

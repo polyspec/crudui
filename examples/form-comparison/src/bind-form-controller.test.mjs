@@ -162,40 +162,6 @@ test('external data replaces a user-edited live control value', async () => {
   await controller.dispose();
 });
 
-test('checkbox restoration retains its initial attribute order', async () => {
-  const key = '__0000000000001__';
-  const name = `form[companies][${key}][enabled]`;
-  const control = input({
-    class: 'valid-target', id: 'enabled', type: 'checkbox', value: '1',
-    checked: '', name,
-  });
-  const initialOrder = control.getAttributeNames();
-  const element = formElement([control]);
-  const checkboxTemplate = {
-    fields: [{
-      name: 'companies', spec: { type: 'group', multiple: true },
-      children: [{ name: 'enabled', spec: { type: 'checkbox' }, children: [] }],
-    }],
-  };
-  const mount = () => ({
-    load(next) {
-      const enabled = next.companies[key].enabled === '1';
-      if (enabled) control.setAttribute('checked', '');
-      else control.removeAttribute('checked');
-      control.checked = enabled;
-    },
-    dispose() {},
-  });
-  const controller = bindFormController(element, mount, checkboxTemplate, 'en', {
-    companies: { [key]: { enabled: '1' } },
-  });
-  await controller.load({ companies: { [key]: { enabled: '' } } });
-  await controller.load({ companies: { [key]: { enabled: '1' } } });
-  assert.deepEqual(control.getAttributeNames(), initialOrder);
-  assert.equal(control.checked, true);
-  await controller.dispose();
-});
-
 test('row operations focus the affected row after rendering', async () => {
   const { JSDOM } = await import('jsdom');
   const { window } = new JSDOM('<form><div id="view"></div></form>');

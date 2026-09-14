@@ -59,17 +59,18 @@ describe('resolved CSS', () => {
     const first = render(<Form form={initial} />);
     const second = render(<Form form={deferred} />);
     try {
-      const original = first.container.innerHTML;
+      // The parsed DOM is compared; attribute order is not part of it.
+      const original = first.container.cloneNode(true);
       act(() => deferred.setData(data));
-      expect(second.container.innerHTML).toBe(original);
+      expect(second.container.isEqualNode(original)).toBe(true);
       const input = second.container.querySelector('input[name="name"]')! as HTMLInputElement;
       expect(input.style.getPropertyPriority('color')).toBe('important');
       act(() => deferred.setData({ active: false, name: '' }));
       expect(input.hasAttribute('style')).toBe(false);
       act(() => deferred.setData(data));
-      expect(second.container.innerHTML).toBe(original);
+      expect(second.container.isEqualNode(original)).toBe(true);
       act(() => deferred.setData(data));
-      expect(second.container.innerHTML).toBe(original);
+      expect(second.container.isEqualNode(original)).toBe(true);
     } finally {
       first.unmount();
       second.unmount();

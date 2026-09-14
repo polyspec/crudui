@@ -4,15 +4,7 @@ import type * as React from 'react';
 import type { Attrs } from '@crudui/generator-core';
 import { parseStyle } from '@crudui/generator-core';
 
-/** Elements whose style attribute has been placed after their rendered attributes. */
-const placedStyles = new WeakSet<HTMLElement>();
-
-/**
- * Apply complete CSS declarations, including priority, and remove obsolete styles.
- * When an element first connects, its style attribute is placed after the rendered
- * attributes, whichever path rendered them; later calls replace the declarations in place,
- * so attributes written afterwards by the browser binding keep their order on re-render.
- */
+/** Apply complete CSS declarations, including priority, and remove obsolete styles. */
 export function resolvedStyleProps(style: React.CSSProperties | undefined): {
   style: React.CSSProperties | undefined;
   ref: React.RefCallback<HTMLElement>;
@@ -26,10 +18,6 @@ export function resolvedStyleProps(style: React.CSSProperties | undefined): {
         const text = typeof value === 'string' ? value : element.style.getPropertyValue(property);
         return text ? [`${property}: ${text}`] : [];
       });
-      if (!placedStyles.has(element)) {
-        placedStyles.add(element);
-        element.removeAttribute('style');
-      }
       if (declarations.length) element.style.cssText = declarations.join('; ');
       if (!declarations.length || !element.style.length) element.removeAttribute('style');
     },
