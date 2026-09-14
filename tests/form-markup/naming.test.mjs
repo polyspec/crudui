@@ -72,6 +72,13 @@ function check(label, node, parent, slot, declared = new Set()) {
     assert.ok(['crudui-node__body', 'crudui-form__body', 'crudui-outline__body'].some(body => has(parent, body)),
       `${label}: crudui-node outside a body (parent ${classesOf(parent).join(' ') || parent.nodeName})`);
   }
+  // An action button marks an unavailable action with aria-disabled="true", never disabled,
+  // so it keeps focus in every browser.
+  if (classes.includes('crudui-action')) {
+    const attribute = attr => node.attrs.find(item => item.name === attr)?.value;
+    assert.equal(attribute('disabled'), undefined, `${label}: action button with disabled`);
+    assert.ok([undefined, 'true'].includes(attribute('aria-disabled')), `${label}: aria-disabled="${attribute('aria-disabled')}" on an action button`);
+  }
   const enclosing = classes.find(token => /^crudui-node__(header|body|footer)$/.test(token)) ?? slot;
   for (const child of node.childNodes ?? []) check(label, child, node.attrs ? node : parent, enclosing, declared);
 }
@@ -84,6 +91,8 @@ test('the naming check rejects markup that breaks a rule', () => {
     ['<div class="crudui-node"><div class="crudui-node__header"><div class="crudui-node crudui-node--field"></div></div></div>', /crudui-node outside a body/],
     ['<div class="crudui-node__header__label"></div>', /is not crudui-\{block\}/],
     ['<div class="crudui-widget"><input class="valid-target form-control"></div>', /form-control is neither a crudui class/],
+    ['<button type="button" class="crudui-action" data-crudui-action="undo" disabled=""></button>', /action button with disabled/],
+    ['<button type="button" class="crudui-action" data-crudui-action="undo" aria-disabled="false"></button>', /aria-disabled="false" on an action button/],
   ]) {
     assert.throws(() => { for (const root of parseFragment(broken).childNodes) check('broken', root, undefined); }, message);
   }

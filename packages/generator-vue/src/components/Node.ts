@@ -23,7 +23,7 @@ export function controlsVNode(controls: ControlsVM): VNode {
       class: 'crudui-action',
       'data-crudui-action': action.name,
       'aria-label': action.label,
-      disabled: action.disabled,
+      'aria-disabled': action.disabled ? 'true' : undefined,
     })));
 }
 

@@ -260,7 +260,11 @@ func flag(name string, on bool) string {
 func controlsHTML(controls *Object) string {
 	body := ""
 	for _, a := range objectList(read(controls, "actions")) {
-		body += "<button" + attrs(NewObject("type", "button", "class", "crudui-action", "data-crudui-action", stringAt(a, "name"), "aria-label", stringAt(a, "label")), false, false) + flag("disabled", read(a, "disabled") == true) + "></button>"
+		unavailable := ""
+		if read(a, "disabled") == true {
+			unavailable = ` aria-disabled="true"`
+		}
+		body += "<button" + attrs(NewObject("type", "button", "class", "crudui-action", "data-crudui-action", stringAt(a, "name"), "aria-label", stringAt(a, "label")), false, false) + unavailable + "></button>"
 	}
 	return element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", stringAt(controls, "label")), body)
 }
