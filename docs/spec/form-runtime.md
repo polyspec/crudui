@@ -43,7 +43,9 @@ separately.
 The `@crudui/generator-html` package renders the same evaluated instance and list
 models as HTML strings without React, Vue or Svelte. `renderForm(form)` returns
 form content without an outer HTML `form` element; applications insert it into
-their host and may then call `connectForm`. `renderList(spec, rows, options)`
+their host and may then call `connectForm`. `renderFormView(fields, buttons, messages)`
+renders the same content from `bindForm` and `bindButtons` for applications that own
+their data, as React, Vue and Svelte provide `FormFields`. `renderList(spec, rows, options)`
 returns the declared table or card layout. The package performs no DOM binding,
 validation, data loading or widget execution.
 

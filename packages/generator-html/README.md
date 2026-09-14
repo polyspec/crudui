@@ -18,6 +18,10 @@ not create the outer `form` element, bind browser events, validate data or load
 records. Use `connectForm` from `@crudui/generator-core` after inserting the
 fragment when browser editing is required.
 
+An application that owns its data with `bindForm` renders the same markup with
+`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language))`,
+and the structure map and data view with `renderOutlineView` and `renderDataPanel`.
+
 `renderList(spec, rows, { layout: 'table' | 'card' })` renders the evaluated list.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)

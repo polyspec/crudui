@@ -2,6 +2,20 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — HTML 렌더러로 bindForm 폼 렌더링
+
+React, Vue, Svelte는 애플리케이션이 `bindForm`으로 관리하는 폼을 상태 없는 `FormFields`로 렌더링하지만,
+`@crudui/generator-html`은 `createForm` 인스턴스로만 폼을 렌더링할 수 있었습니다(`renderForm(form)`).
+구조 맵과 데이터 보기에는 이미 상태 없는 `renderOutlineView`와 `renderDataPanel`이 있었습니다. 이제
+`renderFormView(fields, buttons, messages)`가 `bindForm`, `bindButtons`, `formMessages`로 `crudui-form`
+블록을 렌더링하고 `renderForm`이 이를 사용하므로 마크업은 한 곳에서 만들어집니다. README와 폼 런타임
+명세가 이를 설명합니다.
+
+HTML 렌더러의 적합성 테스트는 렌더링 가능한 모든 폼 사례를 이 경로로도 렌더링합니다. `bindForm`은
+누락된 반복 데이터에 고정 행 키를 주므로, 인스턴스 경로가 건너뛰는 누락 데이터 사례도 포함합니다.
+`npm test -w @crudui/generator-html`이 테스트 206개(기존 116개와 bindForm 사례 90개)를 통과했고,
+`npm run build -w @crudui/generator-html`이 성공했으며 `make docs-check`가 통과했습니다.
+
 ## 2026-09-14 — 속성 순서에 관한 런타임 계약 정정
 
 폼 런타임 명세는 여전히 복원한 HTML 문자열이 "속성 순서까지" 같아야 하고 공통 DOM 바인딩이
