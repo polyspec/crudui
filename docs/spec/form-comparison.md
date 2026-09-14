@@ -247,6 +247,14 @@ it completes. The report retains each stage's HTML, DOM, control state, fields,
 data, focus, response and CSS digest, and the expected and actual CSS of any
 failed CSS comparison.
 
+Both frames, the page and every other tab of the same origin read and replace the
+same saved records. An operation started from the page changes them only while it
+holds one origin lock (`navigator.locks`): a frame button or form submission, the
+comparison button and the complete check. An operation started while another holds
+the lock does not run and reports that another check or save is running. Checks
+that the complete check or the verifier calls directly run inside the operation
+that already holds the lock.
+
 Pointer and keyboard checks verify that a row addition focuses the first input of
 the new row and that the input is visible inside both the frame viewport and the
 main page viewport; the frame and the page scroll only as far as needed.

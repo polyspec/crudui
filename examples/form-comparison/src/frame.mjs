@@ -8,6 +8,7 @@ import { formInitializations, formServers } from './runtime-paths.mjs';
 import { domSnapshot, identical } from '../../../tests/form-inspector/form-snapshot.mjs';
 import { serverGeneration } from './server-generation.mjs';
 import { createActionCompletion } from './action-completion.mjs';
+import { exclusive } from './storage-lock.mjs';
 
 const renderingPath = __FORM_PATH__;
 const framework = __FRAMEWORK__;
@@ -701,9 +702,12 @@ function action(id, fn) {
       return;
     }
     try {
-      const result = await fn();
-      await settle();
-      inspect();
+      const result = await exclusive(async () => {
+        const value = await fn();
+        await settle();
+        inspect();
+        return value;
+      }, t.busy);
       tracked?.complete(result);
     } catch (error) {
       document.querySelector('#results').textContent = error.message;
@@ -722,7 +726,7 @@ action('checks', runChecks);
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (running) return;
-  try { await save(); }
+  try { await exclusive(save, t.busy); }
   catch (error) { document.querySelector('#results').textContent = error.message; }
 });
 for (const name of ['input', 'change', 'click']) view.addEventListener(name, async () => { await settle(); inspect(); });
