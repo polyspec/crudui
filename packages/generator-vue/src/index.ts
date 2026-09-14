@@ -32,6 +32,9 @@ export type {
 } from '@crudui/generator-core';
 export { List } from './components/List';
 export type { ListLayout } from './components/List';
+export { Detail } from './components/Detail';
+export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from '@crudui/generator-core';
+export { buildDetail } from '@crudui/generator-core';
 
 export { renderForm } from './ssr';
 
@@ -41,6 +44,8 @@ export type ListOptions = BuildListOptions;
 
 export { renderList } from './listSsr';
 export type { RenderListOptions } from './listSsr';
+export { renderDetail } from './detailSsr';
+export type { RenderDetailOptions } from './detailSsr';
 
 export { Form } from './components/Form';
 export { compileForm, createForm, createRowKey, sequenceRowKey } from '@crudui/generator-core';

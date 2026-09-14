@@ -465,7 +465,7 @@
       "support": {
         "javascript-html": "pass",
         "react": "pass",
-        "vue": "unsupported",
+        "vue": "pass",
         "svelte": "unsupported",
         "php": "unsupported",
         "go": "unsupported",
@@ -476,7 +476,8 @@
       "state": "none",
       "tests": [
         "packages/generator-html/src/index.test.ts",
-        "packages/generator-react/src/__tests__/detail-render.test.tsx"
+        "packages/generator-react/src/__tests__/detail-render.test.tsx",
+        "packages/generator-vue/src/__tests__/detail-render.test.ts"
       ],
       "docs": [
         "docs/spec/schema.md",
