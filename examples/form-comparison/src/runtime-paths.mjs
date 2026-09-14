@@ -24,9 +24,13 @@ export const initializationComparisons = Object.freeze([
   'edited', 'saved', 'reloaded', 'copied', 'moved', 'copy-removed', 'added', 'saved-new',
   'collapsed-all', 'expanded-all', 'undone', 'empty', 'restored',
 ]);
-/** Snapshot categories compared without normalization. */
+/**
+ * Snapshot categories compared without normalization. The parsed DOM, not serialized HTML,
+ * is compared: attribute order is not part of the DOM and browser engines create
+ * attributes in different orders.
+ */
 export const initializationCategories = Object.freeze([
-  'html', 'dom', 'controls', 'fields', 'css', 'data', 'focus', 'response',
+  'dom', 'controls', 'fields', 'css', 'data', 'focus', 'response',
 ]);
 export const formActions = Object.freeze([
   'load', 'save', 'validate', 'reset', 'compile', 'render', 'ssr',

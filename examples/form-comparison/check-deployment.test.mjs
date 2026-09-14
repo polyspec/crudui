@@ -14,6 +14,7 @@ import {
   finalizeGenerationReport, generationFrameworks, generationRenderingPaths, generationServers,
 } from './check-generation.mjs';
 import { finalizePersistenceReport, persistenceCheckIds } from './persistence-report.mjs';
+import { browserPaths, expectedBrowserSections } from './browser-report-policy.mjs';
 
 const commit = 'a'.repeat(40);
 const metadata = {
@@ -61,11 +62,8 @@ function serverReport() {
 }
 
 function browserSummary() {
-  const sections = {
-    scenarios: { total: 456, failed: 0 }, initializations: { total: 2304, failed: 0 },
-    interactions: { total: 120, failed: 0 },
-    mounts: { total: 12, failed: 0 }, documents: { total: 12, failed: 0 },
-  };
+  const sections = Object.fromEntries(Object.entries(expectedBrowserSections())
+    .map(([section, total]) => [section, { total, failed: 0 }]));
   return {
     generatedAt: '2026-09-10T00:03:00.000Z', metadata, complete: true, passed: true,
     performancePassed: true, failedChecks: 0,
@@ -97,7 +95,8 @@ test('accepts complete candidate evidence for one exact commit', async t => {
   assert.equal(result.generation.requests, expectedGenerationRequests);
   assert.equal(result.generation.combinations, expectedGenerationCombinations);
   assert.equal(result.persistence.results, 120);
-  assert.equal(result.browser.checks, 5_808);
+  assert.equal(result.browser.checks,
+    browserPaths.length * Object.values(expectedBrowserSections()).reduce((sum, total) => sum + total, 0));
 });
 
 test('rejects failed, incomplete and stale candidate evidence', async t => {

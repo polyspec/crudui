@@ -231,12 +231,15 @@ same keys. The stages are:
 - `empty`, `restored`: inject an empty company collection, then the saved record.
 
 Each right stage is compared with the stored left stage using `formSnapshot`,
-`styleSnapshot` and `compareSnapshots`: raw HTML, parsed DOM with every attribute,
-live control state, native fields, computed CSS for elements and pseudo-elements,
-ordered JSON data, focus and text selection, and the save response. Each column's
-reinjection and restoration stages are also compared with its own `mounted`
-stage. Nothing is removed, replaced or normalized. The report has 24 comparisons
-in eight categories, 192 results.
+`styleSnapshot` and `compareSnapshots`: parsed DOM with every attribute, live
+control state, native fields, computed CSS for elements and pseudo-elements, ordered
+JSON data, focus and text selection, and the save response. Serialized HTML is not
+compared: attribute order is not part of the DOM, and browser engines create the
+attributes a framework sets in different orders (Safari and Chromium order a restored
+Vue checkbox's `checked` and `value` differently). Each column's reinjection and
+restoration stages are also compared with its own `mounted` stage. Nothing is
+removed, replaced or normalized. The report has 24 comparisons in seven categories,
+168 results.
 
 The page shows both frames. After both frames load, the top list compares their
 `mounted` state; the comparison button and the complete check add each stage as
@@ -266,7 +269,7 @@ completed report count, request count or response count. Both failures retain
 the current state and every completed report.
 
 A complete server report requires a browser job of 18 reports: 12 scenario
-reports with 19 checks each and six initialization reports with 192 comparison
+reports with 19 checks each and six initialization reports with 168 comparison
 results each. It also requires 60 interaction checks, six mount-before-load checks
 of the `inject` frame, six static-document checks, no browser or page errors, one
 matching candidate commit for both rendering paths and a duration within 900,000

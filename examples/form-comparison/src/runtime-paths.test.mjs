@@ -23,7 +23,7 @@ test('defines the complete current browser matrix', () => {
   assert.deepEqual(formInitializations, ['ssr', 'csr']);
   assert.deepEqual(initializationCombinations().length, 6);
   assert.equal(initializationStages.length, 18);
-  assert.equal(initializationComparisons.length * initializationCategories.length, 192);
+  assert.equal(initializationComparisons.length * initializationCategories.length, 168);
 });
 
 test('parses only complete current API paths', () => {

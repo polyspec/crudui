@@ -3,6 +3,15 @@ import { data, companyKey, storeKey } from './scenario.mjs';
 import { domSnapshot, formSnapshot } from '../../form-inspector/form-snapshot.mjs';
 
 /**
+ * Rendered form state compared between initialization paths: the parsed DOM and the live
+ * control state, without serialized HTML, whose attribute order is not part of the DOM.
+ */
+function renderedState(element) {
+  const { html, ...state } = formSnapshot(element, element);
+  return state;
+}
+
+/**
  * Parsed DOM of a rendered form without the nodes frameworks use as rendering anchors,
  * which render nothing: comments and empty text. Attribute order is not part of the DOM.
  */
@@ -38,12 +47,12 @@ export function compareServerTakeover({ element, session, expect }) {
 /** Compare initial records with repeated injection into an already mounted form. */
 export async function compareInitialization({ initial, deferred, flush, expect }) {
   const before = JSON.stringify(initial.session.template);
-  const expected = formSnapshot(initial.element, initial.element);
+  const expected = renderedState(initial.element);
   expect(deferred.element.querySelector('input')).toBeTruthy();
   for (let attempt = 0; attempt < 3; attempt++) {
     deferred.session.setData(data);
     await flush();
-    expect(formSnapshot(deferred.element, deferred.element)).toEqual(expected);
+    expect(renderedState(deferred.element)).toEqual(expected);
     expect(JSON.stringify(deferred.session.getData())).toBe(JSON.stringify(initial.session.getData()));
     expect(JSON.stringify(deferred.session.template)).toBe(before);
   }
@@ -52,11 +61,11 @@ export async function compareInitialization({ initial, deferred, flush, expect }
   const inputs = [initial, deferred].map(instance => instance.element.querySelector('input[type=checkbox]'));
   for (const instance of [initial, deferred]) instance.session.setData(changed);
   await flush();
-  expect(formSnapshot(deferred.element, deferred.element)).toEqual(formSnapshot(initial.element, initial.element));
+  expect(renderedState(deferred.element)).toEqual(renderedState(initial.element));
   for (const instance of [initial, deferred]) instance.session.setData(data);
   await flush();
-  const restored = formSnapshot(deferred.element, deferred.element);
-  expect(restored).toEqual(formSnapshot(initial.element, initial.element));
+  const restored = renderedState(deferred.element);
+  expect(restored).toEqual(renderedState(initial.element));
   expect(restored).toEqual(expected);
   for (const [index, instance] of [initial, deferred].entries()) {
     expect(instance.element.querySelector('input[type=checkbox]')).toBe(inputs[index]);

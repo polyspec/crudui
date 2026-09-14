@@ -17,6 +17,21 @@ export const browserInitializationResultIds = initializationComparisons.flatMap(
 
 const interactionActions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboard'];
 
+/**
+ * Expected check totals of one rendering path across every server, derived from the
+ * browser matrix: the only place these totals are defined.
+ */
+export function expectedBrowserSections() {
+  const reports = browserServers.length * browserFrameworks.length;
+  return {
+    scenarios: reports * browserTransports.length * browserScenarioCheckIds.length,
+    initializations: reports * browserInitializationResultIds.length,
+    interactions: reports * browserTransports.length * interactionActions.length,
+    mounts: reports,
+    documents: reports,
+  };
+}
+
 function exactKeys(actual, expected, label) {
   assert.deepEqual([...new Set(actual)].sort(), [...expected].sort(), `${label} combinations differ`);
   assert.equal(actual.length, expected.length, `${label} contains duplicates`);
