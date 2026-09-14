@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Add React detail rendering
+
+The React generator now exports the shared `Detail` component and
+`renderDetail`, consuming the core detail model and existing cell display
+components. The output remains read-only and performs no data access or
+duplicate display evaluation.
+
 ## 2026-09-14 — Add the CRUDUI detail specification and shared read model
 
 CRUDUI now defines a `Detail` declaration with ordered read-only display fields.
