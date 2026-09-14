@@ -328,7 +328,7 @@ fn controls(controls: &Value) -> String {
         .map(|action| {
             let mut attrs = json!({"type":"button","class":"crudui-action","data-crudui-action":action["name"],"aria-label":action["label"]});
             if action["disabled"] == true {
-                attrs["disabled"] = "".into();
+                attrs["aria-disabled"] = "true".into();
             }
             element("button", &attrs, "")
         })

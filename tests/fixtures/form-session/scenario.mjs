@@ -88,6 +88,16 @@ export async function exerciseSessionDom({ element, session, flush, expect }) {
   await flush();
   expect(Object.keys(session.getValue(storesPath))[0]).toBe(copied);
   expect(element.ownerDocument.activeElement.name).toBe(inputName(copied));
+  // An unavailable action stays focusable, and a click on it changes nothing.
+  const unavailable = button(copied, 'move-up');
+  expect(unavailable.getAttribute('aria-disabled')).toBe('true');
+  expect(unavailable.hasAttribute('disabled')).toBe(false);
+  unavailable.focus();
+  unavailable.click();
+  await flush();
+  expect(Object.keys(session.getValue(storesPath))[0]).toBe(copied);
+  expect(element.ownerDocument.activeElement.getAttribute('data-crudui-action')).toBe('move-up');
+  expect(element.ownerDocument.activeElement.closest('[data-crudui-row-key]')).toBe(row(copied));
   // Toggling keeps the focused toggle button of the same row.
   for (const expanded of ['false', 'true']) {
     button(copied, 'toggle-row').focus();

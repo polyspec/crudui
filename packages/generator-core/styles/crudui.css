@@ -382,11 +382,11 @@ textarea.crudui-input {
   mask: var(--crudui-icon) center / contain no-repeat;
 }
 
-.crudui-action:hover:not(:disabled) {
+.crudui-action:hover:not([aria-disabled='true']) {
   background: var(--crudui-subtle);
 }
 
-.crudui-action:disabled {
+.crudui-action[aria-disabled='true'] {
   cursor: not-allowed;
   opacity: 0.4;
 }

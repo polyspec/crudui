@@ -11,7 +11,7 @@ import {
 import { controlsVNode } from './Node';
 
 function textActionVNode(name: string, label: string, disabled = false): VNode {
-  return h('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name, disabled }, label);
+  return h('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name, 'aria-disabled': disabled ? 'true' : undefined }, label);
 }
 
 function rowVNode(row: OutlineRow): VNode {

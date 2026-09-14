@@ -178,7 +178,7 @@ final class Rendering
     {
         $buttons = '';
         foreach ($controls->actions as $action) {
-            $buttons .= '<button' . self::attrs(['type' => 'button', 'class' => 'crudui-action', 'data-crudui-action' => $action->name, 'aria-label' => $action->label]) . ($action->disabled ? ' disabled=""' : '') . '></button>';
+            $buttons .= '<button' . self::attrs(['type' => 'button', 'class' => 'crudui-action', 'data-crudui-action' => $action->name, 'aria-label' => $action->label]) . ($action->disabled ? ' aria-disabled="true"' : '') . '></button>';
         }
         return self::element('div', ['class' => 'crudui-controls', 'role' => 'group', 'aria-label' => $controls->label], $buttons);
     }

@@ -306,7 +306,7 @@ static bool write_controls(render_buffer *out, const ps_value *controls)
             attr_string(button, "class", "crudui-action") &&
             attr_string(button, "data-crudui-action", string_member(action, "name")) &&
             attr_string(button, "aria-label", string_member(action, "label")) &&
-            (!bool_member(action, "disabled") || attr_string(button, "disabled", "")) &&
+            (!bool_member(action, "disabled") || attr_string(button, "aria-disabled", "true")) &&
             write_empty_element(out, "button", button);
         ps_value_free(button);
     }

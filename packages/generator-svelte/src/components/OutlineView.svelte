@@ -37,7 +37,7 @@
     <div class="crudui-controls" role="group" aria-label={messages.formControls}>
       <button type="button" class="crudui-action crudui-action--text" data-crudui-action="expand-all">{messages.expandAll}</button>
       <button type="button" class="crudui-action crudui-action--text" data-crudui-action="collapse-all">{messages.collapseAll}</button>
-      <button type="button" class="crudui-action crudui-action--text" data-crudui-action="undo" disabled={!state.canUndo}>{messages.undo}</button>
+      <button type="button" class="crudui-action crudui-action--text" data-crudui-action="undo" aria-disabled={state.canUndo ? undefined : 'true'}>{messages.undo}</button>
     </div>
   </div>
   <div class="crudui-outline__body">

@@ -828,7 +828,7 @@ async function initializationStage(stage) {
     case 'undone': {
       const action = { 'collapsed-all': 'collapse-all', 'expanded-all': 'expand-all', undone: 'undo' }[stage];
       const button = view.querySelector(`[data-crudui-action="${action}"]`);
-      assert(button && !button.disabled, `The structure map ${action} button must be enabled`);
+      assert(button && button.getAttribute('aria-disabled') !== 'true', `The structure map ${action} button must be available`);
       button.focus();
       button.click();
       break;

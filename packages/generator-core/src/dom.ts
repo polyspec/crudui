@@ -26,10 +26,19 @@ function rowElement(root: ParentNode, path: string, key: string): HTMLElement | 
       row.parentElement?.closest('[data-field-path]') === scope);
 }
 
-/** An enabled action button of a row itself, not of a nested row. */
+/**
+ * Whether an action button's action cannot run now. Unavailable actions carry
+ * `aria-disabled="true"` and stay focusable, so focus never depends on how a browser
+ * treats a focused control that becomes disabled.
+ */
+function unavailable(button: Element): boolean {
+  return button.getAttribute('aria-disabled') === 'true';
+}
+
+/** An available action button of a row itself, not of a nested row. */
 function rowButton(row: HTMLElement, action: string): HTMLButtonElement | undefined {
   return Array.from(row.querySelectorAll<HTMLButtonElement>(`[data-crudui-action="${action}"]`))
-    .find(button => !button.disabled && button.closest('[data-crudui-row-key]') === row);
+    .find(button => !unavailable(button) && button.closest('[data-crudui-row-key]') === row);
 }
 
 /** A row's first enabled visible input, or its toggle or Add button when it has none. */
@@ -113,7 +122,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       : rowElement(element, path, key);
     const control = row ? firstRowControl(row)
       : Array.from(element.querySelectorAll<HTMLButtonElement>('[data-crudui-action="add-row"]'))
-        .find(button => !button.disabled && resolveAction(button)?.path === path);
+        .find(button => !unavailable(button) && resolveAction(button)?.path === path);
     control?.focus();
   };
   const onInput = (event: Event) => {
@@ -144,7 +153,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   };
   const onClick = (event: Event) => {
     const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
-    if (!button || !element.contains(button) || button.disabled) return;
+    if (!button || !element.contains(button) || unavailable(button)) return;
     const target = resolveAction(button);
     const result = target && runAction(session, target);
     if (!result) return;
@@ -220,7 +229,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
 export function connectOutline(element: HTMLElement, session: FormInstance, formElement: HTMLElement): FormConnection {
   const onClick = (event: Event) => {
     const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
-    if (!button || !element.contains(button) || button.disabled) return;
+    if (!button || !element.contains(button) || unavailable(button)) return;
     const target = resolveAction(button);
     const result = target && runAction(session, target);
     if (!result) return;

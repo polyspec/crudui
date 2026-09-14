@@ -162,7 +162,7 @@ function openDiv(values: Record<string, string | undefined>, hidden = false): st
 function controlsHtml(controls: ControlsVM): string {
   return element('div', { class: 'crudui-controls', role: 'group', 'aria-label': controls.label },
     controls.actions.map((action) =>
-      `<button${attrs({ type: 'button', class: 'crudui-action', 'data-crudui-action': action.name, 'aria-label': action.label })}${action.disabled ? ' disabled=""' : ''}></button>`).join(''));
+      `<button${attrs({ type: 'button', class: 'crudui-action', 'data-crudui-action': action.name, 'aria-label': action.label, 'aria-disabled': action.disabled ? 'true' : undefined })}></button>`).join(''));
 }
 
 function headerHtml(vm: NodeVM): string {
@@ -320,7 +320,7 @@ function listHtml(vm: ListViewModel, layout: 'table' | 'card'): string {
 }
 
 function textAction(name: string, label: string, disabled = false): string {
-  return `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name })}${disabled ? ' disabled=""' : ''}>${escText(label)}</button>`;
+  return `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name, 'aria-disabled': disabled ? 'true' : undefined })}>${escText(label)}</button>`;
 }
 
 function outlineRow(row: OutlineRow): string {
