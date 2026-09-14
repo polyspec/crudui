@@ -1,5 +1,6 @@
 import { createBrowserJob } from './browser-job.mjs';
 import { loadComparisonFrames } from './frame-readiness.mjs';
+import { exclusive } from './storage-lock.mjs';
 import { compareSnapshots, formSnapshot, snapshotHash, styleSnapshot } from './form-snapshot.mjs';
 import {
   formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
@@ -247,7 +248,7 @@ function startRun(servers = formServers) {
     throw new Error('Expected one or more supported servers');
   }
   if (activeJob?.state().status === 'running') throw new Error('Checks already running');
-  activeJob = createBrowserJob(({ report }) => runAll(servers, report), {
+  activeJob = createBrowserJob(({ report }) => exclusive(() => runAll(servers, report), t.busy), {
     totalReports: formRenderingPaths.length * formFrameworks.length
       * (1 + formTransports.length) * servers.length,
     publish: event => window.cruduiBrowserJobEvent?.(event),
@@ -266,7 +267,7 @@ for (const selector of [serverSelector, frameworkSelector, pathSelector]) {
 }
 document.querySelector('#initialization-check').addEventListener('click', async () => {
   try {
-    await compareInitialization();
+    await exclusive(compareInitialization, t.busy);
   } catch (error) {
     document.querySelector('#initialization-status').textContent = error.message;
   }
