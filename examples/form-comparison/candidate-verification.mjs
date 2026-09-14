@@ -11,6 +11,7 @@ import { containerRuntime, runContainer } from './container-runtime.mjs';
 import { verifyCandidateEvidence } from './comparison-deployment.mjs';
 import { prepareCandidate } from './prepare.mjs';
 import { waitForCandidateReadiness } from './src/candidate-readiness.mjs';
+import { formServers } from './src/runtime-paths.mjs';
 
 const commitPattern = /^[0-9a-f]{40}$/;
 const exampleDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -76,7 +77,7 @@ export function candidateCheckCommands(plan) {
         containerExample + '/src/json.test.mjs'],
     },
   ];
-  for (const server of ['php', 'php-ext', 'go', 'rust']) {
+  for (const server of formServers) {
     commands.push(containerExec(plan, 'browser-' + server, 'check.mjs', [
       server, candidateOrigin,
     ]));
@@ -145,7 +146,7 @@ async function create(plan) {
 async function waitForReadiness(plan) {
   await waitForCandidateReadiness({
     file: plan.readinessFile,
-    expected: { commit: plan.commit, servers: ['php', 'php-ext', 'go', 'rust'] },
+    expected: { commit: plan.commit, servers: [...formServers] },
     start: () => spawnContainer(['start', '--attach', plan.containerName]),
   });
 }

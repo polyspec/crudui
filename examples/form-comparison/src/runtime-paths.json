@@ -1,0 +1,8 @@
+{
+  "servers": ["php", "php-ext", "go", "rust"],
+  "renderingPaths": ["bindForm", "createForm"],
+  "frameworks": ["react", "vue", "svelte"],
+  "transports": ["form", "json"],
+  "initializations": ["ssr", "csr"],
+  "actions": ["load", "save", "validate", "reset", "compile", "render", "ssr"]
+}

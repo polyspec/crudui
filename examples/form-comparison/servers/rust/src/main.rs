@@ -71,6 +71,36 @@ fn reply(status: StatusCode, mut body: Value) -> Result<Response> {
 struct Server {
     data: PathBuf,
     specs: PathBuf,
+    actions: Vec<String>,
+    rendering_paths: Vec<String>,
+    frameworks: Vec<String>,
+}
+
+impl Server {
+    /// Read the browser matrix shared with the JavaScript comparison runner
+    /// (runtime-paths.json in the spec directory) once.
+    fn load(data: PathBuf, specs: PathBuf) -> Result<Self> {
+        let matrix = read_object(&specs.join("runtime-paths.json"))?;
+        let list = |name: &str| -> Result<Vec<String>> {
+            matrix[name]
+                .as_array()
+                .filter(|items| !items.is_empty())
+                .and_then(|items| {
+                    items
+                        .iter()
+                        .map(|item| item.as_str().map(str::to_string))
+                        .collect::<Option<Vec<_>>>()
+                })
+                .ok_or_else(|| bad(format!("The browser matrix needs {name}")))
+        };
+        Ok(Self {
+            actions: list("actions")?,
+            rendering_paths: list("renderingPaths")?,
+            frameworks: list("frameworks")?,
+            data,
+            specs,
+        })
+    }
 }
 
 async fn parse_native(request: Request, kind: &str) -> Result<Value> {
@@ -132,12 +162,9 @@ async fn handle(
     Path((action, rendering_path, framework)): Path<(String, String, String)>,
     request: Request,
 ) -> Result<Response> {
-    if !["bindForm", "createForm"].contains(&rendering_path.as_str())
-        || !["react", "vue", "svelte"].contains(&framework.as_str())
-        || ![
-            "load", "save", "validate", "reset", "compile", "render", "ssr",
-        ]
-        .contains(&action.as_str())
+    if !server.rendering_paths.contains(&rendering_path)
+        || !server.frameworks.contains(&framework)
+        || !server.actions.contains(&action)
     {
         return Err(Error {
             status: StatusCode::NOT_FOUND,
@@ -255,10 +282,10 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     if args.len() != 4 {
         return Err("Expected arguments: address data-directory spec-directory".into());
     }
-    let server = Arc::new(Server {
-        data: PathBuf::from(&args[2]),
-        specs: PathBuf::from(&args[3]),
-    });
+    let server = Arc::new(
+        Server::load(PathBuf::from(&args[2]), PathBuf::from(&args[3]))
+            .map_err(|error| error.message)?,
+    );
     let app = application(server);
     let listener = tokio::net::TcpListener::bind(&args[1]).await?;
     eprintln!("CRUDUI_READY rust");
