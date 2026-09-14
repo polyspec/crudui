@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Derive the browser report counts from the matrix
+
+After the browser matrix moved to one file, the server report policy still wrote its
+report counts as numbers: 18 reports in a browser job, 12 scenario reports, 6
+initialization reports, 60 interaction checks and 6 mount-before-load and static-document
+checks, and `check.mjs` started each job at 18. Adding a framework would have made every
+number wrong. The policy now checks each count against the combination functions it
+already uses to check the report keys, and `browserJobReportCount()` (scenario reports
+plus initialization reports) gives the job size to `check.mjs` and the report test.
+
+`npm run test:form-comparison:source` passed 139 tests.
+
 ## 2026-09-14 — Define the comparison browser matrix once
 
 The comparison page's servers, rendering paths, frameworks, transports, initializations

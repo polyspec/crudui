@@ -56,6 +56,11 @@ function documentCombinations() {
     browserFrameworks.map(framework => `${renderingPath}/${framework}`));
 }
 
+/** Reports one server's browser job produces: its scenario reports and initialization reports. */
+export function browserJobReportCount() {
+  return reportCombinations().length + documentCombinations().length;
+}
+
 function pathSummary(items, checks) {
   return Object.fromEntries(browserPaths.map(renderingPath => {
     const selected = items.filter(item => item.path === renderingPath);
@@ -112,7 +117,7 @@ export function verifyServerReport(report, expectedServer) {
   verifyTiming(report, `${label}: server run`);
   assert.deepEqual(
     { status: report.scenarioJob?.status, completedReports: report.scenarioJob?.completedReports, totalReports: report.scenarioJob?.totalReports },
-    { status: 'completed', completedReports: 18, totalReports: 18 },
+    { status: 'completed', completedReports: browserJobReportCount(), totalReports: browserJobReportCount() },
     `${label}: scenario job`,
   );
   verifyTiming(report.scenarioJob, `${label}: scenario job`);
@@ -125,7 +130,7 @@ export function verifyServerReport(report, expectedServer) {
   `${label}: initialization artifacts`);
 
   assert.ok(Array.isArray(report.reports), `${label}: scenario reports`);
-  assert.equal(report.reports.length, 12, `${label}: scenario report count`);
+  assert.equal(report.reports.length, reportCombinations().length, `${label}: scenario report count`);
   assert.ok(report.reports.every(item => item.server === expectedServer), `${label}: scenario server`);
   exactKeys(report.reports.map(item => `${item.path}/${item.framework}/${item.transport}`),
     reportCombinations(), `${label}: scenario`);
@@ -139,7 +144,7 @@ export function verifyServerReport(report, expectedServer) {
   }
 
   assert.ok(Array.isArray(report.initializations), `${label}: initialization reports`);
-  assert.equal(report.initializations.length, 6, `${label}: initialization report count`);
+  assert.equal(report.initializations.length, documentCombinations().length, `${label}: initialization report count`);
   assert.ok(report.initializations.every(item => item.server === expectedServer),
     `${label}: initialization server`);
   exactKeys(report.initializations.map(item => `${item.path}/${item.framework}`),
@@ -149,7 +154,7 @@ export function verifyServerReport(report, expectedServer) {
   }
 
   assert.ok(Array.isArray(report.interactions), `${label}: interactions`);
-  assert.equal(report.interactions.length, 60, `${label}: interaction count`);
+  assert.equal(report.interactions.length, interactionCombinations().length, `${label}: interaction count`);
   assert.ok(report.interactions.every(item => item.server === expectedServer), `${label}: interaction server`);
   exactKeys(report.interactions.map(item => `${item.path}/${item.framework}/${item.transport}/${item.action}`),
     interactionCombinations(), `${label}: interaction`);
@@ -158,7 +163,7 @@ export function verifyServerReport(report, expectedServer) {
 
   for (const [name, items] of [['mount-before-load', report.initialMounts], ['static-document', report.staticDocuments]]) {
     assert.ok(Array.isArray(items), `${label}: ${name}`);
-    assert.equal(items.length, 6, `${label}: ${name} count`);
+    assert.equal(items.length, documentCombinations().length, `${label}: ${name} count`);
     assert.ok(items.every(item => item.server === expectedServer), `${label}: ${name} server`);
     exactKeys(items.map(item => `${item.path}/${item.framework}`),
       documentCombinations(), `${label}: ${name}`);
