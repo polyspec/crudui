@@ -118,7 +118,8 @@ export function renderDeploymentCompose({ commit, imageReference }) {
     'Deployment image tag must match the candidate commit');
   const healthScript = `const commit=${JSON.stringify(commit)};`
     + "Promise.all([fetch('http://127.0.0.1:8080/api/health').then(async response => [response, await response.json()]), fetch('http://127.0.0.1:8080/metadata.json').then(async response => [response, await response.json()])])"
-    + ".then(([[healthResponse, health], [metadataResponse, metadata]]) => { const servers = ['php', 'php-ext', 'go', 'rust']; if (!healthResponse.ok || !metadataResponse.ok || health.status !== 'ok' || JSON.stringify(health.servers) !== JSON.stringify(servers) || metadata?.source?.commit !== commit) process.exit(1) })"
+    + `.then(([[healthResponse, health], [metadataResponse, metadata]]) => { const servers = ${JSON.stringify(browserServers)}; `
+    + "if (!healthResponse.ok || !metadataResponse.ok || health.status !== 'ok' || JSON.stringify(health.servers) !== JSON.stringify(servers) || metadata?.source?.commit !== commit) process.exit(1) })"
     + '.catch(() => process.exit(1))';
   const healthCommand = JSON.stringify(['CMD', 'node', '-e', healthScript]);
   return [

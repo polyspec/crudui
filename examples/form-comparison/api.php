@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/repository.php';
 require_once __DIR__ . '/generation.php';
+require_once __DIR__ . '/matrix.php';
 
 /** Return a JSON response and finish the request. */
 function respond(int $status, array $body): never
@@ -46,7 +47,9 @@ if (!str_starts_with($path, '/api/')) return false;
 
 try {
     if ($path === '/api/health') respond(200, ['status' => 'ok', 'php' => PHP_VERSION, 'storage' => 'JSON files', 'jsonProcessor' => 'ordered-json', 'generator' => currentGeneration()->provenance()]);
-    if (!preg_match('#^/api/(load|save|validate|reset|compile|render|ssr)/(bindForm|createForm)/(react|vue|svelte)$#', $path, $match)) respond(404, ['error' => 'Unknown endpoint']);
+    $matrix = browserMatrix('/workspace/source');
+    $alternatives = static fn(array $values): string => implode('|', array_map(static fn(string $value): string => preg_quote($value, '#'), $values));
+    if (!preg_match('#^/api/(' . $alternatives($matrix->actions) . ')/(' . $alternatives($matrix->renderingPaths) . ')/(' . $alternatives($matrix->frameworks) . ')$#D', $path, $match)) respond(404, ['error' => 'Unknown endpoint']);
     [, $action, $renderingPath, $framework] = $match;
     $expectedMethod = in_array($action, ['load', 'ssr'], true) ? 'GET' : 'POST';
     if ($_SERVER['REQUEST_METHOD'] !== $expectedMethod) respond(405, ['error' => 'Method not allowed']);

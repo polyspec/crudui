@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,9 +20,45 @@ import (
 )
 
 var source, sourceCommit string
-var route = regexp.MustCompile(`^/api/(load|save|validate|reset)/(bindForm|createForm)/(react|vue|svelte)$`)
 
-type server struct{ dataDir, specDir string }
+// server holds the data and spec directories and the API routes built from the browser matrix.
+type server struct {
+	dataDir, specDir              string
+	storageRoute, generationRoute *regexp.Regexp
+}
+
+// newServer reads the browser matrix shared with the JavaScript comparison runner
+// (runtime-paths.json in the spec directory) once and builds the API routes from it.
+func newServer(dataDir, specDir string) (server, error) {
+	encoded, err := os.ReadFile(filepath.Join(specDir, "runtime-paths.json"))
+	if err != nil {
+		return server{}, err
+	}
+	var matrix struct {
+		RenderingPaths []string `json:"renderingPaths"`
+		Frameworks     []string `json:"frameworks"`
+	}
+	if err := json.Unmarshal(encoded, &matrix); err != nil {
+		return server{}, err
+	}
+	if len(matrix.RenderingPaths) == 0 || len(matrix.Frameworks) == 0 {
+		return server{}, fmt.Errorf("The browser matrix needs rendering paths and frameworks")
+	}
+	alternatives := func(values []string) string {
+		quoted := make([]string, len(values))
+		for i, value := range values {
+			quoted[i] = regexp.QuoteMeta(value)
+		}
+		return strings.Join(quoted, "|")
+	}
+	tail := "/(" + alternatives(matrix.RenderingPaths) + ")/(" + alternatives(matrix.Frameworks) + ")$"
+	return server{
+		dataDir:         dataDir,
+		specDir:         specDir,
+		storageRoute:    regexp.MustCompile(`^/api/(load|save|validate|reset)` + tail),
+		generationRoute: regexp.MustCompile(`^/api/(compile|render|ssr)` + tail),
+	}, nil
+}
 
 func writeJSON(w http.ResponseWriter, status int, body *object) {
 	body.Set("server", "go")
@@ -67,7 +104,7 @@ func valueAt(data any, path string) any {
 }
 
 func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if match := generationRoute.FindStringSubmatch(r.URL.Path); match != nil {
+	if match := s.generationRoute.FindStringSubmatch(r.URL.Path); match != nil {
 		s.serveGeneration(w, r, match[1], match[2], match[3])
 		return
 	}
@@ -75,7 +112,7 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, record("status", "ok", "validatorSource", source, "commit", sourceCommit, "storage", "JSON files", "jsonProcessor", "ordered-json"))
 		return
 	}
-	match := route.FindStringSubmatch(r.URL.Path)
+	match := s.storageRoute.FindStringSubmatch(r.URL.Path)
 	if match == nil {
 		failure(w, 404, fmt.Errorf("Unknown endpoint"))
 		return
@@ -234,10 +271,14 @@ func main() {
 	if len(os.Args) != 4 || source == "" || sourceCommit == "" {
 		log.Fatal("Expected compiled source metadata and arguments: address data-directory spec-directory")
 	}
+	s, err := newServer(os.Args[2], os.Args[3])
+	if err != nil {
+		log.Fatal(err)
+	}
 	listener, err := net.Listen("tcp", os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Fprintln(os.Stderr, "CRUDUI_READY go")
-	log.Fatal(http.Serve(listener, server{os.Args[2], os.Args[3]}))
+	log.Fatal(http.Serve(listener, s))
 }

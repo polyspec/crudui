@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,15 +18,40 @@ func currentServer(t *testing.T) (server, *httptest.Server) {
 	previousSource, previousCommit := source, sourceCommit
 	source, sourceCommit = "current", "current-library-test"
 	t.Cleanup(func() { source, sourceCommit = previousSource, previousCommit })
-	s := server{dataDir: t.TempDir(), specDir: t.TempDir()}
-	fixture, err := os.ReadFile(filepath.Join("..", "..", "fixtures", "records.json"))
+	dataDir, specDir := t.TempDir(), t.TempDir()
+	for name, file := range map[string]string{
+		"records.json":       filepath.Join("..", "..", "fixtures", "records.json"),
+		"runtime-paths.json": filepath.Join("..", "..", "src", "runtime-paths.json"),
+	} {
+		contents, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(specDir, name), contents, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s, err := newServer(dataDir, specDir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(s.specDir, "records.json"), fixture, 0600); err != nil {
+	return s, httptest.NewServer(s)
+}
+
+// matrixFrameworks returns the frameworks of the browser matrix.
+func matrixFrameworks(t *testing.T) []string {
+	t.Helper()
+	encoded, err := os.ReadFile(filepath.Join("..", "..", "src", "runtime-paths.json"))
+	if err != nil {
 		t.Fatal(err)
 	}
-	return s, httptest.NewServer(s)
+	var matrix struct {
+		Frameworks []string `json:"frameworks"`
+	}
+	if err := json.Unmarshal(encoded, &matrix); err != nil {
+		t.Fatal(err)
+	}
+	return matrix.Frameworks
 }
 
 func generationRequest(t *testing.T, client *http.Client, endpoint string, body *object) (int, *object) {
@@ -168,7 +194,7 @@ func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(s.specDir, "spec.json"), encoded, 0600); err != nil {
 		t.Fatal(err)
 	}
-	for _, framework := range []string{"react", "vue", "svelte"} {
+	for _, framework := range matrixFrameworks(t) {
 		renderingPath := "createForm"
 		repo := repository{filepath.Join(s.dataDir, "go-"+renderingPath+"-"+framework+".json"), filepath.Join(s.specDir, "records.json")}
 		state, err := repo.fixture("default")

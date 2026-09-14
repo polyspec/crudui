@@ -29,7 +29,12 @@ fn fixture() -> (tempfile::TempDir, Arc<Server>) {
     )
     .unwrap();
     fs::write(specs.join("spec.json"), json::encode(&spec()).unwrap()).unwrap();
-    (directory, Arc::new(Server { data, specs }))
+    fs::write(
+        specs.join("runtime-paths.json"),
+        include_str!("../../../src/runtime-paths.json"),
+    )
+    .unwrap();
+    (directory, Arc::new(Server::load(data, specs).unwrap()))
 }
 
 async fn request(
