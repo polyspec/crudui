@@ -403,7 +403,10 @@ const checks = [
   ['empty', async () => {
     await reset('default');
     const empty = {};
-    async function addEmpty(wrapper) {
+    // Rendering may replace the collection element (the HTML renderer writes new markup), so
+    // the collection is queried again after the addition renders.
+    async function addEmpty(collectionElement) {
+      const wrapper = collectionElement();
       equal(collectionRows(wrapper).length, 0, 'empty collection row count');
       equal(wrapper.querySelectorAll('input[name],textarea[name],select[name]').length, 0, 'empty collection has no submitted row controls');
       assert(!wrapper.hidden, 'Empty collection remains visible');
@@ -417,8 +420,9 @@ const checks = [
       assert(button, 'Empty collection must have an Add button');
       button.focus({ preventScroll: true });
       button.click(); await settle();
-      equal(collectionRows(wrapper).length, 1, 'add into empty collection');
-      const created = Array.from(collectionRows(wrapper)[0].querySelectorAll('input:not([type=hidden]),select,textarea'))
+      const rendered = collectionElement();
+      equal(collectionRows(rendered).length, 1, 'add into empty collection');
+      const created = Array.from(collectionRows(rendered)[0].querySelectorAll('input:not([type=hidden]),select,textarea'))
         .find(control => !control.disabled && !control.closest('[hidden]'));
       assert(created && document.activeElement === created, 'Empty addition focuses the first input of the new row');
     }
@@ -442,7 +446,7 @@ const checks = [
     equal(JSON.stringify(template), serialized, 'visibility preserves template content');
     await mount(initial.data);
     const before = initial.storage;
-    await addEmpty(collection(stores(companies()[0])[1], 'departments'));
+    await addEmpty(() => collection(stores(companies()[0])[1], 'departments'));
     equal(companies().length, 1, 'nested addition preserves company count');
     equal(stores(companies()[0]).length, 2, 'nested addition preserves store count');
     // Department names are optional in the spec; a created blank row is valid.
@@ -458,7 +462,7 @@ const checks = [
     const removed = await save();
     equal(removed.storage.departments.length, 1, 'last department removal');
     await load(); equal(departments(stores(companies()[0])[1]).length, 0, 'reloaded empty department collection');
-    await addEmpty(collection(stores(companies()[0])[1], 'departments'));
+    await addEmpty(() => collection(stores(companies()[0])[1], 'departments'));
     await edit(departmentName(departments(stores(companies()[0])[1])[0]), 'Support');
     const restored = await save();
     assert(restored.storage.departments.find(row => row.name === 'Support').department_seq !== created.department_seq, 'Deleted department ID must not be reused');
@@ -471,7 +475,7 @@ const checks = [
     equal(noStores.storage.stores.length, 0, 'stored empty stores');
     equal(noStores.storage.departments.length, 0, 'removed store descendants');
     await load(); equal(stores(companies()[0]).length, 0, 'reloaded empty stores');
-    await addEmpty(collection(companies()[0], 'stores'));
+    await addEmpty(() => collection(companies()[0], 'stores'));
     await edit(storeName(stores(companies()[0])[0]), 'New store');
     const newStore = await save();
     equal(newStore.status, 200, 'new store save');
@@ -487,7 +491,7 @@ const checks = [
     equal(json.status, 200, 'explicit empty JSON save');
     same(json.data, { companies: empty }, 'explicit empty JSON data');
     await load(); equal(companies().length, 0, 'JSON empty reload');
-    await addEmpty(collection(view, 'companies'));
+    await addEmpty(() => collection(view, 'companies'));
     await edit(companyName(companies()[0]), 'New company');
     await edit(storeName(stores(companies()[0])[0]), 'New child');
     const rebuilt = await save();
