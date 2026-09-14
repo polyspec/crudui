@@ -2,6 +2,36 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-14 — 속성 순서 없이 브라우저 DOM을 비교하고 순서를 강제하던 코드 제거
+
+f3109ad에서 비교 페이지의 전체 검사를 Safari로 실행하자 네 서버 모두 Vue `bindForm`의
+`ssr/restoration`과 `csr/restoration`이 `html` 범주에서 실패했고, 파싱 DOM을 포함한 다른 범주는
+모두 통과했습니다. 차이는 checkbox 하나였습니다. 마운트 때 `checked="" value="1"`, 복원 뒤
+`value="1" checked=""`였습니다. 후보 검증은 Chromium만 실행하므로 통과했습니다.
+
+틀린 것은 폼이 아니라 기준이었습니다. 직렬화한 HTML은 속성이 만들어진 순서를 드러내고, 그
+순서는 프레임워크와 브라우저 엔진이 정하며, 속성 순서는 DOM의 일부가 아닙니다. 이 기준을
+맞추려고 세 곳이 검사만을 위해 속성을 재배치하고 Chromium의 순서를 전제로 했습니다.
+`connectForm`의 `sync()`는 `checked`를 맨 뒤로 옮겼고, 비교 `bindForm` 컨트롤러는 컨트롤마다
+속성 순서를 기록해 복원했으며, React의 `resolvedStyleProps`는 `style`을 렌더링된 속성 뒤에
+두었습니다. 정정한 규칙: 문자열 렌더러(PHP, PHP 확장, Go, Rust, HTML 렌더러)는 생성 검사가
+확인하는 대로 바이트 단위로 같습니다. 브라우저에서 만든 DOM은 어떤 경로와 엔진에서도 파싱
+DOM(요소, 속성 이름과 값, 텍스트, 자식 순서)이 같아야 합니다. 비교를 통과하려고 DOM을 재배치하는
+코드는 두지 않습니다.
+
+- 초기화 비교는 `html` 범주를 뺍니다(보고서마다 일곱 범주, 결과 168개). `formSnapshot`은 HTML을
+  증거로 계속 기록합니다. 공유 초기화 테스트는 HTML을 뺀 스냅숏을 비교하고, React 스타일 테스트는
+  `isEqualNode`로 노드를 비교합니다.
+- 속성 순서를 다루던 세 루틴과 checkbox의 속성 순서를 고정하던 컨트롤러 테스트를 제거했습니다.
+- 기대 브라우저 합계가 배포 검사와 테스트 두 곳에 숫자(456, 2304, 5,808)로 적혀 있어 범주 변경 뒤
+  오래된 합계가 남았습니다. 이제 `browser-report-policy.mjs`의 `expectedBrowserSections()`가 브라우저
+  행렬에서 한 번 계산하고 배포 검사와 테스트가 이를 사용합니다.
+
+`make format-check`, `npm run test:forms`(core 108, HTML 116, React 350, Vue 341, Svelte 338과
+클라이언트 10, Chromium·명명 검사 14), `npm run test:form-comparison`(소스 139, 라이브러리 10,
+브라우저 작업 3), `npm run test:build`(9), `npm run test:dependencies`(12),
+`npm run test:runtimes`(20), `make docs-check`가 통과했습니다.
+
 ## 2026-09-14 — 폼 비교 검사에서 generator-core보다 검증기를 먼저 빌드
 
 다음 `main` CI 실행에서 같은 작업이 한 단계 앞에서 다시 실패했습니다. `@crudui/generator-core`

@@ -2,6 +2,42 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Compare browser DOM without attribute order and remove the code that forced it
+
+Running the comparison page's complete check in Safari on f3109ad failed `ssr/restoration`
+and `csr/restoration` in the `html` category for Vue with `bindForm` on all four servers,
+while every other category, including the parsed DOM, passed. The only difference was one
+checkbox: mounted as `checked="" value="1"`, restored as `value="1" checked=""`. The
+candidate verification had passed because it runs Chromium only.
+
+The criterion was wrong, not the forms. Serialized HTML exposes the order in which
+attributes were created, which the framework and the browser engine decide; attribute
+order is not part of the DOM. To satisfy it, three places rearranged attributes for the
+test alone and assumed Chromium's order: `connectForm`'s `sync()` moved `checked` last,
+the comparison `bindForm` controller recorded and restored each control's attribute
+order, and React's `resolvedStyleProps` placed `style` after the rendered attributes.
+The corrected rule: string renderers (PHP, the PHP extension, Go, Rust and the HTML
+renderer) stay byte-identical, which the generation checks verify; DOM built in a browser
+must match as parsed DOM (elements, attribute names and values, text, child order) on any
+path and engine; no code rearranges the DOM to satisfy a comparison.
+
+- The initialization comparisons drop the `html` category (seven categories, 168 results
+  per report); `formSnapshot` still records the HTML as evidence. The shared
+  initialization test compares the snapshot without it, and React's style test compares
+  nodes with `isEqualNode`.
+- Removed the three attribute-order routines and the controller test that fixed a
+  checkbox's attribute order.
+- The expected browser totals were written as numbers in the deployment check and two
+  tests (456, 2304, 5,808), so the category change left a stale total. They are now
+  computed once by `expectedBrowserSections()` in `browser-report-policy.mjs` from the
+  browser matrix, and the deployment check and tests use it.
+
+`make format-check`, `npm run test:forms` (core 108, HTML 116, React 350, Vue 341,
+Svelte 338 and 10 client tests, 14 Chromium and naming checks),
+`npm run test:form-comparison` (source 139, library 10, browser job 3),
+`npm run test:build` (9), `npm run test:dependencies` (12), `npm run test:runtimes` (20)
+and `make docs-check` passed.
+
 ## 2026-09-14 — Build the validator before generator-core in the form comparison checks
 
 The next `main` CI run failed the same job again, one step earlier: building
