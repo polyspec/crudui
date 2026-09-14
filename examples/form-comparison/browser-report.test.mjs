@@ -10,7 +10,7 @@ import {
   browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers,
   browserTransports, summarizeBrowserReports,
 } from './check-browser-reports.mjs';
-import { browserInitializationResultIds } from './browser-report-policy.mjs';
+import { browserInitializationResultIds, expectedBrowserSections } from './browser-report-policy.mjs';
 
 const origin = 'http://127.0.0.1:8080';
 const metadata = {
@@ -87,9 +87,10 @@ test('passes only a complete four-server verification with zero failures', () =>
   assert.equal(summary.passed, true);
   assert.equal(summary.performancePassed, true);
   assert.equal(summary.failedChecks, 0);
-  assert.deepEqual(summary.verification.bindForm.scenarios, { total: 456, failed: 0 });
-  assert.deepEqual(summary.verification.createForm.scenarios, { total: 456, failed: 0 });
-  assert.deepEqual(summary.verification.bindForm.initializations, { total: 2304, failed: 0 });
+  const expected = expectedBrowserSections();
+  assert.deepEqual(summary.verification.bindForm.scenarios, { total: expected.scenarios, failed: 0 });
+  assert.deepEqual(summary.verification.createForm.scenarios, { total: expected.scenarios, failed: 0 });
+  assert.deepEqual(summary.verification.bindForm.initializations, { total: expected.initializations, failed: 0 });
 });
 
 test('rejects a missing server report', () => {
@@ -146,7 +147,7 @@ test('fails when an initialization comparison differs', () => {
   const summary = summarizeBrowserReports(reports, origin, metadata);
   assert.equal(summary.passed, false);
   assert.equal(summary.failedChecks, 1);
-  assert.deepEqual(summary.verification.bindForm.initializations, { total: 2304, failed: 1 });
+  assert.deepEqual(summary.verification.bindForm.initializations, { total: expectedBrowserSections().initializations, failed: 1 });
 });
 
 test('fails when corresponding static HTML differs between servers', () => {

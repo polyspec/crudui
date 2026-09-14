@@ -13,7 +13,7 @@ import {
   expectedGenerationRequests, expectedGenerationResults,
 } from './check-generation.mjs';
 import { assertPersistenceReport, expectedPersistenceResults } from './persistence-report.mjs';
-import { browserServers } from './browser-report-policy.mjs';
+import { browserPaths, browserServers, expectedBrowserSections } from './browser-report-policy.mjs';
 
 const execFile = promisify(execFileCallback);
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -40,10 +40,7 @@ function assertMetadata(value, expected, label) {
 }
 
 function browserCounts(summary) {
-  const expected = {
-    bindForm: { scenarios: 456, initializations: 2304, interactions: 120, mounts: 12, documents: 12 },
-    createForm: { scenarios: 456, initializations: 2304, interactions: 120, mounts: 12, documents: 12 },
-  };
+  const expected = Object.fromEntries(browserPaths.map(renderingPath => [renderingPath, expectedBrowserSections()]));
   let checks = 0;
   assert.deepEqual(Object.keys(summary.verification ?? {}).sort(),
     Object.keys(expected).sort(), 'Browser rendering paths differ');
