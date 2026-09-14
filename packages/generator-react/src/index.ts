@@ -5,10 +5,12 @@ import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   buildList,
+  buildDetail,
   type BuildListOptions,
 } from '@crudui/generator-core';
 import { Form } from './components/Form';
 import { List } from './components/List';
+import { Detail } from './components/Detail';
 
 export { ComposeLoadError } from '@crudui/validator';
 export { UnsupportedFieldTypeError } from '@crudui/generator-core';
@@ -44,6 +46,9 @@ export type {
 export { List } from './components/List';
 export type { ListProps } from './components/List';
 export { Cell } from './components/Cell';
+export { Detail } from './components/Detail';
+export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from '@crudui/generator-core';
+export { buildDetail } from '@crudui/generator-core';
 
 /** Render the current form instance as HTML. */
 export function renderForm(form: FormInstance): string {
@@ -69,6 +74,16 @@ export function renderList(
   const vm = buildList(listSpec, rows, buildOpts);
   const element = React.createElement(List, { vm, layout }) as React.ReactElement;
   return renderToStaticMarkup(element as Parameters<typeof renderToStaticMarkup>[0]);
+}
+
+/** Compose, evaluate and render one read-only detail without data access. */
+export function renderDetail(
+  detailSpec: Record<string, unknown>,
+  record: Record<string, unknown> = {},
+  options: import('@crudui/generator-core').BuildDetailOptions = {},
+): string {
+  const vm = buildDetail(detailSpec, record, options);
+  return renderToStaticMarkup(React.createElement(Detail, { vm }));
 }
 
 export { Form } from './components/Form';
