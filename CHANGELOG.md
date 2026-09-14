@@ -2,6 +2,24 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Query the collection again after an empty-collection addition
+
+The candidate run of cc8cd95, the first to build and run the HTML frames, passed generation
+(386 results, 547 requests) and then failed 4 of the 1,744 PHP checks: the `empty` scenario
+of the HTML renderer on both rendering paths and both transports reported "add into empty
+collection: expected 1, actual 0". The run stopped there, so the other servers did not run.
+The scenario held the collection element it found before pressing Add and counted rows in it
+afterwards. React, Vue and Svelte keep that element, but the HTML renderer writes new markup
+on every change, so the held element was detached. The runtime contract already allows rendering to replace
+elements, so the scenario was wrong: `addEmpty` now receives a function that finds the
+collection and queries it again after the addition renders, as the scenario's
+`departmentWrapper` already did. The scenario's other helpers use elements only before the
+action they perform.
+
+That run used a separate git worktree of the commit, because another session's uncommitted
+changes in the repository made candidate preparation refuse to start.
+`npm run test:form-comparison:source` passed 139 tests.
+
 ## 2026-09-14 — Add Go detail model and SSR rendering
 
 The Go generator now provides `BuildDetail` and `RenderDetail`, reusing the
