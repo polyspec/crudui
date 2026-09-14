@@ -39,6 +39,13 @@ test-native` 976/976, Go 생성기 테스트, Rust 생성기 테스트(20·4), P
 test:form-comparison:source`(141)와 `:browser`(3), `make docs-check`, `make format-check`가
 통과했습니다.
 
+배포된 68ee49c 페이지에서 PHP 서버의 모든 프레임워크·렌더링 경로의 두 프레임을 Playwright로
+측정했습니다. 되돌리기 버튼은 처음에 `aria-disabled="true"`이고 `disabled`가 없습니다. `undone`
+단계처럼 포커스한 뒤 스크립트 클릭으로 누르거나 Enter로 누르면, 이력이 비고 렌더링 갱신이 여러 번
+지난 뒤에도 Chromium과 WebKit 모두 되돌리기에 포커스가 남습니다. WebKit에서는 어떤 버튼이든 마우스로
+클릭하면 포커스가 body로 가며, 데이터를 바꾸지 않는 모두 펼치기도 같습니다. 이는 두 열에서 같은
+WebKit의 마우스 동작이며 렌더링 결과가 아닙니다.
+
 ## 2026-09-14 — 비교 저장소 작업을 한 번에 하나만 실행
 
 배포된 cf95123 페이지에서 왼쪽과 오른쪽 프레임의 검사 실행을 동시에 누르자 두 프레임 모두 여러

@@ -43,6 +43,14 @@ Chromium 14), `make test-native` passed 976/976, the Go generator tests, the Rus
 tests (20 and 4), the PHP generator tests (163), `npm run test:form-comparison:source` (141)
 and `:browser` (3), `make docs-check` and `make format-check` passed.
 
+On the deployed 68ee49c page, measured with Playwright for both frames of every framework and
+rendering path on PHP, the Undo button starts with `aria-disabled="true"` and no `disabled`.
+Focused and activated by a scripted click, as the `undone` stage does, or by Enter, Undo keeps
+focus in Chromium and WebKit after the history empties and several rendering updates pass. A
+mouse click on any button leaves focus on the body in WebKit, including Expand all, which
+changes no data; that is WebKit's mouse behaviour, the same in both columns, and not a
+rendering result.
+
 ## 2026-09-14 — Run one comparison storage operation at a time
 
 On the deployed cf95123 page, pressing Run checks in the left and right frames at the same
