@@ -3,7 +3,7 @@
 [한국어](README.ko.md).
 
 The Go package compiles form templates, binds data, manages keyed rows, and
-renders form and list HTML. Generation executes in Go and shares specification
+renders form, list and detail HTML. Generation executes in Go and shares specification
 composition and expression evaluation with the Go validator.
 
 ## Use
@@ -39,6 +39,10 @@ models and revision. `RenderForm` renders the current instance without changing 
 `table` or `card`. List data is supplied by the caller; generation does not query
 a database. Built-in image cells produce deduplicated preload links in first-use
 order. Raw HTML content does not create resource links.
+
+`BuildDetail` and `RenderDetail` consume one supplied record and return or render
+ordered read-only fields. They reuse the list display formatter and never query
+application data.
 
 Date controls, datetime controls and date list cells use UTC. Accepted ISO and
 RFC 2822 values are parsed by one strict parser; invalid or unsupported strings
