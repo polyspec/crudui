@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Keep one form snapshot module
+
+`form-snapshot.mjs` and its test existed twice with identical content:
+`tests/form-inspector/` (the original) and a copy in `examples/form-comparison/src/`. A
+change had to be made in both, and the comparison suite ran the copy's test while CI's
+native job ran the original's. The copy and its test are removed. The comparison frame
+imports the original, the comparison build publishes the original to the page, and
+`test:form-comparison:source` runs the original test, so local checks and the comparison
+CI job keep covering it.
+
+`node --test tests/form-inspector/form-snapshot.test.mjs` passed 18 tests and
+`npm run test:form-comparison` passed with the original in its source checks.
+
 ## 2026-09-14 — Compare browser DOM without attribute order and remove the code that forced it
 
 Running the comparison page's complete check in Safari on f3109ad failed `ssr/restoration`
