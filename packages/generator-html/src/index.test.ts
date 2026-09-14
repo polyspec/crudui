@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm, renderList } from './index';
+import { renderDetail, renderForm, renderList } from './index';
 
 describe('framework-independent form rendering', () => {
   test('renders an editable fragment from the evaluated instance', () => {
@@ -56,5 +56,21 @@ describe('framework-independent list rendering', () => {
     expect(card).toContain('<div class="list-cards">');
     expect(card).toContain('<article class="list-card">');
     expect(table).not.toContain('Ada</script>');
+  });
+});
+
+describe('framework-independent detail rendering', () => {
+  test('renders ordered labels and display values', () => {
+    const html = renderDetail({
+      fields: {
+        name: { field: '.name', label: 'Name' },
+        state: { field: '.state', format: { type: 'badge', map: { active: 'success' } } },
+      },
+    }, { name: 'Ada', state: 'active' });
+
+    expect(html).toContain('<dl class="detail-view">');
+    expect(html).toContain('<dt class="detail-label">Name</dt>');
+    expect(html).toContain('<dd class="detail-value detail-value-text">Ada</dd>');
+    expect(html).toContain('class="badge badge-success"');
   });
 });

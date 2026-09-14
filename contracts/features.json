@@ -12,7 +12,8 @@
         "FormInstance",
         "createForm",
         "connectForm",
-        "buildList"
+        "buildList",
+        "buildDetail"
       ]
     },
     {
@@ -21,7 +22,8 @@
       "layer": "renderer",
       "exports": [
         "renderForm",
-        "renderList"
+        "renderList",
+        "renderDetail"
       ]
     },
     {
@@ -60,7 +62,8 @@
       "layer": "validation",
       "exports": [
         "validate",
-        "validateList"
+        "validateList",
+        "validateDetail"
       ]
     }
   ],
@@ -105,6 +108,10 @@
     {
       "path": "tests/fixtures/list-render/cases.json",
       "kind": "list-html"
+    },
+    {
+      "path": "tests/fixtures/detail-validity/cases.json",
+      "kind": "detail-validity"
     },
     {
       "path": "tests/fixtures/form-session/scenario.mjs",
@@ -404,6 +411,113 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-react -- --run src/__tests__/list-render.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "buildDetail",
+      "owner": "@crudui/generator-core",
+      "signature": "buildDetail(spec, record, options?) -> DetailViewModel",
+      "input": "detail specification and one supplied record",
+      "output": "ordered read-only display fields",
+      "errors": [
+        "ComposeLoadError"
+      ],
+      "fixtures": [
+        "tests/fixtures/detail-validity/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "partial",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/detail.test.ts"
+      ],
+      "docs": [
+        "docs/spec/schema.md",
+        "docs/spec/runtime-packages.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- --run src/detail.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "renderDetail",
+      "owner": "@crudui/generator-html",
+      "signature": "renderDetail(spec, record, options?) -> string",
+      "input": "detail specification and one supplied record",
+      "output": "read-only detail HTML fragment",
+      "errors": [
+        "ComposeLoadError"
+      ],
+      "fixtures": [
+        "tests/fixtures/detail-validity/cases.json"
+      ],
+      "support": {
+        "javascript-html": "pass",
+        "react": "unsupported",
+        "vue": "unsupported",
+        "svelte": "unsupported",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "partial",
+      "state": "none",
+      "tests": [
+        "packages/generator-html/src/index.test.ts"
+      ],
+      "docs": [
+        "docs/spec/schema.md",
+        "docs/spec/runtime-packages.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-html -- --run src/index.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "validateDetail",
+      "owner": "@crudui/validator",
+      "signature": "validateDetail(spec, options?) -> ValidationResult",
+      "input": "detail specification",
+      "output": "structure validation result",
+      "errors": [
+        "ComposeLoadError"
+      ],
+      "fixtures": [
+        "tests/fixtures/detail-validity/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "unsupported",
+        "go": "unsupported",
+        "rust": "unsupported",
+        "php-native": "unsupported"
+      },
+      "status": "partial",
+      "state": "none",
+      "tests": [
+        "packages/validator-ts/src/detail-metaschema.conformance.test.ts"
+      ],
+      "docs": [
+        "docs/spec/schema.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/validator -- --run src/detail-metaschema.conformance.test.ts"
         }
       ]
     },

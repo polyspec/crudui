@@ -15,6 +15,11 @@ const validateList = ajv.compile({
   definitions: schema.definitions,
   $ref: '#/definitions/List',
 });
+const validateDetail = ajv.compile({
+  $schema: schema.$schema,
+  definitions: schema.definitions,
+  $ref: '#/definitions/Detail',
+});
 
 let checked = 0;
 for (const [multiple, expected] of [
@@ -47,8 +52,12 @@ for (const test of read('../tests/fixtures/list-validity/cases.json')) {
   assert.equal(validateList(test.spec), test.expect === 'ok', `${test.name}: ${JSON.stringify(validateList.errors)}`);
   checked++;
 }
+for (const test of read('../tests/fixtures/detail-validity/cases.json')) {
+  assert.equal(validateDetail(test.spec), test.expect === 'ok', `${test.name}: ${JSON.stringify(validateDetail.errors)}`);
+  checked++;
+}
 for (const test of read('../tests/fixtures/translate/cases.json')) {
   assert.equal(validateForm(test.schema), true, `${test.name}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
-process.stdout.write(`[schema] form and list schema compiled; ${checked} fixture checks passed\n`);
+process.stdout.write(`[schema] form, list and detail schema compiled; ${checked} fixture checks passed\n`);

@@ -15,13 +15,16 @@ import {
   type FormInstance,
   type NodeVM,
   type ListViewModel,
+  buildDetail,
+  type BuildDetailOptions,
+  type DetailViewModel,
   type UnsupportedVM,
   type WidgetModel,
 } from '@crudui/generator-core';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
-export type { BuildListOptions, FormInstance, ListViewModel } from '@crudui/generator-core';
+export type { BuildListOptions, BuildDetailOptions, FormInstance, ListViewModel, DetailViewModel } from '@crudui/generator-core';
 
 /** Options for framework-independent list HTML rendering. */
 export interface RenderListOptions extends BuildListOptions {
@@ -251,6 +254,23 @@ function safeUrl(value: string): string {
 function cell(cell: CellVM, tag: 'td' | 'span' | 'div' = 'td', base?: string): string {
   const className = [base ?? `list-td list-td-${cell.format.type}`, cell.design.main.class].filter(Boolean).join(' ');
   return element(tag, { class: className, style: cell.design.main.style }, cellBody(cell));
+}
+
+/** Render one read-only detail field using the same display cell renderer as lists. */
+function detailField(field: DetailViewModel['fields'][number]): string {
+  return element('div', { class: 'detail-field' },
+    element('dt', { class: 'detail-label' }, escText(field.label)) +
+    element('dd', { class: ['detail-value', `detail-value-${field.format.type}`, field.design.main.class].filter(Boolean).join(' '), style: field.design.main.style }, cellBody(field)));
+}
+
+/** Compose, evaluate and render one read-only detail without a framework or database. */
+export function renderDetail(
+  spec: Record<string, unknown>,
+  record: Record<string, unknown> = {},
+  options: BuildDetailOptions = {},
+): string {
+  const vm = buildDetail(spec, record, options);
+  return element('dl', { class: ['detail-view', vm.design.wrapper.class].filter(Boolean).join(' '), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
 }
 
 function action(action: ActionVM): string {
