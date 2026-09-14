@@ -2,6 +2,12 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-14 — Add Go detail rendering
+
+The Go generator now provides `BuildDetail` and `RenderDetail`. Both delegate
+field composition, display formatting and design evaluation to the existing
+`BuildList` path and keep detail data caller-owned.
+
 ## 2026-09-14 — Add Svelte detail rendering
 
 The Svelte generator now exports the shared read-only `Detail` component and

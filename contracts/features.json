@@ -430,7 +430,7 @@
       "support": {
         "javascript": "pass",
         "php": "unsupported",
-        "go": "unsupported",
+        "go": "pass",
         "rust": "unsupported",
         "php-native": "unsupported"
       },
@@ -468,7 +468,7 @@
         "vue": "pass",
         "svelte": "pass",
         "php": "unsupported",
-        "go": "unsupported",
+        "go": "pass",
         "rust": "unsupported",
         "php-native": "unsupported"
       },
@@ -478,7 +478,8 @@
         "packages/generator-html/src/index.test.ts",
         "packages/generator-react/src/__tests__/detail-render.test.tsx",
         "packages/generator-vue/src/__tests__/detail-render.test.ts",
-        "packages/generator-svelte/test/detail-render.test.mjs"
+        "packages/generator-svelte/test/detail-render.test.mjs",
+        "packages/generator-go/detail_test.go"
       ],
       "docs": [
         "docs/spec/schema.md",
