@@ -2,7 +2,9 @@ import { createBrowserJob } from './browser-job.mjs';
 import { loadComparisonFrames } from './frame-readiness.mjs';
 import { pointerOverFrame } from './frame-pointer.mjs';
 import { exclusive } from './storage-lock.mjs';
-import { compareSnapshots, formSnapshot, snapshotHash, styleSnapshot } from './form-snapshot.mjs';
+import {
+  compareSnapshots, formSnapshot, renderedViews, snapshotHash, styleSnapshot,
+} from './form-snapshot.mjs';
 import {
   formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
   initializationCategories, initializationComparisons, initializationStages,
@@ -51,7 +53,8 @@ async function capture(frame, response) {
   await document.fonts.ready;
   if (frames.some(pointerOverFrame)) throw new Error(t.pointerOverFrame);
   const view = document.querySelector('#view');
-  const snapshot = formSnapshot(view, document.querySelector('#form'));
+  const { html: _html, dom: _dom, ...state } = formSnapshot(view, document.querySelector('#form'));
+  const snapshot = { ...renderedViews(view), ...state };
   snapshot.css = styleSnapshot(view);
   snapshot.data = comparison.encodedData();
   snapshot.focus = comparison.focusState();

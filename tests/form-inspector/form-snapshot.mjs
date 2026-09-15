@@ -15,6 +15,20 @@ export function domSnapshot(node) {
   return result;
 }
 
+/**
+ * Capture what the view containers hold. The containers belong to the page, and a framework
+ * marks the container it used to record how it started: Vue writes `data-v-app` on a container
+ * it mounted and leaves a container it hydrated unmarked. That mark is not rendered content,
+ * so the containers' own attributes are outside this capture.
+ */
+export function renderedViews(view) {
+  const containers = Array.from(view.children);
+  return {
+    html: containers.map(container => container.innerHTML).join(''),
+    dom: containers.map(container => Array.from(container.childNodes, domSnapshot)),
+  };
+}
+
 /** Capture form HTML and live control state without changing either. */
 export function formSnapshot(view, form) {
   const controls = Array.from(view.querySelectorAll('input, textarea, select, button')).map(element => ({
