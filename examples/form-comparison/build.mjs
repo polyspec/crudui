@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
@@ -19,6 +19,8 @@ const { build } = await import(pathToFileURL(require.resolve('vite')));
 const { parse } = await import(pathToFileURL(require.resolve('parse5')));
 const { svelte } = await import(pathToFileURL(require.resolve('@sveltejs/vite-plugin-svelte')));
 await mkdir(publicDirectory, { recursive: true });
+// The build volume is persistent; remove the retired public route from an older build.
+await rm(path.join(publicDirectory, 'displays'), { recursive: true, force: true });
 await cp(path.join(exampleDirectory, 'public'), publicDirectory, { recursive: true });
 await cp(path.join(exampleDirectory, 'benchmark'), path.join(publicDirectory, 'benchmark'), { recursive: true });
 await cp(path.join(exampleDirectory, 'src/browser-job.mjs'),
