@@ -28,6 +28,11 @@ Responsibilities in one process (`server/server.mjs`):
   List SSR entries. Every framework takes the same `options.layout` (`table` or
   `card`) as the list-render conformance tests do, so the three normalized outputs
   collapse to one parity key.
+- `POST /api/render-detail` — 3-framework CRUDUI DETAIL SSR. A detail specification
+  and one INJECTED record fan out across the three detail SSR entries
+  (`renderDetail` of each generator package). React's SSR image preload links are
+  stripped before comparison exactly as for lists. The record is passed verbatim,
+  so a non-object record surfaces as `INVALID_FORM_INPUT` in all three.
 - static console — serves `client/` at `/` (no build; plain ES modules).
 
 ## Why it is independent verification
@@ -68,13 +73,17 @@ POST /api/render        { spec, data, options:{language,unsupported} }
 POST /api/render-list   { listSpec | spec, rows, options:{language,layout?} }
   → 200 { results:[{fw,ok,html,normalized,ms,error}], parity, mismatch }
 
+POST /api/render-detail { detailSpec | spec, record, options:{language,files?} }
+  → 200 { results:[{fw,ok,html,normalized,ms,error}], parity, mismatch }
+
 GET  /health            → 200 { status:"ok", timestamp }
 GET  /                  → static console (client/)
 ```
 
 `spec` (and `listSpec`) may be a YAML string OR an already-parsed object; both are
 accepted. For the list endpoints `listSpec` is the canonical key and `spec` is
-accepted as an alias. Validation/render FAILURE is never an HTTP error — it is a
+accepted as an alias; for the detail endpoints `detailSpec` is canonical and `spec`
+is the alias. A malformed YAML string or a missing specification is a 400. Validation/render FAILURE is never an HTTP error — it is a
 result surface (always 200). An unresolved `$ref`/`$patch`/forbidden key is a load
 failure, and root, group or repeated data with the wrong shape is an input
 failure. Every validator CLI reports both with exit status 2 and exactly
@@ -111,9 +120,9 @@ npm start                    # PORT=4000 by default
 
 Open http://localhost:4000 — pick an example, edit spec/data, hit run.
 
-## Two tabs: form and list
+## Three tabs: form, list and detail
 
-The console has two tabs over the four endpoints. The panels never share DOM;
+The console has three tabs over the six endpoints. The panels never share DOM;
 switching only toggles which `<main>` is visible.
 
 - **form tab** — `POST /api/validate` (4-language form validation) + `POST
@@ -140,6 +149,17 @@ switching only toggles which `<main>` is visible.
   failure disables the list run button. The `search` form-spec reuse means the
   same `search(form-spec)` round-trips through the form endpoint that the form tab
   exercises directly.
+- **detail tab** — two matrices, validate (4 langs) → render (3 frameworks):
+  1. `POST /api/validate-detail` — the 4-language detail STRUCTURE validate
+     (compose → forbidden-scan; the record is not validated), drawn through the
+     SAME idempotency matrix.
+  2. `POST /api/render-detail` — the 3-framework detail SSR over the injected
+     record, drawn through the SAME parity matrix.
+
+  The detail-spec YAML editor and the record JSON editor carry parse badges; a
+  parse failure disables the run button. The record editor accepts any JSON value
+  and sends it verbatim, so the renderers' own input error is visible. Examples
+  quote `tests/fixtures/detail-render` and `tests/fixtures/detail-validity`.
 
 ## Console-side verdict re-computation
 
@@ -174,6 +194,8 @@ downloads it, one case per language/framework:
   `{name,note,spec,rows,options,expected_html|expected_error}`. `spec` carries the
   list-spec verbatim (including a `search` slot if present); the list conformance
   reader ignores that slot exactly as the live renderers do.
+- detail tab → `tests/fixtures/detail-render/cases.json` shape:
+  `{name,note,spec,record,options,expected_html|expectError:{code,message}}`.
 
 Add an exported divergent case to the automated checks (`compare-all.js` /
 `*.conformance`) to retain it as a regression test.
@@ -220,19 +242,29 @@ curl -s -X POST localhost:4000/api/validate-detail -H 'Content-Type: application
 curl -s -X POST localhost:4000/api/render-list -H 'Content-Type: application/json' \
   -d '{"listSpec":{"columns":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}}}},"rows":[{"name":"Ada"},{"name":"Lin"}],"options":{"language":"ko"}}'
 # → parity:true, normalized table == fixture expected_html
+
+# render-detail: one injected record → 3 frameworks parity on the same definition list
+curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/json' \
+  -d '{"detailSpec":{"fields":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}},"status":{"field":".status","label":{"ko":"상태","en":"Status"}}}},"record":{"name":"<Ada & Lin>","status":"active"},"options":{"language":"en"}}'
+# → parity:true, normalized <dl class="detail-view">… == detail-render basic-fields expected_html
+
+# render-detail: non-object record → the same input error in all 3 frameworks
+curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/json' \
+  -d '{"detailSpec":{},"record":[]}'
+# → parity:true, every fw error.code INVALID_FORM_INPUT ("Detail record must be an object")
 ```
 
 ## Layout
 
 ```
 server/
-  server.mjs          gateway: routes (validate, validate-list, render, render-list) + CORS + always-200 + static serving
-  engine.mjs          one Vite SSR boot → loads the 3 CRUDUI form + 3 CRUDUI list RENDER entries (render only)
-  validate-runner.mjs all 4 langs via spawnSync CLI (zero privileged path); validateAll + validateAllList (mode:list); idempotency verdict
-  render-runner.mjs   React/Svelte/Vue in-process SSR; renderAll + renderAllList (per-fw layout map); parity verdict
+  server.mjs          gateway: routes (validate, validate-list, validate-detail, render, render-list, render-detail) + CORS + always-200 + static serving
+  engine.mjs          one Vite SSR boot → loads the 3 CRUDUI form, list and detail RENDER entries (render only)
+  validate-runner.mjs all 4 langs via spawnSync CLI (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
+  render-runner.mjs   React/Svelte/Vue in-process SSR; renderAll + renderAllList + renderAllDetail; parity verdict
   package.json        start + build:cli + check:js-cli scripts
 client/               no-build console (index.html + app.js + examples.js + doc.js + styles.css);
-                      two tabs (form + list) over the four endpoints
+                      three tabs (form, list, detail) over the six endpoints
 ```
 
 The CRUDUI validate CLI wrappers live in their own packages (JS

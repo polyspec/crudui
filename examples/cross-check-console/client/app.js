@@ -15,6 +15,10 @@
  *       reused to render the list-spec's embedded search form ABOVE the list. The
  *       search slot IS a form-spec; the list tab proves it round-trips through the
  *       form endpoint unchanged.
+ *   detail tab
+ *     POST /api/validate-detail {detailSpec, files?, basepath?} → 4-language CRUDUI detail
+ *       STRUCTURE validation (compose → forbidden-scan; the record is not validated).
+ *     POST /api/render-detail {detailSpec, record, options}     → 3-framework CRUDUI detail SSR
  *
  * Every endpoint always returns HTTP 200 (the {error} envelope is server-only);
  * a failed VALIDATION is data, not an HTTP error. The console computes
@@ -27,7 +31,8 @@
 import yaml from 'js-yaml';
 import { examples, defaultExampleId } from './examples.js';
 import { listExamples, defaultListExampleId } from './examples.js';
-import { docSections, listDocSections } from './doc.js';
+import { detailExamples, defaultDetailExampleId } from './examples.js';
+import { docSections, listDocSections, detailDocSections } from './doc.js';
 
 // Gateway base. Same origin when the gateway serves this client statically;
 // override with ?api=http://host:port for split deploys.
@@ -53,7 +58,7 @@ const FW_COLOR = {
 // ---------------------------------------------------------------------------
 
 const state = {
-  tab: 'form', // 'form' | 'list'
+  tab: 'form', // 'form' | 'list' | 'detail'
   specText: '',
   dataText: '{}',
   language: 'ko', // options.language
@@ -73,6 +78,14 @@ const state = {
   listRender: null, // last /api/render-list response
   searchRender: null, // last /api/render of listSpec.search (form reuse)
   listError: null, // network/transport error string (list tab)
+
+  // ---- detail tab (parallel to the list tab) ----
+  detailSpecText: '', // detail specification YAML (fields + optional design)
+  recordText: '{}', // injected record (JSON, sent verbatim)
+  detailRunning: false,
+  detailValidate: null, // last /api/validate-detail response
+  detailRender: null, // last /api/render-detail response
+  detailError: null, // network/transport error string (detail tab)
 };
 
 // Apply the default example up front so the console is non-empty on first paint.
@@ -86,6 +99,10 @@ const state = {
   const lex = listExamples.find((e) => e.id === defaultListExampleId) || listExamples[0];
   state.listSpecText = lex.spec;
   state.rowsText = lex.rows;
+
+  const dex = detailExamples.find((e) => e.id === defaultDetailExampleId) || detailExamples[0];
+  state.detailSpecText = dex.spec;
+  state.recordText = dex.record;
 })();
 
 // ---------------------------------------------------------------------------
@@ -140,6 +157,37 @@ function parseRows() {
     const v = JSON.parse(text);
     if (!Array.isArray(v)) return { ok: false, error: 'rows must be a JSON array' };
     return { ok: true, value: v };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+/** Parse the detail specification YAML. Returns { ok, value?, error? }. */
+function parseDetailSpec() {
+  try {
+    const value = yaml.load(state.detailSpecText);
+    if (value === null || value === undefined) {
+      return { ok: false, error: 'empty document' };
+    }
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      return { ok: false, error: 'detail specification must be an object' };
+    }
+    return { ok: true, value };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+/**
+ * Parse the injected record JSON. Any JSON value is accepted and sent verbatim, so a
+ * non-object record reaches the renderers and surfaces their shared input error.
+ * Returns { ok, value?, error? }.
+ */
+function parseRecord() {
+  const text = state.recordText.trim();
+  if (text === '') return { ok: true, value: {} };
+  try {
+    return { ok: true, value: JSON.parse(text) };
   } catch (e) {
     return { ok: false, error: e.message || String(e) };
   }
@@ -351,6 +399,40 @@ async function runList() {
   }
 }
 
+/**
+ * Detail tab runner. Fires the 4-language detail structure validate and the
+ * 3-framework detail render in parallel, mirroring the list tab.
+ */
+async function runDetail() {
+  const detailSpec = parseDetailSpec();
+  const record = parseRecord();
+  if (!detailSpec.ok || !record.ok) return; // run button disabled in this case anyway
+
+  state.detailRunning = true;
+  state.detailError = null;
+  state.detailValidate = null;
+  state.detailRender = null;
+  render();
+
+  try {
+    const [validateRes, renderRes] = await Promise.all([
+      postJson('/api/validate-detail', { detailSpec: detailSpec.value, files: {}, basepath: '' }),
+      postJson('/api/render-detail', {
+        detailSpec: detailSpec.value,
+        record: record.value,
+        options: { language: state.language },
+      }),
+    ]);
+    state.detailValidate = validateRes;
+    state.detailRender = renderRes;
+  } catch (e) {
+    state.detailError = e.message || String(e);
+  } finally {
+    state.detailRunning = false;
+    render();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Fixture export — current (spec,data,options,results) → cases.json shapes.
 // validate case: {name,note,spec,data,expected:{valid,errors}}
@@ -451,6 +533,44 @@ function downloadListFixture() {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Detail fixture export — current (detailSpec, record, options, results) → the
+ * tests/fixtures/detail-render/cases.json shape, one case per framework:
+ *   { name, note, spec, record, options, expected_html | expectError }.
+ */
+function buildDetailFixtureExport() {
+  const detailSpec = parseDetailSpec();
+  const record = parseRecord();
+  const name = (document.getElementById('detail-export-name')?.value || 'live-detail-case').trim();
+
+  const out = {};
+  if (state.detailRender && Array.isArray(state.detailRender.results)) {
+    out.render = state.detailRender.results.map((r) => ({
+      name: `${name}--${r.fw}`,
+      note: `exported from cross-check console (detail, fw=${r.fw}, parity=${state.detailRender.parity})`,
+      spec: detailSpec.ok ? detailSpec.value : null,
+      record: record.ok ? record.value : {},
+      options: { language: state.language },
+      ...(r.error
+        ? { expectError: { code: r.error.code, message: r.error.message } }
+        : { expected_html: r.normalized ?? '' }),
+    }));
+  }
+  return out;
+}
+
+function downloadDetailFixture() {
+  const payload = buildDetailFixtureExport();
+  const name = (document.getElementById('detail-export-name')?.value || 'live-detail-case').trim();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${name}.detail.cases.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ---------------------------------------------------------------------------
 // Rendering (vanilla DOM). render() rebuilds from state; editors keep their
 // own DOM value so we patch only the result/matrix regions to avoid clobbering
@@ -487,6 +607,7 @@ function mountShell() {
       <nav class="cc-tabs" role="tablist" aria-label="view">
         <button id="tab-form" class="cc-tab" role="tab">form</button>
         <button id="tab-list" class="cc-tab" role="tab">list</button>
+        <button id="tab-detail" class="cc-tab" role="tab">detail</button>
       </nav>
       <div class="cc-controls">
         <label class="cc-field" data-tab="form">
@@ -496,6 +617,10 @@ function mountShell() {
         <label class="cc-field" data-tab="list">
           list 예제
           <select id="list-example-select"></select>
+        </label>
+        <label class="cc-field" data-tab="detail">
+          detail 예제
+          <select id="detail-example-select"></select>
         </label>
         <div class="cc-toggle" role="group" aria-label="language">
           <button id="lang-ko">KO</button>
@@ -582,6 +707,38 @@ function mountShell() {
           <div id="list-render-matrix" class="cc-matrix"></div>
         </section>
       </main>
+
+      <main class="cc-main" id="main-detail" data-tab-panel="detail" hidden>
+        <section class="cc-inputs">
+          <div class="cc-editor">
+            <div class="cc-editor-head">
+              <h2>detail-spec (YAML)</h2>
+              <span id="detail-spec-badge" class="cc-badge"></span>
+            </div>
+            <textarea id="detail-spec-input" spellcheck="false"></textarea>
+          </div>
+          <div class="cc-editor">
+            <div class="cc-editor-head">
+              <h2>record (JSON, 주입)</h2>
+              <span id="record-badge" class="cc-badge"></span>
+            </div>
+            <textarea id="record-input" spellcheck="false"></textarea>
+          </div>
+          <div class="cc-run-row">
+            <button id="detail-run-btn" class="cc-btn cc-btn-primary">detail 검증 + 렌더 실행</button>
+            <div class="cc-export-inline">
+              <input id="detail-export-name" placeholder="export 케이스 이름" value="live-detail-case" />
+            </div>
+            <button id="detail-export-btn" class="cc-btn cc-btn-secondary">픽스처 export</button>
+            <span id="detail-run-error" class="cc-run-error"></span>
+          </div>
+        </section>
+
+        <section class="cc-matrices">
+          <div id="detail-validate-matrix" class="cc-matrix"></div>
+          <div id="detail-render-matrix" class="cc-matrix"></div>
+        </section>
+      </main>
     </div>
   `;
 
@@ -605,6 +762,16 @@ function mountShell() {
   }
   listSel.value = defaultListExampleId;
 
+  // Populate detail example select.
+  const detailSel = document.getElementById('detail-example-select');
+  for (const ex of detailExamples) {
+    const opt = document.createElement('option');
+    opt.value = ex.id;
+    opt.textContent = ex.name;
+    detailSel.appendChild(opt);
+  }
+  detailSel.value = defaultDetailExampleId;
+
   // Editors.
   const specInput = document.getElementById('spec-input');
   const dataInput = document.getElementById('data-input');
@@ -615,6 +782,11 @@ function mountShell() {
   const rowsInput = document.getElementById('rows-input');
   listSpecInput.value = state.listSpecText;
   rowsInput.value = state.rowsText;
+
+  const detailSpecInput = document.getElementById('detail-spec-input');
+  const recordInput = document.getElementById('record-input');
+  detailSpecInput.value = state.detailSpecText;
+  recordInput.value = state.recordText;
 
   // Doc panel content (renderDocPanel re-fills per active tab).
   renderDocPanel();
@@ -671,6 +843,30 @@ function mountShell() {
     renderHeaderState();
   });
 
+  // Detail example select.
+  detailSel.addEventListener('change', (e) => {
+    const ex = detailExamples.find((x) => x.id === e.target.value);
+    if (!ex) return;
+    state.detailSpecText = ex.spec;
+    state.recordText = ex.record;
+    state.detailValidate = null;
+    state.detailRender = null;
+    state.detailError = null;
+    detailSpecInput.value = ex.spec;
+    recordInput.value = ex.record;
+    renderHeaderState();
+    renderResults();
+  });
+
+  detailSpecInput.addEventListener('input', (e) => {
+    state.detailSpecText = e.target.value;
+    renderHeaderState();
+  });
+  recordInput.addEventListener('input', (e) => {
+    state.recordText = e.target.value;
+    renderHeaderState();
+  });
+
   document.getElementById('lang-ko').addEventListener('click', () => {
     state.language = 'ko';
     renderHeaderState();
@@ -697,10 +893,14 @@ function mountShell() {
   document.getElementById('list-export-btn').addEventListener('click', downloadListFixture);
   document.getElementById('list-run-btn').addEventListener('click', runList);
 
-  // Tab switch — the two panels never share DOM; switching only toggles which
+  document.getElementById('detail-export-btn').addEventListener('click', downloadDetailFixture);
+  document.getElementById('detail-run-btn').addEventListener('click', runDetail);
+
+  // Tab switch — the panels never share DOM; switching only toggles which
   // <main> is visible and re-themes the per-tab header controls and doc panel.
   document.getElementById('tab-form').addEventListener('click', () => setTab('form'));
   document.getElementById('tab-list').addEventListener('click', () => setTab('list'));
+  document.getElementById('tab-detail').addEventListener('click', () => setTab('detail'));
 }
 
 /** Switch the active tab and re-render the shell's tab-scoped chrome. */
@@ -713,23 +913,27 @@ function setTab(tab) {
   renderResults();
 }
 
-/** Show the active <main>, hide the other, and select the matching header controls. */
+/** Show the active <main>, hide the others, and select the matching header controls. */
 function applyTabVisibility() {
-  document.getElementById('tab-form').classList.toggle('active', state.tab === 'form');
-  document.getElementById('tab-list').classList.toggle('active', state.tab === 'list');
-  document.getElementById('main-form').hidden = state.tab !== 'form';
-  document.getElementById('main-list').hidden = state.tab !== 'list';
+  for (const tab of ['form', 'list', 'detail']) {
+    document.getElementById(`tab-${tab}`).classList.toggle('active', state.tab === tab);
+    document.getElementById(`main-${tab}`).hidden = state.tab !== tab;
+  }
   for (const el of document.querySelectorAll('[data-tab]')) {
     el.hidden = el.getAttribute('data-tab') !== state.tab;
   }
 }
 
-/** Fill the doc panel with the active tab's sections (form vs list syntax). */
+/** Fill the doc panel with the active tab's sections (form, list or detail syntax). */
 function renderDocPanel() {
   const doc = document.getElementById('doc-panel');
   if (!doc) return;
-  const sections = state.tab === 'list' ? listDocSections : docSections;
-  const heading = state.tab === 'list' ? 'list-spec 문법 요약' : '스펙 문법 요약';
+  const byTab = {
+    form: { sections: docSections, heading: '스펙 문법 요약' },
+    list: { sections: listDocSections, heading: 'list-spec 문법 요약' },
+    detail: { sections: detailDocSections, heading: 'detail-spec 문법 요약' },
+  };
+  const { sections, heading } = byTab[state.tab];
   doc.innerHTML =
     `<h2>${esc(heading)}</h2>` +
     sections
@@ -782,6 +986,24 @@ function renderHeaderState() {
   listRunBtn.disabled = !listRunnable;
   listRunBtn.textContent = state.listRunning ? '실행 중...' : 'list 렌더 실행';
   document.getElementById('list-export-btn').disabled = !state.listRender;
+
+  // ---- detail tab badges + run/export gating ----
+  const detailSpec = parseDetailSpec();
+  const record = parseRecord();
+  setBadge(
+    document.getElementById('detail-spec-badge'),
+    detailSpec.ok,
+    detailSpec.ok ? 'YAML OK' : `YAML 파싱 실패: ${detailSpec.error}`
+  );
+  setBadge(
+    document.getElementById('record-badge'),
+    record.ok,
+    record.ok ? 'JSON OK' : `JSON 파싱 실패: ${record.error}`
+  );
+  const detailRunBtn = document.getElementById('detail-run-btn');
+  detailRunBtn.disabled = !(detailSpec.ok && record.ok && !state.detailRunning);
+  detailRunBtn.textContent = state.detailRunning ? '실행 중...' : 'detail 검증 + 렌더 실행';
+  document.getElementById('detail-export-btn').disabled = !state.detailRender;
 }
 
 function setBadge(el, ok, text) {
@@ -798,6 +1020,16 @@ function renderResults() {
   renderListValidateMatrix();
   renderSearchMatrix();
   renderListRenderMatrix();
+  renderLangMatrix(
+    document.getElementById('detail-validate-matrix'),
+    state.detailValidate,
+    'detail 검증 매트릭스 (js / php / go / rust)'
+  );
+  renderFwMatrix(
+    document.getElementById('detail-render-matrix'),
+    state.detailRender,
+    'detail 렌더 매트릭스 (react / vue / svelte)'
+  );
 }
 
 function renderRunError() {
@@ -805,6 +1037,8 @@ function renderRunError() {
   if (formEl) formEl.textContent = state.lastError ? `게이트웨이 오류: ${state.lastError}` : '';
   const listEl = document.getElementById('list-run-error');
   if (listEl) listEl.textContent = state.listError ? `게이트웨이 오류: ${state.listError}` : '';
+  const detailEl = document.getElementById('detail-run-error');
+  if (detailEl) detailEl.textContent = state.detailError ? `게이트웨이 오류: ${state.detailError}` : '';
 }
 
 // --- Validate matrix (4 langs) -------------------------------------------

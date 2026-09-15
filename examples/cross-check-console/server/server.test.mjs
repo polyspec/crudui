@@ -10,10 +10,11 @@
  *   - /health is a liveness 200.
  *
  * The server module is imported for its exported `handler` (no listen side
- * effect after the entry-point guard) and mounted on an ephemeral port. The
- * render path is NOT exercised here (it would boot the Vite SSR engine — that is
- * render-runner.test.mjs's job); the validate path spawns the four CLIs, which
- * proves the "validation failure == 200" rule on real engine output.
+ * effect after the entry-point guard) and mounted on an ephemeral port. The form
+ * and list render paths are covered by their runner tests; the detail render path
+ * is exercised here once for a clean and a failing request (it boots the Vite SSR
+ * engine). The validate path spawns the four CLIs, which proves the
+ * "validation failure == 200" rule on real engine output.
  */
 
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
@@ -114,6 +115,50 @@ describe('HTTP boundary — client input faults are 4xx { error }', () => {
     expect(missing.status).toBe(400);
     expect((await missing.json()).error).toMatch(/spec/i);
   });
+
+  test('render-list shares the same 400 contract (malformed YAML and missing spec)', async () => {
+    const malformed = await postRaw('/api/render-list', JSON.stringify({ listSpec: '[a, b' }));
+    expect(malformed.status).toBe(400);
+    expect((await malformed.json()).error).toMatch(/YAML/i);
+    const missing = await postRaw('/api/render-list', JSON.stringify({ rows: [] }));
+    expect(missing.status).toBe(400);
+    expect((await missing.json()).error).toMatch(/spec/i);
+  });
+
+  test('render-detail shares the same 400 contract (bad JSON, malformed YAML and missing spec)', async () => {
+    const badJson = await postRaw('/api/render-detail', '{ this is not json');
+    expect(badJson.status).toBe(400);
+    expect((await badJson.json()).error).toBeTruthy();
+    const malformed = await postRaw('/api/render-detail', JSON.stringify({ detailSpec: '[a, b' }));
+    expect(malformed.status).toBe(400);
+    expect((await malformed.json()).error).toMatch(/YAML/i);
+    const missing = await postRaw('/api/render-detail', JSON.stringify({ record: {} }));
+    expect(missing.status).toBe(400);
+    expect((await missing.json()).error).toMatch(/spec/i);
+  });
+});
+
+describe('HTTP boundary — a detail render failure is a 200 result surface', () => {
+  // Boots the Vite SSR engine (the detail render path has no CLI).
+  test('clean detail YAML → 200, parity:true, the same detail markup in all three', async () => {
+    const detailSpec = 'fields:\n  name:\n    field: .name\n    label: Name\n';
+    const res = await postRaw('/api/render-detail', JSON.stringify({ spec: detailSpec, record: { name: 'Ada' }, options: { language: 'en' } }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.results.map((r) => r.fw)).toEqual(['react', 'svelte', 'vue']);
+    expect(body.results.filter((r) => !r.ok).map((r) => `${r.fw}:${r.error.code}`)).toEqual([]);
+    expect(body.parity, JSON.stringify(body.mismatch)).toBe(true);
+    expect(body.results[0].normalized).toContain('Ada');
+  }, 120000);
+
+  test('non-object record → 200 with INVALID_FORM_INPUT in all three, parity:true', async () => {
+    const detailSpec = { fields: { name: { field: '.name', label: 'Name' } } };
+    const res = await postRaw('/api/render-detail', JSON.stringify({ detailSpec, record: [1, 2] }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.results.every((r) => !r.ok && r.error.code === 'INVALID_FORM_INPUT')).toBe(true);
+    expect(body.parity).toBe(true);
+  }, 120000);
 });
 
 describe('HTTP boundary — CORS + /health', () => {
