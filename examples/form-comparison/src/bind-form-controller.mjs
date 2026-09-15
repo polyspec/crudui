@@ -98,11 +98,15 @@ function copyRow(field, value, path) {
   return row;
 }
 
-/** Bind current data through the public bindForm API and own application row state. */
-export function bindFormController(element, mount, template, language, initialData = {}) {
+/**
+ * Bind current data through the public bindForm API and own application row state.
+ * `start` renders the normalized record and returns the renderer; a renderer that finishes
+ * later, such as a hydrating one, reports that with `rendered`.
+ */
+export function bindFormController(element, start, template, language, initialData = {}) {
   let data = normalizeFields(template.fields, initialData);
-  const renderer = mount(element, template, language, data);
-  let pending = Promise.resolve();
+  const renderer = start(data);
+  let pending = Promise.resolve(renderer.rendered);
   let inputVersion = 0;
 
   function controls() {
