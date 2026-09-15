@@ -8,7 +8,7 @@ test('provides the same browser verification fields in English and Korean', () =
   const korean = translations('ko');
   assert.deepEqual(Object.keys(english).sort(), Object.keys(korean).sort());
   assert.deepEqual(Object.keys(english.serverNames).sort(),
-    ['go', 'php', 'php-ext', 'rust']);
+    ['go', 'js', 'php', 'php-ext', 'rust']);
   assert.deepEqual(Object.keys(korean.serverNames).sort(),
     Object.keys(english.serverNames).sort());
   for (const text of [english, korean]) {

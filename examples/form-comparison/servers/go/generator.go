@@ -222,6 +222,84 @@ func (s server) serveGeneration(w http.ResponseWriter, r *http.Request, operatio
 	writeJSON(w, http.StatusOK, response)
 }
 
+// servePipeline renders the canonical list/detail display with the Go generator itself.
+func (s server) servePipeline(w http.ResponseWriter, r *http.Request, operation string) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		failure(w, http.StatusMethodNotAllowed, fmt.Errorf("Method not allowed"))
+		return
+	}
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 2*1024*1024))
+	if err != nil {
+		failure(w, http.StatusRequestEntityTooLarge, err)
+		return
+	}
+	value, err := decodeJSON(body)
+	if err != nil {
+		failure(w, http.StatusBadRequest, err)
+		return
+	}
+	request, ok := value.(*object)
+	if !ok {
+		failure(w, http.StatusBadRequest, fmt.Errorf("Expected request object"))
+		return
+	}
+	spec, ok := get(request, "spec").(*object)
+	if !ok {
+		failure(w, http.StatusBadRequest, fmt.Errorf("Expected spec object"))
+		return
+	}
+	options := record()
+	if raw := get(request, "options"); raw != nil {
+		options, ok = raw.(*object)
+		if !ok {
+			failure(w, http.StatusBadRequest, fmt.Errorf("Expected options object"))
+			return
+		}
+	}
+	language := "ko"
+	if raw := get(options, "language"); raw != nil {
+		language, ok = raw.(string)
+		if !ok {
+			failure(w, 400, fmt.Errorf("Expected language string"))
+			return
+		}
+	}
+	if operation == "list" {
+		raw, ok := get(request, "rows").([]any)
+		if !ok {
+			failure(w, 400, fmt.Errorf("Expected rows array"))
+			return
+		}
+		rows := make([]*generator.Object, len(raw))
+		for i, item := range raw {
+			rows[i], ok = item.(*generator.Object)
+			if !ok {
+				failure(w, 400, fmt.Errorf("Expected row object"))
+				return
+			}
+		}
+		html, err := generator.RenderList(spec, rows, generator.ListOptions{Language: language, Data: record(), Total: len(rows), Layout: "table"})
+		if err != nil {
+			failure(w, 400, err)
+			return
+		}
+		writeHTML(w, 200, html)
+		return
+	}
+	recordValue, ok := get(request, "record").(*generator.Object)
+	if !ok {
+		failure(w, 400, fmt.Errorf("Expected record object"))
+		return
+	}
+	html, err := generator.RenderDetail(spec, recordValue, generator.DetailOptions{Language: language, Data: record()})
+	if err != nil {
+		failure(w, 400, err)
+		return
+	}
+	writeHTML(w, 200, html)
+}
+
 // ssrParameters names the query parameters of an SSR frame request with their accepted values.
 var ssrParameters = map[string][]string{"lang": {"ko", "en"}, "server": {"go"}, "initialization": {"ssr"}}
 

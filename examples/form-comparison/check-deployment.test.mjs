@@ -9,7 +9,7 @@ import {
   deploymentHealth, deploymentHealthBudgetSeconds, deploymentMemory, deploymentStepLimitsMs,
   deploymentVolumes, preserveDeploymentDirectory, readDeploymentAuthority,
   removeRetiredComparisonPaths, renderDeploymentCompose, toolchainImageName,
-  toolchainImageReference,
+  toolchainImageReference, shouldReuseDeployment,
 } from './comparison-deployment.mjs';
 
 const repositoryRoot = '/Users/example/crudui';
@@ -27,6 +27,13 @@ test('names the toolchain image by the Containerfile content alone', () => {
   assert.equal(toolchainImageReference(Buffer.from(containerfile)), imageReference);
   assert.notEqual(toolchainImageReference(Buffer.concat([containerfile, Buffer.from('\n')])),
     imageReference);
+});
+
+test('reuses a matching running container and bootstraps only an absent or incompatible one', () => {
+  assert.equal(shouldReuseDeployment({ state: 'running', imageReference }, imageReference), true);
+  assert.equal(shouldReuseDeployment({ state: 'exited', imageReference }, imageReference), false);
+  assert.equal(shouldReuseDeployment({ state: 'running', imageReference: 'other' }, imageReference), false);
+  assert.equal(shouldReuseDeployment(undefined, imageReference), false);
 });
 
 test('renders one deterministic deployment that mounts the repository read-only', () => {
