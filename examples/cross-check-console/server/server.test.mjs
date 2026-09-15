@@ -105,6 +105,15 @@ describe('HTTP boundary — client input faults are 4xx { error }', () => {
     expect(res.status).toBe(400);
     expect((await res.json()).error).toMatch(/spec/i);
   });
+
+  test('validate-detail shares the same 400 contract (malformed YAML and missing spec)', async () => {
+    const malformed = await postRaw('/api/validate-detail', JSON.stringify({ detailSpec: '[a, b' }));
+    expect(malformed.status).toBe(400);
+    expect((await malformed.json()).error).toMatch(/YAML/i);
+    const missing = await postRaw('/api/validate-detail', JSON.stringify({ files: {} }));
+    expect(missing.status).toBe(400);
+    expect((await missing.json()).error).toMatch(/spec/i);
+  });
 });
 
 describe('HTTP boundary — CORS + /health', () => {
@@ -162,6 +171,16 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
     expect(body.idempotent, JSON.stringify(body.mismatch)).toBe(true);
     expect(body.results.every((r) => r.failure && r.failure.code === 'FORBIDDEN_META_KEY')).toBe(true);
     expect(body.results.every((r) => r.valid === false)).toBe(true);
+  }, 60000);
+
+  test('detail spec with a forbidden meta key → 200, the same failure on all four', async () => {
+    const detailSpec = { fields: { name: { field: '.name', show_if: '.admin' } } };
+    const res = await postRaw('/api/validate-detail', JSON.stringify({ detailSpec }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.results.filter((r) => !r.ok).map((r) => `${r.lang}:${r.error}`)).toEqual([]);
+    expect(body.idempotent, JSON.stringify(body.mismatch)).toBe(true);
+    expect(body.results.every((r) => r.failure && r.failure.code === 'FORBIDDEN_META_KEY' && r.failure.at === 'fields.name.show_if')).toBe(true);
   }, 60000);
 
   // A clean list-spec → 200, valid:true on all four (idempotent). `data` on the

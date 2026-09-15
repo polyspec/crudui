@@ -291,6 +291,8 @@ const specCases = JSON.parse(await readFile(
   path.join(root, 'tests/fixtures/spec-validity/cases.json'), 'utf8'));
 const listCases = JSON.parse(await readFile(
   path.join(root, 'tests/fixtures/list-validity/cases.json'), 'utf8'));
+const detailCases = JSON.parse(await readFile(
+  path.join(root, 'tests/fixtures/detail-validity/cases.json'), 'utf8'));
 
 function sourceForValidation() {
   const builder = new EngineFixtureSource();
@@ -356,25 +358,30 @@ function sourceForValidation() {
       error,
     });
   }
-  for (const fixture of listCases) {
-    const error = typeof fixture.engine === 'object'
-      ? { code: fixture.engine.code, at: fixture.engine.at } : undefined;
-    check({
-      name: `list:${fixture.name}`,
-      operation: 'ps_validate_list',
-      inputs: [fixture.spec, {
-        ...(fixture.files === undefined ? {} : { files: fixture.files }),
-        ...(fixture.basepath === undefined ? {} : { basepath: fixture.basepath }),
-      }],
-      expected: { valid: true, errors: [] },
-      error,
-    });
+  for (const [family, operation, cases] of [
+    ['list', 'ps_validate_list', listCases],
+    ['detail', 'ps_validate_detail', detailCases],
+  ]) {
+    for (const fixture of cases) {
+      const error = typeof fixture.engine === 'object'
+        ? { code: fixture.engine.code, at: fixture.engine.at } : undefined;
+      check({
+        name: `${family}:${fixture.name}`,
+        operation,
+        inputs: [fixture.spec, {
+          ...(fixture.files === undefined ? {} : { files: fixture.files }),
+          ...(fixture.basepath === undefined ? {} : { basepath: fixture.basepath }),
+        }],
+        expected: { valid: true, errors: [] },
+        error,
+      });
+    }
   }
   return fixtureProgram(lines);
 }
 
-test('PHP extension engine validates all shared form and list cases', async () => {
-  assert.equal(validationCases.length + specCases.length + listCases.length, 103,
+test('PHP extension engine validates all shared form, list and detail cases', async () => {
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 113,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   try {

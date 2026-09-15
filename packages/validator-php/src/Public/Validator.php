@@ -54,14 +54,44 @@ final class Validator
     /** Validate list composition and metadata without validating row data. */
     public static function validateList(array|stdClass $spec, array $options = []): stdClass
     {
-        $spec = (array) JsonValue::object($spec);
         $loader = self::loader($options);
         $basepath = $options['basepath'] ?? '';
+        $composed = self::composeRoot($spec, $loader, $basepath);
+        self::composeMap($composed, 'columns', $loader, $basepath);
+        if (JsonValue::isObject($composed['search'] ?? null)) {
+            $search = (array) $composed['search'];
+            if (array_key_exists('$ref', $search) || array_key_exists('$patch', $search)) {
+                self::composeMap($composed, 'search', $loader, $basepath);
+            }
+        }
+        ForbiddenScan::scan($composed);
+        return (object) ['valid' => true, 'errors' => []];
+    }
+
+    /** Validate detail composition and metadata without validating record data. */
+    public static function validateDetail(array|stdClass $spec, array $options = []): stdClass
+    {
+        $loader = self::loader($options);
+        $basepath = $options['basepath'] ?? '';
+        $composed = self::composeRoot($spec, $loader, $basepath);
+        self::composeMap($composed, 'fields', $loader, $basepath);
+        ForbiddenScan::scan($composed);
+        return (object) ['valid' => true, 'errors' => []];
+    }
+
+    /**
+     * Compose a list or detail root: `$ref` replaces the members before it,
+     * later own members override the base and `$patch` applies last.
+     *
+     * @return array<string, mixed>
+     */
+    private static function composeRoot(array|stdClass $spec, MemoryLoader $loader, string $basepath): array
+    {
         $base = [];
         $own = [];
         $hasPatch = false;
         $patch = null;
-        foreach ($spec as $key => $value) {
+        foreach ((array) JsonValue::object($spec) as $key => $value) {
             if ($key === '$ref') {
                 $base = array_replace($own, Ref::resolve($value, $basepath, $loader));
                 $own = [];
@@ -73,20 +103,15 @@ final class Validator
             }
         }
         $composed = array_replace($base, $own);
-        if ($hasPatch) {
-            $composed = Patch::apply($composed, $patch);
+        return $hasPatch ? Patch::apply($composed, $patch) : $composed;
+    }
+
+    /** Expand an object map member with properties composition. */
+    private static function composeMap(array &$composed, string $key, MemoryLoader $loader, string $basepath): void
+    {
+        if (JsonValue::isObject($composed[$key] ?? null)) {
+            $composed[$key] = Compose::properties((array) $composed[$key], $loader, $basepath);
         }
-        if (JsonValue::isObject($composed['columns'] ?? null)) {
-            $composed['columns'] = Compose::properties((array) $composed['columns'], $loader, $basepath);
-        }
-        if (JsonValue::isObject($composed['search'] ?? null)) {
-            $search = (array) $composed['search'];
-            if (array_key_exists('$ref', $search) || array_key_exists('$patch', $search)) {
-                $composed['search'] = Compose::properties($search, $loader, $basepath);
-            }
-        }
-        ForbiddenScan::scan($composed);
-        return (object) ['valid' => true, 'errors' => []];
     }
 
     private static function loader(array $options): MemoryLoader

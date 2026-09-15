@@ -13,6 +13,7 @@ unreadable suite fails the run. Native executables are rebuilt before comparison
 | Location | Contract |
 | --- | --- |
 | `tests/fixtures/validate/cases.json` | Current validation results and composition failures. |
+| `tests/fixtures/validator-cli/cases.json` | Validator command-line request rules and messages. |
 | `tests/fixtures/compose/` | Reference and patch composition. |
 | `tests/fixtures/expr/` | Tokens, ASTs and expression evaluation. |
 | `tests/fixtures/form-render/` | Expected form rendering. |

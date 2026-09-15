@@ -96,7 +96,7 @@ final class ValidateCliTest extends TestCase
         return \json_encode([
             'spec' => $case['spec'],
             'data' => $case['data'],
-            'files' => $case['files'] ?? [],
+            'files' => $case['files'] ?? new \stdClass(),
             'basepath' => $case['basepath'] ?? '',
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }

@@ -5,7 +5,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| validator-responses | Validator process status and complete response checks | implemented | passed | not-deployed | [Response tests](../examples/cross-check-console/server/validate-response.test.mjs) |
+| validator-responses | Validator process status and complete response checks | implemented | passed | not-deployed | [Response tests](../examples/cross-check-console/server/validate-response.test.mjs), [Command-line request cases](../tests/fixtures/validator-cli/README.md) |
 | php-api | Common PHP and extension classes with identical methods | implemented | passed | not-deployed | [PHP API contract](spec/php-extension.md) |
 | generator-php | PHP form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | generator-go | Go form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
@@ -34,7 +34,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | Focus movement to the affected row after row operations | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
 | form-markup | Recursive node markup, row cards and interface messages in five implementations | implemented | passed | not-deployed | [Form markup](spec/form-markup.md) |
-| detail-views | Read-only detail specification, model and framework-independent HTML rendering | in-progress | passed | not-deployed | [Specification](spec/schema.md), [feature contract](spec/feature-contracts.md), [shared detail fixture](../tests/fixtures/detail-render/README.md), [native comparison](../tests/native-generators/README.md) |
+| detail-views | Read-only detail specification, model, framework-independent HTML rendering and structure validation | implemented | passed | not-deployed | [Specification](spec/schema.md), [display formats](spec/display-formats.md), [feature contract](spec/feature-contracts.md), [shared detail fixture](../tests/fixtures/detail-render/README.md), [native comparison](../tests/native-generators/README.md), [detail validity cases](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | Row collapse and merged undo history outside record data | implemented | passed | not-deployed | [Node tests](../packages/generator-core/src/node.test.ts) |
 | form-outline | Structure map and current data view | implemented | passed | not-deployed | [Form markup](spec/form-markup.md) |
 | form-initialization-comparison | Side-by-side stage comparison of forms created with data and forms injected after mounting | implemented | passed | not-deployed | [Form comparison](spec/form-comparison.md) |

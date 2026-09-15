@@ -127,7 +127,12 @@ fn main() {
 상태 `0`과 `{ valid, errors }`를 출력합니다. 로드 또는 입력 실패는 종료 상태
 `2`와 정확히 `{ error, code, at }`를 출력합니다. 잘못된 요청은 종료 상태 `1`과
 `{ error }`를 출력합니다. `data` 항목을 생략하면 `{}`를 검증하며, 값을 제공하면
-JSON 객체여야 합니다.
+JSON 객체여야 합니다. 요청의 `mode`는 `form`(`mode`가 없을 때의 기본값), `list`, `detail` 중
+하나이며, 목록과 상세 모드는 구조만 검증하고 `data`를 무시합니다. 모든 CLI는 하나의 순서와
+규칙별 하나의 메시지로 요청을 검사합니다. 올바른 JSON, 객체인 요청, 객체인 `spec`, 지원하는
+`mode`, 항목이 모두 객체인 객체 `files`, 문자열 `basepath` 순서이며, `files`와 `basepath`가 없거나
+`null`이면 없는 것으로 봅니다. [검증기 명령행 사례](../../tests/fixtures/validator-cli/README.ko.md)가
+메시지를 나열하고 모든 언어에서 실행됩니다.
 
 표시 여부는 검증을 비활성화하지 않습니다. `design.show: false`는 필드를 숨기지만
 필수 규칙을 변경하지 않습니다. 조건부 필수 입력은 `validate.required`에 표현식을

@@ -38,12 +38,8 @@
  * entry that reuses the shared compose/forbidden-scan modules.
  */
 
-import {
-  composeProperties,
-  resolveRef,
-  applyPatch,
-  MemoryLoader,
-} from '../compose/index';
+import { composeProperties, MemoryLoader } from '../compose/index';
+import { composeRoot } from '../compose-root';
 import type { FileLoader } from '../compose/index';
 import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
@@ -94,7 +90,7 @@ export function validateList(
   // through the SAME resolveRef/applyPatch primitives form-spec uses. The base
   // file exposes its list under a `properties` layer (the legacy detectKey
   // convention resolveRef enforces). An unresolved root $ref throws here.
-  let composed: Record<string, unknown> = composeListRoot(spec, loader, opts);
+  let composed: Record<string, unknown> = composeRoot(spec, loader, opts);
 
   // columns is the composition ENTRY POINT (read mirror of form-spec
   // `properties`): $ref/$patch on the columns map expand through composeProperties
@@ -134,42 +130,6 @@ export function validateList(
   // Structure loaded clean. No rows → no data validation (SPEC §9). The
   // "schema shape" checks are the meta-schema's job, not this engine's.
   return { valid: true, errors: [] };
-}
-
-/**
- * Apply a list-root `$ref`/`$patch` (G5: base list-spec inheritance), reusing the
- * SAME resolveRef/applyPatch primitives form-spec compose uses. When the root has
- * no composition keys the spec is returned unchanged (a shallow copy). The base
- * file is resolved through resolveRef (the legacy detectKey `properties`-layer
- * convention) so a missing/malformed base is a LOAD failure here.
- */
-function composeListRoot(
-  spec: Record<string, unknown>,
-  loader: FileLoader,
-  opts: { basepath?: string }
-): Record<string, unknown> {
-  if (!('$ref' in spec) && !('$patch' in spec)) {
-    return { ...spec };
-  }
-  const basepath = opts.basepath ?? '';
-  let base: Record<string, unknown> = {};
-  let patch: unknown;
-  const own: Record<string, unknown> = {};
-  for (const k of Object.keys(spec)) {
-    if (k === '$ref') {
-      base = { ...own, ...resolveRef(spec[k], basepath, loader) };
-      for (const ok of Object.keys(own)) delete own[ok];
-    } else if (k === '$patch') {
-      patch = spec[k];
-    } else {
-      own[k] = spec[k];
-    }
-  }
-  let resolved: Record<string, unknown> = { ...base, ...own };
-  if (patch !== undefined) {
-    resolved = applyPatch(resolved, patch);
-  }
-  return resolved;
 }
 
 export default validateList;

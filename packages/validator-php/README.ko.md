@@ -25,6 +25,9 @@ assert($result->valid);
 `Validator::validate($spec, $data, $options)`는 명세를 합성하고, 지원하지 않는
 메타데이터를 검사하고, 제출한 데이터를 검증합니다. `Validator::validateList`는
 목록 명세의 합성과 메타데이터를 검사하며 행 데이터는 검증하지 않습니다.
+`Validator::validateDetail`은 루트와 `fields` 맵의 `$ref`, `$patch`를 포함한 상세
+명세의 합성과 메타데이터를 검사하며 레코드 데이터는 검증하지 않습니다. 두 메서드
+모두 로드에 성공하면 `{ valid: true, errors: [] }`를 반환합니다.
 옵션은 `files` 객체와 `basepath`를 받습니다. 합성 실패는
 `CRUDUI\Validator\Compose\ComposeLoadError`를 발생시킵니다. 형태가 잘못된 제출
 데이터는 코드 `INVALID_FORM_INPUT`인 `CRUDUI\Validator\Validate\FormInputError`를
@@ -51,8 +54,23 @@ php packages/validator-php/bin/validate.php < request.json
 ```
 
 CLI는 `{ "spec": {}, "data": {}, "files": {}, "basepath": "", "mode": "form" }`을
-수신합니다. `spec`만 필수입니다. `mode`는 `form` 또는 `list`이며 기본값은
-`form`입니다. 실행에 성공하면 종료 코드 0과 함께 `{ "valid": true, "errors": [] }`
+수신합니다. `spec`만 필수입니다. `mode`를 생략하면 `data`를 검증하는 `form`입니다.
+`list`는 `validateList`, `detail`은 `validateDetail`을 실행하며 둘 다 `data`를
+무시합니다. `files`와 `basepath`를 생략하거나 `null`로 주면 없는 것으로 봅니다.
+
+CLI는 검증 전에 요청을 다음 순서로 검사합니다. 처음 실패한 검사는 정확히
+`{ "error": MESSAGE }`를 출력하고 종료 코드 1로 종료합니다.
+
+1. 표준 입력이 유효한 JSON이 아니면 `Request must be valid JSON`.
+2. 요청이 JSON 객체가 아니면 `Request must be an object`.
+3. `spec`이 없거나 객체가 아니면 `Request spec must be an object`.
+4. `mode`가 있고 정확히 `form`, `list`, `detail`이 아니면(`null`과 문자열이 아닌
+   값 포함) `Unsupported validation mode`.
+5. `files`가 있고 `null`도 객체도 아니면 `Request files must be an object`.
+6. `files`의 항목이 객체가 아니면 `Request files must contain objects`.
+7. `basepath`가 있고 `null`도 문자열도 아니면 `Request basepath must be a string`.
+
+실행에 성공하면 종료 코드 0과 함께 `{ "valid": true, "errors": [] }`
 또는 데이터 오류를 출력합니다. `data` 항목을 생략하면 `{}`를 검증하며, 값을
 제공하면 JSON 객체여야 합니다. 로드 또는 입력 실패는 정확히
 `{ "error", "code", "at" }`를 출력하고 종료 코드 2로 종료합니다. 잘못된 요청은

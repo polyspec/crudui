@@ -28,7 +28,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
 
 import { getEngine } from './engine.mjs';
-import { validateAll, validateAllList } from './validate-runner.mjs';
+import { validateAll, validateAllDetail, validateAllList } from './validate-runner.mjs';
 import { renderAll, renderAllList } from './render-runner.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -209,6 +209,36 @@ export async function handler(req, res) {
       return sendJson(res, 200, out);
     } catch (e) {
       return sendJson(res, 500, { error: 'Validate-list fan-out failed: ' + e.message });
+    }
+  }
+
+  // ---- POST /api/validate-detail ------------------------------------------
+  // A detail specification structure fans out across the four CLIs in `mode:detail`
+  // (compose → forbidden-scan; no record is validated). The HTTP contract matches
+  // /api/validate-list: a load failure or valid:false is a 200 result, and only a
+  // fan-out fault is 5xx. `detailSpec` is the canonical key; `spec` is an alias.
+  if (pathname === '/api/validate-detail' && req.method === 'POST') {
+    let body;
+    try {
+      body = await readJsonBody(req);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    let detailSpec;
+    try {
+      detailSpec = coerceSpec(body.detailSpec ?? body.spec);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    try {
+      const out = await validateAllDetail({
+        spec: detailSpec,
+        files: body.files ?? {},
+        basepath: body.basepath ?? '',
+      });
+      return sendJson(res, 200, out);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'Validate-detail fan-out failed: ' + e.message });
     }
   }
 

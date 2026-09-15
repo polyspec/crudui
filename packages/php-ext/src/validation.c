@@ -706,24 +706,49 @@ ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value
     ps_value_free(properties); return validation_result(context.errors);
 }
 
-ps_result ps_validate_list(const ps_value *spec, const ps_value *options)
+/* Compose a list or detail root; NULL with *error unset means an internal failure. */
+static ps_value *compose_view_root(const ps_value *spec, const ps_value *options, ps_value **error)
 {
-    const ps_value *files = option_files(options); ps_value *error = NULL;
-    ps_value *composed = ps_compose_spec(spec, files, option_basepath(options), &error);
-    if (!composed && !error) composed = ps_object_value();
-    if (error) return (ps_result){NULL, error};
-    const ps_value *columns = ps_get(composed, "columns");
-    if (columns && columns->kind == PS_OBJECT) {
-        ps_value *resolved = ps_compose_properties(columns, files, option_basepath(options), &error);
-        if (resolved && !ps_set(composed, "columns", resolved)) { ps_value_free(resolved); }
-    }
-    const ps_value *search = ps_get(composed, "search");
-    if (!error && search && search->kind == PS_OBJECT && (ps_has(search, "$ref") || ps_has(search, "$patch"))) {
-        ps_value *resolved = ps_compose_properties(search, files, option_basepath(options), &error);
-        if (resolved && !ps_set(composed, "search", resolved)) { ps_value_free(resolved); }
-    }
+    ps_value *composed = ps_compose_spec(spec, option_files(options), option_basepath(options), error);
+    if (!composed && !*error) composed = ps_object_value();
+    return composed;
+}
+
+/* Expand an object map member of a composed view root with properties composition. */
+static void compose_view_map(ps_value *composed, const char *key, const ps_value *options, ps_value **error)
+{
+    const ps_value *map = ps_get(composed, key);
+    if (*error || !map || map->kind != PS_OBJECT) return;
+    ps_value *resolved = ps_compose_properties(map, option_files(options), option_basepath(options), error);
+    if (resolved && !ps_set(composed, key, resolved)) { ps_value_free(resolved); }
+}
+
+/* Scan the composed view tree and return the clean-load result. */
+static ps_result finish_view(ps_value *composed, ps_value *error)
+{
     if (!error) error = scan_forbidden(composed, NULL, 0);
     ps_value_free(composed);
     if (error) return (ps_result){NULL, error};
     return validation_result(ps_array_value());
+}
+
+ps_result ps_validate_list(const ps_value *spec, const ps_value *options)
+{
+    ps_value *error = NULL;
+    ps_value *composed = compose_view_root(spec, options, &error);
+    if (error) return (ps_result){NULL, error};
+    compose_view_map(composed, "columns", options, &error);
+    const ps_value *search = ps_get(composed, "search");
+    if (search && search->kind == PS_OBJECT && (ps_has(search, "$ref") || ps_has(search, "$patch")))
+        compose_view_map(composed, "search", options, &error);
+    return finish_view(composed, error);
+}
+
+ps_result ps_validate_detail(const ps_value *spec, const ps_value *options)
+{
+    ps_value *error = NULL;
+    ps_value *composed = compose_view_root(spec, options, &error);
+    if (error) return (ps_result){NULL, error};
+    compose_view_map(composed, "fields", options, &error);
+    return finish_view(composed, error);
 }

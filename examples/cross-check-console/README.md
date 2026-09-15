@@ -16,16 +16,18 @@ Responsibilities in one process (`server/server.mjs`):
   `mode:"list"` (compose → forbidden-scan over the list tree). A list carries NO
   rows (they are injected, DB-agnostic), so there is no DATA pass — `data` is
   omitted. A forbidden meta key surfaces as the SAME `failure` record.
+- `POST /api/validate-detail` — 4-language CRUDUI DETAIL STRUCTURE validation fan-out.
+  The four CLIs route on `mode:"detail"` (compose the root and `fields` map →
+  forbidden-scan). A detail validation carries no record, so `data` is omitted.
 - `POST /api/render` — 3-framework CRUDUI FORM SSR. React / Svelte (sync) and Vue
   (async) all render in-process through the CRUDUI entries the conformance tests import
   (the Svelte adapter compiles `.svelte` files, so a bundler-free CLI is impossible
   — but all three frameworks load the same way, so the render side is symmetric too).
 - `POST /api/render-list` — 3-framework CRUDUI LIST SSR. The read sister of
   `/api/render` (SPEC §9): a list-spec + INJECTED rows fan out across the three
-  List SSR entries. The asymmetric per-framework layout key (React `layout:'card'`,
-  Vue `layout:'cards'`, Svelte `mode:'card'`) is mapped from a single fixture-shaped
-  `options.layout` exactly as the list-render conformance tests do, so the three
-  normalized outputs still collapse to one parity key.
+  List SSR entries. Every framework takes the same `options.layout` (`table` or
+  `card`) as the list-render conformance tests do, so the three normalized outputs
+  collapse to one parity key.
 - static console — serves `client/` at `/` (no build; plain ES modules).
 
 ## Why it is independent verification
@@ -55,6 +57,9 @@ POST /api/validate      { spec, data, files?, basepath? }
   → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
 
 POST /api/validate-list { listSpec | spec, files?, basepath? }   # no data — a list has no rows
+  → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
+
+POST /api/validate-detail { detailSpec | spec, files?, basepath? }   # no data — no record is validated
   → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
 
 POST /api/render        { spec, data, options:{language,unsupported} }
@@ -204,6 +209,11 @@ curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/j
 curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/json' \
   -d '{"listSpec":{"columns":{"$ref":"Missing.yml"}}}'
 # → idempotent:true, every lang failure.code REF_FILE_NOT_FOUND
+
+# validate-detail: a forbidden meta key on a field → the same load failure in all 4 langs
+curl -s -X POST localhost:4000/api/validate-detail -H 'Content-Type: application/json' \
+  -d '{"detailSpec":{"fields":{"name":{"field":".name","show_if":".admin"}}}}'
+# → idempotent:true, every lang failure.code FORBIDDEN_META_KEY at fields.name.show_if
 
 # render-list: 2 injected rows + a column → 3 frameworks parity on the same table
 curl -s -X POST localhost:4000/api/render-list -H 'Content-Type: application/json' \
