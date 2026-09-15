@@ -34,7 +34,7 @@ export function buildDetail(
   if (detailSpec === null || typeof detailSpec !== 'object' || Array.isArray(detailSpec)) {
     throw new TypeError('Detail specification must be an object');
   }
-  if (!Object.hasOwn(detailSpec, 'fields')) {
+  if (!Object.prototype.hasOwnProperty.call(detailSpec, 'fields')) {
     throw new TypeError('Detail specification must declare fields');
   }
   if (record === null || typeof record !== 'object' || Array.isArray(record)) {
