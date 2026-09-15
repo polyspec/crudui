@@ -25,6 +25,8 @@ await cp(path.join(exampleDirectory, 'src/frame-readiness.mjs'),
   path.join(publicDirectory, 'frame-readiness.mjs'));
 await cp(path.join(exampleDirectory, 'src/storage-lock.mjs'),
   path.join(publicDirectory, 'storage-lock.mjs'));
+await cp(path.join(exampleDirectory, 'src/frame-pointer.mjs'),
+  path.join(publicDirectory, 'frame-pointer.mjs'));
 await cp(path.join(exampleDirectory, 'src/runtime-paths.mjs'),
   path.join(publicDirectory, 'runtime-paths.mjs'));
 // The browser matrix, read by the page and by the Go and Rust servers.
