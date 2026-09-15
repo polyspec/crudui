@@ -1,0 +1,57 @@
+# Detail validity fixtures
+
+[한국어](README.ko.md).
+
+`cases.json` cases share one shape with the other structure validity families
+([form](../spec-validity/README.md), [list](../list-validity/README.md) and
+[detail](../detail-validity/README.md)): `{ name, note, spec, files?, expect, reason?, engine }`.
+
+- `expect` is the meta-schema result for `#/definitions/Detail` in the [meta-schema](../../../schema/crudui.schema.json), `"ok"` or `"fail"`.
+- `reason` is present only on a `"fail"` case and is required there. It names an Ajv keyword that
+  must appear among the errors.
+- `engine` is the runtime structure validation result. `"pass"` means no load failure and the result
+  `{ valid: true, errors: [] }`; `{ code, at }` is the load failure code and the composition trace
+  joined with `.`.
+- `files` is the composition file set that every runtime consumer passes to the engine. The
+  meta-schema reads `spec` alone.
+
+The two results are independent. Every consumer applies every member it owns: no consumer classifies
+cases itself or supplies its own files. [`check-schema.mjs`](../../../scripts/check-schema.mjs), run by
+`npm run spec:schema`, asserts this shape for all three families before it checks `expect` and
+`reason`.
+
+`sortable` on a field and a root `$ref` without its own `fields` fail the meta-schema and pass the
+runtime, while a forbidden key introduced by `$patch` and an unresolved `$ref` pass the meta-schema
+and fail the runtime.
+
+These cases check a basic detail, composed fields, forbidden keys as a field key, on a field, in
+format options and at the detail root, `show_if` on a field and an unresolved `fields` reference.
+The runtime codes are `FORBIDDEN_META_KEY` and `REF_FILE_NOT_FOUND`.
+
+## Comparisons
+
+The [detail meta-schema test](../../../packages/validator-ts/src/detail-metaschema.conformance.test.ts)
+and `check-schema.mjs` compile the detail entry point and check `expect` and `reason`.
+
+The runtime tests validate `spec` with `files`, read no record data and compare `engine`. The Rust
+structure API returns `Ok(())` for `"pass"`, its equivalent of `{ valid: true, errors: [] }`. The PHP
+command-line test expects exit `0` with the clean result or exit `2` with `{ error, code, at }`, and
+the cross-check console sends every case to the four command-line validators and requires the same
+result from each.
+
+Runtime consumers are the detail validation tests in
+[TypeScript](../../../packages/validator-ts/src/validate-detail/validate-detail.conformance.test.ts),
+[PHP](../../../packages/validator-php/tests/Validate/DetailValidateConformanceTest.php), the
+[PHP command line](../../../packages/validator-php/tests/Validate/DetailValidateCliTest.php),
+[Go](../../../packages/validator-go/validator/validate/detail_conformance_test.go),
+[Rust](../../../packages/validator-rust/tests/detail_validity_conformance.rs), the
+[PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs), the
+[PHP extension runner](../../../packages/php-ext/tests/validate.php) and the cross-check console
+[detail runner test](../../../examples/cross-check-console/server/validate-detail-runner.test.mjs).
+
+## Regeneration
+
+There is no generator; the cases are written by hand. Keep `expect` and `reason` consistent with the
+detail definitions in the meta-schema, and `engine` consistent with composition and the forbidden-key
+scan of every runtime. A composed case must carry every referenced file in `files`. Run the
+meta-schema check and every runtime consumer after changing a case.

@@ -18,10 +18,10 @@ use PHPUnit\Framework\TestCase;
  * file and runs the complete load path (Validate::run = compose →
  * forbidden-scan → validate).
  *
- * Each `ok` case must validate without throwing. Each error case must throw a
- * ComposeLoadError whose code equals the fixture `error_code` AND whose trace
- * (dotted) equals the fixture `at_path`. The test compares both the code and
- * complete path.
+ * Each `engine: "pass"` case must return {valid:true, errors:[]}. Each
+ * `engine: {code, at}` case must throw a ComposeLoadError whose code equals
+ * `code` AND whose trace (dotted) equals `at`. The case `files` are the
+ * composition files passed to the runtime.
  */
 final class ForbiddenScanConformanceTest extends TestCase
 {
@@ -54,40 +54,40 @@ final class ForbiddenScanConformanceTest extends TestCase
      */
     public function testForbiddenScanMatchesFixture(array $case): void
     {
-        self::assertArrayHasKey('expect', $case, "case {$case['name']} must declare an expect field");
+        self::assertArrayHasKey('engine', $case, "case {$case['name']} must declare an engine expectation");
 
         /** @var array<string, mixed> $spec */
         $spec = $case['spec'];
         /** @var array<string, array<string, mixed>>|null $files */
         $files = $case['files'] ?? null;
-        $expect = $case['expect'];
+        $engine = $case['engine'];
 
         // Data is irrelevant to the scan; pass an empty map. The scan runs in the
         // load path before any data-driven validation.
-        if ($expect === 'ok') {
-            // A clean spec must complete the load path without throwing.
-            Validator::validate($spec, [], ['files' => $files ?? []]);
-            $this->addToAssertionCount(1);
+        if ($engine === 'pass') {
+            $result = Validator::validate($spec, [], ['files' => $files ?? []]);
+            self::assertTrue($result->valid, "case {$case['name']} must not be rejected by runtime structure validation");
+            self::assertSame([], $result->errors, "case {$case['name']} must produce no errors on a clean load");
             return;
         }
 
-        /** @var array{error_code: string, at_path: string} $want */
-        $want = $expect;
-        self::assertIsArray($want, "case {$case['name']} expect must be 'ok' | {error_code, at_path}");
-        self::assertArrayHasKey('error_code', $want, "case {$case['name']} expect.error_code missing");
-        self::assertArrayHasKey('at_path', $want, "case {$case['name']} expect.at_path missing");
+        /** @var array{code: string, at: string} $want */
+        $want = $engine;
+        self::assertIsArray($want, "case {$case['name']} engine must be 'pass' | {code, at}");
+        self::assertArrayHasKey('code', $want, "case {$case['name']} engine.code missing");
+        self::assertArrayHasKey('at', $want, "case {$case['name']} engine.at missing");
 
         try {
             Validator::validate($spec, [], ['files' => $files ?? []]);
-            self::fail("case {$case['name']} expected load error {$want['error_code']} at {$want['at_path']} but validated successfully");
+            self::fail("case {$case['name']} expected load error {$want['code']} at {$want['at']} but validated successfully");
         } catch (ComposeLoadError $e) {
             self::assertSame(
-                $want['error_code'],
+                $want['code'],
                 $e->code,
                 "error code mismatch for {$case['name']}: {$e->getMessage()}",
             );
             self::assertSame(
-                $want['at_path'],
+                $want['at'],
                 \implode('.', $e->getCompositionTrace()),
                 "error path mismatch for {$case['name']}: {$e->getMessage()}",
             );

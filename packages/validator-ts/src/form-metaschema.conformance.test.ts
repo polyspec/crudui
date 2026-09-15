@@ -1,13 +1,13 @@
 /**
- * CRUDUI detail-spec meta-schema conformance.
+ * CRUDUI form-spec meta-schema conformance.
  *
- * This test compiles `#/definitions/Detail` from schema/crudui.schema.json with the
+ * This test compiles the form entry point of schema/crudui.schema.json with the
  * same Ajv configuration as scripts/check-schema.mjs
  * (`new Ajv({ strict:false, allErrors:true })` + ajv-formats) and runs the shared
- * fixture tests/fixtures/detail-validity. Each case declares the meta-schema result
+ * fixture tests/fixtures/spec-validity. Each case declares the meta-schema result
  * in `expect`; a `fail` case names in `reason` the Ajv keyword that must appear
  * among the errors. The runtime result in `engine` is checked by
- * validate-detail/validate-detail.conformance.test.ts.
+ * forbidden-scan.conformance.test.ts.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -19,9 +19,9 @@ import addFormats from 'ajv-formats';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schema/crudui.schema.json'), 'utf8'));
-const FIXTURE = path.join(ROOT, 'tests/fixtures/detail-validity/cases.json');
+const FIXTURE = path.join(ROOT, 'tests/fixtures/spec-validity/cases.json');
 
-interface DetailValidityCase {
+interface SpecValidityCase {
   name: string;
   note: string;
   expect: 'ok' | 'fail';
@@ -29,31 +29,27 @@ interface DetailValidityCase {
   spec: Record<string, unknown>;
 }
 
-const cases: DetailValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+const cases: SpecValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 const ajv = new Ajv({ strict: false, allErrors: true });
 addFormats(ajv);
-const validateDetail = ajv.compile({
-  $schema: schema.$schema,
-  definitions: schema.definitions,
-  $ref: '#/definitions/Detail',
-});
+const validateForm = ajv.compile(schema);
 
-describe('detail meta-schema — cases expected to pass', () => {
+describe('form meta-schema — cases expected to pass', () => {
   for (const c of cases.filter((x) => x.expect === 'ok')) {
     test(c.name, () => {
-      const ok = validateDetail(c.spec);
-      expect(ok, `${c.name} should validate but did not: ${JSON.stringify(validateDetail.errors)}`).toBe(true);
+      const ok = validateForm(c.spec);
+      expect(ok, `${c.name} should validate but did not: ${JSON.stringify(validateForm.errors)}`).toBe(true);
     });
   }
 });
 
-describe('detail meta-schema — cases expected to fail for their reason', () => {
+describe('form meta-schema — cases expected to fail for their reason', () => {
   for (const c of cases.filter((x) => x.expect === 'fail')) {
     test(c.name, () => {
-      const ok = validateDetail(c.spec);
+      const ok = validateForm(c.spec);
       expect(ok, `${c.name} must be rejected by the meta-schema`).toBe(false);
-      const keywords = (validateDetail.errors ?? []).map((e) => e.keyword);
+      const keywords = (validateForm.errors ?? []).map((e) => e.keyword);
       expect(keywords, `${c.name}: expected '${c.reason}' among ${JSON.stringify(keywords)}`).toContain(c.reason);
     });
   }

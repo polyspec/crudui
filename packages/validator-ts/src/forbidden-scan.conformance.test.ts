@@ -9,10 +9,12 @@
  * real load path (`validate` = compose → forbidden-scan → validate) against
  * the same fixture PHP / Go / Rust load.
  *
- * Each `ok` case must validate without throwing. Each error case must throw a
- * `ComposeLoadError` whose `code` is the fixture `error_code` AND whose path
- * (`trace`, dotted) equals the fixture `at_path` — the depth is load-bearing, so
- * the path is asserted, not just the code.
+ * Each `engine: "pass"` case must return `{ valid: true, errors: [] }`. Each
+ * `engine: { code, at }` case must throw a `ComposeLoadError` whose `code` is
+ * `code` AND whose path (`trace`, dotted) equals `at` — the depth is
+ * load-bearing, so the path is asserted, not just the code. The case `files` are
+ * the composition files passed to the runtime. The meta-schema members `expect`
+ * and `reason` are checked by form-metaschema.conformance.test.ts.
  *
  * Do not weaken assertions. If JS disagrees with the fixture, the fixture is NOT
  * the JS output and the cross-language contract is broken.
@@ -37,7 +39,9 @@ interface FixtureCase {
   note: string;
   spec: Record<string, unknown>;
   files?: Record<string, Record<string, unknown>>;
-  expect: 'ok' | { error_code: string; at_path: string };
+  expect: 'ok' | 'fail';
+  reason?: string;
+  engine: 'pass' | { code: string; at: string };
 }
 
 const cases: FixtureCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
@@ -49,17 +53,17 @@ function run(c: FixtureCase) {
 }
 
 describe('forbidden-scan — clean specs pass the load path', () => {
-  for (const c of cases.filter((x) => x.expect === 'ok')) {
+  for (const c of cases.filter((x) => x.engine === 'pass')) {
     test(c.name, () => {
-      expect(() => run(c)).not.toThrow();
+      expect(run(c)).toStrictEqual({ valid: true, errors: [] });
     });
   }
 });
 
 describe('forbidden-scan — a forbidden meta key at any depth is a LOAD ERROR', () => {
-  for (const c of cases.filter((x) => x.expect !== 'ok')) {
+  for (const c of cases.filter((x) => typeof x.engine === 'object')) {
     test(c.name, () => {
-      const want = c.expect as { error_code: string; at_path: string };
+      const want = c.engine as { code: string; at: string };
       let thrown: unknown;
       try {
         run(c);
@@ -70,23 +74,21 @@ describe('forbidden-scan — a forbidden meta key at any depth is a LOAD ERROR',
         ComposeLoadError
       );
       const err = thrown as ComposeLoadError;
-      expect(err.code).toStrictEqual(want.error_code);
-      expect(err.trace.join('.')).toStrictEqual(want.at_path);
+      expect(err.code).toStrictEqual(want.code);
+      expect(err.trace.join('.')).toStrictEqual(want.at);
     });
   }
 });
 
 describe('forbidden-scan — every fixture case declares an expectation', () => {
-  test('no case is silently missing an expect field', () => {
+  test('no case is silently missing an engine field', () => {
     for (const c of cases) {
       const ok =
-        c.expect === 'ok' ||
-        (typeof c.expect === 'object' &&
-          typeof c.expect.error_code === 'string' &&
-          typeof c.expect.at_path === 'string');
-      expect(ok, `${c.name} must declare expect: "ok" | {error_code, at_path}`).toBe(
-        true
-      );
+        c.engine === 'pass' ||
+        (typeof c.engine === 'object' &&
+          typeof c.engine.code === 'string' &&
+          typeof c.engine.at === 'string');
+      expect(ok, `${c.name} must declare engine: "pass" | {code, at}`).toBe(true);
     }
     expect(cases.length).toBeGreaterThan(0);
   });

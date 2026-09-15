@@ -2,6 +2,29 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 모든 런타임에 하나의 구조 검증 사례 계약 적용
+
+폼 명세 사례는 엔진 결과만 `expect: "ok"` 또는 `{error_code, at_path}`로 기록했고, 목록과 상세 사례는 메타스키마
+결과를 `expect`와 `reason`에, 엔진 결과를 `engine`에 기록했습니다. 소비자도 서로 다른 필드를 읽었습니다.
+`scripts/check-schema.mjs`는 폼 사례를 메타스키마로 검사하지 않았습니다. Go 목록 테스트는 사례의 `engine`과 `files`를
+무시하고, 자체 금지 키 목록으로 사례를 분류했으며, 사례와 내용이 다른 자체 파일로 조합했습니다. TypeScript 상세
+메타스키마 테스트는 사례 파일을 읽지 않아 상세 `reason`을 검사하지 않았습니다. TypeScript, Go, PHP, Rust, PHP 확장은
+목록과 상세 사례에는 `{valid: true, errors: []}` 결과를 요구했지만 폼 사례에는 요구하지 않았습니다.
+
+이제 세 종류는 하나의 형태를 공유합니다. `name`, `note`, `spec`, 선택적 `files`, 해당 메타스키마 결과인 `expect`(`ok`
+또는 `fail`), `expect`가 `fail`일 때만 있는 ajv 키워드 `reason`, 엔진 결과인 `engine`(`{valid: true, errors: []}`를
+뜻하는 `"pass"` 또는 로드 실패의 `code`와 `at`)입니다. 세 사례 README가 이 계약을 설명합니다. `check-schema.mjs`는
+모든 사례의 형태를 검사한 뒤 `expect`와 `reason`을 검사하고, TypeScript에는 폼 메타스키마 테스트가 추가되었으며 상세
+테스트는 사례 파일을 읽습니다. TypeScript, Go, PHP, Rust, PHP 확장은 사례마다 `engine`과 `files`를 읽고 `pass`에는
+오류 없는 결과를 요구합니다. 통과 폼 사례 세 개는 `required: true`를 선언해 빈 데이터에서 `required` 오류를 반환했으므로
+`required: false`로 바꾸었고, 금지 키 검사가 순회하는 키는 그대로입니다. 오류 사례
+`err-magic-underscore-default-key`와 `err-inside-array-element`는 메타스키마가 `validate.max`와 `options.items`의
+형식을 정하지 않아 통과하므로, 메타스키마를 바로잡을 때까지 `expect: "ok"`로 기록합니다.
+
+목록 사례의 `engine`을 바꾸거나 조합 파일에 금지 키를 넣으면 Go와 Rust 테스트가 실패했습니다. `check-schema.mjs`는
+103건을 통과했고, TypeScript(1,677건), PHP(1,539건), Go와 Rust 검사, PHP 확장의 검증 사례 115건, 게이트웨이
+검사(204건)가 통과했습니다.
+
 ## 2026-09-15 — 모든 예제에 두 언어 README 제공
 
 `examples/form-structure`에는 README가 없었고 교차 검증 콘솔에는 한국어 README가 없어, 미리보기의 목적과 실행

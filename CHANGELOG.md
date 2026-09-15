@@ -2,6 +2,34 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Hold every runtime to one structure validity case contract
+
+The form specification cases recorded only the engine result, as `expect: "ok"` or
+`{error_code, at_path}`, while the list and detail cases recorded the meta-schema result in `expect`
+and `reason` and the engine result in `engine`. The consumers read different fields.
+`scripts/check-schema.mjs` did not run the form cases against the meta-schema. The Go list test ignored
+the cases' `engine` and `files`: it classified cases with its own forbidden key list and composed them
+with its own files, whose contents differed from the cases. The TypeScript detail meta-schema test did
+not read the fixture, so no detail `reason` was checked. For form cases, TypeScript, Go, PHP, Rust and
+the PHP extension did not require the `{valid: true, errors: []}` result they required for list and
+detail cases.
+
+The three families share one shape: `name`, `note`, `spec`, optional `files`, `expect` (`ok` or `fail`
+against the family's meta-schema), `reason` (the ajv keyword, present exactly when `expect` is `fail`)
+and `engine` (`"pass"` for `{valid: true, errors: []}`, or the load failure `code` and `at`). The three
+fixture READMEs state the contract. `check-schema.mjs` checks the shape of every case and then `expect`
+and `reason`; TypeScript has a form meta-schema test and its detail test reads the fixture; TypeScript,
+Go, PHP, Rust and the PHP extension read `engine` and `files` from each case and require the clean result
+for `pass`. Three passing form cases declared `required: true` and returned `required` errors on empty
+data; they declare `required: false` and keep the keys the forbidden key scan walks. Two error cases,
+`err-magic-underscore-default-key` and `err-inside-array-element`, pass the form meta-schema because it
+does not type `validate.max` or `options.items`; they are recorded as `expect: "ok"` until the
+meta-schema is corrected.
+
+Changing a list case's `engine`, or putting a forbidden key in its composition file, made the Go and
+Rust tests fail. `check-schema.mjs` passed 103 checks, and TypeScript (1,677 tests), PHP (1,539), the Go
+and Rust suites, the PHP extension validation of 115 cases and the gateway suite (204) passed.
+
 ## 2026-09-15 — Give every example a README in both languages
 
 `examples/form-structure` had no README and the cross-check console had no Korean README, so the
