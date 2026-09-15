@@ -261,8 +261,8 @@ Go 서버는 `127.0.0.1:8087`에서 수신합니다. Go와 PHP 예제는 레코�
 | --- | --- |
 | [`list-render`](../../tests/fixtures/list-render/README.ko.md) | 명세, 행, 옵션과 기대 목록 HTML 또는 오류 |
 | [`detail-render`](../../tests/fixtures/detail-render/README.ko.md) | 명세, 레코드, 옵션과 기대 상세 HTML 또는 오류 |
-| [`list-validity`](../../tests/fixtures/list-validity/cases.json) | 목록 선언과 구조 검증 결과 |
-| [`detail-validity`](../../tests/fixtures/detail-validity/cases.json) | 상세 선언과 구조 검증 결과 |
+| [`list-validity`](../../tests/fixtures/list-validity/README.ko.md) | 목록 선언과 구조 검증 결과 |
+| [`detail-validity`](../../tests/fixtures/detail-validity/README.ko.md) | 상세 선언과 구조 검증 결과 |
 
 ```sh
 npm run test:forms
