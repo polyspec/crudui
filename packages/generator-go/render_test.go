@@ -65,7 +65,7 @@ func TestEveryRepeatedControlUsesStructuralRulePaths(t *testing.T) {
 	}
 }
 func TestListColumnAndOptionOrder(t *testing.T) {
-	spec := parseObject(t, `{"columns":{"z":{"field":".last","label":"Last","sortable":true},"a":{"field":".first","format":{"type":"link","href":"/users/.id","text":"Open"}},"hidden":{"field":".password","design":{"show":false}}},"sort":{"field":".last","dir":"desc"},"pagination":{"per_page":20,"mode":"offset"}}`)
+	spec := parseObject(t, `{"columns":{"z":{"field":"last","label":"Last","sortable":true},"a":{"field":"first","format":{"type":"link","href":"/users/{=id}","text":"Open"}},"hidden":{"field":"password","design":{"show":false}}},"sort":{"field":"last","dir":"desc"},"pagination":{"per_page":20,"mode":"offset"}}`)
 	rows := []*Object{NewObject("id", 7, "last", "Zulu", "first", "Alpha")}
 	vm, e := BuildList(spec, rows, ListOptions{Page: 2, Total: 41})
 	if e != nil {
@@ -88,7 +88,7 @@ func TestListColumnAndOptionOrder(t *testing.T) {
 		t.Fatal("Hidden column rendered")
 	}
 	card, e := RenderList(spec, rows, ListOptions{Layout: "card"})
-	if e != nil || !strings.Contains(card, `class="list-card"`) || strings.Contains(card, "<table") {
+	if e != nil || !strings.Contains(card, `class="crudui-list__card"`) || strings.Contains(card, "<table") {
 		t.Fatal(card, e)
 	}
 }
@@ -133,7 +133,7 @@ func TestRejectUnorderedAndRecursiveValues(t *testing.T) {
 	}
 }
 func TestListFormattingEscapesValuesAndPreservesDeclaredHTML(t *testing.T) {
-	spec := parseObject(t, `{"columns":{"text":{"field":".text"},"number":{"field":".number","format":{"type":"number","decimals":2,"thousands":true,"prefix":"$"}},"bool":{"field":".enabled","format":{"type":"bool","as":"check"}},"html":{"field":".html","format":"html"}}}`)
+	spec := parseObject(t, `{"columns":{"text":{"field":"text"},"number":{"field":"number","format":{"type":"number","decimals":2,"thousands":true,"prefix":"$"}},"bool":{"field":"enabled","format":{"type":"bool","as":"check"}},"html":{"field":"html","format":"html"}}}`)
 	html, e := RenderList(spec, []*Object{NewObject("text", "<x & y>", "number", 1234.5, "enabled", "false", "html", "<b>allowed</b>")}, ListOptions{})
 	if e != nil {
 		t.Fatal(e)
@@ -146,7 +146,7 @@ func TestListFormattingEscapesValuesAndPreservesDeclaredHTML(t *testing.T) {
 }
 
 func TestListImageResourcesPreserveFirstUseOrder(t *testing.T) {
-	spec := parseObject(t, `{"columns":{"image":{"field":".image","format":"image"},"html":{"field":".html","format":"html"}}}`)
+	spec := parseObject(t, `{"columns":{"image":{"field":"image","format":"image"},"html":{"field":"html","format":"html"}}}`)
 	rows := []*Object{NewObject("image", "/b.png", "html", `<img src="/raw.png">`), NewObject("image", "/a.png"), NewObject("image", "/b.png"), NewObject("image", "data:image/png;base64,AA==")}
 	html, e := RenderList(spec, rows, ListOptions{})
 	if e != nil {

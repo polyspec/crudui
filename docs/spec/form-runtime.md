@@ -186,9 +186,11 @@ focus moved to a row or an Add button is visible, because the move relocates the
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,
 `mincount`, `maxcount`) inspect the collection; other scalar rules inspect each
-entry. Object entries are validated in sorted key order in all four languages.
-Form state does not retain validation errors; applications validate the current
-data and display the returned paths.
+entry. Object entries are validated in sorted key order in all five validation
+implementations. This ordering applies only to error traversal; form data and
+rendered or submitted row order retain the data member order. Form state does
+not retain validation errors; applications validate the current data and display
+the returned paths.
 
 ## Cache and execution limits
 

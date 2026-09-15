@@ -534,11 +534,7 @@ fn button(ctx: &WidgetContext<'_>) -> Value {
     let id = ctx.id;
     let init = ctx.opt("init_script", "");
     let onclick = ctx.script("onclick");
-    let text = if ctx.spec.get("content").is_some() {
-        ctx.text("content")
-    } else {
-        ctx.text("text")
-    };
+    let text = if ctx.spec.get("content").is_some() { ctx.text("content") } else { String::new() };
     json!({"kind":"button","layout":"button","script":format!("\n$(function() {{\n    {init}\n    $(document.getElementById({})).on('click', function() {{\n        {onclick}\n    }});\n}});\n",script_string(id)),
         "buttonText":text,"attrs":{"type":"button","class":ctx.class("crudui-action crudui-action--text"),"name":format!("btn{name}"),"id":id,"value":text},
         "extra":{"hidden":{"type":"hidden","class":"valid-target","readonly":"","name":name,

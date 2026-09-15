@@ -48,7 +48,7 @@ function rerr(fw, code) {
   return { fw, ok: false, html: '', normalized: '', ms: 1, error: { code, message: code } };
 }
 
-const TABLE = '<div class="list-view"><table class="list-table"><tbody><tr><td>Ada</td></tr></tbody></table></div>';
+const TABLE = '<div class="crudui-list"><table class="crudui-list__table"><tbody><tr><td>Ada</td></tr></tbody></table></div>';
 
 describe('compareParity (list envelopes) — agreement', () => {
   test('three frameworks share one normalized list → parity:true, no mismatch', () => {

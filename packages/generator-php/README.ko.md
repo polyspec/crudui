@@ -45,6 +45,7 @@ echo Generator::renderForm($initial);
 `Generator::renderForm($form)`은 HTML `form` 요소를 제외한 HTML을 반환합니다.
 `Generator::renderList($spec, $rows, $options)`는 전달한 행을 `options.layout`으로 선택한
 `table` 또는 `card` 구조로 렌더링합니다.
+`Generator::buildList($spec, $rows, $options)`는 렌더링에 사용하는 평가한 목록 모델을 반환합니다.
 `Generator::renderDetail($spec, $record, $options)`은 전달한 레코드 하나를 읽기 전용 상세로
 렌더링하고, `Generator::buildDetail($spec, $record, $options)`은 렌더러가 사용하는 마크업 없는
 상세 모델을 반환합니다. 어느 렌더링 메서드도 애플리케이션 데이터를 읽지 않습니다. 호스트가 전송
@@ -114,7 +115,7 @@ CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/
 
 `php packages/generator-php/bin/generate.php`는 표준 입력에서 JSON 요청 하나를
 수신하고 표준 출력에 JSON 값 하나를 출력합니다. `compileForm`, `bindForm`,
-`renderList`, `buildDetail`, `renderDetail`, `form` 작업을 지원합니다. 폼 작업은 실패한 작업을 포함하여 각
+`buildList`, `renderList`, `buildDetail`, `renderDetail`, `form` 작업을 지원합니다. 폼 작업은 실패한 작업을 포함하여 각
 작업 후 데이터, 필드, HTML과 리비전을 기록합니다. 어댑터는 공개 클래스를
 사용하므로 PHP 구현이나 로드한 네이티브 구현으로 실행할 수 있습니다.
 

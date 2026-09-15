@@ -21,10 +21,8 @@ legacy로 검사합니다. 각 파일은 키 중복 없이 파싱되어야 하�
 
 ## 비교
 
-이 파일과 결과를 비교하는 검사는 없습니다. `packages/validator-ts`에서 `npm run bench`로 실행하는
-[검증 벤치마크](../../../packages/validator-ts/benchmarks/validation.bench.ts)는 `ProductNft.yml`을
-`legacy` 검증기로 불러와, 생성한 올바른 데이터·잘못된 데이터·최소 데이터로 생성과 검증 시간을 측정합니다.
-파일을 불러올 수 없으면 벤치마크는 내장된 작은 명세를 사용합니다. `OptionMultiplexable.yml`과
+이 파일과 결과를 비교하는 검사는 없습니다. 저장소 벤치마크는 `make bench`로 실행하며
+`tools/bench/`의 명시적인 다언어 fixture를 사용합니다. `OptionMultiplexable.yml`과
 `ProductNft.analysis.md`를 불러오는 코드는 없습니다.
 
 ## 재생성

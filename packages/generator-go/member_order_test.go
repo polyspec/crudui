@@ -105,7 +105,7 @@ func TestFormDataKeepsInsertionOrder(t *testing.T) {
 }
 
 func TestListAndDetailUseMemberOrder(t *testing.T) {
-	columns := `{"b":{"field":".b","label":"B"},"10":{"field":".ten","label":"Ten"},"a":{"field":".a","label":"A"}}`
+	columns := `{"b":{"field":"b","label":"B"},"10":{"field":"ten","label":"Ten"},"a":{"field":"a","label":"A"}}`
 	record := `{"a":"x","b":"y","ten":"z"}`
 	html, err := RenderList(decodeObject(t, `{"columns":`+columns+`}`), []*Object{decodeObject(t, record)}, ListOptions{Language: "en"})
 	if err != nil {

@@ -16,7 +16,8 @@
 //	    engine (Validate in index.go). An unresolved $ref is a *ComposeLoadError
 //	    there (never valid:true) — the legacy ProductNft.yml:873 gap closed.
 //	(2) field traversal — recurse properties; group nesting, multiple arrays
-//	    (items.i), object-key multiple (sorted keys, items.__uid__).
+//	    (items.i), object-key multiple (sorted keys, items.__uid__). Data order is
+//	    preserved by form state and rendering; sorted order is validation errors.
 //	(3) validate-slot evaluation — per field, walk the validate slot in
 //	    declaration order; for each rule evaluate its (possibly conditional) value
 //	    to an effective param (expression / condition map); skip when false/null;

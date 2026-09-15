@@ -45,6 +45,7 @@ accept `language`, `idPrefix`, `keyPrefix` and `unsupported`. Use distinct
 `Generator::renderForm($form)` returns HTML without an HTML `form` element.
 `Generator::renderList($spec, $rows, $options)` renders supplied rows in the `table`
 or `card` layout selected by `options.layout`.
+`Generator::buildList($spec, $rows, $options)` returns the same evaluated list model used by rendering.
 `Generator::renderDetail($spec, $record, $options)` renders one supplied record as a
 read-only detail, and `Generator::buildDetail($spec, $record, $options)` returns the
 markup-free detail model the renderer uses. Neither rendering method reads application
@@ -117,7 +118,7 @@ browser row editing or an ordered JSON HTTP endpoint.
 
 `php packages/generator-php/bin/generate.php` reads one JSON request from stdin
 and writes one JSON value to stdout. Supported operations are `compileForm`,
-`bindForm`, `renderList`, `buildDetail`, `renderDetail` and `form`. The form operation records data, fields,
+`bindForm`, `buildList`, `renderList`, `buildDetail`, `renderDetail` and `form`. The form operation records data, fields,
 HTML and revision after each action, including failed operations. The adapter
 uses the public classes and can execute with the PHP implementation or a loaded
 native implementation.

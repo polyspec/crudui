@@ -85,7 +85,7 @@ pub fn render_detail(
     let model = build_detail(spec, record, options)?;
     let design = &model["design"];
     let class = join_class(&[
-        "detail-view",
+        "crudui-detail",
         design["wrapper"]["class"].as_str().unwrap_or(""),
     ]);
     let body = model["fields"]
@@ -95,9 +95,9 @@ pub fn render_detail(
                 .iter()
                 .map(|field| {
                     let cell = json!({"display": field["display"], "design": field["design"], "format": field["format"]});
-                    let label = element("dt", &json!({"class":"detail-label"}), &escape(field["label"].as_str().unwrap_or("")));
-                    let value = cell_html(&cell, "dd", &format!("detail-value detail-value-{}", field["format"]["type"].as_str().unwrap_or("text")));
-                    element("div", &json!({"class":"detail-field"}), &format!("{label}{value}"))
+                    let label = element("dt", &json!({"class":"crudui-detail__label"}), &escape(field["label"].as_str().unwrap_or("")));
+                    let value = cell_html(&cell, "dd", &format!("crudui-detail__value crudui-value crudui-value--{}", field["format"]["type"].as_str().unwrap_or("text")));
+                    element("div", &json!({"class":"crudui-detail__field"}), &format!("{label}{value}"))
                 })
                 .collect::<String>()
         })
@@ -141,7 +141,7 @@ mod tests {
 
     #[test]
     fn detail_reuses_ordered_list_display_model() {
-        let spec = json!({"fields": {"name": {"field": ".name", "label": "Name"}, "active": {"field": ".active", "label": "Active", "format": {"type": "bool", "true": "Yes", "false": "No"}}}});
+        let spec = json!({"fields": {"name": {"field": "name", "label": "Name"}, "active": {"field": "active", "label": "Active", "format": {"type": "bool", "true": "Yes", "false": "No"}}}});
         let model = build_detail(
             &spec,
             &json!({"name": "Ada", "active": true}),
@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn detail_context_must_be_an_object_after_record_checks() {
-        let spec = json!({"fields": {"v": {"field": ".v"}}});
+        let spec = json!({"fields": {"v": {"field": "v"}}});
         for data in [json!([]), json!("s"), json!(1)] {
             let options = DetailOptions {
                 data,
@@ -197,12 +197,12 @@ mod tests {
 
     #[test]
     fn detail_renders_read_only_definition_list() {
-        let spec = json!({"fields": {"name": {"field": ".name", "label": "Name"}}});
+        let spec = json!({"fields": {"name": {"field": "name", "label": "Name"}}});
         let html =
             render_detail(&spec, &json!({"name": "Ada"}), &DetailOptions::default()).unwrap();
         assert_eq!(
             html,
-            r#"<dl class="detail-view"><div class="detail-field"><dt class="detail-label">Name</dt><dd class="detail-value detail-value-text">Ada</dd></div></dl>"#
+            r#"<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd></div></dl>"#
         );
     }
 }

@@ -95,7 +95,7 @@ func TestListPageAndTotalAreIntegers(t *testing.T) {
 		})
 	}
 	html, err := RenderList(spec, nil, ListOptions{Page: 9007199254740991.0, Total: math.Copysign(0, -1)})
-	if err != nil || !strings.Contains(html, `<nav class="list-pagination" data-page="9007199254740991" data-total="0"></nav>`) {
+	if err != nil || !strings.Contains(html, `<nav class="crudui-list__pagination" data-page="9007199254740991" data-total="0"></nav>`) {
 		t.Fatalf("%s %v", html, err)
 	}
 }
@@ -150,7 +150,7 @@ func TestTextTruncateCountsCodePoints(t *testing.T) {
 	}
 	for _, c := range cases {
 		got, err := detailValue(t, NewObject("type", "text", "truncate", c.truncate), c.value)
-		want := `<dd class="detail-value detail-value-text">` + c.want + `</dd>`
+		want := `<dd class="crudui-detail__value crudui-value crudui-value--text">` + c.want + `</dd>`
 		if err != nil || got != want {
 			t.Fatalf("truncate %#v of %q: got %s %v, want %s", c.truncate, c.value, got, err, want)
 		}
@@ -165,7 +165,7 @@ func TestNumberDecimalsRange(t *testing.T) {
 		}
 	}
 	got, err := detailValue(t, NewObject("type", "number", "decimals", 100.0), 1.0)
-	if want := `<dd class="detail-value detail-value-number">1.` + strings.Repeat("0", 100) + `</dd>`; err != nil || got != want {
+	if want := `<dd class="crudui-detail__value crudui-value crudui-value--number">1.` + strings.Repeat("0", 100) + `</dd>`; err != nil || got != want {
 		t.Fatalf("got %s %v", got, err)
 	}
 	for _, decimals := range []any{-0.5, 100.5, "101"} {

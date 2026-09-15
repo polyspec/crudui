@@ -180,6 +180,25 @@ data view. Every rule is scoped to a crudui block, including box sizing and hidi
 styles its own layout and nothing inside the crudui blocks. The form, structure map
 and data view share one set of `--crudui-*` custom properties.
 
+## List and detail markup
+
+Display output uses the same block/element/modifier grammar as form output. A list
+root is `crudui-list`; its table, headings, cells, cards, empty state, actions and
+pagination use `crudui-list__table`, `crudui-list__heading`, `crudui-list__cell`,
+`crudui-list__cards`, `crudui-list__card`, `crudui-list__empty`,
+`crudui-list__actions`, `crudui-list__action` and `crudui-list__pagination`.
+A detail root is `crudui-detail`; each field uses `crudui-detail__field`,
+`crudui-detail__label` and `crudui-detail__value`.
+
+Every displayed value also carries `crudui-value` and the closed format modifier
+`crudui-value--text`, `--date`, `--number`, `--choice-label`, `--badge`, `--link`,
+`--bool`, `--image` or `--html`. Badge variants are data, not class names:
+`crudui-badge` carries `data-crudui-variant` when a variant is present. Boolean
+presentation uses `crudui-bool` with the closed `--text`, `--check` or `--icon`
+modifier and `data-crudui-state="true|false"`. CSS may style these attributes;
+scripts must read the declared data and ARIA attributes, never infer behavior from
+presentation classes.
+
 ## Behavior not adopted from the reference form
 
 The reference form that motivated this grammar differs in these deliberate ways:

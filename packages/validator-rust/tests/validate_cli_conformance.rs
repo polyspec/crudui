@@ -275,7 +275,7 @@ fn stdout_json(run: &CliRun) -> Value {
 fn cli_detail_mode_clean_structure_is_valid() {
     let req = json!({
         "mode": "detail",
-        "spec": { "fields": { "name": { "field": ".name", "label": "Name" } } }
+        "spec": { "fields": { "name": { "field": "name", "label": "Name" } } }
     });
     let run = run_cli(&req.to_string());
     assert_eq!(
@@ -416,7 +416,7 @@ fn cli_request_rules_apply_in_order() {
 fn cli_null_files_and_basepath_mean_none() {
     let req = json!({
         "mode": "detail",
-        "spec": { "fields": { "name": { "field": ".name" } } },
+        "spec": { "fields": { "name": { "field": "name" } } },
         "files": null,
         "basepath": null
     });

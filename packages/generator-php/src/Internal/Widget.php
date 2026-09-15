@@ -342,7 +342,7 @@ final class Widget
         $init = $this->opt('init_script', '');
         $onclick = $this->behavior()['onclick'] ?? '';
         $script = "\n\$(function() {\n    " . $init . "\n    \$(document.getElementById(" . self::js($id) . ")).on('click', function() {\n        " . $onclick . "\n    });\n});\n";
-        $text = property_exists($this->spec, 'content') ? $this->t($this->spec->content) : $this->t($this->spec->text ?? null);
+        $text = property_exists($this->spec, 'content') ? $this->t($this->spec->content) : '';
         return $this->model('button', 'button', ['type' => 'button', 'class' => $this->main('crudui-action crudui-action--text'), 'name' => 'btn' . $this->name, 'id' => $id, 'value' => $text], ['script' => $script, 'buttonText' => $text, 'extra' => (object) ['hidden' => (object) ['type' => 'hidden', 'class' => 'valid-target', 'readonly' => '', 'name' => $this->name, 'data-name' => Value::leaf($this->path, $this->rows), 'data-rule-name' => Value::rule($this->path, $this->rows), 'value' => $this->displayValue(), 'data-default' => Value::scalar($this->spec->default ?? null)]]]);
     }
 

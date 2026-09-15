@@ -227,7 +227,7 @@ curl -s -X POST localhost:4000/api/render -H 'Content-Type: application/json' \
 
 # validate-list: clean list STRUCTURE → all 4 langs valid:true (no data pass)
 curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/json' \
-  -d '{"listSpec":{"columns":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}}}}}'
+  -d '{"listSpec":{"columns":{"name":{"field":"name","label":{"ko":"이름","en":"Name"}}}}}'
 # → idempotent:true, every lang valid:true (mode:list, compose → forbidden-scan)
 
 # validate-list: unresolved column $ref in a list → load failure in all 4 langs
@@ -237,18 +237,18 @@ curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/j
 
 # validate-detail: a forbidden meta key on a field → the same load failure in all 4 langs
 curl -s -X POST localhost:4000/api/validate-detail -H 'Content-Type: application/json' \
-  -d '{"detailSpec":{"fields":{"name":{"field":".name","show_if":".admin"}}}}'
+  -d '{"detailSpec":{"fields":{"name":{"field":"name","show_if":".admin"}}}}'
 # → idempotent:true, every lang failure.code FORBIDDEN_META_KEY at fields.name.show_if
 
 # render-list: 2 injected rows + a column → 3 frameworks parity on the same table
 curl -s -X POST localhost:4000/api/render-list -H 'Content-Type: application/json' \
-  -d '{"listSpec":{"columns":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}}}},"rows":[{"name":"Ada"},{"name":"Lin"}],"options":{"language":"ko"}}'
+  -d '{"listSpec":{"columns":{"name":{"field":"name","label":{"ko":"이름","en":"Name"}}}},"rows":[{"name":"Ada"},{"name":"Lin"}],"options":{"language":"ko"}}'
 # → parity:true, normalized table == fixture expected_html
 
 # render-detail: one injected record → 3 frameworks parity on the same definition list
 curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/json' \
-  -d '{"detailSpec":{"fields":{"name":{"field":".name","label":{"ko":"이름","en":"Name"}},"status":{"field":".status","label":{"ko":"상태","en":"Status"}}}},"record":{"name":"<Ada & Lin>","status":"active"},"options":{"language":"en"}}'
-# → parity:true, normalized <dl class="detail-view">… == detail-render basic-fields expected_html
+  -d '{"detailSpec":{"fields":{"name":{"field":"name","label":{"ko":"이름","en":"Name"}},"status":{"field":"status","label":{"ko":"상태","en":"Status"}}}},"record":{"name":"<Ada & Lin>","status":"active"},"options":{"language":"en"}}'
+# → parity:true, normalized <dl class="crudui-detail">… == detail-render basic-fields expected_html
 
 # render-detail: non-object record → the same input error in all 3 frameworks
 curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/json' \

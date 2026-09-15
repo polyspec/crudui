@@ -23,12 +23,9 @@ must parse under the unique-key rule, and each must fail the current meta-schema
 two models apart. `ProductNft.yml` carried two duplicate keys until they were removed; the parsed
 declaration is unchanged, because a duplicate key resolved to the last occurrence.
 
-No test compares results against these files. The
-[validation benchmark](../../../packages/validator-ts/benchmarks/validation.bench.ts), run by
-`npm run bench` in `packages/validator-ts`, loads `ProductNft.yml` into the `legacy` validator and
-measures instantiation and validation with generated valid, invalid and minimal data. When the file
-cannot be loaded, the benchmark uses a smaller built-in specification. No code loads
-`OptionMultiplexable.yml` or `ProductNft.analysis.md`.
+No test compares results against these files. The repository benchmark is run by
+`make bench` and uses the explicit cross-language fixture set in `tools/bench/`.
+No code loads `OptionMultiplexable.yml` or `ProductNft.analysis.md`.
 
 ## Regeneration
 

@@ -1,7 +1,7 @@
 use std::io::{self, Read};
 
 use crudui_generator::{
-    bind_form, build_detail, compile_form, list_rows, render_detail, render_form, render_list,
+    bind_form, build_detail, build_list, compile_form, list_rows, render_detail, render_form, render_list,
     AddRowOptions, BindOptions, CompileOptions, DetailOptions, Form, FormError, FormResult,
     FormTemplate, ListOptions,
 };
@@ -139,7 +139,7 @@ fn generate(request: &Value) -> FormResult<Value> {
             let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
             Ok(bind_form(&template, data, &decode::<BindOptions>(options)?)?.into())
         }
-        Some("renderList") => {
+        Some("buildList") | Some("renderList") => {
             let compilation = compile_options(options)?;
             let language = option_string(options, "language")?.unwrap_or_else(|| "ko".into());
             // The specification rule precedes the rows rule, which only decoded JSON can break.
@@ -159,7 +159,11 @@ fn generate(request: &Value) -> FormResult<Value> {
                 total: options.get("total").cloned().unwrap_or(Value::Null),
                 layout: options.get("layout").cloned().unwrap_or(Value::Null),
             };
-            render_list(spec, rows, &options).map(Value::String)
+            if request["operation"] == "buildList" {
+                build_list(spec, rows, &options)
+            } else {
+                render_list(spec, rows, &options).map(Value::String)
+            }
         }
         Some("renderDetail") => {
             let compilation = compile_options(options)?;

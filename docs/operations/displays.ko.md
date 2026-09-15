@@ -53,8 +53,8 @@ import { validateDetail, validateList } from '@crudui/validator';
 const listSpec = {
   pagination: true,
   columns: {
-    name: { field: '.name', label: { ko: '이름', en: 'Name' } },
-    joined: { field: '.joined', label: 'Joined', format: { type: 'date', pattern: 'YYYY-MM-DD' } },
+    name: { field: 'name', label: { ko: '이름', en: 'Name' } },
+    joined: { field: 'joined', label: 'Joined', format: { type: 'date', pattern: 'YYYY-MM-DD' } },
   },
 };
 const rows = [{ name: 'Ada', joined: '2026-01-02T09:30:00Z' }];
@@ -62,7 +62,7 @@ validateList(listSpec);
 const listModel = buildList(listSpec, rows, { language: 'en', page: 1, total: 1 });
 const listHtml = renderList(listSpec, rows, { language: 'en', page: 1, total: 1, layout: 'card' });
 
-const detailSpec = { fields: { name: { field: '.name', label: 'Name' } } };
+const detailSpec = { fields: { name: { field: 'name', label: 'Name' } } };
 validateDetail(detailSpec);
 const detailModel = buildDetail(detailSpec, rows[0], { language: 'en' });
 const detailHtml = renderDetail(detailSpec, rows[0], { language: 'en' });
@@ -82,10 +82,9 @@ React, Vue, Svelte 패키지는 `buildList`와 `buildDetail`을 다시 내보내
 
 ## PHP와 PHP 확장
 
-`CRUDUI\Generator::renderList($spec, $rows, $options)`는 행을 렌더링하고,
+`CRUDUI\Generator::buildList($spec, $rows, $options)`는 평가한 목록 모델을 반환하고, `CRUDUI\Generator::renderList($spec, $rows, $options)`는 행을 렌더링하며,
 `Generator::renderDetail($spec, $record, $options)`는 레코드 하나를 렌더링하며,
-`Generator::buildDetail($spec, $record, $options)`는 상세 모델을 반환합니다. `Generator`에는
-공개 목록 모델 메서드가 없습니다. `CRUDUI\Validator::validateList($spec, $options)`와
+`Generator::buildDetail($spec, $record, $options)`는 상세 모델을 반환합니다. `CRUDUI\Validator::validateList($spec, $options)`와
 `Validator::validateDetail($spec, $options)`는 구조를 검증합니다. 생성 옵션은 `language`,
 `data`, `page`, `total`, `layout`, `files`, `basepath`이고 검증 옵션은 `files`와 `basepath`입니다.
 예제는 저장소 루트에서 실행합니다.
@@ -97,12 +96,12 @@ require 'packages/generator-php/vendor/autoload.php';
 use CRUDUI\Generator;
 use CRUDUI\Validator;
 
-$listSpec = json_decode('{"pagination":true,"columns":{"name":{"field":".name","label":"Name"}}}', false, 512, JSON_THROW_ON_ERROR);
+$listSpec = json_decode('{"pagination":true,"columns":{"name":{"field":"name","label":"Name"}}}', false, 512, JSON_THROW_ON_ERROR);
 $rows = [json_decode('{"name":"Ada"}', false, 512, JSON_THROW_ON_ERROR)];
 Validator::validateList($listSpec);
 $listHtml = Generator::renderList($listSpec, $rows, ['language' => 'en', 'page' => 1, 'total' => 1, 'layout' => 'card']);
 
-$detailSpec = json_decode('{"fields":{"name":{"field":".name","label":"Name"}}}', false, 512, JSON_THROW_ON_ERROR);
+$detailSpec = json_decode('{"fields":{"name":{"field":"name","label":"Name"}}}', false, 512, JSON_THROW_ON_ERROR);
 Validator::validateDetail($detailSpec);
 $detailModel = Generator::buildDetail($detailSpec, $rows[0], ['language' => 'en']);
 $detailHtml = Generator::renderDetail($detailSpec, $rows[0], ['language' => 'en']);
@@ -143,7 +142,7 @@ func object(source string) *generator.Object {
 }
 
 func main() {
-	listSpec := object(`{"pagination":true,"columns":{"name":{"field":".name","label":"Name"}}}`)
+	listSpec := object(`{"pagination":true,"columns":{"name":{"field":"name","label":"Name"}}}`)
 	if _, err := validate.ValidateList(listSpec, validate.Options{}); err != nil {
 		panic(err)
 	}
@@ -155,7 +154,7 @@ func main() {
 		panic(err)
 	}
 
-	detailSpec := object(`{"fields":{"name":{"field":".name","label":"Name"}}}`)
+	detailSpec := object(`{"fields":{"name":{"field":"name","label":"Name"}}}`)
 	if _, err := validate.ValidateDetail(detailSpec, validate.Options{}); err != nil {
 		panic(err)
 	}
@@ -188,7 +187,7 @@ use crudui_validator::{validate_detail, validate_list, ValidateDetailOptions, Va
 use serde_json::json;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let list_spec = json!({"pagination": true, "columns": {"name": {"field": ".name", "label": "Name"}}});
+    let list_spec = json!({"pagination": true, "columns": {"name": {"field": "name", "label": "Name"}}});
     validate_list(&list_spec, &ValidateListOptions::default())?;
     let rows = vec![json!({"name": "Ada"})];
     let list_html = render_list(
@@ -203,7 +202,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     )?;
 
-    let detail_spec = json!({"fields": {"name": {"field": ".name", "label": "Name"}}});
+    let detail_spec = json!({"fields": {"name": {"field": "name", "label": "Name"}}});
     validate_detail(&detail_spec, &ValidateDetailOptions::default())?;
     let options = DetailOptions {
         language: "en".into(),
@@ -230,7 +229,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 정의합니다.
 
 ```sh
-echo '{"mode":"detail","spec":{"fields":{"name":{"field":".name"}}}}' \
+echo '{"mode":"detail","spec":{"fields":{"name":{"field":"name"}}}}' \
   | php packages/validator-php/bin/validate.php
 ```
 

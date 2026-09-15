@@ -33,8 +33,8 @@
 | form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
 | form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | not-deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
 | form-focus | 행 작업 후 대상 행으로 포커스 이동 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
-| form-markup | 다섯 구현의 재귀 노드 마크업, 행 카드, 인터페이스 문구 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
-| detail-views | 읽기 전용 상세 명세, 모델, 프레임워크 독립 HTML 렌더링과 구조 검증 | implemented | passed | not-deployed | [명세](spec/schema.ko.md), [표시 형식](spec/display-formats.ko.md), [기능 계약](spec/feature-contracts.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [상세 검증 사례](../tests/fixtures/detail-validity/cases.json) |
+| form-markup | 다섯 구현의 재귀 폼 노드, 목록·상세 표시 블록, 행 카드, 인터페이스 문구 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md), [표시 형식](spec/display-formats.ko.md) |
+| crudui-details | 읽기 전용 상세 명세, 모델, 프레임워크 독립 HTML 렌더링과 구조 검증 | implemented | passed | not-deployed | [명세](spec/schema.ko.md), [표시 형식](spec/display-formats.ko.md), [기능 계약](spec/feature-contracts.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [상세 검증 사례](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | 레코드 데이터와 분리된 행 접기, 병합 되돌리기 이력 | implemented | passed | not-deployed | [노드 테스트](../packages/generator-core/src/node.test.ts) |
 | form-outline | 구조 맵과 현재 데이터 보기 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
 | form-initialization-comparison | 데이터와 함께 생성한 폼과 마운트 후 주입한 폼의 단계별 좌우 비교 | implemented | passed | not-deployed | [폼 비교](spec/form-comparison.ko.md) |

@@ -66,6 +66,21 @@ try {
             }
             $result = Generator::renderList($spec, $rows, $listOptions);
             break;
+        case 'buildList':
+            $spec = objectValue(required($request, 'spec'), 'List specification must be an object');
+            $rows = property_exists($request, 'rows') ? $request->rows : [];
+            if (!is_array($rows)) {
+                throw new InvalidArgumentException('List rows must be an array');
+            }
+            foreach ($rows as $row) {
+                objectValue($row, 'List rows must be objects');
+            }
+            $listOptions = options(property_exists($request, 'options') ? $request->options : new stdClass());
+            if (isset($listOptions['data'])) {
+                objectValue($listOptions['data'], 'List context must be an object');
+            }
+            $result = Generator::buildList($spec, $rows, $listOptions);
+            break;
         case 'buildDetail':
         case 'renderDetail':
             $method = $request->operation;
