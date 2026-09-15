@@ -73,6 +73,12 @@ td pre { max-width: 260px; white-space: pre-wrap; overflow-wrap: anywhere; }
 #stage .crudui-list table { margin: 0; min-width: 720px; box-shadow: none; }
 #stage .crudui-list th { background: #edf3fa; color: #334b66; }
 #stage .crudui-list td, #stage .crudui-list th { border-color: #e0e8f1; }
+#stage .crudui-list__cell, #stage .crudui-list__heading { vertical-align: middle; }
+#stage .pipeline-align-number { text-align: right; }
+#stage .pipeline-align-center { text-align: center; }
+#stage .pipeline-align-image { text-align: center; vertical-align: middle; }
+#stage .pipeline-align-image img { display: block; margin-inline: auto; }
+#stage .pipeline-align-text { text-align: left; }
 #stage .crudui-list a, #stage .crudui-detail a { color: #1e65bf; font-weight: 700; }
 #stage .crudui-detail { max-width: 760px; }
 #stage .crudui-detail__field { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 18px; padding: 15px 0; border-bottom: 1px solid #e4ebf3; }
