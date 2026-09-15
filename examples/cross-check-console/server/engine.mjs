@@ -22,6 +22,9 @@ let enginePromise = null;
  *   renderListReact: Function,
  *   renderListSvelte: Function,
  *   renderListVue: Function,
+ *   renderDetailReact: Function,
+ *   renderDetailSvelte: Function,
+ *   renderDetailVue: Function,
  *   normalizeHtml: Function,
  *   errorClasses: { react: object, svelte: object, vue: object },
  *   close: Function,
@@ -77,6 +80,10 @@ async function bootEngine() {
     renderListReact: reactMod.renderList,
     renderListSvelte: svelteMod.renderList,
     renderListVue: vueListMod.renderList,
+    // All three package entries export detail rendering (Vue re-exports detailSsr).
+    renderDetailReact: reactMod.renderDetail,
+    renderDetailSvelte: svelteMod.renderDetail,
+    renderDetailVue: vueMod.renderDetail,
     normalizeHtml: normMod.normalizeHtml,
     // Error classes for surfacing render failures with a stable `code` (the same
     // ERROR_CLASS_BY_CODE keys the conformance tests use).

@@ -4,6 +4,8 @@
  */
 
 import { getEngine } from './engine.mjs';
+// Preload links are removed by the helper the framework conformance checks use, so both compare the same body.
+import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mjs';
 
 /**
  * Render one request across React / Svelte / Vue in parallel.
@@ -29,16 +31,6 @@ export async function renderAll(req) {
 }
 
 /**
- * Strip React 19's SSR resource-hint hoists (`<link rel="preload" as="image">`
- * emitted for an `<img src>`). A React-renderer artifact, not list markup (Vue/
- * Svelte SSR do not emit them). The conformance check removes the same bytes, so
- * the gateway removes them before comparing framework output.
- */
-function stripReactFloats(html) {
-  return html.replace(/<link\b[^>]*\brel="preload"[^>]*>/g, '');
-}
-
-/**
  * Render supplied list rows in all three frameworks with the same layout options.
  *
  * @param {object} listSpec the list-spec (columns map; $ref/$patch composable)
@@ -51,13 +43,41 @@ export async function renderAllList(listSpec, rows = [], options = {}) {
   // Rows pass unchanged: invalid rows fail in each renderer with the shared input error.
   const [react, svelte, vue] = await Promise.all([
     renderOne(engine, 'react', () =>
-      stripReactFloats(engine.renderListReact(listSpec, rows, options))
+      withoutPreloadLinks(engine.renderListReact(listSpec, rows, options))
     ),
     renderOne(engine, 'svelte', () =>
       engine.renderListSvelte(listSpec, rows, options)
     ),
     renderOne(engine, 'vue', () =>
       engine.renderListVue(listSpec, rows, options)
+    ),
+  ]);
+
+  const results = [react, svelte, vue];
+  const { parity, mismatch } = compareParity(results, engine.normalizeHtml);
+  return { results, parity, mismatch };
+}
+
+/**
+ * Render one record through a detail specification in all three frameworks.
+ *
+ * @param {object} detailSpec the detail specification (fields map; $ref/$patch composable)
+ * @param {object} record the injected record
+ * @param {object} options { language, data, files, basepath }
+ * @returns {Promise<{results: object[], parity: boolean, mismatch: object|null}>}
+ */
+export async function renderAllDetail(detailSpec, record = {}, options = {}) {
+  const engine = await getEngine();
+  // The record passes unchanged: an invalid record fails in each renderer with the shared input error.
+  const [react, svelte, vue] = await Promise.all([
+    renderOne(engine, 'react', () =>
+      withoutPreloadLinks(engine.renderDetailReact(detailSpec, record, options))
+    ),
+    renderOne(engine, 'svelte', () =>
+      engine.renderDetailSvelte(detailSpec, record, options)
+    ),
+    renderOne(engine, 'vue', () =>
+      engine.renderDetailVue(detailSpec, record, options)
     ),
   ]);
 

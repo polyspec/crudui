@@ -2,10 +2,11 @@
  * Cross-Check Console gateway server.
  *
  * One Node process is responsible for three things:
- *   (a) POST /api/validate — 4-language CRUDUI validation fan-out (JS in-process;
- *       PHP/Go/Rust as stdin-JSON CLIs). Same CRUDUI engine, four call stacks.
- *   (b) POST /api/render   — 3-framework CRUDUI SSR (React/Svelte sync, Vue async),
- *       all in-process through the same CRUDUI entries used by conformance checks.
+ *   (a) POST /api/validate, /api/validate-list, /api/validate-detail — 4-language
+ *       CRUDUI validation fan-out (JS/PHP/Go/Rust as stdin-JSON CLIs).
+ *   (b) POST /api/render, /api/render-list, /api/render-detail — 3-framework CRUDUI
+ *       SSR (React/Svelte sync, Vue async), all in-process through the same CRUDUI
+ *       entries used by conformance checks.
  *   (c) static console      — serves client/ at /.
  *
  * It follows the node-api server contract (examples/legacy/node-api/server.js): CORS on
@@ -29,7 +30,7 @@ import yaml from 'js-yaml';
 
 import { getEngine } from './engine.mjs';
 import { validateAll, validateAllDetail, validateAllList } from './validate-runner.mjs';
-import { renderAll, renderAllList } from './render-runner.mjs';
+import { renderAll, renderAllDetail, renderAllList } from './render-runner.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_DIR = path.resolve(HERE, '../client');
@@ -300,6 +301,35 @@ export async function handler(req, res) {
     }
   }
 
+  // ---- POST /api/render-detail --------------------------------------------
+  // A detail specification and one injected record fan out across the three detail
+  // SSR entries. The HTTP contract matches /api/render-list: a render error
+  // (REF_FILE_NOT_FOUND, INVALID_FORM_INPUT) is a 200 result, and only a fan-out
+  // fault is 5xx. `detailSpec` is the canonical key; `spec` is an alias. The record
+  // passes unchanged so a non-object record fails in the renderers, not here.
+  if (pathname === '/api/render-detail' && req.method === 'POST') {
+    let body;
+    try {
+      body = await readJsonBody(req);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    let detailSpec;
+    try {
+      detailSpec = coerceSpec(body.detailSpec ?? body.spec);
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+    const record = body.record === undefined ? {} : body.record;
+    const options = body.options && typeof body.options === 'object' ? body.options : {};
+    try {
+      const out = await renderAllDetail(detailSpec, record, options);
+      return sendJson(res, 200, out);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'Render-detail fan-out failed: ' + e.message });
+    }
+  }
+
   // ---- GET /health --------------------------------------------------------
   if (pathname === '/health' && req.method === 'GET') {
     return sendJson(res, 200, { status: 'ok', timestamp: new Date().toISOString() });
@@ -336,8 +366,10 @@ function startServer() {
     process.stdout.write('  GET  /                 - console (static client/)\n');
     process.stdout.write('  POST /api/validate     - 4-language CRUDUI validate fan-out\n');
     process.stdout.write('  POST /api/validate-list - 4-language CRUDUI list-spec validate fan-out\n');
+    process.stdout.write('  POST /api/validate-detail - 4-language CRUDUI detail specification validate fan-out\n');
     process.stdout.write('  POST /api/render       - 3-framework CRUDUI form SSR\n');
     process.stdout.write('  POST /api/render-list  - 3-framework CRUDUI list SSR\n');
+    process.stdout.write('  POST /api/render-detail - 3-framework CRUDUI detail SSR\n');
     process.stdout.write('  GET  /health           - liveness probe\n');
   });
   return server;
