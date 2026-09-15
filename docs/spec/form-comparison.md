@@ -17,7 +17,7 @@ implementations (JavaScript reference, PHP, PHP extension, Go and Rust), four
 clients (HTML, React, Vue and Svelte), and CSR or SSR selection. External stage
 buttons and parent-side fake stage routing are not part of the contract.
 
-`examples/form-comparison/benchmark/` is a separate verification screen. It owns
+`examples/form-comparison/benchmark-console/` is a separate verification screen. It owns
 render and validation matrices and benchmark controls. The canonical page does
 not embed benchmark matrices. `/displays/` is not a route.
 
@@ -293,7 +293,7 @@ the form in `#form-view` and the browser-only structure map and data view in
 `#outline-view` and `#data-view`; the servers render the form alone.
 
 The canonical entry page owns the complete List → Detail → Form → Save → List refresh pipeline.
-The benchmark entry is `/benchmark/` and owns matrix verification. There is no `/displays/`
+The benchmark entry is `/benchmark-console/` and owns matrix verification. There is no `/displays/`
 endpoint.
 
 The canonical page's `initialization` applies to the page stage as well as the form document.

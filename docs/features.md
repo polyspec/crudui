@@ -50,8 +50,11 @@ supervisor reached ready state after the container restart. PHP, PHP extension,
 Go and Rust passed 450 generation checks, 120 persistence checks and 7,008 browser checks with
 zero failures. Each browser server completed below the 900,000 millisecond limit, and the
 container reported zero zombie processes after verification. The current public contract is now
-the root pipeline example; the separate benchmark screen is `/benchmark/`. This page change is
-not included in the historical deployment result above.
+the root pipeline example; the separate benchmark screen is `/benchmark-console/`. The 45-record
+canonical list uses three pages of 20, 20 and 5 records. The page-level SSR source contains the
+selected CRUDUI list or detail markup; CSR source contains only the stage shell. The full browser
+verification run on the current tree is not recorded as passed: it ended with validation and source
+identity failures, so the historical zero-failure result above does not apply to this tree.
 
 ## Native package verification
 
