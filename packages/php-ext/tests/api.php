@@ -150,6 +150,52 @@ foreach (['renderDetail', 'buildDetail'] as $method) {
     }
 }
 
+// Display input rules: list and detail inputs, text truncation and number decimals.
+$listSpec = ['columns'=>['v'=>['field'=>'.v','label'=>'V']]];
+$displayFailure = function (callable $operation, string $message): void {
+    $error = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
+    check($error->getMessage() === $message && $error->getPath() === '', "Display failure changed: $message; received " . $error->getMessage());
+};
+same('<div class="list-view"><div class="list-empty"></div></div>', Generator::renderList([], []), 'Empty array list specification changed');
+$displayFailure(fn()=>Generator::renderList([['columns']], []), 'List specification must be an object');
+$displayFailure(fn()=>Generator::renderList($listSpec, ['a'=>['v'=>1]]), 'List rows must be an array');
+foreach ([[1], [[]], [['a']], [null]] as $rows) {
+    $displayFailure(fn()=>Generator::renderList($listSpec, $rows), 'List rows must be objects');
+}
+$emptyTable = Generator::renderList($listSpec, [['v'=>'a']]);
+foreach ([[], ['data'=>[]], ['data'=>null], ['data'=>new stdClass()], ['pageMeta'=>[]], ['pageMeta'=>null], ['files'=>[]], ['layout'=>null], ['layout'=>'table']] as $options) {
+    same($emptyTable, Generator::renderList($listSpec, [['v'=>'a']], $options), 'Accepted list options changed: ' . json_encode($options));
+}
+foreach ([['x'], 'x', 1, true] as $value) {
+    $displayFailure(fn()=>Generator::renderList($listSpec, [], ['data'=>$value]), 'List context must be an object');
+    $displayFailure(fn()=>Generator::renderList($listSpec, [], ['pageMeta'=>$value]), 'List page metadata must be an object');
+    $displayFailure(fn()=>Generator::renderDetail(['fields'=>[]], [], ['data'=>$value]), 'Detail context must be an object');
+}
+foreach (['grid', '', 5, ['table']] as $layout) {
+    $displayFailure(fn()=>Generator::renderList($listSpec, [], ['layout'=>$layout]), 'List layout must be table or card');
+}
+// Checked in order: rows before context, context before page metadata and layout.
+$displayFailure(fn()=>Generator::renderList($listSpec, [1], ['data'=>1, 'pageMeta'=>1, 'layout'=>'grid']), 'List rows must be objects');
+$displayFailure(fn()=>Generator::renderList($listSpec, [], ['data'=>1, 'pageMeta'=>1, 'layout'=>'grid']), 'List context must be an object');
+$displayFailure(fn()=>Generator::renderList($listSpec, [], ['pageMeta'=>1, 'layout'=>'grid']), 'List page metadata must be an object');
+$displayFailure(fn()=>Generator::renderDetail([], [], ['data'=>1]), 'Detail specification must declare fields');
+same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]], [], ['data'=>[]]), 'Empty array detail context changed');
+$displayValue = fn(array $format, mixed $value) => Generator::buildDetail(['fields'=>['v'=>['field'=>'.v','format'=>$format]]], ['v'=>$value])->fields[0]->display;
+foreach ([
+    [2, 'a😀bc', 'a😀…'], [3, '가나다라마', '가나다…'], ['2', 'abcd', 'abcd'], [0.5, 'abc', 'abc'],
+    [2.9, 'abcd', 'ab…'], [4, 'abcd', 'abcd'], [0, 'abcd', 'abcd'], [-1, 'abcd', 'abcd'], [1e300, 'abcd', 'abcd'],
+] as [$limit, $value, $expected]) {
+    same($expected, $displayValue(['type'=>'text','truncate'=>$limit], $value), 'Text truncation changed: ' . json_encode($limit));
+}
+same('<dl class="detail-view"><div class="detail-field"><dt class="detail-label">V</dt><dd class="detail-value detail-value-text">a😀…</dd></div></dl>',
+    Generator::renderDetail(['fields'=>['v'=>['field'=>'.v','label'=>'V','format'=>['type'=>'text','truncate'=>2]]]], ['v'=>'a😀bc']), 'Truncated detail HTML changed');
+same('1.' . str_repeat('0', 100), $displayValue(['type'=>'number','decimals'=>100], 1), 'Maximum decimals changed');
+same('1', $displayValue(['type'=>'number','decimals'=>'101'], 1), 'Non-number decimals are not ignored');
+foreach ([101, -1, 1e200, -1e200] as $places) {
+    $displayFailure(fn()=>$displayValue(['type'=>'number','decimals'=>$places], 1), 'Number decimals must be between 0 and 100');
+    $displayFailure(fn()=>Generator::renderList(['columns'=>['v'=>['field'=>'.v','format'=>['type'=>'number','decimals'=>$places]]]], [['v'=>1]]), 'Number decimals must be between 0 and 100');
+}
+
 $validation = Validator::validate($spec, $data);
 same((object)['valid'=>true,'errors'=>[]], $validation, 'Native validation rejected valid data');
 same($validation, Validator::validate($spec, $data, ['files'=>[]]), 'Empty files map changed validation');

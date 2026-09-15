@@ -859,7 +859,7 @@ function sourceForFixtures() {
     lines.push(`  ps_value *options_before = ps_value_clone(${optionsValue});`);
     lines.push(`  ps_result actual = ps_render_list(${specValue}, ${rowsValue}, ${optionsValue});`);
     if (expectedError) {
-      lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(expectedError.code)}) || !ps_is_string(ps_get(actual.error, "at"), ${cString(expectedError.at)})) { fputs(${cString(`${fixture.name}: error differs\n`)}, stderr); return ${index + 1}; }`);
+      lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(expectedError.code)}) || !ps_is_string(ps_get(actual.error, "message"), ${cString(expectedError.message)}) || !ps_is_string(ps_get(actual.error, "at"), ${cString(expectedError.at)})) { fputs(${cString(`${fixture.name}: error differs\n`)}, stderr); return ${index + 1}; }`);
     } else {
       lines.push(`  if (!actual.value || actual.error || !ps_is_string(actual.value, ${cString(expected)})) {`);
       lines.push(`    fprintf(stderr, ${cString(`${fixture.name}: HTML differs\nactual: %s\nexpected: %s\n`)}, actual.value ? ps_string(actual.value) : "null", ${cString(expected)});`);
@@ -877,7 +877,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', async () => {
-  assert.equal(fixtures.length, 21,
+  assert.equal(fixtures.length, 31,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -988,7 +988,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', async () => {
-  assert.equal(fixtures.length, 19,
+  assert.equal(fixtures.length, 23,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);

@@ -223,15 +223,37 @@ function resolveActions(
 // ---------------------------------------------------------------------------
 
 /**
+ * The list layout option: absent or null selects `table`, and any value other than `table` or
+ * `card` fails. Renderers check it after building the list model, so input errors keep the order
+ * every runtime uses.
+ */
+export function listLayout(layout: unknown): 'table' | 'card' {
+  if (layout === undefined || layout === null) return 'table';
+  if (layout === 'table' || layout === 'card') return layout;
+  throw new TypeError('List layout must be table or card');
+}
+
+/**
  * Compose a list spec and build its `ListViewModel`. `rows` are injected (no DB
- * access); each cell value is read from a row by the column `field` path. Throws
- * `ComposeLoadError` on an unresolved `$ref` (never a silent render).
+ * access); each cell value is read from a row by the column `field` path. Invalid
+ * input fails with the messages in the display format specification, and an
+ * unresolved `$ref` throws `ComposeLoadError` (never a silent render).
  */
 export function buildList(
   listSpec: Record<string, unknown>,
   rows: Array<Record<string, unknown>> = [],
   options: BuildListOptions = {}
 ): ListViewModel {
+  // List input, checked in the order every runtime uses (docs/spec/display-formats.md).
+  if (!isPlainObject(listSpec)) throw new TypeError('List specification must be an object');
+  if (!Array.isArray(rows)) throw new TypeError('List rows must be an array');
+  if (rows.some((row) => !isPlainObject(row))) throw new TypeError('List rows must be objects');
+  if (options.data !== undefined && options.data !== null && !isPlainObject(options.data)) {
+    throw new TypeError('List context must be an object');
+  }
+  if (options.pageMeta !== undefined && options.pageMeta !== null && !isPlainObject(options.pageMeta)) {
+    throw new TypeError('List page metadata must be an object');
+  }
   const t = makeTranslate(options.language ?? 'ko');
   const loader = options.loader ?? new MemoryLoader(options.files ?? {});
   const composeOpts = options.basepath ? { basepath: options.basepath } : {};

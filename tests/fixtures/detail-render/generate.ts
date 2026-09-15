@@ -136,6 +136,35 @@ const SCENARIOS: DetailFixtureCase[] = [
     options: { language: 'en' },
   },
   {
+    name: 'format-text-truncate-code-points',
+    note: 'truncate counts Unicode code points, keeps the integer part of the limit and applies only a number.',
+    spec: {
+      fields: {
+        emoji: { field: '.emoji', label: 'Emoji', format: { type: 'text', truncate: 2 } },
+        hangul: { field: '.hangul', label: 'Hangul', format: { type: 'text', truncate: 3 } },
+        fraction: { field: '.plain', label: 'Fraction', format: { type: 'text', truncate: 2.9 } },
+        below: { field: '.short', label: 'Below', format: { type: 'text', truncate: 0.5 } },
+        text: { field: '.plain', label: 'Text', format: { type: 'text', truncate: '2' } },
+      },
+    },
+    record: { emoji: 'a😀bc', hangul: '가나다라마', plain: 'abcd', short: 'abc' },
+    options: { language: 'en' },
+  },
+  {
+    name: 'reject-number-decimals-above-range',
+    note: 'decimals above 100 are rejected.',
+    spec: { fields: { n: { field: '.n', label: 'N', format: { type: 'number', decimals: 101 } } } },
+    record: { n: 1 },
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Number decimals must be between 0 and 100' },
+  },
+  {
+    name: 'reject-number-decimals-below-range',
+    note: 'negative decimals are rejected.',
+    spec: { fields: { n: { field: '.n', label: 'N', format: { type: 'number', decimals: -1 } } } },
+    record: { n: 1 },
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Number decimals must be between 0 and 100' },
+  },
+  {
     name: 'format-html',
     note: 'html format writes the declared markup without escaping.',
     spec: { fields: { notes: { field: '.notes', label: 'Notes', format: { type: 'html' } } } },
@@ -198,6 +227,14 @@ const SCENARIOS: DetailFixtureCase[] = [
     spec: {},
     record: ADA,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail specification must declare fields' },
+  },
+  {
+    name: 'reject-array-context',
+    note: 'a data option that is not an object is rejected.',
+    spec: { fields: { name: { field: '.name', label: 'Name' } } },
+    record: ADA,
+    options: { data: [] } as unknown as BuildDetailOptions,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail context must be an object' },
   },
   {
     name: 'reject-non-object-record',

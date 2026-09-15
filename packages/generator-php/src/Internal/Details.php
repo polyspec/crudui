@@ -18,6 +18,11 @@ final class Details
             throw new FormError('INVALID_FORM_INPUT', 'Detail specification must declare fields');
         }
         $record = self::root($record, 'Detail record must be an object');
+        // An absent or null context is empty; data is a fixed object option.
+        $data = $options['data'] ?? null;
+        if ($data !== null && !$data instanceof stdClass && !(is_array($data) && ($data === [] || !array_is_list($data)))) {
+            throw new FormError('INVALID_FORM_INPUT', 'Detail context must be an object');
+        }
         $list = ['columns' => $spec->fields];
         if (property_exists($spec, 'design')) {
             $list['design'] = $spec->design;

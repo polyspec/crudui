@@ -2,7 +2,7 @@ import type { FormInstance } from '@crudui/generator-core';
 /** Form template binding, rendering and list rendering. */
 
 import { render } from 'svelte/server';
-import { buildList, buildDetail, type BuildListOptions, type BuildDetailOptions } from '@crudui/generator-core';
+import { buildList, buildDetail, listLayout, type BuildListOptions, type BuildDetailOptions } from '@crudui/generator-core';
 import Form from './components/Form.svelte';
 import List from './components/List.svelte';
 import Detail from './components/Detail.svelte';
@@ -64,7 +64,7 @@ export function renderList(
 ): string {
   const { layout, ...buildOpts } = options;
   const vm = buildList(listSpec, rows, buildOpts);
-  const { body } = render(List, { props: { vm, layout: layout ?? 'table' } });
+  const { body } = render(List, { props: { vm, layout: listLayout(layout) } });
   return body;
 }
 

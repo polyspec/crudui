@@ -105,6 +105,10 @@ func run(request *gen.Object) (any, error) {
 	case "compileForm":
 		return gen.CompileForm(obj(val(request, "spec")), compileOptions(options))
 	case "renderList":
+		// List input is checked in the shared order: specification, rows, each row, then options.
+		if obj(val(request, "spec")) == nil {
+			return nil, fmt.Errorf("List specification must be an object")
+		}
 		rows := []*gen.Object{}
 		if a, ok := val(request, "rows").([]any); ok {
 			for _, v := range a {
@@ -118,14 +122,14 @@ func run(request *gen.Object) (any, error) {
 			return nil, fmt.Errorf("List rows must be an array")
 		}
 		c := compileOptions(options)
-		return gen.RenderList(obj(val(request, "spec")), rows, gen.ListOptions{Language: str(val(options, "language")), Data: obj(val(options, "data")), PageMeta: obj(val(options, "pageMeta")), Files: c.Files, Basepath: c.Basepath, Layout: str(val(options, "layout"))})
+		return gen.RenderList(obj(val(request, "spec")), rows, gen.ListOptions{Language: str(val(options, "language")), Data: val(options, "data"), PageMeta: val(options, "pageMeta"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")})
 	case "buildDetail", "renderDetail":
 		c := compileOptions(options)
 		record := obj(val(request, "record"))
 		if record == nil && request.Has("record") {
 			return nil, fmt.Errorf("Detail record must be an object")
 		}
-		detailOptions := gen.DetailOptions{Language: str(val(options, "language")), Data: obj(val(options, "data")), Files: c.Files, Basepath: c.Basepath}
+		detailOptions := gen.DetailOptions{Language: str(val(options, "language")), Data: val(options, "data"), Files: c.Files, Basepath: c.Basepath}
 		if str(val(request, "operation")) == "buildDetail" {
 			return gen.BuildDetail(obj(val(request, "spec")), record, detailOptions)
 		}

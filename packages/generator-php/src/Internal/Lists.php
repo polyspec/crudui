@@ -15,9 +15,22 @@ final class Lists
     /** Render composed list columns, supplied rows, actions and pagination. */
     public static function render(array|stdClass $spec, array $rows, array $options): string
     {
+        if (is_array($spec) && !self::isObject($spec, true)) {
+            throw new FormError('INVALID_FORM_INPUT', 'List specification must be an object');
+        }
+        if (!array_is_list($rows)) {
+            throw new FormError('INVALID_FORM_INPUT', 'List rows must be an array');
+        }
+        foreach ($rows as $row) {
+            if (!self::isObject($row, false)) {
+                throw new FormError('INVALID_FORM_INPUT', 'List rows must be objects');
+            }
+        }
+        self::optionObject($options, 'data', 'List context must be an object');
+        self::optionObject($options, 'pageMeta', 'List page metadata must be an object');
         $layout = $options['layout'] ?? 'table';
-        if (!in_array($layout, ['table', 'card'], true)) {
-            throw new FormError('INVALID_FORM_INPUT', 'Unsupported list layout: ' . Value::scalar($layout));
+        if ($layout !== 'table' && $layout !== 'card') {
+            throw new FormError('INVALID_FORM_INPUT', 'List layout must be table or card');
         }
         $vm = self::build(Value::object($spec), $rows, $options);
         $attrs = self::node('list-view', $vm->design->wrapper);
@@ -98,6 +111,7 @@ final class Lists
     public static function build(stdClass $spec, array $rows, array $options): stdClass
     {
         $language = $options['language'] ?? 'ko';
+        self::optionObject($options, 'data', 'List context must be an object');
         $data = Value::object($options['data'] ?? []);
         $columns = Compose::properties((array) ($spec->columns ?? new stdClass()), Template::loader($options), $options['basepath'] ?? '');
         $columnModels = [];
@@ -116,7 +130,7 @@ final class Lists
         }
         $rowModels = [];
         foreach ($rows as $row) {
-            if (!$row instanceof stdClass && !is_array($row)) {
+            if (!self::isObject($row, false)) {
                 throw new FormError('INVALID_FORM_INPUT', 'List rows must be objects');
             }
             $row = Value::object($row);
@@ -178,6 +192,24 @@ final class Lists
             }
         }
         return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => Value::translate($spec->empty ?? null, $language), 'design' => Design::resolve($spec->design ?? null, $data, [])]);
+    }
+
+    /**
+     * Whether a PHP value is an object: a stdClass or an array that is not a list. An empty array
+     * is the empty object only where the object type is fixed (a root argument or a fixed option);
+     * a nested value such as a row keeps its type.
+     */
+    private static function isObject(mixed $value, bool $fixed): bool
+    {
+        return $value instanceof stdClass || is_array($value) && (!array_is_list($value) || $fixed && $value === []);
+    }
+
+    /** An absent or null option is none; any other value must be an object. */
+    private static function optionObject(array $options, string $key, string $message): void
+    {
+        if (isset($options[$key]) && !self::isObject($options[$key], true)) {
+            throw new FormError('INVALID_FORM_INPUT', $message);
+        }
     }
 
     private static function preloads(stdClass $vm): string
@@ -263,10 +295,11 @@ final class Lists
                 return (object) ['kind' => 'html', 'html' => $text];
             default:
                 $limit = $options->truncate ?? null;
-                if (is_numeric($limit) && $limit > 0) {
-                    $utf16 = mb_convert_encoding($text, 'UTF-16LE', 'UTF-8');
-                    if (strlen($utf16) / 2 > $limit) {
-                        return mb_convert_encoding(substr($utf16, 0, (int) $limit * 2), 'UTF-8', 'UTF-16LE') . '…';
+                // Only a number limits the text; its integer part counts Unicode code points.
+                if ((is_int($limit) || is_float($limit)) && $limit >= 1) {
+                    $limit = floor($limit);
+                    if (mb_strlen($text, 'UTF-8') > $limit) {
+                        return mb_substr($text, 0, (int) $limit, 'UTF-8') . '…';
                     }
                 }
                 return $text;

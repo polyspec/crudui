@@ -40,6 +40,10 @@ export function buildDetail(
   if (record === null || typeof record !== 'object' || Array.isArray(record)) {
     throw new TypeError('Detail record must be an object');
   }
+  const context = options.data;
+  if (context !== undefined && context !== null && (typeof context !== 'object' || Array.isArray(context))) {
+    throw new TypeError('Detail context must be an object');
+  }
   const fields = detailSpec.fields;
   const vm = buildList({ columns: fields, design: detailSpec.design }, [record], options);
   const row = vm.rows[0];

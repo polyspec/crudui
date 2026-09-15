@@ -44,7 +44,7 @@ final class Numbers
     {
         $decimals = $decimals < 0 ? ceil($decimals) : floor($decimals);
         if (!is_finite($decimals) || $decimals < 0 || $decimals > 100) {
-            throw new FormError('INVALID_FORM_INPUT', 'Decimal places must be between 0 and 100');
+            throw new FormError('INVALID_FORM_INPUT', 'Number decimals must be between 0 and 100');
         }
         $decimals = (int) $decimals;
         if (abs($number) >= 1.0E+21) {

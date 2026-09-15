@@ -51,7 +51,7 @@ export { makeTranslate } from './content';
 export type { Language, LocalizedText, Translate } from './content';
 
 // List models and cell rendering.
-export { buildList } from './list';
+export { buildList, listLayout } from './list';
 export type {
   ListViewModel,
   ColumnVM,

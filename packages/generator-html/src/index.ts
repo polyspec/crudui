@@ -16,6 +16,7 @@ import {
   type NodeVM,
   type ListViewModel,
   buildDetail,
+  listLayout,
   type BuildDetailOptions,
   type DetailViewModel,
   type UnsupportedVM,
@@ -483,7 +484,7 @@ export function renderList(
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {},
 ): string {
-  const { layout = 'table', ...buildOptions } = options;
+  const { layout, ...buildOptions } = options;
   const vm = buildList(spec, rows, buildOptions);
-  return imagePreloads(vm.rows) + listHtml(vm, layout);
+  return imagePreloads(vm.rows) + listHtml(vm, listLayout(layout));
 }

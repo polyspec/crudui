@@ -21,6 +21,9 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 	if !has(spec, "fields") {
 		return nil, fmt.Errorf("Detail specification must declare fields")
 	}
+	if _, ok := optionObject(options.Data); !ok {
+		return nil, fmt.Errorf("Detail context must be an object")
+	}
 	listSpec := NewObject("columns", read(spec, "fields"))
 	if has(spec, "design") {
 		listSpec.Set("design", read(spec, "design"))

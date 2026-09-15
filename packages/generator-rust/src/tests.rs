@@ -503,13 +503,14 @@ fn native_fixture_records() {
             files:case["options"]["files"].as_object().cloned().unwrap_or_default(),
             basepath:case["options"]["basepath"].as_str().unwrap_or("").into(),
             language:case["options"]["language"].as_str().unwrap_or("ko").into(),
-            data:case["options"].get("data").cloned().unwrap_or(json!({})),
-            page_meta:case["options"]["pageMeta"].as_object().cloned().unwrap_or_default(),
-            layout:case["options"]["layout"].as_str().unwrap_or("table").into(),
+            data:case["options"].get("data").cloned().unwrap_or(Value::Null),
+            page_meta:case["options"].get("pageMeta").cloned().unwrap_or(Value::Null),
+            layout:case["options"].get("layout").cloned().unwrap_or(Value::Null),
             ..Default::default()
         };
-        let rows=case["rows"].as_array().map(Vec::as_slice).unwrap_or(&[]);
-        let result=build_list(&case["spec"],rows,&options).and_then(|model|Ok(json!({"name":case["name"],"model":model,"html":render_list(&case["spec"],rows,&options)?})));
+        // Rows arrive as decoded JSON, so the rows rule applies here exactly as in the generator command.
+        let spec_rule=if case["spec"].is_object() {Ok(())} else {Err(FormError::input("List specification must be an object"))};
+        let result=spec_rule.and_then(|()|list_rows(case.get("rows"))).and_then(|rows|Ok(json!({"name":case["name"],"model":build_list(&case["spec"],rows,&options)?,"html":render_list(&case["spec"],rows,&options)?})));
         if let Some(expected)=case.get("expectError") {assert_eq!(result.as_ref().unwrap_err().code,expected["code"].as_str().unwrap(),"{}",case["name"]);}
         else {assert!(result.is_ok(),"{}: {:?}",case["name"],result.as_ref().err());}
         result.unwrap_or_else(|error|json!({"name":case["name"],"error":{"code":error.code,"message":error.message,"at":error.at}}))
@@ -555,9 +556,130 @@ fn number_cells_preserve_decimal_rounding_and_exponent_notation() {
             .collect::<Vec<_>>();
         assert_eq!(actual, expected);
     }
+    for decimals in [json!(101), json!(-1)] {
+        let spec = json!({"columns":{"n":{"field":".number","format":{"type":"number","decimals":decimals}}}});
+        let error = build_list(&spec, &rows, &ListOptions::default()).unwrap_err();
+        assert_eq!(error.code, "INVALID_FORM_INPUT");
+        assert_eq!(error.message, "Number decimals must be between 0 and 100");
+        assert_eq!(error.at, "");
+    }
     let spec =
-        json!({"columns":{"n":{"field":".number","format":{"type":"number","decimals":101}}}});
-    assert!(build_list(&spec, &rows, &ListOptions::default()).is_err());
+        json!({"columns":{"n":{"field":".number","format":{"type":"number","decimals":100}}}});
+    let model = build_list(&spec, &[json!({"number":1})], &ListOptions::default()).unwrap();
+    assert_eq!(
+        model["rows"][0]["cells"][0]["display"],
+        format!("1.{}", "0".repeat(100))
+    );
+}
+
+#[test]
+fn text_truncation_counts_code_points_of_a_numeric_limit() {
+    for (truncate, value, expected) in [
+        (json!(2), "a😀bc", "a😀…"),
+        (json!(3), "가나다라마", "가나다…"),
+        (json!("2"), "abcd", "abcd"),
+        (json!(0.5), "abc", "abc"),
+        (json!(2.9), "abcd", "ab…"),
+        (json!(4), "abcd", "abcd"),
+        (json!(-1), "abcd", "abcd"),
+    ] {
+        let spec = json!({"fields":{"v":{"field":".v","label":"V","format":{"type":"text","truncate":truncate}}}});
+        let html =
+            crate::render_detail(&spec, &json!({"v":value}), &ListOptions::default()).unwrap();
+        assert!(
+            html.contains(&format!(
+                r#"<dd class="detail-value detail-value-text">{expected}</dd>"#
+            )),
+            "{truncate}: {html}"
+        );
+    }
+}
+
+#[test]
+fn list_input_errors_follow_contract_order() {
+    let valid = json!({"columns":{"n":{"field":".n"}}});
+    let options = |data: Value, layout: &str| ListOptions {
+        data,
+        layout: layout.into(),
+        ..Default::default()
+    };
+    let page_meta = ListOptions {
+        page_meta: json!([]),
+        layout: json!(5),
+        ..Default::default()
+    };
+    for error in [
+        render_list(&valid, &[], &page_meta).unwrap_err(),
+        build_list(&valid, &[], &page_meta).unwrap_err(),
+    ] {
+        assert_eq!(error.message, "List page metadata must be an object");
+    }
+    assert_eq!(
+        list_rows(Some(&json!({}))).unwrap_err().message,
+        "List rows must be an array"
+    );
+    assert!(list_rows(None).unwrap().is_empty());
+    for (spec, rows, options, message) in [
+        (
+            json!([]),
+            vec![json!(1)],
+            options(json!("s"), "grid"),
+            "List specification must be an object",
+        ),
+        (
+            json!("list"),
+            vec![],
+            options(json!({}), "table"),
+            "List specification must be an object",
+        ),
+        (
+            valid.clone(),
+            vec![json!(1)],
+            options(json!("s"), "grid"),
+            "List rows must be objects",
+        ),
+        (
+            valid.clone(),
+            vec![json!([])],
+            options(json!({}), "table"),
+            "List rows must be objects",
+        ),
+        (
+            valid.clone(),
+            vec![],
+            options(json!([]), "grid"),
+            "List context must be an object",
+        ),
+        (
+            valid.clone(),
+            vec![],
+            options(json!("s"), "table"),
+            "List context must be an object",
+        ),
+        (
+            valid.clone(),
+            vec![],
+            options(json!({}), "grid"),
+            "List layout must be table or card",
+        ),
+    ] {
+        let error = render_list(&spec, &rows, &options).unwrap_err();
+        assert_eq!(
+            (
+                error.code.as_str(),
+                error.message.as_str(),
+                error.at.as_str()
+            ),
+            ("INVALID_FORM_INPUT", message, "")
+        );
+        if message != "List layout must be table or card" {
+            assert_eq!(
+                build_list(&spec, &rows, &options).unwrap_err().message,
+                message
+            );
+        }
+    }
+    assert!(render_list(&valid, &[json!({"n":1})], &options(Value::Null, "table")).is_ok());
 }
 
 #[test]

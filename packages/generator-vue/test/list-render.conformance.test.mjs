@@ -65,8 +65,16 @@ describe('list render — read-only invariant (no input control EVER reaches out
   }
 });
 
+describe('list render — invalid input fails with the shared message', () => {
+  for (const c of cases.filter((x) => x.expectError?.message)) {
+    test(c.name, async () => {
+      await expect(render(c)).rejects.toThrow(c.expectError.message);
+    });
+  }
+});
+
 describe('list render — a load gap is a surfaced ERROR, never a silent table', () => {
-  for (const c of cases.filter((x) => x.expectError)) {
+  for (const c of cases.filter((x) => x.expectError && !x.expectError.message)) {
     test(c.name, async () => {
       let thrown;
       try {
