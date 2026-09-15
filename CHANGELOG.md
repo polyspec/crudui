@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Compare expected PHP signatures without losing empty objects
+
+Candidate verification of `2ef897a5` stopped in the PHP modes check with `Public PHP and extension
+signatures must match`, although both PHP implementations declare the same methods. The check
+decoded the expected signatures as associative arrays, which turns an empty object default into
+an empty array; since `353a0c10` the detail methods declare `record = new stdClass()`, so the
+expected `{}` became `[]` and no longer matched the reflected `{}`. The check now decodes the
+expected signatures as objects and compares them exactly. Locally, the pure PHP signatures written
+and read back as objects compared equal, and the associative round trip reproduced the mismatch.
+
 ## 2026-09-15 — Reject unknown keys in the buckets the schema closes
 
 The schema closes `multiple`, `lang`, `design`, its nodes and `behavior`, but form compilation
