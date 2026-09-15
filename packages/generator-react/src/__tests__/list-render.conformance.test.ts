@@ -22,8 +22,8 @@ import { renderList, ComposeLoadError } from '../index';
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
 // The shared fixture, imported as JSON — the SAME file Vue/Svelte load.
 import fixtureCases from '../../../../tests/fixtures/list-render/cases.json';
-// @ts-expect-error — shared JS list body helper.
-import { listBody } from '../../../../tests/fixtures/list-render/list-body.mjs';
+// @ts-expect-error — shared JS preload link helper.
+import { withoutPreloadLinks } from '../../../../tests/fixtures/preload-links.mjs';
 
 interface ListFixtureCase {
   name: string;
@@ -38,7 +38,7 @@ interface ListFixtureCase {
 const cases = fixtureCases as unknown as ListFixtureCase[];
 
 function render(c: ListFixtureCase): string {
-  return listBody(renderList(c.spec, c.rows ?? [], c.options ?? {}));
+  return withoutPreloadLinks(renderList(c.spec, c.rows ?? [], c.options ?? {}));
 }
 
 describe('list render — React reproduces the normalized expected_html', () => {

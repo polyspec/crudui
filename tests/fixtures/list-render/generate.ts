@@ -23,8 +23,8 @@ import {
 } from '../../../packages/generator-react/src/index';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
-// @ts-expect-error — shared JS list body helper.
-import { listBody } from './list-body.mjs';
+// @ts-expect-error — shared JS preload link helper.
+import { withoutPreloadLinks } from '../preload-links.mjs';
 
 interface ListFixtureCase {
   name: string;
@@ -327,7 +327,7 @@ function build(): ListFixtureCase[] {
       void _omit;
       return rest;
     }
-    const raw = listBody(renderList(c.spec, c.rows, c.options ?? {}));
+    const raw = withoutPreloadLinks(renderList(c.spec, c.rows, c.options ?? {}));
     return { ...c, expected_html: normalizeHtml(raw) };
   });
 }
