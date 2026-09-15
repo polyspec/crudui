@@ -1,11 +1,11 @@
 /**
- * Detail rendering across React, Svelte and Vue through the gateway's `renderAllDetail`.
+ * Detail rendering across HTML, React, Svelte and Vue through the gateway's `renderAllDetail`.
  *
  * `renderAllDetail(detailSpec, record, options)` is the function POST /api/render-detail calls.
- * Every case in tests/fixtures/detail-render/cases.json (the file the three framework conformance
- * suites load) runs through it. A case without `expectError` must agree across the three
- * frameworks, and React's normalized output (preload links stripped) must equal `expected_html`.
- * A case with `expectError` must fail in all three with the declared code and message.
+ * Every case in tests/fixtures/detail-render/cases.json (the file the four renderer conformance
+ * suites load) runs through it. A case without `expectError` must agree across the four
+ * renderers, and React's normalized output (preload links stripped) must equal `expected_html`.
+ * A case with `expectError` must fail in all four with the declared code and message.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -30,7 +30,7 @@ describe('renderAllDetail — every detail-render fixture case', () => {
   });
 
   for (const c of okCases) {
-    test(`${c.name} — React/Svelte/Vue agree and React equals expected_html`, async () => {
+    test(`${c.name} — HTML/React/Svelte/Vue agree and React equals expected_html`, async () => {
       const out = await renderAllDetail(c.spec, c.record ?? {}, c.options ?? {});
       expect(out.results.filter((r) => !r.ok).map((r) => `${r.fw}:${r.error && r.error.code}:${r.error && r.error.message}`)).toEqual([]);
       expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
@@ -40,11 +40,11 @@ describe('renderAllDetail — every detail-render fixture case', () => {
   }
 
   for (const c of errorCases) {
-    test(`${c.name} — ${c.expectError.code} in all three`, async () => {
+    test(`${c.name} — ${c.expectError.code} in all four`, async () => {
       const out = await renderAllDetail(c.spec, c.record ?? {}, c.options ?? {});
       expect(out.results.every((r) => !r.ok)).toBe(true);
-      expect(out.results.map((r) => r.error && r.error.code)).toEqual([c.expectError.code, c.expectError.code, c.expectError.code]);
-      expect(out.results.map((r) => r.error.message)).toEqual([c.expectError.message, c.expectError.message, c.expectError.message]);
+      expect(out.results.map((r) => r.error && r.error.code)).toEqual([c.expectError.code, c.expectError.code, c.expectError.code, c.expectError.code]);
+      expect(out.results.map((r) => r.error.message)).toEqual([c.expectError.message, c.expectError.message, c.expectError.message, c.expectError.message]);
       expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
     }, 120000);
   }

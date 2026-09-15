@@ -28,7 +28,7 @@ export const docSections = [
     body:
       'compose 패스가 $ref/$patch 를 단일 스펙으로 확장한다. ' +
       '미해결 $ref 는 로드 실패이지 valid:false 가 아니다 — ' +
-      '4언어 failure{code:REF_FILE_NOT_FOUND, message, at}, 3프레임워크 error 로 표면화. ' +
+      '4언어 failure{code:REF_FILE_NOT_FOUND, message, at}, 4렌더러 error 로 표면화. ' +
       'legacy 갭(LargeForm.yml:873, silent skip) 폐쇄. ' +
       '출처: form-render compose-ref-unresolved-load-error.',
   },
@@ -104,7 +104,7 @@ export const listDocSections = [
       '출처: list-render pagination-display/sort-display.',
   },
   {
-    title: 'list parity (왜 3프레임워크가 한 문자열로 모이는가)',
+    title: 'list parity (왜 4렌더러가 한 문자열로 모이는가)',
     body:
       '같은 list-spec·같은 주입 rows 면 react/vue/svelte 의 normalizeHtml 결과가 한 개로 모여야 parity. ' +
       'React의 SSR resource hint(<link rel="preload">)는 비교 전에 제거한다. ' +
