@@ -24,6 +24,8 @@ function start(views, template, language, data, hydrate) {
   });
   const dataPanel = createApp({ render: () => dataVNode(state.value.data, messages) });
   form.mount(views.form, hydrate);
+  // The frame owns this container; keep its CSR and SSR container contracts identical.
+  views.form.removeAttribute('data-v-app');
   outline.mount(views.outline);
   dataPanel.mount(views.data);
   return {

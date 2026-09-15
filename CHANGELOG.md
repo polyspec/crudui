@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-16 — Keep Vue initialization containers identical
+
+The Vue adapters now remove Vue's `data-v-app` diagnostic marker after a CSR mount. The frame owns
+the view container, so SSR hydration and CSR mounting expose the same container contract.
+
 ## 2026-09-16 — Isolate and stabilize initialization comparisons
 
 The benchmark resets the CSR repository before its initialization stages and uses the same
