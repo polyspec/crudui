@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Apply the rendered-node rule to the column comparison
+
+Candidate verification failed again for Vue, 16 of 168 comparisons in each Vue initialization
+report: the hydrated column kept the server's style attribute text
+(`--crudui-sticky-depth:0`) while the mounted column carried the block Vue computes
+(`--crudui-sticky-depth: 0;`). The specification already states that a style attribute is
+compared as the CSS object model serializes its declarations, and that rendering anchors are
+left out, but only the frame's hydration check implemented that rule; the page compared raw
+attribute text. React normalizes the attribute while hydrating and the HTML renderer writes
+the same markup in both columns, so only Vue exposed the gap.
+
+The rule is now one function, `renderedNodes`, in the shared form inspector: it removes the
+comments and empty text frameworks keep as anchors and rewrites every style attribute as its
+declaration block. The frame's hydration check and the page's column comparison both use it.
+
+The form inspector tests passed 20 tests.
+
 ## 2026-09-15 — Compare what the view containers hold
 
 Candidate verification of the frame document change failed for Vue in both rendering paths:

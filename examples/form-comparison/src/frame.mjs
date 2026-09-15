@@ -5,7 +5,7 @@ import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
 import { decodeJson, encodeJson, readJson } from './json.mjs';
 import { formInitializations, formServers } from './runtime-paths.mjs';
-import { domSnapshot, identical } from '../../../tests/form-inspector/form-snapshot.mjs';
+import { domSnapshot, identical, renderedNodes } from '../../../tests/form-inspector/form-snapshot.mjs';
 import { serverGeneration } from './server-generation.mjs';
 import { createActionCompletion } from './action-completion.mjs';
 import { exclusive } from './storage-lock.mjs';
@@ -140,26 +140,13 @@ async function mount(data = {}, formSpec = spec) {
 }
 /**
  * Parsed DOM of the rendered form (every element, attribute and text in child order;
- * attribute order has no meaning in the DOM) without the nodes frameworks use as rendering
- * anchors, which render nothing: comments and empty text.
+ * attribute order has no meaning in the DOM), by the same rendered-node rule the page's
+ * column comparison uses.
  */
 function renderedFormDom() {
   const rendered = views.form.querySelector('.crudui-form');
   assert(rendered, 'A rendered form must exist');
-  const copy = rendered.cloneNode(true);
-  const walker = document.createTreeWalker(copy, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT);
-  const anchors = [];
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    if (node.nodeType === Node.COMMENT_NODE || node.nodeValue === '') anchors.push(node);
-  }
-  for (const node of anchors) node.remove();
-  // A style attribute is a CSS declaration block: compare its declarations as the CSS object
-  // model serializes them, as React writes `name: value;` for the markup's `name:value`.
-  for (const element of [copy, ...copy.querySelectorAll('[style]')]) {
-    if (element.style.cssText === '') element.removeAttribute('style');
-    else element.setAttribute('style', element.style.cssText);
-  }
-  return JSON.stringify(domSnapshot(copy));
+  return JSON.stringify(domSnapshot(renderedNodes(rendered)));
 }
 /**
  * SSR: this document is the selected server's frame document, with the record already rendered
