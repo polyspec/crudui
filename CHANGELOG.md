@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-16 — Publish initialization source identity under the verifier contract
+
+The dedicated benchmark now stores the frame's complete source identity in the initialization
+report's `source` field. It no longer labels that object as `commit`, so report policy can compare
+initialization, scenario and server identities consistently.
+
 ## 2026-09-16 — Make browser validation input clearing deterministic
 
 The browser verifier now uses the input element's standard selection API before deleting its value.
