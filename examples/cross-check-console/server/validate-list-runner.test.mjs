@@ -143,7 +143,7 @@ describe('validateAllList — TAMPER (forged single-language list verdict → id
 
 describe('validateAllList — wire shape (data is dropped; mode:list carries no rows)', () => {
   test('a `data` field on the request is ignored (a list has no rows to validate)', async () => {
-    const spec = { columns: { name: { field: '.name', label: 'Name' } } };
+    const spec = { columns: { name: { field: 'name', label: 'Name' } } };
     // A bogus `data` payload would FAIL a form validate; the list path must
     // ignore it entirely (mode:list runs no DATA pass) → still valid:true.
     const out = await validateAllList({ spec, data: { whatever: 'ignored' }, files: {}, basepath: '' });

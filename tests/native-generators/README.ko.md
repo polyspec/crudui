@@ -102,7 +102,7 @@ PHP의 `date.timezone`을 모두 설정하고 날짜/날짜시간/목록의 명�
 값, 속성, HTML을 제거하여 비교하지 않습니다.
 
 각 CLI는 표준 입력으로 JSON 값 하나를 받습니다. 연산은 `compileForm`, `bindForm`,
-`form`, `renderList`, `buildDetail`, `renderDetail`입니다. 성공 응답은 종료 상태 0을 사용합니다. 최상위 연산 오류는
+`form`, `renderList`, `buildList`, `buildDetail`, `renderDetail`입니다. 성공 응답은 종료 상태 0을 사용합니다. 최상위 연산 오류는
 `{ "error": { "code", "message", "at" } }`이며 종료 상태 1을 사용합니다. 폼 액션
 실패는 해당 단계에 포함하고 실행을 계속합니다. 오류 코드, 메시지, 위치와 유지한
 상태는 모든 구현에서 일치해야 합니다.

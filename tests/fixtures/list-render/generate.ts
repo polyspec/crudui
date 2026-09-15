@@ -46,6 +46,8 @@ const PEOPLE = [
     score: 1234567.5,
     admin: 1,
     avatar: '/img/ada.png',
+    jointablename: { id: 101 },
+    join: { join: { name: 'Ada' } },
   },
   {
     id: 2,
@@ -55,6 +57,8 @@ const PEOPLE = [
     score: 42,
     admin: 0,
     avatar: '/img/lin.png',
+    jointablename: { id: 102 },
+    join: { join: { name: 'Lin' } },
   },
 ];
 
@@ -66,8 +70,8 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'plain text columns + i18n headers; two injected rows → table body.',
     spec: {
       columns: {
-        name: { field: '.name', label: { ko: '이름', en: 'Name' } },
-        status: { field: '.status', label: { ko: '상태', en: 'Status' } },
+        name: { field: 'name', label: { ko: '이름', en: 'Name' } },
+        status: { field: 'status', label: { ko: '상태', en: 'Status' } },
       },
     },
     rows: PEOPLE,
@@ -77,7 +81,7 @@ const SCENARIOS: ListFixtureCase[] = [
     name: 'format-date',
     note: 'date format → pattern applied to the cell value (§9.2).',
     spec: {
-      columns: { joined: { field: '.joined', label: 'Joined', format: { type: 'date', pattern: 'YYYY-MM-DD' } } },
+      columns: { joined: { field: 'joined', label: 'Joined', format: { type: 'date', pattern: 'YYYY-MM-DD' } } },
     },
     rows: PEOPLE,
     options: { language: 'en' },
@@ -88,7 +92,7 @@ const SCENARIOS: ListFixtureCase[] = [
     spec: {
       columns: {
         score: {
-          field: '.score',
+          field: 'score',
           label: 'Score',
           format: { type: 'number', decimals: 2, thousands: true, prefix: { en: '$' } },
         },
@@ -103,7 +107,7 @@ const SCENARIOS: ListFixtureCase[] = [
     spec: {
       columns: {
         status: {
-          field: '.status',
+          field: 'status',
           label: 'Status',
           format: { type: 'badge', map: { active: 'success', blocked: 'danger' } },
         },
@@ -117,7 +121,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'choice-label format → static code→label lookup (§9.2).',
     spec: {
       columns: {
-        grade: { field: '.grade', label: 'Grade', format: { type: 'choice-label', items: { A: 'Apple', B: 'Banana' } } },
+        grade: { field: 'grade', label: 'Grade', format: { type: 'choice-label', items: { A: 'Apple', B: 'Banana' } } },
       },
     },
     rows: [{ grade: 'A' }, { grade: 'B' }],
@@ -125,10 +129,10 @@ const SCENARIOS: ListFixtureCase[] = [
   },
   {
     name: 'format-link',
-    note: 'link format → <a> with .field-interpolated href + target (§9.2).',
+    note: 'link format → <a> with explicit {=field}-interpolated href, literal domain and extension, + target (§9.2).',
     spec: {
       columns: {
-        name: { field: '.name', label: 'Name', format: { type: 'link', href: '/user/.id', target: '_blank' } },
+        name: { field: 'name', label: 'Name', format: { type: 'link', href: 'https://example.com/users/{=jointablename.id}/{=join.join.name}.pdf', target: '_blank' } },
       },
     },
     rows: PEOPLE,
@@ -139,7 +143,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'bool format as=check → glyph host carrying the i18n label (§9.2).',
     spec: {
       columns: {
-        admin: { field: '.admin', label: 'Admin', format: { type: 'bool', true: 'Yes', false: 'No', as: 'check' } },
+        admin: { field: 'admin', label: 'Admin', format: { type: 'bool', true: 'Yes', false: 'No', as: 'check' } },
       },
     },
     rows: PEOPLE,
@@ -147,10 +151,10 @@ const SCENARIOS: ListFixtureCase[] = [
   },
   {
     name: 'format-image',
-    note: 'image format → <img> with src + interpolated alt + size (§9.2).',
+    note: 'image format → <img> with src + explicit {=field} alt, literal extension, + size (§9.2).',
     spec: {
       columns: {
-        avatar: { field: '.avatar', label: 'Avatar', format: { type: 'image', width: 40, height: 40, alt: 'avatar .name' } },
+        avatar: { field: 'avatar', label: 'Avatar', format: { type: 'image', width: 40, height: 40, alt: 'avatar {=name}.png' } },
       },
     },
     rows: PEOPLE,
@@ -159,7 +163,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'format-html',
     note: 'html format → the ONE sanctioned raw passthrough (verbatim, no wrapper) (§9.2).',
-    spec: { columns: { bio: { field: '.bio', label: 'Bio', format: { type: 'html' } } } },
+    spec: { columns: { bio: { field: 'bio', label: 'Bio', format: { type: 'html' } } } },
     rows: [{ bio: '<b data-x="1">bold</b>' }],
     options: { language: 'en' },
   },
@@ -170,8 +174,8 @@ const SCENARIOS: ListFixtureCase[] = [
     note: "design.show '.admin' falsy → the column is dropped from header AND every row (G1).",
     spec: {
       columns: {
-        name: { field: '.name', label: 'Name' },
-        secret: { field: '.secret', label: 'Secret', design: { show: '.admin' } },
+        name: { field: 'name', label: 'Name' },
+        secret: { field: 'secret', label: 'Secret', design: { show: '.admin' } },
       },
     },
     rows: [{ name: 'Ada', secret: 'TOPSECRET' }],
@@ -182,8 +186,8 @@ const SCENARIOS: ListFixtureCase[] = [
     note: "design.show '.admin' truthy → the column is kept (G1).",
     spec: {
       columns: {
-        name: { field: '.name', label: 'Name' },
-        secret: { field: '.secret', label: 'Secret', design: { show: '.admin' } },
+        name: { field: 'name', label: 'Name' },
+        secret: { field: 'secret', label: 'Secret', design: { show: '.admin' } },
       },
     },
     rows: [{ name: 'Ada', secret: 'visible' }],
@@ -196,8 +200,8 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'i18n header resolves to ko under language:ko.',
     spec: {
       columns: {
-        name: { field: '.name', label: { ko: '이름', en: 'Name' } },
-        status: { field: '.status', label: { ko: '상태', en: 'Status' } },
+        name: { field: 'name', label: { ko: '이름', en: 'Name' } },
+        status: { field: 'status', label: { ko: '상태', en: 'Status' } },
       },
     },
     rows: PEOPLE,
@@ -208,8 +212,8 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'i18n header resolves to en under language:en (same spec as -ko).',
     spec: {
       columns: {
-        name: { field: '.name', label: { ko: '이름', en: 'Name' } },
-        status: { field: '.status', label: { ko: '상태', en: 'Status' } },
+        name: { field: 'name', label: { ko: '이름', en: 'Name' } },
+        status: { field: 'status', label: { ko: '상태', en: 'Status' } },
       },
     },
     rows: PEOPLE,
@@ -222,10 +226,10 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'sortable column + declared sort → data-sortable + data-sort-dir on the matching <th>.',
     spec: {
       columns: {
-        name: { field: '.name', label: 'Name', sortable: true },
-        status: { field: '.status', label: 'Status' },
+        name: { field: 'name', label: 'Name', sortable: true },
+        status: { field: 'status', label: 'Status' },
       },
-      sort: { field: '.name', dir: 'asc' },
+      sort: { field: 'name', dir: 'asc' },
     },
     rows: PEOPLE,
     options: { language: 'en' },
@@ -234,9 +238,9 @@ const SCENARIOS: ListFixtureCase[] = [
   // --- pagination display (declared + injected meta; DB-agnostic) ---
   {
     name: 'pagination-display',
-    note: 'pagination declared + supplied page and total → <nav class=list-pagination> data attrs.',
+    note: 'pagination declared + supplied page and total → <nav class=crudui-list__pagination> data attrs.',
     spec: {
-      columns: { name: { field: '.name', label: 'Name' } },
+      columns: { name: { field: 'name', label: 'Name' } },
       pagination: { per_page: 20, mode: 'pages' },
     },
     rows: PEOPLE,
@@ -246,7 +250,7 @@ const SCENARIOS: ListFixtureCase[] = [
     name: 'pagination-empty-first-page',
     note: 'page 1 with total 0 is valid, and the largest safe integer page is accepted.',
     spec: {
-      columns: { name: { field: '.name', label: 'Name' } },
+      columns: { name: { field: 'name', label: 'Name' } },
       pagination: true,
     },
     rows: [],
@@ -258,7 +262,7 @@ const SCENARIOS: ListFixtureCase[] = [
     name: 'design-column-class-style',
     note: 'column design class/style reaches the <th> verbatim (form-spec design reuse).',
     spec: {
-      columns: { name: { field: '.name', label: 'Name', design: { class: 'text-right', style: 'width: 40%' } } },
+      columns: { name: { field: 'name', label: 'Name', design: { class: 'text-right', style: 'width: 40%' } } },
     },
     rows: PEOPLE,
     options: { language: 'en' },
@@ -268,7 +272,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'empty-message',
     note: 'no rows → the translated empty message, no <table>.',
-    spec: { columns: { name: { field: '.name', label: 'Name' } }, empty: { ko: '데이터 없음', en: 'No data' } },
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, empty: { ko: '데이터 없음', en: 'No data' } },
     rows: [],
     options: { language: 'en' },
   },
@@ -278,7 +282,7 @@ const SCENARIOS: ListFixtureCase[] = [
     name: 'actions-toolbar',
     note: 'link-format action → <a>; bare behavior action → <button> with the verbatim on* script.',
     spec: {
-      columns: { name: { field: '.name', label: 'Name' } },
+      columns: { name: { field: 'name', label: 'Name' } },
       actions: {
         edit: { label: { en: 'Edit' }, format: { type: 'link', href: '/edit' } },
         remove: 'confirmDelete(this)',
@@ -291,11 +295,11 @@ const SCENARIOS: ListFixtureCase[] = [
   // --- card layout ---
   {
     name: 'card-layout',
-    note: 'card layout → one .list-card article per row with label:value pairs, no <table>.',
+    note: 'card layout → one .crudui-list__card article per row with label:value pairs, no <table>.',
     spec: {
       columns: {
-        name: { field: '.name', label: { en: 'Name' } },
-        status: { field: '.status', label: { en: 'Status' }, format: { type: 'badge', map: { active: 'success', blocked: 'danger' } } },
+        name: { field: 'name', label: { en: 'Name' } },
+        status: { field: 'status', label: { en: 'Status' }, format: { type: 'badge', map: { active: 'success', blocked: 'danger' } } },
       },
     },
     rows: PEOPLE,
@@ -309,13 +313,13 @@ const SCENARIOS: ListFixtureCase[] = [
     spec: {
       columns: {
         $ref: 'base-columns.yml',
-        $patch: { extra: { field: '.extra', label: 'Extra' } },
+        $patch: { extra: { field: 'extra', label: 'Extra' } },
       },
     },
     rows: [{ id: 7, extra: 'E' }],
     options: {
       language: 'en',
-      files: { 'base-columns.yml': { properties: { id: { field: '.id', label: 'ID', sortable: true } } } },
+      files: { 'base-columns.yml': { properties: { id: { field: 'id', label: 'ID', sortable: true } } } },
     },
   },
 
@@ -346,28 +350,28 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-object-rows',
     note: 'rows that are not an array are rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: {} as unknown as Array<Record<string, unknown>>,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be an array' },
   },
   {
     name: 'reject-scalar-row',
     note: 'a row that is not an object is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [1] as unknown as Array<Record<string, unknown>>,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be objects' },
   },
   {
     name: 'reject-array-row',
     note: 'a row that is an array is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [[]] as unknown as Array<Record<string, unknown>>,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be objects' },
   },
   {
     name: 'reject-array-context',
     note: 'a data option that is not an object is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { data: [] } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List context must be an object' },
@@ -375,7 +379,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-context-before-page',
     note: 'the data rule is checked before the page rule.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { data: [], page: 0 } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List context must be an object' },
@@ -383,7 +387,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-string-page',
     note: 'a page that is not a number is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { page: '2' } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List page must be a positive integer' },
@@ -391,7 +395,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-zero-page',
     note: 'a page below 1 is rejected, before the total and layout rules.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { page: 0, total: -1, layout: 'grid' } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List page must be a positive integer' },
@@ -399,7 +403,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-fractional-page',
     note: 'a page that is not an integer is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { page: 1.5 },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List page must be a positive integer' },
@@ -407,7 +411,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-unsafe-page',
     note: 'a page above the largest safe integer is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { page: 9007199254740992 },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List page must be a positive integer' },
@@ -415,7 +419,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-negative-total',
     note: 'a total below 0 is rejected, before the layout rule.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { total: -1, layout: 'grid' } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List total must be a nonnegative integer' },
@@ -423,7 +427,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-fractional-total',
     note: 'a total that is not an integer is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { total: 2.5 },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List total must be a nonnegative integer' },
@@ -431,7 +435,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-boolean-total',
     note: 'a total that is not a number is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { total: true } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List total must be a nonnegative integer' },
@@ -439,7 +443,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-unknown-layout',
     note: 'a layout other than table or card is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { layout: 'grid' } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
@@ -447,7 +451,7 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-number-layout',
     note: 'a layout that is not a string is rejected.',
-    spec: { columns: { name: { field: '.name' } } },
+    spec: { columns: { name: { field: 'name' } } },
     rows: [],
     options: { layout: 5 } as unknown as RenderListOptions,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
@@ -456,28 +460,28 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-column-design-unknown-key',
     note: 'a column design key that the schema does not list is rejected at its column path.',
-    spec: { columns: { name: { field: '.name', design: { main: { class: 'x' } } } } },
+    spec: { columns: { name: { field: 'name', design: { main: { class: 'x' } } } } },
     rows: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid design.main at columns.name: unknown key' },
   },
   {
     name: 'reject-list-design-before-columns',
     note: "the list's own design is checked before its columns.",
-    spec: { design: { color: 'red' }, columns: { name: { field: '.name', design: { main: {} } } } },
+    spec: { design: { color: 'red' }, columns: { name: { field: 'name', design: { main: {} } } } },
     rows: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid design.color at list: unknown key' },
   },
   {
     name: 'reject-column-design-value',
     note: 'a column design value of the wrong type is rejected with the form message.',
-    spec: { columns: { name: { field: '.name', design: { show: 1 } } } },
+    spec: { columns: { name: { field: 'name', design: { show: 1 } } } },
     rows: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid design.show at columns.name: expected an expression, a boolean or a condition map' },
   },
   {
     name: 'layout-null-selects-table',
     note: 'a null layout selects the table layout, as an absent layout does.',
-    spec: { columns: { name: { field: '.name', label: 'Name' } } },
+    spec: { columns: { name: { field: 'name', label: 'Name' } } },
     rows: PEOPLE,
     options: { language: 'en', layout: null } as unknown as RenderListOptions,
   },

@@ -15,7 +15,7 @@ const form = createForm(template, { name: 'Example' });
 const formHtml = await renderForm(form);
 const vnode = h(Form, { form });
 
-const listSpec = { columns: { name: { field: '.name', label: 'Name' } } };
+const listSpec = { columns: { name: { field: 'name', label: 'Name' } } };
 const rows = [{ name: 'Ada' }];
 const listHtml = await renderList(listSpec, rows, { language: 'en' });
 const list = List(buildList(listSpec, rows, { language: 'en' }), 'table');

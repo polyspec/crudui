@@ -1,5 +1,36 @@
 # Changes
 
+## 2026-09-15 — Install the pinned OrderedJSON JavaScript package
+
+The comparison build now copies the pinned monorepo `js/` package into its build-tree
+`node_modules` before building frames, so all five runtimes use the same revision.
+
+## 2026-09-15 — Remove the obsolete validator benchmark
+
+The unused TypeScript benchmark that exercised the legacy validator and silently
+substituted a small specification has been removed. `make bench` is the only
+repository benchmark and requires its explicit shared fixture inputs.
+
+## 2026-09-15 — Define display markup and validation error order
+
+List and detail renderers now use the documented `crudui-list` and `crudui-detail`
+block grammar. Format kinds use `crudui-value--TYPE`; badge variants and boolean
+state use data attributes. Validation traverses keyed object entries in sorted key
+order for the same first-error result in all five implementations, while data and
+rendered row order retain input member order.
+
+## 2026-09-15 — Use explicit ORM display paths
+
+Display substitutions now use `{=path}`; legacy `{.path}` substitutions are removed. List and
+detail `field` and `sort.field` paths no longer have a leading dot, so object members and
+associative-array keys use one path contract. The naming change makes ORM relationship paths
+explicit and prevents literal URL or file-extension dots from being parsed as substitutions.
+
+## 2026-09-15 — Remove the field button text fallback
+
+Button and action fields now read control text only from `content`; the old field
+`text` fallback has been removed from all five generators.
+
 ## 2026-09-15 — Pin the OrderedJSON comparison source to the updated commit
 
 The comparison source remains version `0.0.1` and now uses the clean

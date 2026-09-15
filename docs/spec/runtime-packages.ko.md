@@ -59,6 +59,7 @@ PHP 호스트를 요구하지 않습니다.
 | 데이터 교체 | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
 | 데이터 조회 | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
 | 폼 렌더링 | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
+| 목록 모델 생성 | `buildList` | `Generator::buildList` | `BuildList` | `build_list` | `Generator::buildList` |
 | 목록 렌더링 | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
 | 상세 모델 생성 | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
 | 상세 렌더링 | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |

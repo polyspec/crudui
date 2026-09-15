@@ -12,7 +12,7 @@
  *
  * Output (tools/bench/fixtures/):
  *   contact.spec.json     contact.input.json
- *   large-form.spec.json  large-form.input.json
+ *   large-form.spec.json  large-form.input.json (generated current-schema workload)
  *
  * Deterministic: stable key order from the parsed document, no timestamps.
  */
@@ -24,10 +24,20 @@ const YAML = require('yaml');
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUT_DIR = path.join(__dirname, 'fixtures');
 
-/** Load a Legacy YAML spec the same way the parity suite does. */
+/** Load the small current-schema YAML fixture. */
 function loadSpec(relPath) {
   const abs = path.join(ROOT, relPath);
   return YAML.parse(fs.readFileSync(abs, 'utf8'));
+}
+
+/** Build the large current-schema workload; legacy LargeForm declarations are not benchmark input. */
+function largeCurrentSpec() {
+  const properties = {};
+  for (let i = 1; i <= 80; i += 1) {
+    const name = `field_${String(i).padStart(3, '0')}`;
+    properties[name] = { type: 'text', validate: { required: true } };
+  }
+  return { type: 'group', properties };
 }
 
 /**
@@ -38,15 +48,9 @@ function loadSpec(relPath) {
  * contact: a realistic, fully-valid submission. The contact spec has no
  * multiple ([]-suffixed) fields, so JS/PHP/Go/Rust all return valid=true.
  *
- * large-form: the EMPTY form ({}). The raw Legacy LargeForm.yml carries
- * literal []-suffixed keys (sub_category_seqs[], cover_images[], ...) for its
- * `multiple` fields, and the four validators normalize that []-suffix
- * differently when matching input keys — a populated payload makes PHP diverge
- * from JS/Go/Rust on those array fields (a pre-existing naming-normalization
- * difference, outside this benchmark's scope to fix). The empty form is the
- * input all four agree on (valid=false, required @ common.name) while still
- * driving every one of the 80 fields' required/conditional checks through the
- * rule engine. Verified identical across JS/PHP/Go/Rust before committing.
+ * large-form: an EMPTY form ({}) against the generated current-schema workload.
+ * The name is retained as the benchmark case label; no legacy LargeForm
+ * declaration is loaded by the benchmark.
  */
 const CONTACT_INPUT = {
   name: 'Jane Doe',
@@ -67,7 +71,7 @@ const CASES = [
   },
   {
     name: 'large-form',
-    spec: 'tests/fixtures/specs/LargeForm.yml',
+    spec: null,
     input: PRODUCTNFT_INPUT,
   },
 ];
@@ -75,7 +79,7 @@ const CASES = [
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 for (const c of CASES) {
-  const spec = loadSpec(c.spec);
+  const spec = c.spec === null ? largeCurrentSpec() : loadSpec(c.spec);
   fs.writeFileSync(
     path.join(OUT_DIR, `${c.name}.spec.json`),
     JSON.stringify(spec, null, 2) + '\n'

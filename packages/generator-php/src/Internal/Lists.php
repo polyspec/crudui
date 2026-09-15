@@ -12,6 +12,25 @@ use stdClass;
 /** Compose list declarations, evaluate supplied rows and render table or card HTML. */
 final class Lists
 {
+    /** Build one read-only list model from validated public inputs. */
+    public static function buildPublic(array|stdClass $spec, array $rows, array $options): stdClass
+    {
+        if (is_array($spec) && !self::isObject($spec, true)) {
+            throw new FormError('INVALID_FORM_INPUT', 'List specification must be an object');
+        }
+        if (!array_is_list($rows)) {
+            throw new FormError('INVALID_FORM_INPUT', 'List rows must be an array');
+        }
+        foreach ($rows as $row) {
+            if (!self::isObject($row, false)) {
+                throw new FormError('INVALID_FORM_INPUT', 'List rows must be objects');
+            }
+        }
+        self::optionObject($options, 'data', 'List context must be an object');
+        self::countOptions($options);
+        return self::build(Value::object($spec), $rows, $options, 'list', 'columns');
+    }
+
     /** Render composed list columns, supplied rows, actions and pagination. */
     public static function render(array|stdClass $spec, array $rows, array $options): string
     {
@@ -33,7 +52,7 @@ final class Lists
             throw new FormError('INVALID_FORM_INPUT', 'List layout must be table or card');
         }
         $vm = self::build(Value::object($spec), $rows, $options, 'list', 'columns');
-        $attrs = self::node('list-view', $vm->design->wrapper);
+        $attrs = self::node('crudui-list', $vm->design->wrapper);
         $body = '';
         if ($vm->actions !== []) {
             $actions = '';
@@ -53,16 +72,16 @@ final class Lists
                 foreach ($action->behavior ?? [] as $event => $script) {
                     $attrsAction['on' . $event] = $script;
                 }
-                $actions .= Rendering::element('span', ['class' => 'list-action', 'data-action' => $action->key], Rendering::element($tag, $attrsAction, Rendering::text($action->label, true), true));
+                $actions .= Rendering::element('span', ['class' => 'crudui-list__action', 'data-action' => $action->key], Rendering::element($tag, $attrsAction, Rendering::text($action->label, true), true));
             }
-            $body .= Rendering::element('div', ['class' => 'list-actions'], $actions);
+            $body .= Rendering::element('div', ['class' => 'crudui-list__actions'], $actions);
         }
         if ($vm->rows === []) {
-            $body .= Rendering::element('div', ['class' => 'list-empty'], Rendering::text($vm->empty));
+            $body .= Rendering::element('div', ['class' => 'crudui-list__empty'], Rendering::text($vm->empty));
         } elseif ($layout === 'table') {
             $headers = '';
             foreach ($vm->columns as $column) {
-                $header = self::node('list-th', $column->design->main);
+                $header = self::node('crudui-list__heading', $column->design->main);
                 if ($column->field !== '') {
                     $header['data-field'] = $column->field;
                 }
@@ -72,31 +91,31 @@ final class Lists
                 if (isset($vm->sort) && in_array($vm->sort->field, [$column->field, $column->key], true)) {
                     $header['data-sort-dir'] = $vm->sort->dir;
                 }
-                $headers .= Rendering::element('th', $header, Rendering::element('span', ['class' => 'list-th-label'], Rendering::text($column->label)) . ($column->sortable ? Rendering::element('span', ['class' => 'list-sort'], '↕') : ''));
+                $headers .= Rendering::element('th', $header, Rendering::element('span', ['class' => 'crudui-list__heading-label'], Rendering::text($column->label)) . ($column->sortable ? Rendering::element('span', ['class' => 'crudui-list__sort'], '↕') : ''));
             }
             $bodyRows = '';
             foreach ($vm->rows as $row) {
                 $cells = '';
                 foreach ($row->cells as $cell) {
-                    $cells .= self::cell($cell, 'td', 'list-td list-td-' . $cell->format->type);
+                    $cells .= self::cell($cell, 'td', 'crudui-list__cell crudui-value crudui-value--' . $cell->format->type);
                 }
                 $bodyRows .= Rendering::element('tr', [], $cells);
             }
-            $body .= Rendering::element('table', ['class' => 'list-table'], Rendering::element('thead', [], Rendering::element('tr', [], $headers)) . Rendering::element('tbody', [], $bodyRows));
+            $body .= Rendering::element('table', ['class' => 'crudui-list__table'], Rendering::element('thead', [], Rendering::element('tr', [], $headers)) . Rendering::element('tbody', [], $bodyRows));
         } else {
             $cards = '';
             foreach ($vm->rows as $row) {
                 $cells = '';
                 foreach ($row->cells as $i => $cell) {
-                    $class = Value::classes('list-td list-td-' . $cell->format->type, $cell->design->main->class);
-                    $cells .= Rendering::element('div', ['class' => $class], Rendering::element('span', ['class' => 'list-card-label'], Rendering::text($vm->columns[$i]->label)) . self::cell($cell, 'span', 'list-card-value'));
+                    $class = Value::classes('crudui-list__cell crudui-value crudui-value--' . $cell->format->type, $cell->design->main->class);
+                    $cells .= Rendering::element('div', ['class' => $class], Rendering::element('span', ['class' => 'crudui-list__card-label'], Rendering::text($vm->columns[$i]->label)) . self::cell($cell, 'span', 'crudui-list__card-value'));
                 }
-                $cards .= Rendering::element('article', ['class' => 'list-card'], $cells);
+                $cards .= Rendering::element('article', ['class' => 'crudui-list__card'], $cells);
             }
-            $body .= Rendering::element('div', ['class' => 'list-cards'], $cards);
+            $body .= Rendering::element('div', ['class' => 'crudui-list__cards'], $cards);
         }
         if ($vm->pagination->enabled) {
-            $pagination = ['class' => 'list-pagination'];
+            $pagination = ['class' => 'crudui-list__pagination'];
             foreach (['mode' => 'mode', 'perPage' => 'per-page', 'page' => 'page', 'total' => 'total'] as $key => $attribute) {
                 if (property_exists($vm->pagination, $key)) {
                     $pagination['data-' . $attribute] = Value::scalar($vm->pagination->{$key});
@@ -149,7 +168,7 @@ final class Lists
             $row = Value::object($row);
             $cells = [];
             foreach ($columnModels as $i => $column) {
-                $path = str_starts_with($column->field, '.') ? substr($column->field, 1) : $column->field;
+                $path = $column->field;
                 $value = $path !== '' ? Value::path($row, $path) : Missing::Value;
                 // A model is JSON: a path absent from the row is null, and the member is always present.
                 $cells[] = Value::record(['format' => $column->format, 'value' => $value === Missing::Value ? null : $value, 'display' => self::display($column->format, $value, $row, Value::segments($path), $language), 'design' => Design::resolve($columnSpecs[$i]->design ?? null, $row, Value::segments($path))]);
@@ -347,8 +366,8 @@ final class Lists
 
     private static function interpolate(string $template, stdClass $row, mixed $cellValue): string
     {
-        return preg_replace_callback('/\.[A-Za-z_][\w.]*/', static function ($match) use ($row, $cellValue) {
-            $path = substr($match[0], 1);
+        return preg_replace_callback('/\{=[A-Za-z_][\w.]*\}/', static function ($match) use ($row, $cellValue) {
+            $path = substr($match[0], 2, -1);
             $value = $path === 'field' ? $cellValue : Value::path($row, $path);
             return Value::scalar($value === Missing::Value ? $cellValue : $value);
         }, $template);
@@ -372,13 +391,13 @@ final class Lists
             $body = Rendering::text($display);
         } else {
             $body = match ($display->kind) {
-                'badge' => Rendering::element('span', ['class' => $display->variant !== '' ? 'badge badge-' . $display->variant : 'badge'], Rendering::text($display->label)),
+                'badge' => Rendering::element('span', ['class' => 'crudui-badge', ...$display->variant !== '' ? ['data-crudui-variant' => $display->variant] : []], Rendering::text($display->label)),
                 'link' => Rendering::element('a', ['href' => Rendering::url($display->href), ...isset($display->target) ? ['target' => $display->target] : []], Rendering::text($display->text)),
                 'image' => '<img' . Rendering::attrs(['src' => Rendering::url($display->src), 'alt' => $display->alt, ...isset($display->width) ? ['width' => $display->width] : [], ...isset($display->height) ? ['height' => $display->height] : []]) . '/>',
                 'bool' => match ($display->as) {
-                    'check' => Rendering::element('span', ['class' => 'bool-check', 'aria-label' => $display->label], $display->value ? '✔' : '✘'),
-                    'icon' => Rendering::element('span', ['class' => $display->value ? 'bool-icon bool-true' : 'bool-icon bool-false', 'aria-label' => $display->label]),
-                    default => Rendering::element('span', ['class' => 'bool-text'], Rendering::text($display->label)),
+                    'check' => Rendering::element('span', ['class' => 'crudui-bool crudui-bool--check', 'data-crudui-state' => $display->value ? 'true' : 'false', 'aria-label' => $display->label], $display->value ? '✔' : '✘'),
+                    'icon' => Rendering::element('span', ['class' => 'crudui-bool crudui-bool--icon', 'data-crudui-state' => $display->value ? 'true' : 'false', 'aria-label' => $display->label]),
+                    default => Rendering::element('span', ['class' => 'crudui-bool crudui-bool--text', 'data-crudui-state' => $display->value ? 'true' : 'false'], Rendering::text($display->label)),
                 },
                 'html' => $display->html,
             };

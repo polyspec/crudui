@@ -23,10 +23,10 @@ import (
 const specification = `{"type":"group","properties":{"name":{"type":"text","label":{"en":"Name","ko":"이름"},"validate":{"required":true,"minlength":2}},"email":{"type":"email","label":{"en":"Email","ko":"이메일"},"validate":{"required":true,"email":true}},"joined":{"type":"date","label":{"en":"Joined","ko":"가입일"}}}}`
 
 // The list links each name to the detail page and shows the email as text and the joined date.
-const listSpecification = `{"columns":{"name":{"field":".name","label":{"en":"Name","ko":"이름"},"format":{"type":"link","href":"/detail"}},"email":{"field":".email","label":{"en":"Email","ko":"이메일"},"format":"text"},"joined":{"field":".joined","label":{"en":"Joined","ko":"가입일"},"format":{"type":"date","pattern":"YYYY-MM-DD"}}}}`
+const listSpecification = `{"columns":{"name":{"field":"name","label":{"en":"Name","ko":"이름"},"format":{"type":"link","href":"/detail"}},"email":{"field":"email","label":{"en":"Email","ko":"이메일"},"format":"text"},"joined":{"field":"joined","label":{"en":"Joined","ko":"가입일"},"format":{"type":"date","pattern":"YYYY-MM-DD"}}}}`
 
 // The detail shows the name as text, the email as a mailto link and the joined date.
-const detailSpecification = `{"fields":{"name":{"field":".name","label":{"en":"Name","ko":"이름"},"format":"text"},"email":{"field":".email","label":{"en":"Email","ko":"이메일"},"format":{"type":"link","href":"mailto:.email"}},"joined":{"field":".joined","label":{"en":"Joined","ko":"가입일"},"format":{"type":"date","pattern":"YYYY-MM-DD"}}}}`
+const detailSpecification = `{"fields":{"name":{"field":"name","label":{"en":"Name","ko":"이름"},"format":"text"},"email":{"field":"email","label":{"en":"Email","ko":"이메일"},"format":{"type":"link","href":"mailto:{=email}"}},"joined":{"field":"joined","label":{"en":"Joined","ko":"가입일"},"format":{"type":"date","pattern":"YYYY-MM-DD"}}}}`
 
 // formInputs lists the record fields a urlencoded submission may set.
 var formInputs = []string{"name", "email", "joined"}

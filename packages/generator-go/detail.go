@@ -65,16 +65,16 @@ func RenderDetail(spec *Object, record *Object, options DetailOptions) (string, 
 		return "", err
 	}
 	design := object(read(vm, "design"))
-	attrs := NewObject("class", joinClass("detail-view", nodeClass(design, "wrapper")))
+	attrs := NewObject("class", joinClass("crudui-detail", nodeClass(design, "wrapper")))
 	if style := nodeStyle(design, "wrapper"); style != "" {
 		attrs.Set("style", style)
 	}
 	body := ""
 	for _, field := range objectList(read(vm, "fields")) {
 		cell := NewObject("display", read(field, "display"), "design", read(field, "design"), "format", read(field, "format"))
-		body += element("div", NewObject("class", "detail-field"),
-			element("dt", NewObject("class", "detail-label"), escapeText(stringAt(field, "label")))+
-				cellHTML(cell, "dd", joinClass("detail-value detail-value-"+stringAt(object(read(field, "format")), "type"), "")))
+		body += element("div", NewObject("class", "crudui-detail__field"),
+			element("dt", NewObject("class", "crudui-detail__label"), escapeText(stringAt(field, "label")))+
+				cellHTML(cell, "dd", joinClass("crudui-detail__value crudui-value crudui-value--"+stringAt(object(read(field, "format")), "type"), "")))
 	}
 	return detailImagePreloads(vm) + element("dl", attrs, body), nil
 }

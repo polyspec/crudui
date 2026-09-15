@@ -14,7 +14,7 @@ const form = createForm(template, { name: 'Example' });
 const formHtml = renderForm(form);
 const element = <Form form={form} />;
 
-const listSpec = { columns: { name: { field: '.name', label: 'Name' } } };
+const listSpec = { columns: { name: { field: 'name', label: 'Name' } } };
 const rows = [{ name: 'Ada' }];
 const listHtml = renderList(listSpec, rows, { language: 'en' });
 const list = <List vm={buildList(listSpec, rows, { language: 'en' })} layout="table" />;

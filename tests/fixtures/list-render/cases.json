@@ -5,14 +5,14 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": {
             "ko": "이름",
             "en": "Name"
           }
         },
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": {
             "ko": "상태",
             "en": "Status"
@@ -28,7 +28,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -37,13 +45,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"status\"><span class=\"crudui-list__heading-label\">Status</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">active</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">blocked</td></tr></tbody></table></div>"
   },
   {
     "name": "format-date",
@@ -51,7 +67,7 @@
     "spec": {
       "columns": {
         "joined": {
-          "field": ".joined",
+          "field": "joined",
           "label": "Joined",
           "format": {
             "type": "date",
@@ -68,7 +84,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -77,13 +101,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".joined\"><span class=\"list-th-label\">Joined</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-date\">2026-01-02</td></tr><tr><td class=\"list-td list-td-date\">2026-03-15</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"joined\"><span class=\"crudui-list__heading-label\">Joined</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--date\">2026-01-02</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--date\">2026-03-15</td></tr></tbody></table></div>"
   },
   {
     "name": "format-number",
@@ -91,7 +123,7 @@
     "spec": {
       "columns": {
         "score": {
-          "field": ".score",
+          "field": "score",
           "label": "Score",
           "format": {
             "type": "number",
@@ -112,7 +144,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -121,13 +161,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".score\"><span class=\"list-th-label\">Score</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-number\">$1,234,567.50</td></tr><tr><td class=\"list-td list-td-number\">$42.00</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"score\"><span class=\"crudui-list__heading-label\">Score</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">$1,234,567.50</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">$42.00</td></tr></tbody></table></div>"
   },
   {
     "name": "format-badge",
@@ -135,7 +183,7 @@
     "spec": {
       "columns": {
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": "Status",
           "format": {
             "type": "badge",
@@ -155,7 +203,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -164,13 +220,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-badge\"><span class=\"badge badge-success\">active</span></td></tr><tr><td class=\"list-td list-td-badge\"><span class=\"badge badge-danger\">blocked</span></td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"status\"><span class=\"crudui-list__heading-label\">Status</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--badge\"><span class=\"crudui-badge\" data-crudui-variant=\"success\">active</span></td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--badge\"><span class=\"crudui-badge\" data-crudui-variant=\"danger\">blocked</span></td></tr></tbody></table></div>"
   },
   {
     "name": "format-choice-label",
@@ -178,7 +242,7 @@
     "spec": {
       "columns": {
         "grade": {
-          "field": ".grade",
+          "field": "grade",
           "label": "Grade",
           "format": {
             "type": "choice-label",
@@ -201,19 +265,19 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".grade\"><span class=\"list-th-label\">Grade</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-choice-label\">Apple</td></tr><tr><td class=\"list-td list-td-choice-label\">Banana</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"grade\"><span class=\"crudui-list__heading-label\">Grade</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--choice-label\">Apple</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--choice-label\">Banana</td></tr></tbody></table></div>"
   },
   {
     "name": "format-link",
-    "note": "link format → <a> with .field-interpolated href + target (§9.2).",
+    "note": "link format → <a> with explicit {=field}-interpolated href, literal domain and extension, + target (§9.2).",
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name",
           "format": {
             "type": "link",
-            "href": "/user/.id",
+            "href": "https://example.com/users/{=jointablename.id}/{=join.join.name}.pdf",
             "target": "_blank"
           }
         }
@@ -227,7 +291,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -236,13 +308,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-link\"><a href=\"/user/1\" target=\"_blank\">Ada</a></td></tr><tr><td class=\"list-td list-td-link\"><a href=\"/user/2\" target=\"_blank\">Lin</a></td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--link\"><a href=\"https://example.com/users/101/Ada.pdf\" target=\"_blank\">Ada</a></td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--link\"><a href=\"https://example.com/users/102/Lin.pdf\" target=\"_blank\">Lin</a></td></tr></tbody></table></div>"
   },
   {
     "name": "format-bool",
@@ -250,7 +330,7 @@
     "spec": {
       "columns": {
         "admin": {
-          "field": ".admin",
+          "field": "admin",
           "label": "Admin",
           "format": {
             "type": "bool",
@@ -269,7 +349,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -278,27 +366,35 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".admin\"><span class=\"list-th-label\">Admin</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-bool\"><span aria-label=\"Yes\" class=\"bool-check\">✔</span></td></tr><tr><td class=\"list-td list-td-bool\"><span aria-label=\"No\" class=\"bool-check\">✘</span></td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"admin\"><span class=\"crudui-list__heading-label\">Admin</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--bool\"><span aria-label=\"Yes\" class=\"crudui-bool crudui-bool--check\" data-crudui-state=\"true\">✔</span></td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--bool\"><span aria-label=\"No\" class=\"crudui-bool crudui-bool--check\" data-crudui-state=\"false\">✘</span></td></tr></tbody></table></div>"
   },
   {
     "name": "format-image",
-    "note": "image format → <img> with src + interpolated alt + size (§9.2).",
+    "note": "image format → <img> with src + explicit {=field} alt, literal extension, + size (§9.2).",
     "spec": {
       "columns": {
         "avatar": {
-          "field": ".avatar",
+          "field": "avatar",
           "label": "Avatar",
           "format": {
             "type": "image",
             "width": 40,
             "height": 40,
-            "alt": "avatar .name"
+            "alt": "avatar {=name}.png"
           }
         }
       }
@@ -311,7 +407,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -320,13 +424,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".avatar\"><span class=\"list-th-label\">Avatar</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-image\"><img alt=\"avatar Ada\" height=\"40\" src=\"/img/ada.png\" width=\"40\"></td></tr><tr><td class=\"list-td list-td-image\"><img alt=\"avatar Lin\" height=\"40\" src=\"/img/lin.png\" width=\"40\"></td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"avatar\"><span class=\"crudui-list__heading-label\">Avatar</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--image\"><img alt=\"avatar Ada.png\" height=\"40\" src=\"/img/ada.png\" width=\"40\"></td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--image\"><img alt=\"avatar Lin.png\" height=\"40\" src=\"/img/lin.png\" width=\"40\"></td></tr></tbody></table></div>"
   },
   {
     "name": "format-html",
@@ -334,7 +446,7 @@
     "spec": {
       "columns": {
         "bio": {
-          "field": ".bio",
+          "field": "bio",
           "label": "Bio",
           "format": {
             "type": "html"
@@ -350,7 +462,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".bio\"><span class=\"list-th-label\">Bio</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-html\"><b data-x=\"1\">bold</b></td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"bio\"><span class=\"crudui-list__heading-label\">Bio</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--html\"><b data-x=\"1\">bold</b></td></tr></tbody></table></div>"
   },
   {
     "name": "column-show-expr-hidden",
@@ -358,11 +470,11 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         },
         "secret": {
-          "field": ".secret",
+          "field": "secret",
           "label": "Secret",
           "design": {
             "show": ".admin"
@@ -382,7 +494,7 @@
         "admin": false
       }
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
   },
   {
     "name": "column-show-expr-visible",
@@ -390,11 +502,11 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         },
         "secret": {
-          "field": ".secret",
+          "field": "secret",
           "label": "Secret",
           "design": {
             "show": ".admin"
@@ -414,7 +526,7 @@
         "admin": true
       }
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th><th class=\"list-th\" data-field=\".secret\"><span class=\"list-th-label\">Secret</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">visible</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"secret\"><span class=\"crudui-list__heading-label\">Secret</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">visible</td></tr></tbody></table></div>"
   },
   {
     "name": "i18n-header-ko",
@@ -422,14 +534,14 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": {
             "ko": "이름",
             "en": "Name"
           }
         },
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": {
             "ko": "상태",
             "en": "Status"
@@ -445,7 +557,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -454,13 +574,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">이름</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">상태</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">이름</span></th><th class=\"crudui-list__heading\" data-field=\"status\"><span class=\"crudui-list__heading-label\">상태</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">active</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">blocked</td></tr></tbody></table></div>"
   },
   {
     "name": "i18n-header-en",
@@ -468,14 +596,14 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": {
             "ko": "이름",
             "en": "Name"
           }
         },
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": {
             "ko": "상태",
             "en": "Status"
@@ -491,7 +619,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -500,13 +636,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"status\"><span class=\"crudui-list__heading-label\">Status</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">active</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">blocked</td></tr></tbody></table></div>"
   },
   {
     "name": "sort-display",
@@ -514,17 +658,17 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name",
           "sortable": true
         },
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": "Status"
         }
       },
       "sort": {
-        "field": ".name",
+        "field": "name",
         "dir": "asc"
       }
     },
@@ -536,7 +680,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -545,21 +697,29 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\" data-sort-dir=\"asc\" data-sortable=\"true\"><span class=\"list-th-label\">Name</span><span class=\"list-sort\">↕</span></th><th class=\"list-th\" data-field=\".status\"><span class=\"list-th-label\">Status</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td><td class=\"list-td list-td-text\">active</td></tr><tr><td class=\"list-td list-td-text\">Lin</td><td class=\"list-td list-td-text\">blocked</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\" data-sort-dir=\"asc\" data-sortable=\"true\"><span class=\"crudui-list__heading-label\">Name</span><span class=\"crudui-list__sort\">↕</span></th><th class=\"crudui-list__heading\" data-field=\"status\"><span class=\"crudui-list__heading-label\">Status</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">active</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">blocked</td></tr></tbody></table></div>"
   },
   {
     "name": "pagination-display",
-    "note": "pagination declared + supplied page and total → <nav class=list-pagination> data attrs.",
+    "note": "pagination declared + supplied page and total → <nav class=crudui-list__pagination> data attrs.",
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       },
@@ -576,7 +736,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -585,7 +753,15 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
@@ -593,7 +769,7 @@
       "page": 2,
       "total": 99
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr><tr><td class=\"list-td list-td-text\">Lin</td></tr></tbody></table><nav class=\"list-pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"99\"></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"99\"></nav></div>"
   },
   {
     "name": "pagination-empty-first-page",
@@ -601,7 +777,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       },
@@ -613,7 +789,7 @@
       "page": 9007199254740991,
       "total": 0
     },
-    "expected_html": "<div class=\"list-view\"><div class=\"list-empty\"></div><nav class=\"list-pagination\" data-page=\"9007199254740991\" data-total=\"0\"></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-page=\"9007199254740991\" data-total=\"0\"></nav></div>"
   },
   {
     "name": "design-column-class-style",
@@ -621,7 +797,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name",
           "design": {
             "class": "text-right",
@@ -638,7 +814,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -647,13 +831,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th text-right\" data-field=\".name\" style=\"width: 40%\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text text-right\" style=\"width: 40%\">Ada</td></tr><tr><td class=\"list-td list-td-text text-right\" style=\"width: 40%\">Lin</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading text-right\" data-field=\"name\" style=\"width: 40%\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text text-right\" style=\"width: 40%\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text text-right\" style=\"width: 40%\">Lin</td></tr></tbody></table></div>"
   },
   {
     "name": "empty-message",
@@ -661,7 +853,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       },
@@ -674,7 +866,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><div class=\"list-empty\">No data</div></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div></div>"
   },
   {
     "name": "actions-toolbar",
@@ -682,7 +874,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       },
@@ -707,21 +899,21 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"list-view\"><div class=\"list-actions\"><span class=\"list-action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span><span class=\"list-action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span></div><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span><span class=\"crudui-list__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
   },
   {
     "name": "card-layout",
-    "note": "card layout → one .list-card article per row with label:value pairs, no <table>.",
+    "note": "card layout → one .crudui-list__card article per row with label:value pairs, no <table>.",
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": {
             "en": "Name"
           }
         },
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": {
             "en": "Status"
           },
@@ -743,7 +935,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -752,14 +952,22 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en",
       "layout": "card"
     },
-    "expected_html": "<div class=\"list-view\"><div class=\"list-cards\"><article class=\"list-card\"><div class=\"list-td list-td-text\"><span class=\"list-card-label\">Name</span><span class=\"list-card-value\">Ada</span></div><div class=\"list-td list-td-badge\"><span class=\"list-card-label\">Status</span><span class=\"list-card-value\"><span class=\"badge badge-success\">active</span></span></div></article><article class=\"list-card\"><div class=\"list-td list-td-text\"><span class=\"list-card-label\">Name</span><span class=\"list-card-value\">Lin</span></div><div class=\"list-td list-td-badge\"><span class=\"list-card-label\">Status</span><span class=\"list-card-value\"><span class=\"badge badge-danger\">blocked</span></span></div></article></div></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__cards\"><article class=\"crudui-list__card\"><div class=\"crudui-list__cell crudui-value crudui-value--text\"><span class=\"crudui-list__card-label\">Name</span><span class=\"crudui-list__card-value\">Ada</span></div><div class=\"crudui-list__cell crudui-value crudui-value--badge\"><span class=\"crudui-list__card-label\">Status</span><span class=\"crudui-list__card-value\"><span class=\"crudui-badge\" data-crudui-variant=\"success\">active</span></span></div></article><article class=\"crudui-list__card\"><div class=\"crudui-list__cell crudui-value crudui-value--text\"><span class=\"crudui-list__card-label\">Name</span><span class=\"crudui-list__card-value\">Lin</span></div><div class=\"crudui-list__cell crudui-value crudui-value--badge\"><span class=\"crudui-list__card-label\">Status</span><span class=\"crudui-list__card-value\"><span class=\"crudui-badge\" data-crudui-variant=\"danger\">blocked</span></span></div></article></div></div>"
   },
   {
     "name": "compose-ref-patch",
@@ -769,7 +977,7 @@
         "$ref": "base-columns.yml",
         "$patch": {
           "extra": {
-            "field": ".extra",
+            "field": "extra",
             "label": "Extra"
           }
         }
@@ -787,7 +995,7 @@
         "base-columns.yml": {
           "properties": {
             "id": {
-              "field": ".id",
+              "field": "id",
               "label": "ID",
               "sortable": true
             }
@@ -795,7 +1003,7 @@
         }
       }
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".id\" data-sortable=\"true\"><span class=\"list-th-label\">ID</span><span class=\"list-sort\">↕</span></th><th class=\"list-th\" data-field=\".extra\"><span class=\"list-th-label\">Extra</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">7</td><td class=\"list-td list-td-text\">E</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"id\" data-sortable=\"true\"><span class=\"crudui-list__heading-label\">ID</span><span class=\"crudui-list__sort\">↕</span></th><th class=\"crudui-list__heading\" data-field=\"extra\"><span class=\"crudui-list__heading-label\">Extra</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">7</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">E</td></tr></tbody></table></div>"
   },
   {
     "name": "unresolved-ref-error",
@@ -839,7 +1047,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -855,7 +1063,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -873,7 +1081,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -891,7 +1099,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -910,7 +1118,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -930,7 +1138,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -949,7 +1157,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -970,7 +1178,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -989,7 +1197,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -1008,7 +1216,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -1028,7 +1236,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -1047,7 +1255,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -1066,7 +1274,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -1085,7 +1293,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name"
+          "field": "name"
         }
       }
     },
@@ -1104,7 +1312,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "design": {
             "main": {
               "class": "x"
@@ -1128,7 +1336,7 @@
       },
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "design": {
             "main": {}
           }
@@ -1147,7 +1355,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "design": {
             "show": 1
           }
@@ -1166,7 +1374,7 @@
     "spec": {
       "columns": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       }
@@ -1179,7 +1387,15 @@
         "joined": "2026-01-02T09:00:00",
         "score": 1234567.5,
         "admin": 1,
-        "avatar": "/img/ada.png"
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
       },
       {
         "id": 2,
@@ -1188,13 +1404,21 @@
         "joined": "2026-03-15T12:00:00",
         "score": 42,
         "admin": 0,
-        "avatar": "/img/lin.png"
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
       }
     ],
     "options": {
       "language": "en",
       "layout": null
     },
-    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr><tr><td class=\"list-td list-td-text\">Lin</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table></div>"
   }
 ]

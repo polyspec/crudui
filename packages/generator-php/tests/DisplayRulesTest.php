@@ -28,7 +28,7 @@ final class DisplayRulesTest extends TestCase
 
     public function testAnEmptyArraySpecificationIsTheEmptyRootObject(): void
     {
-        self::assertSame('<div class="list-view"><div class="list-empty"></div></div>', Generator::renderList([], []));
+        self::assertSame('<div class="crudui-list"><div class="crudui-list__empty"></div></div>', Generator::renderList([], []));
     }
 
     public function testRejectsAListShapedSpecification(): void
@@ -59,13 +59,13 @@ final class DisplayRulesTest extends TestCase
     public function testPageAndTotalAreSafeIntegers(): void
     {
         $spec = [...self::SPEC, 'pagination' => true];
-        $nav = fn (array $options) => substr(Generator::renderList($spec, [], $options), strlen('<div class="list-view"><div class="list-empty"></div>'), -strlen('</div>'));
-        self::assertSame('<nav class="list-pagination"></nav>', $nav([]));
-        self::assertSame('<nav class="list-pagination" data-page="2" data-total="99"></nav>', $nav(['page' => 2, 'total' => 99]));
-        self::assertSame('<nav class="list-pagination" data-page="2" data-total="0"></nav>', $nav(['page' => 2.0, 'total' => -0.0]));
-        self::assertSame('<nav class="list-pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>', $nav(['page' => 9007199254740991, 'total' => 9007199254740991.0]));
-        self::assertSame('<nav class="list-pagination" data-page="1"></nav>', $nav(['page' => 1, 'total' => null]));
-        self::assertSame('<nav class="list-pagination" data-total="0"></nav>', $nav(['total' => 0]));
+        $nav = fn (array $options) => substr(Generator::renderList($spec, [], $options), strlen('<div class="crudui-list"><div class="crudui-list__empty"></div>'), -strlen('</div>'));
+        self::assertSame('<nav class="crudui-list__pagination"></nav>', $nav([]));
+        self::assertSame('<nav class="crudui-list__pagination" data-page="2" data-total="99"></nav>', $nav(['page' => 2, 'total' => 99]));
+        self::assertSame('<nav class="crudui-list__pagination" data-page="2" data-total="0"></nav>', $nav(['page' => 2.0, 'total' => -0.0]));
+        self::assertSame('<nav class="crudui-list__pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>', $nav(['page' => 9007199254740991, 'total' => 9007199254740991.0]));
+        self::assertSame('<nav class="crudui-list__pagination" data-page="1"></nav>', $nav(['page' => 1, 'total' => null]));
+        self::assertSame('<nav class="crudui-list__pagination" data-total="0"></nav>', $nav(['total' => 0]));
         foreach (['2', true, false, [], [2], new stdClass(), 1.5, 0, 0.0, -1, 9007199254740992, 9007199254740992.0, PHP_INT_MAX, INF, NAN] as $value) {
             self::assertFailure('List page must be a positive integer', fn () => Generator::renderList($spec, [], ['page' => $value]));
         }
@@ -73,7 +73,7 @@ final class DisplayRulesTest extends TestCase
             self::assertFailure('List total must be a nonnegative integer', fn () => Generator::renderList($spec, [], ['total' => $value]));
         }
         // The detail model neither checks nor uses the list page options.
-        self::assertSame('<dl class="detail-view"></dl>', Generator::renderDetail(['fields' => []], [], ['page' => 'x', 'total' => -1]));
+        self::assertSame('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields' => []], [], ['page' => 'x', 'total' => -1]));
     }
 
     public function testLayoutMustBeTableOrCard(): void
@@ -81,7 +81,7 @@ final class DisplayRulesTest extends TestCase
         foreach (['grid', '', 5, ['table']] as $layout) {
             self::assertFailure('List layout must be table or card', fn () => Generator::renderList(self::SPEC, [], ['layout' => $layout]));
         }
-        self::assertStringContainsString('list-cards', Generator::renderList(self::SPEC, [['v' => 'a']], ['layout' => 'card']));
+        self::assertStringContainsString('crudui-list__cards', Generator::renderList(self::SPEC, [['v' => 'a']], ['layout' => 'card']));
     }
 
     public function testListInputIsCheckedInOrder(): void
@@ -97,8 +97,8 @@ final class DisplayRulesTest extends TestCase
 
     public function testDetailContextIsAFixedObjectOptionCheckedAfterTheFields(): void
     {
-        self::assertSame('<dl class="detail-view"></dl>', Generator::renderDetail(['fields' => []], [], ['data' => []]));
-        self::assertSame('<dl class="detail-view"></dl>', Generator::renderDetail(['fields' => []], [], ['data' => null]));
+        self::assertSame('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields' => []], [], ['data' => []]));
+        self::assertSame('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields' => []], [], ['data' => null]));
         foreach ([['x'], 'x', 1] as $value) {
             self::assertFailure('Detail context must be an object', fn () => Generator::buildDetail(['fields' => []], [], ['data' => $value]));
         }
@@ -118,7 +118,7 @@ final class DisplayRulesTest extends TestCase
         self::assertFailure('Invalid design.wrapper at detail: expected an object', fn () => Generator::renderDetail(['design' => ['wrapper' => 'box'], 'fields' => []], []));
         self::assertFailure('Invalid design.wrapper at detail: expected an object', fn () => Generator::buildDetail(['design' => ['wrapper' => 'box'], 'fields' => []], []));
         // Declared designs that follow the rules render.
-        self::assertStringContainsString('list-view box', Generator::renderList(['design' => ['wrapper' => ['class' => 'box']], 'columns' => ['name' => ['design' => ['show' => true, 'class' => 'c']]]], []));
+        self::assertStringContainsString('crudui-list box', Generator::renderList(['design' => ['wrapper' => ['class' => 'box']], 'columns' => ['name' => ['design' => ['show' => true, 'class' => 'c']]]], []));
     }
 
     public function testDesignDeclarationsAreCheckedInOrder(): void
@@ -182,7 +182,7 @@ final class DisplayRulesTest extends TestCase
     public function testTruncatedDetailMarkup(): void
     {
         self::assertSame(
-            '<dl class="detail-view"><div class="detail-field"><dt class="detail-label">V</dt><dd class="detail-value detail-value-text">a😀…</dd></div></dl>',
+            '<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">V</dt><dd class="crudui-detail__value crudui-value crudui-value--text">a😀…</dd></div></dl>',
             Generator::renderDetail(['fields' => ['v' => ['field' => '.v', 'label' => 'V', 'format' => ['type' => 'text', 'truncate' => 2]]]], ['v' => 'a😀bc']),
         );
     }

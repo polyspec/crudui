@@ -80,8 +80,8 @@ HTML 생성은 지원하는 필드 타입과 레이아웃을 모두 포함합니
 생성된 템플릿과 전송 데이터는 React, Vue, Svelte에서도 동작합니다.
 
 목록 생성은 JavaScript 렌더러와 같은 목록 명세와 표·카드 출력 계약을
-따릅니다. `CRUDUI\Generator::renderList`는 목록 명세, 표시할 행,
-렌더링 옵션을 받습니다.
+따릅니다. `CRUDUI\Generator::buildList`는 평가한 목록 모델을 반환하고,
+`CRUDUI\Generator::renderList`는 목록 명세, 표시할 행, 렌더링 옵션을 받습니다.
 
 ## 검증과 PHP 값
 

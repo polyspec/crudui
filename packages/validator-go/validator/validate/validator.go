@@ -97,7 +97,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 			if isMultiple {
 				if present {
 					// Keyed rows use sorted-key traversal so the first reported
-					// error is identical in every implementation.
+					// error is identical in every validation implementation.
 					rows := fieldValue.(map[string]any)
 					for _, key := range sortedKeys(rows) {
 						rowPath := appendPath(fieldPath, key)
@@ -133,7 +133,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 }
 
 // validateMultipleFieldRules runs collection rules on the keyed rows, then row
-// rules in sorted row-key order (JS validateMultipleFieldRules).
+// rules in sorted row-key order (the cross-runtime error-order contract).
 func (v *Validator) validateMultipleFieldRules(field *compose.OMap, values map[string]any, fieldPath []string, allData map[string]any, errors *[]ValidationError) {
 	rules := normalizeValidateSlot(field)
 	messages := fieldMessages(field)

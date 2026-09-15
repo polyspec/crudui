@@ -133,7 +133,7 @@ static bool list_truthy(const ps_value *value)
 static const ps_value *column_value(const ps_value *row, const char *field)
 {
     if (!field || !*field) return NULL;
-    return ps_path(row, field[0] == '.' ? field + 1 : field);
+    return ps_path(row, field);
 }
 
 static bool visible_column(const ps_value *column, const ps_value *data, ps_value **design)
@@ -214,12 +214,16 @@ static bool append_interpolated(ps_html_buffer *out, const ps_value *template,
     const char *value = template->data.string.bytes;
     size_t length = template->data.string.length;
     for (size_t i = 0; i < length;) {
-        if (value[i] == '.' && i + 1 < length &&
-            (isalpha((unsigned char)value[i + 1]) || value[i + 1] == '_')) {
-            size_t end = i + 2;
+        if (value[i] == '{' && i + 2 < length && value[i + 1] == '=' &&
+            (isalpha((unsigned char)value[i + 2]) || value[i + 2] == '_')) {
+            size_t end = i + 3;
             while (end < length && (isalnum((unsigned char)value[end]) ||
                    value[end] == '_' || value[end] == '.')) end++;
-            char *path = copy_bytes(value + i + 1, end - i - 1);
+            if (end >= length || value[end] != '}') {
+                if (!ps_html_character(out, value[i++])) return false;
+                continue;
+            }
+            char *path = copy_bytes(value + i + 2, end - i - 2);
             if (!path) return false;
             const ps_value *replacement = !strcmp(path, "field") ? field : ps_path(row, path);
             if (!replacement) replacement = field;
@@ -227,7 +231,7 @@ static bool append_interpolated(ps_html_buffer *out, const ps_value *template,
             char *scalar = ps_scalar_string(replacement);
             if (!scalar || !ps_html_text(out, scalar)) { free(scalar); return false; }
             free(scalar);
-            i = end;
+            i = end + 1;
         } else {
             if (!ps_html_character(out, value[i++])) return false;
         }
@@ -848,8 +852,9 @@ static bool append_display(list_context *context, const ps_value *display)
     bool ok = true;
     if (!strcmp(kind, "badge")) {
         const char *variant = string_member(display, "variant");
-        char *class_name = *variant ? ps_string_join("badge badge-", variant, "") : ps_string_join("badge", "", "");
+        char *class_name = ps_string_join("crudui-badge", "", "");
         ok = class_name && ps_html_attr_string(attrs, "class", class_name);
+        if (ok && *variant) ok = ps_html_attr_string(attrs, "data-crudui-variant", variant);
         free(class_name);
         text = "label";
     } else if (!strcmp(kind, "link")) {
@@ -870,14 +875,17 @@ static bool append_display(list_context *context, const ps_value *display)
         const char *as = string_member(display, "as");
         bool truth = bool_member(display, "value");
         if (!strcmp(as, "check")) {
-            ok = ps_html_attr_string(attrs, "class", "bool-check") &&
+            ok = ps_html_attr_string(attrs, "class", "crudui-bool crudui-bool--check") &&
+                ps_html_attr_string(attrs, "data-crudui-state", truth ? "true" : "false") &&
                 ps_html_attr_clone(attrs, "aria-label", member(display, "label"));
             glyph = truth ? "✔" : "✘";
         } else if (!strcmp(as, "icon")) {
-            ok = ps_html_attr_string(attrs, "class", truth ? "bool-icon bool-true" : "bool-icon bool-false") &&
+            ok = ps_html_attr_string(attrs, "class", "crudui-bool crudui-bool--icon") &&
+                ps_html_attr_string(attrs, "data-crudui-state", truth ? "true" : "false") &&
                 ps_html_attr_clone(attrs, "aria-label", member(display, "label"));
         } else {
-            ok = ps_html_attr_string(attrs, "class", "bool-text");
+            ok = ps_html_attr_string(attrs, "class", "crudui-bool crudui-bool--text") &&
+                ps_html_attr_string(attrs, "data-crudui-state", truth ? "true" : "false");
             text = "label";
         }
     } else {
@@ -893,7 +901,7 @@ static bool append_display(list_context *context, const ps_value *display)
 
 static const char *field_path(const list_column *column)
 {
-    return column->field[0] == '.' ? column->field + 1 : column->field;
+    return column->field;
 }
 
 /* Read one cell of a row: its value, its row-evaluated design and its display. */
@@ -949,7 +957,7 @@ static bool append_toolbar(list_context *context)
     }
     if (!count) return true;
     ps_value *toolbar = ps_object_value();
-    if (!toolbar || !ps_html_attr_string(toolbar, "class", "list-actions") ||
+    if (!toolbar || !ps_html_attr_string(toolbar, "class", "crudui-list__actions") ||
         !write_element_start(&context->output, "div", toolbar)) { ps_value_free(toolbar); return false; }
     for (size_t i = 0; i < ps_size(actions); ++i) {
         const char *key = ps_key_at(actions, i);
@@ -963,7 +971,7 @@ static bool append_toolbar(list_context *context)
         bool link = !strcmp(type, "link");
         ps_value *span = ps_object_value();
         ps_value *attrs = ps_object_value();
-        bool ok = label && span && attrs && ps_html_attr_string(span, "class", "list-action") &&
+        bool ok = label && span && attrs && ps_html_attr_string(span, "class", "crudui-list__action") &&
             ps_html_attr_string(span, "data-action", key) &&
             ps_html_attr_string(attrs, link ? "href" : "type", link ? string_member(format, "href") : "button");
         if (ok && link && *string_member(format, "target"))
@@ -1005,7 +1013,7 @@ static bool append_header(list_context *context, const list_column *columns, siz
     for (size_t i = 0; i < count; ++i) {
         ps_value *attrs = ps_object_value();
         char *label = column_label(&columns[i], context->language);
-        bool ok = attrs && label && append_class_style(attrs, "list-th", columns[i].design);
+        bool ok = attrs && label && append_class_style(attrs, "crudui-list__heading", columns[i].design);
         if (ok && *columns[i].field) ok = ps_html_attr_string(attrs, "data-field", columns[i].field);
         if (ok && columns[i].sortable) ok = ps_html_attr_string(attrs, "data-sortable", "true");
         if (ok && *sort_field && (!strcmp(sort_field, columns[i].field) || !strcmp(sort_field, columns[i].key)))
@@ -1013,14 +1021,14 @@ static bool append_header(list_context *context, const list_column *columns, siz
         if (ok) ok = write_element_start(&context->output, "th", attrs);
         else ps_value_free(attrs);
         ps_value *label_attrs = ps_object_value();
-        if (ok) ok = label_attrs && ps_html_attr_string(label_attrs, "class", "list-th-label") &&
+        if (ok) ok = label_attrs && ps_html_attr_string(label_attrs, "class", "crudui-list__heading-label") &&
             write_element_start(&context->output, "span", label_attrs) &&
             ps_html_escaped(&context->output, label, strlen(label), false) &&
             write_element_end(&context->output, "span");
         else ps_value_free(label_attrs);
         if (ok && columns[i].sortable) {
             ps_value *sort_attrs = ps_object_value();
-            ok = sort_attrs && ps_html_attr_string(sort_attrs, "class", "list-sort") &&
+            ok = sort_attrs && ps_html_attr_string(sort_attrs, "class", "crudui-list__sort") &&
                 write_element_start(&context->output, "span", sort_attrs) &&
                 ps_html_text(&context->output, "↕") && write_element_end(&context->output, "span");
             if (!ok) ps_value_free(sort_attrs);
@@ -1035,7 +1043,7 @@ static bool append_header(list_context *context, const list_column *columns, siz
 static bool append_table(list_context *context, const list_column *columns, size_t count)
 {
     ps_value *attrs = ps_object_value();
-    if (!attrs || !ps_html_attr_string(attrs, "class", "list-table") ||
+    if (!attrs || !ps_html_attr_string(attrs, "class", "crudui-list__table") ||
         !write_element_start(&context->output, "table", attrs) ||
         !append_header(context, columns, count) ||
         !write_element_start(&context->output, "tbody", ps_object_value())) return false;
@@ -1043,7 +1051,7 @@ static bool append_table(list_context *context, const list_column *columns, size
         const ps_value *row = ps_at(context->rows, row_index);
         if (!write_element_start(&context->output, "tr", ps_object_value())) return false;
         for (size_t i = 0; i < count; ++i) {
-            char *base = ps_string_join("list-td list-td-", columns[i].type, "");
+            char *base = ps_string_join("crudui-list__cell crudui-value crudui-value--", columns[i].type, "");
             bool ok = base && append_cell(context, &columns[i], row, "td", base);
             free(base);
             if (!ok) return false;
@@ -1056,29 +1064,29 @@ static bool append_table(list_context *context, const list_column *columns, size
 static bool append_cards(list_context *context, const list_column *columns, size_t count)
 {
     ps_value *cards = ps_object_value();
-    if (!cards || !ps_html_attr_string(cards, "class", "list-cards") ||
+    if (!cards || !ps_html_attr_string(cards, "class", "crudui-list__cards") ||
         !write_element_start(&context->output, "div", cards)) return false;
     for (size_t row_index = 0; row_index < ps_size(context->rows); ++row_index) {
         const ps_value *row = ps_at(context->rows, row_index);
         ps_value *article = ps_object_value();
-        if (!article || !ps_html_attr_string(article, "class", "list-card") ||
+        if (!article || !ps_html_attr_string(article, "class", "crudui-list__card") ||
             !write_element_start(&context->output, "article", article)) return false;
         for (size_t i = 0; i < count; ++i) {
             ps_value *design = ps_design(member(columns[i].column, "design"), row,
-                columns[i].field[0] == '.' ? columns[i].field + 1 : columns[i].field);
-            char *base = ps_string_join("list-td list-td-", columns[i].type, "");
+                columns[i].field);
+            char *base = ps_string_join("crudui-list__cell crudui-value crudui-value--", columns[i].type, "");
             ps_value *host = ps_object_value();
             char *label = column_label(&columns[i], context->language);
             bool ok = design && base && host && label && append_class_style(host, base, design) &&
                 write_element_start(&context->output, "div", host);
             if (!ok) ps_value_free(host);
             ps_value *label_attrs = ps_object_value();
-            if (ok) ok = label_attrs && ps_html_attr_string(label_attrs, "class", "list-card-label") &&
+            if (ok) ok = label_attrs && ps_html_attr_string(label_attrs, "class", "crudui-list__card-label") &&
                 write_element_start(&context->output, "span", label_attrs) &&
                 ps_html_escaped(&context->output, label, strlen(label), false) &&
                 write_element_end(&context->output, "span");
             else ps_value_free(label_attrs);
-            if (ok) ok = append_cell(context, &columns[i], row, "span", "list-card-value") &&
+            if (ok) ok = append_cell(context, &columns[i], row, "span", "crudui-list__card-value") &&
                 write_element_end(&context->output, "div");
             ps_value_free(design); free(base); free(label);
             if (!ok) return false;
@@ -1092,7 +1100,7 @@ static bool append_empty(list_context *context)
 {
     ps_value *attrs = ps_object_value();
     char *empty = translated(member(context->spec, "empty"), context->language);
-    bool ok = attrs && empty && ps_html_attr_string(attrs, "class", "list-empty") &&
+    bool ok = attrs && empty && ps_html_attr_string(attrs, "class", "crudui-list__empty") &&
         write_element_start(&context->output, "div", attrs) &&
         ps_html_escaped(&context->output, empty, strlen(empty), false) &&
         write_element_end(&context->output, "div");
@@ -1108,7 +1116,7 @@ static bool append_pagination(list_context *context)
         (pagination->kind == PS_BOOL && !pagination->data.boolean)) return true;
     if (pagination->kind != PS_BOOL && pagination->kind != PS_OBJECT) return true;
     ps_value *attrs = ps_object_value();
-    bool ok = attrs && ps_html_attr_string(attrs, "class", "list-pagination");
+    bool ok = attrs && ps_html_attr_string(attrs, "class", "crudui-list__pagination");
     const char *mode = string_member(pagination, "mode");
     if (ok && *mode) ok = ps_html_attr_string(attrs, "data-mode", mode);
     const ps_value *per_page = member(pagination, "per_page");
@@ -1159,7 +1167,7 @@ static bool append_container_start(list_context *context, const char *tag, const
 static bool render_list(list_context *context, list_column *columns, size_t count)
 {
     ps_value *design = ps_design(member(context->spec, "design"), context->data, "");
-    bool ok = append_container_start(context, "div", "list-view", design) && append_toolbar(context);
+    bool ok = append_container_start(context, "div", "crudui-list", design) && append_toolbar(context);
     if (ok) ok = !ps_size(context->rows) ? append_empty(context)
         : !strcmp(context->layout, "card") ? append_cards(context, columns, count)
         : append_table(context, columns, count);
@@ -1262,6 +1270,7 @@ static ps_result list_finish(list_session *session, bool ok, const char *failure
 }
 
 static ps_result render_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options);
+static ps_result build_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options);
 static ps_result build_detail_view(const ps_value *spec, const ps_value *record, const ps_value *options);
 static ps_result render_detail_view(const ps_value *spec, const ps_value *record, const ps_value *options);
 
@@ -1281,6 +1290,11 @@ static ps_result render_detail_view(const ps_value *spec, const ps_value *record
 ps_result ps_render_list(const ps_value *spec, const ps_value *rows, const ps_value *options)
 {
     ORDERED_VIEW(render_list_view, spec, rows, options, "C list rendering failed");
+}
+
+ps_result ps_build_list(const ps_value *spec, const ps_value *rows, const ps_value *options)
+{
+    ORDERED_VIEW(build_list_view, spec, rows, options, "C list evaluation failed");
 }
 
 ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps_value *options)
@@ -1327,6 +1341,134 @@ static ps_result render_list_view(const ps_value *spec, const ps_value *rows, co
     if (error) { list_close(&session); return (ps_result){NULL, error}; }
     bool ok = render_list(&session.context, session.columns, session.column_count);
     return list_finish(&session, ok, "C list rendering failed");
+}
+
+/* Build the public list model from the same evaluated columns and cells used by rendering. */
+static ps_value *list_model(list_session *session)
+{
+    list_context *context = &session->context;
+    ps_value *model = ps_object_value(), *columns = ps_array_value(), *row_models = ps_array_value();
+    ps_value *pagination = ps_object_value(), *actions = ps_array_value(), *design = NULL;
+    bool ok = model && columns && row_models && pagination && actions;
+    for (size_t i = 0; ok && i < session->column_count; ++i) {
+        const list_column *column = &session->columns[i];
+        ps_value *entry = ps_object_value(), *format = ps_object_value();
+        char *label = column_label(column, context->language);
+        ok = entry && format && label &&
+            set_text(entry, "key", column->key) && set_text(entry, "field", column->field) &&
+            set_text(entry, "label", label) && set_text(format, "type", column->type) &&
+            ps_set(format, "options", column->format ? ps_value_clone(column->format) : ps_object_value()) &&
+            set_value(entry, "format", &format) && ps_set(entry, "sortable", ps_bool_value(column->sortable)) &&
+            ps_set(entry, "design", ps_value_clone(column->design));
+        if (ok) ok = ps_append(columns, entry), entry = NULL;
+        ps_value_free(entry); ps_value_free(format); free(label);
+    }
+    for (size_t r = 0; ok && r < ps_size(context->rows); ++r) {
+        ps_value *row_model = ps_object_value(), *cells = ps_array_value();
+        ok = row_model && cells;
+        const ps_value *row = ps_at(context->rows, r);
+        for (size_t i = 0; ok && i < session->column_count; ++i) {
+            const list_column *column = &session->columns[i];
+            const ps_value *value = NULL;
+            ps_value *display = NULL, *cell_design = NULL, *cell = ps_object_value(), *format = ps_object_value();
+            char *failure = NULL;
+            ok = cell && format && evaluate_cell(context, column, row, &value, &display, &cell_design) &&
+                set_text(format, "type", column->type) &&
+                ps_set(format, "options", column->format ? ps_value_clone(column->format) : ps_object_value()) &&
+                set_value(cell, "format", &format) && ps_set(cell, "value", value ? ps_value_clone(value) : ps_null_value()) &&
+                set_value(cell, "display", &display) && set_value(cell, "design", &cell_design);
+            (void)failure;
+            if (ok) ok = ps_append(cells, cell), cell = NULL;
+            ps_value_free(cell); ps_value_free(format); ps_value_free(display); ps_value_free(cell_design);
+        }
+        if (ok) ok = ps_set(row_model, "cells", cells), cells = NULL;
+        ps_value_free(cells);
+        if (ok) ok = ps_append(row_models, row_model), row_model = NULL;
+        ps_value_free(row_model);
+    }
+    if (ok) {
+        bool page_present, total_present; int64_t page = 0, total = 0;
+        ok = ps_set(pagination, "enabled", ps_bool_value(member(context->spec, "pagination") &&
+            (member(context->spec, "pagination")->kind == PS_BOOL ? member(context->spec, "pagination")->data.boolean : member(context->spec, "pagination")->kind == PS_OBJECT)));
+        const ps_value *declared = member(context->spec, "pagination");
+        if (ok && declared && declared->kind == PS_OBJECT) {
+            if (member(declared, "per_page")) ok = ps_set(pagination, "perPage", ps_value_clone(member(declared, "per_page")));
+            if (ok && member(declared, "mode")) ok = ps_set(pagination, "mode", ps_value_clone(member(declared, "mode")));
+        }
+        if (ok && count_option(member(context->options, "page"), 1, &page_present, &page) && page_present) ok = ps_set(pagination, "page", ps_int_value(page));
+        if (ok && count_option(member(context->options, "total"), 0, &total_present, &total) && total_present) ok = ps_set(pagination, "total", ps_int_value(total));
+        design = ps_design(member(context->spec, "design"), context->data, "");
+        ok = ok && design && set_value(model, "columns", &columns) && set_value(model, "rows", &row_models) &&
+            set_value(model, "pagination", &pagination);
+        const ps_value *sort = member(context->spec, "sort");
+        if (ok && sort && sort->kind == PS_OBJECT && member(sort, "field") && member(sort, "field")->kind == PS_STRING && ps_string(member(sort, "field"))[0]) {
+            ps_value *sort_model = ps_object_value();
+            ok = sort_model && ps_set(sort_model, "field", ps_value_clone(member(sort, "field"))) &&
+                set_text(sort_model, "dir", is_string(member(sort, "dir"), "desc") ? "desc" : "asc") &&
+                set_value(model, "sort", &sort_model);
+            ps_value_free(sort_model);
+        }
+        const ps_value *declared_actions = member(context->spec, "actions");
+        for (size_t i = 0; ok && declared_actions && declared_actions->kind == PS_OBJECT && i < ps_size(declared_actions); ++i) {
+            const char *key = ps_key_at(declared_actions, i);
+            const ps_value *raw = ps_at(declared_actions, i);
+            if (!strcmp(key, "$ref") || !strcmp(key, "$patch") || !raw || (raw->kind != PS_STRING && raw->kind != PS_OBJECT)) continue;
+            ps_value *action = ps_object_value();
+            char *label = raw->kind == PS_OBJECT && member(raw, "label") ? translated(member(raw, "label"), context->language) : copy_bytes(key, strlen(key));
+            ok = action && label && set_text(action, "key", key) && set_text(action, "label", label);
+            if (ok && raw->kind == PS_STRING) {
+                ps_value *behavior = ps_object_value();
+                ok = behavior && ps_set(behavior, key, ps_value_clone(raw)) && set_value(action, "behavior", &behavior);
+                ps_value_free(behavior);
+            } else if (ok && member(raw, "format")) {
+                const ps_value *raw_format = member(raw, "format");
+                ps_value *format = ps_object_value();
+                const char *type = raw_format && raw_format->kind == PS_OBJECT ? string_member(raw_format, "type") : raw_format && raw_format->kind == PS_STRING ? ps_string(raw_format) : "text";
+                ok = format && set_text(format, "type", *type ? type : "text") &&
+                    ps_set(format, "options", raw_format->kind == PS_OBJECT ? ps_value_clone(raw_format) : ps_object_value()) &&
+                    set_value(action, "format", &format);
+                ps_value_free(format);
+            }
+            if (ok && raw->kind == PS_OBJECT && member(raw, "behavior") && member(raw, "behavior")->kind == PS_OBJECT) {
+                ps_value *behavior = ps_object_value();
+                const ps_value *source = member(raw, "behavior");
+                for (size_t j = 0; ok && j < ps_size(source); ++j) {
+                    const ps_value *entry = ps_at(source, j);
+                    if (entry && entry->kind == PS_OBJECT) entry = member(entry, "script");
+                    if (entry && entry->kind == PS_STRING) ok = ps_set(behavior, ps_key_at(source, j), ps_value_clone(entry));
+                }
+                if (ok && ps_size(behavior)) ok = set_value(action, "behavior", &behavior);
+                ps_value_free(behavior);
+            }
+            if (ok) ok = ps_append(actions, action), action = NULL;
+            ps_value_free(action); free(label);
+        }
+        char *empty = translated(member(context->spec, "empty"), context->language);
+        if (ok) ok = set_value(model, "actions", &actions) && set_text(model, "empty", empty) && set_value(model, "design", &design);
+        free(empty);
+    }
+    ps_value_free(columns); ps_value_free(row_models); ps_value_free(pagination); ps_value_free(actions); ps_value_free(design);
+    if (!ok) { ps_value_free(model); return NULL; }
+    return model;
+}
+
+static ps_result build_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options)
+{
+    if (!spec || spec->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List specification must be an object", "");
+    if (!rows || rows->kind != PS_ARRAY) return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be an array", "");
+    for (size_t i = 0; i < ps_size(rows); ++i) if (!ps_at(rows, i) || ps_at(rows, i)->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
+    if (!options || options->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
+    const ps_value *data = member(options, "data");
+    if (data && data->kind != PS_NULL && data->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "");
+    bool present; int64_t count;
+    if (!count_option(member(options, "page"), 1, &present, &count)) return ps_fail("form", "INVALID_FORM_INPUT", "List page must be a positive integer", "");
+    if (!count_option(member(options, "total"), 0, &present, &count)) return ps_fail("form", "INVALID_FORM_INPUT", "List total must be a nonnegative integer", "");
+    list_session session; ps_value *error = list_open(&session, spec, member(spec, "columns"), rows, options, "table", "list", "columns");
+    if (error) { list_close(&session); return (ps_result){NULL, error}; }
+    ps_value *model = list_model(&session); const char *failure = session.context.failure; list_close(&session);
+    if (!model && failure) return ps_fail("form", "INVALID_FORM_INPUT", failure, "");
+    if (!model) return ps_fail("internal", "INTERNAL_ERROR", "C list evaluation failed", "");
+    return ps_ok(model);
 }
 
 /*
@@ -1411,17 +1553,17 @@ static ps_result render_detail_view(const ps_value *spec, const ps_value *record
     list_context *context = &session.context;
     ps_html_buffer *out = &context->output;
     ps_value *model = detail_model(&session, record);
-    bool ok = model && append_container_start(context, "dl", "detail-view", member(model, "design"));
+    bool ok = model && append_container_start(context, "dl", "crudui-detail", member(model, "design"));
     const ps_value *fields = member(model, "fields");
     for (size_t i = 0; ok && i < ps_size(fields); ++i) {
         const ps_value *field = ps_at(fields, i);
         const ps_value *label = member(field, "label");
-        char *base = ps_string_join("detail-value detail-value-", string_member(member(field, "format"), "type"), "");
+        char *base = ps_string_join("crudui-detail__value crudui-value crudui-value--", string_member(member(field, "format"), "type"), "");
         ps_value *field_attrs = ps_object_value();
         ps_value *label_attrs = ps_object_value();
         ok = base && field_attrs && label_attrs && label && label->kind == PS_STRING &&
-            ps_html_attr_string(field_attrs, "class", "detail-field") &&
-            ps_html_attr_string(label_attrs, "class", "detail-label");
+            ps_html_attr_string(field_attrs, "class", "crudui-detail__field") &&
+            ps_html_attr_string(label_attrs, "class", "crudui-detail__label");
         if (!ok) { ps_value_free(field_attrs); ps_value_free(label_attrs); }
         else {
             /* Each start consumes its attributes. */

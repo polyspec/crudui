@@ -277,11 +277,11 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	return out, nil
 }
 
-var interpolateRE = regexp.MustCompile(`\.[A-Za-z_][\w.]*`)
+var interpolateRE = regexp.MustCompile(`\{=[A-Za-z_][\w.]*\}`)
 
 func interpolate(s string, row *Object, value any) string {
 	return interpolateRE.ReplaceAllStringFunc(s, func(token string) string {
-		path := token[1:]
+		path := token[2 : len(token)-1]
 		if path == "field" {
 			return scalar(value)
 		}
@@ -419,11 +419,9 @@ func cellBody(cell *Object) string {
 	}
 	switch stringAt(display, "kind") {
 	case "badge":
-		class := "badge"
-		if v := stringAt(display, "variant"); v != "" {
-			class += " badge-" + v
-		}
-		return element("span", NewObject("class", class), escape(stringAt(display, "label")))
+		attrs := NewObject("class", "crudui-badge")
+		if v := stringAt(display, "variant"); v != "" { attrs.Set("data-crudui-variant", v) }
+		return element("span", attrs, escape(stringAt(display, "label")))
 	case "link":
 		a := NewObject("href", stringAt(display, "href"))
 		if s := stringAt(display, "target"); s != "" {
@@ -450,15 +448,11 @@ func cellBody(cell *Object) string {
 			if b {
 				glyph = "✔"
 			}
-			return element("span", NewObject("class", "bool-check", "aria-label", label), glyph)
+			return element("span", NewObject("class", "crudui-bool crudui-bool--check", "data-crudui-state", fmt.Sprint(b), "aria-label", label), glyph)
 		case "icon":
-			class := "bool-icon bool-false"
-			if b {
-				class = "bool-icon bool-true"
-			}
-			return element("span", NewObject("class", class, "aria-label", label), "")
+			return element("span", NewObject("class", "crudui-bool crudui-bool--icon", "data-crudui-state", fmt.Sprint(b), "aria-label", label), "")
 		default:
-			return element("span", NewObject("class", "bool-text"), escape(label))
+			return element("span", NewObject("class", "crudui-bool crudui-bool--text", "data-crudui-state", fmt.Sprint(b)), escape(label))
 		}
 	case "html":
 		return stringAt(display, "html")
@@ -475,7 +469,7 @@ func cellHTML(cell *Object, tag, base string) string {
 }
 func listHTML(vm *Object, layout string) string {
 	design := object(read(vm, "design"))
-	a := NewObject("class", joinClass("list-view", nodeClass(design, "wrapper")))
+	a := NewObject("class", joinClass("crudui-list", nodeClass(design, "wrapper")))
 	if s := nodeStyle(design, "wrapper"); s != "" {
 		a.Set("style", s)
 	}
@@ -505,31 +499,31 @@ func listHTML(vm *Object, layout string) string {
 					at.Set("on"+k, read(b, k))
 				}
 			}
-			toolbar += element("span", NewObject("class", "list-action", "data-action", stringAt(action, "key")), "<"+tag+attrs(at, true, false)+">"+escapeText(stringAt(action, "label"))+"</"+tag+">")
+			toolbar += element("span", NewObject("class", "crudui-list__action", "data-action", stringAt(action, "key")), "<"+tag+attrs(at, true, false)+">"+escapeText(stringAt(action, "label"))+"</"+tag+">")
 		}
-		body += `<div class="list-actions">` + toolbar + `</div>`
+		body += `<div class="crudui-list__actions">` + toolbar + `</div>`
 	}
 	rows := objectList(read(vm, "rows"))
 	cols := objectList(read(vm, "columns"))
 	if len(rows) == 0 {
-		body += element("div", NewObject("class", "list-empty"), escape(stringAt(vm, "empty")))
+		body += element("div", NewObject("class", "crudui-list__empty"), escape(stringAt(vm, "empty")))
 	} else if layout == "card" {
 		cards := ""
 		for _, row := range rows {
 			content := ""
 			for i, cell := range objectList(read(row, "cells")) {
 				d := object(read(cell, "design"))
-				class := joinClass("list-td list-td-"+stringAt(read(cell, "format"), "type"), nodeClass(d, "main"))
-				content += element("div", NewObject("class", class), element("span", NewObject("class", "list-card-label"), escape(stringAt(cols[i], "label")))+cellHTML(cell, "span", "list-card-value"))
+				class := joinClass("crudui-list__cell crudui-value crudui-value--"+stringAt(read(cell, "format"), "type"), nodeClass(d, "main"))
+				content += element("div", NewObject("class", class), element("span", NewObject("class", "crudui-list__card-label"), escape(stringAt(cols[i], "label")))+cellHTML(cell, "span", "crudui-list__card-value"))
 			}
-			cards += element("article", NewObject("class", "list-card"), content)
+			cards += element("article", NewObject("class", "crudui-list__card"), content)
 		}
-		body += element("div", NewObject("class", "list-cards"), cards)
+		body += element("div", NewObject("class", "crudui-list__cards"), cards)
 	} else {
 		head := ""
 		for _, col := range cols {
 			d := object(read(col, "design"))
-			at := NewObject("class", joinClass("list-th", nodeClass(d, "main")))
+			at := NewObject("class", joinClass("crudui-list__heading", nodeClass(d, "main")))
 			if st := nodeStyle(d, "main"); st != "" {
 				at.Set("style", st)
 			}
@@ -544,9 +538,9 @@ func listHTML(vm *Object, layout string) string {
 			if field != "" && (field == stringAt(col, "field") || field == stringAt(col, "key")) {
 				at.Set("data-sort-dir", stringAt(sort, "dir"))
 			}
-			label := element("span", NewObject("class", "list-th-label"), escape(stringAt(col, "label")))
+			label := element("span", NewObject("class", "crudui-list__heading-label"), escape(stringAt(col, "label")))
 			if truthy(read(col, "sortable")) {
-				label += `<span class="list-sort">↕</span>`
+				label += `<span class="crudui-list__sort">↕</span>`
 			}
 			head += element("th", at, label)
 		}
@@ -554,15 +548,15 @@ func listHTML(vm *Object, layout string) string {
 		for _, row := range rows {
 			inner := ""
 			for _, cell := range objectList(read(row, "cells")) {
-				inner += cellHTML(cell, "td", "list-td list-td-"+stringAt(read(cell, "format"), "type"))
+				inner += cellHTML(cell, "td", "crudui-list__cell crudui-value crudui-value--"+stringAt(read(cell, "format"), "type"))
 			}
 			tbody += "<tr>" + inner + "</tr>"
 		}
-		body += `<table class="list-table"><thead><tr>` + head + `</tr></thead><tbody>` + tbody + `</tbody></table>`
+		body += `<table class="crudui-list__table"><thead><tr>` + head + `</tr></thead><tbody>` + tbody + `</tbody></table>`
 	}
 	p := read(vm, "pagination")
 	if truthy(read(p, "enabled")) {
-		at := NewObject("class", "list-pagination")
+		at := NewObject("class", "crudui-list__pagination")
 		if s := stringAt(p, "mode"); s != "" {
 			at.Set("data-mode", s)
 		}

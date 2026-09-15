@@ -106,7 +106,7 @@ HTML must match. The suite does not rewrite random keys or remove identifiers,
 values, attributes or HTML from a comparison.
 
 Each CLI accepts one JSON value on stdin. Operations are `compileForm`,
-`bindForm`, `form`, `renderList`, `buildDetail` and `renderDetail`. A successful response exits with status 0;
+`bindForm`, `form`, `renderList`, `buildList`, `buildDetail` and `renderDetail`. A successful response exits with status 0;
 a top-level operation error is `{ "error": { "code", "message", "at" } }` and
 exits with status 1. A form action failure is included in its step and execution
 continues. Error code, message and location must match in every implementation,

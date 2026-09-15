@@ -9,6 +9,8 @@ import { parseFragment } from 'parse5';
 const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const fixtures = [
   ...read('../fixtures/form-render/cases.json').filter(item => item.expected_html).map(item => [`form-render/${item.name}`, item.expected_html, item.spec]),
+  ...read('../fixtures/list-render/cases.json').filter(item => item.expected_html).map(item => [`list-render/${item.name}`, item.expected_html, item.spec]),
+  ...read('../fixtures/detail-render/cases.json').filter(item => item.expected_html).map(item => [`detail-render/${item.name}`, item.expected_html, item.spec]),
   ...read('../fixtures/form-outline/cases.json').flatMap(item => [
     [`form-outline/${item.name}/outline`, item.expected_outline_html, item.spec],
     [`form-outline/${item.name}/data`, item.expected_data_html, item.spec],
@@ -37,6 +39,11 @@ const blocks = {
   widget: { elements: ['affix', 'button'], modifiers: ['search', 'unsupported'] },
   input: { elements: [], modifiers: ['select', 'file'] },
   choices: { elements: ['input', 'label'], modifiers: ['multiple'] },
+  list: { elements: ['table', 'heading', 'heading-label', 'sort', 'cell', 'cards', 'card', 'card-label', 'card-value', 'empty', 'actions', 'action', 'pagination'], modifiers: [] },
+  detail: { elements: ['field', 'label', 'value'], modifiers: [] },
+  value: { elements: [], modifiers: ['text', 'date', 'number', 'choice-label', 'badge', 'link', 'bool', 'image', 'html'] },
+  badge: { elements: [], modifiers: [] },
+  bool: { elements: [], modifiers: ['text', 'check', 'icon'] },
 };
 // Classes a renderer writes besides the crudui grammar: validation and editor hooks.
 const hooks = new Set(['valid-target', 'valid-target-async', 'tinymcearea', 'summernote', 'contentjs', 'tuiarea']);

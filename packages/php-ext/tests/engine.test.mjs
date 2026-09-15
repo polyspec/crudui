@@ -856,7 +856,7 @@ const additionalFixtures = [
     spec: {
       columns: {
         number: {
-          field: '.number',
+          field: 'number',
           format: {
             type: 'number',
             ...(Object.hasOwn(item, 'decimals') ? { decimals: item.decimals } : {}),

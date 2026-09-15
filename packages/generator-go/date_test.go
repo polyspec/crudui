@@ -30,7 +30,7 @@ func TestUTCDateValues(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !strings.Contains(html, `class="list-td list-td-date">`+strings.Replace(c.datetime, "T", " ", 1)+`</td>`) {
+		if !strings.Contains(html, `class="crudui-list__cell crudui-value crudui-value--date">`+strings.Replace(c.datetime, "T", " ", 1)+`</td>`) {
 			t.Errorf("list date %q: %s", c.input, html)
 		}
 	}

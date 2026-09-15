@@ -129,12 +129,12 @@ export const numberCases = [
 
 export const imageCase = {
   name: 'image-preload-order-deduplication-and-raw-content',
-  spec: { columns: { image: { field: '.image', format: 'image' }, raw: { field: '.raw', format: 'html' } } },
+  spec: { columns: { image: { field: 'image', format: 'image' }, raw: { field: 'raw', format: 'html' } } },
   rows: [{ image: '/b.png', raw: '<img src="/raw.png">' }, { image: '/a.png' }, { image: '/b.png' }, { image: 'data:image/png;base64,AA==' }],
 };
 export const urlCase = {
   name: 'ordinary-javascript-url-rejection',
-  spec: { columns: { link: { field: '.name', format: { type: 'link', href: ' \u0000JaVaScRiPt:alert(1)', text: 'Open' } }, image: { field: '.url', format: 'image' } } },
+  spec: { columns: { link: { field: 'name', format: { type: 'link', href: ' \u0000JaVaScRiPt:alert(1)', text: 'Open' } }, image: { field: 'url', format: 'image' } } },
   rows: [{ name: 'One', url: 'j\na\tv\rascript:alert(1)' }],
 };
 
@@ -193,4 +193,4 @@ for (const [index, item] of dateCases.entries()) {
   dateFormSpec.properties[`datetime${index}`] = { type: 'datetime' };
   dateFormData[`date${index}`] = dateFormData[`datetime${index}`] = item.value;
 }
-export const dateListSpec = { columns: { value: { field: '.value', format: { type: 'date', pattern: 'YYYY-MM-DD HH:mm:ss' } } } };
+export const dateListSpec = { columns: { value: { field: 'value', format: { type: 'date', pattern: 'YYYY-MM-DD HH:mm:ss' } } } };
