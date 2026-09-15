@@ -15,21 +15,19 @@ export type Language = 'ko' | 'en' | 'ja' | 'zh';
 export type LocalizedText = string | Record<string, string>;
 
 /**
- * Resolve a `LocalizedText` for `language`: plain string passes through; a
- * LangMap resolves `language`, then `en`, then `ko`, then the first key, then
- * the fallback. Matches the React/Svelte reference translator order.
+ * Resolve content for `language`: a string passes through; a language map yields the first
+ * non-empty string entry for `language`, then `en`, then `ko`, then its first key; any other
+ * value (a number, a boolean, an array or a map without such an entry) is the fallback.
  */
 export function makeTranslate(language: Language) {
   return function t(text: LocalizedText | undefined | null, fallback = ''): string {
-    if (text == null) return fallback;
     if (typeof text === 'string') return text;
-    if (typeof text !== 'object') return fallback;
-    const map = text as Record<string, string>;
-    if (map[language]) return map[language]!;
-    if (map.en) return map.en;
-    if (map.ko) return map.ko;
-    const first = Object.keys(map)[0];
-    if (first && map[first]) return map[first]!;
+    if (text === null || typeof text !== 'object' || Array.isArray(text)) return fallback;
+    const map = text as Record<string, unknown>;
+    for (const key of [language, 'en', 'ko', Object.keys(map)[0]]) {
+      const entry = key === undefined ? undefined : map[key];
+      if (typeof entry === 'string' && entry !== '') return entry;
+    }
     return fallback;
   };
 }
