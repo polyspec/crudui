@@ -96,7 +96,7 @@ curl -H 'Content-Type: application/json' \
 ```
 
 The `cmd/generate` CLI accepts one JSON request on stdin and returns one JSON
-value. Supported operations are `compileForm`, `bindForm`, `form`, and
-`renderList`. The `form` operation executes actions and records complete state
+value. Supported operations are `compileForm`, `bindForm`, `form`,
+`renderList`, `buildDetail` and `renderDetail`. The `form` operation executes actions and records complete state
 after both successful and rejected operations. It is a conformance adapter;
 applications call the library directly.

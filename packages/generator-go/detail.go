@@ -1,6 +1,9 @@
 package generator
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // DetailOptions supplies composition, display language and caller-owned data options.
 // Layout is ignored; detail output is always a read-only definition list.
@@ -42,6 +45,7 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 			"key", stringAt(column, "key"),
 			"label", stringAt(column, "label"),
 			"format", read(cell, "format"),
+			"value", read(cell, "value"),
 			"display", read(cell, "display"),
 			"design", read(cell, "design"),
 		))
@@ -67,5 +71,23 @@ func RenderDetail(spec *Object, record *Object, options DetailOptions) (string, 
 			element("dt", NewObject("class", "detail-label"), escapeText(stringAt(field, "label")))+
 				cellHTML(cell, "dd", joinClass("detail-value detail-value-"+stringAt(object(read(field, "format")), "type"), "")))
 	}
-	return element("dl", attrs, body), nil
+	return detailImagePreloads(vm) + element("dl", attrs, body), nil
+}
+
+func detailImagePreloads(vm *Object) string {
+	seen := map[string]bool{}
+	var out strings.Builder
+	for _, field := range objectList(read(vm, "fields")) {
+		display := object(read(field, "display"))
+		if display == nil || stringAt(display, "kind") != "image" {
+			continue
+		}
+		src := stringAt(display, "src")
+		if src == "" || strings.HasPrefix(strings.ToLower(src), "data:") || seen[src] {
+			continue
+		}
+		seen[src] = true
+		out.WriteString("<link" + attrs(NewObject("rel", "preload", "as", "image", "href", src), false, false) + "/>")
+	}
+	return out.String()
 }

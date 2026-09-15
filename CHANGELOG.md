@@ -2,6 +2,50 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Enforce detail views at the same level in every runtime
+
+Detail views existed in JavaScript and Go only, and nothing compared their output. Three
+unpushed commits in this working tree carried no Claude trailer and appear in no session
+transcript: `012b3236` and `899bc37e` added PHP and Rust detail rendering and raw-HTML detail
+cases to the native runner, and `4dbe8157` added PHP JSON boundary documentation together with
+changes I had staged but not verified. Reviewing them before building on them showed that the
+runner compared HTML only, that the C extension had no detail operations although the runner
+sent it every case, that the JavaScript renderers kept their own substring tests, and that the
+commit messages described their content only in part. I moved `main` back to the pushed commit
+and recorded their implementation and documentation in this change and the preceding one.
+
+Measuring every runtime found three divergences no check had seen:
+- For a path the record does not have, JavaScript left the cell's `value` out, Go wrote `{}`,
+  Rust wrote `null`, and PHP left it out, so its detail model raised an undefined-property
+  warning. A cell's `value` is now `null` when the row has none and the member is always
+  present, in lists and details alike; rendered HTML does not change.
+- For a declared `null` image width or height, the C extension left both attributes out where
+  every other runtime writes `width=""` and `height=""`. It now matches.
+- Every PHP API reads an empty PHP array as the empty root object, as the PHP API contract
+  states, but the detail methods of the PHP library and the extension rejected it. They now
+  follow the contract; the PHP command-line adapter still rejects a JSON array, as every
+  runtime does.
+
+The rule is enforced at both levels a runtime exposes. `tests/fixtures/detail-render/cases.json`
+holds 19 cases generated from React. React, Vue, Svelte and the HTML renderer run it as
+conformance tests in place of their own substring tests. The native runner sends every case to
+JavaScript, the HTML renderer, the PHP library, Go, Rust and the PHP extension as `buildDetail`,
+whose model must match with its member order, and as `renderDetail`, whose HTML must match byte
+for byte, image preload links included. The C extension implements both operations on the cell
+code its list path now shares. Every runtime rejects a declaration that is not an object, a
+declaration without `fields` and a record that is not an object with the same messages.
+
+Two findings stay open. The C extension still uses the cell value as link text when `text` is
+`0` or `false`, which the schema does not accept. Detail specification validation
+(`validateDetail`) exists in JavaScript only, so the detail feature stays in progress.
+
+`make test-native` passed 1,285 of 1,285 checks with every target available; each of the six
+targets passed 214 of 214. The PHP generator passed 173 tests. The extension passed 396 API checks in each of three
+configurations and 24 engine tests, with one Linux-only test skipped. React, Vue, Svelte and the
+HTML renderer each passed the 19 detail conformance cases, the Go and Rust generator tests
+passed, and `npm run lint`, `npm run test:docs`, the core, React and HTML type checks,
+`make docs-check` and `npm run test:forms` passed.
+
 ## 2026-09-15 — Share the preload link helper between list and detail fixtures
 
 Framework conformance compares a rendered list without the image preload links that React's

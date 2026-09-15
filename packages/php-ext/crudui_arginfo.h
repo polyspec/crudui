@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: c503f0f638e051768da1d667aa1d57517f358111 */
+ * Stub hash: 6d029213d2f29fe25000670f8ec3e080003f6b4d */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_CRUDUI_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -19,6 +19,18 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Generator_renderList, 0, 2, IS_STRING, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
 	ZEND_ARG_TYPE_INFO(0, rows, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Generator_renderDetail, 0, 1, IS_STRING, 0)
+	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, record, stdClass, MAY_BE_ARRAY, "new stdClass()")
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_CRUDUI_Generator_buildDetail, 0, 1, stdClass, 0)
+	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, record, stdClass, MAY_BE_ARRAY, "new stdClass()")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 
@@ -137,6 +149,8 @@ ZEND_METHOD(CRUDUI_Generator, compileForm);
 ZEND_METHOD(CRUDUI_Generator, bindForm);
 ZEND_METHOD(CRUDUI_Generator, renderForm);
 ZEND_METHOD(CRUDUI_Generator, renderList);
+ZEND_METHOD(CRUDUI_Generator, renderDetail);
+ZEND_METHOD(CRUDUI_Generator, buildDetail);
 ZEND_METHOD(CRUDUI_Generator, sequenceRowKey);
 ZEND_METHOD(CRUDUI_Generator, createRowKey);
 ZEND_METHOD(CRUDUI_Validator, validate);
@@ -172,6 +186,8 @@ static const zend_function_entry class_CRUDUI_Generator_methods[] = {
 	ZEND_ME(CRUDUI_Generator, bindForm, arginfo_class_CRUDUI_Generator_bindForm, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, renderForm, arginfo_class_CRUDUI_Generator_renderForm, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, renderList, arginfo_class_CRUDUI_Generator_renderList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(CRUDUI_Generator, renderDetail, arginfo_class_CRUDUI_Generator_renderDetail, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(CRUDUI_Generator, buildDetail, arginfo_class_CRUDUI_Generator_buildDetail, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, sequenceRowKey, arginfo_class_CRUDUI_Generator_sequenceRowKey, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, createRowKey, arginfo_class_CRUDUI_Generator_createRowKey, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_FE_END

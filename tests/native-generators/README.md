@@ -33,7 +33,11 @@ The existing 92 form cases compare complete compiled templates and bound models.
 Templates from each target are bound by JavaScript and JavaScript templates are
 bound by each target without composition loaders or files. Specification member order and control attribute order are
 compared. The existing 21 list cases compare original HTML strings, including
-image resource hints. Historical normalized layout tests remain separate.
+image resource hints. Historical normalized layout tests remain separate. The 19
+[detail cases](../fixtures/detail-render/README.md) compare both levels a runtime exposes:
+the `buildDetail` model with its member order, and the original `renderDetail` HTML
+including image resource hints. Error cases compare code, message and location at both
+levels.
 
 Additional cases compare keyed data in sequence order 5, 7, 1, scoped additions,
 reordering, saved-key replacement, rejected operations, empty collections,
@@ -55,7 +59,7 @@ HTML must match. The suite does not rewrite random keys or remove identifiers,
 values, attributes or HTML from a comparison.
 
 Each CLI accepts one JSON value on stdin. Operations are `compileForm`,
-`bindForm`, `form` and `renderList`. A successful response exits with status 0;
+`bindForm`, `form`, `renderList`, `buildDetail` and `renderDetail`. A successful response exits with status 0;
 a top-level operation error is `{ "error": { "code", "message", "at" } }` and
 exits with status 1. A form action failure is included in its step and execution
 continues. Error code, message and location must match in every implementation,

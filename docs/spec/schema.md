@@ -132,6 +132,16 @@ with lists, but do not declare sorting, pagination or actions. `buildDetail`
 returns ordered display fields and the evaluated detail design; renderers consume
 that model without querying application data.
 
+The model is `{ fields, design }`. Each field has the members `key`, `label`, `format`,
+`value`, `display` and `design`, in that order: the list cell of the one record, preceded
+by its key and translated label. `value` is `null` when the record has no value at the
+field path, as it is for a list cell. A declaration that is not an object fails with
+`Detail specification must be an object`, a declaration without `fields` with `Detail
+specification must declare fields`, and a record that is not an object with `Detail record
+must be an object`. Every runtime returns the same model and the same errors, and every
+string renderer writes the same detail HTML as React's server rendering, including image
+preload links before the definition list.
+
 ## Acceptance criteria
 
 1. Resolve composition before evaluating fields and report missing references.
