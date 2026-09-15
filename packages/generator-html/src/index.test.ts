@@ -43,18 +43,18 @@ describe('framework-independent list rendering', () => {
   test('renders table and card layouts from the same list model', () => {
     const spec = {
       columns: {
-        name: { field: '.name', label: 'Name' },
-        status: { field: '.status', format: { type: 'badge', map: { active: 'success' } } },
+        name: { field: 'name', label: 'Name' },
+        status: { field: 'status', format: { type: 'badge', map: { active: 'success' } } },
       },
     };
     const rows = [{ name: 'Ada', status: 'active' }];
     const table = renderList(spec, rows);
     const card = renderList(spec, rows, { layout: 'card' });
 
-    expect(table).toContain('<table class="list-table">');
-    expect(table).toContain('<span class="badge badge-success">active</span>');
-    expect(card).toContain('<div class="list-cards">');
-    expect(card).toContain('<article class="list-card">');
+    expect(table).toContain('<table class="crudui-list__table">');
+    expect(table).toContain('<span class="crudui-badge" data-crudui-variant="success">active</span>');
+    expect(card).toContain('<div class="crudui-list__cards">');
+    expect(card).toContain('<article class="crudui-list__card">');
     expect(table).not.toContain('Ada</script>');
   });
 });

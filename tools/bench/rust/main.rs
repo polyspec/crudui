@@ -10,7 +10,7 @@
 //! Build/run with `cargo run --release` (debug codegen would mismeasure).
 //! Args: --iters N, --warmup N, --spec NAME, --fixtures DIR.
 
-use crudui_validator::legacy::{convert_input, parse_spec, Validator};
+use crudui_validator::validate::Validator;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
@@ -39,12 +39,16 @@ fn load_fixture(dir: &str, name: &str) -> (Value, Value) {
 
 fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
     let (spec_value, raw_input) = load_fixture(dir, name);
-    let parsed = parse_spec(&spec_value);
-    let validator_input = convert_input(parsed.is_group, &raw_input);
+    let validator_input = raw_input;
 
     // Build the validator once; reuse across iterations. `validate` takes
     // &mut self, so the instance is rebuilt-free but mutated in place.
-    let mut v = Validator::new(parsed.spec);
+    let properties = spec_value
+        .get("properties")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+    let v = Validator::new(properties);
 
     // Warmup.
     for _ in 0..warmup {
@@ -62,8 +66,8 @@ fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
     let ops_sec = ((iters as f64 / ns) * 1e9) as i64;
     let avg_us = ns / 1000.0 / iters as f64;
 
-    let result = v.validate(&validator_input);
-    let (error, field) = if !result.is_valid && !result.errors.is_empty() {
+    let result = v.validate(&validator_input).expect("validation");
+    let (error, field) = if !result.valid && !result.errors.is_empty() {
         (
             Some(result.errors[0].rule.clone()),
             Some(result.errors[0].field.clone()),
@@ -78,7 +82,7 @@ fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
         ms: (ms * 1000.0).round() / 1000.0,
         ops_sec,
         avg_us: (avg_us * 10000.0).round() / 10000.0,
-        valid: result.is_valid,
+        valid: result.valid,
         error,
         field,
     }

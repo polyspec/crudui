@@ -194,7 +194,8 @@ identity fields. See [form runtime](form-runtime.md) for row operations.
 Form compilation rejects a wrong value type in `multiple`, `lang` and `design` with
 `INVALID_FORM_INPUT` and the message `Invalid {key} at {path}: expected
 {expected}`. `{path}` is the field's structural path, such as `companies.name`.
-A condition map is a non-empty object. A form without `buttons` has one submit
+A condition map is a non-empty object. A button or action field takes its control
+text only from `content`; `text` is not a field compatibility key. A form without `buttons` has one submit
 button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 [form markup](form-markup.md)).
 

@@ -18,13 +18,13 @@ func TestListAndDetailDesignDeclarations(t *testing.T) {
 		spec  string
 		want  string
 	}{
-		{"list column unknown key", list, `{"columns":{"name":{"field":".name","design":{"main":{"class":"x"}}}}}`, "Invalid design.main at columns.name: unknown key"},
-		{"list own unknown key", list, `{"columns":{"name":{"field":".name"}},"design":{"color":"red"}}`, "Invalid design.color at list: unknown key"},
-		{"list column show type", list, `{"columns":{"name":{"field":".name","design":{"show":1}}}}`, "Invalid design.show at columns.name: expected an expression, a boolean or a condition map"},
-		{"detail field node unknown key", detail, `{"fields":{"name":{"field":".name","design":{"label":{"text":"x"}}}}}`, "Invalid design.label.text at fields.name: unknown key"},
-		{"detail own node type", detail, `{"fields":{"name":{"field":".name"}},"design":{"wrapper":"box"}}`, "Invalid design.wrapper at detail: expected an object"},
-		{"list own design before columns", list, `{"columns":{"name":{"field":".name","design":{"main":{}}}},"design":{"color":"red"}}`, "Invalid design.color at list: unknown key"},
-		{"detail own design before fields", detail, `{"fields":{"name":{"field":".name","design":{"main":{}}}},"design":"box"}`, "Invalid design at detail: expected a boolean or an object"},
+		{"list column unknown key", list, `{"columns":{"name":{"field":"name","design":{"main":{"class":"x"}}}}}`, "Invalid design.main at columns.name: unknown key"},
+		{"list own unknown key", list, `{"columns":{"name":{"field":"name"}},"design":{"color":"red"}}`, "Invalid design.color at list: unknown key"},
+		{"list column show type", list, `{"columns":{"name":{"field":"name","design":{"show":1}}}}`, "Invalid design.show at columns.name: expected an expression, a boolean or a condition map"},
+		{"detail field node unknown key", detail, `{"fields":{"name":{"field":"name","design":{"label":{"text":"x"}}}}}`, "Invalid design.label.text at fields.name: unknown key"},
+		{"detail own node type", detail, `{"fields":{"name":{"field":"name"}},"design":{"wrapper":"box"}}`, "Invalid design.wrapper at detail: expected an object"},
+		{"list own design before columns", list, `{"columns":{"name":{"field":"name","design":{"main":{}}}},"design":{"color":"red"}}`, "Invalid design.color at list: unknown key"},
+		{"detail own design before fields", detail, `{"fields":{"name":{"field":"name","design":{"main":{}}}},"design":"box"}`, "Invalid design at detail: expected a boolean or an object"},
 		{"list columns in member order", list, `{"columns":{"b":{"design":{"one":1}},"10":{"design":{"two":2}}}}`, "Invalid design.two at columns.10: unknown key"},
 		{"detail fields in member order", detail, `{"fields":{"b":{"design":{"class":1}},"a":{"design":{"style":2}}}}`, "Invalid design.class at fields.b: expected a string or a condition map"},
 	}
@@ -45,10 +45,10 @@ func TestListAndDetailDesignDeclarations(t *testing.T) {
 		t.Fatalf("detail input rules must precede declarations: %v", err)
 	}
 	// Valid declarations pass.
-	if err := list(`{"columns":{"name":{"field":".name","design":{"show":true,"class":"x"}}},"design":{"wrapper":{"class":"w"}}}`); err != nil {
+	if err := list(`{"columns":{"name":{"field":"name","design":{"show":true,"class":"x"}}},"design":{"wrapper":{"class":"w"}}}`); err != nil {
 		t.Fatal(err)
 	}
-	if err := detail(`{"fields":{"name":{"field":".name","design":{"class":"c","label":{"style":"s"}}}},"design":true}`); err != nil {
+	if err := detail(`{"fields":{"name":{"field":"name","design":{"class":"c","label":{"style":"s"}}}},"design":true}`); err != nil {
 		t.Fatal(err)
 	}
 }

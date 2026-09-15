@@ -73,7 +73,7 @@ final class Details
     {
         $model = self::build($spec, $record, $options);
         $design = $model->design;
-        $attrs = ['class' => Value::classes('detail-view', $design->wrapper->class)];
+        $attrs = ['class' => Value::classes('crudui-detail', $design->wrapper->class)];
         $style = Value::style($design->wrapper->style);
         if ($style !== null) {
             $attrs['style'] = $style;
@@ -81,9 +81,9 @@ final class Details
         $body = '';
         foreach ($model->fields as $field) {
             $cell = (object) ['display' => $field->display, 'design' => $field->design, 'format' => $field->format];
-            $body .= Rendering::element('div', ['class' => 'detail-field'],
-                Rendering::element('dt', ['class' => 'detail-label'], Rendering::text($field->label)) .
-                Lists::renderCell($cell, 'dd', 'detail-value detail-value-' . $field->format->type));
+            $body .= Rendering::element('div', ['class' => 'crudui-detail__field'],
+                Rendering::element('dt', ['class' => 'crudui-detail__label'], Rendering::text($field->label)) .
+                Lists::renderCell($cell, 'dd', 'crudui-detail__value crudui-value crudui-value--' . $field->format->type));
         }
         return self::preloads($model) . Rendering::element('dl', $attrs, $body);
     }

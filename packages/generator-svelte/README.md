@@ -13,7 +13,7 @@ const template = compileForm({
 const form = createForm(template, { name: 'Example' });
 const formHtml = renderForm(form);
 
-const listSpec = { columns: { name: { field: '.name', label: 'Name' } } };
+const listSpec = { columns: { name: { field: 'name', label: 'Name' } } };
 const listHtml = renderList(listSpec, [{ name: 'Ada' }], { language: 'en' });
 ```
 

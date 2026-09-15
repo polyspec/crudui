@@ -67,7 +67,7 @@ export const listDocSections = [
     title: '컬럼 (columns)',
     body:
       'list-spec 의 columns 맵이 표의 열을 선언한다. ' +
-      '각 열은 field(점-경로, 예 ".name") 로 행에서 값을 뽑고, label(문자열 또는 ko/en i18n 맵) 로 헤더를 붙인다. ' +
+      '각 열은 field(점으로 구분한 경로, 예 "name") 로 행에서 값을 뽑고, label(문자열 또는 ko/en i18n 맵) 로 헤더를 붙인다. ' +
       'rows 는 주입(injected)이다 — list-spec 은 컬럼만 선언하고 DB 를 모른다. ' +
       '출처: list-render basic-columns.',
   },

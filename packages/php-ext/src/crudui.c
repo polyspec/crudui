@@ -145,6 +145,28 @@ PHP_METHOD(CRUDUI_Generator, renderList)
     call_three(spec, rows, false, options, true, true, ps_render_list, return_value);
 }
 
+PHP_METHOD(CRUDUI_Generator, buildList)
+{
+    zval *spec, *rows, *options = NULL;
+    ZEND_PARSE_PARAMETERS_START(1, 3)
+        Z_PARAM_ARRAY_OR_OBJECT(spec)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ARRAY(rows)
+        Z_PARAM_ARRAY(options)
+    ZEND_PARSE_PARAMETERS_END();
+    if (!rows) {
+        zval empty; array_init(&empty); rows = &empty;
+        call_three(spec, rows, false, options, true, true, ps_build_list, return_value);
+        zval_ptr_dtor(&empty);
+        return;
+    }
+    if (list_array(spec)) {
+        crudui_invalid_value("List specification must be an object", true);
+        return;
+    }
+    call_three(spec, rows, false, options, true, true, ps_build_list, return_value);
+}
+
 /*
  * Specification and record are root objects: an empty PHP array is the empty root object, as for
  * every root object argument, and a non-empty list-shaped array is rejected.

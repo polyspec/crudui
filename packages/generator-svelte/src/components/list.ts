@@ -39,7 +39,7 @@ export function nodeStyle(node: ResolvedNode | undefined): string | undefined {
 
 /** Header cell (`<th>`) class: base + the column's resolved design class. */
 export function headerClass(col: ColumnVM): string | undefined {
-  return nodeClass('list-th', col.design.main);
+  return nodeClass('crudui-list__heading', col.design.main);
 }
 
 /** Header cell style. */
@@ -49,7 +49,7 @@ export function headerStyle(col: ColumnVM): string | undefined {
 
 /** Body cell (`<td>`) class: base + format type + the cell's resolved design. */
 export function cellClass(cell: CellVM): string | undefined {
-  const base = `list-td list-td-${cell.format.type}`;
+  const base = `crudui-list__cell crudui-value crudui-value--${cell.format.type}`;
   return nodeClass(base, cell.design.main);
 }
 

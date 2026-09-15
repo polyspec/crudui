@@ -286,9 +286,9 @@ const memberOrderRequests = [
   ['compile-composed-properties', '{"operation":"compileForm","spec":{"type":"group","properties":{"$ref":"base.json","$patch":{"10":{"type":"text","label":"Ten"}}}},"options":{"files":{"base.json":{"properties":{"b":{"type":"text","label":"B"},"a":{"type":"text","label":"A"}}}}}}'],
   ['compile-unknown-key', '{"operation":"compileForm","spec":{"type":"group","properties":{"rows":{"type":"text","multiple":{"z":1,"5":1}}}}}'],
   ['bind-select-items', `{"operation":"bindForm","template":${orderTemplateText},"data":{},"options":{}}`],
-  ['render-list-columns', '{"operation":"renderList","spec":{"columns":{"b":{"field":".b","label":"B"},"10":{"field":".ten","label":"Ten"},"a":{"field":".a","label":"A"}}},"rows":[{"a":"x","b":"y","ten":"z"}],"options":{"language":"en"}}'],
-  ['build-detail-fields', '{"operation":"buildDetail","spec":{"fields":{"b":{"field":".b","label":"B"},"10":{"field":".ten","label":"Ten"},"a":{"field":".a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
-  ['render-detail-fields', '{"operation":"renderDetail","spec":{"fields":{"b":{"field":".b","label":"B"},"10":{"field":".ten","label":"Ten"},"a":{"field":".a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
+  ['render-list-columns', '{"operation":"renderList","spec":{"columns":{"b":{"field":"b","label":"B"},"10":{"field":"ten","label":"Ten"},"a":{"field":"a","label":"A"}}},"rows":[{"a":"x","b":"y","ten":"z"}],"options":{"language":"en"}}'],
+  ['build-crudui-detail__fields', '{"operation":"buildDetail","spec":{"fields":{"b":{"field":"b","label":"B"},"10":{"field":"ten","label":"Ten"},"a":{"field":"a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
+  ['render-crudui-detail__fields', '{"operation":"renderDetail","spec":{"fields":{"b":{"field":"b","label":"B"},"10":{"field":"ten","label":"Ten"},"a":{"field":"a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
 ];
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
@@ -377,6 +377,27 @@ for (const target of runTargets) {
     return { html: digest(actual), rawHTML: true };
   });
 
+  await check(target, 'build-list-model', async () => {
+    const request = {
+      operation: 'buildList',
+      spec: {
+        columns: {
+          name: { field: 'name', label: 'Name', format: { type: 'link', href: '/users/{=jointablename.id}/{=join.join.name}.pdf' } },
+          active: { field: 'active', format: { type: 'bool', as: 'check' } },
+        },
+        pagination: { per_page: 10, mode: 'offset' },
+        sort: { field: 'name', dir: 'desc' },
+        actions: { edit: { label: 'Edit', format: { type: 'link', href: '/edit' } } },
+      },
+      rows: [{ name: 'Ada', active: 1, jointablename: { id: 7 }, join: { join: { name: 'Ada' } } }],
+      options: { language: 'en', page: 2, total: 5 },
+    };
+    const expected = oracle(request);
+    const actual = await invoke(target, request);
+    equalOrdered(actual, expected, '$.list');
+    return { model: digest(actual) };
+  });
+
   // A detail is checked at both levels a runtime exposes: the model and its raw HTML.
   for (const fixture of detailCases) await check(target, `detail:${fixture.name}`, async () => {
     const evidence = {};
@@ -406,9 +427,9 @@ for (const target of runTargets) {
   for (const [index, item] of numberCases.entries()) await check(target, `number:${index}`, async () => {
     const format = { type: 'number' };
     if (Object.hasOwn(item, 'decimals')) format.decimals = item.decimals;
-    const request = { operation: 'renderList', spec: { columns: { number: { field: '.number', format } } }, rows: [{ number: item.value }] };
+    const request = { operation: 'renderList', spec: { columns: { number: { field: 'number', format } } }, rows: [{ number: item.value }] };
     const expected = oracle(request), actual = await invoke(target, request);
-    const cell = `<td class="list-td list-td-number">${item.expected}</td>`;
+    const cell = `<td class="crudui-list__cell crudui-value crudui-value--number">${item.expected}</td>`;
     assert.ok(expected.includes(cell), `JavaScript number does not match the explicit expectation ${item.expected}`);
     assert.ok(actual.includes(cell), `Native number does not match the explicit expectation ${item.expected}`);
     assert.equal(actual, expected);
@@ -626,7 +647,7 @@ for (const target of runTargets) {
     const listRequest = { operation: 'renderList', spec: dateListSpec, rows: dateCases.map(item => ({ value: item.value })) };
     const html = await invoke(target, listRequest, timezone);
     assert.equal(html, oracle(listRequest), 'UTC list HTML differs');
-    const cells = [...html.matchAll(/<td class="list-td list-td-date">(.*?)<\/td>/g)].map(match => match[1]);
+    const cells = [...html.matchAll(/<td class="crudui-list__cell crudui-value crudui-value--date">(.*?)<\/td>/g)].map(match => match[1]);
     assert.deepEqual(cells, dateCases.map(item => item.date === item.value && item.datetime === item.value ? item.value : item.datetime.replace('T', ' ')), 'List date values differ from explicit expectations');
     return { timezone, dateValues: dateCases.length, html: digest(html), fields: digest(initial.fields), rawHTML: true };
   });

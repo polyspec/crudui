@@ -6,7 +6,7 @@
     "engine": "pass",
     "spec": {
       "columns": {
-        "name": { "field": ".name", "label": { "ko": "이름", "en": "Name" } }
+        "name": { "field": "name", "label": { "ko": "이름", "en": "Name" } }
       }
     }
   },
@@ -17,14 +17,14 @@
     "engine": "pass",
     "spec": {
       "columns": {
-        "joined": { "field": ".joined", "format": { "type": "date", "pattern": "YYYY-MM-DD" } },
-        "score": { "field": ".score", "format": { "type": "number", "decimals": 2, "thousands": true, "prefix": { "en": "$" } } },
-        "status": { "field": ".status", "format": { "type": "badge", "map": { "active": "success", "blocked": { "ko": "차단", "en": "Blocked" } } } },
-        "name": { "field": ".name", "format": { "type": "link", "href": "/user/.id", "target": "_blank", "text": { "en": "Open" } } },
-        "grade": { "field": ".grade", "format": { "type": "choice-label", "items": { "A": "Apple", "B": { "ko": "바나나", "en": "Banana" } } } },
-        "admin": { "field": ".admin", "format": { "type": "bool", "as": "check", "true": { "en": "Yes" }, "false": { "en": "No" } } },
-        "avatar": { "field": ".avatar", "format": { "type": "image", "width": 40, "height": 40, "alt": "avatar .name" } },
-        "bio": { "field": ".bio", "format": { "type": "html" } }
+        "joined": { "field": "joined", "format": { "type": "date", "pattern": "YYYY-MM-DD" } },
+        "score": { "field": "score", "format": { "type": "number", "decimals": 2, "thousands": true, "prefix": { "en": "$" } } },
+        "status": { "field": "status", "format": { "type": "badge", "map": { "active": "success", "blocked": { "ko": "차단", "en": "Blocked" } } } },
+        "name": { "field": "name", "format": { "type": "link", "href": "/user/{=id}", "target": "_blank", "text": { "en": "Open" } } },
+        "grade": { "field": "grade", "format": { "type": "choice-label", "items": { "A": "Apple", "B": { "ko": "바나나", "en": "Banana" } } } },
+        "admin": { "field": "admin", "format": { "type": "bool", "as": "check", "true": { "en": "Yes" }, "false": { "en": "No" } } },
+        "avatar": { "field": "avatar", "format": { "type": "image", "width": 40, "height": 40, "alt": "avatar {=name}" } },
+        "bio": { "field": "bio", "format": { "type": "html" } }
       }
     }
   },
@@ -35,9 +35,9 @@
     "engine": "pass",
     "spec": {
       "columns": {
-        "a": { "field": ".a", "format": "date" },
-        "b": { "field": ".b", "format": false },
-        "c": { "field": ".c", "format": true }
+        "a": { "field": "a", "format": "date" },
+        "b": { "field": "b", "format": false },
+        "c": { "field": "c", "format": true }
       }
     }
   },
@@ -48,10 +48,10 @@
     "engine": "pass",
     "spec": {
       "columns": {
-        "name": { "field": ".name", "label": "Name", "sortable": true, "design": { "class": "text-right", "style": "width: 40%" } },
-        "score": { "field": ".score", "sortable": ".admin" }
+        "name": { "field": "name", "label": "Name", "sortable": true, "design": { "class": "text-right", "style": "width: 40%" } },
+        "score": { "field": "score", "sortable": ".admin" }
       },
-      "sort": { "field": ".name", "dir": "asc" },
+      "sort": { "field": "name", "dir": "asc" },
       "pagination": { "per_page": 20, "mode": "pages" },
       "actions": {
         "edit": { "label": { "en": "Edit" }, "format": { "type": "link", "href": "/edit" } },
@@ -69,15 +69,15 @@
     "files": {
       "base-columns.yml": {
         "properties": {
-          "name": { "field": ".name", "label": "Name" },
-          "joined": { "field": ".joined", "format": { "type": "date" } }
+          "name": { "field": "name", "label": "Name" },
+          "joined": { "field": "joined", "format": { "type": "date" } }
         }
       }
     },
     "spec": {
       "columns": {
         "$ref": "base-columns.yml",
-        "$patch": { "extra": { "field": ".extra", "label": "Extra" } }
+        "$patch": { "extra": { "field": "extra", "label": "Extra" } }
       }
     }
   },
@@ -94,7 +94,7 @@
       }
     },
     "spec": {
-      "columns": { "name": { "field": ".name" } },
+      "columns": { "name": { "field": "name" } },
       "search": { "$ref": "search-form.yml", "$patch": { "add": { "type": "text", "label": "Add filter" } } }
     }
   },
@@ -105,7 +105,7 @@
     "expect": "fail",
     "reason": "required",
     "engine": "pass",
-    "spec": { "sort": { "field": ".name", "dir": "asc" } }
+    "spec": { "sort": { "field": "name", "dir": "asc" } }
   },
   {
     "name": "red-forbidden-column-key",
@@ -115,8 +115,8 @@
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.display_switch" },
     "spec": {
       "columns": {
-        "name": { "field": ".name" },
-        "display_switch": { "field": ".x" }
+        "name": { "field": "name" },
+        "display_switch": { "field": "x" }
       }
     }
   },
@@ -128,8 +128,8 @@
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.xclass" },
     "spec": {
       "columns": {
-        "name": { "field": ".name" },
-        "xclass": { "field": ".x" }
+        "name": { "field": "name" },
+        "xclass": { "field": "x" }
       }
     }
   },
@@ -141,7 +141,7 @@
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.name.show_if" },
     "spec": {
       "columns": {
-        "name": { "field": ".name", "show_if": ".admin" }
+        "name": { "field": "name", "show_if": ".admin" }
       }
     }
   },
@@ -153,7 +153,7 @@
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "columns.name.format.if" },
     "spec": {
       "columns": {
-        "name": { "field": ".name", "format": { "type": "badge", "if": ".admin" } }
+        "name": { "field": "name", "format": { "type": "badge", "if": ".admin" } }
       }
     }
   },
@@ -164,8 +164,8 @@
     "reason": "enum",
     "engine": "pass",
     "spec": {
-      "columns": { "name": { "field": ".name" } },
-      "sort": { "field": ".name", "dir": "sideways" }
+      "columns": { "name": { "field": "name" } },
+      "sort": { "field": "name", "dir": "sideways" }
     }
   },
   {
@@ -175,8 +175,8 @@
     "reason": "additionalProperties",
     "engine": "pass",
     "spec": {
-      "columns": { "name": { "field": ".name" } },
-      "sort": { "field": ".name", "dir": "asc", "nulls": "last" }
+      "columns": { "name": { "field": "name" } },
+      "sort": { "field": "name", "dir": "asc", "nulls": "last" }
     }
   },
   {
@@ -186,7 +186,7 @@
     "reason": "additionalProperties",
     "engine": "pass",
     "spec": {
-      "columns": { "name": { "field": ".name" } },
+      "columns": { "name": { "field": "name" } },
       "pagination": { "per_page": 20, "limit": 99 }
     }
   },
@@ -197,7 +197,7 @@
     "reason": "enum",
     "engine": "pass",
     "spec": {
-      "columns": { "name": { "field": ".name" } },
+      "columns": { "name": { "field": "name" } },
       "pagination": { "mode": "infinite" }
     }
   },
@@ -208,7 +208,7 @@
     "reason": "additionalProperties",
     "engine": "pass",
     "spec": {
-      "columns": { "name": { "field": ".name" } },
+      "columns": { "name": { "field": "name" } },
       "limit": 10
     }
   },
@@ -219,7 +219,7 @@
     "reason": "additionalProperties",
     "engine": "pass",
     "spec": {
-      "columns": { "name": { "field": ".name" } },
+      "columns": { "name": { "field": "name" } },
       "actions": { "edit": { "label": "Edit", "onclick": "x()" } }
     }
   },
@@ -231,7 +231,7 @@
     "engine": "pass",
     "spec": {
       "columns": {
-        "name": { "field": ".name", "format": ["date"] }
+        "name": { "field": "name", "format": ["date"] }
       }
     }
   }

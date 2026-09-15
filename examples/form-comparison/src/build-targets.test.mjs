@@ -53,13 +53,22 @@ test('rebuilds and restarts only the affected native server', () => {
 
 test('reinstalls JavaScript dependencies and rebuilds what depends on them', () => {
   assert.deepEqual(summary(['package-lock.json']), {
-    targets: ['npm-dependencies', 'javascript-packages', 'frames'], restarts: ['public'],
+    targets: ['npm-dependencies', 'javascript-packages', 'ordered-json-javascript', 'frames'], restarts: ['public'],
     supervisor: false,
   });
   assert.deepEqual(summary(['packages/generator-vue/src/components/Form.vue']),
     { targets: ['javascript-packages', 'frames'], restarts: [], supervisor: false });
   assert.deepEqual(summary([`${example}/src/frame.mjs`, `${example}/public/main.mjs`]),
     { targets: ['frames'], restarts: [], supervisor: false });
+});
+
+test('installs the pinned monorepo JavaScript package before building frames', () => {
+  assert.deepEqual(summary(['scripts/install-ordered-json-js.mjs']), {
+    targets: ['ordered-json-javascript', 'frames'], restarts: [], supervisor: false,
+  });
+  assert.deepEqual(summary([`${example}/src/ordered-json-source.mjs`]), {
+    targets: ['ordered-json-javascript', 'frames'], restarts: [], supervisor: true,
+  });
 });
 
 test('restarts the public server for its own sources and matrix readers for the matrix', () => {

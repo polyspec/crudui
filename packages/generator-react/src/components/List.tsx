@@ -10,11 +10,11 @@
  * category as the form's behavior slot (never routed through the expr engine).
  *
  * The emitted markup is the SHARED 3-framework list contract (React/Vue/Svelte
- * emit the SAME normalized HTML — tests/fixtures/list-render): a `.list-view`
- * envelope; a `.list-actions` toolbar; a `.list-table` (thead `.list-th` →
- * `.list-th-label` + `.list-sort`; tbody `.list-td .list-td-TYPE`) or a
- * `.list-cards` grid of `.list-card` articles; an empty `.list-empty`; a
- * `<nav class="list-pagination">` carrying the declared + injected meta. eval is
+ * emit the SAME normalized HTML — tests/fixtures/list-render): a `.crudui-list`
+ * envelope; a `.crudui-list__actions` toolbar; a `.crudui-list__table` (thead `.crudui-list__heading` →
+ * `.crudui-list__heading-label` + `.crudui-list__sort`; tbody `.crudui-list__cell .crudui-list__cell-TYPE`) or a
+ * `.crudui-list__cards` grid of `.crudui-list__card` articles; an empty `.crudui-list__empty`; a
+ * `<nav class="crudui-list__pagination">` carrying the declared + injected meta. eval is
  * never called; there is NO input widget anywhere (read-only).
  */
 
@@ -55,7 +55,7 @@ function behaviorAttrs(behavior: Record<string, string> | undefined): string {
 }
 
 /**
- * One action's RAW html (the `<span class="list-action">` host is JSX; its inner
+ * One action's RAW html (the `<span class="crudui-list__action">` host is JSX; its inner
  * `<a>`/`<button>` is serialized verbatim so the opaque behavior `on*` bytes — and
  * React-dropped string event attrs — survive). A link-format action → `<a>`;
  * otherwise a `<button>`. Mirrors Svelte list.ts `actionHtml`.
@@ -79,11 +79,11 @@ function actionHtml(action: ActionVM): string {
 function Toolbar({ actions }: { actions: ActionVM[] }): React.ReactElement | null {
   if (!actions.length) return null;
   return (
-    <div className="list-actions">
+    <div className="crudui-list__actions">
       {actions.map((a) => (
         <span
           key={a.key}
-          className="list-action"
+          className="crudui-list__action"
           data-action={a.key}
           dangerouslySetInnerHTML={{ __html: actionHtml(a) }}
         />
@@ -111,7 +111,7 @@ function HeaderCell({
   col: ColumnVM;
   vm: ListViewModel;
 }): React.ReactElement {
-  const className = nodeClass('list-th', col.design.main.class);
+  const className = nodeClass('crudui-list__heading', col.design.main.class);
   const style = nodeStyle(col.design.main.style);
   const dir = sortDir(vm, col);
   return (
@@ -122,8 +122,8 @@ function HeaderCell({
       {...(col.sortable ? { 'data-sortable': 'true' } : {})}
       {...(dir ? { 'data-sort-dir': dir } : {})}
     >
-      <span className="list-th-label">{col.label}</span>
-      {col.sortable ? <span className="list-sort">↕</span> : null}
+      <span className="crudui-list__heading-label">{col.label}</span>
+      {col.sortable ? <span className="crudui-list__sort">↕</span> : null}
     </th>
   );
 }
@@ -140,7 +140,7 @@ function BodyRow({ row }: { row: ListRowVM }): React.ReactElement {
 
 function TableLayout({ vm }: { vm: ListViewModel }): React.ReactElement {
   return (
-    <table className="list-table">
+    <table className="crudui-list__table">
       <thead>
         <tr>
           {vm.columns.map((col) => (
@@ -169,13 +169,13 @@ function Card({
   columns: ColumnVM[];
 }): React.ReactElement {
   return (
-    <article className="list-card">
+    <article className="crudui-list__card">
       {row.cells.map((cell, i) => {
-        const cls = nodeClass(`list-td list-td-${cell.format.type}`, cell.design.main.class);
+        const cls = nodeClass(`crudui-list__cell crudui-value crudui-value--${cell.format.type}`, cell.design.main.class);
         return (
           <div className={cls} key={i}>
-            <span className="list-card-label">{columns[i]?.label ?? ''}</span>
-            <Cell cell={cell} as="span" base="list-card-value" />
+            <span className="crudui-list__card-label">{columns[i]?.label ?? ''}</span>
+            <Cell cell={cell} as="span" base="crudui-list__card-value" />
           </div>
         );
       })}
@@ -185,7 +185,7 @@ function Card({
 
 function CardLayout({ vm }: { vm: ListViewModel }): React.ReactElement {
   return (
-    <div className="list-cards">
+    <div className="crudui-list__cards">
       {vm.rows.map((row, i) => (
         <Card key={i} row={row} columns={vm.columns} />
       ))}
@@ -202,7 +202,7 @@ function Pagination({ vm }: { vm: ListViewModel }): React.ReactElement | null {
   if (!p.enabled) return null;
   return (
     <nav
-      className="list-pagination"
+      className="crudui-list__pagination"
       {...(p.mode ? { 'data-mode': p.mode } : {})}
       {...(p.perPage !== undefined ? { 'data-per-page': String(p.perPage) } : {})}
       {...(p.page !== undefined ? { 'data-page': String(p.page) } : {})}
@@ -223,16 +223,16 @@ export interface ListProps {
   layout?: 'table' | 'card';
 }
 
-/** Render the `.list-view` envelope around toolbar + table/card body + pagination. */
+/** Render the `.crudui-list` envelope around toolbar + table/card body + pagination. */
 export function List({ vm, layout = 'table' }: ListProps): React.ReactElement {
-  const className = nodeClass('list-view', vm.design.wrapper.class);
+  const className = nodeClass('crudui-list', vm.design.wrapper.class);
   const style = nodeStyle(vm.design.wrapper.style);
   const isEmpty = vm.rows.length === 0;
   return (
     <div {...(className ? { className } : {})} {...resolvedStyleProps(style)}>
       <Toolbar actions={vm.actions} />
       {isEmpty ? (
-        <div className="list-empty">{vm.empty}</div>
+        <div className="crudui-list__empty">{vm.empty}</div>
       ) : layout === 'card' ? (
         <CardLayout vm={vm} />
       ) : (

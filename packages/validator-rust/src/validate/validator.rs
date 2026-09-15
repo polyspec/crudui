@@ -143,7 +143,7 @@ impl Validator {
                 if is_multiple {
                     if let Some(Value::Object(rows)) = present {
                         // Keyed rows use sorted-key traversal so the first reported
-                        // error is identical in every implementation.
+                        // error is identical in every validation implementation.
                         let mut keys: Vec<&String> = rows.keys().collect();
                         keys.sort();
                         for key in keys {

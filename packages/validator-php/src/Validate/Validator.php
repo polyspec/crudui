@@ -228,7 +228,7 @@ final class Validator
                 if ($isMultiple) {
                     if ($present) {
                         // Keyed rows use sorted-key traversal so the first reported
-                        // error is identical in every implementation.
+                        // error is identical in every validation implementation.
                         $rows = (array) $fieldValue;
                         $keys = array_map('strval', array_keys($rows));
                         sort($keys, SORT_STRING);
@@ -322,7 +322,7 @@ final class Validator
             }
         }
 
-        // 2. Row rules in sorted row-key order.
+        // 2. Row rules in sorted row-key order (the cross-runtime error-order contract).
         $values = (array) $values;
         ksort($values, SORT_STRING);
         foreach ($values as $i => $value) {

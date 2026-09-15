@@ -50,7 +50,7 @@ export interface BadgeDisplay {
 export interface LinkDisplay {
   /** Display type. */
   kind: 'link';
-  /** href with `.field` interpolation applied (condition map resolved). */
+  /** href with explicit `{=field}` interpolation applied (condition map resolved). */
   href: string;
   /** Translated link text (defaults to the cell value). */
   text: string;
@@ -62,9 +62,9 @@ export interface LinkDisplay {
 export interface ImageDisplay {
   /** Display type. */
   kind: 'image';
-  /** Image source (the cell value, `.field` interpolation applied if a path). */
+  /** Image source (the cell value). */
   src: string;
-  /** Translated alt text (`.field` interpolated). */
+  /** Translated alt text with explicit `{=field}` interpolation. */
   alt: string;
   /** Image width. */
   width?: string;
@@ -216,17 +216,16 @@ function formatNumber(
 }
 
 /**
- * Interpolate `.field` references in a template against the current row. A bare
- * `.path` token (leading dot) reads the row value at that path; the special
- * `.field` / the raw cell value substitute the column's own value.
+ * Interpolate explicit `{=field}` references in a template against the current row.
+ * Text outside braces remains literal.
  */
 function interpolate(
   template: string,
   row: Record<string, unknown>,
   cellValue: unknown
 ): string {
-  return template.replace(/\.[A-Za-z_][\w.]*/g, (token) => {
-    const path = token.slice(1);
+  return template.replace(/\{=[A-Za-z_][\w.]*\}/g, (token) => {
+    const path = token.slice(2, -1);
     if (path === 'field') return asString(cellValue);
     const v = getValueByPath(row, path);
     return v === undefined ? asString(cellValue) : asString(v);
@@ -239,7 +238,7 @@ function interpolate(
 
 /** Inputs the cell renderer needs to produce one cell's display value. */
 export interface CellRenderCtx {
-  /** The whole injected row (for `.field` interpolation in href/alt). */
+  /** The whole injected row (for `{=path}` interpolation in href/alt). */
   row: Record<string, unknown>;
   /** Expr engine context for the cell's `field` path (href condition maps). */
   expr: PathContext;

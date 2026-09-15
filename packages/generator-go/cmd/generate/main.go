@@ -104,7 +104,7 @@ func run(request *gen.Object) (any, error) {
 	switch str(val(request, "operation")) {
 	case "compileForm":
 		return gen.CompileForm(obj(val(request, "spec")), compileOptions(options))
-	case "renderList":
+	case "buildList", "renderList":
 		// List input is checked in the shared order: specification, rows, each row, then options.
 		if obj(val(request, "spec")) == nil {
 			return nil, fmt.Errorf("List specification must be an object")
@@ -122,7 +122,11 @@ func run(request *gen.Object) (any, error) {
 			return nil, fmt.Errorf("List rows must be an array")
 		}
 		c := compileOptions(options)
-		return gen.RenderList(obj(val(request, "spec")), rows, gen.ListOptions{Language: str(val(options, "language")), Data: val(options, "data"), Page: val(options, "page"), Total: val(options, "total"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")})
+		listOptions := gen.ListOptions{Language: str(val(options, "language")), Data: val(options, "data"), Page: val(options, "page"), Total: val(options, "total"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")}
+		if str(val(request, "operation")) == "buildList" {
+			return gen.BuildList(obj(val(request, "spec")), rows, listOptions)
+		}
+		return gen.RenderList(obj(val(request, "spec")), rows, listOptions)
 	case "buildDetail", "renderDetail":
 		c := compileOptions(options)
 		// The record is typed at this JSON boundary; a non-object specification is reported first by the library.

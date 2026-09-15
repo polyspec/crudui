@@ -175,7 +175,8 @@ must declare fields`, 객체가 아닌 레코드는 `Detail record must be an ob
 [폼 마크업](form-markup.ko.md)에서 정의합니다. 인스턴스의 컬렉션 키가 행을 식별하며
 스키마는 숨김 식별자 필드를 정의하지 않습니다. 행 연산은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
 
-폼 컴파일은 `multiple`, `lang`, `design`의 값 형식이 잘못되면 `INVALID_FORM_INPUT`와
+button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 필드 호환 키 `text`는
+사용하지 않습니다. 폼 컴파일은 `multiple`, `lang`, `design`의 값 형식이 잘못되면 `INVALID_FORM_INPUT`와
 `Invalid {key} at {path}: expected {expected}` 메시지로 거부합니다. `{path}`는
 `companies.name`처럼 필드의 구조 경로입니다. 조건 맵은 비어 있지 않은 객체입니다. `buttons`가 없는 폼은 제출 버튼 하나를 가지며, `button`과 `link`는 `text`가,
 `link`는 `href`가 필요합니다([폼 마크업](form-markup.ko.md) 참고).

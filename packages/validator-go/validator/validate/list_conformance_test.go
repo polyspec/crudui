@@ -92,7 +92,7 @@ func TestValidateListMatchesFixture(t *testing.T) {
 // (composes + scans clean) is valid:true with an empty error set — a list carries
 // no rows, so there is no DATA pass to produce field errors.
 func TestValidateListCleanListIsValid(t *testing.T) {
-	spec := []byte(`{"columns":{"name":{"field":".name","label":"Name"}}}`)
+	spec := []byte(`{"columns":{"name":{"field":"name","label":"Name"}}}`)
 	res, err := ValidateListJSON(spec, nil, "")
 	if err != nil {
 		t.Fatalf("clean list must not error: %v", err)
@@ -109,7 +109,7 @@ func TestValidateListCleanListIsValid(t *testing.T) {
 // is the path from the list root to the offending key, so a load failure says
 // WHERE in the list a forbidden key sits.
 func TestValidateListForbiddenTraceIntoListTree(t *testing.T) {
-	spec := []byte(`{"columns":{"name":{"field":".name"},"display_switch":{"field":".x"}}}`)
+	spec := []byte(`{"columns":{"name":{"field":"name"},"display_switch":{"field":"x"}}}`)
 	_, err := ValidateListJSON(spec, nil, "")
 	le, ok := err.(*compose.ComposeLoadError)
 	if !ok {

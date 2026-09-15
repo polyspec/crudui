@@ -20,7 +20,8 @@ import (
 	"path/filepath"
 	"time"
 
-	validator "github.com/polyspec/crudui/packages/validator-go/validator/legacy"
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	validator "github.com/polyspec/crudui/packages/validator-go/validator/validate"
 )
 
 type report struct {
@@ -50,15 +51,16 @@ func convertInput(isGroup bool, input interface{}) map[string]interface{} {
 	return map[string]interface{}{"value": input}
 }
 
-func loadFixture(dir, name string) (validator.ParsedSpec, map[string]interface{}) {
+func loadFixture(dir, name string) (*compose.OMap, map[string]interface{}) {
 	specBytes, err := os.ReadFile(filepath.Join(dir, name+".spec.json"))
 	if err != nil {
 		panic(err)
 	}
-	parsed, err := validator.ParseSpec(specBytes)
+	specAny, err := compose.DecodeOrdered(specBytes)
 	if err != nil {
 		panic(err)
 	}
+	spec := specAny.(*compose.OMap)
 
 	inputBytes, err := os.ReadFile(filepath.Join(dir, name+".input.json"))
 	if err != nil {
@@ -68,14 +70,15 @@ func loadFixture(dir, name string) (validator.ParsedSpec, map[string]interface{}
 	if err := json.Unmarshal(inputBytes, &rawInput); err != nil {
 		panic(err)
 	}
-	return parsed, convertInput(parsed.IsGroup, rawInput)
+	return spec, convertInput(true, rawInput)
 }
 
 func benchSpec(dir, name string, iters, warmup int) report {
-	parsed, input := loadFixture(dir, name)
+	spec, input := loadFixture(dir, name)
 
 	// Build the validator once; reuse across iterations.
-	v := validator.NewValidator(parsed.Spec)
+	properties, _ := spec.Get("properties")
+	v := validator.NewValidator(properties.(*compose.OMap))
 
 	// Warmup.
 	for i := 0; i < warmup; i++ {
@@ -93,9 +96,12 @@ func benchSpec(dir, name string, iters, warmup int) report {
 	opsSec := int64((float64(iters) / ns) * 1e9)
 	avgUs := ns / 1000.0 / float64(iters)
 
-	result := v.Validate(input)
+	result, err := v.Validate(input)
+	if err != nil {
+		panic(err)
+	}
 	var errPtr, fieldPtr *string
-	if !result.IsValid && len(result.Errors) > 0 {
+	if !result.Valid && len(result.Errors) > 0 {
 		r := result.Errors[0].Rule
 		f := result.Errors[0].Field
 		errPtr = &r
@@ -109,7 +115,7 @@ func benchSpec(dir, name string, iters, warmup int) report {
 		Ms:     round3(ms),
 		OpsSec: opsSec,
 		AvgUs:  round4(avgUs),
-		Valid:  result.IsValid,
+		Valid:  result.Valid,
 		Error:  errPtr,
 		Field:  fieldPtr,
 	}

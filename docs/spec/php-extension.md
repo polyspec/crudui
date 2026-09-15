@@ -82,8 +82,9 @@ and record restoration preserve this equality. The cached template is unchanged.
 The generated template and submission data also work with React, Vue and Svelte.
 
 List generation follows the same list specification and table/card output
-contract as the JavaScript renderers. `CRUDUI\Generator::renderList` receives a
-list specification, display rows and rendering options.
+contract as the JavaScript renderers. `CRUDUI\Generator::buildList` returns the
+evaluated list model, and `CRUDUI\Generator::renderList` receives a list
+specification, display rows and rendering options.
 
 ## Validation and PHP values
 

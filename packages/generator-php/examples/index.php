@@ -19,11 +19,11 @@ $spec = json_decode(<<<'JSON'
 JSON, false, 512, JSON_THROW_ON_ERROR);
 // The list links each name to the detail page, shows the level label and truncates the note.
 $listSpec = json_decode(<<<'JSON'
-{"columns":{"name":{"field":".name","label":"Name","format":{"type":"link","href":"/?view=detail"}},"email":{"field":".email","label":"Email","format":"text"},"level":{"field":".level","label":"Level","format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},"note":{"field":".note","label":"Note","format":{"type":"text","truncate":40}}}}
+{"columns":{"name":{"field":"name","label":"Name","format":{"type":"link","href":"/?view=detail"}},"email":{"field":"email","label":"Email","format":"text"},"level":{"field":"level","label":"Level","format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},"note":{"field":"note","label":"Note","format":{"type":"text","truncate":40}}}}
 JSON, false, 512, JSON_THROW_ON_ERROR);
 // The detail shows the name as text, the email as a mailto link, the level label and the note.
 $detailSpec = json_decode(<<<'JSON'
-{"fields":{"name":{"field":".name","label":"Name","format":"text"},"email":{"field":".email","label":"Email","format":{"type":"link","href":"mailto:.email"}},"level":{"field":".level","label":"Level","format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},"note":{"field":".note","label":"Note","format":"text"}}}
+{"fields":{"name":{"field":"name","label":"Name","format":"text"},"email":{"field":"email","label":"Email","format":{"type":"link","href":"mailto:{=email}"}},"level":{"field":"level","label":"Level","format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},"note":{"field":"note","label":"Note","format":"text"}}}
 JSON, false, 512, JSON_THROW_ON_ERROR);
 $stored = is_file($path);
 $data = $stored ? json_decode(file_get_contents($path), false, 512, JSON_THROW_ON_ERROR) : new stdClass();

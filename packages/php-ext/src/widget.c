@@ -654,7 +654,7 @@ static ps_value *button_control(const widget_context *context)
 {
     char *name = context_name(context), *init = context_option(context, "init_script", "");
     char *onclick = behavior_script(context, "onclick");
-    char *text = context_text(context, ps_has(context->spec, "content") ? "content" : "text");
+    char *text = ps_has(context->spec, "content") ? context_text(context, "content") : strdup("");
     char *quoted_id = script_quote(context->id);
     char *script = init && onclick && quoted_id ? ps_string_join("\n$(function() {\n    ", init, "\n    $(document.getElementById(") : NULL;
     if (script) { char *next = ps_string_join(script, quoted_id, "))"); free(script); script = next; }

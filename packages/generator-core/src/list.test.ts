@@ -16,11 +16,11 @@ describe('buildList — structure & engine reuse', () => {
     const vm = buildList(
       {
         columns: {
-          name: { field: '.name', label: { ko: '이름', en: 'Name' }, sortable: true },
-          status: { field: '.status', label: { ko: '상태', en: 'Status' } },
+          name: { field: 'name', label: { ko: '이름', en: 'Name' }, sortable: true },
+          status: { field: 'status', label: { ko: '상태', en: 'Status' } },
         },
         empty: { ko: '데이터가 없습니다', en: 'No data' },
-        sort: { field: '.created_at', dir: 'desc' },
+        sort: { field: 'created_at', dir: 'desc' },
         pagination: { per_page: 20, mode: 'pages' },
       },
       [
@@ -35,7 +35,7 @@ describe('buildList — structure & engine reuse', () => {
     expect(vm.columns[0]!.sortable).toBe(true);
     expect(vm.columns[1]!.sortable).toBe(false);
     expect(vm.empty).toBe('No data');
-    expect(vm.sort).toEqual({ field: '.created_at', dir: 'desc' });
+    expect(vm.sort).toEqual({ field: 'created_at', dir: 'desc' });
     expect(vm.pagination).toEqual({ enabled: true, perPage: 20, mode: 'pages', page: 1, total: 42 });
 
     expect(vm.rows).toHaveLength(2);
@@ -48,8 +48,8 @@ describe('buildList — structure & engine reuse', () => {
     const vm = buildList(
       {
         columns: {
-          name: { field: '.name' },
-          secret: { field: '.secret', design: { show: '.admin' } },
+          name: { field: 'name' },
+          secret: { field: 'secret', design: { show: '.admin' } },
         },
       },
       [{ name: 'Ada', secret: 'x' }],
@@ -61,8 +61,8 @@ describe('buildList — structure & engine reuse', () => {
     const vmAdmin = buildList(
       {
         columns: {
-          name: { field: '.name' },
-          secret: { field: '.secret', design: { show: '.admin' } },
+          name: { field: 'name' },
+          secret: { field: 'secret', design: { show: '.admin' } },
         },
       },
       [{ name: 'Ada', secret: 'x' }],
@@ -76,7 +76,7 @@ describe('buildList — structure & engine reuse', () => {
       {
         columns: {
           $ref: 'base-columns.yml',
-          $patch: { extra: { field: '.extra', label: 'Extra' } },
+          $patch: { extra: { field: 'extra', label: 'Extra' } },
         },
       },
       [{ id: 7, extra: 'E' }],
@@ -87,7 +87,7 @@ describe('buildList — structure & engine reuse', () => {
           // properties symmetric). The engine's convention is unchanged.
           'base-columns.yml': {
             properties: {
-              id: { field: '.id', label: 'ID', sortable: true },
+              id: { field: 'id', label: 'ID', sortable: true },
             },
           },
         },
@@ -109,7 +109,7 @@ describe('buildList — structure & engine reuse', () => {
 describe('renderCell catalog — SPEC §9.2 read display values', () => {
   function cell(format: unknown, value: unknown, row: Record<string, unknown> = {}, language: 'ko' | 'en' = 'en') {
     const vm = buildList(
-      { columns: { c: { field: '.c', format } } },
+      { columns: { c: { field: 'c', format } } },
       [{ ...row, c: value }],
       { language }
     );
@@ -143,14 +143,29 @@ describe('renderCell catalog — SPEC §9.2 read display values', () => {
     ).toEqual({ kind: 'badge', variant: 'Active', label: 'Active' });
   });
 
-  test('link (.field interpolation + condition map href + target)', () => {
+  test('link ({=path} interpolation + condition map href + target)', () => {
     expect(
-      cell({ type: 'link', href: '/user/edit/.id', target: '_blank', text: 'Edit' }, 'ignored', { id: 9 })
+      cell({ type: 'link', href: '/user/edit/{=id}', target: '_blank', text: 'Edit' }, 'ignored', { id: 9 })
     ).toEqual({ kind: 'link', href: '/user/edit/9', text: 'Edit', target: '_blank' });
     // condition map href via the shared expr engine.
     expect(
-      cell({ type: 'link', href: { '.admin': '/admin/.id', true: '/u/.id' } }, 'x', { id: 3, admin: true })
+      cell({ type: 'link', href: { '.admin': '/admin/{=id}', true: '/u/{=id}' } }, 'x', { id: 3, admin: true })
     ).toEqual({ kind: 'link', href: '/admin/3', text: 'x' });
+    expect(
+      cell({ type: 'link', href: 'https://example.com/users/{=id}/report.pdf' }, 'x', { id: 3 })
+    ).toEqual({ kind: 'link', href: 'https://example.com/users/3/report.pdf', text: 'x' });
+    expect(
+      cell(
+        { type: 'link', href: '/users/{=jointablename.id}/{=join.join.name}' },
+        'x',
+        { jointablename: { id: 7 }, join: { join: { name: 'Ada' } } }
+      )
+    ).toEqual({ kind: 'link', href: '/users/7/Ada', text: 'x' });
+    expect(cell({ type: 'link', href: '/user/.id' }, 'x', { id: 3 })).toEqual({
+      kind: 'link',
+      href: '/user/.id',
+      text: 'x',
+    });
   });
 
   test('choice-label (static items code→label; dynamic model preserved)', () => {
@@ -175,10 +190,10 @@ describe('renderCell catalog — SPEC §9.2 read display values', () => {
     });
   });
 
-  test('image (src + alt .field interpolation + size)', () => {
+  test('image (src + alt {=path} interpolation + size)', () => {
     expect(
-      cell({ type: 'image', width: 40, height: 40, alt: 'avatar .name' }, '/img/a.png', { name: 'Ada' })
-    ).toEqual({ kind: 'image', src: '/img/a.png', alt: 'avatar Ada', width: '40', height: '40' });
+      cell({ type: 'image', width: 40, height: 40, alt: 'avatar {=name}.png' }, '/img/a.png', { name: 'Ada' })
+    ).toEqual({ kind: 'image', src: '/img/a.png', alt: 'avatar Ada.png', width: '40', height: '40' });
   });
 
   test('html (raw, unescaped)', () => {
@@ -197,7 +212,7 @@ describe('buildList — pagination / actions polymorphism', () => {
       {
         columns: { c: {} },
         actions: {
-          edit: { label: { en: 'Edit' }, format: { type: 'link', href: '/edit/.id' } },
+          edit: { label: { en: 'Edit' }, format: { type: 'link', href: '/edit/{=id}' } },
           remove: 'confirmDelete(this)',
         },
       },

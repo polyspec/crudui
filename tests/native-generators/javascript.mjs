@@ -1,5 +1,5 @@
 import { pathToFileURL } from 'node:url';
-import { compileForm, bindForm, buildDetail, createForm, FormInputError } from '@crudui/generator-core';
+import { compileForm, bindForm, buildList, buildDetail, createForm, FormInputError } from '@crudui/generator-core';
 import * as react from '@crudui/generator-react';
 import * as html from '@crudui/generator-html';
 
@@ -20,6 +20,7 @@ export function createDispatch({ renderForm, renderList, renderDetail }) {
       case 'compileForm': return compileForm(request.spec, request.options);
       case 'bindForm': return bindForm(request.template, request.data, request.options);
       case 'renderList': return renderList(request.spec, request.rows, request.options);
+      case 'buildList': return buildList(request.spec, request.rows, request.options);
       case 'buildDetail':
       case 'renderDetail':
         // The library checks the record in rule order; an absent record is the empty object.

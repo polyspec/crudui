@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator\Legacy\Validator;
+use CRUDUI\Validator\Validate\Validator;
 
 $FIXTURES = __DIR__ . '/fixtures';
 
@@ -48,10 +48,10 @@ function load_fixture(string $dir, string $name): array
 
 function first_error($result): array
 {
-    if ($result->isValid()) {
+    if ($result->valid) {
         return [null, null];
     }
-    $errors = $result->getErrors();
+    $errors = $result->errors;
     if (count($errors) === 0) {
         return [null, null];
     }
@@ -92,7 +92,7 @@ function bench_spec(string $dir, string $name, int $iters, int $warmup): array
         'ms' => round($ms, 3),
         'opsSec' => $opsSec,
         'avgUs' => round($avgUs, 4),
-        'valid' => $result->isValid(),
+        'valid' => $result->valid,
         'error' => $error,
         'field' => $field,
     ];

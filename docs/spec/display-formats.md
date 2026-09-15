@@ -12,7 +12,7 @@ A display format that is not defined here is not part of the contract.
 
 ## How a value is displayed
 
-1. The column or field `field` path (for example `.name` or `.company.name`) reads the value from
+1. The column or field `field` path (for example `name` or `company.name`) reads the value from
    the row or record. The model keeps it as `value`; a path the record does not have is `null`.
 2. `format` turns the value into the `display` model: a string, or a structured value for
    `badge`, `link`, `bool`, `image` and `html`.
@@ -25,11 +25,16 @@ the `html` format.
 
 ```yaml
 columns:
-  name:   { field: .name, label: { ko: 이름, en: Name }, format: { type: link, href: /users/.id } }
-  score:  { field: .score, format: { type: number, decimals: 2, thousands: true, prefix: { en: '$' } } }
-  joined: { field: .joined, format: { type: date, pattern: YYYY-MM-DD } }
-  status: { field: .status, format: { type: badge, map: { active: success, blocked: danger } } }
+  name:   { field: name, label: { ko: 이름, en: Name }, format: { type: link, href: /users/{=id} } }
+  score:  { field: score, format: { type: number, decimals: 2, thousands: true, prefix: { en: '$' } } }
+  joined: { field: joined, format: { type: date, pattern: YYYY-MM-DD } }
+  status: { field: status, format: { type: badge, map: { active: success, blocked: danger } } }
 ```
+
+`field` and `sort.field` are dot-separated data paths without a leading dot. A display token uses
+the `{=path}` form. This single path model reads object members and associative-array keys in the
+same way; the `=` identifies a display substitution and prevents dots in literal URLs and file
+extensions from being interpreted as paths.
 
 ## Declaring a format
 
@@ -105,8 +110,8 @@ that `map` does not contain produces a badge without a variant, labelled with th
 ### link
 
 - `href` is a string or a condition map resolved with the [expression rules](expressions.md).
-  Each `.path` token in `href` is replaced with the record value at that path; `.field` is the
-  cell value, and a path the record does not have is replaced with the cell value.
+  Each explicit `{=path}` token in `href` is replaced with the record value at that path; `{=field}` is the
+  cell value, and a path the record does not have is replaced with the cell value. Text outside braces is literal.
 - `text` is the link text. When `text` is absent, `null` or empty, the cell value is the text.
 - `target` is written when it is a non-empty string.
 - A `javascript:` URL is replaced with a URL that throws, as React's server rendering does.
@@ -125,7 +130,7 @@ and true otherwise. `true` and `false` are the labels for each state; without a 
 
 ### image
 
-The value is the image source. `alt` is translated and `.path` tokens in it are replaced as in a
+The value is the image source. `alt` is translated and explicit `{=path}` tokens in it are replaced as in a
 link; without `alt` the alternative text is empty. A declared `width` or `height` is written as
 text, and a declared `null` writes an empty attribute. An image with a non-empty source that does
 not start with `data:` also adds a preload link; see [Markup](#markup).
@@ -184,14 +189,16 @@ PHP array is accepted for a root object argument and for the fixed object option
 
 | Display | List table cell | Detail value |
 | --- | --- | --- |
-| text, date, number, choice-label | escaped text in `td.list-td.list-td-TYPE` | escaped text in `dd.detail-value.detail-value-TYPE` |
-| badge | `span.badge.badge-VARIANT` (`span.badge` without a variant) | the same inside the `dd` |
+| text, date, number, choice-label | escaped text in `crudui-list__cell crudui-value crudui-value--TYPE` | escaped text in `crudui-detail__value crudui-value crudui-value--TYPE` |
+| badge | `span.crudui-badge` with optional `data-crudui-variant` | the same inside the `dd` |
 | link | `a` with `href` and optional `target` | the same inside the `dd` |
-| bool | `span.bool-text` with the label, `span.bool-icon.bool-true` or `.bool-false` with the label as `aria-label`, or `span.bool-check` with `✔` or `✘` and the label as `aria-label` | the same inside the `dd` |
+| bool | `span.crudui-bool crudui-bool--text`, `--icon` or `--check`, with `data-crudui-state` and the applicable `aria-label` | the same inside the `dd` |
 | image | `img` with `src`, `alt`, and declared `width` and `height` | the same inside the `dd` |
 | html | the markup, unescaped | the same inside the `dd` |
 
-A detail is a `dl.detail-view` with one `div.detail-field` per field, each holding
-`dt.detail-label` and the value. The string renderers write the image preload links
+A detail is a `dl.crudui-detail` with one `div.crudui-detail__field` per field, each holding
+`dt.crudui-detail__label` and the value. A list root is `crudui-list`; its table,
+headings, cells, cards, empty state, actions and pagination use the corresponding
+`crudui-list__*` elements. The string renderers write the image preload links
 `<link rel="preload" as="image" href="…"/>` before the list or detail, in first-use order and
 without duplicates.

@@ -79,12 +79,12 @@ describe('resolved CSS', () => {
 
   it('applies complete CSS and priority to list wrappers, headings and cells', () => {
     const vm = buildList({
-      columns: { name: { field: '.name', design: { style: css } } },
+      columns: { name: { field: 'name', design: { style: css } } },
       design: { wrapper: { style: 'border-color: red !important' } },
     }, [{ name: 'Ada' }]);
     const view = render(<List vm={vm} />);
     try {
-      const wrapper = view.container.querySelector('.list-view')! as HTMLElement;
+      const wrapper = view.container.querySelector('.crudui-list')! as HTMLElement;
       expect(wrapper.style.getPropertyPriority('border-color')).toBe('important');
       for (const element of view.container.querySelectorAll<HTMLElement>('th, td')) {
         expect(element.style.getPropertyValue('--caption')).toBe('"one;two:three"');

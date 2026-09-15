@@ -4,17 +4,17 @@
  * The read sister of Form (SPEC §9). It consumes the core's already-built
  * `ListViewModel` (compose + design eval + condition maps + i18n + cell render,
  * all done ONCE in @crudui/generator-core buildList) and assembles a genuine
- * Vue 3 vnode tree — a `<table>` (default) or a `.list-cards` card grid. It
+ * Vue 3 vnode tree — a `<table>` (default) or a `.crudui-list__cards` card grid. It
  * RECOMPUTES NOTHING: every header label, sortable flag, cell display payload,
  * resolved class/style and action script is already evaluated by the core. eval
  * is never called; no DB access; rows are the injected display rows.
  *
  * The emitted markup is the SHARED 3-framework list contract (React/Vue/Svelte
- * emit the SAME normalized HTML — tests/fixtures/list-render): a `.list-view`
- * envelope; a `.list-actions` toolbar; a `.list-table` (thead `.list-th` →
- * `.list-th-label` + `.list-sort`; tbody `.list-td .list-td-TYPE`) or a
- * `.list-cards` grid of `.list-card` articles; an empty `.list-empty`; a
- * `<nav class="list-pagination">`. The ONLY raw `innerHTML` paths are the two
+ * emit the SAME normalized HTML — tests/fixtures/list-render): a `.crudui-list`
+ * envelope; a `.crudui-list__actions` toolbar; a `.crudui-list__table` (thead `.crudui-list__heading` →
+ * `.crudui-list__heading-label` + `.crudui-list__sort`; tbody `.crudui-list__cell .crudui-list__cell-TYPE`) or a
+ * `.crudui-list__cards` grid of `.crudui-list__card` articles; an empty `.crudui-list__empty`; a
+ * `<nav class="crudui-list__pagination">`. The ONLY raw `innerHTML` paths are the two
  * sanctioned verbatim boundaries — a `html`-format cell (the host's own inner
  * html, no wrapper) and an action's opaque `behavior` chrome. Read-only: NO
  * `<input>`/`<select>`/`<form>` is emitted.
@@ -61,7 +61,7 @@ export function cellDisplayVNode(display: CellDisplay): VNode | string {
     case 'badge':
       return h(
         'span',
-        { class: display.variant ? `badge badge-${display.variant}` : 'badge' },
+        { class: 'crudui-badge', ...(display.variant ? { 'data-crudui-variant': display.variant } : {}) },
         display.label
       );
 
@@ -85,15 +85,16 @@ export function cellDisplayVNode(display: CellDisplay): VNode | string {
 
     case 'bool':
       if (display.as === 'check') {
-        return h('span', { class: 'bool-check', 'aria-label': display.label }, display.value ? '✔' : '✘');
+        return h('span', { class: 'crudui-bool crudui-bool--check', 'data-crudui-state': String(display.value), 'aria-label': display.label }, display.value ? '✔' : '✘');
       }
       if (display.as === 'icon') {
         return h('span', {
-          class: display.value ? 'bool-icon bool-true' : 'bool-icon bool-false',
+          class: 'crudui-bool crudui-bool--icon',
+          'data-crudui-state': String(display.value),
           'aria-label': display.label,
         });
       }
-      return h('span', { class: 'bool-text' }, display.label);
+      return h('span', { class: 'crudui-bool crudui-bool--text', 'data-crudui-state': String(display.value) }, display.label);
 
     case 'html':
       // Handled by the host (innerHTML) — never reached as a child vnode.
@@ -114,9 +115,9 @@ function cellHostProps(base: string, cell: CellVM): Record<string, unknown> {
   return { class: mergeClass(base, cell.design.main.class), ...styleProp(cell.design.main.style) };
 }
 
-/** One `<td>` for a cell: `list-td list-td-TYPE` + resolved design + display. */
+/** One `<td>` for a cell: `crudui-list__cell crudui-value crudui-value--TYPE` + resolved design + display. */
 function cellVNode(cell: CellVM): VNode {
-  const base = `list-td list-td-${cell.format.type}`;
+  const base = `crudui-list__cell crudui-value crudui-value--${cell.format.type}`;
   const props = cellHostProps(base, cell);
   const d = cell.display;
   if (typeof d !== 'string' && d.kind === 'html') {
@@ -138,15 +139,15 @@ function sortDir(vm: ListViewModel, col: ColumnVM): 'asc' | 'desc' | undefined {
   return undefined;
 }
 
-/** One header `<th>`: `.list-th-label` + a `.list-sort` marker (sortable). */
+/** One header `<th>`: `.crudui-list__heading-label` + a `.crudui-list__sort` marker (sortable). */
 function headerVNode(col: ColumnVM, vm: ListViewModel): VNode {
   const dir = sortDir(vm, col);
-  const children: VNode[] = [h('span', { class: 'list-th-label' }, col.label)];
-  if (col.sortable) children.push(h('span', { class: 'list-sort' }, '↕'));
+  const children: VNode[] = [h('span', { class: 'crudui-list__heading-label' }, col.label)];
+  if (col.sortable) children.push(h('span', { class: 'crudui-list__sort' }, '↕'));
   return h(
     'th',
     {
-      class: mergeClass('list-th', col.design.main.class),
+      class: mergeClass('crudui-list__heading', col.design.main.class),
       ...(col.field ? { 'data-field': col.field } : {}),
       ...(col.sortable ? { 'data-sortable': 'true' } : {}),
       ...(dir ? { 'data-sort-dir': dir } : {}),
@@ -172,7 +173,7 @@ function tbodyVNode(vm: ListViewModel): VNode {
 
 /** Build the default `<table>` body for a list view model. */
 function tableVNode(vm: ListViewModel): VNode {
-  return h('table', { class: 'list-table' }, [theadVNode(vm), tbodyVNode(vm)]);
+  return h('table', { class: 'crudui-list__table' }, [theadVNode(vm), tbodyVNode(vm)]);
 }
 
 // ---------------------------------------------------------------------------
@@ -183,22 +184,22 @@ function tableVNode(vm: ListViewModel): VNode {
 function cardValueVNode(cell: CellVM): VNode {
   const d = cell.display;
   if (typeof d !== 'string' && d.kind === 'html') {
-    return h('span', { class: 'list-card-value', innerHTML: d.html });
+    return h('span', { class: 'crudui-list__card-value', innerHTML: d.html });
   }
-  return h('span', { class: 'list-card-value' }, [cellDisplayVNode(d)]);
+  return h('span', { class: 'crudui-list__card-value' }, [cellDisplayVNode(d)]);
 }
 
 /** One card: a labelled field row per visible column. */
 function cardVNode(cells: CellVM[], columns: ColumnVM[]): VNode {
   return h(
     'article',
-    { class: 'list-card' },
+    { class: 'crudui-list__card' },
     columns.map((col, i) => {
       const cell = cells[i];
-      const cls = cell ? mergeClass(`list-td list-td-${cell.format.type}`, cell.design.main.class) : 'list-td';
+      const cls = cell ? mergeClass(`crudui-list__cell crudui-value crudui-value--${cell.format.type}`, cell.design.main.class) : 'crudui-list__cell';
       return h('div', { class: cls }, [
-        h('span', { class: 'list-card-label' }, col.label),
-        cell ? cardValueVNode(cell) : h('span', { class: 'list-card-value' }),
+        h('span', { class: 'crudui-list__card-label' }, col.label),
+        cell ? cardValueVNode(cell) : h('span', { class: 'crudui-list__card-value' }),
       ]);
     })
   );
@@ -206,7 +207,7 @@ function cardVNode(cells: CellVM[], columns: ColumnVM[]): VNode {
 
 /** Build the card-grid body for a list view model. */
 function cardsVNode(vm: ListViewModel): VNode {
-  return h('div', { class: 'list-cards' }, vm.rows.map((row) => cardVNode(row.cells, vm.columns)));
+  return h('div', { class: 'crudui-list__cards' }, vm.rows.map((row) => cardVNode(row.cells, vm.columns)));
 }
 
 // ---------------------------------------------------------------------------
@@ -232,7 +233,7 @@ function behaviorAttrs(behavior: Record<string, string> | undefined): string {
 }
 
 /**
- * One action's RAW html (the `<span class="list-action">` host is a vnode; its
+ * One action's RAW html (the `<span class="crudui-list__action">` host is a vnode; its
  * inner `<a>`/`<button>` is serialized verbatim so the opaque behavior `on*`
  * bytes survive). Mirrors Svelte list.ts `actionHtml`.
  */
@@ -258,9 +259,9 @@ function toolbarVNode(vm: ListViewModel): VNode | null {
   if (vm.actions.length === 0) return null;
   return h(
     'div',
-    { class: 'list-actions' },
+    { class: 'crudui-list__actions' },
     vm.actions.map((a) =>
-      h('span', { class: 'list-action', 'data-action': a.key, innerHTML: actionHtml(a) })
+      h('span', { class: 'crudui-list__action', 'data-action': a.key, innerHTML: actionHtml(a) })
     )
   );
 }
@@ -269,7 +270,7 @@ function toolbarVNode(vm: ListViewModel): VNode | null {
 function paginationVNode(vm: ListViewModel): VNode | null {
   const p = vm.pagination;
   if (!p.enabled) return null;
-  const props: Record<string, unknown> = { class: 'list-pagination' };
+  const props: Record<string, unknown> = { class: 'crudui-list__pagination' };
   if (p.mode !== undefined) props['data-mode'] = p.mode;
   if (p.perPage !== undefined) props['data-per-page'] = String(p.perPage);
   if (p.page !== undefined) props['data-page'] = String(p.page);
@@ -285,15 +286,15 @@ function paginationVNode(vm: ListViewModel): VNode | null {
 export type ListLayout = 'table' | 'card';
 
 /**
- * Build the `.list-view` envelope vnode around a `ListViewModel`: the actions
- * toolbar, the table/card body (or the `.list-empty` message), and the
+ * Build the `.crudui-list` envelope vnode around a `ListViewModel`: the actions
+ * toolbar, the table/card body (or the `.crudui-list__empty` message), and the
  * pagination chrome. Pure presentational vnode tree — no evaluation, no DB,
  * read-only.
  */
 export function List(vm: ListViewModel, layout: ListLayout = 'table'): VNode {
   const isEmpty = vm.rows.length === 0;
   const body = isEmpty
-    ? h('div', { class: 'list-empty' }, vm.empty)
+    ? h('div', { class: 'crudui-list__empty' }, vm.empty)
     : layout === 'card'
     ? cardsVNode(vm)
     : tableVNode(vm);
@@ -303,7 +304,7 @@ export function List(vm: ListViewModel, layout: ListLayout = 'table'): VNode {
   return h(
     'div',
     {
-      class: mergeClass('list-view', vm.design.wrapper.class),
+      class: mergeClass('crudui-list', vm.design.wrapper.class),
       ...styleProp(vm.design.wrapper.style),
     },
     children

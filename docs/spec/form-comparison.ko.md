@@ -84,7 +84,8 @@ supervisor를 실행합니다.
 | --- | --- | --- | --- |
 | `npm-dependencies` | 루트 `package.json`, `package-lock.json`, 패키지 매니페스트 | | 공개 서버 |
 | `javascript-packages` | TypeScript 검증기·생성기 패키지, 루트 `tsconfig` 파일 | `npm-dependencies` | |
-| `frames` | 예제의 `build.mjs`, `public/`, `src/`, `viewer/`, `fixtures/`, TypeScript 패키지, 폼 스냅샷 모듈 | `npm-dependencies` | |
+| `ordered-json-javascript` | 고정 체크아웃의 `js/` 패키지를 `node_modules/ordered-json`에 복사 | `npm-dependencies` | |
+| `frames` | 예제의 `build.mjs`, `public/`, `src/`, `viewer/`, `fixtures/`, TypeScript 패키지, 폼 스냅샷 모듈 | `npm-dependencies`, `ordered-json-javascript` | |
 | `browser-matrix` | `src/runtime-paths.json` | | 공개 서버, Go, Rust |
 | `public-server` | `server.mjs`, `src/json.mjs` | | 공개 서버 |
 | `composer` | `packages/validator-php/`, 생성기 Composer 매니페스트와 lock | | |
