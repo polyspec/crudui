@@ -6,6 +6,18 @@
 이 저장소에서 관리합니다. 검증은 커밋 여부와 관계없이 현재 저장소 트리를 대상으로
 실행하며 그 트리의 소스 식별자를 기록합니다. 다른 체크아웃의 소스 파일은 읽지 않습니다.
 
+## 정본 예제와 벤치마크 경계
+
+공개 루트는 정본 파이프라인 예제입니다. 하나의 레코드 흐름
+`List → Detail → Form → Save → List refresh`를 보여 줍니다. 목록 행은 상세로,
+상세는 같은 레코드의 폼으로 연결됩니다. 페이지는 JavaScript reference, PHP,
+PHP extension, Go, Rust의 다섯 서버와 HTML, React, Vue, Svelte의 네 클라이언트,
+CSR·SSR 선택을 제공합니다.
+
+`examples/form-comparison/benchmark/`는 별도의 검증 화면입니다. 렌더·검증 매트릭스와
+벤치마크 조작은 이 디렉터리가 소유합니다. 정본 페이지에는 벤치마크 매트릭스를 넣지
+않습니다. `/displays/`는 경로로 제공하지 않습니다.
+
 ## 진행, 제한 시간, 범위
 
 이 계약의 모든 명령, 곧 배포와 supervisor의 빌드 주기와 모든 검증 단계에 세 규칙을
@@ -244,12 +256,9 @@ view and one body end tag`로 거부합니다. 응답은 그 문서에 세 가�
 요소 안에서 폼을 `#form-view`에, 브라우저 전용인 구조 맵과 현재 데이터 보기를
 `#outline-view`와 `#data-view`에 렌더링합니다. 서버는 폼만 렌더링합니다.
 
-정본 진입 페이지는 `/displays/`로 연결되며, 이 경로가 하나의 읽기 전용 목록·상세 예제입니다.
-이 경로는 내부 Cross-Check Console이 아니라 사용자용 목록·상세 진입 화면입니다. 같은 배포
-public 프로세스의 `/displays/api/render-list`, `/displays/api/render-detail`을 사용해
-프레임워크 독립 HTML 렌더러 결과를 표시합니다. Cross-Check Console은 개발용 비교 화면으로
-유지합니다. 별도 애플리케이션 서버나 별도 배포를 만들지 않습니다. 목록 페이지는 행을 주입하고
-상세 페이지는 레코드 하나를 주입하며, 어느 페이지도 데이터베이스를 조회하지 않습니다.
+정본 진입 페이지는 `List → Detail → Form → Save → List refresh` 전체 파이프라인을 소유합니다.
+벤치마크 진입점은 `/benchmark/`이며 매트릭스 검증을 소유합니다. `/displays/` 엔드포인트는
+제공하지 않습니다.
 
 모든 렌더 비교에는 React·Vue·Svelte와 함께 프레임워크 독립 HTML 렌더러가 포함됩니다.
 따라서 parity 판정 대상은 네 렌더러입니다.

@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-16 — Make the root example a single CRUD pipeline
+
+The public root now presents List → Detail → Form → Save → List refresh in one page, with links
+between the stages and explicit client, server and CSR/SSR selectors. The benchmark entry is
+separate at `/benchmark/`. The obsolete `/displays/` route and its public files were removed.
+
 ## 2026-09-15 — Add the canonical list and detail entry
 
 The canonical `crudui.test` entry now links to `/displays/`, which serves the user-facing list and
