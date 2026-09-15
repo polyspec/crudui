@@ -2,6 +2,21 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Build generator-core with its declared library
+
+Every CI job failed in `npm run build` after `3aeb4d6e`: `detail.ts` called `Object.hasOwn`,
+which the package's declared TypeScript library does not include. That commit was described as
+a changelog wording fix, but staging every change also committed unfinished detail work: the
+detail model's input checks (a declaration that is not an object, a declaration without
+`fields` and a record that is not an object each fail with their own message), their tests and
+the generator script for a shared detail fixture, without its cases. I committed without
+reviewing what was staged and without building.
+
+The own-property check now uses `Object.prototype.hasOwnProperty.call`. The detail input checks
+stay: they are correct and tested, and the remaining detail work follows as its own change.
+`npm run build`, `npm run lint`, `npm run test:docs`, `make docs-check` and the core detail
+tests passed.
+
 ## 2026-09-15 — Keep the script URL expression through lint
 
 CI failed on the HTML renderer: `no-control-regex` rejected the script-URL expression the
