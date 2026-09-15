@@ -834,6 +834,8 @@ async function initializationStage(stage) {
       await click(companies()[0], 'remove-row');
       break;
     case 'added':
+      randomCounter = 0;
+      crypto.getRandomValues = repeatableRandom;
       await click(companies()[0], 'add-row');
       await edit(companyName(companies()[1]), 'Added company');
       await edit(storeName(stores(companies()[1])[0]), 'Added store');

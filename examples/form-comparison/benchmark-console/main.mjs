@@ -79,6 +79,7 @@ async function compareInitialization() {
   let expected;
   for (const [index, column] of formInitializations.entries()) {
     const comparison = frames[index].contentWindow.comparison;
+    if (column === 'csr') await comparison.reset();
     const own = new Map();
     try {
       for (const stage of initializationStages) {

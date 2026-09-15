@@ -23,7 +23,7 @@ function start(views, template, language, data, hydrate) {
     render: () => outlineVNode({ fields: state.value.fields, canUndo: state.value.view.canUndo }, messages),
   });
   const dataPanel = createApp({ render: () => dataVNode(state.value.data, messages) });
-  form.mount(views.form);
+  form.mount(views.form, hydrate);
   outline.mount(views.outline);
   dataPanel.mount(views.data);
   return {
