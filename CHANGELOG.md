@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Compare what the view containers hold
+
+Candidate verification of the frame document change failed for Vue in both rendering paths:
+18 of 168 comparisons in each Vue initialization report, with the first difference on the form
+view element itself. The `csr` column's container carried `data-v-app=""` and the `ssr`
+column's did not. Vue writes that attribute in `createApp().mount()` and not in the
+`createSSRApp()` mount that hydrates, so it records how the column started rather than what was
+rendered; the earlier comparison never saw it because both columns mounted.
+
+The comparison now covers what the view containers hold, through `renderedViews`, instead of
+the containers themselves, which belong to the page. Hydration is still enforced, and more
+strictly than before: the SSR frame requires the taken-over form DOM to be unchanged and, for
+React, Vue and the HTML renderer, every server-rendered element to survive. The specification
+records the Vue mark and where hydration is enforced.
+
+The form inspector tests passed 19 tests.
+
 ## 2026-09-15 — State which runtimes implement detail views
 
 The runtime operation table named `Generator::buildDetail`, `build_detail` and their render

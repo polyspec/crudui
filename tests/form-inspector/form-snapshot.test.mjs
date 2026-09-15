@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
-import { formSnapshot, compareSnapshots } from './form-snapshot.mjs';
+import { compareSnapshots, formSnapshot, renderedViews } from './form-snapshot.mjs';
 
 function fixture() {
   const { window } = new JSDOM('<form><div class="row" data-key="__0000000000005__"><label>Name</label><input name="form[name]" value="Saved"><input name="form[enabled]" type="checkbox" checked><textarea name="form[notes]">Notes</textarea><select name="form[category]"><option value="a" selected>A</option><option value="b">B</option></select></div><div class="row" data-key="__0000000000001__">Second<!-- kept --></div></form>');
@@ -77,4 +77,15 @@ test('rejects different value types with matching serialized text', () => {
   const results = compareSnapshots({ data: '{}' }, { data: {} });
   assert.equal(results[0].passed, false);
   assert.match(results[0].error, /expected type object, actual type string/);
+});
+
+test('rendered views compare their contents, not the containers a framework marks', () => {
+  const { window } = new JSDOM('<div id="view"><div id="form-view"><p>form</p></div><div id="outline-view"></div></div>');
+  const view = window.document.querySelector('#view');
+  const expected = renderedViews(view);
+  // Vue marks a container it mounted and leaves a container it hydrated unmarked.
+  view.querySelector('#form-view').setAttribute('data-v-app', '');
+  assert.deepEqual(renderedViews(view), expected);
+  view.querySelector('#form-view').firstElementChild.textContent = 'changed';
+  assert.notDeepEqual(renderedViews(view), expected);
 });
