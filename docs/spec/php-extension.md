@@ -113,7 +113,7 @@ At a JSON input boundary, use `json_decode($json, false, 512, JSON_THROW_ON_ERRO
 associative mode cannot preserve empty objects and can make objects with
 sequential numeric keys appear as arrays. Associative arrays remain valid for
 internal API calls when the caller already knows that the value is an object.
-The fixed object options `files`, `data` and `pageMeta` also accept an empty PHP array.
+The fixed object options `files` and `data` also accept an empty PHP array.
 Returned record objects and cached templates use `stdClass`; lists use arrays.
 Object member order and row keys survive conversion in both directions.
 Unsupported PHP values, invalid UTF-8 strings or member names, and recursive

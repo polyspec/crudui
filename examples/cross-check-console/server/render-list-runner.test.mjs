@@ -20,9 +20,9 @@
  *       framework conformance suites load. For each non-error case the three
  *       frameworks must agree (parity:true) AND React's normalized output must
  *       equal the fixture's `expected_html` (the fixture is the React reference,
- *       so the gateway bytes equal the conformance reference bytes). The lone error
- *       case (`unresolved-ref-error`) must surface REF_FILE_NOT_FOUND on all
- *       three (parity:true, never a silent table).
+ *       so the gateway bytes equal the conformance reference bytes). Every error
+ *       case (an unresolved $ref or invalid list input) must surface its declared
+ *       code and message on all three (parity:true, never a silent table).
  *
  * The envelope shape under test is the gateway's own contract (render-runner
  * renderOne output): { fw, ok, html, normalized, ms, error:{code,message}|null }.
@@ -136,7 +136,7 @@ describe('renderAllList — real 3-framework list SSR fan-out (every fixture cas
   }
 
   for (const c of errorCases) {
-    test(`${c.name} — unresolved $ref surfaces ${c.expectError.code} on all three (parity, never a silent table)`, async () => {
+    test(`${c.name} — surfaces ${c.expectError.code} on all three (parity, never a silent table)`, async () => {
       const out = await renderAllList(c.spec, c.rows ?? [], c.options ?? {});
       // Every framework must FAIL with the SAME code — agreement is parity:true.
       expect(out.results.every((r) => !r.ok)).toBe(true);
@@ -145,6 +145,9 @@ describe('renderAllList — real 3-framework list SSR fan-out (every fixture cas
         c.expectError.code,
         c.expectError.code,
       ]);
+      if (c.expectError.message) {
+        expect(out.results.map((r) => r.error.message)).toEqual([c.expectError.message, c.expectError.message, c.expectError.message]);
+      }
       expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
     }, 120000);
   }

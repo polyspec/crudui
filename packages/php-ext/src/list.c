@@ -44,6 +44,31 @@ static const ps_value *member(const ps_value *object, const char *key)
     return object && object->kind == PS_OBJECT ? ps_get(object, key) : NULL;
 }
 
+/*
+ * A page or total option. Absent or null is none: returns true with *present false. Any other
+ * value must be a number whose value is an integer from min to 2^53 - 1; an integral float such
+ * as 2.0 or -0.0 is the integer 2 or 0.
+ */
+static bool count_option(const ps_value *value, int64_t min, bool *present, int64_t *count)
+{
+    const int64_t max = 9007199254740991LL;
+    *present = false;
+    if (!value || value->kind == PS_NULL) return true;
+    if (value->kind == PS_INT) {
+        if (value->data.integer < min || value->data.integer > max) return false;
+        *count = value->data.integer;
+    } else if (value->kind == PS_FLOAT) {
+        double number = value->data.number;
+        if (!isfinite(number) || trunc(number) != number || number < (double)min || number > (double)max)
+            return false;
+        *count = (int64_t)number;
+    } else {
+        return false;
+    }
+    *present = true;
+    return true;
+}
+
 static const char *string_member(const ps_value *object, const char *key)
 {
     const ps_value *value = member(object, key);
@@ -1086,13 +1111,14 @@ static bool append_pagination(list_context *context)
     const ps_value *per_page = member(pagination, "per_page");
     if (ok && per_page && (per_page->kind == PS_INT || per_page->kind == PS_FLOAT))
         ok = ps_html_attr_clone(attrs, "data-per-page", per_page);
-    const ps_value *page_meta = member(context->options, "pageMeta");
+    /* The options were checked before rendering; a supplied count is written as an integer. */
     for (size_t i = 0; ok && i < 2; ++i) {
-        const char *key = i ? "total" : "page";
-        const ps_value *value = member(page_meta, key);
-        char *name = ps_string_join("data-", key, "");
-        if (value) ok = name && ps_html_attr_clone(attrs, name, value);
-        free(name);
+        bool present;
+        int64_t count = 0;
+        if (count_option(member(context->options, i ? "total" : "page"), i ? 0 : 1, &present, &count) && present) {
+            ps_value *value = ps_int_value(count);
+            ok = value && ps_set(attrs, i ? "data-total" : "data-page", value);
+        }
     }
     if (ok) ok = write_element_start(&context->output, "nav", attrs) &&
         write_element_end(&context->output, "nav");
@@ -1222,13 +1248,16 @@ ps_result ps_render_list(const ps_value *spec, const ps_value *rows, const ps_va
             return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
     if (!options || options->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
-    /* Absent or null context and page metadata are none; any other value must be an object. */
+    /* An absent or null context is none; any other value must be an object. */
     const ps_value *data = member(options, "data");
     if (data && data->kind != PS_NULL && data->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "");
-    const ps_value *page_meta = member(options, "pageMeta");
-    if (page_meta && page_meta->kind != PS_NULL && page_meta->kind != PS_OBJECT)
-        return ps_fail("form", "INVALID_FORM_INPUT", "List page metadata must be an object", "");
+    bool present;
+    int64_t count;
+    if (!count_option(member(options, "page"), 1, &present, &count))
+        return ps_fail("form", "INVALID_FORM_INPUT", "List page must be a positive integer", "");
+    if (!count_option(member(options, "total"), 0, &present, &count))
+        return ps_fail("form", "INVALID_FORM_INPUT", "List total must be a nonnegative integer", "");
     const ps_value *layout_value = member(options, "layout");
     const char *layout = !layout_value || layout_value->kind == PS_NULL ? "table"
         : ps_is_string(layout_value, "table") ? "table"

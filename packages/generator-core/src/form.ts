@@ -1,4 +1,9 @@
-import { composeProperties, MemoryLoader, type FileLoader } from '@crudui/validator';
+import {
+  FormInputError,
+  composeProperties,
+  MemoryLoader,
+  type FileLoader,
+} from '@crudui/validator';
 import { makeTranslate, type Language } from './content';
 import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
 import { formMessages } from './messages';
@@ -93,7 +98,7 @@ function scalarChild(child: unknown): boolean {
 function checkDeclarations(spec: Record<string, unknown>, path: string): void {
   const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
   const fail = (key: string, expected: string): never => {
-    throw new TypeError(`Invalid ${key} at ${path}: expected ${expected}`);
+    throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
   };
   // Buttons and the submission target belong to the form, not to a field.
   for (const key of ['buttons', 'action']) {
@@ -160,7 +165,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
 function checkFormDeclarations(spec: Record<string, unknown>): void {
   const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
   const fail = (key: string, expected: string): never => {
-    throw new TypeError(`Invalid ${key} at form: expected ${expected}`);
+    throw new FormInputError(`Invalid ${key} at form: expected ${expected}`);
   };
   if (has(spec, 'action')) {
     if (!isRecord(spec.action)) fail('action', 'an object');
@@ -209,7 +214,7 @@ export function compileForm(
 ): FormTemplate {
   if (rootSpec.type !== 'group' || !rootSpec.properties ||
       typeof rootSpec.properties !== 'object' || Array.isArray(rootSpec.properties)) {
-    throw new TypeError('A form spec must be a group with properties');
+    throw new FormInputError('A form spec must be a group with properties');
   }
   checkFormDeclarations(rootSpec);
   const properties = composeProperties(
@@ -232,19 +237,19 @@ export function bindForm(
   data: Record<string, unknown> = {},
   options: BindFormOptions = {}
 ): NodeVM[] {
-  if (template.kind !== 'crudui/form-template') throw new TypeError('Unsupported form template');
+  if (template.kind !== 'crudui/form-template') throw new FormInputError('Unsupported form template');
   const language = options.language ?? 'ko';
   // Callers can pass decoded JSON; each text option is a string when present.
-  if (typeof language !== 'string') throw new TypeError('Language must be a string');
+  if (typeof language !== 'string') throw new FormInputError('Language must be a string');
   for (const name of ['keyPrefix', 'idPrefix'] as const) {
     const value: unknown = options[name];
     if (value !== undefined && value !== null && typeof value !== 'string') {
-      throw new TypeError(`${name} must be a string`);
+      throw new FormInputError(`${name} must be a string`);
     }
   }
   const unsupported: unknown = options.unsupported;
   if (unsupported !== undefined && unsupported !== null && unsupported !== 'throw' && unsupported !== 'marker') {
-    throw new TypeError('unsupported must be throw or marker');
+    throw new FormInputError('unsupported must be throw or marker');
   }
   const state: BuildState = {
     data,

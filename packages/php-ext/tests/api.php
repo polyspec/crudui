@@ -163,21 +163,44 @@ foreach ([[1], [[]], [['a']], [null]] as $rows) {
     $displayFailure(fn()=>Generator::renderList($listSpec, $rows), 'List rows must be objects');
 }
 $emptyTable = Generator::renderList($listSpec, [['v'=>'a']]);
-foreach ([[], ['data'=>[]], ['data'=>null], ['data'=>new stdClass()], ['pageMeta'=>[]], ['pageMeta'=>null], ['files'=>[]], ['layout'=>null], ['layout'=>'table']] as $options) {
+foreach ([[], ['data'=>[]], ['data'=>null], ['data'=>new stdClass()], ['page'=>null], ['total'=>null], ['files'=>[]], ['layout'=>null], ['layout'=>'table']] as $options) {
     same($emptyTable, Generator::renderList($listSpec, [['v'=>'a']], $options), 'Accepted list options changed: ' . json_encode($options));
 }
 foreach ([['x'], 'x', 1, true] as $value) {
     $displayFailure(fn()=>Generator::renderList($listSpec, [], ['data'=>$value]), 'List context must be an object');
-    $displayFailure(fn()=>Generator::renderList($listSpec, [], ['pageMeta'=>$value]), 'List page metadata must be an object');
     $displayFailure(fn()=>Generator::renderDetail(['fields'=>[]], [], ['data'=>$value]), 'Detail context must be an object');
 }
+// Page and total: PHP int or float whose value is a safe integer, written as decimal digits.
+$pagedSpec = $listSpec + ['pagination'=>true];
+$emptyList = '<div class="list-view"><div class="list-empty"></div>';
+foreach ([
+    [[], '<nav class="list-pagination"></nav>'],
+    [['page'=>2, 'total'=>99], '<nav class="list-pagination" data-page="2" data-total="99"></nav>'],
+    [['page'=>2.0, 'total'=>-0.0], '<nav class="list-pagination" data-page="2" data-total="0"></nav>'],
+    [['page'=>9007199254740991, 'total'=>9007199254740991.0], '<nav class="list-pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>'],
+    [['page'=>1, 'total'=>null], '<nav class="list-pagination" data-page="1"></nav>'],
+    [['total'=>0], '<nav class="list-pagination" data-total="0"></nav>'],
+] as [$options, $nav]) {
+    same($emptyList . $nav . '</div>', Generator::renderList($pagedSpec, [], $options), 'List page options changed: ' . json_encode($options));
+}
+// Infinity and NaN are not JSON values; the native conversion rejects them before any list rule.
+foreach (['2', true, false, [], [2], new stdClass(), 1.5, 0, 0.0, -1, 9007199254740992, 9007199254740992.0, PHP_INT_MAX] as $value) {
+    $displayFailure(fn()=>Generator::renderList($pagedSpec, [], ['page'=>$value]), 'List page must be a positive integer');
+}
+foreach (['0', true, [], new stdClass(), 2.5, -1, -1.0, 9007199254740992] as $value) {
+    $displayFailure(fn()=>Generator::renderList($pagedSpec, [], ['total'=>$value]), 'List total must be a nonnegative integer');
+}
+same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]], [], ['page'=>'x', 'total'=>-1]), 'Detail must ignore list page options');
 foreach (['grid', '', 5, ['table']] as $layout) {
     $displayFailure(fn()=>Generator::renderList($listSpec, [], ['layout'=>$layout]), 'List layout must be table or card');
 }
-// Checked in order: rows before context, context before page metadata and layout.
-$displayFailure(fn()=>Generator::renderList($listSpec, [1], ['data'=>1, 'pageMeta'=>1, 'layout'=>'grid']), 'List rows must be objects');
-$displayFailure(fn()=>Generator::renderList($listSpec, [], ['data'=>1, 'pageMeta'=>1, 'layout'=>'grid']), 'List context must be an object');
-$displayFailure(fn()=>Generator::renderList($listSpec, [], ['pageMeta'=>1, 'layout'=>'grid']), 'List page metadata must be an object');
+// Checked in order: rows, context, page, total, then layout.
+$allInvalid = ['data'=>1, 'page'=>0, 'total'=>-1, 'layout'=>'grid'];
+$displayFailure(fn()=>Generator::renderList($listSpec, ['a'=>1], $allInvalid), 'List rows must be an array');
+$displayFailure(fn()=>Generator::renderList($listSpec, [1], $allInvalid), 'List rows must be objects');
+$displayFailure(fn()=>Generator::renderList($listSpec, [], $allInvalid), 'List context must be an object');
+$displayFailure(fn()=>Generator::renderList($listSpec, [], ['page'=>0, 'total'=>-1, 'layout'=>'grid']), 'List page must be a positive integer');
+$displayFailure(fn()=>Generator::renderList($listSpec, [], ['total'=>-1, 'layout'=>'grid']), 'List total must be a nonnegative integer');
 $displayFailure(fn()=>Generator::renderDetail([], [], ['data'=>1]), 'Detail specification must declare fields');
 same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]], [], ['data'=>[]]), 'Empty array detail context changed');
 $displayValue = fn(array $format, mixed $value) => Generator::buildDetail(['fields'=>['v'=>['field'=>'.v','format'=>$format]]], ['v'=>$value])->fields[0]->display;

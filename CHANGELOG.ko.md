@@ -2,6 +2,38 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 목록 pageMeta 옵션을 page와 total로 바꾸고 JavaScript 입력 오류에 코드 부여
+
+목록 옵션 `pageMeta`는 호출자가 주는 현재 페이지와 전체 레코드 수를 담았지만 이름이 둘 중 무엇도 말하지 않았고,
+멤버에 값 규칙이 없어 어떤 값이든 `data-page`·`data-total` 속성이 되었으며 공용 사례는 숫자만 다뤘습니다. 이제
+목록은 `page`(1 이상 정수)와 `total`(0 이상 정수) 두 옵션을 받고, 둘 다 모든 런타임이 정확히 표현하는 가장 큰
+정수 9007199254740991 이하여야 합니다. 그 밖의 값은 `data` 다음, `layout` 앞에서 검사해
+`List page must be a positive integer` 또는 `List total must be a nonnegative integer`로 실패합니다. `pageMeta`는
+제거했고 PHP의 고정 객체 옵션 목록에서도 뺐습니다.
+
+이 규칙을 넣으며 다른 차이도 드러났습니다. 상세는 옵션을 목록 엔진에 넘기므로 JavaScript, Go, Rust 라이브러리는
+상세 옵션의 잘못된 `page`를 거부했을 것이고, PHP 라이브러리는 이를 제거했으며 C 확장은 읽지 않았습니다. 이제
+모든 런타임에서 상세는 `data`, `language`, `files`, `basepath`만 받고 `page`, `total`, `layout`은 검사하지도
+사용하지도 않으며, 공용 상세 사례 `list-options-ignored`가 이를 강제합니다.
+
+`18baaf68` 이후 교차 검증 콘솔 게이트웨이 CI 작업이 실패했습니다. 제가 로컬에서 실행하지 않은 작업입니다.
+JavaScript 생성기는 입력 오류를 코드 없는 `TypeError`로 던져 게이트웨이가 `RENDER_ERROR`로 분류했고, 다른 모든
+런타임은 `INVALID_FORM_INPUT`을 보고합니다. 네이티브 러너의 JavaScript 어댑터가 코드 없는 오류에
+`INVALID_FORM_INPUT`을 채워 넣어 이 차이가 드러나지 않았습니다. 이제 generator-core의 모든 입력 오류는 검증기의
+`FormInputError`이며 generator-core에서도 내보냅니다. 어댑터는 코드가 없으면 `INTERNAL_ERROR`로 기록하고,
+게이트웨이는 코드와 함께 메시지도 비교합니다. 게이트웨이는 배열이 아닌 행을 렌더링 전에 빈 목록으로 바꾸고
+있었는데, 이제 그대로 넘깁니다. 게이트웨이 설명은 더는 없는 프레임워크별 레이아웃 키를 적고 있어 단일
+`layout` 키로 고쳤습니다.
+
+어댑터 기본값을 없애자 JavaScript 폼 인스턴스도 잘못된 행 조작(없거나 중복된 행 키, 최소·최대 행 수, 잘못된
+위치, 잘못된 시퀀스, 비어 있는 되돌리기 이력)에 코드 없는 `Error`와 `RangeError`를 던진다는 것이 드러났습니다.
+다른 모든 런타임은 이를 `INVALID_FORM_INPUT`으로 보고합니다. 이제 이 오류들도 `FormInputError`입니다. C 확장은
+`A sequence must contain 1-13 decimal digits`에 하이픈을 썼고 다른 런타임은 en dash를 씁니다. 이제 같습니다.
+
+목록 사례는 39건, 상세 사례는 24건입니다. `make test-native`에서 JavaScript, HTML, PHP, Go, Rust, PHP 확장이
+각각 237건 중 237건을 통과했고(입력 불변 검사 포함 1423건), Go·Rust 검증기 명령을 다시 빌드한 뒤 게이트웨이
+검사가 135건 중 135건을 통과했습니다.
+
 ## 2026-09-15 — 표시 형식을 문서화하고 모든 런타임에 하나의 입력 규칙을 강제
 
 목록 열과 상세 필드가 선언할 수 있는 형식은 스키마와 구현에만 드러나 있었습니다.

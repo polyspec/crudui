@@ -1,5 +1,7 @@
 /** Undo history rules shared by form instances and applications that own their data. */
 
+import { FormInputError } from '@crudui/validator';
+
 /** Maximum number of records kept for undo. */
 export const HISTORY_LIMIT = 100;
 
@@ -42,6 +44,6 @@ export interface UndoResult<T> {
 
 /** Take the record before the last change; the next value edit starts a new entry. */
 export function undoChange<T>(history: History<T>): UndoResult<T> {
-  if (!history.entries.length) throw new RangeError('Nothing to undo');
+  if (!history.entries.length) throw new FormInputError('Nothing to undo');
   return { history: { entries: history.entries.slice(0, -1) }, value: history.entries[history.entries.length - 1]! };
 }

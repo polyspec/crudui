@@ -49,16 +49,26 @@ func TestRejectedRowActionsHaveNoResultAndPreserveState(t *testing.T) {
 
 func TestListInputRulesUseDecodedTypes(t *testing.T) {
 	cases := map[string]string{
-		`{"operation":"renderList","spec":[],"rows":[1]}`:                                      "List specification must be an object",
-		`{"operation":"renderList","spec":"list"}`:                                             "List specification must be an object",
-		`{"operation":"renderList","spec":{},"rows":{}}`:                                       "List rows must be an array",
-		`{"operation":"renderList","spec":{},"rows":[[]]}`:                                     "List rows must be objects",
-		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":[]}}`:                 "List context must be an object",
-		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":"s"}}`:                "List context must be an object",
-		`{"operation":"renderList","spec":{},"rows":[],"options":{"pageMeta":[]}}`:             "List page metadata must be an object",
-		`{"operation":"renderList","spec":{},"rows":[],"options":{"layout":"grid"}}`:           "List layout must be table or card",
-		`{"operation":"renderList","spec":{},"rows":[],"options":{"layout":5}}`:                "List layout must be table or card",
-		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":null,"layout":null}}`: "",
+		`{"operation":"renderList","spec":[],"rows":[1]}`:                                                "List specification must be an object",
+		`{"operation":"renderList","spec":"list"}`:                                                       "List specification must be an object",
+		`{"operation":"renderList","spec":{},"rows":{}}`:                                                 "List rows must be an array",
+		`{"operation":"renderList","spec":{},"rows":[[]]}`:                                               "List rows must be objects",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":[]}}`:                           "List context must be an object",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":"s"}}`:                          "List context must be an object",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":[],"page":0}}`:                  "List context must be an object",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"page":"2"}}`:                          "List page must be a positive integer",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"page":0,"total":-1,"layout":"grid"}}`: "List page must be a positive integer",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"page":1.5}}`:                          "List page must be a positive integer",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"page":9007199254740992}}`:             "List page must be a positive integer",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"total":-1,"layout":"grid"}}`:          "List total must be a nonnegative integer",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"total":2.5}}`:                         "List total must be a nonnegative integer",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"total":true}}`:                        "List total must be a nonnegative integer",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"pageMeta":[]}}`:                       "",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"page":9007199254740991,"total":-0}}`:  "",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"page":null,"total":null}}`:            "",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"layout":"grid"}}`:                     "List layout must be table or card",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"layout":5}}`:                          "List layout must be table or card",
+		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":null,"layout":null}}`:           "",
 	}
 	cases[`{"operation":"renderDetail","spec":{"fields":{"v":{"field":".v"}}},"record":{},"options":{"data":[]}}`] = "Detail context must be an object"
 	cases[`{"operation":"buildDetail","spec":{"fields":{"v":{"field":".v"}}},"record":{},"options":{"data":"s"}}`] = "Detail context must be an object"

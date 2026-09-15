@@ -44,16 +44,35 @@ final class DisplayRulesTest extends TestCase
         self::assertStringContainsString('>1</td>', Generator::renderList(self::SPEC, [['v' => 1], (object) ['v' => 2]]));
     }
 
-    public function testContextAndPageMetadataAreFixedObjectOptions(): void
+    public function testContextIsAFixedObjectOption(): void
     {
         $table = Generator::renderList(self::SPEC, [['v' => 'a']]);
-        foreach ([['data' => []], ['data' => null], ['data' => new stdClass()], ['pageMeta' => []], ['pageMeta' => null], ['layout' => null]] as $options) {
+        foreach ([['data' => []], ['data' => null], ['data' => new stdClass()], ['page' => null], ['total' => null], ['layout' => null]] as $options) {
             self::assertSame($table, Generator::renderList(self::SPEC, [['v' => 'a']], $options));
         }
         foreach ([['x'], 'x', 1, true] as $value) {
             self::assertFailure('List context must be an object', fn () => Generator::renderList(self::SPEC, [], ['data' => $value]));
-            self::assertFailure('List page metadata must be an object', fn () => Generator::renderList(self::SPEC, [], ['pageMeta' => $value]));
         }
+    }
+
+    public function testPageAndTotalAreSafeIntegers(): void
+    {
+        $spec = [...self::SPEC, 'pagination' => true];
+        $nav = fn (array $options) => substr(Generator::renderList($spec, [], $options), strlen('<div class="list-view"><div class="list-empty"></div>'), -strlen('</div>'));
+        self::assertSame('<nav class="list-pagination"></nav>', $nav([]));
+        self::assertSame('<nav class="list-pagination" data-page="2" data-total="99"></nav>', $nav(['page' => 2, 'total' => 99]));
+        self::assertSame('<nav class="list-pagination" data-page="2" data-total="0"></nav>', $nav(['page' => 2.0, 'total' => -0.0]));
+        self::assertSame('<nav class="list-pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>', $nav(['page' => 9007199254740991, 'total' => 9007199254740991.0]));
+        self::assertSame('<nav class="list-pagination" data-page="1"></nav>', $nav(['page' => 1, 'total' => null]));
+        self::assertSame('<nav class="list-pagination" data-total="0"></nav>', $nav(['total' => 0]));
+        foreach (['2', true, false, [], [2], new stdClass(), 1.5, 0, 0.0, -1, 9007199254740992, 9007199254740992.0, PHP_INT_MAX, INF, NAN] as $value) {
+            self::assertFailure('List page must be a positive integer', fn () => Generator::renderList($spec, [], ['page' => $value]));
+        }
+        foreach (['0', true, [], new stdClass(), 2.5, -1, -1.0, 9007199254740992, INF, -INF, NAN] as $value) {
+            self::assertFailure('List total must be a nonnegative integer', fn () => Generator::renderList($spec, [], ['total' => $value]));
+        }
+        // The detail model neither checks nor uses the list page options.
+        self::assertSame('<dl class="detail-view"></dl>', Generator::renderDetail(['fields' => []], [], ['page' => 'x', 'total' => -1]));
     }
 
     public function testLayoutMustBeTableOrCard(): void
@@ -66,9 +85,13 @@ final class DisplayRulesTest extends TestCase
 
     public function testListInputIsCheckedInOrder(): void
     {
-        self::assertFailure('List rows must be objects', fn () => Generator::renderList(self::SPEC, [1], ['data' => 1, 'pageMeta' => 1, 'layout' => 'grid']));
-        self::assertFailure('List context must be an object', fn () => Generator::renderList(self::SPEC, [], ['data' => 1, 'pageMeta' => 1, 'layout' => 'grid']));
-        self::assertFailure('List page metadata must be an object', fn () => Generator::renderList(self::SPEC, [], ['pageMeta' => 1, 'layout' => 'grid']));
+        $all = ['data' => 1, 'page' => 0, 'total' => -1, 'layout' => 'grid'];
+        self::assertFailure('List specification must be an object', fn () => Generator::renderList([1], ['a' => 1], $all));
+        self::assertFailure('List rows must be an array', fn () => Generator::renderList(self::SPEC, ['a' => 1], $all));
+        self::assertFailure('List rows must be objects', fn () => Generator::renderList(self::SPEC, [1], $all));
+        self::assertFailure('List context must be an object', fn () => Generator::renderList(self::SPEC, [], $all));
+        self::assertFailure('List page must be a positive integer', fn () => Generator::renderList(self::SPEC, [], ['page' => 0, 'total' => -1, 'layout' => 'grid']));
+        self::assertFailure('List total must be a nonnegative integer', fn () => Generator::renderList(self::SPEC, [], ['total' => -1, 'layout' => 'grid']));
     }
 
     public function testDetailContextIsAFixedObjectOptionCheckedAfterTheFields(): void

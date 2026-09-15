@@ -504,7 +504,8 @@ fn native_fixture_records() {
             basepath:case["options"]["basepath"].as_str().unwrap_or("").into(),
             language:case["options"]["language"].as_str().unwrap_or("ko").into(),
             data:case["options"].get("data").cloned().unwrap_or(Value::Null),
-            page_meta:case["options"].get("pageMeta").cloned().unwrap_or(Value::Null),
+            page:case["options"].get("page").cloned().unwrap_or(Value::Null),
+            total:case["options"].get("total").cloned().unwrap_or(Value::Null),
             layout:case["options"].get("layout").cloned().unwrap_or(Value::Null),
             ..Default::default()
         };
@@ -603,16 +604,104 @@ fn list_input_errors_follow_contract_order() {
         layout: layout.into(),
         ..Default::default()
     };
-    let page_meta = ListOptions {
-        page_meta: json!([]),
+    let page_total = |page: Value, total: Value| ListOptions {
+        page,
+        total,
         layout: json!(5),
         ..Default::default()
     };
-    for error in [
-        render_list(&valid, &[], &page_meta).unwrap_err(),
-        build_list(&valid, &[], &page_meta).unwrap_err(),
+    let page_message = "List page must be a positive integer";
+    let total_message = "List total must be a nonnegative integer";
+    for (options, message) in [
+        (
+            ListOptions {
+                data: json!([]),
+                ..page_total(json!("2"), json!(-1))
+            },
+            "List context must be an object",
+        ),
+        (page_total(json!(0), json!(-1)), page_message),
+        (page_total(json!("2"), Value::Null), page_message),
+        (page_total(json!(true), Value::Null), page_message),
+        (page_total(json!({}), Value::Null), page_message),
+        (page_total(json!([1]), Value::Null), page_message),
+        (page_total(json!(1.5), Value::Null), page_message),
+        (page_total(json!(-1), Value::Null), page_message),
+        (page_total(json!(-0.0), Value::Null), page_message),
+        (
+            page_total(json!(9007199254740992_u64), Value::Null),
+            page_message,
+        ),
+        (
+            page_total(json!(9007199254740992.0), Value::Null),
+            page_message,
+        ),
+        (page_total(json!(1e300), Value::Null), page_message),
+        (page_total(Value::Null, json!(-1)), total_message),
+        (page_total(json!(1), json!(-1.0)), total_message),
+        (page_total(Value::Null, json!(0.5)), total_message),
+        (page_total(Value::Null, json!(false)), total_message),
+        (page_total(Value::Null, json!("0")), total_message),
+        (
+            page_total(Value::Null, json!(9007199254740992_u64)),
+            total_message,
+        ),
     ] {
-        assert_eq!(error.message, "List page metadata must be an object");
+        for error in [
+            render_list(&valid, &[], &options).unwrap_err(),
+            build_list(&valid, &[], &options).unwrap_err(),
+        ] {
+            assert_eq!(
+                (
+                    error.code.as_str(),
+                    error.message.as_str(),
+                    error.at.as_str()
+                ),
+                ("INVALID_FORM_INPUT", message, "")
+            );
+        }
+    }
+    let paginated = json!({"columns":{"n":{"field":".n"}},"pagination":true});
+    for (page, total, expected, attrs) in [
+        (
+            json!(2.0),
+            json!(-0.0),
+            json!({"enabled":true,"page":2,"total":0}),
+            r#"data-page="2" data-total="0""#,
+        ),
+        (
+            json!(9007199254740991_u64),
+            json!(9007199254740991.0),
+            json!({"enabled":true,"page":9007199254740991_u64,"total":9007199254740991_u64}),
+            r#"data-page="9007199254740991" data-total="9007199254740991""#,
+        ),
+        (
+            json!(1),
+            Value::Null,
+            json!({"enabled":true,"page":1}),
+            r#"data-page="1""#,
+        ),
+        (
+            Value::Null,
+            Value::Null,
+            json!({"enabled":true}),
+            "list-pagination",
+        ),
+    ] {
+        let options = ListOptions {
+            page,
+            total,
+            ..Default::default()
+        };
+        let model = build_list(&paginated, &[], &options).unwrap();
+        assert_eq!(model["pagination"], expected);
+        assert_eq!(
+            serde_json::to_string(&model["pagination"]).unwrap(),
+            serde_json::to_string(&expected).unwrap()
+        );
+        let html = render_list(&paginated, &[], &options).unwrap();
+        assert!(html.contains(attrs), "{html}");
+        assert!(!html.contains(".0\""), "{html}");
     }
     assert_eq!(
         list_rows(Some(&json!({}))).unwrap_err().message,

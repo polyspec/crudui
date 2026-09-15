@@ -14,7 +14,7 @@
 static ps_result invalid_sequence(void)
 {
     return ps_fail("form", "INVALID_FORM_INPUT",
-                   "A sequence must contain 1-13 decimal digits", "");
+                   "A sequence must contain 1–13 decimal digits", "");
 }
 
 ps_result ps_sequence_key(const ps_value *sequence)

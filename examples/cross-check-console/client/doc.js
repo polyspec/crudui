@@ -100,7 +100,7 @@ export const listDocSections = [
     title: '페이징·정렬 (선언만)',
     body:
       'pagination(perPage)·sort 는 선언적 메타다 — list-spec 은 페이지·정렬 UI 와 메타를 표면화할 뿐 ' +
-      '실제 적용(쿼리)은 호출자 몫이다. options.pageMeta{page,total} 가 페이지 표시를 채운다. ' +
+      '실제 적용(쿼리)은 호출자 몫이다. options.page(현재 페이지)·options.total(전체 레코드 수)이 페이지 표시를 채운다.' +
       '출처: list-render pagination-display/sort-display.',
   },
   {
@@ -108,8 +108,7 @@ export const listDocSections = [
     body:
       '같은 list-spec·같은 주입 rows 면 react/vue/svelte 의 normalizeHtml 결과가 한 개로 모여야 parity. ' +
       'React의 SSR resource hint(<link rel="preload">)는 비교 전에 제거한다. ' +
-      'layout 옵션은 프레임워크별 키가 다르다. React는 layout, Svelte는 mode, Vue는 layout(card→cards)을 사용한다. ' +
-      'HTTP gateway는 단일 layout 값을 각 키로 매핑한다. ' +
+      'layout 옵션은 세 프레임워크 모두 같은 키 layout(table 또는 card)을 사용한다. ' +
       '미해결 $ref 는 로드 실패(REF_FILE_NOT_FOUND)로 표면화되지 silent skip 이 아니다.',
   },
 ];

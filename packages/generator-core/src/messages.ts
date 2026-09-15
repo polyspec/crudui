@@ -1,5 +1,6 @@
 /** Runtime interface text shared by every renderer and implementation. */
 
+import { FormInputError } from '@crudui/validator';
 import type { Language } from './content';
 
 /** Supported interface languages, in declaration order. */
@@ -89,9 +90,9 @@ const MESSAGES: Readonly<Record<Language, FormMessages>> = {
 /** Return the interface text for a supported language. */
 export function formMessages(language: string): FormMessages {
   // Callers can pass decoded JSON; a non-string is rejected before any text conversion.
-  if (typeof language !== 'string') throw new TypeError('Language must be a string');
+  if (typeof language !== 'string') throw new FormInputError('Language must be a string');
   if (!(LANGUAGES as readonly string[]).includes(language)) {
-    throw new TypeError(`Unsupported language: ${language}`);
+    throw new FormInputError(`Unsupported language: ${language}`);
   }
   return MESSAGES[language as Language];
 }

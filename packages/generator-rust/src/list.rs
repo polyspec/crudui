@@ -18,8 +18,11 @@ pub struct ListOptions<'a> {
     pub language: String,
     /// List-level data used by column visibility expressions: null or an object.
     pub data: Value,
-    /// Injected page and total metadata, null or an object; no totals are derived from display rows.
-    pub page_meta: Value,
+    /// Current page: null for none, otherwise an integer from 1 to 9007199254740991.
+    pub page: Value,
+    /// Total item count: null for none, otherwise an integer from 0 to 9007199254740991;
+    /// no total is derived from display rows.
+    pub total: Value,
     /// Output layout: null (`table`), `table` or `card`.
     pub layout: Value,
 }
@@ -32,7 +35,8 @@ impl Default for ListOptions<'_> {
             basepath: String::new(),
             language: "ko".into(),
             data: Value::Null,
-            page_meta: Value::Null,
+            page: Value::Null,
+            total: Value::Null,
             layout: Value::Null,
         }
     }
@@ -215,8 +219,42 @@ fn cell_display(
     Ok(display)
 }
 
-/// Check list inputs in contract order and return the list context, where null means empty.
-fn list_context(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<Value> {
+/// Largest integer a JSON number carries exactly in every runtime.
+const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
+
+/// Read an optional integer option: null means none, and any other value must be a number whose
+/// value is an integer from `minimum` to the largest safe integer, so an integral float such as
+/// 2.0 is 2 and negative zero is 0.
+fn list_integer(value: &Value, minimum: u64, message: &str) -> FormResult<Option<u64>> {
+    let integer = match value {
+        Value::Null => return Ok(None),
+        Value::Number(number) => number.as_u64().or_else(|| {
+            number
+                .as_f64()
+                .filter(|v| v.fract() == 0.0 && *v >= 0.0 && *v <= MAX_SAFE_INTEGER as f64)
+                .map(|v| v as u64)
+        }),
+        _ => None,
+    };
+    match integer {
+        Some(integer) if (minimum..=MAX_SAFE_INTEGER).contains(&integer) => Ok(Some(integer)),
+        _ => Err(FormError::input(message)),
+    }
+}
+
+/// Checked list inputs: the context, where null means empty, and the supplied page and total.
+struct ListContext {
+    data: Value,
+    page: Option<u64>,
+    total: Option<u64>,
+}
+
+/// Check list inputs in contract order: specification, rows, context, page, then total.
+fn list_context(
+    spec: &Value,
+    rows: &[Value],
+    options: &ListOptions<'_>,
+) -> FormResult<ListContext> {
     if !spec.is_object() {
         return Err(FormError::input("List specification must be an object"));
     }
@@ -228,15 +266,23 @@ fn list_context(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> Form
         data @ Value::Object(_) => data.clone(),
         _ => return Err(FormError::input("List context must be an object")),
     };
-    if !options.page_meta.is_null() && !options.page_meta.is_object() {
-        return Err(FormError::input("List page metadata must be an object"));
-    }
-    Ok(context)
+    let page = list_integer(&options.page, 1, "List page must be a positive integer")?;
+    let total = list_integer(
+        &options.total,
+        0,
+        "List total must be a nonnegative integer",
+    )?;
+    Ok(ListContext {
+        data: context,
+        page,
+        total,
+    })
 }
 
 /// Compose a list and bind display rows without modifying the inputs.
 pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<Value> {
-    let context = &list_context(spec, rows, options)?;
+    let checked = list_context(spec, rows, options)?;
+    let context = &checked.data;
     let memory = MemoryLoader::new(options.files.clone());
     let columns = compose_properties(
         spec["columns"].as_object().cloned().unwrap_or_default(),
@@ -277,9 +323,10 @@ pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> Fo
             pagination[output] = value.clone();
         }
     }
-    for key in ["page", "total"] {
-        if let Some(value) = options.page_meta.get(key) {
-            pagination[key] = value.clone();
+    // Supplied page and total are written as JSON integers; absent or null ones are left out.
+    for (key, value) in [("page", checked.page), ("total", checked.total)] {
+        if let Some(value) = value {
+            pagination[key] = value.into();
         }
     }
     let mut actions = Vec::new();

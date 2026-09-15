@@ -229,6 +229,13 @@ const SCENARIOS: DetailFixtureCase[] = [
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail specification must declare fields' },
   },
   {
+    name: 'list-options-ignored',
+    note: 'the list-only page, total and layout options are neither checked nor used by a detail.',
+    spec: { fields: { name: { field: '.name', label: 'Name' } } },
+    record: ADA,
+    options: { page: 0, total: -1, layout: 'grid' } as unknown as BuildDetailOptions,
+  },
+  {
     name: 'reject-array-context',
     note: 'a data option that is not an object is rejected.',
     spec: { fields: { name: { field: '.name', label: 'Name' } } },

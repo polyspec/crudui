@@ -121,7 +121,7 @@ text. Format-specific settings stay in that object. [Display formats](display-fo
 defines each format, the accepted list and detail input and the markup. `sort`, `pagination`,
 `search` and `actions` declare application behavior. `empty` defines translated
 empty-state content. The core does not query a database, filter records or apply
-server pagination. Page metadata is supplied by the caller.
+server pagination. The caller supplies the current page and the total record count.
 
 ## Details
 
