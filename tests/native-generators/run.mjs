@@ -162,7 +162,7 @@ const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
 assert.equal(formCases.length, 92, 'The form fixture inventory changed; review coverage before changing this assertion');
 assert.equal(listCases.length, 39, 'The list fixture inventory changed; review coverage before changing this assertion');
-assert.equal(detailCases.length, 24, 'The detail fixture inventory changed; review coverage before changing this assertion');
+assert.equal(detailCases.length, 25, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 for (const target of targets) {
   const status = { name: target.name, available: false, passed: false, command: target.command, args: target.args };

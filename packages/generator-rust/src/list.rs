@@ -177,15 +177,10 @@ fn cell_display(
             } else {
                 items.get(&text)
             };
-            raw.map(|v| {
-                if v.is_object() {
-                    translate(Some(v), language)
-                } else {
-                    scalar(Some(v))
-                }
-            })
-            .unwrap_or(text)
-            .into()
+            // A choice label is content: a string or a language map.
+            raw.map(|v| translate(Some(v), language))
+                .unwrap_or(text)
+                .into()
         }
         "bool" => {
             let value = truthy(value);

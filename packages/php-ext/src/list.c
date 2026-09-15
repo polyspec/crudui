@@ -748,8 +748,10 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         bool ok = selected && interpolated_value(selected, row, value, &href);
         ps_value_free(selected);
         const ps_value *caption_source = member(options, "text");
-        char *caption = caption_source && caption_source->kind != PS_NULL && ps_truthy(caption_source)
-            ? translated(caption_source, language) : ps_scalar_string(value);
+        /* Only absent, null or empty-string text falls back to the cell value. */
+        bool fallback = !caption_source || caption_source->kind == PS_NULL ||
+            (caption_source->kind == PS_STRING && caption_source->data.string.length == 0);
+        char *caption = fallback ? ps_scalar_string(value) : translated(caption_source, language);
         ps_value *display = display_object("link");
         if (ok) ok = display && set_value(display, "href", &href) && set_text(display, "text", caption);
         const char *target = string_member(options, "target");
@@ -767,8 +769,9 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
             if (end && !*end) label = ps_at(items, (size_t)index);
         } else if (items && items->kind == PS_OBJECT && !ps_has(items, "model") && key)
             label = ps_get(items, key);
-        char *display = label && label->kind == PS_OBJECT ? translated(label, language)
-            : label ? ps_scalar_string(label) : copy_bytes(key ? key : "", strlen(key ? key : ""));
+        /* A choice label is content: a string or a language map. */
+        char *display = label ? translated(label, language)
+            : copy_bytes(key ? key : "", strlen(key ? key : ""));
         free(key);
         return owned_text(display);
     }

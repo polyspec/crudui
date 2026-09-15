@@ -183,19 +183,22 @@ final class Value
         return Style::canonical($style);
     }
 
-    /** Resolve translated text using the selected and default languages. */
+    /**
+     * Resolve content: a string is itself; a language map yields the first non-empty string entry
+     * for the language, en, ko and then its first key; any other value, a list included, is the default.
+     */
     public static function translate(mixed $text, string $language, string $default = ''): string
     {
         if (is_string($text)) {
             return $text;
         }
-        if (!$text instanceof stdClass && !is_array($text)) {
+        if (!$text instanceof stdClass && !(is_array($text) && !array_is_list($text))) {
             return $default;
         }
         $map = (array) $text;
         foreach ([$language, 'en', 'ko', array_key_first($map)] as $key) {
-            if ($key !== null && self::truthy($map[$key] ?? null)) {
-                return self::scalar($map[$key]);
+            if ($key !== null && is_string($map[$key] ?? null) && $map[$key] !== '') {
+                return $map[$key];
             }
         }
         return $default;

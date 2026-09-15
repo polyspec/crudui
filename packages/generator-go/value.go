@@ -229,18 +229,22 @@ func item(v any, k string) any {
 	}
 	return absent
 }
+
+// translate resolves content: a string is itself; a language map yields the first non-empty
+// string entry for the language, en, ko and then its first key; any other value is empty.
 func translate(v any, language string) string {
 	if s, ok := v.(string); ok {
 		return s
 	}
 	if o := object(v); o != nil {
-		for _, k := range []string{language, "en", "ko"} {
-			if x := read(o, k); truthy(x) {
-				return scalar(x)
-			}
-		}
+		keys := []string{language, "en", "ko"}
 		if ks := o.Keys(); len(ks) > 0 {
-			return scalar(read(o, ks[0]))
+			keys = append(keys, ks[0])
+		}
+		for _, k := range keys {
+			if s, ok := read(o, k).(string); ok && s != "" {
+				return s
+			}
 		}
 	}
 	return ""
