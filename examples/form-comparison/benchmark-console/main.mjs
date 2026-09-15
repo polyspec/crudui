@@ -233,7 +233,7 @@ async function runAll(servers, publish) {
     document.querySelector('#progress').textContent =
       `${t.results}: ${checks.filter(check => check.passed).length}/${checks.length} ${t.pass}`;
     document.querySelector('#download').disabled = false;
-    return { generatedAt: new Date().toISOString(), metadata };
+    return { generatedAt: new Date().toISOString(), source: metadata };
   } finally {
     await show(...selected);
     for (const control of controls) control.disabled = false;
