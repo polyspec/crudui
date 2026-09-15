@@ -240,3 +240,98 @@ pagination:
 ];
 
 export const defaultListExampleId = 'list-basic';
+
+// ---------------------------------------------------------------------------
+// Detail specification examples for the detail tab.
+//
+// Quoted from tests/fixtures/detail-render/cases.json (basic-fields,
+// design-wrapper-and-cell, condition-hidden-field, reject-record-before-fields)
+// and tests/fixtures/detail-validity/cases.json (red-show-if-on-field). The
+// record is injected: the specification declares fields, never a data source.
+// ---------------------------------------------------------------------------
+
+/** @typedef {{ id: string, name: string, note: string, spec: string, record: string }} DetailExample */
+
+/** The injected record shared by the detail-render fixture cases. */
+const DETAIL_RECORD = `{
+  "id": 7,
+  "name": "<Ada & Lin>",
+  "status": "active",
+  "joined": "2026-01-02T09:00:00",
+  "score": 1234567.5,
+  "admin": 1,
+  "avatar": "/img/ada.png",
+  "notes": "<b>bold</b>"
+}`;
+
+/** @type {DetailExample[]} */
+export const detailExamples = [
+  {
+    id: 'detail-basic',
+    name: 'detail basic — translated labels + escaped values',
+    note: 'detail-render basic-fields: plain text fields with translated labels; values are escaped. The KO/EN toggle picks the label.',
+    spec: `fields:
+  name:
+    field: .name
+    label:
+      ko: 이름
+      en: Name
+  status:
+    field: .status
+    label:
+      ko: 상태
+      en: Status`,
+    record: DETAIL_RECORD,
+  },
+  {
+    id: 'detail-design',
+    name: 'detail design — wrapper and cell design',
+    note: 'detail-render design-wrapper-and-cell: the detail design styles the container and a field design styles its cell.',
+    spec: `design:
+  wrapper:
+    class: card
+    style: padding:4px
+fields:
+  name:
+    field: .name
+    label: Name
+    design:
+      class: strong
+      style: color:red`,
+    record: DETAIL_RECORD,
+  },
+  {
+    id: 'detail-condition-hidden',
+    name: 'detail condition — a hidden field is not rendered',
+    note: 'detail-render condition-hidden-field: design.show false removes the field from the detail.',
+    spec: `fields:
+  name:
+    field: .name
+    label: Name
+  secret:
+    field: .status
+    label: Secret
+    design:
+      show: false`,
+    record: DETAIL_RECORD,
+  },
+  {
+    id: 'detail-edge-forbidden',
+    name: 'edge — forbidden meta key show_if (FORBIDDEN_META_KEY)',
+    note: 'detail-validity red-show-if-on-field: the four validators report failure FORBIDDEN_META_KEY at fields.name.show_if.',
+    spec: `fields:
+  name:
+    field: .name
+    show_if: .admin`,
+    record: DETAIL_RECORD,
+  },
+  {
+    id: 'detail-edge-record',
+    name: 'edge — non-object record (INVALID_FORM_INPUT)',
+    note: 'detail-render reject-record-before-fields: the record rule precedes the fields rule, so all three renderers fail with "Detail record must be an object".',
+    spec: `{}`,
+    record: `[]`,
+  },
+];
+
+export const defaultDetailExampleId = 'detail-basic';

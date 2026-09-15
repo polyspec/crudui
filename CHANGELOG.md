@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Render and validate details in the cross-check console
+
+The console compared form and list rendering and validated lists and details, but it could not
+render a detail. It now fans a detail specification and one record out to React, Vue and Svelte
+through `POST /api/render-detail`, runs every shared detail case in its suite, and offers a detail
+tab that validates and renders together. The console removed React preload links with its own
+pattern while the conformance checks use the shared helper; it now uses that helper. The client
+README described a list load failure as a `LOAD-ERROR` cell, which the page shows as `FAILURE`.
+The gateway suite passed 204 tests.
+
 ## 2026-09-15 — Check list and detail designs as form designs are checked
 
 Lists and details have no compile step, so an unknown `design` key in a list, a column, a detail or a
