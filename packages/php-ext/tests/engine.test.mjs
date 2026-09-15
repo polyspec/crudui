@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Node } from '@crudui/generator-react';
+import { buildDetail } from '@crudui/generator-core';
 
 import { requiredSourcePaths } from '../../../examples/form-comparison/prepare.mjs';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';
@@ -897,6 +898,115 @@ test('PHP extension engine list rendering has no undefined behavior findings', a
   try {
     await compileAndRunEngineFixture({
       root, directory, source: sourceForFixtures(), name: 'list-fixtures-sanitize', sources,
+      compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
+      runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
+    });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+}
+
+{
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const fixtures = JSON.parse(await readFile(
+  path.join(root, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
+const fieldMembers = ['key', 'label', 'format', 'value', 'display', 'design'];
+
+function expectation(operation, fixture) {
+  const record = fixture.record ?? {};
+  const options = fixture.options ?? {};
+  try {
+    if (operation === 'render')
+      return { value: dispatch({ operation: 'renderDetail', spec: fixture.spec, record, options }) };
+    const model = buildDetail(fixture.spec, record, options);
+    return {
+      value: JSON.parse(JSON.stringify({
+        fields: model.fields.map(field => Object.fromEntries(fieldMembers.map(
+          key => [key, key === 'value' && field.value === undefined ? null : field[key]]))),
+        design: model.design,
+      })),
+    };
+  } catch (error) {
+    return { error: errorRecord(error) };
+  }
+}
+
+function sourceForFixtures() {
+  const builder = new EngineFixtureSource();
+  const { lines } = builder;
+  let status = 1;
+  for (const fixture of fixtures) {
+    for (const operation of ['render', 'build']) {
+      const name = `${operation}:${fixture.name}`;
+      const { value: expected, error } = expectation(operation, fixture);
+      if (fixture.expectError) assert.deepEqual(error, { ...fixture.expectError, at: '' });
+      lines.push('  {', `  /* ${name} */`);
+      const specValue = builder.emit(fixture.spec);
+      const recordValue = builder.emit(fixture.record ?? {});
+      const optionsValue = builder.emit(fixture.options ?? {});
+      const inputs = [specValue, recordValue, optionsValue];
+      lines.push(...inputs.map(value => `  ps_value *${value}_before = ps_value_clone(${value});`));
+      lines.push(`  ps_result actual = ps_${operation}_detail(${inputs.join(', ')});`);
+      if (error) {
+        lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(error.code)}) || !ps_is_string(ps_get(actual.error, "message"), ${cString(error.message)}) || !ps_is_string(ps_get(actual.error, "at"), ${cString(error.at)})) { fputs(${cString(`${name}: error differs\n`)}, stderr); return ${status}; }`);
+      } else if (operation === 'render') {
+        lines.push(`  if (!actual.value || actual.error || !ps_is_string(actual.value, ${cString(expected)})) {`);
+        lines.push(`    fprintf(stderr, ${cString(`${name}: HTML differs\nactual: %s\nexpected: %s\n`)}, actual.value ? ps_string(actual.value) : "null", ${cString(expected)});`);
+        lines.push(`    return ${status}; }`);
+      } else {
+        const expectedValue = builder.emit(expected);
+        lines.push(`  if (!actual.value || actual.error || !ps_equal(actual.value, ${expectedValue})) {`);
+        lines.push(`    char *actual_json = ps_json_string(actual.value); char *expected_json = ps_json_string(${expectedValue});`);
+        lines.push(`    fprintf(stderr, ${cString(`${name}: model differs\nactual: %s\nexpected: %s\n`)}, actual_json ? actual_json : "null", expected_json ? expected_json : "null");`);
+        lines.push(`    free(actual_json); free(expected_json); return ${status}; }`);
+        lines.push(`  if (!member_order(actual.value, (const char *[]){"fields", "design"}, 2)) { fputs(${cString(`${name}: model member order differs\n`)}, stderr); return ${status}; }`);
+        lines.push(`  for (size_t i = 0; i < ps_size(ps_get(actual.value, "fields")); ++i)`);
+        lines.push(`    if (!member_order(ps_at(ps_get(actual.value, "fields"), i), (const char *[]){${fieldMembers.map(cString).join(', ')}}, ${fieldMembers.length})) { fputs(${cString(`${name}: field member order differs\n`)}, stderr); return ${status}; }`);
+        lines.push(`  ps_value_free(${expectedValue});`);
+      }
+      lines.push(`  if (${inputs.map(value => `!ps_equal(${value}, ${value}_before)`).join(' || ')}) { fputs(${cString(`${name}: input changed\n`)}, stderr); return ${status}; }`);
+      lines.push(`  ps_value_free(actual.value); ps_value_free(actual.error);`);
+      lines.push(...inputs.map(value => `  ps_value_free(${value}); ps_value_free(${value}_before);`), '  }');
+      status += 1;
+    }
+  }
+  return fixtureProgram(lines, [
+    'static bool member_order(const ps_value *object, const char *const *keys, size_t count)',
+    '{',
+    '  if (!object || ps_size(object) != count) return false;',
+    '  for (size_t i = 0; i < count; ++i) if (strcmp(ps_key_at(object, i), keys[i])) return false;',
+    '  return true;',
+    '}',
+    '',
+  ]);
+}
+
+const sources = [
+  'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+  'runtime.c', 'date.c', 'design.c', 'compose.c', 'html.c', 'list.c',
+];
+
+test('PHP extension engine renders and builds every shared detail fixture', async () => {
+  assert.equal(fixtures.length, 19,
+    'Review C detail coverage when the shared fixture inventory changes');
+  const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
+  assert.equal(missing.value.fields[0].value, null);
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-detail-'));
+  try {
+    await compileAndRunEngineFixture({
+      root, directory, source: sourceForFixtures(), name: 'detail-fixtures', sources,
+    });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('PHP extension engine detail evaluation has no undefined behavior findings', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-detail-sanitize-'));
+  try {
+    await compileAndRunEngineFixture({
+      root, directory, source: sourceForFixtures(), name: 'detail-fixtures-sanitize', sources,
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
     });

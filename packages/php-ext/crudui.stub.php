@@ -8,6 +8,8 @@ namespace CRUDUI {
         public static function bindForm(\stdClass $template, array|\stdClass $data = [], array $options = []): array {}
         public static function renderForm(Form $form): string {}
         public static function renderList(array|\stdClass $spec, array $rows, array $options = []): string {}
+        public static function renderDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): string {}
+        public static function buildDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): \stdClass {}
         public static function sequenceRowKey(int|string $sequence): string {}
         public static function createRowKey(): string {}
     }

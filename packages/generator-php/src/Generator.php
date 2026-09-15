@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI;
 
 use CRUDUI\Generator\Binding;
+use CRUDUI\Generator\Details;
 use CRUDUI\Generator\Lists;
 use CRUDUI\Generator\Rendering;
 use CRUDUI\Generator\Template;
@@ -35,6 +36,18 @@ final class Generator
     public static function renderList(array|stdClass $spec, array $rows, array $options = []): string
     {
         return Lists::render($spec, $rows, $options);
+    }
+
+    /** Render one read-only detail from a supplied record. */
+    public static function renderDetail(array|stdClass $spec, array|stdClass $record = new stdClass(), array $options = []): string
+    {
+        return Details::render($spec, $record, $options);
+    }
+
+    /** Build one read-only detail model from a supplied record. */
+    public static function buildDetail(array|stdClass $spec, array|stdClass $record = new stdClass(), array $options = []): stdClass
+    {
+        return Details::build($spec, $record, $options);
     }
 
     /** Format a nonnegative sequence with thirteen decimal digits. */

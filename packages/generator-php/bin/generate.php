@@ -16,10 +16,11 @@ function state(Form $form): array
 {
     return ['data' => $form->getData(), 'fields' => $form->getFields(), 'html' => Generator::renderForm($form), 'revision' => $form->getRevision()];
 }
-function record(mixed $value): stdClass
+/** A protocol JSON object; a JSON array or scalar is not an object in any runtime. */
+function objectValue(mixed $value, string $message): stdClass
 {
     if (!$value instanceof stdClass) {
-        throw new InvalidArgumentException('Form data must be an object');
+        throw new InvalidArgumentException($message);
     }
     return $value;
 }
@@ -47,13 +48,18 @@ try {
             $result = Generator::compileForm(required($request, 'spec'), options(property_exists($request, 'options') ? $request->options : new stdClass()));
             break;
         case 'bindForm':
-            $result = Generator::bindForm(required($request, 'template'), property_exists($request, 'data') ? record($request->data) : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $result = Generator::bindForm(required($request, 'template'), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
             break;
         case 'renderList':
             $result = Generator::renderList(required($request, 'spec'), property_exists($request, 'rows') ? $request->rows : [], options(property_exists($request, 'options') ? $request->options : new stdClass()));
             break;
+        case 'buildDetail':
+        case 'renderDetail':
+            $method = $request->operation;
+            $result = Generator::$method(objectValue(required($request, 'spec'), 'Detail specification must be an object'), property_exists($request, 'record') ? objectValue($request->record, 'Detail record must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            break;
         case 'form':
-            $form = new Form(required($request, 'template'), property_exists($request, 'data') ? record($request->data) : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $form = new Form(required($request, 'template'), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
             $steps = [];
             $actions = property_exists($request, 'actions') ? $request->actions : [];
             if (!is_array($actions)) {
@@ -75,7 +81,7 @@ try {
                         throw new InvalidArgumentException('Action args must be an array');
                     }
                     if ($method === 'setData' && array_key_exists(0, $args)) {
-                        $args[0] = record($args[0]);
+                        $args[0] = objectValue($args[0], 'Form data must be an object');
                     }
                     $optionIndex = $method === 'addRow' ? 1 : ($method === 'copyRow' ? 2 : null);
                     if ($optionIndex !== null && array_key_exists($optionIndex, $args)) {

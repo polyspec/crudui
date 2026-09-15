@@ -122,6 +122,34 @@ check($inputError->getMessage() === 'Repeated data must be a keyed object: compa
 $explicitInput = new FormInputError('message');
 check($explicitInput->getMessage() === 'message' && $explicitInput->getErrorCode() === 'INVALID_FORM_INPUT', 'Explicit input failure changed');
 
+$detailSpec = ['fields'=>['name'=>['field'=>'.name','label'=>'Name'],'missing'=>['field'=>'.missing','label'=>'Missing']]];
+$detail = Generator::buildDetail($detailSpec, ['name'=>'Ada']);
+same(['fields','design'], array_keys((array)$detail), 'Detail model member order changed');
+foreach ($detail->fields as $field) {
+    same(['key','label','format','value','display','design'], array_keys((array)$field), 'Detail field member order changed');
+}
+check($detail->fields[0]->value === 'Ada' && $detail->fields[0]->display === 'Ada', 'Detail value changed');
+check($detail->fields[1]->value === null && $detail->fields[1]->display === '', 'Absent detail value is not null');
+same($detail, Generator::buildDetail((object)$detailSpec, (object)['name'=>'Ada']), 'Associative detail arrays differ from objects');
+$detailHtml = '<dl class="detail-view"><div class="detail-field"><dt class="detail-label">Name</dt><dd class="detail-value detail-value-text">Ada</dd></div><div class="detail-field"><dt class="detail-label">Missing</dt><dd class="detail-value detail-value-text"></dd></div></dl>';
+same($detailHtml, Generator::renderDetail($detailSpec, ['name'=>'Ada']), 'Detail HTML changed');
+same($detailHtml, Generator::renderDetail((object)$detailSpec, (object)['name'=>'Ada'], []), 'Object detail HTML differs');
+same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]]), 'Omitted detail record changed');
+// An empty PHP array is the empty root object; a non-empty list-shaped array is not an object.
+same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]], []), 'Empty array detail record changed');
+same([], Generator::buildDetail(['fields'=>[]], [])->fields, 'Empty array detail record model changed');
+foreach (['renderDetail', 'buildDetail'] as $method) {
+    foreach ([
+        [[[], ['name'=>'Ada']], 'Detail specification must declare fields'],
+        [[[['field'=>'.name']], ['name'=>'Ada']], 'Detail specification must be an object'],
+        [[(object)[], ['name'=>'Ada']], 'Detail specification must declare fields'],
+        [[['fields'=>[]], ['Ada']], 'Detail record must be an object'],
+    ] as [$arguments, $message]) {
+        $detailError = fails(fn()=>Generator::$method(...$arguments), FormError::class, 'INVALID_FORM_INPUT');
+        check($detailError->getMessage() === $message && $detailError->getPath() === '', "$method failure changed: $message");
+    }
+}
+
 $validation = Validator::validate($spec, $data);
 same((object)['valid'=>true,'errors'=>[]], $validation, 'Native validation rejected valid data');
 same($validation, Validator::validate($spec, $data, ['files'=>[]]), 'Empty files map changed validation');

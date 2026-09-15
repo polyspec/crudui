@@ -41,7 +41,7 @@ export interface ColumnVM {
 export interface CellVM {
   /** The column's normalized format (shared shape with ColumnVM.format). */
   format: CellFormatModel;
-  /** Raw value read from the injected row by the column `field` path. */
+  /** Raw value read from the injected row by the column `field` path; `null` when the row has none. */
   value: unknown;
   /** Display payload from the cell renderer (string or structured). */
   display: CellDisplay;
@@ -277,7 +277,8 @@ export function buildList(
       const renderCtx: CellRenderCtx = { row, expr: cellExpr, t };
       return {
         format: col.format,
-        value,
+        // A model is JSON: a path absent from the row is `null`, and the member is always present.
+        value: value === undefined ? null : value,
         display: renderCell(col.format, value, renderCtx),
         design: cellDesign,
       };

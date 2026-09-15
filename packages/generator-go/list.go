@@ -111,11 +111,12 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 			if e != nil {
 				return nil, e
 			}
-			cell := NewObject("format", format)
+			// A model is JSON: a path absent from the row is null, and the member is always present.
+			var value any
 			if !isAbsent(v) {
-				cell.Set("value", v)
+				value = v
 			}
-			cell.Set("display", display)
+			cell := NewObject("format", format, "value", value, "display", display)
 			cell.Set("design", resolveDesign(read(read(columns, stringAt(col, "key")), "design"), rowLookup, parsePath(field)))
 			cells = append(cells, cell)
 		}

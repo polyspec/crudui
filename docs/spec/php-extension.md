@@ -109,6 +109,10 @@ PHP scalar types are preserved. Sequential PHP arrays represent JSON arrays;
 associative arrays and `stdClass` represent objects. Use `stdClass` for an
 explicit empty object. An empty array is accepted for an empty root object
 argument, whose type is fixed by its API. Nested values retain their type.
+At a JSON input boundary, use `json_decode($json, false, 512, JSON_THROW_ON_ERROR)`;
+associative mode cannot preserve empty objects and can make objects with
+sequential numeric keys appear as arrays. Associative arrays remain valid for
+internal API calls when the caller already knows that the value is an object.
 The fixed `files` option is also an object map and accepts an empty PHP array.
 Returned record objects and cached templates use `stdClass`; lists use arrays.
 Object member order and row keys survive conversion in both directions.

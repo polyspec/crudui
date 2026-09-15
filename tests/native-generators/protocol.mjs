@@ -90,6 +90,15 @@ export function validateResponse(request, value) {
     }
     case 'bindForm': validateFields(value); break;
     case 'renderList': assert.equal(typeof value, 'string', 'List HTML must be a string'); break;
+    case 'buildDetail':
+      assert.ok(object(value), 'Detail model must be an object');
+      assert.deepEqual(Object.keys(value), ['fields', 'design'], 'Detail model members differ');
+      assert.ok(Array.isArray(value.fields), 'Detail fields must be an array');
+      for (const field of value.fields) {
+        assert.deepEqual(Object.keys(field), ['key', 'label', 'format', 'value', 'display', 'design'], 'Detail field members differ');
+      }
+      break;
+    case 'renderDetail': assert.equal(typeof value, 'string', 'Detail HTML must be a string'); break;
     case 'form':
       validateState(value);
       assert.ok(Array.isArray(value.steps), 'Form steps must be an array');

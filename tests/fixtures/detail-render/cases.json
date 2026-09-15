@@ -1,0 +1,581 @@
+[
+  {
+    "name": "basic-fields",
+    "note": "plain text fields with translated labels; values are escaped.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": {
+            "ko": "이름",
+            "en": "Name"
+          }
+        },
+        "status": {
+          "field": ".status",
+          "label": {
+            "ko": "상태",
+            "en": "Status"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Status</dt><dd class=\"detail-value detail-value-text\">active</dd></div></dl>"
+  },
+  {
+    "name": "basic-fields-korean",
+    "note": "the same declaration in Korean selects the Korean labels.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": {
+            "ko": "이름",
+            "en": "Name"
+          }
+        },
+        "status": {
+          "field": ".status",
+          "label": {
+            "ko": "상태",
+            "en": "Status"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">이름</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">상태</dt><dd class=\"detail-value detail-value-text\">active</dd></div></dl>"
+  },
+  {
+    "name": "format-date",
+    "note": "date format applies the declared pattern.",
+    "spec": {
+      "fields": {
+        "joined": {
+          "field": ".joined",
+          "label": "Joined",
+          "format": {
+            "type": "date",
+            "pattern": "YYYY-MM-DD"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Joined</dt><dd class=\"detail-value detail-value-date\">2026-01-02</dd></div></dl>"
+  },
+  {
+    "name": "format-number",
+    "note": "number format with decimals, thousands and a translated prefix.",
+    "spec": {
+      "fields": {
+        "score": {
+          "field": ".score",
+          "label": "Score",
+          "format": {
+            "type": "number",
+            "decimals": 2,
+            "thousands": true,
+            "prefix": {
+              "en": "$"
+            }
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Score</dt><dd class=\"detail-value detail-value-number\">$1,234,567.50</dd></div></dl>"
+  },
+  {
+    "name": "format-badge",
+    "note": "badge format maps the value to a variant.",
+    "spec": {
+      "fields": {
+        "status": {
+          "field": ".status",
+          "label": "Status",
+          "format": {
+            "type": "badge",
+            "map": {
+              "active": "success"
+            }
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Status</dt><dd class=\"detail-value detail-value-badge\"><span class=\"badge badge-success\">active</span></dd></div></dl>"
+  },
+  {
+    "name": "format-choice-label",
+    "note": "choice-label format looks the value up in the declared items.",
+    "spec": {
+      "fields": {
+        "grade": {
+          "field": ".grade",
+          "label": "Grade",
+          "format": {
+            "type": "choice-label",
+            "items": {
+              "A": "Apple"
+            }
+          }
+        }
+      }
+    },
+    "record": {
+      "grade": "A"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Grade</dt><dd class=\"detail-value detail-value-choice-label\">Apple</dd></div></dl>"
+  },
+  {
+    "name": "format-link",
+    "note": "link format interpolates the href from the record.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": "Name",
+          "format": {
+            "type": "link",
+            "href": "/user/.id",
+            "target": "_blank"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-link\"><a href=\"/user/7\" target=\"_blank\">&lt;Ada &amp; Lin&gt;</a></dd></div></dl>"
+  },
+  {
+    "name": "format-bool",
+    "note": "bool format as check, icon and text.",
+    "spec": {
+      "fields": {
+        "check": {
+          "field": ".admin",
+          "label": "Check",
+          "format": {
+            "type": "bool",
+            "as": "check",
+            "labels": {
+              "true": "Yes",
+              "false": "No"
+            }
+          }
+        },
+        "icon": {
+          "field": ".admin",
+          "label": "Icon",
+          "format": {
+            "type": "bool",
+            "as": "icon",
+            "labels": {
+              "true": "Yes",
+              "false": "No"
+            }
+          }
+        },
+        "text": {
+          "field": ".admin",
+          "label": "Text",
+          "format": {
+            "type": "bool",
+            "labels": {
+              "true": "Yes",
+              "false": "No"
+            }
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Check</dt><dd class=\"detail-value detail-value-bool\"><span aria-label=\"true\" class=\"bool-check\">✔</span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Icon</dt><dd class=\"detail-value detail-value-bool\"><span aria-label=\"true\" class=\"bool-icon bool-true\"></span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Text</dt><dd class=\"detail-value detail-value-bool\"><span class=\"bool-text\">true</span></dd></div></dl>"
+  },
+  {
+    "name": "format-image",
+    "note": "image format with width and height.",
+    "spec": {
+      "fields": {
+        "avatar": {
+          "field": ".avatar",
+          "label": "Avatar",
+          "format": {
+            "type": "image",
+            "width": 40,
+            "height": 40,
+            "alt": ".name"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Avatar</dt><dd class=\"detail-value detail-value-image\"><img alt=\"<Ada &amp; Lin>\" height=\"40\" src=\"/img/ada.png\" width=\"40\"></dd></div></dl>"
+  },
+  {
+    "name": "format-image-empty-size",
+    "note": "a declared null width and height write empty size attributes.",
+    "spec": {
+      "fields": {
+        "avatar": {
+          "field": ".avatar",
+          "label": "Avatar",
+          "format": {
+            "type": "image",
+            "width": null,
+            "height": null
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Avatar</dt><dd class=\"detail-value detail-value-image\"><img alt=\"\" height=\"\" src=\"/img/ada.png\" width=\"\"></dd></div></dl>"
+  },
+  {
+    "name": "format-html",
+    "note": "html format writes the declared markup without escaping.",
+    "spec": {
+      "fields": {
+        "notes": {
+          "field": ".notes",
+          "label": "Notes",
+          "format": {
+            "type": "html"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Notes</dt><dd class=\"detail-value detail-value-html\"><b>bold</b></dd></div></dl>"
+  },
+  {
+    "name": "missing-value",
+    "note": "a field whose path is absent from the record renders an empty cell.",
+    "spec": {
+      "fields": {
+        "missing": {
+          "field": ".missing",
+          "label": "Missing"
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Missing</dt><dd class=\"detail-value detail-value-text\"></dd></div></dl>"
+  },
+  {
+    "name": "design-wrapper-and-cell",
+    "note": "the detail design styles the container and a field design styles its cell.",
+    "spec": {
+      "design": {
+        "wrapper": {
+          "class": "card",
+          "style": "padding:4px"
+        }
+      },
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": "Name",
+          "design": {
+            "main": {
+              "class": "strong",
+              "style": "color:red"
+            }
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view card\" style=\"padding: 4px\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+  },
+  {
+    "name": "condition-hidden-field",
+    "note": "a field hidden by its condition is not rendered.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        },
+        "secret": {
+          "field": ".status",
+          "label": "Secret",
+          "design": {
+            "show": false
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+  },
+  {
+    "name": "composed-fields",
+    "note": "fields resolved from a referenced file.",
+    "spec": {
+      "fields": {
+        "$ref": "shared.json"
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en",
+      "files": {
+        "shared.json": {
+          "properties": {
+            "name": {
+              "field": ".name",
+              "label": "Name"
+            }
+          }
+        }
+      }
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+  },
+  {
+    "name": "empty-fields",
+    "note": "a declaration with no fields renders an empty container.",
+    "spec": {
+      "fields": {}
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"></dl>"
+  },
+  {
+    "name": "reject-non-object-specification",
+    "note": "a declaration that is not an object is rejected.",
+    "spec": [],
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Detail specification must be an object"
+    }
+  },
+  {
+    "name": "reject-missing-fields",
+    "note": "a declaration without fields is rejected.",
+    "spec": {},
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Detail specification must declare fields"
+    }
+  },
+  {
+    "name": "reject-non-object-record",
+    "note": "a record that is not an object is rejected.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      }
+    },
+    "record": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Detail record must be an object"
+    }
+  }
+]

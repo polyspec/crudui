@@ -113,6 +113,42 @@ PHP_METHOD(CRUDUI_Generator, renderList)
     call_three(spec, rows, false, options, true, ps_render_list, return_value);
 }
 
+/*
+ * Specification and record are root objects: an empty PHP array is the empty root object, as for
+ * every root object argument, and a non-empty list-shaped array is rejected.
+ */
+static void call_detail(INTERNAL_FUNCTION_PARAMETERS, ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *))
+{
+    zval *spec, *record = NULL, *options = NULL;
+    ZEND_PARSE_PARAMETERS_START(1, 3)
+        Z_PARAM_ARRAY_OR_OBJECT(spec)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ARRAY_OR_OBJECT(record)
+        Z_PARAM_ARRAY(options)
+    ZEND_PARSE_PARAMETERS_END();
+    if (Z_TYPE_P(spec) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(spec)) != 0 &&
+        zend_array_is_list(Z_ARRVAL_P(spec))) {
+        crudui_invalid_value("Detail specification must be an object", true);
+        return;
+    }
+    if (record && Z_TYPE_P(record) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(record)) != 0 &&
+        zend_array_is_list(Z_ARRVAL_P(record))) {
+        crudui_invalid_value("Detail record must be an object", true);
+        return;
+    }
+    call_three(spec, record, true, options, true, operation, return_value);
+}
+
+PHP_METHOD(CRUDUI_Generator, renderDetail)
+{
+    call_detail(INTERNAL_FUNCTION_PARAM_PASSTHRU, ps_render_detail);
+}
+
+PHP_METHOD(CRUDUI_Generator, buildDetail)
+{
+    call_detail(INTERNAL_FUNCTION_PARAM_PASSTHRU, ps_build_detail);
+}
+
 PHP_METHOD(CRUDUI_Validator, validate)
 {
     zval *spec, *data, *options = NULL;
