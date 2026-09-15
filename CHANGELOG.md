@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Record the candidate verification of the server-rendered frame
+
+Candidate verification of `e1bb6f20` passed. Generation verification passed 450 of 450
+results across 899 HTTP requests, which now include the built frame document, the SSR form
+HTML with its record payload and ten rejected SSR queries per combination. Each PHP mode
+passed 62 generation checks and the repository checks. Every server browser run passed 1,752
+of 1,752 checks, and the aggregate passed 7,008 checks with zero failures: 1,216 scenario
+checks, 5,376 initialization comparisons, 320 interaction checks, 32 mount-before-load checks
+and 64 frame-document checks. PHP completed in 340,871 milliseconds, the PHP extension in
+306,669, Go in 276,126 and Rust in 265,581, all below the 900,000 millisecond limit.
+
+The feature record now states these results, the source archive digest and the image digest.
+
 ## 2026-09-15 — Apply the rendered-node rule to the column comparison
 
 Candidate verification failed again for Vue, 16 of 168 comparisons in each Vue initialization

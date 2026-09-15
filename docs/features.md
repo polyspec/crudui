@@ -93,28 +93,30 @@ dependency checks passed. The full `make test-native` command also returned stat
 passed 160 PHP tests, 20 Rust tests, all Go package tests, 19 protocol checks, the
 766/766 generator report and three Chromium widget and timezone checks.
 
-Candidate `757f144b9c4b5e2dd5f5dfd91c09362b3edbcedd` uses one committed source
+Candidate `e1bb6f2055532b46301285e20758d073d1cbb432` uses one committed source
 archive and verifies its commit and SHA-256 digest before extraction. The source
 archive SHA-256 is
-`2175aec2e0aa72837d2886f14b2279a975329336f088197c60bf8f8e4ae89f45`.
-Image `localhost/crudui-form-comparison:757f144b9c4b` has index digest
-`sha256:7842bd0a40f1e51d4c975008a9b5bdaf6d148e9faba05e68faf3a935b02fe2c7`.
-Image construction passed 81 source checks and four library checks. The image
+`34ac7c5ee13b311001920cd3ac7a86d86076122db6c5b96438439e25872c40a6`.
+Image `localhost/crudui-form-comparison:e1bb6f205553` has index digest
+`sha256:e0fa7f38083e002b7abd1e989ac743843cab3a474d7dd732925ccf54d8289b5b`.
+Image construction passed 152 source checks and 10 library checks. The image
 passed the Chromium process check as the application user and started one PHP,
 PHP extension, Go and Rust server from that archive.
 
-Generation and SSR passed 290 of 290 checks across 411 HTTP requests. Persistence
-and validation passed 120 of 120 checks. The browser aggregate passed 960 scenario
-checks, 240 interaction checks, 24 mount-before-load checks and 24 static-document
-checks with zero failures. PHP completed in 213,288 milliseconds, the PHP extension
-in 206,475 milliseconds, Go in 200,691 milliseconds and Rust in 200,500
-milliseconds. Every server completed below the 900,000 millisecond limit. The
-aggregate records `complete: true`, `passed: true`, `failedChecks: 0` and
+Generation and SSR passed 450 of 450 checks across 899 HTTP requests, including the
+built frame document, the SSR form HTML with its record payload and the rejected SSR
+requests of every server. Persistence and validation passed 120 of 120 checks, and each
+PHP mode passed 62 generation checks. The browser aggregate passed 1,216 scenario
+checks, 5,376 initialization comparisons, 320 interaction checks, 32 mount-before-load
+checks and 64 frame-document checks with zero failures. PHP completed in 340,871
+milliseconds, the PHP extension in 306,669 milliseconds, Go in 276,126 milliseconds and
+Rust in 265,581 milliseconds. Every server completed below the 900,000 millisecond
+limit. The aggregate records `complete: true`, `passed: true`, `failedChecks: 0` and
 `performancePassed: true`. The browser aggregate, generation report and server
 report SHA-256 values are respectively
-`ee25ad9c1ea6c1f616b6f63c0bad87b6aa95e4e1c64cf091da513bcfc7f9ad30`,
-`9bba9a8a13b4d06b1c14f347178747ad73c86d71db60c5d131a24f936beaa373` and
-`218921211380bd1339d62665e1180c2b41bbb5cdfbcd57326e1778f9c5debb38`.
+`58d68d091d647a2160c1dffd93288b8c3e8ac5eb507f5f18cc190779be681c08`,
+`8d26bb7b8b5ff4731e71718425cd4f57ad716ef56ae6c5010fd25c7d4716c295` and
+`7898bbb381f265ae885c6eb413ada7f4c54ebd72ea186f9038549977225fed40`.
 The candidate image is local, and packages and the comparison service are not
 deployed.
 
