@@ -42,8 +42,8 @@ data paths. A field separates structure, content and behavior as follows:
 | Category | Keys | Contract |
 | --- | --- | --- |
 | Structure | `type`, `name`, `default`, `properties`, `items`, `multiple`, `lang` | Define values, nested groups, choices and repetition. |
-| Content | `label`, `description`, `placeholder`, `prepend`, `append`, `help` | Accept text or a language map. |
-| Validation | `validate` | Define rules and messages. |
+| Content | `label`, `description`, `placeholder`, `prepend`, `append`, `help`, `content` | Accept text or a language map. `content` is the control text of a button or action field. |
+| Validation | `validate`, `messages` | `validate` defines rules; `messages` overrides a rule's error message by rule name. |
 | Appearance | `design` | Define visibility and styles for specific DOM nodes. |
 | Behavior | `behavior` | Preserve event scripts without expression evaluation. |
 | Type options | `options` | Store settings that apply to one widget type. |
@@ -81,8 +81,11 @@ properties:
 Conditions are values in the relevant setting. `design.show` controls visibility;
 `design.class` and `design.style` apply to the main node. `design.label`,
 `design.wrapper`, `design.group` and `design.prepend` target those nodes.
-Condition maps select the first matching expression and require `true` as the
-default key. Dedicated conditional metadata such as `show_if`, `display_switch`
+Condition maps select the value of the first matching expression. The literal key
+`true` is the optional default, applied only after every other condition fails,
+whatever its position; with no match and no default the result is null
+([condition maps](expressions.md#8-condition-maps)). Dedicated conditional
+metadata such as `show_if`, `display_switch`
 and `display_target` is rejected in CRUDUI schemas.
 
 The [expression grammar](expressions.md) defines the tokenizer, parser
@@ -108,6 +111,13 @@ responsibilities.
 Composition resolves `$ref`, then applies `$patch`, then processes the resulting
 field definitions. Missing references are load errors. Composition does not
 depend on record values. Form compilation resolves composition once per template.
+
+A `$ref` value is one file path or a list of file paths. A list resolves each path
+in declaration order and merges the results, so a later path overrides an earlier
+one on a shared key; an entry that is not a string is a load error. A path may
+select a fragment of a file as `(file.yml).key`. A reference resolves to the field
+map of the layer it selects, which is why a declaration whose root is a bare `$ref`
+is that field map and not yet a specification.
 
 The CLI static check also rejects unresolved composition. It does not treat
 checking an uncomposed field as successful reference resolution.
@@ -199,6 +209,8 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 | `lang` | Boolean or object |
 | `lang.only` | List of language-code strings or object |
 | `design` | Boolean or object |
+| `content` | Text or a language map; the control text of a button or action field |
+| `messages` | Object of rule name to message string |
 | `buttons` | List of buttons (`type`: `submit`, `reset`, `button` or `link`); the form root only |
 | `action` | Object with string `method`, `url` and `enctype`; the form root only |
 | `design.show` | Expression, boolean or condition map |

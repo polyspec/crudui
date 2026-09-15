@@ -61,7 +61,7 @@
       "type": "string"
     },
     "ConditionMap": {
-      "description": "Evaluates conditions in declaration order and selects the first matching value. The true key supplies the default.",
+      "description": "Evaluates conditions in declaration order and selects the first matching value. The literal true key is the optional default, applied only after every other condition fails, whatever its position; with no match and no default the result is null.",
       "type": "object",
       "minProperties": 1,
       "propertyNames": {
@@ -98,6 +98,31 @@
           "type": "null"
         }
       ]
+    },
+    "Reference": {
+      "description": "Composition reference: one file path, or a list of paths resolved in declaration order where a later path overrides an earlier one. A path may select a fragment as (file.yml).key.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "Messages": {
+      "description": "Error message overrides indexed by rule name. Every registered and application rule name is accepted; each message is a plain string.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "ItemLabel": {
       "description": "Choice display label, optionally translated. The choice value is separate from its label.",
@@ -896,7 +921,7 @@
       "properties": {
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "$ref": "#/definitions/Patch"
@@ -966,9 +991,17 @@
           "description": "Help content, optionally translated.",
           "$ref": "#/definitions/Content"
         },
+        "content": {
+          "description": "Control text of a button or action field, optionally translated.",
+          "$ref": "#/definitions/Content"
+        },
         "validate": {
           "description": "Validation rules.",
           "$ref": "#/definitions/Validate"
+        },
+        "messages": {
+          "description": "Error message overrides by rule name. A message is a plain string; the display language is not selected here.",
+          "$ref": "#/definitions/Messages"
         },
         "design": {
           "description": "Visibility and node appearance settings.",
@@ -995,7 +1028,7 @@
         },
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "description": "Composition operations applied after reference resolution.",
@@ -1134,7 +1167,7 @@
         },
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "description": "Composition operations applied after reference resolution.",
@@ -1176,7 +1209,7 @@
         },
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "description": "Composition operations applied after reference resolution.",
@@ -1270,7 +1303,7 @@
       "properties": {
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "$ref": "#/definitions/Patch"
@@ -1289,7 +1322,7 @@
       "properties": {
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "$ref": "#/definitions/Patch"
@@ -1317,7 +1350,7 @@
         },
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "$ref": "#/definitions/Patch"
@@ -1351,7 +1384,7 @@
               "properties": {
                 "$ref": {
                   "description": "Composition reference resolved before evaluation.",
-                  "type": "string"
+                  "$ref": "#/definitions/Reference"
                 },
                 "$patch": {
                   "$ref": "#/definitions/Patch"
@@ -1388,7 +1421,7 @@
         },
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
-          "type": "string"
+          "$ref": "#/definitions/Reference"
         },
         "$patch": {
           "description": "Composition operations applied after reference resolution.",

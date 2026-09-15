@@ -221,9 +221,6 @@ properties:
                 label: 판매 구분
                 description: |
                     판매 안함으로 설정하시면 판매가 중지됩니다.
-                    옵션에서도 개별 판매여부 설정이 가능하지만 "판매 구분"의 판매 안함이 우선입니다.
-                description: |
-                    판매 안함으로 설정하시면 판매가 중지됩니다.
                 type: choice
                 default: 1
                 items:
@@ -887,7 +884,6 @@ properties:
             0: "display: block;"
         display_target_condition_class:
             0: ""
-            1: ""
             1: ""
 
         properties:

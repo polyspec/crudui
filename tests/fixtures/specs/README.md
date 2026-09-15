@@ -16,6 +16,13 @@ the field model of the `legacy` modules, described in the
 
 ## Comparisons
 
+These files are not current CRUDUI specifications, so the
+[meta-schema](../../../schema/crudui.schema.json) does not accept them and is not applied to them.
+[`check-schema.mjs`](../../../scripts/check-schema.mjs) checks them as legacy instead: each file
+must parse under the unique-key rule, and each must fail the current meta-schema, which keeps the
+two models apart. `ProductNft.yml` carried two duplicate keys until they were removed; the parsed
+declaration is unchanged, because a duplicate key resolved to the last occurrence.
+
 No test compares results against these files. The
 [validation benchmark](../../../packages/validator-ts/benchmarks/validation.bench.ts), run by
 `npm run bench` in `packages/validator-ts`, loads `ProductNft.yml` into the `legacy` validator and

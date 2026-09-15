@@ -68,7 +68,7 @@
           "properties": {
             "shared": {
               "type": "text",
-              "from": "x"
+              "label": "x"
             },
             "only_x": {
               "type": "text"
@@ -79,7 +79,7 @@
           "properties": {
             "shared": {
               "type": "number",
-              "from": "y"
+              "label": "y"
             },
             "only_y": {
               "type": "text"
@@ -97,7 +97,7 @@
     "expected": {
       "shared": {
         "type": "number",
-        "from": "y"
+        "label": "y"
       },
       "only_x": {
         "type": "text"
@@ -298,7 +298,7 @@
             "$ref": "inner.yml",
             "own": {
               "type": "text",
-              "from": "base"
+              "label": "base"
             }
           }
         },
@@ -306,7 +306,7 @@
           "properties": {
             "deep": {
               "type": "number",
-              "from": "inner"
+              "label": "inner"
             }
           }
         }
@@ -318,11 +318,11 @@
     "expected": {
       "deep": {
         "type": "number",
-        "from": "inner"
+        "label": "inner"
       },
       "own": {
         "type": "text",
-        "from": "base"
+        "label": "base"
       }
     }
   },
@@ -375,7 +375,7 @@
           "properties": {
             "a": {
               "type": "text",
-              "from": "base"
+              "label": "base"
             }
           }
         }
@@ -384,14 +384,14 @@
         "$ref": "base.yml",
         "a": {
           "type": "email",
-          "from": "override"
+          "label": "override"
         }
       }
     },
     "expected": {
       "a": {
         "type": "email",
-        "from": "override"
+        "label": "override"
       }
     }
   },

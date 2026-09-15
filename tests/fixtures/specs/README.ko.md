@@ -13,6 +13,12 @@
 - [`ProductNft.analysis.md`](ProductNft.analysis.md)는 두 파일의 필드 타입, 검증 규칙, 조건 표현식, 표시
   패턴, 전환 클래스, 참조 수를 세고 구조와 테스트 고려 사항을 정리합니다.
 
+이 파일은 현재 CRUDUI 명세가 아니므로 [메타 스키마](../../../schema/crudui.schema.json)는 이들을
+허용하지 않으며 적용하지도 않습니다. [`check-schema.mjs`](../../../scripts/check-schema.mjs)는 이들을
+legacy로 검사합니다. 각 파일은 키 중복 없이 파싱되어야 하고 현재 메타 스키마를 통과하지 않아야 하며,
+이로써 두 모델이 섞이지 않습니다. `ProductNft.yml`에 있던 중복 키 두 개는 제거했습니다. 중복 키는 마지막
+항목으로 해석되었으므로 파싱 결과는 그대로입니다.
+
 ## 비교
 
 이 파일과 결과를 비교하는 검사는 없습니다. `packages/validator-ts`에서 `npm run bench`로 실행하는

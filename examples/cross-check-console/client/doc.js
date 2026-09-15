@@ -99,7 +99,7 @@ export const listDocSections = [
   {
     title: '페이징·정렬 (선언만)',
     body:
-      'pagination(perPage)·sort 는 선언적 메타다 — list-spec 은 페이지·정렬 UI 와 메타를 표면화할 뿐 ' +
+      'pagination(per_page)·sort 는 선언적 메타다 — list-spec 은 페이지·정렬 UI 와 메타를 표면화할 뿐 ' +
       '실제 적용(쿼리)은 호출자 몫이다. options.page(현재 페이지)·options.total(전체 레코드 수)이 페이지 표시를 채운다.' +
       '출처: list-render pagination-display/sort-display.',
   },
