@@ -10,11 +10,12 @@ another checkout.
 
 ## Canonical example and benchmark boundary
 
-The public root is the canonical pipeline example. It presents one record flow:
-`List → Detail → Form → Save → List refresh`. List rows link to their detail, and
-the detail links to the form for the same record. The page exposes five server
+The public root is the full CRUDUI feature example. It presents one record flow:
+`List → Detail → Form → Save → List refresh`. CRUDUI generates the list, detail,
+links, form, validation, submit and persistence flow. The page exposes five server
 implementations (JavaScript reference, PHP, PHP extension, Go and Rust), four
-clients (HTML, React, Vue and Svelte), and CSR or SSR selection.
+clients (HTML, React, Vue and Svelte), and CSR or SSR selection. External stage
+buttons and parent-side fake stage routing are not part of the contract.
 
 `examples/form-comparison/benchmark/` is a separate verification screen. It owns
 render and validation matrices and benchmark controls. The canonical page does

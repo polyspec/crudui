@@ -736,7 +736,13 @@ function action(id, fn) {
 action('load', load);
 action('create', async () => { const result = await request('load'); equal(result.status, 200, 'load status'); await mount(result.data); });
 action('blank', () => mount());
-action('save', async () => { const result = await save(); if (result.status !== null) document.querySelector('#server-data-details').open = true; });
+action('save', async () => {
+  const result = await save();
+  if (result.status !== null) {
+    document.querySelector('#server-data-details').open = true;
+    if (result.status === 200 && window.parent !== window) window.parent.postMessage({ type: 'crudui:pipeline-saved' }, location.origin);
+  }
+});
 action('validate', async () => { if (validation.validate(driver.getData()).valid) { await submit(); document.querySelector('#server-data-details').open = true; } });
 action('reset', () => reset());
 action('nonsequential', () => reset('nonsequential'));

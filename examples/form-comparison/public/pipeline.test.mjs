@@ -5,10 +5,9 @@ import test from 'node:test';
 const html = await readFile(new URL('./index.html', import.meta.url), 'utf8');
 const script = await readFile(new URL('./main.mjs', import.meta.url), 'utf8');
 
-test('the public entry owns one linked CRUD pipeline', () => {
-  for (const stage of ['list', 'detail', 'form', 'save', 'refresh']) assert.match(html, new RegExp(`data-stage="${stage}"`));
-  assert.match(script, /link\('detail'/);
-  assert.match(script, /link\('form'/);
+test('the public entry delegates navigation to CRUDUI generated links', () => {
+  assert.doesNotMatch(html + script, /data-stage|stage=|List refresh/);
+  assert.match(script, /\/api\/pipeline\/\$\{view\}/);
   assert.doesNotMatch(html + script, /\/displays\//);
 });
 
