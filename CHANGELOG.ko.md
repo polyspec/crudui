@@ -2,6 +2,16 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 목록과 상세 고정 데이터가 preload 링크 도우미를 공유
+
+프레임워크 적합성 검사는 React 서버 렌더링과 HTML 렌더러가 목록 앞에 쓰는 이미지 preload 링크를
+제외하고 목록을 비교하며, 네이티브 생성기 검사는 전체 HTML을 비교합니다. 이 규칙은 목록 전용 이름인
+`listBody`로 `tests/fixtures/list-render/list-body.mjs`에 구현되어 있었습니다. 상세 고정 데이터도 같은
+규칙을 따르므로 도우미를 `tests/fixtures/preload-links.mjs`의 `withoutPreloadLinks`로 옮겼고, 목록
+고정 데이터 생성기와 React·HTML 목록 적합성 검사가 이를 사용합니다.
+
+목록 고정 데이터를 다시 생성해도 바이트가 같았고 React와 HTML 목록 적합성 검사가 통과했습니다.
+
 ## 2026-09-15 — generator-core를 선언한 라이브러리로 빌드
 
 `3aeb4d6e` 이후 모든 CI 작업이 `npm run build`에서 실패했습니다. `detail.ts`가 패키지가 선언한
