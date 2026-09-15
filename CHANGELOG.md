@@ -2,6 +2,40 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Document display formats and hold every runtime to one input rule
+
+The formats a list column or detail field can declare were described only by the schema and
+the implementations. [Display formats](docs/spec/display-formats.md) now lists each format, its
+options and defaults, the input rules with their messages and the markup, and the documentation
+site publishes it under Specification.
+
+Measuring the six targets against that document found divergences and defects no shared case
+covered:
+- Invalid list input failed differently in each runtime. A non-object specification, rows that
+  are not an array or not objects, a non-object `data` or `pageMeta` option, and an unknown
+  `layout` were rejected by some runtimes, silently replaced by defaults in others, or rejected
+  with different messages. Every runtime now checks them in one order with one message, and an
+  absent or `null` option uses its default.
+- Every runtime counted `truncate` in UTF-16 code units, so a limit could cut an emoji in half,
+  and JavaScript and Go also applied a numeric string. Every runtime now counts code points,
+  applies only a number, uses its integer part and requires at least 1.
+- JavaScript did not check the `decimals` range, and the runtimes that did check it did not
+  share a message; PHP, for one, failed with `Decimal places must be between 0 and 100`. Every
+  runtime now fails with `Number decimals must be between 0 and 100`.
+- No runtime rejected a detail `data` option that is not an object. Every runtime now fails with
+  `Detail context must be an object`.
+- The Rust library took `pageMeta` as a map and `layout` as a string, so those two rules lived
+  only in its command-line adapter, and its shared-case test replaced invalid rows with an empty
+  list. Rust now takes both options as values and checks them in the library, as Go does. In Go
+  and Rust, whose signatures take rows as a sequence, the rows rule applies where decoded JSON
+  becomes that sequence; the specification states this.
+
+The list cases grew to 31 and the detail cases to 23, each rule with its own case, and the native
+runner compares error messages for cases that declare one. The JavaScript, HTML, PHP, Go, Rust
+and PHP extension targets passed 228 of 228 checks each (1369 including input checks). The
+measurement scripts for list input (14 inputs) and format details (19 inputs) reported the same
+result in all six targets.
+
 ## 2026-09-15 — Keep contract verification commands to package checks
 
 CI failed in the form instance job after `353a0c10`: `npm run manifest:test` runs every

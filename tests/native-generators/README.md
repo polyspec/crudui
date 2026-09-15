@@ -32,8 +32,9 @@ source commit without changing the hash comparison.
 The existing 92 form cases compare complete compiled templates and bound models.
 Templates from each target are bound by JavaScript and JavaScript templates are
 bound by each target without composition loaders or files. Specification member order and control attribute order are
-compared. The existing 21 list cases compare original HTML strings, including
-image resource hints. Historical normalized layout tests remain separate. The 19
+compared. The 31 list cases compare original HTML strings, including
+image resource hints, and their input error cases compare code, message and location.
+Historical normalized layout tests remain separate. The 23
 [detail cases](../fixtures/detail-render/README.md) compare both levels a runtime exposes:
 the `buildDetail` model with its member order, and the original `renderDetail` HTML
 including image resource hints. Error cases compare code, message and location at both

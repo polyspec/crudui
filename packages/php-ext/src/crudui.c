@@ -66,13 +66,40 @@ static void call_two(zval *first, zval *options, bool form_errors, ps_result (*o
     ps_value_free(input);
 }
 
-static void call_three(zval *first, zval *second, bool second_is_object, zval *options, bool form_errors, ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *), zval *return_value)
+/* A non-empty list-shaped PHP array, which is never an object. */
+static bool list_array(zval *value)
+{
+    return value && Z_TYPE_P(value) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(value)) != 0 &&
+        zend_array_is_list(Z_ARRVAL_P(value));
+}
+
+/*
+ * The list and detail options data, files and pageMeta are fixed object options: an empty PHP
+ * array given for one is the empty object.
+ */
+static bool fixed_object_options(zval *options, ps_value *converted)
+{
+    static const char *const keys[] = {"data", "files", "pageMeta"};
+    if (!options) return true;
+    for (size_t i = 0; i < sizeof(keys) / sizeof(*keys); ++i) {
+        zval *value = zend_hash_str_find_deref(Z_ARRVAL_P(options), keys[i], strlen(keys[i]));
+        if (value && Z_TYPE_P(value) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(value)) == 0 &&
+            !ps_value_insert(converted, (const uint8_t *) keys[i], strlen(keys[i]), ps_value_new(PS_OBJECT))) {
+            zend_throw_error(NULL, "Native options conversion failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+static void call_three(zval *first, zval *second, bool second_is_object, zval *options, bool form_errors, bool fixed_objects, ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *), zval *return_value)
 {
     ps_value *input = crudui_from_php(first, true, form_errors);
     if (!input) return;
     ps_value *data = crudui_from_php(second, second_is_object, form_errors);
     if (!data) { ps_value_free(input); return; }
     ps_value *opts = crudui_from_php(options, true, form_errors);
+    if (opts && fixed_objects && !fixed_object_options(options, opts)) { ps_value_free(opts); opts = NULL; }
     if (opts) { crudui_return(operation(input, data, opts), return_value); ps_value_free(opts); }
     ps_value_free(data);
     ps_value_free(input);
@@ -98,7 +125,7 @@ PHP_METHOD(CRUDUI_Generator, bindForm)
         Z_PARAM_ARRAY_OR_OBJECT(data)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
-    call_three(template, data, true, options, true, ps_bind_form, return_value);
+    call_three(template, data, true, options, true, false, ps_bind_form, return_value);
 }
 
 PHP_METHOD(CRUDUI_Generator, renderList)
@@ -110,7 +137,12 @@ PHP_METHOD(CRUDUI_Generator, renderList)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
-    call_three(spec, rows, false, options, true, ps_render_list, return_value);
+    /* The specification is a root object; rows is a list whose rows keep their PHP type. */
+    if (list_array(spec)) {
+        crudui_invalid_value("List specification must be an object", true);
+        return;
+    }
+    call_three(spec, rows, false, options, true, true, ps_render_list, return_value);
 }
 
 /*
@@ -126,17 +158,15 @@ static void call_detail(INTERNAL_FUNCTION_PARAMETERS, ps_result (*operation)(con
         Z_PARAM_ARRAY_OR_OBJECT(record)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
-    if (Z_TYPE_P(spec) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(spec)) != 0 &&
-        zend_array_is_list(Z_ARRVAL_P(spec))) {
+    if (list_array(spec)) {
         crudui_invalid_value("Detail specification must be an object", true);
         return;
     }
-    if (record && Z_TYPE_P(record) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(record)) != 0 &&
-        zend_array_is_list(Z_ARRVAL_P(record))) {
+    if (list_array(record)) {
         crudui_invalid_value("Detail record must be an object", true);
         return;
     }
-    call_three(spec, record, true, options, true, operation, return_value);
+    call_three(spec, record, true, options, true, true, operation, return_value);
 }
 
 PHP_METHOD(CRUDUI_Generator, renderDetail)
@@ -164,7 +194,7 @@ PHP_METHOD(CRUDUI_Validator, validate)
         crudui_input_failure("Form data must be an object");
         return;
     }
-    call_three(spec, data, true, options, false, ps_validate, return_value);
+    call_three(spec, data, true, options, false, false, ps_validate, return_value);
 }
 
 PHP_METHOD(CRUDUI_Validator, validateList)

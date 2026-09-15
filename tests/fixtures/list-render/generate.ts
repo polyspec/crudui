@@ -33,7 +33,7 @@ interface ListFixtureCase {
   rows: Array<Record<string, unknown>>;
   options?: RenderListOptions;
   expected_html?: string;
-  expectError?: { code: string };
+  expectError?: { code: string; message?: string };
 }
 
 /** Two representative people rows reused across catalog scenarios. */
@@ -317,6 +317,81 @@ const SCENARIOS: ListFixtureCase[] = [
     rows: [],
     options: { files: {} },
     expectError: { code: 'REF_FILE_NOT_FOUND' },
+  },
+  // List input: every runtime rejects the same invalid input with the same message.
+  {
+    name: 'reject-array-specification',
+    note: 'a specification that is not an object is rejected.',
+    spec: [] as unknown as Record<string, unknown>,
+    rows: [],
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List specification must be an object' },
+  },
+  {
+    name: 'reject-string-specification',
+    note: 'a string specification is rejected.',
+    spec: 'list' as unknown as Record<string, unknown>,
+    rows: [],
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List specification must be an object' },
+  },
+  {
+    name: 'reject-object-rows',
+    note: 'rows that are not an array are rejected.',
+    spec: { columns: { name: { field: '.name' } } },
+    rows: {} as unknown as Array<Record<string, unknown>>,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be an array' },
+  },
+  {
+    name: 'reject-scalar-row',
+    note: 'a row that is not an object is rejected.',
+    spec: { columns: { name: { field: '.name' } } },
+    rows: [1] as unknown as Array<Record<string, unknown>>,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be objects' },
+  },
+  {
+    name: 'reject-array-row',
+    note: 'a row that is an array is rejected.',
+    spec: { columns: { name: { field: '.name' } } },
+    rows: [[]] as unknown as Array<Record<string, unknown>>,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be objects' },
+  },
+  {
+    name: 'reject-array-context',
+    note: 'a data option that is not an object is rejected.',
+    spec: { columns: { name: { field: '.name' } } },
+    rows: [],
+    options: { data: [] } as unknown as RenderListOptions,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List context must be an object' },
+  },
+  {
+    name: 'reject-array-page-metadata',
+    note: 'a pageMeta option that is not an object is rejected.',
+    spec: { columns: { name: { field: '.name' } } },
+    rows: [],
+    options: { pageMeta: [] } as unknown as RenderListOptions,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List page metadata must be an object' },
+  },
+  {
+    name: 'reject-unknown-layout',
+    note: 'a layout other than table or card is rejected.',
+    spec: { columns: { name: { field: '.name' } } },
+    rows: [],
+    options: { layout: 'grid' } as unknown as RenderListOptions,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
+  },
+  {
+    name: 'reject-number-layout',
+    note: 'a layout that is not a string is rejected.',
+    spec: { columns: { name: { field: '.name' } } },
+    rows: [],
+    options: { layout: 5 } as unknown as RenderListOptions,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
+  },
+  {
+    name: 'layout-null-selects-table',
+    note: 'a null layout selects the table layout, as an absent layout does.',
+    spec: { columns: { name: { field: '.name', label: 'Name' } } },
+    rows: PEOPLE,
+    options: { language: 'en', layout: null } as unknown as RenderListOptions,
   },
 ];
 

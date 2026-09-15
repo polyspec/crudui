@@ -117,7 +117,8 @@ and content translation with forms. They use display cells instead of inputs.
 | `html` | Unescaped display HTML |
 
 `format` accepts a type string or an object; absent, `false` and `true` select
-text. Format-specific settings stay in that object. `sort`, `pagination`,
+text. Format-specific settings stay in that object. [Display formats](display-formats.md)
+defines each format, the accepted list and detail input and the markup. `sort`, `pagination`,
 `search` and `actions` declare application behavior. `empty` defines translated
 empty-state content. The core does not query a database, filter records or apply
 server pagination. Page metadata is supplied by the caller.

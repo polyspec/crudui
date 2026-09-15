@@ -16,12 +16,12 @@ pub struct ListOptions<'a> {
     pub basepath: String,
     /// Content language.
     pub language: String,
-    /// List-level data used by column visibility expressions.
+    /// List-level data used by column visibility expressions: null or an object.
     pub data: Value,
-    /// Injected page and total metadata; no totals are derived from display rows.
-    pub page_meta: Map<String, Value>,
-    /// Output layout: `table` or `card`.
-    pub layout: String,
+    /// Injected page and total metadata, null or an object; no totals are derived from display rows.
+    pub page_meta: Value,
+    /// Output layout: null (`table`), `table` or `card`.
+    pub layout: Value,
 }
 
 impl Default for ListOptions<'_> {
@@ -31,10 +31,19 @@ impl Default for ListOptions<'_> {
             loader: None,
             basepath: String::new(),
             language: "ko".into(),
-            data: json!({}),
-            page_meta: Map::new(),
-            layout: "table".into(),
+            data: Value::Null,
+            page_meta: Value::Null,
+            layout: Value::Null,
         }
+    }
+}
+
+/// Read decoded JSON list rows: absent means no rows, and any value other than an array fails.
+pub fn list_rows(rows: Option<&Value>) -> FormResult<&[Value]> {
+    match rows {
+        None => Ok(&[]),
+        Some(Value::Array(rows)) => Ok(rows),
+        Some(_) => Err(FormError::input("List rows must be an array")),
     }
 }
 
@@ -102,7 +111,7 @@ fn cell_display(
                 }
                 Some(_) => {
                     return Err(FormError::input(
-                        "toFixed() digits argument must be between 0 and 100",
+                        "Number decimals must be between 0 and 100",
                     ))
                 }
                 _ => buffer.format(number).to_owned(),
@@ -192,16 +201,13 @@ fn cell_display(
         }
         "html" => json!({"kind":"html","html":text}),
         _ => {
-            let limit = options
-                .get("truncate")
-                .and_then(|v| v.as_f64().or_else(|| scalar(Some(v)).parse::<f64>().ok()));
-            match limit
-                .filter(|n| n.is_finite() && *n > 0.0 && text.encode_utf16().count() as f64 > *n)
-            {
-                Some(limit) => (String::from_utf16_lossy(
-                    &text.encode_utf16().take(limit as usize).collect::<Vec<_>>(),
-                ) + "…")
-                    .into(),
+            // Only a number truncates; its integer part counts Unicode code points.
+            let limit = options["truncate"]
+                .as_f64()
+                .map(f64::trunc)
+                .filter(|limit| *limit >= 1.0 && text.chars().count() as f64 > *limit);
+            match limit {
+                Some(limit) => (text.chars().take(limit as usize).collect::<String>() + "…").into(),
                 None => text.into(),
             }
         }
@@ -209,13 +215,28 @@ fn cell_display(
     Ok(display)
 }
 
+/// Check list inputs in contract order and return the list context, where null means empty.
+fn list_context(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<Value> {
+    if !spec.is_object() {
+        return Err(FormError::input("List specification must be an object"));
+    }
+    if rows.iter().any(|row| !row.is_object()) {
+        return Err(FormError::input("List rows must be objects"));
+    }
+    let context = match &options.data {
+        Value::Null => json!({}),
+        data @ Value::Object(_) => data.clone(),
+        _ => return Err(FormError::input("List context must be an object")),
+    };
+    if !options.page_meta.is_null() && !options.page_meta.is_object() {
+        return Err(FormError::input("List page metadata must be an object"));
+    }
+    Ok(context)
+}
+
 /// Compose a list and bind display rows without modifying the inputs.
 pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<Value> {
-    if !spec.is_object() || !options.data.is_object() || rows.iter().any(|row| !row.is_object()) {
-        return Err(FormError::input(
-            "List specifications, context and rows must be objects",
-        ));
-    }
+    let context = &list_context(spec, rows, options)?;
     let memory = MemoryLoader::new(options.files.clone());
     let columns = compose_properties(
         spec["columns"].as_object().cloned().unwrap_or_default(),
@@ -227,11 +248,11 @@ pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> Fo
         if !raw.is_object() {
             continue;
         }
-        let design = resolve_design(raw.get("design"), &options.data, "");
+        let design = resolve_design(raw.get("design"), context, "");
         if design["show"] == false {
             continue;
         }
-        visible.push(json!({"key":key,"field":raw["field"].as_str().unwrap_or(""),"label":raw.get("label").map(|v|translate(Some(v),&options.language)).unwrap_or_else(||key.clone()),"format":format(raw.get("format")),"sortable":raw.get("sortable").filter(|v|!v.is_null()).is_some_and(|v|show(Some(v),&options.data,&[])),"design":design}));
+        visible.push(json!({"key":key,"field":raw["field"].as_str().unwrap_or(""),"label":raw.get("label").map(|v|translate(Some(v),&options.language)).unwrap_or_else(||key.clone()),"format":format(raw.get("format")),"sortable":raw.get("sortable").filter(|v|!v.is_null()).is_some_and(|v|show(Some(v),context,&[])),"design":design}));
     }
     let bound_rows = rows.iter().map(|row| {
         let cells = visible.iter().map(|column| {
@@ -288,7 +309,7 @@ pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> Fo
         }
         actions.push(action);
     }
-    let mut result = json!({"columns":visible,"rows":bound_rows,"pagination":pagination,"actions":actions,"empty":translate(spec.get("empty"),&options.language),"design":resolve_design(spec.get("design"),&options.data,"")});
+    let mut result = json!({"columns":visible,"rows":bound_rows,"pagination":pagination,"actions":actions,"empty":translate(spec.get("empty"),&options.language),"design":resolve_design(spec.get("design"),context,"")});
     if let Some(field) = spec["sort"]["field"].as_str().filter(|s| !s.is_empty()) {
         result["sort"] =
             json!({"field":field,"dir":if spec["sort"]["dir"]=="desc" {"desc"} else {"asc"}});
@@ -366,9 +387,12 @@ pub(crate) fn cell_html(cell: &Value, tag: &str, base: &str) -> String {
 
 /// Render a list with supplied display rows in table or card layout.
 pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<String> {
-    if !["table", "card"].contains(&options.layout.as_str()) {
-        return Err(FormError::input("List layout must be table or card"));
-    }
+    list_context(spec, rows, options)?;
+    let layout = match &options.layout {
+        Value::Null => "table",
+        Value::String(layout) if layout == "table" || layout == "card" => layout.as_str(),
+        _ => return Err(FormError::input("List layout must be table or card")),
+    };
     let model = build_list(spec, rows, options)?;
     let mut content = String::new();
     let mut toolbar = String::new();
@@ -408,7 +432,7 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
             &json!({"class":"list-empty"}),
             &escape(str_at(&model, "empty")),
         );
-    } else if options.layout == "card" {
+    } else if layout == "card" {
         let cards = rows
             .iter()
             .map(|row| {

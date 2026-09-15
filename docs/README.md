@@ -3,6 +3,7 @@
 [한국어](README.ko.md).
 
 - [Specification structure](spec/schema.md)
+- [Display formats](spec/display-formats.md)
 - [Form runtime](spec/form-runtime.md)
 - [Feature and deployment status](features.md)
 - [Form development and verification](operations/forms.md)

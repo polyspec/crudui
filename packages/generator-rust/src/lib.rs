@@ -21,7 +21,7 @@ pub use binding::{bind_form, BindOptions};
 pub use detail::{build_detail, render_detail, DetailOptions};
 pub use error::{FormError, FormResult};
 pub use instance::{create_row_key, sequence_row_key, AddRowOptions, Form};
-pub use list::{build_list, render_list, ListOptions};
+pub use list::{build_list, list_rows, render_list, ListOptions};
 pub use render::render_form;
 pub use template::{compile_form, CompileOptions, FieldTemplate, FormTemplate};
 

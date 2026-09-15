@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import {
   buildList,
   buildDetail,
+  listLayout,
   type BuildListOptions,
 } from '@crudui/generator-core';
 import { Form } from './components/Form';
@@ -72,7 +73,7 @@ export function renderList(
 ): string {
   const { layout, ...buildOpts } = options;
   const vm = buildList(listSpec, rows, buildOpts);
-  const element = React.createElement(List, { vm, layout }) as React.ReactElement;
+  const element = React.createElement(List, { vm, layout: listLayout(layout) }) as React.ReactElement;
   return renderToStaticMarkup(element as Parameters<typeof renderToStaticMarkup>[0]);
 }
 

@@ -28,6 +28,7 @@ mounting and injecting data.
 and Korean guides, specifications and generated API references.
 
 - [Specification structure](docs/spec/schema.md)
+- [Display formats](docs/spec/display-formats.md)
 - [Form runtime contract](docs/spec/form-runtime.md)
 - [Runtime packages and APIs](docs/spec/runtime-packages.md)
 - [Native PHP package](packages/php-ext/README.md)
