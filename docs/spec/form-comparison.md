@@ -299,6 +299,12 @@ endpoint.
 Every render comparison includes the framework-independent HTML renderer in addition to React,
 Vue and Svelte. A parity verdict therefore covers four renderers.
 
+The canonical list uses semantic column alignment: identifier, numeric and monetary values are
+right-aligned; status is centered; dates are centered; text and HTML values are left-aligned; image
+cells are centered on both axes. Table cells are vertically centered. The list includes the record
+identifier as an explicit sequence column. Monetary output does not add trailing zeroes that are not
+present in the source value.
+
 The `bindForm` controller supports the same actions as a `createForm` instance:
 row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
 `undo`. It keeps collapsed rows and the undo history outside the keyed data using
