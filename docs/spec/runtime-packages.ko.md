@@ -60,14 +60,14 @@ PHP 호스트를 요구하지 않습니다.
 | 데이터 조회 | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
 | 폼 렌더링 | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
 | 목록 렌더링 | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
-| 상세 모델 생성 | `buildDetail` | — | `BuildDetail` | — | — |
-| 상세 렌더링 | `renderDetail` | — | `RenderDetail` | — | — |
+| 상세 모델 생성 | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
+| 상세 렌더링 | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |
 | 검증 | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
 
-줄표(—)는 해당 런타임이 구현하지 않은 동작입니다. 상세 보기는 JavaScript와 Go에만 있고 두
-출력을 비교하는 검사는 없습니다. 공용 픽스처, 렌더러 적합성 검사, 네이티브 바이트 동일성 실행은
-폼과 목록만 다룹니다. 이 기능은 진행 중으로 기록되어 있으며, 이 표는 완성 후 모습이 아니라 현재
-존재하는 것을 기술합니다.
+모든 런타임은 같은 상세 모델을 만들고 같은 상세 HTML을 씁니다.
+[공용 상세 고정 데이터](../../tests/fixtures/detail-render/README.ko.md)를 JavaScript, HTML 렌더러,
+PHP 라이브러리, Go, Rust, PHP 확장에서 두 수준으로 비교합니다. 멤버 순서를 포함한 `buildDetail`
+모델과, React 서버 렌더링과 바이트 단위로 같은 `renderDetail` HTML입니다.
 
 두 PHP 구현 모두 `CRUDUI\Generator`, `CRUDUI\Validator`,
 `CRUDUI\Form` 클래스를 사용합니다.

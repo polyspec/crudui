@@ -3,7 +3,7 @@
 [English](README.md).
 
 재사용할 폼 구조를 컴파일하고, 레코드 데이터를 주입하고, 키가 있는 행을 편집하고,
-PHP에서 폼과 목록을 렌더링합니다. 렌더링과 검증은 PHP 프로세스에서 실행합니다.
+PHP에서 폼·목록·읽기 전용 상세를 렌더링합니다. 렌더링과 검증은 PHP 프로세스에서 실행합니다.
 
 ## 설치와 검증
 
@@ -43,9 +43,12 @@ echo Generator::renderForm($initial);
 
 `Generator::bindForm($template, $data, $options)`는 평가한 필드 모델을 반환합니다.
 `Generator::renderForm($form)`은 HTML `form` 요소를 제외한 HTML을 반환합니다.
-`Generator::renderList($spec, $rows, $options)`는 `options.layout`으로 선택한
-`table` 또는 `card` 구조를 렌더링합니다. 호스트가 전송 처리, 스타일과 필드에
-선언한 브라우저 통합을 제공합니다.
+`Generator::renderList($spec, $rows, $options)`는 전달한 행을 `options.layout`으로 선택한
+`table` 또는 `card` 구조로 렌더링합니다.
+`Generator::renderDetail($spec, $record, $options)`은 전달한 레코드 하나를 읽기 전용 상세로
+렌더링하고, `Generator::buildDetail($spec, $record, $options)`은 렌더러가 사용하는 마크업 없는
+상세 모델을 반환합니다. 어느 렌더링 메서드도 애플리케이션 데이터를 읽지 않습니다. 호스트가 전송
+처리, 스타일과 필드에 선언한 브라우저 통합을 제공합니다.
 
 날짜와 날짜·시간 입력, 목록 날짜 표시는 UTC를 사용합니다. 명시적인 오프셋은
 표시 전에 변환하고, 오프셋 없는 타임스탬프는 UTC로 해석합니다.
@@ -73,6 +76,12 @@ PHP 배열은 JSON 배열입니다. 연관 PHP 배열과 `stdClass`는 객체입
 `null`을 구분합니다. 숫자 행 키는 거부합니다. 데이터베이스 시퀀스는
 `sequenceRowKey`로 변환합니다.
 
+JSON 경계에서는 `json_decode($json, false, 512, JSON_THROW_ON_ERROR)`로
+decode해야 합니다. `true` 연관 배열 모드는 빈 객체와 배열의 구분을 잃고,
+연속된 숫자 키를 가진 객체도 목록처럼 만들 수 있습니다. 명시적인 빈 객체에는
+`new stdClass()`를 사용합니다. 객체 인수에는 연관 배열을, API가 루트 객체 타입을 정한
+인수에는 빈 배열을 빈 루트 객체로 전달할 수 있습니다.
+
 합성 실패는 `CRUDUI\Validator\Compose\ComposeLoadError`를 발생시킵니다.
 `getCompositionTrace()`는 `getTrace()`가 반환하는 예외 스택과 별도로
 명세 경로를 반환합니다.
@@ -97,7 +106,7 @@ CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/
 
 `php packages/generator-php/bin/generate.php`는 표준 입력에서 JSON 요청 하나를
 수신하고 표준 출력에 JSON 값 하나를 출력합니다. `compileForm`, `bindForm`,
-`renderList`, `form` 작업을 지원합니다. 폼 작업은 실패한 작업을 포함하여 각
+`renderList`, `buildDetail`, `renderDetail`, `form` 작업을 지원합니다. 폼 작업은 실패한 작업을 포함하여 각
 작업 후 데이터, 필드, HTML과 리비전을 기록합니다. 어댑터는 공개 클래스를
 사용하므로 PHP 구현이나 로드한 네이티브 구현으로 실행할 수 있습니다.
 

@@ -35,6 +35,10 @@ bool ps_value_visit(const ps_value *, void *, ps_visitor);
 ps_result ps_compile_form(const ps_value *spec, const ps_value *options);
 ps_result ps_bind_form(const ps_value *template, const ps_value *data, const ps_value *options);
 ps_result ps_render_list(const ps_value *spec, const ps_value *rows, const ps_value *options);
+/* Detail model: fields (key, label, format, value, display, design) and the evaluated design. */
+ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps_value *options);
+/* Detail HTML: image preloads, then the definition list. */
+ps_result ps_render_detail(const ps_value *spec, const ps_value *record, const ps_value *options);
 ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value *options);
 ps_result ps_validate_list(const ps_value *spec, const ps_value *options);
 ps_result ps_sequence_key(const ps_value *sequence);

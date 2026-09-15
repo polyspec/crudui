@@ -3,7 +3,7 @@
 [한국어](README.ko.md).
 
 `crudui-generator` compiles form structure, binds ordered record data, manages
-form instances and renders form and list HTML inside a Rust process. It reuses
+form instances and renders form, list and read-only detail HTML inside a Rust process. It reuses
 `crudui-validator` for specification composition and expressions.
 
 ## Use
@@ -43,6 +43,10 @@ models and `revision` counts successful updates. Failed operations leave data,
 models and the revision unchanged. Initial data, later injection and record
 restoration produce identical HTML for identical input and row keys.
 Cloning a form creates an independent instance with detached data and models.
+
+`build_list` and `render_list` consume supplied rows. `build_detail` and
+`render_detail` consume one supplied record and reuse the list display engine;
+neither operation queries application data.
 `FormError` provides a stable `code`, `message`, `at` and the original composition
 `trace`; ordinary instance errors have an empty trace.
 

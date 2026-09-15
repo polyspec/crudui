@@ -60,7 +60,7 @@ async function inputManifest() {
   for (const entry of packages.sort((a, b) => a.name.localeCompare(b.name))) {
     if (entry.isDirectory() && /^(?:generator-|validator-|php-ext$)/.test(entry.name)) await walk(`packages/${entry.name}`);
   }
-  for (const directory of ['tests/native-generators', 'tests/fixtures/form-render', 'tests/fixtures/list-render']) await walk(directory);
+  for (const directory of ['tests/native-generators', 'tests/fixtures/form-render', 'tests/fixtures/list-render', 'tests/fixtures/detail-render']) await walk(directory);
   for (const directory of ['packages/generator-core/dist', 'packages/generator-react/dist', 'packages/validator-ts/dist']) await walk(directory, true);
   for (const file of ['package.json', 'package-lock.json']) entries[file] = digest(await readFile(path.join(ROOT, file)));
   if (extension) {
@@ -159,8 +159,10 @@ report.inputs = { start: await inputManifest() };
 
 const formCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form-render/cases.json'), 'utf8'));
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
+const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
 assert.equal(formCases.length, 92, 'The form fixture inventory changed; review coverage before changing this assertion');
 assert.equal(listCases.length, 21, 'The list fixture inventory changed; review coverage before changing this assertion');
+assert.equal(detailCases.length, 19, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 for (const target of targets) {
   const status = { name: target.name, available: false, passed: false, command: target.command, args: target.args };
@@ -204,6 +206,32 @@ for (const target of targets) {
     if (fixture === imageCase) assert.ok(actual.startsWith('<link rel="preload" as="image" href="/b.png"/><link rel="preload" as="image" href="/a.png"/>'));
     if (fixture === urlCase) assert.ok(!actual.includes('alert(1)'), 'Ordinary URL contains the rejected script');
     return { html: digest(actual), rawHTML: true };
+  });
+
+  // A detail is checked at both levels a runtime exposes: the model and its raw HTML.
+  for (const fixture of detailCases) await check(target, `detail:${fixture.name}`, async () => {
+    const evidence = {};
+    for (const operation of ['buildDetail', 'renderDetail']) {
+      const request = { operation, spec: fixture.spec, record: fixture.record ?? {}, options: fixture.options ?? {} };
+      let expected, expectedError;
+      try { expected = oracle(request); } catch (error) { expectedError = errorRecord(error); }
+      if (fixture.expectError) {
+        assert.equal(expectedError?.code, fixture.expectError.code, 'JavaScript does not meet the declared fixture error code');
+        assert.equal(expectedError?.message, fixture.expectError.message, 'JavaScript does not meet the declared fixture error message');
+      } else assert.equal(expectedError, undefined, 'JavaScript unexpectedly rejected a detail fixture');
+      let actual, actualError;
+      try { actual = await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
+      if (expectedError) {
+        compareError(actualError, expectedError);
+        evidence[operation] = { errorCode: actualError.code };
+        continue;
+      }
+      assert.equal(actualError, undefined);
+      if (operation === 'buildDetail') equalOrdered(actual, expected, '$.detail');
+      else assert.equal(actual, expected, 'Raw detail HTML differs');
+      evidence[operation] = digest(actual);
+    }
+    return { model: evidence.buildDetail, html: evidence.renderDetail, rawHTML: true };
   });
 
   for (const [index, item] of numberCases.entries()) await check(target, `number:${index}`, async () => {

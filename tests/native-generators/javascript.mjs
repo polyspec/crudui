@@ -1,5 +1,5 @@
 import { pathToFileURL } from 'node:url';
-import { compileForm, bindForm, createForm } from '@crudui/generator-core';
+import { compileForm, bindForm, buildDetail, createForm } from '@crudui/generator-core';
 import * as react from '@crudui/generator-react';
 import * as html from '@crudui/generator-html';
 
@@ -9,8 +9,8 @@ export function errorRecord(error) {
   return { code: typeof error?.code === 'string' ? error.code : 'INVALID_FORM_INPUT', message: String(error?.message ?? error), at: typeof error?.at === 'string' ? error.at : typeof error?.path === 'string' ? error.path : Array.isArray(error?.trace) ? error.trace.join('.') : '' };
 }
 
-/** Build the protocol dispatcher over one JavaScript string renderer's `renderForm` and `renderList`. */
-export function createDispatch({ renderForm, renderList }) {
+/** Build the protocol dispatcher over one JavaScript string renderer's form, list and detail APIs. */
+export function createDispatch({ renderForm, renderList, renderDetail }) {
   const state = form => ({ data: form.getData(), fields: form.getSnapshot().fields, html: renderForm(form), revision: form.getSnapshot().revision });
   return function dispatch(request) {
     if (!object(request)) throw new TypeError('Request must be an object');
@@ -22,6 +22,10 @@ export function createDispatch({ renderForm, renderList }) {
       case 'renderList':
         if (own(request, 'rows') && (!Array.isArray(request.rows) || request.rows.some(row => !object(row)))) throw new TypeError('List rows must be objects in an array');
         return renderList(request.spec, request.rows, request.options);
+      case 'buildDetail':
+      case 'renderDetail':
+        if (own(request, 'record') && !object(request.record)) throw new TypeError('Detail record must be an object');
+        return (request.operation === 'buildDetail' ? buildDetail : renderDetail)(request.spec, request.record ?? {}, request.options);
       case 'form': {
         const form = createForm(request.template, request.data, request.options);
         if (own(request, 'actions') && !Array.isArray(request.actions)) throw new TypeError('Actions must be an array');

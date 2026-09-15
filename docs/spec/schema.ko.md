@@ -126,6 +126,14 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 선언하지 않습니다. `buildDetail`은 순서가 있는 표시 필드와 평가된 상세 외형을
 반환하고, 렌더러는 애플리케이션 데이터를 조회하지 않고 그 모델을 소비합니다.
 
+모델은 `{ fields, design }`입니다. 각 필드는 `key`, `label`, `format`, `value`, `display`,
+`design` 멤버를 이 순서로 가집니다. 하나의 레코드에 대한 목록 셀 앞에 키와 번역한 라벨을 둔
+것입니다. 레코드의 필드 경로에 값이 없으면 목록 셀과 마찬가지로 `value`는 `null`입니다. 객체가
+아닌 선언은 `Detail specification must be an object`, `fields`가 없는 선언은 `Detail specification
+must declare fields`, 객체가 아닌 레코드는 `Detail record must be an object`로 실패합니다. 모든
+런타임은 같은 모델과 같은 오류를 반환하고, 모든 문자열 렌더러는 정의 목록 앞의 이미지 preload
+링크를 포함해 React 서버 렌더링과 같은 상세 HTML을 씁니다.
+
 ## 인수 기준
 
 1. 필드 평가 전에 합성을 처리하고 누락된 참조를 오류로 반환합니다.

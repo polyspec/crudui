@@ -336,7 +336,8 @@ export function renderDetail(
   options: BuildDetailOptions = {},
 ): string {
   const vm = buildDetail(spec, record, options);
-  return element('dl', { class: joinClass('detail-view', vm.design.wrapper.class), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
+  const preloads = imagePreloads([{ cells: vm.fields }]);
+  return preloads + element('dl', { class: joinClass('detail-view', vm.design.wrapper.class), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
 }
 
 /** A list action: a link or button written raw, with its behavior attributes. */
@@ -392,10 +393,10 @@ function listHtml(vm: ListViewModel, layout: 'table' | 'card'): string {
 }
 
 /** Image resource hints in first-use order, without empty or `data:` sources. */
-function imagePreloads(vm: ListViewModel): string {
+function imagePreloads(rows: Array<{ cells: CellVM[] }>): string {
   const seen = new Set<string>();
   let output = '';
-  for (const row of vm.rows) {
+  for (const row of rows) {
     for (const item of row.cells) {
       const display = item.display;
       if (typeof display === 'string' || display.kind !== 'image') continue;
@@ -484,5 +485,5 @@ export function renderList(
 ): string {
   const { layout = 'table', ...buildOptions } = options;
   const vm = buildList(spec, rows, buildOptions);
-  return imagePreloads(vm) + listHtml(vm, layout);
+  return imagePreloads(vm.rows) + listHtml(vm, layout);
 }

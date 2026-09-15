@@ -3,7 +3,7 @@
 [한국어](README.ko.md).
 
 Compile reusable form structures, bind record data, edit keyed rows and render
-forms or lists in PHP. Rendering and validation run in the PHP process.
+forms, lists or read-only details in PHP. Rendering and validation run in the PHP process.
 
 ## Install and verify
 
@@ -43,9 +43,13 @@ accept `language`, `idPrefix`, `keyPrefix` and `unsupported`. Use distinct
 
 `Generator::bindForm($template, $data, $options)` returns evaluated field models.
 `Generator::renderForm($form)` returns HTML without an HTML `form` element.
-`Generator::renderList($spec, $rows, $options)` renders the `table` or `card`
-layout selected by `options.layout`. The host provides submission handling,
-styles and browser integrations declared by fields.
+`Generator::renderList($spec, $rows, $options)` renders supplied rows in the `table`
+or `card` layout selected by `options.layout`.
+`Generator::renderDetail($spec, $record, $options)` renders one supplied record as a
+read-only detail, and `Generator::buildDetail($spec, $record, $options)` returns the
+markup-free detail model the renderer uses. Neither rendering method reads application
+data. The host provides submission handling, styles and browser integrations declared by
+fields.
 
 Date and datetime controls and list date formatting use UTC. Explicit offsets
 are converted before display; timestamps without offsets are interpreted in UTC.
@@ -73,6 +77,13 @@ records and templates are `stdClass`; lists are arrays. Nested empty arrays,
 empty objects and `null` remain distinct. Numeric row keys are rejected; use
 `sequenceRowKey` to format database sequences.
 
+At a JSON boundary, decode with `json_decode($json, false, 512, JSON_THROW_ON_ERROR)`.
+The `true` associative mode loses the distinction between an empty object and an
+array, and can also make an object with sequential numeric keys appear to be a
+list. Use `new stdClass()` for an explicit empty object. An associative array is
+accepted for an object argument, and an empty array for an empty root object argument,
+whose type is fixed by its API.
+
 Composition failures raise `CRUDUI\Validator\Compose\ComposeLoadError`.
 Its `getCompositionTrace()` returns specification paths separately from the
 exception stack returned by `getTrace()`.
@@ -97,7 +108,7 @@ editing or an ordered JSON HTTP endpoint.
 
 `php packages/generator-php/bin/generate.php` reads one JSON request from stdin
 and writes one JSON value to stdout. Supported operations are `compileForm`,
-`bindForm`, `renderList` and `form`. The form operation records data, fields,
+`bindForm`, `renderList`, `buildDetail`, `renderDetail` and `form`. The form operation records data, fields,
 HTML and revision after each action, including failed operations. The adapter
 uses the public classes and can execute with the PHP implementation or a loaded
 native implementation.
