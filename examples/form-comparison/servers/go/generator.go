@@ -16,9 +16,31 @@ import (
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
-// generationInfo identifies the library compiled into the Go HTTP process.
-func generationInfo() *object {
-	return record("runtime", "go", "commit", sourceCommit)
+// sourceIdentity reads, on every call, the identity of the repository tree the running build
+// came from: its commit and the digest of its uncommitted changes, or null.
+func (s server) sourceIdentity() (*object, error) {
+	encoded, err := os.ReadFile(s.sourceFile)
+	if err != nil {
+		return nil, err
+	}
+	value, err := decodeJSON(encoded)
+	if err != nil {
+		return nil, err
+	}
+	identity, ok := value.(*object)
+	if !ok || strings.Join(identity.Keys(), ",") != "commit,changes" {
+		return nil, fmt.Errorf("Expected a source identity with commit and changes")
+	}
+	return identity, nil
+}
+
+// generationInfo identifies the Go generator and the source identity it serves.
+func (s server) generationInfo() (*object, error) {
+	identity, err := s.sourceIdentity()
+	if err != nil {
+		return nil, err
+	}
+	return record("runtime", "go", "source", identity), nil
 }
 
 // generationStrings reads optional string settings from the request options.
@@ -53,7 +75,7 @@ func (loader *countingLoader) Load(path string) (*compose.OMap, error) {
 }
 
 // compileGeneration prepares serializable structure without record data.
-func compileGeneration(request, options *object) (*object, error) {
+func compileGeneration(request, options, provenance *object) (*object, error) {
 	spec, ok := get(request, "spec").(*object)
 	if !ok {
 		return nil, fmt.Errorf("Expected specification object")
@@ -91,11 +113,11 @@ func compileGeneration(request, options *object) (*object, error) {
 	if err != nil {
 		return nil, err
 	}
-	return record("template", value, "generator", generationInfo(), "referenceReads", loader.reads), nil
+	return record("template", value, "generator", provenance, "referenceReads", loader.reads), nil
 }
 
 // renderGeneration binds a submitted template without loading composition files.
-func renderGeneration(request, options *object) (*object, error) {
+func renderGeneration(request, options, provenance *object) (*object, error) {
 	structure, ok := get(request, "template").(*object)
 	if !ok {
 		return nil, fmt.Errorf("Expected template object")
@@ -136,7 +158,7 @@ func renderGeneration(request, options *object) (*object, error) {
 	if err != nil {
 		return nil, err
 	}
-	return record("data", form.GetData(), "fields", form.Fields(), "html", markup, "revision", form.Revision(), "generator", generationInfo()), nil
+	return record("data", form.GetData(), "fields", form.Fields(), "html", markup, "revision", form.Revision(), "generator", provenance), nil
 }
 
 // serveGeneration handles the current compilation, binding and server HTML endpoints.
@@ -182,11 +204,16 @@ func (s server) serveGeneration(w http.ResponseWriter, r *http.Request, operatio
 			return
 		}
 	}
+	provenance, err := s.generationInfo()
+	if err != nil {
+		failure(w, http.StatusInternalServerError, err)
+		return
+	}
 	var response *object
 	if operation == "compile" {
-		response, err = compileGeneration(request, options)
+		response, err = compileGeneration(request, options, provenance)
 	} else {
-		response, err = renderGeneration(request, options)
+		response, err = renderGeneration(request, options, provenance)
 	}
 	if err != nil {
 		failure(w, http.StatusBadRequest, err)
@@ -260,7 +287,12 @@ func (s server) serveSSRFrame(w http.ResponseWriter, r *http.Request, renderingP
 		failure(w, http.StatusInternalServerError, err)
 		return
 	}
-	payload, err := encodeJSON(record("data", form.GetData(), "generator", generationInfo()))
+	provenance, err := s.generationInfo()
+	if err != nil {
+		failure(w, http.StatusInternalServerError, err)
+		return
+	}
+	payload, err := encodeJSON(record("data", form.GetData(), "generator", provenance))
 	if err != nil {
 		failure(w, http.StatusInternalServerError, err)
 		return

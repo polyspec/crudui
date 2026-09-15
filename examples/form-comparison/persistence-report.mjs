@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { formRenderingPaths, formServers } from './src/runtime-paths.mjs';
+import { assertSourceIdentity } from './src/source-identity.mjs';
 
 export const persistenceCheckIds = Object.freeze([
   'multipart/roundtrip',
@@ -26,9 +27,8 @@ function errorRecord(error) {
   return { name: error.name, message: error.message, stack: error.stack };
 }
 
-function assertPersistenceEvidence(results, metadata) {
-  assert.match(metadata?.source?.commit ?? '', /^[0-9a-f]{40}$/,
-    'Persistence report requires a candidate source commit');
+function assertPersistenceEvidence(results, source) {
+  assertSourceIdentity(source, 'Persistence report requires a source identity');
   assert.ok(Array.isArray(results), 'Persistence report results are missing');
   assert.equal(results.length, expectedPersistenceResults,
     `Persistence report must contain exactly ${expectedPersistenceResults} results`);
@@ -50,11 +50,11 @@ function assertPersistenceEvidence(results, metadata) {
   }
 }
 
-export function finalizePersistenceReport(results, metadata,
+export function finalizePersistenceReport(results, source,
   generatedAt = new Date().toISOString()) {
   let invariants;
   try {
-    assertPersistenceEvidence(results, metadata);
+    assertPersistenceEvidence(results, source);
     invariants = { passed: true, results: expectedPersistenceResults };
   } catch (error) {
     invariants = { passed: false, error: errorRecord(error) };
@@ -65,13 +65,13 @@ export function finalizePersistenceReport(results, metadata,
   const complete = invariants.passed;
   const failedChecks = failedResults + (complete ? 0 : 1);
   return {
-    generatedAt, metadata, complete, passed: complete && failedChecks === 0,
+    generatedAt, source, complete, passed: complete && failedChecks === 0,
     failedChecks, invariants, results,
   };
 }
 
 export function assertPersistenceReport(report) {
-  assertPersistenceEvidence(report?.results, report?.metadata);
+  assertPersistenceEvidence(report?.results, report?.source);
   assert.equal(report.complete, true, 'Persistence report is incomplete');
   assert.equal(report.invariants?.passed, true, 'Persistence report invariants failed');
   assert.equal(report.invariants?.results, expectedPersistenceResults,

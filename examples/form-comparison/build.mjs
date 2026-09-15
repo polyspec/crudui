@@ -8,17 +8,16 @@ import { readFrameDocument } from './src/frame-document.mjs';
 import { specFor } from './src/scenario.mjs';
 
 const exampleDirectory = path.dirname(fileURLToPath(import.meta.url));
-if (!process.argv[2] || !path.isAbsolute(process.argv[2])) {
-  throw new Error('An absolute build workspace path is required');
+if (process.argv.length !== 3 || !path.isAbsolute(process.argv[2])) {
+  throw new Error('Usage: node build.mjs /absolute/public-directory');
 }
-const workspace = process.argv[2];
-const source = path.join(workspace, 'source');
+const publicDirectory = process.argv[2];
+// The repository that contains this script; the supervisor runs it from the build tree.
+const source = path.resolve(exampleDirectory, '../..');
 const require = createRequire(path.join(source, 'packages/generator-svelte/package.json'));
 const { build } = await import(pathToFileURL(require.resolve('vite')));
 const { parse } = await import(pathToFileURL(require.resolve('parse5')));
 const { svelte } = await import(pathToFileURL(require.resolve('@sveltejs/vite-plugin-svelte')));
-const metadata = JSON.parse(await readFile(path.join(workspace, 'metadata.json'), 'utf8'));
-const publicDirectory = path.join(workspace, 'public');
 await mkdir(publicDirectory, { recursive: true });
 await cp(path.join(exampleDirectory, 'public'), publicDirectory, { recursive: true });
 await cp(path.join(exampleDirectory, 'src/browser-job.mjs'),
@@ -41,8 +40,6 @@ await cp(path.join(source, 'packages/generator-core/styles/crudui.css'),
   path.join(publicDirectory, 'crudui.css'));
 await cp(path.join(exampleDirectory, 'fixtures/records.json'),
   path.join(publicDirectory, 'records.json'));
-await writeFile(path.join(publicDirectory, 'metadata.json'),
-  JSON.stringify(metadata, null, 2) + '\n');
 const spec = specFor();
 await writeFile(path.join(publicDirectory, 'spec.json'), JSON.stringify(spec, null, 2) + '\n');
 
@@ -75,7 +72,6 @@ for (const renderingPath of formRenderingPaths) {
       define: {
         __FORM_PATH__: JSON.stringify(renderingPath),
         __FRAMEWORK__: JSON.stringify(framework),
-        __SOURCE_COMMIT__: JSON.stringify(metadata.source.commit),
       },
       build: {
         target: 'esnext',

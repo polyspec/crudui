@@ -14,19 +14,21 @@ function respond(int $status, array $body): never
     exit;
 }
 
-/** Open the current library and its recorded source metadata. */
+// The build tree that contains this file, and the public directory built from it.
+define('FORM_SOURCE_ROOT', dirname(__DIR__, 2));
+const FORM_PUBLIC_DIRECTORY = '/workspace/build/public';
+
+/** Open the current library with the source identity published for the running build. */
 function currentGeneration(): FormGeneration
 {
-    $source = FormJson::decode(file_get_contents('/workspace/metadata.json'));
-    if (!$source instanceof stdClass || !($source->source ?? null) instanceof stdClass) throw new RuntimeException('Missing current library metadata');
-    $runtime = phpServerMode();
-    $archiveSha256 = getenv('FORM_CRUDUI_ARCHIVE_SHA256') ?: '';
+    $raw = file_get_contents(FORM_PUBLIC_DIRECTORY . '/source.json');
+    $source = is_string($raw) ? FormJson::decode($raw) : null;
+    if (!$source instanceof stdClass) throw new RuntimeException('Missing source identity');
     $moduleSha256 = getenv('FORM_CRUDUI_MODULE_SHA256');
     return new FormGeneration(
-        $runtime,
-        '/workspace/source',
-        $source->source,
-        $archiveSha256,
+        phpServerMode(),
+        FORM_SOURCE_ROOT,
+        $source,
         $moduleSha256 === false ? null : $moduleSha256,
     );
 }
@@ -70,7 +72,7 @@ if (!str_starts_with($path, '/api/')) return false;
 
 try {
     if ($path === '/api/health') respond(200, ['status' => 'ok', 'php' => PHP_VERSION, 'storage' => 'JSON files', 'jsonProcessor' => 'ordered-json', 'generator' => currentGeneration()->provenance()]);
-    $matrix = browserMatrix('/workspace/source');
+    $matrix = browserMatrix(FORM_SOURCE_ROOT);
     $alternatives = static fn(array $values): string => implode('|', array_map(static fn(string $value): string => preg_quote($value, '#'), $values));
     if (!preg_match('#^/api/(' . $alternatives($matrix->actions) . ')/(' . $alternatives($matrix->renderingPaths) . ')/(' . $alternatives($matrix->frameworks) . ')$#D', $path, $match)) respond(404, ['error' => 'Unknown endpoint']);
     [, $action, $renderingPath, $framework] = $match;
@@ -88,10 +90,10 @@ try {
     $repo = new FormRepository("/data/" . phpServerMode() . "-$renderingPath-$framework.json");
     if ($action === 'ssr') {
         $language = ssrLanguage($_SERVER['QUERY_STRING'] ?? '');
-        $frameFile = "/workspace/public/frames/$renderingPath-$framework/index.html";
+        $frameFile = FORM_PUBLIC_DIRECTORY . "/frames/$renderingPath-$framework/index.html";
         $frame = is_file($frameFile) ? file_get_contents($frameFile) : false;
         if (!is_string($frame)) respond(500, ['error' => FormGeneration::FRAME_ERROR]);
-        $spec = FormJson::decode(file_get_contents('/workspace/public/spec.json'));
+        $spec = FormJson::decode(file_get_contents(FORM_PUBLIC_DIRECTORY . '/spec.json'));
         $document = $generation->ssrFrame($frame, $spec, FormRepository::loadData($repo->read()), $language, FormJson::encode(...));
         header('Content-Type: text/html; charset=utf-8');
         header('Cache-Control: no-store');
@@ -103,7 +105,7 @@ try {
         $state = $action === 'reset' ? $repo->reset($_POST['fixture'] ?? 'default') : $repo->read();
         respond(200, ['storage' => $state, 'data' => FormRepository::loadData($state), 'generator' => $generation->provenance()]);
     }
-    $spec = FormJson::decode(file_get_contents('/workspace/public/spec.json'));
+    $spec = FormJson::decode(file_get_contents(FORM_PUBLIC_DIRECTORY . '/spec.json'));
     if ($contentType === 'application/json') {
         $json = jsonRequest();
         FormRepository::checkJsonShape($json->form ?? null);

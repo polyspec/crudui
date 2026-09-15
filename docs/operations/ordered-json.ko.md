@@ -6,9 +6,18 @@
 
 검사는
 [OrderedJSON](https://github.com/polyspec/ordered-json)
-체크아웃 경로와 구현 하위 모듈 다섯 개를 사용합니다.
+버전 `0.0.1`을 명시적으로 체크아웃합니다.
+다섯 구현은 이 모노레포의 패키지 디렉터리입니다.
 
-검사기는 절대 경로와 초기화된 하위 모듈을 요구하며, 실행 전후에 정확한 리비전과
+| 패키지 | 매니페스트 |
+| --- | --- |
+| `js` | `js/package.json` |
+| `rust` | `rust/Cargo.toml` |
+| `go` | `go/go.mod` |
+| `php` | `php/composer.json` |
+| `php-extension` | `php-extension/composer.json` |
+
+검사기는 절대 경로와 정확한 모노레포 리비전을 요구하며, 실행 전후에 리비전과
 소스 변경 여부를 확인합니다. PHP는 `OrderedJson` 네임스페이스를 사용하며,
 네이티브 대상은 `php-extension`이고 `ordered_json.so`를 로드합니다.
 
@@ -19,7 +28,6 @@
 ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
 git clone --no-checkout https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
 git -C "$ORDERED_JSON_SOURCE" checkout main
-git -C "$ORDERED_JSON_SOURCE" submodule update --init --recursive
 python3 -m unittest discover -s tests/ordered-json -p 'test_*.py'
 python3 "$ORDERED_JSON_SOURCE/scripts/verify.py"
 python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"
@@ -38,7 +46,7 @@ CRUDUI 검사기는 JSON 문서 10개를 다섯 구현의 파싱·직렬화·재
 일반 확장 빌드와 PIE 결과물 검사를 동시에 실행하면 안 됩니다.
 
 보고서는 `.verification/ordered-json/ordered-json-<timestamp>.json`에 저장합니다.
-공통 저장소와 하위 모듈 리비전, 검사기·사례 해시, 런타임 버전, 네이티브 모듈
+모노레포 리비전, 패키지 경로, 검사기·사례 해시, 런타임 버전, 네이티브 모듈
 해시, 빌드 경고와 개별 결과를 포함합니다. 이전 보고서는 유지합니다. 다섯 구현과
 결과 50개가 모두 필요합니다. 응답 누락, 잘못된 출력, 프로세스 실패나 사례 실패는
 실패 보고서와 0이 아닌 종료 상태를 생성합니다. 검증 중 소스나 결과물이 변경되어도

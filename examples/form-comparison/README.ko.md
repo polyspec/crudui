@@ -25,27 +25,22 @@ npm run test:form-comparison
 make docs-check
 ```
 
-변경이 없는 현재 커밋으로 불변 후보 하나를 준비하고 이미지를 빌드합니다.
+비교 서비스는 `https://crudui.test`의 장기 실행 툴체인 컨테이너 하나에서 현재 저장소
+트리를 실행합니다. 저장소는 읽기 전용으로 마운트하고 빌드 산출물은 컨테이너 볼륨에 두며,
+소스 변경은 이미지를 다시 빌드하지 않고 적용됩니다. 배포를 적용하고 그 컨테이너가 실행하는
+트리를 검증합니다.
 
 ```sh
-CANDIDATE_REF=$(git rev-parse HEAD)
-CANDIDATE_IMAGE=localhost/crudui-form-comparison:$(printf '%s' "$CANDIDATE_REF" | cut -c1-12)
-node examples/form-comparison/prepare.mjs --ref "$CANDIDATE_REF"
-container build --tag "$CANDIDATE_IMAGE" --progress plain \
-  ".form-comparison/candidates/$CANDIDATE_REF/context"
+node examples/form-comparison/comparison-deployment.mjs
+node examples/form-comparison/verification.mjs
 ```
 
-준비 명령은 추적하거나 추적하지 않은 변경을 거부합니다. 후보 컨텍스트는 소스
-커밋·아카이브 해시와 고정한 OrderedJSON 공통 커밋·구현 커밋 다섯 개를
-기록합니다. 후보 빌드는 실행 중인 서비스를 변경하지 않습니다.
+supervisor는 변경이 영향을 주는 대상만 다시 빌드하고 영향받는 서버만 다시 시작합니다.
+모든 서버, 프레임, 보고서는 체크아웃 커밋과 커밋하지 않은 변경의 digest로 이루어진 소스
+식별자를 명시합니다.
 
-[검증 절차](../../docs/operations/verification.ko.md)는 후보 시작, HTTP 검사,
+[검증 절차](../../docs/operations/verification.ko.md)는 배포, 자연 적용, HTTP 검사,
 서버별 순차 브라우저 검사와 보고서 집계를 정의합니다.
-[폼 검증 계약](../../docs/spec/form-comparison.ko.md)은 필수 조합·자료·통과 기준을
-정의합니다. 전체 집계가 통과하면
-`node examples/form-comparison/comparison-deployment.mjs --commit "$CANDIDATE_REF"`가 정확한
-이미지와 보고서를 검사하고 실행 중인 서비스 데이터를 보존한 뒤
-`https://crudui.test`에서 동일한 containerctl 적용 두 번을 검증합니다. 배포가
-성공하면 후보 컨테이너, 디렉터리, 보고서, 스크린샷과 사용하지 않는 비교 이미지를
-제거합니다.
+[폼 검증 계약](../../docs/spec/form-comparison.ko.md)은 툴체인 이미지, 빌드 볼륨, 빌드
+대상, 소스 식별자, 필수 조합·자료·통과 기준을 정의합니다.
 [기능 상태](../../docs/features.ko.md)는 코드 검증과 배포를 별도로 기록합니다.

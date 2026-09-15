@@ -38,8 +38,9 @@ document.querySelector('#source-label').textContent = t.source;
 document.querySelector('#language').textContent = language === 'ko' ? 'English' : '한국어';
 document.documentElement.lang = language;
 for (const option of serverSelector.options) option.textContent = t.serverNames[option.value];
-const metadata = await (await fetch('/metadata.json')).json();
-document.querySelector('#source').textContent = JSON.stringify(metadata, null, 2);
+// The identity of the repository tree the running build came from.
+const source = await (await fetch('/source.json', { cache: 'no-store' })).json();
+document.querySelector('#source').textContent = JSON.stringify(source, null, 2);
 
 /**
  * Capture one column: HTML, DOM, control state, fields, computed CSS, ordered data, focus and
@@ -162,7 +163,7 @@ async function initializationReport(server, path, framework) {
   const { comparisons, stages, cssFailures } = await compareInitialization();
   return {
     kind: 'initialization', server, path, framework,
-    commit: ssrFrame.contentWindow.comparison.commit,
+    source: ssrFrame.contentWindow.comparison.source,
     results: comparisons.flatMap(comparison => comparison.results.map(result =>
       ({ label: comparison.label, ...result }))),
     stages, cssFailures,
@@ -264,7 +265,7 @@ async function runAll(servers, publish) {
     document.querySelector('#progress').textContent =
       `${t.results}: ${checks.filter(check => check.passed).length}/${checks.length} ${t.pass}`;
     document.querySelector('#download').disabled = false;
-    return { generatedAt: new Date().toISOString(), metadata };
+    return { generatedAt: new Date().toISOString(), source };
   } finally {
     await show(...selected);
     for (const control of controls) control.disabled = false;
@@ -313,7 +314,7 @@ document.querySelector('#all-checks').addEventListener('click', () => {
   }
 });
 document.querySelector('#download').addEventListener('click', () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify({ metadata, reports })],
+  const url = URL.createObjectURL(new Blob([JSON.stringify({ source, reports })],
     { type: 'application/json' }));
   const link = document.createElement('a');
   link.href = url;

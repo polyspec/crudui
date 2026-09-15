@@ -9,6 +9,7 @@ import puppeteer from 'puppeteer';
 import { browserJobReportCount, verifyServerReport } from './browser-report-policy.mjs';
 import { checkInteraction } from './check-interaction.mjs';
 import { collectBrowserJob } from './src/browser-job.mjs';
+import { formatDuration } from './src/step-runner.mjs';
 import { readFrameDocument } from './src/frame-document.mjs';
 import { parseFrameDocument } from './src/frame-readiness.mjs';
 import { subscribeMainPageReadiness } from './src/main-page-readiness.mjs';
@@ -47,7 +48,47 @@ if (existsSync(path.join(output, reportFile))) {
   }
 }
 
+/** Limits of the phases outside the report job, sized from their measured durations. */
+export const checkPhaseLimitsMs = Object.freeze({
+  'main-page': 180_000, interactions: 300_000, artifacts: 300_000,
+});
+
+function progress(message) {
+  process.stdout.write(`${selectedServer}: ${message}\n`);
+}
+
+/** Run one phase with its own limit and report its start and duration. */
+async function phase(id, action) {
+  const limitMs = checkPhaseLimitsMs[id];
+  const started = performance.now();
+  progress(`${id} started (limit ${formatDuration(limitMs)})`);
+  let timer;
+  try {
+    const value = await Promise.race([action(), new Promise((resolve, reject) => {
+      timer = setTimeout(() => reject(new Error(
+        `${id} exceeded its ${limitMs} ms limit after `
+        + `${Math.round(performance.now() - started)} ms`)), limitMs);
+    })]);
+    progress(`${id} passed in ${formatDuration(performance.now() - started)}`);
+    return value;
+  } catch (error) {
+    progress(`${id} failed after ${formatDuration(performance.now() - started)}: ${error.message}`);
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const browser = await puppeteer.launch({ headless: true, protocolTimeout: 60_000 });
+// A stopped check closes the browser instead of leaving Chromium behind for SIGKILL.
+for (const name of ['SIGTERM', 'SIGINT']) {
+  process.once(name, () => {
+    progress(`${name}: closing the browser`);
+    const forced = setTimeout(() => process.exit(name === 'SIGINT' ? 130 : 143), 10_000);
+    forced.unref();
+    browser.close().catch(() => {}).finally(() => process.exit(name === 'SIGINT' ? 130 : 143));
+  });
+}
 let page;
 let completedReports = [];
 let scenarioJob = {
@@ -59,18 +100,13 @@ const startedClock = performance.now();
 const activity = {
   requests: 0, responses: 0, lastRequestAt: null, lastResponseAt: null,
 };
-let publishActivity = () => {};
 try {
   page = await browser.newPage();
   const jobListeners = new Set();
-  const activityListeners = new Set();
   await page.exposeFunction('cruduiBrowserJobEvent', async event => {
     for (const listener of jobListeners) await listener(event);
   });
   const mainReadiness = await subscribeMainPageReadiness(page);
-  publishActivity = event => {
-    for (const listener of activityListeners) listener(event);
-  };
   await page.setViewport({ width: 1680, height: 1100 });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -80,7 +116,6 @@ try {
   page.on('response', response => {
     activity.responses++;
     activity.lastResponseAt = new Date().toISOString();
-    publishActivity({ type: 'response', ...activity });
     if (response.request().resourceType() !== 'document') return;
     const frame = parseFrameDocument(new URL(response.url()));
     if (!frame) return;
@@ -108,7 +143,6 @@ try {
   page.on('request', async request => {
     activity.requests++;
     activity.lastRequestAt = new Date().toISOString();
-    publishActivity({ type: 'request', ...activity });
     const match = new RegExp(
       `/api/(${formServers.join('|')})/load/(${formRenderingPaths.join('|')})/(${formFrameworks.join('|')})$`,
     ).exec(request.url());
@@ -134,45 +168,60 @@ try {
     }
     await request.continue();
   });
-  await page.goto(`${base.origin}/?server=${selectedServer}`, { waitUntil: 'load' });
-  const mainReady = await mainReadiness.wait();
-  if (JSON.stringify(mainReady) !== JSON.stringify({
-    type: 'crudui:main-ready', server: selectedServer, framework: 'react',
-  })) throw new Error('Main page readiness differs');
-  await page.screenshot({ path: path.join(output, formsFile), fullPage: true });
+  await phase('main-page', async () => {
+    await page.goto(`${base.origin}/?server=${selectedServer}`, { waitUntil: 'load' });
+    const mainReady = await mainReadiness.wait();
+    if (JSON.stringify(mainReady) !== JSON.stringify({
+      type: 'crudui:main-ready', server: selectedServer, framework: 'react',
+    })) throw new Error('Main page readiness differs');
+    await page.screenshot({ path: path.join(output, formsFile), fullPage: true });
+  });
   let loggedProgress = '';
+  let loggedReports = 0;
+  const jobStarted = performance.now();
   const collected = await collectBrowserJob({
     start: servers => page.evaluate(value => window.comparison.startRun(value), servers),
     subscribe(listener) {
       jobListeners.add(listener);
       return () => jobListeners.delete(listener);
     },
-    subscribeActivity(listener) {
-      activityListeners.add(listener);
-      return () => activityListeners.delete(listener);
-    },
   }, [selectedServer], {
     onState(state, reports) {
       scenarioJob = state;
       completedReports = [...reports];
-      const progress =
-        `${state.completedReports}/${state.totalReports} ${state.current ?? state.status}`;
-      if (progress !== loggedProgress) {
-        process.stdout.write(`${selectedServer}: ${progress}\n`);
-        loggedProgress = progress;
+      for (const report of reports.slice(loggedReports)) {
+        const results = report.results ?? [];
+        const failed = results.filter(item => !item.passed).length;
+        const label = [report.server, report.path, report.framework,
+          report.transport ?? report.kind].join('/');
+        progress(`${label}: ${failed === 0 ? 'passed' : `FAILED ${failed} of ${results.length}`}`
+          + ` in ${formatDuration(report.durationMs ?? 0)}`
+          + ` (${reports.indexOf(report) + 1}/${state.totalReports},`
+          + ` ${formatDuration(performance.now() - jobStarted)} elapsed)`);
       }
+      loggedReports = reports.length;
+      const current = state.current === null ? ''
+        : `${state.completedReports}/${state.totalReports} ${state.current}`;
+      if (current !== loggedProgress) {
+        if (current) progress(`${current} started`);
+        loggedProgress = current;
+      }
+    },
+    onProgress({ label, elapsedMs, limitMs, completedReports: done, totalReports }) {
+      progress(`${done}/${totalReports} ${label ?? 'page work between reports'}`
+        + ` running ${formatDuration(elapsedMs)} of ${formatDuration(limitMs)}`);
     },
   });
   scenarioJob = collected.state;
   completedReports = collected.reports;
   const report = {
     scope: 'verification', startedAt, origin: base.origin,
-    metadata: scenarioJob.result?.metadata, activity, scenarioJob,
+    source: scenarioJob.result?.source, activity, scenarioJob,
     reports: completedReports.filter(item => item.kind === 'scenario'),
     initializations: completedReports.filter(item => item.kind === 'initialization'),
   };
   finalReport = report;
-  report.interactions = await checkInteraction(page, [selectedServer]);
+  report.interactions = await phase('interactions', () => checkInteraction(page, [selectedServer]));
   report.initialMounts = [...initialMounts.values()];
   await Promise.all(documentChecks);
   report.frameDocuments = [...frameDocuments.values()];
@@ -180,22 +229,24 @@ try {
   report.pageErrors = errors;
   report.initializationArtifacts =
     `initialization-${startedAt.replaceAll(':', '-')}`;
-  for (const result of report.initializations) {
-    const directory = path.join(
-      output, report.initializationArtifacts, result.server, result.path, result.framework,
-    );
-    await mkdir(directory, { recursive: true });
-    await writeFile(path.join(directory, 'comparisons.json'), JSON.stringify({
-      results: result.results, cssFailures: result.cssFailures,
-    }, null, 2) + '\n');
-    await Promise.all(result.stages.map(async ({ html, ...state }) => {
-      const name = `${state.column}-${state.stage}`;
-      await writeFile(path.join(directory, `${name}.html`), html);
-      await writeFile(path.join(directory, `${name}.json`),
-        JSON.stringify(state, null, 2) + '\n');
-    }));
-  }
-  await page.screenshot({ path: path.join(output, comparisonFile), fullPage: true });
+  await phase('artifacts', async () => {
+    for (const result of report.initializations) {
+      const directory = path.join(
+        output, report.initializationArtifacts, result.server, result.path, result.framework,
+      );
+      await mkdir(directory, { recursive: true });
+      await writeFile(path.join(directory, 'comparisons.json'), JSON.stringify({
+        results: result.results, cssFailures: result.cssFailures,
+      }, null, 2) + '\n');
+      await Promise.all(result.stages.map(async ({ html, ...state }) => {
+        const name = `${state.column}-${state.stage}`;
+        await writeFile(path.join(directory, `${name}.html`), html);
+        await writeFile(path.join(directory, `${name}.json`),
+          JSON.stringify(state, null, 2) + '\n');
+      }));
+    }
+    await page.screenshot({ path: path.join(output, comparisonFile), fullPage: true });
+  });
   report.completedAt = new Date().toISOString();
   report.generatedAt = report.completedAt;
   report.durationMs = Math.max(0, performance.now() - startedClock);

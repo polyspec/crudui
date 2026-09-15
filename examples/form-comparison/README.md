@@ -27,29 +27,23 @@ npm run test:form-comparison
 make docs-check
 ```
 
-Prepare one immutable candidate from the clean current commit and build its
-image:
+The comparison service runs the current repository tree in one long-running
+toolchain container at `https://crudui.test`. The repository is mounted read-only,
+build outputs stay in container volumes, and source changes apply without building
+the image again. Apply the deployment and verify the tree it runs:
 
 ```sh
-CANDIDATE_REF=$(git rev-parse HEAD)
-CANDIDATE_IMAGE=localhost/crudui-form-comparison:$(printf '%s' "$CANDIDATE_REF" | cut -c1-12)
-node examples/form-comparison/prepare.mjs --ref "$CANDIDATE_REF"
-container build --tag "$CANDIDATE_IMAGE" --progress plain \
-  ".form-comparison/candidates/$CANDIDATE_REF/context"
+node examples/form-comparison/comparison-deployment.mjs
+node examples/form-comparison/verification.mjs
 ```
 
-Preparation rejects tracked or untracked changes. The candidate context records
-the source commit and archive digest together with the pinned OrderedJSON common
-commit and five implementation commits. Building a candidate does not change a
-running service.
+The supervisor rebuilds only the target a change affects and restarts only the
+affected server. Every server, frame and report names the source identity: the
+checked-out commit and a digest of the uncommitted changes.
 
 The [verification procedure](../../docs/operations/verification.md) defines
-candidate startup, HTTP checks, sequential browser checks and report aggregation.
-The [form verification contract](../../docs/spec/form-comparison.md) defines the
-required matrix, evidence and pass criteria. After the complete aggregate passes,
-`node examples/form-comparison/comparison-deployment.mjs --commit "$CANDIDATE_REF"` verifies
-the exact image and reports, preserves active service data and verifies two
-identical containerctl applications at `https://crudui.test`. A successful
-deployment removes candidate containers, directories, reports, screenshots and
-unused comparison images. [Feature status](../../docs/features.md) records
+deployment, natural application, HTTP checks, sequential browser checks and report
+aggregation. The [form verification contract](../../docs/spec/form-comparison.md)
+defines the toolchain image, build volumes, build targets, source identity, required
+matrix, evidence and pass criteria. [Feature status](../../docs/features.md) records
 verified code separately from deployment.

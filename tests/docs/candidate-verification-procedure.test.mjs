@@ -5,18 +5,24 @@ import test from 'node:test';
 const documents = await Promise.all([
   '../../docs/operations/verification.md',
   '../../docs/operations/verification.ko.md',
-].map(file => readFile(new URL(file, import.meta.url), 'utf8')));
+].map(async file => [file, await readFile(new URL(file, import.meta.url), 'utf8')]));
 
-test('candidate verification procedure uses the event-driven lifecycle command', () => {
-  for (const source of documents) {
+test('verification procedure deploys and verifies the mounted repository tree', () => {
+  for (const [file, source] of documents) {
     const commands = [...source.matchAll(/^```sh\n([\s\S]*?)^```/gm)]
       .map(match => match[1]).join('\n');
-    assert.match(commands,
-      /node examples\/form-comparison\/candidate-verification\.mjs --ref \"\$CANDIDATE_REF\"/,
-      'the procedure must run the complete candidate lifecycle command');
+    assert.match(commands, /^node examples\/form-comparison\/comparison-deployment\.mjs$/m,
+      `${file}: the procedure must apply the mounted-source deployment`);
+    assert.match(commands, /^node examples\/form-comparison\/verification\.mjs$/m,
+      `${file}: the procedure must verify the mounted tree in the running container`);
+    assert.ok(commands.indexOf('comparison-deployment.mjs') < commands.indexOf('verification.mjs'),
+      `${file}: the container must run before it is verified`);
+    assert.doesNotMatch(commands,
+      /candidate-verification\.mjs|prepare\.mjs|--ref|--commit|CANDIDATE_|container build/,
+      `${file}: the procedure must not build or pin per-commit candidates`);
     assert.equal(commands.includes('sleep '), false,
-      'the procedure must not poll candidate readiness with sleep');
+      `${file}: the procedure must not poll readiness with sleep`);
     assert.equal(commands.includes('for attempt in'), false,
-      'the procedure must not retry candidate readiness reads');
+      `${file}: the procedure must not retry readiness reads`);
   }
 });

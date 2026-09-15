@@ -3,51 +3,86 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
-  orderedJsonDirectory, publicDirectory, serverProcesses, serverRequest,
-  sourceArchiveFile, sourceDirectory,
+  binaryDirectory, buildDirectory, cacheDirectory, cruduiModule, dataDirectory,
+  orderedJsonDirectory, orderedJsonModule, publicDirectory, publicServerProcess,
+  resultsDirectory, serverProcess, serverRequest, sourceIdentityFile, sourceMount,
+  treeDirectory,
 } from './server-layout.mjs';
+import { formServers } from './runtime-paths.mjs';
 
 const serverSource = await readFile(new URL('../server.mjs', import.meta.url), 'utf8');
+const supervisorSource = await readFile(new URL('../supervisor.mjs', import.meta.url), 'utf8');
 const goSource = await readFile(new URL('../servers/go/main.go', import.meta.url), 'utf8');
 const rustSource = await readFile(new URL('../servers/rust/src/main.rs', import.meta.url), 'utf8');
+const moduleSha256 = 'b'.repeat(64);
 
-test('uses the candidate source archive and extracted source directory', () => {
-  assert.equal(sourceArchiveFile, '/archives/source.tar');
-  assert.equal(sourceDirectory, '/workspace/source');
-  assert.equal(orderedJsonDirectory,
-    '/workspace/source/.form-comparison/sources/ordered-json');
-  assert.equal(publicDirectory, '/workspace/public');
+test('reads the mounted repository and writes builds only to container volumes', () => {
+  assert.equal(sourceMount, '/workspace/source');
+  assert.equal(buildDirectory, '/workspace/build');
+  assert.equal(cacheDirectory, '/workspace/cache');
+  assert.equal(treeDirectory, '/workspace/build/tree');
+  assert.equal(publicDirectory, '/workspace/build/public');
+  assert.equal(binaryDirectory, '/workspace/build/bin');
+  assert.equal(sourceIdentityFile, '/workspace/build/public/source.json');
+  assert.equal(orderedJsonDirectory, '/workspace/build/tree/.form-comparison/sources/ordered-json');
+  assert.equal(cruduiModule, '/workspace/build/tree/packages/php-ext/modules/crudui.so');
+  assert.equal(orderedJsonModule,
+    '/workspace/build/tree/.form-comparison/sources/ordered-json/php-extension/src/modules/ordered_json.so');
+  assert.equal(dataDirectory, '/data');
+  assert.equal(resultsDirectory, '/results');
+  for (const file of [publicDirectory, binaryDirectory, cruduiModule, orderedJsonModule]) {
+    assert.equal(file.startsWith(sourceMount + '/'), false, file);
+  }
 });
 
-test('starts one current process for each server implementation', () => {
-  const processes = serverProcesses('a'.repeat(64), 'b'.repeat(64));
-  assert.deepEqual(processes.map(process => process.server),
-    ['php', 'php-ext', 'go', 'rust']);
-  assert.equal(processes.filter(process => process.command === 'php').length, 2);
-  for (const process of processes.filter(process => process.command === 'php')) {
+test('starts one process for each server implementation from the build volume', () => {
+  const processes = formServers.map(server => serverProcess(server, { cruduiModuleSha256: moduleSha256 }));
+  assert.deepEqual(processes.map(process => process.server), ['php', 'php-ext', 'go', 'rust']);
+  const [php, phpExtension, go, rust] = processes;
+  for (const process of [php, phpExtension]) {
+    assert.equal(process.command, 'php');
+    assert.equal(process.args.at(-1), '/workspace/build/tree/examples/form-comparison/api.php');
     assert.equal(process.environment.FORM_ORDERED_JSON_PHP_SOURCE,
       `${orderedJsonDirectory}/php/src/OrderedJson.php`);
   }
-  assert.equal(processes.find(process => process.server === 'go').command,
-    '/workspace/bin/go');
-  assert.equal(processes.find(process => process.server === 'rust').command,
-    '/workspace/bin/rust');
+  assert.equal(php.args.some(value => value.startsWith('extension=')), false);
+  assert.equal(Object.hasOwn(php.environment, 'FORM_CRUDUI_MODULE_SHA256'), false);
+  assert.deepEqual(phpExtension.args.slice(0, 4),
+    ['-d', `extension=${orderedJsonModule}`, '-d', `extension=${cruduiModule}`]);
+  assert.equal(phpExtension.environment.FORM_CRUDUI_MODULE_SHA256, moduleSha256);
+  assert.equal(go.command, '/workspace/build/bin/go');
+  assert.equal(rust.command, '/workspace/build/bin/rust');
+  for (const process of [go, rust]) {
+    assert.deepEqual(process.args.slice(1), [dataDirectory, publicDirectory, sourceIdentityFile]);
+  }
   for (const process of processes) {
-    assert.equal(process.args.includes('/workspace/public'), true);
-    assert.equal(process.args.some(value => /original|corrected|keyed/.test(value)), false);
-    assert.equal(process.ready.pattern instanceof RegExp, true);
+    assert.equal(process.args.includes(publicDirectory), true);
+    assert.equal(process.args.some(value => /\/opt\/|\/archives\/|metadata\.json/.test(value)), false);
     assert.equal(process.ready.pattern.test(process.ready.example), true);
   }
+  assert.throws(() => serverProcess('php-ext'), /requires the built module digest/);
+  assert.throws(() => serverProcess('node'), /Unknown server/);
 });
 
-test('uses child and filesystem events for candidate startup', () => {
-  assert.equal(serverSource.includes('for (let attempt'), false);
-  assert.equal(serverSource.includes('setTimeout'), false);
-  assert.match(serverSource, /waitForChildReadiness/);
-  assert.match(serverSource, /publishCandidateReadiness/);
-  assert.equal(serverSource.includes("httpServer.once('listening'"), true);
+test('runs the public server from the build tree with an event readiness line', () => {
+  const definition = publicServerProcess();
+  assert.equal(definition.command, process.execPath);
+  assert.deepEqual(definition.args, ['/workspace/build/tree/examples/form-comparison/server.mjs']);
+  assert.equal(definition.ready.pattern.test(definition.ready.example), true);
+  assert.match(serverSource, /CRUDUI_READY public/);
   assert.match(goSource, /CRUDUI_READY go/);
   assert.match(rustSource, /CRUDUI_READY rust/);
+});
+
+test('publishes build state through process events without polling in the public server', () => {
+  assert.match(serverSource, /process\.on\('message'/);
+  assert.equal(serverSource.includes('setTimeout'), false);
+  assert.equal(serverSource.includes('setInterval'), false);
+  assert.match(serverSource, /\/api\/source/);
+  assert.match(supervisorSource, /waitForChildReadiness/);
+  assert.match(supervisorSource, /verifyChildServers/);
+  assert.doesNotMatch(supervisorSource + serverSource,
+    /metadata\.json|source\.tar|archiveSha256|\/opt\/|imageReference/);
 });
 
 test('uses the current public API parser and forwards the rendering path', () => {
@@ -60,11 +95,5 @@ test('uses the current public API parser and forwards the rendering path', () =>
     '/api/rust/save/corrected/svelte',
     '/api/rust/save/original-keyed/svelte',
   ]) assert.equal(serverRequest(invalid), null);
-});
-
-test('connects the current layout to the executable server', () => {
   assert.match(serverSource, /serverRequest\(url\.pathname, url\.search\)/);
-  assert.match(serverSource, /serverProcesses\(archiveSha256, cruduiModuleSha256\)/);
-  assert.match(serverSource, /readFile\(sourceArchiveFile\)/);
-  assert.doesNotMatch(serverSource, /corrected|original-keyed|\/workspace\/keyed|\/archives\/keyed\.tar/);
 });

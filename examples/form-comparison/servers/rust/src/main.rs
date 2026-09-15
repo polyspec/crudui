@@ -16,8 +16,6 @@ use repository::{load_data, read_object, Repository};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Arc};
 
-const SOURCE: &str = env!("FORM_SOURCE");
-const COMMIT: &str = env!("FORM_SOURCE_COMMIT");
 const MAX_BYTES: usize = 2 * 1024 * 1024;
 
 type Result<T> = std::result::Result<T, Error>;
@@ -71,6 +69,8 @@ fn reply(status: StatusCode, mut body: Value) -> Result<Response> {
 struct Server {
     data: PathBuf,
     specs: PathBuf,
+    /// The source identity of the running build, read on every request.
+    source: PathBuf,
     actions: Vec<String>,
     rendering_paths: Vec<String>,
     frameworks: Vec<String>,
@@ -79,7 +79,7 @@ struct Server {
 impl Server {
     /// Read the browser matrix shared with the JavaScript comparison runner
     /// (runtime-paths.json in the spec directory) once.
-    fn load(data: PathBuf, specs: PathBuf) -> Result<Self> {
+    fn load(data: PathBuf, specs: PathBuf, source: PathBuf) -> Result<Self> {
         let matrix = read_object(&specs.join("runtime-paths.json"))?;
         let list = |name: &str| -> Result<Vec<String>> {
             matrix[name]
@@ -99,6 +99,7 @@ impl Server {
             frameworks: list("frameworks")?,
             data,
             specs,
+            source,
         })
     }
 }
@@ -262,7 +263,7 @@ async fn handle(
         .iter()
         .map(|error| error.to_value())
         .collect();
-    let mut result = json!({"transport":kind,"jsonProcessor":"ordered-json","validatorSource":SOURCE,"received":received,"normalized":data,"validation":{"valid":validation.valid,"errors":errors}});
+    let mut result = json!({"transport":kind,"jsonProcessor":"ordered-json","validatorSource":"current","received":received,"normalized":data,"validation":{"valid":validation.valid,"errors":errors}});
     if action == "validate" {
         return reply(StatusCode::OK, result);
     }
@@ -279,12 +280,18 @@ async fn handle(
 #[tokio::main]
 async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 4 {
-        return Err("Expected arguments: address data-directory spec-directory".into());
+    if args.len() != 5 {
+        return Err(
+            "Expected arguments: address data-directory spec-directory source-identity-file".into(),
+        );
     }
     let server = Arc::new(
-        Server::load(PathBuf::from(&args[2]), PathBuf::from(&args[3]))
-            .map_err(|error| error.message)?,
+        Server::load(
+            PathBuf::from(&args[2]),
+            PathBuf::from(&args[3]),
+            PathBuf::from(&args[4]),
+        )
+        .map_err(|error| error.message)?,
     );
     let app = application(server);
     let listener = tokio::net::TcpListener::bind(&args[1]).await?;
@@ -293,9 +300,19 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+async fn health(State(server): State<Arc<Server>>) -> Result<Response> {
+    reply(
+        StatusCode::OK,
+        json!({"status":"ok","validatorSource":"current","source":generation::source_identity(&server)?,"storage":"JSON files","jsonProcessor":"ordered-json","generator":generation::provenance(&server)?}),
+    )
+}
+
 fn application(server: Arc<Server>) -> Router {
-    Router::new().route("/api/health",any(|| async {reply(StatusCode::OK,json!({"status":"ok","validatorSource":SOURCE,"commit":COMMIT,"storage":"JSON files","jsonProcessor":"ordered-json","generator":generation::provenance()}))}))
-        .route("/api/{action}/{rendering_path}/{framework}",any(handle)).with_state(server).layer(DefaultBodyLimit::max(MAX_BYTES))
+    Router::new()
+        .route("/api/health", any(health))
+        .route("/api/{action}/{rendering_path}/{framework}", any(handle))
+        .with_state(server)
+        .layer(DefaultBodyLimit::max(MAX_BYTES))
 }
 
 #[cfg(test)]

@@ -10,6 +10,7 @@ import { frameUrl } from './src/frame-readiness.mjs';
 import { phpClassProvenanceFailure } from './src/php-provenance.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
 import { specFor } from './src/scenario.mjs';
+import { assertSourceIdentity, sameSourceIdentity } from './src/source-identity.mjs';
 
 export const generationServers = formServers;
 export const generationRenderingPaths = formRenderingPaths;
@@ -182,10 +183,9 @@ function equalRendered(actual, expected) {
 export function assertGenerationProvenance(actual, server, source, sourceDirectory) {
   assert.ok(object(actual), 'Missing generator provenance');
   assert.equal(actual.runtime, server, 'Incorrect generator runtime');
-  assert.equal(actual.commit, source.commit, 'Incorrect generator source commit');
+  assert.ok(sameSourceIdentity(actual.source, source), 'Incorrect generator source identity');
   if (server === 'php' || server === 'php-ext') {
     const native = server === 'php-ext';
-    assert.equal(actual.archiveSha256, source.archiveSha256, 'PHP source archive differs');
     assert.equal(actual.nativeCRUDUI, native, 'Incorrect PHP generator implementation');
     if (native) assert.match(actual.moduleSha256, /^[a-f0-9]{64}$/, 'Missing native CRUDUI module hash');
     else assert.equal(actual.moduleSha256, null, 'Composer mode reports a native CRUDUI module');
@@ -335,11 +335,8 @@ async function main() {
       ({ compileForm, createForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator-core/dist/index.mjs'))));
       ({ renderForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator-react/dist/index.mjs'))));
       ({ parse } = await import(pathToFileURL(require.resolve('parse5'))));
-      report.metadata = await request('/metadata.json');
-      source = report.metadata.source;
-      assert.ok(object(source), 'Missing current library metadata');
-      assert.match(source.commit, /^[a-f0-9]{40}$/, 'Missing current source commit');
-      assert.match(source.archiveSha256, /^[a-f0-9]{64}$/, 'Missing current archive hash');
+      report.source = await request('/source.json');
+      source = assertSourceIdentity(report.source, 'Missing current source identity');
       publicSpec = await request('/spec.json');
       equalOrdered(publicSpec, specFor(), 'Published specification');
       template = compileForm(publicSpec, { keyPrefix: 'form' });
@@ -472,8 +469,7 @@ async function main() {
       assert.ok(beforeArtifacts, 'Initial artifact collection failed');
       report.artifactsAfter = await artifacts(options.library);
       equalOrdered(report.artifactsAfter, beforeArtifacts, 'Library and checker artifacts');
-      const afterMetadata = await request('/metadata.json');
-      equalOrdered(afterMetadata, report.metadata, 'Deployed source metadata');
+      equalOrdered(await request('/source.json'), report.source, 'Source identity');
       return { artifactCount: Object.keys(beforeArtifacts).length, unchanged: true };
     });
   } catch (error) {

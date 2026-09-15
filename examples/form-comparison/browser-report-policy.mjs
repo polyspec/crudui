@@ -4,6 +4,7 @@ import {
   formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
   initializationCategories, initializationComparisons,
 } from './src/runtime-paths.mjs';
+import { assertSourceIdentity, sameSourceIdentity } from './src/source-identity.mjs';
 
 export const browserServers = formServers;
 export const browserPaths = formRenderingPaths;
@@ -104,7 +105,7 @@ function verifyActivity(activity, report, label) {
 function verifyInitialization(item, report, label) {
   verifyTiming(item, label);
   assert.equal(item.kind, 'initialization', `${label}: report kind`);
-  assert.equal(item.commit, report.metadata?.source?.commit, `${label}: source commit`);
+  assert.ok(sameSourceIdentity(item.source, report.source), `${label}: source identity`);
   assert.ok(Array.isArray(item.results), `${label}: comparison results`);
   assert.deepEqual(item.results.map(result => `${result.label}/${result.category}`),
     browserInitializationResultIds, `${label}: comparison IDs`);
@@ -119,6 +120,7 @@ export function verifyServerReport(report, expectedServer) {
   assert.ok(browserServers.includes(expectedServer), 'Expected a supported browser server');
   const label = `${expectedServer} verification`;
   assert.equal(report.scope, 'verification', `${label}: report scope`);
+  assertSourceIdentity(report.source, `${label}: source identity`);
   assert.ok(typeof report.generatedAt === 'string' && !Number.isNaN(Date.parse(report.generatedAt)), `${label}: generatedAt`);
   verifyTiming(report, `${label}: server run`);
   assert.deepEqual(
@@ -143,7 +145,7 @@ export function verifyServerReport(report, expectedServer) {
   for (const item of report.reports) {
     const itemLabel = `${expectedServer}/${item.path}/${item.framework}/${item.transport}`;
     verifyTiming(item, itemLabel);
-    assert.equal(item.commit, report.metadata?.source?.commit, `${itemLabel}: source commit`);
+    assert.ok(sameSourceIdentity(item.source, report.source), `${itemLabel}: source identity`);
     assert.deepEqual(item.results.map(result => result.id), browserScenarioCheckIds, `${itemLabel}: check IDs`);
     assert.equal(item.kind, 'scenario', `${itemLabel}: report kind`);
     assert.ok(item.results.every(result => typeof result.passed === 'boolean'), `${itemLabel}: check result`);

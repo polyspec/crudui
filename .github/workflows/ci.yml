@@ -428,7 +428,7 @@ jobs:
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
-      - name: Test report policy, browser jobs and candidate sources
+      - name: Test report policy, browser jobs and source tree
         run: npm run test:form-comparison
 
   package-browser:

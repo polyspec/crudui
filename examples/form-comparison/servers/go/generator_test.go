@@ -44,12 +44,16 @@ func ssrFailure(t *testing.T, host *httptest.Server, path string, status int, me
 	}
 }
 
+// testCommit is the commit of the source identity the test servers read.
+const testCommit = "0123456789abcdef0123456789abcdef01234567"
+
 func currentServer(t *testing.T) (server, *httptest.Server) {
 	t.Helper()
-	previousSource, previousCommit := source, sourceCommit
-	source, sourceCommit = "current", "current-library-test"
-	t.Cleanup(func() { source, sourceCommit = previousSource, previousCommit })
-	dataDir, specDir := t.TempDir(), t.TempDir()
+	dataDir, specDir, sourceDir := t.TempDir(), t.TempDir(), t.TempDir()
+	sourceFile := filepath.Join(sourceDir, "source.json")
+	if err := os.WriteFile(sourceFile, []byte(`{"commit":"`+testCommit+`","changes":null}`), 0600); err != nil {
+		t.Fatal(err)
+	}
 	for name, file := range map[string]string{
 		"records.json":       filepath.Join("..", "..", "fixtures", "records.json"),
 		"runtime-paths.json": filepath.Join("..", "..", "src", "runtime-paths.json"),
@@ -67,7 +71,7 @@ func currentServer(t *testing.T) (server, *httptest.Server) {
 			writeFrame(t, specDir, renderingPath, framework, testFrame)
 		}
 	}
-	s, err := newServer(dataDir, specDir)
+	s, err := newServer(dataDir, specDir, sourceFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +161,8 @@ func TestCompileAndRenderUseCachedStructure(t *testing.T) {
 		t.Fatalf("compile: %d %#v", status, compiled)
 	}
 	provenance := get(compiled, "generator").(*object)
-	if get(provenance, "runtime") != "go" || get(provenance, "commit") != sourceCommit {
+	identity, ok := get(provenance, "source").(*object)
+	if get(provenance, "runtime") != "go" || !ok || strings.Join(identity.Keys(), ",") != "commit,changes" || get(identity, "commit") != testCommit || get(identity, "changes") != nil {
 		t.Fatal("incorrect generation provenance")
 	}
 	if get(compiled, "referenceReads") != float64(1) {
@@ -336,7 +341,8 @@ func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 			t.Fatalf("SSR payload data differs: %s", actualData)
 		}
 		provenance, ok := get(ssr, "generator").(*object)
-		if !ok || strings.Join(provenance.Keys(), ",") != "runtime,commit" || get(provenance, "runtime") != "go" || get(provenance, "commit") != "current-library-test" {
+		identity, identityOK := get(provenance, "source").(*object)
+		if !ok || !identityOK || strings.Join(provenance.Keys(), ",") != "runtime,source" || get(provenance, "runtime") != "go" || get(identity, "commit") != testCommit {
 			t.Fatalf("SSR payload generator differs: %s", payload)
 		}
 		formBody := fmt.Sprintf("form[companies][__0000000000001__][name]=%s+saved&_form_complete=1", framework)

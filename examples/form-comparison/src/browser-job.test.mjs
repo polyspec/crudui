@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { collectBrowserJob, createBrowserJob } from './browser-job.mjs';
+import {
+  browserReportLimitMs, browserReportLimitsMs, collectBrowserJob, createBrowserJob,
+} from './browser-job.mjs';
 
 test('starts the matrix without waiting for all reports', async () => {
   const events = [];
@@ -142,53 +144,67 @@ test('returns completed reports and state when the browser job fails', async () 
   );
 });
 
-test('fails after the 900000 millisecond run limit while activity continues', async () => {
-  const timers = controlledTimers();
-  let ready;
-  const initialized = new Promise(resolve => { ready = resolve; });
-  const running = {
-    status: 'running', completedReports: 0, totalReports: 2, current: 'first',
-  };
-  const protocol = eventClient(running);
-  const collected = collectBrowserJob(protocol.client, undefined, {
-    setTimer: timers.setTimer, clearTimer: timers.clearTimer,
-    runLimitMs: 900_000, stallLimitMs: 300_000,
-    onState: async () => ready(),
-  });
-  await initialized;
-  protocol.activity({ requests: 1 });
-  timers.fire(900_000);
-  await assert.rejects(
-    collected,
-    error => /exceeded 900000 ms/.test(error.message)
-      && error.state === running
-      && error.reports.length === 0,
-  );
+test('gives each report the limit of its kind and none to the whole run', () => {
+  assert.equal(browserReportLimitMs('php/bindForm/react/initialization'),
+    browserReportLimitsMs.initialization);
+  assert.equal(browserReportLimitMs('php/bindForm/react/form'), browserReportLimitsMs.scenario);
+  assert.equal(browserReportLimitMs(null), browserReportLimitsMs.transition);
+  for (const limit of Object.values(browserReportLimitsMs)) {
+    assert.ok(Number.isSafeInteger(limit) && limit > 0 && limit <= 180_000);
+  }
 });
 
-test('fails after five minutes without progress and retains collected evidence', async () => {
+test('fails one report that exceeds its own limit and retains collected evidence', async () => {
   const timers = controlledTimers();
   let ready;
   const initialized = new Promise(resolve => { ready = resolve; });
   const running = {
-    status: 'running', completedReports: 0, totalReports: 2, current: 'first',
+    status: 'running', completedReports: 0, totalReports: 2, current: 'php/bindForm/react/form',
   };
   const protocol = eventClient(running);
   const collected = collectBrowserJob(protocol.client, undefined, {
-    setTimer: timers.setTimer, clearTimer: timers.clearTimer,
-    runLimitMs: 900_000, stallLimitMs: 300_000,
-    onState: async () => ready(),
+    setTimer: timers.setTimer, clearTimer: timers.clearTimer, onState: async () => ready(),
   });
   await initialized;
+  // The next report is an initialization report, so its own longer limit applies.
   await protocol.emit({ type: 'report', index: 0, report: { id: 0 }, state: {
-    status: 'running', completedReports: 1, totalReports: 2, current: 'second',
+    status: 'running', completedReports: 1, totalReports: 2,
+    current: 'php/bindForm/react/initialization',
   } });
-  timers.fire(300_000);
+  assert.throws(() => timers.fire(browserReportLimitsMs.scenario), /Expected timer/);
+  timers.fire(browserReportLimitsMs.initialization);
   await assert.rejects(
     collected,
-    error => /no observable progress for 300000 ms/.test(error.message)
-      && error.state.current === 'second'
+    error => /report php\/bindForm\/react\/initialization exceeded its 180000 ms limit/
+      .test(error.message)
+      && error.state.current === 'php/bindForm/react/initialization'
       && error.reports.length === 1
       && error.reports[0].id === 0,
   );
+});
+
+test('reports the elapsed time of the running report while it runs', async () => {
+  const timers = controlledTimers();
+  let ready;
+  const initialized = new Promise(resolve => { ready = resolve; });
+  const progress = [];
+  let now = 0;
+  const protocol = eventClient({
+    status: 'running', completedReports: 0, totalReports: 2, current: 'php/bindForm/react/form',
+  });
+  const collected = collectBrowserJob(protocol.client, undefined, {
+    setTimer: timers.setTimer, clearTimer: timers.clearTimer, heartbeatMs: 15_000,
+    clock: () => now, onProgress: value => progress.push(value), onState: async () => ready(),
+  });
+  await initialized;
+  now = 15_000;
+  timers.fire(15_000);
+  assert.deepEqual(progress, [{
+    label: 'php/bindForm/react/form', limitMs: browserReportLimitsMs.scenario,
+    elapsedMs: 15_000, completedReports: 0, totalReports: 2,
+  }]);
+  protocol.emit({ type: 'state', state: {
+    status: 'failed', completedReports: 0, totalReports: 2, current: null, error: 'stopped',
+  } });
+  await assert.rejects(collected, /stopped/);
 });
