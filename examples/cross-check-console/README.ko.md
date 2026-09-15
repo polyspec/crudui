@@ -204,12 +204,12 @@ curl -s -X POST localhost:4000/api/validate -H 'Content-Type: application/json' 
   -d '{"spec":{"type":"group","properties":{"$ref":"Missing.yml"}},"data":{}}'
 # → idempotent:true, every lang failure.code REF_FILE_NOT_FOUND
 
-# render: email field → 3 frameworks parity, normalized == fixture expected_html
+# render: email field → 4 renderers parity, normalized == fixture expected_html
 curl -s -X POST localhost:4000/api/render -H 'Content-Type: application/json' \
   -d '{"spec":{"type":"group","properties":{"email":{"type":"email","label":{"ko":"이메일","en":"Email"}}}},"data":{},"options":{"language":"ko"}}'
 # → parity:true
 
-# render: unsupported field type with unsupported:"throw" → 3 frameworks error
+# render: unsupported field type with unsupported:"throw" → 4 renderers error
 curl -s -X POST localhost:4000/api/render -H 'Content-Type: application/json' \
   -d '{"spec":{"type":"group","properties":{"x":{"type":"totally-unknown-widget"}}},"options":{"unsupported":"throw"}}'
 # → parity:true, every fw error.code UNSUPPORTED_FIELD_TYPE
@@ -229,17 +229,17 @@ curl -s -X POST localhost:4000/api/validate-detail -H 'Content-Type: application
   -d '{"detailSpec":{"fields":{"name":{"field":"name","show_if":".admin"}}}}'
 # → idempotent:true, every lang failure.code FORBIDDEN_META_KEY at fields.name.show_if
 
-# render-list: 2 injected rows + a column → 3 frameworks parity on the same table
+# render-list: 2 injected rows + a column → 4 renderers parity on the same table
 curl -s -X POST localhost:4000/api/render-list -H 'Content-Type: application/json' \
   -d '{"listSpec":{"columns":{"name":{"field":"name","label":{"ko":"이름","en":"Name"}}}},"rows":[{"name":"Ada"},{"name":"Lin"}],"options":{"language":"ko"}}'
 # → parity:true, normalized table == fixture expected_html
 
-# render-detail: one injected record → 3 frameworks parity on the same definition list
+# render-detail: one injected record → 4 renderers parity on the same definition list
 curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/json' \
   -d '{"detailSpec":{"fields":{"name":{"field":"name","label":{"ko":"이름","en":"Name"}},"status":{"field":"status","label":{"ko":"상태","en":"Status"}}}},"record":{"name":"<Ada & Lin>","status":"active"},"options":{"language":"en"}}'
 # → parity:true, normalized <dl class="crudui-detail">… == detail-render basic-fields expected_html
 
-# render-detail: non-object record → the same input error in all 3 frameworks
+# render-detail: non-object record → the same input error in all 4 renderers
 curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/json' \
   -d '{"detailSpec":{},"record":[]}'
 # → parity:true, every fw error.code INVALID_FORM_INPUT ("Detail record must be an object")
@@ -252,7 +252,7 @@ server/
   server.mjs          gateway: routes (validate, validate-list, validate-detail, render, render-list, render-detail) + CORS + always-200 + static serving
   engine.mjs          one Vite SSR boot → loads the 3 CRUDUI form, list and detail RENDER entries (render only)
   validate-runner.mjs all 4 langs via spawnSync CLI (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
-  render-runner.mjs   React/Svelte/Vue in-process SSR; renderAll + renderAllList + renderAllDetail; parity verdict
+  render-runner.mjs   HTML/React/Svelte/Vue in-process SSR; renderAll + renderAllList + renderAllDetail; parity verdict
   package.json        start + build:cli + check:js-cli scripts
 client/               no-build console (index.html + app.js + examples.js + doc.js + styles.css);
                       three tabs (form, list, detail) over the six endpoints

@@ -2,9 +2,16 @@
 
 ## 2026-09-15 — Add the canonical list and detail entry
 
-The canonical `crudui.test` entry now links to `/displays/`, which serves the existing list and
-detail validation and rendering console through the same public process as the form comparison.
-It does not create another application server or deployment.
+The canonical `crudui.test` entry now links to `/displays/`, which serves the user-facing list and
+detail example through the same public process as the form comparison. The internal Cross-Check
+Console is not exposed as the canonical display page.
+
+## 2026-09-16 — Correct the canonical display entry and renderer scope
+
+The first `/displays/` implementation exposed the internal Cross-Check Console as the public
+entry. That was incorrect. `/displays/` now serves a user-facing List/Detail page that renders
+the framework-independent HTML output through the same public process. Cross-check render
+matrices now include HTML alongside React, Vue and Svelte, so parity covers four renderers.
 
 ## 2026-09-15 — Use the shared allocator for empty native button text
 

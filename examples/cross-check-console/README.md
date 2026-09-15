@@ -21,16 +21,16 @@ Responsibilities in one process (`server/server.mjs`):
 - `POST /api/validate-detail` — 4-language CRUDUI DETAIL STRUCTURE validation fan-out.
   The four CLIs route on `mode:"detail"` (compose the root and `fields` map →
   forbidden-scan). A detail validation carries no record, so `data` is omitted.
-- `POST /api/render` — 3-framework CRUDUI FORM SSR. React / Svelte (sync) and Vue
+- `POST /api/render` — HTML/React/Svelte/Vue CRUDUI FORM SSR. React / Svelte (sync) and Vue
   (async) all render in-process through the CRUDUI entries the conformance tests import
   (the Svelte adapter compiles `.svelte` files, so a bundler-free CLI is impossible
   — but all three frameworks load the same way, so the render side is symmetric too).
-- `POST /api/render-list` — 3-framework CRUDUI LIST SSR. The read sister of
+- `POST /api/render-list` — HTML/React/Svelte/Vue CRUDUI LIST SSR. The read sister of
   `/api/render` (SPEC §9): a list-spec + INJECTED rows fan out across the three
   List SSR entries. Every framework takes the same `options.layout` (`table` or
   `card`) as the list-render conformance tests do, so the three normalized outputs
   collapse to one parity key.
-- `POST /api/render-detail` — 3-framework CRUDUI DETAIL SSR. A detail specification
+- `POST /api/render-detail` — HTML/React/Svelte/Vue CRUDUI DETAIL SSR. A detail specification
   and one INJECTED record fan out across the three detail SSR entries
   (`renderDetail` of each generator package). React's SSR image preload links are
   stripped before comparison exactly as for lists. The record is passed verbatim,
@@ -52,7 +52,7 @@ reported difference can be exported as a fixture case and added to the
 conformance suite as a regression test.
 
 The console does NOT trust the server's verdict. For every run it recomputes
-`idempotent` (4 langs agree) and `parity` (3 frameworks agree) from the raw
+`idempotent` (4 langs agree) and `parity` (4 renderers agree) from the raw
 per-entry results, and exposes the raw per-language / per-framework bytes (raw
 toggle) so its OWN judgement can be re-checked against the source data. See
 [Console-side verdict re-computation](#console-side-verdict-re-computation).

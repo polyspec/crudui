@@ -4,13 +4,13 @@
  * Single-page, no-build vanilla ES module. Two tabs over three gateway endpoints:
  *   form tab
  *     POST /api/validate    {spec, data, files?, basepath?} → 4-language CRUDUI validation
- *     POST /api/render      {spec, data, options}           → 3-framework CRUDUI form SSR
+ *     POST /api/render      {spec, data, options}           → 4-renderer CRUDUI form SSR
  *   list tab
  *     POST /api/validate-list {listSpec, files?, basepath?}  → 4-language CRUDUI list
  *       STRUCTURE validation (compose → forbidden-scan; no rows — a list has no
  *       data). The validate sister of /api/validate, reusing the SAME 4-language
  *       idempotency matrix the form tab draws.
- *     POST /api/render-list {listSpec, rows, options}        → 3-framework CRUDUI list SSR
+ *     POST /api/render-list {listSpec, rows, options}        → 4-renderer CRUDUI list SSR
  *     POST /api/render      {spec:<listSpec.search>, ...}    → the SAME form SSR,
  *       reused to render the list-spec's embedded search form ABOVE the list. The
  *       search slot IS a form-spec; the list tab proves it round-trips through the
@@ -18,11 +18,11 @@
  *   detail tab
  *     POST /api/validate-detail {detailSpec, files?, basepath?} → 4-language CRUDUI detail
  *       STRUCTURE validation (compose → forbidden-scan; the record is not validated).
- *     POST /api/render-detail {detailSpec, record, options}     → 3-framework CRUDUI detail SSR
+ *     POST /api/render-detail {detailSpec, record, options}     → 4-renderer CRUDUI detail SSR
  *
  * Every endpoint always returns HTTP 200 (the {error} envelope is server-only);
  * a failed VALIDATION is data, not an HTTP error. The console computes
- * idempotent (4 langs agree) and parity (3 frameworks agree) itself, then
+ * idempotent (4 langs agree) and parity (4 renderers agree) itself, then
  * exposes the raw server response so its OWN judgement can be re-checked.
  *
  * Contract details and example provenance live in README.md / examples.js.
@@ -39,7 +39,7 @@ import { docSections, listDocSections, detailDocSections } from './doc.js';
 const API_BASE = new URLSearchParams(location.search).get('api') || '';
 
 const VALIDATE_LANGS = ['js', 'php', 'go', 'rust'];
-const RENDER_FWS = ['react', 'vue', 'svelte'];
+const RENDER_FWS = ['html', 'react', 'vue', 'svelte'];
 
 const LANG_COLOR = {
   js: '#68a063',
@@ -48,6 +48,7 @@ const LANG_COLOR = {
   rust: '#dea584',
 };
 const FW_COLOR = {
+  html: '#e34f26',
   react: '#61dafb',
   vue: '#42b883',
   svelte: '#ff3e00',
@@ -260,16 +261,16 @@ function computeIdempotent(results) {
 }
 
 /**
- * Recompute parity across the 3 frameworks.
+ * Recompute parity across the 4 renderers.
  *
  * Mirrors the server's compareParity (render-runner.mjs) exactly: a SUCCESS
  * framework signs with `html:<normalized>`, a FAILED framework signs with
  * `error:<code>`. A success and an error can never collide (distinct namespaces),
- * so a framework that throws while the others render IS a parity break — it does
+ * so a renderer that throws while the others render IS a parity break — it does
  * NOT get silently dropped from the verdict. parity holds iff every framework
  * that produced any result shares one signature.
  *
- * "렌더 성공 < 2" (render_contract): when fewer than two frameworks actually
+ * "렌더 성공 < 2" (render_contract): when fewer than two renderers actually
  * rendered (ok), parity is undetermined → null, not false.
  */
 function computeParity(results) {
@@ -344,8 +345,8 @@ async function runAll() {
  * render in parallel, plus — when the list-spec declares a `search` slot — the
  * form render of that slot, so the embedded search form (rendered by the SAME
  * /api/render the form tab uses) shows above the list matrix. The list tab now
- * proves both halves symmetric with the form tab: validate (4 langs) + render (3
- * frameworks). A list-spec with no search slot still validates and renders.
+ * proves both halves symmetric with the form tab: validate (4 langs) + render (4
+ * renderers). A list-spec with no search slot still validates and renders.
  */
 async function runList() {
   const listSpec = parseListSpec();
@@ -401,7 +402,7 @@ async function runList() {
 
 /**
  * Detail tab runner. Fires the 4-language detail structure validate and the
- * 3-framework detail render in parallel, mirroring the list tab.
+ * 4-renderer detail render in parallel, mirroring the list tab.
  */
 async function runDetail() {
   const detailSpec = parseDetailSpec();
@@ -1176,7 +1177,7 @@ function renderRenderMatrix() {
   renderFwMatrix(
     document.getElementById('render-matrix'),
     state.render,
-    '렌더 매트릭스 (react / vue / svelte)'
+    '렌더 매트릭스 (html / react / vue / svelte)'
   );
 }
 
@@ -1210,7 +1211,7 @@ function renderFwMatrix(host, r, title) {
 
   let badge;
   if (parity === null) badge = naBadge('parity 판정 불가 (렌더 성공 < 2)');
-  else if (parity) badge = okBadge('3프레임워크 parity 일치');
+  else if (parity) badge = okBadge('4렌더러 parity 일치');
   else badge = badBadge('렌더 불일치!');
 
   const cols = RENDER_FWS.map((fw) => {
@@ -1223,7 +1224,7 @@ function renderFwMatrix(host, r, title) {
 
   host.innerHTML =
     sectionHead(title, badge) +
-    `<div class="cc-grid cc-grid-3">${cols}</div>` +
+    `<div class="cc-grid cc-grid-4">${cols}</div>` +
     mismatchPanel;
 
   // Attach source/preview toggles per cell after DOM insert (scoped to host).
@@ -1250,7 +1251,7 @@ function renderFwMatrix(host, r, title) {
  * drawn through the SAME renderLangMatrix: rows = js/php/go/rust, the badge is
  * the 4-language idempotency verdict, a forbidden meta key surfaces as the SAME
  * failure cell. It sits ABOVE the search/list render matrices so the list tab
- * reads top-down as validate (4 langs) → render (3 frameworks), mirroring form.
+ * reads top-down as validate (4 langs) → render (4 renderers), mirroring form.
  */
 function renderListValidateMatrix() {
   renderLangMatrix(
@@ -1263,7 +1264,7 @@ function renderListValidateMatrix() {
 /**
  * Search form matrix — the embedded `search` form-spec rendered through the
  * SAME /api/render the form tab uses. It sits ABOVE the list so the form-spec
- * reuse is visible: one spec object, the form endpoint, three frameworks in
+ * reuse is visible: one spec object, the form endpoint, four renderers in
  * parity. When the list-spec declares no `search` slot, the matrix shows an
  * idle note rather than a phantom result.
  */
@@ -1285,12 +1286,12 @@ function renderSearchMatrix() {
   renderFwMatrix(host, state.searchRender, title);
 }
 
-/** List render matrix — the 3-framework CRUDUI list SSR fan-out (/api/render-list). */
+/** List render matrix — the 4-renderer CRUDUI list SSR fan-out (/api/render-list). */
 function renderListRenderMatrix() {
   renderFwMatrix(
     document.getElementById('list-render-matrix'),
     state.listRender,
-    'list 렌더 매트릭스 (react / vue / svelte)'
+    'list 렌더 매트릭스 (html / react / vue / svelte)'
   );
 }
 
