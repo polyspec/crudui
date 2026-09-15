@@ -92,13 +92,13 @@ const SPECS: CaseSpec[] = [
       files: {
         'x.yml': {
           properties: {
-            shared: { type: 'text', from: 'x' },
+            shared: { type: 'text', label: 'x' },
             only_x: { type: 'text' },
           },
         },
         'y.yml': {
           properties: {
-            shared: { type: 'number', from: 'y' },
+            shared: { type: 'number', label: 'y' },
             only_y: { type: 'text' },
           },
         },
@@ -216,12 +216,12 @@ const SPECS: CaseSpec[] = [
         'base.yml': {
           properties: {
             $ref: 'inner.yml',
-            own: { type: 'text', from: 'base' },
+            own: { type: 'text', label: 'base' },
           },
         },
         'inner.yml': {
           properties: {
-            deep: { type: 'number', from: 'inner' },
+            deep: { type: 'number', label: 'inner' },
           },
         },
       },
@@ -259,13 +259,13 @@ const SPECS: CaseSpec[] = [
       files: {
         'base.yml': {
           properties: {
-            a: { type: 'text', from: 'base' },
+            a: { type: 'text', label: 'base' },
           },
         },
       },
       entry: {
         $ref: 'base.yml',
-        a: { type: 'email', from: 'override' },
+        a: { type: 'email', label: 'override' },
       },
     },
   },

@@ -38,8 +38,8 @@ CRUDUI의 초기 패키지 버전은 `0.0.1`입니다. 파일명·공개 API·�
 | 분류 | 키 | 계약 |
 | --- | --- | --- |
 | 구조 | `type`, `name`, `default`, `properties`, `items`, `multiple`, `lang` | 값, 중첩 그룹, 선택지, 반복을 정의합니다. |
-| 콘텐츠 | `label`, `description`, `placeholder`, `prepend`, `append`, `help` | 문자열 또는 언어 맵을 사용합니다. |
-| 검증 | `validate` | 규칙과 메시지를 정의합니다. |
+| 콘텐츠 | `label`, `description`, `placeholder`, `prepend`, `append`, `help`, `content` | 문자열 또는 언어 맵을 사용합니다. `content`는 버튼·액션 필드의 컨트롤 텍스트입니다. |
+| 검증 | `validate`, `messages` | `validate`는 규칙을 정의하고 `messages`는 규칙 이름별로 오류 메시지를 재정의합니다. |
 | 외형 | `design` | 특정 DOM 노드의 표시와 스타일을 정의합니다. |
 | 동작 | `behavior` | 이벤트 스크립트를 표현식 평가 없이 보존합니다. |
 | 타입 옵션 | `options` | 특정 위젯 타입의 설정을 저장합니다. |
@@ -75,7 +75,9 @@ properties:
 조건은 해당 설정의 값으로 작성합니다. `design.show`는 표시 여부를 결정합니다.
 `design.class`와 `design.style`은 주 노드에 적용합니다. `design.label`,
 `design.wrapper`, `design.group`, `design.prepend`는 해당 노드에 적용합니다.
-조건 맵은 처음 일치한 표현식을 선택하며 기본 키 `true`가 필요합니다.
+조건 맵은 처음 일치한 표현식의 값을 선택합니다. 리터럴 키 `true`는 선택적 기본값이며 위치와 무관하게
+다른 조건이 모두 실패한 뒤에만 적용됩니다. 일치하는 조건도 기본값도 없으면 결과는 null입니다
+([조건맵](expressions.ko.md#8-조건맵)).
 CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 조건 메타키를
 거부합니다.
 
@@ -99,6 +101,11 @@ CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 
 합성은 `$ref`를 해석하고 `$patch`를 적용한 후 결과 필드 정의를 처리합니다.
 참조가 없으면 로드 오류입니다. 합성은 레코드 값에 의존하지 않습니다.
 폼 컴파일은 템플릿마다 합성을 한 번 처리합니다.
+
+`$ref` 값은 파일 경로 하나 또는 파일 경로 목록입니다. 목록은 선언 순서대로 해석해 병합하므로
+같은 키에서는 뒤의 경로가 앞의 경로를 덮어씁니다. 문자열이 아닌 항목은 로드 오류입니다. 경로는
+`(file.yml).key` 형태로 파일의 일부를 선택할 수 있습니다. 참조는 선택한 계층의 필드 맵으로
+해석되며, 그래서 루트가 `$ref`뿐인 선언은 아직 명세가 아니라 그 필드 맵입니다.
 
 CLI 정적 검사도 해결되지 않은 조합을 거부합니다. 조합 전 필드 검사를
 참조 해석 성공으로 처리하지 않습니다.
@@ -184,6 +191,8 @@ must declare fields`, 객체가 아닌 레코드는 `Detail record must be an ob
 | `lang` | 불리언 또는 객체 |
 | `lang.only` | 언어 코드 문자열 목록 또는 객체 |
 | `design` | 불리언 또는 객체 |
+| `content` | 문자열 또는 언어 맵; 버튼·액션 필드의 컨트롤 텍스트 |
+| `messages` | 규칙 이름과 메시지 문자열의 객체 |
 | `buttons` | 버튼 목록(`type`: `submit`, `reset`, `button`, `link`); 폼 루트에서만 |
 | `action` | 문자열 `method`, `url`, `enctype`을 가진 객체; 폼 루트에서만 |
 | `design.show` | 표현식, 불리언 또는 조건 맵 |

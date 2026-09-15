@@ -434,7 +434,7 @@ const SPECS: CaseSpec[] = [
         addr: {
           type: 'group',
           properties: {
-            zip: { validate: { required: true, digits: true } },
+            zip: { type: 'text', validate: { required: true, digits: true } },
           },
         },
       },
@@ -451,7 +451,7 @@ const SPECS: CaseSpec[] = [
         addr: {
           type: 'group',
           properties: {
-            zip: { validate: { required: true, digits: true } },
+            zip: { type: 'text', validate: { required: true, digits: true } },
           },
         },
       },
@@ -500,7 +500,7 @@ const SPECS: CaseSpec[] = [
         items: {
           type: 'group',
           multiple: true,
-          properties: { code: { validate: { required: true } } },
+          properties: { code: { type: 'text', validate: { required: true } } },
         },
       },
     },
@@ -516,7 +516,7 @@ const SPECS: CaseSpec[] = [
         rows: {
           type: 'group',
           multiple: true,
-          properties: { v: { validate: { required: true } } },
+          properties: { v: { type: 'text', validate: { required: true } } },
         },
       },
     },
@@ -545,7 +545,7 @@ const SPECS: CaseSpec[] = [
           multiple: true,
           properties: {
             active: { type: 'number' },
-            code: { validate: { unique: '.active == 1' } },
+            code: { type: 'text', validate: { unique: '.active == 1' } },
           },
         },
       },
@@ -569,7 +569,7 @@ const SPECS: CaseSpec[] = [
           multiple: true,
           properties: {
             active: { type: 'number' },
-            code: { validate: { unique: '.active == 1' } },
+            code: { type: 'text', validate: { unique: '.active == 1' } },
           },
         },
       },

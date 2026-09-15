@@ -89,6 +89,14 @@ export type LangMap = Record<string, string | null>;
 export type LocalizedText = string | LangMap | null;
 
 /**
+ * Composition reference: one file path, or a list of paths resolved in
+ * declaration order where a later path overrides an earlier one. A path may
+ * select a fragment of a file as `(file.yml).key`.
+ */
+export type Reference = string | string[];
+
+
+/**
  * Polymorphic role-slot value (SPEC G2). `false` turns the slot off (and
  * nullifies composed inheritance); `true` is the shorthand for `{}` (default
  * on); an object carries the slot's settings.
@@ -158,11 +166,15 @@ export interface FieldSpec {
   append?: LocalizedText;
   /** Content — help text (may be multilingual). */
   help?: LocalizedText;
+  /** Content — control text of a button or action field (may be multilingual). */
+  content?: LocalizedText;
 
   // -- Role slots (first-class, polymorphic) --
 
   /** Role slot — validation (SPEC §3 common-role distribution). */
   validate?: Slot<ValidateSlot>;
+  /** Error message overrides by rule name, beside the rules they belong to. */
+  messages?: import('./types').MessagesSpec;
   /** Role slot — appearance = visibility + per-node external appearance map. */
   design?: Slot<DesignSlot>;
   /**
@@ -189,7 +201,7 @@ export interface FieldSpec {
    * Base inheritance (file/path). The parser expands it first — an unresolved
    * `$ref` cannot be loaded.
    */
-  $ref?: string;
+  $ref?: Reference;
   /**
    * Change directive (add/remove/replace, JSON Patch style). Supports deep-path
    * set, e.g. `'field.validate.required': '.other'`.
@@ -232,7 +244,7 @@ export interface FormAction {
  */
 export type Properties = {
   /** Base inheritance for the whole child map. */
-  $ref?: string;
+  $ref?: Reference;
   /** Composition change directive for the child map. */
   $patch?: PatchDirective;
 } & {
