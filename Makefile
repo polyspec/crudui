@@ -16,7 +16,8 @@
 BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
 PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
-NATIVE_REPORT ?= .git/native-generators/report.json
+# The report lives in the Git directory, which is a file-referenced directory in a worktree.
+NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
 
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -153,6 +154,8 @@ build-php-extension:
 	node scripts/build-crudui-php-extension.mjs
 
 test-native: build-php-extension
+	# generator-php installs the validator as a copy; refresh it from source before any check loads it.
+	composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
 	composer --working-dir=packages/generator-php test
 	go -C packages/generator-go test -race ./...
 	node scripts/run-rust-command.mjs test --locked --manifest-path packages/generator-rust/Cargo.toml

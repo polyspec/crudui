@@ -357,10 +357,6 @@ jobs:
       - name: Build form packages
         run: npm run build
 
-      - name: Build Go + Rust validate CLIs (gateway spawns them)
-        run: npm run build:cli
-        working-directory: examples/cross-check-console/server
-
       - name: Gateway conformance (verdict units + fan-out + HTTP boundary)
         run: npm test
         working-directory: examples/cross-check-console/server

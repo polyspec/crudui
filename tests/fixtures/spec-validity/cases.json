@@ -7,7 +7,7 @@
       "properties": {
         "name": {
           "type": "text",
-          "design": { "label": "Name" },
+          "design": { "label": { "class": "required" } },
           "validate": { "required": true, "maxlength": 80 }
         },
         "age": {
