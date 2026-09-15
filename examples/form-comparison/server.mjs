@@ -6,6 +6,7 @@ import path from 'node:path';
 import { encodeJson } from './src/json.mjs';
 import { formServers } from './src/runtime-paths.mjs';
 import { publicDirectory, publicPort, serverRequest } from './src/server-layout.mjs';
+import { handler as displayConsoleHandler } from '../cross-check-console/server/server.mjs';
 
 // The supervisor sends its state after every change; this process never reads it from disk.
 let state = { status: 'building', cycle: 0, source: null, error: null };
@@ -35,6 +36,23 @@ const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascrip
 const httpServer = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
+    if (url.pathname === '/displays' || url.pathname === '/displays/') {
+      if (url.searchParams.get('api') !== '/displays') {
+        response.writeHead(302, { Location: '/displays/?api=%2Fdisplays', 'Cache-Control': 'no-store' });
+        response.end();
+        return;
+      }
+    }
+    if (url.pathname.startsWith('/displays/')) {
+      const originalUrl = request.url;
+      request.url = originalUrl.slice('/displays'.length) || '/';
+      try {
+        await displayConsoleHandler(request, response);
+      } finally {
+        request.url = originalUrl;
+      }
+      return;
+    }
     if (url.pathname === '/api/health') {
       return state.status === 'ready'
         ? respond(response, 200, { status: 'ok', servers: formServers })

@@ -69,6 +69,10 @@ test('runs the public server from the build tree with an event readiness line', 
   assert.equal(definition.command, process.execPath);
   assert.deepEqual(definition.args, ['/workspace/build/tree/examples/form-comparison/server.mjs']);
   assert.equal(definition.ready.pattern.test(definition.ready.example), true);
+  assert.equal(definition.environment.CRUDUI_CROSS_CHECK_GO_VALIDATOR,
+    '/workspace/build/bin/validator-go');
+  assert.equal(definition.environment.CRUDUI_CROSS_CHECK_RUST_VALIDATOR,
+    '/workspace/build/bin/validator-rust');
   assert.match(serverSource, /CRUDUI_READY public/);
   assert.match(goSource, /CRUDUI_READY go/);
   assert.match(rustSource, /CRUDUI_READY rust/);
@@ -96,4 +100,6 @@ test('uses the current public API parser and forwards the rendering path', () =>
     '/api/rust/save/original-keyed/svelte',
   ]) assert.equal(serverRequest(invalid), null);
   assert.match(serverSource, /serverRequest\(url\.pathname, url\.search\)/);
+  assert.match(serverSource, /displayConsoleHandler/);
+  assert.match(serverSource, /\/displays\//);
 });

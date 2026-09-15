@@ -17,8 +17,9 @@ const RUST_PKG = path.join(ROOT, 'packages/validator-rust');
 
 const JS_CLI = path.join(JS_PKG, 'bin/validate.mjs');
 const PHP_CLI = path.join(PHP_PKG, 'bin/validate.php');
-const GO_BIN = path.join(GO_PKG, 'validate');
-const RUST_BIN = path.join(RUST_PKG, 'target/release/validate');
+const GO_BIN = process.env.CRUDUI_CROSS_CHECK_GO_VALIDATOR ?? path.join(GO_PKG, 'validate');
+const RUST_BIN = process.env.CRUDUI_CROSS_CHECK_RUST_VALIDATOR
+  ?? path.join(RUST_PKG, 'target/release/validate');
 
 /**
  * Validate one request through all four language CLIs.

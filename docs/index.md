@@ -4,6 +4,7 @@
 
 - [Specification structure](spec/schema.md)
 - [Display formats](spec/display-formats.md)
+- [Canonical examples](spec/examples.md)
 - [Form runtime](spec/form-runtime.md)
 - [Feature and deployment status](features.md)
 - [Feature contracts](spec/feature-contracts.md)

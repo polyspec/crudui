@@ -1,6 +1,10 @@
-# CRUDUI form verification
+# CRUDUI canonical examples and form verification
 
 [한국어](README.ko.md).
+
+The canonical `crudui.test` entry page exposes the form comparison and links to the
+read-only list/detail display example at `/displays/`. Both are served by the same
+public process; the display example does not create another application server.
 
 This example verifies nested keyed forms through PHP, the PHP extension, Go and
 Rust. Each server compiles, renders, validates and stores the same form data.

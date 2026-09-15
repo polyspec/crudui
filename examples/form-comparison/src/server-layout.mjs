@@ -86,7 +86,10 @@ export function publicServerProcess() {
     server: 'public',
     command: process.execPath,
     args: [path.join(exampleDirectory, 'server.mjs')],
-    environment: {},
+    environment: {
+      CRUDUI_CROSS_CHECK_GO_VALIDATOR: path.join(binaryDirectory, 'validator-go'),
+      CRUDUI_CROSS_CHECK_RUST_VALIDATOR: path.join(binaryDirectory, 'validator-rust'),
+    },
     ready: streamReadiness('public', 'CRUDUI_READY public'),
   };
 }
