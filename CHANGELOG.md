@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-15 — Use the shared allocator for empty native button text
+
+The PHP extension now creates omitted button content with its shared string allocator, so
+strict GCC builds do not depend on the non-standard `strdup` declaration.
+
 ## 2026-09-15 — Fix the native optional list input path
 
 The PHP extension now initializes and validates the optional `buildList` rows argument before
