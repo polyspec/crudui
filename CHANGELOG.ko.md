@@ -2,6 +2,15 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 모든 공용 사례 종류에 두 언어 README 제공
+
+`tests/fixtures` 아래 사례 종류 중 compose, form-outline, form-session, specs, translate, validate 여섯 개에도
+README가 없었습니다. 이제 각 종류에 사례 필드, 사례가 검사하는 내용, 결과 비교 방식, 소비자, 재생성 명령 또는 직접
+관리하는 파일을 설명하는 `README.md`와 `README.ko.md`가 있습니다. `tests/docs/fixture-readmes.test.mjs`는 모든 종류에
+두 파일이 있는지, 서로 링크하는지, 모든 상대 링크가 유효한지 검사하며, README를 쓰기 전에 실패했습니다. 목록과 상세
+운영 문서는 사례 파일 대신 검증 사례 README를 링크합니다. translate 생성기 머리 주석의 반복 단어와 문서 검사를
+"now"로 설명한 Makefile 주석을 바로잡았습니다. 문서 검사(25건)와 `make docs-check`가 통과했습니다.
+
 ## 2026-09-15 — 모든 런타임에 하나의 구조 검증 사례 계약 적용
 
 폼 명세 사례는 엔진 결과만 `expect: "ok"` 또는 `{error_code, at_path}`로 기록했고, 목록과 상세 사례는 메타스키마

@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Give every shared fixture family a README in both languages
+
+Six more fixture families under `tests/fixtures` had no README: compose, form-outline, form-session,
+specs, translate and validate. Each has `README.md` and `README.ko.md` stating the case fields, what
+the cases check, how results are compared, the consumers, and either the regeneration command or the
+files kept by hand. `tests/docs/fixture-readmes.test.mjs` checks that every family has both files,
+that they link to each other and that every relative link resolves; it failed before the READMEs were
+written. The list and detail operations document links the validity READMEs instead of their case
+files. The translate generator header repeated a word and a Makefile comment described the
+documentation check with "now"; both are corrected. The documentation tests (25) and
+`make docs-check` passed.
+
 ## 2026-09-15 — Hold every runtime to one structure validity case contract
 
 The form specification cases recorded only the engine result, as `expect: "ok"` or
