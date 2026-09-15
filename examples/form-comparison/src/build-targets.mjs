@@ -100,6 +100,14 @@ export const buildTargets = Object.freeze([
     restarts: ['public'],
   },
   {
+    id: 'cross-check-console',
+    timeoutMs: 60_000,
+    inputs: [new RegExp('^examples/cross-check-console/(?:client|server)/')],
+    dependsOn: [],
+    steps: [],
+    restarts: ['public'],
+  },
+  {
     // PHP reads its sources per request; only the installed Composer copies need an update.
     id: 'composer',
     timeoutMs: 300_000,
@@ -139,6 +147,28 @@ export const buildTargets = Object.freeze([
     steps: [step('go', ['build', '-trimpath', '-o', path.join(binaryDirectory, 'go'), '.'],
       path.join(treeDirectory, example, 'servers/go'), { CGO_ENABLED: '0' })],
     restarts: ['go'],
+  },
+  {
+    id: 'cross-check-go-validator',
+    timeoutMs: 300_000,
+    inputs: [/^packages\/validator-go\//],
+    dependsOn: [],
+    steps: [step('go', ['build', '-trimpath', '-o', path.join(binaryDirectory, 'validator-go'), './cmd/validate'],
+      path.join(treeDirectory, 'packages/validator-go'), { CGO_ENABLED: '0' })],
+    restarts: ['public'],
+  },
+  {
+    id: 'cross-check-rust-validator',
+    timeoutMs: 900_000,
+    inputs: [new RegExp('^packages/validator-rust/')],
+    dependsOn: [],
+    steps: [
+      step('cargo', ['build', '--locked', '--release', '--manifest-path',
+        path.join(treeDirectory, 'packages/validator-rust/Cargo.toml'), '--bin', 'validate']),
+      step('install', ['-m', '0755', path.join(cargoTargetDirectory, 'release/validate'),
+        path.join(binaryDirectory, 'validator-rust')]),
+    ],
+    restarts: ['public'],
   },
   {
     id: 'rust-server',

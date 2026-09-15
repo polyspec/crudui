@@ -217,7 +217,7 @@ view and one body end tag`로 거부합니다. 응답은 그 문서에 세 가�
 교체와 행 작업에 세션을 사용합니다. 컴파일 실패는 실패로 반환하며 브라우저가 대체
 템플릿을 컴파일하지 않습니다.
 
-메인 페이지는 서버, 프레임워크, 렌더링 경로를 선택하고 같은 템플릿, 레코드, 언어로
+정본 진입 페이지 `https://crudui.test/`는 서버, 프레임워크, 렌더링 경로를 선택하고 같은 템플릿, 레코드, 언어로
 같은 폼의 서버 렌더링과 클라이언트 렌더링을 좌우에 표시합니다. 왼쪽
 프레임(`initialization=ssr`)은 선택한 서버(PHP, PHP 확장, Go, Rust)의 프레임 문서입니다.
 이 문서는 저장 레코드로 렌더링한 폼과 같은 레코드를 담은 페이로드를 함께 전달하고, 선택한
@@ -243,6 +243,12 @@ view and one body end tag`로 거부합니다. 응답은 그 문서에 세 가�
 비교합니다. 페이지 스타일시트는 `#view` 안을 스타일링하지 않습니다. 각 프레임은 비교 대상
 요소 안에서 폼을 `#form-view`에, 브라우저 전용인 구조 맵과 현재 데이터 보기를
 `#outline-view`와 `#data-view`에 렌더링합니다. 서버는 폼만 렌더링합니다.
+
+정본 진입 페이지는 `/displays/`로 연결되며, 이 경로가 하나의 읽기 전용 목록·상세 예제입니다.
+같은 배포 public 프로세스의 `/displays/api/validate-list`, `/displays/api/render-list`,
+`/displays/api/validate-detail`, `/displays/api/render-detail`을 사용해 목록과 상세 예제를
+표시합니다. 별도 애플리케이션 서버나 별도 배포를 만들지 않습니다. 목록 페이지는 행을 주입하고
+상세 페이지는 레코드 하나를 주입하며, 어느 페이지도 데이터베이스를 조회하지 않습니다.
 
 `bindForm` 컨트롤러는 `createForm` 인스턴스와 같은 작업을 지원합니다. 행 작업,
 `toggle-row`, `select-row`, `expand-all`, `collapse-all`, `undo`입니다. 접힌 행과
