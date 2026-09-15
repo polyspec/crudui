@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-16 — Make browser validation input clearing deterministic
+
+The browser verifier now selects the validation input with `Control+A` before deleting its value.
+It no longer depends on Chromium's platform-sensitive multi-click selection behavior.
+
 ## 2026-09-16 — Preserve canonical pagination metadata in native adapters
 
 The PHP, Go and Rust pipeline adapters now forward the canonical `page` and `total` options to
