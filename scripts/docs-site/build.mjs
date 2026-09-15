@@ -51,6 +51,7 @@ function headingSlug(text, used) {
     .replace(/-{2,}/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/^(\d)/, '_$1')
+    .normalize('NFC')
     .toLowerCase();
   let slug = base;
   for (let index = 1; used.has(slug); index += 1) slug = base + '-' + index;

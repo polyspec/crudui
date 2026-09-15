@@ -56,6 +56,12 @@ test('documentation build preserves page routes, titles, links and public files'
     '',
     '## Install',
     '',
+    '## 목록 모델',
+    '',
+    '## Café',
+    '',
+    '[목록 모델](#목록-모델)',
+    '',
     '[Home](../index.md)',
     '',
     '[Build notes](../../tests/build-notes.md#checks)',
@@ -90,6 +96,9 @@ test('documentation build preserves page routes, titles, links and public files'
   assert.match(guide, /<h2 id="crudui-validator">@crudui\/validator<\/h2>/);
   assert.match(guide, /<h2 id="cell-formats">CELL_FORMATS<\/h2>/);
   assert.match(guide, /<h2 id="install-1">Install<\/h2>/);
+  // Hangul keeps its composed syllables; only combining marks of decomposed Latin letters are removed.
+  assert.match(guide, /<h2 id="목록-모델">목록 모델<\/h2>/);
+  assert.match(guide, /<h2 id="cafe">Café<\/h2>/);
   assert.match(guide, /href="\/">Home<\/a>/);
   assert.match(guide, /href="https:\/\/github\.com\/polyspec\/crudui\/blob\/main\/tests\/build-notes\.md#checks"/);
   assert.equal(await readFile(join(outputDirectory, 'assets', 'fixture.txt'), 'utf8'), 'public asset\n');
