@@ -2,6 +2,29 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — HTML 렌더러를 문자열 렌더러 형식에 맞춤
+
+문자열 렌더러는 같은 바이트를 만들어야 했지만 검사에는 HTML 렌더러가 없었습니다. 네이티브 생성
+검사는 PHP, PHP 확장, Go, Rust만 React 서버 렌더링과 비교했습니다. 폼 고정 데이터 90개를 바이트
+단위로 비교하면 HTML 렌더러는 60개에서 React와 달랐습니다. input 속성 순서, 속성 이름
+대소문자(`readonly`, `autocomplete`), 빈 요소 닫기, `style` 텍스트, 텍스트 이스케이프가 달랐고
+목록 이미지 preload 링크를 쓰지 않았으며 속성 값의 `>` 이스케이프도 달랐습니다. 런타임 계약은 바이트
+규칙이 어느 렌더러에 적용되는지 밝히지 않았습니다.
+
+이제 계약은 문자열 렌더러(React 서버 렌더링, HTML 렌더러, PHP, PHP 확장, Go, Rust 생성기)를 밝히고
+React 서버 렌더링을 기준으로 삼아 그 형식을 나열합니다. HTML 렌더러는 이 형식을 씁니다. 이스케이프,
+React 속성 이름, input의 `style`, `name`, `checked`, `value`를 마지막에 두기, `/>`로 닫는 빈 요소,
+`property:value`를 `;`로 이은 `style`, 차단한 스크립트 URL, textarea의 앞 줄바꿈 중복, 이벤트 속성이
+있는 컨트롤의 원본 속성, 원본 목록 동작, 목록 이미지 preload 링크입니다. 네이티브 생성 검사는
+`javascript.mjs --renderer html`로 HTML 렌더러를 여섯 번째 대상으로 실행하므로 이 규칙이 모든 문자열
+렌더러에 강제됩니다. React와 HTML 렌더러의 목록 레이아웃 검사와 목록 고정 데이터 생성기는 따로 두던
+복사본 대신 정규화 전에 preload 링크를 제거하는 `list-body.mjs`를 함께 사용하며, 목록 고정 데이터를
+재생성한 결과는 같은 바이트였습니다.
+
+`make test-native`가 검사 1171개(JavaScript, HTML 렌더러, PHP, Go, Rust, 네이티브 PHP 각 195개)를
+통과했습니다. `npm run test:forms`(core 110, HTML 207, React 352, Vue 342, Svelte 339·10, Chromium 17),
+`npm run test:form-comparison:source` 141개와 `:browser` 4개, `make docs-check`가 통과했습니다.
+
 ## 2026-09-15 — 실수 고정 데이터 값을 C double 리터럴로 작성
 
 `make test-native`가 PHP 확장 엔진 테스트 "list rendering has no undefined behavior findings"에서

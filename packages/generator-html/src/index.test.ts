@@ -18,7 +18,7 @@ describe('framework-independent form rendering', () => {
     const after = JSON.stringify([form.getData(), form.getSnapshot()]);
 
     expect(html).toContain('data-field-path="name"');
-    expect(html).toContain('value="&lt;Ada &amp; Lin>"');
+    expect(html).toContain('value="&lt;Ada &amp; Lin&gt;"');
     expect(html).toContain('<option value="admin" selected="">Admin</option>');
     expect(html).toContain('data-crudui-action="add-row"');
     expect(html).not.toContain('<form');

@@ -23,7 +23,8 @@ make docs-check
 ```
 
 `make test-native` builds the JavaScript packages, builds and loads the extension,
-runs generator package tests and compares JavaScript, PHP, Go, Rust and native PHP.
+runs generator package tests and compares the JavaScript reference (React server rendering),
+the JavaScript HTML renderer, PHP, Go, Rust and native PHP.
 The extension build reads the PHP executable, headers and build flags from
 `php-config`, compiles the C binding and links Cargo's locked Rust output directly.
 It does not require `phpize`, Autoconf or libtool. Tool discovery rejects relative
