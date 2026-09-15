@@ -8,8 +8,12 @@
 - [Feature and deployment status](features.md)
 - [Feature contracts](spec/feature-contracts.md)
 - [Form development and verification](operations/forms.md)
+- [List and detail development and verification](operations/displays.md)
+- [Form and transport verification](operations/verification.md)
 - [Documentation maintenance](operations/documentation.md)
 - [Expression grammar](spec/expressions.md)
+- [Data validation](operations/validation.md)
+- [Specification CLI](operations/cli.md)
 - [Validation rules](spec/validation-rules.md)
 
 Generate API references and the documentation site with `make docs` from the

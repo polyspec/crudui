@@ -2,6 +2,25 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 패키지 예제에서 목록과 상세를 보여 주고 운영 문서 작성
+
+패키지 예제는 폼만 렌더링했고, 목록과 상세를 설명하는 운영 문서가 없었으며, 문서 색인 네 개가 서로 다른 문서를
+나열했습니다. 이제 [예제 계약](docs/spec/examples.ko.md)은 현재 예제가 폼, 목록, 상세를 모두 다루도록 요구합니다. Go
+서버 예제는 저장한 레코드로 폼과 함께 `/list`와 `/detail`을 제공하고, PHP 예제는 `?view=list`와 `?view=detail`을
+제공하며, Rust 예제는 레코드 하나로 렌더링한 폼, 목록, 상세를 출력합니다. [목록과 상세 운영](docs/operations/displays.ko.md)
+문서는 JavaScript, 프레임워크, PHP와 PHP 확장, Go, Rust의 생성, 렌더링, 검증 함수와 옵션, 예제, 검사를 설명합니다.
+문서 색인 네 개는 같은 문서를 나열하고, 예제 색인은 모든 예제를 나열합니다.
+
+React, Vue, Svelte README는 `Form`에 `session` 속성을 전달하고 `bindForm(template, data)`를 호출하라고 안내했지만,
+`Form`은 `form` 속성을 받고 세 패키지 모두 `bindForm`을 내보내지 않습니다. 목록, 상세, 서버 렌더링도 빠져 있었습니다.
+이제 각 README는 `form` 속성, `renderForm`, `List`, `Detail`, `renderList`, `renderDetail`과 반환 형식(React와 Svelte는
+문자열, Vue는 프로미스)을 보여 주고, Svelte README는 패키지를 Svelte를 인식하는 번들러로 불러온다고 밝힙니다.
+
+Go 예제 테스트가 통과했습니다. Rust 예제는 실행되어 폼 블록 세 개, 목록 하나, 상세 두 개를 출력했습니다. PHP 예제는
+세 페이지를 제공했고, 폼으로 레코드를 저장한 뒤 목록은 이름을 상세로 링크했으며 상세는 이메일을 `mailto:`로
+링크했습니다. 운영 문서의 JavaScript, PHP, Go, Rust 코드 블록이 실행되었고, React와 Vue README 예제는 빌드된
+패키지에서 데이터를 렌더링했습니다.
+
 ## 2026-09-15 — 교차 검증 콘솔에서 상세 렌더링과 검증
 
 콘솔은 폼과 목록 렌더링을 비교하고 목록과 상세를 검증했지만 상세를 렌더링하지 못했습니다. 이제

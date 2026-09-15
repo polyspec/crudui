@@ -2,6 +2,31 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Show lists and details in the package examples and document their operation
+
+The package examples rendered forms only, no operations document described lists and details, and
+the four documentation indexes listed different documents. The [examples contract](docs/spec/examples.md)
+now requires current examples to cover forms, lists and details. The Go server example serves `/list`
+and `/detail` beside the form from its stored record, the PHP example serves `?view=list` and
+`?view=detail`, and the Rust example prints a form, a list and details rendered from one record. The
+[list and detail operations](docs/operations/displays.md) document describes the build, render and
+validation functions of JavaScript, the frameworks, PHP and the PHP extension, Go and Rust, their
+options, the examples and the checks. The four documentation indexes list the same documents, and
+the examples index lists every example.
+
+The React, Vue and Svelte READMEs told readers to pass a `session` prop to `Form` and to call
+`bindForm(template, data)`; `Form` takes a `form` prop and none of the three packages exports
+`bindForm`. They also omitted lists, details and server rendering. Each README now shows the `form`
+prop, `renderForm`, `List`, `Detail`, `renderList` and `renderDetail` with their return types
+(strings in React and Svelte, promises in Vue), and the Svelte README states that the package loads
+through a Svelte-aware bundler.
+
+The Go example tests passed. The Rust example ran and printed three form blocks, one list and two
+details. The PHP example served the three pages; after a record was saved through the form, the list
+linked its name to the detail and the detail linked the email with `mailto:`. The JavaScript, PHP,
+Go and Rust code blocks of the operations document ran, and the React and Vue README snippets
+rendered their data from the built packages.
+
 ## 2026-09-15 — Render and validate details in the cross-check console
 
 The console compared form and list rendering and validated lists and details, but it could not

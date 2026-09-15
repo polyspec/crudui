@@ -97,10 +97,18 @@ decode해야 합니다. `true` 연관 배열 모드는 빈 객체와 배열의 �
 CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/generator-php/examples
 ```
 
-`http://127.0.0.1:8082`를 엽니다. 예제는 PHP에서 폼을 렌더링하고, 일반 폼 전송을
-수신하고, 데이터를 검증하고, 유효한 레코드를 명시한 경로에 JSON으로 저장하고,
-저장한 레코드를 다시 조회합니다. 브라우저 행 편집과 순서 보존 JSON HTTP
-엔드포인트는 제공하지 않습니다.
+예제는 같은 레코드에 대한 폼, 목록, 상세 명세를 선언하고 저장된 레코드 파일 하나로
+세 페이지를 제공합니다.
+
+| 페이지 | URL | 출력 |
+| --- | --- | --- |
+| 폼 | `http://127.0.0.1:8082/` | `Generator::renderForm`. 일반 폼 전송을 수신하고 검증한 뒤 유효한 레코드를 명시한 경로에 JSON으로 저장하고 다시 조회합니다 |
+| 목록 | `http://127.0.0.1:8082/?view=list` | 저장된 레코드를 유일한 행으로 쓰는 `Generator::renderList`(처음 저장하기 전에는 행이 없음). 이름은 상세 페이지 링크, 수준은 `choice-label`, 메모는 잘린 `text`입니다 |
+| 상세 | `http://127.0.0.1:8082/?view=detail` | 저장된 레코드의 `Generator::renderDetail`. 이메일은 `mailto:` 링크, 수준은 `choice-label`입니다 |
+
+모든 페이지는 `crudui.css`에서 스타일을 가져옵니다. 같은 파일은 `crudui` 확장을
+불러온 경우(예: `-d "extension=$(pwd)/packages/php-ext/modules/crudui.so"`)에도 수정 없이
+실행됩니다. 브라우저 행 편집과 순서 보존 JSON HTTP 엔드포인트는 제공하지 않습니다.
 
 ## 검사 어댑터
 

@@ -99,10 +99,19 @@ Invalid UTF-8 strings and object keys are rejected before form state changes.
 CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/generator-php/examples
 ```
 
-Open `http://127.0.0.1:8082`. The example renders the form in PHP, accepts a
-native form submission, validates the data, stores valid records as JSON at the
-explicit path and reloads the saved record. It does not provide browser row
-editing or an ordered JSON HTTP endpoint.
+The example declares a form, a list and a detail specification for the same
+record and serves three pages from one stored record file:
+
+| Page | URL | Output |
+| --- | --- | --- |
+| Form | `http://127.0.0.1:8082/` | `Generator::renderForm`; accepts a native form submission, validates it, stores a valid record as JSON at the explicit path and reloads it |
+| List | `http://127.0.0.1:8082/?view=list` | `Generator::renderList` with the stored record as its only row (no rows before the first save); the name links to the detail page, the level uses `choice-label` and the note is truncated `text` |
+| Detail | `http://127.0.0.1:8082/?view=detail` | `Generator::renderDetail` of the stored record; the email is a `mailto:` link and the level uses `choice-label` |
+
+Every page takes its styles from `crudui.css`. The same file runs unchanged when
+the `crudui` extension is loaded, for example with
+`-d "extension=$(pwd)/packages/php-ext/modules/crudui.so"`. It does not provide
+browser row editing or an ordered JSON HTTP endpoint.
 
 ## Test adapter
 

@@ -80,10 +80,16 @@ node packages/generator-rust/verify-fixtures.mjs
 make docs-check
 ```
 
-The [example](examples/form.rs) compiles and serializes a nested form, injects
-keyed company and store data, compares initial and injected HTML, validates the
-record and prints a complete HTML document. Its generation and validation execute
-in Rust. Browser event integration and HTTP persistence are separate checks.
+The [example](examples/form.rs) renders a form, a list and a detail from one record
+set. It compiles and serializes a nested form, injects keyed company and store data,
+compares initial and injected HTML and validates the record. It then turns each
+company row of the same record into a display row (row key, name and store count),
+renders them with `render_list` (the name as a `link` to that company's detail, the
+row key as `text` and the store count as a `badge`) and renders each company with
+`render_detail` (`text` and a `number` with a suffix). It asserts the list link, badge
+and detail markup and prints one HTML document with the form, list and detail
+sections. Its generation and validation execute in Rust. Browser event integration
+and HTTP persistence are separate checks.
 
 The fixture checker requires the repository's installed JavaScript development
 dependencies and Cargo. Set `CARGO` to an explicit executable path when Cargo is
