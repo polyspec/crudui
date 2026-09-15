@@ -95,6 +95,27 @@ final class FieldSpecTest extends TestCase
     }
 
     /**
+     * design, design nodes, behavior, multiple and lang are closed: an unknown key
+     * is a violation. validate, options and the items dynamic source stay open.
+     */
+    public function testClosedBucketsRejectUnknownKeys(): void
+    {
+        self::assertSame(['unknown key under design: text'], FieldSpec::validate(['design' => ['class' => 'a', 'text' => 1]]));
+        self::assertSame(['unknown key under design.label: text'], FieldSpec::validate(['design' => ['label' => ['class' => 'a', 'text' => 1]]]));
+        self::assertSame(['unknown key under behavior: onsubmit'], FieldSpec::validate(['behavior' => ['onclick' => 'go()', 'onsubmit' => 'x']]));
+        self::assertSame(['unknown key under multiple: foo'], FieldSpec::validate(['multiple' => ['min' => 1, 'foo' => 1]]));
+        self::assertSame(['unknown key under lang: append'], FieldSpec::validate(['lang' => ['mode' => 'x', 'append' => true]]));
+        self::assertSame([], FieldSpec::validate([
+            'design'   => ['show' => true, 'class' => 'a', 'style' => 'b', 'label' => ['class' => 'c', 'style' => 'd'], 'wrapper' => [], 'group' => ['class' => 'e'], 'prepend' => ['style' => 'f']],
+            'behavior' => ['onchange' => 'a', 'onclick' => 'b', 'onload' => 'c'],
+            'lang'     => ['mode' => 'append', 'only' => ['ko'], 'name' => 'n', 'key' => 'k', 'frame' => false, 'title' => false, 'group_class' => 'g'],
+            'validate' => ['required' => true, 'custom_rule' => 1],
+            'options'  => ['custom' => 1],
+            'items'    => ['model' => 'm', 'custom_source' => 1],
+        ]));
+    }
+
+    /**
      * `x`-prefixed comment keys are rejected (x-strip is upstream).
      */
     public function testCommentKeysRejected(): void

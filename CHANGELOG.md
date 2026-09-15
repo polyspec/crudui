@@ -2,6 +2,32 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Reject unknown keys in the buckets the schema closes
+
+The schema closes `multiple`, `lang`, `design`, its nodes and `behavior`, but form compilation
+stated that it did not check unknown keys there, and the typed models disagreed with the schema
+and with each other: Rust kept unknown keys in all eight buckets, TypeScript opened `multiple` and
+`lang`, Go silently dropped unknown keys everywhere except `options`, including rules in the open
+`validate` bucket. A misspelled key such as `multiple.maximum` or `design.label.text` therefore
+did nothing and reported nothing.
+
+Every form compiler now rejects such a key with `Invalid {bucket}.{key} at {path}: unknown key`,
+checking a bucket's keys in declaration order before its values, in the order `buttons` and
+`action`, `multiple`, `lang`, `design` and its nodes, and `behavior`. The typed models follow the
+schema per bucket: closed buckets reject unknown keys, and `validate`, `options` and dynamic
+`items` sources keep them. Go's compiler returned early when a field had no design, which would
+have skipped the behavior check; Go's typed `validate` now keeps unknown rules.
+
+Checking every tracked specification against the rule found one shared detail case,
+`design-wrapper-and-cell`, that styled its cell with a `design.main` key no runtime reads, so the
+case never exercised cell styling; it now declares `design.class` and `design.style`.
+
+Six shared compile rejection cases cover each bucket, a design node and the precedence of an unknown
+key over a value error. `make test-native` passed 247 of 247 checks in each of the six targets (1483
+including input checks). Validator tests passed in JavaScript (1642), Go, PHP (1529) and Rust (73);
+the console suite passed 166 of 166; the meta-schema check passed 80 fixture checks; test:forms,
+lint, format-check, manifest:test, test:docs and docs-check passed.
+
 ## 2026-09-15 — Build and install what checks run before running them
 
 Three findings recorded during the form structure work stayed open because they needed a rule,

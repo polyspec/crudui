@@ -449,6 +449,115 @@ fn repeated_declarations_reject_titles_controls_and_headers() {
 }
 
 #[test]
+fn closed_declaration_buckets_reject_unknown_keys() {
+    for (field, message) in [
+        (
+            json!({"type":"group","multiple":{"min":1,"foo":1,"bar":2}}),
+            "Invalid multiple.foo at items: unknown key",
+        ),
+        (
+            json!({"type":"group","multiple":{"min":"x","foo":1}}),
+            "Invalid multiple.foo at items: unknown key",
+        ),
+        (
+            json!({"type":"group","multiple":{"title":"missing","foo":1}}),
+            "Invalid multiple.foo at items: unknown key",
+        ),
+        (
+            json!({"type":"group","multiple":"yes"}),
+            "Invalid multiple at items: expected a boolean or an object",
+        ),
+        (
+            json!({"type":"text","lang":{"mode":"append","langs":["ko"],"only":"ko"}}),
+            "Invalid lang.langs at items: unknown key",
+        ),
+        (
+            json!({"type":"text","lang":{"only":"ko","langs":["ko"]}}),
+            "Invalid lang.langs at items: unknown key",
+        ),
+        (
+            json!({"type":"text","multiple":{"foo":1},"lang":{"bar":1}}),
+            "Invalid multiple.foo at items: unknown key",
+        ),
+        (
+            json!({"type":"text","lang":{"bar":1},"design":{"baz":1}}),
+            "Invalid lang.bar at items: unknown key",
+        ),
+        (
+            json!({"type":"text","design":{"class":"a","text":"x","show":[]}}),
+            "Invalid design.text at items: unknown key",
+        ),
+        (
+            json!({"type":"text","design":{"show":[],"text":"x"}}),
+            "Invalid design.text at items: unknown key",
+        ),
+        (
+            json!({"type":"text","design":{"label":{"class":"lbl","text":"Name","style":[]}}}),
+            "Invalid design.label.text at items: unknown key",
+        ),
+        (
+            json!({"type":"text","design":{"prepend":{"style":[],"text":"Name"}}}),
+            "Invalid design.prepend.text at items: unknown key",
+        ),
+        (
+            json!({"type":"text","design":{"wrapper":{"class":[]},"group":{"text":"x"}}}),
+            "Invalid design.wrapper.class at items: expected a string or a condition map",
+        ),
+        (
+            json!({"type":"text","design":{"wrapper":{"text":"x"},"label":{"class":[]}}}),
+            "Invalid design.label.class at items: expected a string or a condition map",
+        ),
+        (
+            json!({"type":"text","design":{"group":"x","wrapper":{"text":"x"}}}),
+            "Invalid design.wrapper.text at items: unknown key",
+        ),
+        (
+            json!({"type":"text","design":{"class":[]},"behavior":{"onsubmit":"x"}}),
+            "Invalid design.class at items: expected a string or a condition map",
+        ),
+        (
+            json!({"type":"text","behavior":{"onchange":"a","onsubmit":"x","onblur":"y"}}),
+            "Invalid behavior.onsubmit at items: unknown key",
+        ),
+    ] {
+        let spec = json!({"type":"group","properties":{"items":field}});
+        let error = compile_form(&spec, &CompileOptions::default()).unwrap_err();
+        assert_eq!(
+            (
+                error.code.as_str(),
+                error.message.as_str(),
+                error.at.as_str()
+            ),
+            ("INVALID_FORM_INPUT", message, "")
+        );
+    }
+    let spec = json!({"type":"group","properties":{"name":{"type":"text","design":{"label":{"text":"Name"}}}}});
+    assert_eq!(
+        compile_form(&spec, &CompileOptions::default())
+            .unwrap_err()
+            .message,
+        "Invalid design.label.text at name: unknown key"
+    );
+    let spec =
+        json!({"type":"group","properties":{"name":{"type":"text","behavior":{"onsubmit":"x"}}}});
+    assert_eq!(
+        compile_form(&spec, &CompileOptions::default())
+            .unwrap_err()
+            .message,
+        "Invalid behavior.onsubmit at name: unknown key"
+    );
+    let spec = json!({"type":"group","properties":{"name":{"type":"text"}},"buttons":[{"type":"submit","behavior":{"onsubmit":"x"}}]});
+    assert_eq!(
+        compile_form(&spec, &CompileOptions::default())
+            .unwrap_err()
+            .message,
+        "Invalid behavior.onsubmit at form.buttons.0: unknown key"
+    );
+    let spec = json!({"type":"group","properties":{"name":{"type":"text","options":{"future":1},"validate":{"future":1}}}});
+    assert!(compile_form(&spec, &CompileOptions::default()).is_ok());
+}
+
+#[test]
 fn row_keys_are_bounded_and_random_keys_are_hexadecimal() {
     assert_eq!(sequence_row_key("0").unwrap(), "__0000000000000__");
     assert_eq!(

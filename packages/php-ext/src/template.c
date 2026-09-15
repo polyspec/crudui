@@ -61,6 +61,26 @@ static bool declaration_error(const char *key, const char *path, const char *exp
     return false;
 }
 
+/* Reject the first member of a closed bucket object that is not an allowed key:
+   "Invalid <bucket>.<key> at <path>: unknown key". Returns true when every key is allowed. */
+static bool known_keys(const ps_value *bucket, const char *name, const char *const *allowed,
+                       size_t count, const char *path, ps_value **error)
+{
+    for (size_t i = 0; i < ps_size(bucket); ++i) {
+        const char *key = ps_key_at(bucket, i);
+        bool known = false;
+        for (size_t j = 0; !known && j < count; ++j) known = !strcmp(key, allowed[j]);
+        if (known) continue;
+        char *head = concat3("Invalid ", name, ".");
+        char *middle = head ? concat3(head, key, " at ") : NULL;
+        char *message = middle ? concat3(middle, path, ": unknown key") : NULL;
+        *error = message ? ps_error("form", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
+        free(head); free(middle); free(message);
+        return false;
+    }
+    return true;
+}
+
 /* A multiple or lang declaration that enables the feature: true or an object. */
 static bool enabled_declaration(const ps_value *value)
 {
@@ -83,7 +103,7 @@ static bool one_of(const ps_value *value, const char *const *allowed, size_t cou
     return false;
 }
 
-/* Reject a wrong value type in one field's multiple, lang and design declarations. */
+/* Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior declarations. */
 static bool declarations_valid(const ps_value *spec, const char *path, ps_value **error)
 {
     /* Buttons and the submission target belong to the form, not to a field. */
@@ -102,10 +122,17 @@ static bool declarations_valid(const ps_value *spec, const char *path, ps_value 
         {"group", "design.group", "design.group.class", "design.group.style"},
         {"prepend", "design.prepend", "design.prepend.class", "design.prepend.style"},
     };
+    static const char *const multiple_keys[] = {"min", "max", "copy", "sortable", "title", "controls", "header", "onclick"};
+    static const char *const lang_keys[] = {"mode", "only", "name", "key", "frame", "title", "group_class"};
+    static const char *const design_keys[] = {"show", "class", "style", "label", "wrapper", "group", "prepend"};
+    static const char *const node_keys[] = {"class", "style"};
+    static const char *const behavior_keys[] = {"onchange", "onclick", "onload"};
     const ps_value *multiple = ps_get(spec, "multiple");
     if (multiple) {
         if (multiple->kind != PS_BOOL && multiple->kind != PS_OBJECT)
             return declaration_error("multiple", path, "a boolean or an object", error);
+        if (multiple->kind == PS_OBJECT && !known_keys(multiple, "multiple", multiple_keys, 8, path, error))
+            return false;
         for (size_t i = 0; multiple->kind == PS_OBJECT && i < 2; ++i) {
             const ps_value *value = ps_get(multiple, numbers[i][0]);
             if (value && value->kind != PS_INT && value->kind != PS_FLOAT)
@@ -137,6 +164,8 @@ static bool declarations_valid(const ps_value *spec, const char *path, ps_value 
     const ps_value *lang = ps_get(spec, "lang");
     if (lang && lang->kind != PS_BOOL && lang->kind != PS_OBJECT)
         return declaration_error("lang", path, "a boolean or an object", error);
+    if (lang && lang->kind == PS_OBJECT && !known_keys(lang, "lang", lang_keys, 7, path, error))
+        return false;
     const ps_value *only = lang && lang->kind == PS_OBJECT ? ps_get(lang, "only") : NULL;
     if (only && only->kind != PS_OBJECT) {
         bool codes = only->kind == PS_ARRAY;
@@ -146,30 +175,34 @@ static bool declarations_valid(const ps_value *spec, const char *path, ps_value 
             return declaration_error("lang.only", path, "a list of language codes or an object", error);
     }
     const ps_value *design = ps_get(spec, "design");
-    if (!design) return true;
-    if (design->kind != PS_BOOL && design->kind != PS_OBJECT)
+    if (design && design->kind != PS_BOOL && design->kind != PS_OBJECT)
         return declaration_error("design", path, "a boolean or an object", error);
-    if (design->kind == PS_BOOL) return true;
-    const ps_value *show = ps_get(design, "show");
-    if (show && show->kind != PS_BOOL && !condition_value(show))
-        return declaration_error("design.show", path, "an expression, a boolean or a condition map", error);
-    for (size_t i = 0; i < 2; ++i) {
-        const ps_value *value = ps_get(design, styles[i][0]);
-        if (value && !condition_value(value))
-            return declaration_error(styles[i][1], path, "a string or a condition map", error);
-    }
-    for (size_t i = 0; i < 4; ++i) {
-        const ps_value *node = ps_get(design, nodes[i][0]);
-        if (!node) continue;
-        if (node->kind != PS_OBJECT)
-            return declaration_error(nodes[i][1], path, "an object", error);
-        for (size_t j = 0; j < 2; ++j) {
-            const ps_value *value = ps_get(node, styles[j][0]);
+    if (design && design->kind == PS_OBJECT) {
+        if (!known_keys(design, "design", design_keys, 7, path, error)) return false;
+        const ps_value *show = ps_get(design, "show");
+        if (show && show->kind != PS_BOOL && !condition_value(show))
+            return declaration_error("design.show", path, "an expression, a boolean or a condition map", error);
+        for (size_t i = 0; i < 2; ++i) {
+            const ps_value *value = ps_get(design, styles[i][0]);
             if (value && !condition_value(value))
-                return declaration_error(nodes[i][2 + j], path, "a string or a condition map", error);
+                return declaration_error(styles[i][1], path, "a string or a condition map", error);
+        }
+        for (size_t i = 0; i < 4; ++i) {
+            const ps_value *node = ps_get(design, nodes[i][0]);
+            if (!node) continue;
+            if (node->kind != PS_OBJECT)
+                return declaration_error(nodes[i][1], path, "an object", error);
+            if (!known_keys(node, nodes[i][1], node_keys, 2, path, error)) return false;
+            for (size_t j = 0; j < 2; ++j) {
+                const ps_value *value = ps_get(node, styles[j][0]);
+                if (value && !condition_value(value))
+                    return declaration_error(nodes[i][2 + j], path, "a string or a condition map", error);
+            }
         }
     }
-    return true;
+    const ps_value *behavior = ps_get(spec, "behavior");
+    return !behavior || behavior->kind != PS_OBJECT ||
+        known_keys(behavior, "behavior", behavior_keys, 3, path, error);
 }
 
 /* Reject a wrong root action or buttons declaration. */

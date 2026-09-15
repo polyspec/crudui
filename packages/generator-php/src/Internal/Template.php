@@ -134,7 +134,7 @@ final class Template
         }
     }
 
-    /** Reject a wrong value type in one field's multiple, lang and design declarations. */
+    /** Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior declarations. */
     private static function checkDeclarations(array $spec, string $path): void
     {
         $fail = static function (string $key, string $expected) use ($path): never {
@@ -146,6 +146,14 @@ final class Template
                 $fail($key, 'the form root');
             }
         }
+        // A closed bucket rejects its first undeclared key in member order.
+        $closed = static function (string $bucket, array $members, array $allowed) use ($path): void {
+            foreach (array_keys($members) as $key) {
+                if (!in_array((string) $key, $allowed, true)) {
+                    throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s.%s at %s: unknown key', $bucket, $key, $path));
+                }
+            }
+        };
         if (array_key_exists('multiple', $spec)) {
             $multiple = $spec['multiple'];
             if (!is_bool($multiple) && !self::isObject($multiple)) {
@@ -153,6 +161,7 @@ final class Template
             }
             if (self::isObject($multiple)) {
                 $settings = (array) $multiple;
+                $closed('multiple', $settings, ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick']);
                 foreach (['min', 'max'] as $key) {
                     if (array_key_exists($key, $settings) && !is_int($settings[$key]) && !is_float($settings[$key])) {
                         $fail('multiple.' . $key, 'a number');
@@ -183,45 +192,52 @@ final class Template
         if (array_key_exists('lang', $spec) && !is_bool($spec['lang']) && !self::isObject($spec['lang'])) {
             $fail('lang', 'a boolean or an object');
         }
-        if (self::isObject($spec['lang'] ?? null) && array_key_exists('only', (array) $spec['lang'])) {
-            $only = ((array) $spec['lang'])['only'];
-            $codes = is_array($only) && array_is_list($only) && array_filter($only, static fn ($code) => !is_string($code)) === [];
-            if (!$codes && !self::isObject($only)) {
-                $fail('lang.only', 'a list of language codes or an object');
-            }
-        }
-        if (!array_key_exists('design', $spec)) {
-            return;
-        }
-        $design = $spec['design'];
-        if (!is_bool($design) && !self::isObject($design)) {
-            $fail('design', 'a boolean or an object');
-        }
-        if (is_bool($design)) {
-            return;
-        }
-        $design = (array) $design;
-        if (array_key_exists('show', $design) && !is_bool($design['show']) && !self::conditionValue($design['show'])) {
-            $fail('design.show', 'an expression, a boolean or a condition map');
-        }
-        foreach (['class', 'style'] as $key) {
-            if (array_key_exists($key, $design) && !self::conditionValue($design[$key])) {
-                $fail('design.' . $key, 'a string or a condition map');
-            }
-        }
-        foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
-            if (!array_key_exists($node, $design)) {
-                continue;
-            }
-            if (!self::isObject($design[$node])) {
-                $fail('design.' . $node, 'an object');
-            }
-            $values = (array) $design[$node];
-            foreach (['class', 'style'] as $key) {
-                if (array_key_exists($key, $values) && !self::conditionValue($values[$key])) {
-                    $fail('design.' . $node . '.' . $key, 'a string or a condition map');
+        if (self::isObject($spec['lang'] ?? null)) {
+            $lang = (array) $spec['lang'];
+            $closed('lang', $lang, ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class']);
+            if (array_key_exists('only', $lang)) {
+                $only = $lang['only'];
+                $codes = is_array($only) && array_is_list($only) && array_filter($only, static fn ($code) => !is_string($code)) === [];
+                if (!$codes && !self::isObject($only)) {
+                    $fail('lang.only', 'a list of language codes or an object');
                 }
             }
+        }
+        if (array_key_exists('design', $spec)) {
+            $design = $spec['design'];
+            if (!is_bool($design) && !self::isObject($design)) {
+                $fail('design', 'a boolean or an object');
+            }
+            if (self::isObject($design)) {
+                $design = (array) $design;
+                $closed('design', $design, ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend']);
+                if (array_key_exists('show', $design) && !is_bool($design['show']) && !self::conditionValue($design['show'])) {
+                    $fail('design.show', 'an expression, a boolean or a condition map');
+                }
+                foreach (['class', 'style'] as $key) {
+                    if (array_key_exists($key, $design) && !self::conditionValue($design[$key])) {
+                        $fail('design.' . $key, 'a string or a condition map');
+                    }
+                }
+                foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
+                    if (!array_key_exists($node, $design)) {
+                        continue;
+                    }
+                    if (!self::isObject($design[$node])) {
+                        $fail('design.' . $node, 'an object');
+                    }
+                    $values = (array) $design[$node];
+                    $closed('design.' . $node, $values, ['class', 'style']);
+                    foreach (['class', 'style'] as $key) {
+                        if (array_key_exists($key, $values) && !self::conditionValue($values[$key])) {
+                            $fail('design.' . $node . '.' . $key, 'a string or a condition map');
+                        }
+                    }
+                }
+            }
+        }
+        if (self::isObject($spec['behavior'] ?? null)) {
+            $closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload']);
         }
     }
 

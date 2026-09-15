@@ -232,7 +232,28 @@ final class FormTest extends TestCase
             ['{"type":"text","lang":{"only":"ko"}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],
             ['{"type":"text","lang":{"only":null}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],
             ['{"type":"text","lang":{"only":["ko",3]}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],
+            // Closed buckets: the first unknown key in member order, after the bucket type check and before value checks.
+            ['{"type":"text","multiple":{"foo":1}}', 'Invalid multiple.foo at rows: unknown key'],
+            ['{"type":"text","multiple":{"min":"x","foo":1,"bar":2}}', 'Invalid multiple.foo at rows: unknown key'],
+            ['{"type":"text","multiple":{"foo":1},"lang":null}', 'Invalid multiple.foo at rows: unknown key'],
+            ['{"type":"text","lang":{"only":"ko","append":true}}', 'Invalid lang.append at rows: unknown key'],
+            ['{"type":"text","lang":{"langs":["ko"]},"design":{"text":1}}', 'Invalid lang.langs at rows: unknown key'],
+            ['{"type":"text","design":{"show":1,"text":1}}', 'Invalid design.text at rows: unknown key'],
+            ['{"type":"text","design":{"label":{"class":1,"text":"x"}}}', 'Invalid design.label.text at rows: unknown key'],
+            ['{"type":"text","design":{"prepend":{"text":"x"},"label":{"style":1}}}', 'Invalid design.label.style at rows: expected a string or a condition map'],
+            ['{"type":"text","design":{"wrapper":{"text":"x"},"group":{"id":"y"}}}', 'Invalid design.wrapper.text at rows: unknown key'],
+            ['{"type":"text","design":{"text":1},"behavior":{"onsubmit":"x"}}', 'Invalid design.text at rows: unknown key'],
+            ['{"type":"text","behavior":{"onclick":"go()","onsubmit":"x","onblur":"y"}}', 'Invalid behavior.onsubmit at rows: unknown key'],
         ];
+        foreach (['{"type":"text","multiple":{"min":1,"max":2,"copy":true,"sortable":false,"controls":"footer","header":"static","onclick":"add()"},"lang":{"mode":"append","only":["ko"],"name":"n","key":"k","frame":false,"title":false,"group_class":"g"},"design":{"show":true,"class":"a","style":"b","label":{"class":"c","style":"d"},"wrapper":{},"group":{"class":"e"},"prepend":{"style":"f"}},"behavior":{"onchange":"a","onclick":"b","onload":"c"},"validate":{"custom":1},"options":{"custom":1}}', '{"type":"text","behavior":false}'] as $field) {
+            self::assertCount(1, Generator::compileForm(self::object('{"type":"group","properties":{"rows":' . $field . '}}'))->fields);
+        }
+        try {
+            Generator::compileForm(self::object('{"type":"group","buttons":[{"type":"submit","behavior":{"onsubmit":"x"}}],"properties":{}}'));
+            self::fail('Unknown button behavior key must fail');
+        } catch (FormError $error) {
+            self::assertSame(['INVALID_FORM_INPUT', 'Invalid behavior.onsubmit at form.buttons.0: unknown key', ''], [$error->getErrorCode(), $error->getMessage(), $error->getPath()]);
+        }
         foreach (['{"type":"text","lang":{"only":[]}}', '{"type":"text","lang":{"only":{}}}', '{"type":"text","lang":{"only":["ko","en"]}}'] as $field) {
             self::assertCount(1, Generator::compileForm(self::object('{"type":"group","properties":{"rows":' . $field . '}}'))->fields);
         }

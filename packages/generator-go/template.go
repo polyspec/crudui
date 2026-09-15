@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"slices"
 	"strconv"
 )
 
@@ -186,10 +187,32 @@ func scalarChild(v any) bool {
 	return stringAt(child, "type") != "group" && !child.Has("properties") && !repeated && !language
 }
 
-// checkDeclarations rejects a wrong value type in one field's multiple and design declarations.
+// closedKeys lists the keys each closed declaration bucket allows.
+var closedKeys = map[string][]string{
+	"multiple":    {"min", "max", "copy", "sortable", "title", "controls", "header", "onclick"},
+	"lang":        {"mode", "only", "name", "key", "frame", "title", "group_class"},
+	"design":      {"show", "class", "style", "label", "wrapper", "group", "prepend"},
+	"design node": {"class", "style"},
+	"behavior":    {"onchange", "onclick", "onload"},
+}
+
+// unknownKey returns the first key of o, in declaration order, that the bucket does not allow.
+func unknownKey(o *Object, bucket string) (string, bool) {
+	for _, key := range o.Keys() {
+		if !slices.Contains(closedKeys[bucket], key) {
+			return key, true
+		}
+	}
+	return "", false
+}
+
+// checkDeclarations rejects a wrong value type or an unknown key in one field's closed declarations.
 func checkDeclarations(spec *Object, path string) error {
 	fail := func(key, expected string) error {
 		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+	}
+	unknown := func(key string) error {
+		return fmt.Errorf("Invalid %s at %s: unknown key", key, path)
 	}
 	// Buttons and the submission target belong to the form, not to a field.
 	for _, key := range []string{"buttons", "action"} {
@@ -205,6 +228,9 @@ func checkDeclarations(spec *Object, path string) error {
 			return fail("multiple", "a boolean or an object")
 		}
 		if settings != nil {
+			if key, found := unknownKey(settings, "multiple"); found {
+				return unknown("multiple." + key)
+			}
 			for _, key := range []string{"min", "max"} {
 				if _, ok := asNumber(read(settings, key)); settings.Has(key) && !ok {
 					return fail("multiple."+key, "a number")
@@ -237,6 +263,11 @@ func checkDeclarations(spec *Object, path string) error {
 		if _, isBool := read(spec, "lang").(bool); !isBool && object(read(spec, "lang")) == nil {
 			return fail("lang", "a boolean or an object")
 		}
+		if lang := object(read(spec, "lang")); lang != nil {
+			if key, found := unknownKey(lang, "lang"); found {
+				return unknown("lang." + key)
+			}
+		}
 	}
 	if lang := object(read(spec, "lang")); lang != nil && lang.Has("only") {
 		only := read(lang, "only")
@@ -257,8 +288,10 @@ func checkDeclarations(spec *Object, path string) error {
 		if !isBool && d == nil {
 			return fail("design", "a boolean or an object")
 		}
-		if d == nil {
-			return nil
+	}
+	if d := object(read(spec, "design")); d != nil {
+		if key, found := unknownKey(d, "design"); found {
+			return unknown("design." + key)
 		}
 		if show := read(d, "show"); d.Has("show") {
 			if _, ok := show.(bool); !ok && !conditionValue(show) {
@@ -278,11 +311,19 @@ func checkDeclarations(spec *Object, path string) error {
 			if n == nil {
 				return fail("design."+node, "an object")
 			}
+			if key, found := unknownKey(n, "design node"); found {
+				return unknown("design." + node + "." + key)
+			}
 			for _, key := range []string{"class", "style"} {
 				if n.Has(key) && !conditionValue(read(n, key)) {
 					return fail("design."+node+"."+key, "a string or a condition map")
 				}
 			}
+		}
+	}
+	if behavior := object(read(spec, "behavior")); behavior != nil {
+		if key, found := unknownKey(behavior, "behavior"); found {
+			return unknown("behavior." + key)
 		}
 	}
 	return nil

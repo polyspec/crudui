@@ -369,6 +369,12 @@ for (const target of targets) {
     ['lang-null', { type: 'text', lang: null }, 'Invalid lang at rows: expected a boolean or an object'],
     ['lang-only-mixed', { type: 'text', lang: { only: ['ko', 3] } }, 'Invalid lang.only at rows: expected a list of language codes or an object'],
     ['nested-design-node-style', { type: 'group', properties: { name: { type: 'text', design: { label: { style: null } } } } }, 'Invalid design.label.style at rows.name: expected a string or a condition map'],
+    ['multiple-unknown-key', { type: 'text', multiple: { min: 1, maximum: 3 } }, 'Invalid multiple.maximum at rows: unknown key'],
+    ['multiple-unknown-before-value', { type: 'text', multiple: { min: 'x', foo: 1 } }, 'Invalid multiple.foo at rows: unknown key'],
+    ['lang-unknown-key', { type: 'text', lang: { only: ['ko'], languages: ['en'] } }, 'Invalid lang.languages at rows: unknown key'],
+    ['design-unknown-key', { type: 'text', design: { class: 'a', color: 'red' } }, 'Invalid design.color at rows: unknown key'],
+    ['design-node-unknown-key', { type: 'text', design: { label: { class: 'a', text: 'Name' } } }, 'Invalid design.label.text at rows: unknown key'],
+    ['behavior-unknown-key', { type: 'text', behavior: { onclick: 'go()', onsubmit: 'send()' } }, 'Invalid behavior.onsubmit at rows: unknown key'],
   ];
   for (const [name, field, message] of declarationRejections) await check(target, `compile-reject:${name}`, async () => {
     const request = { operation: 'compileForm', spec: { type: 'group', properties: { rows: field } } };
