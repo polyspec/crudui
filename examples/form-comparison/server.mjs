@@ -6,7 +6,6 @@ import path from 'node:path';
 import { encodeJson } from './src/json.mjs';
 import { formFrameworks, formInitializations, formServers, pipelineServers } from './src/runtime-paths.mjs';
 import { publicDirectory, publicPort, serverPorts, serverRequest } from './src/server-layout.mjs';
-import { handler as displayConsoleHandler } from '../cross-check-console/server/server.mjs';
 import { bindButtons, bindForm, compileForm, createForm, formMessages } from '@crudui/generator-core';
 import { renderForm, renderFormView } from '@crudui/generator-html';
 import { pipelineDetailSpec, pipelineListSpec, pipelineRecords, renderPipelineDetail, renderPipelineList } from './src/pipeline.mjs';
@@ -96,14 +95,17 @@ async function handlePipeline(url, request, response) {
 async function pipelineMarkup(url, view) {
   const options = pipelineOptions(url);
   const records = pipelineRecords();
+  const page = Math.max(1, Number.parseInt(url.searchParams.get('page') || '1', 10));
+  if (!Number.isSafeInteger(page) || page > Math.ceil(records.length / 20)) return { status: 404, body: 'Page not found' };
+  const rows = view === 'list' ? records.slice((page - 1) * 20, page * 20) : records;
   const record = records.find(item => item.id === (url.searchParams.get('id') || '1'));
   if (view === 'detail' && !record) return { status: 404, body: 'Record not found' };
   if (options.server === 'js') {
     return { status: 200, body: view === 'list'
-      ? renderPipelineList(records, options) : renderPipelineDetail(record, options) };
+      ? renderPipelineList(rows, { ...options, page, total: records.length }) : renderPipelineDetail(record, options) };
   }
   const payload = { spec: view === 'list' ? pipelineListSpec(options) : pipelineDetailSpec(options),
-    rows: records, record, options: { language: options.lang, layout: 'table', total: records.length } };
+    rows, record, options: { language: options.lang, layout: 'table', page, total: records.length } };
   const native = await new Promise((resolve, reject) => {
     const outgoing = http.request({ hostname: '127.0.0.1', port: serverPorts[options.server],
       path: `/api/pipeline/${view}`, method: 'POST', headers: { 'Content-Type': 'application/json' } }, incoming => {
@@ -138,7 +140,7 @@ async function renderPipelinePage(url, request, response) {
     .replace(`value="${options.server}">`, `value="${options.server}" selected>`)
     .replace(`value="${options.framework}">`, `value="${options.framework}" selected>`)
     .replace(`value="${options.initialization}">`, `value="${options.initialization}" selected>`);
-  const params = new URLSearchParams({ lang: options.lang, server: options.server, framework: options.framework, initialization: options.initialization, id: url.searchParams.get('id') || '1' }).toString();
+  const params = new URLSearchParams({ lang: options.lang, server: options.server, framework: options.framework, initialization: options.initialization, page: url.searchParams.get('page') || '1', id: url.searchParams.get('id') || '1' }).toString();
   html = html.replace('href="/"', `href="/?${params}"`).replace('href="/detail?id=1"', `href="/detail?id=1&${params}"`).replace('href="/form?id=1"', `href="/form?id=1&${params}"`);
   if (match === 'form') {
     html = html.replace('<section id="stage" aria-live="polite"></section>', '<section id="stage" aria-live="polite" hidden></section>')
@@ -149,7 +151,9 @@ async function renderPipelinePage(url, request, response) {
     }
   } else if (options.initialization === 'ssr') {
     const rendered = await pipelineMarkup(url, match);
-    const stage = `<div class="stage-heading"><p class="eyebrow">${match.toUpperCase()}</p><h2>${match === 'list' ? (language === 'en' ? 'Customer list' : '고객 목록') : (language === 'en' ? 'Customer detail' : '고객 상세')}</h2><p>${labels.intro}</p></div>${rendered.body.toString()}`;
+    const page = Number.parseInt(url.searchParams.get('page') || '1', 10);
+    const pageLinks = match === 'list' ? `<nav class="pipeline-pagination" aria-label="${language === 'en' ? 'Pages' : '페이지'}">${[1, 2, 3].map(value => `<a href="/?${new URLSearchParams({ ...Object.fromEntries(url.searchParams), page: String(value) })}"${value === page ? ' aria-current="page"' : ''}>${value}</a>`).join('')}</nav>` : '';
+    const stage = `<div class="stage-heading"><p class="eyebrow">${match.toUpperCase()}</p><h2>${match === 'list' ? (language === 'en' ? 'Customer list' : '고객 목록') : (language === 'en' ? 'Customer detail' : '고객 상세')}</h2><p>${labels.intro}</p></div>${rendered.body.toString()}${pageLinks}`;
     html = html.replace('<section id="stage" aria-live="polite"></section>', `<section id="stage" aria-live="polite">${stage}</section>`);
   }
   response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -164,16 +168,6 @@ const httpServer = http.createServer(async (request, response) => {
     if (url.pathname === '/benchmark-console' || url.pathname === '/benchmark-console/') {
       response.writeHead(302, { Location: '/benchmark-console/index.html', 'Cache-Control': 'no-store' });
       response.end();
-      return;
-    }
-    if (url.pathname.startsWith('/benchmark-console/')) {
-      const originalUrl = request.url;
-      request.url = originalUrl.slice('/benchmark-console'.length) || '/';
-      try {
-        await displayConsoleHandler(request, response);
-      } finally {
-        request.url = originalUrl;
-      }
       return;
     }
     if (url.pathname === '/api/health') {

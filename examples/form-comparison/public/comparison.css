@@ -79,6 +79,9 @@ td pre { max-width: 260px; white-space: pre-wrap; overflow-wrap: anywhere; }
 #stage .pipeline-align-image { text-align: center; vertical-align: middle; }
 #stage .pipeline-align-image img { display: block; margin-inline: auto; }
 #stage .pipeline-align-text { text-align: left; }
+#stage .pipeline-pagination { display: flex; gap: 6px; justify-content: center; margin-top: 18px; }
+#stage .pipeline-pagination a { min-width: 36px; padding: 7px 10px; border: 1px solid #c8d7e8; border-radius: 7px; text-align: center; text-decoration: none; }
+#stage .pipeline-pagination a[aria-current="page"] { background: #276fd3; color: #fff; border-color: #276fd3; }
 #stage .crudui-list a, #stage .crudui-detail a { color: #1e65bf; font-weight: 700; }
 #stage .crudui-detail { max-width: 760px; }
 #stage .crudui-detail__field { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 18px; padding: 15px 0; border-bottom: 1px solid #e4ebf3; }
