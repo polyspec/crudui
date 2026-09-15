@@ -196,7 +196,8 @@ must declare fields`, 객체가 아닌 레코드는 `Detail record must be an ob
 `Invalid {bucket}.{key} at {path}: unknown key`로 실패합니다(예: `Invalid design.label.text at name: unknown key`).
 버킷 안에서는 값보다 먼저 선언 순서로 알 수 없는 키를 검사합니다. 순서는 `buttons`와 `action`, `multiple`,
 `lang`, `design`(이어서 노드 `label`, `wrapper`, `group`, `prepend`), `behavior`입니다. `validate`, `options`,
-동적 `items` 원천은 타입별 설정을 위해 열려 있으며, 금지 메타 키는 어디서나 거부합니다.
+동적 `items` 원천은 타입별 설정을 위해 열려 있으며, 금지 메타 키는 어디서나 거부합니다. 메타 스키마는
+등록된 모든 검증 규칙의 매개변수 형태를 선언하고, 열어 둔 모든 값의 모든 깊이에서 금지 키를 거부합니다.
 
 ## 위젯과 소스 설정
 

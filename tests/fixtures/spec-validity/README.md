@@ -28,10 +28,7 @@ forbidden key (`if`, `when`, `show_if`, `display_switch`, `display_target`, `seq
 node, in a nested child, inside an array element, in a base inherited through `$ref`, and in a
 root button or action. Every rejected case has the runtime code `FORBIDDEN_META_KEY`.
 
-Two rejected cases pass the meta-schema. `err-magic-underscore-default-key` places `_` inside
-`validate.max`, and `err-inside-array-element` places `display_target` inside an element of
-`options.items`. The meta-schema declares neither setting, so it leaves both values unconstrained;
-only the runtime scan rejects them. `err-after-compose-ref-base-leak` fails the meta-schema with
+`err-after-compose-ref-base-leak` fails the meta-schema with
 `required` because its `spec` is a bare `$ref`.
 
 ## Comparisons

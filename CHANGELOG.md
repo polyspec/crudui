@@ -2,6 +2,35 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Type every validation rule and reject forbidden keys at every depth in the meta-schema
+
+The validators register 24 rules (`pattern` shares `match`), while the form meta-schema declared only
+`required`, `email` and `match`, and applied the forbidden key names only where it listed an object's
+property names. Values it left open were not scanned: a `_` key inside a `validate.max` condition map,
+a forbidden key inside an `options.items` element and a forbidden key added by a detail field's
+`$patch` passed the meta-schema and were rejected only by the runtime scan; those three cases were
+recorded as meta-schema passes.
+
+The meta-schema declares every registered rule. Boolean switches accept a boolean, an expression or a
+condition map; numeric rules a number, an expression or a condition map; `range` and `rangelength` two
+numbers, an expression or a condition map; `false` or `null` disables any rule. Rules whose parameter
+every engine passes unchanged accept only their literal shapes: `match`, `pattern`, `equalTo` and
+`enddate` a string, `notEqual` a scalar, `unique` a boolean or string, `accept` a string or list of
+strings and `in` a comma string, a list of scalars or a value-to-label map. `validate` stays open, as
+the [field specification](docs/spec/schema.md) states, so other rule names are accepted. Every value the
+meta-schema leaves open uses one recursive definition whose objects must have allowed key names at
+every depth; a schema walk found 38 untyped positions before the change and none after. A condition
+map for `match` was accepted before, while TypeScript and Go skip a non-string pattern, so such a
+declaration silently disabled the check; it is now rejected, and no specification in the repository
+used it. The TypeScript `ValidateSlot` type lists the same rules and the CLI description names the open
+bucket.
+
+The three cases record `expect: "fail"` with reason `propertyNames`. Comparing 368 specifications in
+the fixtures, `examples/form-structure` and `tests/fixtures/specs` against the previous meta-schema
+changed only those three and accepted none newly. `scripts/check-schema.mjs` passed 103 checks, the
+four TypeScript meta-schema and forbidden-scan conformance files passed 77 tests, the CLI suite passed
+37 tests, and the documentation writing and fixture README tests and lint passed.
+
 ## 2026-09-15 — Give every shared fixture family a README in both languages
 
 Six more fixture families under `tests/fixtures` had no README: compose, form-outline, form-session,

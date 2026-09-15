@@ -259,21 +259,64 @@ export interface PatchDirective {
  * key (e.g. `required: '.subscribe'`, `email: true`) — the condition is the
  * value's expression (G1), never a separate key.
  *
- * The named sub-keys are the canonical `slots.validate.sub_keys`
- * (`required`/`email`/`match`). The slot is polymorphic: any other registered
- * rule (e.g. `min`/`max`/`minlength`) is admitted by the index signature, but a
- * forbidden meta key never is — a schema layer rejects forbidden keys one level
- * below every slot via `propertyNames`, not by widening this type.
+ * The named members are every built-in rule, with the parameter shapes the
+ * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `notEqual`,
+ * `unique`, `enddate`, `accept`, `match`, `pattern` and `in` receive their
+ * parameter unchanged, so they take no condition map. The slot stays open: other
+ * rule names are admitted by the index signature. Forbidden meta keys are
+ * rejected at every depth by the meta-schema and the runtime scan, not by this type.
  */
 export interface ValidateSlot {
-  /** Requires a non-empty value when its optional expression evaluates true. */
-  required?: Evaluated<boolean>;
-  /** Requires a syntactically valid email address. */
-  email?: Evaluated<boolean>;
+  /** Requires a supplied, nonempty value when enabled. */
+  required?: Evaluated<boolean | null>;
+  /** Requires a syntactically valid email address when enabled. */
+  email?: Evaluated<boolean | null>;
+  /** Requires a valid URL when enabled. */
+  url?: Evaluated<boolean | null>;
+  /** Requires a finite number when enabled. */
+  number?: Evaluated<boolean | null>;
+  /** Requires digits only when enabled. */
+  digits?: Evaluated<boolean | null>;
+  /** Requires a valid date when enabled. */
+  date?: Evaluated<boolean | null>;
+  /** Requires a YYYY-MM-DD date when enabled. */
+  dateISO?: Evaluated<boolean | null>;
+  /** Minimum string length. */
+  minlength?: Evaluated<number | false | null>;
+  /** Maximum string length. */
+  maxlength?: Evaluated<number | false | null>;
+  /** Minimum and maximum string length. */
+  rangelength?: Evaluated<[number, number] | false | null>;
+  /** Numeric lower bound. */
+  min?: Evaluated<number | false | null>;
+  /** Numeric upper bound. */
+  max?: Evaluated<number | false | null>;
+  /** Numeric lower and upper bounds. */
+  range?: Evaluated<[number, number] | false | null>;
+  /** Numeric increment. */
+  step?: Evaluated<number | false | null>;
+  /** Minimum collection size. */
+  mincount?: Evaluated<number | false | null>;
+  /** Maximum collection size. */
+  maxcount?: Evaluated<number | false | null>;
   /** Regular expression the value must match. */
-  match?: Evaluated<string>;
-  /** Index signature for additional registered rules (each value is evaluated). */
-  [rule: string]: Evaluated<unknown> | undefined;
+  match?: string | false | null;
+  /** Same rule as `match`. */
+  pattern?: string | false | null;
+  /** Field whose value must be equal. */
+  equalTo?: string | false | null;
+  /** Dot-prefixed field reference or literal value the input must differ from. */
+  notEqual?: string | number | boolean | null;
+  /** Start-date field the end date must not precede. */
+  enddate?: string | false | null;
+  /** Uniqueness; a string names an item field or a filter condition. */
+  unique?: boolean | string | null;
+  /** Accepted file extensions or MIME types. */
+  accept?: string | string[] | false | null;
+  /** Allowed values: comma-separated string, list, or value-to-label map. */
+  in?: string | Array<string | number | boolean | null> | Record<string, LangMap | string | null> | false | null;
+  /** Index signature for other rule names. */
+  [rule: string]: unknown;
 }
 
 // ============================================================================
