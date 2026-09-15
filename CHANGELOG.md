@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Import the Vue server renderer through the vue peer dependency
+
+`@crudui/generator-vue` imported `@vue/server-renderer`, a development dependency outside its declared
+`vue` peer dependency. The build did not treat it as external, so the built entry carried a 2.2 MB
+bundled copy whose ES module had no named exports, and `renderForm`, `renderList` and `renderDetail`
+failed from the built package with `renderToString is not a function`. The package imports
+`vue/server-renderer`, which the peer dependency provides, and no longer declares the development
+dependency; the built ES module entry is 24 KB.
+
+The packed consumer check rendered forms only in a browser build, so server rendering was never run
+from an installed package. It now renders a form, a list and a detail from the installed React and
+Vue packages through both `import` and `require`, and from the Svelte package through Vite
+`ssrLoadModule`. With the old import the check failed with the same error. React imports
+`react-dom/server` and Svelte imports `svelte/server`, both covered by their peer dependencies. The
+Vue suite passed 396 tests and `npm run test:packages` passed.
+
 ## 2026-09-15 — Keep Korean heading anchors on the documentation site
 
 The documentation site built heading ids from NFKD text. NFKD decomposes Hangul syllables into jamo,
