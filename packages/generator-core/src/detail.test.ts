@@ -15,6 +15,20 @@ describe('buildDetail', () => {
     expect(vm.fields[1]?.display).toEqual({ kind: 'badge', variant: 'success', label: 'active' });
   });
 
+  test('rejects a declaration or record that is not an object', () => {
+    for (const spec of [null, 'detail', ['fields'], 1]) {
+      expect(() => buildDetail(spec as never)).toThrow('Detail specification must be an object');
+    }
+    expect(() => buildDetail({})).toThrow('Detail specification must declare fields');
+    expect(() => buildDetail({ fields: {} }, [] as never))
+      .toThrow('Detail record must be an object');
+  });
+
+  test('carries the same cell members a list row carries', () => {
+    const vm = buildDetail({ fields: { name: { field: '.name' } } }, { name: 'Ada' });
+    expect(Object.keys(vm.fields[0] ?? {})).toEqual(['key', 'label', 'format', 'value', 'display', 'design']);
+  });
+
   test('resolves composed detail fields', () => {
     const vm = buildDetail({ fields: { $ref: 'shared.json' } }, { name: 'Ada' }, {
       files: { 'shared.json': { properties: { name: { field: '.name' } } } },
