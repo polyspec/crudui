@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Load the public browser modules with their imports
+
+Candidate verification of the frame document change failed in the container: the source check
+that loads the public frame readiness module in Chromium read the file and imported it from a
+`data:` URL, so the shared browser matrix import it now carries could not resolve
+(`Failed to resolve module specifier "./runtime-paths.mjs"`). The check had passed only while
+every public module was a single file, and I added the import without extending it.
+
+The check now serves the public modules over HTTP, as the deployment does, and loads the
+module from a document of that origin, so the whole import graph is exercised, including the
+JSON matrix. It also asserts the module's three exports. A frame that cannot initialize now
+publishes the reason to the page instead of never publishing readiness, and the page fails
+with that reason instead of waiting for the no-progress limit.
+
+The four Chromium source checks passed, comparison source checks passed 150 tests and
+`make docs-check` passed.
+
 ## 2026-09-15 — Serve the SSR column as a server-rendered frame document
 
 The comparison page's `ssr` column was not server-rendered. Its frame document contained an
