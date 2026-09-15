@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Use GitHub-compatible documentation heading anchors
+
+The documentation site now generates heading anchors without adding an underscore
+to headings that start with a digit. Repository-relative document links therefore
+use the same fragments as GitHub source pages. The site build test and the package
+build specification in English and Korean record this rule.
+
 ## 2026-09-15 — Check every repository specification meant to be valid against the meta-schema
 
 `scripts/check-schema.mjs` checked the validity cases only, so specifications the repository relies
