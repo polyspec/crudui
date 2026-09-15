@@ -2,6 +2,35 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 스크립트 포커스의 표시 여부를 명시
+
+Safari에서 배포된 68ee49c 페이지의 PHP, React, bindForm 반복 주입 비교가 `expanded-all`,
+`undone`, `empty`, `restored`에서 CSS만 실패했습니다. 두 열 모두 같은 버튼에 포커스가 있었지만
+왼쪽 열은 포커스 테두리가 없고 오른쪽 열은 `:focus-visible` 테두리가 있었습니다. safaridriver로
+실행한 실제 Safari는 네 번 168/168 통과했고, 그중 한 번은 실제 포인터로 비교를 시작했습니다. 왼쪽
+프레임 안의 모두 펼치기를 실제 포인터로 누른 뒤에는 168개 중 8개가 실패했습니다. `copy-removed`부터
+`restored`까지 CSS가 달랐고, 단계 기록은 포커스된 컨트롤이 오른쪽 열에서만 `:focus-visible`과
+일치함을 보였습니다.
+
+Chromium, Playwright WebKit, Safari에서 측정한 결과, 포인터로 버튼에 포커스된 뒤 다른 컨트롤에
+스크립트로 `focus()`하면 `:focus-visible`과 일치하지 않으며, 세 브라우저 모두 `focus({ focusVisible
+})`가 이를 결정합니다. 바인딩은 포커스를 `focus({ preventScroll: true })`로 복원하고 `focus()`로
+옮겼으며, 비교 단계는 `focus()`로 컨트롤에 포커스했습니다. 따라서 한 프레임 안의 이전 포인터
+입력이 그 열만 바꿨습니다.
+
+이제 바인딩은 표시 여부를 명시합니다. `connectForm`은 포커스된 컨트롤이 `:focus-visible`과
+일치하는지 기록하고 그 표시 여부로 복원합니다. 작업 뒤 행이나 추가 버튼으로, 또는 구조 맵에서
+선택한 행으로 옮긴 포커스는 사용자의 위치를 옮기므로 표시합니다. 비교 페이지의 bindForm
+컨트롤러도 같은 규칙을 따르고, 비교 단계는 키보드 사용자처럼 `focusVisible: true`로 컨트롤에
+포커스합니다. 런타임과 비교 계약에 두 규칙을 명시했습니다. 페이지, 스크롤 박스, 프레임 호스트의
+Chromium 검사는 포인터로 누른 펼치기/접기 버튼을 테두리 없이 복원하는지, 테두리가 보이게 포커스한
+버튼을 테두리 있게 복원하는지, 포인터로 누른 추가가 새 행으로 보이는 포커스를 옮기는지 확인합니다.
+`connectForm` 변경이 없으면 세 호스트 모두 테두리가 보이게 포커스한 버튼에서 실패하고, 변경이
+있으면 모두 통과합니다.
+
+`npm run test:forms`(core 110, HTML 207, React 352, Vue 342, Svelte 339·10, Chromium 17), `npm run
+test:form-comparison:source` 141개와 `:browser` 3개, `make docs-check`가 통과했습니다.
+
 ## 2026-09-14 — 비교 저장소 잠금이 브라우저 하나에만 적용됨을 명시
 
 Playwright WebKit 비교가 배포에 대해 실행되는 동안 사용자의 Safari 검사가 끝나지 않았습니다. 각

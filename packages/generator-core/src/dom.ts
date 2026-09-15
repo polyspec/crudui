@@ -58,6 +58,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     start: number | null;
     end: number | null;
     direction?: 'forward' | 'backward' | 'none';
+    visible: boolean;
   } | undefined;
   // Focus destination of the last action, applied after the next render.
   let destination: FocusTarget | undefined;
@@ -95,17 +96,22 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         start: active.selectionStart ?? null,
         end: active.selectionEnd ?? null,
         direction: active.selectionDirection ?? undefined,
+        visible: active.matches(':focus-visible'),
       };
     }
   };
-  /** Keep the focused control and its text selection; scroll positions belong to the user. */
+  /**
+   * Keep the focused control, its text selection and whether its focus is visible; scroll
+   * positions belong to the user. Visibility is set explicitly: a browser decides it for a
+   * scripted focus from earlier pointer input, which differs between documents.
+   */
   const restoreFocus = () => {
     if (!focus) return;
     const control = element.contains(focus.active) ? focus.active
       : focus.action ? actionButton(focus.action)
         : controls().find(c => c.name === focus!.name);
     if (control) {
-      control.focus({ preventScroll: true });
+      control.focus({ preventScroll: true, focusVisible: focus.visible });
       if (focus.start !== null && 'setSelectionRange' in control) {
         (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
       }
@@ -115,6 +121,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
    * Focus the row an action affected, or the enclosing row or Add button of an emptied
    * collection. The browser scrolls the focused control into view only as far as needed;
    * the stylesheet's scroll margins keep it clear of the sticky headers and the footer.
+   * Moving focus relocates the user, so the moved focus is visible.
    */
   const moveFocus = ({ path, key }: FocusTarget) => {
     const row = key === undefined
@@ -123,7 +130,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     const control = row ? firstRowControl(row)
       : Array.from(element.querySelectorAll<HTMLButtonElement>('[data-crudui-action="add-row"]'))
         .find(button => !unavailable(button) && resolveAction(button)?.path === path);
-    control?.focus();
+    control?.focus({ focusVisible: true });
   };
   const onInput = (event: Event) => {
     const control = event.target as Control;
@@ -236,7 +243,7 @@ export function connectOutline(element: HTMLElement, session: FormInstance, form
     event.preventDefault();
     if (target.name === 'select-row' && result.focus?.key !== undefined) {
       const row = rowElement(formElement, result.focus.path, result.focus.key);
-      if (row) firstRowControl(row)?.focus();
+      if (row) firstRowControl(row)?.focus({ focusVisible: true });
     }
   };
   element.addEventListener('click', onClick);

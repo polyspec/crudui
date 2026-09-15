@@ -2,6 +2,38 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Set whether scripted focus is visible
+
+In Safari, the repeated injection comparison for PHP, React and bindForm on the deployed
+68ee49c page failed `expanded-all`, `undone`, `empty` and `restored` on CSS only: focus was on
+the same button in both columns, but the left column showed no focus outline and the right
+column showed the `:focus-visible` outline. Real Safari driven by safaridriver passed 168/168
+four times, once with the comparison started by a real pointer press. After a real pointer
+press on Expand all inside the left frame, the comparison failed 8 of 168: `copy-removed`
+through `restored` differed on CSS, and the stage records showed the focused control matching
+`:focus-visible` in the right column and not in the left.
+
+Measured in Chromium, Playwright WebKit and Safari: after a pointer press focuses a button, a
+scripted `focus()` on another control does not match `:focus-visible`, and `focus({ focusVisible
+})` decides it in all three. The bindings restored focus with `focus({ preventScroll: true })`
+and moved it with `focus()`, and the comparison stages focused controls with `focus()`, so
+pointer input earlier in one frame changed only that column.
+
+The bindings now set visibility explicitly. `connectForm` records whether the focused control
+matches `:focus-visible` and restores it with that visibility; focus moved to a row or an Add
+button after an action, or to a row selected in the structure map, is visible, because the
+move relocates the user. The comparison page's bindForm controller follows the same rule, and
+the comparison stages focus controls with `focusVisible: true`, as a keyboard user does. The
+runtime and comparison contracts state both rules. A Chromium check in the page, box and frame
+hosts presses a toggle with the pointer, restores it without visible focus, restores a visibly
+focused toggle with visible focus, and presses Add with the pointer to move visible focus to
+the new row. Without the `connectForm` change it fails in all three hosts on the visibly
+focused toggle; with it all pass.
+
+`npm run test:forms` passed (core 110, HTML 207, React 352, Vue 342, Svelte 339 and 10,
+Chromium 17), `npm run test:form-comparison:source` passed 141 and `:browser` 3, and `make
+docs-check` passed.
+
 ## 2026-09-14 — State that the comparison storage lock covers one browser
 
 While a Playwright WebKit comparison ran against the deployment, a check in the user's Safari

@@ -148,6 +148,7 @@ export function bindFormController(element, mount, template, language, initialDa
       action: active.matches?.('button[data-crudui-action]') ? resolveAction(active) : undefined,
       start: active.selectionStart ?? null, end: active.selectionEnd ?? null,
       direction: active.selectionDirection ?? undefined,
+      visible: active.matches(':focus-visible'),
     };
   }
 
@@ -165,7 +166,7 @@ export function bindFormController(element, mount, template, language, initialDa
       : focus.action ? actionButton(focus.action)
         : focus.name ? Array.from(element.querySelectorAll('[name]'))
           .find(control => control.getAttribute('name') === focus.name) : undefined;
-    active?.focus({ preventScroll: true });
+    active?.focus({ preventScroll: true, focusVisible: focus.visible });
     if (focus.start !== null && active?.setSelectionRange) {
       active.setSelectionRange(focus.start, focus.end, focus.direction);
     }
@@ -206,7 +207,7 @@ export function bindFormController(element, mount, template, language, initialDa
     const control = row ? firstRowControl(row)
       : Array.from(element.querySelectorAll('[data-crudui-action="add-row"]'))
         .find(button => button.getAttribute('aria-disabled') !== 'true' && pathOf(button) === path);
-    control?.focus();
+    control?.focus({ focusVisible: true });
   }
 
   async function render(focus, version, target) {
@@ -300,7 +301,7 @@ export function bindFormController(element, mount, template, language, initialDa
       // Selecting from the structure map focuses the form row, as connectOutline does.
       event.preventDefault();
       const row = rowElement(path, key);
-      if (row) firstRowControl(row)?.focus();
+      if (row) firstRowControl(row)?.focus({ focusVisible: true });
       return;
     }
     const segments = pathSegments(path);
