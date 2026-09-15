@@ -169,6 +169,11 @@ the sticky headers and the footer. No script follows the scroll position, and th
 bindings never restore scroll positions. Toggling, selecting and undoing keep the
 focused control, including a focused action button, without scrolling.
 
+The bindings set whether a focus they give is visible (`focus({ focusVisible })`)
+instead of leaving it to the browser, which decides a scripted focus from earlier
+pointer input in the document. A restored control keeps the visibility its focus had;
+focus moved to a row or an Add button is visible, because the move relocates the user.
+
 Validation receives the submitted keyed data. Repeated group and scalar fields
 preserve their keys in error paths. Collection rules (`required`, `unique`,
 `mincount`, `maxcount`) inspect the collection; other scalar rules inspect each
