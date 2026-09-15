@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const html = await readFile(new URL('./index.html', import.meta.url), 'utf8');
 const script = await readFile(new URL('./main.mjs', import.meta.url), 'utf8');
+const server = await readFile(new URL('../server.mjs', import.meta.url), 'utf8');
 
 test('the public entry delegates navigation to CRUDUI generated links', () => {
   assert.doesNotMatch(html + script, /data-stage|stage=|List refresh/);
@@ -21,6 +22,12 @@ test('the canonical form has a real link back to the list and one bounded frame'
   assert.match(html, /data-view="list"/);
   assert.match(html, /id="form-frame"/);
   assert.doesNotMatch(html, /id="ssr"|id="csr"/);
+});
+
+test('SSR page rendering is a server document contract, not a client-only flag', () => {
+  assert.match(server, /data-pipeline-initialization/);
+  assert.match(server, /pipelineMarkup\(url, match\)/);
+  assert.match(script, /dataset\.pipelineInitialization/);
 });
 
 test('runtime selection writes the newly selected initialization into the navigation URL', () => {
