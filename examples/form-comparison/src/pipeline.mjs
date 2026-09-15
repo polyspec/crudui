@@ -2,13 +2,14 @@ import { renderDetail, renderList } from '@crudui/generator-html';
 
 const listBase = {
   columns: {
-    name: { field: 'name', label: { ko: '이름', en: 'Name' }, format: { type: 'link', href: '/detail?id={=id}', text: { ko: '상세 보기', en: 'Open detail' } } },
-    status: { field: 'status', label: { ko: '상태', en: 'Status' }, format: { type: 'badge', map: { active: 'success', blocked: 'danger' } } },
-    joined: { field: 'joined', label: { ko: '가입일', en: 'Joined' }, format: { type: 'date', pattern: 'YYYY-MM-DD' } },
-    score: { field: 'score', label: { ko: '점수', en: 'Score' }, format: { type: 'number', decimals: 2, thousands: true, prefix: '$' } },
-    relation: { field: 'relation.name', label: { ko: '연관 이름', en: 'Related name' }, format: 'text' },
-    avatar: { field: 'avatar', label: { ko: '이미지', en: 'Image' }, format: { type: 'image', width: 32, height: 32, alt: '{=name}.png' } },
-    markup: { field: 'markup', label: { ko: 'HTML', en: 'HTML' }, format: 'html' },
+    id: { field: 'id', label: { ko: '식별자', en: 'ID' }, design: { class: 'pipeline-align-number' }, format: { type: 'number', thousands: false } },
+    name: { field: 'name', label: { ko: '이름', en: 'Name' }, design: { class: 'pipeline-align-text' }, format: { type: 'link', href: '/detail?id={=id}', text: { ko: '상세 보기', en: 'Open detail' } } },
+    status: { field: 'status', label: { ko: '상태', en: 'Status' }, design: { class: 'pipeline-align-center' }, format: { type: 'badge', map: { active: 'success', blocked: 'danger' } } },
+    joined: { field: 'joined', label: { ko: '가입일', en: 'Joined' }, design: { class: 'pipeline-align-center' }, format: { type: 'date', pattern: 'YYYY-MM-DD' } },
+    score: { field: 'score', label: { ko: '점수', en: 'Score' }, design: { class: 'pipeline-align-number' }, format: { type: 'number', thousands: true, prefix: '$' } },
+    relation: { field: 'relation.name', label: { ko: '연관 이름', en: 'Related name' }, design: { class: 'pipeline-align-text' }, format: 'text' },
+    avatar: { field: 'avatar', label: { ko: '이미지', en: 'Image' }, design: { class: 'pipeline-align-image' }, format: { type: 'image', width: 32, height: 32, alt: '{=name}.png' } },
+    markup: { field: 'markup', label: { ko: 'HTML', en: 'HTML' }, design: { class: 'pipeline-align-text' }, format: 'html' },
   },
   sort: { field: 'name', dir: 'asc' }, pagination: { per_page: 20, mode: 'offset' },
 };
