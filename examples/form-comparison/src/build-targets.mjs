@@ -94,7 +94,7 @@ export const buildTargets = Object.freeze([
   {
     id: 'public-server',
     timeoutMs: 60_000,
-    inputs: [`${example}/server.mjs`, `${example}/src/json.mjs`, `${example}/src/runtime-paths.mjs`],
+    inputs: [`${example}/server.mjs`, `${example}/src/json.mjs`, `${example}/src/runtime-paths.mjs`, `${example}/check.mjs`],
     dependsOn: [],
     steps: [],
     restarts: ['public'],
