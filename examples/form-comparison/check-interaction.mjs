@@ -8,10 +8,12 @@ const actions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboa
 const collectionSelector = '[data-field-path="companies"]';
 const storeSelector = 'input[name$="[stores][__0000000000001__][name]"]';
 
-/** Clear a text control deterministically on the Linux Chromium runner. */
+/** Clear a text control deterministically without relying on multi-click selection. */
 async function clearInput(input) {
-  await input.click();
-  await input.press('Control+A');
+  await input.evaluate(element => {
+    element.focus();
+    element.select();
+  });
   await input.press('Backspace');
 }
 
