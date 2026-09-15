@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-16 — Remove retired public route artifacts during builds
+
+Persistent build volumes now remove the retired `public/displays/` output before copying current
+public assets. This prevents an older generated route from remaining accessible after the source
+directory is deleted.
+
 ## 2026-09-16 — Make the root example a single CRUD pipeline
 
 The public root now presents List → Detail → Form → Save → List refresh in one page, with links
