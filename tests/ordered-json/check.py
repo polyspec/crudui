@@ -11,13 +11,14 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-REVISION = '7a2b4682f002f73b6c44e77012d39ff199c9331d'
-SUBMODULES = {
-    'js': 'd3b1f3473ce2645c79c772940df622c4d8b0bca7',
-    'rust': '266ab5c95d7095342521701994462c9f057cde1b',
-    'go': '2588cbd59b442e9c7231a1b8d945a16142851141',
-    'php': '2571dacad60affcc299972474b53f2b9e6848967',
-    'php-extension': '1dcb0cff184a0618de810febfe651a50b2a06cd0',
+VERSION = '0.0.1'
+REVISION = '26c2aebc97896e280d3a6b8f5e8e1d85e2282b83'
+PACKAGES = {
+    'js': 'js',
+    'rust': 'rust',
+    'go': 'go',
+    'php': 'php',
+    'php-extension': 'php-extension',
 }
 LANGUAGES = ['js', 'php', 'php-extension', 'go', 'rust']
 
@@ -98,7 +99,7 @@ def fixtures():
 
 def source_revisions(checkout):
     revisions = {}
-    for name, expected in {'.': REVISION, **SUBMODULES}.items():
+    for name, expected in {'.': REVISION}.items():
         directory = checkout / name
         root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=directory, text=True).strip()
         if Path(root).resolve() != directory.resolve():
@@ -176,8 +177,9 @@ def main():
         parser.error(str(error))
 
     report = {'generatedAt': datetime.now(timezone.utc).isoformat(),
+              'orderedJsonVersion': VERSION,
               'orderedJsonCommit': revisions['.'],
-              'orderedJsonSubmodules': {name: revisions[name] for name in SUBMODULES},
+              'orderedJsonPackages': PACKAGES,
               'cruduiCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'runnerSha256': sha256(Path(__file__).read_bytes()).hexdigest(),
               'scope': 'JSON processor parsing, serialization and reconstruction; no runtime integration',
@@ -191,8 +193,8 @@ def main():
         registry = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(registry)
         repositories = registry.repository_paths(checkout)
-        if set(repositories.values()) != {(checkout / name).resolve() for name in SUBMODULES}:
-            raise ValueError('The implementation registry must use the five pinned submodule paths')
+        if set(repositories.values()) != {(checkout / name).resolve() for name in PACKAGES.values()}:
+            raise ValueError('The implementation registry must use the five monorepo package paths')
         cache = checkout / '.cache/probes'
         report['buildWarnings'] = registry.prepare(LANGUAGES, repositories, cache)
         commands = registry.adapter_commands(LANGUAGES, repositories, cache)

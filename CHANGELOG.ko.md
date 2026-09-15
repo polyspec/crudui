@@ -1,6 +1,22 @@
 # 변경 기록
 
+## 2026-09-15 — OrderedJSON 비교 소스를 변경된 커밋에 고정
+
+비교 소스 버전은 `0.0.1`로 유지하고 깨끗한
+`polyspec/ordered-json` 커밋 `26c2aebc97896e280d3a6b8f5e8e1d85e2282b83`를 사용합니다.
+
+## 2026-09-15 — 비교 소스에서 운영자 로컬 Claude 설정 제외
+
+비교 source identity와 동기화에서 `.claude/settings.local.json`을 제외합니다.
+
 [English](CHANGELOG.md).
+
+## 2026-09-15 — OrderedJSON 비교 소스를 모노레포에 고정
+
+form-comparison supervisor와 다언어 검증기가 이제 `polyspec/ordered-json`의
+변경 불가능한 커밋 하나를 사용합니다. JavaScript, Go, PHP, PHP 확장, Rust는
+하나의 체크아웃 안의 패키지 디렉터리로 검증하며, submodule 리비전과 submodule
+갱신은 소스 계약에 포함하지 않습니다.
 
 ## 2026-09-15 — 검증 러너의 진행 상황을 출력하고 테스트별 제한을 적용
 

@@ -78,7 +78,9 @@ function rootExampleEntrypoints() {
     'examples/cross-check-console/server/*.mjs',
   ]);
   assert.equal(result.status, 0, result.stderr);
-  return result.stdout.trim().split('\n').filter(Boolean);
+  return result.stdout.trim().split('\n').filter((filename) => (
+    filename && existsSync(path.join(root, filename))
+  ));
 }
 
 function importedPackageNames(filename) {

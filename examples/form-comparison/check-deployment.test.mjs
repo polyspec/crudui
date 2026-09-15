@@ -1,296 +1,162 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
 import {
-  assertStableDeployment, cleanupDeploymentArtifacts, deploymentCleanupPlan,
-  preserveDeploymentDirectory, readDeploymentAuthority, renderDeploymentCompose,
-  verifyCandidateEvidence,
+  assertStableDeployment, containerctlHealthLimits, deploymentCleanupPlan, deploymentCpus,
+  deploymentHealth, deploymentHealthBudgetSeconds, deploymentMemory, deploymentStepLimitsMs,
+  deploymentVolumes, preserveDeploymentDirectory, readDeploymentAuthority,
+  removeRetiredComparisonPaths, renderDeploymentCompose, toolchainImageName,
+  toolchainImageReference,
 } from './comparison-deployment.mjs';
-import {
-  expectedGenerationCombinations, expectedGenerationRequests, expectedGenerationResults,
-  finalizeGenerationReport, generationFrameworks, generationRenderingPaths, generationServers,
-} from './check-generation.mjs';
-import { finalizePersistenceReport, persistenceCheckIds } from './persistence-report.mjs';
-import { browserPaths, expectedBrowserSections } from './browser-report-policy.mjs';
 
-const commit = 'a'.repeat(40);
-const metadata = {
-  source: { commit, archiveSha256: '1'.repeat(64) },
-  orderedJson: { commit: 'b'.repeat(40) },
-};
-const generationCheckIds = [
-  'load-current-record', 'compile-reference', 'reject-missing-reference',
-  'render-and-inject/nested-order', 'render-and-inject/explicit-empty',
-  'render-and-inject/default-rows', 'render-and-inject/stored-en',
-  'render-and-inject/stored-ko', 'frame-document', 'ssr/en', 'ssr/ko', 'reject-ssr-request',
-  'reject-invalid-render-data', 'stored-record-unchanged',
-];
+const repositoryRoot = '/Users/example/crudui';
+const containerfile = await readFile(new URL('./Containerfile', import.meta.url));
+const imageReference = toolchainImageReference(containerfile);
 
-function generationReport() {
-  const templateHash = '2'.repeat(64);
-  const results = generationServers.flatMap(server => generationRenderingPaths.flatMap(renderingPath =>
-    generationFrameworks.flatMap(framework => generationCheckIds.map(id => {
-      let evidence;
-      if (id === 'compile-reference') {
-        evidence = { serializedTemplateSha256: templateHash,
-          referenceReads: server === 'go' || server === 'rust' ? 1 : null };
-      } else if (id === 'reject-missing-reference') {
-        evidence = { retainedTemplateSha256: templateHash };
-      } else if (id.startsWith('render-and-inject/')) {
-        evidence = { afterRejectedCompile: true, serializedTemplateSha256: templateHash };
-      }
-      return { server, path: renderingPath, framework, id, passed: true, evidence };
-    }))));
-  results.push(
-    { server: 'shared', path: 'all', framework: 'all', id: 'library-and-source', passed: true },
-    { server: 'shared', path: 'all', framework: 'all', id: 'unchanged-library-inputs', passed: true },
-  );
-  return finalizeGenerationReport({
-    servers: generationServers, renderingPaths: generationRenderingPaths,
-    frameworks: generationFrameworks, metadata, results,
-    requests: Array.from({ length: expectedGenerationRequests }, () => ({})),
-  }, '2026-09-10T00:01:00.000Z');
-}
-
-function serverReport() {
-  const results = generationServers.flatMap(server => generationRenderingPaths.flatMap(renderingPath =>
-    persistenceCheckIds.map(id => ({ server, path: renderingPath, id, passed: true }))));
-  return finalizePersistenceReport(results, metadata, '2026-09-10T00:02:00.000Z');
-}
-
-function browserSummary() {
-  const sections = Object.fromEntries(Object.entries(expectedBrowserSections())
-    .map(([section, total]) => [section, { total, failed: 0 }]));
-  return {
-    generatedAt: '2026-09-10T00:03:00.000Z', metadata, complete: true, passed: true,
-    performancePassed: true, failedChecks: 0,
-    verification: { bindForm: structuredClone(sections), createForm: structuredClone(sections) },
-    serverRuns: generationServers.map(server => ({
-      server, complete: true, passed: true, failedChecks: 0,
-      performance: { durationMs: 100, budgetMs: 900_000, passed: true },
-    })),
-  };
-}
-
-async function evidenceFixture(t) {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-deployment-'));
+async function temporaryDirectory(t, prefix) {
+  const directory = await mkdtemp(path.join(tmpdir(), prefix));
   t.after(() => import('node:fs/promises').then(({ rm }) => rm(directory, { recursive: true, force: true })));
-  await mkdir(path.join(directory, 'context'));
-  await mkdir(path.join(directory, 'results'));
-  await writeFile(path.join(directory, 'context/metadata.json'), JSON.stringify(metadata));
-  await writeFile(path.join(directory, 'results/generation.json'), JSON.stringify(generationReport()));
-  await writeFile(path.join(directory, 'results/server-report.json'), JSON.stringify(serverReport()));
-  await writeFile(path.join(directory, 'results/browser-summary.json'), JSON.stringify(browserSummary()));
   return directory;
 }
 
-test('accepts complete candidate evidence for one exact commit', async t => {
-  const directory = await evidenceFixture(t);
-  const result = await verifyCandidateEvidence(directory, commit);
-  assert.equal(result.commit, commit);
-  assert.equal(result.generation.results, expectedGenerationResults);
-  assert.equal(result.generation.requests, expectedGenerationRequests);
-  assert.equal(result.generation.combinations, expectedGenerationCombinations);
-  assert.equal(result.persistence.results, 120);
-  assert.equal(result.browser.checks,
-    browserPaths.length * Object.values(expectedBrowserSections()).reduce((sum, total) => sum + total, 0));
+test('names the toolchain image by the Containerfile content alone', () => {
+  assert.match(imageReference, /^localhost\/crudui-form-comparison-toolchain:[0-9a-f]{16}$/);
+  assert.equal(toolchainImageReference(Buffer.from(containerfile)), imageReference);
+  assert.notEqual(toolchainImageReference(Buffer.concat([containerfile, Buffer.from('\n')])),
+    imageReference);
 });
 
-test('rejects failed, incomplete and stale candidate evidence', async t => {
-  const directory = await evidenceFixture(t);
-  const reportPath = path.join(directory, 'results/server-report.json');
-  const failed = serverReport();
-  failed.results[0].passed = false;
-  failed.passed = false;
-  failed.failedChecks = 1;
-  await writeFile(reportPath, JSON.stringify(failed));
-  await assert.rejects(verifyCandidateEvidence(directory, commit), /Persistence report failed/);
+test('renders one deterministic deployment that mounts the repository read-only', () => {
+  const first = renderDeploymentCompose({ repositoryRoot, imageReference });
+  assert.equal(renderDeploymentCompose({ repositoryRoot, imageReference }), first);
+  assert.match(first, new RegExp(`^    image: ${imageReference}$`, 'm'));
+  assert.match(first, /^      containerctl\.domain: crudui\.test$/m);
+  const volumes = first.split('\n').filter(line => line.startsWith('      - '))
+    .map(line => JSON.parse(line.slice('      - '.length)));
+  assert.deepEqual(volumes, [
+    `${repositoryRoot}:/workspace/source:ro`,
+    'build:/workspace/build',
+    'cache:/workspace/cache',
+    './data:/data',
+    './results:/results',
+  ]);
+  assert.ok(first.endsWith([
+    'volumes:', '  build:', `    name: ${deploymentVolumes.build}`,
+    '  cache:', `    name: ${deploymentVolumes.cache}`, '',
+  ].join('\n')));
+  // Nothing in the definition depends on a commit, an archive or an image digest.
+  assert.doesNotMatch(first, /[0-9a-f]{40}|sha256:|metadata|archive/);
 
-  await writeFile(reportPath, JSON.stringify(serverReport()));
-  await assert.rejects(verifyCandidateEvidence(directory, 'c'.repeat(40)), /Candidate metadata commit differs/);
-});
-
-test('renders one deterministic deployment definition for the verified image', () => {
-  const imageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
-  const first = renderDeploymentCompose({ commit, imageReference });
-  const second = renderDeploymentCompose({ commit, imageReference });
-  assert.equal(first, second);
-  assert.match(first, new RegExp(`image: ${imageReference}`));
-  assert.match(first, /containerctl\.domain: crudui\.test/);
-  assert.ok(first.includes('./data:/data'));
-  assert.ok(!first.includes('./results:/results'));
-  assert.match(first, new RegExp(commit));
   const healthLine = first.split('\n').find(line => line.startsWith('      test: '));
   const healthCommand = JSON.parse(healthLine.slice('      test: '.length));
   assert.deepEqual(healthCommand.slice(0, 2), ['CMD', 'node']);
   assert.doesNotThrow(() => new Function(healthCommand[3]));
-  const interval = Number(first.match(/^      interval: (\d+)s$/m)?.[1]);
-  const retries = Number(first.match(/^      retries: (\d+)$/m)?.[1]);
-  assert.ok(Number.isInteger(interval) && interval > 0,
-    'Deployment health interval must contain positive whole seconds');
-  assert.ok(Number.isInteger(retries) && retries >= 1 && retries <= 100,
-    'Deployment health retries must be within containerctl range 1..100');
-  assert.ok(interval * retries >= 120,
-    'Deployment health check must allow at least 120 seconds for readiness');
+  assert.match(healthCommand[3], /\/api\/health/);
+  assert.match(first, new RegExp(`^    cpus: "${deploymentCpus}"$`, 'm'));
+  assert.match(first, new RegExp(`^    mem_limit: ${deploymentMemory}$`, 'm'));
 });
 
-test('selects temporary comparison resources after successful deployment', () => {
-  const deployedImageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
-  const previousCommit = 'b'.repeat(40);
-  const oldImageReference = `localhost/crudui-form-comparison:${previousCommit.slice(0, 12)}`;
-  const retiredDeploymentImage = 'localhost/crudui-form-comparison:dfe70a6';
-  const plan = deploymentCleanupPlan({
-    deployedImageReference,
-    retiredImageReferences: [retiredDeploymentImage],
-    candidateDirectories: [`/repo/.form-comparison/candidates/${commit}`,
-      `/repo/.form-comparison/candidates/${previousCommit}`,
-      '/repo/.form-comparison/candidates/notes'],
-    containers: [
-      { id: 'crudui-comparison', state: 'running', imageReference: deployedImageReference },
-      { id: `crudui-form-comparison-${commit.slice(0, 12)}`, state: 'running',
-        imageReference: deployedImageReference },
-      { id: `crudui-form-comparison-${previousCommit.slice(0, 12)}`, state: 'stopped',
-        imageReference: oldImageReference },
-      { id: 'comparison-diagnostic', state: 'running', imageReference: oldImageReference },
-      { id: 'unrelated', state: 'running', imageReference: 'docker.io/library/node:26' },
-    ],
-    imageReferences: [deployedImageReference, oldImageReference,
-      'localhost/crudui-form-comparison:manual', 'docker.io/library/node:26'],
+test('waits for health within a budget sized from the measured start', () => {
+  const compose = renderDeploymentCompose({ repositoryRoot, imageReference });
+  const seconds = key => Number(compose.match(new RegExp(`^      ${key}: (\\d+)s$`, 'm'))?.[1]);
+  const [interval, timeout, startPeriod] = ['interval', 'timeout', 'start_period'].map(seconds);
+  const retries = Number(compose.match(/^      retries: (\d+)$/m)?.[1]);
+  assert.deepEqual({ interval, timeout, retries, startPeriod }, {
+    interval: deploymentHealth.intervalSeconds, timeout: deploymentHealth.timeoutSeconds,
+    retries: deploymentHealth.retries, startPeriod: deploymentHealth.startPeriodSeconds,
   });
-  assert.deepEqual(plan, {
-    runningContainerIds: [`crudui-form-comparison-${commit.slice(0, 12)}`],
-    containerIds: [`crudui-form-comparison-${commit.slice(0, 12)}`,
-      `crudui-form-comparison-${previousCommit.slice(0, 12)}`],
-    candidateDirectories: [`/repo/.form-comparison/candidates/${commit}`,
-      `/repo/.form-comparison/candidates/${previousCommit}`],
-    imageReferences: [oldImageReference, retiredDeploymentImage],
-  });
-});
 
-test('removes candidate files and comparison resources after successful deployment', async t => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-cleanup-'));
-  t.after(() => import('node:fs/promises').then(({ rm }) =>
-    rm(directory, { recursive: true, force: true })));
-  const candidateRoot = path.join(directory, 'candidates');
-  const previousCommit = 'b'.repeat(40);
-  const currentCandidate = path.join(candidateRoot, commit);
-  const previousCandidate = path.join(candidateRoot, previousCommit);
-  const deploymentResultsDirectory = path.join(directory, 'deployment/results');
-  const retiredResultsDirectory = path.join(directory, 'retired/.form-comparison/results');
-  for (const target of [currentCandidate, previousCandidate, deploymentResultsDirectory,
-    retiredResultsDirectory]) {
-    await mkdir(target, { recursive: true });
-    await writeFile(path.join(target, 'result.json'), '{}\n');
+  // containerctl accepts interval and timeout above zero and start_period from zero, each at
+  // most 10 minutes, 1 through 100 retries, and a startup budget of at most 30 minutes.
+  for (const [name, value] of [['interval', interval], ['timeout', timeout]]) {
+    assert.ok(Number.isInteger(value) && value > 0
+      && value <= containerctlHealthLimits.maxDurationSeconds,
+    `Deployment health ${name} must be whole seconds above zero and at most 10 minutes`);
   }
-  const deployedImageReference = `localhost/crudui-form-comparison:${commit.slice(0, 12)}`;
-  const oldImageReference = `localhost/crudui-form-comparison:${previousCommit.slice(0, 12)}`;
-  const calls = [];
-  const plan = await cleanupDeploymentArtifacts({
-    deployedImageReference, candidateRoot, deploymentResultsDirectory,
-    retiredResultsDirectories: [retiredResultsDirectory],
-    resources: {
-      candidateDirectories: [currentCandidate, previousCandidate],
-      containers: [
-        { id: 'crudui-comparison', state: 'running', imageReference: deployedImageReference },
-        { id: `crudui-form-comparison-${commit.slice(0, 12)}`, state: 'running',
-          imageReference: deployedImageReference },
-        { id: `crudui-form-comparison-${previousCommit.slice(0, 12)}`, state: 'stopped',
-          imageReference: oldImageReference },
-      ],
-      imageReferences: [deployedImageReference, oldImageReference],
-    },
-    runCommand: async (command, args) => { calls.push([command, args]); },
+  assert.ok(Number.isInteger(startPeriod) && startPeriod >= 0
+    && startPeriod <= containerctlHealthLimits.maxDurationSeconds,
+  'Deployment health start_period must be whole seconds from zero to 10 minutes');
+  assert.ok(Number.isInteger(retries) && retries >= containerctlHealthLimits.minRetries
+    && retries <= containerctlHealthLimits.maxRetries,
+  'Deployment health retries must be within containerctl range 1..100');
+
+  // The measured start answered health 58 seconds after the container started. The budget covers
+  // that with margin and stays far below containerctl's 30 minutes, which no step may take.
+  const budget = startPeriod + retries * (interval + timeout);
+  assert.equal(budget, deploymentHealthBudgetSeconds);
+  assert.equal(budget, 360);
+  assert.ok(budget < containerctlHealthLimits.maxBudgetSeconds,
+    'A whole run never gets one thirty minute timeout');
+  assert.equal(deploymentStepLimitsMs['containerctl-up'], (budget + 60) * 1_000,
+    'Applying the definition waits the health budget and one minute for containerctl itself');
+  for (const [id, limit] of Object.entries(deploymentStepLimitsMs)) {
+    assert.ok(Number.isSafeInteger(limit) && limit > 0, `${id} must carry its own timeout`);
+  }
+});
+
+test('rejects a relative repository root and an image other than the toolchain', () => {
+  assert.throws(() => renderDeploymentCompose({ repositoryRoot: 'crudui', imageReference }),
+    /absolute path/);
+  assert.throws(() => renderDeploymentCompose({ repositoryRoot: '/a:b', imageReference }),
+    /without a colon/);
+  assert.throws(() => renderDeploymentCompose({
+    repositoryRoot, imageReference: 'localhost/crudui-form-comparison:a40f434f4f75',
+  }), /toolchain image/);
+});
+
+test('selects comparison images that no container uses after deployment', () => {
+  const retiredToolchain = `${toolchainImageName}:${'0'.repeat(16)}`;
+  const usedToolchain = `${toolchainImageName}:${'1'.repeat(16)}`;
+  const retiredCandidate = 'localhost/crudui-form-comparison:a40f434f4f75';
+  const plan = deploymentCleanupPlan({
+    deployedImageReference: imageReference,
+    imageReferences: [imageReference, retiredCandidate, retiredToolchain, usedToolchain,
+      'docker.io/library/node:26-trixie-slim', 'localhost/unrelated:1'],
+    containers: [
+      { id: 'crudui-comparison', imageReference },
+      { id: 'diagnostic', imageReference: usedToolchain },
+    ],
   });
-  assert.deepEqual(calls, [
-    ['container', ['stop', `crudui-form-comparison-${commit.slice(0, 12)}`]],
-    ['container', ['delete', `crudui-form-comparison-${commit.slice(0, 12)}`,
-      `crudui-form-comparison-${previousCommit.slice(0, 12)}`]],
-    ['container', ['image', 'delete', oldImageReference]],
-  ]);
-  assert.deepEqual(plan.candidateDirectories, [currentCandidate, previousCandidate]);
-  await assert.rejects(readFile(currentCandidate), /ENOENT/);
-  await assert.rejects(readFile(previousCandidate), /ENOENT/);
-  await assert.rejects(readFile(deploymentResultsDirectory), /ENOENT/);
-  await assert.rejects(readFile(retiredResultsDirectory), /ENOENT/);
+  assert.deepEqual(plan, { imageReferences: [retiredToolchain, retiredCandidate].sort() });
+  assert.throws(() => deploymentCleanupPlan({
+    deployedImageReference: retiredCandidate, imageReferences: [], containers: [],
+  }), /Deployed comparison image reference is invalid/);
 });
 
-test('rejects candidate cleanup outside the candidate directory', async t => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-cleanup-boundary-'));
-  t.after(() => import('node:fs/promises').then(({ rm }) =>
-    rm(directory, { recursive: true, force: true })));
-  const candidateRoot = path.join(directory, 'candidates');
-  const outside = path.join(directory, 'b'.repeat(40));
-  await mkdir(candidateRoot);
-  await mkdir(outside);
-  const calls = [];
-  await assert.rejects(cleanupDeploymentArtifacts({
-    deployedImageReference: `localhost/crudui-form-comparison:${commit.slice(0, 12)}`,
-    candidateRoot, deploymentResultsDirectory: path.join(directory, 'deployment/results'),
-    resources: { candidateDirectories: [outside], containers: [], imageReferences: [] },
-    runCommand: async (...args) => { calls.push(args); },
-  }), /Candidate cleanup path is invalid/);
-  assert.deepEqual(calls, []);
-  await writeFile(path.join(outside, 'retained'), 'retained');
-  assert.equal(await readFile(path.join(outside, 'retained'), 'utf8'), 'retained');
-});
-
-test('rejects deployment results cleanup outside the comparison directory', async t => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-results-boundary-'));
-  t.after(() => import('node:fs/promises').then(({ rm }) =>
-    rm(directory, { recursive: true, force: true })));
-  const candidateRoot = path.join(directory, 'candidates');
-  const outside = path.join(directory, 'outside');
-  await mkdir(candidateRoot);
-  await mkdir(outside);
-  const calls = [];
-  await assert.rejects(cleanupDeploymentArtifacts({
-    deployedImageReference: `localhost/crudui-form-comparison:${commit.slice(0, 12)}`,
-    candidateRoot, deploymentResultsDirectory: outside,
-    resources: { candidateDirectories: [], containers: [], imageReferences: [] },
-    runCommand: async (...args) => { calls.push(args); },
-  }), /Deployment results cleanup path is invalid/);
-  assert.deepEqual(calls, []);
-});
-
-test('rejects a retired results directory outside a comparison state directory', async t => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-retired-results-boundary-'));
-  t.after(() => import('node:fs/promises').then(({ rm }) =>
-    rm(directory, { recursive: true, force: true })));
-  const candidateRoot = path.join(directory, 'candidates');
-  const invalidResults = path.join(directory, 'results');
-  await mkdir(candidateRoot);
-  await mkdir(invalidResults);
-  const calls = [];
-  await assert.rejects(cleanupDeploymentArtifacts({
-    deployedImageReference: `localhost/crudui-form-comparison:${commit.slice(0, 12)}`,
-    candidateRoot,
-    deploymentResultsDirectory: path.join(directory, 'deployment/results'),
-    retiredResultsDirectories: [invalidResults],
-    resources: { candidateDirectories: [], containers: [], imageReferences: [] },
-    runCommand: async (...args) => { calls.push(args); },
-  }), /Retired results cleanup path is invalid/);
-  assert.deepEqual(calls, []);
+test('removes the retired per-commit paths and keeps deployment state', async t => {
+  const directory = await temporaryDirectory(t, 'crudui-retired-');
+  const comparisonRoot = path.join(directory, '.form-comparison');
+  for (const name of ['candidates/abc', 'sources/ordered-json', 'results', 'deployment/data']) {
+    await mkdir(path.join(comparisonRoot, name), { recursive: true });
+    await writeFile(path.join(comparisonRoot, name, 'file.json'), '{}\n');
+  }
+  await removeRetiredComparisonPaths(comparisonRoot);
+  assert.deepEqual(await readdir(comparisonRoot), ['deployment']);
+  assert.equal(await readFile(path.join(comparisonRoot, 'deployment/data/file.json'), 'utf8'), '{}\n');
+  await assert.rejects(removeRetiredComparisonPaths(directory), /\.form-comparison directory/);
 });
 
 test('rejects any change during identical deployment reapplication', () => {
   const snapshot = {
     container: { id: 'crudui-comparison', createdAt: 'one', startedAt: 'two',
-      imageDigest: `sha256:${'3'.repeat(64)}`, mounts: ['/data'] },
-    route: { domain: 'crudui.test', target: 'crudui-comparison' },
+      imageReference, mounts: [{ destination: '/workspace/source' }], readOnlySource: true },
+    route: { domain: 'crudui.test', container: 'crudui-comparison' },
     certificate: { fingerprint256: 'AA:BB' },
-    files: { 'php-bindForm-react.json': '4'.repeat(64) },
+    source: { commit: 'a'.repeat(40), changes: null },
+    files: { data: { 'php-bindForm-react.json': '4'.repeat(64) } },
     responses: { home: '5'.repeat(64), health: '6'.repeat(64),
-      metadata: '7'.repeat(64), data: '8'.repeat(64) },
+      source: '7'.repeat(64), data: '8'.repeat(64) },
   };
   assert.doesNotThrow(() => assertStableDeployment(snapshot, structuredClone(snapshot)));
   for (const mutate of [
     value => { value.container.startedAt = 'changed'; },
     value => { value.certificate.fingerprint256 = 'changed'; },
-    value => { value.files['php-bindForm-react.json'] = 'changed'; },
+    value => { value.files.data['php-bindForm-react.json'] = 'changed'; },
     value => { value.responses.health = 'changed'; },
+    value => { value.source.changes = 'b'.repeat(64); },
   ]) {
     const changed = structuredClone(snapshot);
     mutate(changed);
@@ -299,8 +165,7 @@ test('rejects any change during identical deployment reapplication', () => {
 });
 
 test('preserves active deployment files without overwriting different data', async t => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-preservation-'));
-  t.after(() => import('node:fs/promises').then(({ rm }) => rm(directory, { recursive: true, force: true })));
+  const directory = await temporaryDirectory(t, 'crudui-preservation-');
   const source = path.join(directory, 'source');
   const destination = path.join(directory, 'destination');
   await mkdir(path.join(source, 'nested'), { recursive: true });
@@ -320,8 +185,7 @@ test('preserves active deployment files without overwriting different data', asy
 });
 
 test('loads the explicit containerctl certificate authority', async t => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-ca-'));
-  t.after(() => import('node:fs/promises').then(({ rm }) => rm(directory, { recursive: true, force: true })));
+  const directory = await temporaryDirectory(t, 'crudui-ca-');
   const caPath = path.join(directory, 'ca.crt');
   const certificate = '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----\n';
   await writeFile(caPath, certificate);

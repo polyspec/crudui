@@ -78,9 +78,9 @@ docs-check-documents:
 	npm run manifest:check
 	npm run manifest:docs:check
 	node scripts/check-documents.mjs
-	node --test scripts/documentation-links.test.mjs
-	node --test scripts/gen-api-docs.test.mjs
-	node --test scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
+	node --test --test-timeout=30000 scripts/documentation-links.test.mjs
+	node --test --test-timeout=30000 scripts/gen-api-docs.test.mjs
+	node --test --test-timeout=30000 scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
 	npm run test:docs
 	npm run docs:build
 
@@ -148,21 +148,26 @@ bench-go: bench-fixtures ## Go 검증기만 측정
 bench-rust: bench-fixtures ## Rust 검증기만 측정
 	node tools/bench/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
+# The JavaScript packages are built only when their sources or output changed; the
+# engine tests below and the native suite both read the built packages.
+# Every node:test command declares a per-test timeout; tests that need more declare
+# their own. PHPUnit enforces its own per-test limit, and `go test -timeout` limits
+# each test binary (Go has no per-test limit).
 build-php-extension:
-	npm run build
-	node --test tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs
+	node scripts/require-current-build.mjs
+	node --test --test-timeout=30000 tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs
 	node scripts/build-crudui-php-extension.mjs
 
 test-native: build-php-extension
 	# generator-php installs the validator as a copy; refresh it from source before any check loads it.
 	composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
 	composer --working-dir=packages/generator-php test
-	go -C packages/generator-go test -race ./...
+	go -C packages/generator-go test -race -timeout 120s ./...
 	node scripts/run-rust-command.mjs test --locked --manifest-path packages/generator-rust/Cargo.toml
 	node packages/php-ext/tests/run.mjs "$(PHP_EXTENSION)"
-	node --test tests/native-generators/protocol.test.mjs
+	node --test --test-timeout=10000 tests/native-generators/protocol.test.mjs
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)"
-	node --test tests/widget-scripts.test.mjs
+	node --test --test-timeout=60000 tests/widget-scripts.test.mjs
 
 # Every tracked Rust crate must match rustfmt and every tracked Go file gofmt.
 format-check:

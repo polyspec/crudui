@@ -1,6 +1,22 @@
 # Changes
 
+## 2026-09-15 — Pin the OrderedJSON comparison source to the updated commit
+
+The comparison source remains version `0.0.1` and now uses the clean
+`polyspec/ordered-json` commit `26c2aebc97896e280d3a6b8f5e8e1d85e2282b83`.
+
+## 2026-09-15 — Exclude operator-local Claude settings from comparison source
+
+Comparison source identity and synchronization exclude `.claude/settings.local.json`.
+
 [한국어](CHANGELOG.ko.md).
+
+## 2026-09-15 — Pin the OrderedJSON comparison source to its monorepo
+
+The form-comparison supervisor and cross-language checker now use one immutable
+`polyspec/ordered-json` commit. JavaScript, Go, PHP, PHP extension and Rust are
+verified as package directories within that checkout; submodule revisions and
+submodule updates are no longer part of the source contract.
 
 ## 2026-09-15 — Report progress and enforce per-test limits in verification runners
 

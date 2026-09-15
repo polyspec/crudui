@@ -8,6 +8,7 @@ import {
   verifyServerReport,
 } from './browser-report-policy.mjs';
 import { formInitializations } from './src/runtime-paths.mjs';
+import { assertSourceIdentity, sameSourceIdentity } from './src/source-identity.mjs';
 
 export {
   browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers, browserTransports,
@@ -52,9 +53,10 @@ function applyFrameDocumentAgreement(reports) {
 }
 
 /** Verify and summarize current implementation reports for every API server. */
-export function summarizeBrowserReports(reports, expectedOrigin, expectedMetadata) {
+export function summarizeBrowserReports(reports, expectedOrigin, expectedSource) {
   assert.deepEqual(Object.keys(reports ?? {}).sort(), [...browserServers].sort(),
     'All four server reports are required');
+  assertSourceIdentity(expectedSource, 'Browser aggregate requires a source identity');
   reports = structuredClone(reports);
   applyFrameDocumentAgreement(reports);
   const normalizedOrigin = origin(expectedOrigin);
@@ -63,7 +65,7 @@ export function summarizeBrowserReports(reports, expectedOrigin, expectedMetadat
   for (const server of browserServers) {
     const report = reports[server];
     assert.equal(report.origin, normalizedOrigin, `${server} verification: report origin`);
-    assert.deepEqual(report.metadata, expectedMetadata, `${server} verification: source metadata`);
+    assert.ok(sameSourceIdentity(report.source, expectedSource), `${server} verification: source identity`);
     const summary = verifyServerReport(report, server);
     verification.push(summary);
     serverRuns.push(summary);
@@ -74,7 +76,7 @@ export function summarizeBrowserReports(reports, expectedOrigin, expectedMetadat
   return {
     generatedAt: new Date().toISOString(),
     origin: normalizedOrigin,
-    metadata: expectedMetadata,
+    source: expectedSource,
     complete: true,
     performancePassed,
     failedChecks,
@@ -89,15 +91,15 @@ function parseOptions(argv) {
   for (let index = 0; index < argv.length; index += 2) {
     const name = argv[index];
     const value = argv[index + 1];
-    if (!['--results', '--origin', '--metadata', '--report'].includes(name) || !value || options.has(name)) {
-      throw new Error('Usage: node check-browser-reports.mjs --results /absolute/results --origin http://127.0.0.1:8080 --metadata /absolute/metadata.json --report /absolute/report.json');
+    if (!['--results', '--origin', '--source', '--report'].includes(name) || !value || options.has(name)) {
+      throw new Error('Usage: node check-browser-reports.mjs --results /absolute/results --origin http://127.0.0.1:8080 --source /absolute/source.json --report /absolute/report.json');
     }
     options.set(name, value);
   }
-  for (const name of ['--results', '--origin', '--metadata', '--report']) {
+  for (const name of ['--results', '--origin', '--source', '--report']) {
     assert.ok(options.has(name), `Missing ${name}`);
   }
-  for (const name of ['--results', '--metadata', '--report']) {
+  for (const name of ['--results', '--source', '--report']) {
     assert.ok(path.isAbsolute(options.get(name)), `${name} must be absolute`);
   }
   assert.equal(path.dirname(options.get('--report')), options.get('--results'),
@@ -114,10 +116,10 @@ async function main() {
     await rename(destination, path.join(directory,
       `${path.parse(destination).name}-${previous.generatedAt.replaceAll(':', '-')}.json`));
   }
-  const metadata = JSON.parse(await readFile(options.get('--metadata'), 'utf8'));
+  const source = JSON.parse(await readFile(options.get('--source'), 'utf8'));
   const reports = Object.fromEntries(await Promise.all(browserServers.map(async server =>
     [server, JSON.parse(await readFile(path.join(directory, `report-${server}.json`), 'utf8'))])));
-  const summary = summarizeBrowserReports(reports, options.get('--origin'), metadata);
+  const summary = summarizeBrowserReports(reports, options.get('--origin'), source);
   await writeFile(destination, JSON.stringify(summary, null, 2) + '\n');
   const checked = Object.values(summary.verification).reduce((sum, renderingPath) =>
     sum + Object.values(renderingPath).reduce((count, section) => count + section.total, 0), 0);

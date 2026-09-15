@@ -15,45 +15,63 @@ npm run test:packages
 make docs-check
 ```
 
-Every command must return status 0 for the same committed source before candidate
-preparation. `npm run test:dependencies` verifies package declarations and install
+Every command must return status 0 for the same source tree before tree
+verification. `npm run test:dependencies` verifies package declarations and install
 policy. `make test-native` builds and loads the PHP extension and runs the PHP, Go,
 Rust, shared protocol and generator checks, including the Chromium widget and
-timezone checks. The candidate checks below verify HTTP and browser integration. A
-successful repository check does not replace candidate verification, and successful
-candidate verification does not replace the repository check.
+timezone checks. The tree verification below verifies HTTP and browser integration.
+A successful repository check does not replace tree verification, and successful
+tree verification does not replace the repository check.
 
 The form inspector compares raw HTML, parsed DOM, computed styles and live
 control state without modifying the inspected form. Framework initialization
 tests compare initial data with later injection and record restoration.
 [JSON order checks](ordered-json.md) verify the transport representation separately.
 
-The HTTP and browser verifier is stored in this repository. Verify one clean
-current commit with the complete candidate lifecycle command:
+The HTTP and browser verifier is stored in this repository. It runs against the
+current repository tree, committed or not, inside the long-running comparison
+container at `https://crudui.test`. Apply the deployment, then verify the tree it
+runs:
 
 ```sh
-CANDIDATE_REF=$(git rev-parse HEAD)
-node examples/form-comparison/candidate-verification.mjs --ref "$CANDIDATE_REF"
+node examples/form-comparison/comparison-deployment.mjs
+node examples/form-comparison/verification.mjs
 ```
 
-Preparation rejects tracked or untracked changes and archives `CANDIDATE_REF`.
-The command removes previous candidate resources without changing deployment
-resources, builds the commit-specific image and creates an isolated container.
-Candidate data and results directories are separate from deployed data. The
-command subscribes to the candidate readiness file before it starts the attached
-container process. It accepts the declared readiness file event or fails when the
-container exits first. It does not retry status requests or use sleep intervals.
+The deployment command builds the toolchain image only when
+`examples/form-comparison/Containerfile` changed. It mounts the repository
+read-only, keeps build outputs in the `crudui-comparison-build` and
+`crudui-comparison-cache` volumes and applies the containerctl definition twice. The
+second application must change nothing. The first start of empty volumes installs
+and builds everything; later starts reuse the volumes. The command preserves the
+active service's data and removes unused comparison images and the retired
+per-commit directories.
 
-The container starts one PHP process, one PHP extension process, one Go process
-and one Rust process from the same source archive. PHP uses Composer classes. The
-PHP extension process loads both `ordered_json.so` and `crudui.so`. Image
-construction runs the browser-independent source and library checks. The
-container runs the complete suite as the application user with the Chromium
-sandbox enabled before it starts the four servers. A failed check or server start
-prints the container log and returns status 1.
+Neither command waits silently. Every step prints its start with its own timeout,
+its elapsed time every 15 seconds while it runs and its duration when it finishes;
+a step that reaches its timeout is stopped with its whole process tree and names
+itself and its elapsed time. While containerctl waits for health, the deployment
+command prints the supervisor's build targets as they run. The health check waits
+six minutes, sized from the measured start of 58 seconds, not containerctl's 30
+minute maximum.
 
-After readiness, the lifecycle command runs the processor-mode, generation,
-persistence and JSON checks inside the candidate container.
+A source change needs no command. The supervisor copies the changed files into the
+build tree, rebuilds only the affected target and restarts only the affected server.
+PHP source changes apply on the next request. A change to a supervisor module applies
+after `containerctl -f .form-comparison/deployment/compose.yaml restart comparison`;
+until then `/api/source` reports `restart-required`.
+
+The container runs one public server, one PHP process, one PHP extension process,
+one Go process and one Rust process from the build tree. PHP uses Composer classes.
+The PHP extension process loads both `ordered_json.so` and `crudui.so`.
+
+The verification command runs inside the container as the application user with
+the Chromium sandbox enabled. It waits for the current build cycle and requires it
+to be ready. It then runs the checks of the deployed services: the processor modes,
+which load the extensions this container built, and the generation and persistence
+checks against the four running servers. It does not repeat the source suite, the
+Go and Rust server tests or the ordered JSON tests, which the commands above
+already ran on this host and which read no build output of the container.
 
 The generation check requires 450 results, 899 requests and all 32
 server/rendering-path/framework combinations. It checks compile, retained
@@ -62,45 +80,26 @@ record payload, English and Korean output, rejected SSR requests, invalid data
 rejection and unchanged stored records. The persistence check requires 120
 results across four servers and two rendering paths.
 
-It then runs browser verification once per server in PHP, PHP extension, Go and
-Rust order and creates the aggregate report. These checks are sequential because
-they measure focus, selection and scroll in one browser environment.
+It then runs browser verification for PHP, the PHP extension, Go and Rust at the
+same time and creates the aggregate report. Each check drives its own browser
+process, so the focus, selection and scroll it measures belong to that check alone,
+and each server keeps its own records. The container has eight processors for them;
+one check occupies about one.
 
 The aggregate requires 1,216 successful scenario checks, 5,376 successful
 initialization comparisons, 320 successful interaction
 checks, 32 successful mount checks, 64 matching frame-document checks and four
-successful performance results. Each server has a 900,000 millisecond absolute
-limit and a 300,000 millisecond no-progress limit. A failed, missing, malformed or
-late result keeps status 1. Do not deploy a candidate unless every repository and
-candidate command returns status 0 and the aggregate records `passed: true`.
-Successful verification retains the exact image and compact evidence for
-deployment. Failed verification reports the error and container log, removes the
-failed candidate resources and returns status 1.
+successful performance results. A complete server report must stay within 900,000
+milliseconds, and inside a run each report holds its own limit: 180,000
+milliseconds for an initialization report, 60,000 for a scenario report. A failed,
+missing, malformed or late result returns status 1. A source change during the run returns status 1. The
+command also returns status 1 when any report names another source identity or when
+the evidence identity differs from the checkout's identity. The command does not
+retry requests or use sleep intervals.
 
-Deploy the verified current commit after every repository and candidate command
-has returned status 0:
+Reports, screenshots and `verification.json`, which records the source identity,
+build cycle, checks and totals, remain in `.form-comparison/deployment/results/`
+until the next verification.
 
-```sh
-node examples/form-comparison/comparison-deployment.mjs --commit "$CANDIDATE_REF"
-```
-
-The deployment command verifies the candidate metadata, generation report,
-persistence report, browser aggregate, exact image tag and image digest before
-creating `.form-comparison/deployment/compose.yaml`. It preserves the active
-service's data in the repository deployment directory without overwriting
-different files. It applies the Compose file with containerctl, uses the explicit
-containerctl CA to verify `https://crudui.test`, and checks the deployed source
-commit, route, certificate, data mount, stored files and response bytes. It
-applies the same Compose file a second time and fails if any checked state
-changes.
-
-After successful verification, the command removes every candidate container,
-candidate directory, raw report, screenshot and local comparison image except
-the deployed image. It also removes results from the previous deployment. The
-deployment data, Compose file, candidate totals, image digest and identical-apply
-verification remain under `.form-comparison/deployment/`. A failed deployment
-keeps the current candidate directory for diagnosis and does not remove the
-active deployment image.
-
-Package publication is a separate operation. Candidate verification alone does
-not change deployment or publication state.
+Package publication is a separate operation. Verification does not change
+publication state.
