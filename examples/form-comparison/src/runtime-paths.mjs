@@ -3,6 +3,7 @@
 import matrix from './runtime-paths.json' with { type: 'json' };
 
 export const formServers = Object.freeze([...matrix.servers]);
+export const pipelineServers = Object.freeze(['js', ...formServers]);
 export const formRenderingPaths = Object.freeze([...matrix.renderingPaths]);
 export const formFrameworks = Object.freeze([...matrix.frameworks]);
 export const formTransports = Object.freeze([...matrix.transports]);

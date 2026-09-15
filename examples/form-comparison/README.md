@@ -2,10 +2,9 @@
 
 [한국어](README.ko.md).
 
-The canonical `crudui.test` entry page exposes the form comparison and links to the
-user-facing read-only list/detail display example at `/displays/`. The display page renders
-the framework-independent HTML output through the same public process and deployment.
-The Cross-Check Console is a development comparison surface, not the canonical display page.
+The canonical `crudui.test` entry page is one pipeline: List → Detail → Form → Save → List refresh.
+It selects JavaScript reference, PHP, PHP extension, Go or Rust; HTML, React, Vue or Svelte;
+and CSR or SSR. The separate benchmark screen is `/benchmark/`; `/displays/` is not a route.
 
 This example verifies nested keyed forms through PHP, the PHP extension, Go and
 Rust. Each server compiles, renders, validates and stores the same form data.

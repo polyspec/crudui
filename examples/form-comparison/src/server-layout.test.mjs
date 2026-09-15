@@ -101,5 +101,6 @@ test('uses the current public API parser and forwards the rendering path', () =>
   ]) assert.equal(serverRequest(invalid), null);
   assert.match(serverSource, /serverRequest\(url\.pathname, url\.search\)/);
   assert.match(serverSource, /displayConsoleHandler/);
-  assert.match(serverSource, /\/displays\//);
+  assert.match(serverSource, /benchmark-console/);
+  assert.doesNotMatch(serverSource, /\/displays\//);
 });

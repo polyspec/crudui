@@ -1,5 +1,5 @@
 import {
-  formFrameworks, formInitializations, formRenderingPaths, formServers,
+  formFrameworks, formInitializations, formRenderingPaths, pipelineServers,
 } from './runtime-paths.mjs';
 
 /**
@@ -18,7 +18,7 @@ export function parseFrameDocument(url) {
   const initialization = url.searchParams.get('initialization');
   const server = url.searchParams.get('server');
   const language = url.searchParams.get('lang');
-  if (!formInitializations.includes(initialization) || !formServers.includes(server)
+  if (!formInitializations.includes(initialization) || !pipelineServers.includes(server)
       || !['ko', 'en'].includes(language)) return null;
   const names = `(${formRenderingPaths.join('|')})-(${formFrameworks.join('|')})`;
   const match = initialization === 'ssr'
