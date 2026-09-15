@@ -9,6 +9,7 @@ import { publicDirectory, publicPort, serverRequest } from './src/server-layout.
 import { handler as displayConsoleHandler } from '../cross-check-console/server/server.mjs';
 import { bindButtons, bindForm, compileForm, createForm, formMessages } from '@crudui/generator-core';
 import { renderForm, renderFormView } from '@crudui/generator-html';
+import { pipelineRecords, renderPipelineDetail, renderPipelineList } from './src/pipeline.mjs';
 
 // The supervisor sends its state after every change; this process never reads it from disk.
 let state = { status: 'building', cycle: 0, source: null, error: null };
@@ -69,6 +70,35 @@ async function handleJsApi(url, request, response) {
   return respond(response, 404, { error: 'Unknown endpoint', server: 'js' });
 }
 
+function pipelineOptions(url) {
+  const options = {
+    lang: url.searchParams.get('lang') === 'en' ? 'en' : 'ko',
+    server: url.searchParams.get('server') || 'js',
+    framework: url.searchParams.get('framework') || 'html',
+    initialization: url.searchParams.get('initialization') || 'csr',
+  };
+  if (!formServers.includes(options.server) && options.server !== 'js') throw new Error('Unknown pipeline server');
+  return options;
+}
+
+async function handlePipeline(url, request, response) {
+  const match = /^\/api\/pipeline\/(list|detail)$/.exec(url.pathname);
+  if (!match) return false;
+  if (request.method !== 'GET') return respond(response, 405, { error: 'Method not allowed' });
+  const options = pipelineOptions(url);
+  const records = pipelineRecords();
+  if (match[1] === 'list') {
+    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    response.end(renderPipelineList(records, options));
+    return true;
+  }
+  const record = records.find(item => item.id === (url.searchParams.get('id') || '1'));
+  if (!record) return respond(response, 404, { error: 'Record not found' });
+  response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+  response.end(renderPipelineDetail(record, options));
+  return true;
+}
+
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.map': 'application/json', '.svg': 'image/svg+xml' };
 const httpServer = http.createServer(async (request, response) => {
   try {
@@ -99,6 +129,11 @@ const httpServer = http.createServer(async (request, response) => {
       await handleJsApi(url, request, response);
       return;
     }
+    if (url.pathname.startsWith('/api/pipeline/')) {
+      if (state.status !== 'ready') return respond(response, 503, { status: state.status, error: state.error });
+      await handlePipeline(url, request, response);
+      return;
+    }
     const target = serverRequest(url.pathname, url.search);
     if (target) {
       const outgoing = http.request({ hostname: '127.0.0.1', port: target.port, path: target.path, method: request.method, headers: { ...request.headers, host: `127.0.0.1:${target.port}` } }, incoming => {
@@ -112,7 +147,8 @@ const httpServer = http.createServer(async (request, response) => {
     }
     if (url.pathname.startsWith('/api/')) return respond(response, 404, { error: 'Unknown endpoint' });
     if (!['GET', 'HEAD'].includes(request.method)) return respond(response, 405, { error: 'Method not allowed' });
-    let file = path.resolve(publicDirectory, `.${decodeURIComponent(url.pathname)}`);
+    const pagePath = ['/detail', '/detail/', '/form', '/form/'].includes(url.pathname) ? '/index.html' : url.pathname;
+    let file = path.resolve(publicDirectory, `.${decodeURIComponent(pagePath)}`);
     if (file !== publicDirectory && !file.startsWith(`${publicDirectory}/`)) return respond(response, 404, { error: 'Unknown file' });
     if ((await stat(file)).isDirectory()) file = path.join(file, 'index.html');
     if (!(await stat(file)).isFile()) return respond(response, 404, { error: 'Unknown file' });

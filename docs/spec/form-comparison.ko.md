@@ -8,11 +8,13 @@
 
 ## 정본 예제와 벤치마크 경계
 
-공개 루트는 정본 파이프라인 예제입니다. 하나의 레코드 흐름
-`List → Detail → Form → Save → List refresh`를 보여 줍니다. 목록 행은 상세로,
-상세는 같은 레코드의 폼으로 연결됩니다. 페이지는 JavaScript reference, PHP,
+공개 루트는 CRUDUI 전체 기능 정본 예제입니다. 하나의 레코드 흐름
+`List → Detail → Form → Save → List refresh`를 보여 줍니다. 목록·상세·링크·폼·검증·submit·
+영속 저장 흐름은 CRUDUI가 생성하고 실행합니다. 페이지는 JavaScript reference, PHP,
 PHP extension, Go, Rust의 다섯 서버와 HTML, React, Vue, Svelte의 네 클라이언트,
 CSR·SSR 선택을 제공합니다.
+
+외부 단계 버튼과 부모 JavaScript의 가짜 단계 상태 라우팅은 계약에 포함하지 않습니다.
 
 `examples/form-comparison/benchmark/`는 별도의 검증 화면입니다. 렌더·검증 매트릭스와
 벤치마크 조작은 이 디렉터리가 소유합니다. 정본 페이지에는 벤치마크 매트릭스를 넣지

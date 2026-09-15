@@ -90,6 +90,12 @@ test('restarts the public server for its own sources and matrix readers for the 
   assert.equal(summary([`${example}/supervisor.mjs`]).supervisor, true);
 });
 
+test('restarts the public server when canonical CRUDUI rendering changes', () => {
+  assert.deepEqual(summary([`${example}/src/pipeline.mjs`]), {
+    targets: ['frames', 'public-server'], restarts: ['public'], supervisor: false,
+  });
+});
+
 test('restarts the canonical public entry when the display console changes', () => {
   assert.deepEqual(summary(['examples/cross-check-console/client/app.js']), {
     targets: ['cross-check-console'], restarts: ['public'], supervisor: false,
