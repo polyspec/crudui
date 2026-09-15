@@ -21,7 +21,7 @@ function offsetMinutes(zone: string): number | undefined {
 /** Parse the supported ISO and RFC date forms without using the host timezone. */
 export function parseDateValue(value: string): Date | undefined {
   let year: number, month: number, day: number, hour: number, minute: number, second: number;
-  let fraction = '', zone = '', weekday: string | undefined;
+  let fraction = '', zone: string, weekday: string | undefined;
   const iso = isoDate.exec(value);
   if (iso && iso[0] === value) {
     year = Number(iso[1]); month = Number(iso[2]); day = Number(iso[3]);

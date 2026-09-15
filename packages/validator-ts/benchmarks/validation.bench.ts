@@ -20,7 +20,6 @@ import {
   getMemoryUsage,
   getMemoryDiff,
   formatBytes,
-  BenchmarkResult,
 } from './index';
 
 // Path to test fixtures
