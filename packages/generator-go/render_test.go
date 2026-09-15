@@ -67,7 +67,7 @@ func TestEveryRepeatedControlUsesStructuralRulePaths(t *testing.T) {
 func TestListColumnAndOptionOrder(t *testing.T) {
 	spec := parseObject(t, `{"columns":{"z":{"field":".last","label":"Last","sortable":true},"a":{"field":".first","format":{"type":"link","href":"/users/.id","text":"Open"}},"hidden":{"field":".password","design":{"show":false}}},"sort":{"field":".last","dir":"desc"},"pagination":{"per_page":20,"mode":"offset"}}`)
 	rows := []*Object{NewObject("id", 7, "last", "Zulu", "first", "Alpha")}
-	vm, e := BuildList(spec, rows, ListOptions{PageMeta: NewObject("page", 2, "total", 41)})
+	vm, e := BuildList(spec, rows, ListOptions{Page: 2, Total: 41})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -75,7 +75,7 @@ func TestListColumnAndOptionOrder(t *testing.T) {
 	if len(cols) != 2 || stringAt(cols[0], "key") != "z" || stringAt(cols[1], "key") != "a" {
 		t.Fatal(encode(t, vm))
 	}
-	html, e := RenderList(spec, rows, ListOptions{PageMeta: NewObject("page", 2, "total", 41)})
+	html, e := RenderList(spec, rows, ListOptions{Page: 2, Total: 41})
 	if e != nil {
 		t.Fatal(e)
 	}

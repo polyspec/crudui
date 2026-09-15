@@ -877,7 +877,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', async () => {
-  assert.equal(fixtures.length, 31,
+  assert.equal(fixtures.length, 39,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -988,7 +988,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', async () => {
-  assert.equal(fixtures.length, 23,
+  assert.equal(fixtures.length, 24,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);

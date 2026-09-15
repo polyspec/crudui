@@ -555,7 +555,7 @@
   },
   {
     "name": "pagination-display",
-    "note": "pagination declared + injected page/total meta → <nav class=list-pagination> data attrs.",
+    "note": "pagination declared + supplied page and total → <nav class=list-pagination> data attrs.",
     "spec": {
       "columns": {
         "name": {
@@ -590,12 +590,30 @@
     ],
     "options": {
       "language": "en",
-      "pageMeta": {
-        "page": 2,
-        "total": 99
-      }
+      "page": 2,
+      "total": 99
     },
     "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr><tr><td class=\"list-td list-td-text\">Lin</td></tr></tbody></table><nav class=\"list-pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"99\"></nav></div>"
+  },
+  {
+    "name": "pagination-empty-first-page",
+    "note": "page 1 with total 0 is valid, and the largest safe integer page is accepted.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      },
+      "pagination": true
+    },
+    "rows": [],
+    "options": {
+      "language": "en",
+      "page": 9007199254740991,
+      "total": 0
+    },
+    "expected_html": "<div class=\"list-view\"><div class=\"list-empty\"></div><nav class=\"list-pagination\" data-page=\"9007199254740991\" data-total=\"0\"></nav></div>"
   },
   {
     "name": "design-column-class-style",
@@ -887,8 +905,8 @@
     }
   },
   {
-    "name": "reject-array-page-metadata",
-    "note": "a pageMeta option that is not an object is rejected.",
+    "name": "reject-context-before-page",
+    "note": "the data rule is checked before the page rule.",
     "spec": {
       "columns": {
         "name": {
@@ -898,11 +916,148 @@
     },
     "rows": [],
     "options": {
-      "pageMeta": []
+      "data": [],
+      "page": 0
     },
     "expectError": {
       "code": "INVALID_FORM_INPUT",
-      "message": "List page metadata must be an object"
+      "message": "List context must be an object"
+    }
+  },
+  {
+    "name": "reject-string-page",
+    "note": "a page that is not a number is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "page": "2"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List page must be a positive integer"
+    }
+  },
+  {
+    "name": "reject-zero-page",
+    "note": "a page below 1 is rejected, before the total and layout rules.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "page": 0,
+      "total": -1,
+      "layout": "grid"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List page must be a positive integer"
+    }
+  },
+  {
+    "name": "reject-fractional-page",
+    "note": "a page that is not an integer is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "page": 1.5
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List page must be a positive integer"
+    }
+  },
+  {
+    "name": "reject-unsafe-page",
+    "note": "a page above the largest safe integer is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "page": 9007199254740992
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List page must be a positive integer"
+    }
+  },
+  {
+    "name": "reject-negative-total",
+    "note": "a total below 0 is rejected, before the layout rule.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "total": -1,
+      "layout": "grid"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List total must be a nonnegative integer"
+    }
+  },
+  {
+    "name": "reject-fractional-total",
+    "note": "a total that is not an integer is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "total": 2.5
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List total must be a nonnegative integer"
+    }
+  },
+  {
+    "name": "reject-boolean-total",
+    "note": "a total that is not a number is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "total": true
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List total must be a nonnegative integer"
     }
   },
   {

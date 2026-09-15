@@ -21,6 +21,7 @@
  * never called.
  */
 
+import { FormInputError } from '@crudui/validator';
 import type { PathContext } from '@crudui/validator';
 import { evalAppearance } from './expr';
 import type { Translate, LocalizedText } from './content';
@@ -201,7 +202,7 @@ function formatNumber(
   // Only a number applies; its integer part must be between 0 and 100.
   const decimals = typeof opts.decimals === 'number' ? Math.trunc(opts.decimals) : undefined;
   if (decimals !== undefined && !(decimals >= 0 && decimals <= 100)) {
-    throw new TypeError('Number decimals must be between 0 and 100');
+    throw new FormInputError('Number decimals must be between 0 and 100');
   }
   let body = decimals !== undefined ? n.toFixed(decimals) : String(n);
   if (opts.thousands) {

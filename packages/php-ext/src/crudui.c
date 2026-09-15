@@ -74,12 +74,12 @@ static bool list_array(zval *value)
 }
 
 /*
- * The list and detail options data, files and pageMeta are fixed object options: an empty PHP
- * array given for one is the empty object.
+ * The list and detail options data and files are fixed object options: an empty PHP array given
+ * for one is the empty object.
  */
 static bool fixed_object_options(zval *options, ps_value *converted)
 {
-    static const char *const keys[] = {"data", "files", "pageMeta"};
+    static const char *const keys[] = {"data", "files"};
     if (!options) return true;
     for (size_t i = 0; i < sizeof(keys) / sizeof(*keys); ++i) {
         zval *value = zend_hash_str_find_deref(Z_ARRVAL_P(options), keys[i], strlen(keys[i]));

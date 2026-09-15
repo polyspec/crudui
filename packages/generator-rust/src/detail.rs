@@ -7,7 +7,8 @@ use crate::render::{element, escape};
 use crate::util::join_class;
 use crate::{FormError, FormResult};
 
-/// Detail options use the same composition, language and data inputs as lists.
+/// Detail options use the same composition, language and data inputs as lists; the list-only
+/// `layout`, `page` and `total` are ignored.
 pub type DetailOptions<'a> = ListOptions<'a>;
 
 /// Build one read-only detail model from a supplied record.
@@ -33,10 +34,21 @@ pub fn build_detail(
     if let Some(design) = spec.get("design") {
         list_spec.insert("design".into(), design.clone());
     }
+    // Page and total are list-only options: a detail neither checks nor uses them.
+    let list_options = DetailOptions {
+        files: options.files.clone(),
+        loader: options.loader,
+        basepath: options.basepath.clone(),
+        language: options.language.clone(),
+        data: options.data.clone(),
+        page: Value::Null,
+        total: Value::Null,
+        layout: Value::Null,
+    };
     let list = build_list(
         &Value::Object(list_spec),
         &[Value::Object(record.clone())],
-        options,
+        &list_options,
     )?;
     let columns = list["columns"].as_array().cloned().unwrap_or_default();
     let cells = list["rows"]

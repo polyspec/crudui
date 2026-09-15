@@ -43,21 +43,21 @@ function stripReactFloats(html) {
  *
  * @param {object} listSpec the list-spec (columns map; $ref/$patch composable)
  * @param {Array<object>} rows injected display rows
- * @param {object} options { language, data, pageMeta, files, basepath, layout }
+ * @param {object} options { language, data, page, total, files, basepath, layout }
  * @returns {Promise<{results: object[], parity: boolean, mismatch: object|null}>}
  */
 export async function renderAllList(listSpec, rows = [], options = {}) {
   const engine = await getEngine();
-  const safeRows = Array.isArray(rows) ? rows : [];
+  // Rows pass unchanged: invalid rows fail in each renderer with the shared input error.
   const [react, svelte, vue] = await Promise.all([
     renderOne(engine, 'react', () =>
-      stripReactFloats(engine.renderListReact(listSpec, safeRows, options))
+      stripReactFloats(engine.renderListReact(listSpec, rows, options))
     ),
     renderOne(engine, 'svelte', () =>
-      engine.renderListSvelte(listSpec, safeRows, options)
+      engine.renderListSvelte(listSpec, rows, options)
     ),
     renderOne(engine, 'vue', () =>
-      engine.renderListVue(listSpec, safeRows, options)
+      engine.renderListVue(listSpec, rows, options)
     ),
   ]);
 

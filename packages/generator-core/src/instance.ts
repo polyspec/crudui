@@ -1,3 +1,4 @@
+import { FormInputError } from '@crudui/validator';
 import { bindForm, copyFormValue, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
 import { bindButtons, type ButtonVM } from './buttons';
 import { formMessages, type FormMessages } from './messages';
@@ -9,10 +10,10 @@ import { initialView, rekeyRowView, removeRowView, setAllExpandedView, toggleRow
 /** Transport key for an existing database sequence. */
 export function sequenceRowKey(sequence: string | number | bigint): string {
   if (typeof sequence === 'number' && !Number.isSafeInteger(sequence)) {
-    throw new RangeError('A sequence must be a safe integer or a decimal string');
+    throw new FormInputError('A sequence must be a safe integer or a decimal string');
   }
   const digits = String(sequence);
-  if (!/^\d{1,13}$/.test(digits)) throw new RangeError('A sequence must contain 1–13 decimal digits');
+  if (!/^\d{1,13}$/.test(digits)) throw new FormInputError('A sequence must contain 1–13 decimal digits');
   return `__${digits.padStart(13, '0')}__`;
 }
 
@@ -63,7 +64,7 @@ function repeats(field: FormFieldTemplate): boolean {
 function checkedSegments(path: string): string[] {
   const segments = parsePathString(path);
   if (!segments.length || segments.some(s => ['__proto__', 'prototype', 'constructor'].includes(s))) {
-    throw new TypeError(`Invalid form path: ${path}`);
+    throw new FormInputError(`Invalid form path: ${path}`);
   }
   return segments;
 }
@@ -73,7 +74,7 @@ function checkKey(key: string): void {
   // insertion order in JavaScript; normalize database sequences explicitly.
   if (!/^[A-Za-z0-9_-]+$/.test(key) || /^\d+$/.test(key) ||
       ['__proto__', 'prototype', 'constructor'].includes(key)) {
-    throw new TypeError(`Invalid row key: ${key}; use sequenceRowKey for numeric ids`);
+    throw new FormInputError(`Invalid row key: ${key}; use sequenceRowKey for numeric ids`);
   }
 }
 
@@ -164,14 +165,14 @@ export class FormInstance {
     const { field, rows } = this.collection(path);
     const settings = isRecord(field.spec.multiple) ? field.spec.multiple : {};
     if (typeof settings.max === 'number' && Object.keys(rows).length >= settings.max) {
-      throw new RangeError(`Maximum row count reached: ${path}`);
+      throw new FormInputError(`Maximum row count reached: ${path}`);
     }
     const key = options.key ?? this.freshKey(new Set(Object.keys(rows)));
     checkKey(key);
-    if (hasOwn(rows, key)) throw new Error(`Row key already exists: ${key}`);
+    if (hasOwn(rows, key)) throw new FormInputError(`Row key already exists: ${key}`);
     const entries = Object.entries(rows);
     const at = options.afterKey === undefined ? entries.length : entries.findIndex(([k]) => k === options.afterKey) + 1;
-    if (options.afterKey !== undefined && at === 0) throw new Error(`Unknown row: ${options.afterKey}`);
+    if (options.afterKey !== undefined && at === 0) throw new FormInputError(`Unknown row: ${options.afterKey}`);
     entries.splice(at, 0, [key, this.normalizeRow(field, options.value, [...checkedSegments(path), key].join('.'))]);
     this.commit(putAt(this.data, checkedSegments(path), Object.fromEntries(entries)));
     return key;
@@ -180,7 +181,7 @@ export class FormInstance {
   /** Copy current values and give every descendant repeated row a fresh key. */
   copyRow(path: string, key: string, options: Omit<AddRowOptions, 'value'> = {}): string {
     const { field, rows } = this.collection(path);
-    if (!hasOwn(rows, key)) throw new Error(`Unknown row: ${key}`);
+    if (!hasOwn(rows, key)) throw new FormInputError(`Unknown row: ${key}`);
     const value = this.copyRowValue(field, rows[key]);
     return this.addRow(path, { ...options, afterKey: options.afterKey ?? key, value });
   }
@@ -188,10 +189,10 @@ export class FormInstance {
   /** Remove one row unless the minimum count would be violated. */
   removeRow(path: string, key: string): void {
     const { field, rows } = this.collection(path);
-    if (!hasOwn(rows, key)) throw new Error(`Unknown row: ${key}`);
+    if (!hasOwn(rows, key)) throw new FormInputError(`Unknown row: ${key}`);
     const settings = isRecord(field.spec.multiple) ? field.spec.multiple : {};
     if (typeof settings.min === 'number' && Object.keys(rows).length <= settings.min) {
-      throw new RangeError(`Minimum row count reached: ${path}`);
+      throw new FormInputError(`Minimum row count reached: ${path}`);
     }
     const segments = checkedSegments(path);
     this.commit(putAt(this.data, segments, Object.fromEntries(Object.entries(rows).filter(([k]) => k !== key))), {
@@ -204,9 +205,9 @@ export class FormInstance {
     const { rows } = this.collection(path);
     const entries = Object.entries(rows);
     const from = entries.findIndex(([k]) => k === key);
-    if (from === -1) throw new Error(`Unknown row: ${key}`);
+    if (from === -1) throw new FormInputError(`Unknown row: ${key}`);
     if (!Number.isInteger(toIndex) || toIndex < 0 || toIndex >= entries.length) {
-      throw new RangeError(`Invalid row position: ${toIndex}`);
+      throw new FormInputError(`Invalid row position: ${toIndex}`);
     }
     if (from === toIndex) return;
     const [row] = entries.splice(from, 1);
@@ -218,9 +219,9 @@ export class FormInstance {
   rekeyRow(path: string, oldKey: string, newKey: string): void {
     const { rows } = this.collection(path);
     checkKey(newKey);
-    if (!hasOwn(rows, oldKey)) throw new Error(`Unknown row: ${oldKey}`);
+    if (!hasOwn(rows, oldKey)) throw new FormInputError(`Unknown row: ${oldKey}`);
     if (oldKey === newKey) return;
-    if (hasOwn(rows, newKey)) throw new Error(`Row key already exists: ${newKey}`);
+    if (hasOwn(rows, newKey)) throw new FormInputError(`Row key already exists: ${newKey}`);
     const segments = checkedSegments(path);
     this.commit(putAt(this.data, segments,
       Object.fromEntries(Object.entries(rows).map(([key, value]) => [key === oldKey ? newKey : key, value]))), {
@@ -279,7 +280,7 @@ export class FormInstance {
   /** Canonical row path after checking that the row exists. */
   private rowPath(path: string, key: string): string {
     const { rows } = this.collection(path);
-    if (!hasOwn(rows, key)) throw new Error(`Unknown row: ${key}`);
+    if (!hasOwn(rows, key)) throw new FormInputError(`Unknown row: ${key}`);
     return [...checkedSegments(path), key].join('.');
   }
 
@@ -289,13 +290,13 @@ export class FormInstance {
       checkKey(key);
       if (!used.has(key)) return key;
     }
-    throw new Error('Unable to generate an unused row key');
+    throw new FormInputError('Unable to generate an unused row key');
   }
 
   /** Normalize record data; `path` is the full data path, empty at the root. */
   private normalizeFields(fields: readonly FormFieldTemplate[], value: unknown, path = ''): Record<string, unknown> {
     if (value !== undefined && !isRecord(value)) {
-      throw new TypeError(path ? `Group data must be an object: ${path}` : 'Form data must be an object');
+      throw new FormInputError(path ? `Group data must be an object: ${path}` : 'Form data must be an object');
     }
     const data = value === undefined ? {} : copyFormValue(value as Record<string, unknown>);
     for (const field of fields) {
@@ -304,12 +305,12 @@ export class FormInstance {
       if (repeats(field)) {
         const rows: Record<string, unknown> = {};
         // Missing data creates one usable prototype. Explicit {} means zero rows.
-        if (raw !== undefined && !isRecord(raw)) throw new TypeError(`Repeated data must be a keyed object: ${fieldPath}`);
+        if (raw !== undefined && !isRecord(raw)) throw new FormInputError(`Repeated data must be a keyed object: ${fieldPath}`);
         const entries = raw === undefined ? [[this.freshKey(new Set()), undefined] as const]
           : Object.entries(raw as Record<string, unknown>);
         for (const [key, row] of entries) {
           checkKey(key);
-          if (hasOwn(rows, key)) throw new Error(`Duplicate normalized row key: ${key}`);
+          if (hasOwn(rows, key)) throw new FormInputError(`Duplicate normalized row key: ${key}`);
           rows[key] = this.normalizeRow(field, row, `${fieldPath}.${key}`);
         }
         data[field.name] = rows;
@@ -357,14 +358,14 @@ export class FormInstance {
     let field: FormFieldTemplate | undefined;
     for (let i = 0; i < segments.length; i++) {
       field = fields.find(f => f.name === segments[i]);
-      if (!field) throw new Error(`Unknown collection: ${path}`);
+      if (!field) throw new FormInputError(`Unknown collection: ${path}`);
       if (i === segments.length - 1) break;
       if (repeats(field)) i++;
       fields = field.children;
       field = undefined;
     }
     const rows = getValueByPath(this.data, path);
-    if (!field || !repeats(field) || !isRecord(rows)) throw new Error(`Not a keyed collection: ${path}`);
+    if (!field || !repeats(field) || !isRecord(rows)) throw new FormInputError(`Not a keyed collection: ${path}`);
     return { field, rows };
   }
 }

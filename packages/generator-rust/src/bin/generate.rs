@@ -154,7 +154,9 @@ fn generate(request: &Value) -> FormResult<Value> {
                 loader: None,
                 language,
                 data: options.get("data").cloned().unwrap_or(Value::Null),
-                page_meta: options.get("pageMeta").cloned().unwrap_or(Value::Null),
+                // The library checks page and total after the context; null means none.
+                page: options.get("page").cloned().unwrap_or(Value::Null),
+                total: options.get("total").cloned().unwrap_or(Value::Null),
                 layout: options.get("layout").cloned().unwrap_or(Value::Null),
             };
             render_list(spec, rows, &options).map(Value::String)
@@ -168,7 +170,8 @@ fn generate(request: &Value) -> FormResult<Value> {
                 language: option_string(options, "language")?.unwrap_or_else(|| "ko".into()),
                 // The library checks the context after the specification and record; null means empty.
                 data: options.get("data").cloned().unwrap_or(Value::Null),
-                page_meta: Value::Null,
+                page: Value::Null,
+                total: Value::Null,
                 layout: Value::Null,
             };
             let record = request.get("record").unwrap_or(&empty);
@@ -183,7 +186,8 @@ fn generate(request: &Value) -> FormResult<Value> {
                 language: option_string(options, "language")?.unwrap_or_else(|| "ko".into()),
                 // The library checks the context after the specification and record; null means empty.
                 data: options.get("data").cloned().unwrap_or(Value::Null),
-                page_meta: Value::Null,
+                page: Value::Null,
+                total: Value::Null,
                 layout: Value::Null,
             };
             let record = request.get("record").unwrap_or(&empty);
