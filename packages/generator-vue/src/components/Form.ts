@@ -1,4 +1,4 @@
-import { defineComponent, h, onMounted, onBeforeUnmount, onUpdated, shallowRef, watch, type PropType } from 'vue';
+import { defineComponent, onMounted, onBeforeUnmount, onUpdated, shallowRef, watch, type PropType } from 'vue';
 import { connectForm, type FormInstance } from '@crudui/generator-core';
 import { FormFields } from './FormFields';
 

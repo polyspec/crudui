@@ -165,9 +165,21 @@ export interface DescribeResult {
 // schema parse helpers
 // ---------------------------------------------------------------------------
 
+/** The parts of a JSON Schema definition this projection reads. */
+interface SchemaNode {
+  type?: string;
+  anyOf?: SchemaNode[];
+  allOf?: SchemaNode[];
+  not?: SchemaNode;
+  properties?: Record<string, SchemaNode>;
+  enum?: string[];
+  pattern?: string;
+  $ref?: string;
+}
+
 interface SchemaDoc {
   $id?: string;
-  definitions: Record<string, any>;
+  definitions: Record<string, SchemaNode | undefined>;
 }
 
 function loadSchema(): SchemaDoc {
@@ -175,15 +187,15 @@ function loadSchema(): SchemaDoc {
 }
 
 /** anyOf member that is an object type — where a polymorphic slot's keys live. */
-function objectMember(def: any): any | undefined {
+function objectMember(def: SchemaNode | undefined): SchemaNode | undefined {
   if (def && def.type === 'object') return def;
   if (def && Array.isArray(def.anyOf)) {
-    return def.anyOf.find((m: any) => m && m.type === 'object');
+    return def.anyOf.find((m) => m && m.type === 'object');
   }
   return undefined;
 }
 
-function propKeys(def: any): string[] {
+function propKeys(def: SchemaNode | undefined): string[] {
   const obj = objectMember(def);
   return obj && obj.properties ? Object.keys(obj.properties) : [];
 }
@@ -333,7 +345,7 @@ function collectGrammar(): DescribeResult['grammar'] {
 // classification (spec/schema.md — quoted, the prose single-source for placement)
 // ---------------------------------------------------------------------------
 
-function collectClassification(schema: SchemaDoc): DescribeResult['classification'] {
+function collectClassification(): DescribeResult['classification'] {
   // First-class split is read from the schema Field.properties grouping, keeping
   // schema field classification as the authority for which group each key sits in.
   const structure = ['type', 'name', 'default', 'properties', 'items', 'multiple', 'lang'];
@@ -371,7 +383,7 @@ function collectClassification(schema: SchemaDoc): DescribeResult['classificatio
 function cellFormatSchemaShape(schema: SchemaDoc): {
   keys: string[];
   /** declared `type` values, if the schema enumerates them (it does not — open). */
-  typeProp: any;
+  typeProp: SchemaNode | undefined;
 } {
   const obj = objectMember(schema.definitions.CellFormat);
   const props = obj?.properties ?? {};
@@ -379,7 +391,7 @@ function cellFormatSchemaShape(schema: SchemaDoc): {
 }
 
 /** anyOf shape labels for a polymorphic definition (boolean / inline form / $ref). */
-function anyOfShapes(def: any, refLabels: Record<string, string>): string[] {
+function anyOfShapes(def: SchemaNode | undefined, refLabels: Record<string, string>): string[] {
   const out: string[] = [];
   for (const m of def?.anyOf ?? []) {
     if (m.type === 'boolean') out.push('false|true (off|default)');
@@ -430,7 +442,7 @@ function collectList(schema: SchemaDoc): DescribeResult['list'] {
 
   // ListAction is polymorphic: a behavior-script string OR a {label, format, …} object.
   const actionObjMember = (schema.definitions.ListAction?.anyOf ?? []).find(
-    (m: any) => m.type === 'object'
+    (m) => m.type === 'object'
   );
   const actionObjectKeys = actionObjMember ? Object.keys(actionObjMember.properties ?? {}) : [];
   const actionShapes = anyOfShapes(schema.definitions.ListAction, {
@@ -531,7 +543,7 @@ export function describe(): DescribeResult {
   const crossCheckOk = enumAgree && patternAgree && runtimeAgree;
 
   const grammar = collectGrammar();
-  const classification = collectClassification(schema);
+  const classification = collectClassification();
   const list = collectList(schema);
 
   return {
