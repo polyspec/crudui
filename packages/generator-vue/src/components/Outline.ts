@@ -21,14 +21,15 @@ function rowVNode(row: OutlineRow): VNode {
     'data-field-path': row.path,
     'data-crudui-row-key': row.key,
   }, [
+    // Only grammar nodes: absent parts add no child, so no placeholder comment.
     h('div', { class: 'crudui-node__header' }, [
       h('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': 'select-row' }, [
-        row.number !== undefined ? h('span', { class: 'crudui-node__number' }, row.number) : null,
-        row.title !== undefined ? h('span', { class: 'crudui-node__title' }, row.title) : null,
+        ...(row.number !== undefined ? [h('span', { class: 'crudui-node__number' }, row.number)] : []),
+        ...(row.title !== undefined ? [h('span', { class: 'crudui-node__title' }, row.title)] : []),
       ]),
-      row.controls ? controlsVNode(row.controls) : null,
+      ...(row.controls ? [controlsVNode(row.controls)] : []),
     ]),
-    row.rows.length ? h('div', { class: 'crudui-node__body' }, row.rows.map(rowVNode)) : null,
+    ...(row.rows.length ? [h('div', { class: 'crudui-node__body' }, row.rows.map(rowVNode))] : []),
   ]);
 }
 
