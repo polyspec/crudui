@@ -14,7 +14,7 @@ function start(views, template, language, data, hydrate) {
     render: () => h(Outline, { form: session, formElement: views.form }),
   });
   const dataView = createApp({ render: () => h(DataView, { form: session }) });
-  form.mount(views.form);
+  form.mount(views.form, hydrate);
   outline.mount(views.outline);
   dataView.mount(views.data);
   return {
