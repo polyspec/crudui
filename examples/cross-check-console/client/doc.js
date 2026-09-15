@@ -112,3 +112,50 @@ export const listDocSections = [
       '미해결 $ref 는 로드 실패(REF_FILE_NOT_FOUND)로 표면화되지 silent skip 이 아니다.',
   },
 ];
+
+/**
+ * Detail-tab doc — the read-only detail specification (fields / record / design / errors).
+ * Each entry uses a detail-render or detail-validity fixture that the conformance checks execute.
+ *
+ * @type {{ title: string, body: string }[]}
+ */
+export const detailDocSections = [
+  {
+    title: '필드 (fields)',
+    body:
+      '상세 스펙은 fields 맵을 선언한다. ' +
+      '각 필드는 목록 셀과 같은 읽기 전용 표시 계약인 field(점-경로)·label·format·design 을 사용한다. ' +
+      '정렬·페이지 처리·동작은 선언하지 않는다. 필드 순서는 docs/spec/schema.md "Member order"(멤버 순서) 규칙을 따른다. ' +
+      '출처: detail-render basic-fields.',
+  },
+  {
+    title: '레코드 (record, 주입)',
+    body:
+      '레코드 하나를 스펙과 별도로 전달한다 — 렌더러는 애플리케이션 데이터를 조회하지 않는다. ' +
+      '필드 경로에 값이 없으면 value 는 null 이다. ' +
+      '객체가 아닌 레코드는 INVALID_FORM_INPUT("Detail record must be an object")로 세 프레임워크 모두 실패한다. ' +
+      '출처: detail-render missing-value, reject-record-before-fields.',
+  },
+  {
+    title: '외형·조건 (design)',
+    body:
+      '루트 design.wrapper 가 상세 컨테이너의 class/style 을, 필드 design 이 그 셀의 class/style 을 정한다. ' +
+      '필드 design.show 가 falsy 면 그 필드는 렌더되지 않는다. ' +
+      '출처: detail-render design-wrapper-and-cell, condition-hidden-field.',
+  },
+  {
+    title: '구조 검증 (/api/validate-detail)',
+    body:
+      '4언어 CLI 가 mode:detail 로 루트와 fields 맵을 합성한 뒤 금지 메타 키를 검사한다. 레코드는 검증하지 않는다. ' +
+      'show_if 같은 금지 키는 valid:false 가 아니라 failure{code:FORBIDDEN_META_KEY, at:"fields.name.show_if"} 이다. ' +
+      '미해결 fields $ref 는 REF_FILE_NOT_FOUND. ' +
+      '출처: detail-validity red-show-if-on-field, red-unresolved-fields-ref.',
+  },
+  {
+    title: 'detail parity',
+    body:
+      '같은 스펙·같은 레코드면 react/vue/svelte 의 normalizeHtml 결과가 한 개로 모여야 parity. ' +
+      'React 의 SSR 이미지 preload 링크(<link rel="preload">)는 목록과 똑같이 비교 전에 제거한다. ' +
+      '오류 사례는 세 프레임워크가 같은 code 로 실패해야 일치다.',
+  },
+];
