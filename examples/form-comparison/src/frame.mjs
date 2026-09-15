@@ -788,6 +788,8 @@ function focusState() {
 async function initializationStage(stage) {
   let response;
   switch (stage) {
+    case 'mounted':
+      break;
     case 'reinjected-1':
     case 'reinjected-2':
       await driver.load(stageSource);

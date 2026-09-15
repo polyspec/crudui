@@ -16,7 +16,7 @@ CSR·SSR 선택을 제공합니다.
 
 외부 단계 버튼과 부모 JavaScript의 가짜 단계 상태 라우팅은 계약에 포함하지 않습니다.
 
-`examples/form-comparison/benchmark/`는 별도의 검증 화면입니다. 렌더·검증 매트릭스와
+`examples/form-comparison/benchmark-console/`는 별도의 검증 화면입니다. 렌더·검증 매트릭스와
 벤치마크 조작은 이 디렉터리가 소유합니다. 정본 페이지에는 벤치마크 매트릭스를 넣지
 않습니다. `/displays/`는 경로로 제공하지 않습니다.
 
@@ -258,7 +258,7 @@ view and one body end tag`로 거부합니다. 응답은 그 문서에 세 가�
 `#outline-view`와 `#data-view`에 렌더링합니다. 서버는 폼만 렌더링합니다.
 
 정본 진입 페이지는 `List → Detail → Form → Save → List refresh` 전체 파이프라인을 소유합니다.
-벤치마크 진입점은 `/benchmark/`이며 매트릭스 검증을 소유합니다. `/displays/` 엔드포인트는
+벤치마크 진입점은 `/benchmark-console/`이며 매트릭스 검증을 소유합니다. `/displays/` 엔드포인트는
 제공하지 않습니다.
 
 정본 페이지의 `initialization`은 폼 문서뿐 아니라 페이지 단계에도 적용합니다.
