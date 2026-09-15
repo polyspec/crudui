@@ -1,10 +1,11 @@
 //! Recursive forbidden meta-key scan (SPEC §6) — the runtime half of the
 //! global rejection that the meta-schema's `propertyNames` enforces statically.
 //!
-//! R1: the types/parser PRESERVE every key (round-trip), so blocking forbidden
-//! meta keys is the VALIDATION layer's job, not the model's. The typed models
-//! (`FieldSpec` + `ExtraMap`) only reject forbidden keys at the top level and one
-//! level under open buckets — a deeply nested meta key (`validate.required.if`,
+//! R1: the types/parser PRESERVE every key of the open buckets (round-trip), so
+//! blocking forbidden meta keys is the VALIDATION layer's job, not the model's.
+//! The typed models (`FieldSpec` + `ExtraMap`) only reject forbidden keys at the
+//! top level, as unknown keys inside the closed buckets, and one level under open
+//! buckets — a deeply nested meta key (`validate.required.if`,
 //! `options.x.display_switch`, …) leaks through. This scan closes that leak: it
 //! walks the COMPOSED single spec (after `$ref`/`$patch` expansion and x-strip)
 //! to ARBITRARY depth and rejects a forbidden key found at ANY depth — including

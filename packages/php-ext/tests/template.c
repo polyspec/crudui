@@ -141,6 +141,79 @@ int main(void)
         }
         ps_value_free(declared);
     }
+    /* Closed buckets: the first unknown key in member order, after the bucket type check
+       and before the value checks; multiple, lang, design, design nodes, then behavior. */
+    {
+        ps_value *m1 = object(); set(m1, "min", ps_string_value("x")); set(m1, "foo", ps_int_value(1)); set(m1, "bar", ps_int_value(2));
+        ps_value *l1 = object(); set(l1, "only", ps_string_value("ko")); set(l1, "append", ps_bool_value(true));
+        ps_value *d1 = object(); set(d1, "show", ps_int_value(1)); set(d1, "text", ps_int_value(1));
+        ps_value *n1 = object(); set(n1, "class", ps_int_value(1)); set(n1, "text", ps_string_value("x"));
+        ps_value *d2 = object(); set(d2, "label", n1);
+        ps_value *n2 = object(); set(n2, "text", ps_string_value("x"));
+        ps_value *n3 = object(); set(n3, "style", ps_int_value(1));
+        ps_value *d3 = object(); set(d3, "prepend", n2); set(d3, "label", n3);
+        ps_value *b1 = object(); set(b1, "onclick", ps_string_value("go()")); set(b1, "onsubmit", ps_string_value("x"));
+        set(b1, "onblur", ps_string_value("y"));
+        ps_value *m2 = object(); set(m2, "foo", ps_int_value(1));
+        ps_value *d4 = object(); set(d4, "text", ps_int_value(1));
+        ps_value *l2 = object(); set(l2, "langs", array());
+        ps_value *b2 = object(); set(b2, "onsubmit", ps_string_value("x"));
+        const struct { const char *key; ps_value *value; const char *key2; ps_value *value2; const char *message; } closed[] = {
+            {"multiple", m1, NULL, NULL, "Invalid multiple.foo at rows: unknown key"},
+            {"multiple", m2, "lang", ps_null_value(), "Invalid multiple.foo at rows: unknown key"},
+            {"lang", l1, NULL, NULL, "Invalid lang.append at rows: unknown key"},
+            {"lang", l2, "design", d4, "Invalid lang.langs at rows: unknown key"},
+            {"design", d1, NULL, NULL, "Invalid design.text at rows: unknown key"},
+            {"design", d2, NULL, NULL, "Invalid design.label.text at rows: unknown key"},
+            {"design", d3, NULL, NULL, "Invalid design.label.style at rows: expected a string or a condition map"},
+            {"behavior", b1, NULL, NULL, "Invalid behavior.onsubmit at rows: unknown key"},
+            {"design", ps_value_clone(d4), "behavior", b2, "Invalid design.text at rows: unknown key"},
+        };
+        for (size_t i = 0; i < sizeof(closed) / sizeof(closed[0]); ++i) {
+            ps_value *rows = field("text");
+            set(rows, closed[i].key, closed[i].value);
+            if (closed[i].key2) set(rows, closed[i].key2, closed[i].value2);
+            ps_value *declared = object(); set(declared, "type", ps_string_value("group"));
+            ps_value *declared_properties = object(); set(declared_properties, "rows", rows);
+            set(declared, "properties", declared_properties);
+            result = ps_compile_form(declared, options);
+            assert(!result.value && result.error);
+            assert(ps_is_string(ps_get(result.error, "code"), "INVALID_FORM_INPUT"));
+            assert(ps_is_string(ps_get(result.error, "message"), closed[i].message));
+            ps_value_free(result.error); ps_value_free(declared);
+        }
+        /* Every allowed key, and open validate/options buckets, compile. */
+        ps_value *rows = field("text");
+        ps_value *multiple = object();
+        static const char *const multiple_keys[] = {"min", "max", "copy", "sortable", "controls", "header", "onclick"};
+        ps_value *const multiple_values[] = {ps_int_value(1), ps_int_value(2), ps_bool_value(true), ps_bool_value(false),
+            ps_string_value("footer"), ps_string_value("static"), ps_string_value("add()")};
+        for (size_t i = 0; i < 7; ++i) set(multiple, multiple_keys[i], multiple_values[i]);
+        ps_value *lang = object();
+        static const char *const lang_keys[] = {"mode", "name", "key", "frame", "title", "group_class"};
+        for (size_t i = 0; i < 6; ++i) set(lang, lang_keys[i], ps_string_value("x"));
+        set(lang, "only", array());
+        ps_value *design = object(); set(design, "show", ps_bool_value(true));
+        set(design, "class", ps_string_value("a")); set(design, "style", ps_string_value("b"));
+        static const char *const node_names[] = {"label", "wrapper", "group", "prepend"};
+        for (size_t i = 0; i < 4; ++i) {
+            ps_value *node = object(); set(node, "class", ps_string_value("c")); set(node, "style", ps_string_value("d"));
+            set(design, node_names[i], node);
+        }
+        ps_value *behavior = object();
+        set(behavior, "onchange", ps_string_value("a")); set(behavior, "onclick", ps_string_value("b"));
+        set(behavior, "onload", ps_string_value("c"));
+        ps_value *open_validate = object(); set(open_validate, "custom", ps_int_value(1));
+        ps_value *open_options = object(); set(open_options, "custom", ps_int_value(1));
+        set(rows, "multiple", multiple); set(rows, "lang", lang); set(rows, "design", design);
+        set(rows, "behavior", behavior); set(rows, "validate", open_validate); set(rows, "options", open_options);
+        ps_value *declared = object(); set(declared, "type", ps_string_value("group"));
+        ps_value *declared_properties = object(); set(declared_properties, "rows", rows);
+        set(declared, "properties", declared_properties);
+        result = ps_compile_form(declared, options);
+        assert(result.value && !result.error);
+        ps_value_free(result.value); ps_value_free(declared);
+    }
     /* Root buttons and action: copied after the fields, or one submit button by default. */
     ps_value *plain = object(); set(plain, "type", ps_string_value("group"));
     ps_value *plain_properties = object(); set(plain_properties, "name", field("text"));

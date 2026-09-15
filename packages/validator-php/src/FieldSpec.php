@@ -19,6 +19,9 @@ namespace CRUDUI\Validator;
  * - DEPENDENCY_BUCKETS: dependency isolation. type-dependent keys live under the
  *   `options` slot; multiple/lang/items-dependent keys live UNDER that structural
  *   key. A dependent key is never hoisted to the field root.
+ * - CLOSED_BUCKET_KEYS: design, behavior, multiple and lang (and each design
+ *   node's class/style) reject unknown keys; validate, options and the items
+ *   dynamic source stay open.
  * - DESIGN_NODE_MAP: which DOM node a design appearance entry targets (R8).
  * - CONDITION_MAP: a declaration-ordered map; its default key is the literal
  *   `true` expression (always truthy). R4 forbids convention sigils such as `_`.
@@ -182,6 +185,34 @@ final class FieldSpec
         'behavior' => self::BEHAVIOR_SUB_KEYS,
         'options'  => self::OPTIONS_SUB_KEYS,
     ];
+
+    /**
+     * Closed buckets and the only keys each map form accepts; any other key is
+     * an unknown-key violation. Mirrors the JSON schema: design, behavior,
+     * multiple and lang close their map form, and every design node
+     * (DESIGN_NODE_KEYS) closes to class/style. `validate`, `options` and the
+     * `items` dynamic source stay open (see OPTIONS_IS_OPEN) and are checked
+     * only for forbidden and comment keys.
+     *
+     * @var array<string, list<string>>
+     */
+    public const CLOSED_BUCKET_KEYS = [
+        'design'   => self::DESIGN_SUB_KEYS,
+        'behavior' => self::BEHAVIOR_SUB_KEYS,
+        'multiple' => ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+        'lang'     => ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'],
+    ];
+
+    /**
+     * The design nodes (label/wrapper/group/prepend) and the closed key set of
+     * each node's map form.
+     *
+     * @var list<string>
+     */
+    public const DESIGN_NODES = ['label', 'wrapper', 'group', 'prepend'];
+
+    /** @var list<string> */
+    public const DESIGN_NODE_KEYS = ['class', 'style'];
 
     /**
      * The `options` slot is open (a type may introduce its own settings). The
@@ -547,8 +578,10 @@ final class FieldSpec
     /**
      * Deep-validate a decoded CRUDUI field. Returns the list of violations (empty =
      * valid). Enforces: closed top-level key set, polymorphic slot value forms,
-     * dependency isolation (a bucket key only under its location), and the global
-     * forbidden-key check (root + one level below every slot and bucket). An
+     * dependency isolation (a bucket key only under its location), closed bucket
+     * key sets (CLOSED_BUCKET_KEYS: design, behavior, multiple, lang, and each
+     * design node's class/style), and the global forbidden-key check (root + one
+     * level below every slot and bucket; open validate/options/items too). An
      * `x`-prefixed comment key is a violation (x-strip is an upstream step).
      *
      * @param array<string, mixed> $field
@@ -576,16 +609,17 @@ final class FieldSpec
                 continue;
             }
 
-            if (self::isSlot($key)) {
-                if (!self::isValidSlotValue($value)) {
-                    $violations[] = "slot {$key} must be false | map | true";
-                } elseif (is_array($value)) {
-                    self::guardForbiddenInside($key, $value, $violations);
+            if (self::isSlot($key) && !self::isValidSlotValue($value)) {
+                $violations[] = "slot {$key} must be false | map | true";
+            } elseif ((self::isSlot($key) || self::isDependencyTarget($key)) && is_array($value)) {
+                self::guardInside($key, $value, self::CLOSED_BUCKET_KEYS[$key] ?? null, $violations);
+                if ($key === 'design') {
+                    foreach (self::DESIGN_NODES as $node) {
+                        if (is_array($value[$node] ?? null)) {
+                            self::guardInside("design.{$node}", $value[$node], self::DESIGN_NODE_KEYS, $violations);
+                        }
+                    }
                 }
-            }
-
-            if (self::isDependencyTarget($key) && is_array($value)) {
-                self::guardForbiddenInside($key, $value, $violations);
             }
         }
 
@@ -593,22 +627,24 @@ final class FieldSpec
     }
 
     /**
-     * Append a violation for every forbidden or comment key found one level below
-     * the given container. Open buckets accept extension but never a forbidden key.
+     * Append a violation for every forbidden, comment or (in a closed bucket)
+     * unknown key found one level below the given container. Open buckets
+     * ($allowed null) accept extension but never a forbidden or comment key.
      *
      * @param array<mixed, mixed> $container
+     * @param list<string>|null   $allowed
      * @param list<string>        $violations
      */
-    private static function guardForbiddenInside(string $owner, array $container, array &$violations): void
+    private static function guardInside(string $owner, array $container, ?array $allowed, array &$violations): void
     {
         foreach (array_keys($container) as $sub) {
-            if (!is_string($sub)) {
-                continue;
-            }
+            $sub = (string) $sub;
             if (self::isForbiddenMetaKey($sub)) {
                 $violations[] = "forbidden meta key under {$owner}: {$sub}";
             } elseif (self::isCommentKey($sub)) {
                 $violations[] = "comment key under {$owner} must be x-stripped: {$sub}";
+            } elseif ($allowed !== null && !in_array($sub, $allowed, true)) {
+                $violations[] = "unknown key under {$owner}: {$sub}";
             }
         }
     }

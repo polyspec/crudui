@@ -184,16 +184,64 @@ func TestXCommentKeyRejected(t *testing.T) {
 }
 
 func TestLegacyKeysNotRecognized(t *testing.T) {
-	// Legacy names must land in Extra (options) or be ignored elsewhere — never
-	// map onto a canonical field. Here multiple_max under multiple is simply not
-	// a Multiple field; it must not become Max.
+	// Legacy names never map onto a canonical field. multiple is a closed
+	// bucket, so multiple_max under it is rejected as an unknown key.
 	in := `{"multiple":{"multiple_max":9}}`
+	var f FieldSpec
+	err := json.Unmarshal([]byte(in), &f)
+	if err == nil || err.Error() != `model: unknown key "multiple_max" in multiple` {
+		t.Fatalf("legacy multiple_max not rejected: %v", err)
+	}
+}
+
+func TestClosedBucketsRejectUnknownKeys(t *testing.T) {
+	cases := map[string]string{
+		`{"design":{"class":"a","label_class":"b","other":1}}`:   `model: unknown key "label_class" in design`,
+		`{"design":{"label":{"class":"a","text":"b"}}}`:          `model: unknown key "text" in design.label`,
+		`{"design":{"wrapper":{"id":"w"},"prepend":{"id":"p"}}}`: `model: unknown key "id" in design.wrapper`,
+		`{"design":{"group":{"style":"s","id":"g"}}}`:            `model: unknown key "id" in design.group`,
+		`{"design":{"prepend":{"text":"p"}}}`:                    `model: unknown key "text" in design.prepend`,
+		`{"behavior":{"onchange":"f()","onsubmit":"g()"}}`:       `model: unknown key "onsubmit" in behavior`,
+		`{"multiple":{"min":1,"foo":1}}`:                         `model: unknown key "foo" in multiple`,
+		`{"lang":{"mode":"append","langs":["ko"]}}`:              `model: unknown key "langs" in lang`,
+		`{"design":{"if":true,"foo":1}}`:                         `model: forbidden meta key "if" in design`,
+		`{"multiple":{"foo":1,"$remove":1}}`:                     `model: forbidden meta key "$remove" in multiple`,
+	}
+	for in, want := range cases {
+		var f FieldSpec
+		if err := json.Unmarshal([]byte(in), &f); err == nil || err.Error() != want {
+			t.Fatalf("%s: want %s, got %v", in, want, err)
+		}
+	}
+	var n DesignNode
+	if err := json.Unmarshal([]byte(`{"class":"c","text":"t"}`), &n); err == nil || err.Error() != `model: unknown key "text" in design node` {
+		t.Fatalf("design node accepted an unknown key: %v", err)
+	}
+}
+
+func TestValidateExtraStructuralRoundTrip(t *testing.T) {
+	in := `{"validate":{"required":true,"min_length":3,"custom":{"rule":"x"}}}`
 	var f FieldSpec
 	if err := json.Unmarshal([]byte(in), &f); err != nil {
 		t.Fatal(err)
 	}
-	if f.Multiple.Max != nil {
-		t.Fatalf("legacy multiple_max leaked into Max: %#v", f.Multiple.Max)
+	if f.Validate.Extra["min_length"] != float64(3) {
+		t.Fatalf("validate Extra not captured: %#v", f.Validate.Extra)
+	}
+	out, err := json.Marshal(&f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got FieldSpec
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Validate.Required != true || got.Validate.Extra["min_length"] != float64(3) || got.Validate.Extra["custom"] == nil {
+		t.Fatalf("validate structural round-trip lost data: %s", out)
+	}
+	var forbidden FieldSpec
+	if err := json.Unmarshal([]byte(`{"validate":{"custom":1,"when":1}}`), &forbidden); err == nil {
+		t.Fatal("forbidden key accepted under validate")
 	}
 }
 

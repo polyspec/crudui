@@ -31,11 +31,16 @@
 // recorded in LegacyKeyMap for a one-way translator, never mixed into the
 // recognized model (R2 / R4).
 //
+// Buckets are closed or open, as in the JSON schema. The closed buckets design,
+// design.{label,wrapper,group,prepend}, behavior, multiple and lang reject any
+// key they do not model on Unmarshal. The open buckets validate (Validate.Extra)
+// and options (Options.Extra) keep unknown keys.
+//
 // Forbidden meta keys are rejected GLOBALLY, not only at top level: every open
-// bucket (Options.Extra) guards against them on Unmarshal, one level under the
-// bucket too. A schema layer expresses the same with
-// propertyNames:{not:{enum:[…]}} rather than additionalProperties:true, so
-// extension is allowed but forbidden keys are blocked everywhere.
+// bucket guards against them on Unmarshal, one level under the bucket too. A
+// schema layer expresses the same with propertyNames:{not:{enum:[…]}} rather
+// than additionalProperties:true, so extension is allowed but forbidden keys are
+// blocked everywhere.
 //
 // x{key} comment keys (x-prefixed) are rejected here. The premise is that a
 // meta-schema x-strips them first, then validates the canonical spec; the strip
@@ -46,6 +51,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -447,7 +453,8 @@ func (c *ConditionMap) UnmarshalJSON(data []byte) error {
 //
 // Each sub-key value may be an expression or a condition map, so conditional
 // validation is expressed without a separate key (e.g. required: '.subscribe',
-// email: true). A schema layer rejects any sub-key not listed here.
+// email: true). validate is an open bucket: Extra keeps every further rule key,
+// and every ForbiddenMetaKey is still rejected on Unmarshal.
 type ValidateSlot struct {
 	// Cancel is the false shape: cancels a composed-in validate slot.
 	Cancel bool `json:"-"`
@@ -460,6 +467,18 @@ type ValidateSlot struct {
 	Email any `json:"email,omitempty"`
 	// Match is the cross-field match rule.
 	Match any `json:"match,omitempty"`
+
+	// Extra holds any further rule keys not modeled above. Forbidden meta keys
+	// are rejected here too.
+	Extra map[string]any `json:"-"`
+}
+
+// validateNamedKeys are the modeled validate sub-keys; everything else in the
+// object goes into Extra on Unmarshal.
+var validateNamedKeys = map[string]bool{
+	"required": true,
+	"email":    true,
+	"match":    true,
 }
 
 // MarshalJSON emits a ValidateSlot as false, true, or the body object.
@@ -474,7 +493,11 @@ func (s *ValidateSlot) MarshalJSON() ([]byte, error) {
 		return []byte("true"), nil
 	}
 	type alias ValidateSlot
-	return json.Marshal((*alias)(s))
+	body, err := json.Marshal((*alias)(s))
+	if err != nil {
+		return nil, err
+	}
+	return mergeExtra(body, s.Extra)
 }
 
 // UnmarshalJSON reads a ValidateSlot in its polymorphic shape.
@@ -493,6 +516,11 @@ func (s *ValidateSlot) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*s = ValidateSlot(a)
+	extra, err := extraKeys(data, validateNamedKeys)
+	if err != nil {
+		return err
+	}
+	s.Extra = extra
 	return nil
 }
 
@@ -502,8 +530,9 @@ func (s *ValidateSlot) UnmarshalJSON(data []byte) error {
 // wrapper_class / prepend_class into the node map.
 //
 // Polymorphic: Cancel = the false shape, Bare = the true shape, otherwise the
-// body carries the {} shape. A schema layer rejects any sub-key outside
-// DesignNodeMap.
+// body carries the {} shape. design is a closed bucket: Unmarshal rejects any
+// key outside show / class / style / label / wrapper / group / prepend, and any
+// node key outside class / style (DesignNodeMap).
 type DesignSlot struct {
 	// Cancel is the false shape: cancels a composed-in design slot.
 	Cancel bool `json:"-"`
@@ -552,6 +581,20 @@ func (s *DesignSlot) UnmarshalJSON(data []byte) error {
 	if err := rejectForbiddenKeys(data, "design"); err != nil {
 		return err
 	}
+	if err := rejectUnknownKeys(data, "design", designKeys); err != nil {
+		return err
+	}
+	keys, values, err := objectMembers(data)
+	if err != nil {
+		return err
+	}
+	for i, key := range keys {
+		if key == "label" || key == "wrapper" || key == "group" || key == "prepend" {
+			if err := rejectUnknownKeys(values[i], "design."+key, designNodeKeys); err != nil {
+				return err
+			}
+		}
+	}
 	type alias DesignSlot
 	var a alias
 	if err := json.Unmarshal(data, &a); err != nil {
@@ -562,13 +605,33 @@ func (s *DesignSlot) UnmarshalJSON(data []byte) error {
 }
 
 // DesignNode is the appearance of one named DOM node within the design node map:
-// its class and inline style. Either may be an expression or condition map. A
-// schema layer rejects any key beyond class / style here.
+// its class and inline style. Either may be an expression or condition map. It is
+// a closed bucket: Unmarshal rejects any key beyond class / style.
 type DesignNode struct {
 	// Class is the node's appearance class.
 	Class any `json:"class,omitempty"`
 	// Style is the node's inline appearance.
 	Style any `json:"style,omitempty"`
+}
+
+// designKeys are the keys a design object allows.
+var designKeys = []string{"show", "class", "style", "label", "wrapper", "group", "prepend"}
+
+// designNodeKeys are the keys a design node allows.
+var designNodeKeys = []string{"class", "style"}
+
+// UnmarshalJSON reads a DesignNode and rejects any key beyond class / style.
+func (n *DesignNode) UnmarshalJSON(data []byte) error {
+	if err := rejectUnknownKeys(data, "design node", designNodeKeys); err != nil {
+		return err
+	}
+	type alias DesignNode
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	*n = DesignNode(a)
+	return nil
 }
 
 // DesignNodeMap is the closed set of design node-map address keys (SPEC
@@ -593,8 +656,8 @@ var DesignNodeMap = []string{
 // is behavior.{action}.label, adjacent to the action.
 //
 // Polymorphic: Cancel = the false shape, Bare = the true shape, otherwise the
-// body carries the {} shape. A schema layer rejects any sub-key outside
-// onchange / onclick / onload.
+// body carries the {} shape. behavior is a closed bucket: Unmarshal rejects any
+// sub-key outside onchange / onclick / onload.
 type BehaviorSlot struct {
 	// Cancel is the false shape: cancels a composed-in behavior slot.
 	Cancel bool `json:"-"`
@@ -632,6 +695,9 @@ func (s *BehaviorSlot) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	if err := rejectForbiddenKeys(data, "behavior"); err != nil {
+		return err
+	}
+	if err := rejectUnknownKeys(data, "behavior", []string{"onchange", "onclick", "onload"}); err != nil {
 		return err
 	}
 	type alias BehaviorSlot
@@ -730,14 +796,19 @@ func (s *OptionsSlot) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(s.Extra) == 0 {
+	return mergeExtra(body, s.Extra)
+}
+
+// mergeExtra inlines an open bucket's Extra keys into its marshaled named fields.
+func mergeExtra(body []byte, extra map[string]any) ([]byte, error) {
+	if len(extra) == 0 {
 		return body, nil
 	}
 	var merged map[string]json.RawMessage
 	if err := json.Unmarshal(body, &merged); err != nil {
 		return nil, err
 	}
-	for k, v := range s.Extra {
+	for k, v := range extra {
 		rv, err := json.Marshal(v)
 		if err != nil {
 			return nil, err
@@ -745,6 +816,29 @@ func (s *OptionsSlot) MarshalJSON() ([]byte, error) {
 		merged[k] = rv
 	}
 	return json.Marshal(merged)
+}
+
+// extraKeys decodes every key of an open bucket object that named does not model.
+func extraKeys(data []byte, named map[string]bool) (map[string]any, error) {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	var extra map[string]any
+	for k, v := range raw {
+		if named[k] {
+			continue
+		}
+		if extra == nil {
+			extra = map[string]any{}
+		}
+		var val any
+		if err := json.Unmarshal(v, &val); err != nil {
+			return nil, err
+		}
+		extra[k] = val
+	}
+	return extra, nil
 }
 
 // UnmarshalJSON reads an OptionsSlot in its polymorphic shape, routing unknown
@@ -764,24 +858,11 @@ func (s *OptionsSlot) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*s = OptionsSlot(a)
-
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
+	extra, err := extraKeys(data, optionsNamedKeys)
+	if err != nil {
 		return err
 	}
-	for k, v := range raw {
-		if optionsNamedKeys[k] {
-			continue
-		}
-		if s.Extra == nil {
-			s.Extra = map[string]any{}
-		}
-		var val any
-		if err := json.Unmarshal(v, &val); err != nil {
-			return err
-		}
-		s.Extra[k] = val
-	}
+	s.Extra = extra
 	return nil
 }
 
@@ -957,7 +1038,8 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 // Legacy multiple_max / sortable* / add_buttons / remove_list_button /
 // list_button_text / multiple_button_onclick are NOT fields here; their
 // canonical targets (max / sortable / copy / onclick) are in LegacyKeyMap for a
-// translator, never recognized directly (R2 / R4).
+// translator, never recognized directly (R2 / R4). multiple is a closed bucket:
+// Unmarshal rejects any key not modeled below.
 type Multiple struct {
 	// Cancel is the false shape: multiple disabled (cancels a composed-in
 	// multiple).
@@ -1008,6 +1090,9 @@ func (m *Multiple) UnmarshalJSON(data []byte) error {
 	if err := rejectForbiddenKeys(data, "multiple"); err != nil {
 		return err
 	}
+	if err := rejectUnknownKeys(data, "multiple", []string{"min", "max", "copy", "sortable", "title", "controls", "header", "onclick"}); err != nil {
+		return err
+	}
 	type alias Multiple
 	var a alias
 	if err := json.Unmarshal(data, &a); err != nil {
@@ -1026,7 +1111,8 @@ func (m *Multiple) UnmarshalJSON(data []byte) error {
 // remove_lang_title / lang_group_class are NOT fields here; their canonical
 // targets (mode / only / name / key / frame / title / group_class) are in
 // LegacyKeyMap for a translator, never recognized directly (R2 / R4). The magic
-// `:` token in lang:append is rejected outright.
+// `:` token in lang:append is rejected outright. lang is a closed bucket:
+// Unmarshal rejects any key not modeled below.
 type Lang struct {
 	// Cancel is the false shape: lang disabled (cancels a composed-in lang).
 	Cancel bool `json:"-"`
@@ -1077,6 +1163,9 @@ func (l *Lang) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	if err := rejectForbiddenKeys(data, "lang"); err != nil {
+		return err
+	}
+	if err := rejectUnknownKeys(data, "lang", []string{"mode", "only", "name", "key", "frame", "title", "group_class"}); err != nil {
 		return err
 	}
 	type alias Lang
@@ -1228,6 +1317,50 @@ func rejectForbiddenKeys(data []byte, where string) error {
 		}
 	}
 	return nil
+}
+
+// rejectUnknownKeys errors on the first key, in declaration order, of a closed
+// bucket object that allowed does not list. Non-object input is a no-op (the
+// caller's typed Unmarshal handles non-objects).
+func rejectUnknownKeys(data []byte, where string, allowed []string) error {
+	keys, _, err := objectMembers(data)
+	if err != nil {
+		return err
+	}
+	for _, key := range keys {
+		if !slices.Contains(allowed, key) {
+			return fmt.Errorf("model: unknown key %q in %s", key, where)
+		}
+	}
+	return nil
+}
+
+// objectMembers returns the keys and raw values of a JSON object in declaration
+// order. Non-object input yields no members.
+func objectMembers(data []byte) ([]string, []json.RawMessage, error) {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	tok, err := dec.Token()
+	if err != nil {
+		return nil, nil, nil
+	}
+	if d, ok := tok.(json.Delim); !ok || d != '{' {
+		return nil, nil, nil
+	}
+	var keys []string
+	var values []json.RawMessage
+	for dec.More() {
+		keyTok, err := dec.Token()
+		if err != nil {
+			return nil, nil, err
+		}
+		var value json.RawMessage
+		if err := dec.Decode(&value); err != nil {
+			return nil, nil, err
+		}
+		keys = append(keys, keyTok.(string))
+		values = append(values, value)
+	}
+	return keys, values, nil
 }
 
 // isXCommentKey reports whether key is an x{key} comment key: a lowercase x

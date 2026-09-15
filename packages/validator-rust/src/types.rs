@@ -2,8 +2,11 @@
 //!
 //! This module represents top-level keys, role slots, dependency buckets, design
 //! nodes, condition maps and `$ref`/`$patch` composition. `deny_unknown_fields`
-//! rejects unrecognized top-level keys. `ExtraMap` accepts extension keys inside
-//! open buckets and rejects every forbidden meta key during deserialization.
+//! rejects unrecognized top-level keys and every unknown key inside the closed
+//! buckets `design` (and its nodes), `behavior`, `multiple` and `lang`. `ExtraMap`
+//! accepts extension keys inside the open buckets `validate`, `options` and a
+//! dynamic `items` source, and rejects every forbidden meta key during
+//! deserialization.
 //!
 //! Role slots and structural dimensions use `Polymorphic<T>` for `false`, an
 //! explicit object or `true`. Dependent keys remain under their owning target as
@@ -262,8 +265,10 @@ pub struct FieldSpec {
 }
 
 // ============================================================================
-// Role slots from SPEC §3. Slots accept listed keys and preserve extension keys
-// in ExtraMap. ExtraMap rejects forbidden meta keys during deserialization.
+// Role slots from SPEC §3. The open slots `validate` and `options` preserve
+// extension keys in ExtraMap, which rejects forbidden meta keys during
+// deserialization. The closed slots `design` and `behavior` reject every
+// unknown key.
 // ============================================================================
 
 /// Validation rules whose values may be expressions or condition maps.
@@ -284,7 +289,10 @@ pub struct ValidateSlot {
 }
 
 /// Display condition and appearance configuration for named DOM nodes.
+///
+/// A closed bucket: `deny_unknown_fields` rejects every unlisted key.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DesignSlot {
     /// Display condition represented as an expression or condition map.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -307,15 +315,13 @@ pub struct DesignSlot {
     /// Prepend-node appearance.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prepend: Option<DesignNode>,
-    /// Additional named design nodes.
-    #[serde(flatten)]
-    pub extra: ExtraMap,
 }
 
 /// Appearance configuration for one named DOM node.
 ///
-/// `extra` preserves extension keys such as text and rejects forbidden meta keys.
+/// A closed bucket: `deny_unknown_fields` rejects every key except class and style.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DesignNode {
     /// Node class represented as an expression or condition map.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -323,13 +329,13 @@ pub struct DesignNode {
     /// Node style represented as an expression or condition map.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub style: Option<ConditionValue>,
-    /// Additional node properties preserved during serialization.
-    #[serde(flatten)]
-    pub extra: ExtraMap,
 }
 
 /// Opaque client behavior scripts shared by all field types.
+///
+/// A closed bucket: `deny_unknown_fields` rejects every unlisted key.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BehaviorSlot {
     /// Script executed after a value change.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -340,9 +346,6 @@ pub struct BehaviorSlot {
     /// Script executed after loading.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub onload: Option<Value>,
-    /// Additional behavior properties.
-    #[serde(flatten)]
-    pub extra: ExtraMap,
 }
 
 /// One form button. A button or link needs text; a link needs href.
@@ -444,8 +447,10 @@ pub struct OptionsSlot {
 /// Repeated-row options stored under `multiple`.
 ///
 /// Row identity is not a field of this structure. Repeated data is an object
-/// keyed by row identity, and object member order is row order.
+/// keyed by row identity, and object member order is row order. A closed
+/// bucket: `deny_unknown_fields` rejects every unlisted key.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MultipleSpec {
     /// Minimum row count.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -471,13 +476,13 @@ pub struct MultipleSpec {
     /// Click behavior for repeated-row controls.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub onclick: Option<Value>,
-    /// Additional repeated-row options.
-    #[serde(flatten)]
-    pub extra: ExtraMap,
 }
 
 /// Per-language input options stored under `lang`.
+///
+/// A closed bucket: `deny_unknown_fields` rejects every unlisted key.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LangSpec {
     /// Language-input mode.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -501,9 +506,6 @@ pub struct LangSpec {
     /// Language-group class.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group_class: Option<Value>,
-    /// Additional language-input options.
-    #[serde(flatten)]
-    pub extra: ExtraMap,
 }
 
 /// Static choices or a dynamic item-source descriptor.
@@ -682,7 +684,6 @@ mod tests {
                 assert_eq!(m.title, Some(Value::from("name")));
                 assert_eq!(m.controls, Some(Value::from("footer")));
                 assert_eq!(m.header, Some(Value::from("sticky")));
-                assert!(m.extra.0.is_empty());
             }
             other => panic!("expected multiple config, got {other:?}"),
         }
@@ -804,7 +805,8 @@ mod tests {
         }
     }
 
-    // Open buckets accept extensions but reject every forbidden meta key.
+    // Open buckets accept extensions but reject every forbidden meta key; closed
+    // buckets reject a forbidden key as an unknown key.
     #[test]
     fn forbidden_meta_keys_rejected_one_level_below() {
         for k in FORBIDDEN_META_KEYS {
@@ -816,7 +818,7 @@ mod tests {
                 "forbidden key in options bucket must be rejected: {k}"
             );
 
-            // Multiple dependency bucket.
+            // Closed multiple dependency bucket.
             let json = format!(r#"{{ "type": "group", "multiple": {{ "{k}": true }} }}"#);
             let r: Result<FieldSpec, _> = serde_json::from_str(&json);
             assert!(
@@ -870,33 +872,30 @@ mod tests {
         }
     }
 
-    // DesignNode preserves extension keys in addition to class and style.
+    // Closed buckets reject every unknown key, including a design node key.
     #[test]
-    fn design_node_preserves_extra_keys_round_trip() {
-        // A label node preserves the text extension during round-trip serialization.
-        let src = r#"{"type":"text","design":{"label":{"class":"lbl","text":"Name","style":"x"}}}"#;
-        let original: Value = serde_json::from_str(src).unwrap();
-        let spec: FieldSpec = serde_json::from_value(original.clone()).unwrap();
-
-        // The typed model stores text in the extension map.
-        match &spec.design {
-            Some(Polymorphic::Config(d)) => {
-                let node = d.label.as_ref().expect("label node");
-                assert_eq!(
-                    node.extra.as_map().get("text"),
-                    Some(&Value::String("Name".into())),
-                    "DesignNode dropped non-class/style key 'text'"
-                );
-            }
-            other => panic!("expected design config, got {other:?}"),
+    fn closed_buckets_reject_unknown_keys() {
+        for src in [
+            r#"{"type":"text","design":{"label":{"class":"lbl","text":"Name","style":"x"}}}"#,
+            r#"{"type":"text","design":{"class":"a","text":"Name"}}"#,
+            r#"{"type":"text","behavior":{"onsubmit":"x"}}"#,
+            r#"{"type":"group","multiple":{"min":1,"foo":1}}"#,
+            r#"{"type":"text","lang":{"mode":"append","langs":["ko"]}}"#,
+        ] {
+            let r: Result<FieldSpec, _> = serde_json::from_str(src);
+            assert!(
+                r.is_err(),
+                "unknown key in closed bucket must be rejected: {src}"
+            );
         }
-
-        // Serialization preserves all input keys and their declaration order.
-        let reser = serde_json::to_value(&spec).unwrap();
-        assert_eq!(
-            reser, original,
-            "DesignNode round-trip dropped/reordered keys"
-        );
+        // Open buckets keep accepting unknown keys.
+        for src in [
+            r#"{"type":"text","validate":{"future_rule":1}}"#,
+            r#"{"type":"search","items":{"model":"User","method":"all"}}"#,
+        ] {
+            let r: Result<FieldSpec, _> = serde_json::from_str(src);
+            assert!(r.is_ok(), "open bucket must accept: {src}");
+        }
     }
 
     // Condition-map serialization preserves declaration order.
