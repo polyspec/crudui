@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 계약 검증 명령을 패키지 검사로 유지
+
+`353a0c10` 이후 폼 인스턴스 CI 작업이 실패했습니다. `npm run manifest:test`는 계약 목록의 모든 검증 명령을
+실행하는데, 제가 `buildDetail`과 `renderDetail`에 `make test-native`를 선언했습니다. 이 작업에는 네이티브 PHP
+도구가 없어 확장 빌드가 `Path contains a symbolic link: /usr/bin/php-config`에서 멈췄습니다. 다른 모든 계약은
+패키지 검사만 선언하며, 네이티브 비교는 `tests`의 러너로 기록하고 전용 CI 작업에서 실행합니다. 그 작업은
+통과했습니다.
+
+두 상세 계약도 다른 계약처럼 패키지 검사만 선언합니다. `run-contract-tests.mjs`로 코어 상세 검사와 HTML·React
+상세 적합성 검사가 통과했고 `make docs-check`와 `npm run test:docs`가 통과했습니다.
+
 ## 2026-09-15 — 모든 런타임에서 상세 보기를 같은 수준으로 강제
 
 상세 보기는 JavaScript와 Go에만 있었고 그 출력을 비교하는 검사가 없었습니다. 이 작업 트리에는 Claude
