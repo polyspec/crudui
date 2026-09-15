@@ -2,6 +2,14 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Keep Korean heading anchors on the documentation site
+
+The documentation site built heading ids from NFKD text. NFKD decomposes Hangul syllables into jamo,
+so a Korean heading such as `목록 모델` received an id that no Korean fragment link could match.
+Heading ids are composed again after combining marks are removed: Hangul keeps its syllables and
+accented Latin letters still lose their marks. The site build test covers a Korean heading, a
+fragment link to it and `Café`. The site build suite passed 11 tests.
+
 ## 2026-09-15 — Compare expected PHP signatures without losing empty objects
 
 Candidate verification of `2ef897a5` stopped in the PHP modes check with `Public PHP and extension
