@@ -19,6 +19,25 @@ test('loads the public frame readiness module in Chromium', async t => {
   }, moduleUrl), 'function');
 });
 
+test('reports whether the pointer is over a comparison frame in Chromium', async t => {
+  const browser = await puppeteer.launch({ headless: true });
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+  const source = await readFile(new URL('./frame-pointer.mjs', import.meta.url), 'utf8');
+  const moduleUrl = 'data:text/javascript,' + encodeURIComponent(source);
+  await page.setContent('<div style="height:100px">page</div>'
+    + '<iframe style="width:400px;height:200px;border:0" srcdoc="<p style=&quot;margin:0;height:200px&quot;>frame</p>"></iframe>');
+  await page.waitForFunction(() => document.querySelector('iframe').contentDocument?.querySelector('p'));
+  await page.evaluate(async url => { window.frameModule = await import(url); }, moduleUrl);
+  const over = () => page.evaluate(() => window.frameModule.pointerOverFrame(document.querySelector('iframe')));
+  await page.mouse.move(50, 20);
+  assert.equal(await over(), false, 'Pointer over the page');
+  await page.mouse.move(50, 180);
+  assert.equal(await over(), true, 'Pointer over the frame');
+  await page.mouse.move(50, 20);
+  assert.equal(await over(), false, 'Pointer moved back to the page');
+});
+
 test('receives delayed main-page readiness without one open protocol call',
   { timeout: 10_000 }, async t => {
     const browser = await puppeteer.launch({ headless: true, protocolTimeout: 1_000 });

@@ -235,6 +235,13 @@ Stages focus controls as a keyboard user does, with visible focus
 pointer input in the same document, so a click inside one frame before the comparison
 would otherwise change only that column's CSS.
 
+Both columns must receive the same input, and a pointer rests over one frame only. No page
+style keeps `:hover` out of a frame in every browser: in Safari neither `pointer-events: none`
+on the frame nor an element covering it does. A capture therefore requires the pointer to be
+outside both frames. When the pointer is over a frame (its document element matches
+`:hover`), the comparison stops without a result and asks to move the pointer outside the
+frames and compare again; the list shown after loading says the same instead of comparing.
+
 Each right stage is compared with the stored left stage using `formSnapshot`,
 `styleSnapshot` and `compareSnapshots`: parsed DOM with every attribute, live
 control state, native fields, computed CSS for elements and pseudo-elements, ordered
