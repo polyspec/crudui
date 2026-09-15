@@ -16,16 +16,41 @@ export function domSnapshot(node) {
 }
 
 /**
+ * A detached copy of what a subtree renders: without the nodes frameworks keep as rendering
+ * anchors, which render nothing (comments and empty text), and with every style attribute as
+ * the CSS object model serializes its declarations, because a framework writes the declaration
+ * block it computes (`name: value;`) where a server writes the block's source text
+ * (`name:value`).
+ */
+export function renderedNodes(root) {
+  const window = root.ownerDocument.defaultView;
+  const copy = root.cloneNode(true);
+  const walker = root.ownerDocument.createTreeWalker(
+    copy, window.NodeFilter.SHOW_TEXT | window.NodeFilter.SHOW_COMMENT);
+  const anchors = [];
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.nodeType === window.Node.COMMENT_NODE || node.nodeValue === '') anchors.push(node);
+  }
+  for (const node of anchors) node.remove();
+  for (const element of [copy, ...copy.querySelectorAll('[style]')]) {
+    if (element.style.cssText === '') element.removeAttribute('style');
+    else element.setAttribute('style', element.style.cssText);
+  }
+  return copy;
+}
+
+/**
  * Capture what the view containers hold. The containers belong to the page, and a framework
  * marks the container it used to record how it started: Vue writes `data-v-app` on a container
  * it mounted and leaves a container it hydrated unmarked. That mark is not rendered content,
- * so the containers' own attributes are outside this capture.
+ * so the containers' own attributes are outside this capture. `html` keeps the markup the
+ * browser held; `dom` is what the containers render.
  */
 export function renderedViews(view) {
-  const containers = Array.from(view.children);
   return {
-    html: containers.map(container => container.innerHTML).join(''),
-    dom: containers.map(container => Array.from(container.childNodes, domSnapshot)),
+    html: Array.from(view.children, container => container.innerHTML).join(''),
+    dom: Array.from(renderedNodes(view).children,
+      container => Array.from(container.childNodes, domSnapshot)),
   };
 }
 
