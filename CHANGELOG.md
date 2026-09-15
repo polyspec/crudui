@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-16 — Preserve canonical pagination metadata in native adapters
+
+The PHP, Go and Rust pipeline adapters now forward the canonical `page` and `total` options to
+their renderers. A page containing five rows therefore still reports the canonical total of 45.
+
 ## 2026-09-16 — Preserve benchmark query selection and accept the mounted initialization stage
 
 The benchmark-console redirect now preserves its query string, so each verifier job reaches the

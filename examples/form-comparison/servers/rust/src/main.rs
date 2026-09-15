@@ -319,7 +319,14 @@ async fn pipeline(Path(operation): Path<String>, request: Request) -> Result<Res
     let language = options.and_then(|value| value.get("language")).and_then(Value::as_str).unwrap_or("ko").to_string();
     let html = if operation == "list" {
         let rows = payload.get("rows").and_then(Value::as_array).ok_or_else(|| bad("Expected rows array"))?;
-        render_list(spec, rows, &ListOptions { language, data: json!({}), total: json!(rows.len()), layout: json!("table"), ..Default::default() }).map_err(|e| bad(e.to_string()))?
+        render_list(spec, rows, &ListOptions {
+            language,
+            data: json!({}),
+            page: options.and_then(|value| value.get("page")).cloned().unwrap_or(Value::Null),
+            total: options.and_then(|value| value.get("total")).cloned().unwrap_or_else(|| json!(rows.len())),
+            layout: json!("table"),
+            ..Default::default()
+        }).map_err(|e| bad(e.to_string()))?
     } else if operation == "detail" {
         let record = payload.get("record").ok_or_else(|| bad("Expected record object"))?;
         render_detail(spec, record, &DetailOptions { language, data: json!({}), ..Default::default() }).map_err(|e| bad(e.to_string()))?
