@@ -2,6 +2,29 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 메타스키마에서 모든 검증 규칙의 형식을 정하고 모든 깊이의 금지 키 거부
+
+검증기는 규칙 24개(`pattern`은 `match`와 구현 공유)를 등록하지만 폼 메타스키마는 `required`, `email`, `match`만
+선언했고, 객체의 속성 이름을 나열한 위치에서만 금지 키 이름을 적용했습니다. 형식을 정하지 않은 값은 검사하지 않아
+`validate.max` 조건 맵 안의 `_` 키, `options.items` 요소 안의 금지 키, 상세 필드 `$patch`가 추가한 금지 키가 메타스키마를
+통과하고 런타임 검사에서만 거부되었으며, 이 세 사례는 메타스키마 통과로 기록되어 있었습니다.
+
+이제 메타스키마는 등록된 모든 규칙을 선언합니다. 불리언 스위치는 불리언, 표현식, 조건 맵을, 숫자 규칙은 숫자, 표현식,
+조건 맵을, `range`와 `rangelength`는 숫자 두 개, 표현식, 조건 맵을 받고, `false`나 `null`은 어떤 규칙이든 끕니다. 모든
+엔진이 매개변수를 그대로 넘기는 규칙은 리터럴 형식만 받습니다. `match`, `pattern`, `equalTo`, `enddate`는 문자열,
+`notEqual`은 스칼라, `unique`는 불리언 또는 문자열, `accept`는 문자열 또는 문자열 목록, `in`은 쉼표 문자열, 스칼라 목록,
+값-라벨 맵입니다. [필드 명세](docs/spec/schema.ko.md)대로 `validate`는 열린 버킷이므로 다른 규칙 이름도 받습니다.
+메타스키마가 열어 둔 모든 값은 하나의 재귀 정의를 사용하며, 그 객체는 모든 깊이에서 허용된 키 이름만 가질 수 있습니다.
+스키마를 순회하자 변경 전 형식이 없는 위치가 38곳, 변경 뒤 0곳이었습니다. `match`의 조건 맵은 이전에 허용되었지만
+TypeScript와 Go는 문자열이 아닌 패턴을 건너뛰어 그런 선언은 검사를 조용히 꺼 버렸습니다. 이제 거부하며, 저장소의 어떤
+명세도 그 형식을 쓰지 않았습니다. TypeScript `ValidateSlot` 타입은 같은 규칙을 나열하고 CLI 설명은 열린 버킷을
+명시합니다.
+
+세 사례는 `expect: "fail"`과 reason `propertyNames`를 기록합니다. 사례 파일, `examples/form-structure`,
+`tests/fixtures/specs`의 명세 368개를 이전 메타스키마와 비교하자 세 사례만 바뀌었고 새로 허용된 명세는 없었습니다.
+`scripts/check-schema.mjs`는 103건을 통과했고, TypeScript 메타스키마와 금지 키 적합성 파일 네 개는 77건, CLI 검사는
+37건을 통과했으며, 문서 작성 검사, 사례 README 검사, 린트가 통과했습니다.
+
 ## 2026-09-15 — 모든 공용 사례 종류에 두 언어 README 제공
 
 `tests/fixtures` 아래 사례 종류 중 compose, form-outline, form-session, specs, translate, validate 여섯 개에도

@@ -282,7 +282,7 @@
   },
   {
     "name": "err-magic-underscore-default-key",
-    "note": "the magic '_' default symbol (R4) is forbidden anywhere, here in a condition map The meta-schema declares no validate.max rule, so it leaves this value unconstrained and accepts the case; only the runtime scan rejects it.",
+    "note": "the magic '_' default symbol (R4) is forbidden anywhere, here in a condition map",
     "spec": {
       "type": "group",
       "properties": {
@@ -294,7 +294,8 @@
         }
       }
     },
-    "expect": "ok",
+    "expect": "fail",
+    "reason": "propertyNames",
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.validate.max._" }
   },
   {
@@ -352,7 +353,7 @@
   },
   {
     "name": "err-inside-array-element",
-    "note": "a forbidden key inside an array element (items sub-spec) is caught too The meta-schema declares no options.items setting, so it leaves this value unconstrained and accepts the case; only the runtime scan rejects it.",
+    "note": "a forbidden key inside an array element (items sub-spec) is caught too",
     "spec": {
       "type": "group",
       "properties": {
@@ -367,7 +368,8 @@
         }
       }
     },
-    "expect": "ok",
+    "expect": "fail",
+    "reason": "propertyNames",
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.options.items.1.display_target" }
   },
   {

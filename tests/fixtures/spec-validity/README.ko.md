@@ -24,9 +24,6 @@
 최상위, 역할 슬롯이나 열린 설정 객체 아래, 디자인 노드, 중첩한 자식, 배열 요소 안, `$ref`로 상속한 기반
 명세, 루트 버튼과 동작에 둡니다. 모든 거부 사례의 런타임 코드는 `FORBIDDEN_META_KEY`입니다.
 
-거부 사례 두 개는 메타 스키마를 통과합니다. `err-magic-underscore-default-key`는 `validate.max` 안에 `_`를,
-`err-inside-array-element`는 `options.items`의 요소 안에 `display_target`을 둡니다. 메타 스키마는 두 설정을
-선언하지 않아 값을 제약하지 않으므로 런타임 검사만 이 사례를 거부합니다.
 `err-after-compose-ref-base-leak`는 `spec`이 `$ref`만 가지므로 메타 스키마에서 `required`로 실패합니다.
 
 ## 비교

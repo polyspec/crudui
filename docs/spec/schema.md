@@ -213,7 +213,8 @@ not list fails with `Invalid {bucket}.{key} at {path}: unknown key` (for example
 declaration order before the values. The order is `buttons` and `action`, `multiple`, `lang`,
 `design` (then each node: `label`, `wrapper`, `group`, `prepend`) and `behavior`. `validate`,
 `options` and dynamic `items` sources stay open for type-specific settings; forbidden meta keys
-are rejected everywhere.
+are rejected everywhere. The meta-schema declares the parameter shapes of every registered
+validation rule and rejects forbidden keys at every depth of every value it leaves open.
 
 ## Widget and source settings
 
