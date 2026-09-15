@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Compose;
 
+use CRUDUI\Validator\Support\JsonValue;
+
 /**
  * $ref resolution expands base inheritance before other composition (SPEC §5).
  *
@@ -129,7 +131,8 @@ final class Ref
             );
         }
 
-        $doc = $loader->load($key); // throws REF_FILE_NOT_FOUND if absent
+        // throws REF_FILE_NOT_FOUND if absent; a loaded document uses specification member order.
+        $doc = JsonValue::orderedMembers($loader->load($key));
 
         // Descend detectKeys (legacy: ReferenceResolver:129-136).
         $node = $doc;
@@ -232,7 +235,7 @@ final class Ref
         foreach ($b as $k => $v) {
             $out[$k] = $v;
         }
-        return $out;
+        return JsonValue::orderedMembers($out);
     }
 
     /** Objects are stdClass values or non-list PHP associative arrays. */

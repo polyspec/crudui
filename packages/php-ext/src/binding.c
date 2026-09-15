@@ -599,8 +599,23 @@ static bool string_option(const ps_value *options, const char *name,
     return false;
 }
 
+static ps_result bind_form(const ps_value *template, const ps_value *data,
+                           const ps_value *options);
+
+/* A compiled template is bound in specification member order; the data keeps its order. */
 ps_result ps_bind_form(const ps_value *template, const ps_value *data,
                        const ps_value *options)
+{
+    ps_value *ordered = NULL;
+    if (!ps_order_specification(template, NULL, &ordered, NULL))
+        return ps_fail("internal", "INTERNAL_ERROR", "C form binding failed", "");
+    ps_result result = bind_form(ordered, data, options);
+    ps_value_free(ordered);
+    return result;
+}
+
+static ps_result bind_form(const ps_value *template, const ps_value *data,
+                           const ps_value *options)
 {
     if (!template || template->kind != PS_OBJECT ||
         !ps_is_string(member(template, "kind"), "crudui/form-template") ||

@@ -2,6 +2,54 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Check list and detail designs as form designs are checked
+
+Lists and details have no compile step, so an unknown `design` key in a list, a column, a detail or a
+field was ignored in every runtime; the detail case fixed earlier today styled its cell with such a
+key for that reason. The [display formats](docs/spec/display-formats.md#input) now check the
+declarations after the input rules and composition with the form declaration rule and messages, at
+the paths `list`, `columns.{name}`, `detail` and `fields.{name}`, the own design before its columns or
+fields. JavaScript, Go, Rust, PHP and the PHP extension share one design declaration check between
+forms, lists and details. Five shared list and detail cases cover unknown keys, value types and the
+order.
+
+This change and the member order change below edited the same list, detail and template functions in
+Go and Rust at the same time, so they are recorded in one commit.
+
+Both changes were verified together; the results follow the member order entry.
+
+## 2026-09-15 — Use one member order for specification objects in every runtime
+
+JavaScript receives a specification as plain objects, which list array-index member names such as
+`10` first in ascending numeric order; PHP, the PHP extension, Go and Rust kept the order in which
+members were written. Measuring the six targets with fields written `b`, `10`, `a` showed JavaScript
+compiling, rendering and validating them as `10`, `b`, `a` and every other runtime as `b`, `10`, `a`,
+and the same split for list columns, detail fields, `items` value maps and the unknown key a closed
+bucket reports. The [field specification](docs/spec/schema.md#member-order) now defines this order
+for every object in a specification, in composition files, composition results and compiled
+templates, while record data keeps the order in which it arrives. Go, Rust, PHP and the PHP extension
+reorder specification inputs, loaded composition documents and composition results, and bind
+reorders the templates it receives.
+
+Writing the shared cases exposed two defects. Cases generated through JavaScript objects already
+held their members in JavaScript order, so they could not fail in any runtime, and Rust compares
+maps without member order; those cases were removed. The validation cases now keep the written
+order as JSON text, a composed case checks a patched index name, and the native runner sends raw
+JSON text for fields, composed fields, `items`, list columns, detail fields and unknown-key reporting,
+judging order from arrays, HTML and messages. The JavaScript validator also left an error's `value`
+undefined when the field was absent, so the member disappeared from JSON while Go, PHP and Rust
+wrote `null`; every error now carries `value`, `null` when absent.
+
+The native comparison passed 259 checks in each of JavaScript, the HTML renderer, PHP, Go, Rust
+and the PHP extension (1,555 checks, inputs unchanged during the run). The PHP extension engine
+test passed 24 tests; its address sanitizer test runs only on Linux. The PHP generator passed 195
+tests, and the PHP API passed 642 checks in each of three configurations and 115 validation cases in
+each implementation. `npm run test:forms` passed core 112, HTML 257, React 425, Vue 396 and Svelte
+393 and 10 tests. The validators passed TypeScript 1,677 tests, PHP 1,539 tests and the Go and Rust
+suites, the gateway suite passed 204 tests, and build, lint, formatting, the documentation tests
+(25) and the documentation site checks passed. The working tree for these checks also held changes
+committed after this one.
+
 ## 2026-09-15 — Lint every TypeScript package without warnings
 
 `npm run lint` covered only the validator, HTML renderer and React sources, so the core, Vue, Svelte

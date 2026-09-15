@@ -29,7 +29,34 @@ type ComposeOptions struct {
 // $patch, return the single (composition-free) properties map. Named sibling
 // keys follow legacy declaration order — a key declared after $ref overrides the
 // base; a key declared before it is overridden by the base.
+//
+// The input and the result are in specification member order (see OrderMembers).
 func ComposeProperties(properties *OMap, loader FileLoader, opts ComposeOptions) (*OMap, error) {
+	return ordered(composeProperties, properties, loader, opts)
+}
+
+// ComposeSpec composes a full field spec: expand a field-level $ref/$patch, then
+// recurse into its properties (which may itself compose). Returns the single spec.
+// The input and the result are in specification member order (see OrderMembers).
+func ComposeSpec(spec *OMap, loader FileLoader, opts ComposeOptions) (*OMap, error) {
+	return ordered(composeSpec, spec, loader, opts)
+}
+
+// ordered runs one composition over the input in specification member order and
+// returns its result in that order. Merges append new keys, as JavaScript object
+// spread does before it moves array-index names first.
+func ordered(run func(*OMap, FileLoader, ComposeOptions) (*OMap, error), input *OMap, loader FileLoader, opts ComposeOptions) (*OMap, error) {
+	in, _ := OrderMembers(input).(*OMap)
+	result, err := run(in, loader, opts)
+	if err != nil {
+		return nil, err
+	}
+	out, _ := OrderMembers(result).(*OMap)
+	return out, nil
+}
+
+// composeProperties is ComposeProperties over an already ordered input.
+func composeProperties(properties *OMap, loader FileLoader, opts ComposeOptions) (*OMap, error) {
 	basepath := opts.Basepath
 
 	base := NewOMap()
@@ -70,7 +97,7 @@ func ComposeProperties(properties *OMap, loader FileLoader, opts ComposeOptions)
 	for _, fieldName := range result.Keys() {
 		field, _ := result.Get(fieldName)
 		if fm, ok := isOMap(field); ok {
-			composed, err := ComposeSpec(fm, loader, opts)
+			composed, err := composeSpec(fm, loader, opts)
 			if err != nil {
 				return nil, err
 			}
@@ -81,9 +108,8 @@ func ComposeProperties(properties *OMap, loader FileLoader, opts ComposeOptions)
 	return result, nil
 }
 
-// ComposeSpec composes a full field spec: expand a field-level $ref/$patch, then
-// recurse into its properties (which may itself compose). Returns the single spec.
-func ComposeSpec(spec *OMap, loader FileLoader, opts ComposeOptions) (*OMap, error) {
+// composeSpec is ComposeSpec over an already ordered input.
+func composeSpec(spec *OMap, loader FileLoader, opts ComposeOptions) (*OMap, error) {
 	basepath := opts.Basepath
 
 	var resolved *OMap
@@ -127,7 +153,7 @@ func ComposeSpec(spec *OMap, loader FileLoader, opts ComposeOptions) (*OMap, err
 	// Recurse into properties (composition entry point, SPEC §2 / types.go:73).
 	props, _ := resolved.Get("properties")
 	if pm, ok := isOMap(props); ok {
-		composed, err := ComposeProperties(pm, loader, opts)
+		composed, err := composeProperties(pm, loader, opts)
 		if err != nil {
 			return nil, err
 		}

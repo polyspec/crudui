@@ -36,6 +36,8 @@ import {
 } from '../../../packages/validator-ts/src/validate/index';
 
 interface CaseSpec {
+  /** Specification written as JSON text, so array-index member names keep the order they were written in the fixture file. */
+  specText?: string;
   name: string;
   note: string;
   spec: Record<string, unknown>;
@@ -46,6 +48,9 @@ interface CaseSpec {
 // ---------------------------------------------------------------------------
 // Cases — one per fixture_ideas entry in the analysis (single truth).
 // ---------------------------------------------------------------------------
+
+/** Properties written as b, 10, a; JSON text keeps that order in the fixture file. */
+const PROPERTY_ORDER_SPEC = '{"type":"group","properties":{"b":{"type":"text","validate":{"required":true}},"10":{"type":"text","validate":{"required":true}},"a":{"type":"text","validate":{"required":true}}}}';
 
 const SPECS: CaseSpec[] = [
   ...['2026-01-01', '2026-01-02', '2026-01-03'].map(end => ({
@@ -59,6 +64,23 @@ const SPECS: CaseSpec[] = [
     } },
     data: { period: { start: '2026-01-02', end } },
   })),
+  {
+    name: 'property-member-order',
+    note: 'Errors follow specification member order: properties written as b, 10, a report 10, b, a. The fixture keeps the written order.',
+    spec: JSON.parse(PROPERTY_ORDER_SPEC),
+    specText: PROPERTY_ORDER_SPEC,
+    data: {},
+  },
+  {
+    name: 'composed-member-order',
+    note: 'A property added by $patch to a base written as b, a joins in member order, so errors report 10, b, a.',
+    spec: { type: 'group', properties: { $ref: 'base.json', $patch: { 10: { type: 'text', validate: { required: true } } } } },
+    files: { 'base.json': { properties: {
+      b: { type: 'text', validate: { required: true } },
+      a: { type: 'text', validate: { required: true } },
+    } } },
+    data: {},
+  },
   {
     name: 'enddate-parent-path',
     note: 'The enddate parameter remains a field path.',
@@ -878,7 +900,8 @@ function build(c: CaseSpec): Record<string, unknown> {
   const base: Record<string, unknown> = {
     name: c.name,
     note: c.note,
-    spec: c.spec,
+    // Written as a placeholder and replaced by the authored text after serialization.
+    spec: c.specText === undefined ? c.spec : `__SPEC_TEXT_${c.name}__`,
   };
   if (c.files) {
     base.files = c.files;
@@ -901,4 +924,11 @@ function build(c: CaseSpec): Record<string, unknown> {
 }
 
 const out = SPECS.map(build);
-process.stdout.write(JSON.stringify(out, null, 2) + '\n');
+let text = JSON.stringify(out, null, 2);
+for (const c of SPECS) {
+  if (c.specText === undefined) continue;
+  const placeholder = JSON.stringify(`__SPEC_TEXT_${c.name}__`);
+  if (text.split(placeholder).length !== 2) throw new Error(`specification text placeholder for ${c.name} must occur once`);
+  text = text.replace(placeholder, c.specText);
+}
+process.stdout.write(text + '\n');

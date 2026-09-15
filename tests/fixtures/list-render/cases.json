@@ -1099,6 +1099,68 @@
     }
   },
   {
+    "name": "reject-column-design-unknown-key",
+    "note": "a column design key that the schema does not list is rejected at its column path.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "design": {
+            "main": {
+              "class": "x"
+            }
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.main at columns.name: unknown key"
+    }
+  },
+  {
+    "name": "reject-list-design-before-columns",
+    "note": "the list's own design is checked before its columns.",
+    "spec": {
+      "design": {
+        "color": "red"
+      },
+      "columns": {
+        "name": {
+          "field": ".name",
+          "design": {
+            "main": {}
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.color at list: unknown key"
+    }
+  },
+  {
+    "name": "reject-column-design-value",
+    "note": "a column design value of the wrong type is rejected with the form message.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "design": {
+            "show": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.show at columns.name: expected an expression, a boolean or a condition map"
+    }
+  },
+  {
     "name": "layout-null-selects-table",
     "note": "a null layout selects the table layout, as an absent layout does.",
     "spec": {

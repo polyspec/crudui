@@ -1,8 +1,9 @@
 //! Read-only detail models and HTML rendering.
 
+use crudui_validator::compose::member_ordered;
 use serde_json::{json, Map, Value};
 
-use crate::list::{build_list, cell_html, ListOptions};
+use crate::list::{build_display, cell_html, ListOptions};
 use crate::render::{element, escape};
 use crate::util::join_class;
 use crate::{FormError, FormResult};
@@ -17,6 +18,8 @@ pub fn build_detail(
     record: &Value,
     options: &DetailOptions<'_>,
 ) -> FormResult<Value> {
+    // The specification is read in member order; the record keeps its own order.
+    let spec = &member_ordered(spec);
     let Some(spec) = spec.as_object() else {
         return Err(FormError::input("Detail specification must be an object"));
     };
@@ -46,10 +49,12 @@ pub fn build_detail(
         total: Value::Null,
         layout: Value::Null,
     };
-    let list = build_list(
+    let list = build_display(
         &Value::Object(list_spec),
         &[Value::Object(record.clone())],
         &list_options,
+        "detail",
+        "fields",
     )?;
     let columns = list["columns"].as_array().cloned().unwrap_or_default();
     let cells = list["rows"]

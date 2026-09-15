@@ -27,6 +27,7 @@ use serde_json::{Map, Value};
 
 use super::errors::ComposeResult;
 use super::loader::FileLoader;
+use super::member_order::member_ordered_map;
 use super::patch::apply_patch;
 use super::ref_::resolve_ref;
 
@@ -47,10 +48,33 @@ impl ComposeOptions {
 }
 
 /// Compose a `properties` map: expand `$ref` to a base, overlay `$patch`, return
-/// the single (composition-free) properties map. Named sibling keys follow legacy
+/// the single (composition-free) properties map. Named sibling keys follow
 /// declaration order — a key declared after `$ref` overrides the base; a key
-/// declared before it is overridden by the base.
+/// declared before it is overridden by the base. The input and the result are in
+/// specification member order at every depth.
 pub fn compose_properties(
+    properties: Map<String, Value>,
+    loader: &dyn FileLoader,
+    opts: &ComposeOptions,
+) -> ComposeResult<Map<String, Value>> {
+    let composed = expand_properties(member_ordered_map(&properties), loader, opts)?;
+    Ok(member_ordered_map(&composed))
+}
+
+/// Compose a full field spec: expand a field-level `$ref`/`$patch`, then recurse
+/// into its `properties` (which may itself compose). Returns the single spec. The
+/// input and the result are in specification member order at every depth.
+pub fn compose_spec(
+    spec: Map<String, Value>,
+    loader: &dyn FileLoader,
+    opts: &ComposeOptions,
+) -> ComposeResult<Map<String, Value>> {
+    let composed = expand_spec(member_ordered_map(&spec), loader, opts)?;
+    Ok(member_ordered_map(&composed))
+}
+
+/// `compose_properties` over a member-ordered input, without ordering the result.
+fn expand_properties(
     properties: Map<String, Value>,
     loader: &dyn FileLoader,
     opts: &ComposeOptions,
@@ -100,7 +124,7 @@ pub fn compose_properties(
     let keys: Vec<String> = result.keys().cloned().collect();
     for field_name in keys {
         if let Some(Value::Object(child)) = result.get(&field_name).cloned() {
-            let composed = compose_spec(child, loader, opts)?;
+            let composed = expand_spec(child, loader, opts)?;
             result.insert(field_name, Value::Object(composed));
         }
     }
@@ -108,9 +132,8 @@ pub fn compose_properties(
     Ok(result)
 }
 
-/// Compose a full field spec: expand a field-level `$ref`/`$patch`, then recurse
-/// into its `properties` (which may itself compose). Returns the single spec.
-pub fn compose_spec(
+/// `compose_spec` over a member-ordered input, without ordering the result.
+fn expand_spec(
     spec: Map<String, Value>,
     loader: &dyn FileLoader,
     opts: &ComposeOptions,
@@ -162,7 +185,7 @@ pub fn compose_spec(
     // its declared position (IndexMap::insert preserves an existing key's slot).
     // remove() here would swap_remove and shove `properties` to a wrong position.
     if let Some(Value::Object(props)) = resolved.get("properties").cloned() {
-        let composed = compose_properties(props, loader, opts)?;
+        let composed = expand_properties(props, loader, opts)?;
         resolved.insert("properties".to_string(), Value::Object(composed));
     }
 
@@ -246,6 +269,85 @@ mod order_tests {
         let out = Value::Object(out);
         assert_eq!(keys(&out), vec!["type", "properties", "behavior"]);
         assert_eq!(keys(&out["properties"]), vec!["child"]);
+    }
+
+    /// An object with members inserted in exactly the given order.
+    fn written(members: &[(&str, Value)]) -> Value {
+        let mut map = serde_json::Map::new();
+        for (name, value) in members {
+            map.insert((*name).to_string(), value.clone());
+        }
+        Value::Object(map)
+    }
+
+    #[test]
+    fn patched_array_index_member_joins_in_member_order() {
+        let base = written(&[("b", json!({"t": "b"})), ("a", json!({"t": "a"}))]);
+        let ml = loader(json!({"base.yml": {"properties": base}}));
+        let entry = props(json!({"$ref": "base.yml", "$patch": {"10": {"t": "ten"}}}));
+        let out = compose_properties(entry, &ml, &ComposeOptions::default()).unwrap();
+        assert_eq!(keys(&Value::Object(out)), vec!["10", "b", "a"]);
+    }
+
+    /// A loader that returns documents exactly as written, like a custom loader.
+    struct Written(Value);
+
+    impl crate::compose::FileLoader for Written {
+        fn normalize(&self, path: &str, _basepath: &str) -> String {
+            path.to_string()
+        }
+        fn load(
+            &self,
+            _key: &str,
+        ) -> crate::compose::ComposeResult<serde_json::Map<String, Value>> {
+            Ok(self.0.as_object().unwrap().clone())
+        }
+    }
+
+    #[test]
+    fn loaded_documents_are_read_in_member_order() {
+        let doc = written(&[(
+            "properties",
+            written(&[("b", json!({})), ("10", json!({})), ("a", json!({}))]),
+        )]);
+        let custom = Written(json!({"properties": {"10": {"from": "base"}}}));
+        let out = compose_properties(
+            props(json!({"$ref": "doc.yml"})),
+            &Written(doc),
+            &ComposeOptions::default(),
+        )
+        .unwrap();
+        assert_eq!(keys(&Value::Object(out)), vec!["10", "b", "a"]);
+        // Written as $ref, 10: in member order 10 precedes $ref, so the base overrides it.
+        let entry = written(&[("$ref", json!("x.yml")), ("10", json!({"from": "entry"}))]);
+        let out = compose_properties(
+            entry.as_object().unwrap().clone(),
+            &custom,
+            &ComposeOptions::default(),
+        )
+        .unwrap();
+        assert_eq!(Value::Object(out)["10"]["from"], json!("base"));
+    }
+
+    #[test]
+    fn validation_errors_follow_member_order_and_data_is_not_reordered() {
+        use crate::validate::{validate, ValidateOptions};
+        let required = json!({"type": "text", "validate": {"required": true}});
+        let properties = written(&[
+            ("b", required.clone()),
+            ("10", required.clone()),
+            ("a", required),
+        ]);
+        let data = written(&[("a", json!("")), ("b", json!(""))]);
+        let result = validate(
+            &json!({"type": "group", "properties": properties}),
+            &data,
+            &ValidateOptions::default(),
+        )
+        .unwrap();
+        let paths: Vec<&str> = result.errors.iter().map(|e| e.path.as_str()).collect();
+        assert_eq!(paths, vec!["10", "b", "a"]);
+        assert_eq!(keys(&data), vec!["a", "b"]);
     }
 
     #[test]

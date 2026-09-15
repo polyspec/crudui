@@ -107,6 +107,101 @@
     }
   },
   {
+    "name": "property-member-order",
+    "note": "Errors follow specification member order: properties written as b, 10, a report 10, b, a. The fixture keeps the written order.",
+    "spec": {"type":"group","properties":{"b":{"type":"text","validate":{"required":true}},"10":{"type":"text","validate":{"required":true}},"a":{"type":"text","validate":{"required":true}}}},
+    "data": {},
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "10",
+          "field": "10",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        },
+        {
+          "path": "b",
+          "field": "b",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        },
+        {
+          "path": "a",
+          "field": "a",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "composed-member-order",
+    "note": "A property added by $patch to a base written as b, a joins in member order, so errors report 10, b, a.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "$ref": "base.json",
+        "$patch": {
+          "10": {
+            "type": "text",
+            "validate": {
+              "required": true
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "base.json": {
+        "properties": {
+          "b": {
+            "type": "text",
+            "validate": {
+              "required": true
+            }
+          },
+          "a": {
+            "type": "text",
+            "validate": {
+              "required": true
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "10",
+          "field": "10",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        },
+        {
+          "path": "b",
+          "field": "b",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        },
+        {
+          "path": "a",
+          "field": "a",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        }
+      ]
+    }
+  },
+  {
     "name": "enddate-parent-path",
     "note": "The enddate parameter remains a field path.",
     "spec": {

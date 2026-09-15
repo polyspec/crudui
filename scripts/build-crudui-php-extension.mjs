@@ -77,6 +77,7 @@ export async function buildCRUDUIPhpExtension(options = {}) {
       'src/value_path.c',
       'src/engine_error.c',
       'src/compose.c',
+      'src/declaration.c',
       'src/template.c',
       'src/expression.c',
       'src/runtime.c',

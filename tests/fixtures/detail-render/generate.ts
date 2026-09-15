@@ -281,6 +281,20 @@ const SCENARIOS: DetailFixtureCase[] = [
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail record must be an object' },
   },
   {
+    name: 'reject-field-design-node-key',
+    note: 'a design node key that the schema does not list is rejected at its field path.',
+    spec: { fields: { name: { field: '.name', label: 'Name', design: { label: { text: 'x' } } } } },
+    record: ADA,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid design.label.text at fields.name: unknown key' },
+  },
+  {
+    name: 'reject-detail-design-node-value',
+    note: "the detail's own design node must be an object.",
+    spec: { design: { wrapper: 'box' }, fields: { name: { field: '.name', label: 'Name' } } },
+    record: ADA,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid design.wrapper at detail: expected an object' },
+  },
+  {
     name: 'reject-array-context',
     note: 'a data option that is not an object is rejected.',
     spec: { fields: { name: { field: '.name', label: 'Name' } } },

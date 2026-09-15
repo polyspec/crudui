@@ -168,6 +168,14 @@ reported. The Go and Rust library signatures take rows as a sequence, so in thos
 rows rule applies where decoded JSON becomes that sequence; every other rule is checked by the
 library.
 
+After the input rules and composition, the declarations are checked. `design` follows the
+[form declaration rules](schema.md#fields) exactly: an unknown key fails with
+`Invalid {key} at {path}: unknown key` and a value of the wrong type with
+`Invalid {key} at {path}: expected {expected}`. The path of the list's own `design` is `list`, of a
+column's `design` `columns.{name}`, of the detail's own `design` `detail` and of a field's `design`
+`fields.{name}`. The own `design` is checked first, then each column or field in
+[member order](schema.md#member-order).
+
 In PHP, the [PHP API contract](php-extension.md) decides which PHP values are objects: an empty
 PHP array is accepted for a root object argument and for the fixed object options `data` and
 `files`, while nested values keep their type.

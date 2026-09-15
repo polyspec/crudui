@@ -31,7 +31,7 @@ final class Form
     public function __construct(stdClass $template, array|stdClass $data = [], array $options = [])
     {
         Template::check($template);
-        $this->template = Value::copy($template);
+        $this->template = Value::spec($template);
         $this->options = $options;
         $this->data = $this->normalizeFields($this->template->fields, Value::object($data));
         $this->fields = Binding::bind($this->template, $this->data, $options);

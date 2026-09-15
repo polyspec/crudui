@@ -41,6 +41,8 @@ func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
 	if spec == nil {
 		spec = compose.NewOMap()
 	}
+	// The specification is read in specification member order.
+	spec, _ = compose.OrderMembers(spec).(*compose.OMap)
 	loader := compose.NewMemoryLoader(map[string]*compose.OMap(opts.Files))
 	composeOpts := compose.ComposeOptions{Basepath: opts.Basepath}
 

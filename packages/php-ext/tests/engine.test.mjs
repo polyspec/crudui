@@ -150,7 +150,7 @@ test('PHP extension engine compiles every shared form fixture', async () => {
   try {
     await compileAndRunEngineFixture({
       root, directory, source: sourceForFixtures(), name: 'compile-fixtures',
-      sources: ['value.c', 'engine_error.c', 'compose.c', 'template.c'],
+      sources: ['value.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c'],
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -381,7 +381,7 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', async () => {
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 113,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 115,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   try {
@@ -880,11 +880,11 @@ function sourceForFixtures() {
 
 const sources = [
   'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
-  'runtime.c', 'date.c', 'design.c', 'compose.c', 'html.c', 'list.c',
+  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', async () => {
-  assert.equal(fixtures.length, 39,
+  assert.equal(fixtures.length, 42,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -991,11 +991,11 @@ function sourceForFixtures() {
 
 const sources = [
   'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
-  'runtime.c', 'date.c', 'design.c', 'compose.c', 'html.c', 'list.c',
+  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', async () => {
-  assert.equal(fixtures.length, 28,
+  assert.equal(fixtures.length, 30,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);
@@ -1236,7 +1236,7 @@ test('PHP extension engine updates form state atomically', async () => {
     await compileAndRunEngineFixture({
       root, directory, source: sourceForFormState(), name: 'form-state',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'template.c',
+        'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
         'messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c',
       ],
@@ -1259,7 +1259,7 @@ test('PHP extension engine compiles composed form templates', async () => {
       '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
       '-I', path.join(root, 'packages/php-ext/src'),
       extensionSource('value.c'), extensionSource('engine_error.c'),
-      extensionSource('compose.c'), extensionSource('template.c'),
+      extensionSource('compose.c'), extensionSource('declaration.c'), extensionSource('template.c'),
       path.join(root, 'packages/php-ext/tests/template.c'), '-o', executable,
     ], { encoding: 'utf8' });
     assert.equal(compile.error, undefined);

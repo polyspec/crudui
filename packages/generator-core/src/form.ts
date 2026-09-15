@@ -157,31 +157,45 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
     const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
     if (!codes && !isRecord(only)) fail('lang.only', 'a list of language codes or an object');
   }
-  if (has(spec, 'design')) {
-    const design = spec.design;
-    if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
-    if (isRecord(design)) {
-      closed(design, 'design', CLOSED_BUCKET_KEYS.design!);
-      if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
-        fail('design.show', 'an expression, a boolean or a condition map');
-      }
+  if (has(spec, 'design')) checkDesignDeclaration(spec.design, path);
+  if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior!);
+}
+
+/**
+ * Reject an unknown key or a wrong value type in one `design` declaration at `path`. Form fields,
+ * list and detail specifications, their columns and fields share this rule.
+ */
+export function checkDesignDeclaration(design: unknown, path: string): void {
+  const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+  const fail = (key: string, expected: string): never => {
+    throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
+  };
+  const closed = (object: Record<string, unknown>, name: string, allowed: readonly string[]) => {
+    for (const key of Object.keys(object)) {
+      if (!allowed.includes(key)) throw new FormInputError(`Invalid ${name}.${key} at ${path}: unknown key`);
+    }
+  };
+  if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
+  if (isRecord(design)) {
+    closed(design, 'design', CLOSED_BUCKET_KEYS.design!);
+    if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
+      fail('design.show', 'an expression, a boolean or a condition map');
+    }
+    for (const key of ['class', 'style']) {
+      if (has(design, key) && !conditionValue(design[key])) fail(`design.${key}`, 'a string or a condition map');
+    }
+    for (const node of ['label', 'wrapper', 'group', 'prepend']) {
+      if (!has(design, node)) continue;
+      const value = design[node];
+      if (!isRecord(value)) fail(`design.${node}`, 'an object');
+      closed(value as Record<string, unknown>, `design.${node}`, CLOSED_BUCKET_KEYS.node!);
       for (const key of ['class', 'style']) {
-        if (has(design, key) && !conditionValue(design[key])) fail(`design.${key}`, 'a string or a condition map');
-      }
-      for (const node of ['label', 'wrapper', 'group', 'prepend']) {
-        if (!has(design, node)) continue;
-        const value = design[node];
-        if (!isRecord(value)) fail(`design.${node}`, 'an object');
-        closed(value as Record<string, unknown>, `design.${node}`, CLOSED_BUCKET_KEYS.node!);
-        for (const key of ['class', 'style']) {
-          if (has(value as Record<string, unknown>, key) && !conditionValue((value as Record<string, unknown>)[key])) {
-            fail(`design.${node}.${key}`, 'a string or a condition map');
-          }
+        if (has(value as Record<string, unknown>, key) && !conditionValue((value as Record<string, unknown>)[key])) {
+          fail(`design.${node}.${key}`, 'a string or a condition map');
         }
       }
     }
   }
-  if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior!);
 }
 
 /** Reject a wrong root `action` or `buttons` declaration. */

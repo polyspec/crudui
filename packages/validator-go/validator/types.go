@@ -53,6 +53,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // FieldSpec is the canonical model field. Every member maps to one top-level SPEC
@@ -1319,15 +1321,19 @@ func rejectForbiddenKeys(data []byte, where string) error {
 	return nil
 }
 
-// rejectUnknownKeys errors on the first key, in declaration order, of a closed
-// bucket object that allowed does not list. Non-object input is a no-op (the
-// caller's typed Unmarshal handles non-objects).
+// rejectUnknownKeys errors on the first key, in specification member order, of a
+// closed bucket object that allowed does not list. Non-object input is a no-op
+// (the caller's typed Unmarshal handles non-objects).
 func rejectUnknownKeys(data []byte, where string, allowed []string) error {
-	keys, _, err := objectMembers(data)
+	value, err := compose.DecodeOrdered(data)
 	if err != nil {
 		return err
 	}
-	for _, key := range keys {
+	bucket, ok := compose.OrderMembers(value).(*compose.OMap)
+	if !ok {
+		return nil
+	}
+	for _, key := range bucket.Keys() {
 		if !slices.Contains(allowed, key) {
 			return fmt.Errorf("model: unknown key %q in %s", key, where)
 		}

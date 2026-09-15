@@ -21,6 +21,16 @@ final class Value
         }
     }
 
+    /** Copy a PHP root specification or template in specification member order. */
+    public static function spec(array|stdClass $value): stdClass
+    {
+        try {
+            return JsonValue::orderedObject($value);
+        } catch (\TypeError|\InvalidArgumentException $error) {
+            throw new FormError('INVALID_FORM_INPUT', $error->getMessage());
+        }
+    }
+
     /** Return a detached JSON value while preserving object and array types. */
     public static function copy(mixed $value): mixed
     {

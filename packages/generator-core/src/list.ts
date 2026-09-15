@@ -17,6 +17,7 @@ import {
   type CellDisplay,
   type CellRenderCtx,
 } from './cell';
+import { checkDesignDeclaration } from './form';
 
 // ---------------------------------------------------------------------------
 // view model shapes
@@ -245,6 +246,24 @@ export function buildList(
   rows: Array<Record<string, unknown>> = [],
   options: BuildListOptions = {}
 ): ListViewModel {
+  return buildDisplay(listSpec, rows, options, { own: 'list', members: 'columns' });
+}
+
+/** Declaration path names of a display specification: its own design and its columns or fields. */
+export interface DisplayPaths {
+  /** Path of the specification's own `design`. */
+  own: string;
+  /** Path prefix of each column or field `design`. */
+  members: string;
+}
+
+/** Build a list or detail display model; `paths` names declaration errors for the caller's specification kind. */
+export function buildDisplay(
+  listSpec: Record<string, unknown>,
+  rows: Array<Record<string, unknown>>,
+  options: BuildListOptions,
+  paths: DisplayPaths
+): ListViewModel {
   // List input, checked in the order every runtime uses (docs/spec/display-formats.md).
   if (!isPlainObject(listSpec)) throw new FormInputError('List specification must be an object');
   if (!Array.isArray(rows)) throw new FormInputError('List rows must be an array');
@@ -262,6 +281,14 @@ export function buildList(
   // Stage 2: compose the columns map (expands $ref/$patch at map + per-column).
   const rawColumns = isPlainObject(listSpec.columns) ? listSpec.columns : {};
   const columns = composeProperties(rawColumns, loader, composeOpts);
+
+  // Declarations are checked after the input rules and composition: the own design, then each member.
+  if (Object.prototype.hasOwnProperty.call(listSpec, 'design')) checkDesignDeclaration(listSpec.design, paths.own);
+  for (const [key, raw] of Object.entries(columns)) {
+    if (isPlainObject(raw) && Object.prototype.hasOwnProperty.call(raw, 'design')) {
+      checkDesignDeclaration(raw.design, `${paths.members}.${key}`);
+    }
+  }
 
   // List-level context for column-visibility expressions (over listData).
   const listCtx = makeContext([], listData);

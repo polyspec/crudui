@@ -1068,3 +1068,267 @@ fn form_buttons_default_declared_and_rejected() {
         );
     }
 }
+
+/// An object with members inserted in exactly the given order.
+fn written(members: &[(&str, Value)]) -> Value {
+    let mut map = serde_json::Map::new();
+    for (name, value) in members {
+        map.insert((*name).to_string(), value.clone());
+    }
+    Value::Object(map)
+}
+
+fn member_names(value: &Value) -> Vec<&str> {
+    value
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect()
+}
+
+#[test]
+fn specifications_are_read_in_member_order_and_data_is_not() {
+    let text = json!({"type":"text"});
+    let properties = written(&[("b", text.clone()), ("10", text.clone()), ("a", text)]);
+    let template = compile_form(
+        &json!({"type":"group","properties":properties}),
+        &CompileOptions::default(),
+    )
+    .unwrap();
+    let names = template
+        .fields
+        .iter()
+        .map(|field| field.name.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(names, vec!["10", "b", "a"]);
+
+    // A template written in another order binds in member order, and the record keeps its order.
+    let items = written(&[("b", json!("B")), ("10", json!("Ten"))]);
+    let unordered = FormTemplate {
+        kind: "crudui/form-template".into(),
+        key_prefix: None,
+        fields: vec![FieldTemplate {
+            name: "choice".into(),
+            spec: json!({"type":"select","items":items})
+                .as_object()
+                .cloned()
+                .unwrap(),
+            children: Vec::new(),
+        }],
+        buttons: Vec::new(),
+        action: None,
+    };
+    let data = written(&[("choice", json!("b")), ("z", json!(1)), ("5", json!(2))]);
+    let fields = bind_form(&unordered, &data, &BindOptions::default()).unwrap();
+    let bound = serde_json::to_string(&fields).unwrap();
+    assert!(
+        bound.find("Ten").unwrap() < bound.find("\"B\"").unwrap(),
+        "{bound}"
+    );
+    let form = Form::new(unordered.clone(), &data, BindOptions::default()).unwrap();
+    assert_eq!(
+        member_names(&form.template().fields[0].spec["items"]),
+        vec!["10", "b"]
+    );
+    assert_eq!(member_names(&form.get_data()), vec!["choice", "z", "5"]);
+    assert_eq!(
+        member_names(&unordered.fields[0].spec["items"]),
+        vec!["b", "10"]
+    );
+
+    let column = |field: &str| json!({"field":field});
+    let columns = written(&[
+        ("b", column(".b")),
+        ("10", column(".ten")),
+        ("a", column(".a")),
+    ]);
+    let row = written(&[("b", json!("y")), ("10", json!("z"))]);
+    let list = build_list(
+        &json!({"columns":columns.clone()}),
+        std::slice::from_ref(&row),
+        &ListOptions::default(),
+    )
+    .unwrap();
+    let keys = list["columns"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|column| column["key"].as_str().unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(keys, vec!["10", "b", "a"]);
+    let detail = build_detail(&json!({"fields":columns}), &row, &ListOptions::default()).unwrap();
+    let keys = detail["fields"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|field| field["key"].as_str().unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(keys, vec!["10", "b", "a"]);
+    assert_eq!(member_names(&row), vec!["b", "10"]);
+}
+
+#[test]
+fn closed_buckets_report_unknown_keys_in_member_order() {
+    let multiple = written(&[("z", json!(1)), ("5", json!(1))]);
+    let error = compile_form(
+        &json!({"type":"group","properties":{"rows":{"type":"text","multiple":multiple}}}),
+        &CompileOptions::default(),
+    )
+    .unwrap_err();
+    assert_eq!(error.message, "Invalid multiple.5 at rows: unknown key");
+}
+
+fn display_error(result: FormResult<Value>) -> (String, String, String) {
+    let error = result.unwrap_err();
+    (error.code, error.message, error.at)
+}
+
+fn invalid(message: &str) -> (String, String, String) {
+    ("INVALID_FORM_INPUT".into(), message.into(), String::new())
+}
+
+#[test]
+fn list_and_detail_designs_follow_the_form_declaration_rules() {
+    let options = ListOptions::default();
+    let list = |spec: Value| display_error(build_list(&spec, &[], &options));
+    let detail = |spec: Value| display_error(build_detail(&spec, &json!({}), &options));
+    assert_eq!(
+        list(json!({"columns":{"name":{"field":".name","design":{"main":{"class":"x"}}}}})),
+        invalid("Invalid design.main at columns.name: unknown key")
+    );
+    assert_eq!(
+        list(json!({"design":{"color":"red"},"columns":{}})),
+        invalid("Invalid design.color at list: unknown key")
+    );
+    assert_eq!(
+        list(json!({"columns":{"name":{"design":{"show":1}}}})),
+        invalid("Invalid design.show at columns.name: expected an expression, a boolean or a condition map")
+    );
+    assert_eq!(
+        detail(json!({"fields":{"name":{"design":{"label":{"text":"x"}}}}})),
+        invalid("Invalid design.label.text at fields.name: unknown key")
+    );
+    assert_eq!(
+        detail(json!({"design":{"wrapper":"box"},"fields":{}})),
+        invalid("Invalid design.wrapper at detail: expected an object")
+    );
+    assert_eq!(
+        list(json!({"design":"x","columns":{}})),
+        invalid("Invalid design at list: expected a boolean or an object")
+    );
+    assert_eq!(
+        detail(json!({"fields":{"name":{"design":{"class":1}}}})),
+        invalid("Invalid design.class at fields.name: expected a string or a condition map")
+    );
+    let valid = json!({"show":true,"class":"a","style":{"x":"y"},"label":{"class":"b"},"wrapper":{},"group":{"style":"c"},"prepend":{"class":"d"}});
+    assert!(build_list(
+        &json!({"design":valid.clone(),"columns":{"name":{"design":valid.clone()}}}),
+        &[],
+        &options
+    )
+    .is_ok());
+    assert!(build_detail(
+        &json!({"design":valid.clone(),"fields":{"name":{"design":valid}}}),
+        &json!({}),
+        &options
+    )
+    .is_ok());
+}
+
+#[test]
+fn display_designs_are_checked_own_first_then_members_in_member_order() {
+    let options = ListOptions::default();
+    let bad = |key: &str| json!({"design":{key:1}});
+    let members = written(&[("b", bad("zb")), ("10", bad("z10")), ("a", bad("za"))]);
+    assert_eq!(
+        display_error(build_list(
+            &json!({"columns":members.clone()}),
+            &[],
+            &options
+        )),
+        invalid("Invalid design.z10 at columns.10: unknown key")
+    );
+    assert_eq!(
+        display_error(build_detail(
+            &json!({"fields":members.clone()}),
+            &json!({}),
+            &options
+        )),
+        invalid("Invalid design.z10 at fields.10: unknown key")
+    );
+    assert_eq!(
+        display_error(build_list(
+            &json!({"columns":members.clone(),"design":{"own":1}}),
+            &[],
+            &options
+        )),
+        invalid("Invalid design.own at list: unknown key")
+    );
+    assert_eq!(
+        display_error(build_detail(
+            &json!({"fields":members,"design":{"own":1}}),
+            &json!({}),
+            &options
+        )),
+        invalid("Invalid design.own at detail: unknown key")
+    );
+    // Keys of one design are reported in member order as well.
+    let design = written(&[("y", json!(1)), ("7", json!(1))]);
+    assert_eq!(
+        display_error(build_list(
+            &json!({"columns":{"n":{"design":design}}}),
+            &[],
+            &options
+        )),
+        invalid("Invalid design.7 at columns.n: unknown key")
+    );
+}
+
+#[test]
+fn display_designs_are_checked_after_input_rules_and_composition() {
+    let spec = json!({"design":{"color":"red"},"columns":{}});
+    assert_eq!(
+        display_error(build_list(&spec, &[json!(1)], &ListOptions::default())),
+        invalid("List rows must be objects")
+    );
+    let context = ListOptions {
+        data: json!([]),
+        ..Default::default()
+    };
+    assert_eq!(
+        display_error(build_list(&spec, &[], &context)),
+        invalid("List context must be an object")
+    );
+    assert_eq!(
+        display_error(build_detail(
+            &json!({"design":{"color":"red"}}),
+            &json!({}),
+            &ListOptions::default()
+        )),
+        invalid("Detail specification must declare fields")
+    );
+    let options = ListOptions {
+        files: serde_json::Map::from_iter([(
+            "columns.json".to_string(),
+            json!({"properties":{"name":{"design":{"main":{}}}}}),
+        )]),
+        ..Default::default()
+    };
+    assert_eq!(
+        display_error(build_list(
+            &json!({"columns":{"$ref":"columns.json"}}),
+            &[],
+            &options
+        )),
+        invalid("Invalid design.main at columns.name: unknown key")
+    );
+    assert_eq!(
+        display_error(build_detail(
+            &json!({"fields":{"$ref":"columns.json"}}),
+            &json!({}),
+            &options
+        )),
+        invalid("Invalid design.main at fields.name: unknown key")
+    );
+}

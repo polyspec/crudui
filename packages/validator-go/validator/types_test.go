@@ -197,6 +197,9 @@ func TestLegacyKeysNotRecognized(t *testing.T) {
 func TestClosedBucketsRejectUnknownKeys(t *testing.T) {
 	cases := map[string]string{
 		`{"design":{"class":"a","label_class":"b","other":1}}`:   `model: unknown key "label_class" in design`,
+		`{"multiple":{"z":1,"5":1}}`:                             `model: unknown key "5" in multiple`,
+		`{"behavior":{"onx":1,"01":1,"4294967294":1}}`:           `model: unknown key "4294967294" in behavior`,
+		`{"lang":{"x":1,"4294967295":1}}`:                        `model: unknown key "x" in lang`,
 		`{"design":{"label":{"class":"a","text":"b"}}}`:          `model: unknown key "text" in design.label`,
 		`{"design":{"wrapper":{"id":"w"},"prepend":{"id":"p"}}}`: `model: unknown key "id" in design.wrapper`,
 		`{"design":{"group":{"style":"s","id":"g"}}}`:            `model: unknown key "id" in design.group`,

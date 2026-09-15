@@ -150,6 +150,12 @@ columns:
 받으므로, 두 언어에서 행 규칙은 해석한 JSON을 그 시퀀스로 바꾸는 곳에서 적용되고 나머지 규칙은 라이브러리가
 검사합니다.
 
+입력 규칙과 조합이 끝나면 선언을 검사합니다. `design`은 [폼 선언 규칙](schema.ko.md)을 그대로 따릅니다. 알 수 없는
+키는 `Invalid {key} at {path}: unknown key`로, 형식이 틀린 값은 `Invalid {key} at {path}: expected {expected}`로
+실패합니다. 목록 자체 `design`의 경로는 `list`, 열 `design`은 `columns.{이름}`, 상세 자체 `design`은 `detail`,
+필드 `design`은 `fields.{이름}`입니다. 자체 `design`을 먼저 검사하고, 그다음 각 열이나 필드를
+[멤버 순서](schema.ko.md)대로 검사합니다.
+
 PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체인지 정합니다. 루트 객체 인수와 고정 객체
 옵션 `data`, `files`에는 빈 PHP 배열을 받고, 중첩 값은 타입을 유지합니다.
 

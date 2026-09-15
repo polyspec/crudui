@@ -24,7 +24,9 @@ pub use validator::{ValidationError, ValidationResult, Validator};
 
 use serde_json::{Map, Value};
 
-use crate::compose::{compose_properties, compose_spec, ComposeOptions, FileLoader, MemoryLoader};
+use crate::compose::{
+    compose_properties, compose_spec, member_ordered, ComposeOptions, FileLoader, MemoryLoader,
+};
 use crate::forbidden_scan::scan_forbidden_keys;
 
 /// Options for a CRUDUI validation run.
@@ -70,6 +72,8 @@ pub fn validate(
         None => ComposeOptions::default(),
     };
 
+    // The specification is read in member order; the data keeps its own order.
+    let spec = &member_ordered(spec);
     let spec_map = spec.as_object().cloned().unwrap_or_default();
 
     let has_own_properties = matches!(spec.get("properties"), Some(Value::Object(_)));

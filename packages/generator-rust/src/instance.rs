@@ -1,6 +1,8 @@
+use crate::binding::bind_ordered;
+use crate::template::member_ordered_template;
 use crate::template::repeats;
 use crate::util::{segments, value_at};
-use crate::{bind_form, BindOptions, FieldTemplate, FormError, FormResult, FormTemplate};
+use crate::{BindOptions, FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
@@ -203,8 +205,10 @@ pub struct Form {
 impl Form {
     /// Create an instance, prepare default data and evaluate fields.
     pub fn new(template: FormTemplate, data: &Value, options: BindOptions) -> FormResult<Self> {
+        // The template specification is kept in member order; the data keeps its own order.
+        let template = member_ordered_template(&template);
         let data = normalize_fields(&template.fields, Some(data), "")?;
-        let fields = bind_form(&template, &data, &options)?;
+        let fields = bind_ordered(&template, &data, &options)?;
         Ok(Self {
             template,
             data,
@@ -257,7 +261,7 @@ impl Form {
     }
 
     fn commit(&mut self, data: Value) -> FormResult<()> {
-        let fields = bind_form(&self.template, &data, &self.options)?;
+        let fields = bind_ordered(&self.template, &data, &self.options)?;
         self.data = data;
         self.fields = fields;
         self.revision += 1;

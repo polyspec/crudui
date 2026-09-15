@@ -55,6 +55,7 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if e := checkOrderedValue(spec); e != nil {
 		return nil, e
 	}
+	spec, _ = compose.OrderMembers(spec).(*Object)
 	if spec == nil || stringAt(spec, "type") != "group" || object(read(spec, "properties")) == nil {
 		return nil, fmt.Errorf("A form spec must be a group with properties")
 	}
@@ -282,43 +283,8 @@ func checkDeclarations(spec *Object, path string) error {
 		}
 	}
 	if spec.Has("design") {
-		design := read(spec, "design")
-		_, isBool := design.(bool)
-		d := object(design)
-		if !isBool && d == nil {
-			return fail("design", "a boolean or an object")
-		}
-	}
-	if d := object(read(spec, "design")); d != nil {
-		if key, found := unknownKey(d, "design"); found {
-			return unknown("design." + key)
-		}
-		if show := read(d, "show"); d.Has("show") {
-			if _, ok := show.(bool); !ok && !conditionValue(show) {
-				return fail("design.show", "an expression, a boolean or a condition map")
-			}
-		}
-		for _, key := range []string{"class", "style"} {
-			if d.Has(key) && !conditionValue(read(d, key)) {
-				return fail("design."+key, "a string or a condition map")
-			}
-		}
-		for _, node := range []string{"label", "wrapper", "group", "prepend"} {
-			if !d.Has(node) {
-				continue
-			}
-			n := object(read(d, node))
-			if n == nil {
-				return fail("design."+node, "an object")
-			}
-			if key, found := unknownKey(n, "design node"); found {
-				return unknown("design." + node + "." + key)
-			}
-			for _, key := range []string{"class", "style"} {
-				if n.Has(key) && !conditionValue(read(n, key)) {
-					return fail("design."+node+"."+key, "a string or a condition map")
-				}
-			}
+		if e := checkDesignDeclaration(read(spec, "design"), path); e != nil {
+			return e
 		}
 	}
 	if behavior := object(read(spec, "behavior")); behavior != nil {
@@ -329,13 +295,62 @@ func checkDeclarations(spec *Object, path string) error {
 	return nil
 }
 
-// UnmarshalJSON preserves declaration order inside field specifications.
+// checkDesignDeclaration rejects an unknown key or a wrong value type in one design declaration at path.
+// Form fields, list and detail specifications, their columns and fields share this rule.
+func checkDesignDeclaration(design any, path string) error {
+	fail := func(key, expected string) error {
+		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+	}
+	unknown := func(key string) error {
+		return fmt.Errorf("Invalid %s at %s: unknown key", key, path)
+	}
+	d := object(design)
+	if _, isBool := design.(bool); !isBool && d == nil {
+		return fail("design", "a boolean or an object")
+	}
+	if d == nil {
+		return nil
+	}
+	if key, found := unknownKey(d, "design"); found {
+		return unknown("design." + key)
+	}
+	if show := read(d, "show"); d.Has("show") {
+		if _, ok := show.(bool); !ok && !conditionValue(show) {
+			return fail("design.show", "an expression, a boolean or a condition map")
+		}
+	}
+	for _, key := range []string{"class", "style"} {
+		if d.Has(key) && !conditionValue(read(d, key)) {
+			return fail("design."+key, "a string or a condition map")
+		}
+	}
+	for _, node := range []string{"label", "wrapper", "group", "prepend"} {
+		if !d.Has(node) {
+			continue
+		}
+		n := object(read(d, node))
+		if n == nil {
+			return fail("design."+node, "an object")
+		}
+		if key, found := unknownKey(n, "design node"); found {
+			return unknown("design." + node + "." + key)
+		}
+		for _, key := range []string{"class", "style"} {
+			if n.Has(key) && !conditionValue(read(n, key)) {
+				return fail("design."+node+"."+key, "a string or a condition map")
+			}
+		}
+	}
+	return nil
+}
+
+// UnmarshalJSON reads the template in specification member order.
 func (t *FormTemplate) UnmarshalJSON(data []byte) error {
 	v, e := DecodeJSON(data)
 	if e != nil {
 		return e
 	}
-	o := object(v)
+	o := object(compose.OrderMembers(v))
 	if o == nil || stringAt(o, "kind") != "crudui/form-template" {
 		return fmt.Errorf("Unsupported form template")
 	}

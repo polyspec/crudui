@@ -31,12 +31,6 @@ static bool option_string(const ps_value *options, const char *name,
     *value = ps_string(item); return true;
 }
 
-/* A string, or a condition map: a non-empty object. */
-static bool condition_value(const ps_value *value)
-{
-    return value->kind == PS_STRING || (value->kind == PS_OBJECT && ps_size(value) > 0);
-}
-
 /* Concatenate three strings into new memory; NULL on allocation failure. */
 static char *concat3(const char *first, const char *second, const char *third)
 {
@@ -47,38 +41,6 @@ static char *concat3(const char *first, const char *second, const char *third)
     memcpy(out + a, second, b);
     memcpy(out + a + b, third, c + 1);
     return out;
-}
-
-/* Set "Invalid <key> at <path>: expected <expected>"; always returns false. */
-static bool declaration_error(const char *key, const char *path, const char *expected,
-                              ps_value **error)
-{
-    char *head = concat3("Invalid ", key, " at ");
-    char *middle = head ? concat3(head, path, ": expected ") : NULL;
-    char *message = middle ? concat3(middle, expected, "") : NULL;
-    *error = message ? ps_error("form", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
-    free(head); free(middle); free(message);
-    return false;
-}
-
-/* Reject the first member of a closed bucket object that is not an allowed key:
-   "Invalid <bucket>.<key> at <path>: unknown key". Returns true when every key is allowed. */
-static bool known_keys(const ps_value *bucket, const char *name, const char *const *allowed,
-                       size_t count, const char *path, ps_value **error)
-{
-    for (size_t i = 0; i < ps_size(bucket); ++i) {
-        const char *key = ps_key_at(bucket, i);
-        bool known = false;
-        for (size_t j = 0; !known && j < count; ++j) known = !strcmp(key, allowed[j]);
-        if (known) continue;
-        char *head = concat3("Invalid ", name, ".");
-        char *middle = head ? concat3(head, key, " at ") : NULL;
-        char *message = middle ? concat3(middle, path, ": unknown key") : NULL;
-        *error = message ? ps_error("form", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
-        free(head); free(middle); free(message);
-        return false;
-    }
-    return true;
 }
 
 /* A multiple or lang declaration that enables the feature: true or an object. */
@@ -110,61 +72,52 @@ static bool declarations_valid(const ps_value *spec, const char *path, ps_value 
     static const char *const form_keys[] = {"buttons", "action"};
     for (size_t i = 0; i < 2; ++i)
         if (ps_has(spec, form_keys[i]))
-            return declaration_error(form_keys[i], path, "the form root", error);
+            return ps_declaration_error(form_keys[i], path, "the form root", error);
     static const char *const placements[] = {"header", "footer", "outline"};
     static const char *const headers[] = {"static", "sticky"};
     static const char *const numbers[][2] = {{"min", "multiple.min"}, {"max", "multiple.max"}};
     static const char *const booleans[][2] = {{"copy", "multiple.copy"}, {"sortable", "multiple.sortable"}};
-    static const char *const styles[][2] = {{"class", "design.class"}, {"style", "design.style"}};
-    static const char *const nodes[][4] = {
-        {"label", "design.label", "design.label.class", "design.label.style"},
-        {"wrapper", "design.wrapper", "design.wrapper.class", "design.wrapper.style"},
-        {"group", "design.group", "design.group.class", "design.group.style"},
-        {"prepend", "design.prepend", "design.prepend.class", "design.prepend.style"},
-    };
     static const char *const multiple_keys[] = {"min", "max", "copy", "sortable", "title", "controls", "header", "onclick"};
     static const char *const lang_keys[] = {"mode", "only", "name", "key", "frame", "title", "group_class"};
-    static const char *const design_keys[] = {"show", "class", "style", "label", "wrapper", "group", "prepend"};
-    static const char *const node_keys[] = {"class", "style"};
     static const char *const behavior_keys[] = {"onchange", "onclick", "onload"};
     const ps_value *multiple = ps_get(spec, "multiple");
     if (multiple) {
         if (multiple->kind != PS_BOOL && multiple->kind != PS_OBJECT)
-            return declaration_error("multiple", path, "a boolean or an object", error);
-        if (multiple->kind == PS_OBJECT && !known_keys(multiple, "multiple", multiple_keys, 8, path, error))
+            return ps_declaration_error("multiple", path, "a boolean or an object", error);
+        if (multiple->kind == PS_OBJECT && !ps_known_keys(multiple, "multiple", multiple_keys, 8, path, error))
             return false;
         for (size_t i = 0; multiple->kind == PS_OBJECT && i < 2; ++i) {
             const ps_value *value = ps_get(multiple, numbers[i][0]);
             if (value && value->kind != PS_INT && value->kind != PS_FLOAT)
-                return declaration_error(numbers[i][1], path, "a number", error);
+                return ps_declaration_error(numbers[i][1], path, "a number", error);
         }
         for (size_t i = 0; multiple->kind == PS_OBJECT && i < 2; ++i) {
             const ps_value *value = ps_get(multiple, booleans[i][0]);
             if (value && value->kind != PS_BOOL)
-                return declaration_error(booleans[i][1], path, "a boolean", error);
+                return ps_declaration_error(booleans[i][1], path, "a boolean", error);
         }
         if (multiple->kind == PS_OBJECT && ps_has(multiple, "title")) {
             if (!ps_is_string(ps_get(spec, "type"), "group"))
-                return declaration_error("multiple.title", path, "a repeated group", error);
+                return ps_declaration_error("multiple.title", path, "a repeated group", error);
             const ps_value *title = ps_get(multiple, "title");
             const ps_value *properties = ps_get(spec, "properties");
             const ps_value *child = title->kind == PS_STRING && properties &&
                 properties->kind == PS_OBJECT ? ps_get(properties, ps_string(title)) : NULL;
             if (!scalar_child(child))
-                return declaration_error("multiple.title", path,
+                return ps_declaration_error("multiple.title", path,
                     "the name of a direct child field without multiple, properties or lang", error);
         }
         if (multiple->kind == PS_OBJECT && ps_has(multiple, "controls") &&
             !one_of(ps_get(multiple, "controls"), placements, 3))
-            return declaration_error("multiple.controls", path, "header, footer or outline", error);
+            return ps_declaration_error("multiple.controls", path, "header, footer or outline", error);
         if (multiple->kind == PS_OBJECT && ps_has(multiple, "header") &&
             !one_of(ps_get(multiple, "header"), headers, 2))
-            return declaration_error("multiple.header", path, "static or sticky", error);
+            return ps_declaration_error("multiple.header", path, "static or sticky", error);
     }
     const ps_value *lang = ps_get(spec, "lang");
     if (lang && lang->kind != PS_BOOL && lang->kind != PS_OBJECT)
-        return declaration_error("lang", path, "a boolean or an object", error);
-    if (lang && lang->kind == PS_OBJECT && !known_keys(lang, "lang", lang_keys, 7, path, error))
+        return ps_declaration_error("lang", path, "a boolean or an object", error);
+    if (lang && lang->kind == PS_OBJECT && !ps_known_keys(lang, "lang", lang_keys, 7, path, error))
         return false;
     const ps_value *only = lang && lang->kind == PS_OBJECT ? ps_get(lang, "only") : NULL;
     if (only && only->kind != PS_OBJECT) {
@@ -172,37 +125,13 @@ static bool declarations_valid(const ps_value *spec, const char *path, ps_value 
         for (size_t i = 0; codes && i < ps_size(only); ++i)
             codes = ps_at(only, i)->kind == PS_STRING;
         if (!codes)
-            return declaration_error("lang.only", path, "a list of language codes or an object", error);
+            return ps_declaration_error("lang.only", path, "a list of language codes or an object", error);
     }
     const ps_value *design = ps_get(spec, "design");
-    if (design && design->kind != PS_BOOL && design->kind != PS_OBJECT)
-        return declaration_error("design", path, "a boolean or an object", error);
-    if (design && design->kind == PS_OBJECT) {
-        if (!known_keys(design, "design", design_keys, 7, path, error)) return false;
-        const ps_value *show = ps_get(design, "show");
-        if (show && show->kind != PS_BOOL && !condition_value(show))
-            return declaration_error("design.show", path, "an expression, a boolean or a condition map", error);
-        for (size_t i = 0; i < 2; ++i) {
-            const ps_value *value = ps_get(design, styles[i][0]);
-            if (value && !condition_value(value))
-                return declaration_error(styles[i][1], path, "a string or a condition map", error);
-        }
-        for (size_t i = 0; i < 4; ++i) {
-            const ps_value *node = ps_get(design, nodes[i][0]);
-            if (!node) continue;
-            if (node->kind != PS_OBJECT)
-                return declaration_error(nodes[i][1], path, "an object", error);
-            if (!known_keys(node, nodes[i][1], node_keys, 2, path, error)) return false;
-            for (size_t j = 0; j < 2; ++j) {
-                const ps_value *value = ps_get(node, styles[j][0]);
-                if (value && !condition_value(value))
-                    return declaration_error(nodes[i][2 + j], path, "a string or a condition map", error);
-            }
-        }
-    }
+    if (design && !ps_design_declaration_valid(design, path, error)) return false;
     const ps_value *behavior = ps_get(spec, "behavior");
     return !behavior || behavior->kind != PS_OBJECT ||
-        known_keys(behavior, "behavior", behavior_keys, 3, path, error);
+        ps_known_keys(behavior, "behavior", behavior_keys, 3, path, error);
 }
 
 /* Reject a wrong root action or buttons declaration. */
@@ -210,7 +139,7 @@ static bool form_declarations_valid(const ps_value *spec, ps_value **error)
 {
     static const char *const types[] = {"submit", "reset", "button", "link"};
     /* Button types with interface text (the submit and reset messages); template.c
-       links only value, engine_error and compose, so it cannot read the messages table. */
+       links only value, engine_error, compose and declaration, so it cannot read the messages table. */
     static const char *const texts[] = {"submit", "reset"};
     static const char *const action_keys[][2] = {
         {"method", "action.method"}, {"url", "action.url"}, {"enctype", "action.enctype"},
@@ -218,36 +147,36 @@ static bool form_declarations_valid(const ps_value *spec, ps_value **error)
     static const char *const strings[] = {"name", "value", "href"};
     const ps_value *action = ps_get(spec, "action");
     if (action) {
-        if (action->kind != PS_OBJECT) return declaration_error("action", "form", "an object", error);
+        if (action->kind != PS_OBJECT) return ps_declaration_error("action", "form", "an object", error);
         for (size_t i = 0; i < 3; ++i) {
             const ps_value *value = ps_get(action, action_keys[i][0]);
             if (value && value->kind != PS_STRING)
-                return declaration_error(action_keys[i][1], "form", "a string", error);
+                return ps_declaration_error(action_keys[i][1], "form", "a string", error);
         }
     }
     const ps_value *buttons = ps_get(spec, "buttons");
     if (!buttons) return true;
-    if (buttons->kind != PS_ARRAY) return declaration_error("buttons", "form", "a list of buttons", error);
+    if (buttons->kind != PS_ARRAY) return ps_declaration_error("buttons", "form", "a list of buttons", error);
     for (size_t i = 0; i < ps_size(buttons); ++i) {
         const ps_value *button = ps_at(buttons, i);
         char key[64], path[64];
         snprintf(key, sizeof(key), "buttons.%zu", i);
-        if (!button || button->kind != PS_OBJECT) return declaration_error(key, "form", "an object", error);
+        if (!button || button->kind != PS_OBJECT) return ps_declaration_error(key, "form", "an object", error);
         const ps_value *type = ps_get(button, "type");
         snprintf(key, sizeof(key), "buttons.%zu.type", i);
         if (!one_of(type, types, 4))
-            return declaration_error(key, "form", "submit, reset, button or link", error);
+            return ps_declaration_error(key, "form", "submit, reset, button or link", error);
         for (size_t j = 0; j < 3; ++j) {
             const ps_value *value = ps_get(button, strings[j]);
             snprintf(key, sizeof(key), "buttons.%zu.%s", i, strings[j]);
-            if (value && value->kind != PS_STRING) return declaration_error(key, "form", "a string", error);
+            if (value && value->kind != PS_STRING) return ps_declaration_error(key, "form", "a string", error);
         }
         snprintf(key, sizeof(key), "buttons.%zu.text", i);
         if (!one_of(type, texts, 2) && !ps_has(button, "text"))
-            return declaration_error(key, "form", "content for this button type", error);
+            return ps_declaration_error(key, "form", "content for this button type", error);
         snprintf(key, sizeof(key), "buttons.%zu.href", i);
         if (ps_is_string(type, "link") && !ps_has(button, "href"))
-            return declaration_error(key, "form", "a link target", error);
+            return ps_declaration_error(key, "form", "a link target", error);
         snprintf(path, sizeof(path), "form.buttons.%zu", i);
         if (!declarations_valid(button, path, error)) return false;
     }
@@ -302,7 +231,20 @@ fail:
     ps_value_free(fields); return NULL;
 }
 
+static ps_result compile_form(const ps_value *spec, const ps_value *options);
+
+/* A specification and its composition files are compiled in specification member order. */
 ps_result ps_compile_form(const ps_value *spec, const ps_value *options)
+{
+    ps_value *ordered_spec = NULL, *ordered_options = NULL;
+    if (!ps_order_specification(spec, options, &ordered_spec, &ordered_options))
+        return ps_fail("internal", "INTERNAL_ERROR", "C form compilation failed", "");
+    ps_result result = compile_form(ordered_spec, ordered_options);
+    ps_value_free(ordered_spec); ps_value_free(ordered_options);
+    return result;
+}
+
+static ps_result compile_form(const ps_value *spec, const ps_value *options)
 {
     if (!spec || spec->kind != PS_OBJECT || !ps_is_string(ps_get(spec, "type"), "group") ||
         !ps_get(spec, "properties") || ps_get(spec, "properties")->kind != PS_OBJECT)

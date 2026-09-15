@@ -93,6 +93,18 @@ func normalizeFormat(v any) *Object {
 
 // BuildList creates a complete list model from the specification and ordered records.
 func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, error) {
+	return buildDisplay(spec, rows, options, displayPaths{own: "list", members: "columns"})
+}
+
+// displayPaths names declaration error paths of a display specification: its own design and
+// the prefix of each column or field design.
+type displayPaths struct {
+	own     string
+	members string
+}
+
+// buildDisplay builds a list or detail display model; paths name declaration errors for the caller's specification kind.
+func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displayPaths) (*Object, error) {
 	if e := checkListInput(spec, rows, options); e != nil {
 		return nil, e
 	}
@@ -100,6 +112,8 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 	if e := checkOrderedValue(spec); e != nil {
 		return nil, e
 	}
+	// The specification is read in specification member order; data and rows keep theirs.
+	spec, _ = compose.OrderMembers(spec).(*Object)
 	if e := checkOrderedValue(data); e != nil {
 		return nil, e
 	}
@@ -122,6 +136,19 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 	columns, e := compose.ComposeProperties(raw, loader, compose.ComposeOptions{Basepath: options.Basepath})
 	if e != nil {
 		return nil, e
+	}
+	// Declarations are checked after the input rules and composition: the own design, then each member.
+	if spec.Has("design") {
+		if e := checkDesignDeclaration(read(spec, "design"), paths.own); e != nil {
+			return nil, e
+		}
+	}
+	for _, key := range columns.Keys() {
+		if member := object(read(columns, key)); member != nil && member.Has("design") {
+			if e := checkDesignDeclaration(read(member, "design"), paths.members+"."+key); e != nil {
+				return nil, e
+			}
+		}
 	}
 	if data == nil {
 		data = NewObject()

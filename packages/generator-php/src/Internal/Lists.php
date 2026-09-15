@@ -32,7 +32,7 @@ final class Lists
         if ($layout !== 'table' && $layout !== 'card') {
             throw new FormError('INVALID_FORM_INPUT', 'List layout must be table or card');
         }
-        $vm = self::build(Value::object($spec), $rows, $options);
+        $vm = self::build(Value::object($spec), $rows, $options, 'list', 'columns');
         $attrs = self::node('list-view', $vm->design->wrapper);
         $body = '';
         if ($vm->actions !== []) {
@@ -107,13 +107,26 @@ final class Lists
         return self::preloads($vm) . Rendering::element('div', $attrs, $body);
     }
 
-    /** Compose columns and evaluate ordered list and cell models. */
-    public static function build(stdClass $spec, array $rows, array $options): stdClass
+    /**
+     * Compose columns and evaluate ordered list and cell models. $own names the path of the
+     * specification's own design and $members the path prefix of each column design.
+     */
+    public static function build(stdClass $spec, array $rows, array $options, string $own, string $members): stdClass
     {
+        $spec = Value::spec($spec);
         $language = $options['language'] ?? 'ko';
         self::optionObject($options, 'data', 'List context must be an object');
         $data = Value::object($options['data'] ?? []);
         $columns = Compose::properties((array) ($spec->columns ?? new stdClass()), Template::loader($options), $options['basepath'] ?? '');
+        // Declarations are checked after the input rules and composition: the own design, then each member.
+        if (property_exists($spec, 'design')) {
+            Template::checkDesignDeclaration($spec->design, $own);
+        }
+        foreach ($columns as $key => $raw) {
+            if (($raw instanceof stdClass || is_array($raw)) && array_key_exists('design', (array) $raw)) {
+                Template::checkDesignDeclaration(((array) $raw)['design'], $members . '.' . $key);
+            }
+        }
         $columnModels = [];
         $columnSpecs = [];
         foreach ($columns as $key => $raw) {

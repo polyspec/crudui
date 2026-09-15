@@ -56,35 +56,14 @@ func (l *MemoryLoader) Normalize(path, basepath string) string {
 	return path
 }
 
-// Load returns a defensive deep clone of the parsed doc at key, or a
-// RefFileNotFound load error.
+// Load returns a copy of the parsed doc at key in specification member order, or a
+// RefFileNotFound load error. The copy keeps resolution from mutating the source
+// file set (mirrors structuredClone(doc) on the JS side).
 func (l *MemoryLoader) Load(key string) (*OMap, error) {
 	doc, ok := l.files[key]
 	if !ok {
 		return nil, newLoadError(RefFileNotFound, "$ref file not found: "+key, key)
 	}
-	// Defensive deep clone so resolution never mutates the source file set
-	// (mirrors structuredClone(doc) on the JS side).
-	cloned, _ := deepClone(doc).(*OMap)
+	cloned, _ := OrderMembers(doc).(*OMap)
 	return cloned, nil
-}
-
-// deepClone deep-copies a value tree of *OMap / []any / scalars.
-func deepClone(v any) any {
-	switch x := v.(type) {
-	case *OMap:
-		out := NewOMap()
-		for _, k := range x.keys {
-			out.Set(k, deepClone(x.values[k]))
-		}
-		return out
-	case []any:
-		out := make([]any, len(x))
-		for i, e := range x {
-			out[i] = deepClone(e)
-		}
-		return out
-	default:
-		return v
-	}
 }

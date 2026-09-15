@@ -92,5 +92,51 @@ int main(void)
     ps_value_free(number);
     ps_value_free(fraction);
     ps_value_free(object);
+
+    /* Specification member order: array index names ascending, then other names in insertion order. */
+    ps_value *spec = ps_object_value();
+    static const char *const written[] = {"b", "10", "a", "4294967295", "2", "01", "-1", "0", "4294967294"};
+    static const char *const expected[] = {"0", "2", "10", "4294967294", "b", "a", "4294967295", "01", "-1"};
+    for (size_t i = 0; i < sizeof(written) / sizeof(*written); ++i) {
+        ps_value *child = ps_object_value();
+        assert(child && ps_set(child, "z", integer(1)) && ps_set(child, "5", integer(2)));
+        assert(spec && ps_set(spec, written[i], child));
+    }
+    ps_value *list = ps_array_value();
+    ps_value *row = ps_object_value();
+    assert(list && row && ps_set(row, "y", integer(3)) && ps_set(row, "1", integer(4)) && ps_append(list, row));
+    assert(ps_append(list, integer(9)) && ps_set(spec, "list", list));
+    ps_value *ordered = ps_value_ordered(spec);
+    assert(ordered && ps_size(ordered) == 10);
+    for (size_t i = 0; i < sizeof(expected) / sizeof(*expected); ++i) {
+        assert(!strcmp(ps_key_at(ordered, i), expected[i]));
+        const ps_value *child = ps_at(ordered, i);
+        assert(!strcmp(ps_key_at(child, 0), "5") && !strcmp(ps_key_at(child, 1), "z"));
+    }
+    assert(!strcmp(ps_key_at(ordered, 9), "list"));
+    const ps_value *ordered_list = ps_get(ordered, "list");
+    assert(ordered_list->kind == PS_ARRAY && ps_size(ordered_list) == 2);
+    assert(!strcmp(ps_key_at(ps_at(ordered_list, 0), 0), "1") && !strcmp(ps_key_at(ps_at(ordered_list, 0), 1), "y"));
+    /* The source is not reordered. */
+    assert(!strcmp(ps_key_at(spec, 0), "b") && !strcmp(ps_key_at(ps_at(spec, 0), 0), "z"));
+
+    /* Options keep their own order and data; only files are ordered. */
+    ps_value *options = ps_object_value();
+    ps_value *data = ps_object_value();
+    ps_value *files = ps_object_value();
+    ps_value *file = ps_object_value();
+    assert(options && data && files && file);
+    assert(ps_set(data, "b", integer(1)) && ps_set(data, "10", integer(2)));
+    assert(ps_set(file, "b", integer(1)) && ps_set(file, "10", integer(2)) && ps_set(files, "base.yml", file));
+    assert(ps_set(options, "data", data) && ps_set(options, "files", files));
+    ps_value *ordered_spec = NULL, *ordered_options = NULL;
+    assert(ps_order_specification(spec, options, &ordered_spec, &ordered_options));
+    assert(ps_equal(ordered_spec, ordered));
+    assert(!strcmp(ps_key_at(ps_get(ordered_options, "data"), 0), "b"));
+    assert(!strcmp(ps_key_at(ps_get(ps_get(ordered_options, "files"), "base.yml"), 0), "10"));
+    ps_value *absent_spec = NULL;
+    assert(ps_order_specification(NULL, NULL, &absent_spec, NULL) && !absent_spec);
+    ps_value_free(ordered_spec); ps_value_free(ordered_options);
+    ps_value_free(options); ps_value_free(ordered); ps_value_free(spec);
     return 0;
 }

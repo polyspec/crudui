@@ -672,7 +672,45 @@ static const char *option_basepath(const ps_value *options)
     return basepath && basepath->kind == PS_STRING ? ps_string(basepath) : "";
 }
 
+static ps_result validate_form(const ps_value *spec, const ps_value *data, const ps_value *options);
+static ps_result validate_list(const ps_value *spec, const ps_value *options);
+static ps_result validate_detail(const ps_value *spec, const ps_value *options);
+
+/*
+ * Specifications and composition files are validated in specification member order; the
+ * submitted data keeps its order.
+ */
 ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value *options)
+{
+    ps_value *ordered_spec = NULL, *ordered_options = NULL;
+    if (!ps_order_specification(spec, options, &ordered_spec, &ordered_options))
+        return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
+    ps_result result = validate_form(ordered_spec, data, ordered_options);
+    ps_value_free(ordered_spec); ps_value_free(ordered_options);
+    return result;
+}
+
+ps_result ps_validate_list(const ps_value *spec, const ps_value *options)
+{
+    ps_value *ordered_spec = NULL, *ordered_options = NULL;
+    if (!ps_order_specification(spec, options, &ordered_spec, &ordered_options))
+        return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
+    ps_result result = validate_list(ordered_spec, ordered_options);
+    ps_value_free(ordered_spec); ps_value_free(ordered_options);
+    return result;
+}
+
+ps_result ps_validate_detail(const ps_value *spec, const ps_value *options)
+{
+    ps_value *ordered_spec = NULL, *ordered_options = NULL;
+    if (!ps_order_specification(spec, options, &ordered_spec, &ordered_options))
+        return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
+    ps_result result = validate_detail(ordered_spec, ordered_options);
+    ps_value_free(ordered_spec); ps_value_free(ordered_options);
+    return result;
+}
+
+static ps_result validate_form(const ps_value *spec, const ps_value *data, const ps_value *options)
 {
     /* Root data is a request precondition, checked before composition. */
     if (!data || data->kind != PS_OBJECT)
@@ -732,7 +770,7 @@ static ps_result finish_view(ps_value *composed, ps_value *error)
     return validation_result(ps_array_value());
 }
 
-ps_result ps_validate_list(const ps_value *spec, const ps_value *options)
+static ps_result validate_list(const ps_value *spec, const ps_value *options)
 {
     ps_value *error = NULL;
     ps_value *composed = compose_view_root(spec, options, &error);
@@ -744,7 +782,7 @@ ps_result ps_validate_list(const ps_value *spec, const ps_value *options)
     return finish_view(composed, error);
 }
 
-ps_result ps_validate_detail(const ps_value *spec, const ps_value *options)
+static ps_result validate_detail(const ps_value *spec, const ps_value *options)
 {
     ps_value *error = NULL;
     ps_value *composed = compose_view_root(spec, options, &error);

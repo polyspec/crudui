@@ -18,11 +18,13 @@
 pub mod compose;
 pub mod errors;
 pub mod loader;
+pub mod member_order;
 pub mod patch;
 pub mod ref_;
 
 pub use compose::{compose_properties, compose_spec, ComposeOptions};
 pub use errors::{ComposeErrorCode, ComposeLoadError, ComposeResult};
 pub use loader::{FileLoader, LoadedDoc, MemoryLoader};
+pub use member_order::{member_ordered, member_ordered_map};
 pub use patch::apply_patch;
 pub use ref_::resolve_ref;
