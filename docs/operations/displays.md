@@ -265,8 +265,8 @@ Shared fixtures define the expected results in every runtime:
 | --- | --- |
 | [`list-render`](../../tests/fixtures/list-render/README.md) | Specification, rows, options and the expected list HTML or error |
 | [`detail-render`](../../tests/fixtures/detail-render/README.md) | Specification, record, options and the expected detail HTML or error |
-| [`list-validity`](../../tests/fixtures/list-validity/cases.json) | List declarations and their structure validation results |
-| [`detail-validity`](../../tests/fixtures/detail-validity/cases.json) | Detail declarations and their structure validation results |
+| [`list-validity`](../../tests/fixtures/list-validity/README.md) | List declarations and their structure validation results |
+| [`detail-validity`](../../tests/fixtures/detail-validity/README.md) | Detail declarations and their structure validation results |
 
 ```sh
 npm run test:forms
