@@ -40,10 +40,15 @@ export async function loadComparisonFrames({
   const readiness = new Promise((ready, fail) => { resolve = ready; reject = fail; });
 
   function receive(event) {
-    if (event.origin !== host.location.origin || !expected.has(event.source)
-        || event.data?.type !== 'crudui:frame-ready') return;
-    const initialization = expected.get(event.source);
+    if (event.origin !== host.location.origin || !expected.has(event.source)) return;
     const value = event.data;
+    // A frame that cannot initialize reports why, instead of never becoming ready.
+    if (value?.type === 'crudui:frame-failed') {
+      reject(new Error(`Frame initialization failed: ${value.reason}`));
+      return;
+    }
+    if (value?.type !== 'crudui:frame-ready') return;
+    const initialization = expected.get(event.source);
     if (value.server !== server || value.framework !== framework || value.path !== path
         || value.initialization !== initialization || Object.keys(value).length !== 5) {
       reject(new Error('Frame readiness differs'));

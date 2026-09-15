@@ -58,6 +58,20 @@ test('subscribes before navigation and resolves exact frame readiness events', a
   assert.deepEqual(ready, ['csr', 'ssr']);
 });
 
+test('rejects with the reason a frame reports when it cannot initialize', async () => {
+  const value = fixture();
+  const loading = loadComparisonFrames({
+    host: value.host,
+    frames: value.frames,
+    initializations: ['ssr', 'csr'], path: 'createForm',
+    framework: 'react', server: 'php', language: 'ko',
+    title: initialization => initialization,
+    onReady: () => {},
+  });
+  value.ready(value.frames[0], { type: 'crudui:frame-failed', reason: 'Hydration must keep every server-rendered element' });
+  await assert.rejects(loading, /Frame initialization failed: Hydration must keep every server-rendered element/);
+});
+
 test('rejects a readiness event with a different declared frame', async () => {
   const value = fixture();
   const loading = loadComparisonFrames({
