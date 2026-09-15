@@ -43,6 +43,7 @@ async function renderView() {
     $('#form-frame').src = frameUrl({ initialization: state.initialization, path: 'bindForm', framework: state.framework, server: state.server, language: state.language });
     return;
   }
+  if (document.documentElement.dataset.pipelineInitialization === 'ssr') return;
   const response = await fetch(`/api/pipeline/${view}?${params({ id: state.id })}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`CRUDUI ${view} request failed: ${response.status}`);
   $('#stage').innerHTML = `<div class="stage-heading"><p class="eyebrow">${view.toUpperCase()}</p><h2>${text[view]}</h2><p>${text.intro}</p></div>${await response.text()}`;

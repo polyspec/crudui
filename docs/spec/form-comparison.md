@@ -296,6 +296,14 @@ The canonical entry page owns the complete List → Detail → Form → Save →
 The benchmark entry is `/benchmark/` and owns matrix verification. There is no `/displays/`
 endpoint.
 
+The canonical page's `initialization` applies to the page stage as well as the form document.
+With `initialization=ssr`, the selected server writes the list or detail CRUDUI markup into the
+initial HTTP document; browser JavaScript enhances that existing markup and does not fetch or replace
+the stage. With `initialization=csr`, the initial document contains the shell and browser JavaScript
+requests and inserts the selected stage. A form SSR selection applies the same rule to the form iframe
+document. The server-rendered page must therefore expose its generated list or detail markup in
+`view-source`.
+
 Every render comparison includes the framework-independent HTML renderer in addition to React,
 Vue and Svelte. A parity verdict therefore covers four renderers.
 

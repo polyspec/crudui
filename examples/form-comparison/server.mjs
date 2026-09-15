@@ -87,34 +87,73 @@ async function handlePipeline(url, request, response) {
   const match = /^\/api\/pipeline\/(list|detail)$/.exec(url.pathname);
   if (!match) return false;
   if (request.method !== 'GET') return respond(response, 405, { error: 'Method not allowed' });
+  const rendered = await pipelineMarkup(url, match[1]);
+  response.writeHead(rendered.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+  response.end(rendered.body);
+  return true;
+}
+
+async function pipelineMarkup(url, view) {
   const options = pipelineOptions(url);
   const records = pipelineRecords();
-  if (options.server !== 'js') {
-    const record = records.find(item => item.id === (url.searchParams.get('id') || '1'));
-    if (match[1] === 'detail' && !record) return respond(response, 404, { error: 'Record not found' });
-    const payload = { spec: match[1] === 'list' ? pipelineListSpec(options) : pipelineDetailSpec(options),
-      rows: records, record, options: { language: options.lang, layout: 'table', total: records.length } };
-    const native = await new Promise((resolve, reject) => {
-      const outgoing = http.request({ hostname: '127.0.0.1', port: serverPorts[options.server],
-        path: `/api/pipeline/${match[1]}`, method: 'POST', headers: { 'Content-Type': 'application/json' } }, incoming => {
-        const chunks = []; incoming.on('data', chunk => chunks.push(chunk));
-        incoming.on('end', () => resolve({ status: incoming.statusCode, headers: incoming.headers, body: Buffer.concat(chunks) }));
-      });
-      outgoing.on('error', reject); outgoing.end(JSON.stringify(payload));
-    });
-    response.writeHead(native.status, { 'Content-Type': native.headers['content-type'] || 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-    response.end(native.body);
-    return true;
-  }
-  if (match[1] === 'list') {
-    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-    response.end(renderPipelineList(records, options));
-    return true;
-  }
   const record = records.find(item => item.id === (url.searchParams.get('id') || '1'));
-  if (!record) return respond(response, 404, { error: 'Record not found' });
+  if (view === 'detail' && !record) return { status: 404, body: 'Record not found' };
+  if (options.server === 'js') {
+    return { status: 200, body: view === 'list'
+      ? renderPipelineList(records, options) : renderPipelineDetail(record, options) };
+  }
+  const payload = { spec: view === 'list' ? pipelineListSpec(options) : pipelineDetailSpec(options),
+    rows: records, record, options: { language: options.lang, layout: 'table', total: records.length } };
+  const native = await new Promise((resolve, reject) => {
+    const outgoing = http.request({ hostname: '127.0.0.1', port: serverPorts[options.server],
+      path: `/api/pipeline/${view}`, method: 'POST', headers: { 'Content-Type': 'application/json' } }, incoming => {
+      const chunks = []; incoming.on('data', chunk => chunks.push(chunk));
+      incoming.on('end', () => resolve({ status: incoming.statusCode, body: Buffer.concat(chunks) }));
+    });
+    outgoing.on('error', reject); outgoing.end(JSON.stringify(payload));
+  });
+  return native;
+}
+
+async function renderPipelinePage(url, request, response) {
+  const match = url.pathname === '/' || url.pathname === '/index.html' ? 'list'
+    : url.pathname === '/detail' || url.pathname === '/detail/' ? 'detail'
+      : url.pathname === '/form' || url.pathname === '/form/' ? 'form' : null;
+  if (!match || request.method !== 'GET') return false;
+  const options = pipelineOptions(url);
+  let html = await (await import('node:fs/promises')).readFile(path.join(publicDirectory, 'index.html'), 'utf8');
+  const language = options.lang;
+  const labels = language === 'en'
+    ? { title: 'CRUDUI full feature example', intro: 'Use CRUDUI-generated list links to open detail and form, then verify the saved result in the list.', server: 'Server', framework: 'Client', initialization: 'Execution', source: 'Source identity', back: 'Back to list' }
+    : { title: 'CRUDUI 전체 기능 예제', intro: 'CRUDUI가 생성한 목록 링크로 상세와 폼으로 이동하고 실제 저장 결과를 다시 목록에서 확인합니다.', server: '서버', framework: '클라이언트', initialization: '실행 방식', source: '소스 식별자', back: '목록으로 돌아가기' };
+  html = html.replace('<html lang="ko">', `<html lang="${language}" data-pipeline-initialization="${options.initialization}">`)
+    .replace('<title>CRUDUI · Pipeline example</title>', `<title>${labels.title}</title>`)
+    .replace('<p class="eyebrow">CRUDUI EXAMPLE</p><h1 id="title"></h1><p id="intro"></p>', `<p class="eyebrow">CRUDUI EXAMPLE</p><h1 id="title">${labels.title}</h1><p id="intro">${labels.intro}</p>`)
+    .replace('<label for="server" id="server-label"></label>', `<label for="server" id="server-label">${labels.server}</label>`)
+    .replace('<label for="framework" id="framework-label"></label>', `<label for="framework" id="framework-label">${labels.framework}</label>`)
+    .replace('<label for="initialization" id="initialization-label"></label>', `<label for="initialization" id="initialization-label">${labels.initialization}</label>`)
+    .replace('<summary id="source-label">Source identity</summary>', `<summary id="source-label">${labels.source}</summary>`)
+    .replace('<span id="back-list"></span>', `<span id="back-list">${labels.back}</span>`)
+    .replace('value="js">JavaScript', `value="js"${options.server === 'js' ? ' selected' : ''}>JavaScript`)
+    .replace(`value="${options.server}">`, `value="${options.server}" selected>`)
+    .replace(`value="${options.framework}">`, `value="${options.framework}" selected>`)
+    .replace(`value="${options.initialization}">`, `value="${options.initialization}" selected>`);
+  const params = new URLSearchParams({ lang: options.lang, server: options.server, framework: options.framework, initialization: options.initialization, id: url.searchParams.get('id') || '1' }).toString();
+  html = html.replace('href="/"', `href="/?${params}"`).replace('href="/detail?id=1"', `href="/detail?id=1&${params}"`).replace('href="/form?id=1"', `href="/form?id=1&${params}"`);
+  if (match === 'form') {
+    html = html.replace('<section id="stage" aria-live="polite"></section>', '<section id="stage" aria-live="polite" hidden></section>')
+      .replace('<section id="form-stage" class="form-stage" hidden>', '<section id="form-stage" class="form-stage">');
+    if (options.initialization === 'ssr') {
+      const frameQuery = new URLSearchParams({ lang: options.lang, server: options.server, initialization: options.initialization }).toString();
+      html = html.replace('<iframe id="form-frame" title="CRUDUI form">', `<iframe id="form-frame" title="CRUDUI form" src="/api/${options.server}/ssr/bindForm/${options.framework}?${frameQuery}">`);
+    }
+  } else if (options.initialization === 'ssr') {
+    const rendered = await pipelineMarkup(url, match);
+    const stage = `<div class="stage-heading"><p class="eyebrow">${match.toUpperCase()}</p><h2>${match === 'list' ? (language === 'en' ? 'Customer list' : '고객 목록') : (language === 'en' ? 'Customer detail' : '고객 상세')}</h2><p>${labels.intro}</p></div>${rendered.body.toString()}`;
+    html = html.replace('<section id="stage" aria-live="polite"></section>', `<section id="stage" aria-live="polite">${stage}</section>`);
+  }
   response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-  response.end(renderPipelineDetail(record, options));
+  response.end(html);
   return true;
 }
 
@@ -153,6 +192,7 @@ const httpServer = http.createServer(async (request, response) => {
       await handlePipeline(url, request, response);
       return;
     }
+    if (await renderPipelinePage(url, request, response)) return;
     const target = serverRequest(url.pathname, url.search);
     if (target) {
       const outgoing = http.request({ hostname: '127.0.0.1', port: target.port, path: target.path, method: request.method, headers: { ...request.headers, host: `127.0.0.1:${target.port}` } }, incoming => {
