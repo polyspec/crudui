@@ -2,6 +2,19 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Keep contract verification commands to package checks
+
+CI failed in the form instance job after `353a0c10`: `npm run manifest:test` runs every
+verification command in the contract manifest, and I had declared `make test-native` for
+`buildDetail` and `renderDetail`. That job has no native PHP toolchain, so building the extension
+stopped at `Path contains a symbolic link: /usr/bin/php-config`. Every other contract declares
+only package checks; native comparison is recorded through the runner in `tests` and runs in its
+own CI jobs, which passed.
+
+The two detail contracts now declare only their package checks, like the others. The core detail
+test and the HTML and React detail conformance tests passed through `run-contract-tests.mjs`,
+and `make docs-check` and `npm run test:docs` passed.
+
 ## 2026-09-15 — Enforce detail views at the same level in every runtime
 
 Detail views existed in JavaScript and Go only, and nothing compared their output. Three

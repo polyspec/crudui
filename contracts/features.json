@@ -454,10 +454,6 @@
         {
           "id": "test-1",
           "command": "npm test -w @crudui/generator-core -- --run src/detail.test.ts"
-        },
-        {
-          "id": "test-2",
-          "command": "make test-native"
         }
       ]
     },
@@ -510,10 +506,6 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-react -- --run src/__tests__/detail-render.conformance.test.ts"
-        },
-        {
-          "id": "test-3",
-          "command": "make test-native"
         }
       ]
     },
