@@ -653,7 +653,7 @@ export function renderMarkdown(r: DescribeResult): string {
   push();
   push(`First-class (top-level) keys: ${r.slots.firstClass.map((k) => `\`${k}\``).join(', ')}`);
   push();
-  push(`- **validate** sub-keys: ${r.slots.validate.subKeys.map((k) => `\`${k}\``).join(', ')} (plus any registered rule)`);
+  push(`- **validate** sub-keys: ${r.slots.validate.subKeys.map((k) => `\`${k}\``).join(', ')} (open bucket: other rule names are accepted)`);
   push(`- **design** nodes: ${r.slots.design.nodes.map((k) => `\`${k}\``).join(', ')}; node appearance keys: ${r.slots.design.nodeAppearanceKeys.map((k) => `\`${k}\``).join(', ')}`);
   push(`- **behavior** sub-keys: ${r.slots.behavior.subKeys.map((k) => `\`${k}\``).join(', ')}`);
   push(`- **options** known keys (open bucket=${r.slots.options.open}): ${r.slots.options.knownKeys.map((k) => `\`${k}\``).join(', ')}`);

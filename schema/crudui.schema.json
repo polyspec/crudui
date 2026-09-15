@@ -36,6 +36,26 @@
         }
       ]
     },
+    "OpenValue": {
+      "description": "Value the schema leaves open. Any JSON value is accepted; every object key at every depth must satisfy the property-name rules.",
+      "type": [
+        "string",
+        "number",
+        "boolean",
+        "null",
+        "array",
+        "object"
+      ],
+      "items": {
+        "$ref": "#/definitions/OpenValue"
+      },
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/OpenValue"
+      }
+    },
     "Expression": {
       "description": "Expression string supporting relative paths, comparisons, logic, membership and conditional values. Behavior scripts are separate.",
       "type": "string"
@@ -46,28 +66,10 @@
       "minProperties": 1,
       "propertyNames": {
         "$ref": "#/definitions/ForbiddenKeyNames"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/OpenValue"
       }
-    },
-    "ConditionalValue": {
-      "description": "Literal value, expression string or condition map. The consuming setting determines the evaluated value type.",
-      "anyOf": [
-        {
-          "$ref": "#/definitions/Expression"
-        },
-        {
-          "type": [
-            "boolean",
-            "number",
-            "null"
-          ]
-        },
-        {
-          "type": "array"
-        },
-        {
-          "$ref": "#/definitions/ConditionMap"
-        }
-      ]
     },
     "LangMap": {
       "description": "Content translations indexed by language code. A null translation represents absent content.",
@@ -78,6 +80,9 @@
           "string",
           "null"
         ]
+      },
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
       }
     },
     "Content": {
@@ -109,7 +114,7 @@
       ]
     },
     "Validate": {
-      "description": "Validation settings. Rule values can use expressions or condition maps.",
+      "description": "Validation rules in declaration order. Registered rules have typed parameters; other rule names stay open for rules registered by the application.",
       "anyOf": [
         {
           "type": "boolean"
@@ -121,38 +126,181 @@
           },
           "properties": {
             "required": {
-              "description": "Requires a nonempty value when enabled.",
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "$ref": "#/definitions/Expression"
-                }
-              ]
+              "description": "Requires a supplied, nonempty value when enabled.",
+              "$ref": "#/definitions/RuleSwitch"
             },
             "email": {
               "description": "Requires a syntactically valid email address when enabled.",
+              "$ref": "#/definitions/RuleSwitch"
+            },
+            "url": {
+              "description": "Requires a valid URL when enabled.",
+              "$ref": "#/definitions/RuleSwitch"
+            },
+            "minlength": {
+              "description": "Minimum string length in Unicode code points.",
+              "$ref": "#/definitions/RuleNumber"
+            },
+            "maxlength": {
+              "description": "Maximum string length in Unicode code points.",
+              "$ref": "#/definitions/RuleNumber"
+            },
+            "rangelength": {
+              "description": "Minimum and maximum string length.",
+              "$ref": "#/definitions/RuleBounds"
+            },
+            "number": {
+              "description": "Requires a finite number when enabled.",
+              "$ref": "#/definitions/RuleSwitch"
+            },
+            "digits": {
+              "description": "Requires digits only when enabled.",
+              "$ref": "#/definitions/RuleSwitch"
+            },
+            "min": {
+              "description": "Numeric lower bound.",
+              "$ref": "#/definitions/RuleNumber"
+            },
+            "max": {
+              "description": "Numeric upper bound.",
+              "$ref": "#/definitions/RuleNumber"
+            },
+            "range": {
+              "description": "Numeric lower and upper bounds.",
+              "$ref": "#/definitions/RuleBounds"
+            },
+            "step": {
+              "description": "Numeric increment.",
+              "$ref": "#/definitions/RuleNumber"
+            },
+            "match": {
+              "description": "Regular expression the value must match. Not implicitly anchored.",
+              "$ref": "#/definitions/RulePattern"
+            },
+            "pattern": {
+              "description": "Same rule as match under the name used in messages.",
+              "$ref": "#/definitions/RulePattern"
+            },
+            "equalTo": {
+              "description": "Field whose value must be equal.",
+              "$ref": "#/definitions/RuleFieldReference"
+            },
+            "notEqual": {
+              "description": "Field reference starting with a dot, or a literal value the input must differ from. Passed unchanged.",
               "anyOf": [
                 {
-                  "type": "boolean"
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
                 },
                 {
-                  "$ref": "#/definitions/ConditionalValue"
+                  "description": "Disables the rule.",
+                  "enum": [
+                    false,
+                    null
+                  ]
                 }
               ]
             },
-            "match": {
-              "description": "Regular expression requirement, optionally selected by a condition map.",
+            "in": {
+              "description": "Allowed values: a comma-separated string, a list, or a value-to-label map whose keys are the values. Passed unchanged; a map is not a condition map.",
               "anyOf": [
                 {
                   "type": "string"
                 },
                 {
-                  "$ref": "#/definitions/ConditionMap"
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                {
+                  "type": "object",
+                  "propertyNames": {
+                    "$ref": "#/definitions/ForbiddenKeyNames"
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/definitions/ItemLabel"
+                  }
+                },
+                {
+                  "description": "Disables the rule.",
+                  "enum": [
+                    false,
+                    null
+                  ]
+                }
+              ]
+            },
+            "date": {
+              "description": "Requires a valid date when enabled.",
+              "$ref": "#/definitions/RuleSwitch"
+            },
+            "dateISO": {
+              "description": "Requires a YYYY-MM-DD date when enabled.",
+              "$ref": "#/definitions/RuleSwitch"
+            },
+            "enddate": {
+              "description": "Start-date field; the end date must not precede it.",
+              "$ref": "#/definitions/RuleFieldReference"
+            },
+            "mincount": {
+              "description": "Minimum collection size.",
+              "$ref": "#/definitions/RuleNumber"
+            },
+            "maxcount": {
+              "description": "Maximum collection size.",
+              "$ref": "#/definitions/RuleNumber"
+            },
+            "unique": {
+              "description": "Uniqueness when enabled; a string names an item field or a filter condition. Passed unchanged.",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "description": "Disables the rule.",
+                  "enum": [
+                    false,
+                    null
+                  ]
+                }
+              ]
+            },
+            "accept": {
+              "description": "Accepted file extensions or MIME types, as a comma-separated string or a list. Passed unchanged.",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "description": "Disables the rule.",
+                  "enum": [
+                    false,
+                    null
+                  ]
                 }
               ]
             }
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/OpenValue"
           }
         }
       ]
@@ -403,47 +551,64 @@
           },
           "properties": {
             "keyword_min_length": {
-              "description": "Minimum search keyword length."
+              "description": "Minimum search keyword length.",
+              "$ref": "#/definitions/OpenValue"
             },
             "marker_draggable": {
-              "description": "Whether the map marker can be dragged."
+              "description": "Whether the map marker can be dragged.",
+              "$ref": "#/definitions/OpenValue"
             },
             "zoom": {
-              "description": "Map zoom setting."
+              "description": "Map zoom setting.",
+              "$ref": "#/definitions/OpenValue"
             },
             "geometry_type": {
-              "description": "Geometry type setting."
+              "description": "Geometry type setting.",
+              "$ref": "#/definitions/OpenValue"
             },
             "max_tags": {
-              "description": "Maximum tag count."
+              "description": "Maximum tag count.",
+              "$ref": "#/definitions/OpenValue"
             },
             "checkbox_label": {
-              "description": "Checkbox label content."
+              "description": "Checkbox label content.",
+              "$ref": "#/definitions/OpenValue"
             },
             "on_label": {
-              "description": "Enabled toggle label content."
+              "description": "Enabled toggle label content.",
+              "$ref": "#/definitions/OpenValue"
             },
             "collapse": {
-              "description": "Container collapse setting."
+              "description": "Container collapse setting.",
+              "$ref": "#/definitions/OpenValue"
             },
             "expend": {
-              "description": "Container expansion setting."
+              "description": "Container expansion setting.",
+              "$ref": "#/definitions/OpenValue"
             },
             "view_total": {
-              "description": "Container total display setting."
+              "description": "Container total display setting.",
+              "$ref": "#/definitions/OpenValue"
             },
             "stepper": {
-              "description": "Container stepper setting."
+              "description": "Container stepper setting.",
+              "$ref": "#/definitions/OpenValue"
             },
             "blank_message": {
-              "description": "Empty container message."
+              "description": "Empty container message.",
+              "$ref": "#/definitions/OpenValue"
             },
             "callback": {
-              "description": "Opaque widget callback script."
+              "description": "Opaque widget callback script.",
+              "$ref": "#/definitions/OpenValue"
             },
             "event": {
-              "description": "Opaque widget event setting."
+              "description": "Opaque widget event setting.",
+              "$ref": "#/definitions/OpenValue"
             }
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/OpenValue"
           }
         }
       ]
@@ -461,12 +626,21 @@
         },
         "relations": {
           "description": "Source relation descriptors.",
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OpenValue"
+          }
         },
         "keys": {
           "description": "Fields used to construct choice labels.",
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OpenValue"
+          }
         }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/OpenValue"
       }
     },
     "ItemsSource": {
@@ -496,7 +670,8 @@
           "type": "string"
         },
         "relations": {
-          "description": "Source relation descriptors."
+          "description": "Source relation descriptors.",
+          "$ref": "#/definitions/OpenValue"
         },
         "api_server": {
           "description": "Opaque endpoint callback preserved for the application.",
@@ -506,23 +681,35 @@
           "description": "Static initial choices within a dynamic source.",
           "anyOf": [
             {
-              "type": "array"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/OpenValue"
+              }
             },
             {
               "type": "object",
               "additionalProperties": {
                 "$ref": "#/definitions/ItemLabel"
+              },
+              "propertyNames": {
+                "$ref": "#/definitions/ForbiddenKeyNames"
               }
             }
           ]
         }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/OpenValue"
       }
     },
     "Items": {
       "description": "Static choice array, value-to-label map or dynamic source descriptor. Labels may contain translations.",
       "anyOf": [
         {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OpenValue"
+          }
         },
         {
           "$ref": "#/definitions/ItemsSource"
@@ -531,6 +718,9 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/ItemLabel"
+          },
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
           }
         }
       ]
@@ -689,7 +879,13 @@
     },
     "Patch": {
       "description": "Composition operations for adding, removing or replacing definition properties.",
-      "type": "object"
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/ForbiddenKeyNames"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/OpenValue"
+      }
     },
     "Properties": {
       "description": "Child field map supporting composition references and patches. Child names must satisfy the property-name rules.",
@@ -727,7 +923,8 @@
           "type": "string"
         },
         "default": {
-          "description": "Default value used when a field value is absent."
+          "description": "Default value used when a field value is absent.",
+          "$ref": "#/definitions/OpenValue"
         },
         "properties": {
           "description": "Nested field definitions.",
@@ -827,17 +1024,20 @@
               "type": "string"
             },
             "truncate": {
-              "description": "Maximum displayed text length."
+              "description": "Maximum displayed text length.",
+              "$ref": "#/definitions/OpenValue"
             },
             "pattern": {
               "description": "Date and time display pattern.",
               "type": "string"
             },
             "decimals": {
-              "description": "Displayed decimal places."
+              "description": "Displayed decimal places.",
+              "$ref": "#/definitions/OpenValue"
             },
             "thousands": {
-              "description": "Thousands separator setting."
+              "description": "Thousands separator setting.",
+              "$ref": "#/definitions/OpenValue"
             },
             "prefix": {
               "description": "Content before a number.",
@@ -852,6 +1052,9 @@
               "type": "object",
               "additionalProperties": {
                 "$ref": "#/definitions/ItemLabel"
+              },
+              "propertyNames": {
+                "$ref": "#/definitions/ForbiddenKeyNames"
               }
             },
             "href": {
@@ -890,15 +1093,20 @@
               "$ref": "#/definitions/Content"
             },
             "width": {
-              "description": "Image width."
+              "description": "Image width.",
+              "$ref": "#/definitions/OpenValue"
             },
             "height": {
-              "description": "Image height."
+              "description": "Image height.",
+              "$ref": "#/definitions/OpenValue"
             },
             "alt": {
               "description": "Image alternative text supporting field interpolation.",
               "$ref": "#/definitions/Content"
             }
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/OpenValue"
           }
         }
       ]
@@ -1187,6 +1395,166 @@
           "$ref": "#/definitions/Patch"
         }
       }
+    },
+    "RuleSwitch": {
+      "description": "Boolean rule enablement, optionally selected by an expression or condition map.",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        },
+        {
+          "$ref": "#/definitions/Expression"
+        },
+        {
+          "description": "Condition map selecting the parameter.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "description": "Disables the rule.",
+                "enum": [
+                  false,
+                  null
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "RuleNumber": {
+      "description": "Numeric rule parameter, optionally selected by an expression or condition map.",
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        },
+        {
+          "$ref": "#/definitions/Expression"
+        },
+        {
+          "description": "Condition map selecting the parameter.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "description": "Disables the rule.",
+                "enum": [
+                  false,
+                  null
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "RuleBounds": {
+      "description": "Minimum and maximum rule parameter, optionally selected by an expression or condition map.",
+      "anyOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        },
+        {
+          "$ref": "#/definitions/Expression"
+        },
+        {
+          "description": "Condition map selecting the parameter.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              },
+              {
+                "description": "Disables the rule.",
+                "enum": [
+                  false,
+                  null
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "RuleFieldReference": {
+      "description": "Field reference passed to the rule unchanged; not evaluated as a condition.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        }
+      ]
+    },
+    "RulePattern": {
+      "description": "Regular expression passed to the rule unchanged; not evaluated as a condition.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        }
+      ]
     }
   }
 }

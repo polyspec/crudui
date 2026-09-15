@@ -21,8 +21,8 @@ cases itself or supplies its own files. [`check-schema.mjs`](../../../scripts/ch
 `reason`.
 
 `sortable` on a field and a root `$ref` without its own `fields` fail the meta-schema and pass the
-runtime, while a forbidden key introduced by `$patch` and an unresolved `$ref` pass the meta-schema
-and fail the runtime.
+runtime, while an unresolved `$ref` passes the meta-schema and fails the runtime. A forbidden key
+introduced by `$patch` fails both.
 
 These cases check a basic detail, composed fields, forbidden keys as a field key, on a field, in
 format options and at the detail root, `show_if` on a field and an unresolved `fields` reference.
