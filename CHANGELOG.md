@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Share the preload link helper between list and detail fixtures
+
+Framework conformance compares a rendered list without the image preload links that React's
+server rendering and the HTML renderer write before it; the native generator suite compares the
+complete HTML. That rule was implemented in `tests/fixtures/list-render/list-body.mjs` under the
+list-specific name `listBody`. Detail fixtures follow the same rule, so the helper is now
+`withoutPreloadLinks` in `tests/fixtures/preload-links.mjs`, used by the list fixture generator
+and the React and HTML list conformance tests.
+
+Regenerating the list fixture produced identical bytes, and the React and HTML list conformance
+tests passed.
+
 ## 2026-09-15 — Build generator-core with its declared library
 
 Every CI job failed in `npm run build` after `3aeb4d6e`: `detail.ts` called `Object.hasOwn`,
