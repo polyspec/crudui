@@ -2,6 +2,30 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 포인터가 프레임 밖에 있을 때만 비교를 캡처
+
+3eb6db3 배포 뒤, safaridriver로 실행한 실제 Safari에서 포커스 테두리 차이를 재현했던 절차를
+반복했습니다. 왼쪽 프레임 안의 모두 펼치기를 실제 포인터로 누른 뒤 PHP, React, bindForm 반복 주입
+비교를 실행했습니다. 이제 모든 단계에서 포커스된 컨트롤과 `:focus-visible` 상태는 같았지만 비교는
+`copy-removed`부터 `restored`까지 CSS에서 168개 중 7개가 실패했습니다. 다른 속성은 버튼의
+`background-color`였습니다. 포인터가 머문 왼쪽 열은 `.crudui-action:hover` 배경인
+`rgb(249, 250, 251)`이고 오른쪽 열은 투명 또는 흰색이었습니다.
+
+포인터는 한 프레임 위에만 있을 수 있습니다. Chromium, Playwright WebKit, Safari에서 프레임의 문서
+요소는 포인터가 그 프레임 위에 있는 동안 정확히 `:hover`와 일치합니다. 모든 브라우저에서 프레임 안의
+`:hover`를 막는 페이지 스타일은 없습니다. Safari에서 iframe의 `pointer-events: none`은 hover를 그대로
+두었고, iframe을 덮는 투명한 요소는 포인터 위치의 최상위 요소였는데도 최상위 문서에서 포인터가
+움직이기 전까지만 hover를 해제했습니다. Playwright WebKit도 두 방법 모두 포인터를 움직인 뒤 hover를
+복원했습니다.
+
+이제 비교 페이지는 포인터가 두 프레임 밖에 있을 때만 열을 캡처합니다(`src/frame-pointer.mjs`).
+포인터가 프레임 위에 있으면 비교는 결과 없이 멈추고 포인터를 프레임 밖으로 옮긴 뒤 다시 비교하라고
+알리며, 로드 뒤 표시하는 목록도 비교하지 않고 같은 안내를 표시합니다. 비교에서 제거하는 스타일은
+없습니다. Chromium 검사는 포인터를 페이지에서 프레임으로, 다시 페이지로 옮기며 매번 프레임 상태를
+읽습니다.
+
+`npm run test:form-comparison:source` 141개와 `:browser` 4개, `make docs-check`가 통과했습니다.
+
 ## 2026-09-15 — 스크립트 포커스의 표시 여부를 명시
 
 Safari에서 배포된 68ee49c 페이지의 PHP, React, bindForm 반복 주입 비교가 `expanded-all`,

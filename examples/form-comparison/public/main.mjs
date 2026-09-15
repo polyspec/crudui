@@ -1,5 +1,6 @@
 import { createBrowserJob } from './browser-job.mjs';
 import { loadComparisonFrames } from './frame-readiness.mjs';
+import { pointerOverFrame } from './frame-pointer.mjs';
 import { exclusive } from './storage-lock.mjs';
 import { compareSnapshots, formSnapshot, snapshotHash, styleSnapshot } from './form-snapshot.mjs';
 import {
@@ -38,12 +39,17 @@ for (const option of serverSelector.options) option.textContent = t.serverNames[
 const metadata = await (await fetch('/metadata.json')).json();
 document.querySelector('#source').textContent = JSON.stringify(metadata, null, 2);
 
-/** Capture one column: HTML, DOM, control state, fields, computed CSS, ordered data, focus and response. */
+/**
+ * Capture one column: HTML, DOM, control state, fields, computed CSS, ordered data, focus and
+ * response. Both columns receive the same input, so nothing is captured while the pointer is
+ * over either frame.
+ */
 async function capture(frame, response) {
   const comparison = frame.contentWindow.comparison;
   await comparison.idle();
   const document = frame.contentDocument;
   await document.fonts.ready;
+  if (frames.some(pointerOverFrame)) throw new Error(t.pointerOverFrame);
   const view = document.querySelector('#view');
   const snapshot = formSnapshot(view, document.querySelector('#form'));
   snapshot.css = styleSnapshot(view);
@@ -53,8 +59,12 @@ async function capture(frame, response) {
   return snapshot;
 }
 
-/** Compare both frames as they finished loading. */
+/** Compare both frames as they finished loading, or say why they cannot be compared yet. */
 async function compareMounted() {
+  if (frames.some(pointerOverFrame)) {
+    document.querySelector('#initialization-status').textContent = t.pointerOverFrame;
+    return;
+  }
   renderInitialization([{
     label: 'mounted',
     results: compareSnapshots(await capture(csrFrame), await capture(ssrFrame), initializationCategories),
