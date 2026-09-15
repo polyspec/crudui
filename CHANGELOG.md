@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-09-16 — Make the canonical example use CRUDUI-generated pipeline features
+
+The previous root implementation was incorrect: parent-side stage buttons and hand-written list
+and detail markup simulated navigation without exercising CRUDUI list links, detail links, form
+submission or persistence. The canonical example now renders list and detail output through the
+CRUDUI renderer and uses real HTTP navigation. The old simulation path is removed rather than
+retained as a compatibility path.
+
 ## 2026-09-16 — Run comparison verification on the benchmark entry
 
 Browser verification now opens `/benchmark-console/`, where the comparison console owns its

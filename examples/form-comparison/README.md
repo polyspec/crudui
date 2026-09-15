@@ -2,9 +2,11 @@
 
 [한국어](README.ko.md).
 
-The canonical `crudui.test` entry page is one pipeline: List → Detail → Form → Save → List refresh.
-It selects JavaScript reference, PHP, PHP extension, Go or Rust; HTML, React, Vue or Svelte;
-and CSR or SSR. The separate benchmark screen is `/benchmark/`; `/displays/` is not a route.
+The canonical `crudui.test` entry page is the full CRUDUI feature pipeline: List → Detail → Form →
+Save → List refresh. CRUDUI generates the list, detail, links and form flow; the page does not
+simulate stages with external buttons. It selects JavaScript reference, PHP, PHP extension, Go or
+Rust; HTML, React, Vue or Svelte; and CSR or SSR. The separate benchmark screen is `/benchmark/`;
+`/displays/` is not a route.
 
 This example verifies nested keyed forms through PHP, the PHP extension, Go and
 Rust. Each server compiles, renders, validates and stores the same form data.
