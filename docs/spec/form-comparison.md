@@ -131,9 +131,8 @@ dropped and every other line, warnings included, is kept.
 
 PHP reads its sources on every request, so a PHP source change needs no build or
 restart; only the installed Composer copies are replaced. A `.gitignore` change
-synchronizes the whole tree. The supervisor runs its own modules from the mounted
-repository. A change to one of them applies when the container starts again; until
-then the supervisor reports `restart-required`.
+synchronizes the whole tree. A change to a supervisor module reloads that process in
+the existing container and preserves all volumes.
 
 ### Source identity
 
@@ -151,7 +150,7 @@ No build embeds a commit.
 
 ### Build cycles
 
-A build cycle is `building`, `ready`, `failed` or `restart-required`. After it
+A build cycle is `building`, `ready` or `failed`. After it
 rebuilds and restarts, the supervisor sends one health request to each API server.
 It requires the published identity and, for the PHP extension, the digest of the
 `crudui.so` it built and loaded. The public server receives each state from the
@@ -567,8 +566,8 @@ files. After applying the definition with containerctl, it uses the explicit
 containerctl CA to request the HTTPS home page, health response, `source.json` and
 one saved-data response. It verifies the route, certificate, image, mounts, stored
 files, that the container cannot write the mounted repository and that the served
-identity equals the checkout's identity. It then applies the same definition again.
-The second application must retain the container identity, creation and start
+identity equals the checkout's identity. If the reuse condition passes, it does not
+apply the definition again and retains the container identity, creation and start
 times, image, mounts, route, certificate, identity, stored files and response bytes.
 Any change or failed request makes deployment verification fail. `/data` and the
 build volumes remain across applications.
@@ -578,3 +577,10 @@ no container uses, including per-commit images of the removed archive procedure,
 and the retired `.form-comparison/candidates`, `.form-comparison/sources` and
 `.form-comparison/results` directories. It records the image, Compose digest, data
 preservation and both snapshots in `.form-comparison/deployment/verification.json`.
+## Deployment lifecycle invariant
+
+A running container with the expected image and exact source, build, cache, data and results
+mounts is reused. Source synchronization must not call `containerctl down`, recreate the container,
+restart the service, or reconnect volumes. `containerctl up` is a bootstrap operation for an absent
+or incompatible container only. The public pipeline sends list and detail display requests to the
+selected native server; it does not substitute the Node renderer.

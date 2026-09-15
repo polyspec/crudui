@@ -22,8 +22,6 @@ const checkInterval = 1_000;
 const manifestFile = path.join(stateDirectory, 'tree-manifest.json');
 const processes = new Map();
 let state = { status: 'building', cycle: 0, source: null, error: null };
-// Supervisor modules changed since this process started; they apply at the next start.
-const changedSupervisorFiles = new Set();
 let treeState;
 let stopping = false;
 
@@ -133,18 +131,23 @@ async function checkSource() {
   }
   log(`changed: ${paths.join(', ')}`);
   const plan = planBuild(paths);
-  for (const file of supervisorFiles.filter(file => paths.includes(file))) {
-    changedSupervisorFiles.add(file);
-  }
-  if (changedSupervisorFiles.size > 0) {
-    publish({
-      status: 'restart-required', source,
-      error: 'Supervisor files changed; restart the container to apply them: '
-        + [...changedSupervisorFiles].sort().join(', '),
-    });
+  if (supervisorFiles.some(file => paths.includes(file))) {
+    publish({ status: 'building', source, error: null });
+    await reloadSupervisor();
     return;
   }
   await runCycle(plan, source);
+}
+
+/** Reload this process from the mounted source without restarting its container or volumes. */
+async function reloadSupervisor() {
+  stopping = true;
+  await Promise.all([...processes.keys()].map(stopProcess));
+  const child = spawn(process.execPath, [path.join(sourceMount, 'examples/form-comparison/supervisor.mjs')], {
+    cwd: sourceMount, env: process.env, stdio: 'inherit', detached: true,
+  });
+  child.unref();
+  process.exit(0);
 }
 
 async function watchSource() {

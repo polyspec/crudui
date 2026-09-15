@@ -131,6 +131,11 @@ export function assertStableDeployment(before, after) {
   }
 }
 
+/** Return whether an existing container satisfies the reuse condition before any runtime command. */
+export function shouldReuseDeployment(container, imageReference) {
+  return container?.state === 'running' && container.imageReference === imageReference;
+}
+
 async function fileDigests(root) {
   const result = {};
   async function visit(directory, relative = '') {
@@ -424,6 +429,21 @@ async function containerctl(composeFile) {
   }
 }
 
+/**
+ * Reuse a running deployment whose immutable image and mounts already satisfy the contract.
+ * containerctl is reserved for bootstrap or an explicitly incompatible deployment state.
+ */
+async function applyDeployment(composeFile, imageReference, deploymentDirectory) {
+  const active = (await listContainers()).find(container => container.id === deploymentContainer);
+  if (shouldReuseDeployment(active, imageReference)) {
+    await containerState(imageReference, deploymentDirectory);
+    return { mode: 'sync', containerId: active.id };
+  }
+  await containerctl(composeFile);
+  const state = await containerState(imageReference, deploymentDirectory);
+  return { mode: 'bootstrap', containerId: state.id };
+}
+
 async function main() {
   assert.equal(process.argv.length, 2, 'Usage: node examples/form-comparison/comparison-deployment.mjs');
   const startedClock = performance.now();
@@ -447,9 +467,8 @@ async function main() {
   const compose = renderDeploymentCompose({ repositoryRoot, imageReference });
   const composeFile = path.join(deploymentDirectory, 'compose.yaml');
   await writeFile(composeFile, compose);
-  await containerctl(composeFile);
+  const application = await applyDeployment(composeFile, imageReference, deploymentDirectory);
   const first = await deploymentSnapshot(imageReference, deploymentDirectory);
-  await containerctl(composeFile);
   const second = await deploymentSnapshot(imageReference, deploymentDirectory);
   assertStableDeployment(first, second);
 
@@ -464,7 +483,7 @@ async function main() {
   await rm(path.join(comparisonRoot, 'toolchain-context'), { recursive: true, force: true });
   await rm(path.join(deploymentDirectory, 'deployment.json'), { force: true });
   await writeFile(path.join(deploymentDirectory, 'verification.json'), `${JSON.stringify({
-    imageReference, imageBuilt: built, composeSha256: sha256(compose), preservation,
+    imageReference, imageBuilt: built, composeSha256: sha256(compose), preservation, application,
     stable: true, first, second, removedImages: cleanup.imageReferences,
   }, null, 2)}\n`);
   process.stdout.write(`Deployed ${JSON.stringify(first.source)} with ${imageReference} at `

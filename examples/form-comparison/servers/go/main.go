@@ -22,8 +22,8 @@ import (
 // server holds the data and spec directories, the source identity file and the API routes
 // built from the browser matrix.
 type server struct {
-	dataDir, specDir, sourceFile  string
-	storageRoute, generationRoute *regexp.Regexp
+	dataDir, specDir, sourceFile                 string
+	storageRoute, generationRoute, pipelineRoute *regexp.Regexp
 }
 
 // newServer reads the browser matrix shared with the JavaScript comparison runner
@@ -57,6 +57,7 @@ func newServer(dataDir, specDir, sourceFile string) (server, error) {
 		sourceFile:      sourceFile,
 		storageRoute:    regexp.MustCompile(`^/api/(load|save|validate|reset)` + tail),
 		generationRoute: regexp.MustCompile(`^/api/(compile|render|ssr)` + tail),
+		pipelineRoute:   regexp.MustCompile(`^/api/pipeline/(list|detail)$`),
 	}, nil
 }
 
@@ -74,6 +75,13 @@ func writeJSON(w http.ResponseWriter, status int, body *object) {
 }
 func failure(w http.ResponseWriter, status int, err error) {
 	writeJSON(w, status, record("error", err.Error()))
+}
+
+func writeHTML(w http.ResponseWriter, status int, html string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(status)
+	_, _ = io.WriteString(w, html)
 }
 
 func repositoryFailure(w http.ResponseWriter, err error) {
@@ -104,6 +112,10 @@ func valueAt(data any, path string) any {
 }
 
 func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if match := s.pipelineRoute.FindStringSubmatch(r.URL.Path); match != nil {
+		s.servePipeline(w, r, match[1])
+		return
+	}
 	if match := s.generationRoute.FindStringSubmatch(r.URL.Path); match != nil {
 		s.serveGeneration(w, r, match[1], match[2], match[3])
 		return
