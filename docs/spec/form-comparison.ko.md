@@ -261,6 +261,14 @@ view and one body end tag`로 거부합니다. 응답은 그 문서에 세 가�
 벤치마크 진입점은 `/benchmark/`이며 매트릭스 검증을 소유합니다. `/displays/` 엔드포인트는
 제공하지 않습니다.
 
+정본 페이지의 `initialization`은 폼 문서뿐 아니라 페이지 단계에도 적용합니다.
+`initialization=ssr`이면 선택한 서버가 최초 HTTP 문서에 목록 또는 상세 CRUDUI 마크업을
+직접 기록하고, 브라우저 JavaScript는 기존 마크업에 동작만 연결하며 단계를 다시 가져오거나
+교체하지 않습니다. `initialization=csr`이면 최초 문서에는 셸만 포함하고 브라우저 JavaScript가
+선택한 단계 API를 요청해 삽입합니다. 폼 SSR 선택에도 같은 규칙을 적용해 폼 iframe 문서가
+서버에서 렌더링됩니다. 따라서 서버 렌더링 페이지의 생성된 목록·상세 마크업은
+`view-source`에서 확인할 수 있어야 합니다.
+
 모든 렌더 비교에는 React·Vue·Svelte와 함께 프레임워크 독립 HTML 렌더러가 포함됩니다.
 따라서 parity 판정 대상은 네 렌더러입니다.
 
