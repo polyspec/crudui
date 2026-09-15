@@ -250,7 +250,7 @@ updates keyed data and binds the fields again after input and row operations. Th
 the session for data replacement and row operations. Compile failures are returned
 as failures; the browser does not compile a replacement template.
 
-The main page selects a server, framework and rendering path and shows server-side
+The canonical entry page at `https://crudui.test/` selects a server, framework and rendering path and shows server-side
 and client-side rendering of the same form side by side, with the same template,
 record and language. The left frame (`initialization=ssr`) is the frame document of the
 selected server (PHP, the PHP extension, Go or Rust): it arrives with the form already
@@ -279,6 +279,13 @@ stylesheet, so computed CSS is compared with the grammar styles; the page styles
 does not style anything inside `#view`. Inside that compared element each frame renders
 the form in `#form-view` and the browser-only structure map and data view in
 `#outline-view` and `#data-view`; the servers render the form alone.
+
+The canonical entry page links to `/displays/`, the single read-only display example. That page
+uses the same deployed public process and its `/displays/api/validate-list`,
+`/displays/api/render-list`, `/displays/api/validate-detail` and
+`/displays/api/render-detail` endpoints to show list and detail examples. It does not create a
+second application server or a second deployment. The list page injects rows and the detail page
+injects one record; neither page queries a database.
 
 The `bindForm` controller supports the same actions as a `createForm` instance:
 row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and

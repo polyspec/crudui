@@ -1,6 +1,10 @@
-# CRUDUI 폼 검증
+# CRUDUI 정본 예제와 폼 검증
 
 [English](README.md).
+
+정본 `crudui.test` 진입 페이지는 폼 비교와 `/displays/`의 읽기 전용 목록·상세 표시 예제로
+연결됩니다. 두 화면은 같은 public 프로세스가 제공하며 표시 예제를 위해 다른 애플리케이션
+서버를 만들지 않습니다.
 
 이 예제는 PHP, PHP 확장, Go, Rust에서 중첩 keyed 폼을 검증합니다. 각 서버는
 같은 폼 데이터를 컴파일·렌더링·검증·저장합니다. React·Vue·Svelte·HTML 렌더러는
