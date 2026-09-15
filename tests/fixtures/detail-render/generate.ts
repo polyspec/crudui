@@ -259,6 +259,28 @@ const SCENARIOS: DetailFixtureCase[] = [
     options: { page: 0, total: -1, layout: 'grid' } as unknown as BuildDetailOptions,
   },
   {
+    name: 'reject-specification-before-record',
+    note: 'the specification rule is checked before the record rule.',
+    spec: [] as unknown as Record<string, unknown>,
+    record: [] as unknown as Record<string, unknown>,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail specification must be an object' },
+  },
+  {
+    name: 'reject-record-before-fields',
+    note: 'argument shapes are checked before the declaration: the record rule precedes the fields rule.',
+    spec: {},
+    record: [] as unknown as Record<string, unknown>,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail record must be an object' },
+  },
+  {
+    name: 'reject-record-before-context',
+    note: 'the record rule is checked before the context rule.',
+    spec: { fields: { name: { field: '.name', label: 'Name' } } },
+    record: [] as unknown as Record<string, unknown>,
+    options: { data: [] } as unknown as BuildDetailOptions,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail record must be an object' },
+  },
+  {
     name: 'reject-array-context',
     note: 'a data option that is not an object is rejected.',
     spec: { fields: { name: { field: '.name', label: 'Name' } } },

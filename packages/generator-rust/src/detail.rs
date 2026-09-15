@@ -20,12 +20,13 @@ pub fn build_detail(
     let Some(spec) = spec.as_object() else {
         return Err(FormError::input("Detail specification must be an object"));
     };
-    if !spec.contains_key("fields") {
-        return Err(FormError::input("Detail specification must declare fields"));
-    }
+    // Argument shapes in argument order, then the declaration, then options.
     let Some(record) = record.as_object() else {
         return Err(FormError::input("Detail record must be an object"));
     };
+    if !spec.contains_key("fields") {
+        return Err(FormError::input("Detail specification must declare fields"));
+    }
     if !options.data.is_null() && !options.data.is_object() {
         return Err(FormError::input("Detail context must be an object"));
     }
