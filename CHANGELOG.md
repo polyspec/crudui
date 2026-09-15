@@ -2,6 +2,16 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Keep the script URL expression through lint
+
+CI failed on the HTML renderer: `no-control-regex` rejected the script-URL expression ported
+from the reference renderer, which skips the control characters a URL may hide between the
+letters of the scheme. I had run the format check but not `npm run lint` before committing.
+
+The expression stays as the reference renderer writes it, with the rule disabled on that line
+and a comment saying why the control characters are deliberate. `npm run lint` passes and the
+HTML renderer passed 207 tests.
+
 ## 2026-09-15 — Record the candidate verification of the server-rendered frame
 
 Candidate verification of `e1bb6f20` passed. Generation verification passed 450 of 450
