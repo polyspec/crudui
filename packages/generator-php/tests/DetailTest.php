@@ -12,7 +12,7 @@ final class DetailTest extends TestCase
     public function testRendersReadOnlyDetailFromTheSharedListDisplayEngine(): void
     {
         $html = Generator::renderDetail(
-            ['fields' => ['name' => ['field' => '.name', 'label' => 'Name']]],
+            ['fields' => ['name' => ['field' => 'name', 'label' => 'Name']]],
             ['name' => 'Ada'],
         );
         self::assertSame('<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd></div></dl>', $html);
@@ -21,7 +21,7 @@ final class DetailTest extends TestCase
     public function testBuildsTheReadOnlyDetailModel(): void
     {
         $model = Generator::buildDetail(
-            ['fields' => ['name' => ['field' => '.name', 'label' => 'Name']]],
+            ['fields' => ['name' => ['field' => 'name', 'label' => 'Name']]],
             ['name' => 'Ada'],
         );
         self::assertSame('Ada', $model->fields[0]->display);
@@ -32,7 +32,7 @@ final class DetailTest extends TestCase
         $record = json_decode('{"name":"Ada"}', true, 512, JSON_THROW_ON_ERROR);
 
         $html = Generator::renderDetail(
-            ['fields' => ['name' => ['field' => '.name', 'label' => 'Name']]],
+            ['fields' => ['name' => ['field' => 'name', 'label' => 'Name']]],
             $record,
         );
 
@@ -72,7 +72,7 @@ final class DetailTest extends TestCase
     public function testRejectsListShapedSpecification(): void
     {
         $this->expectExceptionMessage('Detail specification must be an object');
-        Generator::renderDetail([['field' => '.name']], ['name' => 'Ada']);
+        Generator::renderDetail([['field' => 'name']], ['name' => 'Ada']);
     }
 
     public function testRejectsListShapedRecord(): void
