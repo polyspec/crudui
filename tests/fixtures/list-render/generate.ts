@@ -23,6 +23,8 @@ import {
 } from '../../../packages/generator-react/src/index';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
+// @ts-expect-error — shared JS list body helper.
+import { listBody } from './list-body.mjs';
 
 interface ListFixtureCase {
   name: string;
@@ -318,17 +320,6 @@ const SCENARIOS: ListFixtureCase[] = [
   },
 ];
 
-/**
- * Strip React 19's SSR resource-hint hoists (`<link rel="preload" as="image">`
- * emitted for an `<img src>`). These are a React-renderer artifact, not list
- * markup — Vue/Svelte SSR do not emit them, so they would break the cross-
- * framework parity. Same category as the normalizer's comment-strip rule: chrome
- * that is not load-bearing across frameworks is removed before comparison.
- */
-function stripReactFloats(html: string): string {
-  return html.replace(/<link\b[^>]*\brel="preload"[^>]*>/g, '');
-}
-
 function build(): ListFixtureCase[] {
   return SCENARIOS.map((c) => {
     if (c.expectError) {
@@ -336,7 +327,7 @@ function build(): ListFixtureCase[] {
       void _omit;
       return rest;
     }
-    const raw = stripReactFloats(renderList(c.spec, c.rows, c.options ?? {}));
+    const raw = listBody(renderList(c.spec, c.rows, c.options ?? {}));
     return { ...c, expected_html: normalizeHtml(raw) };
   });
 }

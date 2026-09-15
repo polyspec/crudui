@@ -7,8 +7,8 @@ import {
   type OutlineState,
   type FormMessages,
   type ActionVM,
+  type Affix,
   type ButtonVM,
-  type Attrs,
   type BuildListOptions,
   type CellVM,
   type ControlsVM,
@@ -32,130 +32,197 @@ export interface RenderListOptions extends BuildListOptions {
   layout?: 'table' | 'card';
 }
 
-function escAttr(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/'/g, '&#x27;');
+/*
+ * Serialization. The string renderers produce the same bytes, and React's server rendering is the
+ * reference, so this file writes its format: escaping, attribute names, input attribute order,
+ * void elements closed with `/>`, `style` text, blocked script URLs and list image preloads. A
+ * control with event attributes (`on…`) is written raw: attributes as declared, without renaming,
+ * reordering or URL blocking, and void elements closed with `>`.
+ */
+
+type AttrValues = Record<string, string | boolean | undefined>;
+
+/** Escape attribute values and text. */
+function escape(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 }
 
-function escText(value: string): string {
+/** Escape a raw attribute value. */
+function rawEscape(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/** Escape raw text. */
+function escapeText(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function renderedStyle(value: string | undefined): string | undefined {
-  const declarations = parseStyle(value ?? '');
-  return declarations.length
-    ? declarations.map(([property, text]) => `${property}: ${text}`).join('; ')
-    : undefined;
+function textContent(value: string, raw: boolean): string {
+  return raw ? escapeText(value) : escape(value);
 }
 
-function attrs(values: Attrs | Record<string, string | undefined>): string {
+function scalar(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  return value === true ? '1' : '';
+}
+
+function truthy(value: unknown): boolean {
+  return value === true || (typeof value === 'string' && value !== '');
+}
+
+/** Class tokens joined by single spaces. */
+function joinClass(...parts: Array<string | undefined>): string {
+  return parts.join(' ').split(/\s+/).filter(Boolean).join(' ');
+}
+
+const reactAttributeNames: Record<string, string> = {
+  autocomplete: 'autoComplete', readonly: 'readOnly', maxlength: 'maxLength', minlength: 'minLength', colspan: 'colSpan', rowspan: 'rowSpan',
+};
+const booleanAttributes = new Set(['readonly', 'disabled', 'required', 'multiple', 'autofocus']);
+const javascriptProtocol = /^[\u0000-\u001F ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:/i;
+
+function sanitizeUrl(value: string): string {
+  return javascriptProtocol.test(value)
+    ? "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')"
+    : value;
+}
+
+/**
+ * A `style` attribute's text: declarations as `property:value` joined by `;`, and a repeated
+ * property keeps its first position with its last value.
+ */
+function compactStyle(value: string): string {
+  const properties = new Map<string, string>();
+  for (const [property, text] of parseStyle(value)) properties.set(property, text);
+  return [...properties].map(([property, text]) => `${property}:${text}`).join(';');
+}
+
+/** Attributes in declaration order; an ordinary input writes `style`, `name`, `checked` and `value` last. */
+function attrs(values: AttrValues, raw = false, input = false): string {
   let output = '';
-  for (const [name, raw] of Object.entries(values)) {
-    if (raw === undefined || raw === null) continue;
-    const value = name === 'style' ? renderedStyle(raw) : raw;
-    if (value !== undefined && !(name === 'style' && value === '')) output += ` ${name}="${escAttr(value)}"`;
+  for (const [name, value] of Object.entries(values)) {
+    if (value === undefined || value === null) continue;
+    if (!raw && input && (name === 'value' || name === 'checked' || name === 'name' || name === 'style')) continue;
+    let text = scalar(value);
+    if (!raw && (name === 'href' || name === 'src')) text = sanitizeUrl(text);
+    if (!raw && name === 'style') {
+      text = compactStyle(text);
+      if (text === '') continue;
+    }
+    if (!raw && booleanAttributes.has(name)) text = '';
+    output += ` ${raw ? name : reactAttributeNames[name] ?? name}="${raw ? rawEscape(text) : escape(text)}"`;
+  }
+  if (!raw && input) {
+    if (values.style !== undefined) {
+      const style = compactStyle(scalar(values.style));
+      if (style !== '') output += ` style="${escape(style)}"`;
+    }
+    if (values.name !== undefined) output += ` name="${escape(scalar(values.name))}"`;
+    if (truthy(values.checked)) output += ' checked=""';
+    if (values.value !== undefined) output += ` value="${escape(scalar(values.value))}"`;
   }
   return output;
 }
 
-function element(tag: string, values: Attrs | Record<string, string | undefined> = {}, body = ''): string {
+function element(tag: string, values: AttrValues = {}, body = ''): string {
   return `<${tag}${attrs(values)}>${body}</${tag}>`;
 }
 
-function input(values: Attrs | Record<string, string | undefined>, checked = false): string {
-  return `<input${attrs(values)}${checked ? ' checked=""' : ''}>`;
+function inputHtml(values: AttrValues, raw = false): string {
+  return `<input${attrs(values, raw, true)}${raw ? '>' : '/>'}`;
 }
 
-function hasEvent(values: Attrs | undefined): boolean {
-  return Object.keys(values ?? {}).some((name) => /^on[a-z]/.test(name));
+function hasEvent(values: AttrValues | undefined): boolean {
+  return Object.keys(values ?? {}).some((name) => name.startsWith('on'));
 }
 
-function affix(value: WidgetModel['prepend']): string {
+function affix(value: Affix | undefined, raw: boolean): string {
   if (!value) return '';
-  return element('span', { class: value.class, style: value.style }, escText(value.text));
+  const values: AttrValues = {};
+  if (value.class) values.class = value.class;
+  if (value.style) values.style = value.style;
+  return `<span${attrs(values, raw)}>${textContent(value.text ?? '', raw)}</span>`;
 }
 
-function rawAffix(value: WidgetModel['prepend']): string {
-  return affix(value);
-}
-
-function optionHtml(option: NonNullable<WidgetModel['options']>[number], selectedMode: 'empty' | 'selected'): string {
-  return element(
-    'option',
-    { value: option.value, ...(option.selected ? { selected: selectedMode === 'selected' ? 'selected' : '' } : {}) },
-    escText(option.label),
-  );
-}
-
-function control(widget: WidgetModel, selectedMode: 'empty' | 'selected' = 'empty'): string {
-  const widgetAttrs = widget.attrs;
-  if (widget.tag === 'textarea') {
-    return element('textarea', widgetAttrs, escText(widget.text ?? ''));
+/** The main control; an ordinary control writes its `style` last. */
+function control(widget: WidgetModel, raw: boolean, selection: string): string {
+  let values: AttrValues = widget.attrs;
+  if (!raw && values.style !== undefined) {
+    const { style, ...rest } = values;
+    values = { ...rest, style };
   }
   if (widget.tag === 'select') {
-    return element('select', widgetAttrs, (widget.options ?? []).map((option) => optionHtml(option, selectedMode)).join(''));
+    const options = (widget.options ?? []).map((option) =>
+      `<option${attrs({ value: option.value, ...(option.selected ? { selected: selection } : {}) }, raw)}>${textContent(option.label, raw)}</option>`).join('');
+    return `<select${attrs(values, raw)}>${options}</select>`;
   }
-  return input(widgetAttrs);
+  if (widget.tag === 'textarea') {
+    // HTML parsing drops one leading newline of a textarea, so a leading newline is doubled.
+    const text = widget.text ?? '';
+    return `<textarea${attrs(values, raw)}>${textContent(!raw && text.startsWith('\n') ? `\n${text}` : text, raw)}</textarea>`;
+  }
+  return inputHtml(values, raw);
 }
 
-function rawControl(widget: WidgetModel, selectedMode: 'empty' | 'selected' = 'empty'): string {
-  return control(widget, selectedMode);
-}
-
-function groupButton(option: NonNullable<WidgetModel['options']>[number], widget: WidgetModel, raw: boolean): string {
+function choices(widget: WidgetModel): string {
+  const shared: AttrValues = widget.extra?.input ?? {};
+  const raw = hasEvent(shared);
   const type = widget.kind === 'choice' ? 'radio' : 'checkbox';
-  const shared: Attrs = { ...(widget.extra?.input ?? {}), type, value: option.value, autocomplete: 'off', class: 'valid-target crudui-choices__input', ...(option.id ? { id: option.id } : {}) };
-  if (type === 'radio') shared['data-is-default'] = option.isDefault ? '1' : '';
-  const inputHtml = input(shared, option.selected);
-  const label = element('label', { for: option.id, class: widget.itemLabelClass ?? '' }, element('span', {}, escText(option.label)));
-  return raw ? inputHtml + label : inputHtml + label;
+  const body = (widget.options ?? []).map((option) => {
+    const values: AttrValues = { ...shared, type, value: option.value, autocomplete: 'off', class: 'valid-target crudui-choices__input' };
+    if (option.id) values.id = option.id;
+    if (type === 'radio') values['data-is-default'] = option.isDefault ? '1' : '';
+    if (option.selected) values.checked = true;
+    if (raw && values.checked !== undefined) values.checked = '';
+    const label: AttrValues = {};
+    if (option.id) label.for = option.id;
+    label.class = widget.itemLabelClass ?? '';
+    return inputHtml(values, raw) + `<label${attrs(label, raw)}><span>${textContent(option.label, raw)}</span></label>`;
+  }).join('');
+  return `<div${attrs(widget.attrs)}>${body}</div>`;
 }
 
 function widget(widget: AnyWidget): string {
   if ('unsupported' in widget) return element('div', { class: 'crudui-widget crudui-widget--unsupported', 'data-unsupported-type': widget.type });
-  const rawAttrs = hasEvent(widget.attrs);
+  const raw = hasEvent(widget.attrs);
+  const script = `<script nonce="">${widget.script ?? ''}</script>`;
   switch (widget.layout) {
     case 'widget':
-      return element('div', { class: 'crudui-widget' }, rawAttrs ? rawAffix(widget.prepend) + rawControl(widget) + rawAffix(widget.append) : affix(widget.prepend) + control(widget) + affix(widget.append));
+      return `<div class="crudui-widget">${affix(widget.prepend, raw)}${control(widget, raw, '')}${affix(widget.append, raw)}</div>`;
     case 'bare':
-      return rawAttrs ? rawControl(widget) : control(widget);
+      return control(widget, raw, '');
     case 'host-script':
-      return (rawAttrs ? rawControl(widget) : control(widget)) + element('script', { nonce: '' }, widget.script ?? '');
+      return control(widget, raw, '') + script;
     case 'choices':
-      return element('div', widget.attrs, (widget.options ?? []).map((option) => groupButton(option, widget, hasEvent(widget.extra?.input))).join(''));
+      return choices(widget);
     case 'file': {
-      const fileAttrs = widget.extra?.file ?? {};
+      const file = widget.extra?.file ?? {};
       const display = widget.extra?.display;
-      const fileRaw = hasEvent(fileAttrs);
-      let body = affix(widget.prepend);
-      if (display) body += input(fileRaw ? { class: display.class ?? '', readonly: '', type: 'text', value: '' } : display);
-      body += input(fileAttrs);
-      if (display) body += element('button', { class: 'crudui-widget__button', type: 'button' }, '&nbsp;');
-      return element('div', { class: 'crudui-widget' }, body);
+      const fileRaw = hasEvent(file);
+      let body = affix(widget.prepend, fileRaw);
+      if (display) {
+        body += fileRaw ? `<input class="${rawEscape(display.class ?? '')}" readonly="" type="text" value="">` : inputHtml(display);
+      }
+      body += inputHtml(file, fileRaw);
+      if (display) body += '<button class="crudui-widget__button" type="button">&nbsp;</button>';
+      return `<div class="crudui-widget">${body}</div>`;
     }
     case 'display':
-      if (widget.kind === 'dummy-input') return element('div', { class: 'crudui-widget' }, affix(widget.prepend) + control(widget) + affix(widget.append));
-      return element('div', widget.attrs, widget.rawHtml ?? '');
+      if (widget.kind === 'dummy-input') return `<div class="crudui-widget">${affix(widget.prepend, false)}${control(widget, false, '')}${affix(widget.append, false)}</div>`;
+      return `<div${attrs(widget.attrs)}>${widget.rawHtml ?? ''}</div>`;
     case 'search':
-      return (widget.styleChrome ? element('style', { nonce: '' }, widget.styleChrome) : '') +
-        element('script', { nonce: '' }, widget.script ?? '') +
-        element('div', { class: 'crudui-widget crudui-widget--search' }, rawAffix(widget.prepend) + rawControl(widget, 'selected') + rawAffix(widget.append));
+      return (widget.styleChrome ? `<style nonce="">${widget.styleChrome}</style>` : '') + script +
+        `<div class="crudui-widget crudui-widget--search">${affix(widget.prepend, true)}${control(widget, true, 'selected')}${affix(widget.append, true)}</div>`;
     case 'button':
-      return element('script', { nonce: '' }, widget.script ?? '') + input(widget.extra?.hidden ?? {}) + input(widget.attrs);
+      return script + inputHtml(widget.extra?.hidden ?? {}) + inputHtml(widget.attrs);
     default:
       return '';
   }
 }
 
-function classes(...parts: Array<string | undefined | false>): string {
-  return parts.filter((part): part is string => typeof part === 'string' && part !== '').join(' ');
-}
-
 /** `<div …>` with an optional valueless `hidden` attribute last. */
-function openDiv(values: Record<string, string | undefined>, hidden = false): string {
+function openDiv(values: AttrValues, hidden = false): string {
   return `<div${attrs(values)}${hidden ? ' hidden=""' : ''}>`;
 }
 
@@ -173,33 +240,33 @@ function headerHtml(vm: NodeVM): string {
   }
   if (header?.label !== undefined) {
     parts.push(header.labelFor
-      ? element('label', { class: 'crudui-node__label', for: header.labelFor }, escText(header.label))
-      : element('span', { class: 'crudui-node__label' }, escText(header.label)));
+      ? element('label', { class: 'crudui-node__label', for: header.labelFor }, escape(header.label))
+      : element('span', { class: 'crudui-node__label' }, escape(header.label)));
   }
-  if (header?.description !== undefined) parts.push(element('p', { class: 'crudui-node__description' }, escText(header.description)));
-  if (header?.number !== undefined) parts.push(element('span', { class: 'crudui-node__number' }, escText(header.number)));
-  if (header?.title !== undefined) parts.push(element('span', { class: 'crudui-node__title' }, escText(header.title)));
+  if (header?.description !== undefined) parts.push(element('p', { class: 'crudui-node__description' }, escape(header.description)));
+  if (header?.number !== undefined) parts.push(element('span', { class: 'crudui-node__number' }, escape(header.number)));
+  if (header?.title !== undefined) parts.push(element('span', { class: 'crudui-node__title' }, escape(header.title)));
   if (header?.summary !== undefined) {
-    parts.push(`<span class="crudui-node__summary"${vm.expanded ? ' hidden=""' : ''}>${escText(header.summary)}</span>`);
+    parts.push(`<span class="crudui-node__summary"${vm.expanded === true ? ' hidden=""' : ''}>${escape(header.summary)}</span>`);
   }
-  if (header?.count !== undefined) parts.push(element('span', { class: 'crudui-node__count' }, escText(header.count)));
+  if (header?.count !== undefined) parts.push(element('span', { class: 'crudui-node__count' }, escape(header.count)));
   if (vm.controls?.placement === 'header') parts.push(controlsHtml(vm.controls));
   if (!parts.length) return '';
-  return element('div', { class: classes('crudui-node__header', header?.className), style: header?.style || undefined }, parts.join(''));
+  return element('div', { class: joinClass('crudui-node__header', header?.className), style: header?.style || undefined }, parts.join(''));
 }
 
 function bodyHtml(vm: NodeVM): string {
   let inner: string;
   if (vm.checkbox) {
     const box = vm.checkbox;
-    inner = input({ class: box.className, id: box.id, name: box.name, type: 'checkbox', value: '1' }, box.checked) +
-      element('label', { for: box.id }, escText(box.caption));
+    inner = inputHtml({ class: box.className, id: box.id, name: box.name, type: 'checkbox', value: '1', ...(box.checked ? { checked: true } : {}) }) +
+      element('label', { for: box.id }, escape(box.caption));
   } else if (vm.widget) {
     inner = widget(vm.widget);
   } else {
     inner = (vm.children ?? []).map(node).join('');
   }
-  return openDiv({ class: classes('crudui-node__body', vm.body.className), style: vm.body.style, id: vm.body.id },
+  return openDiv({ class: joinClass('crudui-node__body', vm.body.className), style: vm.body.style, id: vm.body.id },
     vm.collapsible === true && vm.expanded !== true) + inner + '</div>';
 }
 
@@ -207,15 +274,15 @@ function footerHtml(vm: NodeVM): string {
   return vm.controls?.placement === 'footer' ? element('div', { class: 'crudui-node__footer' }, controlsHtml(vm.controls)) : '';
 }
 
-/** Render one node of the recursive form grammar. */
 /** Root style: the node style plus the sticky depth of a sticky row. */
 function rootStyle(vm: NodeVM): string | undefined {
   return [vm.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ') || undefined;
 }
 
+/** Render one node of the recursive form grammar. */
 function node(vm: NodeVM): string {
   const root = {
-    class: classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className),
+    class: joinClass('crudui-node', `crudui-node--${vm.kind}`, vm.sticky ? 'crudui-node--sticky' : undefined, vm.className),
     style: rootStyle(vm),
     'data-field-path': vm.kind === 'row' || vm.kind === 'lang-item' ? undefined : vm.path,
     'data-crudui-row-key': vm.key,
@@ -226,41 +293,37 @@ function node(vm: NodeVM): string {
 
 function cellBody(cell: CellVM): string {
   const display = cell.display;
-  if (typeof display === 'string') return escText(display);
+  if (typeof display === 'string') return escape(display);
   switch (display.kind) {
-    case 'badge': return element('span', { class: display.variant ? `badge badge-${display.variant}` : 'badge' }, escText(display.label));
-    case 'link': return element('a', { href: safeUrl(display.href), ...(display.target ? { target: display.target } : {}) }, escText(display.text));
-    case 'image': return element('img', { src: safeUrl(display.src), alt: display.alt, ...(display.width ? { width: display.width } : {}), ...(display.height ? { height: display.height } : {}) });
+    case 'badge': return element('span', { class: display.variant ? `badge badge-${display.variant}` : 'badge' }, escape(display.label));
+    case 'link': return element('a', { href: display.href, ...(display.target ? { target: display.target } : {}) }, escape(display.text));
+    case 'image': {
+      const values: AttrValues = { src: display.src, alt: display.alt ?? '' };
+      if (display.width !== undefined) values.width = scalar(display.width);
+      if (display.height !== undefined) values.height = scalar(display.height);
+      if (!display.src) delete values.src;
+      return `<img${attrs(values)}/>`;
+    }
     case 'bool':
       if (display.as === 'check') return element('span', { class: 'bool-check', 'aria-label': display.label }, display.value ? '✔' : '✘');
       if (display.as === 'icon') return element('span', { class: display.value ? 'bool-icon bool-true' : 'bool-icon bool-false', 'aria-label': display.label });
-      return element('span', { class: 'bool-text' }, escText(display.label));
+      return element('span', { class: 'bool-text' }, escape(display.label));
     case 'html': return display.html;
     default: return '';
   }
 }
 
-function safeUrl(value: string): string {
-  const prefix = [...value].filter((character) => {
-    const code = character.charCodeAt(0);
-    return code > 0x1f && code !== 0x20;
-  }).join('').toLowerCase();
-  if (prefix.startsWith('javascript:')) {
-    return "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')";
-  }
-  return value;
-}
-
-function cell(cell: CellVM, tag: 'td' | 'span' | 'div' = 'td', base?: string): string {
-  const className = [base ?? `list-td list-td-${cell.format.type}`, cell.design.main.class].filter(Boolean).join(' ');
-  return element(tag, { class: className, style: cell.design.main.style }, cellBody(cell));
+function cellHtml(cell: CellVM, tag: 'td' | 'span' | 'dd', base: string): string {
+  const values: AttrValues = { class: joinClass(base, cell.design.main.class) };
+  if (cell.design.main.style) values.style = cell.design.main.style;
+  return element(tag, values, cellBody(cell));
 }
 
 /** Render one read-only detail field using the same display cell renderer as lists. */
 function detailField(field: DetailViewModel['fields'][number]): string {
   return element('div', { class: 'detail-field' },
-    element('dt', { class: 'detail-label' }, escText(field.label)) +
-    element('dd', { class: ['detail-value', `detail-value-${field.format.type}`, field.design.main.class].filter(Boolean).join(' '), style: field.design.main.style }, cellBody(field)));
+    element('dt', { class: 'detail-label' }, escape(field.label)) +
+    cellHtml(field, 'dd', `detail-value detail-value-${field.format.type}`));
 }
 
 /** Compose, evaluate and render one read-only detail without a framework or database. */
@@ -270,63 +333,86 @@ export function renderDetail(
   options: BuildDetailOptions = {},
 ): string {
   const vm = buildDetail(spec, record, options);
-  return element('dl', { class: ['detail-view', vm.design.wrapper.class].filter(Boolean).join(' '), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
+  return element('dl', { class: joinClass('detail-view', vm.design.wrapper.class), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
 }
 
+/** A list action: a link or button written raw, with its behavior attributes. */
 function action(action: ActionVM): string {
-  const behavior = Object.entries(action.behavior ?? {}).map(([event, script]) => ` on${escAttr(event)}="${escAttr(script)}"`).join('');
-  const common = { class: action.design?.main.class, style: action.design?.main.style };
-  const body = action.format?.type === 'link'
-    ? `<a href="${escAttr(safeUrl(typeof action.format.options.href === 'string' ? action.format.options.href : '#'))}"${action.format.options.target ? ` target="${escAttr(String(action.format.options.target))}"` : ''}${attrs(common)}${behavior}>${escText(action.label)}</a>`
-    : `<button type="button"${attrs(common)}${behavior}>${escText(action.label)}</button>`;
-  return element('span', { class: 'list-action', 'data-action': action.key }, body);
+  const values: AttrValues = {};
+  let tag = 'button';
+  if (action.format?.type === 'link') {
+    tag = 'a';
+    const options = action.format.options ?? {};
+    values.href = scalar(options.href) || '#';
+    if (scalar(options.target) !== '') values.target = scalar(options.target);
+  } else {
+    values.type = 'button';
+  }
+  for (const [event, script] of Object.entries(action.behavior ?? {})) values[`on${event}`] = scalar(script);
+  return element('span', { class: 'list-action', 'data-action': action.key }, `<${tag}${attrs(values, true)}>${escapeText(action.label)}</${tag}>`);
 }
 
 function pagination(vm: ListViewModel): string {
   if (!vm.pagination.enabled) return '';
-  return element('nav', {
-    class: 'list-pagination',
-    ...(vm.pagination.mode ? { 'data-mode': vm.pagination.mode } : {}),
-    ...(vm.pagination.perPage === undefined ? {} : { 'data-per-page': String(vm.pagination.perPage) }),
-    ...(vm.pagination.page === undefined ? {} : { 'data-page': String(vm.pagination.page) }),
-    ...(vm.pagination.total === undefined ? {} : { 'data-total': String(vm.pagination.total) }),
-  });
-}
-
-function sortDir(vm: ListViewModel, field: string, key: string): string | undefined {
-  if (!vm.sort || (vm.sort.field !== field && vm.sort.field !== key)) return undefined;
-  return vm.sort.dir;
+  const values: AttrValues = { class: 'list-pagination' };
+  if (vm.pagination.mode) values['data-mode'] = vm.pagination.mode;
+  if (vm.pagination.perPage !== undefined) values['data-per-page'] = scalar(vm.pagination.perPage);
+  if (vm.pagination.page !== undefined) values['data-page'] = scalar(vm.pagination.page);
+  if (vm.pagination.total !== undefined) values['data-total'] = scalar(vm.pagination.total);
+  return element('nav', values);
 }
 
 function listHtml(vm: ListViewModel, layout: 'table' | 'card'): string {
-  const toolbar = vm.actions.length ? element('div', { class: 'list-actions' }, vm.actions.map(action).join('')) : '';
-  let body: string;
+  let body = vm.actions.length ? `<div class="list-actions">${vm.actions.map(action).join('')}</div>` : '';
   if (!vm.rows.length) {
-    body = element('div', { class: 'list-empty' }, escText(vm.empty));
+    body += element('div', { class: 'list-empty' }, escape(vm.empty));
   } else if (layout === 'card') {
-    body = element('div', { class: 'list-cards' }, vm.rows.map((row) => element('article', { class: 'list-card' }, row.cells.map((item, index) => element('div', { class: ['list-td', `list-td-${item.format.type}`, item.design.main.class].filter(Boolean).join(' '), style: item.design.main.style }, element('span', { class: 'list-card-label' }, escText(vm.columns[index]?.label ?? '')) + cell(item, 'span', 'list-card-value'))).join(''))).join(''));
+    body += element('div', { class: 'list-cards' }, vm.rows.map((row) => element('article', { class: 'list-card' }, row.cells.map((item, index) =>
+      element('div', { class: joinClass(`list-td list-td-${item.format.type}`, item.design.main.class) },
+        element('span', { class: 'list-card-label' }, escape(vm.columns[index]?.label ?? '')) + cellHtml(item, 'span', 'list-card-value'))).join(''))).join(''));
   } else {
-    const heads = vm.columns.map((column) => element('th', {
-      class: ['list-th', column.design.main.class].filter(Boolean).join(' '),
-      style: column.design.main.style,
-      ...(column.field ? { 'data-field': column.field } : {}),
-      ...(column.sortable ? { 'data-sortable': 'true' } : {}),
-      ...(sortDir(vm, column.field, column.key) ? { 'data-sort-dir': sortDir(vm, column.field, column.key) } : {}),
-    }, element('span', { class: 'list-th-label' }, escText(column.label)) + (column.sortable ? element('span', { class: 'list-sort' }, '↕') : ''))).join('');
-    const rows = vm.rows.map((row) => element('tr', {}, row.cells.map((item) => cell(item)).join(''))).join('');
-    body = element('table', { class: 'list-table' }, element('thead', {}, element('tr', {}, heads)) + element('tbody', {}, rows));
+    const heads = vm.columns.map((column) => {
+      const values: AttrValues = { class: joinClass('list-th', column.design.main.class) };
+      if (column.design.main.style) values.style = column.design.main.style;
+      if (column.field) values['data-field'] = column.field;
+      if (column.sortable) values['data-sortable'] = 'true';
+      const field = vm.sort?.field ?? '';
+      if (field !== '' && (field === column.field || field === column.key)) values['data-sort-dir'] = vm.sort?.dir;
+      return element('th', values, element('span', { class: 'list-th-label' }, escape(column.label)) + (column.sortable ? '<span class="list-sort">↕</span>' : ''));
+    }).join('');
+    const rows = vm.rows.map((row) => `<tr>${row.cells.map((item) => cellHtml(item, 'td', `list-td list-td-${item.format.type}`)).join('')}</tr>`).join('');
+    body += `<table class="list-table"><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table>`;
   }
-  return element('div', { class: ['list-view', vm.design.wrapper.class].filter(Boolean).join(' '), style: vm.design.wrapper.style }, toolbar + body + pagination(vm));
+  const wrapper: AttrValues = { class: joinClass('list-view', vm.design.wrapper.class) };
+  if (vm.design.wrapper.style) wrapper.style = vm.design.wrapper.style;
+  return element('div', wrapper, body + pagination(vm));
+}
+
+/** Image resource hints in first-use order, without empty or `data:` sources. */
+function imagePreloads(vm: ListViewModel): string {
+  const seen = new Set<string>();
+  let output = '';
+  for (const row of vm.rows) {
+    for (const item of row.cells) {
+      const display = item.display;
+      if (typeof display === 'string' || display.kind !== 'image') continue;
+      const source = display.src ?? '';
+      if (source === '' || source.toLowerCase().startsWith('data:') || seen.has(source)) continue;
+      seen.add(source);
+      output += `<link${attrs({ rel: 'preload', as: 'image', href: source })}/>`;
+    }
+  }
+  return output;
 }
 
 function textAction(name: string, label: string, disabled = false): string {
-  return `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name, 'aria-disabled': disabled ? 'true' : undefined })}>${escText(label)}</button>`;
+  return `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name, 'aria-disabled': disabled ? 'true' : undefined })}>${escape(label)}</button>`;
 }
 
 function outlineRow(row: OutlineRow): string {
   const select = `<button${attrs({ type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': 'select-row' })}>` +
-    (row.number !== undefined ? element('span', { class: 'crudui-node__number' }, escText(row.number)) : '') +
-    (row.title !== undefined ? element('span', { class: 'crudui-node__title' }, escText(row.title)) : '') + '</button>';
+    (row.number !== undefined ? element('span', { class: 'crudui-node__number' }, escape(row.number)) : '') +
+    (row.title !== undefined ? element('span', { class: 'crudui-node__title' }, escape(row.title)) : '') + '</button>';
   const root = attrs({
     class: 'crudui-node crudui-node--row',
     'data-field-path': row.path,
@@ -356,8 +442,8 @@ export function renderOutline(form: FormInstance): string {
 /** Render current data markup; applications that own their data render it directly. */
 export function renderDataPanel(data: unknown, messages: FormMessages): string {
   return element('div', { class: 'crudui-data' },
-    element('div', { class: 'crudui-data__header' }, escText(messages.data)) +
-    element('pre', { class: 'crudui-data__body' }, escText(JSON.stringify(data, null, 2))));
+    element('div', { class: 'crudui-data__header' }, escape(messages.data)) +
+    element('pre', { class: 'crudui-data__body' }, escape(JSON.stringify(data, null, 2))));
 }
 
 /** Render the current submission data of a form instance. */
@@ -387,12 +473,13 @@ export function renderForm(form: FormInstance): string {
   return renderFormView(snapshot.fields, snapshot.buttons, form.messages);
 }
 
-/** Compose, evaluate and render a list without a framework or database. */
+/** Compose, evaluate and render a list without a framework or database; image preloads come first. */
 export function renderList(
   spec: Record<string, unknown>,
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {},
 ): string {
   const { layout = 'table', ...buildOptions } = options;
-  return listHtml(buildList(spec, rows, buildOptions), layout);
+  const vm = buildList(spec, rows, buildOptions);
+  return imagePreloads(vm) + listHtml(vm, layout);
 }
