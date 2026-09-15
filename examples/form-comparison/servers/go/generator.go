@@ -279,7 +279,11 @@ func (s server) servePipeline(w http.ResponseWriter, r *http.Request, operation 
 				return
 			}
 		}
-		html, err := generator.RenderList(spec, rows, generator.ListOptions{Language: language, Data: record(), Total: len(rows), Layout: "table"})
+		total := get(options, "total")
+		if total == nil {
+			total = len(rows)
+		}
+		html, err := generator.RenderList(spec, rows, generator.ListOptions{Language: language, Data: record(), Page: get(options, "page"), Total: total, Layout: "table"})
 		if err != nil {
 			failure(w, 400, err)
 			return

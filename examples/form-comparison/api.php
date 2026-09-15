@@ -81,7 +81,7 @@ try {
         $options = $request->options ?? (object) [];
         $language = is_string($options->language ?? null) ? $options->language : 'ko';
         $html = $pipelineMatch[1] === 'list'
-            ? \CRUDUI\Generator::renderList($spec, $request->rows ?? [], ['language' => $language, 'layout' => 'table', 'total' => count($request->rows ?? [])])
+            ? \CRUDUI\Generator::renderList($spec, $request->rows ?? [], ['language' => $language, 'layout' => 'table', 'page' => $options->page ?? null, 'total' => $options->total ?? count($request->rows ?? [])])
             : \CRUDUI\Generator::renderDetail($spec, $request->record ?? (object) [], ['language' => $language]);
         header('Content-Type: text/html; charset=utf-8');
         header('Cache-Control: no-store');

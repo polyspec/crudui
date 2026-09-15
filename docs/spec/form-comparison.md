@@ -315,7 +315,9 @@ present in the source value.
 
 The canonical list contains 45 records and uses offset pagination with 20 records per page. It
 therefore exposes three pages containing 20, 20 and 5 records. The selected page is part of every
-list URL and is applied before the selected server renders the list.
+list URL and is applied before the selected server renders the list. The public server passes the
+same `page` and `total` options to every native list adapter; an adapter must not replace `total`
+with the number of rows in the current page.
 
 The `bindForm` controller supports the same actions as a `createForm` instance:
 row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
