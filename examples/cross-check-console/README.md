@@ -97,7 +97,8 @@ cd packages/validator-php && composer install && cd -
 # 2. tsx for the JS CRUDUI CLI (workspace devDependency)
 npm install                  # at repo root, installs tsx + js-yaml + vite/svelte
 
-# 3. build the Go + Rust CRUDUI CLIs (the server expects them at fixed paths)
+# 3. build the Go + Rust CRUDUI CLIs (the server expects them at fixed paths;
+#    `npm test` runs this first, so tests always use the current sources)
 cd examples/cross-check-console/server
 npm run build:cli            # = build:go + build:rust
 #   go build -o ../../../packages/validator-go/validate ./cmd/validate

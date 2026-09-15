@@ -42,8 +42,10 @@ suite compares templates, evaluated fields, data, row operations, original HTML
 and each rejection's complete code, message and location. It records hashes
 before and after execution and fails if an input changes.
 
-The default report is `.git/native-generators/report.json`. `NATIVE_REPORT` selects
-another report path. A passing run removes its temporary build directory. A failing
+The default report is `native-generators/report.json` in the Git directory, resolved with
+`git rev-parse --git-path`, so it also works in a worktree. `NATIVE_REPORT` selects another
+report path. Before any check, `make test-native` reinstalls the validator copy in
+`packages/generator-php`, so the PHP checks never load a copy older than its source. A passing run removes its temporary build directory. A failing
 run keeps it, prints its path and records it as `buildDirectory` in the report. The [suite procedure](../../tests/native-generators/README.md)
 describes direct invocation with an explicit extension path and the comparison
 protocol. Missing executables, missing native classes and malformed responses

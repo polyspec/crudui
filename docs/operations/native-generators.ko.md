@@ -38,8 +38,10 @@ PHP API 검사는 Composer 클래스, Composer 없는 확장, Composer를 함께
 HTML과 각 거부의 코드·메시지·위치 전체를 비교합니다. 실행 전후 입력 해시를 기록하고
 입력이 변경되면 실패합니다.
 
-기본 보고서는 `.git/native-generators/report.json`입니다. `NATIVE_REPORT`로 다른
-보고서 경로를 지정합니다. 통과한 실행은 임시 빌드 디렉터리를 삭제합니다. 실패한
+기본 보고서는 Git 디렉터리의 `native-generators/report.json`이며 `git rev-parse --git-path`로
+결정하므로 worktree에서도 동작합니다. `NATIVE_REPORT`로 다른 보고서 경로를 지정합니다.
+`make test-native`는 어떤 검사보다 먼저 `packages/generator-php`의 검증기 복사본을 다시 설치하므로
+PHP 검사가 소스보다 오래된 복사본을 읽지 않습니다. 통과한 실행은 임시 빌드 디렉터리를 삭제합니다. 실패한
 실행은 디렉터리를 남기고 경로를 출력하며 보고서의 `buildDirectory`에 기록합니다. [검사 절차](../../tests/native-generators/README.ko.md)는
 명시적인 확장 경로를 사용하는 직접 실행과 비교 프로토콜을 설명합니다. 실행 파일이나
 네이티브 클래스가 없거나 응답 형식이 잘못되면 검사가 실패합니다.
