@@ -5,7 +5,7 @@
  * tests/fixtures/list-render/cases.json holds ONE `expected_html` per list
  * scenario (the React CRUDUI LIST reference's normalized output, SPEC §9). This test
  * runs the Vue list generator through genuine Vue 3 SSR (renderList →
- * @vue/server-renderer renderToString), normalizes with the SAME shared
+ * vue/server-renderer renderToString), normalizes with the SAME shared
  * normalizer, and asserts equality. Vue must reproduce
  * `expected_html` after normalization.
  *

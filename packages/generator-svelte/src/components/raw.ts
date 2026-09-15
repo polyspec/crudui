@@ -14,7 +14,7 @@
  * The container element stays a real `.svelte` node.
  *
  * This is the same control-granularity boundary the Vue adapter uses (its
- * `@vue/server-renderer` has the identical coercion); the React adapter's narrow
+ * `vue/server-renderer` has the identical coercion); the React adapter's narrow
  * on*-only boundary is not enough here. The structural envelope nodes are never
  * serialized — only the four sanctioned raw categories (control bytes, display
  * RAW, script/style chrome, behavior on* attrs) pass through `{@html}`.

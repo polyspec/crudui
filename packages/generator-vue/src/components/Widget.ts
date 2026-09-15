@@ -10,7 +10,7 @@
  * Leaf CONTROL elements (`<input>`/`<select>`/`<textarea>` and the per-item
  * radio/checkbox pairs) are serialized to a raw HTML string (raw.ts) and injected
  * via the container vnode's `innerHTML` domProp. This is forced by
- * `@vue/server-renderer`: it coerces every empty-valued attribute to a bare
+ * `vue/server-renderer`: it coerces every empty-valued attribute to a bare
  * attribute (`data-default=""` → `data-default`) and every boolean-attr name to
  * bare (`readonly="readonly"` → `readonly`), which the React-frozen parity fixture
  * forbids — every control carries `data-default=""`. So a control rendered as a

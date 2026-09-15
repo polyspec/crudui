@@ -23,7 +23,7 @@ export async function renderList(
   const layoutName = listLayout(layout);
 
   const { createSSRApp } = await import('vue');
-  const { renderToString } = await import('@vue/server-renderer');
+  const { renderToString } = await import('vue/server-renderer');
 
   const app = createSSRApp({
     render: () => List(vm, layoutName),

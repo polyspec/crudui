@@ -14,6 +14,6 @@ export async function renderDetail(
 ): Promise<string> {
   const vm = buildDetail(detailSpec, record, options);
   const { createSSRApp } = await import('vue');
-  const { renderToString } = await import('@vue/server-renderer');
+  const { renderToString } = await import('vue/server-renderer');
   return renderToString(createSSRApp({ render: () => Detail(vm) }));
 }

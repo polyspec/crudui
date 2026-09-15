@@ -6,7 +6,7 @@
  * lowercase attribute VERBATIM (no camelCase rewrite) — and accepts a STRING
  * `style` value as-is (no CSSProperties object needed, unlike React).
  *
- * BUT `@vue/server-renderer` hardcodes two attribute coercions the React-frozen
+ * BUT `vue/server-renderer` hardcodes two attribute coercions the React-frozen
  * parity fixture forbids: an EMPTY-string value renders as a bare attribute
  * (`data-default=""` → `data-default`), and a BOOLEAN attribute name
  * (`readonly`/`checked`/`selected`/...) renders bare regardless of value

@@ -3,13 +3,13 @@
  *
  * tests/fixtures/form-outline/cases.json holds the normalized React markup of the
  * stateless structure map and data view. Vue renders `outlineVNode` and
- * `dataVNode` through @vue/server-renderer and must reproduce it after the shared
+ * `dataVNode` through vue/server-renderer and must reproduce it after the shared
  * normalizer.
  */
 
 import fs from 'node:fs';
 import { createSSRApp } from 'vue';
-import { renderToString } from '@vue/server-renderer';
+import { renderToString } from 'vue/server-renderer';
 import { describe, expect, test } from 'vitest';
 import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
