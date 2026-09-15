@@ -31,6 +31,15 @@ export function buildDetail(
   record: Record<string, unknown> = {},
   options: BuildDetailOptions = {},
 ): DetailViewModel {
+  if (detailSpec === null || typeof detailSpec !== 'object' || Array.isArray(detailSpec)) {
+    throw new TypeError('Detail specification must be an object');
+  }
+  if (!Object.hasOwn(detailSpec, 'fields')) {
+    throw new TypeError('Detail specification must declare fields');
+  }
+  if (record === null || typeof record !== 'object' || Array.isArray(record)) {
+    throw new TypeError('Detail record must be an object');
+  }
   const fields = detailSpec.fields;
   const vm = buildList({ columns: fields, design: detailSpec.design }, [record], options);
   const row = vm.rows[0];
