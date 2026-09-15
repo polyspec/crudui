@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI form benchmark</title><link rel="stylesheet" href="/comparison.css"></head>
+<body class="comparison">
+  <header class="page-header"><a class="brand" href="/">CRUDUI</a><a id="language" href="?lang=en">English</a><h1 id="title"></h1><p id="intro"></p></header>
+  <nav class="actions"><label for="server" id="server-label"></label><select id="server"><option value="php">PHP</option><option value="php-ext">PHP extension</option><option value="go">Go</option><option value="rust">Rust</option></select><label for="framework" id="framework-label"></label><select id="framework"><option value="html">HTML</option><option value="react">React</option><option value="vue">Vue</option><option value="svelte">Svelte</option></select><label for="path" id="path-label"></label><select id="path"><option value="bindForm">bindForm</option><option value="createForm">createForm</option></select><button id="initialization-check"></button><button id="all-checks"></button><button id="download" disabled></button><span id="progress" role="status"></span></nav>
+  <p id="manual"></p><section id="initialization" aria-live="polite"><h2 id="initialization-label"></h2><p id="initialization-status"></p><div id="initialization-results"></div></section><details><summary id="source-label"></summary><pre id="source"></pre></details><section id="report" aria-live="polite"></section><main class="frames"><iframe id="ssr" title="ssr"></iframe><iframe id="csr" title="csr"></iframe></main>
+  <script type="module" src="./main.mjs"></script>
+</body></html>

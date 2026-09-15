@@ -313,6 +313,10 @@ cells are centered on both axes. Table cells are vertically centered. The list i
 identifier as an explicit sequence column. Monetary output does not add trailing zeroes that are not
 present in the source value.
 
+The canonical list contains 45 records and uses offset pagination with 20 records per page. It
+therefore exposes three pages containing 20, 20 and 5 records. The selected page is part of every
+list URL and is applied before the selected server renders the list.
+
 The `bindForm` controller supports the same actions as a `createForm` instance:
 row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
 `undo`. It keeps collapsed rows and the undo history outside the keyed data using
