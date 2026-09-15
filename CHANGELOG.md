@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — State which runtimes implement detail views
+
+The runtime operation table named `Generator::buildDetail`, `build_detail` and their render
+counterparts for the PHP library, Rust and the PHP extension. None of those six symbols
+exists: detail views are implemented in the JavaScript packages and in Go only, which is what
+the feature contract already records (`buildDetail` and `renderDetail` are `partial`, with
+PHP, Rust and PHP native `unsupported`).
+
+The table now marks an unimplemented operation with an em dash and says what detail views
+lack: the shared fixtures, the renderer conformance tests and the native byte-equality run
+cover forms and lists, so nothing compares JavaScript and Go detail output. The four
+JavaScript renderers each assert three substrings of their own inline specification, and the
+only shared detail fixture holds two specification-validity cases with no record and no
+expected HTML.
+
+`make docs-check` passed.
+
 ## 2026-09-15 — Load the public browser modules with their imports
 
 Candidate verification of the frame document change failed in the container: the source check
