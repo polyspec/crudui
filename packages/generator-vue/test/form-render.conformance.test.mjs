@@ -5,7 +5,7 @@ import { compileForm } from '@crudui/generator-core';
  * The shared fixture tests/fixtures/form-render/cases.json holds ONE
  * `expected_html` per case (the React CRUDUI reference's normalized output). This
  * test runs the Vue CRUDUI generator through genuine Vue 3 SSR
- * (@vue/server-renderer renderToString via createStaticVNode), normalizes with
+ * (vue/server-renderer renderToString via createStaticVNode), normalizes with
  * the SAME shared normalizer (normalize.mjs), and asserts equality. The
  * Vue must reproduce `expected_html` after normalization.
  *

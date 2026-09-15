@@ -1,5 +1,5 @@
 import { createSSRApp } from 'vue';
-import { renderToString } from '@vue/server-renderer';
+import { renderToString } from 'vue/server-renderer';
 import { FormFields } from '../components/FormFields';
 import { bindButtons, bindForm, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
 
