@@ -71,8 +71,10 @@ function canonical(value) {
 function same(actual, expected, label) { equal(JSON.stringify(canonical(actual)), JSON.stringify(canonical(expected)), label); }
 async function settle() { await driver?.idle?.(); }
 async function click(row, action) { rowButton(row, action).click(); await settle(); }
+// Checks focus controls as a keyboard user does, with visible focus, so pointer input
+// earlier in this frame does not change what the browser shows.
 async function edit(input, value) {
-  input.focus(); input.value = value;
+  input.focus({ focusVisible: true }); input.value = value;
   input.dispatchEvent(new Event('input', { bubbles: true }));
   await settle();
 }
@@ -419,7 +421,7 @@ const checks = [
           return item.closest('[data-field-path]') === wrapper && !(row && wrapper.contains(row));
         });
       assert(button, 'Empty collection must have an Add button');
-      button.focus({ preventScroll: true });
+      button.focus({ preventScroll: true, focusVisible: true });
       button.click(); await settle();
       const rendered = collectionElement();
       equal(collectionRows(rendered).length, 1, 'add into empty collection');
@@ -829,7 +831,7 @@ async function initializationStage(stage) {
       const action = { 'collapsed-all': 'collapse-all', 'expanded-all': 'expand-all', undone: 'undo' }[stage];
       const button = view.querySelector(`[data-crudui-action="${action}"]`);
       assert(button && button.getAttribute('aria-disabled') !== 'true', `The structure map ${action} button must be available`);
-      button.focus();
+      button.focus({ focusVisible: true });
       button.click();
       break;
     }

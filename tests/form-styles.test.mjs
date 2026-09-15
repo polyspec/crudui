@@ -246,4 +246,53 @@ for (const host of hosts) {
       assert.ok(selected.bottom <= selected.height - selected.marginBottom + 0.5, `The store input is above the footer: ${selected.bottom} vs ${selected.height - selected.marginBottom}`);
     } finally { await page.close(); }
   });
+
+  test(`${host}: a restored focus keeps its visibility and a moved focus is visible, after pointer or keyboard input`, async () => {
+    const { page, target, failures } = await openHost(host);
+    try {
+      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
+      const state = () => target.evaluate(() => ({
+        action: document.activeElement.getAttribute('data-crudui-action'),
+        name: document.activeElement.getAttribute('name'),
+        visible: document.activeElement.matches(':focus-visible'),
+      }));
+      const toggle = () => target.evaluateHandle(() => document.querySelector('#form [data-crudui-action="toggle-row"]'));
+
+      // A pointer press focuses the toggle without visible focus. Every change re-renders the
+      // form, so the toggle is a new element and its restored focus stays without it.
+      await (await toggle()).click();
+      await frames(target);
+      const pointerRestored = await state();
+      await target.evaluate(() => document.activeElement.click());
+      await frames(target);
+
+      // A toggle focused visibly, as from the keyboard, keeps visible focus through the re-render.
+      // Focusing the already focused toggle changes nothing, so its focus is released first.
+      await target.evaluate(() => {
+        const button = document.querySelector('#form [data-crudui-action="toggle-row"]');
+        button.blur();
+        button.focus({ focusVisible: true });
+        button.click();
+      });
+      await frames(target);
+      const keyboardRestored = await state();
+      await target.evaluate(() => document.activeElement.click());
+      await frames(target);
+
+      // A pointer press on Add moves focus to the new row's first input, visibly.
+      const add = await target.evaluateHandle(() => {
+        const row = [...document.querySelectorAll('#form .crudui-node--sticky')].find(node => node.querySelector('input[name$="[name]"]')?.value === 'stores one');
+        return [...row.querySelectorAll('[data-crudui-action="add-row"]')].find(button => button.closest('[data-crudui-row-key]') === row);
+      });
+      await add.click();
+      await frames(target);
+      const moved = await state();
+
+      assert.deepEqual(failures, []);
+      assert.deepEqual(pointerRestored, { action: 'toggle-row', name: null, visible: false }, 'A pointer-focused toggle is restored without visible focus');
+      assert.deepEqual(keyboardRestored, { action: 'toggle-row', name: null, visible: true }, 'A visibly focused toggle is restored with visible focus');
+      assert.match(moved.name ?? '', /\[stores\]\[[^\]]+\]\[name\]$/, 'Focus moved to the new store row');
+      assert.equal(moved.visible, true, 'The moved focus is visible');
+    } finally { await page.close(); }
+  });
 }

@@ -230,6 +230,11 @@ same keys. The stages are:
   all, Expand all and Undo buttons;
 - `empty`, `restored`: inject an empty company collection, then the saved record.
 
+Stages focus controls as a keyboard user does, with visible focus
+(`focus({ focusVisible: true })`). A browser shows no focus for a scripted focus after
+pointer input in the same document, so a click inside one frame before the comparison
+would otherwise change only that column's CSS.
+
 Each right stage is compared with the stored left stage using `formSnapshot`,
 `styleSnapshot` and `compareSnapshots`: parsed DOM with every attribute, live
 control state, native fields, computed CSS for elements and pseudo-elements, ordered
