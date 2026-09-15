@@ -306,7 +306,8 @@ final class Lists
                 if ($items instanceof stdClass && !property_exists($items, 'model') || is_array($items)) {
                     $found = Value::get($items, $text);
                     if ($found !== Missing::Value) {
-                        return $found instanceof stdClass ? Value::translate($found, $language) : Value::scalar($found);
+                        // A choice label is content: a string or a language map.
+                        return Value::translate($found, $language);
                     }
                 }
                 return $text;
