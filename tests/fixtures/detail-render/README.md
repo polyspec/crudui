@@ -10,6 +10,13 @@ These cases check translated labels, every cell format, an absent value, the det
 designs, a hidden field, composed fields, an empty declaration and the three input errors.
 Applications supply the record; the renderer does not query data.
 
+`content-values` is the one case whose specification is outside the
+[meta-schema](../../../schema/crudui.schema.json) on purpose. Content is declared as text or a
+language map of strings; this case declares numbers, objects and arrays instead to pin how every
+runtime resolves such a value to empty text ([specification structure](../../../docs/spec/schema.md)).
+[`check-schema.mjs`](../../../scripts/check-schema.mjs) records it with that reason and requires it
+to fail the meta-schema, so the exemption cannot become silent.
+
 ## Comparisons
 
 The framework conformance tests compare the normalized detail body with `expected_html`, using

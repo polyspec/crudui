@@ -2,6 +2,48 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Check every repository specification meant to be valid against the meta-schema
+
+`scripts/check-schema.mjs` checked the validity cases only, so specifications the repository relies
+on as valid failed the meta-schema without any check noticing. Each failure was decided from the
+specification documents and all runtimes:
+
+- Field `messages` is read by every validator as plain strings but was missing from the closed
+  `Field` definition; the schema declares it.
+- The rendering cases `button-empty`, `action-alias` and `button-behavior-onclick` failed on the field
+  key `content`, the control text of the `button` and `action` widgets that every generator reads;
+  the schema declares it.
+- `$ref` accepts a string or a list of strings in every runtime (`compose:ref-multiple-order`), while
+  the schema declared a string; one `Reference` definition applies at every composition position.
+- Six validation cases and one list composition file declared child fields without the required
+  `type`; they declare `type: text` and their expected results are unchanged.
+- The compose cases marked merge sources with a `from:` key that is not a field key; they use
+  `label:` for the same purpose.
+- The console example `list-search-conditional` wrote `pagination.perPage` where every runtime reads
+  `per_page`, and put its select choices under `options` where every runtime reads `items`, so the
+  select rendered empty.
+- Condition maps: every runtime evaluates non-default keys in order and falls back to the `true`
+  value, then `null`; the field specification wrongly said the `true` key is required and now states
+  the rule `docs/spec/expressions.md` already gave.
+- `tests/fixtures/specs/LargeForm.yml` had two duplicate YAML keys, which the benchmark fixture
+  generator hid by parsing with `uniqueKeys: false`; the duplicates are removed with an identical
+  parse result and the generator parses strictly, leaving the benchmark fixtures byte-identical.
+  `examples/legacy/basic-form.yml` did not parse because of an unquoted value and is quoted.
+
+The detail rendering case `content-values` intentionally declares a non-string language map entry to
+test the runtime rule that skips it, and is registered with that reason. The legacy specifications in
+`tests/fixtures/specs` and `examples/legacy` use the legacy field model, so the check requires them to
+parse without duplicate keys and to fail the current meta-schema.
+
+The check covers every fixture family's form, list and detail specifications except cases that expect
+an input or composition failure, composition files as the fragment their `$ref` selects, compose
+entries, validator CLI requests, form session specifications, `examples/form-structure`, the console
+examples and the specifications embedded in the Go, PHP and Rust package examples: 371 checks pass.
+Changing `per_page` back to `perPage`, removing a composition file's `type` or making the exempt case
+valid each failed the check. The regenerated cases, the TypeScript conformance files that read them
+(175 tests) and type checking, the Go validate and compose packages, the PHP compose and validation
+filters (144 tests), the Rust fixture tests and the documentation tests passed.
+
 ## 2026-09-15 — Type every validation rule and reject forbidden keys at every depth in the meta-schema
 
 The validators register 24 rules (`pattern` shares `match`), while the form meta-schema declared only

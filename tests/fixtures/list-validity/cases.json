@@ -89,13 +89,13 @@
     "files": {
       "search-form.yml": {
         "properties": {
-          "q": { "label": "Query" }
+          "q": { "type": "text", "label": "Query" }
         }
       }
     },
     "spec": {
       "columns": { "name": { "field": ".name" } },
-      "search": { "$ref": "search-form.yml", "$patch": { "add": { "label": "Add filter" } } }
+      "search": { "$ref": "search-form.yml", "$patch": { "add": { "type": "text", "label": "Add filter" } } }
     }
   },
 

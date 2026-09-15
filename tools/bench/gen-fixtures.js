@@ -5,10 +5,10 @@
  * The four validators all consume the same JSON spec via the same
  * {spec, input} -> {valid, error, field} protocol. To keep the benchmark
  * fair, every language driver must read the *identical* spec and input. YAML
- * parsing is a JS-only concern (LargeForm.yml needs the eemeli `yaml`
- * parseDocument with uniqueKeys:false — last-wins — exactly like the project's
- * parity loader), so we resolve the YAML to canonical JSON here, once, and the
- * Go/Rust/PHP drivers load the resulting .json files. No validator parses YAML.
+ * parsing is a JS-only concern, so we resolve the YAML to canonical JSON here,
+ * once, and the Go/Rust/PHP drivers load the resulting .json files. No validator
+ * parses YAML. The specs parse under the default unique-key rule: a duplicate key
+ * is an authoring error here, not a last-wins merge to tolerate silently.
  *
  * Output (tools/bench/fixtures/):
  *   contact.spec.json     contact.input.json
@@ -27,8 +27,7 @@ const OUT_DIR = path.join(__dirname, 'fixtures');
 /** Load a Legacy YAML spec the same way the parity suite does. */
 function loadSpec(relPath) {
   const abs = path.join(ROOT, relPath);
-  const doc = YAML.parseDocument(fs.readFileSync(abs, 'utf8'), { uniqueKeys: false });
-  return doc.toJS();
+  return YAML.parse(fs.readFileSync(abs, 'utf8'));
 }
 
 /**
