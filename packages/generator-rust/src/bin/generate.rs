@@ -1,12 +1,12 @@
 use std::io::{self, Read};
 
 use crudui_generator::{
-    bind_form, build_detail, compile_form, render_detail, render_form, render_list, AddRowOptions,
-    BindOptions, CompileOptions, DetailOptions, Form, FormError, FormResult, FormTemplate,
-    ListOptions,
+    bind_form, build_detail, compile_form, list_rows, render_detail, render_form, render_list,
+    AddRowOptions, BindOptions, CompileOptions, DetailOptions, Form, FormError, FormResult,
+    FormTemplate, ListOptions,
 };
 use serde::de::DeserializeOwned;
-use serde_json::{json, Map, Value};
+use serde_json::{json, Value};
 
 fn input(message: impl Into<String>) -> FormError {
     FormError {
@@ -141,26 +141,23 @@ fn generate(request: &Value) -> FormResult<Value> {
         }
         Some("renderList") => {
             let compilation = compile_options(options)?;
+            let language = option_string(options, "language")?.unwrap_or_else(|| "ko".into());
+            // The specification rule precedes the rows rule, which only decoded JSON can break.
+            let spec = &request["spec"];
+            if !spec.is_object() {
+                return Err(input("List specification must be an object"));
+            }
+            let rows = list_rows(request.get("rows"))?;
             let options = ListOptions {
                 files: compilation.files,
                 basepath: compilation.basepath,
                 loader: None,
-                language: option_string(options, "language")?.unwrap_or_else(|| "ko".into()),
-                data: object(options.get("data").unwrap_or(&empty), "List context")?.clone(),
-                page_meta: object(options.get("pageMeta").unwrap_or(&empty), "pageMeta")?
-                    .as_object()
-                    .unwrap()
-                    .clone(),
-                layout: option_string(options, "layout")?.unwrap_or_else(|| "table".into()),
+                language,
+                data: options.get("data").cloned().unwrap_or(Value::Null),
+                page_meta: options.get("pageMeta").cloned().unwrap_or(Value::Null),
+                layout: options.get("layout").cloned().unwrap_or(Value::Null),
             };
-            let rows = match request.get("rows") {
-                Some(rows) => rows
-                    .as_array()
-                    .ok_or_else(|| input("rows must be an array"))?
-                    .as_slice(),
-                None => &[],
-            };
-            render_list(&request["spec"], rows, &options).map(Value::String)
+            render_list(spec, rows, &options).map(Value::String)
         }
         Some("renderDetail") => {
             let compilation = compile_options(options)?;
@@ -169,11 +166,12 @@ fn generate(request: &Value) -> FormResult<Value> {
                 basepath: compilation.basepath,
                 loader: None,
                 language: option_string(options, "language")?.unwrap_or_else(|| "ko".into()),
-                data: object(options.get("data").unwrap_or(&empty), "Detail context")?.clone(),
-                page_meta: Map::new(),
-                layout: "table".into(),
+                // The library checks the context after the specification and record; null means empty.
+                data: options.get("data").cloned().unwrap_or(Value::Null),
+                page_meta: Value::Null,
+                layout: Value::Null,
             };
-            let record = object(request.get("record").unwrap_or(&empty), "Detail record")?;
+            let record = request.get("record").unwrap_or(&empty);
             render_detail(&request["spec"], record, &options).map(Value::String)
         }
         Some("buildDetail") => {
@@ -183,11 +181,12 @@ fn generate(request: &Value) -> FormResult<Value> {
                 basepath: compilation.basepath,
                 loader: None,
                 language: option_string(options, "language")?.unwrap_or_else(|| "ko".into()),
-                data: object(options.get("data").unwrap_or(&empty), "Detail context")?.clone(),
-                page_meta: Map::new(),
-                layout: "table".into(),
+                // The library checks the context after the specification and record; null means empty.
+                data: options.get("data").cloned().unwrap_or(Value::Null),
+                page_meta: Value::Null,
+                layout: Value::Null,
             };
-            let record = object(request.get("record").unwrap_or(&empty), "Detail record")?;
+            let record = request.get("record").unwrap_or(&empty);
             build_detail(&request["spec"], record, &options)
         }
         Some("form") => {

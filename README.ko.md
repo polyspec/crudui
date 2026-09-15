@@ -28,6 +28,7 @@ npm run test:forms
 명세와 생성한 API 참조를 제공합니다.
 
 - [명세 구조](docs/spec/schema.ko.md)
+- [표시 형식](docs/spec/display-formats.ko.md)
 - [폼 런타임 계약](docs/spec/form-runtime.ko.md)
 - [런타임 패키지와 API](docs/spec/runtime-packages.ko.md)
 - [네이티브 PHP 패키지](packages/php-ext/README.ko.md)

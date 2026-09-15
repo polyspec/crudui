@@ -4,22 +4,52 @@ import (
 	"fmt"
 	"math"
 	"regexp"
-	"strconv"
 	"strings"
-	"unicode/utf16"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // ListOptions supplies composition, display language, layout and caller-owned pagination data.
+// Data, PageMeta and Layout take decoded values unchanged so their type is checked like every runtime.
 type ListOptions struct {
 	Language string
-	Data     *Object
-	PageMeta *Object
+	// Data is nil or an *Object; any other value fails with "List context must be an object".
+	Data any
+	// PageMeta is nil or an *Object; any other value fails with "List page metadata must be an object".
+	PageMeta any
 	Files    map[string]*Object
 	Loader   compose.FileLoader
 	Basepath string
-	Layout   string
+	// Layout is nil (table) or the string "table" or "card"; any other value fails.
+	Layout any
+}
+
+// optionObject reports the object held by an option; nil (untyped or a nil *Object) means absent.
+func optionObject(v any) (*Object, bool) {
+	if v == nil {
+		return nil, true
+	}
+	o, ok := v.(*Object)
+	return o, ok
+}
+
+// checkListInput applies the list input rules in the order every runtime uses.
+func checkListInput(spec *Object, rows []*Object, options ListOptions) error {
+	if spec == nil {
+		return fmt.Errorf("List specification must be an object")
+	}
+	for _, row := range rows {
+		if row == nil {
+			return fmt.Errorf("List rows must be objects")
+		}
+	}
+	if _, ok := optionObject(options.Data); !ok {
+		return fmt.Errorf("List context must be an object")
+	}
+	if _, ok := optionObject(options.PageMeta); !ok {
+		return fmt.Errorf("List page metadata must be an object")
+	}
+	return nil
 }
 
 func normalizeFormat(v any) *Object {
@@ -39,19 +69,21 @@ func normalizeFormat(v any) *Object {
 
 // BuildList creates a complete list model from the specification and ordered records.
 func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, error) {
+	if e := checkListInput(spec, rows, options); e != nil {
+		return nil, e
+	}
+	data, _ := optionObject(options.Data)
+	pageMeta, _ := optionObject(options.PageMeta)
 	if e := checkOrderedValue(spec); e != nil {
 		return nil, e
 	}
-	if e := checkOrderedValue(options.Data); e != nil {
+	if e := checkOrderedValue(data); e != nil {
 		return nil, e
 	}
 	for _, row := range rows {
 		if e := checkOrderedValue(row); e != nil {
 			return nil, e
 		}
-	}
-	if spec == nil {
-		return nil, fmt.Errorf("List specification must be an object")
 	}
 	if options.Language == "" {
 		options.Language = "ko"
@@ -68,7 +100,6 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 	if e != nil {
 		return nil, e
 	}
-	data := options.Data
 	if data == nil {
 		data = NewObject()
 	}
@@ -95,9 +126,6 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 	}
 	rowModels := []*Object{}
 	for _, row := range rows {
-		if row == nil {
-			return nil, fmt.Errorf("List rows must be objects")
-		}
 		cells := []*Object{}
 		rowLookup := plainLookup(row).(map[string]any)
 		for _, col := range cols {
@@ -135,10 +163,10 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 			pagination.Set("mode", mode)
 		}
 	}
-	if options.PageMeta != nil {
+	if pageMeta != nil {
 		for _, key := range []string{"page", "total"} {
-			if options.PageMeta.Has(key) {
-				pagination.Set(key, read(options.PageMeta, key))
+			if pageMeta.Has(key) {
+				pagination.Set(key, read(pageMeta, key))
 			}
 		}
 	}
@@ -239,7 +267,7 @@ func renderCell(format *Object, value any, row *Object, lookup map[string]any, p
 		body := numberString(n)
 		if decimals, ok := asNumber(read(o, "decimals")); ok {
 			decimals = math.Trunc(decimals)
-			if decimals < 0 || decimals > 100 {
+			if math.IsNaN(decimals) || decimals < 0 || decimals > 100 {
 				return nil, fmt.Errorf("Number decimals must be between 0 and 100")
 			}
 			body = fixedNumber(n, int(decimals))
@@ -325,14 +353,12 @@ func renderCell(format *Object, value any, row *Object, lookup map[string]any, p
 	case "html":
 		return NewObject("kind", "html", "html", s), nil
 	default:
-		if has(o, "truncate") {
-			n, ok := asNumber(read(o, "truncate"))
-			if !ok {
-				n, _ = strconv.ParseFloat(stringAt(o, "truncate"), 64)
-			}
-			units := utf16.Encode([]rune(s))
-			if !math.IsNaN(n) && !math.IsInf(n, 0) && n > 0 && float64(len(units)) > n {
-				s = string(utf16.Decode(units[:int(n)])) + "…"
+		// Only a number truncates: its integer part counts Unicode code points, never splitting one.
+		if n, ok := asNumber(read(o, "truncate")); ok {
+			limit := math.Trunc(n)
+			runes := []rune(s)
+			if limit >= 1 && float64(len(runes)) > limit {
+				s = string(runes[:int(limit)]) + "…"
 			}
 		}
 		return s, nil
@@ -508,14 +534,22 @@ func listHTML(vm *Object, layout string) string {
 
 // RenderList renders a table or card list with image resource hints in first-use order.
 func RenderList(spec *Object, rows []*Object, options ListOptions) (string, error) {
-	if options.Layout != "" && options.Layout != "table" && options.Layout != "card" {
-		return "", fmt.Errorf("List layout must be table or card")
+	if e := checkListInput(spec, rows, options); e != nil {
+		return "", e
+	}
+	layout := "table"
+	if options.Layout != nil {
+		s, ok := options.Layout.(string)
+		if !ok || (s != "table" && s != "card") {
+			return "", fmt.Errorf("List layout must be table or card")
+		}
+		layout = s
 	}
 	vm, e := BuildList(spec, rows, options)
 	if e != nil {
 		return "", e
 	}
-	return imagePreloads(vm) + listHTML(vm, options.Layout), nil
+	return imagePreloads(vm) + listHTML(vm, layout), nil
 }
 
 func imagePreloads(vm *Object) string {

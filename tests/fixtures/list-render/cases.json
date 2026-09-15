@@ -794,5 +794,190 @@
     "expectError": {
       "code": "REF_FILE_NOT_FOUND"
     }
+  },
+  {
+    "name": "reject-array-specification",
+    "note": "a specification that is not an object is rejected.",
+    "spec": [],
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List specification must be an object"
+    }
+  },
+  {
+    "name": "reject-string-specification",
+    "note": "a string specification is rejected.",
+    "spec": "list",
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List specification must be an object"
+    }
+  },
+  {
+    "name": "reject-object-rows",
+    "note": "rows that are not an array are rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": {},
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List rows must be an array"
+    }
+  },
+  {
+    "name": "reject-scalar-row",
+    "note": "a row that is not an object is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [
+      1
+    ],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List rows must be objects"
+    }
+  },
+  {
+    "name": "reject-array-row",
+    "note": "a row that is an array is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [
+      []
+    ],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List rows must be objects"
+    }
+  },
+  {
+    "name": "reject-array-context",
+    "note": "a data option that is not an object is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "data": []
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List context must be an object"
+    }
+  },
+  {
+    "name": "reject-array-page-metadata",
+    "note": "a pageMeta option that is not an object is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "pageMeta": []
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List page metadata must be an object"
+    }
+  },
+  {
+    "name": "reject-unknown-layout",
+    "note": "a layout other than table or card is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "layout": "grid"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List layout must be table or card"
+    }
+  },
+  {
+    "name": "reject-number-layout",
+    "note": "a layout that is not a string is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "layout": 5
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List layout must be table or card"
+    }
+  },
+  {
+    "name": "layout-null-selects-table",
+    "note": "a null layout selects the table layout, as an absent layout does.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png"
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "layout": null
+    },
+    "expected_html": "<div class=\"list-view\"><table class=\"list-table\"><thead><tr><th class=\"list-th\" data-field=\".name\"><span class=\"list-th-label\">Name</span></th></tr></thead><tbody><tr><td class=\"list-td list-td-text\">Ada</td></tr><tr><td class=\"list-td list-td-text\">Lin</td></tr></tbody></table></div>"
   }
 ]

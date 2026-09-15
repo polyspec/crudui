@@ -25,6 +25,9 @@ pub fn build_detail(
     let Some(record) = record.as_object() else {
         return Err(FormError::input("Detail record must be an object"));
     };
+    if !options.data.is_null() && !options.data.is_object() {
+        return Err(FormError::input("Detail context must be an object"));
+    }
     let mut list_spec = Map::new();
     list_spec.insert("columns".into(), spec["fields"].clone());
     if let Some(design) = spec.get("design") {
@@ -130,6 +133,48 @@ mod tests {
         assert_eq!(model["fields"].as_array().unwrap().len(), 2);
         assert_eq!(model["fields"][0]["display"], "Ada");
         assert_eq!(model["fields"][1]["display"]["label"], "Yes");
+    }
+
+    #[test]
+    fn detail_context_must_be_an_object_after_record_checks() {
+        let spec = json!({"fields": {"v": {"field": ".v"}}});
+        for data in [json!([]), json!("s"), json!(1)] {
+            let options = DetailOptions {
+                data,
+                ..Default::default()
+            };
+            for result in [
+                build_detail(&spec, &json!({}), &options).map(|_| String::new()),
+                render_detail(&spec, &json!({}), &options),
+            ] {
+                let error = result.unwrap_err();
+                assert_eq!(
+                    (
+                        error.code.as_str(),
+                        error.message.as_str(),
+                        error.at.as_str()
+                    ),
+                    ("INVALID_FORM_INPUT", "Detail context must be an object", "")
+                );
+            }
+            assert_eq!(
+                build_detail(&json!({}), &json!({}), &options)
+                    .unwrap_err()
+                    .message,
+                "Detail specification must declare fields"
+            );
+            assert_eq!(
+                build_detail(&spec, &json!([]), &options)
+                    .unwrap_err()
+                    .message,
+                "Detail record must be an object"
+            );
+        }
+        let options = DetailOptions {
+            data: json!(null),
+            ..Default::default()
+        };
+        assert!(render_detail(&spec, &json!({}), &options).is_ok());
     }
 
     #[test]
