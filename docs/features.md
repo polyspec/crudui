@@ -43,6 +43,14 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | docs-pages | Static documentation with English, Korean and API pages | implemented | passed | deployed | [Page tests](../tests/docs/site-build.test.mjs), [publication procedure](operations/documentation.md), [published site](https://polyspec.github.io/crudui/) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../tests/ordered-json/check.py) |
 
+## Current comparison deployment verification
+
+Commit `923ffcbc` is the source identity served by the comparison deployment. The deployment
+healthcheck and supervisor reached ready state after the container restart. PHP, PHP extension,
+Go and Rust passed 450 generation checks, 120 persistence checks and 7,008 browser checks with
+zero failures. Each browser server completed below the 900,000 millisecond limit, and the
+container reported zero zombie processes after verification.
+
 ## Native package verification
 
 The current OrderedJSON monorepo revision and five implementation packages passed
