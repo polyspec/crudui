@@ -545,8 +545,6 @@ export interface MultipleSettings {
   header?: 'static' | 'sticky';
   /** Row-level click handler (opaque script). */
   onclick?: string;
-  /** Index signature for additional multiple-dependent keys (forbidden keys excluded by the schema layer). */
-  [key: string]: unknown;
 }
 
 // ============================================================================
@@ -605,8 +603,6 @@ export interface LangSettings {
   title?: LocalizedText;
   /** Language-group CSS class. */
   group_class?: string;
-  /** Index signature for additional lang-dependent keys. */
-  [key: string]: unknown;
 }
 
 // ============================================================================

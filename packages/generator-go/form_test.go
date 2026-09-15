@@ -434,3 +434,34 @@ func TestExplicitEmptyPrefixOverridesTemplatePrefix(t *testing.T) {
 		t.Fatal("Template prefix changed after cache restoration")
 	}
 }
+
+func TestClosedDeclarationBucketsRejectUnknownKeys(t *testing.T) {
+	for _, c := range []struct{ source, message string }{
+		{`{"type":"text","multiple":{"min":1,"foo":1,"bar":2}}`, "Invalid multiple.foo at rows: unknown key"},
+		{`{"type":"text","multiple":{"min":"x","foo":1}}`, "Invalid multiple.foo at rows: unknown key"},
+		{`{"type":"text","lang":{"mode":"append","append":true}}`, "Invalid lang.append at rows: unknown key"},
+		{`{"type":"text","lang":{"only":"ko","extra":1}}`, "Invalid lang.extra at rows: unknown key"},
+		{`{"type":"text","design":{"class":"a","label_class":"b"}}`, "Invalid design.label_class at rows: unknown key"},
+		{`{"type":"text","design":{"class":1,"input":{}}}`, "Invalid design.input at rows: unknown key"},
+		{`{"type":"text","design":{"label":{"class":"a","text":"b"}}}`, "Invalid design.label.text at rows: unknown key"},
+		{`{"type":"text","design":{"prepend":{"style":1,"id":"x"}}}`, "Invalid design.prepend.id at rows: unknown key"},
+		{`{"type":"text","design":{"wrapper":{"class":1},"group":{"id":"x"}}}`, "Invalid design.wrapper.class at rows: expected a string or a condition map"},
+		{`{"type":"text","behavior":{"onchange":"f()","onsubmit":"g()"}}`, "Invalid behavior.onsubmit at rows: unknown key"},
+		{`{"type":"text","multiple":{"foo":1},"lang":{"bar":1}}`, "Invalid multiple.foo at rows: unknown key"},
+		{`{"type":"text","lang":{"only":1},"design":{"foo":1}}`, "Invalid lang.only at rows: expected a list of language codes or an object"},
+		{`{"type":"text","design":{"foo":1},"behavior":{"bar":1}}`, "Invalid design.foo at rows: unknown key"},
+	} {
+		_, e := CompileForm(parseObject(t, `{"type":"group","properties":{"rows":`+c.source+`}}`), CompileOptions{})
+		if e == nil || e.Error() != c.message {
+			t.Fatal(c.source, e)
+		}
+	}
+	if _, e := CompileForm(parseObject(t, `{"type":"group","properties":{"name":{"type":"text","design":{"label":{"text":"x"}}}}}`), CompileOptions{}); e == nil || e.Error() != "Invalid design.label.text at name: unknown key" {
+		t.Fatal(e)
+	}
+	if _, e := CompileForm(parseObject(t, `{"type":"group","buttons":[{"type":"submit","behavior":{"onsubmit":"x"}}],"properties":{}}`), CompileOptions{}); e == nil || e.Error() != "Invalid behavior.onsubmit at form.buttons.0: unknown key" {
+		t.Fatal(e)
+	}
+	// Open buckets keep unknown keys, and a behavior that is not an object is not checked here.
+	compile(t, `{"type":"group","properties":{"name":{"type":"text","validate":{"custom":1},"options":{"custom":1},"behavior":"f()"}}}`)
+}

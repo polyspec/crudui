@@ -62,7 +62,46 @@ fn scalar_child(child: &Value) -> bool {
         && !enabled("lang")
 }
 
-/// Reject a wrong value type in one field's `multiple` and `design` declarations.
+/// Allowed keys of the closed `multiple` bucket.
+const MULTIPLE_KEYS: &[&str] = &[
+    "min", "max", "copy", "sortable", "title", "controls", "header", "onclick",
+];
+/// Allowed keys of the closed `lang` bucket.
+const LANG_KEYS: &[&str] = &[
+    "mode",
+    "only",
+    "name",
+    "key",
+    "frame",
+    "title",
+    "group_class",
+];
+/// Allowed keys of the closed `design` bucket.
+const DESIGN_KEYS: &[&str] = &[
+    "show", "class", "style", "label", "wrapper", "group", "prepend",
+];
+/// Allowed keys of a closed design node.
+const DESIGN_NODE_KEYS: &[&str] = &["class", "style"];
+/// Allowed keys of the closed `behavior` bucket.
+const BEHAVIOR_KEYS: &[&str] = &["onchange", "onclick", "onload"];
+
+/// Reject the first key of a closed bucket that the bucket does not allow.
+fn check_known_keys(
+    bucket: &str,
+    settings: &Map<String, Value>,
+    allowed: &[&str],
+    path: &str,
+) -> FormResult<()> {
+    match settings.keys().find(|key| !allowed.contains(&key.as_str())) {
+        Some(key) => Err(FormError::input(format!(
+            "Invalid {bucket}.{key} at {path}: unknown key"
+        ))),
+        None => Ok(()),
+    }
+}
+
+/// Reject a wrong value type or an unknown key in one field's `multiple`, `lang`,
+/// `design` and `behavior` declarations.
 fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
     let fail = |key: &str, expected: &str| -> FormResult<()> {
         Err(FormError::input(format!(
@@ -80,6 +119,7 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
             return fail("multiple", "a boolean or an object");
         }
         if let Some(settings) = multiple.as_object() {
+            check_known_keys("multiple", settings, MULTIPLE_KEYS, path)?;
             for key in ["min", "max"] {
                 if settings.get(key).is_some_and(|v| !v.is_number()) {
                     return fail(&format!("multiple.{key}"), "a number");
@@ -126,6 +166,9 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
     {
         return fail("lang", "a boolean or an object");
     }
+    if let Some(lang) = spec.get("lang").and_then(Value::as_object) {
+        check_known_keys("lang", lang, LANG_KEYS, path)?;
+    }
     if let Some(only) = spec
         .get("lang")
         .and_then(Value::as_object)
@@ -143,6 +186,7 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
             return fail("design", "a boolean or an object");
         }
         if let Some(design) = design.as_object() {
+            check_known_keys("design", design, DESIGN_KEYS, path)?;
             if design
                 .get("show")
                 .is_some_and(|v| !v.is_boolean() && !condition_value(v))
@@ -161,6 +205,7 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
                 let Some(value) = value.as_object() else {
                     return fail(&format!("design.{node}"), "an object");
                 };
+                check_known_keys(&format!("design.{node}"), value, DESIGN_NODE_KEYS, path)?;
                 for key in ["class", "style"] {
                     if value.get(key).is_some_and(|v| !condition_value(v)) {
                         return fail(
@@ -171,6 +216,9 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
                 }
             }
         }
+    }
+    if let Some(behavior) = spec.get("behavior").and_then(Value::as_object) {
+        check_known_keys("behavior", behavior, BEHAVIOR_KEYS, path)?;
     }
     Ok(())
 }

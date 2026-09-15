@@ -94,11 +94,29 @@ function scalarChild(child: unknown): boolean {
   return child.type !== 'group' && !('properties' in child) && !repeated && !lang;
 }
 
-/** Reject a wrong value type in one field's `multiple`, `lang` and `design` declarations. */
+/** Keys of the buckets the schema closes; any other key in them is rejected. */
+const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
+  multiple: ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+  lang: ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'],
+  design: ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
+  node: ['class', 'style'],
+  behavior: ['onchange', 'onclick', 'onload'],
+};
+
+/**
+ * Reject an unknown key or a wrong value type in one field's `multiple`, `lang`, `design` and
+ * `behavior` declarations. Within a bucket, unknown keys are checked in declaration order before
+ * the values.
+ */
 function checkDeclarations(spec: Record<string, unknown>, path: string): void {
   const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
   const fail = (key: string, expected: string): never => {
     throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
+  };
+  const closed = (object: Record<string, unknown>, name: string, allowed: readonly string[]) => {
+    for (const key of Object.keys(object)) {
+      if (!allowed.includes(key)) throw new FormInputError(`Invalid ${name}.${key} at ${path}: unknown key`);
+    }
   };
   // Buttons and the submission target belong to the form, not to a field.
   for (const key of ['buttons', 'action']) {
@@ -108,6 +126,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
     const multiple = spec.multiple;
     if (typeof multiple !== 'boolean' && !isRecord(multiple)) fail('multiple', 'a boolean or an object');
     if (isRecord(multiple)) {
+      closed(multiple, 'multiple', CLOSED_BUCKET_KEYS.multiple!);
       for (const key of ['min', 'max']) {
         if (has(multiple, key) && typeof multiple[key] !== 'number') fail(`multiple.${key}`, 'a number');
       }
@@ -132,6 +151,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
   if (has(spec, 'lang') && typeof spec.lang !== 'boolean' && !isRecord(spec.lang)) {
     fail('lang', 'a boolean or an object');
   }
+  if (isRecord(spec.lang)) closed(spec.lang, 'lang', CLOSED_BUCKET_KEYS.lang!);
   if (isRecord(spec.lang) && has(spec.lang, 'only')) {
     const only = spec.lang.only;
     const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
@@ -141,6 +161,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
     const design = spec.design;
     if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
     if (isRecord(design)) {
+      closed(design, 'design', CLOSED_BUCKET_KEYS.design!);
       if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
         fail('design.show', 'an expression, a boolean or a condition map');
       }
@@ -151,6 +172,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
         if (!has(design, node)) continue;
         const value = design[node];
         if (!isRecord(value)) fail(`design.${node}`, 'an object');
+        closed(value as Record<string, unknown>, `design.${node}`, CLOSED_BUCKET_KEYS.node!);
         for (const key of ['class', 'style']) {
           if (has(value as Record<string, unknown>, key) && !conditionValue((value as Record<string, unknown>)[key])) {
             fail(`design.${node}.${key}`, 'a string or a condition map');
@@ -159,6 +181,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
       }
     }
   }
+  if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior!);
 }
 
 /** Reject a wrong root `action` or `buttons` declaration. */

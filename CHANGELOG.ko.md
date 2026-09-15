@@ -2,6 +2,29 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 스키마가 닫은 버킷의 알 수 없는 키 거부
+
+스키마는 `multiple`, `lang`, `design`과 그 노드, `behavior`를 닫지만, 폼 컴파일은 그 안의 알 수 없는 키를 검사하지
+않는다고 명시했고 타입 모델은 스키마와도 서로와도 달랐습니다. Rust는 여덟 버킷 모두에 알 수 없는 키를 보존했고,
+TypeScript는 `multiple`과 `lang`을 열었으며, Go는 `options`를 제외한 모든 곳에서, 열린 `validate` 버킷의 규칙까지
+알 수 없는 키를 조용히 버렸습니다. 그래서 `multiple.maximum`이나 `design.label.text` 같은 잘못 쓴 키는 아무 효과도
+보고도 없었습니다.
+
+이제 모든 폼 컴파일러가 이런 키를 `Invalid {bucket}.{key} at {path}: unknown key`로 거부하며, 버킷 안에서는 값보다
+먼저 선언 순서로 키를 검사하고 순서는 `buttons`와 `action`, `multiple`, `lang`, `design`과 그 노드, `behavior`입니다.
+타입 모델은 버킷마다 스키마를 따라 닫힌 버킷은 알 수 없는 키를 거부하고 `validate`, `options`, 동적 `items` 원천은
+보존합니다. Go 컴파일러는 디자인이 없는 필드에서 일찍 반환해 behavior 검사를 건너뛸 구조였고, Go의 타입 `validate`는
+이제 알 수 없는 규칙을 보존합니다.
+
+추적하는 모든 명세를 이 규칙으로 검사해 공용 상세 사례 `design-wrapper-and-cell`이 어떤 런타임도 읽지 않는
+`design.main` 키로 셀을 꾸며 셀 스타일을 전혀 검사하지 못했다는 것을 찾았습니다. 이제 `design.class`와
+`design.style`을 선언합니다.
+
+공용 컴파일 거부 사례 여섯 건이 각 버킷, 디자인 노드, 값 오류보다 알 수 없는 키가 먼저 보고되는 순서를 다룹니다.
+`make test-native`에서 여섯 대상이 각각 247건 중 247건을 통과했습니다(입력 불변 검사 포함 1483건). 검증기 검사는
+JavaScript(1642건), Go, PHP(1529건), Rust(73건)에서 통과했고, 콘솔 검사는 166건 중 166건, 메타 스키마 검사는 80건을
+통과했으며, test:forms, lint, format-check, manifest:test, test:docs, docs-check가 통과했습니다.
+
 ## 2026-09-15 — 검사가 실행하는 대상을 실행 전에 빌드하고 설치
 
 폼 구조 작업 중 기록한 발견 세 가지는 규칙이 필요해 열려 있었고, 공용 사례 하나는 스키마와 맞지 않았습니다.

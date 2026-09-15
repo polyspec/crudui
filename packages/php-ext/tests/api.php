@@ -104,6 +104,18 @@ same([], Generator::bindForm(Generator::compileForm(['type'=>'group','properties
 $error = fails(fn()=>Generator::compileForm(['type'=>'group','properties'=>(object)['$ref'=>'absent.yml']]), ComposeLoadError::class, 'REF_FILE_NOT_FOUND');
 same(['absent.yml'], $error->getCompositionTrace(), 'Composition trace changed');
 check(count($error->getTrace()) > 0, 'PHP exception stack is missing');
+// Closed declaration buckets reject the first unknown key in member order.
+foreach ([
+    [['multiple'=>['min'=>'x','foo'=>1]], 'Invalid multiple.foo at rows: unknown key'],
+    [['lang'=>(object)['only'=>'ko','append'=>true]], 'Invalid lang.append at rows: unknown key'],
+    [['design'=>['show'=>1,'text'=>1]], 'Invalid design.text at rows: unknown key'],
+    [['design'=>['label'=>(object)['class'=>1,'text'=>'x']]], 'Invalid design.label.text at rows: unknown key'],
+    [['behavior'=>['onclick'=>'go()','onsubmit'=>'x']], 'Invalid behavior.onsubmit at rows: unknown key'],
+] as [$declaration, $message]) {
+    $closedError = fails(fn()=>Generator::compileForm(['type'=>'group','properties'=>['rows'=>['type'=>'text'] + $declaration]]), FormError::class, 'INVALID_FORM_INPUT');
+    check($closedError->getMessage() === $message && $closedError->getPath() === '', "Closed bucket failure changed: $message; received " . $closedError->getMessage());
+}
+check(count(Generator::compileForm(['type'=>'group','properties'=>['rows'=>['type'=>'text','validate'=>['custom'=>1],'options'=>['custom'=>1],'behavior'=>['onload'=>'x']]]])->fields) === 1, 'Open buckets rejected an extension key');
 $explicit = new ComposeLoadError('TEST','message',['base.yml','path.with.dots']);
 same(['base.yml','path.with.dots'],$explicit->getCompositionTrace(),'Explicit composition trace changed');
 check($explicit->getMessage() === 'message' && $explicit->getErrorCode() === 'TEST', 'Explicit exception changed');

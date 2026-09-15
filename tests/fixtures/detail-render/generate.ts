@@ -183,7 +183,7 @@ const SCENARIOS: DetailFixtureCase[] = [
     note: 'the detail design styles the container and a field design styles its cell.',
     spec: {
       design: { wrapper: { class: 'card', style: 'padding:4px' } },
-      fields: { name: { field: '.name', label: 'Name', design: { main: { class: 'strong', style: 'color:red' } } } },
+      fields: { name: { field: '.name', label: 'Name', design: { class: 'strong', style: 'color:red' } } },
     },
     record: ADA,
     options: { language: 'en' },
