@@ -83,16 +83,32 @@ go test ./...
 go run ./examples/server -data /tmp/crudui-go-record.json
 ```
 
-Open `http://127.0.0.1:8087/`. Go compiles the template once, renders saved records,
-validates submitted form or JSON data, saves valid records to the explicit JSON
-file and reloads them. `/template` returns the reusable template and `/data`
-returns the stored record. The example uses two scalar fields; it does not
-provide the React, Vue and Svelte comparison matrix.
+The example renders a form, a list and a detail from one record set: the record stored
+in the `-data` file. It declares a form specification (name, email and an optional
+joined date), a list specification and a detail specification for that record, and
+every page takes its styles from `crudui.css`.
+
+- `http://127.0.0.1:8087/` is the form. Go compiles the template once, renders the
+  stored record, validates submitted form or JSON data, saves a valid record to the
+  explicit JSON file and reloads it.
+- `/list` renders the stored records with `RenderList`. The example stores one record,
+  so the list has that record as its only row, or no rows before the first save. The
+  name is a `link` to the detail page, the email is `text` and the joined date uses
+  the `date` format.
+- `/detail` renders the stored record with `RenderDetail`: the name as `text`, the
+  email as a `mailto:` `link` and the joined date as `date`. Before the first save it
+  shows an empty record.
+
+`/template` returns the reusable template and `/data` returns the stored record. The
+example uses three scalar fields; it does not provide the React, Vue and Svelte
+comparison matrix.
 
 ```sh
 curl -H 'Content-Type: application/json' \
-  --data '{"name":"Ada","email":"ada@example.test"}' \
+  --data '{"name":"Ada","email":"ada@example.test","joined":"2026-01-02"}' \
   http://127.0.0.1:8087/
+curl http://127.0.0.1:8087/list
+curl http://127.0.0.1:8087/detail
 ```
 
 The `cmd/generate` CLI accepts one JSON request on stdin and returns one JSON

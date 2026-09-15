@@ -82,16 +82,28 @@ go test ./...
 go run ./examples/server -data /tmp/crudui-go-record.json
 ```
 
-`http://127.0.0.1:8087/`을 엽니다. Go가 템플릿을 한 번 컴파일하고 저장한 레코드를
-렌더링합니다. 폼 또는 JSON 전송 데이터를 검증한 뒤 유효한 레코드를 명시적으로
-지정한 JSON 파일에 저장하고 다시 로드합니다. `/template`은 재사용할 템플릿을,
-`/data`는 저장한 레코드를 반환합니다. 예제는 스칼라 필드 두 개를 사용하며
-React, Vue, Svelte 비교 행렬을 제공하지 않습니다.
+예제는 레코드 세트 하나, 즉 `-data` 파일에 저장한 레코드로 폼, 목록, 상세를
+렌더링합니다. 이 레코드에 대한 폼 명세(이름, 이메일, 선택 항목인 가입일), 목록 명세,
+상세 명세를 선언하며 모든 페이지는 `crudui.css`에서 스타일을 가져옵니다.
+
+- `http://127.0.0.1:8087/`은 폼입니다. Go가 템플릿을 한 번 컴파일하고 저장한 레코드를
+  렌더링합니다. 폼 또는 JSON 전송 데이터를 검증한 뒤 유효한 레코드를 명시적으로
+  지정한 JSON 파일에 저장하고 다시 로드합니다.
+- `/list`는 저장한 레코드를 `RenderList`로 렌더링합니다. 예제는 레코드 하나를
+  저장하므로 목록의 행은 그 레코드 하나이고, 처음 저장하기 전에는 행이 없습니다.
+  이름은 상세 페이지로 가는 `link`, 이메일은 `text`, 가입일은 `date` 형식입니다.
+- `/detail`은 저장한 레코드를 `RenderDetail`로 렌더링합니다. 이름은 `text`, 이메일은
+  `mailto:` `link`, 가입일은 `date`입니다. 처음 저장하기 전에는 빈 레코드를 표시합니다.
+
+`/template`은 재사용할 템플릿을, `/data`는 저장한 레코드를 반환합니다. 예제는
+스칼라 필드 세 개를 사용하며 React, Vue, Svelte 비교 행렬을 제공하지 않습니다.
 
 ```sh
 curl -H 'Content-Type: application/json' \
-  --data '{"name":"Ada","email":"ada@example.test"}' \
+  --data '{"name":"Ada","email":"ada@example.test","joined":"2026-01-02"}' \
   http://127.0.0.1:8087/
+curl http://127.0.0.1:8087/list
+curl http://127.0.0.1:8087/detail
 ```
 
 `cmd/generate` CLI는 표준 입력의 JSON 요청 하나를 받아 JSON 값 하나를 반환합니다.
