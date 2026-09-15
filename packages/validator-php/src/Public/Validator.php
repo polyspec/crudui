@@ -28,7 +28,7 @@ final class Validator
         if (is_array($data) && $data !== [] && array_is_list($data)) {
             throw new FormInputError('Form data must be an object');
         }
-        $spec = (array) JsonValue::object($spec);
+        $spec = (array) JsonValue::orderedObject($spec);
         $data = JsonValue::object($data);
         $loader = self::loader($options);
         $basepath = $options['basepath'] ?? '';
@@ -91,9 +91,9 @@ final class Validator
         $own = [];
         $hasPatch = false;
         $patch = null;
-        foreach ((array) JsonValue::object($spec) as $key => $value) {
+        foreach ((array) JsonValue::orderedObject($spec) as $key => $value) {
             if ($key === '$ref') {
-                $base = array_replace($own, Ref::resolve($value, $basepath, $loader));
+                $base = JsonValue::orderedMembers(array_replace($own, Ref::resolve($value, $basepath, $loader)));
                 $own = [];
             } elseif ($key === '$patch') {
                 $patch = $value;
@@ -102,7 +102,7 @@ final class Validator
                 $own[$key] = $value;
             }
         }
-        $composed = array_replace($base, $own);
+        $composed = JsonValue::orderedMembers(array_replace($base, $own));
         return $hasPatch ? Patch::apply($composed, $patch) : $composed;
     }
 
@@ -122,7 +122,7 @@ final class Validator
             if (!$file instanceof stdClass) {
                 throw new \TypeError('Composition files must contain objects');
             }
-            $maps[$key] = (array) $file;
+            $maps[$key] = (array) JsonValue::ordered($file);
         }
         return new MemoryLoader($maps);
     }

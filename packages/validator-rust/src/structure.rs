@@ -7,7 +7,8 @@
 use serde_json::{Map, Value};
 
 use crate::compose::{
-    compose_properties, compose_spec, ComposeLoadError, ComposeOptions, FileLoader, MemoryLoader,
+    compose_properties, compose_spec, member_ordered, ComposeLoadError, ComposeOptions, FileLoader,
+    MemoryLoader,
 };
 use crate::forbidden_scan::scan_forbidden_keys;
 
@@ -35,7 +36,7 @@ where
         Some(bp) => ComposeOptions::with_basepath(bp.to_string()),
         None => ComposeOptions::default(),
     };
-    let composed = compose(spec, loader, &opts)?;
+    let composed = compose(&member_ordered(spec), loader, &opts)?;
     scan_forbidden_keys(&composed, &[])
 }
 

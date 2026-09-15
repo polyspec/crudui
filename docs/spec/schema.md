@@ -19,6 +19,21 @@ The machine-readable contract is maintained in
 form, list and detail declaration shapes. `make docs-schema` checks this source against
 shared fixtures without generating or replacing its rules.
 
+## Member order
+
+A specification is JSON data. JavaScript receives it as plain objects, which list member names
+that are array indexes (the decimal integers from 0 to 4294967294 written without leading zeros)
+first in ascending numeric order and all other names in the order they were written. Every
+runtime uses this order for every object in a specification: fields in `properties`, list columns,
+detail fields, `items` value maps, the keys of every bucket, condition maps, composition files and
+the objects composition produces, and compiled templates. "Declaration order" in these documents
+means this order. For example, `properties` written as `b`, `10`, `a` compile, render and validate
+in the order `10`, `b`, `a` in every runtime.
+
+Record data keeps the order in which it arrives: form data, list rows, detail records and
+`options.data` are never reordered, and [ordered JSON](../operations/ordered-json.md) preserves
+numeric member names there.
+
 ## Fields
 
 A form root is a `group` with a `properties` field map. Property names define

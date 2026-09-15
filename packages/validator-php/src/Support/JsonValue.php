@@ -49,6 +49,78 @@ final class JsonValue
         throw new \InvalidArgumentException('Unsupported PHP value: ' . get_debug_type($value));
     }
 
+    /**
+     * Copy a specification value in specification member order: every object lists array-index
+     * member names (canonical decimal integers 0..4294967294) first in ascending numeric order,
+     * then all other names in insertion order. Objects become stdClass values; lists stay lists.
+     */
+    public static function ordered(mixed $value, int $depth = 0): mixed
+    {
+        return self::order($value, $depth, false);
+    }
+
+    /** Copy a root specification object in specification member order. */
+    public static function orderedObject(array|stdClass $value): stdClass
+    {
+        return self::ordered(self::object($value));
+    }
+
+    /**
+     * Order a structural member map in specification member order, keeping it a PHP array keyed
+     * by member name; nested stdClass values and PHP associative arrays keep their own types.
+     */
+    public static function orderedMembers(array $members): array
+    {
+        return (array) self::order((object) $members, 0, true);
+    }
+
+    /** Order objects recursively; $arrays keeps nested associative arrays as arrays. */
+    private static function order(mixed $value, int $depth, bool $arrays): mixed
+    {
+        if ($depth > 512) {
+            throw new \InvalidArgumentException('Recursive or excessively nested PHP value');
+        }
+        if (is_array($value) && array_is_list($value)) {
+            return array_map(static fn ($child) => self::order($child, $depth + 1, $arrays), $value);
+        }
+        if (!$value instanceof stdClass && !is_array($value)) {
+            return self::copy($value, $depth);
+        }
+        $indexes = [];
+        $names = [];
+        foreach ($value as $key => $child) {
+            $name = (string) $key;
+            if (is_string($key) && preg_match('//u', $key) !== 1) {
+                throw new \InvalidArgumentException('Object keys must contain valid UTF-8');
+            }
+            if (self::isArrayIndex($name)) {
+                $indexes[$name] = $child;
+            } else {
+                $names[$name] = $child;
+            }
+        }
+        uksort($indexes, static fn ($left, $right) => (int) $left <=> (int) $right);
+        $keepArray = $arrays && is_array($value);
+        $out = $keepArray ? [] : new stdClass();
+        foreach ([$indexes, $names] as $members) {
+            foreach ($members as $name => $child) {
+                $child = self::order($child, $depth + 1, $arrays);
+                if ($keepArray) {
+                    $out[(string) $name] = $child;
+                } else {
+                    $out->{(string) $name} = $child;
+                }
+            }
+        }
+        return $out;
+    }
+
+    /** Whether a member name is an array index: a canonical decimal integer 0..4294967294. */
+    public static function isArrayIndex(string $name): bool
+    {
+        return preg_match('/^(?:0|[1-9][0-9]{0,9})$/D', $name) === 1 && (int) $name <= 4294967294;
+    }
+
     /** Identify explicit JSON objects and PHP associative arrays. */
     public static function isObject(mixed $value): bool
     {

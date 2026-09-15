@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Compose;
 
+use CRUDUI\Validator\Support\JsonValue;
+
 /**
  * Composition orchestrator (SPEC §5, G5) — the parser's FIRST pass.
  * Byte-for-byte port of validator-ts/src/compose/compose.ts.
@@ -143,7 +145,7 @@ final class Compose
         foreach ($b as $k => $v) {
             $out[$k] = $v;
         }
-        return $out;
+        return JsonValue::orderedMembers($out);
     }
 
     /** Objects are stdClass values or non-list PHP associative arrays. */

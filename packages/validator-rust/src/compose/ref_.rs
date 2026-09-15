@@ -23,6 +23,7 @@ use serde_json::{Map, Value};
 
 use super::errors::{ComposeErrorCode, ComposeLoadError, ComposeResult};
 use super::loader::FileLoader;
+use super::member_order::member_ordered_map;
 use super::patch::apply_patch;
 
 /// Resolve a `$ref` value (string or string[]) to a single flattened properties
@@ -147,7 +148,9 @@ fn resolve_single_ref(
         ));
     }
 
-    let doc = loader.load(&key)?; // RefFileNotFound if absent
+    // RefFileNotFound if absent. Every loaded document, custom loaders included,
+    // is a specification in member order.
+    let doc = member_ordered_map(&loader.load(&key)?);
 
     // Descend detectKeys (legacy: ReferenceResolver:129-136).
     let mut node: Value = Value::Object(doc);

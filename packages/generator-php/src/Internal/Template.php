@@ -15,7 +15,7 @@ final class Template
     /** Compile composed properties into a serializable ordered template. */
     public static function compile(array|stdClass $spec, array $options): stdClass
     {
-        $spec = Value::object($spec);
+        $spec = Value::spec($spec);
         if (($spec->type ?? null) !== 'group' || !($spec->properties ?? null) instanceof stdClass) {
             throw new FormError('INVALID_FORM_INPUT', 'A form spec must be a group with properties');
         }
@@ -39,7 +39,7 @@ final class Template
             if (!$file instanceof stdClass) {
                 throw new FormError('INVALID_FORM_INPUT', 'Composition files must contain objects');
             }
-            $maps[$path] = (array) $file;
+            $maps[$path] = (array) Value::spec($file);
         }
         return new MemoryLoader($maps);
     }
@@ -138,7 +138,7 @@ final class Template
     private static function checkDeclarations(array $spec, string $path): void
     {
         $fail = static function (string $key, string $expected) use ($path): never {
-            throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at %s: expected %s', $key, $path, $expected));
+            self::invalid($key, $path, $expected);
         };
         // Buttons and the submission target belong to the form, not to a field.
         foreach (['buttons', 'action'] as $key) {
@@ -146,14 +146,6 @@ final class Template
                 $fail($key, 'the form root');
             }
         }
-        // A closed bucket rejects its first undeclared key in member order.
-        $closed = static function (string $bucket, array $members, array $allowed) use ($path): void {
-            foreach (array_keys($members) as $key) {
-                if (!in_array((string) $key, $allowed, true)) {
-                    throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s.%s at %s: unknown key', $bucket, $key, $path));
-                }
-            }
-        };
         if (array_key_exists('multiple', $spec)) {
             $multiple = $spec['multiple'];
             if (!is_bool($multiple) && !self::isObject($multiple)) {
@@ -161,7 +153,7 @@ final class Template
             }
             if (self::isObject($multiple)) {
                 $settings = (array) $multiple;
-                $closed('multiple', $settings, ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick']);
+                self::closed('multiple', $settings, ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'], $path);
                 foreach (['min', 'max'] as $key) {
                     if (array_key_exists($key, $settings) && !is_int($settings[$key]) && !is_float($settings[$key])) {
                         $fail('multiple.' . $key, 'a number');
@@ -194,7 +186,7 @@ final class Template
         }
         if (self::isObject($spec['lang'] ?? null)) {
             $lang = (array) $spec['lang'];
-            $closed('lang', $lang, ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class']);
+            self::closed('lang', $lang, ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'], $path);
             if (array_key_exists('only', $lang)) {
                 $only = $lang['only'];
                 $codes = is_array($only) && array_is_list($only) && array_filter($only, static fn ($code) => !is_string($code)) === [];
@@ -204,40 +196,65 @@ final class Template
             }
         }
         if (array_key_exists('design', $spec)) {
-            $design = $spec['design'];
-            if (!is_bool($design) && !self::isObject($design)) {
-                $fail('design', 'a boolean or an object');
+            self::checkDesignDeclaration($spec['design'], $path);
+        }
+        if (self::isObject($spec['behavior'] ?? null)) {
+            self::closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload'], $path);
+        }
+    }
+
+    /**
+     * Reject a wrong value type or an unknown key in one declared design: a form field or button,
+     * a list or detail specification, or a list column or detail field.
+     */
+    public static function checkDesignDeclaration(mixed $design, string $path): void
+    {
+        if (!is_bool($design) && !self::isObject($design)) {
+            self::invalid('design', $path, 'a boolean or an object');
+        }
+        if (!self::isObject($design)) {
+            return;
+        }
+        $design = (array) $design;
+        self::closed('design', $design, ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'], $path);
+        if (array_key_exists('show', $design) && !is_bool($design['show']) && !self::conditionValue($design['show'])) {
+            self::invalid('design.show', $path, 'an expression, a boolean or a condition map');
+        }
+        foreach (['class', 'style'] as $key) {
+            if (array_key_exists($key, $design) && !self::conditionValue($design[$key])) {
+                self::invalid('design.' . $key, $path, 'a string or a condition map');
             }
-            if (self::isObject($design)) {
-                $design = (array) $design;
-                $closed('design', $design, ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend']);
-                if (array_key_exists('show', $design) && !is_bool($design['show']) && !self::conditionValue($design['show'])) {
-                    $fail('design.show', 'an expression, a boolean or a condition map');
-                }
-                foreach (['class', 'style'] as $key) {
-                    if (array_key_exists($key, $design) && !self::conditionValue($design[$key])) {
-                        $fail('design.' . $key, 'a string or a condition map');
-                    }
-                }
-                foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
-                    if (!array_key_exists($node, $design)) {
-                        continue;
-                    }
-                    if (!self::isObject($design[$node])) {
-                        $fail('design.' . $node, 'an object');
-                    }
-                    $values = (array) $design[$node];
-                    $closed('design.' . $node, $values, ['class', 'style']);
-                    foreach (['class', 'style'] as $key) {
-                        if (array_key_exists($key, $values) && !self::conditionValue($values[$key])) {
-                            $fail('design.' . $node . '.' . $key, 'a string or a condition map');
-                        }
-                    }
+        }
+        foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
+            if (!array_key_exists($node, $design)) {
+                continue;
+            }
+            if (!self::isObject($design[$node])) {
+                self::invalid('design.' . $node, $path, 'an object');
+            }
+            $values = (array) $design[$node];
+            self::closed('design.' . $node, $values, ['class', 'style'], $path);
+            foreach (['class', 'style'] as $key) {
+                if (array_key_exists($key, $values) && !self::conditionValue($values[$key])) {
+                    self::invalid('design.' . $node . '.' . $key, $path, 'a string or a condition map');
                 }
             }
         }
-        if (self::isObject($spec['behavior'] ?? null)) {
-            $closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload']);
+    }
+
+    /** Fail with "Invalid {key} at {path}: expected {expected}". */
+    private static function invalid(string $key, string $path, string $expected): never
+    {
+        throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at %s: expected %s', $key, $path, $expected));
+    }
+
+    /** A closed bucket rejects its first undeclared key in member order. */
+    private static function closed(string $bucket, array $members, array $allowed, string $path): void
+    {
+        foreach (array_keys($members) as $key) {
+            if (!in_array((string) $key, $allowed, true)) {
+                throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s.%s at %s: unknown key', $bucket, $key, $path));
+            }
         }
     }
 

@@ -680,21 +680,29 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
     if (!template || template->kind != PS_OBJECT || !data || data->kind != PS_OBJECT ||
         !options || options->kind != PS_OBJECT)
         return (ps_form_result){NULL, input_error("Invalid form input")};
+    /* The template is a specification: the form keeps it in specification member order. */
+    ps_value *ordered = ps_value_ordered(template);
+    if (!ordered) return (ps_form_result){NULL, internal_error()};
     ps_value *error = NULL;
-    ps_value *normalized = normalize_fields(member(template, "fields"), data, "", &error);
-    if (!normalized) return (ps_form_result){NULL, error ? error : internal_error()};
-    ps_result binding = ps_bind_form(template, normalized, options);
+    ps_value *normalized = normalize_fields(member(ordered, "fields"), data, "", &error);
+    if (!normalized) {
+        ps_value_free(ordered);
+        return (ps_form_result){NULL, error ? error : internal_error()};
+    }
+    ps_result binding = ps_bind_form(ordered, normalized, options);
     if (binding.error) {
+        ps_value_free(ordered);
         ps_value_free(normalized);
         return (ps_form_result){NULL, binding.error};
     }
     ps_form *form = calloc(1, sizeof(*form));
     if (!form) {
+        ps_value_free(ordered);
         ps_value_free(normalized);
         ps_value_free(binding.value);
         return (ps_form_result){NULL, internal_error()};
     }
-    form->template = ps_value_clone(template);
+    form->template = ordered;
     form->options = ps_value_clone(options);
     form->data = normalized;
     form->fields = binding.value;
