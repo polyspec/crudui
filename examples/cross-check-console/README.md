@@ -1,5 +1,7 @@
 # Cross-Check Console
 
+[한국어](README.ko.md).
+
 A Node HTTP gateway runs the same CRUDUI entry points as the automated
 conformance checks through a separate call stack. It accepts an arbitrary
 specification and data, then displays agreement or differences across four
@@ -111,7 +113,7 @@ npm install                  # at repo root, installs tsx + js-yaml + vite/svelt
 cd examples/cross-check-console/server
 npm run build:cli            # = build:go + build:rust
 #   go build -o ../../../packages/validator-go/validate ./cmd/validate
-#   cargo build --release --bin validate  (in packages/validator-rust)
+#   cargo build --locked --release --bin validate  (in packages/validator-rust)
 npm run check:js-cli         # smoke-test the JS CRUDUI CLI (node --import tsx)
 
 # 4. start the gateway (boots the CRUDUI render engine, then serves)
