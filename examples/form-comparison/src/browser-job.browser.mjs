@@ -38,7 +38,7 @@ test('loads the public frame readiness module in Chromium', async t => {
   t.after(() => browser.close());
   const page = await browser.newPage();
   const origin = await publicModules(t);
-  await page.goto(`${origin}/`, { waitUntil: 'load' });
+  await page.goto(`${origin}/benchmark-console/`, { waitUntil: 'load' });
   assert.deepEqual(await page.evaluate(async url => {
     const module = await import(url);
     return [typeof module.loadComparisonFrames, typeof module.frameUrl, typeof module.parseFrameDocument];
