@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-16 — Run comparison verification on the benchmark entry
+
+Browser verification now opens `/benchmark-console/`, where the comparison console owns its
+readiness and job API. The canonical root remains an application pipeline and is no longer
+required to expose benchmark internals.
+
 ## 2026-09-16 — Remove retired public route artifacts during builds
 
 Persistent build volumes now remove the retired `public/displays/` output before copying current

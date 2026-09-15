@@ -169,7 +169,7 @@ try {
     await request.continue();
   });
   await phase('main-page', async () => {
-    await page.goto(`${base.origin}/?server=${selectedServer}`, { waitUntil: 'load' });
+    await page.goto(`${base.origin}/benchmark-console/?server=${selectedServer}`, { waitUntil: 'load' });
     const mainReady = await mainReadiness.wait();
     if (JSON.stringify(mainReady) !== JSON.stringify({
       type: 'crudui:main-ready', server: selectedServer, framework: 'react',
