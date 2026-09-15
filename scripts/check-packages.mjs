@@ -15,10 +15,45 @@ const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator
 const dependencies = {};
 const { allowScripts } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 console.log(`Consumer project: ${directory}`);
+
+/*
+ * Each step reports its start, its result and its elapsed time while the check runs,
+ * and each step carries its own limit sized from its measured duration (macOS, warm
+ * caches): packing 2.2 s, installing 6.4 s, exports 0.1 s, server rendering 2.5 s,
+ * types 2.7 s, production build 1.8 s and the browser check 4.2 s.
+ */
+const started = Date.now();
+const seconds = since => `${((Date.now() - since) / 1000).toFixed(1)}s`;
+const progress = text => console.log(`[${seconds(started).padStart(7)}] ${text}`);
+async function step(label, budget, operation) {
+  const stepStart = Date.now();
+  progress(`${label}: started (limit ${budget / 1000}s)`);
+  const running = setInterval(() => progress(`${label}: still running (${seconds(stepStart)})`), 5000);
+  commandTimeout = budget;
+  try {
+    const value = await operation(budget);
+    progress(`${label}: passed (${seconds(stepStart)})`);
+    return value;
+  } catch (error) {
+    progress(`${label}: failed (${seconds(stepStart)})`);
+    throw error;
+  } finally {
+    clearInterval(running);
+  }
+}
+// A step's limit is also the limit of each command it runs: an unresponsive command is
+// killed and named instead of stopping the whole check without a report.
+let commandTimeout = 120000;
 function run(command, args, cwd = directory) {
-  return execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  try {
+    return execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: commandTimeout, killSignal: 'SIGKILL' });
+  } catch (error) {
+    if (error.signal === 'SIGKILL') error.message = `${command} ${args.join(' ')} exceeded its ${commandTimeout} ms limit`;
+    throw error;
+  }
 }
 try {
+  await step(`pack ${packages.length} packages`, 60000, () => {
   for (const folder of packages) {
     const source = join(root, 'packages', folder);
     const manifest = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
@@ -27,6 +62,7 @@ try {
       source, directory, manifest.name, run,
     )}`;
   }
+  });
   for (const name of ['react', 'react-dom', 'vue', 'svelte', 'typescript', '@types/react', '@types/react-dom', '@types/node', 'vite', '@sveltejs/vite-plugin-svelte']) {
     dependencies[name] = ['vite', '@sveltejs/vite-plugin-svelte'].includes(name)
       ? JSON.parse(readFileSync(join(root, 'packages/generator-svelte/package.json'), 'utf8')).devDependencies[name]
@@ -63,7 +99,9 @@ validate(spec, data);
   writeFileSync(join(directory, 'api.ts'), `export { compileForm, createForm } from '@crudui/generator-core';\nexport { validate } from '@crudui/validator';\n`);
   writeFileSync(join(directory, 'index.html'), '<!doctype html><html><head><title>Package verification</title><link rel="icon" href="data:,"></head><body><div id="react"></div><div id="vue"></div><div id="svelte"></div><script type="module" src="/main.ts"></script></body></html>');
   writeFileSync(join(directory, 'vite.config.mjs'), `import { defineConfig } from 'vite';\nimport { svelte } from '@sveltejs/vite-plugin-svelte';\nexport default defineConfig({ plugins: [svelte()] });\n`);
-  writeFileSync(join(directory, 'install.log'), run('npm', ['install']));
+  await step('install the consumer project', 300000,
+    () => writeFileSync(join(directory, 'install.log'), run('npm', ['install'])));
+  await step('verify package exports', 10000, () => {
   for (const name of Object.keys(dependencies).filter(name => name.startsWith('@crudui/'))) {
     const base = join(directory, 'node_modules', name);
     const manifest = JSON.parse(readFileSync(join(base, 'package.json'), 'utf8'));
@@ -73,6 +111,7 @@ validate(spec, data);
     };
     check(manifest.exports);
   }
+  });
   // Server rendering from the installed entries: each framework package renders a form, a list and a detail.
   const rendering = `
 const form = m.createForm(m.compileForm({ type: 'group', properties: { name: { type: 'text', label: 'Name' } } }), { name: 'Ada' });
@@ -82,21 +121,27 @@ const html = [
   await m.renderDetail({ fields: { name: { field: '.name', label: 'Name' } } }, { name: 'Ada' }, { language: 'en' }),
 ];
 if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering lost the data');`;
+  const consumerRequire = createRequire(join(directory, 'package.json'));
+  const { createServer, preview } = await step('render on the server from the installed entries', 120000, async () => {
   for (const name of ['@crudui/generator-react', '@crudui/generator-vue']) {
     run('node', ['--input-type=module', '-e', `const m = await import('${name}');${rendering}`]);
     run('node', ['-e', `(async () => { const m = require('${name}');${rendering} })().catch(error => { console.error(error); process.exit(1); });`]);
   }
   writeFileSync(join(directory, 'render.mjs'), `import * as m from '@crudui/generator-svelte';\nexport async function render() {${rendering}\n}\n`);
-  const consumerRequire = createRequire(join(directory, 'package.json'));
-  const { createServer, preview } = await import(pathToFileURL(consumerRequire.resolve('vite')).href);
-  const renderer = await createServer({ root: directory, logLevel: 'silent', server: { middlewareMode: true } });
+  const vite = await import(pathToFileURL(consumerRequire.resolve('vite')).href);
+  const renderer = await vite.createServer({ root: directory, logLevel: 'silent', server: { middlewareMode: true } });
   try {
     await (await renderer.ssrLoadModule('/render.mjs')).render();
   } finally {
     await renderer.close();
   }
-  writeFileSync(join(directory, 'typecheck.log'), run(join(directory, 'node_modules/.bin/tsc'), ['--noEmit']));
-  writeFileSync(join(directory, 'build.log'), run(join(directory, 'node_modules/.bin/vite'), ['build']));
+  return vite;
+  });
+  await step('type-check the consumer project', 120000,
+    () => writeFileSync(join(directory, 'typecheck.log'), run(join(directory, 'node_modules/.bin/tsc'), ['--noEmit'])));
+  await step('build the consumer project', 120000,
+    () => writeFileSync(join(directory, 'build.log'), run(join(directory, 'node_modules/.bin/vite'), ['build'])));
+  await step('run the three-framework browser check', 180000, async () => {
   const server = await preview({ root: directory, preview: { host: '127.0.0.1', port: 0, open: false } });
   let browser;
   try {
@@ -122,6 +167,7 @@ if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering
     await browser?.close();
     await new Promise(resolve => server.httpServer.close(resolve));
   }
+  });
   console.log('Package exports, server rendering, consumer types, production build and three-framework browser checks passed.');
   // A passing check removes its consumer project; a failing check keeps it for inspection.
   rmSync(directory, { recursive: true, force: true });
