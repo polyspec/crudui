@@ -2,6 +2,37 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 유효해야 하는 저장소의 모든 명세를 메타스키마로 검사
+
+`scripts/check-schema.mjs`는 검증 사례만 검사했으므로 저장소가 유효하다고 의존하는 명세가 메타스키마를 통과하지
+못해도 어떤 검사도 알아채지 못했습니다. 실패마다 명세 문서와 모든 런타임을 근거로 판정했습니다.
+
+- 필드 `messages`는 모든 검증기가 평문 문자열로 읽지만 닫힌 `Field` 정의에 없었으므로 스키마에 선언했습니다.
+- 렌더링 사례 `button-empty`, `action-alias`, `button-behavior-onclick`는 모든 생성기가 읽는 `button`, `action` 위젯의
+  컨트롤 텍스트인 필드 키 `content`에서 실패했으므로 스키마에 선언했습니다.
+- `$ref`는 모든 런타임에서 문자열 또는 문자열 목록을 받는데(`compose:ref-multiple-order`) 스키마는 문자열만
+  선언했습니다. 이제 하나의 `Reference` 정의를 모든 조합 위치에 적용합니다.
+- 검증 사례 여섯 개와 목록 조합 파일 하나가 필수 `type` 없이 자식 필드를 선언했으므로 `type: text`를 선언했고
+  기대 결과는 그대로입니다.
+- compose 사례는 필드 키가 아닌 `from:` 키로 병합 출처를 표시했으므로 같은 목적으로 `label:`을 사용합니다.
+- 콘솔 예제 `list-search-conditional`은 모든 런타임이 `per_page`를 읽는 곳에 `pagination.perPage`를 쓰고, 모든
+  런타임이 `items`를 읽는 곳에 select 선택지를 `options`로 두어 select가 비어 렌더링되었습니다.
+- 조건 맵은 모든 런타임에서 기본이 아닌 키를 순서대로 평가하고 `true` 값, 그다음 `null`로 대체합니다. 필드 명세가
+  `true` 키가 필수라고 잘못 적었으므로 `docs/spec/expressions.ko.md`가 이미 밝힌 규칙으로 고쳤습니다.
+- `tests/fixtures/specs/LargeForm.yml`에는 중복 YAML 키가 두 곳 있었고 벤치 고정 데이터 생성기가 `uniqueKeys: false`로
+  파싱해 이를 숨겼습니다. 파싱 결과가 같도록 중복을 제거하고 생성기가 엄격히 파싱하며, 벤치 고정 데이터는 바이트
+  단위로 같습니다. `examples/legacy/basic-form.yml`은 따옴표 없는 값 때문에 파싱되지 않아 따옴표로 감쌌습니다.
+
+상세 렌더링 사례 `content-values`는 문자열이 아닌 언어 맵 항목을 건너뛰는 런타임 규칙을 검사하려고 의도적으로 그런
+항목을 선언하므로 사유와 함께 등록했습니다. `tests/fixtures/specs`와 `examples/legacy`의 레거시 명세는 레거시 필드
+모델을 쓰므로 중복 키 없이 파싱되고 현재 메타스키마를 통과하지 않아야 합니다.
+
+검사는 입력이나 조합 실패를 기대하는 사례를 제외한 모든 고정 데이터 계열의 폼, 목록, 상세 명세, `$ref`가 고르는 조각으로서의
+조합 파일, compose 진입 명세, 검증기 CLI 요청, 폼 세션 명세, `examples/form-structure`, 콘솔 예제, Go·PHP·Rust 패키지
+예제에 들어 있는 명세를 다루며 371건이 통과합니다. `per_page`를 `perPage`로 되돌리거나, 조합 파일의 `type`을 지우거나,
+면제 사례를 유효하게 바꾸면 각각 검사가 실패했습니다. 재생성한 사례, 그 사례를 읽는 TypeScript 적합성 파일(175건)과
+타입 검사, Go validate·compose 패키지, PHP compose·검증 필터(144건), Rust 사례 테스트, 문서 검사가 통과했습니다.
+
 ## 2026-09-15 — 메타스키마에서 모든 검증 규칙의 형식을 정하고 모든 깊이의 금지 키 거부
 
 검증기는 규칙 24개(`pattern`은 `match`와 구현 공유)를 등록하지만 폼 메타스키마는 `required`, `email`, `match`만

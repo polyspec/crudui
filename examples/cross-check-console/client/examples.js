@@ -203,7 +203,7 @@ search:
       label:
         ko: 상태
         en: Status
-      options:
+      items:
         active:
           ko: 활성
           en: Active
@@ -234,7 +234,7 @@ columns:
     design:
       show: .admin
 pagination:
-  perPage: 20`,
+  per_page: 20`,
     rows: LIST_ROWS,
   },
 ];

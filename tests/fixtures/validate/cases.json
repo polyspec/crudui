@@ -1166,6 +1166,7 @@
           "type": "group",
           "properties": {
             "zip": {
+              "type": "text",
               "validate": {
                 "required": true,
                 "digits": true
@@ -1203,6 +1204,7 @@
           "type": "group",
           "properties": {
             "zip": {
+              "type": "text",
               "validate": {
                 "required": true,
                 "digits": true
@@ -1315,6 +1317,7 @@
           "multiple": true,
           "properties": {
             "code": {
+              "type": "text",
               "validate": {
                 "required": true
               }
@@ -1357,6 +1360,7 @@
           "multiple": true,
           "properties": {
             "v": {
+              "type": "text",
               "validate": {
                 "required": true
               }
@@ -1439,6 +1443,7 @@
               "type": "number"
             },
             "code": {
+              "type": "text",
               "validate": {
                 "unique": ".active == 1"
               }
@@ -1478,6 +1483,7 @@
               "type": "number"
             },
             "code": {
+              "type": "text",
               "validate": {
                 "unique": ".active == 1"
               }
