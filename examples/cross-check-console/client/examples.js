@@ -79,7 +79,7 @@ properties:
   {
     id: 'edge-ref',
     name: 'edge — unresolved $ref (REF_FILE_NOT_FOUND)',
-    note: 'compose/$ref → Missing.yml not in files → load failure, NOT valid:false. 4 langs return failure{code:REF_FILE_NOT_FOUND, message, at:"Missing.yml"}; 3 frameworks return error{code:REF_FILE_NOT_FOUND}. legacy gap (ProductNft.yml:873) closed.',
+    note: 'compose/$ref → Missing.yml not in files → load failure, NOT valid:false. 4 langs return failure{code:REF_FILE_NOT_FOUND, message, at:"Missing.yml"}; 4 renderers return error{code:REF_FILE_NOT_FOUND}. legacy gap (ProductNft.yml:873) closed.',
     spec: `type: group
 properties:
   $ref: Missing.yml`,
@@ -150,7 +150,7 @@ export const listExamples = [
   {
     id: 'list-basic',
     name: 'list basic — columns + date/number/badge format',
-    note: 'list-render basic-columns + format-date(YYYY-MM-DD) + format-number(decimals/thousands/$prefix) + format-badge(map). rows injected; 3 frameworks render the SAME normalized table → parity.',
+    note: 'list-render basic-columns + format-date(YYYY-MM-DD) + format-number(decimals/thousands/$prefix) + format-badge(map). rows injected; HTML/React/Vue/Svelte render the SAME normalized table → parity.',
     spec: `columns:
   name:
     field: name

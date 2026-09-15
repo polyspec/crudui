@@ -39,15 +39,15 @@ function rerr(fw, code) {
 }
 
 describe('compareParity — agreement', () => {
-  test('three frameworks share one normalized → parity:true, no mismatch', () => {
-    const results = ['react', 'svelte', 'vue'].map((fw) => rok(fw, '<div>same</div>'));
+  test('four renderers share one normalized → parity:true, no mismatch', () => {
+    const results = ['html', 'react', 'svelte', 'vue'].map((fw) => rok(fw, '<div>same</div>'));
     const { parity, mismatch } = compareParity(results);
     expect(parity).toBe(true);
     expect(mismatch).toBeNull();
   });
 
-  test('all three share one error code → parity:true (agreement on a LOAD failure)', () => {
-    const results = ['react', 'svelte', 'vue'].map((fw) => rerr(fw, 'REF_FILE_NOT_FOUND'));
+  test('all four share one error code → parity:true (agreement on a LOAD failure)', () => {
+    const results = ['html', 'react', 'svelte', 'vue'].map((fw) => rerr(fw, 'REF_FILE_NOT_FOUND'));
     expect(compareParity(results).parity).toBe(true);
   });
 });
@@ -57,6 +57,7 @@ describe('compareParity — TAMPER (fake-divergent injection)', () => {
     // React/Vue agree on the normalized HTML; a fake-Svelte normalized is forged
     // to a different string. Parity must break AND name svelte as the lone group.
     const results = [
+      rok('html', '<div>same</div>'),
       rok('react', '<div>same</div>'),
       rok('svelte', '<div>TAMPERED</div>'), // <-- TAMPERED
       rok('vue', '<div>same</div>'),
@@ -67,11 +68,12 @@ describe('compareParity — TAMPER (fake-divergent injection)', () => {
     const svelteGroup = mismatch.groups.find((g) => g.fws.includes('svelte'));
     expect(svelteGroup.fws).toEqual(['svelte']);
     const others = mismatch.groups.find((g) => g.fws.includes('react'));
-    expect(others.fws.sort()).toEqual(['react', 'vue']);
+    expect(others.fws.sort()).toEqual(['html', 'react', 'vue']);
   });
 
   test('one framework errors while others render → parity break', () => {
     const results = [
+      rok('html', '<div>x</div>'),
       rok('react', '<div>x</div>'),
       rok('svelte', '<div>x</div>'),
       rerr('vue', 'UNSUPPORTED_FIELD_TYPE'), // <-- diverges: error vs render
@@ -84,6 +86,7 @@ describe('compareParity — TAMPER (fake-divergent injection)', () => {
 
   test('two frameworks one error code, third a different error code → parity break', () => {
     const results = [
+      rerr('html', 'REF_FILE_NOT_FOUND'),
       rerr('react', 'REF_FILE_NOT_FOUND'),
       rerr('svelte', 'REF_FILE_NOT_FOUND'),
       rerr('vue', 'RENDER_ERROR'), // <-- diverging error code
@@ -96,7 +99,7 @@ describe('compareParity — TAMPER (fake-divergent injection)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Real fan-out smoke (boots the Vite SSR engine + renders 3 frameworks). Slow,
+// Real fan-out smoke (boots the Vite SSR engine + renders four renderers). Slow,
 // so a single representative html fixture case is selected — selection is logged
 // so the narrowing is explicit. The same engine.normalizeHtml the gateway uses
 // is what produces the parity key, so the smoke also re-proves the normalizer.
@@ -106,8 +109,8 @@ const allCases = Object.values(allCasesObj);
 const SMOKE_NAME = 'design-show-expr-truthy';
 const smoke = allCases.find((c) => c.name === SMOKE_NAME && c.expected_html);
 
-describe('renderAll — real 3-framework SSR fan-out (representative fixture)', () => {
-  test(`[selected: ${SMOKE_NAME} of ${allCases.length} form-render cases] React/Svelte/Vue agree → parity:true`, async () => {
+describe('renderAll — real four-renderer SSR fan-out (representative fixture)', () => {
+  test(`[selected: ${SMOKE_NAME} of ${allCases.length} form-render cases] HTML/React/Svelte/Vue agree → parity:true`, async () => {
     expect(smoke, `fixture case ${SMOKE_NAME} must exist with expected_html`).toBeTruthy();
     const out = await renderAll({ spec: smoke.spec, data: smoke.data, options: smoke.options });
     const failed = out.results.filter((r) => !r.ok);
@@ -130,5 +133,6 @@ test('SSR renderers receive identical generated row identities', async () => {
   });
   expect(identities[1]).toEqual(identities[0]);
   expect(identities[2]).toEqual(identities[0]);
+  expect(identities[3]).toEqual(identities[0]);
   expect(result.parity).toBe(true);
 }, 30000);

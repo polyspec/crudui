@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRUDUI · List and detail</title>
+  <link rel="stylesheet" href="/displays/displays.css">
+</head>
+<body>
+  <header class="display-header">
+    <div><a class="brand" href="/">CRUDUI</a><span class="eyebrow">canonical examples</span></div>
+    <nav aria-label="CRUDUI examples"><a href="/">Form</a><a class="active" href="/displays/">List and detail</a></nav>
+  </header>
+  <main class="display-page">
+    <section class="intro">
+      <p class="eyebrow">read-only display</p>
+      <h1>List and detail</h1>
+      <p>하나의 선언적 스펙과 주입된 데이터를 HTML 렌더러로 표시합니다. 폼 검증 콘솔은 별도 내부 개발 도구이며 이 페이지를 대신하지 않습니다.</p>
+      <div class="tabs" role="tablist" aria-label="display example">
+        <button id="list-tab" role="tab" aria-selected="true">List</button>
+        <button id="detail-tab" role="tab" aria-selected="false">Detail</button>
+      </div>
+    </section>
+    <section id="list-panel" role="tabpanel">
+      <div class="section-heading"><div><p class="eyebrow">injected rows</p><h2>Customers</h2></div><span id="list-status" class="status">loading</span></div>
+      <div id="list-output" class="render-output" aria-live="polite"></div>
+    </section>
+    <section id="detail-panel" role="tabpanel" hidden>
+      <div class="section-heading"><div><p class="eyebrow">injected record</p><h2>Customer detail</h2></div><span id="detail-status" class="status">loading</span></div>
+      <div id="detail-output" class="render-output" aria-live="polite"></div>
+    </section>
+    <p id="error" class="error" role="alert" hidden></p>
+  </main>
+  <script type="module" src="/displays/main.mjs"></script>
+</body>
+</html>

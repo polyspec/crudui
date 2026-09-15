@@ -245,10 +245,14 @@ view and one body end tag`로 거부합니다. 응답은 그 문서에 세 가�
 `#outline-view`와 `#data-view`에 렌더링합니다. 서버는 폼만 렌더링합니다.
 
 정본 진입 페이지는 `/displays/`로 연결되며, 이 경로가 하나의 읽기 전용 목록·상세 예제입니다.
-같은 배포 public 프로세스의 `/displays/api/validate-list`, `/displays/api/render-list`,
-`/displays/api/validate-detail`, `/displays/api/render-detail`을 사용해 목록과 상세 예제를
-표시합니다. 별도 애플리케이션 서버나 별도 배포를 만들지 않습니다. 목록 페이지는 행을 주입하고
+이 경로는 내부 Cross-Check Console이 아니라 사용자용 목록·상세 진입 화면입니다. 같은 배포
+public 프로세스의 `/displays/api/render-list`, `/displays/api/render-detail`을 사용해
+프레임워크 독립 HTML 렌더러 결과를 표시합니다. Cross-Check Console은 개발용 비교 화면으로
+유지합니다. 별도 애플리케이션 서버나 별도 배포를 만들지 않습니다. 목록 페이지는 행을 주입하고
 상세 페이지는 레코드 하나를 주입하며, 어느 페이지도 데이터베이스를 조회하지 않습니다.
+
+모든 렌더 비교에는 React·Vue·Svelte와 함께 프레임워크 독립 HTML 렌더러가 포함됩니다.
+따라서 parity 판정 대상은 네 렌더러입니다.
 
 `bindForm` 컨트롤러는 `createForm` 인스턴스와 같은 작업을 지원합니다. 행 작업,
 `toggle-row`, `select-row`, `expand-all`, `collapse-all`, `undo`입니다. 접힌 행과

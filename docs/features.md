@@ -49,7 +49,8 @@ The current `main` tree is served by the comparison deployment. The deployment h
 supervisor reached ready state after the container restart. PHP, PHP extension,
 Go and Rust passed 450 generation checks, 120 persistence checks and 7,008 browser checks with
 zero failures. Each browser server completed below the 900,000 millisecond limit, and the
-container reported zero zombie processes after verification.
+container reported zero zombie processes after verification. The root links to the user-facing
+HTML list/detail entry at `https://crudui.test/displays/`; it is served by the same public process.
 
 ## Native package verification
 

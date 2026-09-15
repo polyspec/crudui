@@ -4,7 +4,7 @@
  * One Node process is responsible for three things:
  *   (a) POST /api/validate, /api/validate-list, /api/validate-detail — 4-language
  *       CRUDUI validation fan-out (JS/PHP/Go/Rust as stdin-JSON CLIs).
- *   (b) POST /api/render, /api/render-list, /api/render-detail — 3-framework CRUDUI
+ *   (b) POST /api/render, /api/render-list, /api/render-detail — HTML/React/Svelte/Vue CRUDUI
  *       SSR (React/Svelte sync, Vue async), all in-process through the same CRUDUI
  *       entries used by conformance checks.
  *   (c) static console      — serves client/ at /.
@@ -367,9 +367,9 @@ function startServer() {
     process.stdout.write('  POST /api/validate     - 4-language CRUDUI validate fan-out\n');
     process.stdout.write('  POST /api/validate-list - 4-language CRUDUI list-spec validate fan-out\n');
     process.stdout.write('  POST /api/validate-detail - 4-language CRUDUI detail specification validate fan-out\n');
-    process.stdout.write('  POST /api/render       - 3-framework CRUDUI form SSR\n');
-    process.stdout.write('  POST /api/render-list  - 3-framework CRUDUI list SSR\n');
-    process.stdout.write('  POST /api/render-detail - 3-framework CRUDUI detail SSR\n');
+    process.stdout.write('  POST /api/render       - HTML/React/Svelte/Vue CRUDUI form SSR\n');
+    process.stdout.write('  POST /api/render-list  - HTML/React/Svelte/Vue CRUDUI list SSR\n');
+    process.stdout.write('  POST /api/render-detail - HTML/React/Svelte/Vue CRUDUI detail SSR\n');
     process.stdout.write('  GET  /health           - liveness probe\n');
   });
   return server;
