@@ -80,6 +80,9 @@ const reactAttributeNames: Record<string, string> = {
   autocomplete: 'autoComplete', readonly: 'readOnly', maxlength: 'maxLength', minlength: 'minLength', colspan: 'colSpan', rowspan: 'rowSpan',
 };
 const booleanAttributes = new Set(['readonly', 'disabled', 'required', 'multiple', 'autofocus']);
+// The reference renderer blocks a script URL with this expression, and the control characters
+// it skips are the point: a URL may hide them between the letters of the scheme.
+// eslint-disable-next-line no-control-regex
 const javascriptProtocol = /^[\u0000-\u001F ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:/i;
 
 function sanitizeUrl(value: string): string {
