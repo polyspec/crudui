@@ -119,7 +119,7 @@ verified together with the relevant package and documentation checks.
 Composer path repositories for repository-local packages set `symlink` to
 `false`. Composer copies each local package into `vendor/`; installed PHP package
 trees do not contain symbolic links. Manifests and lock files record the same
-copy-install setting.
+copy-install setting. A copy does not follow later source changes, so a check that loads a copied package reinstalls it from its source first.
 Library manifests do not declare their release version. Git repository metadata
 provides release versions. A consumer that resolves one local path repository
 declares the exact package version in that repository's `options.versions` map,
