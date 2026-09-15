@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-09-16 — Preserve benchmark query selection and accept the mounted initialization stage
+
+The benchmark-console redirect now preserves its query string, so each verifier job reaches the
+selected server and framework. The frame initialization contract explicitly accepts the `mounted`
+stage published by the browser runtime. The full current-tree browser verification remains failed
+because its validation and source-identity checks did not pass; no passing result is claimed.
+
 ## 2026-09-16 — Make the canonical example use CRUDUI-generated pipeline features
 
 The previous root implementation was incorrect: parent-side stage buttons and hand-written list
