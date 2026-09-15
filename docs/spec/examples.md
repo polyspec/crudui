@@ -6,6 +6,13 @@ Current examples use unversioned public APIs. `examples/cross-check-console`
 compares validation and rendering results across implementations. Form usage is
 defined in [form operations](../operations/forms.md).
 
+Current examples cover all three specification kinds, not only forms. The Go, PHP and Rust
+package examples render a form, a list and a detail from one example record set, and the PHP
+example runs unchanged with the PHP extension. The cross-check console compares form, list and
+detail rendering and validation across implementations. The form comparison page compares
+server-side and client-side rendering of forms, lists and details for every server and
+framework. List and detail displays follow the [display formats](display-formats.md).
+
 The console accepts a validator response only when the process terminates with
 the expected exit status and emits a JSON object matching the response contract.
 Data validation uses exit status `0`, boolean `valid` and an `errors` array.

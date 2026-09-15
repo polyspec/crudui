@@ -2,23 +2,36 @@
 
 [English](README.md).
 
-Vue에서 준비된 폼 템플릿과 편집 세션을 렌더링합니다.
+Vue에서 폼 인스턴스, 목록, 상세를 렌더링합니다.
 
 ```ts
-import { compileForm, createForm, Form } from '@crudui/generator-vue';
+import { h } from 'vue';
+import { buildList, compileForm, createForm, Form, List, renderForm, renderList } from '@crudui/generator-vue';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
 });
-const session = createForm(template);
-session.setData({ name: 'Example' });
+const form = createForm(template, { name: 'Example' });
+const formHtml = await renderForm(form);
+const vnode = h(Form, { form });
+
+const listSpec = { columns: { name: { field: '.name', label: 'Name' } } };
+const rows = [{ name: 'Ada' }];
+const listHtml = await renderList(listSpec, rows, { language: 'en' });
+const list = List(buildList(listSpec, rows, { language: 'en' }), 'table');
 ```
 
-`Form`에 `session` 속성을 전달하여 렌더링합니다. 공유 템플릿마다 한 번 컴파일하고 폼 인스턴스마다 세션을 생성합니다.
-편집 세션 없이 필드를 평가하려면 `bindForm(template, data)`를 사용합니다.
+`Form`에 `form` 속성을 전달하여 렌더링합니다. 공유 템플릿마다 한 번 컴파일하고 폼마다 폼 인스턴스를
+생성합니다. `renderForm(form)`은 서버 렌더링용으로 같은 마크업을 담은 프로미스를 반환합니다.
+
+`List(vm, layout)`와 `Detail(vm)`은 다시 내보낸 `buildList(spec, rows, options)`와
+`buildDetail(spec, record, options)`로 만든 모델의 VNode를 반환합니다.
+`renderList(spec, rows, options)`와 `renderDetail(spec, record, options)`는 문자열 프로미스를
+반환합니다. 서버 렌더링은 `vue` 피어 의존성이 제공하는 `vue/server-renderer`를 사용합니다.
 
 - [런타임 계약](../../docs/spec/form-runtime.ko.md)
-- [설치, 중첩 행, 검증](../../docs/operations/forms.ko.md)
+- [폼 운영](../../docs/operations/forms.ko.md)
+- [목록과 상세 운영](../../docs/operations/displays.ko.md)
 - [기능 상태](../../docs/features.ko.md)
 
 저장소 루트에서 `npm run test:forms`로 모든 어댑터를 빌드하고 테스트합니다.
