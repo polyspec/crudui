@@ -1,31 +1,44 @@
-import { createApp, nextTick, shallowRef } from 'vue';
+import { createApp, createSSRApp, nextTick, shallowRef } from 'vue';
 import { bindButtons, bindForm, formMessages } from '@crudui/generator-core';
 import { FormFields } from '#vue/FormFields';
 import { outlineVNode } from '#vue/Outline';
 import { dataVNode } from '#vue/DataView';
 
+/** Vue hydration adopts the server-rendered nodes instead of replacing them. */
+export const hydration = 'keep';
+
 const emptyView = { collapsed: new Set(), canUndo: false };
 
-export function mountView(element, template, language, data = {}) {
+function start(views, template, language, data, hydrate) {
   const messages = formMessages(language);
   const evaluate = (next, view) => ({
     data: next, view, fields: bindForm(template, next, { language, collapsed: view.collapsed }),
     buttons: bindButtons(template, next, { language }),
   });
   const state = shallowRef(evaluate(data, emptyView));
-  const app = createApp({
-    render: () => [
-      FormFields(state.value.fields, state.value.buttons, messages),
-      outlineVNode({ fields: state.value.fields, canUndo: state.value.view.canUndo }, messages),
-      dataVNode(state.value.data, messages),
-    ],
+  const form = (hydrate ? createSSRApp : createApp)({
+    render: () => FormFields(state.value.fields, state.value.buttons, messages),
   });
-  app.mount(element);
+  const outline = createApp({
+    render: () => outlineVNode({ fields: state.value.fields, canUndo: state.value.view.canUndo }, messages),
+  });
+  const dataPanel = createApp({ render: () => dataVNode(state.value.data, messages) });
+  form.mount(views.form);
+  outline.mount(views.outline);
+  dataPanel.mount(views.data);
   return {
     load: (next, view = emptyView) => {
       state.value = evaluate(next, view);
       return nextTick();
     },
-    dispose: () => app.unmount(),
+    dispose: () => { form.unmount(); outline.unmount(); dataPanel.unmount(); },
   };
+}
+
+export function mountView(views, template, language, data = {}) {
+  return start(views, template, language, data, false);
+}
+
+export function hydrateView(views, template, language, data) {
+  return start(views, template, language, data, true);
 }

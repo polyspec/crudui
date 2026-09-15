@@ -7,6 +7,7 @@ import {
   browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers, browserTransports,
   verifyServerReport,
 } from './browser-report-policy.mjs';
+import { formInitializations } from './src/runtime-paths.mjs';
 
 export {
   browserFrameworks, browserPaths, browserScenarioCheckIds, browserServers, browserTransports,
@@ -31,16 +32,20 @@ function aggregate(summaries) {
       }]))]));
 }
 
-function applyStaticDocumentAgreement(reports) {
+/**
+ * Every frame document of one rendering path and framework is the same built page: the CSR
+ * document is that page, and an SSR document is that page with the server's insertions removed.
+ */
+function applyFrameDocumentAgreement(reports) {
   for (const renderingPath of browserPaths) {
     for (const framework of browserFrameworks) {
-      const documents = browserServers.map(server => reports[server].staticDocuments
-        ?.find(item => item.path === renderingPath && item.framework === framework));
-      if (documents.some(document => !document)) continue;
-      if (new Set(documents.map(document => document.sha256)).size === 1) continue;
+      const documents = browserServers.flatMap(server => reports[server].frameDocuments
+        ?.filter(item => item.path === renderingPath && item.framework === framework) ?? []);
+      if (documents.length !== browserServers.length * formInitializations.length) continue;
+      if (new Set(documents.map(document => document.frameSha256)).size === 1) continue;
       for (const document of documents) {
         document.passed = false;
-        document.error = 'Static HTML differs between API servers';
+        document.error = 'Frame documents differ between API servers';
       }
     }
   }
@@ -51,7 +56,7 @@ export function summarizeBrowserReports(reports, expectedOrigin, expectedMetadat
   assert.deepEqual(Object.keys(reports ?? {}).sort(), [...browserServers].sort(),
     'All four server reports are required');
   reports = structuredClone(reports);
-  applyStaticDocumentAgreement(reports);
+  applyFrameDocumentAgreement(reports);
   const normalizedOrigin = origin(expectedOrigin);
   const verification = [];
   const serverRuns = [];

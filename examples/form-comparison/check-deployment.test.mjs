@@ -25,7 +25,7 @@ const generationCheckIds = [
   'load-current-record', 'compile-reference', 'reject-missing-reference',
   'render-and-inject/nested-order', 'render-and-inject/explicit-empty',
   'render-and-inject/default-rows', 'render-and-inject/stored-en',
-  'render-and-inject/stored-ko', 'ssr/en', 'ssr/ko',
+  'render-and-inject/stored-ko', 'frame-document', 'ssr/en', 'ssr/ko', 'reject-ssr-request',
   'reject-invalid-render-data', 'stored-record-unchanged',
 ];
 

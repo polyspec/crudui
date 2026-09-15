@@ -1,23 +1,35 @@
-import { createApp, h, nextTick } from 'vue';
+import { createApp, createSSRApp, h, nextTick } from 'vue';
 import { createForm } from '@crudui/generator-core';
 import { Form } from '#vue/Form';
 import { Outline } from '#vue/Outline';
 import { DataView } from '#vue/DataView';
 
-export function mountView(element, template, language, data = {}) {
+/** Vue hydration adopts the server-rendered nodes instead of replacing them. */
+export const hydration = 'keep';
+
+function start(views, template, language, data, hydrate) {
   const session = createForm(template, data, { language });
-  const app = createApp({
-    render: () => [
-      h(Form, { form: session }),
-      h(Outline, { form: session, formElement: element }),
-      h(DataView, { form: session }),
-    ],
+  const form = (hydrate ? createSSRApp : createApp)({ render: () => h(Form, { form: session }) });
+  const outline = createApp({
+    render: () => h(Outline, { form: session, formElement: views.form }),
   });
-  app.mount(element);
+  const dataView = createApp({ render: () => h(DataView, { form: session }) });
+  form.mount(views.form);
+  outline.mount(views.outline);
+  dataView.mount(views.data);
   return {
     getData: () => session.getData(),
     load: async next => { session.setData(next); await nextTick(); },
     idle: () => nextTick(),
-    dispose: () => app.unmount(), session, template, fromSerializedTemplate: true,
+    dispose: () => { form.unmount(); outline.unmount(); dataView.unmount(); },
+    session, template, fromSerializedTemplate: true,
   };
+}
+
+export function mountView(views, template, language, data = {}) {
+  return start(views, template, language, data, false);
+}
+
+export function hydrateView(views, template, language, data) {
+  return start(views, template, language, data, true);
 }

@@ -168,13 +168,42 @@ pub async fn handle(
     reply(StatusCode::OK, response)
 }
 
-fn escape(value: &str) -> String {
-    value
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&#39;")
+const FRAME_ERROR: &str =
+    "The frame document must contain one html start tag, one empty form view and one body end tag";
+const HTML_START: &str = "<html>";
+const FORM_VIEW: &str = r#"<div id="form-view"></div>"#;
+const BODY_END: &str = "</body>";
+
+fn internal(message: impl Into<String>) -> Error {
+    Error {
+        status: StatusCode::INTERNAL_SERVER_ERROR,
+        message: message.into(),
+    }
+}
+
+/// Accept exactly lang, server and initialization, each once.
+fn frame_language(query: Option<&str>) -> Result<String> {
+    let invalid = || bad("Expected lang, server and initialization for this SSR frame");
+    let mut values: [Option<String>; 3] = [None, None, None];
+    for (name, value) in form_urlencoded::parse(query.unwrap_or("").as_bytes()) {
+        let index = ["lang", "server", "initialization"]
+            .iter()
+            .position(|expected| *expected == name)
+            .ok_or_else(invalid)?;
+        if values[index].replace(value.into_owned()).is_some() {
+            return Err(invalid());
+        }
+    }
+    match values {
+        [Some(language), Some(server), Some(initialization)]
+            if ["ko", "en"].contains(&language.as_str())
+                && server == "rust"
+                && initialization == "ssr" =>
+        {
+            Ok(language)
+        }
+        _ => Err(invalid()),
+    }
 }
 
 fn document(
@@ -183,13 +212,20 @@ fn document(
     framework: &str,
     query: Option<&str>,
 ) -> Result<Response> {
-    let language = form_urlencoded::parse(query.unwrap_or("").as_bytes())
-        .find(|(name, _)| name == "language")
-        .map(|(_, value)| value.into_owned())
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "ko".into());
-    if !["ko", "en"].contains(&language.as_str()) {
-        return Err(bad("Expected language ko or en"));
+    let language = frame_language(query)?;
+    let frame = std::fs::read_to_string(
+        server
+            .specs
+            .join("frames")
+            .join(format!("{rendering_path}-{framework}"))
+            .join("index.html"),
+    )
+    .map_err(|_| internal(FRAME_ERROR))?;
+    if [HTML_START, FORM_VIEW, BODY_END]
+        .iter()
+        .any(|part| frame.matches(part).count() != 1)
+    {
+        return Err(internal(FRAME_ERROR));
     }
     let spec = read_object(&server.specs.join("spec.json"))?;
     let template = compile_form(
@@ -199,10 +235,7 @@ fn document(
             ..Default::default()
         },
     )
-    .map_err(|error| Error {
-        status: StatusCode::INTERNAL_SERVER_ERROR,
-        message: error.to_string(),
-    })?;
+    .map_err(|error| internal(error.to_string()))?;
     let repository = Repository {
         file: server
             .data
@@ -218,23 +251,28 @@ fn document(
             ..Default::default()
         },
     )
-    .map_err(|error| Error {
-        status: StatusCode::INTERNAL_SERVER_ERROR,
-        message: error.to_string(),
-    })?;
-    let markup = render_form(&form).map_err(|error| Error {
-        status: StatusCode::INTERNAL_SERVER_ERROR,
-        message: error.to_string(),
-    })?;
-    let interactive = if language == "ko" {
-        "입력 화면 열기"
-    } else {
-        "Open interactive form"
-    };
-    let document = format!(
-        r#"<!doctype html><html lang="{language}" data-language="{language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/crudui.css"><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/{rendering_path}-{framework}/?server=rust&amp;lang={language}&amp;initialization=ssr">{interactive}</a></header><form id="form" method="post" action="/api/rust/save/{rendering_path}/{framework}" data-generator-runtime="rust" data-generator-commit="{commit}"><div id="view">{markup}</div></form></body></html>"#,
-        commit = escape(COMMIT)
-    );
+    .map_err(|error| internal(error.to_string()))?;
+    let markup = render_form(&form).map_err(|error| internal(error.to_string()))?;
+    // JSON escapes keep the payload from ending the script element early.
+    let payload = codec::encode(&json!({"data":form.get_data(),"generator":provenance()}))?
+        .replace('<', "\\u003c")
+        .replace('>', "\\u003e")
+        .replace('&', "\\u0026");
+    // Each part occurs once; the form markup is inserted last so it is never searched.
+    let document = frame
+        .replacen(HTML_START, &format!(r#"<html lang="{language}">"#), 1)
+        .replacen(
+            BODY_END,
+            &format!(
+                r#"<script type="application/json" id="crudui-ssr">{payload}</script>{BODY_END}"#
+            ),
+            1,
+        )
+        .replacen(
+            FORM_VIEW,
+            &format!(r#"<div id="form-view">{markup}</div>"#),
+            1,
+        );
     Ok((
         StatusCode::OK,
         [
