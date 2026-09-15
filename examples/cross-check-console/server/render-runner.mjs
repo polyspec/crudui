@@ -1,5 +1,5 @@
 /**
- * Compile and render one request in React, Svelte and Vue, then compare HTML
+ * Compile and render one request in HTML, React, Svelte and Vue, then compare HTML
  * using the shared fixture normalizer. Each result records output or its error.
  */
 
@@ -8,7 +8,7 @@ import { getEngine } from './engine.mjs';
 import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mjs';
 
 /**
- * Render one request across React / Svelte / Vue in parallel.
+ * Render one request across HTML / React / Svelte / Vue in parallel.
  *
  * @param {object} req { spec, data, options }
  * @returns {Promise<{results: object[], parity: boolean, mismatch: object|null}>}
@@ -19,19 +19,20 @@ export async function renderAll(req) {
   const options = req.options ?? {};
   const form = Promise.resolve().then(() => engine.createForm(engine.compileForm(spec, options), req.data ?? {}, options));
 
-  const [react, svelte, vue] = await Promise.all([
+  const [html, react, svelte, vue] = await Promise.all([
+    renderOne(engine, 'html', async () => withoutPreloadLinks(engine.renderHtml(await form))),
     renderOne(engine, 'react', async () => engine.renderReact(await form)),
     renderOne(engine, 'svelte', async () => engine.renderSvelte(await form)),
     renderOne(engine, 'vue', async () => engine.renderVue(await form)),
   ]);
 
-  const results = [react, svelte, vue];
+  const results = [html, react, svelte, vue];
   const { parity, mismatch } = compareParity(results, engine.normalizeHtml);
   return { results, parity, mismatch };
 }
 
 /**
- * Render supplied list rows in all three frameworks with the same layout options.
+ * Render supplied list rows in HTML, React, Svelte and Vue with the same layout options.
  *
  * @param {object} listSpec the list-spec (columns map; $ref/$patch composable)
  * @param {Array<object>} rows injected display rows
@@ -41,7 +42,8 @@ export async function renderAll(req) {
 export async function renderAllList(listSpec, rows = [], options = {}) {
   const engine = await getEngine();
   // Rows pass unchanged: invalid rows fail in each renderer with the shared input error.
-  const [react, svelte, vue] = await Promise.all([
+  const [html, react, svelte, vue] = await Promise.all([
+    renderOne(engine, 'html', () => withoutPreloadLinks(engine.renderListHtml(listSpec, rows, options))),
     renderOne(engine, 'react', () =>
       withoutPreloadLinks(engine.renderListReact(listSpec, rows, options))
     ),
@@ -53,13 +55,13 @@ export async function renderAllList(listSpec, rows = [], options = {}) {
     ),
   ]);
 
-  const results = [react, svelte, vue];
+  const results = [html, react, svelte, vue];
   const { parity, mismatch } = compareParity(results, engine.normalizeHtml);
   return { results, parity, mismatch };
 }
 
 /**
- * Render one record through a detail specification in all three frameworks.
+ * Render one record through a detail specification in HTML, React, Svelte and Vue.
  *
  * @param {object} detailSpec the detail specification (fields map; $ref/$patch composable)
  * @param {object} record the injected record
@@ -69,7 +71,8 @@ export async function renderAllList(listSpec, rows = [], options = {}) {
 export async function renderAllDetail(detailSpec, record = {}, options = {}) {
   const engine = await getEngine();
   // The record passes unchanged: an invalid record fails in each renderer with the shared input error.
-  const [react, svelte, vue] = await Promise.all([
+  const [html, react, svelte, vue] = await Promise.all([
+    renderOne(engine, 'html', () => withoutPreloadLinks(engine.renderDetailHtml(detailSpec, record, options))),
     renderOne(engine, 'react', () =>
       withoutPreloadLinks(engine.renderDetailReact(detailSpec, record, options))
     ),
@@ -81,7 +84,7 @@ export async function renderAllDetail(detailSpec, record = {}, options = {}) {
     ),
   ]);
 
-  const results = [react, svelte, vue];
+  const results = [html, react, svelte, vue];
   const { parity, mismatch } = compareParity(results, engine.normalizeHtml);
   return { results, parity, mismatch };
 }

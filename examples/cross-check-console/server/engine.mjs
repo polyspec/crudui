@@ -1,5 +1,5 @@
 /**
- * Load the React, Vue and Svelte render entries in one Vite SSR environment.
+ * Load the HTML, React, Vue and Svelte render entries in one Vite SSR environment.
  * The Svelte workspace supplies Vite and its matching compiler plugin.
  * Validation runs separately through the four language CLI processes.
  */
@@ -16,12 +16,15 @@ let enginePromise = null;
  * the first call boots, later calls return the same resolved engine.
  *
  * @returns {Promise<{
+ *   renderHtml: Function,
  *   renderReact: Function,
  *   renderSvelte: Function,
  *   renderVue: Function,
+ *   renderListHtml: Function,
  *   renderListReact: Function,
  *   renderListSvelte: Function,
  *   renderListVue: Function,
+ *   renderDetailHtml: Function,
  *   renderDetailReact: Function,
  *   renderDetailSvelte: Function,
  *   renderDetailVue: Function,
@@ -61,7 +64,8 @@ async function bootEngine() {
     plugins: [svelte()],
   });
 
-  const [reactMod, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
+  const [htmlMod, reactMod, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
+    vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-html/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-react/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-svelte/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/index.ts')),
@@ -70,6 +74,7 @@ async function bootEngine() {
   ]);
 
   return {
+    renderHtml: htmlMod.renderForm,
     compileForm: reactMod.compileForm,
     createForm: reactMod.createForm,
     renderReact: reactMod.renderForm,
@@ -80,14 +85,17 @@ async function bootEngine() {
     renderListReact: reactMod.renderList,
     renderListSvelte: svelteMod.renderList,
     renderListVue: vueListMod.renderList,
+    renderListHtml: htmlMod.renderList,
     // All three package entries export detail rendering (Vue re-exports detailSsr).
     renderDetailReact: reactMod.renderDetail,
     renderDetailSvelte: svelteMod.renderDetail,
     renderDetailVue: vueMod.renderDetail,
+    renderDetailHtml: htmlMod.renderDetail,
     normalizeHtml: normMod.normalizeHtml,
     // Error classes for surfacing render failures with a stable `code` (the same
     // ERROR_CLASS_BY_CODE keys the conformance tests use).
     errorClasses: {
+      html: {},
       react: {
         ComposeLoadError: reactMod.ComposeLoadError,
         UnsupportedFieldTypeError: reactMod.UnsupportedFieldTypeError,

@@ -36,14 +36,12 @@ const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascrip
 const httpServer = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
-    if (url.pathname === '/displays' || url.pathname === '/displays/') {
-      if (url.searchParams.get('api') !== '/displays') {
-        response.writeHead(302, { Location: '/displays/?api=%2Fdisplays', 'Cache-Control': 'no-store' });
-        response.end();
-        return;
-      }
+    if (url.pathname === '/displays') {
+      response.writeHead(302, { Location: '/displays/', 'Cache-Control': 'no-store' });
+      response.end();
+      return;
     }
-    if (url.pathname.startsWith('/displays/')) {
+    if (url.pathname.startsWith('/displays/api/')) {
       const originalUrl = request.url;
       request.url = originalUrl.slice('/displays'.length) || '/';
       try {

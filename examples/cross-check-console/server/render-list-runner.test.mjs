@@ -51,15 +51,15 @@ function rerr(fw, code) {
 const TABLE = '<div class="crudui-list"><table class="crudui-list__table"><tbody><tr><td>Ada</td></tr></tbody></table></div>';
 
 describe('compareParity (list envelopes) — agreement', () => {
-  test('three frameworks share one normalized list → parity:true, no mismatch', () => {
-    const results = ['react', 'svelte', 'vue'].map((fw) => rok(fw, TABLE));
+  test('four renderers share one normalized list → parity:true, no mismatch', () => {
+    const results = ['html', 'react', 'svelte', 'vue'].map((fw) => rok(fw, TABLE));
     const { parity, mismatch } = compareParity(results);
     expect(parity).toBe(true);
     expect(mismatch).toBeNull();
   });
 
-  test('all three share one error code → parity:true (agreement on an unresolved $ref)', () => {
-    const results = ['react', 'svelte', 'vue'].map((fw) => rerr(fw, 'REF_FILE_NOT_FOUND'));
+  test('all four share one error code → parity:true (agreement on an unresolved $ref)', () => {
+    const results = ['html', 'react', 'svelte', 'vue'].map((fw) => rerr(fw, 'REF_FILE_NOT_FOUND'));
     expect(compareParity(results).parity).toBe(true);
   });
 });
@@ -108,8 +108,8 @@ describe('compareParity (list envelopes) — TAMPER (fake-divergent injection)',
 });
 
 // ---------------------------------------------------------------------------
-// Real list fan-out (boots the Vite SSR engine + renders 3 frameworks per case).
-// Every fixture case runs — the same cases.json the React/Vue/Svelte list
+// Real list fan-out (boots the Vite SSR engine + renders four renderers per case).
+// Every fixture case runs — the same cases.json the HTML/React/Vue/Svelte list
 // conformance suites load. Slow (one shared engine, reused across cases), so the
 // whole describe carries one generous timeout.
 // ---------------------------------------------------------------------------
@@ -117,9 +117,9 @@ const allCases = JSON.parse(fs.readFileSync(LIST_FIXTURE, 'utf8'));
 const okCases = allCases.filter((c) => c.expected_html);
 const errorCases = allCases.filter((c) => c.expectError);
 
-describe('renderAllList — real 3-framework list SSR fan-out (every fixture case)', () => {
+describe('renderAllList — real four-renderer list SSR fan-out (every fixture case)', () => {
   for (const c of okCases) {
-    test(`${c.name} — React/Svelte/Vue agree (parity) AND React == fixture expected_html`, async () => {
+    test(`${c.name} — HTML/React/Svelte/Vue agree (parity) AND React == fixture expected_html`, async () => {
       const out = await renderAllList(c.spec, c.rows ?? [], c.options ?? {});
 
       // No framework may fail a non-error case.
@@ -136,7 +136,7 @@ describe('renderAllList — real 3-framework list SSR fan-out (every fixture cas
   }
 
   for (const c of errorCases) {
-    test(`${c.name} — surfaces ${c.expectError.code} on all three (parity, never a silent table)`, async () => {
+    test(`${c.name} — surfaces ${c.expectError.code} on all four (parity, never a silent table)`, async () => {
       const out = await renderAllList(c.spec, c.rows ?? [], c.options ?? {});
       // Every framework must FAIL with the SAME code — agreement is parity:true.
       expect(out.results.every((r) => !r.ok)).toBe(true);
@@ -144,9 +144,10 @@ describe('renderAllList — real 3-framework list SSR fan-out (every fixture cas
         c.expectError.code,
         c.expectError.code,
         c.expectError.code,
+        c.expectError.code,
       ]);
       if (c.expectError.message) {
-        expect(out.results.map((r) => r.error.message)).toEqual([c.expectError.message, c.expectError.message, c.expectError.message]);
+        expect(out.results.map((r) => r.error.message)).toEqual([c.expectError.message, c.expectError.message, c.expectError.message, c.expectError.message]);
       }
       expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
     }, 120000);
