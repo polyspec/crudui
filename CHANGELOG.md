@@ -2,6 +2,18 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Give every example a README in both languages
+
+`examples/form-structure` had no README and the cross-check console had no Korean README, so the
+preview's purpose and start command were written nowhere. Every directory under `examples/` has
+`README.md` and `README.ko.md` that link to each other, and `tests/docs/example-readmes.test.mjs`
+checks both files, their links to each other and every relative link; it failed before the READMEs
+were written. The form structure README gives `npm run build` followed by
+`npx vite examples/form-structure`. That command served the page, its modules, the specification, the
+data and `crudui.css`, and a headless browser rendered 57 nodes with the stored names. The console
+README gives the Rust command its build script runs, `cargo build --locked --release --bin validate`.
+The example README and writing tests passed.
+
 ## 2026-09-15 — Show lists and details in the package examples and document their operation
 
 The package examples rendered forms only, no operations document described lists and details, and

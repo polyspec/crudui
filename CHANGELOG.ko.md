@@ -2,6 +2,16 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 모든 예제에 두 언어 README 제공
+
+`examples/form-structure`에는 README가 없었고 교차 검증 콘솔에는 한국어 README가 없어, 미리보기의 목적과 실행
+명령이 어디에도 적혀 있지 않았습니다. 이제 `examples/` 아래 모든 디렉터리에 서로 링크하는 `README.md`와
+`README.ko.md`가 있고, `tests/docs/example-readmes.test.mjs`가 두 파일, 서로 간 링크, 모든 상대 링크를 검사합니다.
+이 테스트는 README를 쓰기 전에 실패했습니다. 폼 구조 README는 `npm run build` 뒤 `npx vite examples/form-structure`를
+안내합니다. 이 명령은 페이지, 모듈, 명세, 데이터, `crudui.css`를 제공했고, 헤드리스 브라우저가 저장된 이름이 들어간
+노드 57개를 렌더링했습니다. 콘솔 README는 빌드 스크립트가 실행하는 Rust 명령
+`cargo build --locked --release --bin validate`를 안내합니다. 예제 README 검사와 문서 작성 검사가 통과했습니다.
+
 ## 2026-09-15 — 패키지 예제에서 목록과 상세를 보여 주고 운영 문서 작성
 
 패키지 예제는 폼만 렌더링했고, 목록과 상세를 설명하는 운영 문서가 없었으며, 문서 색인 네 개가 서로 다른 문서를
