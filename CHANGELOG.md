@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-16 — Publish the benchmark run source identity
+
+The benchmark job result now includes the source identity read from `/source.json`. The server
+report can therefore validate the complete tree identity before accepting its child reports.
+
 ## 2026-09-16 — Publish initialization source identity under the verifier contract
 
 The dedicated benchmark now stores the frame's complete source identity in the initialization
