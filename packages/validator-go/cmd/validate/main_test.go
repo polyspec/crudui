@@ -320,62 +320,158 @@ func TestCliListModeRefResolvesAndScansClean(t *testing.T) {
 	}
 }
 
-// TestCliUnknownModeIsBadRequest: an unknown mode is a bad request — exit 1,
-// {error} with NO "code" (it is not a compose load failure), NO "valid".
-func TestCliUnknownModeIsBadRequest(t *testing.T) {
+// modeRequest builds a {"spec", "files", "basepath", "mode"} request with a raw
+// mode value, so non-string modes can be sent.
+func modeRequest(t *testing.T, specJSON string, files map[string]string, rawMode string) []byte {
+	t.Helper()
+	fm := map[string]json.RawMessage{}
+	for k, v := range files {
+		fm[k] = json.RawMessage(v)
+	}
+	fb, _ := json.Marshal(fm)
 	req := map[string]json.RawMessage{
-		"spec": json.RawMessage(`{"columns":{"name":{"field":".name"}}}`),
-		"mode": json.RawMessage(`"grid"`),
+		"spec":     json.RawMessage(specJSON),
+		"files":    fb,
+		"basepath": json.RawMessage(`""`),
+		"mode":     json.RawMessage(rawMode),
 	}
-	b, _ := json.Marshal(req)
-	run := runCli(t, b)
-	if run.exit != 1 {
-		t.Fatalf("unknown mode exit: want 1, got %d (stderr: %s)", run.exit, run.stderr)
+	b, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal request: %v", err)
+	}
+	return b
+}
+
+// TestCliDetailModeRefResolvesAndIsValid: mode:detail composes the fields map
+// and returns exactly {valid:true, errors:[]} with exit 0.
+func TestCliDetailModeRefResolvesAndIsValid(t *testing.T) {
+	run := runCli(t, modeRequest(t,
+		`{"fields":{"$ref":"base.yml","$patch":{"extra":{"field":".extra"}}}}`,
+		map[string]string{"base.yml": `{"properties":{"name":{"field":".name"}}}`},
+		`"detail"`,
+	))
+	if run.exit != 0 {
+		t.Fatalf("detail exit: want 0, got %d (stdout: %s, stderr: %s)", run.exit, run.stdout, run.stderr)
 	}
 	var out map[string]any
 	if err := json.Unmarshal(run.stdout, &out); err != nil {
-		t.Fatalf("unknown-mode stdout not JSON: %q (%v)", run.stdout, err)
+		t.Fatalf("detail stdout not JSON: %q (%v)", run.stdout, err)
 	}
-	if _, ok := out["error"]; !ok {
-		t.Fatalf("unknown mode must carry an {error}: %s", run.stdout)
-	}
-	if _, ok := out["valid"]; ok {
-		t.Fatalf("unknown mode must not carry \"valid\": %s", run.stdout)
-	}
-	if _, ok := out["code"]; ok {
-		t.Fatalf("unknown mode is a bad request, not a compose load failure — must carry no \"code\": %s", run.stdout)
+	want := map[string]any{"valid": true, "errors": []any{}}
+	if !reflect.DeepEqual(out, want) {
+		t.Fatalf("detail stdout mismatch\n want: %v\n  got: %v", want, out)
 	}
 }
 
-func TestCliMalformedEmptyStdinExits1(t *testing.T) {
-	run := runCli(t, []byte(""))
-	if run.exit != 1 {
-		t.Fatalf("empty stdin exit: want 1, got %d", run.exit)
-	}
+// TestCliDetailModeForbiddenKeyLoadWire: a forbidden key in a detail field is a
+// load failure — exit 2, exactly {error, code, at}.
+func TestCliDetailModeForbiddenKeyLoadWire(t *testing.T) {
+	run := runCli(t, modeRequest(t, `{"fields":{"name":{"field":".name","show_if":".admin"}}}`, nil, `"detail"`))
 	var out map[string]any
 	if err := json.Unmarshal(run.stdout, &out); err != nil {
-		t.Fatalf("malformed stdout not JSON: %q", run.stdout)
+		t.Fatalf("failure stdout not JSON: %q (%v)", run.stdout, err)
 	}
-	if _, ok := out["error"]; !ok {
-		t.Fatalf("malformed request must carry an {error}: %s", run.stdout)
+	message, _ := out["error"].(string)
+	if message == "" {
+		t.Fatalf("detail load failure must carry a message: %s", run.stdout)
 	}
-	if _, ok := out["valid"]; ok {
-		t.Fatalf("malformed request must not carry \"valid\": %s", run.stdout)
+	assertFailureWire(t, run, message, "FORBIDDEN_META_KEY", "fields.name.show_if")
+}
+
+// TestCliRequestRules pins every shared request rule, in order: each failure
+// exits 1 with stdout exactly {"error": <message>}. Several cases break more
+// than one rule to pin that the earlier rule wins.
+func TestCliRequestRules(t *testing.T) {
+	const (
+		spec = `{"properties":{"name":{"type":"text"}}}`
+	)
+	cases := []struct {
+		name    string
+		input   string
+		message string
+	}{
+		{"empty stdin", ``, "Request must be valid JSON"},
+		{"bad json", `{not json`, "Request must be valid JSON"},
+		{"trailing garbage", `{"spec":{}} x`, "Request must be valid JSON"},
+		{"array request", `[{"spec":{}}]`, "Request must be an object"},
+		{"null request", `null`, "Request must be an object"},
+		{"string request", `"spec"`, "Request must be an object"},
+		{"no spec", `{"data":{}}`, "Request spec must be an object"},
+		{"null spec", `{"spec":null}`, "Request spec must be an object"},
+		{"array spec", `{"spec":[]}`, "Request spec must be an object"},
+		{"no spec before bad mode", `{"mode":"grid"}`, "Request spec must be an object"},
+		{"mode grid", `{"spec":` + spec + `,"mode":"grid"}`, "Unsupported validation mode"},
+		{"mode empty string", `{"spec":` + spec + `,"mode":""}`, "Unsupported validation mode"},
+		{"mode number", `{"spec":` + spec + `,"mode":1}`, "Unsupported validation mode"},
+		{"mode null", `{"spec":` + spec + `,"mode":null}`, "Unsupported validation mode"},
+		{"mode case", `{"spec":` + spec + `,"mode":"Form"}`, "Unsupported validation mode"},
+		{"bad mode before bad files", `{"spec":` + spec + `,"mode":"grid","files":[]}`, "Unsupported validation mode"},
+		{"files array", `{"spec":` + spec + `,"files":[]}`, "Request files must be an object"},
+		{"files string", `{"spec":` + spec + `,"files":"x"}`, "Request files must be an object"},
+		{"bad files before bad basepath", `{"spec":` + spec + `,"files":1,"basepath":1}`, "Request files must be an object"},
+		{"files member string", `{"spec":` + spec + `,"files":{"a.yml":"x"}}`, "Request files must contain objects"},
+		{"files member null", `{"spec":` + spec + `,"files":{"a.yml":null}}`, "Request files must contain objects"},
+		{"bad file member before bad basepath", `{"spec":` + spec + `,"files":{"a.yml":[]},"basepath":1}`, "Request files must contain objects"},
+		{"basepath number", `{"spec":` + spec + `,"basepath":1}`, "Request basepath must be a string"},
+		{"basepath object", `{"spec":` + spec + `,"basepath":{}}`, "Request basepath must be a string"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			run := runCli(t, []byte(c.input))
+			if run.exit != 1 {
+				t.Fatalf("exit: want 1, got %d (stdout: %s, stderr: %s)", run.exit, run.stdout, run.stderr)
+			}
+			var out map[string]any
+			if err := json.Unmarshal(run.stdout, &out); err != nil {
+				t.Fatalf("stdout not JSON: %q (%v)", run.stdout, err)
+			}
+			want := map[string]any{"error": c.message}
+			if !reflect.DeepEqual(out, want) {
+				t.Fatalf("stdout mismatch\n want: %v\n  got: %v", want, out)
+			}
+		})
 	}
 }
 
-func TestCliMalformedBadJsonExits1(t *testing.T) {
-	run := runCli(t, []byte("{not json"))
-	if run.exit != 1 {
-		t.Fatalf("bad JSON exit: want 1, got %d", run.exit)
+// TestCliNullFilesAndBasepathMeanNone: null files and basepath are accepted as
+// none and the request validates normally.
+func TestCliNullFilesAndBasepathMeanNone(t *testing.T) {
+	run := runCli(t, []byte(`{"spec":{"fields":{"name":{"field":".name"}}},"mode":"detail","files":null,"basepath":null}`))
+	if run.exit != 0 {
+		t.Fatalf("exit: want 0, got %d (stdout: %s)", run.exit, run.stdout)
 	}
 	var out map[string]any
 	if err := json.Unmarshal(run.stdout, &out); err != nil {
-		t.Fatalf("bad-JSON stdout not JSON: %q", run.stdout)
+		t.Fatalf("stdout not JSON: %q (%v)", run.stdout, err)
 	}
-	if _, ok := out["error"]; !ok {
-		t.Fatalf("bad JSON must carry an {error}: %s", run.stdout)
+	want := map[string]any{"valid": true, "errors": []any{}}
+	if !reflect.DeepEqual(out, want) {
+		t.Fatalf("stdout mismatch\n want: %v\n  got: %v", want, out)
 	}
+}
+
+// TestCliFormDataRule: after the request rules, form data that is present and
+// not an object (null included) is the exit-2 input failure; absent data is {}.
+func TestCliFormDataRule(t *testing.T) {
+	spec := `{"properties":{"name":{"type":"text"}}}`
+	for _, data := range []string{`null`, `[]`, `"x"`, `1`} {
+		t.Run(data, func(t *testing.T) {
+			run := runCli(t, []byte(`{"spec":`+spec+`,"data":`+data+`}`))
+			assertFailureWire(t, run, "Form data must be an object", "INVALID_FORM_INPUT", "")
+		})
+	}
+	t.Run("absent", func(t *testing.T) {
+		run := runCli(t, []byte(`{"spec":`+spec+`}`))
+		if run.exit != 0 {
+			t.Fatalf("absent data exit: want 0, got %d (stdout: %s)", run.exit, run.stdout)
+		}
+	})
+	t.Run("list ignores data", func(t *testing.T) {
+		run := runCli(t, []byte(`{"spec":{"columns":{"name":{"field":".name"}}},"mode":"list","data":null}`))
+		if run.exit != 0 {
+			t.Fatalf("list with null data exit: want 0, got %d (stdout: %s)", run.exit, run.stdout)
+		}
+	})
 }
 
 func keysOf(m map[string]any) []string {

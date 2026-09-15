@@ -13,6 +13,7 @@
 | 위치 | 계약 |
 | --- | --- |
 | `tests/fixtures/validate/cases.json` | 현재 검증 결과와 조합 실패. |
+| `tests/fixtures/validator-cli/cases.json` | 검증기 명령행 요청 규칙과 메시지입니다. |
 | `tests/fixtures/compose/` | 참조와 패치 조합. |
 | `tests/fixtures/expr/` | 토큰·AST·표현식 평가. |
 | `tests/fixtures/form-render/` | 기대 폼 렌더링. |

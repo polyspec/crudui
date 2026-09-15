@@ -2,6 +2,49 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Validate detail specifications in every language
+
+`validateDetail` existed only in JavaScript, its feature was recorded as partial, and the shared
+detail validity cases were two meta-schema cases that no engine read. Go, PHP, the PHP extension
+and Rust now validate a detail specification as JavaScript does: compose the root and the
+`fields` map, then reject a forbidden meta key anywhere as a load failure. The shared cases grew
+to ten, each declaring the engine verdict (`pass` or a code and location) next to the meta-schema
+verdict, and every language, its command-line adapter and the cross-check console
+(`/api/validate-detail`) run them.
+
+Writing the cases corrected two expectations I had assumed: the meta-schema requires `fields`
+on a root that only references a base, and it does not read inside `$patch`, so a forbidden key
+added by a patch passes the meta-schema and fails in the engine.
+
+Two divergences surfaced on the way:
+- The validator command-line adapters handled `mode` differently: JavaScript and Rust ran form
+  validation for any unknown value, Go failed with its own message, and PHP failed with
+  `Unsupported validation mode` but, like Go, would have read `"mode": null` as absent. Every
+  adapter now accepts an absent `mode` (form) or `form`, `list` or `detail`, and fails any other
+  value, `null` included, with `{"error": "Unsupported validation mode"}` and exit 1.
+- JavaScript composed a list root and a detail root with two copies of the same function that
+  differed in whether own keys written before `$ref` survive. Both validators now share one
+  root composition, the list behavior.
+
+Measuring the adapters with malformed requests then showed that only form data handling was
+shared. Invalid JSON, a non-object request and a missing or non-object `spec` produced four
+different messages (Go and PHP printed their parser or type errors), Go checked `mode` before
+`spec`, and a non-object `files`, a non-object file member or a non-string `basepath` was ignored
+by JavaScript and Rust but rejected by Go and PHP with their own messages. Every adapter now checks
+the request in one order with one message per rule (valid JSON, an object request, an object
+`spec`, a supported `mode`, an object `files` with object members, a string `basepath`), and the
+shared [command-line request cases](tests/fixtures/validator-cli/README.md) run in all four
+languages through the cross-check console tests. PHP's own command-line tests sent `files` as a
+JSON array and now send an object.
+
+JavaScript validator tests passed 1642 of 1642, Go validator packages passed, Rust 73 of 73, PHP
+1528 of 1528, and the PHP extension engine tests passed 24 with one existing skip; the PHP API
+check passed 585 checks in each of three configurations and 113 validation cases in each
+implementation. The cross-check console suite passed 166 of 166, including the ten detail
+validity cases and nineteen request cases in all four languages. The meta-schema check passed 80
+fixture checks, `make test-native` passed 238 of 238 in each of six targets, and lint,
+format-check, test:forms, manifest:test, test:docs and docs-check passed.
+
 ## 2026-09-15 — Resolve content text by one rule in every runtime
 
 The schema defines content as a string or a language map whose entries are strings, but no

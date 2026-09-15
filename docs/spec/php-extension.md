@@ -89,7 +89,8 @@ list specification, display rows and rendering options.
 
 `CRUDUI\Validator::validate(spec, data, options)` validates submitted data and returns
 `valid` and `errors`. Error entries preserve `path`, `field`, `rule`, `message`
-and `value`. `CRUDUI\Validator::validateList(spec, options)` checks a list specification.
+and `value`. `CRUDUI\Validator::validateList(spec, options)` checks a list specification and
+`CRUDUI\Validator::validateDetail(spec, options)` checks a detail specification.
 Composition inputs use an explicit `files` map and `basepath`.
 Specification, composition and data-shape failures raise exceptions; they are not
 validation results. Validation uses the shared rules and conformance cases.

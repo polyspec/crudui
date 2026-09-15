@@ -53,6 +53,23 @@ export async function validateAllList(req) {
   return fanOut(payload);
 }
 
+/**
+ * Validate detail composition and forbidden keys through all four language CLIs.
+ * Detail requests contain a specification and composition inputs, without a record.
+ *
+ * @param {object} req { spec, files?, basepath? }
+ * @returns {Promise<{results: object[], idempotent: boolean, mismatch: object|null}>}
+ */
+export async function validateAllDetail(req) {
+  const payload = {
+    spec: req.spec,
+    files: req.files ?? {},
+    basepath: req.basepath ?? '',
+    mode: 'detail',
+  };
+  return fanOut(payload);
+}
+
 /** Execute all four validator CLIs on one payload and compare the results. */
 function fanOut(payload) {
   const results = [runJs(payload), runPhp(payload), runGo(payload), runRust(payload)];

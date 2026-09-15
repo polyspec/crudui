@@ -19,10 +19,8 @@
 
 use serde_json::{Map, Value};
 
-use crate::compose::{
-    compose_properties, compose_spec, ComposeLoadError, ComposeOptions, FileLoader, MemoryLoader,
-};
-use crate::forbidden_scan::scan_forbidden_keys;
+use crate::compose::{compose_spec, ComposeLoadError, ComposeOptions, FileLoader};
+use crate::structure::{compose_map_slot, compose_root, validate_structure};
 
 /// Options for a list-spec validation run (the form `ValidateOptions` shape —
 /// no data, so no `data` field).
@@ -51,26 +49,16 @@ pub struct ValidateListOptions<'a> {
 /// `compose_properties` (the SAME code that composes form `properties`).
 /// `search` is a form-spec reference (input, §9.1) → `compose_spec`.
 pub fn validate_list(spec: &Value, options: &ValidateListOptions) -> Result<(), ComposeLoadError> {
-    let owned_loader;
-    let loader: &dyn FileLoader = match options.loader {
-        Some(l) => l,
-        None => {
-            owned_loader = MemoryLoader::new(options.files.clone().unwrap_or_default());
-            &owned_loader
-        }
-    };
-    let opts = match &options.basepath {
-        Some(bp) => ComposeOptions::with_basepath(bp.clone()),
-        None => ComposeOptions::default(),
-    };
-
-    let composed = compose_list(spec, loader, &opts)?;
-
-    // Load-path forbidden-scan (§6): walk the WHOLE composed list tree to
-    // arbitrary depth and reject any forbidden meta key. The trace is seeded at
-    // the list root (no `properties` prefix — a list is not a Field).
-    scan_forbidden_keys(&composed, &[])?;
-    Ok(())
+    // Load-path forbidden-scan (§6) runs over the WHOLE composed list tree, with
+    // the trace seeded at the list root (no `properties` prefix — a list is not a
+    // Field).
+    validate_structure(
+        spec,
+        options.files.as_ref(),
+        options.loader,
+        options.basepath.as_deref(),
+        compose_list,
+    )
 }
 
 /// Compose a list-spec into a single composition-free tree: expand the root
@@ -83,22 +71,17 @@ fn compose_list(
     loader: &dyn FileLoader,
     opts: &ComposeOptions,
 ) -> Result<Value, ComposeLoadError> {
-    let root = match spec.as_object() {
-        Some(m) => m.clone(),
-        None => return Ok(spec.clone()),
-    };
-
     // Root-level $ref/$patch: a list may inherit a whole base list. compose_spec
     // expands $ref/$patch and recurses into a `properties` child — a list has no
     // `properties`, so this only flattens the root composition keys.
-    let mut composed = compose_spec(root, loader, opts)?;
+    let mut composed = match compose_root(spec, loader, opts)? {
+        Some(m) => m,
+        None => return Ok(spec.clone()),
+    };
 
     // `columns` is a properties-shaped map (named Column entries, possibly a
     // `$ref`/`$patch` compose entry) → the form properties engine, verbatim.
-    if let Some(Value::Object(columns)) = composed.get("columns").cloned() {
-        let expanded = compose_properties(columns, loader, opts)?;
-        composed.insert("columns".to_string(), Value::Object(expanded));
-    }
+    compose_map_slot(&mut composed, "columns", loader, opts)?;
 
     // `search` is a form-spec reference (input, §9.1): a Field/group entry that
     // may carry `$ref`/`$patch` → compose_spec (which recurses into its own

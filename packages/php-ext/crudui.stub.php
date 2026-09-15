@@ -16,6 +16,7 @@ namespace CRUDUI {
     final class Validator {
         public static function validate(array|\stdClass $spec, array|\stdClass $data, array $options = []): \stdClass {}
         public static function validateList(array|\stdClass $spec, array $options = []): \stdClass {}
+        public static function validateDetail(array|\stdClass $spec, array $options = []): \stdClass {}
     }
     final class Form {
         public function __construct(\stdClass $template, array|\stdClass $data = [], array $options = []) {}
