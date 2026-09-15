@@ -2,6 +2,30 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Build and install what checks run before running them
+
+Three findings recorded during the form structure work stayed open because they needed a rule,
+and one shared case contradicted the schema:
+- `make test-native` wrote its report to `.git/native-generators`, which cannot be created in a Git
+  worktree, where `.git` is a file. The report path now comes from `git rev-parse --git-path`, the
+  same path in a normal checkout.
+- The cross-check console tests run the Go and Rust validator programs from fixed paths and never
+  checked that they matched the sources; today a missing Rust program failed 23 tests locally, and
+  earlier runs used programs older than their sources. The console's `npm test` now builds both
+  programs first, and CI no longer builds them in a separate step.
+- generator-php installs the validator as a copy, as the package build rules require, and the copy
+  does not follow later source changes; the native checks twice ran against a stale copy today.
+  `make test-native` now reinstalls the copy before any check loads it.
+- The forbidden-key case `ok-plain-spec` gave `design.label` a string, which the schema and the form
+  compiler reject; it now declares a label class.
+
+`make test-native` reinstalled the copy, wrote its report through the Git path and passed 241 of 241
+checks in each of the six targets (1447 including input checks). The console suite built both
+validator programs through `pretest` and passed 166 of 166. The forbidden-key cases passed in
+JavaScript (24), Go, PHP (23), Rust and the PHP extension (585 API checks in each of three
+configurations, 113 validation cases, engine 24 with one existing skip). test:forms, lint,
+format-check, manifest:test, test:docs and docs-check passed.
+
 ## 2026-09-15 — Enforce the detail input order and keep the rules in the libraries
 
 The display format specification lists the detail input rules in order, but every shared detail
