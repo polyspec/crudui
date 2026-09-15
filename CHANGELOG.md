@@ -5,6 +5,9 @@
 The PHP extension now creates omitted button content with its shared string allocator, so
 strict GCC builds do not depend on the non-standard `strdup` declaration.
 
+The deployed comparison tree at `923ffcbc` then passed 450 generation, 120 persistence and
+7,008 browser checks with zero failures.
+
 ## 2026-09-15 — Fix the native optional list input path
 
 The PHP extension now initializes and validates the optional `buildList` rows argument before

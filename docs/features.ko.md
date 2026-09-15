@@ -43,6 +43,13 @@
 | docs-pages | 영어·한국어·API 페이지를 제공하는 정적 문서 | implemented | passed | deployed | [페이지 검사](../tests/docs/site-build.test.mjs), [게시 절차](operations/documentation.ko.md), [게시 사이트](https://polyspec.github.io/crudui/) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../tests/ordered-json/check.py) |
 
+## 현재 비교 배포 검증
+
+커밋 `923ffcbc`가 비교 배포가 제공하는 소스 identity입니다. 컨테이너 재시작 후 배포
+healthcheck와 supervisor가 ready 상태에 도달했습니다. PHP, PHP 확장, Go, Rust가 생성
+450개, 저장 120개, 브라우저 7,008개 검사를 실패 없이 통과했습니다. 각 브라우저 서버는
+900,000밀리초 제한 안에 완료했고 검증 후 컨테이너의 좀비 프로세스 수는 0개였습니다.
+
 ## 네이티브 패키지 검증
 
 현재 OrderedJSON 모노레포 리비전과 다섯 구현 패키지에서 공식 처리기 사례
