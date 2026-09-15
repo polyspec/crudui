@@ -4,12 +4,12 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { encodeJson } from './src/json.mjs';
-import { formServers } from './src/runtime-paths.mjs';
-import { publicDirectory, publicPort, serverRequest } from './src/server-layout.mjs';
+import { formFrameworks, formInitializations, formServers, pipelineServers } from './src/runtime-paths.mjs';
+import { publicDirectory, publicPort, serverPorts, serverRequest } from './src/server-layout.mjs';
 import { handler as displayConsoleHandler } from '../cross-check-console/server/server.mjs';
 import { bindButtons, bindForm, compileForm, createForm, formMessages } from '@crudui/generator-core';
 import { renderForm, renderFormView } from '@crudui/generator-html';
-import { pipelineRecords, renderPipelineDetail, renderPipelineList } from './src/pipeline.mjs';
+import { pipelineDetailSpec, pipelineListSpec, pipelineRecords, renderPipelineDetail, renderPipelineList } from './src/pipeline.mjs';
 
 // The supervisor sends its state after every change; this process never reads it from disk.
 let state = { status: 'building', cycle: 0, source: null, error: null };
@@ -77,7 +77,9 @@ function pipelineOptions(url) {
     framework: url.searchParams.get('framework') || 'html',
     initialization: url.searchParams.get('initialization') || 'csr',
   };
-  if (!formServers.includes(options.server) && options.server !== 'js') throw new Error('Unknown pipeline server');
+  if (!pipelineServers.includes(options.server)) throw new Error('Unknown pipeline server');
+  if (!formFrameworks.includes(options.framework)) throw new Error('Unknown pipeline framework');
+  if (!formInitializations.includes(options.initialization)) throw new Error('Unknown pipeline initialization');
   return options;
 }
 
@@ -87,6 +89,23 @@ async function handlePipeline(url, request, response) {
   if (request.method !== 'GET') return respond(response, 405, { error: 'Method not allowed' });
   const options = pipelineOptions(url);
   const records = pipelineRecords();
+  if (options.server !== 'js') {
+    const record = records.find(item => item.id === (url.searchParams.get('id') || '1'));
+    if (match[1] === 'detail' && !record) return respond(response, 404, { error: 'Record not found' });
+    const payload = { spec: match[1] === 'list' ? pipelineListSpec(options) : pipelineDetailSpec(options),
+      rows: records, record, options: { language: options.lang, layout: 'table', total: records.length } };
+    const native = await new Promise((resolve, reject) => {
+      const outgoing = http.request({ hostname: '127.0.0.1', port: serverPorts[options.server],
+        path: `/api/pipeline/${match[1]}`, method: 'POST', headers: { 'Content-Type': 'application/json' } }, incoming => {
+        const chunks = []; incoming.on('data', chunk => chunks.push(chunk));
+        incoming.on('end', () => resolve({ status: incoming.statusCode, headers: incoming.headers, body: Buffer.concat(chunks) }));
+      });
+      outgoing.on('error', reject); outgoing.end(JSON.stringify(payload));
+    });
+    response.writeHead(native.status, { 'Content-Type': native.headers['content-type'] || 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    response.end(native.body);
+    return true;
+  }
   if (match[1] === 'list') {
     response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     response.end(renderPipelineList(records, options));

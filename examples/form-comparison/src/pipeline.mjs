@@ -24,19 +24,25 @@ const detailBase = {
   },
 };
 const selectionQuery = ({ lang, server, framework, initialization }) => new URLSearchParams({ lang, server, framework, initialization }).toString();
-export function pipelineRecords() { return [
-  { id: '1', name: 'Ada', status: 'active', joined: '2026-01-02', score: 1234567.5, relation: { name: 'Northwind' }, avatar: 'data:image/png;base64,AA==', markup: '<strong>verified</strong>' },
-  { id: '2', name: 'Lin', status: 'blocked', joined: '2026-03-15', score: 42, relation: { name: 'Contoso' }, avatar: 'data:image/png;base64,AA==', markup: '<em>review</em>' },
-]; }
-export function renderPipelineList(records, options) {
+export function pipelineListSpec(options) {
   const query = selectionQuery(options);
   const spec = structuredClone(listBase);
   spec.columns.name.format.href = `/detail?id={=id}&${query}`;
-  return renderList(spec, records, { language: options.lang, layout: 'table', total: records.length });
+  return spec;
 }
-export function renderPipelineDetail(record, options) {
+export function pipelineDetailSpec(options) {
   const query = selectionQuery(options);
   const spec = structuredClone(detailBase);
   spec.fields.id.format.href = `/form?id={=id}&${query}`;
-  return renderDetail(spec, { ...record, query }, { language: options.lang });
+  return spec;
+}
+export function pipelineRecords() { return [
+  { id: '1', name: 'Ada', status: 'active', joined: '2026-01-02', score: 1234567.5, relation: { name: 'Northwind' }, avatar: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', markup: '<strong>verified</strong>' },
+  { id: '2', name: 'Lin', status: 'blocked', joined: '2026-03-15', score: 42, relation: { name: 'Contoso' }, avatar: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', markup: '<em>review</em>' },
+]; }
+export function renderPipelineList(records, options) {
+  return renderList(pipelineListSpec(options), records, { language: options.lang, layout: 'table', total: records.length });
+}
+export function renderPipelineDetail(record, options) {
+  return renderDetail(pipelineDetailSpec(options), record, { language: options.lang });
 }

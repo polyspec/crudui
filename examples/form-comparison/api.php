@@ -72,6 +72,22 @@ if (!str_starts_with($path, '/api/')) return false;
 
 try {
     if ($path === '/api/health') respond(200, ['status' => 'ok', 'php' => PHP_VERSION, 'storage' => 'JSON files', 'jsonProcessor' => 'ordered-json', 'generator' => currentGeneration()->provenance()]);
+    if (preg_match('#^/api/pipeline/(list|detail)$#D', $path, $pipelineMatch)) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') respond(405, ['error' => 'Method not allowed']);
+        if (strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])) !== 'application/json') respond(415, ['error' => 'Expected a JSON request']);
+        $request = jsonRequest();
+        $generation = currentGeneration();
+        $spec = $request->spec ?? null;
+        $options = $request->options ?? (object) [];
+        $language = is_string($options->language ?? null) ? $options->language : 'ko';
+        $html = $pipelineMatch[1] === 'list'
+            ? \CRUDUI\Generator::renderList($spec, $request->rows ?? [], ['language' => $language, 'layout' => 'table', 'total' => count($request->rows ?? [])])
+            : \CRUDUI\Generator::renderDetail($spec, $request->record ?? (object) [], ['language' => $language]);
+        header('Content-Type: text/html; charset=utf-8');
+        header('Cache-Control: no-store');
+        echo $html;
+        exit;
+    }
     $matrix = browserMatrix(FORM_SOURCE_ROOT);
     $alternatives = static fn(array $values): string => implode('|', array_map(static fn(string $value): string => preg_quote($value, '#'), $values));
     if (!preg_match('#^/api/(' . $alternatives($matrix->actions) . ')/(' . $alternatives($matrix->renderingPaths) . ')/(' . $alternatives($matrix->frameworks) . ')$#D', $path, $match)) respond(404, ['error' => 'Unknown endpoint']);

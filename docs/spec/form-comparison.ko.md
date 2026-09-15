@@ -115,9 +115,8 @@ OrderedJSON 체크아웃의 Git 호출도 같은 방식으로 제한합니다. �
 메시지를 묻어 버리므로 이 두 줄만 버리고 경고를 포함한 나머지 줄은 모두 남깁니다.
 
 PHP는 요청마다 소스를 읽으므로 PHP 소스 변경은 빌드나 재시작이 필요 없고 설치된 Composer
-사본만 교체합니다. `.gitignore`가 바뀌면 트리 전체를 동기화합니다. supervisor는 자기 모듈을
-마운트한 저장소에서 실행합니다. 이 모듈의 변경은 컨테이너를 다시 시작할 때 적용되며, 그 전까지
-supervisor는 `restart-required`를 보고합니다.
+사본만 교체합니다. `.gitignore`가 바뀌면 트리 전체를 동기화합니다. supervisor 모듈 변경은
+기존 컨테이너 안에서 supervisor 프로세스를 다시 로드해 적용하며 모든 볼륨을 유지합니다.
 
 ### 소스 식별자
 
@@ -134,7 +133,7 @@ Rust 서버는 상태·생성·SSR 응답마다 이 파일을 읽고, 메인 페
 
 ### 빌드 주기
 
-빌드 주기의 상태는 `building`, `ready`, `failed`, `restart-required` 중 하나입니다.
+빌드 주기의 상태는 `building`, `ready`, `failed` 중 하나입니다.
 supervisor는 다시 빌드하고 재시작한 뒤 API 서버마다 상태 요청을 한 번 보냅니다. 게시한
 식별자와, PHP 확장의 경우 빌드하고 로드한 `crudui.so`의 digest를 요구합니다. 공개 서버는
 supervisor에게서 상태를 프로세스 메시지로 받습니다. `/api/health`는 ready 주기에서만
@@ -493,9 +492,9 @@ containerctl이 기다리는 동안 대기는 조용하지 않습니다. contain
 않고 `.form-comparison/deployment/data`에 보존합니다. containerctl로 정의를 적용한 뒤
 명시적인 containerctl CA로 HTTPS 홈 페이지, 상태 응답, `source.json`, 저장 데이터 응답을
 요청합니다. 라우트, 인증서, 이미지, 마운트, 저장 파일, 컨테이너가 마운트한 저장소에 쓸 수
-없다는 것, 제공하는 식별자가 체크아웃의 식별자와 같다는 것을 검사합니다. 이어서 같은 정의를
-다시 적용합니다. 두 번째 적용은 컨테이너 ID, 생성·시작 시각, 이미지, 마운트, 라우트, 인증서,
-식별자, 저장 파일, 응답 바이트를 변경하지 않아야 합니다. 값이 변경되거나 요청이 실패하면 배포
+없다는 것, 제공하는 식별자가 체크아웃의 식별자와 같다는 것을 검사합니다. 재사용 조건을
+만족하면 정의를 다시 적용하지 않고 컨테이너 ID, 생성·시작 시각, 이미지, 마운트, 라우트, 인증서,
+식별자, 저장 파일, 응답 바이트를 유지합니다. 값이 변경되거나 요청이 실패하면 배포
 검증은 실패합니다. `/data`와 빌드 볼륨은 적용 사이에 유지합니다.
 
 배포 검증이 성공하면 명령은 어떤 컨테이너도 사용하지 않는 비교 이미지와, 제거한 아카이브
@@ -503,3 +502,10 @@ containerctl이 기다리는 동안 대기는 조용하지 않습니다. contain
 `.form-comparison/sources`, `.form-comparison/results` 디렉터리를 제거합니다. 이미지,
 Compose digest, 데이터 보존 결과와 두 스냅샷은
 `.form-comparison/deployment/verification.json`에 기록합니다.
+## 배포 수명주기 불변식
+
+실행 중인 컨테이너가 기대 이미지와 source, build, cache, data, results의 정확한 마운트를
+가지면 재사용합니다. 소스 동기화는 `containerctl down`, 컨테이너 재생성, 서비스 restart,
+볼륨 재연결을 수행하지 않습니다. `containerctl up`은 컨테이너가 없거나 호환되지 않을 때만
+bootstrap에 사용합니다. public pipeline은 목록·상세 표시 요청을 선택된 네이티브 서버로
+전달하며 Node 렌더러로 대체하지 않습니다.

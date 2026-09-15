@@ -18,8 +18,8 @@ function step(command, args, cwd = treeDirectory, environment = {}) {
 }
 
 /**
- * Files the supervisor itself runs from the mounted repository. A change to one of them applies
- * when the container starts again; until then the supervisor reports `restart-required`.
+ * Files the supervisor itself runs from the mounted repository. A change to one of them causes
+ * the supervisor process to reload from that mount while the container and its volumes remain.
  */
 export const supervisorFiles = Object.freeze([
   `${example}/supervisor.mjs`,

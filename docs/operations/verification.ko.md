@@ -38,10 +38,11 @@ node examples/form-comparison/verification.mjs
 
 배포 명령은 `examples/form-comparison/Containerfile`이 바뀌었을 때만 툴체인 이미지를
 빌드합니다. 저장소를 읽기 전용으로 마운트하고 빌드 산출물은 `crudui-comparison-build`와
-`crudui-comparison-cache` 볼륨에 두며 containerctl 정의를 두 번 적용합니다. 두 번째 적용은
-아무것도 바꾸지 않아야 합니다. 빈 볼륨으로 처음 시작하면 모든 의존성을 설치하고 빌드하며,
-이후 시작은 볼륨을 다시 사용합니다. 명령은 실행 중인 서비스의 데이터를 보존하고 사용하지 않는
-비교 이미지와 더 이상 쓰지 않는 커밋별 디렉터리를 제거합니다.
+`crudui-comparison-cache` 볼륨에 둡니다. 예상 컨테이너가 예상 이미지로 실행 중이면 기존
+컨테이너를 통해 소스만 동기화하며 컨테이너를 재생성하거나 서비스를 재시작하거나 볼륨을
+다시 연결하지 않습니다. 컨테이너가 없거나 중지되었거나 이미지가 다를 때만 생성합니다.
+명령은 실행 중인 서비스의 데이터를 보존하고 사용하지 않는 비교 이미지와 더 이상 쓰지 않는
+커밋별 디렉터리를 제거합니다.
 
 두 명령 모두 조용히 기다리지 않습니다. 모든 단계는 자기 제한 시간을 포함한 시작, 실행 중
 15초마다 경과 시간, 완료 시 소요 시간을 출력합니다. 제한 시간에 도달한 단계는 프로세스 트리
@@ -51,9 +52,8 @@ node examples/form-comparison/verification.mjs
 
 소스 변경에는 명령이 필요 없습니다. supervisor가 변경 파일을 빌드 트리에 복사하고 영향받는
 대상만 다시 빌드하며 영향받는 서버만 다시 시작합니다. PHP 소스 변경은 다음 요청에 적용됩니다.
-supervisor 모듈의 변경은
-`containerctl -f .form-comparison/deployment/compose.yaml restart comparison` 뒤에 적용되며,
-그 전까지 `/api/source`는 `restart-required`를 보고합니다.
+supervisor 모듈 변경은 기존 컨테이너 안에서 supervisor 프로세스를 다시 로드해 적용하며,
+모든 볼륨을 유지합니다.
 
 컨테이너는 빌드 트리에서 공개 서버, PHP, PHP 확장, Go, Rust 프로세스를 각각 하나씩
 실행합니다. PHP는 Composer 클래스를 사용하고 PHP 확장 프로세스는 `ordered_json.so`와
@@ -88,3 +88,7 @@ Go·Rust 서버 테스트, ordered JSON 테스트는 되풀이하지 않습니�
 검증 전까지 `.form-comparison/deployment/results/`에 유지합니다.
 
 패키지 게시는 별도 작업입니다. 검증은 게시 상태를 변경하지 않습니다.
+소스 변경을 적용하기 전에 기존 컨테이너와 정확한 마운트를 검사합니다. 재사용 조건을 만족하면
+컨테이너와 모든 볼륨을 실행 상태로 유지하고 supervisor가 읽기 전용 source 마운트를 동기화하게
+합니다. 빌드나 상태 검사 실패의 복구 수단으로 `down`을 사용하지 않으며, 진단을 위해 상태를
+보존하고 실패한 빌드나 프로세스 작업만 다시 시도합니다.
