@@ -1284,10 +1284,11 @@ static ps_value *detail_open(list_session *session, const ps_value *spec, const 
     *session = (list_session){0};
     if (!spec || spec->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Detail specification must be an object", "").error;
-    if (!ps_has(spec, "fields"))
-        return ps_fail("form", "INVALID_FORM_INPUT", "Detail specification must declare fields", "").error;
+    /* Argument shapes in argument order, then the declaration, then options. */
     if (!record || record->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Detail record must be an object", "").error;
+    if (!ps_has(spec, "fields"))
+        return ps_fail("form", "INVALID_FORM_INPUT", "Detail specification must declare fields", "").error;
     if (!options || options->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "").error;
     /* An absent or null context is empty. */

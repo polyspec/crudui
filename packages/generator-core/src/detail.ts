@@ -35,11 +35,12 @@ export function buildDetail(
   if (detailSpec === null || typeof detailSpec !== 'object' || Array.isArray(detailSpec)) {
     throw new FormInputError('Detail specification must be an object');
   }
-  if (!Object.prototype.hasOwnProperty.call(detailSpec, 'fields')) {
-    throw new FormInputError('Detail specification must declare fields');
-  }
+  // Argument shapes in argument order, then the declaration, then options.
   if (record === null || typeof record !== 'object' || Array.isArray(record)) {
     throw new FormInputError('Detail record must be an object');
+  }
+  if (!Object.prototype.hasOwnProperty.call(detailSpec, 'fields')) {
+    throw new FormInputError('Detail specification must declare fields');
   }
   const context = options.data;
   if (context !== undefined && context !== null && (typeof context !== 'object' || Array.isArray(context))) {

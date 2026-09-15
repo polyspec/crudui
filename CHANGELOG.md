@@ -2,6 +2,28 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Enforce the detail input order and keep the rules in the libraries
+
+The display format specification lists the detail input rules in order, but every shared detail
+case broke one rule at a time, so the order was never checked. Adding cases that break two rules
+at once showed that the JavaScript protocol adapter of the native runner, and the Go and PHP
+generator commands, checked the record themselves before calling the library. With an invalid
+specification and an invalid record they reported the record, while the libraries report the
+specification. The JavaScript adapter also turned a `null` record into an empty object, which no
+other runtime does.
+
+The adapters could not simply defer to the libraries: the Go and PHP detail signatures take the
+record as an object, so a non-object record can only be rejected where JSON is decoded, and the
+documented order put the `fields` rule before the record rule. Instead of copying the `fields`
+rule into every adapter, the rule order now follows one principle that the list rules already
+followed: argument shapes in argument order (specification, record), then the declaration
+(`fields`), then options (`data`). The JavaScript, Rust, PHP and C libraries check in that order,
+the JavaScript adapter passes the decoded record unchanged, and the Go command checks the record
+only for an object specification. Three shared cases break two rules each.
+
+The detail cases grew to 28. `make test-native` passed 241 of 241 checks in each of the six
+targets (1447 including input checks).
+
 ## 2026-09-15 — Validate detail specifications in every language
 
 `validateDetail` existed only in JavaScript, its feature was recorded as partial, and the shared

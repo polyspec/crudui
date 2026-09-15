@@ -14,10 +14,11 @@ final class Details
     public static function build(array|stdClass $spec, array|stdClass $record, array $options): stdClass
     {
         $spec = self::root($spec, 'Detail specification must be an object');
+        // Argument shapes in argument order, then the declaration, then options.
+        $record = self::root($record, 'Detail record must be an object');
         if (!property_exists($spec, 'fields')) {
             throw new FormError('INVALID_FORM_INPUT', 'Detail specification must declare fields');
         }
-        $record = self::root($record, 'Detail record must be an object');
         // An absent or null context is empty; data is a fixed object option.
         $data = $options['data'] ?? null;
         if ($data !== null && !$data instanceof stdClass && !(is_array($data) && ($data === [] || !array_is_list($data)))) {
