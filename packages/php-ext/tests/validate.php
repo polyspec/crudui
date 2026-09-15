@@ -35,21 +35,19 @@ foreach (['spec-validity','list-validity','detail-validity'] as $family) {
     foreach (json_decode(file_get_contents($root.'/tests/fixtures/'.$family.'/cases.json'), false, 512, JSON_THROW_ON_ERROR) as $case) {
         $options = [];
         foreach (['files','basepath'] as $option) if (property_exists($case,$option)) $options[$option] = $case->{$option};
-        $expectation = $family === 'spec-validity' ? $case->expect : $case->engine;
+        $expectation = $case->engine;
         try {
             $actual = match ($family) {
                 'spec-validity' => Validator::validate($case->spec,new stdClass(),$options),
                 'list-validity' => Validator::validateList($case->spec,$options),
                 'detail-validity' => Validator::validateDetail($case->spec,$options),
             };
-            if ($family !== 'spec-validity' && json_encode($actual,JSON_THROW_ON_ERROR) !== '{"valid":true,"errors":[]}') throw new RuntimeException($case->name.': clean load result differs');
+            if (json_encode($actual,JSON_THROW_ON_ERROR) !== '{"valid":true,"errors":[]}') throw new RuntimeException($case->name.': clean load result differs');
             if ($expectation instanceof stdClass) throw new RuntimeException($case->name.': expected a composition error');
             $results[] = ['case'=>$family.':'.$case->name,'result'=>$actual];
         } catch (ComposeLoadError $error) {
             if (!$expectation instanceof stdClass) throw $error;
-            $code = $family === 'spec-validity' ? $expectation->error_code : $expectation->code;
-            $path = $family === 'spec-validity' ? $expectation->at_path : $expectation->at;
-            if ($code !== $error->getErrorCode() || $path !== implode('.',$error->getCompositionTrace())) throw new RuntimeException($case->name.': error code or path differs');
+            if ($expectation->code !== $error->getErrorCode() || $expectation->at !== implode('.',$error->getCompositionTrace())) throw new RuntimeException($case->name.': error code or path differs');
             $results[] = ['case'=>$family.':'.$case->name,'error'=>$error->getErrorCode(),'path'=>implode('.',$error->getCompositionTrace())];
         }
     }

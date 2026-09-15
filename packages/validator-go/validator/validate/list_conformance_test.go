@@ -1,31 +1,15 @@
 package validate
 
 // List structure conformance verifies the Go runtime against
-// tests/fixtures/list-validity/cases.json. The meta-schema and runtime check
-// separate requirements from SPEC §9.4:
-//
-//	(A) The meta-schema checks required columns, closed objects, sort.dir and
-//	    pagination.mode enums, and CellFormat polymorphism. Ajv treats $ref and
-//	    $patch as plain object keys.
-//	(B) The runtime resolves $ref and $patch and rejects a §6 forbidden key at
-//	    any depth with *compose.ComposeLoadError. It does not repeat meta-schema
-//	    shape checks.
-//
-// This test classifies each fixture from its forbidden keys and composition
-// entries independently of the runtime implementation:
-//
-//	1. spec carries a §6 forbidden key (any depth)  → engine REJECTS it
-//	   (ComposeLoadError code FORBIDDEN_META_KEY).
-//	2. spec carries a $ref/$patch compose entry → the columns/search files are
-//	   supplied and the runtime composes and scans without a load error.
-//	3. otherwise → the runtime produces no load error. The meta-schema reports any
-//	   required, enum, anyOf or non-§6 additional-property error separately.
+// tests/fixtures/list-validity/cases.json. Each case declares `engine`:
+// "pass" (no load error, valid:true, no errors) or {code, at} (a
+// *compose.ComposeLoadError with that code whose trace joined by "." is at).
+// The case `files` are the composition files passed to the runtime.
 
 import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 
@@ -33,16 +17,14 @@ import (
 )
 
 type listValidityCase struct {
-	Name   string          `json:"name"`
-	Note   string          `json:"note"`
-	Expect string          `json:"expect"`
-	Reason string          `json:"reason"`
-	Spec   json.RawMessage `json:"spec"`
+	Name   string                     `json:"name"`
+	Engine json.RawMessage            `json:"engine"`
+	Files  map[string]json.RawMessage `json:"files"`
+	Spec   json.RawMessage            `json:"spec"`
 }
 
 func loadListValidityFixtures(t *testing.T) []listValidityCase {
 	t.Helper()
-	// validator-go/validator/model/validate → repo root is five levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "list-validity", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
@@ -58,131 +40,49 @@ func loadListValidityFixtures(t *testing.T) []listValidityCase {
 	return cases
 }
 
-// list§6ForbiddenKeys is the SPEC §6 forbidden meta-key set, restated here
-// INDEPENDENTLY of the engine (validator/model/types.go ForbiddenMetaKeys). The test
-// must not import the engine's own list to decide what the engine should reject —
-// that would be circular. §6 is the contract; this is the contract restated.
-var listForbiddenKeys = map[string]bool{
-	"display_switch": true, "display_target": true,
-	"if": true, "when": true, "show_if": true,
-	"_": true, "seqtokey": true, "__13hex__": true,
-	"$after": true, "$before": true, "$merge": true, "$remove": true,
-	"xclass": true, "xstyle": true,
-}
-
-// isListForbiddenKey mirrors SPEC §6: an enumerated literal OR an x{key}
-// comment (x followed by ≥1 char). The bare "x" is not a comment. $ref/$patch are
-// compose sigils, NOT forbidden (compose consumes them before the scan).
-func isListForbiddenKey(key string) bool {
-	if listForbiddenKeys[key] {
-		return true
-	}
-	return len(key) > 1 && strings.HasPrefix(key, "x")
-}
-
-// specHasForbiddenKey walks a decoded JSON tree (map / []any / scalar) for any §6
-// forbidden key at any depth — the test's independent classifier for bucket 1.
-func specHasForbiddenKey(node any) bool {
-	switch n := node.(type) {
-	case map[string]any:
-		for k, v := range n {
-			if isListForbiddenKey(k) {
-				return true
-			}
-			if specHasForbiddenKey(v) {
-				return true
-			}
-		}
-	case []any:
-		return slices.ContainsFunc(n, specHasForbiddenKey)
-	}
-	return false
-}
-
-// specHasComposeEntry reports whether the tree carries a $ref/$patch compose entry
-// at any depth — the test's classifier for bucket 2 (compose reuse).
-func specHasComposeEntry(node any) bool {
-	switch n := node.(type) {
-	case map[string]any:
-		for k, v := range n {
-			if k == "$ref" || k == "$patch" {
-				return true
-			}
-			if specHasComposeEntry(v) {
-				return true
-			}
-		}
-	case []any:
-		return slices.ContainsFunc(n, specHasComposeEntry)
-	}
-	return false
-}
-
-// listComposeFiles supplies the in-memory file set the bucket-2 ($ref) cases
-// reference. The shared fixture declares no files (ajv does not resolve $ref); the
-// engine DOES resolve, so the referenced docs are supplied here to drive the real
-// compose reuse — the SAME ComposeProperties/ComposeSpec the form path runs. The
-// docs are clean (no §6 key) so the case composes AND forbidden-scans clean,
-// proving the columns/search $ref path expands without leaking a LOAD error.
-func listComposeFiles() map[string][]byte {
-	return map[string][]byte{
-		// A bare-path $ref descends the default detectKey ["properties"] (ref.go /
-		// ref.ts) — the SAME form-spec convention columns reuse. The base file exposes
-		// its column map under `properties`; the resolver flattens it into the columns
-		// base. The docs carry no §6 key so the case composes AND scans clean.
-		"base-columns.yml": []byte(`{"properties":{"id":{"field":".id","label":"ID"}}}`),
-		"search-form.yml":  []byte(`{"properties":{"q":{"type":"text"}}}`),
-	}
-}
-
 func TestValidateListMatchesFixture(t *testing.T) {
 	for _, c := range loadListValidityFixtures(t) {
 		c := c
 		t.Run(c.Name, func(t *testing.T) {
-			var tree any
-			if err := json.Unmarshal(c.Spec, &tree); err != nil {
-				t.Fatalf("%s: spec decode: %v", c.Name, err)
+			if len(c.Engine) == 0 {
+				t.Fatalf("%s: case must declare engine", c.Name)
 			}
-
-			forbidden := specHasForbiddenKey(tree)
-			composeEntry := specHasComposeEntry(tree)
-
 			files := map[string][]byte{}
-			if composeEntry {
-				files = listComposeFiles()
+			for k, v := range c.Files {
+				files[k] = []byte(v)
 			}
-			_, err := ValidateListJSON(c.Spec, files, "")
+			res, err := ValidateListJSON(c.Spec, files, "")
 
-			// Bucket 1 — a §6 forbidden key: the engine MUST reject it as a
-			// FORBIDDEN_META_KEY load failure (regardless of the fixture's ajv reason).
-			if forbidden {
-				if err == nil {
-					t.Fatalf("%s: spec carries a §6 forbidden key — engine must reject it as a LOAD failure, got valid", c.Name)
+			var pass string
+			if json.Unmarshal(c.Engine, &pass) == nil {
+				if pass != "pass" {
+					t.Fatalf("%s: engine string must be \"pass\", got %q", c.Name, pass)
 				}
-				le, ok := err.(*compose.ComposeLoadError)
-				if !ok {
-					t.Fatalf("%s: expected *compose.ComposeLoadError, got %T: %v", c.Name, err, err)
-				}
-				if le.Code != compose.ForbiddenMetaKey {
-					t.Fatalf("%s: expected code FORBIDDEN_META_KEY, got %s (%s)", c.Name, le.Code, le.Message)
-				}
-				return
-			}
-
-			// Bucket 2 — a $ref/$patch compose entry: the engine composes the supplied
-			// files and forbidden-scans CLEAN. No LOAD error (the compose reuse path
-			// works); a clean list is valid with no errors (no rows → no DATA pass).
-			if composeEntry {
 				if err != nil {
-					t.Fatalf("%s: compose reuse must resolve the supplied $ref and scan clean, got LOAD error: %v", c.Name, err)
+					t.Fatalf("%s: expected pass, got error: %v", c.Name, err)
+				}
+				if !res.Valid || len(res.Errors) != 0 {
+					t.Fatalf("%s: expected valid:true with no errors, got %+v", c.Name, res)
 				}
 				return
 			}
 
-			// Bucket 3 has no forbidden key or composition entry. The runtime does
-			// not report meta-schema shape errors as load errors.
-			if err != nil {
-				t.Fatalf("%s: runtime must produce no load error for a meta-schema shape result, got: %v", c.Name, err)
+			var want struct {
+				Code *string `json:"code"`
+				At   *string `json:"at"`
+			}
+			if uerr := json.Unmarshal(c.Engine, &want); uerr != nil || want.Code == nil || want.At == nil {
+				t.Fatalf("%s: engine must be \"pass\" or {code, at}, got %s", c.Name, c.Engine)
+			}
+			le, ok := err.(*compose.ComposeLoadError)
+			if !ok {
+				t.Fatalf("%s: expected *compose.ComposeLoadError, got %T: %v", c.Name, err, err)
+			}
+			if string(le.Code) != *want.Code {
+				t.Fatalf("%s: code want %s, got %s (%s)", c.Name, *want.Code, le.Code, le.Message)
+			}
+			if got := strings.Join(le.Trace, "."); got != *want.At {
+				t.Fatalf("%s: at want %s, got %s", c.Name, *want.At, got)
 			}
 		})
 	}
