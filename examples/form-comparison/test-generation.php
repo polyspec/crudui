@@ -34,8 +34,9 @@ equalGeneration($source->archiveSha256, $provenance['archiveSha256'], 'Archive h
 checkGeneration(count(get_object_vars($provenance['classes'])) === 3, 'Generation, form state and validation need independent provenance');
 foreach ($provenance['classes'] as $class) checkGeneration($class['internal'] === ($runtime === 'php-ext') && $class['extension'] === ($runtime === 'php-ext' ? 'crudui' : null), 'Incorrect class implementation');
 checkGeneration($runtime === 'php-ext' ? $provenance['moduleSha256'] === hash_file('sha256', $moduleFile) : $provenance['moduleSha256'] === null, 'Module hash must describe the selected implementation');
-$expectedSignatures = json_decode(file_get_contents($expectedSignaturesFile), true, 512, JSON_THROW_ON_ERROR);
-equalGeneration($expectedSignatures, (array) $provenance['signatures'], 'Public PHP and extension signatures must match');
+// Decode as objects: associative decoding would turn an empty object default such as {} into [].
+$expectedSignatures = json_decode(file_get_contents($expectedSignaturesFile), false, 512, JSON_THROW_ON_ERROR);
+equalGeneration($expectedSignatures, $provenance['signatures'], 'Public PHP and extension signatures must match');
 
 $spec = json_decode('{"type":"group","properties":{"$ref":"companies.json"}}');
 $files = json_decode('{"companies.json":{"properties":{"companies":{"type":"group","multiple":true,"properties":{"name":{"type":"text","label":"Company","validate":{"required":true}},"stores":{"type":"group","multiple":true,"properties":{"name":{"type":"text","label":"Store"}}}}}}}}');
