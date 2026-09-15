@@ -8,6 +8,13 @@ const actions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboa
 const collectionSelector = '[data-field-path="companies"]';
 const storeSelector = 'input[name$="[stores][__0000000000001__][name]"]';
 
+/** Clear a text control deterministically on the Linux Chromium runner. */
+async function clearInput(input) {
+  await input.click();
+  await input.press('Control+A');
+  await input.press('Backspace');
+}
+
 /** Whether focus is on the first enabled visible input of the collection's row at `index`, inside the frame viewport. */
 /**
  * Whether the first input of a collection row has focus and is visible to the user:
@@ -96,8 +103,7 @@ export async function checkInteraction(page, servers) {
                 assert.equal(focus.inPage, true, 'The focused input is inside the page viewport');
               } else if (action === 'validation') {
                 const input = await frame.$(storeSelector);
-                await input.click({ count: 3 });
-                await input.press('Backspace');
+                await clearInput(input);
                 await frame.evaluate(() => window.comparison.idle());
                 const requests = [];
                 const endpoint = `/api/${server}/save/${path}/${framework}`;
@@ -134,8 +140,7 @@ export async function checkInteraction(page, servers) {
                   assert.equal(await frame.$eval('#validation', output => output.textContent),
                     '', 'Corrected input clears errors');
                   const saved = await frame.$(storeSelector);
-                  await saved.click({ count: 3 });
-                  await saved.press('Backspace');
+                  await clearInput(saved);
                   await frame.evaluate(() => window.comparison.idle());
                   await clickAction(frame, 'save');
                   assert.equal(requests.length, 1, 'Second invalid save is also blocked');
