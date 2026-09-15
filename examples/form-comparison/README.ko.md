@@ -2,10 +2,10 @@
 
 [English](README.md).
 
-정본 `crudui.test` 진입 페이지는 폼 비교와 `/displays/`의 사용자용 읽기 전용 목록·상세
-표시 예제로 연결됩니다. 표시 페이지는 같은 public 프로세스와 배포의 프레임워크 독립
-HTML 렌더러를 사용합니다. Cross-Check Console은 개발용 비교 화면이며 정본 표시 페이지가
-아닙니다.
+정본 `crudui.test` 진입 페이지는 `List → Detail → Form → Save → List refresh` 하나의
+파이프라인입니다. JavaScript reference·PHP·PHP extension·Go·Rust, HTML·React·Vue·Svelte,
+CSR·SSR을 선택합니다. 별도 벤치마크 화면은 `/benchmark/`에 있으며 `/displays/`는 제공하지
+않습니다.
 
 이 예제는 PHP, PHP 확장, Go, Rust에서 중첩 keyed 폼을 검증합니다. 각 서버는
 같은 폼 데이터를 컴파일·렌더링·검증·저장합니다. React·Vue·Svelte·HTML 렌더러는

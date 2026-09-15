@@ -1,16 +1,15 @@
 <!doctype html>
 <html lang="ko">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI · Nested forms</title><link rel="stylesheet" href="/comparison.css"></head>
-<body class="comparison">
-  <div class="panel">
-  <header class="page-header"><span class="brand">CRUDUI</span><a id="language" href="?lang=en">English</a><h1 id="title"></h1><p id="intro"></p><nav class="example-nav" aria-label="CRUDUI examples"><strong>Examples</strong><a href="/">Form</a><a href="/displays/">List and detail</a></nav></header>
-  <nav class="actions"><label for="server" id="server-label"></label><select id="server"><option value="php">PHP</option><option value="php-ext">PHP extension</option><option value="go">Go</option><option value="rust">Rust</option></select><label for="framework" id="framework-label"></label><select id="framework"><option value="react">React</option><option value="vue">Vue</option><option value="svelte">Svelte</option><option value="html">HTML</option></select><label for="path" id="path-label"></label><select id="path"><option value="bindForm">bindForm</option><option value="createForm">createForm</option></select><button id="initialization-check"></button><button id="all-checks"></button><button id="download" disabled></button><span id="progress" role="status"></span></nav>
-  <p id="manual"></p>
-  <section id="initialization" aria-live="polite"><h2 id="initialization-label"></h2><p id="initialization-status"></p><div id="initialization-results"></div></section>
-  <details><summary id="source-label"></summary><pre id="source"></pre></details>
-  <section id="report" aria-live="polite"></section>
-  </div>
-  <main class="frames"><iframe id="ssr" title="ssr"></iframe><iframe id="csr" title="csr"></iframe></main>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI · Pipeline example</title><link rel="stylesheet" href="/comparison.css"></head>
+<body class="pipeline">
+  <header class="site-header"><a class="brand" href="/">CRUDUI</a><span>pipeline example</span><a href="/benchmark/">benchmark</a><a id="language" href="?lang=en">English</a></header>
+  <main class="pipeline-shell">
+    <section class="hero"><p class="eyebrow">CRUDUI EXAMPLE</p><h1 id="title"></h1><p id="intro"></p></section>
+    <section class="controls" aria-label="Runtime selection"><label><span id="server-label"></span><select id="server"><option value="js">JavaScript</option><option value="php">PHP</option><option value="php-ext">PHP extension</option><option value="go">Go</option><option value="rust">Rust</option></select></label><label><span id="framework-label"></span><select id="framework"><option value="html">HTML</option><option value="react">React</option><option value="vue">Vue</option><option value="svelte">Svelte</option></select></label><label><span id="initialization-label"></span><select id="initialization"><option value="csr">CSR</option><option value="ssr">SSR</option></select></label></section>
+    <nav class="pipeline-nav" aria-label="Pipeline stages"><button data-stage="list" class="active">List</button><span>→</span><button data-stage="detail">Detail</button><span>→</span><button data-stage="form">Form</button><span>→</span><button data-stage="save">Save</button><span>→</span><button data-stage="refresh">List refresh</button></nav>
+    <section id="stage" aria-live="polite"></section>
+    <section id="form-stage" class="form-stage" hidden><div class="stage-heading"><p class="eyebrow">FORM</p><h2 id="form-title"></h2><p id="form-help"></p></div><div class="frames"><iframe id="ssr" title="SSR"></iframe><iframe id="csr" title="CSR"></iframe></div></section>
+    <details class="source"><summary id="source-label">Source identity</summary><pre id="source"></pre></details>
+  </main>
   <script type="module" src="/main.mjs"></script>
-</body>
-</html>
+</body></html>

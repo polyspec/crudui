@@ -6,17 +6,17 @@ Current examples use unversioned public APIs. `examples/cross-check-console`
 compares validation and rendering results across implementations. Form usage is
 defined in [form operations](../operations/forms.md).
 
-The canonical local example entry is [`https://crudui.test/`](https://crudui.test/).
-Its `Form` link opens the form comparison and its `List and detail` link opens the single
-read-only display example at `/displays/`. The display page is part of the same public process;
-it is the page to use when inspecting the current list and detail output.
+The canonical local example entry is [`https://crudui.test/`](https://crudui.test/). It is one
+pipeline page: List → Detail → Form → Save → List refresh. The separate benchmark screen is
+`/benchmark/`; `/displays/` is not a route.
+The list and detail stages are part of that same pipeline. The benchmark screen is separate at
+`/benchmark/`.
 
 Current examples cover all three specification kinds, not only forms. The Go, PHP and Rust
 package examples render a form, a list and a detail from one example record set, and the PHP
 example runs unchanged with the PHP extension. The cross-check console compares form, list and
 detail rendering and validation across implementations. The form comparison page compares
-server-side and client-side rendering of forms for every server and framework, and its
-`/displays/` page provides the canonical list and detail example. List and detail displays
+server-side and client-side rendering of forms for every server and framework. List and detail displays
 follow the [display formats](display-formats.md).
 
 The console accepts a validator response only when the process terminates with

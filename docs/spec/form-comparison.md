@@ -8,6 +8,18 @@ repository. Verification runs against the current repository tree, committed or
 not, and records that tree's source identity. It does not read source files from
 another checkout.
 
+## Canonical example and benchmark boundary
+
+The public root is the canonical pipeline example. It presents one record flow:
+`List → Detail → Form → Save → List refresh`. List rows link to their detail, and
+the detail links to the form for the same record. The page exposes five server
+implementations (JavaScript reference, PHP, PHP extension, Go and Rust), four
+clients (HTML, React, Vue and Svelte), and CSR or SSR selection.
+
+`examples/form-comparison/benchmark/` is a separate verification screen. It owns
+render and validation matrices and benchmark controls. The canonical page does
+not embed benchmark matrices. `/displays/` is not a route.
+
 ## Progress, limits and scope
 
 Three rules hold for every command in this contract: the deployment, the
@@ -280,13 +292,9 @@ does not style anything inside `#view`. Inside that compared element each frame 
 the form in `#form-view` and the browser-only structure map and data view in
 `#outline-view` and `#data-view`; the servers render the form alone.
 
-The canonical entry page links to `/displays/`, the single read-only display example. That page
-is a user-facing list/detail entry screen, not the internal Cross-Check Console. It uses the same
-deployed public process and its `/displays/api/render-list` and `/displays/api/render-detail`
-endpoints to show the framework-independent HTML renderer output. The Cross-Check Console remains
-a development comparison surface. It does not create a second application server or a second
-deployment. The list page injects rows and the detail page injects one record; neither page
-queries a database.
+The canonical entry page owns the complete List → Detail → Form → Save → List refresh pipeline.
+The benchmark entry is `/benchmark/` and owns matrix verification. There is no `/displays/`
+endpoint.
 
 Every render comparison includes the framework-independent HTML renderer in addition to React,
 Vue and Svelte. A parity verdict therefore covers four renderers.
