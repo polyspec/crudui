@@ -2,6 +2,13 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Report progress and enforce per-test limits in verification runners
+
+The native generator, PHP extension engine, package, and PHPUnit verification
+runners now report active work with elapsed time and stop an individual check at
+its own measured timeout. Native checks can select targets and checks, and package
+builds are reused only when their source and output digests still match.
+
 ## 2026-09-15 — Use GitHub-compatible documentation heading anchors
 
 The documentation site now generates heading anchors without adding an underscore

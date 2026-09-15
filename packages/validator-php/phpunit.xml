@@ -5,7 +5,9 @@
          colors="true"
          failOnRisky="true"
          failOnWarning="true"
-         cacheDirectory=".phpunit.cache">
+         cacheDirectory=".phpunit.cache"
+         enforceTimeLimit="true"
+         defaultTimeLimit="10">
     <testsuites>
         <testsuite name="conformance">
             <directory>tests</directory>

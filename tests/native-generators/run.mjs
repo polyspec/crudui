@@ -12,33 +12,102 @@ import { formScenarios, numberCases, companySpec, companyData, row, imageCase, u
 import { runRustCommand } from '../../scripts/run-rust-command.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const USAGE = 'Usage: node tests/native-generators/run.mjs --extension /absolute/crudui.so [--report path] [--source-commit hash] [--target names] [--check patterns]';
 const argv = process.argv.slice(2);
 let extension, reportPath;
 let sourceCommit = process.env.CRUDUI_SOURCE_COMMIT;
+const selectedTargets = [], checkPatterns = [];
 for (let index = 0; index < argv.length; index++) {
   const flag = argv[index], value = argv[++index];
-  if (!value || !['--extension', '--report', '--source-commit'].includes(flag)) throw new Error('Usage: node tests/native-generators/run.mjs --extension /absolute/crudui.so [--report path] [--source-commit hash]');
+  if (!value || !['--extension', '--report', '--source-commit', '--target', '--check'].includes(flag)) throw new Error(USAGE);
   if (flag === '--extension') extension = value;
   else if (flag === '--source-commit') sourceCommit = value;
+  else if (flag === '--target') selectedTargets.push(...value.split(',').filter(Boolean));
+  else if (flag === '--check') checkPatterns.push(...value.split(',').filter(Boolean));
   else reportPath = path.resolve(value);
 }
 const buildDirectory = await mkdtemp(path.join(os.tmpdir(), 'crudui-native-generators-'));
 const report = { completed: false, passed: false, targets: [], checks: [], buildDirectory };
+if (selectedTargets.length || checkPatterns.length) report.filter = { targets: selectedTargets, checks: checkPatterns };
+
+// A run reports what it is doing while it runs: every group and every slow check
+// prints its own start, its elapsed time and its result.
+const suiteStart = Date.now();
+const seconds = since => `${((Date.now() - since) / 1000).toFixed(1)}s`;
+const progress = text => process.stdout.write(`[${seconds(suiteStart).padStart(8)}] ${text}\n`);
+const RUNNING_INTERVAL = 5000;
+// A check id is `group:case`; the group selects the progress line and the time budget.
+const groupOf = name => name.includes(':') ? name.slice(0, name.indexOf(':')) : name;
+const pattern = text => new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, character => character === '*' ? '.*' : `\\${character}`)}$`);
+const checkFilters = checkPatterns.map(pattern);
+const selectsCheck = name => checkFilters.length === 0 || checkFilters.some(filter => filter.test(name) || filter.test(groupOf(name)));
+let selectedCount = 0;
+
+// Time budgets are sized from the measured duration of the slowest check in each
+// group. Measured on macOS (Apple silicon) across all six targets: form fixtures
+// 385 ms, form instances 335 ms, timezone cases 282 ms, detail 124 ms and every other
+// group under 100 ms. The budgets below hold for a machine an order of magnitude
+// slower. A check that exceeds its budget is killed with the processes it started,
+// is reported by id and fails the run, and the next check continues.
+const CHECK_BUDGETS = [
+  [/^(?:form-fixture|instance|dates)$/, 20000],
+];
+const DEFAULT_CHECK_BUDGET = 10000;
+const checkBudget = name => (CHECK_BUDGETS.find(([match]) => match.test(groupOf(name))) ?? [, DEFAULT_CHECK_BUDGET])[1];
+// Preparation builds the Go and Rust generators; a cold Cargo build dominates it.
+const PREPARE_BUDGET = { go: 300000, rust: 900000 };
 const digest = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
 const jsonValue = value => JSON.parse(JSON.stringify(value));
 const stateOnly = value => ({ data: value.data, fields: value.fields, html: value.html, revision: value.revision });
 
+// The signal of the running check; every process it starts is killed when its budget expires.
+let currentSignal;
+
 function execute(command, args, options = {}) {
+  const signal = options.signal ?? currentSignal;
   return new Promise(resolve => {
-    let stdout = '', stderr = '', failure, timedOut = false;
-    const child = spawn(command, args, { cwd: options.cwd ?? ROOT, env: options.env ?? process.env, stdio: ['pipe', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '', failure, timedOut = false, settled = false;
+    const settle = (status, processSignal) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ status, signal: processSignal, stdout, stderr, error: failure ?? (timedOut ? new Error('CLI timed out') : undefined) });
+    };
+    if (signal?.aborted) {
+      failure = new Error('Check budget expired before the process started');
+      resolve({ status: null, signal: null, stdout, stderr, error: failure });
+      return;
+    }
+    const child = spawn(command, args, { cwd: options.cwd ?? ROOT, env: options.env ?? process.env, stdio: ['pipe', 'pipe', 'pipe'], signal, killSignal: 'SIGKILL' });
     const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, options.timeout ?? 30000);
     child.stdout.on('data', data => { stdout += data; if (stdout.length > 32 * 1024 * 1024) { failure = new Error('CLI response exceeds 32 MiB'); child.kill('SIGKILL'); } });
     child.stderr.on('data', data => { stderr += data; });
-    child.on('error', error => { failure = error; });
-    child.on('close', (status, signal) => { clearTimeout(timer); resolve({ status, signal, stdout, stderr, error: failure ?? (timedOut ? new Error('CLI timed out') : undefined) }); });
+    child.on('error', error => { failure = error; settle(null, null); });
+    child.on('close', (status, processSignal) => settle(status, processSignal));
     child.stdin.on('error', error => { if (error.code !== 'EPIPE') failure = error; });
     child.stdin.end(options.input ?? '');
+  });
+}
+
+/** Run one command for the Rust toolchain resolver, honoring the running check's budget. */
+function runCommand(executable, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const capture = options.capture ?? false;
+    const child = spawn(executable, args, {
+      cwd: options.cwd, env: options.environment, signal: currentSignal, killSignal: 'SIGKILL',
+      stdio: capture ? ['ignore', 'pipe', 'pipe'] : ['ignore', 'inherit', 'inherit'],
+    });
+    let stdout = '', stderr = '';
+    if (capture) {
+      child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
+      child.stdout.on('data', chunk => { stdout += chunk; });
+      child.stderr.on('data', chunk => { stderr += chunk; });
+    }
+    child.once('error', reject);
+    child.once('close', (status, signal) => {
+      if (status === 0 && signal === null) resolve({ stdout, stderr });
+      else reject(new Error(`Command failed (${signal ?? status ?? 'unknown'}): ${[executable, ...args].join(' ')}${capture && stderr.trim() ? `: ${stderr.trim()}` : ''}`));
+    });
   });
 }
 
@@ -103,7 +172,7 @@ const targets = [
     command: rustBinary,
     args: [],
     prepare: () => runRustCommand(['build', '--locked', '--bin', 'generate'], {
-      cwd: path.join(ROOT, 'packages/generator-rust'),
+      cwd: path.join(ROOT, 'packages/generator-rust'), run: runCommand,
     }),
   },
   { name: 'php-native', command: process.env.PHP ?? 'php', args: ['-d', `extension=${extension ?? ''}`, phpCLI], prepare: async () => {
@@ -125,13 +194,56 @@ async function invoke(target, request, timezone) {
   return parseCLIResponse(request, result);
 }
 function oracle(request) { return jsonValue(dispatch(jsonValue(request))); }
+
+// One group of checks at a time: its start, its result and its elapsed time are printed
+// as it runs, and a check that outlives one interval prints a running line of its own.
+let group;
+function openGroup(target, name) {
+  if (group && group.target === target.name && group.name === name) return;
+  closeGroup();
+  group = { target: target.name, name, started: Date.now(), reported: Date.now(), checks: 0, failures: 0 };
+  progress(`  ${target.name} · ${name}: running`);
+}
+function closeGroup() {
+  if (!group) return;
+  const passed = group.checks - group.failures;
+  progress(`  ${group.target} · ${group.name}: ${passed}/${group.checks} passed (${seconds(group.started)})`);
+  group = undefined;
+}
+
 async function check(target, name, operation) {
+  if (!selectsCheck(name)) return;
+  selectedCount++;
+  openGroup(target, groupOf(name));
+  const started = Date.now(), budget = checkBudget(name);
+  const controller = new AbortController();
+  const previousSignal = currentSignal;
+  currentSignal = controller.signal;
+  let expired;
+  const running = setInterval(() => progress(`  ${target.name} · ${name}: still running (${seconds(started)} of ${budget / 1000}s)`), RUNNING_INTERVAL);
+  const budgetTimer = setTimeout(() => {
+    expired = new Error(`${name} exceeded its ${budget} ms budget; the check and its processes were stopped`);
+    controller.abort(expired);
+  }, budget);
+  const expiry = new Promise((resolve, reject) => controller.signal.addEventListener('abort', () => reject(expired), { once: true }));
+  expiry.catch(() => {});
   try {
-    const details = await operation();
-    report.checks.push({ target: target.name, case: name, passed: true, ...details });
+    const details = await Promise.race([operation(), expiry]);
+    report.checks.push({ target: target.name, case: name, passed: true, durationMs: Date.now() - started, ...details });
   } catch (error) {
-    report.checks.push({ target: target.name, case: name, passed: false, error: { name: error.name, message: error.message, code: error.code, at: error.at, expected: error.expected, actual: error.actual } });
-    process.stderr.write(`${target.name}: ${name}: ${error.message.split('\n')[0]}\n`);
+    const failure = expired ?? error;
+    report.checks.push({ target: target.name, case: name, passed: false, durationMs: Date.now() - started, timedOut: expired !== undefined, error: { name: failure.name, message: failure.message, code: failure.code, at: failure.at, expected: failure.expected, actual: failure.actual } });
+    group.failures++;
+    process.stderr.write(`${target.name}: ${name}: ${failure.message.split('\n')[0]}\n`);
+  } finally {
+    clearTimeout(budgetTimer);
+    clearInterval(running);
+    currentSignal = previousSignal;
+    group.checks++;
+    if (Date.now() - group.reported >= RUNNING_INTERVAL) {
+      group.reported = Date.now();
+      progress(`  ${group.target} · ${group.name}: ${group.checks - group.failures}/${group.checks} passed so far (${seconds(group.started)})`);
+    }
   }
 }
 function compareError(actual, expected) {
@@ -154,7 +266,10 @@ function compareForm(actual, expected, initial) {
   }
 }
 
+progress('inputs: hashing sources and built artifacts');
+const manifestStart = Date.now();
 report.inputs = { start: await inputManifest() };
+progress(`inputs: ${Object.keys(report.inputs.start.files).length} files hashed (${seconds(manifestStart)})`);
 ({ dispatch, errorRecord } = await import('./javascript.mjs'));
 
 const formCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form-render/cases.json'), 'utf8'));
@@ -181,11 +296,43 @@ assert.equal(formCases.length, 92, 'The form fixture inventory changed; review c
 assert.equal(listCases.length, 42, 'The list fixture inventory changed; review coverage before changing this assertion');
 assert.equal(detailCases.length, 30, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
-for (const target of targets) {
+const targetNames = targets.map(target => target.name);
+for (const name of selectedTargets) assert.ok(targetNames.includes(name), `Unknown target: ${name}; available targets are ${targetNames.join(', ')}`);
+const runTargets = selectedTargets.length ? targets.filter(target => selectedTargets.includes(target.name)) : targets;
+progress(`targets: ${runTargets.map(target => target.name).join(', ')}${checkPatterns.length ? `; checks matching ${checkPatterns.join(', ')}` : ''}`);
+
+for (const target of runTargets) {
+  const targetStart = Date.now();
   const status = { name: target.name, available: false, passed: false, command: target.command, args: target.args };
   report.targets.push(status);
-  try { await target.prepare(); status.available = true; }
-  catch (error) { status.error = error.message; process.stderr.write(`${target.name}: unavailable: ${error.message}\n`); continue; }
+  progress(`${target.name}: preparing`);
+  const prepareBudget = PREPARE_BUDGET[target.name] ?? 120000;
+  const controller = new AbortController();
+  currentSignal = controller.signal;
+  let prepareExpired;
+  const prepareTimer = setTimeout(() => {
+    prepareExpired = new Error(`preparation exceeded its ${prepareBudget} ms budget; the build was stopped`);
+    controller.abort(prepareExpired);
+  }, prepareBudget);
+  const prepareRunning = setInterval(() => progress(`${target.name}: still preparing (${seconds(targetStart)} of ${prepareBudget / 1000}s)`), RUNNING_INTERVAL);
+  const prepareExpiry = new Promise((resolve, reject) => controller.signal.addEventListener('abort', () => reject(prepareExpired), { once: true }));
+  prepareExpiry.catch(() => {});
+  try {
+    await Promise.race([target.prepare(), prepareExpiry]);
+    status.available = true;
+    status.prepareMs = Date.now() - targetStart;
+    progress(`${target.name}: prepared (${seconds(targetStart)})`);
+  } catch (error) {
+    const failure = prepareExpired ?? error;
+    status.error = failure.message;
+    process.stderr.write(`${target.name}: unavailable: ${failure.message}\n`);
+    progress(`${target.name}: unavailable (${seconds(targetStart)})`);
+    continue;
+  } finally {
+    clearTimeout(prepareTimer);
+    clearInterval(prepareRunning);
+    currentSignal = undefined;
+  }
 
   for (const fixture of formCases) await check(target, `form-fixture:${fixture.name}`, async () => {
     const compileRequest = { operation: 'compileForm', spec: fixture.spec, options: fixture.options ?? {} };
@@ -430,7 +577,8 @@ for (const target of targets) {
     ['unsupported-other', { language: 'fr', unsupported: 'other' }, 'unsupported must be throw or marker'],
     ['language-unsupported', { language: 'fr', idPrefix: null }, 'Unsupported language: fr'],
   ];
-  for (const [name, options, message] of optionRejections) for (const operation of ['bindForm', 'form']) await check(target, `${operation}-option-reject:${name}`, async () => {
+  // The operation is the outer loop so each check group runs as one contiguous group.
+  for (const operation of ['bindForm', 'form']) for (const [name, options, message] of optionRejections) await check(target, `${operation}-option-reject:${name}`, async () => {
     const request = { operation, template: oracle({ operation: 'compileForm', spec: companySpec }), data: companyData, options };
     let expected;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
@@ -441,7 +589,7 @@ for (const target of targets) {
     compareError(error, expected);
     return { error: expected };
   });
-  for (const [name, spec, data, message] of shapeRejections) for (const operation of ['bindForm', 'form']) await check(target, `${operation}-shape-reject:${name}`, async () => {
+  for (const operation of ['bindForm', 'form']) for (const [name, spec, data, message] of shapeRejections) await check(target, `${operation}-shape-reject:${name}`, async () => {
     const request = { operation, template: oracle({ operation: 'compileForm', spec }), data };
     let expected;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
@@ -483,20 +631,29 @@ for (const target of targets) {
     return { timezone, dateValues: dateCases.length, html: digest(html), fields: digest(initial.fields), rawHTML: true };
   });
 
+  closeGroup();
   status.checks = report.checks.filter(check => check.target === target.name).length;
   status.failures = report.checks.filter(check => check.target === target.name && !check.passed).length;
   status.passed = status.failures === 0;
-  process.stdout.write(`${target.name}: ${status.checks - status.failures}/${status.checks} checks passed\n`);
+  status.durationMs = Date.now() - targetStart;
+  progress(`${target.name}: ${status.checks - status.failures}/${status.checks} checks passed (${seconds(targetStart)})`);
 }
+progress('inputs: hashing sources and built artifacts again');
 try {
   report.inputs.end = await inputManifest();
   assert.deepEqual(report.inputs.end, report.inputs.start, 'Source or runtime artifacts changed while the conformance suite was running');
   report.checks.push({ target: 'suite', case: 'unchanged-inputs', passed: true });
+  progress('inputs: unchanged');
 } catch (error) {
   report.checks.push({ target: 'suite', case: 'unchanged-inputs', passed: false, error: { message: error.message, expected: error.expected, actual: error.actual } });
+  progress('inputs: CHANGED while the suite ran');
+}
+if (checkPatterns.length) {
+  const matched = selectedCount > 0;
+  report.checks.push({ target: 'suite', case: 'selected-checks', passed: matched, ...(matched ? { selected: selectedCount } : { error: { message: `No check matches ${checkPatterns.join(', ')}` } }) });
 }
 report.completed = true;
-report.passed = report.targets.length === targets.length &&report.targets.every(target => target.available && target.passed) && report.checks.every(check => check.passed);
+report.passed = report.targets.length === runTargets.length && report.targets.every(target => target.available && target.passed) && report.checks.every(check => check.passed);
 report.summary = { passed: report.checks.filter(check => check.passed).length, failed: report.checks.filter(check => !check.passed).length, unavailable: report.targets.filter(target => !target.available).map(target => target.name) };
 // A passing run removes its build directory; a failing run keeps it for inspection.
 if (report.passed) {
