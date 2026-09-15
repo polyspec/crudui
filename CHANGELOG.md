@@ -23,7 +23,10 @@ of each frame scrolls that frame (2,474 px and 2,862 px) and leaves the page at 
 pointer on the header is over neither frame. The comparison contract describes the layout.
 
 `npm run test:form-comparison:source` passed 141 and `:browser` 4, and `make docs-check`
-passed.
+passed. On the deployed a40f434 page, real Safari pressed Expand all inside the left frame,
+moved the pointer to the page header and ran the repeated injection comparison for PHP, React
+and bindForm: 168/168 matched. With the pointer resting over the left frame, the comparison
+stopped with the pointer message and produced no result.
 
 ## 2026-09-15 — Capture comparisons only while the pointer is outside the frames
 
