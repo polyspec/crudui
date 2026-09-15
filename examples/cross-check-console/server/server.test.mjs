@@ -140,18 +140,18 @@ describe('HTTP boundary — client input faults are 4xx { error }', () => {
 
 describe('HTTP boundary — a detail render failure is a 200 result surface', () => {
   // Boots the Vite SSR engine (the detail render path has no CLI).
-  test('clean detail YAML → 200, parity:true, the same detail markup in all three', async () => {
+  test('clean detail YAML → 200, parity:true, the same detail markup in all four', async () => {
     const detailSpec = 'fields:\n  name:\n    field: name\n    label: Name\n';
     const res = await postRaw('/api/render-detail', JSON.stringify({ spec: detailSpec, record: { name: 'Ada' }, options: { language: 'en' } }));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.results.map((r) => r.fw)).toEqual(['react', 'svelte', 'vue']);
+    expect(body.results.map((r) => r.fw)).toEqual(['html', 'react', 'svelte', 'vue']);
     expect(body.results.filter((r) => !r.ok).map((r) => `${r.fw}:${r.error.code}`)).toEqual([]);
     expect(body.parity, JSON.stringify(body.mismatch)).toBe(true);
     expect(body.results[0].normalized).toContain('Ada');
   }, 120000);
 
-  test('non-object record → 200 with INVALID_FORM_INPUT in all three, parity:true', async () => {
+  test('non-object record → 200 with INVALID_FORM_INPUT in all four, parity:true', async () => {
     const detailSpec = { fields: { name: { field: 'name', label: 'Name' } } };
     const res = await postRaw('/api/render-detail', JSON.stringify({ detailSpec, record: [1, 2] }));
     expect(res.status).toBe(200);
