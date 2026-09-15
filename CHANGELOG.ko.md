@@ -2,6 +2,22 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — 실수 고정 데이터 값을 C double 리터럴로 작성
+
+`make test-native`가 PHP 확장 엔진 테스트 "list rendering has no undefined behavior findings"에서
+멈췄습니다. 생성된 C 고정 데이터가 `ps_float_value(1000000000000000100)`을 썼고, Apple clang 21이
+값을 1000000000000000128로 바꾸는 정수에서 double로의 암시적 변환을
+거부했습니다(`-Wimplicit-const-int-float-conversion`, `-Werror`). 같은 검사는 2026-09-14에
+통과했습니다. 2026-09-15에 Xcode 27이 설치되어 `xcode-select`가 Command Line Tools 16.2 컴파일러
+대신 그 clang 21을 선택합니다. 값은 네이티브 숫자 사례 1000000000000000128에서 오며,
+JavaScript는 이를 `1000000000000000100`으로 출력합니다.
+
+고정 데이터 작성기는 안전한 정수 범위 밖의 숫자를 JavaScript 출력 그대로 썼으므로 정수값이 C
+정수 리터럴이 되었습니다. 이제 C double 리터럴을 쓰며 정수값에는 `.0`을 붙입니다. C는 이
+리터럴을 같은 가장 가까운 double로 읽습니다. 엔진 테스트는 22개가 통과했습니다. address
+sanitizer 테스트는 선언된 플랫폼 조건에 따라 Linux 밖에서 건너뛰며 Linux CI 작업에서
+실행됩니다.
+
 ## 2026-09-15 — 비교 페이지를 한 화면에 고정
 
 6273d16 배포 뒤 실제 Safari에서 왼쪽 프레임 안의 모두 펼치기를 누르고 포인터를 페이지 머리글로 옮긴 뒤

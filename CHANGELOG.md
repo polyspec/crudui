@@ -2,6 +2,22 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Write float fixture values as C double literals
+
+`make test-native` stopped in the PHP extension engine test "list rendering has no undefined
+behavior findings": the generated C fixture wrote `ps_float_value(1000000000000000100)`, and
+Apple clang 21 rejected the implicit integer-to-double conversion that changes the value to
+1000000000000000128 (`-Wimplicit-const-int-float-conversion` with `-Werror`). The same check
+passed on 2026-09-14; Xcode 27 was installed on 2026-09-15 and `xcode-select` now selects its
+clang 21 instead of the Command Line Tools 16.2 compiler. The value comes from the native
+number case 1000000000000000128, which JavaScript prints as `1000000000000000100`.
+
+The fixture writer emitted a number outside the safe integer range as JavaScript prints it,
+so an integral value became a C integer literal. It now writes a C double literal, adding
+`.0` to an integral value; C reads the literal as the same nearest double. The engine test
+passed 22 tests; the address sanitizer test is skipped outside Linux by its declared
+platform condition and runs in the Linux CI job.
+
 ## 2026-09-15 — Keep the comparison page on one screen
 
 After 6273d16 was deployed, real Safari pressed Expand all inside the left frame, moved the
