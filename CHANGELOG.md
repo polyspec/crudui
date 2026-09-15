@@ -2,6 +2,33 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Capture comparisons only while the pointer is outside the frames
+
+After 3eb6db3 was deployed, real Safari driven by safaridriver repeated the procedure that
+reproduced the focus outline difference: a real pointer press on Expand all inside the left
+frame, then the repeated injection comparison for PHP, React and bindForm. The focused
+control and its `:focus-visible` state were now equal in every stage, but the comparison
+failed 7 of 168 on CSS, `copy-removed` through `restored`. The differing property was a
+button's `background-color`: `rgb(249, 250, 251)`, the `.crudui-action:hover` background, in
+the left column, where the pointer rested, and transparent or white in the right column.
+
+A pointer rests over one frame only. In Chromium, Playwright WebKit and Safari, the frame's
+document element matches `:hover` exactly while the pointer is over that frame. No page style
+keeps `:hover` out of a frame in every browser: in Safari, `pointer-events: none` on the
+iframes left the hover in place, and a transparent element covering the iframe, although it
+was the topmost element at the pointer, cleared the hover only until the pointer moved from
+the top-level document. Playwright WebKit also restored the hover after a move under both.
+
+The comparison page now captures a column only while the pointer is outside both frames
+(`src/frame-pointer.mjs`). When the pointer is over a frame, the comparison stops without a
+result and asks to move the pointer outside the frames and compare again, and the list shown
+after loading gives the same message instead of comparing. No style is removed from the
+comparison. A Chromium check moves the pointer from the page onto a frame and back and reads
+the frame's state each time.
+
+`npm run test:form-comparison:source` passed 141 and `:browser` 4, and `make docs-check`
+passed.
+
 ## 2026-09-15 — Set whether scripted focus is visible
 
 In Safari, the repeated injection comparison for PHP, React and bindForm on the deployed
