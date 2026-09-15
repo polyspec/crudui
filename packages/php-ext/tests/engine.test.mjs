@@ -31,7 +31,9 @@ export class EngineFixtureSource {
     else if (typeof value === 'number' && Number.isSafeInteger(value))
       this.lines.push(`  ps_value *${name} = ps_int_value(INT64_C(${value}));`);
     else if (typeof value === 'number')
-      this.lines.push(`  ps_value *${name} = ps_float_value(${value});`);
+      // A C double literal: an integral JavaScript number prints without a decimal point,
+      // which C would read as an integer literal and convert.
+      this.lines.push(`  ps_value *${name} = ps_float_value(${/[.eE]|Infinity|NaN/.test(String(value)) ? value : `${value}.0`});`);
     else if (typeof value === 'string')
       this.lines.push(`  ps_value *${name} = string_value(${cString(value)}, ${Buffer.byteLength(value, 'utf8')});`);
     else if (Array.isArray(value)) {
