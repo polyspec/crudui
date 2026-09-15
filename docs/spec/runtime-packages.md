@@ -60,9 +60,15 @@ the same; no runtime selector is embedded in a field specification.
 | Read data | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
 | Render form | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
 | Render list | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
-| Build detail | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
-| Render detail | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |
+| Build detail | `buildDetail` | — | `BuildDetail` | — | — |
+| Render detail | `renderDetail` | — | `RenderDetail` | — | — |
 | Validate | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
+
+An em dash marks an operation a runtime does not implement. Detail views exist in
+JavaScript and Go only, and no check compares their output: the shared fixtures, the
+renderer conformance tests and the native byte-equality run cover forms and lists, not
+details. The feature is recorded as in progress, and this table states what exists rather
+than what the finished feature will contain.
 
 Both PHP implementations use the classes `CRUDUI\Generator`,
 `CRUDUI\Validator` and `CRUDUI\Form`. The
