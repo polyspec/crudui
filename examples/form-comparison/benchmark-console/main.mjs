@@ -131,7 +131,7 @@ async function initializationReport(server, path, framework) {
   const { comparisons, stages, cssFailures } = await compareInitialization();
   return {
     kind: 'initialization', server, path, framework,
-    commit: ssrFrame.contentWindow.comparison.commit,
+    source: ssrFrame.contentWindow.comparison.source,
     results: comparisons.flatMap(comparison => comparison.results.map(result =>
       ({ label: comparison.label, ...result }))),
     stages, cssFailures,
