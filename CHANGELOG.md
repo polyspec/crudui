@@ -2,6 +2,23 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Lint every TypeScript package without warnings
+
+`npm run lint` covered only the validator, HTML renderer and React sources, so the core, Vue, Svelte
+and CLI packages and the validator benchmarks were never linted, and warnings did not fail the
+command. It now lints `packages` with `--max-warnings 0`. The wider scope reported 14 problems in
+sources and 3 in the benchmarks: the CLI schema projection read JSON Schema through `any` and kept an
+unused parameter, the date parser assigned an initial zone it never read, the Vue form imported `h`
+without using it, the Svelte widget escaped `/` in template strings, and the benchmarks imported an
+unused type and defined a path parsing benchmark that never ran. The CLI reads schema definitions
+through one typed node, the unused code is removed and the path benchmark runs with the other parsing
+benchmarks. The benchmarks report to the console, so `no-console` is off for them, and `.svelte-kit`,
+`target` and `vendor` outputs are ignored.
+
+Lint passed with no warnings, and the CLI (37 tests), core (112) and Svelte (393 and 10) suites
+passed. The validator benchmarks are still outside type checking and measure the legacy validator;
+that remains open.
+
 ## 2026-09-15 — Import the Vue server renderer through the vue peer dependency
 
 `@crudui/generator-vue` imported `@vue/server-renderer`, a development dependency outside its declared

@@ -125,7 +125,7 @@ export function searchHtml(w: WidgetModel): string {
     affixHtml(w.append) +
     `</div>`;
   const style = w.styleChrome ? `<style nonce="">${w.styleChrome}</style>` : '';
-  const script = `<script nonce="">${w.script ?? ''}<\/script>`;
+  const script = `<script nonce="">${w.script ?? ''}</script>`;
   return style + script + fieldSearch;
 }
 
@@ -142,12 +142,12 @@ export function widgetRootRaw(w: AnyWidget): string | null {
   if (isUnsupported(w)) return null;
   if (w.layout === 'bare') return usesStableControl(w) ? null : rawControl(w);
   if (w.layout === 'host-script') {
-    return rawControl(w) + `<script nonce="">${w.script ?? ''}<\/script>`;
+    return rawControl(w) + `<script nonce="">${w.script ?? ''}</script>`;
   }
   if (w.layout === 'button') {
     const hidden = w.extra?.hidden ?? {};
     return (
-      `<script nonce="">${w.script ?? ''}<\/script>` +
+      `<script nonce="">${w.script ?? ''}</script>` +
       rawVoid('input', hidden) +
       rawVoid('input', w.attrs)
     );

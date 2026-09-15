@@ -22,7 +22,6 @@ import {
   getMemoryUsage,
   getMemoryDiff,
   formatBytes,
-  BenchmarkResult,
 } from './index';
 
 // Sample condition expressions for benchmarking
@@ -96,6 +95,9 @@ export async function runParsingBenchmarks(): Promise<void> {
   // Benchmark 5: Memory usage
   console.log('\n  Running memory usage benchmarks...');
   await runMemoryBenchmarks();
+
+  // Benchmark 6: Path expression parsing
+  await runPathBenchmarks();
 }
 
 /**
