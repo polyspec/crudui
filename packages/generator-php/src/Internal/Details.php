@@ -27,7 +27,8 @@ final class Details
         if (property_exists($spec, 'design')) {
             $list['design'] = $spec->design;
         }
-        $model = Lists::build((object) $list, [$record], $options);
+        // Page and total are list options; a detail neither checks nor uses them.
+        $model = Lists::build((object) $list, [$record], array_diff_key($options, ['page' => true, 'total' => true]));
         $fields = [];
         $columns = $model->columns;
         $cells = $model->rows[0]->cells ?? [];

@@ -27,7 +27,7 @@ describe('buildList — structure & engine reuse', () => {
         { name: 'Ada', status: 'active' },
         { name: 'Lin', status: 'blocked' },
       ],
-      { language: 'en', pageMeta: { page: 1, total: 42 } }
+      { language: 'en', page: 1, total: 42 }
     );
 
     expect(vm.columns.map((c) => c.key)).toEqual(['name', 'status']);

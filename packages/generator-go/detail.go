@@ -6,7 +6,7 @@ import (
 )
 
 // DetailOptions supplies composition, display language and caller-owned data options.
-// Layout is ignored; detail output is always a read-only definition list.
+// The list-only Layout, Page and Total are ignored; detail output is always a read-only definition list.
 type DetailOptions = ListOptions
 
 // BuildDetail creates a read-only detail model from one supplied record.
@@ -28,6 +28,8 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 	if has(spec, "design") {
 		listSpec.Set("design", read(spec, "design"))
 	}
+	// Page and total are list-only options: a detail neither checks nor uses them.
+	options.Page, options.Total = nil, nil
 	list, err := BuildList(listSpec, []*Object{record}, options)
 	if err != nil {
 		return nil, err

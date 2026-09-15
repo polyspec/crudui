@@ -10,6 +10,7 @@ import {
 } from './util';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { makeContext } from './expr';
+import { FormInputError } from '@crudui/validator';
 import { UnsupportedFieldTypeError } from './errors';
 import type { Translate } from './content';
 import { formatCount, type FormMessages } from './messages';
@@ -229,7 +230,7 @@ function resolveLang(spec: Record<string, unknown>): LangSettings | null {
 function rowKeys(value: unknown, path: string): string[] {
   if (value === undefined) return ['__0000000000000__'];
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError(`Repeated data must be a keyed object: ${path}`);
+    throw new FormInputError(`Repeated data must be a keyed object: ${path}`);
   }
   return Object.keys(value);
 }
@@ -237,7 +238,7 @@ function rowKeys(value: unknown, path: string): string[] {
 /** Present group data, including a repeated group row, must be an object. */
 function checkGroupData(value: unknown, path: string): void {
   if (value !== undefined && (value === null || typeof value !== 'object' || Array.isArray(value))) {
-    throw new TypeError(`Group data must be an object: ${path}`);
+    throw new FormInputError(`Group data must be an object: ${path}`);
   }
 }
 

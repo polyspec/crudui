@@ -122,7 +122,7 @@ func run(request *gen.Object) (any, error) {
 			return nil, fmt.Errorf("List rows must be an array")
 		}
 		c := compileOptions(options)
-		return gen.RenderList(obj(val(request, "spec")), rows, gen.ListOptions{Language: str(val(options, "language")), Data: val(options, "data"), PageMeta: val(options, "pageMeta"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")})
+		return gen.RenderList(obj(val(request, "spec")), rows, gen.ListOptions{Language: str(val(options, "language")), Data: val(options, "data"), Page: val(options, "page"), Total: val(options, "total"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")})
 	case "buildDetail", "renderDetail":
 		c := compileOptions(options)
 		record := obj(val(request, "record"))

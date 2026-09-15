@@ -1,6 +1,8 @@
 package generator
 
 import (
+	"encoding/json"
+	"math"
 	"strings"
 	"testing"
 )
@@ -17,9 +19,24 @@ func TestListInputRulesInOrder(t *testing.T) {
 	}{
 		{"spec before rows", nil, []*Object{nil}, ListOptions{Layout: 5}, "List specification must be an object"},
 		{"row before options", spec, []*Object{nil}, ListOptions{Data: []any{}}, "List rows must be objects"},
-		{"data array", spec, rows, ListOptions{Data: []any{}, PageMeta: []any{}}, "List context must be an object"},
+		{"data array", spec, rows, ListOptions{Data: []any{}, Page: 0.0}, "List context must be an object"},
 		{"data string", spec, rows, ListOptions{Data: "s"}, "List context must be an object"},
-		{"page meta array", spec, rows, ListOptions{PageMeta: []any{}, Layout: "grid"}, "List page metadata must be an object"},
+		{"page before total and layout", spec, rows, ListOptions{Page: 0.0, Total: -1.0, Layout: "grid"}, "List page must be a positive integer"},
+		{"page string", spec, rows, ListOptions{Page: "2"}, "List page must be a positive integer"},
+		{"page boolean", spec, rows, ListOptions{Page: true}, "List page must be a positive integer"},
+		{"page object", spec, rows, ListOptions{Page: NewObject("page", 2.0)}, "List page must be a positive integer"},
+		{"page array", spec, rows, ListOptions{Page: []any{2.0}}, "List page must be a positive integer"},
+		{"page fraction", spec, rows, ListOptions{Page: 1.5}, "List page must be a positive integer"},
+		{"page negative", spec, rows, ListOptions{Page: -1}, "List page must be a positive integer"},
+		{"page unsafe", spec, rows, ListOptions{Page: 9007199254740992.0}, "List page must be a positive integer"},
+		{"page unsafe int64", spec, rows, ListOptions{Page: int64(9007199254740993)}, "List page must be a positive integer"},
+		{"page NaN", spec, rows, ListOptions{Page: math.NaN()}, "List page must be a positive integer"},
+		{"page infinite", spec, rows, ListOptions{Page: math.Inf(1)}, "List page must be a positive integer"},
+		{"total before layout", spec, rows, ListOptions{Total: -1.0, Layout: "grid"}, "List total must be a nonnegative integer"},
+		{"total string", spec, rows, ListOptions{Total: "0"}, "List total must be a nonnegative integer"},
+		{"total boolean", spec, rows, ListOptions{Total: true}, "List total must be a nonnegative integer"},
+		{"total fraction", spec, rows, ListOptions{Total: 2.5}, "List total must be a nonnegative integer"},
+		{"total unsafe", spec, rows, ListOptions{Total: 9007199254740992.0}, "List total must be a nonnegative integer"},
 		{"layout string", spec, rows, ListOptions{Layout: "grid"}, "List layout must be table or card"},
 		{"layout number", spec, rows, ListOptions{Layout: 5}, "List layout must be table or card"},
 		{"layout empty", spec, rows, ListOptions{Layout: ""}, "List layout must be table or card"},
@@ -33,14 +50,53 @@ func TestListInputRulesInOrder(t *testing.T) {
 		})
 	}
 	var nilObject *Object
-	for _, options := range []ListOptions{{}, {Data: nilObject, PageMeta: nilObject}, {Data: NewObject(), Layout: "table"}} {
+	for _, options := range []ListOptions{{}, {Data: nilObject}, {Data: NewObject(), Layout: "table"}} {
 		html, err := RenderList(spec, rows, options)
 		if err != nil || !strings.Contains(html, "<table") {
 			t.Fatalf("%#v: %s %v", options, html, err)
 		}
 	}
-	if _, err := BuildList(spec, rows, ListOptions{PageMeta: "x"}); err == nil || err.Error() != "List page metadata must be an object" {
-		t.Fatalf("BuildList accepted page metadata: %v", err)
+	if _, err := BuildList(spec, rows, ListOptions{Page: "x"}); err == nil || err.Error() != "List page must be a positive integer" {
+		t.Fatalf("BuildList accepted a string page: %v", err)
+	}
+	if _, err := BuildList(spec, rows, ListOptions{Total: -1.0}); err == nil || err.Error() != "List total must be a nonnegative integer" {
+		t.Fatalf("BuildList accepted a negative total: %v", err)
+	}
+	if _, err := BuildList(spec, rows, ListOptions{Data: 5.0, Page: "x"}); err == nil || err.Error() != "List context must be an object" {
+		t.Fatalf("BuildList must check data before page: %v", err)
+	}
+}
+
+func TestListPageAndTotalAreIntegers(t *testing.T) {
+	spec := NewObject("columns", NewObject("v", NewObject("field", ".v")), "pagination", true)
+	cases := []struct {
+		name    string
+		options ListOptions
+		want    string
+	}{
+		{"none", ListOptions{}, `{"enabled":true}`},
+		{"null", ListOptions{Page: nil, Total: nil}, `{"enabled":true}`},
+		{"integral floats", ListOptions{Page: 2.0, Total: 99.0}, `{"enabled":true,"page":2,"total":99}`},
+		{"bounds", ListOptions{Page: 9007199254740991.0, Total: 0.0}, `{"enabled":true,"page":9007199254740991,"total":0}`},
+		{"negative zero total", ListOptions{Total: math.Copysign(0, -1)}, `{"enabled":true,"total":0}`},
+		{"go integers", ListOptions{Page: 1, Total: int64(9007199254740991)}, `{"enabled":true,"page":1,"total":9007199254740991}`},
+		{"page only", ListOptions{Page: 3.0}, `{"enabled":true,"page":3}`},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			vm, err := BuildList(spec, nil, c.options)
+			if err != nil {
+				t.Fatal(err)
+			}
+			b, err := json.Marshal(read(vm, "pagination"))
+			if err != nil || string(b) != c.want {
+				t.Fatalf("got %s %v, want %s", b, err, c.want)
+			}
+		})
+	}
+	html, err := RenderList(spec, nil, ListOptions{Page: 9007199254740991.0, Total: math.Copysign(0, -1)})
+	if err != nil || !strings.Contains(html, `<nav class="list-pagination" data-page="9007199254740991" data-total="0"></nav>`) {
+		t.Fatalf("%s %v", html, err)
 	}
 }
 

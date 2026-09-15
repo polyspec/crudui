@@ -55,7 +55,10 @@ final class GenerateCliTest extends TestCase
             [['operation' => 'renderList', 'spec' => $spec, 'rows' => [1]], 'List rows must be objects'],
             [['operation' => 'renderList', 'spec' => $spec, 'rows' => [[]]], 'List rows must be objects'],
             [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['data' => []]], 'List context must be an object'],
-            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['pageMeta' => []]], 'List page metadata must be an object'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['page' => '2']], 'List page must be a positive integer'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['page' => []]], 'List page must be a positive integer'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['data' => [], 'page' => 0]], 'List context must be an object'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['total' => 2.5, 'layout' => 'grid']], 'List total must be a nonnegative integer'],
             [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['layout' => 'grid']], 'List layout must be table or card'],
             [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['layout' => 5]], 'List layout must be table or card'],
             [['operation' => 'renderDetail', 'spec' => $detail, 'record' => new \stdClass(), 'options' => ['data' => []]], 'Detail context must be an object'],
@@ -65,7 +68,7 @@ final class GenerateCliTest extends TestCase
             self::assertSame(1, $status, $message);
             self::assertEquals($invalid($message), $result->error);
         }
-        foreach ([['data' => null], ['layout' => null], ['pageMeta' => null]] as $options) {
+        foreach ([['data' => null], ['layout' => null], ['page' => null], ['total' => null]] as $options) {
             [$status, $result] = self::invoke(['operation' => 'renderList', 'spec' => $spec, 'rows' => [['v' => 'a']], 'options' => $options]);
             self::assertSame(0, $status);
             self::assertStringContainsString('<table class="list-table">', $result);
