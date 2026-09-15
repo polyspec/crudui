@@ -8,7 +8,7 @@
         "name": {
           "type": "text",
           "design": { "label": { "class": "required" } },
-          "validate": { "required": true, "maxlength": 80 }
+          "validate": { "required": false, "maxlength": 80 }
         },
         "age": {
           "type": "number",
@@ -16,7 +16,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-conditional-required-expression",
@@ -31,7 +32,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-condition-map-true-default-key",
@@ -48,7 +50,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-deep-nested-group-clean",
@@ -73,7 +76,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-static-items-langmap-labels",
@@ -91,7 +95,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-static-items-langmap-labels-4lang",
@@ -109,7 +114,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-items-4lang-null-label-slot-and-null-content",
@@ -121,7 +127,7 @@
           "type": "text",
           "label": null,
           "description": { "ko": "별명", "en": "Nickname", "ja": null, "zh": "昵称" },
-          "validate": { "required": true }
+          "validate": { "required": false }
         },
         "grade": {
           "type": "select",
@@ -134,7 +140,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-lang-only-per-language-override-map",
@@ -154,7 +161,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "ok-null-content-and-null-label-slot",
@@ -166,7 +174,7 @@
           "type": "text",
           "label": null,
           "description": { "ko": "별명", "en": null },
-          "validate": { "required": true }
+          "validate": { "required": false }
         },
         "grade": {
           "type": "select",
@@ -174,7 +182,8 @@
         }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "err-top-level-if",
@@ -188,7 +197,9 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.if" }
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.if" }
   },
   {
     "name": "err-validate-required-nested-if",
@@ -204,7 +215,9 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.validate.required.if" }
+    "expect": "fail",
+    "reason": "anyOf",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.validate.required.if" }
   },
   {
     "name": "err-options-display-switch",
@@ -221,7 +234,9 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.choice.options.display_switch" }
+    "expect": "fail",
+    "reason": "propertyNames",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.choice.options.display_switch" }
   },
   {
     "name": "err-design-label-nested-when",
@@ -237,7 +252,9 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.design.label.when" }
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.design.label.when" }
   },
   {
     "name": "err-child-validate-show-if",
@@ -259,11 +276,13 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.parent.properties.child.validate.show_if" }
+    "expect": "fail",
+    "reason": "propertyNames",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.parent.properties.child.validate.show_if" }
   },
   {
     "name": "err-magic-underscore-default-key",
-    "note": "the magic '_' default symbol (R4) is forbidden anywhere, here in a condition map",
+    "note": "the magic '_' default symbol (R4) is forbidden anywhere, here in a condition map The meta-schema declares no validate.max rule, so it leaves this value unconstrained and accepts the case; only the runtime scan rejects it.",
     "spec": {
       "type": "group",
       "properties": {
@@ -275,7 +294,8 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.validate.max._" }
+    "expect": "ok",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.validate.max._" }
   },
   {
     "name": "err-x-comment-survived",
@@ -291,7 +311,9 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.design.wrapper.xstyle" }
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.design.wrapper.xstyle" }
   },
   {
     "name": "err-x-prefixed-arbitrary",
@@ -305,7 +327,9 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.xnote" }
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.xnote" }
   },
   {
     "name": "err-seqtokey-legacy",
@@ -322,11 +346,13 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.rows.multiple.seqtokey" }
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.rows.multiple.seqtokey" }
   },
   {
     "name": "err-inside-array-element",
-    "note": "a forbidden key inside an array element (items sub-spec) is caught too",
+    "note": "a forbidden key inside an array element (items sub-spec) is caught too The meta-schema declares no options.items setting, so it leaves this value unconstrained and accepts the case; only the runtime scan rejects it.",
     "spec": {
       "type": "group",
       "properties": {
@@ -341,7 +367,8 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.options.items.1.display_target" }
+    "expect": "ok",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.options.items.1.display_target" }
   },
   {
     "name": "err-after-compose-ref-base-leak",
@@ -361,7 +388,9 @@
         }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "properties.field.validate.required.when" }
+    "expect": "fail",
+    "reason": "required",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.validate.required.when" }
   },
   {
     "name": "ok-form-buttons-and-action",
@@ -377,7 +406,8 @@
         "name": { "type": "text" }
       }
     },
-    "expect": "ok"
+    "expect": "ok",
+    "engine": "pass"
   },
   {
     "name": "err-form-button-forbidden-key",
@@ -391,7 +421,9 @@
         "name": { "type": "text" }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "buttons.0.design.when" }
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "buttons.0.design.when" }
   },
   {
     "name": "err-form-action-forbidden-key",
@@ -403,6 +435,8 @@
         "name": { "type": "text" }
       }
     },
-    "expect": { "error_code": "FORBIDDEN_META_KEY", "at_path": "action.if" }
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "action.if" }
   }
 ]

@@ -43,8 +43,8 @@ fn load_cases() -> Vec<Value> {
 
 /// Run the real LOAD path (compose -> forbidden-scan -> validate) for a case.
 /// Data is irrelevant to the scan; pass an empty object — the scan runs before
-/// any data-driven validation.
-fn run(case: &Value) -> Result<(), String> {
+/// any data-driven validation. A load failure carries `code|at`.
+fn run(case: &Value) -> Result<(bool, usize), String> {
     let spec = case.get("spec").expect("case missing spec");
     let files = case.get("files").and_then(Value::as_object).cloned();
     let options = ValidateOptions {
@@ -54,9 +54,7 @@ fn run(case: &Value) -> Result<(), String> {
     };
     let data = Value::Object(Default::default());
     match validate(spec, &data, &options) {
-        Ok(_) => Ok(()),
-        // A load failure is the only relevant signal for this contract; carry the
-        // code and path so the caller can assert them against the fixture.
+        Ok(result) => Ok((result.valid, result.errors.len())),
         Err(e) => Err(format!("{}|{}", e.code(), e.at())),
     }
 }
@@ -70,31 +68,31 @@ fn spec_validity_matches_fixture() {
     for case in &cases {
         ran += 1;
         let name = case.get("name").and_then(Value::as_str).unwrap_or("?");
-        let expect = case.get("expect").expect("case missing expect");
+        let engine = case.get("engine").expect("case missing engine");
 
         let result = run(case);
 
-        match expect {
-            // "ok" — must load without a forbidden-scan error.
-            Value::String(s) if s == "ok" => {
-                if let Err(got) = result {
-                    failures.push(format!(
-                        "[{}] expected ok but got load error: {}",
-                        name, got
-                    ));
-                }
-            }
-            // { error_code, at_path } — must be a LOAD ERROR with that exact code
-            // AND that exact dotted path (depth is load-bearing).
+        match engine {
+            // "pass" — no load failure and { valid: true, errors: [] }.
+            Value::String(s) if s == "pass" => match result {
+                Ok((true, 0)) => {}
+                Ok((valid, errors)) => failures.push(format!(
+                    "[{}] engine:\"pass\" but valid={} with {} error(s)",
+                    name, valid, errors
+                )),
+                Err(got) => failures.push(format!(
+                    "[{}] engine:\"pass\" but got load error: {}",
+                    name, got
+                )),
+            },
+            // { code, at } — must be a LOAD ERROR with that exact code AND that
+            // exact dotted path (depth is load-bearing).
             Value::Object(want) => {
-                let code = want
-                    .get("error_code")
-                    .and_then(Value::as_str)
-                    .unwrap_or("?");
-                let at = want.get("at_path").and_then(Value::as_str).unwrap_or("?");
+                let code = want.get("code").and_then(Value::as_str).unwrap_or("?");
+                let at = want.get("at").and_then(Value::as_str).unwrap_or("?");
                 let expected = format!("{}|{}", code, at);
                 match result {
-                    Ok(()) => failures.push(format!(
+                    Ok(_) => failures.push(format!(
                         "[{}] expected load error {} but loaded successfully",
                         name, expected
                     )),
@@ -109,7 +107,7 @@ fn spec_validity_matches_fixture() {
                 }
             }
             other => failures.push(format!(
-                "[{}] expect must be \"ok\" | {{error_code, at_path}}, got {}",
+                "[{}] engine must be \"pass\" | {{code, at}}, got {}",
                 name, other
             )),
         }

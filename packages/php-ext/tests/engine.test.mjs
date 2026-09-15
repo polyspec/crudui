@@ -346,15 +346,13 @@ function sourceForValidation() {
     });
   }
   for (const fixture of specCases) {
-    const error = typeof fixture.expect === 'object'
-      ? { code: fixture.expect.error_code, at: fixture.expect.at_path } : undefined;
+    const error = typeof fixture.engine === 'object'
+      ? { code: fixture.engine.code, at: fixture.engine.at } : undefined;
     check({
       name: `spec:${fixture.name}`,
       operation: 'ps_validate',
-      inputs: [fixture.spec, {}, {
-        ...(fixture.files === undefined ? {} : { files: fixture.files }),
-        ...(fixture.basepath === undefined ? {} : { basepath: fixture.basepath }),
-      }],
+      inputs: [fixture.spec, {}, fixture.files === undefined ? {} : { files: fixture.files }],
+      expected: { valid: true, errors: [] },
       error,
     });
   }
@@ -368,10 +366,7 @@ function sourceForValidation() {
       check({
         name: `${family}:${fixture.name}`,
         operation,
-        inputs: [fixture.spec, {
-          ...(fixture.files === undefined ? {} : { files: fixture.files }),
-          ...(fixture.basepath === undefined ? {} : { basepath: fixture.basepath }),
-        }],
+        inputs: [fixture.spec, fixture.files === undefined ? {} : { files: fixture.files }],
         expected: { valid: true, errors: [] },
         error,
       });
