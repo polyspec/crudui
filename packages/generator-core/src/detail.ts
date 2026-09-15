@@ -1,5 +1,6 @@
 /** Build the read-only detail model from the shared list display engine. */
 
+import { FormInputError } from '@crudui/validator';
 import { buildList, type BuildListOptions, type CellVM } from './list';
 import type { ResolvedDesign } from './design';
 
@@ -18,8 +19,8 @@ export interface DetailViewModel {
   design: ResolvedDesign;
 }
 
-/** Options for building a detail view model. */
-export type BuildDetailOptions = BuildListOptions;
+/** Options for building a detail view model: the list options without the list-only `page` and `total`. */
+export type BuildDetailOptions = Omit<BuildListOptions, 'page' | 'total'>;
 
 /**
  * Compose a detail specification, evaluate one supplied record and return
@@ -32,20 +33,21 @@ export function buildDetail(
   options: BuildDetailOptions = {},
 ): DetailViewModel {
   if (detailSpec === null || typeof detailSpec !== 'object' || Array.isArray(detailSpec)) {
-    throw new TypeError('Detail specification must be an object');
+    throw new FormInputError('Detail specification must be an object');
   }
   if (!Object.prototype.hasOwnProperty.call(detailSpec, 'fields')) {
-    throw new TypeError('Detail specification must declare fields');
+    throw new FormInputError('Detail specification must declare fields');
   }
   if (record === null || typeof record !== 'object' || Array.isArray(record)) {
-    throw new TypeError('Detail record must be an object');
+    throw new FormInputError('Detail record must be an object');
   }
   const context = options.data;
   if (context !== undefined && context !== null && (typeof context !== 'object' || Array.isArray(context))) {
-    throw new TypeError('Detail context must be an object');
+    throw new FormInputError('Detail context must be an object');
   }
   const fields = detailSpec.fields;
-  const vm = buildList({ columns: fields, design: detailSpec.design }, [record], options);
+  // Page and total are list-only options: a detail neither checks nor uses them.
+  const vm = buildList({ columns: fields, design: detailSpec.design }, [record], { ...options, page: null, total: null });
   const row = vm.rows[0];
   return {
     fields: vm.columns.map((column, index) => ({

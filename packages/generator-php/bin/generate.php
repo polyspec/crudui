@@ -61,10 +61,8 @@ try {
                 objectValue($row, 'List rows must be objects');
             }
             $listOptions = options(property_exists($request, 'options') ? $request->options : new stdClass());
-            foreach (['data' => 'List context must be an object', 'pageMeta' => 'List page metadata must be an object'] as $key => $message) {
-                if (isset($listOptions[$key])) {
-                    objectValue($listOptions[$key], $message);
-                }
+            if (isset($listOptions['data'])) {
+                objectValue($listOptions['data'], 'List context must be an object');
             }
             $result = Generator::renderList($spec, $rows, $listOptions);
             break;

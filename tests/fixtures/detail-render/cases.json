@@ -666,6 +666,34 @@
     }
   },
   {
+    "name": "list-options-ignored",
+    "note": "the list-only page, total and layout options are neither checked nor used by a detail.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>"
+    },
+    "options": {
+      "page": 0,
+      "total": -1,
+      "layout": "grid"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+  },
+  {
     "name": "reject-array-context",
     "note": "a data option that is not an object is rejected.",
     "spec": {

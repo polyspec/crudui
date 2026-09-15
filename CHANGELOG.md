@@ -2,6 +2,44 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Replace the list pageMeta option with page and total, and give JavaScript input errors their code
+
+The list option `pageMeta` carried the caller's current page and total record count, but its name
+said neither, and its members had no value rule: any value became a `data-page` or `data-total`
+attribute, and shared cases covered numbers only. Lists now take two options, `page` (an integer
+from 1) and `total` (an integer from 0), both at most 9007199254740991, the largest integer every
+runtime represents exactly. Other values fail with `List page must be a positive integer` or
+`List total must be a nonnegative integer`, checked after `data` and before `layout`. `pageMeta`
+is removed, and PHP no longer lists it among the fixed object options.
+
+Adding the rule exposed another divergence: a detail passes its options to the list engine, so
+JavaScript, Go and the Rust library would have rejected an invalid `page` in detail options, while
+the PHP library dropped them and the C extension never read them. A detail now takes only
+`data`, `language`, `files` and `basepath` and neither checks nor uses `page`, `total` or
+`layout` in any runtime; the shared detail case `list-options-ignored` enforces it.
+
+CI failed after `18baaf68` in the cross-check console gateway job, which I had not run locally.
+The JavaScript generators threw input errors as plain `TypeError` without a code, so the gateway
+classified them as `RENDER_ERROR` while every other runtime reports `INVALID_FORM_INPUT`. The
+native runner had not shown this because its JavaScript adapter filled in `INVALID_FORM_INPUT`
+for any error without a code. Every generator-core input error is now the validator's
+`FormInputError`, exported from generator-core, the adapter records a missing code as
+`INTERNAL_ERROR`, and the gateway compares error messages as well as codes. The gateway also
+replaced rows that are not an array with an empty list before rendering; it now passes them
+unchanged. Its description of the layout option still named per-framework keys that no longer
+exist and now states the single `layout` key.
+
+Removing the adapter default showed that the JavaScript form instance also threw code-less
+`Error` and `RangeError` for invalid row operations (an unknown or duplicate row key, the minimum
+or maximum row count, an invalid position, an invalid sequence and an empty undo history), which
+every other runtime reports as `INVALID_FORM_INPUT`. They are now `FormInputError` as well. The C
+extension wrote `A sequence must contain 1-13 decimal digits` with a hyphen where every other
+runtime writes an en dash; it now matches.
+
+The list cases grew to 39 and the detail cases to 24. `make test-native` passed 237 of 237 checks
+in each of the JavaScript, HTML, PHP, Go, Rust and PHP extension targets (1423 including input
+checks), and the gateway suite passed 135 of 135 with the Go and Rust validator commands rebuilt.
+
 ## 2026-09-15 — Document display formats and hold every runtime to one input rule
 
 The formats a list column or detail field can declare were described only by the schema and

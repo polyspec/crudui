@@ -10,18 +10,39 @@ import (
 )
 
 // ListOptions supplies composition, display language, layout and caller-owned pagination data.
-// Data, PageMeta and Layout take decoded values unchanged so their type is checked like every runtime.
+// Data, Page, Total and Layout take decoded values unchanged so their type is checked like every runtime.
 type ListOptions struct {
 	Language string
 	// Data is nil or an *Object; any other value fails with "List context must be an object".
 	Data any
-	// PageMeta is nil or an *Object; any other value fails with "List page metadata must be an object".
-	PageMeta any
+	// Page is nil (none) or a number holding an integer from 1 to 9007199254740991;
+	// any other value fails with "List page must be a positive integer".
+	Page any
+	// Total is nil (none) or a number holding an integer from 0 to 9007199254740991;
+	// any other value fails with "List total must be a nonnegative integer".
+	Total    any
 	Files    map[string]*Object
 	Loader   compose.FileLoader
 	Basepath string
 	// Layout is nil (table) or the string "table" or "card"; any other value fails.
 	Layout any
+}
+
+// maxSafeInteger is the largest integer every runtime represents exactly (2^53 - 1).
+const maxSafeInteger = 9007199254740991
+
+// countOption reads a page or total option. Nil means none; otherwise the value must be a
+// number holding an integer from min to maxSafeInteger. An integral float such as 2.0 is the
+// integer 2, and negative zero is 0.
+func countOption(v any, min float64) (n int64, present bool, ok bool) {
+	if v == nil {
+		return 0, false, true
+	}
+	f, isNumber := asNumber(v)
+	if !isNumber || f != math.Trunc(f) || f < min || f > maxSafeInteger {
+		return 0, true, false
+	}
+	return int64(f), true, true
 }
 
 // optionObject reports the object held by an option; nil (untyped or a nil *Object) means absent.
@@ -46,8 +67,11 @@ func checkListInput(spec *Object, rows []*Object, options ListOptions) error {
 	if _, ok := optionObject(options.Data); !ok {
 		return fmt.Errorf("List context must be an object")
 	}
-	if _, ok := optionObject(options.PageMeta); !ok {
-		return fmt.Errorf("List page metadata must be an object")
+	if _, _, ok := countOption(options.Page, 1); !ok {
+		return fmt.Errorf("List page must be a positive integer")
+	}
+	if _, _, ok := countOption(options.Total, 0); !ok {
+		return fmt.Errorf("List total must be a nonnegative integer")
 	}
 	return nil
 }
@@ -73,7 +97,6 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 		return nil, e
 	}
 	data, _ := optionObject(options.Data)
-	pageMeta, _ := optionObject(options.PageMeta)
 	if e := checkOrderedValue(spec); e != nil {
 		return nil, e
 	}
@@ -163,12 +186,12 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 			pagination.Set("mode", mode)
 		}
 	}
-	if pageMeta != nil {
-		for _, key := range []string{"page", "total"} {
-			if pageMeta.Has(key) {
-				pagination.Set(key, read(pageMeta, key))
-			}
-		}
+	// Supplied page and total are JSON integers (int64), so 2.0 is written as 2 and -0 as 0.
+	if page, present, _ := countOption(options.Page, 1); present {
+		pagination.Set("page", page)
+	}
+	if total, present, _ := countOption(options.Total, 0); present {
+		pagination.Set("total", total)
 	}
 	actions := []*Object{}
 	if raw := object(read(spec, "actions")); raw != nil {

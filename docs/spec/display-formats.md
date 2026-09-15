@@ -145,22 +145,29 @@ location.
 | list rows | an array | `List rows must be an array` |
 | each list row | an object | `List rows must be objects` |
 | list `data` option | an object | `List context must be an object` |
-| list `pageMeta` option | an object | `List page metadata must be an object` |
+| list `page` option | an integer from 1 to 9007199254740991 | `List page must be a positive integer` |
+| list `total` option | an integer from 0 to 9007199254740991 | `List total must be a nonnegative integer` |
 | list `layout` option | `table` or `card` | `List layout must be table or card` |
 | detail specification | an object | `Detail specification must be an object` |
 | detail specification | declares `fields` | `Detail specification must declare fields` |
 | detail record | an object | `Detail record must be an object` |
 | detail `data` option | an object | `Detail context must be an object` |
 
-An option that is absent or `null` uses its default: an empty context, no page metadata and the
-`table` layout. When several inputs are invalid, the first failing rule in the table order is
+A detail takes the `data`, `language`, `files` and `basepath` options. It neither checks nor uses
+the list-only `page`, `total` and `layout` options.
+
+An option that is absent or `null` uses its default: an empty context, no current page, no total
+and the `table` layout. `page` is the current page and `total` the total record count; the caller
+supplies both, the generator derives neither from the rows, and a list whose specification
+enables `pagination` writes them as `data-page` and `data-total`. The upper bound is the largest
+integer every runtime represents exactly; an integral value such as `2.0` is the integer `2`. When several inputs are invalid, the first failing rule in the table order is
 reported. The Go and Rust library signatures take rows as a sequence, so in those languages the
 rows rule applies where decoded JSON becomes that sequence; every other rule is checked by the
 library.
 
 In PHP, the [PHP API contract](php-extension.md) decides which PHP values are objects: an empty
-PHP array is accepted for a root object argument and for the fixed object options `data`, `files`
-and `pageMeta`, while nested values keep their type.
+PHP array is accepted for a root object argument and for the fixed object options `data` and
+`files`, while nested values keep their type.
 
 ## Markup
 

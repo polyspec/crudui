@@ -27,7 +27,7 @@ final class Lists
             }
         }
         self::optionObject($options, 'data', 'List context must be an object');
-        self::optionObject($options, 'pageMeta', 'List page metadata must be an object');
+        self::countOptions($options);
         $layout = $options['layout'] ?? 'table';
         if ($layout !== 'table' && $layout !== 'card') {
             throw new FormError('INVALID_FORM_INPUT', 'List layout must be table or card');
@@ -153,9 +153,9 @@ final class Lists
                 $pagination['mode'] = $page->mode;
             }
         }
-        foreach (['page', 'total'] as $key) {
-            if (isset($options['pageMeta']) && array_key_exists($key, (array) $options['pageMeta'])) {
-                $pagination[$key] = ((array) $options['pageMeta'])[$key];
+        foreach (self::countOptions($options) as $key => $count) {
+            if ($count !== null) {
+                $pagination[$key] = $count;
             }
         }
         $sort = isset($spec->sort->field) && is_string($spec->sort->field) && $spec->sort->field !== '' ? (object) ['field' => $spec->sort->field, 'dir' => ($spec->sort->dir ?? null) === 'desc' ? 'desc' : 'asc'] : Missing::Value;
@@ -210,6 +210,31 @@ final class Lists
         if (isset($options[$key]) && !self::isObject($options[$key], true)) {
             throw new FormError('INVALID_FORM_INPUT', $message);
         }
+    }
+
+    /**
+     * The page and total options, checked in that order: absent or null is none; otherwise a PHP
+     * int or float whose value is an integer from 1 (page) or 0 (total) to 2^53 - 1, returned as int.
+     *
+     * @return array{page: ?int, total: ?int}
+     */
+    private static function countOptions(array $options): array
+    {
+        $counts = [];
+        foreach (['page' => [1, 'List page must be a positive integer'], 'total' => [0, 'List total must be a nonnegative integer']] as $key => [$min, $message]) {
+            $value = $options[$key] ?? null;
+            if ($value === null) {
+                $counts[$key] = null;
+                continue;
+            }
+            $integral = is_int($value) || is_float($value) && is_finite($value) && floor($value) === $value;
+            if (!$integral || $value < $min || $value > 9007199254740991) {
+                throw new FormError('INVALID_FORM_INPUT', $message);
+            }
+            // An integral float such as 2.0 or -0.0 is the integer 2 or 0.
+            $counts[$key] = (int) $value;
+        }
+        return $counts;
     }
 
     private static function preloads(stdClass $vm): string

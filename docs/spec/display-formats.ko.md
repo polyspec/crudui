@@ -129,20 +129,27 @@ columns:
 | 목록 행 | 배열 | `List rows must be an array` |
 | 각 목록 행 | 객체 | `List rows must be objects` |
 | 목록 `data` 옵션 | 객체 | `List context must be an object` |
-| 목록 `pageMeta` 옵션 | 객체 | `List page metadata must be an object` |
+| 목록 `page` 옵션 | 1부터 9007199254740991까지의 정수 | `List page must be a positive integer` |
+| 목록 `total` 옵션 | 0부터 9007199254740991까지의 정수 | `List total must be a nonnegative integer` |
 | 목록 `layout` 옵션 | `table` 또는 `card` | `List layout must be table or card` |
 | 상세 명세 | 객체 | `Detail specification must be an object` |
 | 상세 명세 | `fields` 선언 | `Detail specification must declare fields` |
 | 상세 레코드 | 객체 | `Detail record must be an object` |
 | 상세 `data` 옵션 | 객체 | `Detail context must be an object` |
 
-옵션이 없거나 `null`이면 기본값을 씁니다. 빈 컨텍스트, 페이지 메타데이터 없음, `table` 레이아웃입니다. 여러
+상세는 `data`, `language`, `files`, `basepath` 옵션을 받습니다. 목록 전용 옵션 `page`, `total`, `layout`은
+검사하지도 사용하지도 않습니다.
+
+옵션이 없거나 `null`이면 기본값을 씁니다. 빈 컨텍스트, 현재 페이지 없음, 전체 수 없음, `table` 레이아웃입니다.
+`page`는 현재 페이지, `total`은 전체 레코드 수입니다. 둘 다 호출자가 제공하고 생성기는 행에서 계산하지 않으며,
+명세가 `pagination`을 켠 목록은 이를 `data-page`와 `data-total`로 출력합니다. 상한은 모든 런타임이 정확히
+표현하는 가장 큰 정수이며, `2.0`처럼 정수 값인 수는 정수 `2`입니다. 여러
 입력이 잘못되었으면 표 순서에서 처음 실패한 규칙을 보고합니다. Go와 Rust 라이브러리 시그니처는 행을 시퀀스로
 받으므로, 두 언어에서 행 규칙은 해석한 JSON을 그 시퀀스로 바꾸는 곳에서 적용되고 나머지 규칙은 라이브러리가
 검사합니다.
 
 PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체인지 정합니다. 루트 객체 인수와 고정 객체
-옵션 `data`, `files`, `pageMeta`에는 빈 PHP 배열을 받고, 중첩 값은 타입을 유지합니다.
+옵션 `data`, `files`에는 빈 PHP 배열을 받고, 중첩 값은 타입을 유지합니다.
 
 ## 마크업
 

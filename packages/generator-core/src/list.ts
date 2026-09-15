@@ -1,6 +1,7 @@
 /** Evaluate list declarations and supplied records for framework renderers. */
 
 import {
+  FormInputError,
   composeProperties,
   MemoryLoader,
   type FileLoader,
@@ -55,7 +56,7 @@ export interface RowVM {
   cells: CellVM[];
 }
 
-/** Resolved pagination declaration (+ injected page/total meta). */
+/** Resolved pagination declaration with the caller's current page and total. */
 export interface PaginationVM {
   /** false when paging is off. */
   enabled: boolean;
@@ -63,9 +64,9 @@ export interface PaginationVM {
   perPage?: number;
   /** Declared pagination mode. */
   mode?: string;
-  /** Current page (injected meta, never derived from the spec). */
+  /** Current page from the `page` option, never derived from the rows. */
   page?: number;
-  /** Total row count (injected meta). */
+  /** Total record count from the `total` option. */
   total?: number;
 }
 
@@ -97,7 +98,7 @@ export interface ListViewModel {
   columns: ColumnVM[];
   /** Resolved rows (one cell per visible column). */
   rows: RowVM[];
-  /** Pagination declaration + injected meta. */
+  /** Pagination declaration with the current page and total. */
   pagination: PaginationVM;
   /** Current sort declaration, or undefined when none. */
   sort?: SortVM;
@@ -122,13 +123,10 @@ export interface BuildListOptions {
    * '.admin'` on a column). NOT the rows — rows are the separate argument.
    */
   data?: Record<string, unknown>;
-  /** Injected pagination meta (current page / total) — DB-agnostic passthrough. */
-  pageMeta?: {
-    /** Current page. */
-    page?: number;
-    /** Total record count. */
-    total?: number;
-  };
+  /** Current page supplied by the caller: absent, null or an integer from 1 to `Number.MAX_SAFE_INTEGER`. */
+  page?: number | null;
+  /** Total record count supplied by the caller: absent, null or an integer from 0 to `Number.MAX_SAFE_INTEGER`. */
+  total?: number | null;
   /** $ref file set for composition (virtual in-memory loader). */
   files?: Record<string, Record<string, unknown>>;
   /** A custom loader (overrides `files`). */
@@ -155,10 +153,12 @@ function resolveSortable(
   return evalShow(sortable, ctx);
 }
 
-function resolvePagination(
-  pagination: unknown,
-  pageMeta?: { page?: number; total?: number }
-): PaginationVM {
+/** A page or total option: absent or null, or a safe integer of at least `min`. */
+function countOption(value: unknown, min: number): value is number | null | undefined {
+  return value === undefined || value === null || (Number.isSafeInteger(value) && (value as number) >= min);
+}
+
+function resolvePagination(pagination: unknown, page: number | null | undefined, total: number | null | undefined): PaginationVM {
   let base: PaginationVM;
   if (pagination === false) {
     base = { enabled: false };
@@ -173,8 +173,9 @@ function resolvePagination(
   } else {
     base = { enabled: false };
   }
-  if (pageMeta?.page !== undefined) base.page = pageMeta.page;
-  if (pageMeta?.total !== undefined) base.total = pageMeta.total;
+  // `+ 0` writes negative zero as 0, as every runtime does.
+  if (page !== undefined && page !== null) base.page = page + 0;
+  if (total !== undefined && total !== null) base.total = total + 0;
   return base;
 }
 
@@ -230,7 +231,7 @@ function resolveActions(
 export function listLayout(layout: unknown): 'table' | 'card' {
   if (layout === undefined || layout === null) return 'table';
   if (layout === 'table' || layout === 'card') return layout;
-  throw new TypeError('List layout must be table or card');
+  throw new FormInputError('List layout must be table or card');
 }
 
 /**
@@ -245,15 +246,14 @@ export function buildList(
   options: BuildListOptions = {}
 ): ListViewModel {
   // List input, checked in the order every runtime uses (docs/spec/display-formats.md).
-  if (!isPlainObject(listSpec)) throw new TypeError('List specification must be an object');
-  if (!Array.isArray(rows)) throw new TypeError('List rows must be an array');
-  if (rows.some((row) => !isPlainObject(row))) throw new TypeError('List rows must be objects');
+  if (!isPlainObject(listSpec)) throw new FormInputError('List specification must be an object');
+  if (!Array.isArray(rows)) throw new FormInputError('List rows must be an array');
+  if (rows.some((row) => !isPlainObject(row))) throw new FormInputError('List rows must be objects');
   if (options.data !== undefined && options.data !== null && !isPlainObject(options.data)) {
-    throw new TypeError('List context must be an object');
+    throw new FormInputError('List context must be an object');
   }
-  if (options.pageMeta !== undefined && options.pageMeta !== null && !isPlainObject(options.pageMeta)) {
-    throw new TypeError('List page metadata must be an object');
-  }
+  if (!countOption(options.page, 1)) throw new FormInputError('List page must be a positive integer');
+  if (!countOption(options.total, 0)) throw new FormInputError('List total must be a nonnegative integer');
   const t = makeTranslate(options.language ?? 'ko');
   const loader = options.loader ?? new MemoryLoader(options.files ?? {});
   const composeOpts = options.basepath ? { basepath: options.basepath } : {};
@@ -311,7 +311,7 @@ export function buildList(
   return {
     columns: columnVMs,
     rows: rowVMs,
-    pagination: resolvePagination(listSpec.pagination, options.pageMeta),
+    pagination: resolvePagination(listSpec.pagination, options.page, options.total),
     sort: resolveSort(listSpec.sort),
     actions: resolveActions(listSpec.actions, t),
     empty: listSpec.empty !== undefined ? t(listSpec.empty as LocalizedText) : '',

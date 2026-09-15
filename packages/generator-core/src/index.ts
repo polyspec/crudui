@@ -43,6 +43,8 @@ export { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL, hasWidget
 // Shared composition, display and localization APIs.
 export { ComposeLoadError } from '@crudui/validator';
 export { UnsupportedFieldTypeError } from './errors';
+/** Invalid generator input (code `INVALID_FORM_INPUT`), shared with the validator. */
+export { FormInputError } from '@crudui/validator';
 export { resolveDesign } from './design';
 export type { ResolvedDesign, ResolvedNode } from './design';
 export { evalShow, evalAppearance, makeContext } from './expr';
