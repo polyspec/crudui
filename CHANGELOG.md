@@ -2,8 +2,8 @@
 
 ## 2026-09-16 — Make browser validation input clearing deterministic
 
-The browser verifier now selects the validation input with `Control+A` before deleting its value.
-It no longer depends on Chromium's platform-sensitive multi-click selection behavior.
+The browser verifier now uses the input element's standard selection API before deleting its value.
+It no longer depends on Chromium's platform-sensitive multi-click or key-combination behavior.
 
 ## 2026-09-16 — Preserve canonical pagination metadata in native adapters
 
