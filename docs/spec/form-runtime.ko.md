@@ -37,8 +37,15 @@ React `Form`은 호스트가 제출 컨트롤을 소유할 때 `renderButtons={f
 데이터 주입 후 이전 레코드의 속성이 남으면 안 됩니다. 다른 레코드로 교체한 후
 복원하면 요소, 속성, 컨트롤 값과 표시 여부가 같아야 합니다.
 속성 순서는 이 계약에 포함되지 않습니다. 프레임워크와 브라우저 엔진은 속성을 서로 다른
-순서로 만들므로 바인딩은 속성을 재배치하지 않고, 이 비교는 파싱한 DOM을 사용합니다. 문자열
-렌더러의 바이트 단위 동일 HTML은 따로 검사합니다.
+순서로 만들므로 바인딩은 속성을 재배치하지 않고, 이 비교는 파싱한 DOM을 사용합니다.
+
+문자열 렌더러는 React 서버 렌더링(`@crudui/generator-react`의 `renderForm`, `renderList`),
+HTML 렌더러(`@crudui/generator-html`), PHP, PHP 확장, Go, Rust 생성기입니다. 같은 인스턴스나
+목록에서 이들은 같은 바이트를 만듭니다. React 서버 렌더링이 기준이므로 그 직렬화가 형식입니다.
+`readOnly`, `autoComplete` 같은 속성 이름, `/>`로 닫는 빈 요소, 다른 속성 뒤에 오는 input의
+`name`, `checked`, `value`, 반복된 속성은 처음 위치에 마지막 값을 두고 `property:value`를 `;`로
+이은 `style` 속성, 목록의 이미지 사전 로드 링크가 여기에 포함됩니다. 네이티브 생성 검사는 모든
+문자열 렌더러를 기준과 바이트 단위로 비교합니다.
 
 `@crudui/generator-html` 패키지는 React, Vue, Svelte 없이 같은 평가 인스턴스와
 목록 모델을 HTML 문자열로 렌더링합니다. `renderForm(form)`은 외부 HTML `form`

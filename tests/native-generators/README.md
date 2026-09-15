@@ -2,7 +2,8 @@
 
 [한국어](README.ko.md).
 
-The suite executes JavaScript, PHP, Go, Rust and the native PHP extension. It
+The suite executes the JavaScript reference (React server rendering), the JavaScript HTML
+renderer, PHP, Go, Rust and the native PHP extension. It
 requires the native module's absolute file path. Missing targets, failed
 processes, malformed responses and failed comparisons make the command fail.
 The report records unavailable targets separately and continues available

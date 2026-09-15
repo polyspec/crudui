@@ -2,6 +2,33 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Make the HTML renderer match the string renderer format
+
+The string renderers were meant to produce the same bytes, but the check never included the
+HTML renderer: the native generation check compared PHP, the PHP extension, Go and Rust with
+React's server rendering only. Compared byte for byte over the 90 form fixtures, the HTML
+renderer differed from React in 60, in input attribute order, attribute name case
+(`readonly`, `autocomplete`), void element closing, `style` text and text escaping; it also
+wrote no list image preload links and escaped `>` in attribute values differently. The runtime
+contract did not say which renderers the byte rule covers.
+
+The contract now names the string renderers (React's server rendering, the HTML renderer and
+the PHP, PHP extension, Go and Rust generators), makes React's server rendering the reference
+and lists its format. The HTML renderer writes that format: escaping, React attribute names,
+an input's `style`, `name`, `checked` and `value` last, void elements closed with `/>`, `style`
+as `property:value` joined by `;`, blocked script URLs, a doubled leading newline in a
+textarea, raw attributes for controls with event attributes, raw list actions and list image
+preload links. The native generation check runs the HTML renderer as a sixth target through
+`javascript.mjs --renderer html`, so the rule is enforced for every string renderer. The list
+layout tests of React and the HTML renderer and the list fixture generator share
+`list-body.mjs`, which removes the preload links before normalization, instead of separate
+copies; regenerating the list fixtures produced identical bytes.
+
+`make test-native` passed 1171 checks (195 for each of JavaScript, the HTML renderer, PHP,
+Go, Rust and native PHP). `npm run test:forms` passed (core 110, HTML 207, React 352, Vue 342,
+Svelte 339 and 10, Chromium 17), `npm run test:form-comparison:source` passed 141 and `:browser`
+4, and `make docs-check` passed.
+
 ## 2026-09-15 — Write float fixture values as C double literals
 
 `make test-native` stopped in the PHP extension engine test "list rendering has no undefined
