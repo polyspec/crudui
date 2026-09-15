@@ -31,13 +31,18 @@ foreach (json_decode(file_get_contents($root.'/tests/fixtures/validate/cases.jso
     if (json_encode($actual,JSON_THROW_ON_ERROR) !== json_encode($case->expected,JSON_THROW_ON_ERROR)) throw new RuntimeException('Validation result differs: '.json_encode($actual));
     $results[] = ['case'=>$case->name,'result'=>$actual];
 }
-foreach (['spec-validity','list-validity'] as $family) {
+foreach (['spec-validity','list-validity','detail-validity'] as $family) {
     foreach (json_decode(file_get_contents($root.'/tests/fixtures/'.$family.'/cases.json'), false, 512, JSON_THROW_ON_ERROR) as $case) {
         $options = [];
         foreach (['files','basepath'] as $option) if (property_exists($case,$option)) $options[$option] = $case->{$option};
         $expectation = $family === 'spec-validity' ? $case->expect : $case->engine;
         try {
-            $actual = $family === 'spec-validity' ? Validator::validate($case->spec,new stdClass(),$options) : Validator::validateList($case->spec,$options);
+            $actual = match ($family) {
+                'spec-validity' => Validator::validate($case->spec,new stdClass(),$options),
+                'list-validity' => Validator::validateList($case->spec,$options),
+                'detail-validity' => Validator::validateDetail($case->spec,$options),
+            };
+            if ($family !== 'spec-validity' && json_encode($actual,JSON_THROW_ON_ERROR) !== '{"valid":true,"errors":[]}') throw new RuntimeException($case->name.': clean load result differs');
             if ($expectation instanceof stdClass) throw new RuntimeException($case->name.': expected a composition error');
             $results[] = ['case'=>$family.':'.$case->name,'result'=>$actual];
         } catch (ComposeLoadError $error) {

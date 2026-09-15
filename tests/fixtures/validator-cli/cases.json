@@ -1,0 +1,217 @@
+[
+  {
+    "name": "not-json",
+    "note": "stdin that is not JSON is a malformed request.",
+    "input": "nope",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request must be valid JSON"
+      }
+    }
+  },
+  {
+    "name": "empty-input",
+    "note": "empty stdin is not JSON.",
+    "input": "",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request must be valid JSON"
+      }
+    }
+  },
+  {
+    "name": "array-request",
+    "note": "a request that is not an object is malformed.",
+    "input": "[]",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request must be an object"
+      }
+    }
+  },
+  {
+    "name": "missing-spec",
+    "note": "a request without spec is malformed.",
+    "input": "{}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request spec must be an object"
+      }
+    }
+  },
+  {
+    "name": "array-spec",
+    "note": "a spec that is not an object is malformed.",
+    "input": "{\"spec\":[]}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request spec must be an object"
+      }
+    }
+  },
+  {
+    "name": "spec-before-mode",
+    "note": "the spec rule is checked before the mode rule.",
+    "input": "{\"spec\":[],\"mode\":\"grid\"}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request spec must be an object"
+      }
+    }
+  },
+  {
+    "name": "unknown-mode",
+    "note": "a mode other than form, list or detail is unsupported.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"mode\":\"grid\"}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Unsupported validation mode"
+      }
+    }
+  },
+  {
+    "name": "null-mode",
+    "note": "a present null mode is unsupported; only an absent mode means form.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"mode\":null}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Unsupported validation mode"
+      }
+    }
+  },
+  {
+    "name": "number-mode",
+    "note": "a mode that is not a string is unsupported.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"mode\":1}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Unsupported validation mode"
+      }
+    }
+  },
+  {
+    "name": "mode-before-files",
+    "note": "the mode rule is checked before the files rule.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"mode\":\"grid\",\"files\":[]}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Unsupported validation mode"
+      }
+    }
+  },
+  {
+    "name": "array-files",
+    "note": "files that are not an object are malformed.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"files\":[]}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request files must be an object"
+      }
+    }
+  },
+  {
+    "name": "file-not-object",
+    "note": "every files member must be an object.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"files\":{\"a.yml\":[]}}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request files must contain objects"
+      }
+    }
+  },
+  {
+    "name": "files-before-basepath",
+    "note": "the files rule is checked before the basepath rule.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"files\":[],\"basepath\":5}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request files must be an object"
+      }
+    }
+  },
+  {
+    "name": "number-basepath",
+    "note": "a basepath that is not a string is malformed.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"basepath\":5}",
+    "expected": {
+      "exit": 1,
+      "output": {
+        "error": "Request basepath must be a string"
+      }
+    }
+  },
+  {
+    "name": "null-options",
+    "note": "null files and basepath mean none.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"files\":null,\"basepath\":null}",
+    "expected": {
+      "exit": 0,
+      "output": {
+        "valid": true,
+        "errors": []
+      }
+    }
+  },
+  {
+    "name": "absent-data",
+    "note": "absent form data validates an empty object.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}}}",
+    "expected": {
+      "exit": 0,
+      "output": {
+        "valid": true,
+        "errors": []
+      }
+    }
+  },
+  {
+    "name": "null-data",
+    "note": "present form data that is not an object is an input failure.",
+    "input": "{\"spec\":{\"type\": \"group\", \"properties\": {\"a\": {\"type\": \"text\"}}},\"data\":null}",
+    "expected": {
+      "exit": 2,
+      "output": {
+        "error": "Form data must be an object",
+        "code": "INVALID_FORM_INPUT",
+        "at": ""
+      }
+    }
+  },
+  {
+    "name": "list-ignores-data",
+    "note": "list mode ignores data.",
+    "input": "{\"spec\":{\"columns\":{}},\"mode\":\"list\",\"data\":5}",
+    "expected": {
+      "exit": 0,
+      "output": {
+        "valid": true,
+        "errors": []
+      }
+    }
+  },
+  {
+    "name": "detail-ignores-data",
+    "note": "detail mode ignores data.",
+    "input": "{\"spec\":{\"fields\":{}},\"mode\":\"detail\",\"data\":5}",
+    "expected": {
+      "exit": 0,
+      "output": {
+        "valid": true,
+        "errors": []
+      }
+    }
+  }
+]

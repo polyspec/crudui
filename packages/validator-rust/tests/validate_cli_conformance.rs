@@ -264,3 +264,191 @@ fn cli_malformed_non_object_spec_exits_1() {
         out
     );
 }
+
+/// Parse CLI stdout as one JSON value.
+fn stdout_json(run: &CliRun) -> Value {
+    serde_json::from_str(run.stdout.trim())
+        .unwrap_or_else(|e| panic!("stdout not JSON: {:?} ({})", run.stdout, e))
+}
+
+#[test]
+fn cli_detail_mode_clean_structure_is_valid() {
+    let req = json!({
+        "mode": "detail",
+        "spec": { "fields": { "name": { "field": ".name", "label": "Name" } } }
+    });
+    let run = run_cli(&req.to_string());
+    assert_eq!(
+        run.code,
+        Some(0),
+        "detail success must exit 0 ({})",
+        run.stderr
+    );
+    assert_eq!(stdout_json(&run), json!({ "valid": true, "errors": [] }));
+}
+
+#[test]
+fn cli_detail_mode_load_failure_exits_2() {
+    let req = json!({
+        "mode": "detail",
+        "spec": { "fields": { "$ref": "missing.yml" } }
+    });
+    let run = run_cli(&req.to_string());
+    assert_eq!(run.code, Some(2), "detail load failure must exit 2");
+    let out = stdout_json(&run);
+    let keys: Vec<&str> = out
+        .as_object()
+        .map(|m| m.keys().map(String::as_str).collect())
+        .unwrap_or_default();
+    assert_eq!(
+        keys,
+        vec!["error", "code", "at"],
+        "failure envelope: {}",
+        out
+    );
+    assert_eq!(out["code"], json!("REF_FILE_NOT_FOUND"));
+    assert_eq!(out["at"], json!("missing.yml"));
+}
+
+#[test]
+fn cli_unsupported_mode_exits_1() {
+    for mode in [json!("grid"), json!(1), Value::Null] {
+        let req = json!({
+            "mode": mode,
+            "spec": { "properties": { "name": { "type": "text" } } }
+        });
+        let run = run_cli(&req.to_string());
+        assert_eq!(run.code, Some(1), "mode {} must exit 1", mode);
+        assert_eq!(
+            stdout_json(&run),
+            json!({ "error": "Unsupported validation mode" }),
+            "mode {}",
+            mode
+        );
+    }
+}
+
+/// Assert a request error: exit 1 and stdout exactly `{"error": message}`.
+fn assert_request_error(input: &str, message: &str) {
+    let run = run_cli(input);
+    assert_eq!(
+        run.code,
+        Some(1),
+        "input {:?} must exit 1 (stdout: {}, stderr: {})",
+        input,
+        run.stdout,
+        run.stderr
+    );
+    assert_eq!(
+        stdout_json(&run),
+        json!({ "error": message }),
+        "input {:?}",
+        input
+    );
+}
+
+#[test]
+fn cli_request_rules_report_exact_messages() {
+    let spec = json!({ "properties": { "name": { "type": "text" } } });
+
+    // 1. invalid JSON (no parser detail).
+    for input in ["", "{not json", "{\"spec\":"] {
+        assert_request_error(input, "Request must be valid JSON");
+    }
+    // 2. not an object.
+    for input in ["[]", "null", "1", "\"spec\""] {
+        assert_request_error(input, "Request must be an object");
+    }
+    // 3. spec absent or not an object.
+    for req in [
+        json!({}),
+        json!({ "spec": null }),
+        json!({ "spec": [] }),
+        json!({ "spec": "x" }),
+    ] {
+        assert_request_error(&req.to_string(), "Request spec must be an object");
+    }
+    // 4. unsupported mode.
+    for mode in [json!("grid"), json!(1), Value::Null, json!("Form")] {
+        let req = json!({ "spec": spec, "mode": mode });
+        assert_request_error(&req.to_string(), "Unsupported validation mode");
+    }
+    // 5. files not an object.
+    for files in [json!([]), json!("x"), json!(1)] {
+        let req = json!({ "spec": spec, "files": files });
+        assert_request_error(&req.to_string(), "Request files must be an object");
+    }
+    // 6. a files member not an object.
+    for member in [json!("text"), Value::Null, json!([])] {
+        let req = json!({ "spec": spec, "files": { "a.yml": member } });
+        assert_request_error(&req.to_string(), "Request files must contain objects");
+    }
+    // 7. basepath not a string.
+    for basepath in [json!(1), json!({}), json!(false)] {
+        let req = json!({ "spec": spec, "basepath": basepath });
+        assert_request_error(&req.to_string(), "Request basepath must be a string");
+    }
+}
+
+#[test]
+fn cli_request_rules_apply_in_order() {
+    // Each input breaks several rules; the earliest rule's message wins.
+    assert_request_error("[1", "Request must be valid JSON");
+    assert_request_error(
+        &json!({ "mode": "grid", "files": [], "basepath": 1 }).to_string(),
+        "Request spec must be an object",
+    );
+    assert_request_error(
+        &json!({ "spec": {}, "mode": null, "files": [], "basepath": 1 }).to_string(),
+        "Unsupported validation mode",
+    );
+    assert_request_error(
+        &json!({ "spec": {}, "mode": "list", "files": 1, "basepath": 1 }).to_string(),
+        "Request files must be an object",
+    );
+    assert_request_error(
+        &json!({ "spec": {}, "files": { "a.yml": 1 }, "basepath": 1 }).to_string(),
+        "Request files must contain objects",
+    );
+}
+
+#[test]
+fn cli_null_files_and_basepath_mean_none() {
+    let req = json!({
+        "mode": "detail",
+        "spec": { "fields": { "name": { "field": ".name" } } },
+        "files": null,
+        "basepath": null
+    });
+    let run = run_cli(&req.to_string());
+    assert_eq!(
+        run.code,
+        Some(0),
+        "null files/basepath must pass ({})",
+        run.stderr
+    );
+    assert_eq!(stdout_json(&run), json!({ "valid": true, "errors": [] }));
+}
+
+#[test]
+fn cli_form_data_must_be_an_object() {
+    let spec = json!({ "properties": { "name": { "type": "text" } } });
+    for data in [Value::Null, json!([]), json!("x"), json!(1)] {
+        let run = run_cli(&json!({ "spec": spec, "data": data }).to_string());
+        assert_eq!(run.code, Some(2), "data {} must exit 2", data);
+        assert_eq!(
+            stdout_json(&run),
+            json!({ "error": "Form data must be an object", "code": "INVALID_FORM_INPUT", "at": "" }),
+            "data {}",
+            data
+        );
+    }
+    // Absent data validates `{}`.
+    let run = run_cli(&json!({ "spec": spec }).to_string());
+    assert_eq!(
+        run.code,
+        Some(0),
+        "absent data must validate {{}} ({})",
+        run.stderr
+    );
+}

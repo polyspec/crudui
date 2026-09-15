@@ -92,7 +92,7 @@ final class ListValidateCliTest extends TestCase
         return \json_encode([
             'mode' => 'list',
             'spec' => $case['spec'],
-            'files' => $case['files'] ?? [],
+            'files' => $case['files'] ?? new \stdClass(),
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 

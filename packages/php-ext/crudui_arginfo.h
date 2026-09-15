@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 6d029213d2f29fe25000670f8ec3e080003f6b4d */
+ * Stub hash: ed68338107ccfac9a1843e200c085097abd09944 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_CRUDUI_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -48,6 +48,8 @@ ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_CRUDUI_Validator_validate, 
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_CRUDUI_Validator_validateList arginfo_class_CRUDUI_Generator_compileForm
+
+#define arginfo_class_CRUDUI_Validator_validateDetail arginfo_class_CRUDUI_Generator_compileForm
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_CRUDUI_Form___construct, 0, 0, 1)
 	ZEND_ARG_OBJ_INFO(0, template, stdClass, 0)
@@ -155,6 +157,7 @@ ZEND_METHOD(CRUDUI_Generator, sequenceRowKey);
 ZEND_METHOD(CRUDUI_Generator, createRowKey);
 ZEND_METHOD(CRUDUI_Validator, validate);
 ZEND_METHOD(CRUDUI_Validator, validateList);
+ZEND_METHOD(CRUDUI_Validator, validateDetail);
 ZEND_METHOD(CRUDUI_Form, __construct);
 ZEND_METHOD(CRUDUI_Form, getTemplate);
 ZEND_METHOD(CRUDUI_Form, getFields);
@@ -196,6 +199,7 @@ static const zend_function_entry class_CRUDUI_Generator_methods[] = {
 static const zend_function_entry class_CRUDUI_Validator_methods[] = {
 	ZEND_ME(CRUDUI_Validator, validate, arginfo_class_CRUDUI_Validator_validate, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Validator, validateList, arginfo_class_CRUDUI_Validator_validateList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(CRUDUI_Validator, validateDetail, arginfo_class_CRUDUI_Validator_validateDetail, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_FE_END
 };
 

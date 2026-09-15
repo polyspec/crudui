@@ -25,6 +25,9 @@ assert($result->valid);
 `Validator::validate($spec, $data, $options)` composes the specification, scans
 for unsupported metadata and validates submitted data. `Validator::validateList`
 checks list specification composition and metadata; it does not validate rows.
+`Validator::validateDetail` checks detail specification composition, including
+`$ref` and `$patch` on the root and the `fields` map, and metadata; it does not
+validate a record. Both return `{ valid: true, errors: [] }` on a clean load.
 Options accept a `files` object and `basepath`. Composition failures raise
 `CRUDUI\Validator\Compose\ComposeLoadError`. Submitted data with the wrong shape
 raises `CRUDUI\Validator\Validate\FormInputError` with code `INVALID_FORM_INPUT`.
@@ -51,7 +54,22 @@ php packages/validator-php/bin/validate.php < request.json
 ```
 
 The CLI reads `{ "spec": {}, "data": {}, "files": {}, "basepath": "", "mode": "form" }`.
-Only `spec` is required. `mode` is `form` or `list`; the default is `form`.
+Only `spec` is required. An absent `mode` means `form`, which validates `data`.
+`list` runs `validateList` and `detail` runs `validateDetail`; both ignore
+`data`. Absent or `null` `files` and `basepath` mean none.
+
+Before validation the CLI checks the request in this order. The first failure
+writes exactly `{ "error": MESSAGE }` and exits with code one:
+
+1. stdin is not valid JSON: `Request must be valid JSON`.
+2. The request is not a JSON object: `Request must be an object`.
+3. `spec` is absent or not an object: `Request spec must be an object`.
+4. `mode` is present and not exactly `form`, `list` or `detail`, including
+   `null` and non-string values: `Unsupported validation mode`.
+5. `files` is present, not `null` and not an object: `Request files must be an object`.
+6. A `files` member is not an object: `Request files must contain objects`.
+7. `basepath` is present, not `null` and not a string: `Request basepath must be a string`.
+
 Successful execution writes `{ "valid": true, "errors": [] }` or data errors
 with exit code zero. An omitted `data` member validates `{}`; a supplied value
 must be a JSON object. A load or input failure writes exactly

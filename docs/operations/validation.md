@@ -128,7 +128,14 @@ is empty. Do not convert a failure into a validation result.
 The validation CLIs in all languages use one process contract. A validation result
 exits `0` with `{ valid, errors }`. A load or input failure exits `2` with exactly
 `{ error, code, at }`. A malformed request exits `1` with `{ error }`. An omitted
-`data` member validates `{}`; a supplied value must be a JSON object.
+`data` member validates `{}`; a supplied value must be a JSON object. The request
+selects `mode` `form` (the default when `mode` is absent), `list` or `detail`; list
+and detail modes validate structure only and ignore `data`. Every CLI checks the
+request in one order with one message per rule: valid JSON, an object request, an
+object `spec`, a supported `mode`, an object `files` whose members are objects, and a
+string `basepath`, where absent or `null` `files` and `basepath` mean none. The
+[validator command-line cases](../../tests/fixtures/validator-cli/README.md) list the
+messages and run in every language.
 
 Visibility does not disable validation. `design.show: false` hides a field but
 does not change its required rule. Conditional requirements use an expression in

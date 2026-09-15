@@ -208,6 +208,17 @@ PHP_METHOD(CRUDUI_Validator, validateList)
     call_two(spec, options, false, ps_validate_list, return_value);
 }
 
+PHP_METHOD(CRUDUI_Validator, validateDetail)
+{
+    zval *spec, *options = NULL;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ARRAY_OR_OBJECT(spec)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ARRAY(options)
+    ZEND_PARSE_PARAMETERS_END();
+    call_two(spec, options, false, ps_validate_detail, return_value);
+}
+
 PHP_METHOD(CRUDUI_Generator, sequenceRowKey)
 {
     zend_string *string = NULL;

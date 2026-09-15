@@ -12,6 +12,10 @@ validate) reused by `@crudui/generator-core`.
   + forbidden-scan over the list tree. Validates NO rows (a list has no data;
   rows are injected, DB-agnostic). A clean load returns `{ valid: true,
   errors: [] }`.
+- `validateDetail(spec, opts)` — the same STRUCTURE check for a detail
+  specification: compose the root and the `fields` map, then forbidden-scan.
+  It validates no record. Go, PHP, the PHP extension and Rust run the same
+  shared cases (`tests/fixtures/detail-validity`).
 - `composeProperties`, `MemoryLoader`, `ComposeLoadError` — composition surfaces
   consumed by the generators.
 - `FormInputError` — submitted data with the wrong shape (`INVALID_FORM_INPUT`).
@@ -31,11 +35,12 @@ The cross-check gateway drives all four languages as symmetric subprocesses
 node --import tsx bin/validate.mjs < request.json
 ```
 
-- stdin: `{"spec": <object>, "data": <object>, "files"?: {...}, "basepath"?: <string>, "mode"?: "form"|"list"}`
+- stdin: `{"spec": <object>, "data": <object>, "files"?: {...}, "basepath"?: <string>, "mode"?: "form"|"list"|"detail"}`
 - stdout: `{"valid": <bool>, "errors": [{path, field, rule, message, value}, ...]}`
 
-`mode` defaults to `form`. `list` runs `validateList` (structure only; `data`
-is ignored). An omitted `data` member validates `{}`. A load or input failure
+`mode` defaults to `form`. `list` runs `validateList` and `detail` runs
+`validateDetail` (structure only; `data` is ignored). Any other `mode` value is a
+malformed request: `{"error": "Unsupported validation mode"}` with exit 1. An omitted `data` member validates `{}`. A load or input failure
 exits 2 with exactly `{"error", "code", "at"}` (no `valid` key); a malformed
 request is `{"error"}` with exit 1. Every language's CLI uses this contract.
 

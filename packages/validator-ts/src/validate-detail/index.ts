@@ -1,6 +1,7 @@
 /** CRUDUI detail-spec structure validation using the shared composition checks. */
 
-import { composeProperties, MemoryLoader, type FileLoader, resolveRef, applyPatch } from '../compose/index';
+import { composeProperties, MemoryLoader, type FileLoader } from '../compose/index';
+import { composeRoot } from '../compose-root';
 import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 
@@ -25,33 +26,14 @@ export function validateDetail(
 ): ValidationResult {
   const loader = options.loader ?? new MemoryLoader(options.files ?? {});
   const opts = options.basepath ? { basepath: options.basepath } : {};
-  const composed = composeDetailRoot(spec, loader, opts);
+  // The root composes exactly as a list root does.
+  const composed = composeRoot(spec, loader, opts);
   if (isObject(composed.fields)) {
     scanForbiddenKeys({ ...composed, fields: composeProperties(composed.fields, loader, opts) }, []);
   } else {
     scanForbiddenKeys(composed, []);
   }
   return { valid: true, errors: [] };
-}
-
-function composeDetailRoot(
-  spec: Record<string, unknown>,
-  loader: FileLoader,
-  opts: { basepath?: string },
-): Record<string, unknown> {
-  if (!('$ref' in spec) && !('$patch' in spec)) return { ...spec };
-  const basepath = opts.basepath ?? '';
-  let base: Record<string, unknown> = {};
-  let patch: unknown;
-  const own: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(spec)) {
-    if (key === '$ref') base = { ...own, ...resolveRef(value, basepath, loader) };
-    else if (key === '$patch') patch = value;
-    else own[key] = value;
-  }
-  let result = { ...base, ...own };
-  if (patch !== undefined) result = applyPatch(result, patch);
-  return result;
 }
 
 export { ComposeLoadError } from '../compose/index';

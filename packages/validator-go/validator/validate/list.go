@@ -44,27 +44,12 @@ func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
 	loader := compose.NewMemoryLoader(map[string]*compose.OMap(opts.Files))
 	composeOpts := compose.ComposeOptions{Basepath: opts.Basepath}
 
-	// Pass 1a (G5): compose the list ROOT — expand a root-level $ref/$patch. The
-	// list root is itself a composition entry point (SPEC §9.1: a list may be a
-	// $ref overlay), the SAME as a form spec root.
-	composed, err := compose.ComposeSpec(spec, loader, composeOpts)
+	// Pass 1a/1b (G5): compose the list ROOT (a list may be a $ref overlay, SPEC
+	// §9.1) and the columns map — the read sister of properties — with the SAME
+	// ComposeProperties the form properties layer uses.
+	composed, err := composeRootAndFieldMap(spec, "columns", loader, composeOpts)
 	if err != nil {
 		return ValidationResult{}, err
-	}
-
-	// Pass 1b (G5): compose the columns map. ComposeSpec only recurses into
-	// `properties`; the columns map is the list's field map (SPEC §9.1: columns is
-	// the read sister of properties), so its $ref/$patch is expanded here with the
-	// SAME ComposeProperties the form properties layer uses. Each column entry may
-	// carry $ref/$patch (ok-compose-ref-patch-columns).
-	if cols, ok := composed.Get("columns"); ok {
-		if cm, isMap := cols.(*compose.OMap); isMap {
-			expanded, cerr := compose.ComposeProperties(cm, loader, composeOpts)
-			if cerr != nil {
-				return ValidationResult{}, cerr
-			}
-			composed.Set("columns", expanded)
-		}
 	}
 
 	// Pass 1c (G5): compose the search form-spec reference. search is INPUT (SPEC
@@ -124,4 +109,25 @@ func ValidateListJSON(specJSON []byte, filesJSON map[string][]byte, basepath str
 	}
 
 	return ValidateList(spec, Options{Files: files, Basepath: basepath})
+}
+
+// composeRootAndFieldMap composes a read-structure root with ComposeSpec, then
+// expands its field map under mapKey (list columns, detail fields) with
+// ComposeProperties when that member is an object. Shared by ValidateList and
+// ValidateDetail so both roots compose by one rule.
+func composeRootAndFieldMap(spec *compose.OMap, mapKey string, loader compose.FileLoader, opts compose.ComposeOptions) (*compose.OMap, error) {
+	composed, err := compose.ComposeSpec(spec, loader, opts)
+	if err != nil {
+		return nil, err
+	}
+	if m, ok := composed.Get(mapKey); ok {
+		if om, isMap := m.(*compose.OMap); isMap {
+			expanded, cerr := compose.ComposeProperties(om, loader, opts)
+			if cerr != nil {
+				return nil, cerr
+			}
+			composed.Set(mapKey, expanded)
+		}
+	}
+	return composed, nil
 }

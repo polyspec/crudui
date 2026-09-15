@@ -12,11 +12,11 @@
  * `src/bin/validate.rs`; the gateway spawns it with spawnSync, encoding
  * utf-8, the request piped on stdin, a 10s timeout):
  *
- *   stdin  : {"spec": <object>, "data": <object>, "files"?: {key:<object>}, "basepath"?: <string>, "mode"?: "form"|"list"}
+ *   stdin  : {"spec": <object>, "data": <object>, "files"?: {key:<object>}, "basepath"?: <string>, "mode"?: "form"|"list"|"detail"}
  *   stdout : {"valid": <bool>, "errors": [{path, field, rule, message, value}, ...]}
  *
  * `spec` arrives already decoded (the gateway parses YAML; this CLI sees a plain
- * object). Two modes (default "form"):
+ * object). Three modes (default "form"); any other `mode` value is a malformed request:
  *   - form: the full CRUDUI pipeline `validate` — compose (G5) → forbidden-scan
  *     (§6) → validate (§3 + §2 G1) of `data` (the form rows).
  *   - list: the read sister `validateList` (SPEC §9) — compose (columns/search
@@ -25,6 +25,8 @@
  *     a clean load is {"valid":true,"errors":[]}. The "schema shape" half
  *     (closed objects / enum / required / CellFormat polymorphism) stays with the
  *     meta-schema, not this engine.
+ *   - detail: `validateDetail` — compose (root and `fields` $ref/$patch) → forbidden-scan over
+ *     the detail tree. Like list, it validates no data and `data` is ignored.
  * This is a THIN wrapper: it adds no validation logic and never touches the legacy
  * Validator (R7 parallel run).
  *
@@ -33,8 +35,10 @@
  *     FormInputError (root, group or repeated data with the wrong shape) produce
  *     no validation result. Both exit 2 with stdout {"error": <message>, "code":
  *     <code>, "at": <composition trace joined with "." or "">}.
- *   - A malformed request (bad JSON, missing/non-object spec) is reported as
- *     {"error": <msg>} (no "code") with exit 1.
+ *   - A malformed request is reported as {"error": <msg>} (no "code") with exit 1. The rules
+ *     and messages are shared by every language's CLI and checked in the order listed in
+ *     tests/fixtures/validator-cli/README.md: valid JSON, an object request, an object spec,
+ *     a supported mode, object files with object members, then a string basepath.
  *
  * An omitted `data` member validates `{}`. A supplied `data` value is passed to
  * the validator unchanged.
@@ -46,6 +50,7 @@
 
 import { validate, ComposeLoadError, FormInputError } from '../src/validate/index.ts';
 import { validateList } from '../src/validate-list/index.ts';
+import { validateDetail } from '../src/validate-detail/index.ts';
 
 /** Emit one JSON line to stdout, then exit with the given code. */
 function emit(obj, code) {
@@ -68,52 +73,51 @@ async function main() {
   try {
     raw = await readStdin();
   } catch (e) {
-    emit({ error: 'Failed to read stdin: ' + (e && e.message ? e.message : e) }, 1);
+    emit({ error: 'Request must be valid JSON' }, 1);
   }
 
-  if (!raw || !raw.trim()) {
-    emit({ error: 'Empty stdin request' }, 1);
-  }
-
+  // Request rules shared by every language's CLI, checked in this order.
+  const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
   let req;
   try {
     req = JSON.parse(raw);
-  } catch (e) {
-    emit({ error: 'Failed to parse request JSON: ' + (e && e.message ? e.message : e) }, 1);
+  } catch {
+    emit({ error: 'Request must be valid JSON' }, 1);
   }
-
-  if (!req || typeof req !== 'object' || Array.isArray(req)) {
-    emit({ error: 'Request must be a JSON object' }, 1);
-  }
-
+  if (!isObject(req)) emit({ error: 'Request must be an object' }, 1);
   const spec = req.spec;
-  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-    emit({ error: "Request `spec` must be an object" }, 1);
+  if (!isObject(spec)) emit({ error: 'Request spec must be an object' }, 1);
+
+  // `mode` selects the entry: absent or "form" validates `data`; "list" and "detail"
+  // validate a specification STRUCTURE (compose + forbidden-scan) and ignore data.
+  const mode = Object.hasOwn(req, 'mode') ? req.mode : 'form';
+  if (mode !== 'form' && mode !== 'list' && mode !== 'detail') {
+    emit({ error: 'Unsupported validation mode' }, 1);
   }
 
-  // `mode` selects the entry: "form" (default) validates `data`; "list" validates
-  // a list-spec STRUCTURE (compose + forbidden-scan) and ignores rows (SPEC §9).
-  const mode = req.mode === 'list' ? 'list' : 'form';
+  // Composition inputs: absent or null means none.
+  const files = req.files ?? null;
+  if (files !== null && !isObject(files)) emit({ error: 'Request files must be an object' }, 1);
+  if (files !== null && !Object.values(files).every(isObject)) {
+    emit({ error: 'Request files must contain objects' }, 1);
+  }
+  const basepath = req.basepath ?? null;
+  if (basepath !== null && typeof basepath !== 'string') {
+    emit({ error: 'Request basepath must be a string' }, 1);
+  }
 
   // An omitted `data` member validates {}; a supplied value is validated as is.
-  // Ignored in list mode.
+  // Ignored in list and detail modes.
   const data = Object.hasOwn(req, 'data') ? req.data : {};
 
-  // Optional virtual file set + basepath for $ref resolution. The gateway sends
-  // the same { files, basepath } every wrapper receives; omitting them here would
-  // make JS report REF_FILE_NOT_FOUND on a spec the other three resolve — a
-  // wrapper-induced idempotency break.
   const opts = {};
-  if (req.files && typeof req.files === 'object' && !Array.isArray(req.files)) {
-    opts.files = req.files;
-  }
-  if (typeof req.basepath === 'string' && req.basepath) {
-    opts.basepath = req.basepath;
-  }
+  if (files !== null) opts.files = files;
+  if (basepath) opts.basepath = basepath;
 
   let result;
   try {
-    result = mode === 'list' ? validateList(spec, opts) : validate(spec, data, opts);
+    result =
+      mode === 'list' ? validateList(spec, opts) : mode === 'detail' ? validateDetail(spec, opts) : validate(spec, data, opts);
   } catch (e) {
     // Load and input failures produce no validation result.
     if (e instanceof ComposeLoadError) {
