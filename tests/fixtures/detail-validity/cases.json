@@ -147,8 +147,9 @@
   },
   {
     "name": "patched-field-forbidden-key",
-    "note": "a forbidden key introduced by $patch is found after composition. The meta-schema reads only spec and does not look inside $patch, so it accepts the case; the four-language engine rejects it.",
-    "expect": "ok",
+    "note": "a forbidden key introduced by $patch is rejected by the meta-schema inside the patch and by the four-language engine after composition.",
+    "expect": "fail",
+    "reason": "propertyNames",
     "engine": {
       "code": "FORBIDDEN_META_KEY",
       "at": "fields.extra.when"
