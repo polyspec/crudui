@@ -151,13 +151,14 @@ location.
 | list `total` option | an integer from 0 to 9007199254740991 | `List total must be a nonnegative integer` |
 | list `layout` option | `table` or `card` | `List layout must be table or card` |
 | detail specification | an object | `Detail specification must be an object` |
-| detail specification | declares `fields` | `Detail specification must declare fields` |
 | detail record | an object | `Detail record must be an object` |
+| detail specification | declares `fields` | `Detail specification must declare fields` |
 | detail `data` option | an object | `Detail context must be an object` |
 
 A detail takes the `data`, `language`, `files` and `basepath` options. It neither checks nor uses
 the list-only `page`, `total` and `layout` options.
 
+The rules check argument shapes in argument order first, then the declaration, then options.
 An option that is absent or `null` uses its default: an empty context, no current page, no total
 and the `table` layout. `page` is the current page and `total` the total record count; the caller
 supplies both, the generator derives neither from the rows, and a list whose specification

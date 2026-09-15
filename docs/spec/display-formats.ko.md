@@ -135,14 +135,14 @@ columns:
 | 목록 `total` 옵션 | 0부터 9007199254740991까지의 정수 | `List total must be a nonnegative integer` |
 | 목록 `layout` 옵션 | `table` 또는 `card` | `List layout must be table or card` |
 | 상세 명세 | 객체 | `Detail specification must be an object` |
-| 상세 명세 | `fields` 선언 | `Detail specification must declare fields` |
 | 상세 레코드 | 객체 | `Detail record must be an object` |
+| 상세 명세 | `fields` 선언 | `Detail specification must declare fields` |
 | 상세 `data` 옵션 | 객체 | `Detail context must be an object` |
 
 상세는 `data`, `language`, `files`, `basepath` 옵션을 받습니다. 목록 전용 옵션 `page`, `total`, `layout`은
 검사하지도 사용하지도 않습니다.
 
-옵션이 없거나 `null`이면 기본값을 씁니다. 빈 컨텍스트, 현재 페이지 없음, 전체 수 없음, `table` 레이아웃입니다.
+규칙은 인자 형태를 인자 순서대로 먼저 검사하고, 그다음 선언, 마지막으로 옵션을 검사합니다. 옵션이 없거나 `null`이면 기본값을 씁니다. 빈 컨텍스트, 현재 페이지 없음, 전체 수 없음, `table` 레이아웃입니다.
 `page`는 현재 페이지, `total`은 전체 레코드 수입니다. 둘 다 호출자가 제공하고 생성기는 행에서 계산하지 않으며,
 명세가 `pagination`을 켠 목록은 이를 `data-page`와 `data-total`로 출력합니다. 상한은 모든 런타임이 정확히
 표현하는 가장 큰 정수이며, `2.0`처럼 정수 값인 수는 정수 `2`입니다. 여러

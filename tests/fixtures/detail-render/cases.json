@@ -850,6 +850,46 @@
     "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
+    "name": "reject-specification-before-record",
+    "note": "the specification rule is checked before the record rule.",
+    "spec": [],
+    "record": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Detail specification must be an object"
+    }
+  },
+  {
+    "name": "reject-record-before-fields",
+    "note": "argument shapes are checked before the declaration: the record rule precedes the fields rule.",
+    "spec": {},
+    "record": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Detail record must be an object"
+    }
+  },
+  {
+    "name": "reject-record-before-context",
+    "note": "the record rule is checked before the context rule.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": ".name",
+          "label": "Name"
+        }
+      }
+    },
+    "record": [],
+    "options": {
+      "data": []
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Detail record must be an object"
+    }
+  },
+  {
     "name": "reject-array-context",
     "note": "a data option that is not an object is rejected.",
     "spec": {

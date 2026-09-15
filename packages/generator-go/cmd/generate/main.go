@@ -125,15 +125,17 @@ func run(request *gen.Object) (any, error) {
 		return gen.RenderList(obj(val(request, "spec")), rows, gen.ListOptions{Language: str(val(options, "language")), Data: val(options, "data"), Page: val(options, "page"), Total: val(options, "total"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")})
 	case "buildDetail", "renderDetail":
 		c := compileOptions(options)
+		// The record is typed at this JSON boundary; a non-object specification is reported first by the library.
+		spec := obj(val(request, "spec"))
 		record := obj(val(request, "record"))
-		if record == nil && request.Has("record") {
+		if spec != nil && record == nil && request.Has("record") {
 			return nil, fmt.Errorf("Detail record must be an object")
 		}
 		detailOptions := gen.DetailOptions{Language: str(val(options, "language")), Data: val(options, "data"), Files: c.Files, Basepath: c.Basepath}
 		if str(val(request, "operation")) == "buildDetail" {
-			return gen.BuildDetail(obj(val(request, "spec")), record, detailOptions)
+			return gen.BuildDetail(spec, record, detailOptions)
 		}
-		return gen.RenderDetail(obj(val(request, "spec")), record, detailOptions)
+		return gen.RenderDetail(spec, record, detailOptions)
 	case "bindForm", "form":
 		b, e := json.Marshal(val(request, "template"))
 		if e != nil {
