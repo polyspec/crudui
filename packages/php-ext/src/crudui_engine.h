@@ -41,6 +41,8 @@ ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps
 ps_result ps_render_detail(const ps_value *spec, const ps_value *record, const ps_value *options);
 ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value *options);
 ps_result ps_validate_list(const ps_value *spec, const ps_value *options);
+/* Detail structure: root and fields composition, then the forbidden-key scan. */
+ps_result ps_validate_detail(const ps_value *spec, const ps_value *options);
 ps_result ps_sequence_key(const ps_value *sequence);
 ps_result ps_create_key(void);
 ps_form_result ps_form_new(const ps_value *template, const ps_value *data, const ps_value *options);
