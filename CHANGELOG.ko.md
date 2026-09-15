@@ -2,6 +2,19 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — generator-core를 선언한 라이브러리로 빌드
+
+`3aeb4d6e` 이후 모든 CI 작업이 `npm run build`에서 실패했습니다. `detail.ts`가 패키지가 선언한
+TypeScript 라이브러리에 없는 `Object.hasOwn`을 호출했습니다. 그 커밋은 변경 기록 문구 수정으로
+설명했지만, 모든 변경을 스테이징하면서 진행 중이던 상세 작업도 함께 커밋했습니다. 상세 모델의 입력
+검사(객체가 아닌 선언, `fields`가 없는 선언, 객체가 아닌 레코드가 각각 고유한 메시지로 실패), 그
+검사, 공용 상세 픽스처의 생성 스크립트(사례 파일 없음)입니다. 스테이징한 내용을 검토하지 않고 빌드도
+하지 않은 채 커밋한 제 잘못입니다.
+
+자기 속성 검사는 이제 `Object.prototype.hasOwnProperty.call`을 사용합니다. 상세 입력 검사는 올바르고
+검증되었으므로 유지하며, 남은 상세 작업은 별도 변경으로 이어갑니다. `npm run build`, `npm run lint`,
+`npm run test:docs`, `make docs-check`, 코어 상세 검사가 통과했습니다.
+
 ## 2026-09-15 — 스크립트 URL 정규식을 lint에서 유지
 
 CI가 HTML 렌더러에서 실패했습니다. 기준 렌더러에서 이식한 스크립트 URL 정규식을
