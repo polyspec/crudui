@@ -192,7 +192,13 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 | `class` and `style` of those nodes | String or condition map |
 
 Compilation checks fields in declaration order, each field before its children.
-It does not check unknown keys in these buckets.
+The schema closes `multiple`, `lang`, `design`, the design nodes and `behavior`: a key they do
+not list fails with `Invalid {bucket}.{key} at {path}: unknown key` (for example
+`Invalid design.label.text at name: unknown key`). Within a bucket, unknown keys are checked in
+declaration order before the values. The order is `buttons` and `action`, `multiple`, `lang`,
+`design` (then each node: `label`, `wrapper`, `group`, `prepend`) and `behavior`. `validate`,
+`options` and dynamic `items` sources stay open for type-specific settings; forbidden meta keys
+are rejected everywhere.
 
 ## Widget and source settings
 

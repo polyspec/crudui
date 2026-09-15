@@ -517,10 +517,8 @@
           "field": ".name",
           "label": "Name",
           "design": {
-            "main": {
-              "class": "strong",
-              "style": "color:red"
-            }
+            "class": "strong",
+            "style": "color:red"
           }
         }
       }
@@ -538,7 +536,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view card\" style=\"padding: 4px\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+    "expected_html": "<dl class=\"detail-view card\" style=\"padding: 4px\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text strong\" style=\"color: red\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
     "name": "condition-hidden-field",

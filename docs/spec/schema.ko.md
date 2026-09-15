@@ -179,8 +179,12 @@ must declare fields`, 객체가 아닌 레코드는 `Detail record must be an ob
 | `design.label`, `design.wrapper`, `design.group`, `design.prepend` | 객체 |
 | 해당 노드의 `class`와 `style` | 문자열 또는 조건 맵 |
 
-컴파일은 선언 순서로 필드를 검사하며 자식보다 필드를 먼저 검사합니다. 이 버킷의
-알 수 없는 키는 검사하지 않습니다.
+컴파일은 선언 순서로 필드를 검사하며 자식보다 필드를 먼저 검사합니다. 스키마는
+`multiple`, `lang`, `design`, 디자인 노드, `behavior`를 닫습니다. 이들이 나열하지 않은 키는
+`Invalid {bucket}.{key} at {path}: unknown key`로 실패합니다(예: `Invalid design.label.text at name: unknown key`).
+버킷 안에서는 값보다 먼저 선언 순서로 알 수 없는 키를 검사합니다. 순서는 `buttons`와 `action`, `multiple`,
+`lang`, `design`(이어서 노드 `label`, `wrapper`, `group`, `prepend`), `behavior`입니다. `validate`, `options`,
+동적 `items` 원천은 타입별 설정을 위해 열려 있으며, 금지 메타 키는 어디서나 거부합니다.
 
 ## 위젯과 소스 설정
 
