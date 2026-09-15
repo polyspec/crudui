@@ -10,10 +10,10 @@ package validate
 // it identically. This test re-runs the real load path
 // (ValidateJSON = compose → forbidden-scan → validate) against it.
 //
-// Each ok case must validate without a load error. Each error case must return a
-// *compose.ComposeLoadError whose Code is the fixture error_code AND whose path
-// (Trace, dotted) equals the fixture at_path. The check compares both the code
-// and the complete path.
+// Each case declares `engine`: "pass" requires no load error and valid:true with
+// no errors, or {code, at}
+// requires a *compose.ComposeLoadError whose Code is code and whose dotted Trace
+// is at. The case `files` are the composition files passed to the runtime.
 
 import (
 	"encoding/json"
@@ -30,13 +30,13 @@ type forbiddenScanCase struct {
 	Note   string          `json:"note"`
 	Spec   json.RawMessage `json:"spec"`
 	Files  json.RawMessage `json:"files"`
-	Expect json.RawMessage `json:"expect"`
+	Engine json.RawMessage `json:"engine"`
 }
 
-// expectError is the {error_code, at_path} object form of a fixture expectation.
-type expectError struct {
-	ErrorCode string `json:"error_code"`
-	AtPath    string `json:"at_path"`
+// engineError is the {code, at} object form of a fixture engine expectation.
+type engineError struct {
+	Code *string `json:"code"`
+	At   *string `json:"at"`
 }
 
 func loadForbiddenScanFixtures(t *testing.T) []forbiddenScanCase {
@@ -75,10 +75,10 @@ func filesFor(t *testing.T, c forbiddenScanCase) map[string][]byte {
 	return files
 }
 
-// expectIsOK reports whether the fixture expect field is the literal string "ok".
-func expectIsOK(raw json.RawMessage) bool {
+// enginePasses reports whether the fixture engine field is the literal string "pass".
+func enginePasses(raw json.RawMessage) bool {
 	var s string
-	return json.Unmarshal(raw, &s) == nil && s == "ok"
+	return json.Unmarshal(raw, &s) == nil && s == "pass"
 }
 
 func TestForbiddenScanMatchesFixture(t *testing.T) {
@@ -87,50 +87,36 @@ func TestForbiddenScanMatchesFixture(t *testing.T) {
 		t.Run(c.Name, func(t *testing.T) {
 			// Data is irrelevant to the scan; pass empty. The scan runs in the load
 			// path before any data-driven validation.
-			_, err := ValidateJSON(c.Spec, nil, filesFor(t, c), "")
+			res, err := ValidateJSON(c.Spec, nil, filesFor(t, c), "")
 
-			if expectIsOK(c.Expect) {
+			if enginePasses(c.Engine) {
 				if err != nil {
 					t.Fatalf("clean spec must pass the load path, got error: %v", err)
+				}
+				if !res.Valid || len(res.Errors) != 0 {
+					t.Fatalf("%s: expected valid:true with no errors, got %+v", c.Name, res)
 				}
 				return
 			}
 
-			var want expectError
-			if uerr := json.Unmarshal(c.Expect, &want); uerr != nil {
-				t.Fatalf("%s: expect must be \"ok\" | {error_code, at_path}: %v", c.Name, uerr)
+			var want engineError
+			if uerr := json.Unmarshal(c.Engine, &want); uerr != nil || want.Code == nil || want.At == nil {
+				t.Fatalf("%s: engine must be \"pass\" | {code, at}, got %s", c.Name, c.Engine)
 			}
 			if err == nil {
-				t.Fatalf("expected load error %s at %s, but validated successfully",
-					want.ErrorCode, want.AtPath)
+				t.Fatalf("expected load error %s at %s, but validated successfully", *want.Code, *want.At)
 			}
 			le, ok := err.(*compose.ComposeLoadError)
 			if !ok {
 				t.Fatalf("expected *compose.ComposeLoadError, got %T: %v", err, err)
 			}
-			if string(le.Code) != want.ErrorCode {
-				t.Fatalf("error code mismatch: expected %s, got %s (%s)",
-					want.ErrorCode, le.Code, le.Message)
+			if string(le.Code) != *want.Code {
+				t.Fatalf("error code mismatch: expected %s, got %s (%s)", *want.Code, le.Code, le.Message)
 			}
 			gotPath := strings.Join(le.Trace, ".")
-			if gotPath != want.AtPath {
-				t.Fatalf("error path mismatch: expected %s, got %s", want.AtPath, gotPath)
+			if gotPath != *want.At {
+				t.Fatalf("error path mismatch: expected %s, got %s", *want.At, gotPath)
 			}
 		})
-	}
-}
-
-// TestForbiddenScanEveryCaseDeclaresExpectation locks the contract shape: no
-// fixture case may silently omit its expectation.
-func TestForbiddenScanEveryCaseDeclaresExpectation(t *testing.T) {
-	cases := loadForbiddenScanFixtures(t)
-	for _, c := range cases {
-		if expectIsOK(c.Expect) {
-			continue
-		}
-		var want expectError
-		if err := json.Unmarshal(c.Expect, &want); err != nil || want.ErrorCode == "" || want.AtPath == "" {
-			t.Errorf("%s must declare expect: \"ok\" | {error_code, at_path}", c.Name)
-		}
 	}
 }

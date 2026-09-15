@@ -1,8 +1,8 @@
 //! CRUDUI list-spec structure conformance for SPEC §9.
 //!
 //! `tests/fixtures/list-validity/cases.json` contains independent meta-schema and
-//! runtime expectations. This test reads `engine`: `"pass"` requires successful
-//! composition and forbidden-key scanning; `{ code, at }` requires the declared
+//! runtime expectations. This test reads `engine` and passes the case `files`:
+//! `"pass"` requires successful composition and forbidden-key scanning; `{ code, at }` requires the declared
 //! load-error code and complete dotted trace. Row validation does not apply.
 
 use std::path::{Path, PathBuf};
@@ -59,16 +59,16 @@ fn list_engine_matches_fixture() {
             .unwrap_or_else(|| panic!("[{}] fixture case missing the `engine` channel", name));
 
         match engine {
-            // engine:"pass" — the load path must NOT reject (valid OR a
-            // meta-schema-only shape the engine does not own).
-            Value::String(s) if s == "pass" => {
-                if let Err(e) = &result {
-                    failures.push(format!(
-                        "[{}] engine:\"pass\" but rejected: {} ({})",
-                        name, e.code, e.message
-                    ));
-                }
-            }
+            // engine:"pass" — the structure check completes with no load failure.
+            // The Rust structure API returns `Ok(())` for that result, the
+            // equivalent of `{ valid: true, errors: [] }` in the other runtimes.
+            Value::String(s) if s == "pass" => match &result {
+                Ok(()) => {}
+                Err(e) => failures.push(format!(
+                    "[{}] engine:\"pass\" but rejected: {} ({})",
+                    name, e.code, e.message
+                )),
+            },
             // engine:{code,at} — the load path must reject with this code + trace.
             Value::Object(want) => {
                 let want_code = want.get("code").and_then(Value::as_str).unwrap_or("?");
