@@ -2,6 +2,20 @@
 
 [English](CHANGELOG.md).
 
+## 2026-09-15 — Vue 서버 렌더러를 vue 피어 의존성으로 가져오기
+
+`@crudui/generator-vue`는 선언한 `vue` 피어 의존성 밖의 개발 의존성 `@vue/server-renderer`를 가져왔습니다. 빌드가
+이를 외부 모듈로 다루지 않아 빌드된 진입점에 2.2MB 번들 사본이 들어갔고, 그 ES 모듈에는 이름 있는 내보내기가 없어
+빌드된 패키지의 `renderForm`, `renderList`, `renderDetail`이 `renderToString is not a function`으로 실패했습니다.
+이제 패키지는 피어 의존성이 제공하는 `vue/server-renderer`를 가져오고 개발 의존성을 선언하지 않으며, 빌드된 ES 모듈
+진입점은 24KB입니다.
+
+패키징한 소비자 검사는 브라우저 빌드에서 폼만 렌더링했으므로 설치한 패키지로 서버 렌더링을 실행한 적이 없었습니다.
+이제 설치한 React와 Vue 패키지에서 `import`와 `require`로, Svelte 패키지에서 Vite `ssrLoadModule`로 폼, 목록,
+상세를 렌더링합니다. 이전 import에서는 검사가 같은 오류로 실패했습니다. React는 `react-dom/server`, Svelte는
+`svelte/server`를 가져오며 둘 다 피어 의존성에 포함됩니다. Vue 검사는 396건을 통과했고 `npm run test:packages`가
+통과했습니다.
+
 ## 2026-09-15 — 문서 사이트에서 한국어 제목 앵커 유지
 
 문서 사이트는 NFKD로 정규화한 텍스트에서 제목 id를 만들었습니다. NFKD는 한글 음절을 자모로 분해하므로 `목록 모델`

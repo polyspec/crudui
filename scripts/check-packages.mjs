@@ -73,10 +73,30 @@ validate(spec, data);
     };
     check(manifest.exports);
   }
+  // Server rendering from the installed entries: each framework package renders a form, a list and a detail.
+  const rendering = `
+const form = m.createForm(m.compileForm({ type: 'group', properties: { name: { type: 'text', label: 'Name' } } }), { name: 'Ada' });
+const html = [
+  await m.renderForm(form),
+  await m.renderList({ columns: { name: { field: '.name', label: 'Name' } } }, [{ name: 'Ada' }], { language: 'en' }),
+  await m.renderDetail({ fields: { name: { field: '.name', label: 'Name' } } }, { name: 'Ada' }, { language: 'en' }),
+];
+if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering lost the data');`;
+  for (const name of ['@crudui/generator-react', '@crudui/generator-vue']) {
+    run('node', ['--input-type=module', '-e', `const m = await import('${name}');${rendering}`]);
+    run('node', ['-e', `(async () => { const m = require('${name}');${rendering} })().catch(error => { console.error(error); process.exit(1); });`]);
+  }
+  writeFileSync(join(directory, 'render.mjs'), `import * as m from '@crudui/generator-svelte';\nexport async function render() {${rendering}\n}\n`);
+  const consumerRequire = createRequire(join(directory, 'package.json'));
+  const { createServer, preview } = await import(pathToFileURL(consumerRequire.resolve('vite')).href);
+  const renderer = await createServer({ root: directory, logLevel: 'silent', server: { middlewareMode: true } });
+  try {
+    await (await renderer.ssrLoadModule('/render.mjs')).render();
+  } finally {
+    await renderer.close();
+  }
   writeFileSync(join(directory, 'typecheck.log'), run(join(directory, 'node_modules/.bin/tsc'), ['--noEmit']));
   writeFileSync(join(directory, 'build.log'), run(join(directory, 'node_modules/.bin/vite'), ['build']));
-  const consumerRequire = createRequire(join(directory, 'package.json'));
-  const { preview } = await import(pathToFileURL(consumerRequire.resolve('vite')).href);
   const server = await preview({ root: directory, preview: { host: '127.0.0.1', port: 0, open: false } });
   let browser;
   try {
@@ -102,7 +122,7 @@ validate(spec, data);
     await browser?.close();
     await new Promise(resolve => server.httpServer.close(resolve));
   }
-  console.log('Package exports, consumer types, production build and three-framework browser checks passed.');
+  console.log('Package exports, server rendering, consumer types, production build and three-framework browser checks passed.');
   // A passing check removes its consumer project; a failing check keeps it for inspection.
   rmSync(directory, { recursive: true, force: true });
 } catch (error) {
