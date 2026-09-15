@@ -1,6 +1,6 @@
 /** List HTML rendering with Vue's server renderer. */
 
-import { buildList, type BuildListOptions } from '@crudui/generator-core';
+import { buildList, listLayout, type BuildListOptions } from '@crudui/generator-core';
 import { List, type ListLayout } from './components/List';
 
 /** Options for a CRUDUI list SSR render. */
@@ -20,12 +20,13 @@ export async function renderList(
 ): Promise<string> {
   const { layout, ...buildOpts } = options;
   const vm = buildList(listSpec, rows, buildOpts);
+  const layoutName = listLayout(layout);
 
   const { createSSRApp } = await import('vue');
   const { renderToString } = await import('@vue/server-renderer');
 
   const app = createSSRApp({
-    render: () => List(vm, layout ?? 'table'),
+    render: () => List(vm, layoutName),
   });
   return renderToString(app);
 }

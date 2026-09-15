@@ -3,6 +3,7 @@
 [English](README.md).
 
 - [명세 구조](spec/schema.ko.md)
+- [표시 형식](spec/display-formats.ko.md)
 - [폼 런타임](spec/form-runtime.ko.md)
 - [기능과 배포 상태](features.ko.md)
 - [폼 개발과 검증](operations/forms.ko.md)

@@ -12,7 +12,7 @@ interface ListFixture {
   rows?: Array<Record<string, unknown>>;
   options?: Record<string, unknown>;
   expected_html?: string;
-  expectError?: { code: string };
+  expectError?: { code: string; message?: string };
 }
 
 describe('framework-independent list renderer conformance', () => {
@@ -20,6 +20,12 @@ describe('framework-independent list renderer conformance', () => {
     if (item.expectError) continue;
     test(item.name, () => {
       expect(normalizeHtml(withoutPreloadLinks(renderList(item.spec, item.rows ?? [], item.options)))).toBe(item.expected_html);
+    });
+  }
+  for (const item of cases as unknown as ListFixture[]) {
+    if (!item.expectError?.message) continue;
+    test(item.name, () => {
+      expect(() => renderList(item.spec, item.rows ?? [], item.options)).toThrow(item.expectError!.message);
     });
   }
 });

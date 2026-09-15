@@ -51,12 +51,34 @@ try {
             $result = Generator::bindForm(required($request, 'template'), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
             break;
         case 'renderList':
-            $result = Generator::renderList(required($request, 'spec'), property_exists($request, 'rows') ? $request->rows : [], options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            // JSON decides each type before the library applies the PHP value rules.
+            $spec = objectValue(required($request, 'spec'), 'List specification must be an object');
+            $rows = property_exists($request, 'rows') ? $request->rows : [];
+            if (!is_array($rows)) {
+                throw new InvalidArgumentException('List rows must be an array');
+            }
+            foreach ($rows as $row) {
+                objectValue($row, 'List rows must be objects');
+            }
+            $listOptions = options(property_exists($request, 'options') ? $request->options : new stdClass());
+            foreach (['data' => 'List context must be an object', 'pageMeta' => 'List page metadata must be an object'] as $key => $message) {
+                if (isset($listOptions[$key])) {
+                    objectValue($listOptions[$key], $message);
+                }
+            }
+            $result = Generator::renderList($spec, $rows, $listOptions);
             break;
         case 'buildDetail':
         case 'renderDetail':
             $method = $request->operation;
-            $result = Generator::$method(objectValue(required($request, 'spec'), 'Detail specification must be an object'), property_exists($request, 'record') ? objectValue($request->record, 'Detail record must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $spec = objectValue(required($request, 'spec'), 'Detail specification must be an object');
+            $record = property_exists($request, 'record') ? objectValue($request->record, 'Detail record must be an object') : new stdClass();
+            $detailOptions = options(property_exists($request, 'options') ? $request->options : new stdClass());
+            // The context is checked after the fields, which the library checks first.
+            if (property_exists($spec, 'fields') && isset($detailOptions['data'])) {
+                objectValue($detailOptions['data'], 'Detail context must be an object');
+            }
+            $result = Generator::$method($spec, $record, $detailOptions);
             break;
         case 'form':
             $form = new Form(required($request, 'template'), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));

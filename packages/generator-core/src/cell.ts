@@ -173,10 +173,15 @@ function truthy(value: unknown): boolean {
   return value !== null && value !== undefined && value !== '';
 }
 
+/**
+ * Keep the first `limit` Unicode code points and append an ellipsis. Only a number limit applies;
+ * its integer part must be at least 1, and a character is never split.
+ */
 function truncate(s: string, n: unknown): string {
-  const limit = typeof n === 'number' ? n : Number(n);
-  if (!Number.isFinite(limit) || limit <= 0 || s.length <= limit) return s;
-  return s.slice(0, limit) + '…';
+  const limit = typeof n === 'number' ? Math.trunc(n) : Number.NaN;
+  const characters = Array.from(s);
+  if (!Number.isFinite(limit) || limit < 1 || characters.length <= limit) return s;
+  return characters.slice(0, limit).join('') + '…';
 }
 
 /** Format supported date values using UTC date parts. */
@@ -193,7 +198,11 @@ function formatNumber(
 ): string {
   const n = typeof value === 'number' ? value : Number(asString(value));
   if (!Number.isFinite(n)) return asString(value);
-  const decimals = typeof opts.decimals === 'number' ? opts.decimals : undefined;
+  // Only a number applies; its integer part must be between 0 and 100.
+  const decimals = typeof opts.decimals === 'number' ? Math.trunc(opts.decimals) : undefined;
+  if (decimals !== undefined && !(decimals >= 0 && decimals <= 100)) {
+    throw new TypeError('Number decimals must be between 0 and 100');
+  }
   let body = decimals !== undefined ? n.toFixed(decimals) : String(n);
   if (opts.thousands) {
     const [intPart, frac] = body.split('.');

@@ -3,6 +3,7 @@
 [한국어](index.ko.md).
 
 - [Specification structure](spec/schema.md)
+- [Display formats](spec/display-formats.md)
 - [Form runtime](spec/form-runtime.md)
 - [Feature and deployment status](features.md)
 - [Feature contracts](spec/feature-contracts.md)

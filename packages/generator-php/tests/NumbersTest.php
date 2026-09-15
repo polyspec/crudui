@@ -48,6 +48,7 @@ final class NumbersTest extends TestCase
                 self::fail('Invalid precision must fail');
             } catch (\CRUDUI\FormError $error) {
                 self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
+                self::assertSame('Number decimals must be between 0 and 100', $error->getMessage());
             }
         }
     }

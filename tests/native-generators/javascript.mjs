@@ -19,9 +19,7 @@ export function createDispatch({ renderForm, renderList, renderDetail }) {
     switch (request.operation) {
       case 'compileForm': return compileForm(request.spec, request.options);
       case 'bindForm': return bindForm(request.template, request.data, request.options);
-      case 'renderList':
-        if (own(request, 'rows') && (!Array.isArray(request.rows) || request.rows.some(row => !object(row)))) throw new TypeError('List rows must be objects in an array');
-        return renderList(request.spec, request.rows, request.options);
+      case 'renderList': return renderList(request.spec, request.rows, request.options);
       case 'buildDetail':
       case 'renderDetail':
         if (own(request, 'record') && !object(request.record)) throw new TypeError('Detail record must be an object');

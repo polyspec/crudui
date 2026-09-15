@@ -161,8 +161,8 @@ const formCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
 assert.equal(formCases.length, 92, 'The form fixture inventory changed; review coverage before changing this assertion');
-assert.equal(listCases.length, 21, 'The list fixture inventory changed; review coverage before changing this assertion');
-assert.equal(detailCases.length, 19, 'The detail fixture inventory changed; review coverage before changing this assertion');
+assert.equal(listCases.length, 31, 'The list fixture inventory changed; review coverage before changing this assertion');
+assert.equal(detailCases.length, 23, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 for (const target of targets) {
   const status = { name: target.name, available: false, passed: false, command: target.command, args: target.args };
@@ -197,7 +197,12 @@ for (const target of targets) {
     const request = { operation: 'renderList', spec: fixture.spec, rows: fixture.rows ?? [], options: fixture.options ?? {} };
     let expected, expectedError;
     try { expected = oracle(request); } catch (error) { expectedError = errorRecord(error); }
-    if (fixture.expectError) assert.equal(expectedError?.code, fixture.expectError.code);
+    if (fixture.expectError) {
+      assert.equal(expectedError?.code, fixture.expectError.code, 'JavaScript does not meet the declared fixture error code');
+      if (fixture.expectError.message !== undefined) {
+        assert.equal(expectedError?.message, fixture.expectError.message, 'JavaScript does not meet the declared fixture error message');
+      }
+    }
     let actual, actualError;
     try { actual = await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
     if (expectedError) { compareError(actualError, expectedError); return { errorCode: actualError.code }; }

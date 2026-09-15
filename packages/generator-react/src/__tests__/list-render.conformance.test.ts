@@ -32,7 +32,7 @@ interface ListFixtureCase {
   rows: Array<Record<string, unknown>>;
   options?: Record<string, unknown>;
   expected_html?: string;
-  expectError?: { code: string };
+  expectError?: { code: string; message?: string };
 }
 
 const cases = fixtureCases as unknown as ListFixtureCase[];
@@ -71,8 +71,16 @@ describe('list render — read-only invariant (no input control EVER reaches out
 
 const ERROR_CLASS_BY_CODE: Record<string, unknown> = { REF_FILE_NOT_FOUND: ComposeLoadError };
 
+describe('list render — invalid input fails with the shared message', () => {
+  for (const c of cases.filter((x) => x.expectError?.message)) {
+    test(c.name, () => {
+      expect(() => render(c)).toThrow(c.expectError!.message);
+    });
+  }
+});
+
 describe('list render — a load gap is a surfaced ERROR, never a silent table', () => {
-  for (const c of cases.filter((x) => x.expectError)) {
+  for (const c of cases.filter((x) => x.expectError && !x.expectError.message)) {
     test(c.name, () => {
       let thrown: unknown;
       try {

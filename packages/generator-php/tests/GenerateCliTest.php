@@ -43,6 +43,38 @@ final class GenerateCliTest extends TestCase
         }
     }
 
+    public function testJsonDecidesListAndDetailInputTypes(): void
+    {
+        $spec = json_decode('{"columns":{"v":{"field":".v","label":"V"}}}');
+        $detail = json_decode('{"fields":{"v":{"field":".v"}}}');
+        $invalid = fn (string $message) => (object) ['code' => 'INVALID_FORM_INPUT', 'message' => $message, 'at' => ''];
+        foreach ([
+            [['operation' => 'renderList', 'spec' => [], 'rows' => []], 'List specification must be an object'],
+            [['operation' => 'renderList', 'spec' => 'list', 'rows' => []], 'List specification must be an object'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => new \stdClass()], 'List rows must be an array'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [1]], 'List rows must be objects'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [[]]], 'List rows must be objects'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['data' => []]], 'List context must be an object'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['pageMeta' => []]], 'List page metadata must be an object'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['layout' => 'grid']], 'List layout must be table or card'],
+            [['operation' => 'renderList', 'spec' => $spec, 'rows' => [], 'options' => ['layout' => 5]], 'List layout must be table or card'],
+            [['operation' => 'renderDetail', 'spec' => $detail, 'record' => new \stdClass(), 'options' => ['data' => []]], 'Detail context must be an object'],
+            [['operation' => 'buildDetail', 'spec' => new \stdClass(), 'record' => new \stdClass(), 'options' => ['data' => []]], 'Detail specification must declare fields'],
+        ] as [$request, $message]) {
+            [$status, $result] = self::invoke($request);
+            self::assertSame(1, $status, $message);
+            self::assertEquals($invalid($message), $result->error);
+        }
+        foreach ([['data' => null], ['layout' => null], ['pageMeta' => null]] as $options) {
+            [$status, $result] = self::invoke(['operation' => 'renderList', 'spec' => $spec, 'rows' => [['v' => 'a']], 'options' => $options]);
+            self::assertSame(0, $status);
+            self::assertStringContainsString('<table class="list-table">', $result);
+        }
+        [$status, $result] = self::invoke(['operation' => 'renderDetail', 'spec' => $detail, 'record' => new \stdClass(), 'options' => ['data' => null]]);
+        self::assertSame(0, $status);
+        self::assertStringStartsWith('<dl class="detail-view">', $result);
+    }
+
     public function testFailedActionKeepsCompleteStateAndLaterActionRuns(): void
     {
         $template = Generator::compileForm(json_decode('{"type":"group","properties":{"name":{"type":"text"}}}'));

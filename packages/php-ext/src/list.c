@@ -25,6 +25,8 @@ typedef struct {
     char **preloads;
     size_t preload_count;
     size_t preload_capacity;
+    /* The input failure message of a cell that cannot be displayed, or NULL. */
+    const char *failure;
 } list_context;
 
 typedef struct {
@@ -581,7 +583,8 @@ static ps_value *scalar_text(const ps_value *value)
     return value && value->kind == PS_STRING ? ps_value_clone(value) : owned_text(ps_scalar_string(value));
 }
 
-static ps_value *number_display(const ps_value *value, const ps_value *options, const char *language)
+static ps_value *number_display(const ps_value *value, const ps_value *options, const char *language,
+                                const char **failure)
 {
     double number;
     if (!parse_number(value, &number)) return scalar_text(value);
@@ -590,7 +593,11 @@ static ps_value *number_display(const ps_value *value, const ps_value *options, 
     if (decimals && (decimals->kind == PS_INT || decimals->kind == PS_FLOAT)) {
         double raw = decimals->kind == PS_INT ? (double)decimals->data.integer : decimals->data.number;
         double truncated = trunc(raw);
-        if (truncated < 0 || truncated > 100) return NULL;
+        /* NaN fails both comparisons. */
+        if (!(truncated >= 0 && truncated <= 100)) {
+            *failure = "Number decimals must be between 0 and 100";
+            return NULL;
+        }
         body = fixed_number(number, (int)truncated);
     } else body = shortest_number(number);
     char *prefix = translated(member(options, "prefix"), language);
@@ -609,30 +616,23 @@ static ps_value *text_display(const ps_value *value, const ps_value *options)
     ps_html_buffer out = {0};
     char *text = ps_scalar_string(value);
     if (!text) return NULL;
+    /* Only a number limits the text; its integer part counts Unicode code points. */
     const ps_value *limit_value = member(options, "truncate");
-    double limit = 0;
-    bool limited = limit_value && parse_number(limit_value, &limit) && isfinite(limit) && limit > 0;
+    double limit = limit_value && limit_value->kind == PS_INT ? (double)limit_value->data.integer
+        : limit_value && limit_value->kind == PS_FLOAT ? trunc(limit_value->data.number) : 0;
     size_t length = strlen(text), bytes = length;
-    if (limited) {
-        size_t units = 0, cursor = 0;
-        while (cursor < length && units < (size_t)limit) {
-            unsigned char c = (unsigned char)text[cursor];
-            size_t width = c < 0x80 ? 1 : (c & 0xe0) == 0xc0 ? 2 : (c & 0xf0) == 0xe0 ? 3 : 4;
-            unsigned code = c < 0x80 ? c : c & (width == 2 ? 0x1f : width == 3 ? 0x0f : 0x07);
-            for (size_t i = 1; i < width; ++i) code = (code << 6) | ((unsigned char)text[cursor + i] & 0x3f);
-            size_t code_units = code > 0xffff ? 2 : 1;
-            if (units + code_units > (size_t)limit) break;
-            cursor += width;
-            units += code_units;
+    /* NaN fails the comparison. */
+    if (limit >= 1) {
+        size_t points = 0;
+        for (size_t i = 0; i < length; ++i)
+            if (((unsigned char)text[i] & 0xc0) != 0x80) points++;
+        if ((double)points > limit) {
+            /* The limit is below the code point count, so it fits in size_t. */
+            size_t kept = (size_t)limit;
+            points = 0;
+            for (bytes = 0; bytes < length; ++bytes)
+                if (((unsigned char)text[bytes] & 0xc0) != 0x80 && points++ == kept) break;
         }
-        size_t total_units = 0;
-        for (size_t cursor = 0; cursor < length;) {
-            unsigned char c = (unsigned char)text[cursor];
-            size_t width = c < 0x80 ? 1 : (c & 0xe0) == 0xc0 ? 2 : (c & 0xf0) == 0xe0 ? 3 : 4;
-            total_units += width == 4 ? 2 : 1;
-            cursor += width;
-        }
-        if (total_units > limit) bytes = cursor;
     }
     bool ok = ps_html_bytes(&out, text, bytes);
     if (ok && bytes < length) ok = ps_html_text(&out, "…");
@@ -688,7 +688,7 @@ static ps_value *display_object(const char *kind)
  * detail writers render only from this model.
  */
 static ps_value *cell_display(const list_column *column, const ps_value *row,
-                              const ps_value *value, const char *language)
+                              const ps_value *value, const char *language, const char **failure)
 {
     const ps_value *options = column->format;
     const char *type = column->type;
@@ -700,7 +700,7 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         free(scalar);
         return owned_text(formatted);
     }
-    if (!strcmp(type, "number")) return number_display(value, options, language);
+    if (!strcmp(type, "number")) return number_display(value, options, language, failure);
     if (!strcmp(type, "badge")) {
         char *key = ps_scalar_string(value);
         const ps_value *mapped = key ? member(member(options, "map"), key) : NULL;
@@ -869,13 +869,13 @@ static const char *field_path(const list_column *column)
 }
 
 /* Read one cell of a row: its value, its row-evaluated design and its display. */
-static bool evaluate_cell(const list_context *context, const list_column *column,
+static bool evaluate_cell(list_context *context, const list_column *column,
                           const ps_value *row, const ps_value **value,
                           ps_value **display, ps_value **design)
 {
     *value = column_value(row, column->field);
     *design = ps_design(member(column->column, "design"), row, field_path(column));
-    *display = *design ? cell_display(column, row, *value, context->language) : NULL;
+    *display = *design ? cell_display(column, row, *value, context->language, &context->failure) : NULL;
     if (*display) return true;
     ps_value_free(*design);
     *design = NULL;
@@ -1173,7 +1173,8 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
     const char *language = string_member(options, "language");
     if (!*language) language = "ko";
     const ps_value *data = member(options, "data");
-    if (!data) data = session->empty_data = ps_object_value();
+    /* An absent or null context is empty. */
+    if (!data || data->kind == PS_NULL) data = session->empty_data = ps_object_value();
     if (!data || data->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "").error;
     const ps_value *files = member(options, "files");
@@ -1187,7 +1188,7 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
     if (!session->declarations)
         return ps_fail("internal", "INTERNAL_ERROR", "C list composition failed", "").error;
     session->context = (list_context){
-        spec, session->declarations, rows, options, language, layout, data, {0}, NULL, 0, 0
+        spec, session->declarations, rows, options, language, layout, data, {0}, NULL, 0, 0, NULL
     };
     if (!collect_columns(&session->context, &session->columns, &session->column_count))
         return ps_fail("internal", "INTERNAL_ERROR", "C list rendering failed", "").error;
@@ -1203,7 +1204,9 @@ static ps_result list_finish(list_session *session, bool ok, const char *failure
         ps_html_bytes(&result, context->output.data ? context->output.data : "", context->output.length);
     ps_value *output = ok ? ps_html_value(&result) : NULL;
     if (!ok) free(result.data);
+    const char *input_failure = context->failure;
     list_close(session);
+    if (!output && input_failure) return ps_fail("form", "INVALID_FORM_INPUT", input_failure, "");
     if (!output) return ps_fail("internal", "INTERNAL_ERROR", failure, "");
     return ps_ok(output);
 }
@@ -1213,15 +1216,24 @@ ps_result ps_render_list(const ps_value *spec, const ps_value *rows, const ps_va
     if (!spec || spec->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "List specification must be an object", "");
     if (!rows || rows->kind != PS_ARRAY)
-        return ps_fail("form", "INVALID_FORM_INPUT", "Rows must be an array", "");
+        return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be an array", "");
     for (size_t i = 0; i < ps_size(rows); ++i)
         if (!ps_at(rows, i) || ps_at(rows, i)->kind != PS_OBJECT)
             return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
     if (!options || options->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
-    const char *layout = string_member(options, "layout");
-    if (!*layout) layout = "table";
-    if (strcmp(layout, "table") && strcmp(layout, "card"))
+    /* Absent or null context and page metadata are none; any other value must be an object. */
+    const ps_value *data = member(options, "data");
+    if (data && data->kind != PS_NULL && data->kind != PS_OBJECT)
+        return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "");
+    const ps_value *page_meta = member(options, "pageMeta");
+    if (page_meta && page_meta->kind != PS_NULL && page_meta->kind != PS_OBJECT)
+        return ps_fail("form", "INVALID_FORM_INPUT", "List page metadata must be an object", "");
+    const ps_value *layout_value = member(options, "layout");
+    const char *layout = !layout_value || layout_value->kind == PS_NULL ? "table"
+        : ps_is_string(layout_value, "table") ? "table"
+        : ps_is_string(layout_value, "card") ? "card" : NULL;
+    if (!layout)
         return ps_fail("form", "INVALID_FORM_INPUT", "List layout must be table or card", "");
     list_session session;
     ps_value *error = list_open(&session, spec, member(spec, "columns"), rows, options, layout);
@@ -1246,6 +1258,10 @@ static ps_value *detail_open(list_session *session, const ps_value *spec, const 
         return ps_fail("form", "INVALID_FORM_INPUT", "Detail record must be an object", "").error;
     if (!options || options->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "").error;
+    /* An absent or null context is empty. */
+    const ps_value *data = member(options, "data");
+    if (data && data->kind != PS_NULL && data->kind != PS_OBJECT)
+        return ps_fail("form", "INVALID_FORM_INPUT", "Detail context must be an object", "").error;
     return list_open(session, spec, ps_get(spec, "fields"), NULL, options, "table");
 }
 
@@ -1292,7 +1308,9 @@ ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps
     ps_value *error = detail_open(&session, spec, record, options);
     if (error) { list_close(&session); return (ps_result){NULL, error}; }
     ps_value *model = detail_model(&session, record);
+    const char *input_failure = session.context.failure;
     list_close(&session);
+    if (!model && input_failure) return ps_fail("form", "INVALID_FORM_INPUT", input_failure, "");
     if (!model) return ps_fail("internal", "INTERNAL_ERROR", "C detail evaluation failed", "");
     return ps_ok(model);
 }
