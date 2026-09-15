@@ -2,6 +2,29 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Keep the comparison page on one screen
+
+After 6273d16 was deployed, real Safari pressed Expand all inside the left frame, moved the
+pointer to the page header and ran the repeated injection comparison for PHP, React and
+bindForm. It stopped with the pointer message after three comparisons instead of matching
+168/168. Recorded while it ran: the page stayed at scroll 0 through `saved`; when the `copied`
+stage moved focus to the new row, Safari scrolled the page to 602 px, the left frame's top
+moved from 602 px to 0 under the resting pointer, and the frame's document element matched
+`:hover`. The frames were stacked, each one viewport tall, in a scrolling page, so any focus
+move could bring a frame under a pointer that the person had placed outside the frames.
+
+The page now fits one screen and never scrolls. The title, controls, notes, comparison
+results, source details and report form a panel limited to 45% of the viewport height that
+scrolls inside, and the two frames share the rest side by side (stacked halves at 1000 px and
+below), each scrolling inside. Measured with the page's markup and stylesheet, long results
+and 3,000 px frame documents in Chromium and Playwright WebKit at 1680×1100 and 900×700: the
+page is not scrollable, both frames lie inside the viewport, focusing a control at the bottom
+of each frame scrolls that frame (2,474 px and 2,862 px) and leaves the page at 0, and a
+pointer on the header is over neither frame. The comparison contract describes the layout.
+
+`npm run test:form-comparison:source` passed 141 and `:browser` 4, and `make docs-check`
+passed.
+
 ## 2026-09-15 — Capture comparisons only while the pointer is outside the frames
 
 After 3eb6db3 was deployed, real Safari driven by safaridriver repeated the procedure that

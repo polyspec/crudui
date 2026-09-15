@@ -241,6 +241,12 @@ on the frame nor an element covering it does. A capture therefore requires the p
 outside both frames. When the pointer is over a frame (its document element matches
 `:hover`), the comparison stops without a result and asks to move the pointer outside the
 frames and compare again; the list shown after loading says the same instead of comparing.
+The page itself never scrolls, so a resting pointer stays where it is relative to the frames:
+the controls and results scroll inside a panel limited to 45% of the viewport height, and the
+two frames share the rest, side by side (stacked halves below 1000 px), each scrolling inside.
+A runtime focus move then scrolls only its frame. With frames stacked in a scrolling page,
+Safari scrolled the page from 0 to 602 px when the `copied` stage moved focus, bringing the
+left frame under a pointer resting on the page header.
 
 Each right stage is compared with the stored left stage using `formSnapshot`,
 `styleSnapshot` and `compareSnapshots`: parsed DOM with every attribute, live
