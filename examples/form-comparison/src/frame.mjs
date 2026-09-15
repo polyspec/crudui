@@ -861,14 +861,23 @@ async function initializationStage(stage) {
 }
 // The initialization path of this document: the SSR document arrives with the form rendered and
 // the record in its payload; the CSR document mounts the form first and then injects the record.
-if (initialization === 'ssr') {
-  stageSource = await hydrateServerForm();
-} else {
-  await mount();
-  assert(view.querySelector('input[name]'), 'A form must exist before record injection');
-  stageSource = (await load()).data;
+// A frame that cannot initialize reports why, so the page fails with the reason.
+try {
+  if (initialization === 'ssr') {
+    stageSource = await hydrateServerForm();
+  } else {
+    await mount();
+    assert(view.querySelector('input[name]'), 'A form must exist before record injection');
+    stageSource = (await load()).data;
+  }
+  stageTemplate = JSON.stringify(driver.template);
+} catch (error) {
+  window.parent.postMessage({
+    type: 'crudui:frame-failed', server, framework, path: renderingPath, initialization,
+    reason: error.message,
+  }, location.origin);
+  throw error;
 }
-stageTemplate = JSON.stringify(driver.template);
 window.comparison = {
   runChecks, reset, resetRecord, inspect, submit, save, load, inject, idle: settle, server,
   initializationStage, endInitialization, focusState,
