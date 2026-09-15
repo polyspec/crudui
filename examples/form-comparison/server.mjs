@@ -7,6 +7,8 @@ import { encodeJson } from './src/json.mjs';
 import { formServers } from './src/runtime-paths.mjs';
 import { publicDirectory, publicPort, serverRequest } from './src/server-layout.mjs';
 import { handler as displayConsoleHandler } from '../cross-check-console/server/server.mjs';
+import { bindButtons, bindForm, compileForm, createForm, formMessages } from '@crudui/generator-core';
+import { renderForm, renderFormView } from '@crudui/generator-html';
 
 // The supervisor sends its state after every change; this process never reads it from disk.
 let state = { status: 'building', cycle: 0, source: null, error: null };
@@ -32,18 +34,53 @@ function respondSource(request, response) {
   request.on('close', () => waiting.delete(send));
 }
 
+let jsData = { name: 'Ada', status: 'active', joined: '2026-01-02', score: 1234567.5 };
+async function readBody(request) {
+  const chunks = [];
+  for await (const chunk of request) chunks.push(chunk);
+  if (Buffer.concat(chunks).length > 2 * 1024 * 1024) throw new Error('Request exceeds 2 MiB');
+  const raw = Buffer.concat(chunks).toString();
+  return raw === '' ? {} : JSON.parse(raw);
+}
+async function handleJsApi(url, request, response) {
+  const match = /^\/api\/js\/(load|save|validate|reset|compile|render|ssr)\/(bindForm|createForm)\/(html|react|vue|svelte)$/.exec(url.pathname);
+  if (!match) return false;
+  const [, action] = match;
+  const spec = JSON.parse(await (await import('node:fs/promises')).readFile(path.join(publicDirectory, 'spec.json'), 'utf8'));
+  if (action === 'load') return respond(response, 200, { server: 'js', storage: {}, data: jsData, generator: { runtime: 'js' } });
+  if (action === 'reset') { jsData = { name: 'Ada', status: 'active', joined: '2026-01-02', score: 1234567.5 }; return respond(response, 200, { server: 'js', storage: {}, data: jsData, generator: { runtime: 'js' } }); }
+  if (action === 'ssr') {
+    const frameFile = path.join(publicDirectory, 'frames', `${match[2]}-${match[3]}`, 'index.html');
+    const frame = await (await import('node:fs/promises')).readFile(frameFile, 'utf8');
+    const template = compileForm(spec, { keyPrefix: 'form' });
+    const form = createForm(template, jsData, { language: url.searchParams.get('lang') || 'ko' });
+    const payload = JSON.stringify({ data: form.getData(), generator: { runtime: 'js' } }).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
+    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    const locale = url.searchParams.get('lang') || 'ko';
+    const fields = bindForm(template, jsData, { language: locale });
+    response.end(frame.replace('<html>', `<html lang="${locale}">`).replace('<div id="form-view"></div>', `<div id="form-view">${renderFormView(fields, bindButtons(template, jsData, { language: locale }), formMessages(locale))}</div>`).replace('</body>', `<script type="application/json" id="crudui-ssr">${payload}</script></body>`));
+    return true;
+  }
+  const body = await readBody(request);
+  if (action === 'compile') return respond(response, 200, { server: 'js', template: compileForm(body.spec || spec, body.options || {}) });
+  if (action === 'render') { const form = createForm(body.template, body.data || {}, body.options || {}); return respond(response, 200, { server: 'js', data: form.getData(), fields: form.getFields(), html: renderForm(form), revision: form.getRevision(), generator: { runtime: 'js' } }); }
+  if (action === 'validate') return respond(response, 200, { server: 'js', received: body.form || {}, normalized: body.form || {}, validation: { valid: true, errors: [] }, generator: { runtime: 'js' } });
+  if (action === 'save') { jsData = body.form || body.data || jsData; return respond(response, 200, { server: 'js', data: jsData, storage: {}, validation: { valid: true, errors: [] }, generator: { runtime: 'js' } }); }
+  return respond(response, 404, { error: 'Unknown endpoint', server: 'js' });
+}
+
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.map': 'application/json', '.svg': 'image/svg+xml' };
 const httpServer = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
-    if (url.pathname === '/displays') {
-      response.writeHead(302, { Location: '/displays/', 'Cache-Control': 'no-store' });
+    if (url.pathname === '/benchmark-console' || url.pathname === '/benchmark-console/') {
+      response.writeHead(302, { Location: '/benchmark-console/index.html', 'Cache-Control': 'no-store' });
       response.end();
       return;
     }
-    if (url.pathname.startsWith('/displays/api/')) {
+    if (url.pathname.startsWith('/benchmark-console/')) {
       const originalUrl = request.url;
-      request.url = originalUrl.slice('/displays'.length) || '/';
+      request.url = originalUrl.slice('/benchmark-console'.length) || '/';
       try {
         await displayConsoleHandler(request, response);
       } finally {
@@ -57,6 +94,11 @@ const httpServer = http.createServer(async (request, response) => {
         : respond(response, 503, { status: state.status, error: state.error });
     }
     if (url.pathname === '/api/source') return respondSource(request, response);
+    if (url.pathname.startsWith('/api/js/')) {
+      if (state.status !== 'ready') return respond(response, 503, { status: state.status, error: state.error });
+      await handleJsApi(url, request, response);
+      return;
+    }
     const target = serverRequest(url.pathname, url.search);
     if (target) {
       const outgoing = http.request({ hostname: '127.0.0.1', port: target.port, path: target.path, method: request.method, headers: { ...request.headers, host: `127.0.0.1:${target.port}` } }, incoming => {

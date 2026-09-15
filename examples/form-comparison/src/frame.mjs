@@ -4,7 +4,7 @@ import { bindFormController } from './bind-form-controller.mjs';
 import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
 import { decodeJson, encodeJson, readJson } from './json.mjs';
-import { formInitializations, formServers } from './runtime-paths.mjs';
+import { formInitializations, pipelineServers } from './runtime-paths.mjs';
 import { domSnapshot, identical, renderedNodes } from '../../../tests/form-inspector/form-snapshot.mjs';
 import { serverGeneration } from './server-generation.mjs';
 import { createActionCompletion } from './action-completion.mjs';
@@ -15,7 +15,7 @@ const framework = __FRAMEWORK__;
 // Read at run time: the page is rebuilt only when its own inputs change, not on every commit.
 const source = await (await fetch('/source.json', { cache: 'no-store' })).json();
 const server = new URLSearchParams(location.search).get('server') ?? 'php';
-if (!formServers.includes(server)) throw new Error('Unknown server');
+if (!pipelineServers.includes(server)) throw new Error('Unknown server');
 const language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'ko';
 const initialization = new URLSearchParams(location.search).get('initialization');
 if (!formInitializations.includes(initialization)) throw new Error('Unknown initialization path');

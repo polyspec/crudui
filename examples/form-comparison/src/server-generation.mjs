@@ -1,5 +1,5 @@
 import { encodeJson, readJson } from './json.mjs';
-import { formFrameworks, formRenderingPaths, formServers } from './runtime-paths.mjs';
+import { formFrameworks, formRenderingPaths, pipelineServers } from './runtime-paths.mjs';
 
 const rootReference = '/__crudui_browser_form__.json';
 
@@ -16,7 +16,7 @@ function compilePayload(spec, options) {
 
 /** Cache templates compiled by one selected server and expose actual request metrics. */
 export function serverGeneration(server, renderingPath, framework, request) {
-  if (!formServers.includes(server)) throw new TypeError('Unknown generation server');
+  if (!pipelineServers.includes(server)) throw new TypeError('Unknown generation server');
   if (!formRenderingPaths.includes(renderingPath)) throw new TypeError('Unknown rendering path');
   if (!formFrameworks.includes(framework)) throw new TypeError('Unknown generation framework');
   const send = request ?? ((...args) => globalThis.fetch(...args));

@@ -75,7 +75,7 @@ export const buildTargets = Object.freeze([
     id: 'frames',
     timeoutMs: 300_000,
     inputs: [
-      new RegExp(`^${example}/(?:build\\.mjs|public/|src/|viewer/|fixtures/)`),
+      new RegExp(`^${example}/(?:build\\.mjs|public/|benchmark/|src/|viewer/|fixtures/)`),
       javascriptPackages, 'tests/form-inspector/form-snapshot.mjs',
     ],
     dependsOn: ['npm-dependencies', 'ordered-json-javascript'],
@@ -94,7 +94,7 @@ export const buildTargets = Object.freeze([
   {
     id: 'public-server',
     timeoutMs: 60_000,
-    inputs: [`${example}/server.mjs`, `${example}/src/json.mjs`],
+    inputs: [`${example}/server.mjs`, `${example}/src/json.mjs`, `${example}/src/runtime-paths.mjs`],
     dependsOn: [],
     steps: [],
     restarts: ['public'],
