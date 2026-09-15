@@ -92,8 +92,9 @@ export function nodeVNode(vm: NodeVM): VNode {
     ...(vm.lang !== undefined ? { 'data-lang': vm.lang } : {}),
     hidden: vm.hidden,
   }, [
-    headerVNode(vm),
+    // Only grammar nodes: an absent header or footer adds no child, so no placeholder comment.
+    ...[headerVNode(vm)].filter((header): header is VNode => header !== null),
     bodyVNode(vm),
-    vm.controls?.placement === 'footer' ? h('div', { class: 'crudui-node__footer' }, [controlsVNode(vm.controls)]) : null,
+    ...(vm.controls?.placement === 'footer' ? [h('div', { class: 'crudui-node__footer' }, [controlsVNode(vm.controls)])] : []),
   ]);
 }

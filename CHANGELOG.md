@@ -2,6 +2,20 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Render only grammar nodes in Vue components
+
+Measured in jsdom, Vue `createSSRApp` hydration of the server markup for the shared session
+form replaced the input elements and reported 40 mismatches: the server markup had no node
+where Vue expected a comment. The Vue node and structure map builders passed `null` for an
+absent header, footer, number, title, row controls or nested body, and Vue renders a `null`
+child as a placeholder comment. The shared comparisons remove comments before comparing, so
+the extra nodes were never reported.
+
+The builders now add no child for an absent part. After the change, hydrating the same
+markup kept every element with no mismatch, and the rendered form, structure map and data view
+contained no comment node on the `createForm` path (empty, after injection and with every row
+collapsed) or the `bindForm` path. `npm test -w @crudui/generator-vue` passed 342 tests.
+
 ## 2026-09-15 — Make the HTML renderer match the string renderer format
 
 The string renderers were meant to produce the same bytes, but the check never included the
