@@ -12,6 +12,8 @@ import { exclusive } from './storage-lock.mjs';
 
 const renderingPath = __FORM_PATH__;
 const framework = __FRAMEWORK__;
+// Read at run time: the page is rebuilt only when its own inputs change, not on every commit.
+const source = await (await fetch('/source.json', { cache: 'no-store' })).json();
 const server = new URLSearchParams(location.search).get('server') ?? 'php';
 if (!formServers.includes(server)) throw new Error('Unknown server');
 const language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'ko';
@@ -40,7 +42,8 @@ for (const id of ['results', 'names', 'state', 'server-data']) document.querySel
 document.querySelector('#transport-label').textContent = t.transportLabel;
 for (const option of transport.options) option.textContent = t[`${option.value}Transport`];
 document.querySelector('#revision').textContent = `${t[`${initialization}Initialization`]} · ${t[renderingPath]} · ${t.serverNames[server]} · ${framework}`;
-document.querySelector('#commit').textContent = __SOURCE_COMMIT__;
+document.querySelector('#commit').textContent = source.changes === null
+  ? source.commit : `${source.commit} + ${source.changes}`;
 document.querySelector('#method').textContent = t[renderingPath + 'Note'];
 document.querySelector('#save-note').textContent = t.saveNote;
 document.documentElement.lang = language;
@@ -703,7 +706,7 @@ async function runChecks(method = transport.value, only) {
     await reset();
     const report = {
       kind: 'scenario', server, path: renderingPath, framework, transport: method,
-      commit: __SOURCE_COMMIT__, results,
+      source, results,
     };
     window.comparison.lastReport = report;
     return report;
@@ -871,8 +874,7 @@ window.comparison = {
   encodedData: () => encodeJson(driver.getData()),
   nextAction: actionCompletion.next, cancelAction: actionCompletion.cancel,
   actionCompletion: actionCompletion.completion,
-  path: renderingPath, framework, initialization,
-  commit: __SOURCE_COMMIT__,
+  path: renderingPath, framework, initialization, source,
 };
 window.parent.postMessage({
   type: 'crudui:frame-ready', server, framework, path: renderingPath, initialization,

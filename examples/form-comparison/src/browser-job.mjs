@@ -9,8 +9,23 @@ function message(error) {
   return error instanceof Error ? error.stack ?? error.message : String(error);
 }
 
-export const browserJobStallLimitMs = 5 * 60 * 1000;
-export const browserJobRunLimitMs = 900 * 1000;
+/**
+ * Every browser unit holds its own limit, sized from its measured duration: one initialization
+ * report compares 18 stages in two columns and took 27 to 30 seconds per report, one scenario
+ * report 1 to 2 seconds, and the page needs a few seconds between reports to load the next pair
+ * of frames. A unit that reaches its limit fails the run with the unit and its elapsed time; no
+ * single limit covers a whole run.
+ */
+export const browserReportLimitsMs = Object.freeze({
+  initialization: 180_000, scenario: 60_000, transition: 120_000,
+});
+
+/** The limit of the report a label names, or the limit between reports when it names none. */
+export function browserReportLimitMs(label) {
+  if (typeof label !== 'string' || label.length === 0) return browserReportLimitsMs.transition;
+  return label.endsWith('/initialization')
+    ? browserReportLimitsMs.initialization : browserReportLimitsMs.scenario;
+}
 
 function attachProgress(error, state, reports) {
   const failure = error instanceof Error ? error : new Error(String(error));
@@ -134,25 +149,24 @@ function validState(state, reports) {
 /** Collect browser job reports from subscribed progress and activity events. */
 export async function collectBrowserJob(client, input, options = {}) {
   const onState = options.onState ?? (() => {});
-  const stallLimitMs = options.stallLimitMs ?? browserJobStallLimitMs;
-  const runLimitMs = options.runLimitMs ?? browserJobRunLimitMs;
+  const onProgress = options.onProgress ?? (() => {});
+  const limitFor = options.limitForReport ?? browserReportLimitMs;
+  const heartbeatMs = options.heartbeatMs ?? 15_000;
   const setTimer = options.setTimer ?? setTimeout;
   const clearTimer = options.clearTimer ?? clearTimeout;
-  if (!Number.isFinite(stallLimitMs) || stallLimitMs <= 0) {
-    throw new Error('Browser job stall limit must be a positive duration');
-  }
-  if (!Number.isFinite(runLimitMs) || runLimitMs <= 0) {
-    throw new Error('Browser job run limit must be a positive duration');
+  const clock = options.clock ?? (() => performance.now());
+  if (!Number.isFinite(heartbeatMs) || heartbeatMs <= 0) {
+    throw new Error('Browser job heartbeat must be a positive duration');
   }
   const reports = [];
   let state;
   let started = false;
   let buffering = true;
   let finished = false;
-  let runTimer;
-  let stallTimer;
+  let unitLabel;
+  let unitTimer;
+  let heartbeatTimer;
   let unsubscribe = () => {};
-  let unsubscribeActivity = () => {};
   const pending = [];
   let queue = Promise.resolve();
   let resolveCompletion;
@@ -168,18 +182,39 @@ export async function collectBrowserJob(client, input, options = {}) {
     rejectCompletion(attachProgress(error, state, reports));
   }
 
-  function resetStallTimer() {
+  function stopUnitTimers() {
+    if (unitTimer !== undefined) clearTimer(unitTimer);
+    if (heartbeatTimer !== undefined) clearTimer(heartbeatTimer);
+    unitTimer = undefined;
+    heartbeatTimer = undefined;
+  }
+
+  /** Time one unit: the report the job is running, or the page work between two reports. */
+  function startUnit(label) {
+    stopUnitTimers();
+    unitLabel = label;
     if (!started || finished) return;
-    if (stallTimer !== undefined) clearTimer(stallTimer);
-    stallTimer = setTimer(() => fail(new Error(
-      `Browser job made no observable progress for ${stallLimitMs} ms`,
-    )), stallLimitMs);
+    const limitMs = limitFor(label);
+    const startedClock = clock();
+    unitTimer = setTimer(() => fail(new Error(
+      `Browser ${label === null ? 'page work between reports' : `report ${label}`} exceeded its `
+      + `${limitMs} ms limit after ${Math.round(clock() - startedClock)} ms`,
+    )), limitMs);
+    const beat = () => {
+      onProgress({
+        label, limitMs, elapsedMs: clock() - startedClock,
+        completedReports: reports.length, totalReports: state?.totalReports,
+      });
+      heartbeatTimer = setTimer(beat, heartbeatMs);
+    };
+    heartbeatTimer = setTimer(beat, heartbeatMs);
   }
 
   async function acceptState(next) {
     validState(next, reports);
     state = next;
-    resetStallTimer();
+    const label = next.current ?? null;
+    if (label !== unitLabel) startUnit(label);
     await onState(state, [...reports]);
     if (state.status === 'completed') {
       if (reports.length !== state.totalReports) {
@@ -224,17 +259,10 @@ export async function collectBrowserJob(client, input, options = {}) {
       throw new Error('Browser job client requires an event subscription');
     }
     unsubscribe = await client.subscribe(receive) ?? unsubscribe;
-    if (typeof client.subscribeActivity === 'function') {
-      unsubscribeActivity = await client.subscribeActivity(() => resetStallTimer())
-        ?? unsubscribeActivity;
-    }
     state = await client.start(input);
     validState(state, reports);
     started = true;
-    runTimer = setTimer(() => fail(new Error(
-      `Browser job exceeded ${runLimitMs} ms`,
-    )), runLimitMs);
-    resetStallTimer();
+    startUnit(state.current ?? null);
     await onState(state, [...reports]);
     while (pending.length > 0) await acceptEvent(pending.shift());
     buffering = false;
@@ -243,9 +271,7 @@ export async function collectBrowserJob(client, input, options = {}) {
     fail(error);
     return await completion;
   } finally {
-    if (runTimer !== undefined) clearTimer(runTimer);
-    if (stallTimer !== undefined) clearTimer(stallTimer);
+    stopUnitTimers();
     await unsubscribe();
-    await unsubscribeActivity();
   }
 }

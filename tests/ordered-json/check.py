@@ -11,13 +11,14 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
+VERSION = '0.0.1'
 REVISION = 'main'
-SUBMODULES = {
-    'js': 'main',
-    'rust': 'main',
-    'go': 'main',
-    'php': 'main',
-    'php-extension': 'main',
+PACKAGES = {
+    'js': 'js',
+    'rust': 'rust',
+    'go': 'go',
+    'php': 'php',
+    'php-extension': 'php-extension',
 }
 LANGUAGES = ['js', 'php', 'php-extension', 'go', 'rust']
 
@@ -98,7 +99,7 @@ def fixtures():
 
 def source_revisions(checkout):
     revisions = {}
-    for name, expected in {'.': REVISION, **SUBMODULES}.items():
+    for name, expected in {'.': REVISION}.items():
         directory = checkout / name
         root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=directory, text=True).strip()
         if Path(root).resolve() != directory.resolve():
@@ -176,8 +177,9 @@ def main():
         parser.error(str(error))
 
     report = {'generatedAt': datetime.now(timezone.utc).isoformat(),
+              'orderedJsonVersion': VERSION,
               'orderedJsonCommit': revisions['.'],
-              'orderedJsonSubmodules': {name: revisions[name] for name in SUBMODULES},
+              'orderedJsonPackages': PACKAGES,
               'cruduiCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'runnerSha256': sha256(Path(__file__).read_bytes()).hexdigest(),
               'scope': 'JSON processor parsing, serialization and reconstruction; no runtime integration',
@@ -191,8 +193,8 @@ def main():
         registry = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(registry)
         repositories = registry.repository_paths(checkout)
-        if set(repositories.values()) != {(checkout / name).resolve() for name in SUBMODULES}:
-            raise ValueError('The implementation registry must use the five pinned submodule paths')
+        if set(repositories.values()) != {(checkout / name).resolve() for name in PACKAGES.values()}:
+            raise ValueError('The implementation registry must use the five monorepo package paths')
         cache = checkout / '.cache/probes'
         report['buildWarnings'] = registry.prepare(LANGUAGES, repositories, cache)
         commands = registry.adapter_commands(LANGUAGES, repositories, cache)

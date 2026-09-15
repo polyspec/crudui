@@ -14,7 +14,7 @@
 | php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](spec/php-extension.ko.md) |
 | server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
 | native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
-| comparison-deployment | 검증한 로컬 비교 배포, 데이터 보존과 후보 정리 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
+| comparison-deployment | 마운트한 저장소 트리의 로컬 비교 배포, 데이터 보존과 동일 설정 재적용 | implemented | passed | deployed | [폼 검증 절차](operations/verification.ko.md) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | legacy-comparison | 구형 실행·사례 기대값·네 언어 일치 | implemented | passed | not-deployed | [테스트 절차](operations/testing.ko.md) |
@@ -45,7 +45,7 @@
 
 ## 네이티브 패키지 검증
 
-현재 OrderedJSON 공통 리비전과 구현 하위 모듈 다섯 개에서 공식 처리기 사례
+현재 OrderedJSON 모노레포 리비전과 다섯 구현 패키지에서 공식 처리기 사례
 575개와 CRUDUI JSON 사례 50개가 모두 통과했습니다. 파싱·직렬화·재구성을
 검사합니다. 후보 런타임은 PHP 처리기 모드 검사와 네 서버 전송 검사도
 통과했습니다.

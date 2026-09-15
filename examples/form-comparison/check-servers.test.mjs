@@ -7,16 +7,17 @@ import {
 } from './persistence-report.mjs';
 import { formRenderingPaths, formServers } from './src/runtime-paths.mjs';
 
-const metadata = { source: { commit: 'a'.repeat(40), archiveSha256: '1'.repeat(64) } };
+const source = { commit: 'a'.repeat(40), changes: null };
 
 function results() {
   return formServers.flatMap(server => formRenderingPaths.flatMap(renderingPath =>
     persistenceCheckIds.map(id => ({ server, path: renderingPath, id, passed: true }))));
 }
 
-test('completes the exact persistence matrix for one candidate', () => {
-  const report = finalizePersistenceReport(results(), metadata, '2026-09-10T00:00:00.000Z');
+test('completes the exact persistence matrix for one source identity', () => {
+  const report = finalizePersistenceReport(results(), source, '2026-09-10T00:00:00.000Z');
   assert.equal(report.results.length, expectedPersistenceResults);
+  assert.deepEqual(report.source, source);
   assert.equal(report.complete, true);
   assert.equal(report.passed, true);
   assert.equal(report.failedChecks, 0);
@@ -26,7 +27,7 @@ test('completes the exact persistence matrix for one candidate', () => {
 test('retains a persistence failure in a complete report', () => {
   const values = results();
   values[0].passed = false;
-  const report = finalizePersistenceReport(values, metadata);
+  const report = finalizePersistenceReport(values, source);
   assert.equal(report.complete, true);
   assert.equal(report.passed, false);
   assert.equal(report.failedChecks, 1);
@@ -41,7 +42,7 @@ test('rejects missing, reordered and non-boolean persistence results', () => {
   ]) {
     const values = results();
     change(values);
-    const report = finalizePersistenceReport(values, metadata);
+    const report = finalizePersistenceReport(values, source);
     assert.equal(report.complete, false);
     assert.equal(report.passed, false);
     assert.equal(report.failedChecks >= 1, true);
@@ -49,9 +50,12 @@ test('rejects missing, reordered and non-boolean persistence results', () => {
   }
 });
 
-test('requires the candidate commit in persistence metadata', () => {
-  const report = finalizePersistenceReport(results(), {});
-  assert.equal(report.complete, false);
-  assert.equal(report.passed, false);
-  assert.throws(() => assertPersistenceReport(report), /candidate source commit/);
+test('requires a complete source identity in the persistence report', () => {
+  for (const identity of [{}, { commit: source.commit },
+    { commit: source.commit, changes: 'changed' }, { commit: 'HEAD', changes: null }]) {
+    const report = finalizePersistenceReport(results(), identity);
+    assert.equal(report.complete, false);
+    assert.equal(report.passed, false);
+    assert.throws(() => assertPersistenceReport(report), /requires a source identity/);
+  }
 });

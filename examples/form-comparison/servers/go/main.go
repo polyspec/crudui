@@ -19,17 +19,16 @@ import (
 	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
 )
 
-var source, sourceCommit string
-
-// server holds the data and spec directories and the API routes built from the browser matrix.
+// server holds the data and spec directories, the source identity file and the API routes
+// built from the browser matrix.
 type server struct {
-	dataDir, specDir              string
+	dataDir, specDir, sourceFile  string
 	storageRoute, generationRoute *regexp.Regexp
 }
 
 // newServer reads the browser matrix shared with the JavaScript comparison runner
 // (runtime-paths.json in the spec directory) once and builds the API routes from it.
-func newServer(dataDir, specDir string) (server, error) {
+func newServer(dataDir, specDir, sourceFile string) (server, error) {
 	encoded, err := os.ReadFile(filepath.Join(specDir, "runtime-paths.json"))
 	if err != nil {
 		return server{}, err
@@ -55,6 +54,7 @@ func newServer(dataDir, specDir string) (server, error) {
 	return server{
 		dataDir:         dataDir,
 		specDir:         specDir,
+		sourceFile:      sourceFile,
 		storageRoute:    regexp.MustCompile(`^/api/(load|save|validate|reset)` + tail),
 		generationRoute: regexp.MustCompile(`^/api/(compile|render|ssr)` + tail),
 	}, nil
@@ -109,7 +109,12 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.URL.Path == "/api/health" {
-		writeJSON(w, 200, record("status", "ok", "validatorSource", source, "commit", sourceCommit, "storage", "JSON files", "jsonProcessor", "ordered-json"))
+		identity, err := s.sourceIdentity()
+		if err != nil {
+			failure(w, http.StatusInternalServerError, err)
+			return
+		}
+		writeJSON(w, 200, record("status", "ok", "validatorSource", "current", "source", identity, "storage", "JSON files", "jsonProcessor", "ordered-json"))
 		return
 	}
 	match := s.storageRoute.FindStringSubmatch(r.URL.Path)
@@ -247,7 +252,7 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, item := range result.Errors {
 		errors = append(errors, record("path", item.Path, "field", item.Field, "rule", item.Rule, "message", item.Message, "value", valueAt(data, item.Path)))
 	}
-	response := record("transport", kind, "jsonProcessor", "ordered-json", "validatorSource", source, "received", received, "normalized", data, "validation", record("valid", result.Valid, "errors", errors))
+	response := record("transport", kind, "jsonProcessor", "ordered-json", "validatorSource", "current", "received", received, "normalized", data, "validation", record("valid", result.Valid, "errors", errors))
 	if action == "validate" {
 		writeJSON(w, 200, response)
 		return
@@ -268,10 +273,10 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	if len(os.Args) != 4 || source == "" || sourceCommit == "" {
-		log.Fatal("Expected compiled source metadata and arguments: address data-directory spec-directory")
+	if len(os.Args) != 5 {
+		log.Fatal("Expected arguments: address data-directory spec-directory source-identity-file")
 	}
-	s, err := newServer(os.Args[2], os.Args[3])
+	s, err := newServer(os.Args[2], os.Args[3], os.Args[4])
 	if err != nil {
 		log.Fatal(err)
 	}

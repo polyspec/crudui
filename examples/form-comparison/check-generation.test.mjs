@@ -13,28 +13,27 @@ import {
   requiredCombinationIds,
 } from './check-generation.mjs';
 
-const source = { commit: 'a'.repeat(40), archiveSha256: 'b'.repeat(64) };
-const sourceDirectory = '/workspace/source';
+const source = { commit: 'a'.repeat(40), changes: 'b'.repeat(64) };
+const sourceDirectory = '/workspace/build/tree';
 
 function phpProvenance() {
   return {
     runtime: 'php',
-    commit: source.commit,
-    archiveSha256: source.archiveSha256,
+    source: { ...source },
     nativeCRUDUI: false,
     moduleSha256: null,
     classes: {
       'CRUDUI\\Generator': {
         internal: false, extension: null,
-        file: '/workspace/source/packages/generator-php/src/Generator.php',
+        file: '/workspace/build/tree/packages/generator-php/src/Generator.php',
       },
       'CRUDUI\\Form': {
         internal: false, extension: null,
-        file: '/workspace/source/packages/generator-php/src/Form.php',
+        file: '/workspace/build/tree/packages/generator-php/src/Form.php',
       },
       'CRUDUI\\Validator': {
         internal: false, extension: null,
-        file: '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
+        file: '/workspace/build/tree/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
       },
     },
   };
@@ -45,10 +44,26 @@ test('accepts the selected Composer validator in generation provenance', () => {
     phpProvenance(), 'php', source, sourceDirectory));
 });
 
+test('rejects generator provenance for another source identity', () => {
+  for (const identity of [
+    { commit: 'c'.repeat(40), changes: source.changes },
+    { commit: source.commit, changes: null },
+    undefined,
+  ]) {
+    const actual = phpProvenance();
+    actual.source = identity;
+    assert.throws(() => assertGenerationProvenance(actual, 'php', source, sourceDirectory),
+      /Incorrect generator source identity/);
+    assert.throws(() => assertGenerationProvenance(
+      { runtime: 'go', source: identity }, 'go', source, sourceDirectory),
+    /Incorrect generator source identity/);
+  }
+});
+
 test('rejects PHP class files outside the selected candidate locations', () => {
   for (const file of [
-    '/workspace/source/packages/validator-php/src/Public/Validator.php',
-    '/other/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
+    '/workspace/build/tree/packages/validator-php/src/Public/Validator.php',
+    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
   ]) {
     const actual = phpProvenance();
     actual.classes['CRUDUI\\Validator'].file = file;

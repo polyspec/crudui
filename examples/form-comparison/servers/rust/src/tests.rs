@@ -19,13 +19,20 @@ fn spec() -> Value {
 }
 
 const FRAME: &str = r#"<!doctype html><html><head><title>Frame</title></head><body><main><div id="form-view"></div></main><script type="module" src="./frame.js"></script></body></html>"#;
+const TEST_COMMIT: &str = "0123456789abcdef0123456789abcdef01234567";
 
 fn fixture() -> (tempfile::TempDir, Arc<Server>) {
     let directory = tempfile::tempdir().unwrap();
     let data = directory.path().join("data");
     let specs = directory.path().join("specs");
+    let source = directory.path().join("source.json");
     fs::create_dir_all(&data).unwrap();
     fs::create_dir_all(&specs).unwrap();
+    fs::write(
+        &source,
+        format!(r#"{{"commit":"{TEST_COMMIT}","changes":null}}"#),
+    )
+    .unwrap();
     fs::write(
         specs.join("records.json"),
         include_str!("../../../fixtures/records.json"),
@@ -41,7 +48,10 @@ fn fixture() -> (tempfile::TempDir, Arc<Server>) {
         include_str!("../../../src/runtime-paths.json"),
     )
     .unwrap();
-    (directory, Arc::new(Server::load(data, specs).unwrap()))
+    (
+        directory,
+        Arc::new(Server::load(data, specs, source).unwrap()),
+    )
 }
 
 async fn request(
@@ -88,17 +98,13 @@ async fn post(app: &Router, operation: &str, body: Value) -> Value {
 
 #[tokio::test]
 async fn compilation_and_cached_rendering_use_rust_and_preserve_order() {
-    assert_eq!(
-        SOURCE, "current",
-        "Current server tests require FORM_SOURCE=current"
-    );
     let (_directory, server) = fixture();
     let app = application(server.clone());
     // Fields come by reference; root declarations such as buttons stay on the form root.
     let compiled = post(&app, "compile", json!({"spec":{"type":"group","buttons":spec()["buttons"],"properties":{"$ref":"fields.json"}},"options":{"keyPrefix":"form","files":{"fields.json":{"type":"group","properties":spec()["properties"]}}}})).await;
     assert_eq!(
         compiled["generator"],
-        json!({"runtime":"rust","commit":COMMIT})
+        json!({"runtime":"rust","source":{"commit":TEST_COMMIT,"changes":null}})
     );
     assert_eq!(compiled["referenceReads"], 1);
     let direct = post(&app, "compile", json!({"spec":spec()})).await;
@@ -310,7 +316,10 @@ async fn server_html_uses_framework_storage_and_native_submission() {
         ["data", "generator"]
     );
     assert_eq!(decoded_payload["data"], expected.get_data());
-    assert_eq!(decoded_payload["generator"], generation::provenance());
+    assert_eq!(
+        decoded_payload["generator"],
+        generation::provenance(&server).unwrap()
+    );
     // Only the language attribute, the view content and the payload script are added.
     assert_eq!(
         html,

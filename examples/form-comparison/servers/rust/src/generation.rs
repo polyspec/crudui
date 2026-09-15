@@ -1,7 +1,7 @@
 use crate::{
     bad, json as codec, reply,
     repository::{load_data, read_object, Repository},
-    Error, Result, Server, COMMIT, MAX_BYTES,
+    Error, Result, Server, MAX_BYTES,
 };
 use axum::{
     extract::Request,
@@ -15,8 +15,23 @@ use crudui_validator::compose::{ComposeResult, FileLoader, LoadedDoc, MemoryLoad
 use serde_json::{json, Map, Value};
 use std::cell::Cell;
 
-pub fn provenance() -> Value {
-    json!({"runtime":"rust","commit":COMMIT})
+/// Read the identity of the repository tree the running build came from: its commit and the
+/// digest of its uncommitted changes, or null.
+pub fn source_identity(server: &Server) -> Result<Value> {
+    let identity = read_object(&server.source)?;
+    let keys = identity
+        .as_object()
+        .map(|members| members.keys().map(String::as_str).collect::<Vec<_>>());
+    if keys.as_deref() != Some(&["commit", "changes"][..]) {
+        return Err(internal(
+            "Expected a source identity with commit and changes",
+        ));
+    }
+    Ok(identity)
+}
+
+pub fn provenance(server: &Server) -> Result<Value> {
+    Ok(json!({"runtime":"rust","source":source_identity(server)?}))
 }
 
 fn object<'a>(request: &'a Value, name: &str) -> Result<&'a Value> {
@@ -54,7 +69,7 @@ impl FileLoader for CountingLoader {
     }
 }
 
-fn compile(request: &Value, options: &Map<String, Value>) -> Result<Value> {
+fn compile(request: &Value, options: &Map<String, Value>, generator: Value) -> Result<Value> {
     let files = match options.get("files") {
         Some(value) => value
             .as_object()
@@ -76,10 +91,10 @@ fn compile(request: &Value, options: &Map<String, Value>) -> Result<Value> {
         },
     )
     .map_err(|error| bad(error.to_string()))?;
-    Ok(json!({"template":template,"generator":provenance(),"referenceReads":loader.reads.get()}))
+    Ok(json!({"template":template,"generator":generator,"referenceReads":loader.reads.get()}))
 }
 
-fn render(request: &Value, options: &Map<String, Value>) -> Result<Value> {
+fn render(request: &Value, options: &Map<String, Value>, generator: Value) -> Result<Value> {
     for name in ["files", "loader", "basepath"] {
         if options.contains_key(name) {
             return Err(bad(format!(
@@ -103,7 +118,7 @@ fn render(request: &Value, options: &Map<String, Value>) -> Result<Value> {
         .map_err(|error| bad(error.to_string()))?;
     let html = render_form(&form).map_err(|error| bad(error.to_string()))?;
     Ok(
-        json!({"data":form.get_data(),"fields":form.fields(),"html":html,"revision":form.revision(),"generator":provenance()}),
+        json!({"data":form.get_data(),"fields":form.fields(),"html":html,"revision":form.revision(),"generator":generator}),
     )
 }
 
@@ -160,10 +175,11 @@ pub async fn handle(
             .ok_or_else(|| bad("Expected options object"))?,
         None => Map::new(),
     };
+    let generator = provenance(server)?;
     let response = if action == "compile" {
-        compile(&body, &options)?
+        compile(&body, &options, generator)?
     } else {
-        render(&body, &options)?
+        render(&body, &options, generator)?
     };
     reply(StatusCode::OK, response)
 }
@@ -254,7 +270,7 @@ fn document(
     .map_err(|error| internal(error.to_string()))?;
     let markup = render_form(&form).map_err(|error| internal(error.to_string()))?;
     // JSON escapes keep the payload from ending the script element early.
-    let payload = codec::encode(&json!({"data":form.get_data(),"generator":provenance()}))?
+    let payload = codec::encode(&json!({"data":form.get_data(),"generator":provenance(server)?}))?
         .replace('<', "\\u003c")
         .replace('>', "\\u003e")
         .replace('&', "\\u0026");

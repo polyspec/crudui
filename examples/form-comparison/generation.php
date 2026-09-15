@@ -12,12 +12,14 @@ final class FormGeneration
 
     private readonly array $generator;
 
-    /** Load the selected classes with source digests verified during server startup. */
+    /**
+     * Load the selected classes for one source identity: the commit and the digest of the
+     * uncommitted changes, or null. The module digest is verified by the process that starts PHP.
+     */
     public function __construct(
         string $runtime,
         string $sourceRoot,
         stdClass $source,
-        string $verifiedArchiveSha256,
         ?string $verifiedModuleSha256,
     )
     {
@@ -25,11 +27,10 @@ final class FormGeneration
         $native = $runtime === 'php-ext';
         if (extension_loaded('crudui') !== $native) throw new RuntimeException('CRUDUI extension state does not match the selected server');
         $sourceRoot = self::regularDirectory($sourceRoot, 'library directory');
-        foreach (['commit' => 40, 'archiveSha256' => 64] as $key => $length) {
-            if (!is_string($source->$key ?? null) || !preg_match('/^[a-f0-9]{' . $length . '}$/D', $source->$key)) throw new RuntimeException('Invalid library source metadata: ' . $key);
-        }
-        if (!preg_match('/^[a-f0-9]{64}$/D', $verifiedArchiveSha256) || !hash_equals($verifiedArchiveSha256, $source->archiveSha256)) {
-            throw new RuntimeException('CRUDUI source archive hash does not match metadata');
+        if (array_keys(get_object_vars($source)) !== ['commit', 'changes']
+            || !is_string($source->commit) || !preg_match('/^[a-f0-9]{40}$/D', $source->commit)
+            || !($source->changes === null || (is_string($source->changes) && preg_match('/^[a-f0-9]{64}$/D', $source->changes)))) {
+            throw new RuntimeException('Invalid source identity');
         }
         if (!$native) require_once $sourceRoot . '/packages/generator-php/vendor/autoload.php';
         $composerAutoload = self::composerAutoloadRegistered();
@@ -59,7 +60,7 @@ final class FormGeneration
         } elseif ($verifiedModuleSha256 !== null) {
             throw new RuntimeException('Pure PHP must not declare a CRUDUI module hash');
         }
-        $this->generator = ['runtime' => $runtime, 'commit' => $source->commit, 'archiveSha256' => $source->archiveSha256, 'nativeCRUDUI' => $native, 'moduleSha256' => $moduleHash, 'composerAutoload' => $composerAutoload, 'classes' => (object) $classes, 'signatures' => (object) $signatures];
+        $this->generator = ['runtime' => $runtime, 'source' => (object) ['commit' => $source->commit, 'changes' => $source->changes], 'nativeCRUDUI' => $native, 'moduleSha256' => $moduleHash, 'composerAutoload' => $composerAutoload, 'classes' => (object) $classes, 'signatures' => (object) $signatures];
     }
 
     /** Return verified implementation and source metadata. */

@@ -5,15 +5,13 @@ require __DIR__ . '/json.php';
 
 $sourceRoot = $argv[1] ?? '';
 $runtime = $argv[2] ?? '';
-$archiveFile = $argv[3] ?? '';
-$moduleArgument = $argv[4] ?? '-';
+$moduleArgument = $argv[3] ?? '-';
 $moduleFile = $moduleArgument === '-' ? null : $moduleArgument;
-$archiveSha256 = $argv[5] ?? '';
-$moduleHashArgument = $argv[6] ?? '-';
+$moduleHashArgument = $argv[4] ?? '-';
 $moduleSha256 = $moduleHashArgument === '-' ? null : $moduleHashArgument;
-$expectedSignaturesFile = $argv[7] ?? '';
-$source = (object) ['commit' => str_repeat('a', 40), 'archiveSha256' => $archiveSha256];
-$generation = new FormGeneration($runtime, $sourceRoot, $source, $archiveSha256, $moduleSha256);
+$expectedSignaturesFile = $argv[5] ?? '';
+$source = (object) ['commit' => str_repeat('a', 40), 'changes' => str_repeat('b', 64)];
+$generation = new FormGeneration($runtime, $sourceRoot, $source, $moduleSha256);
 $checks = 0;
 function checkGeneration(bool $condition, string $message): void
 {
@@ -29,8 +27,7 @@ function equalGeneration(mixed $expected, mixed $actual, string $message): void
 $provenance = $generation->provenance();
 checkGeneration($provenance['runtime'] === $runtime && $provenance['nativeCRUDUI'] === ($runtime === 'php-ext'), 'Runtime provenance must match the loaded classes');
 checkGeneration($provenance['composerAutoload'] === ($runtime === 'php'), 'Only pure PHP may register the Composer autoloader');
-equalGeneration($source->commit, $provenance['commit'], 'Compilation source commit must be retained');
-equalGeneration($source->archiveSha256, $provenance['archiveSha256'], 'Archive hash must be retained');
+equalGeneration($source, $provenance['source'], 'The source identity must be retained');
 checkGeneration(count(get_object_vars($provenance['classes'])) === 3, 'Generation, form state and validation need independent provenance');
 foreach ($provenance['classes'] as $class) checkGeneration($class['internal'] === ($runtime === 'php-ext') && $class['extension'] === ($runtime === 'php-ext' ? 'crudui' : null), 'Incorrect class implementation');
 checkGeneration($runtime === 'php-ext' ? $provenance['moduleSha256'] === hash_file('sha256', $moduleFile) : $provenance['moduleSha256'] === null, 'Module hash must describe the selected implementation');
@@ -98,7 +95,8 @@ foreach (['ko', 'en'] as $language) {
     $decoded = json_decode($payload, false, 512, JSON_THROW_ON_ERROR);
     equalGeneration(['data', 'generator'], array_keys(get_object_vars($decoded)), 'The SSR payload must contain data and generator in order');
     equalGeneration($expected['data'], $decoded->data, 'The SSR payload data must match the render result');
-    equalGeneration($expected['generator'], json_decode(json_encode($decoded->generator, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR), 'The SSR payload provenance must match the render result');
+    // The payload is decoded as objects: associative decoding turns an empty object default such as {} into [].
+    equalGeneration($expected['generator'], $decoded->generator, 'The SSR payload provenance must match the render result');
     $document = new DOMDocument();
     $errors = libxml_use_internal_errors(true);
     try { $document->loadHTML($html, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING); }
