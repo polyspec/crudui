@@ -2,10 +2,11 @@
 
 [English](README.md).
 
-정본 `crudui.test` 진입 페이지는 `List → Detail → Form → Save → List refresh` 하나의
-파이프라인입니다. JavaScript reference·PHP·PHP extension·Go·Rust, HTML·React·Vue·Svelte,
-CSR·SSR을 선택합니다. 별도 벤치마크 화면은 `/benchmark/`에 있으며 `/displays/`는 제공하지
-않습니다.
+정본 `crudui.test` 진입 페이지는 CRUDUI 전체 기능을 사용하는
+`List → Detail → Form → Save → List refresh` 파이프라인입니다. 목록·상세·링크·폼·검증 흐름을
+CRUDUI가 생성하고 실행하며 외부 단계 버튼으로 기능을 흉내 내지 않습니다. JavaScript
+reference·PHP·PHP extension·Go·Rust, HTML·React·Vue·Svelte, CSR·SSR을 선택합니다.
+별도 벤치마크 화면은 `/benchmark/`에 있으며 `/displays/`는 제공하지 않습니다.
 
 이 예제는 PHP, PHP 확장, Go, Rust에서 중첩 keyed 폼을 검증합니다. 각 서버는
 같은 폼 데이터를 컴파일·렌더링·검증·저장합니다. React·Vue·Svelte·HTML 렌더러는
