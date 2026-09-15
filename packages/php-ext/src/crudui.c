@@ -147,21 +147,21 @@ PHP_METHOD(CRUDUI_Generator, renderList)
 
 PHP_METHOD(CRUDUI_Generator, buildList)
 {
-    zval *spec, *rows, *options = NULL;
+    zval *spec, *rows = NULL, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 3)
         Z_PARAM_ARRAY_OR_OBJECT(spec)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(rows)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (list_array(spec)) {
+        crudui_invalid_value("List specification must be an object", true);
+        return;
+    }
     if (!rows) {
         zval empty; array_init(&empty); rows = &empty;
         call_three(spec, rows, false, options, true, true, ps_build_list, return_value);
         zval_ptr_dtor(&empty);
-        return;
-    }
-    if (list_array(spec)) {
-        crudui_invalid_value("List specification must be an object", true);
         return;
     }
     call_three(spec, rows, false, options, true, true, ps_build_list, return_value);

@@ -117,12 +117,12 @@ foreach ([
 }
 // List and detail designs follow the form declaration rules: the own design, then each member.
 foreach ([
-    [fn()=>Generator::renderList(['columns'=>['name'=>['field'=>'.name','design'=>['main'=>['class'=>'x']]]]], []), 'Invalid design.main at columns.name: unknown key'],
+    [fn()=>Generator::renderList(['columns'=>['name'=>['field'=>'name','design'=>['main'=>['class'=>'x']]]]], []), 'Invalid design.main at columns.name: unknown key'],
     [fn()=>Generator::renderList(['design'=>['color'=>'red'],'columns'=>['name'=>['design'=>['main'=>new stdClass()]]]], []), 'Invalid design.color at list: unknown key'],
     [fn()=>Generator::renderList(['columns'=>['a'=>['design'=>['x'=>1]]],'design'=>'x'], []), 'Invalid design at list: expected a boolean or an object'],
     [fn()=>Generator::renderList(['columns'=>['a'=>['design'=>['x'=>1]],'b'=>['design'=>1]]], []), 'Invalid design.x at columns.a: unknown key'],
     [fn()=>Generator::renderList(['columns'=>['name'=>['design'=>['show'=>1]]]], []), 'Invalid design.show at columns.name: expected an expression, a boolean or a condition map'],
-    [fn()=>Generator::renderDetail(['fields'=>['name'=>['field'=>'.name','design'=>['label'=>['text'=>'x']]]]], []), 'Invalid design.label.text at fields.name: unknown key'],
+    [fn()=>Generator::renderDetail(['fields'=>['name'=>['field'=>'name','design'=>['label'=>['text'=>'x']]]]], []), 'Invalid design.label.text at fields.name: unknown key'],
     [fn()=>Generator::buildDetail(['fields'=>['a'=>['design'=>false],'b'=>['design'=>null]]], []), 'Invalid design at fields.b: expected a boolean or an object'],
     [fn()=>Generator::buildDetail(['design'=>['wrapper'=>'box'],'fields'=>[]], []), 'Invalid design.wrapper at detail: expected an object'],
     [fn()=>Generator::renderDetail(['design'=>['group'=>['class'=>[]],'prepend'=>1],'fields'=>[]], []), 'Invalid design.group.class at detail: expected a string or a condition map'],
@@ -155,7 +155,7 @@ check($inputError->getMessage() === 'Repeated data must be a keyed object: compa
 $explicitInput = new FormInputError('message');
 check($explicitInput->getMessage() === 'message' && $explicitInput->getErrorCode() === 'INVALID_FORM_INPUT', 'Explicit input failure changed');
 
-$detailSpec = ['fields'=>['name'=>['field'=>'.name','label'=>'Name'],'missing'=>['field'=>'.missing','label'=>'Missing']]];
+$detailSpec = ['fields'=>['name'=>['field'=>'name','label'=>'Name'],'missing'=>['field'=>'missing','label'=>'Missing']]];
 $detail = Generator::buildDetail($detailSpec, ['name'=>'Ada']);
 same(['fields','design'], array_keys((array)$detail), 'Detail model member order changed');
 foreach ($detail->fields as $field) {
@@ -164,7 +164,7 @@ foreach ($detail->fields as $field) {
 check($detail->fields[0]->value === 'Ada' && $detail->fields[0]->display === 'Ada', 'Detail value changed');
 check($detail->fields[1]->value === null && $detail->fields[1]->display === '', 'Absent detail value is not null');
 same($detail, Generator::buildDetail((object)$detailSpec, (object)['name'=>'Ada']), 'Associative detail arrays differ from objects');
-$detailHtml = '<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-detail__value-text">Ada</dd></div><div class="crudui-detail__field"><dt class="crudui-detail__label">Missing</dt><dd class="crudui-detail__value crudui-detail__value-text"></dd></div></dl>';
+$detailHtml = '<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd></div><div class="crudui-detail__field"><dt class="crudui-detail__label">Missing</dt><dd class="crudui-detail__value crudui-value crudui-value--text"></dd></div></dl>';
 same($detailHtml, Generator::renderDetail($detailSpec, ['name'=>'Ada']), 'Detail HTML changed');
 same($detailHtml, Generator::renderDetail((object)$detailSpec, (object)['name'=>'Ada'], []), 'Object detail HTML differs');
 same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]]), 'Omitted detail record changed');
@@ -174,7 +174,7 @@ same([], Generator::buildDetail(['fields'=>[]], [])->fields, 'Empty array detail
 foreach (['renderDetail', 'buildDetail'] as $method) {
     foreach ([
         [[[], ['name'=>'Ada']], 'Detail specification must declare fields'],
-        [[[['field'=>'.name']], ['name'=>'Ada']], 'Detail specification must be an object'],
+        [[[['field'=>'name']], ['name'=>'Ada']], 'Detail specification must be an object'],
         [[(object)[], ['name'=>'Ada']], 'Detail specification must declare fields'],
         [[['fields'=>[]], ['Ada']], 'Detail record must be an object'],
     ] as [$arguments, $message]) {
@@ -184,7 +184,7 @@ foreach (['renderDetail', 'buildDetail'] as $method) {
 }
 
 // Display input rules: list and detail inputs, text truncation and number decimals.
-$listSpec = ['columns'=>['v'=>['field'=>'.v','label'=>'V']]];
+$listSpec = ['columns'=>['v'=>['field'=>'v','label'=>'V']]];
 $displayFailure = function (callable $operation, string $message): void {
     $error = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
     check($error->getMessage() === $message && $error->getPath() === '', "Display failure changed: $message; received " . $error->getMessage());
@@ -236,26 +236,26 @@ $displayFailure(fn()=>Generator::renderList($listSpec, [], ['page'=>0, 'total'=>
 $displayFailure(fn()=>Generator::renderList($listSpec, [], ['total'=>-1, 'layout'=>'grid']), 'List total must be a nonnegative integer');
 $displayFailure(fn()=>Generator::renderDetail([], [], ['data'=>1]), 'Detail specification must declare fields');
 same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]], [], ['data'=>[]]), 'Empty array detail context changed');
-$displayValue = fn(array $format, mixed $value) => Generator::buildDetail(['fields'=>['v'=>['field'=>'.v','format'=>$format]]], ['v'=>$value])->fields[0]->display;
+$displayValue = fn(array $format, mixed $value) => Generator::buildDetail(['fields'=>['v'=>['field'=>'v','format'=>$format]]], ['v'=>$value])->fields[0]->display;
 foreach ([
     [2, 'a😀bc', 'a😀…'], [3, '가나다라마', '가나다…'], ['2', 'abcd', 'abcd'], [0.5, 'abc', 'abc'],
     [2.9, 'abcd', 'ab…'], [4, 'abcd', 'abcd'], [0, 'abcd', 'abcd'], [-1, 'abcd', 'abcd'], [1e300, 'abcd', 'abcd'],
 ] as [$limit, $value, $expected]) {
     same($expected, $displayValue(['type'=>'text','truncate'=>$limit], $value), 'Text truncation changed: ' . json_encode($limit));
 }
-same('<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">V</dt><dd class="crudui-detail__value crudui-detail__value-text">a😀…</dd></div></dl>',
-    Generator::renderDetail(['fields'=>['v'=>['field'=>'.v','label'=>'V','format'=>['type'=>'text','truncate'=>2]]]], ['v'=>'a😀bc']), 'Truncated detail HTML changed');
+same('<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">V</dt><dd class="crudui-detail__value crudui-value crudui-value--text">a😀…</dd></div></dl>',
+    Generator::renderDetail(['fields'=>['v'=>['field'=>'v','label'=>'V','format'=>['type'=>'text','truncate'=>2]]]], ['v'=>'a😀bc']), 'Truncated detail HTML changed');
 same('1.' . str_repeat('0', 100), $displayValue(['type'=>'number','decimals'=>100], 1), 'Maximum decimals changed');
 same('1', $displayValue(['type'=>'number','decimals'=>'101'], 1), 'Non-number decimals are not ignored');
 foreach ([101, -1, 1e200, -1e200] as $places) {
     $displayFailure(fn()=>$displayValue(['type'=>'number','decimals'=>$places], 1), 'Number decimals must be between 0 and 100');
-    $displayFailure(fn()=>Generator::renderList(['columns'=>['v'=>['field'=>'.v','format'=>['type'=>'number','decimals'=>$places]]]], [['v'=>1]]), 'Number decimals must be between 0 and 100');
+    $displayFailure(fn()=>Generator::renderList(['columns'=>['v'=>['field'=>'v','format'=>['type'=>'number','decimals'=>$places]]]], [['v'=>1]]), 'Number decimals must be between 0 and 100');
 }
 
 $validation = Validator::validate($spec, $data);
 same((object)['valid'=>true,'errors'=>[]], $validation, 'Native validation rejected valid data');
 same($validation, Validator::validate($spec, $data, ['files'=>[]]), 'Empty files map changed validation');
-same((object)['valid'=>true,'errors'=>[]], Validator::validateList((object)['columns'=>(object)['name'=>(object)['field'=>'.name']]]), 'List validation failed');
+same((object)['valid'=>true,'errors'=>[]], Validator::validateList((object)['columns'=>(object)['name'=>(object)['field'=>'name']]]), 'List validation failed');
 for ($index=0; $index<300; $index++) {
     $instance = new Form($template, $data);
     $instance->setValue('companies.__0000000000005__.name', (string)$index);

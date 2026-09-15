@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-15 — Fix the native optional list input path
+
+The PHP extension now initializes and validates the optional `buildList` rows argument before
+calling the shared operation, so GCC's required warnings do not reject the native build.
+
 ## 2026-09-15 — Install the pinned OrderedJSON JavaScript package
 
 The comparison build now copies the pinned monorepo `js/` package into its build-tree
