@@ -4,6 +4,7 @@
 
 - [명세 구조](spec/schema.ko.md)
 - [표시 형식](spec/display-formats.ko.md)
+- [정본 예제](spec/examples.ko.md)
 - [폼 런타임](spec/form-runtime.ko.md)
 - [기능과 배포 상태](features.ko.md)
 - [기능 계약](spec/feature-contracts.ko.md)

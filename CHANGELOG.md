@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-15 — Add the canonical list and detail entry
+
+The canonical `crudui.test` entry now links to `/displays/`, which serves the existing list and
+detail validation and rendering console through the same public process as the form comparison.
+It does not create another application server or deployment.
+
 ## 2026-09-15 — Use the shared allocator for empty native button text
 
 The PHP extension now creates omitted button content with its shared string allocator, so

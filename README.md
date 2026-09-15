@@ -2,7 +2,7 @@
 
 [한국어](README.ko.md).
 
-CRUDUI defines forms and validation in YAML or JavaScript objects. A shared
+CRUDUI defines forms, lists, details and validation in YAML or JavaScript objects. A shared
 core compiles form structure before data is available. React, Vue and Svelte
 render editable instances. The framework-independent HTML renderer provides
 form and list HTML without a UI framework. PHP, Go and Rust provide form and list rendering and
@@ -29,6 +29,8 @@ and Korean guides, specifications and generated API references.
 
 - [Specification structure](docs/spec/schema.md)
 - [Display formats](docs/spec/display-formats.md)
+- [Canonical examples](docs/spec/examples.md)
+- [List and detail development](docs/operations/displays.md)
 - [Form runtime contract](docs/spec/form-runtime.md)
 - [Runtime packages and APIs](docs/spec/runtime-packages.md)
 - [Native PHP package](packages/php-ext/README.md)

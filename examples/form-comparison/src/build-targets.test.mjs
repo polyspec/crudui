@@ -43,11 +43,21 @@ test('rebuilds and restarts only the affected native server', () => {
   });
   for (const file of [`${example}/servers/go/main.go`, 'packages/generator-go/form.go',
     'packages/validator-go/go.mod']) {
-    assert.deepEqual(summary([file]), { targets: ['go-server'], restarts: ['go'], supervisor: false });
+    assert.deepEqual(summary([file]), {
+      targets: file.startsWith('packages/validator-go/')
+        ? ['go-server', 'cross-check-go-validator'] : ['go-server'],
+      restarts: file.startsWith('packages/validator-go/') ? ['public', 'go'] : ['go'],
+      supervisor: false,
+    });
   }
   for (const file of [`${example}/servers/rust/src/main.rs`, `${example}/servers/rust/Cargo.lock`,
     'packages/generator-rust/src/lib.rs', 'packages/validator-rust/Cargo.toml']) {
-    assert.deepEqual(summary([file]), { targets: ['rust-server'], restarts: ['rust'], supervisor: false });
+    assert.deepEqual(summary([file]), {
+      targets: file.startsWith('packages/validator-rust/')
+        ? ['cross-check-rust-validator', 'rust-server'] : ['rust-server'],
+      restarts: file.startsWith('packages/validator-rust/') ? ['public', 'rust'] : ['rust'],
+      supervisor: false,
+    });
   }
 });
 
@@ -78,6 +88,15 @@ test('restarts the public server for its own sources and matrix readers for the 
     targets: ['frames', 'browser-matrix'], restarts: ['public', 'go', 'rust'], supervisor: true,
   });
   assert.equal(summary([`${example}/supervisor.mjs`]).supervisor, true);
+});
+
+test('restarts the canonical public entry when the display console changes', () => {
+  assert.deepEqual(summary(['examples/cross-check-console/client/app.js']), {
+    targets: ['cross-check-console'], restarts: ['public'], supervisor: false,
+  });
+  assert.deepEqual(summary(['examples/cross-check-console/server/server.mjs']), {
+    targets: ['cross-check-console'], restarts: ['public'], supervisor: false,
+  });
 });
 
 test('a first build runs every target once and starts every process', () => {
