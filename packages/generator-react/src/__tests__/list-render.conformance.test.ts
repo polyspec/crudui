@@ -22,6 +22,8 @@ import { renderList, ComposeLoadError } from '../index';
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
 // The shared fixture, imported as JSON — the SAME file Vue/Svelte load.
 import fixtureCases from '../../../../tests/fixtures/list-render/cases.json';
+// @ts-expect-error — shared JS list body helper.
+import { listBody } from '../../../../tests/fixtures/list-render/list-body.mjs';
 
 interface ListFixtureCase {
   name: string;
@@ -35,18 +37,8 @@ interface ListFixtureCase {
 
 const cases = fixtureCases as unknown as ListFixtureCase[];
 
-/**
- * Strip React 19's SSR resource-hint hoists (`<link rel="preload" as="image">`
- * emitted for an `<img src>`). A React-renderer artifact, not list markup (Vue/
- * Svelte SSR do not emit them) — the fixture is generated with the SAME strip, so
- * React must apply it to compare against its own normalized output.
- */
-function stripReactFloats(html: string): string {
-  return html.replace(/<link\b[^>]*\brel="preload"[^>]*>/g, '');
-}
-
 function render(c: ListFixtureCase): string {
-  return stripReactFloats(renderList(c.spec, c.rows ?? [], c.options ?? {}));
+  return listBody(renderList(c.spec, c.rows ?? [], c.options ?? {}));
 }
 
 describe('list render — React reproduces the normalized expected_html', () => {

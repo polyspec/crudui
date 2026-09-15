@@ -89,6 +89,7 @@ function phpProvenanceSource(autoload) {
 }
 const targets = [
   { name: 'javascript', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs')], prepare: async () => {} },
+  { name: 'html', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs'), '--renderer', 'html'], prepare: async () => {} },
   { name: 'php', command: process.env.PHP ?? 'php', args: [phpCLI], prepare: async () => {
     await stat(path.join(ROOT, 'packages/generator-php/vendor/autoload.php'));
     const result = await execute(process.env.PHP ?? 'php', ['-r', phpProvenanceSource(true)]);
@@ -421,7 +422,7 @@ try {
   report.checks.push({ target: 'suite', case: 'unchanged-inputs', passed: false, error: { message: error.message, expected: error.expected, actual: error.actual } });
 }
 report.completed = true;
-report.passed = report.targets.length === 5 && report.targets.every(target => target.available && target.passed) && report.checks.every(check => check.passed);
+report.passed = report.targets.length === targets.length &&report.targets.every(target => target.available && target.passed) && report.checks.every(check => check.passed);
 report.summary = { passed: report.checks.filter(check => check.passed).length, failed: report.checks.filter(check => !check.passed).length, unavailable: report.targets.filter(target => !target.available).map(target => target.name) };
 // A passing run removes its build directory; a failing run keeps it for inspection.
 if (report.passed) {

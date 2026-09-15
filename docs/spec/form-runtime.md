@@ -39,8 +39,17 @@ record. Replacing data with another record and restoring it must restore the
 same elements, attributes, control values and visibility.
 Attribute order is not part of this contract: frameworks and browser engines create
 attributes in different orders, so the bindings never rearrange attributes and these
-comparisons use the parsed DOM. The string renderers' byte-identical HTML is checked
-separately.
+comparisons use the parsed DOM.
+
+The string renderers are React's server rendering (`renderForm` and `renderList` of
+`@crudui/generator-react`), the HTML renderer (`@crudui/generator-html`) and the PHP, PHP
+extension, Go and Rust generators. For the same instance or list they produce the same bytes.
+React's server rendering is the reference, so its serialization is the format: attribute
+names such as `readOnly` and `autoComplete`, void elements closed with `/>`, an input's
+`name`, `checked` and `value` after its other attributes, a `style` attribute as
+`property:value` joined by `;` with a repeated property in its first position holding its
+last value, and the list's image preload links. The native generation check compares every
+string renderer with the reference byte for byte.
 
 The `@crudui/generator-html` package renders the same evaluated instance and list
 models as HTML strings without React, Vue or Svelte. `renderForm(form)` returns

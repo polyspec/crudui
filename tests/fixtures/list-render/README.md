@@ -2,7 +2,7 @@
 
 [한국어](README.ko.md).
 
-`cases.json` contains the shared list layout cases for React, Vue and Svelte.
+`cases.json` contains the shared list layout cases for React, Vue, Svelte and the HTML renderer.
 Each case provides `name`, `spec`, `rows`, optional `options`, and either
 `expected_html` or `expectError`.
 
@@ -14,17 +14,20 @@ queries; the renderer does not query a database.
 
 The framework layout tests compare normalized list bodies with `expected_html`.
 They use the [form HTML normalizer](../form-render/README.md#normalization).
-React image preload links are excluded from these body expectations. This
-comparison does not establish equality of complete original HTML.
+The string renderers (React's server rendering and the HTML renderer) write image preload
+links before the list; [`list-body.mjs`](list-body.mjs) removes them, so these body
+expectations cover the list body only. This comparison does not establish equality of
+complete original HTML.
 
 The [native generator suite](../../native-generators/README.md) uses the same
-inputs and compares complete original HTML with React, including image preload
-links. It does not remove resource hints or normalize attributes and CSS.
+inputs and compares complete original HTML of every string renderer with React, including
+image preload links. It does not remove resource hints or normalize attributes and CSS.
 
 Consumers are the list conformance tests in
 [React](../../../packages/generator-react/src/__tests__/list-render.conformance.test.ts),
-[Vue](../../../packages/generator-vue/test/list-render.conformance.test.mjs), and
-[Svelte](../../../packages/generator-svelte/test/list-render.conformance.test.mjs).
+[Vue](../../../packages/generator-vue/test/list-render.conformance.test.mjs),
+[Svelte](../../../packages/generator-svelte/test/list-render.conformance.test.mjs) and the
+[HTML renderer](../../../packages/generator-html/src/list-conformance.test.ts).
 Composition error cases require the recorded error code.
 
 ## Regeneration
