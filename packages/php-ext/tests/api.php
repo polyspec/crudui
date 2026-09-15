@@ -115,6 +115,27 @@ foreach ([
     $closedError = fails(fn()=>Generator::compileForm(['type'=>'group','properties'=>['rows'=>['type'=>'text'] + $declaration]]), FormError::class, 'INVALID_FORM_INPUT');
     check($closedError->getMessage() === $message && $closedError->getPath() === '', "Closed bucket failure changed: $message; received " . $closedError->getMessage());
 }
+// List and detail designs follow the form declaration rules: the own design, then each member.
+foreach ([
+    [fn()=>Generator::renderList(['columns'=>['name'=>['field'=>'.name','design'=>['main'=>['class'=>'x']]]]], []), 'Invalid design.main at columns.name: unknown key'],
+    [fn()=>Generator::renderList(['design'=>['color'=>'red'],'columns'=>['name'=>['design'=>['main'=>new stdClass()]]]], []), 'Invalid design.color at list: unknown key'],
+    [fn()=>Generator::renderList(['columns'=>['a'=>['design'=>['x'=>1]]],'design'=>'x'], []), 'Invalid design at list: expected a boolean or an object'],
+    [fn()=>Generator::renderList(['columns'=>['a'=>['design'=>['x'=>1]],'b'=>['design'=>1]]], []), 'Invalid design.x at columns.a: unknown key'],
+    [fn()=>Generator::renderList(['columns'=>['name'=>['design'=>['show'=>1]]]], []), 'Invalid design.show at columns.name: expected an expression, a boolean or a condition map'],
+    [fn()=>Generator::renderDetail(['fields'=>['name'=>['field'=>'.name','design'=>['label'=>['text'=>'x']]]]], []), 'Invalid design.label.text at fields.name: unknown key'],
+    [fn()=>Generator::buildDetail(['fields'=>['a'=>['design'=>false],'b'=>['design'=>null]]], []), 'Invalid design at fields.b: expected a boolean or an object'],
+    [fn()=>Generator::buildDetail(['design'=>['wrapper'=>'box'],'fields'=>[]], []), 'Invalid design.wrapper at detail: expected an object'],
+    [fn()=>Generator::renderDetail(['design'=>['group'=>['class'=>[]],'prepend'=>1],'fields'=>[]], []), 'Invalid design.group.class at detail: expected a string or a condition map'],
+    [fn()=>Generator::renderList(['design'=>1], [1]), 'List rows must be objects'],
+    [fn()=>Generator::renderList(['design'=>1], [], ['layout'=>'grid']), 'List layout must be table or card'],
+    [fn()=>Generator::buildDetail(['design'=>1,'fields'=>[]], [], ['data'=>1]), 'Detail context must be an object'],
+] as [$operation, $message]) {
+    $displayError = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
+    check($displayError->getMessage() === $message && $displayError->getPath() === '', "Display declaration failure changed: $message; received " . $displayError->getMessage());
+}
+fails(fn()=>Generator::renderList(['design'=>1,'columns'=>['$ref'=>'absent.yml']], []), ComposeLoadError::class, 'REF_FILE_NOT_FOUND');
+$composedError = fails(fn()=>Generator::buildDetail(['fields'=>['name'=>['$ref'=>'name.yml']]], [], ['files'=>['name.yml'=>['properties'=>['design'=>['main'=>['class'=>'x']]]]]]), FormError::class, 'INVALID_FORM_INPUT');
+check($composedError->getMessage() === 'Invalid design.main at fields.name: unknown key', 'Composed field design was not checked: ' . $composedError->getMessage());
 check(count(Generator::compileForm(['type'=>'group','properties'=>['rows'=>['type'=>'text','validate'=>['custom'=>1],'options'=>['custom'=>1],'behavior'=>['onload'=>'x']]]])->fields) === 1, 'Open buckets rejected an extension key');
 $explicit = new ComposeLoadError('TEST','message',['base.yml','path.with.dots']);
 same(['base.yml','path.with.dots'],$explicit->getCompositionTrace(),'Explicit composition trace changed');

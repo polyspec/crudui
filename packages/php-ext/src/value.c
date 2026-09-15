@@ -203,6 +203,79 @@ fail:
     ps_value_free(copy); return NULL;
 }
 
+/* An array index member name: a canonical decimal integer from 0 to 4294967294. */
+static bool array_index_name(const char *key, size_t length, uint64_t *index)
+{
+    if (!key || !length || length > 10 || (length > 1 && key[0] == '0')) return false;
+    uint64_t number = 0;
+    for (size_t i = 0; i < length; ++i) {
+        if (key[i] < '0' || key[i] > '9') return false;
+        number = number * 10 + (uint64_t)(key[i] - '0');
+    }
+    if (number > UINT64_C(4294967294)) return false;
+    *index = number;
+    return true;
+}
+
+bool ps_value_order(ps_value *value)
+{
+    if (!value || (value->kind != PS_ARRAY && value->kind != PS_OBJECT)) return true;
+    size_t length = value->data.children.length;
+    ps_member *items = value->data.children.items;
+    if (value->kind == PS_OBJECT && length > 1) {
+        ps_member *ordered = malloc(length * sizeof(*ordered));
+        uint64_t *indexes = malloc(length * sizeof(*indexes));
+        if (!ordered || !indexes) { free(ordered); free(indexes); return false; }
+        size_t count = 0;
+        /* Array index names in ascending numeric order; each insertion keeps the prefix sorted. */
+        for (size_t i = 0; i < length; ++i) {
+            uint64_t index;
+            if (!array_index_name(items[i].key, items[i].key_length, &index)) continue;
+            size_t at = count;
+            while (at > 0 && indexes[at - 1] > index) {
+                indexes[at] = indexes[at - 1]; ordered[at] = ordered[at - 1]; --at;
+            }
+            indexes[at] = index; ordered[at] = items[i]; ++count;
+        }
+        /* Then every other name in insertion order. */
+        for (size_t i = 0; i < length; ++i) {
+            uint64_t index;
+            if (!array_index_name(items[i].key, items[i].key_length, &index)) ordered[count++] = items[i];
+        }
+        memcpy(items, ordered, length * sizeof(*items));
+        free(ordered); free(indexes);
+    }
+    for (size_t i = 0; i < length; ++i)
+        if (!ps_value_order(items[i].value)) return false;
+    return true;
+}
+
+ps_value *ps_value_ordered(const ps_value *value)
+{
+    ps_value *copy = ps_value_clone(value);
+    if (copy && !ps_value_order(copy)) { ps_value_free(copy); return NULL; }
+    return copy;
+}
+
+bool ps_order_specification(const ps_value *spec, const ps_value *options,
+                            ps_value **ordered_spec, ps_value **ordered_options)
+{
+    *ordered_spec = NULL;
+    if (ordered_options) *ordered_options = NULL;
+    if (spec && !(*ordered_spec = ps_value_ordered(spec))) return false;
+    if (!ordered_options || !options) return true;
+    if (!(*ordered_options = ps_value_clone(options))) goto fail;
+    if (options->kind == PS_OBJECT) {
+        ps_value *files = ps_get_mut(*ordered_options, "files");
+        if (files && !ps_value_order(files)) goto fail;
+    }
+    return true;
+fail:
+    ps_value_free(*ordered_spec); *ordered_spec = NULL;
+    ps_value_free(*ordered_options); *ordered_options = NULL;
+    return false;
+}
+
 const ps_value *ps_get(const ps_value *value, const char *key)
 {
     if (!key) return NULL;

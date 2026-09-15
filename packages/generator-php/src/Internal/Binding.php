@@ -16,6 +16,7 @@ final class Binding
     public static function bind(stdClass $template, array|stdClass $data, array $options): array
     {
         Template::check($template);
+        $template = Value::spec($template);
         $data = Value::object($data);
         $options['language'] ??= 'ko';
         // Callers can pass decoded JSON; each text option is a string when present.

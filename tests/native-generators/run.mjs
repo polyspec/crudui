@@ -158,11 +158,28 @@ report.inputs = { start: await inputManifest() };
 ({ dispatch, errorRecord } = await import('./javascript.mjs'));
 
 const formCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form-render/cases.json'), 'utf8'));
+// Specifications written with array-index member names out of numeric order.
+const orderTemplateText = (() => {
+  const template = JSON.stringify(jsonValue(dispatch({ operation: 'compileForm', spec: { type: 'group', properties: { s: { type: 'select', label: 'S', items: { x: 'Ex', 1: 'One', 2: 'Two' } } } } })));
+  const written = '"items":{"2":"Two","x":"Ex","1":"One"}';
+  const parsedOrder = '"items":{"1":"One","2":"Two","x":"Ex"}';
+  assert.equal(template.split(parsedOrder).length, 2, 'The member order template must hold one items map');
+  return template.replace(parsedOrder, written);
+})();
+const memberOrderRequests = [
+  ['compile-properties', '{"operation":"compileForm","spec":{"type":"group","properties":{"b":{"type":"text","label":"B"},"10":{"type":"text","label":"Ten"},"a":{"type":"text","label":"A"}}}}'],
+  ['compile-composed-properties', '{"operation":"compileForm","spec":{"type":"group","properties":{"$ref":"base.json","$patch":{"10":{"type":"text","label":"Ten"}}}},"options":{"files":{"base.json":{"properties":{"b":{"type":"text","label":"B"},"a":{"type":"text","label":"A"}}}}}}'],
+  ['compile-unknown-key', '{"operation":"compileForm","spec":{"type":"group","properties":{"rows":{"type":"text","multiple":{"z":1,"5":1}}}}}'],
+  ['bind-select-items', `{"operation":"bindForm","template":${orderTemplateText},"data":{},"options":{}}`],
+  ['render-list-columns', '{"operation":"renderList","spec":{"columns":{"b":{"field":".b","label":"B"},"10":{"field":".ten","label":"Ten"},"a":{"field":".a","label":"A"}}},"rows":[{"a":"x","b":"y","ten":"z"}],"options":{"language":"en"}}'],
+  ['build-detail-fields', '{"operation":"buildDetail","spec":{"fields":{"b":{"field":".b","label":"B"},"10":{"field":".ten","label":"Ten"},"a":{"field":".a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
+  ['render-detail-fields', '{"operation":"renderDetail","spec":{"fields":{"b":{"field":".b","label":"B"},"10":{"field":".ten","label":"Ten"},"a":{"field":".a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
+];
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
 assert.equal(formCases.length, 92, 'The form fixture inventory changed; review coverage before changing this assertion');
-assert.equal(listCases.length, 39, 'The list fixture inventory changed; review coverage before changing this assertion');
-assert.equal(detailCases.length, 28, 'The detail fixture inventory changed; review coverage before changing this assertion');
+assert.equal(listCases.length, 42, 'The list fixture inventory changed; review coverage before changing this assertion');
+assert.equal(detailCases.length, 30, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 for (const target of targets) {
   const status = { name: target.name, available: false, passed: false, command: target.command, args: target.args };
@@ -386,6 +403,24 @@ for (const target of targets) {
     assert.ok(error, 'A declaration with a wrong value type was accepted');
     compareError(error, expected);
     return { error: expected };
+  });
+  // Member order: requests are sent as JSON text, so array-index member names arrive in the order they were written
+  // (a JavaScript object would already hold them first). Order is judged where it survives parsing: arrays, HTML and messages.
+  for (const [name, text] of memberOrderRequests) await check(target, `member-order:${name}`, async () => {
+    const request = JSON.parse(text);
+    let expected, expectedError;
+    try { expected = oracle(request); } catch (caught) { expectedError = errorRecord(caught); }
+    let actual, actualError;
+    try {
+      const result = await execute(target.command, target.args, { input: text, env: process.env });
+      actual = parseCLIResponse(request, result);
+    } catch (caught) { if (!(caught instanceof OperationError)) throw caught; actualError = caught; }
+    if (expectedError) { compareError(actualError, expectedError); return { error: expectedError }; }
+    assert.equal(actualError, undefined, 'A member order request was rejected');
+    if (typeof expected === 'string') assert.equal(actual, expected, 'Member order HTML differs');
+    else if (request.operation === 'bindForm') equalModels(actual, expected);
+    else equalOrdered(actual, expected, '$');
+    return { digest: digest(actual) };
   });
   const optionRejections = [
     ['language-number', { language: 5, keyPrefix: 5 }, 'Language must be a string'],

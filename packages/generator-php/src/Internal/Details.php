@@ -13,7 +13,7 @@ final class Details
     /** Build a detail model by delegating fields and cells to the list engine. */
     public static function build(array|stdClass $spec, array|stdClass $record, array $options): stdClass
     {
-        $spec = self::root($spec, 'Detail specification must be an object');
+        $spec = self::specification($spec);
         // Argument shapes in argument order, then the declaration, then options.
         $record = self::root($record, 'Detail record must be an object');
         if (!property_exists($spec, 'fields')) {
@@ -29,7 +29,7 @@ final class Details
             $list['design'] = $spec->design;
         }
         // Page and total are list options; a detail neither checks nor uses them.
-        $model = Lists::build((object) $list, [$record], array_diff_key($options, ['page' => true, 'total' => true]));
+        $model = Lists::build((object) $list, [$record], array_diff_key($options, ['page' => true, 'total' => true]), 'detail', 'fields');
         $fields = [];
         $columns = $model->columns;
         $cells = $model->rows[0]->cells ?? [];
@@ -60,6 +60,12 @@ final class Details
             throw new FormError('INVALID_FORM_INPUT', $message);
         }
         return Value::object($value);
+    }
+
+    /** A root specification argument in specification member order. */
+    private static function specification(array|stdClass $value): stdClass
+    {
+        return Value::spec(self::root($value, 'Detail specification must be an object'));
     }
 
     /** Render one read-only detail as a definition list. */

@@ -1,7 +1,7 @@
 /** Build the read-only detail model from the shared list display engine. */
 
 import { FormInputError } from '@crudui/validator';
-import { buildList, type BuildListOptions, type CellVM } from './list';
+import { buildDisplay, type BuildListOptions, type CellVM } from './list';
 import type { ResolvedDesign } from './design';
 
 export interface DetailFieldVM extends CellVM {
@@ -48,7 +48,12 @@ export function buildDetail(
   }
   const fields = detailSpec.fields;
   // Page and total are list-only options: a detail neither checks nor uses them.
-  const vm = buildList({ columns: fields, design: detailSpec.design }, [record], { ...options, page: null, total: null });
+  const vm = buildDisplay(
+    { columns: fields, ...(Object.prototype.hasOwnProperty.call(detailSpec, 'design') ? { design: detailSpec.design } : {}) },
+    [record],
+    { ...options, page: null, total: null },
+    { own: 'detail', members: 'fields' },
+  );
   const row = vm.rows[0];
   return {
     fields: vm.columns.map((column, index) => ({

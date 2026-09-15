@@ -294,7 +294,7 @@ export class Validator {
             field: getFieldName(fieldPath),
             rule: ruleName,
             message: error,
-            value: values,
+            value: values === undefined ? null : values,
           });
           return;
         }
@@ -343,7 +343,7 @@ export class Validator {
           field: getFieldName(itemPath),
           rule: ruleName,
           message: error,
-          value,
+          value: value === undefined ? null : value,
         });
         break;
       }
@@ -376,7 +376,7 @@ export class Validator {
           field: getFieldName(fieldPath),
           rule: ruleName,
           message: error,
-          value,
+          value: value === undefined ? null : value,
         });
         break;
       }
@@ -410,7 +410,7 @@ export class Validator {
         field: getFieldName(path),
         rule: 'number',
         message: error,
-        value,
+        value: value === undefined ? null : value,
       });
       return true;
     }

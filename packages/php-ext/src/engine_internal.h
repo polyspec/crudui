@@ -28,6 +28,21 @@ typedef struct {
 } ps_html_buffer;
 
 ps_value *ps_value_clone(const ps_value *value);
+/*
+ * Specification member order: every object lists array index names (canonical decimal integers
+ * from 0 to 4294967294) first in ascending numeric order, then all other names in insertion
+ * order. ps_value_order reorders an owned value in place and ps_value_ordered returns an ordered
+ * copy; both return false or NULL only on allocation failure.
+ */
+bool ps_value_order(ps_value *value);
+ps_value *ps_value_ordered(const ps_value *value);
+/*
+ * Copy a specification (or template) in member order and, when ordered_options is given, copy the
+ * options with only options.files in member order; record data keeps its order. NULL inputs stay
+ * NULL. Returns false only on allocation failure.
+ */
+bool ps_order_specification(const ps_value *spec, const ps_value *options,
+                            ps_value **ordered_spec, ps_value **ordered_options);
 const ps_value *ps_get(const ps_value *value, const char *key);
 ps_value *ps_get_mut(ps_value *value, const char *key);
 bool ps_has(const ps_value *value, const char *key);
@@ -145,6 +160,20 @@ ps_result ps_fail(const char *kind, const char *code, const char *message,
                   const char *at);
 ps_value *ps_error(const char *kind, const char *code, const char *message,
                    const char *at, const ps_value *trace);
+
+/*
+ * Declaration checks (declaration.c). Each returns false with *error set to an INVALID_FORM_INPUT
+ * error at "", or with *error NULL when allocation fails.
+ * ps_declaration_error: "Invalid <key> at <path>: expected <expected>".
+ * ps_known_keys: the first member of a closed bucket that is not allowed,
+ * "Invalid <name>.<key> at <path>: unknown key".
+ * ps_design_declaration_valid: the design declaration rules of a form field, a list or detail
+ * specification, or a list column or detail field.
+ */
+bool ps_declaration_error(const char *key, const char *path, const char *expected, ps_value **error);
+bool ps_known_keys(const ps_value *bucket, const char *name, const char *const *allowed,
+                   size_t count, const char *path, ps_value **error);
+bool ps_design_declaration_valid(const ps_value *design, const char *path, ps_value **error);
 
 ps_value *ps_compose_properties(const ps_value *properties, const ps_value *files,
                                 const char *basepath, ps_value **error);
