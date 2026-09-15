@@ -1,9 +1,9 @@
-import { mountView } from '#adapter';
+import { hydrateView, hydration, mountView } from '#adapter';
 import { formValidation } from './form-validation.mjs';
 import { bindFormController } from './bind-form-controller.mjs';
 import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
-import { encodeJson, readJson } from './json.mjs';
+import { decodeJson, encodeJson, readJson } from './json.mjs';
 import { formInitializations, formServers } from './runtime-paths.mjs';
 import { domSnapshot, identical } from '../../../tests/form-inspector/form-snapshot.mjs';
 import { serverGeneration } from './server-generation.mjs';
@@ -20,6 +20,13 @@ if (!formInitializations.includes(initialization)) throw new Error('Unknown init
 const t = translations(language);
 const form = document.querySelector('#form');
 const view = document.querySelector('#view');
+// The form is the only server-rendered view; the structure map and the data panel are
+// browser-only tools, so each has its own container.
+const views = {
+  form: document.querySelector('#form-view'),
+  outline: document.querySelector('#outline-view'),
+  data: document.querySelector('#data-view'),
+};
 const transport = document.querySelector('#transport');
 const spec = specFor();
 const generation = serverGeneration(server, renderingPath, framework);
@@ -118,10 +125,11 @@ async function mount(data = {}, formSpec = spec) {
   validation?.clear();
   const compiled = await generation.prepare(formSpec, { keyPrefix: 'form' });
   if (driver) await driver.dispose();
-  view.replaceChildren();
+  for (const container of Object.values(views)) container.replaceChildren();
   driver = renderingPath === 'bindForm'
-    ? bindFormController(view, mountView, compiled.template, language, data)
-    : mountView(view, compiled.template, language, data);
+    ? bindFormController(view, next => mountView(views, compiled.template, language, next),
+      compiled.template, language, data)
+    : mountView(views, compiled.template, language, data);
   Object.assign(driver, {
     generator: compiled.generator,
     referenceReads: () => compiled.referenceReads,
@@ -136,7 +144,7 @@ async function mount(data = {}, formSpec = spec) {
  * anchors, which render nothing: comments and empty text.
  */
 function renderedFormDom() {
-  const rendered = view.querySelector('.crudui-form');
+  const rendered = views.form.querySelector('.crudui-form');
   assert(rendered, 'A rendered form must exist');
   const copy = rendered.cloneNode(true);
   const walker = document.createTreeWalker(copy, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT);
@@ -154,28 +162,46 @@ function renderedFormDom() {
   return JSON.stringify(domSnapshot(copy));
 }
 /**
- * SSR: the selected server renders the form with the record, and the framework takes that
- * form over with the same template and data. Taking it over must not change the form DOM.
+ * SSR: this document is the selected server's frame document, with the record already rendered
+ * into the form view and the same record in the payload. The framework takes that form over
+ * with the same template and data, which must not change the form DOM; an adapter that adopts
+ * the server nodes must keep every one of them.
  */
-async function serverRender(data) {
+async function hydrateServerForm() {
+  const element = document.querySelector('#crudui-ssr');
+  assert(element, 'The SSR document must contain the record payload');
+  const payload = decodeJson(new TextEncoder().encode(element.textContent));
   const compiled = await generation.prepare(spec, { keyPrefix: 'form' });
-  const response = await fetch(`/api/${server}/render/${renderingPath}/${framework}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: encodeJson({ template: compiled.template, data, options: { language } }),
-  });
-  const rendered = await readJson(response);
-  equal(response.status, 200, 'server render status');
-  if (driver) await driver.dispose();
-  driver = undefined;
-  view.innerHTML = rendered.html;
   const serverDom = renderedFormDom();
-  await mount(rendered.data);
+  const serverNodes = Array.from(views.form.querySelectorAll('*'));
+  driver = renderingPath === 'bindForm'
+    ? bindFormController(view, next => hydrateView(views, compiled.template, language, next),
+      compiled.template, language, payload.data)
+    : hydrateView(views, compiled.template, language, payload.data);
+  Object.assign(driver, {
+    generator: compiled.generator,
+    referenceReads: () => compiled.referenceReads,
+    compileRequests: generation.compileRequests,
+  });
+  validation = formValidation(view, document.querySelector('#validation'), spec, t);
+  await settle();
   identical(renderedFormDom(), serverDom, 'framework takeover of the server-rendered form');
+  if (hydration === 'keep') {
+    const kept = Array.from(views.form.querySelectorAll('*'));
+    assert(kept.length === serverNodes.length && kept.every((node, index) => node === serverNodes[index]),
+      'Hydration must keep every server-rendered element');
+  }
+  inspect();
+  return payload.data;
 }
-async function reset(fixture = 'populated') {
+/** Reset the repository without rendering: the document is loaded again for the mounted stage. */
+async function resetRecord(fixture = 'populated') {
   const result = await request('reset', new URLSearchParams({ fixture }));
   equal(result.status, 200, 'reset status');
+  return result;
+}
+async function reset(fixture = 'populated') {
+  const result = await resetRecord(fixture);
   await mount(result.data);
   return result;
 }
@@ -766,17 +792,6 @@ function focusState() {
 async function initializationStage(stage) {
   let response;
   switch (stage) {
-    case 'mounted':
-      endInitialization();
-      stageSource = (await request('reset', new URLSearchParams({ fixture: 'populated' }))).data;
-      if (initialization === 'ssr') await serverRender(stageSource);
-      else {
-        await mount();
-        assert(view.querySelector('input[name]'), 'A form must exist before record injection');
-        await driver.load(stageSource);
-      }
-      stageTemplate = JSON.stringify(driver.template);
-      break;
     case 'reinjected-1':
     case 'reinjected-2':
       await driver.load(stageSource);
@@ -844,16 +859,18 @@ async function initializationStage(stage) {
   await settle(); inspect();
   return response;
 }
+// The initialization path of this document: the SSR document arrives with the form rendered and
+// the record in its payload; the CSR document mounts the form first and then injects the record.
 if (initialization === 'ssr') {
-  const result = await request('load');
-  equal(result.status, 200, 'load status');
-  await serverRender(result.data);
+  stageSource = await hydrateServerForm();
 } else {
   await mount();
-  await load();
+  assert(view.querySelector('input[name]'), 'A form must exist before record injection');
+  stageSource = (await load()).data;
 }
+stageTemplate = JSON.stringify(driver.template);
 window.comparison = {
-  runChecks, reset, inspect, submit, save, load, inject, idle: settle, server,
+  runChecks, reset, resetRecord, inspect, submit, save, load, inject, idle: settle, server,
   initializationStage, endInitialization, focusState,
   encodedData: () => encodeJson(driver.getData()),
   nextAction: actionCompletion.next, cancelAction: actionCompletion.cancel,

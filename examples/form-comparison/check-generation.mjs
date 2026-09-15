@@ -5,6 +5,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { encodeJson, decodeJson } from './src/json.mjs';
+import { readFrameDocument } from './src/frame-document.mjs';
+import { frameUrl } from './src/frame-readiness.mjs';
 import { phpClassProvenanceFailure } from './src/php-provenance.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
 import { specFor } from './src/scenario.mjs';
@@ -21,19 +23,35 @@ export const requiredCombinationIds = Object.freeze([
   'render-and-inject/default-rows',
   'render-and-inject/stored-en',
   'render-and-inject/stored-ko',
+  'frame-document',
   'ssr/en',
   'ssr/ko',
+  'reject-ssr-request',
   'reject-invalid-render-data',
   'stored-record-unchanged',
 ]);
+/**
+ * Queries every server must reject with one message: the SSR frame document is addressed by
+ * exactly `lang`, `server` and `initialization`, each once, with the server's own runtime.
+ */
+const ssrRejectedQueries = Object.freeze([
+  '', '?lang=ko', '?lang=ko&server={server}', '?lang=ko&initialization=ssr',
+  '?server={server}&initialization=ssr', '?lang=de&server={server}&initialization=ssr',
+  '?lang=ko&server={other}&initialization=ssr', '?lang=ko&server={server}&initialization=csr',
+  '?lang=ko&lang=en&server={server}&initialization=ssr',
+  '?lang=ko&server={server}&initialization=ssr&language=ko',
+]);
+const ssrRequestError = 'Expected lang, server and initialization for this SSR frame';
 const servers = generationServers;
 const renderingPaths = generationRenderingPaths;
 const frameworks = generationFrameworks;
 const requiredSharedIds = ['library-and-source', 'unchanged-library-inputs'];
 export const expectedGenerationCombinations =
   servers.length * renderingPaths.length * frameworks.length;
+const requestsPerId = id => id.startsWith('render-and-inject/') ? 2
+  : id === 'reject-ssr-request' ? ssrRejectedQueries.length : 1;
 const requestsPerCombination = requiredCombinationIds.reduce((total, id) =>
-  total + (id.startsWith('render-and-inject/') ? 2 : 1), 0);
+  total + requestsPerId(id), 0);
 export const expectedGenerationResults =
   expectedGenerationCombinations * requiredCombinationIds.length + requiredSharedIds.length;
 export const expectedGenerationRequests = expectedGenerationCombinations
@@ -237,44 +255,25 @@ function oneNode(nodes, predicate, message) {
   return found[0];
 }
 
-function checkDocument(parse, markup, expected, server, renderingPath, framework, language,
-  source, sourceDirectory, base) {
-  const document = parse(markup, { sourceCodeLocationInfo: true });
-  const nodes = allNodes(document);
-  const form = oneNode(nodes, node => node.tagName === 'form' && attr(node, 'id') === 'form', 'SSR must contain one form');
-  assert.equal(attr(form, 'method')?.toLowerCase(), 'post', 'SSR must submit a native form');
-  assert.equal(attr(form, 'action'), `/api/${server}/save/${renderingPath}/${framework}`,
-    'SSR form targets the wrong repository');
-  const view = oneNode(allNodes(form), node => attr(node, 'id') === 'view', 'SSR must contain one rendered form view');
-  assert.ok(view.sourceCodeLocation?.startTag && view.sourceCodeLocation?.endTag, 'Missing source offsets for the complete form view');
-  const raw = markup.slice(view.sourceCodeLocation.startTag.endOffset, view.sourceCodeLocation.endTag.startOffset);
-  assert.equal(raw, expected.html, 'SSR response contains different raw form HTML');
-  const html = oneNode(nodes, node => node.tagName === 'html', 'Missing document element');
-  assert.equal(attr(html, 'lang'), language, 'SSR language differs');
-  // The spec declares the one submit button; the generated form footer renders it.
-  const buttons = allNodes(form).filter(node => node.tagName === 'button' && attr(node, 'type') === 'submit');
-  assert.equal(buttons.length, 1, 'SSR must render one submit button');
-  assert.equal(attr(buttons[0], 'name'), '_form_complete');
-  assert.equal(attr(buttons[0], 'value'), '1');
-  assert.equal(allNodes(form).some(node => node.tagName === 'input' && attr(node, 'type') === 'hidden'), false, 'SSR must not add hidden controls');
-  const links = nodes.filter(node => node.tagName === 'a').map(node => new URL(attr(node, 'href'), base));
-  assert.ok(links.some(url => url.pathname === `/frames/${renderingPath}-${framework}/`
-    && url.searchParams.get('server') === server
-    && url.searchParams.get('lang') === language
-    && url.searchParams.get('initialization') === 'ssr'),
-  'Missing corresponding interactive form link');
-  if (server === 'php' || server === 'php-ext') {
-    const metadata = oneNode(nodes, node => node.tagName === 'script' && attr(node, 'id') === 'generator', 'Missing SSR PHP provenance');
-    assert.equal(attr(metadata, 'type'), 'application/json');
-    assertGenerationProvenance(decodeJson(new TextEncoder().encode(metadata.childNodes.map(node => node.value ?? '').join(''))), server, source, sourceDirectory);
-  } else {
-    assert.equal(attr(form, 'data-generator-runtime'), server, 'Missing SSR generator runtime');
-    assert.equal(attr(form, 'data-generator-commit'), source.commit, 'Missing SSR generator commit');
-  }
-  const inputs = allNodes(view).filter(node => ['input', 'textarea', 'select'].includes(node.tagName));
-  const expectedInputs = allNodes(parse(expected.html)).filter(node => ['input', 'textarea', 'select'].includes(node.tagName));
-  assert.deepStrictEqual(inputs.map(node => [node.tagName, node.attrs]), expectedInputs.map(node => [node.tagName, node.attrs]), 'SSR controls differ without executing JavaScript');
-  return { controls: inputs.length, rawHtmlSha256: digest(raw), scriptExecution: false };
+/**
+ * An SSR frame document is the built frame page with three insertions by the server: the
+ * language, the rendered form and the record payload. Everything else is the built page.
+ */
+function checkDocument(parse, markup, frame, expected, server, language, source, sourceDirectory) {
+  const document = readFrameDocument(parse, markup, 'ssr');
+  assert.equal(document.frame, frame, 'SSR response changed the built frame document');
+  assert.equal(document.language, language, 'SSR language differs');
+  assert.equal(document.form, expected.html, 'SSR response contains different raw form HTML');
+  const payload = decodeJson(new TextEncoder().encode(document.payload));
+  assert.deepStrictEqual(Object.keys(payload), ['data', 'generator'], 'SSR payload members differ');
+  equalOrdered(payload.data, expected.data, 'SSR payload record');
+  assertGenerationProvenance(payload.generator, server, source, sourceDirectory);
+  const inputs = allNodes(parse(document.form))
+    .filter(node => ['input', 'textarea', 'select'].includes(node.tagName));
+  return {
+    controls: inputs.length, rawHtmlSha256: digest(document.form),
+    payloadSha256: digest(document.payload), scriptExecution: false,
+  };
 }
 
 async function main() {
@@ -422,13 +421,38 @@ async function main() {
         assert.equal(encodeJson(cachedTemplate), serializedTemplate, 'Binding modified the reusable serialized template');
         return { generator: response.generator, data: response.data, fields: response.fields, html: response.html, initialRevision: initial.revision, injectedRevisions: [...revisions, 3, 4], repeatedRevision: repeated.revision, afterRejectedCompile: true, serializedTemplateSha256: digest(serializedTemplate) };
       });
+      let frameDocument;
+      await check(server, renderingPath, framework, 'frame-document', async () => {
+        assert.ok(parse, 'Shared library preparation failed');
+        frameDocument = await request(frameUrl({
+          initialization: 'csr', path: renderingPath, framework, server, language: 'ko',
+        }), undefined, server, 200, true);
+        readFrameDocument(parse, frameDocument, 'csr');
+        return { frameSha256: digest(frameDocument) };
+      });
       for (const language of ['en', 'ko']) await check(server, renderingPath, framework,
         `ssr/${language}`, async () => {
         assert.ok(storedBaseline && template && source && parse, 'Source or stored record is unavailable');
+        assert.ok(frameDocument, 'The built frame document is unavailable');
         const expected = state(createForm(template, deserialize(storedBaseline).data, { language }));
-        const markup = await request(`${endpoint('ssr')}?language=${language}`, undefined, server, 200, true);
-        return checkDocument(parse, markup, expected, server, renderingPath, framework,
-          language, source, options.library, options.url);
+        const markup = await request(frameUrl({
+          initialization: 'ssr', path: renderingPath, framework, server, language,
+        }), undefined, server, 200, true);
+        return checkDocument(parse, markup, frameDocument, expected, server, language,
+          source, options.library);
+      });
+      await check(server, renderingPath, framework, 'reject-ssr-request', async () => {
+        const other = servers.find(name => name !== server);
+        const errors = [];
+        for (const query of ssrRejectedQueries) {
+          const response = await request(
+            `${endpoint('ssr')}${query.replaceAll('{server}', server).replaceAll('{other}', other)}`,
+            undefined, server, 400,
+          );
+          assert.equal(response.error, ssrRequestError, `SSR request rejection: ${query}`);
+          errors.push(response.error);
+        }
+        return { rejected: ssrRejectedQueries.length, errors: [...new Set(errors)] };
       });
       await check(server, renderingPath, framework, 'reject-invalid-render-data', async () => {
         assert.ok(serializedTemplate, 'Server compilation failed');

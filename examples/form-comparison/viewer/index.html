@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI form</title><link rel="stylesheet" href="/crudui.css"><link rel="stylesheet" href="/comparison.css"></head>
 <body class="frame">
   <header><h2 id="revision"></h2><code id="commit"></code><p id="method"></p></header>
@@ -7,7 +7,7 @@
   <nav class="actions"><label id="transport-label" for="transport"></label><select id="transport"><option value="form"></option><option value="json"></option></select></nav>
   <p id="save-note" class="muted"></p><p id="count"></p>
   <div id="validation" class="fail" role="alert"></div>
-  <form id="form" novalidate><div id="view"></div></form>
+  <form id="form" novalidate><div id="view"><div id="form-view"></div><div id="outline-view"></div><div id="data-view"></div></div></form>
   <details open><summary id="results-label"></summary><div id="results"></div></details>
   <details><summary id="names-label"></summary><pre id="names"></pre></details>
   <details><summary id="state-label"></summary><pre id="state"></pre></details>

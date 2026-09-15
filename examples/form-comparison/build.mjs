@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 import { formFrameworks, formRenderingPaths } from './src/runtime-paths.mjs';
+import { readFrameDocument } from './src/frame-document.mjs';
 import { specFor } from './src/scenario.mjs';
 
 const exampleDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -14,6 +15,7 @@ const workspace = process.argv[2];
 const source = path.join(workspace, 'source');
 const require = createRequire(path.join(source, 'packages/generator-svelte/package.json'));
 const { build } = await import(pathToFileURL(require.resolve('vite')));
+const { parse } = await import(pathToFileURL(require.resolve('parse5')));
 const { svelte } = await import(pathToFileURL(require.resolve('@sveltejs/vite-plugin-svelte')));
 const metadata = JSON.parse(await readFile(path.join(workspace, 'metadata.json'), 'utf8'));
 const publicDirectory = path.join(workspace, 'public');
@@ -46,7 +48,8 @@ await writeFile(path.join(publicDirectory, 'spec.json'), JSON.stringify(spec, nu
 
 for (const renderingPath of formRenderingPaths) {
   for (const framework of formFrameworks) {
-    const extension = framework === 'react' ? 'tsx' : 'ts';
+    // Svelte adapters own reactive state, which lives in a runes module.
+    const extension = { react: 'tsx', vue: 'ts', svelte: 'svelte.ts', html: 'ts' }[framework];
     await build({
       configFile: false,
       root: path.join(exampleDirectory, 'viewer'),
@@ -81,5 +84,8 @@ for (const renderingPath of formRenderingPaths) {
         sourcemap: true,
       },
     });
+    // The servers render into this document, so the build must satisfy the frame contract.
+    const document = path.join(publicDirectory, 'frames', renderingPath + '-' + framework, 'index.html');
+    readFrameDocument(parse, await readFile(document, 'utf8'), 'csr');
   }
 }

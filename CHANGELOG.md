@@ -2,6 +2,50 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Serve the SSR column as a server-rendered frame document
+
+The comparison page's `ssr` column was not server-rendered. Its frame document contained an
+empty form view, the browser requested `render`, wrote the returned HTML into the page and
+mounted the framework over it, so the first paint came from JavaScript in both columns. The
+static-document check required that empty view, so the contract enforced the opposite of
+server rendering. The separate SSR document the servers did serve was a page of its own with a
+link, a native form and per-server provenance, which the comparison never loaded.
+
+The `ssr` action now serves the frame document itself. Its query is exactly `lang`, `server`
+and `initialization=ssr`, each once, and every other query is rejected with one message. The
+server reads the built frame page, which must contain exactly one `<html>` start tag, one
+empty `<div id="form-view"></div>` and one `</body>`, and returns that page with three
+insertions and no other change: the language on the html start tag, the form rendered from the
+stored record in the form view, and the record with generator provenance in a
+`<script type="application/json" id="crudui-ssr">` before the body end tag, with `<`, `>` and
+`&` escaped. PHP, the PHP extension, Go and Rust implement the same rule and the same two
+error messages.
+
+The frame document separates the server-rendered form from the browser-only tools:
+`#form-view`, `#outline-view` and `#data-view`. Every adapter offers `mountView` and
+`hydrateView` and declares what hydration does with the server nodes. React hydrates with
+`hydrateRoot`, reports its commit from an effect of the hydrated tree instead of waiting, and
+fails on a recoverable error; Vue hydrates with `createSSRApp`; the HTML renderer keeps the
+markup and connects the form and structure map bindings. Svelte replaces the nodes: its
+hydration reads the `<!--[-->` markers only its own server renderer writes, so it clears the
+container and mounts, which the adapter declares and the specification records. The SSR frame
+reads its record from the payload, requires the taken-over form DOM to be unchanged, and for
+an adapter that adopts nodes requires every server-rendered element to survive. The `mounted`
+initialization stage is now the document itself: the page resets the record and loads the
+column's document again, so both columns start through their own path.
+
+The checks follow the same contract from one module. `frame-document.mjs` reads a frame
+document, removes an SSR document's three insertions and returns the built page; the frame
+build, the browser check and the generation check all use it. Browser verification records
+both initialization documents of every rendering path and framework, 16 per server, and
+compares the pages behind all four servers by SHA-256. Generation verification adds the built
+frame document, the payload record and provenance, and ten rejected SSR queries per
+combination that every server must reject with the same message: 450 results and 899 requests.
+The operations document's generation and aggregate totals were stale (290 results, 411
+requests, 912 scenario checks); they now state the current totals.
+
+Comparison source checks passed 149 tests and `make docs-check` passed.
+
 ## 2026-09-15 — Render only grammar nodes in Vue components
 
 Measured in jsdom, Vue `createSSRApp` hydration of the server markup for the shared session

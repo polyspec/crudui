@@ -55,9 +55,10 @@ prints the container log and returns status 1.
 After readiness, the lifecycle command runs the processor-mode, generation,
 persistence and JSON checks inside the candidate container.
 
-The generation check requires 290 results, 411 requests and all 24
+The generation check requires 450 results, 899 requests and all 32
 server/rendering-path/framework combinations. It checks compile, retained
-serialized-template render, raw SSR HTML, English and Korean output, invalid data
+serialized-template render, the built frame document, raw SSR form HTML with its
+record payload, English and Korean output, rejected SSR requests, invalid data
 rejection and unchanged stored records. The persistence check requires 120
 results across four servers and two rendering paths.
 
@@ -65,9 +66,9 @@ It then runs browser verification once per server in PHP, PHP extension, Go and
 Rust order and creates the aggregate report. These checks are sequential because
 they measure focus, selection and scroll in one browser environment.
 
-The aggregate requires 912 successful scenario checks, 4,608 successful
-initialization comparisons, 240 successful interaction
-checks, 24 successful mount checks, 24 matching static-document checks and four
+The aggregate requires 1,216 successful scenario checks, 5,376 successful
+initialization comparisons, 320 successful interaction
+checks, 32 successful mount checks, 64 matching frame-document checks and four
 successful performance results. Each server has a 900,000 millisecond absolute
 limit and a 300,000 millisecond no-progress limit. A failed, missing, malformed or
 late result keeps status 1. Do not deploy a candidate unless every repository and

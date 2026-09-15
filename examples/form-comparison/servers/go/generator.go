@@ -3,11 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html"
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
+	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	generator "github.com/polyspec/crudui/packages/generator-go"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
@@ -148,7 +151,7 @@ func (s server) serveGeneration(w http.ResponseWriter, r *http.Request, operatio
 		return
 	}
 	if operation == "ssr" {
-		s.serveGeneratedDocument(w, r, renderingPath, framework)
+		s.serveSSRFrame(w, r, renderingPath, framework)
 		return
 	}
 	kind, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
@@ -192,14 +195,38 @@ func (s server) serveGeneration(w http.ResponseWriter, r *http.Request, operatio
 	writeJSON(w, http.StatusOK, response)
 }
 
-// serveGeneratedDocument renders the framework's stored record as a normal form.
-func (s server) serveGeneratedDocument(w http.ResponseWriter, r *http.Request, renderingPath, framework string) {
-	language := r.URL.Query().Get("language")
-	if language == "" {
-		language = "ko"
+// ssrParameters names the query parameters of an SSR frame request with their accepted values.
+var ssrParameters = map[string][]string{"lang": {"ko", "en"}, "server": {"go"}, "initialization": {"ssr"}}
+
+// ssrLanguage returns the frame language when the query holds exactly the SSR frame parameters.
+func ssrLanguage(rawQuery string) (string, bool) {
+	query, err := url.ParseQuery(rawQuery)
+	if err != nil || len(query) != len(ssrParameters) {
+		return "", false
 	}
-	if language != "ko" && language != "en" {
-		failure(w, http.StatusBadRequest, fmt.Errorf("Expected language ko or en"))
+	for name, accepted := range ssrParameters {
+		values, ok := query[name]
+		if !ok || len(values) != 1 || !slices.Contains(accepted, values[0]) {
+			return "", false
+		}
+	}
+	return query.Get("lang"), true
+}
+
+// scriptJSON escapes the characters that could end or alter an inline script element.
+var scriptJSON = strings.NewReplacer("<", `\u003c`, ">", `\u003e`, "&", `\u0026`)
+
+// serveSSRFrame renders the framework's stored record into the built interactive frame document.
+func (s server) serveSSRFrame(w http.ResponseWriter, r *http.Request, renderingPath, framework string) {
+	language, ok := ssrLanguage(r.URL.RawQuery)
+	if !ok {
+		failure(w, http.StatusBadRequest, fmt.Errorf("Expected lang, server and initialization for this SSR frame"))
+		return
+	}
+	const htmlStart, placeholder, bodyEnd = `<html>`, `<div id="form-view"></div>`, `</body>`
+	frame, err := os.ReadFile(filepath.Join(s.specDir, "frames", renderingPath+"-"+framework, "index.html"))
+	if err != nil || strings.Count(string(frame), htmlStart) != 1 || strings.Count(string(frame), placeholder) != 1 || strings.Count(string(frame), bodyEnd) != 1 {
+		failure(w, http.StatusInternalServerError, fmt.Errorf("The frame document must contain one html start tag, one empty form view and one body end tag"))
 		return
 	}
 	spec, err := readObject(filepath.Join(s.specDir, "spec.json"))
@@ -223,7 +250,7 @@ func (s server) serveGeneratedDocument(w http.ResponseWriter, r *http.Request, r
 		failure(w, http.StatusInternalServerError, err)
 		return
 	}
-	form, err := generator.NewForm(template, data, generator.BindOptions{IDPrefix: "crudui", Language: language})
+	form, err := generator.NewForm(template, data, generator.BindOptions{Language: language})
 	if err != nil {
 		failure(w, http.StatusInternalServerError, err)
 		return
@@ -233,11 +260,17 @@ func (s server) serveGeneratedDocument(w http.ResponseWriter, r *http.Request, r
 		failure(w, http.StatusInternalServerError, err)
 		return
 	}
-	interactive := "Open interactive form"
-	if language == "ko" {
-		interactive = "입력 화면 열기"
+	payload, err := encodeJSON(record("data", form.GetData(), "generator", generationInfo()))
+	if err != nil {
+		failure(w, http.StatusInternalServerError, err)
+		return
 	}
-	document := fmt.Sprintf(`<!doctype html><html lang="%s" data-language="%s"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CRUDUI</title><link rel="stylesheet" href="/crudui.css"><link rel="stylesheet" href="/comparison.css"></head><body class="frame"><header><h1>CRUDUI</h1><a href="/frames/%s-%s/?server=go&amp;lang=%s&amp;initialization=ssr">%s</a></header><form id="form" method="post" action="/api/go/save/%s/%s" data-generator-runtime="go" data-generator-commit="%s"><div id="view">%s</div></form></body></html>`, language, language, renderingPath, framework, language, interactive, renderingPath, framework, html.EscapeString(sourceCommit), markup)
+	// Each token occurs once, and the replacer never rescans the text it inserts.
+	document := strings.NewReplacer(
+		htmlStart, `<html lang="`+language+`">`,
+		placeholder, `<div id="form-view">`+markup+`</div>`,
+		bodyEnd, `<script type="application/json" id="crudui-ssr">`+scriptJSON.Replace(string(payload))+`</script>`+bodyEnd,
+	).Replace(string(frame))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)

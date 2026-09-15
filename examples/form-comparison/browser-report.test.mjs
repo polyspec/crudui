@@ -13,6 +13,7 @@ import {
 import {
   browserInitializationResultIds, browserJobReportCount, expectedBrowserSections,
 } from './browser-report-policy.mjs';
+import { formInitializations } from './src/runtime-paths.mjs';
 
 const origin = 'http://127.0.0.1:8080';
 const metadata = {
@@ -52,9 +53,11 @@ function report(server, sha256 = 'f'.repeat(64)) {
       server, path: item.path, framework: item.framework, transport: item.transport,
       action, passed: true,
     })));
-  const documents = browserPaths.flatMap(renderingPath => browserFrameworks.map(framework => ({
-    server, path: renderingPath, framework, passed: true, sha256,
+  const mounts = browserPaths.flatMap(renderingPath => browserFrameworks.map(framework => ({
+    server, path: renderingPath, framework, passed: true,
   })));
+  const frameDocuments = mounts.flatMap(item => formInitializations.map(initialization =>
+    ({ ...item, initialization, frameSha256: sha256 })));
   return {
     scope: 'verification', origin, metadata,
     startedAt, completedAt, generatedAt: completedAt, durationMs: 300_000,
@@ -71,8 +74,8 @@ function report(server, sha256 = 'f'.repeat(64)) {
     initializations: browserPaths.flatMap(renderingPath => browserFrameworks.map(framework =>
       initialization(server, renderingPath, framework))),
     interactions,
-    initialMounts: documents.map(({ sha256: _sha256, ...item }) => item),
-    staticDocuments: documents,
+    initialMounts: mounts,
+    frameDocuments,
     browser: 'Chrome/152.0.0.0',
     pageErrors: [],
     initializationArtifacts: 'initialization-2026-09-10T00-00-00.000Z',
@@ -152,12 +155,13 @@ test('fails when an initialization comparison differs', () => {
   assert.deepEqual(summary.verification.bindForm.initializations, { total: expectedBrowserSections().initializations, failed: 1 });
 });
 
-test('fails when corresponding static HTML differs between servers', () => {
+test('fails when corresponding frame documents differ between servers', () => {
   const reports = completeReports();
-  reports.rust.staticDocuments[0].sha256 = '0'.repeat(64);
+  reports.rust.frameDocuments[0].frameSha256 = '0'.repeat(64);
   const summary = summarizeBrowserReports(reports, origin, metadata);
   assert.equal(summary.passed, false);
-  assert.equal(summary.verification.bindForm.documents.failed, 4);
+  assert.equal(summary.verification.bindForm.documents.failed,
+    browserServers.length * formInitializations.length);
 });
 
 test('fails a server duration above 900000 milliseconds', () => {

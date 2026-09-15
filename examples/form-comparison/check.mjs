@@ -3,11 +3,14 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'parse5';
 import puppeteer from 'puppeteer';
 
 import { browserJobReportCount, verifyServerReport } from './browser-report-policy.mjs';
 import { checkInteraction } from './check-interaction.mjs';
 import { collectBrowserJob } from './src/browser-job.mjs';
+import { readFrameDocument } from './src/frame-document.mjs';
+import { parseFrameDocument } from './src/frame-readiness.mjs';
 import { subscribeMainPageReadiness } from './src/main-page-readiness.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
 
@@ -72,39 +75,30 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const initialMounts = new Map();
-  const staticDocuments = new Map();
+  const frameDocuments = new Map();
   const documentChecks = [];
   page.on('response', response => {
     activity.responses++;
     activity.lastResponseAt = new Date().toISOString();
     publishActivity({ type: 'response', ...activity });
     if (response.request().resourceType() !== 'document') return;
-    const url = new URL(response.url());
-    const match = new RegExp(
-      `^/frames/(${formRenderingPaths.join('|')})-(${formFrameworks.join('|')})/$`,
-    ).exec(url.pathname);
-    if (!match) return;
-    const server = url.searchParams.get('server') ?? 'php';
-    const key = `${server}/${match[1]}/${match[2]}`;
-    if (staticDocuments.has(key)) return;
+    const frame = parseFrameDocument(new URL(response.url()));
+    if (!frame) return;
+    const { server, path: renderingPath, framework, initialization } = frame;
+    const key = `${server}/${renderingPath}/${framework}/${initialization}`;
+    if (frameDocuments.has(key)) return;
     const result = {
-      server, path: match[1], framework: match[2], passed: false,
+      server, path: renderingPath, framework, initialization, passed: false,
     };
-    staticDocuments.set(key, result);
+    frameDocuments.set(key, result);
     documentChecks.push((async () => {
       try {
         const html = await response.text();
-        result.sha256 = createHash('sha256').update(html).digest('hex');
-        result.passed = response.status() === 200 && await page.evaluate(source => {
-          const document = new DOMParser().parseFromString(source, 'text/html');
-          const view = document.querySelector('#view');
-          return view !== null && view.childNodes.length === 0
-            && document.querySelector('script[type=module]') !== null;
-        }, html);
-        if (!result.passed) {
-          result.error =
-            'The HTML response must contain an empty form container and the browser module';
-        }
+        if (response.status() !== 200) throw new Error(`Frame document status ${response.status()}`);
+        // The built page of an SSR document, with the server's insertions removed.
+        result.frameSha256 = createHash('sha256')
+          .update(readFrameDocument(parse, html, initialization).frame).digest('hex');
+        result.passed = true;
       } catch (error) {
         result.error = error.message;
       }
@@ -181,7 +175,7 @@ try {
   report.interactions = await checkInteraction(page, [selectedServer]);
   report.initialMounts = [...initialMounts.values()];
   await Promise.all(documentChecks);
-  report.staticDocuments = [...staticDocuments.values()];
+  report.frameDocuments = [...frameDocuments.values()];
   report.browser = await browser.version();
   report.pageErrors = errors;
   report.initializationArtifacts =
@@ -227,9 +221,9 @@ try {
       `${result.server}/${result.path}/${result.framework}/mount-before-load: ${result.passed ? 'PASS' : `FAIL ${result.error}`}\n`,
     );
   }
-  for (const result of report.staticDocuments) {
+  for (const result of report.frameDocuments) {
     process.stdout.write(
-      `${result.server}/${result.path}/${result.framework}/static-html: ${result.passed ? 'PASS' : `FAIL ${result.error}`}\n`,
+      `${result.server}/${result.path}/${result.framework}/${result.initialization}-document: ${result.passed ? 'PASS' : `FAIL ${result.error}`}\n`,
     );
   }
   const verification = verifyServerReport(report, selectedServer);
