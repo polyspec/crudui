@@ -20,7 +20,10 @@ PHP, React, bindForm 반복 주입 비교를 실행했습니다. 168/168 대신 
 프레임만 스크롤되고(2,474px, 2,862px) 페이지는 0에 머물며, 머리글 위의 포인터는 어느 프레임 위에도
 있지 않았습니다. 비교 계약에 이 배치를 명시했습니다.
 
-`npm run test:form-comparison:source` 141개와 `:browser` 4개, `make docs-check`가 통과했습니다.
+`npm run test:form-comparison:source` 141개와 `:browser` 4개, `make docs-check`가 통과했습니다. 배포된
+a40f434 페이지에서 실제 Safari로 왼쪽 프레임 안의 모두 펼치기를 누르고 포인터를 페이지 머리글로 옮긴
+뒤 PHP, React, bindForm 반복 주입 비교를 실행한 결과 168/168 일치했습니다. 포인터를 왼쪽 프레임 위에
+둔 채 시작하면 비교는 결과 없이 포인터 안내로 멈췄습니다.
 
 ## 2026-09-15 — 포인터가 프레임 밖에 있을 때만 비교를 캡처
 
