@@ -3148,3 +3148,10 @@ Removed the unnecessary `ignoreDeprecations: "6.0"` compiler setting because the
 schema generator's bundled TypeScript compiler rejects it. TypeScript type
 checking, schema generation with three example checks, and the documentation
 site build passed. Deployment: not deployed.
+## 2026-09-16 — Reuse the existing comparison container during source sync
+
+The comparison deployment now separates first-time bootstrap from source synchronization. A
+running container with the expected image and exact mounts is inspected and reused; normal source
+changes do not call `containerctl down`, recreate the container, or reconnect build, cache, data,
+or results volumes. The public pipeline forwards list and detail rendering to the selected native
+PHP, PHP extension, Go, or Rust generator instead of rendering those requests in Node.

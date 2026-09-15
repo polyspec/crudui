@@ -40,12 +40,13 @@ node examples/form-comparison/verification.mjs
 
 The deployment command builds the toolchain image only when
 `examples/form-comparison/Containerfile` changed. It mounts the repository
-read-only, keeps build outputs in the `crudui-comparison-build` and
-`crudui-comparison-cache` volumes and applies the containerctl definition twice. The
-second application must change nothing. The first start of empty volumes installs
-and builds everything; later starts reuse the volumes. The command preserves the
-active service's data and removes unused comparison images and the retired
-per-commit directories.
+read-only and keeps build outputs in the `crudui-comparison-build` and
+`crudui-comparison-cache` volumes. If the expected container is running with the
+expected image, deployment performs source synchronization through that existing
+container; it does not recreate the container, restart services or reconnect
+volumes. Container creation is reserved for an absent, stopped or image-mismatched
+deployment. The command preserves the active service's data and removes unused
+comparison images and retired per-commit directories.
 
 Neither command waits silently. Every step prints its start with its own timeout,
 its elapsed time every 15 seconds while it runs and its duration when it finishes;
@@ -57,9 +58,8 @@ minute maximum.
 
 A source change needs no command. The supervisor copies the changed files into the
 build tree, rebuilds only the affected target and restarts only the affected server.
-PHP source changes apply on the next request. A change to a supervisor module applies
-after `containerctl -f .form-comparison/deployment/compose.yaml restart comparison`;
-until then `/api/source` reports `restart-required`.
+PHP source changes apply on the next request. A supervisor-module change reloads the
+supervisor process inside the existing container and preserves all volumes.
 
 The container runs one public server, one PHP process, one PHP extension process,
 one Go process and one Rust process from the build tree. PHP uses Composer classes.
@@ -103,3 +103,7 @@ until the next verification.
 
 Package publication is a separate operation. Verification does not change
 publication state.
+Before applying a source change, inspect the existing container and its exact mounts. If the reuse
+condition passes, leave the container and all volumes running and let the supervisor synchronize the
+read-only source mount. Do not use `down` as a recovery step for a build or health failure; preserve
+the state for diagnosis and retry only the failed build or process operation.

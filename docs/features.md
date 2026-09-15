@@ -192,9 +192,11 @@ unused type import; their executable JavaScript is identical. Generated PHP
 dependencies and the Go binary were removed from Git. The new image installs the
 same locked PHP dependency versions and builds the server binaries from source.
 
-Two consecutive `containerctl up` calls preserved container inspection, project
-routes, proxy state, certificates, 17 stored files, HTML, health and load responses.
-All eight environment checks passed separately from form initialization tests.
+The current deployment reuses the running comparison container when its image and
+mount contract match. Source synchronization preserves container inspection,
+project routes, proxy state, certificates, stored files, HTML, health and load
+responses. Container creation is limited to bootstrap or an explicit image/mount
+contract change.
 
 Retained comparison implementations have diagnostic failures. Their failures
 remain in the reports and cause the complete comparison runner to return a
