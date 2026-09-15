@@ -166,7 +166,7 @@ const httpServer = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
     if (url.pathname === '/benchmark-console' || url.pathname === '/benchmark-console/') {
-      response.writeHead(302, { Location: '/benchmark-console/index.html', 'Cache-Control': 'no-store' });
+      response.writeHead(302, { Location: `/benchmark-console/index.html${url.search}`, 'Cache-Control': 'no-store' });
       response.end();
       return;
     }
