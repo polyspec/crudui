@@ -188,6 +188,12 @@ The heading becomes the document heading and the browser title is
 Markdown filename maps to the same path with an `.html` suffix. The
 build also creates a `404.html` page.
 
+Heading anchors use the GitHub-compatible slug of the rendered heading text:
+case is folded, punctuation and whitespace become hyphens, repeated hyphens
+and boundary hyphens are removed, and a leading digit is not prefixed. Duplicate
+heading slugs receive a numeric suffix. Relative document links use these
+anchors, so a link fragment must match the generated slug.
+
 Documentation-relative links use generated HTML routes. The build verifies every
 local target and fragment. A relative link outside `docs/` requires an existing
 repository file or directory and becomes a repository source link in generated
