@@ -1191,12 +1191,14 @@ static void list_close(list_session *session)
 }
 
 /*
- * Read the language, data, files and basepath options, compose the declarations
+ * Read the language, data, files and basepath options, compose the declarations,
+ * check the own design at the path own and each column design at members.<name>,
  * and collect the visible columns. The caller has checked that options is an
  * object. Returns an error value, or NULL when the session is open.
  */
 static ps_value *list_open(list_session *session, const ps_value *spec, const ps_value *declarations,
-                           const ps_value *rows, const ps_value *options, const char *layout)
+                           const ps_value *rows, const ps_value *options, const char *layout,
+                           const char *own, const char *members)
 {
     *session = (list_session){0};
     const char *language = string_member(options, "language");
@@ -1216,6 +1218,25 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
     if (error) return error;
     if (!session->declarations)
         return ps_fail("internal", "INTERNAL_ERROR", "C list composition failed", "").error;
+    /* Declarations are checked after the input rules and composition: the own design, then each member. */
+    const ps_value *own_design = ps_get(spec, "design");
+    bool valid = !own_design || ps_design_declaration_valid(own_design, own, &error);
+    for (size_t i = 0; valid && i < ps_size(session->declarations); ++i) {
+        const ps_value *column = ps_at(session->declarations, i);
+        const ps_value *design = column && column->kind == PS_OBJECT ? ps_get(column, "design") : NULL;
+        if (!design) continue;
+        const char *key = ps_key_at(session->declarations, i);
+        size_t prefix = strlen(members), size = strlen(key);
+        char *path = malloc(prefix + size + 2);
+        if (!path) { valid = false; break; }
+        memcpy(path, members, prefix);
+        path[prefix] = '.';
+        memcpy(path + prefix + 1, key, size + 1);
+        valid = ps_design_declaration_valid(design, path, &error);
+        free(path);
+    }
+    if (!valid)
+        return error ? error : ps_fail("internal", "INTERNAL_ERROR", "C list declaration check failed", "").error;
     session->context = (list_context){
         spec, session->declarations, rows, options, language, layout, data, {0}, NULL, 0, 0, NULL
     };
@@ -1240,7 +1261,41 @@ static ps_result list_finish(list_session *session, bool ok, const char *failure
     return ps_ok(output);
 }
 
+static ps_result render_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options);
+static ps_result build_detail_view(const ps_value *spec, const ps_value *record, const ps_value *options);
+static ps_result render_detail_view(const ps_value *spec, const ps_value *record, const ps_value *options);
+
+/*
+ * List and detail specifications and their composition files are read in specification member
+ * order; rows, records and options.data keep their order.
+ */
+#define ORDERED_VIEW(operation, spec, second, options, failure) do { \
+    ps_value *ordered_spec = NULL, *ordered_options = NULL; \
+    if (!ps_order_specification(spec, options, &ordered_spec, &ordered_options)) \
+        return ps_fail("internal", "INTERNAL_ERROR", failure, ""); \
+    ps_result result = operation(ordered_spec, second, ordered_options); \
+    ps_value_free(ordered_spec); ps_value_free(ordered_options); \
+    return result; \
+} while (0)
+
 ps_result ps_render_list(const ps_value *spec, const ps_value *rows, const ps_value *options)
+{
+    ORDERED_VIEW(render_list_view, spec, rows, options, "C list rendering failed");
+}
+
+ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps_value *options)
+{
+    ORDERED_VIEW(build_detail_view, spec, record, options, "C detail evaluation failed");
+}
+
+ps_result ps_render_detail(const ps_value *spec, const ps_value *record, const ps_value *options)
+{
+    ORDERED_VIEW(render_detail_view, spec, record, options, "C detail rendering failed");
+}
+
+#undef ORDERED_VIEW
+
+static ps_result render_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options)
 {
     if (!spec || spec->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "List specification must be an object", "");
@@ -1268,7 +1323,7 @@ ps_result ps_render_list(const ps_value *spec, const ps_value *rows, const ps_va
     if (!layout)
         return ps_fail("form", "INVALID_FORM_INPUT", "List layout must be table or card", "");
     list_session session;
-    ps_value *error = list_open(&session, spec, member(spec, "columns"), rows, options, layout);
+    ps_value *error = list_open(&session, spec, member(spec, "columns"), rows, options, layout, "list", "columns");
     if (error) { list_close(&session); return (ps_result){NULL, error}; }
     bool ok = render_list(&session.context, session.columns, session.column_count);
     return list_finish(&session, ok, "C list rendering failed");
@@ -1295,7 +1350,7 @@ static ps_value *detail_open(list_session *session, const ps_value *spec, const 
     const ps_value *data = member(options, "data");
     if (data && data->kind != PS_NULL && data->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Detail context must be an object", "").error;
-    return list_open(session, spec, ps_get(spec, "fields"), NULL, options, "table");
+    return list_open(session, spec, ps_get(spec, "fields"), NULL, options, "table", "detail", "fields");
 }
 
 /* The detail model: each visible field's key, label and evaluated cell, then the design. */
@@ -1335,7 +1390,7 @@ static ps_value *detail_model(list_session *session, const ps_value *record)
     return model;
 }
 
-ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps_value *options)
+static ps_result build_detail_view(const ps_value *spec, const ps_value *record, const ps_value *options)
 {
     list_session session;
     ps_value *error = detail_open(&session, spec, record, options);
@@ -1348,7 +1403,7 @@ ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps
     return ps_ok(model);
 }
 
-ps_result ps_render_detail(const ps_value *spec, const ps_value *record, const ps_value *options)
+static ps_result render_detail_view(const ps_value *spec, const ps_value *record, const ps_value *options)
 {
     list_session session;
     ps_value *error = detail_open(&session, spec, record, options);

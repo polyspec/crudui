@@ -1,8 +1,11 @@
-use crudui_validator::compose::{compose_properties, ComposeOptions, FileLoader, MemoryLoader};
+use crudui_validator::compose::{
+    compose_properties, member_ordered, ComposeOptions, FileLoader, MemoryLoader,
+};
 use serde_json::{json, Map, Value};
 
 use crate::design::{appearance, resolve_design, show};
 use crate::render::{appearance_attrs, element, escape, raw_element, raw_text};
+use crate::template::check_design_declaration;
 use crate::util::{join_class, scalar, segments, translate, value_at};
 use crate::{FormError, FormResult};
 
@@ -276,6 +279,20 @@ fn list_context(
 
 /// Compose a list and bind display rows without modifying the inputs.
 pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<Value> {
+    build_display(spec, rows, options, "list", "columns")
+}
+
+/// Build a list or detail display model; `own` names the path of the specification's own
+/// `design` and `members` the path prefix of each column or field `design` in declaration errors.
+pub(crate) fn build_display(
+    spec: &Value,
+    rows: &[Value],
+    options: &ListOptions<'_>,
+    own: &str,
+    members: &str,
+) -> FormResult<Value> {
+    // The specification is read in member order; rows and the context keep their own order.
+    let spec = &member_ordered(spec);
     let checked = list_context(spec, rows, options)?;
     let context = &checked.data;
     let memory = MemoryLoader::new(options.files.clone());
@@ -284,6 +301,15 @@ pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> Fo
         options.loader.unwrap_or(&memory),
         &ComposeOptions::with_basepath(&options.basepath),
     )?;
+    // Declarations are checked after the input rules and composition: the own design, then each member.
+    if let Some(design) = spec.get("design") {
+        check_design_declaration(design, own)?;
+    }
+    for (key, raw) in &columns {
+        if let Some(design) = raw.as_object().and_then(|raw| raw.get("design")) {
+            check_design_declaration(design, &format!("{members}.{key}"))?;
+        }
+    }
     let mut visible = Vec::new();
     for (key, raw) in &columns {
         if !raw.is_object() {

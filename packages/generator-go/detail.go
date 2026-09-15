@@ -10,7 +10,7 @@ import (
 type DetailOptions = ListOptions
 
 // BuildDetail creates a read-only detail model from one supplied record.
-// Field composition, design evaluation and cell formatting are delegated to BuildList.
+// Field composition, design evaluation and cell formatting are shared with BuildList.
 func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, error) {
 	if spec == nil {
 		return nil, fmt.Errorf("Detail specification must be an object")
@@ -30,7 +30,7 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 	}
 	// Page and total are list-only options: a detail neither checks nor uses them.
 	options.Page, options.Total = nil, nil
-	list, err := BuildList(listSpec, []*Object{record}, options)
+	list, err := buildDisplay(listSpec, []*Object{record}, options, displayPaths{own: "detail", members: "fields"})
 	if err != nil {
 		return nil, err
 	}

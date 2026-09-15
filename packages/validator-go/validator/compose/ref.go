@@ -112,10 +112,12 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 		}
 	}
 
-	doc, err := loader.Load(key) // RefFileNotFound if absent
+	loaded, err := loader.Load(key) // RefFileNotFound if absent
 	if err != nil {
 		return nil, err
 	}
+	// Every loaded document, from any loader, is read in specification member order.
+	doc, _ := OrderMembers(loaded).(*OMap)
 
 	// Descend detectKeys (legacy: ReferenceResolver:129-136).
 	var node any = doc

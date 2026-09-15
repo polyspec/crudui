@@ -70,6 +70,8 @@ static ps_value *merge_objects(const ps_value *base, const ps_value *overlay)
             ps_value_free(out); return NULL;
         }
     }
+    /* A merge produces an object in specification member order, as an object spread does. */
+    if (!ps_value_order(out)) { ps_value_free(out); return NULL; }
     return out;
 }
 
@@ -193,7 +195,7 @@ static ps_value *apply_patch(const ps_value *base, const ps_value *patch, ps_val
             else composition_error(error, "PATCH_SHAPE", "$patch.remove must be an array of paths or a nested object", NULL);
         } else if (!set_path(out, operation, value, error)) break;
     }
-    if (*error) { ps_value_free(out); return NULL; }
+    if (*error || !ps_value_order(out)) { ps_value_free(out); return NULL; }
     return out;
 }
 

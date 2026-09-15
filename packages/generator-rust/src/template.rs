@@ -1,5 +1,8 @@
 use crate::{FormError, FormResult};
-use crudui_validator::compose::{compose_properties, ComposeOptions, FileLoader, MemoryLoader};
+use crudui_validator::compose::{
+    compose_properties, member_ordered, member_ordered_map, ComposeOptions, FileLoader,
+    MemoryLoader,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -100,6 +103,52 @@ fn check_known_keys(
     }
 }
 
+/// Reject an unknown key or a wrong value type in one `design` declaration at `path`. Form
+/// fields, list and detail specifications, their columns and fields share this rule.
+pub(crate) fn check_design_declaration(design: &Value, path: &str) -> FormResult<()> {
+    let fail = |key: &str, expected: &str| -> FormResult<()> {
+        Err(FormError::input(format!(
+            "Invalid {key} at {path}: expected {expected}"
+        )))
+    };
+    if !design.is_boolean() && !design.is_object() {
+        return fail("design", "a boolean or an object");
+    }
+    let Some(design) = design.as_object() else {
+        return Ok(());
+    };
+    check_known_keys("design", design, DESIGN_KEYS, path)?;
+    if design
+        .get("show")
+        .is_some_and(|v| !v.is_boolean() && !condition_value(v))
+    {
+        return fail("design.show", "an expression, a boolean or a condition map");
+    }
+    for key in ["class", "style"] {
+        if design.get(key).is_some_and(|v| !condition_value(v)) {
+            return fail(&format!("design.{key}"), "a string or a condition map");
+        }
+    }
+    for node in ["label", "wrapper", "group", "prepend"] {
+        let Some(value) = design.get(node) else {
+            continue;
+        };
+        let Some(value) = value.as_object() else {
+            return fail(&format!("design.{node}"), "an object");
+        };
+        check_known_keys(&format!("design.{node}"), value, DESIGN_NODE_KEYS, path)?;
+        for key in ["class", "style"] {
+            if value.get(key).is_some_and(|v| !condition_value(v)) {
+                return fail(
+                    &format!("design.{node}.{key}"),
+                    "a string or a condition map",
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Reject a wrong value type or an unknown key in one field's `multiple`, `lang`,
 /// `design` and `behavior` declarations.
 fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
@@ -182,40 +231,7 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
         }
     }
     if let Some(design) = spec.get("design") {
-        if !design.is_boolean() && !design.is_object() {
-            return fail("design", "a boolean or an object");
-        }
-        if let Some(design) = design.as_object() {
-            check_known_keys("design", design, DESIGN_KEYS, path)?;
-            if design
-                .get("show")
-                .is_some_and(|v| !v.is_boolean() && !condition_value(v))
-            {
-                return fail("design.show", "an expression, a boolean or a condition map");
-            }
-            for key in ["class", "style"] {
-                if design.get(key).is_some_and(|v| !condition_value(v)) {
-                    return fail(&format!("design.{key}"), "a string or a condition map");
-                }
-            }
-            for node in ["label", "wrapper", "group", "prepend"] {
-                let Some(value) = design.get(node) else {
-                    continue;
-                };
-                let Some(value) = value.as_object() else {
-                    return fail(&format!("design.{node}"), "an object");
-                };
-                check_known_keys(&format!("design.{node}"), value, DESIGN_NODE_KEYS, path)?;
-                for key in ["class", "style"] {
-                    if value.get(key).is_some_and(|v| !condition_value(v)) {
-                        return fail(
-                            &format!("design.{node}.{key}"),
-                            "a string or a condition map",
-                        );
-                    }
-                }
-            }
-        }
+        check_design_declaration(design, path)?;
     }
     if let Some(behavior) = spec.get("behavior").and_then(Value::as_object) {
         check_known_keys("behavior", behavior, BEHAVIOR_KEYS, path)?;
@@ -300,8 +316,30 @@ fn fields(properties: &Map<String, Value>, parent: &str) -> FormResult<Vec<Field
     Ok(out)
 }
 
+/// A field template whose specification maps, at every depth, are in specification member order.
+fn member_ordered_field(field: &FieldTemplate) -> FieldTemplate {
+    FieldTemplate {
+        name: field.name.clone(),
+        spec: member_ordered_map(&field.spec),
+        children: field.children.iter().map(member_ordered_field).collect(),
+    }
+}
+
+/// A form template whose field specifications, buttons and action are in specification member order.
+pub(crate) fn member_ordered_template(template: &FormTemplate) -> FormTemplate {
+    FormTemplate {
+        kind: template.kind.clone(),
+        key_prefix: template.key_prefix.clone(),
+        fields: template.fields.iter().map(member_ordered_field).collect(),
+        buttons: template.buttons.iter().map(member_ordered_map).collect(),
+        action: template.action.as_ref().map(member_ordered_map),
+    }
+}
+
 /// Compile a complete form structure before record data is available.
 pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<FormTemplate> {
+    // The specification is read in member order; composition orders every loaded document.
+    let spec = &member_ordered(spec);
     if spec["type"] != "group" || !spec["properties"].is_object() {
         return Err(FormError::input(
             "A form spec must be a group with properties",

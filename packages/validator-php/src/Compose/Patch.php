@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Compose;
 
+use CRUDUI\Validator\Support\JsonValue;
+
 /**
  * $patch application — add / remove / replace over the $ref base (SPEC §5).
  * Byte-for-byte port of validator-ts/src/compose/patch.ts.
@@ -68,7 +70,7 @@ final class Patch
                 $result = self::setDeepPath($result, self::splitPath($key), $val);
             }
         }
-        return $result;
+        return JsonValue::orderedMembers($result);
     }
 
     /**

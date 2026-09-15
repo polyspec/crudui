@@ -1,5 +1,6 @@
 use crate::design::resolve_design;
 use crate::messages::{form_messages, format_count, Messages};
+use crate::template::member_ordered_template;
 use crate::util::*;
 use crate::widget::{evaluate_widget, WidgetContext};
 use crate::{FieldTemplate, FormError, FormResult, FormTemplate};
@@ -63,7 +64,17 @@ struct Scope {
 }
 
 /// Evaluate the node grammar using a compiled template and independent record data.
+/// The template specification is read in member order; the data keeps its own order.
 pub fn bind_form(
+    template: &FormTemplate,
+    data: &Value,
+    options: &BindOptions,
+) -> FormResult<Vec<Value>> {
+    bind_ordered(&member_ordered_template(template), data, options)
+}
+
+/// `bind_form` over a template already in specification member order.
+pub(crate) fn bind_ordered(
     template: &FormTemplate,
     data: &Value,
     options: &BindOptions,
