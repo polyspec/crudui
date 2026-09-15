@@ -8,6 +8,7 @@ const state = {
   framework: formFrameworks.includes(query.get('framework')) ? query.get('framework') : 'html',
   initialization: formInitializations.includes(query.get('initialization')) ? query.get('initialization') : 'csr',
   id: query.get('id') || '1',
+  page: query.get('page') || '1',
 };
 const view = ['/detail', '/detail/'].includes(location.pathname) ? 'detail' : ['/form', '/form/'].includes(location.pathname) ? 'form' : 'list';
 const text = {
@@ -21,7 +22,7 @@ $('#server-label').textContent = text.server; $('#framework-label').textContent 
 $('#source-label').textContent = text.source;
 $('#back-list').textContent = text.backList;
 $('#server').value = state.server; $('#framework').value = state.framework; $('#initialization').value = state.initialization;
-function params(overrides = {}) { return new URLSearchParams({ lang: state.language, server: state.server, framework: state.framework, initialization: state.initialization, ...overrides }).toString(); }
+function params(overrides = {}) { return new URLSearchParams({ lang: state.language, server: state.server, framework: state.framework, initialization: state.initialization, page: state.page, ...overrides }).toString(); }
 for (const link of document.querySelectorAll('[data-view]')) {
   link.href = `/${link.dataset.view === 'list' ? '' : link.dataset.view}?${params({ id: state.id })}`;
   if (link.dataset.view === view) link.setAttribute('aria-current', 'page');
@@ -46,7 +47,9 @@ async function renderView() {
   if (document.documentElement.dataset.pipelineInitialization === 'ssr') return;
   const response = await fetch(`/api/pipeline/${view}?${params({ id: state.id })}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`CRUDUI ${view} request failed: ${response.status}`);
-  $('#stage').innerHTML = `<div class="stage-heading"><p class="eyebrow">${view.toUpperCase()}</p><h2>${text[view]}</h2><p>${text.intro}</p></div>${await response.text()}`;
+  const body = await response.text();
+  const pages = view === 'list' ? `<nav class="pipeline-pagination" aria-label="페이지"><a href="/?${params({ page: 1 })}">1</a><a href="/?${params({ page: 2 })}">2</a><a href="/?${params({ page: 3 })}">3</a></nav>` : '';
+  $('#stage').innerHTML = `<div class="stage-heading"><p class="eyebrow">${view.toUpperCase()}</p><h2>${text[view]}</h2><p>${text.intro}</p></div>${body}${pages}`;
 }
 const source = await (await fetch('/source.json', { cache: 'no-store' })).json(); $('#source').textContent = JSON.stringify(source, null, 2);
 await renderView();

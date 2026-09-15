@@ -75,7 +75,7 @@ export const buildTargets = Object.freeze([
     id: 'frames',
     timeoutMs: 300_000,
     inputs: [
-      new RegExp(`^${example}/(?:build\\.mjs|public/|benchmark/|src/|viewer/|fixtures/)`),
+      new RegExp(`^${example}/(?:build\\.mjs|public/|benchmark/|benchmark-console/|src/|viewer/|fixtures/)`),
       javascriptPackages, 'tests/form-inspector/form-snapshot.mjs',
     ],
     dependsOn: ['npm-dependencies', 'ordered-json-javascript'],

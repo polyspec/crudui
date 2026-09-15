@@ -23,6 +23,7 @@ await mkdir(publicDirectory, { recursive: true });
 await rm(path.join(publicDirectory, 'displays'), { recursive: true, force: true });
 await cp(path.join(exampleDirectory, 'public'), publicDirectory, { recursive: true });
 await cp(path.join(exampleDirectory, 'benchmark'), path.join(publicDirectory, 'benchmark'), { recursive: true });
+await cp(path.join(exampleDirectory, 'benchmark-console'), path.join(publicDirectory, 'benchmark-console'), { recursive: true });
 await cp(path.join(exampleDirectory, 'src/browser-job.mjs'),
   path.join(publicDirectory, 'browser-job.mjs'));
 await cp(path.join(exampleDirectory, 'src/frame-readiness.mjs'),
