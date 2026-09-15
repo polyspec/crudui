@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import {
-  formFrameworks, formRenderingPaths, formServers, formTransports,
+  formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
   initializationCategories, initializationComparisons,
 } from './src/runtime-paths.mjs';
 
@@ -31,7 +31,7 @@ export function expectedBrowserSections() {
     initializations: reports * browserInitializationResultIds.length,
     interactions: reports * browserTransports.length * interactionActions.length,
     mounts: reports,
-    documents: reports,
+    documents: reports * formInitializations.length,
   };
 }
 
@@ -54,6 +54,12 @@ function interactionCombinations() {
 function documentCombinations() {
   return browserPaths.flatMap(renderingPath =>
     browserFrameworks.map(framework => `${renderingPath}/${framework}`));
+}
+
+/** Both initialization documents of every rendering path and framework. */
+function frameDocumentCombinations() {
+  return documentCombinations().flatMap(combination =>
+    formInitializations.map(initialization => `${combination}/${initialization}`));
 }
 
 /** Reports one server's browser job produces: its scenario reports and initialization reports. */
@@ -161,16 +167,20 @@ export function verifyServerReport(report, expectedServer) {
   assert.ok(report.interactions.every(item => typeof item.passed === 'boolean'),
     `${label}: interaction result`);
 
-  for (const [name, items] of [['mount-before-load', report.initialMounts], ['static-document', report.staticDocuments]]) {
+  for (const [name, items, combinations, key] of [
+    ['mount-before-load', report.initialMounts, documentCombinations(),
+      item => `${item.path}/${item.framework}`],
+    ['frame-document', report.frameDocuments, frameDocumentCombinations(),
+      item => `${item.path}/${item.framework}/${item.initialization}`],
+  ]) {
     assert.ok(Array.isArray(items), `${label}: ${name}`);
-    assert.equal(items.length, documentCombinations().length, `${label}: ${name} count`);
+    assert.equal(items.length, combinations.length, `${label}: ${name} count`);
     assert.ok(items.every(item => item.server === expectedServer), `${label}: ${name} server`);
-    exactKeys(items.map(item => `${item.path}/${item.framework}`),
-      documentCombinations(), `${label}: ${name}`);
+    exactKeys(items.map(key), combinations, `${label}: ${name}`);
     assert.ok(items.every(item => typeof item.passed === 'boolean'), `${label}: ${name} result`);
-    if (name === 'static-document') {
-      assert.ok(items.every(item => typeof item.sha256 === 'string' && /^[0-9a-f]{64}$/.test(item.sha256)),
-        `${label}: static-document SHA-256`);
+    if (name === 'frame-document') {
+      assert.ok(items.every(item => typeof item.frameSha256 === 'string' && /^[0-9a-f]{64}$/.test(item.frameSha256)),
+        `${label}: frame-document SHA-256`);
     }
   }
 
@@ -178,14 +188,14 @@ export function verifyServerReport(report, expectedServer) {
   const initializations = pathSummary(report.initializations, true);
   const interactions = pathSummary(report.interactions, false);
   const mounts = pathSummary(report.initialMounts, false);
-  const documents = pathSummary(report.staticDocuments, false);
+  const documents = pathSummary(report.frameDocuments, false);
   const resultCount = report.reports.reduce(
     (total, item) => total + item.results.filter(result => !result.passed).length, 0,
   ) + report.initializations.reduce(
     (total, item) => total + item.results.filter(result => !result.passed).length, 0,
   ) + report.interactions.filter(item => !item.passed).length
     + report.initialMounts.filter(item => !item.passed).length
-    + report.staticDocuments.filter(item => !item.passed).length;
+    + report.frameDocuments.filter(item => !item.passed).length;
   const performance = {
     durationMs: report.durationMs,
     budgetMs: browserServerRunBudgetMs,

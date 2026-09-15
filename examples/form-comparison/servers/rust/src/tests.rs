@@ -1,5 +1,6 @@
 use super::*;
 use axum::body::{to_bytes, Body};
+use crudui_generator::{compile_form, render_form, BindOptions, CompileOptions, Form};
 use std::fs;
 use tower::ServiceExt;
 
@@ -17,6 +18,8 @@ fn spec() -> Value {
     "buttons":[{"type":"submit","name":"_form_complete","value":"1","text":{"en":"Save","ko":"저장"}}]})
 }
 
+const FRAME: &str = r#"<!doctype html><html><head><title>Frame</title></head><body><main><div id="form-view"></div></main><script type="module" src="./frame.js"></script></body></html>"#;
+
 fn fixture() -> (tempfile::TempDir, Arc<Server>) {
     let directory = tempfile::tempdir().unwrap();
     let data = directory.path().join("data");
@@ -29,6 +32,10 @@ fn fixture() -> (tempfile::TempDir, Arc<Server>) {
     )
     .unwrap();
     fs::write(specs.join("spec.json"), json::encode(&spec()).unwrap()).unwrap();
+    for frame in ["createForm-react", "createForm-vue"] {
+        fs::create_dir_all(specs.join("frames").join(frame)).unwrap();
+        fs::write(specs.join("frames").join(frame).join("index.html"), FRAME).unwrap();
+    }
     fs::write(
         specs.join("runtime-paths.json"),
         include_str!("../../../src/runtime-paths.json"),
@@ -222,13 +229,6 @@ async fn generation_rejects_invalid_requests_without_storage_changes() {
             StatusCode::BAD_REQUEST,
         ),
         (
-            "GET",
-            "/api/ssr/createForm/react?language=de",
-            "",
-            "",
-            StatusCode::BAD_REQUEST,
-        ),
-        (
             "POST",
             "/api/compile/keyed/react",
             "application/json",
@@ -272,31 +272,51 @@ async fn server_html_uses_framework_storage_and_native_submission() {
         fixtures: server.specs.join("records.json"),
     };
     let state = repo.reset("nonsequential").unwrap();
-    let response = request(
+    let (status, html) = ssr(
         &app,
-        "GET",
-        "/api/ssr/createForm/react?language=en",
-        "",
-        String::new(),
+        "/api/ssr/createForm/react?lang=en&server=rust&initialization=ssr",
     )
     .await;
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(
-        response.headers()["content-type"],
-        "text/html; charset=utf-8"
-    );
-    let html = String::from_utf8(
-        to_bytes(response.into_body(), MAX_BYTES)
-            .await
-            .unwrap()
-            .to_vec(),
+    assert_eq!(status, StatusCode::OK);
+    let (markup, payload) = frame_parts(&html);
+    let records = json::decode(include_bytes!("../../../fixtures/records.json")).unwrap();
+    let template = compile_form(
+        &spec(),
+        &CompileOptions {
+            key_prefix: Some("form".into()),
+            ..Default::default()
+        },
     )
     .unwrap();
-    assert!(html.contains("data-generator-runtime=\"rust\""));
-    assert!(html.contains(&format!("data-generator-commit=\"{COMMIT}\"")));
-    assert!(html.contains("action=\"/api/rust/save/createForm/react\""));
-    assert!(
-        html.contains("/frames/createForm-react/?server=rust&amp;lang=en&amp;initialization=ssr")
+    let expected = Form::new(
+        template,
+        &load_data(&records["nonsequential"]).unwrap(),
+        BindOptions {
+            language: json!("en"),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(markup, render_form(&expected).unwrap());
+    assert!(!payload.contains('<'));
+    let decoded_payload = json::decode(payload.as_bytes()).unwrap();
+    assert_eq!(
+        decoded_payload
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(String::as_str)
+            .collect::<Vec<_>>(),
+        ["data", "generator"]
+    );
+    assert_eq!(decoded_payload["data"], expected.get_data());
+    assert_eq!(decoded_payload["generator"], generation::provenance());
+    // Only the language attribute, the view content and the payload script are added.
+    assert_eq!(
+        html,
+        format!(
+            r#"<!doctype html><html lang="en"><head><title>Frame</title></head><body><main><div id="form-view">{markup}</div></main><script type="module" src="./frame.js"></script><script type="application/json" id="crudui-ssr">{payload}</script></body></html>"#
+        )
     );
     assert_eq!(html.matches("type=\"submit\"").count(), 1);
     assert!(html.contains(
@@ -352,23 +372,106 @@ async fn server_html_uses_framework_storage_and_native_submission() {
     assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(decoded(response).await["validation"]["valid"], false);
     assert_eq!(fs::read(&repo.file).unwrap(), before);
-    let response = request(
+    let (status, vue_html) = ssr(
         &app,
-        "GET",
-        "/api/ssr/createForm/vue?language=ko",
-        "",
-        String::new(),
+        "/api/ssr/createForm/vue?lang=ko&server=rust&initialization=ssr",
     )
     .await;
-    let vue_html = String::from_utf8(
-        to_bytes(response.into_body(), MAX_BYTES)
-            .await
-            .unwrap()
-            .to_vec(),
-    )
-    .unwrap();
+    assert_eq!(status, StatusCode::OK);
     assert!(vue_html.contains("Company A"));
     assert!(!vue_html.contains("Native update"));
+}
+
+async fn ssr(app: &Router, path: &str) -> (StatusCode, String) {
+    let response = request(app, "GET", path, "", String::new()).await;
+    let status = response.status();
+    if status == StatusCode::OK {
+        assert_eq!(
+            response.headers()["content-type"],
+            "text/html; charset=utf-8"
+        );
+        assert_eq!(response.headers()["cache-control"], "no-store");
+    }
+    let bytes = to_bytes(response.into_body(), MAX_BYTES * 10)
+        .await
+        .unwrap();
+    (status, String::from_utf8(bytes.to_vec()).unwrap())
+}
+
+/// Return the form view content and the SSR payload of a frame document.
+fn frame_parts(html: &str) -> (&str, &str) {
+    let view = r#"<div id="form-view">"#;
+    let script = r#"<script type="application/json" id="crudui-ssr">"#;
+    assert_eq!(html.matches(view).count(), 1);
+    assert_eq!(html.matches(script).count(), 1);
+    let start = html.find(view).unwrap() + view.len();
+    let end = html.find("</div></main>").unwrap();
+    let payload = html.find(script).unwrap() + script.len();
+    let payload_end = payload + html[payload..].find("</script>").unwrap();
+    (&html[start..end], &html[payload..payload_end])
+}
+
+#[tokio::test]
+async fn ssr_frame_rejects_wrong_queries_and_templates() {
+    let (_directory, server) = fixture();
+    let app = application(server.clone());
+    for query in [
+        "",
+        "?lang=de&server=rust&initialization=ssr",
+        "?lang=en&initialization=ssr",
+        "?lang=en&server=go&initialization=ssr",
+        "?lang=en&server=rust&initialization=csr",
+        "?lang=en&lang=en&server=rust&initialization=ssr",
+        "?lang=en&server=rust&initialization=ssr&language=en",
+        "?language=en",
+    ] {
+        let (status, body) = ssr(&app, &format!("/api/ssr/createForm/react{query}")).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{query}");
+        assert_eq!(
+            json::decode(body.as_bytes()).unwrap()["error"],
+            "Expected lang, server and initialization for this SSR frame"
+        );
+    }
+    let valid = "?lang=en&server=rust&initialization=ssr";
+    let repo = Repository {
+        file: server.data.join("rust-createForm-react.json"),
+        fixtures: server.specs.join("records.json"),
+    };
+    let mut data = load_data(&repo.reset("nonsequential").unwrap()).unwrap();
+    data["companies"]["__0000000000005__"]["name"] = json!("</script><b>&amp;");
+    post(&app, "save", json!({"form":data})).await;
+    let (status, html) = ssr(&app, &format!("/api/ssr/createForm/react{valid}")).await;
+    assert_eq!(status, StatusCode::OK);
+    let (_, payload) = frame_parts(&html);
+    assert!(!payload.contains(['<', '>', '&']));
+    assert!(payload.contains(r"\u003c/script\u003e\u003cb\u003e\u0026amp;"));
+    assert_eq!(
+        json::decode(payload.as_bytes()).unwrap()["data"]["companies"]["__0000000000005__"]["name"],
+        "</script><b>&amp;"
+    );
+    let frame = server.specs.join("frames/createForm-react/index.html");
+    let view = r#"<div id="form-view"></div>"#;
+    for template in [
+        Some(FRAME.replace("<html>", "<html lang=\"en\">")),
+        Some(FRAME.replace("</main>", "</main><html>")),
+        Some(FRAME.replace(view, "")),
+        Some(FRAME.replace("</main>", &format!("</main>{view}"))),
+        Some(FRAME.replace(view, r#"<div id="form-view"> </div>"#)),
+        Some(FRAME.replace("</body>", "")),
+        Some(FRAME.replace("</main>", "</main></body>")),
+        None,
+    ] {
+        match template {
+            Some(template) => fs::write(&frame, template).unwrap(),
+            None => fs::remove_file(&frame).unwrap(),
+        }
+        let (status, body) = ssr(&app, &format!("/api/ssr/createForm/react{valid}")).await;
+        assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(
+            json::decode(body.as_bytes()).unwrap()["error"],
+            "The frame document must contain one html start tag, one empty form view and one body end tag"
+        );
+    }
 }
 
 #[test]

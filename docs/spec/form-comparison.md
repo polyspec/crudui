@@ -122,6 +122,20 @@ revision or data-shape segment. `bindForm` and `createForm` select the rendering
 and editing path. Keyed objects define repeated instance data and do not select
 an implementation or URL.
 
+The `ssr` action serves the frame document of one rendering path and framework. Its
+query is exactly `lang` (`ko` or `en`), `server` (the responding runtime) and
+`initialization=ssr`, each once; every other query is rejected with `Expected lang,
+server and initialization for this SSR frame`. The server reads the built frame page
+`{public}/frames/{renderingPath}-{framework}/index.html`, which must contain exactly one
+`<html>` start tag, one empty form view `<div id="form-view"></div>` and one `</body>`;
+every other document is rejected with `The frame document must contain one html start
+tag, one empty form view and one body end tag`. The response is that page with three
+insertions and no other change: the language on the html start tag, the form rendered
+from the stored record inside the form view, and the record and generator provenance as
+`<script type="application/json" id="crudui-ssr">` immediately before the body end tag,
+with `<`, `>` and `&` written as JSON escapes. It is sent as `text/html; charset=utf-8`
+with `Cache-Control: no-store`.
+
 The browser runs the `bindForm` and `createForm` rendering paths. Both paths use
 the same packages from the candidate commit, the same keyed data and the same
 submission contract. The selected server compiles one data-independent template,
@@ -134,24 +148,29 @@ as failures; the browser does not compile a replacement template.
 
 The main page selects a server, framework and rendering path and shows server-side
 and client-side rendering of the same form side by side, with the same template,
-record and language. The left frame (`initialization=ssr`) requests the saved
-record, lets the selected server (PHP, the PHP extension, Go or Rust) render the
-form with it, places that HTML in the page and lets the selected framework take the
-form over with the same template and data. Taking it over must leave the parsed form
-DOM unchanged: every element, attribute value and text in child order.
+record and language. The left frame (`initialization=ssr`) is the frame document of the
+selected server (PHP, the PHP extension, Go or Rust): it arrives with the form already
+rendered from the saved record and with that record in its payload, and the selected
+framework hydrates the form with the same template and data. Hydration must leave the
+parsed form DOM unchanged: every element, attribute value and text in child order.
 Attribute order is not part of the DOM (React sets `type`, `value` and `name` after
 other input attributes), so it is not compared; the string renderers' byte-identical
 HTML is checked by the generation and native generation checks. A `style` attribute is a CSS declaration
 block, so it is compared as the CSS object model serializes its declarations: React
 writes a sticky row's `--crudui-sticky-depth:0` as `--crudui-sticky-depth: 0;`. The comparison leaves out the nodes frameworks
 keep as rendering anchors, which render nothing: comments (Vue) and empty text nodes
-(Svelte). The right frame (`initialization=csr`) mounts the form without
-data before it requests the saved record, then injects the record into the existing
-form. A frame URL without one of these values fails. SSR documents link to the `ssr`
-path. Frames and SSR documents load `@crudui/generator-core/crudui.css`
-before the page stylesheet, so computed CSS is compared with the grammar styles; the
-page stylesheet does not style anything inside `#view`. Each frame
-renders the form, the structure map and the data view inside the compared element.
+(Svelte). Each adapter declares what hydration does with the server-rendered nodes:
+React, Vue and the HTML renderer adopt them, and the frame requires every one of them
+to survive; Svelte hydrates only markup its own server renderer wrote, which carries
+`<!--[-->` markers the form servers do not write, so it clears the container and mounts
+its own nodes. The right frame (`initialization=csr`) is the built frame page: the
+framework mounts the form without data before it requests the saved record, then injects
+the record into the existing form. A frame URL without `lang`, `server` and
+`initialization` fails. Frames load `@crudui/generator-core/crudui.css` before the page
+stylesheet, so computed CSS is compared with the grammar styles; the page stylesheet
+does not style anything inside `#view`. Inside that compared element each frame renders
+the form in `#form-view` and the browser-only structure map and data view in
+`#outline-view` and `#data-view`; the servers render the form alone.
 
 The `bindForm` controller supports the same actions as a `createForm` instance:
 row operations, `toggle-row`, `select-row`, `expand-all`, `collapse-all` and
@@ -214,8 +233,9 @@ repository, then runs the same stages in the right frame. Row key inputs repeat
 from the `copied` stage to `saved-new` in both runs, so both columns create the
 same keys. The stages are:
 
-- `mounted`: reset the repository, then render on the server and take over (left) or
-  mount and inject (right);
+- `mounted`: reset the repository, then load the column's frame document again so it
+  initializes through its own path: hydrate the server-rendered form (left) or mount and
+  inject (right);
 - `reinjected-1`, `reinjected-2`: inject the saved record again with the same
   cached template;
 - `data-hidden`, `data-restored`: inject a record that hides a conditional field,
@@ -278,10 +298,12 @@ records without it, so checks from different browsers must not run at the same t
 Pointer and keyboard checks verify that a row addition focuses the first input of
 the new row and that the input is visible inside both the frame viewport and the
 main page viewport; the frame and the page scroll only as far as needed.
-Static browser-entry checks cover both rendering paths and every framework and
-compare corresponding documents from all four servers by SHA-256. Generation
-verification checks Korean and English SSR output for every server and
-framework.
+Frame-document checks cover both initialization documents of every rendering path and
+framework. A CSR document must be the built frame page with empty views and no payload,
+and an SSR document must be that same page with only the three insertions; the pages
+behind all four servers' documents are compared by SHA-256. Generation verification
+checks Korean and English SSR output for every server and framework, and that every
+server rejects the same wrong SSR queries with the same message.
 
 ## Runner and reports
 
@@ -299,7 +321,7 @@ the current state and every completed report.
 A complete server report requires a browser job of 24 reports: 16 scenario
 reports with 19 checks each and eight initialization reports with 168 comparison
 results each. It also requires 80 interaction checks, eight mount-before-load checks
-of the `csr` frame, eight static-document checks, no browser or page errors, one
+of the `csr` frame, 16 frame-document checks, no browser or page errors, one
 matching candidate commit for both rendering paths and a duration within 900,000
 milliseconds. Fields named `passed` must be booleans. Missing activity,
 initialization stages or timing evidence makes the report incomplete.
@@ -307,14 +329,14 @@ initialization stages or timing evidence makes the report incomplete.
 The four-server aggregate requires one complete report from every server. It
 requires 1,216 successful scenario checks, 5,376 successful initialization
 comparisons, 320 successful interaction checks, 32
-successful mount checks, 32 successful static-document checks, equal corresponding
-static SSR documents across servers and four successful performance results. Any failed,
+successful mount checks, 64 successful frame-document checks, equal frame pages behind
+every server's documents and four successful performance results. Any failed,
 missing, malformed or unequal result sets `passed: false` and returns status 1.
 Only a complete aggregate with zero failures returns status 0.
 
 ## Additional verification
 
-Generation verification requires 386 successful results, 547 HTTP requests and
+Generation verification requires 450 successful results, 899 HTTP requests and
 all 32 server/rendering-path/framework combinations. Repository verification
 checks atomic updates, locking, position-based loading, parent ownership,
 rejection without file changes, complete deletion and sequence allocation. Type

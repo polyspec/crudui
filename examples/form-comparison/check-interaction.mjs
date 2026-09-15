@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { parseFrameDocument } from './src/frame-readiness.mjs';
 import {
   formFrameworks, formRenderingPaths, formServers, formTransports,
 } from './src/runtime-paths.mjs';
@@ -67,9 +68,11 @@ export async function checkInteraction(page, servers) {
         await page.evaluate(([selectedFramework, selectedServer, selectedPath]) =>
           window.comparison.show(selectedFramework, selectedServer, selectedPath),
         [framework, server, path]);
-        const frame = page.frames().find(item =>
-          new URL(item.url()).pathname === `/frames/${path}-${framework}/`
-          && new URL(item.url()).searchParams.get('initialization') === 'ssr');
+        const frame = page.frames().find(item => {
+          const document = parseFrameDocument(new URL(item.url()));
+          return document?.initialization === 'ssr' && document.server === server
+            && document.path === path && document.framework === framework;
+        });
         assert.ok(frame, `${path}/${framework}: frame`);
         for (const transport of formTransports) {
           await frame.select('#transport', transport);

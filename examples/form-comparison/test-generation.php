@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/generation.php';
-require __DIR__ . '/matrix.php';
+require __DIR__ . '/json.php';
 
 $sourceRoot = $argv[1] ?? '';
 $runtime = $argv[2] ?? '';
@@ -75,23 +75,51 @@ foreach ([(object) ['template' => [] , 'data' => $data], (object) ['template' =>
 // The comparison spec declares the native completion marker as its one submit button.
 $resolved = (object) ['type' => 'group', 'properties' => $files->{'companies.json'}->properties,
     'buttons' => json_decode('[{"type":"submit","name":"_form_complete","value":"1","text":{"en":"Save","ko":"저장"}}]')];
-$matrix = browserMatrix($sourceRoot);
-foreach ($matrix->renderingPaths as $renderingPath) foreach ($matrix->frameworks as $framework) foreach (['ko', 'en'] as $language) {
-    $html = $generation->document($resolved, $data, $renderingPath, $framework, $language);
-    $expectedForm = new CRUDUI\Form(CRUDUI\Generator::compileForm($resolved, ['keyPrefix' => 'form']), $data, ['language' => $language]);
-    checkGeneration(str_contains($html, '<div id="view">' . CRUDUI\Generator::renderForm($expectedForm) . '</div>'), 'SSR must retain the complete public renderer HTML');
+// Text that could end the payload script early must not appear raw inside it.
+$ssrData = json_decode(json_encode($data, JSON_THROW_ON_ERROR));
+$ssrData->companies->__0000000000007__->stores->__0000000000042__->name = '</script><b>Store & Co</b>';
+$frameHead = '<!doctype html>';
+$frameMiddle = '<head><title>Frame</title><script type="module" src="/frame.js"></script></head><body><main>';
+$frame = $frameHead . '<html>' . $frameMiddle . '<div id="form-view"></div></main></body></html>';
+$payloadPattern = '#<script type="application/json" id="crudui-ssr">(.*?)</script></body></html>$#sD';
+foreach (['ko', 'en'] as $language) {
+    $html = $generation->ssrFrame($frame, $resolved, $ssrData, $language, FormJson::encode(...));
+    $expected = $generation->render((object) ['template' => json_decode(json_encode(CRUDUI\Generator::compileForm($resolved, ['keyPrefix' => 'form']), JSON_THROW_ON_ERROR)), 'data' => $ssrData, 'options' => (object) ['language' => $language]]);
+    checkGeneration(substr_count($html, '<div id="form-view">') === 1, 'SSR must keep one form view');
+    $viewStart = strpos($html, '<div id="form-view">') + strlen('<div id="form-view">');
+    $viewEnd = strpos($html, '</div></main>', $viewStart);
+    checkGeneration($viewEnd !== false && substr($html, $viewStart, $viewEnd - $viewStart) === $expected['html'], 'The SSR form view must contain exactly the public renderer HTML');
+    checkGeneration(preg_match($payloadPattern, $html, $payloadMatch) === 1, 'SSR must insert the payload script immediately before the closing body tag');
+    $payload = $payloadMatch[1];
+    checkGeneration(substr_count($html, '<html') === 1 && str_contains($html, '<html lang="' . $language . '">'), 'SSR must write the html lang attribute once');
+    checkGeneration($html === $frameHead . '<html lang="' . $language . '">' . $frameMiddle . '<div id="form-view">' . $expected['html'] . '</div></main><script type="application/json" id="crudui-ssr">' . $payload . '</script></body></html>', 'SSR must otherwise preserve the frame template');
+    checkGeneration(!str_contains($payload, '<') && !str_contains($payload, '>') && !str_contains($payload, '&'), 'The SSR payload must escape <, > and &');
+    $decoded = json_decode($payload, false, 512, JSON_THROW_ON_ERROR);
+    equalGeneration(['data', 'generator'], array_keys(get_object_vars($decoded)), 'The SSR payload must contain data and generator in order');
+    equalGeneration($expected['data'], $decoded->data, 'The SSR payload data must match the render result');
+    equalGeneration($expected['generator'], json_decode(json_encode($decoded->generator, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR), 'The SSR payload provenance must match the render result');
     $document = new DOMDocument();
     $errors = libxml_use_internal_errors(true);
     try { $document->loadHTML($html, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING); }
     finally { libxml_clear_errors(); libxml_use_internal_errors($errors); }
     $xpath = new DOMXPath($document);
-    $form = $xpath->query('//form')->item(0);
-    checkGeneration($form->getAttribute('action') === "/api/$runtime/save/$renderingPath/$framework" && $form->getAttribute('method') === 'post', 'SSR must submit to the selected public save endpoint');
-    checkGeneration($xpath->query('//form//input[@name="form[companies][__0000000000007__][stores][__0000000000042__][name]"]')->length === 1, 'SSR controls must exist before JavaScript');
-    checkGeneration($xpath->query('//form//input[@type="hidden"]')->length === 0, 'SSR must not add hidden identity controls');
-    checkGeneration($xpath->query('//form//button[@type="submit"]')->length === 1 && $xpath->query('//form//button[@type="submit" and @name="_form_complete" and @value="1"]')->length === 1, 'The one submit button, declared by the spec, must provide the native request completion marker');
-    checkGeneration($xpath->query('//a')->item(0)->getAttribute('href') === "/frames/$renderingPath-$framework/?lang=$language&server=$runtime&initialization=ssr", 'SSR must link to the selected interactive example');
-    checkGeneration($xpath->query('//script[not(@type="application/json")]')->length === 0, 'SSR does not require executable JavaScript');
-    equalGeneration($provenance, json_decode($xpath->query('//script[@id="generator"]')->item(0)->textContent, true, 512, JSON_THROW_ON_ERROR), 'SSR provenance must match the selected implementation');
+    checkGeneration($xpath->query('//div[@id="form-view"]//input[@name="form[companies][__0000000000007__][stores][__0000000000042__][name]"]')->length === 1, 'SSR controls must exist before JavaScript');
+    checkGeneration($xpath->query('//div[@id="form-view"]//input[@type="hidden"]')->length === 0, 'SSR must not add hidden identity controls');
+    checkGeneration($xpath->query('//div[@id="form-view"]//button[@type="submit"]')->length === 1 && $xpath->query('//div[@id="form-view"]//button[@type="submit" and @name="_form_complete" and @value="1"]')->length === 1, 'The one submit button, declared by the spec, must provide the native request completion marker');
+    checkGeneration($xpath->query('//script[@id="crudui-ssr"]')->length === 1, 'SSR must write one payload script');
+}
+$view = '<div id="form-view"></div>';
+foreach ([
+    '<body>' . $view . '</body>',
+    '<html><html><body>' . $view . '</body>',
+    '<html><body></body>',
+    '<html><body>' . $view . $view . '</body>',
+    '<html><body><div id="form-view"> </div></body>',
+    '<html><body>' . $view,
+    '<html><body>' . $view . '</body></body>',
+] as $invalidFrame) {
+    $rejected = false;
+    try { $generation->ssrFrame($invalidFrame, $resolved, $data, 'en', FormJson::encode(...)); } catch (RuntimeException $error) { $rejected = $error->getMessage() === 'The frame document must contain one html start tag, one empty form view and one body end tag'; }
+    checkGeneration($rejected, 'SSR must reject a frame without exactly one html start tag, empty form view and body end tag');
 }
 echo "$runtime: $checks PHP generation checks passed\n";

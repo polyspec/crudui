@@ -42,6 +42,29 @@ function jsonRequest(): stdClass
     return $request;
 }
 
+/**
+ * Return the SSR frame language after requiring exactly lang, server and initialization once each.
+ * The query is parsed as application/x-www-form-urlencoded: empty parts are ignored and a part without "=" has an empty value.
+ */
+function ssrLanguage(string $query): string
+{
+    $parameters = [];
+    foreach (explode('&', $query) as $pair) {
+        if ($pair === '') continue;
+        [$name, $value] = array_pad(explode('=', $pair, 2), 2, '');
+        $name = urldecode($name);
+        if (array_key_exists($name, $parameters)) respond(400, ['error' => 'Expected lang, server and initialization for this SSR frame']);
+        $parameters[$name] = urldecode($value);
+    }
+    ksort($parameters);
+    $language = $parameters['lang'] ?? null;
+    if (array_keys($parameters) !== ['initialization', 'lang', 'server'] || !in_array($language, ['ko', 'en'], true)
+        || $parameters['server'] !== phpServerMode() || $parameters['initialization'] !== 'ssr') {
+        respond(400, ['error' => 'Expected lang, server and initialization for this SSR frame']);
+    }
+    return $language;
+}
+
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 if (!str_starts_with($path, '/api/')) return false;
 
@@ -64,10 +87,12 @@ try {
     if ($action === 'reset' && !in_array($contentType, ['multipart/form-data', 'application/x-www-form-urlencoded'], true)) respond(415, ['error' => 'Expected a native form']);
     $repo = new FormRepository("/data/" . phpServerMode() . "-$renderingPath-$framework.json");
     if ($action === 'ssr') {
-        $language = $_GET['language'] ?? 'ko';
-        if (!is_string($language) || !in_array($language, ['ko', 'en'], true)) respond(400, ['error' => 'Expected language ko or en']);
+        $language = ssrLanguage($_SERVER['QUERY_STRING'] ?? '');
+        $frameFile = "/workspace/public/frames/$renderingPath-$framework/index.html";
+        $frame = is_file($frameFile) ? file_get_contents($frameFile) : false;
+        if (!is_string($frame)) respond(500, ['error' => FormGeneration::FRAME_ERROR]);
         $spec = FormJson::decode(file_get_contents('/workspace/public/spec.json'));
-        $document = $generation->document($spec, FormRepository::loadData($repo->read()), $renderingPath, $framework, $language);
+        $document = $generation->ssrFrame($frame, $spec, FormRepository::loadData($repo->read()), $language, FormJson::encode(...));
         header('Content-Type: text/html; charset=utf-8');
         header('Cache-Control: no-store');
         echo $document;

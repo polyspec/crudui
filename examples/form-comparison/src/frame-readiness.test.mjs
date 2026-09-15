@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadComparisonFrames } from './frame-readiness.mjs';
+import { frameUrl, loadComparisonFrames, parseFrameDocument } from './frame-readiness.mjs';
 
 const mainSource = await readFile(new URL('../public/main.mjs', import.meta.url), 'utf8');
 
@@ -48,7 +48,7 @@ test('subscribes before navigation and resolves exact frame readiness events', a
     onReady: initialization => ready.push(initialization),
   });
   assert.deepEqual(value.frames.map(frame => frame.src), [
-    '/frames/createForm-react/?lang=ko&server=php&initialization=ssr',
+    '/api/php/ssr/createForm/react?lang=ko&server=php&initialization=ssr',
     '/frames/createForm-react/?lang=ko&server=php&initialization=csr',
   ]);
   value.ready(value.frames[1]);
@@ -70,6 +70,29 @@ test('rejects a readiness event with a different declared frame', async () => {
   });
   value.ready(value.frames[0], { initialization: 'csr' });
   await assert.rejects(loading, /Frame readiness differs/);
+});
+
+test('reads back the frame every document URL addresses', () => {
+  for (const frame of [
+    { initialization: 'ssr', path: 'createForm', framework: 'react', server: 'php', language: 'ko' },
+    { initialization: 'csr', path: 'bindForm', framework: 'svelte', server: 'rust', language: 'en' },
+  ]) {
+    assert.deepEqual(
+      parseFrameDocument(new URL(frameUrl(frame), 'http://example.test')),
+      { server: frame.server, initialization: frame.initialization, language: frame.language, path: frame.path, framework: frame.framework },
+    );
+  }
+});
+
+test('reads no frame from other documents', () => {
+  for (const url of [
+    '/', '/frames/createForm-react/', '/api/php/ssr/createForm/react',
+    // A frame document is served by its own server on its own path.
+    '/api/go/ssr/createForm/react?lang=ko&server=php&initialization=ssr',
+    '/frames/createForm-react/?lang=ko&server=php&initialization=ssr',
+    '/api/php/ssr/createForm/react?lang=ko&server=php&initialization=csr',
+    '/frames/createForm-react/?lang=de&server=php&initialization=csr',
+  ]) assert.equal(parseFrameDocument(new URL(url, 'http://example.test')), null, url);
 });
 
 test('uses readiness messages without frame polling or timers', () => {

@@ -73,7 +73,7 @@ test('rejects row keys outside the current keyed data contract', () => {
   ]) {
     const data = { companies: Object.fromEntries([[key, { name: 'Invalid' }]]) };
     assert.throws(
-      () => bindFormController({}, () => { throw new Error('mount called'); }, template, 'en', data),
+      () => bindFormController({}, () => { throw new Error('rendering started'); }, template, 'en', data),
       /Invalid row key/,
       key,
     );
@@ -99,7 +99,7 @@ test('rejects data with the wrong shape at its full data path', () => {
     [{ companies: { [key]: { stores: [] } } }, `Repeated data must be a keyed object: companies.${key}.stores`],
   ]) {
     assert.throws(
-      () => bindFormController({}, () => { throw new Error('mount called'); }, nestedTemplate, 'en', data),
+      () => bindFormController({}, () => { throw new Error('rendering started'); }, nestedTemplate, 'en', data),
       { name: 'TypeError', message },
     );
   }
@@ -117,8 +117,7 @@ test('accepts saved, unsaved and empty keyed collections', async () => {
     addEventListener: (name, listener) => listeners.set(name, listener),
     removeEventListener: name => listeners.delete(name),
   };
-  const mount = (_element, _template, language, data) => {
-    assert.equal(language, 'ko');
+  const start = data => {
     renders.push(structuredClone(data));
     return {
       load(next) { renders.push(structuredClone(next)); },
@@ -131,7 +130,7 @@ test('accepts saved, unsaved and empty keyed collections', async () => {
       __00000000000af__: { name: 'New' },
     },
   };
-  const controller = bindFormController(element, mount, template, 'ko', initial);
+  const controller = bindFormController(element, start, template, 'ko', initial);
   assert.deepEqual(controller.getData(), initial);
   assert.deepEqual([...listeners.keys()], ['input', 'change', 'click']);
   await controller.load({ companies: {} });
@@ -146,13 +145,13 @@ test('external data replaces a user-edited live control value', async () => {
   const name = `form[companies][${key}][name]`;
   const control = input({ name, type: 'text', value: 'Saved' });
   const element = formElement([control]);
-  const mount = () => ({
+  const start = () => ({
     load(next) {
       control.setAttribute('value', next.companies[key].name);
     },
     dispose() {},
   });
-  const controller = bindFormController(element, mount, template, 'en', {
+  const controller = bindFormController(element, start, template, 'en', {
     companies: { [key]: { name: 'Saved' } },
   });
   control.value = 'Dirty value';
@@ -172,10 +171,10 @@ test('row operations focus the affected row after rendering', async () => {
     + `<div class="crudui-node__header">${actions.map(action =>
       `<button type="button" data-crudui-action="${action}"></button>`).join('')}</div>`
     + `<div class="crudui-node__body"><input name="form[companies][${key}][name]" value="${row.name ?? ''}"></div></div>`;
-  const mount = (target, _template, _language, data) => {
+  const start = data => {
     const render = next => {
       const rows = Object.entries(next.companies);
-      target.innerHTML = '<div class="crudui-node crudui-node--collection" data-field-path="companies">'
+      element.innerHTML = '<div class="crudui-node crudui-node--collection" data-field-path="companies">'
         + `<div class="crudui-node__body">${rows.map(rowHtml).join('')}</div>`
         + (rows.length ? '' : '<div class="crudui-node__footer"><button type="button" data-crudui-action="add-row"></button></div>')
         + '</div>';
@@ -184,7 +183,7 @@ test('row operations focus the affected row after rendering', async () => {
     return { load: render, dispose() {} };
   };
   const [k1, k2, k3] = ['__0000000000001__', '__0000000000002__', '__0000000000003__'];
-  const controller = bindFormController(element, mount, template, 'en', {
+  const controller = bindFormController(element, start, template, 'en', {
     companies: { [k1]: { name: 'A' }, [k2]: { name: 'B' }, [k3]: { name: 'C' } },
   });
   const keys = () => Object.keys(controller.getData().companies);
@@ -233,10 +232,10 @@ test('view state, history and focus retention match a createForm instance', asyn
   } }, { keyPrefix: 'form' });
   const [k1, k2] = ['__0000000000001__', '__0000000000002__'];
   const initial = { companies: { [k1]: { name: 'Sales' }, [k2]: { name: '' } } };
-  const mount = (target, template, language, data) => {
+  const start = data => {
     const load = (next, view = { collapsed: new Set() }) => {
-      const [companies] = bindForm(template, next, { language, collapsed: view.collapsed });
-      target.innerHTML = '<div data-field-path="companies"><div class="crudui-node__body">'
+      const [companies] = bindForm(compiled, next, { language: 'en', collapsed: view.collapsed });
+      element.innerHTML = '<div data-field-path="companies"><div class="crudui-node__body">'
         + companies.children.map(row => `<div data-crudui-row-key="${row.key}">`
           + `<div class="crudui-node__header"><button type="button" data-crudui-action="toggle-row" aria-expanded="${row.expanded}"></button>`
           + '<button type="button" data-crudui-action="remove-row"></button></div>'
@@ -247,7 +246,7 @@ test('view state, history and focus retention match a createForm instance', asyn
     load(data);
     return { load, dispose() {} };
   };
-  const controller = bindFormController(element, mount, compiled, 'en', initial);
+  const controller = bindFormController(element, start, compiled, 'en', initial);
   const session = createForm(compiled, initial, { language: 'en' });
   function same(label) {
     const snapshot = session.getSnapshot();

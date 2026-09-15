@@ -72,6 +72,21 @@ async function compareMounted() {
 }
 
 /**
+ * The `mounted` stage is the document itself: reset the record, then load the column's frame
+ * document again so it initializes through its own path, server-rendered or mounted.
+ */
+async function remount(index) {
+  const comparison = frames[index].contentWindow.comparison;
+  await comparison.resetRecord();
+  await loadComparisonFrames({
+    host: window, frames: [frames[index]], initializations: [formInitializations[index]],
+    path: comparison.path, framework: comparison.framework, server: comparison.server, language,
+    title: initialization => t[`${initialization}Initialization`],
+    onReady: () => {},
+  });
+}
+
+/**
  * Run every stage in the `ssr` column, reset, then in the `csr` column with the same
  * row keys. Each `csr` stage is compared with the stored `ssr` stage without normalization.
  */
@@ -89,13 +104,15 @@ async function compareInitialization() {
   };
   let expected;
   for (const [index, column] of formInitializations.entries()) {
-    const comparison = frames[index].contentWindow.comparison;
     const own = new Map();
     try {
       for (const stage of initializationStages) {
         document.querySelector('#initialization-status').textContent =
           `${t[`${column}Initialization`]} · ${stage}`;
-        const snapshot = await capture(frames[index], await comparison.initializationStage(stage));
+        if (stage === 'mounted') await remount(index);
+        const comparison = frames[index].contentWindow.comparison;
+        const snapshot = await capture(frames[index],
+          stage === 'mounted' ? undefined : await comparison.initializationStage(stage));
         const { css, ...state } = snapshot;
         stages.push({ column, stage, ...state, cssHash: await snapshotHash(css) });
         own.set(stage, snapshot);
@@ -105,7 +122,7 @@ async function compareInitialization() {
         if (stage === 'data-restored') compare(`${column}/restoration`, snapshot, own.get('mounted'));
       }
     } finally {
-      comparison.endInitialization();
+      frames[index].contentWindow.comparison.endInitialization();
     }
     expected = own;
   }
