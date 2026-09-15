@@ -5,14 +5,14 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": {
             "ko": "이름",
             "en": "Name"
           }
         },
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": {
             "ko": "상태",
             "en": "Status"
@@ -28,12 +28,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Status</dt><dd class=\"detail-value detail-value-text\">active</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Status</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">active</dd></div></dl>"
   },
   {
     "name": "basic-fields-korean",
@@ -41,14 +49,14 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": {
             "ko": "이름",
             "en": "Name"
           }
         },
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": {
             "ko": "상태",
             "en": "Status"
@@ -64,12 +72,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "ko"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">이름</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">상태</dt><dd class=\"detail-value detail-value-text\">active</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">이름</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">상태</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">active</dd></div></dl>"
   },
   {
     "name": "format-date",
@@ -77,7 +93,7 @@
     "spec": {
       "fields": {
         "joined": {
-          "field": ".joined",
+          "field": "joined",
           "label": "Joined",
           "format": {
             "type": "date",
@@ -94,12 +110,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Joined</dt><dd class=\"detail-value detail-value-date\">2026-01-02</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Joined</dt><dd class=\"crudui-detail__value crudui-value crudui-value--date\">2026-01-02</dd></div></dl>"
   },
   {
     "name": "format-number",
@@ -107,7 +131,7 @@
     "spec": {
       "fields": {
         "score": {
-          "field": ".score",
+          "field": "score",
           "label": "Score",
           "format": {
             "type": "number",
@@ -128,12 +152,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Score</dt><dd class=\"detail-value detail-value-number\">$1,234,567.50</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Score</dt><dd class=\"crudui-detail__value crudui-value crudui-value--number\">$1,234,567.50</dd></div></dl>"
   },
   {
     "name": "format-badge",
@@ -141,7 +173,7 @@
     "spec": {
       "fields": {
         "status": {
-          "field": ".status",
+          "field": "status",
           "label": "Status",
           "format": {
             "type": "badge",
@@ -160,12 +192,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Status</dt><dd class=\"detail-value detail-value-badge\"><span class=\"badge badge-success\">active</span></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Status</dt><dd class=\"crudui-detail__value crudui-value crudui-value--badge\"><span class=\"crudui-badge\" data-crudui-variant=\"success\">active</span></dd></div></dl>"
   },
   {
     "name": "format-choice-label",
@@ -173,7 +213,7 @@
     "spec": {
       "fields": {
         "grade": {
-          "field": ".grade",
+          "field": "grade",
           "label": "Grade",
           "format": {
             "type": "choice-label",
@@ -190,19 +230,19 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Grade</dt><dd class=\"detail-value detail-value-choice-label\">Apple</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Grade</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\">Apple</dd></div></dl>"
   },
   {
     "name": "format-link",
-    "note": "link format interpolates the href from the record.",
+    "note": "link format interpolates explicit tokens and preserves literal domain and extension text.",
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name",
           "format": {
             "type": "link",
-            "href": "/user/.id",
+            "href": "https://example.com/users/{=jointablename.id}/{=join.join.name}.pdf",
             "target": "_blank"
           }
         }
@@ -216,12 +256,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-link\"><a href=\"/user/7\" target=\"_blank\">&lt;Ada &amp; Lin&gt;</a></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"https://example.com/users/107/<Ada &amp; Lin>.pdf\" target=\"_blank\">&lt;Ada &amp; Lin&gt;</a></dd></div></dl>"
   },
   {
     "name": "format-bool",
@@ -229,7 +277,7 @@
     "spec": {
       "fields": {
         "check": {
-          "field": ".admin",
+          "field": "admin",
           "label": "Check",
           "format": {
             "type": "bool",
@@ -241,7 +289,7 @@
           }
         },
         "icon": {
-          "field": ".admin",
+          "field": "admin",
           "label": "Icon",
           "format": {
             "type": "bool",
@@ -253,7 +301,7 @@
           }
         },
         "text": {
-          "field": ".admin",
+          "field": "admin",
           "label": "Text",
           "format": {
             "type": "bool",
@@ -273,26 +321,34 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Check</dt><dd class=\"detail-value detail-value-bool\"><span aria-label=\"true\" class=\"bool-check\">✔</span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Icon</dt><dd class=\"detail-value detail-value-bool\"><span aria-label=\"true\" class=\"bool-icon bool-true\"></span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Text</dt><dd class=\"detail-value detail-value-bool\"><span class=\"bool-text\">true</span></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Check</dt><dd class=\"crudui-detail__value crudui-value crudui-value--bool\"><span aria-label=\"true\" class=\"crudui-bool crudui-bool--check\" data-crudui-state=\"true\">✔</span></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Icon</dt><dd class=\"crudui-detail__value crudui-value crudui-value--bool\"><span aria-label=\"true\" class=\"crudui-bool crudui-bool--icon\" data-crudui-state=\"true\"></span></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Text</dt><dd class=\"crudui-detail__value crudui-value crudui-value--bool\"><span class=\"crudui-bool crudui-bool--text\" data-crudui-state=\"true\">true</span></dd></div></dl>"
   },
   {
     "name": "format-image",
-    "note": "image format with width and height.",
+    "note": "image format interpolates an explicit alt token and preserves a literal extension.",
     "spec": {
       "fields": {
         "avatar": {
-          "field": ".avatar",
+          "field": "avatar",
           "label": "Avatar",
           "format": {
             "type": "image",
             "width": 40,
             "height": 40,
-            "alt": ".name"
+            "alt": "{=name}.png"
           }
         }
       }
@@ -305,12 +361,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Avatar</dt><dd class=\"detail-value detail-value-image\"><img alt=\"<Ada &amp; Lin>\" height=\"40\" src=\"/img/ada.png\" width=\"40\"></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Avatar</dt><dd class=\"crudui-detail__value crudui-value crudui-value--image\"><img alt=\"<Ada &amp; Lin>.png\" height=\"40\" src=\"/img/ada.png\" width=\"40\"></dd></div></dl>"
   },
   {
     "name": "format-image-empty-size",
@@ -318,7 +382,7 @@
     "spec": {
       "fields": {
         "avatar": {
-          "field": ".avatar",
+          "field": "avatar",
           "label": "Avatar",
           "format": {
             "type": "image",
@@ -336,12 +400,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Avatar</dt><dd class=\"detail-value detail-value-image\"><img alt=\"\" height=\"\" src=\"/img/ada.png\" width=\"\"></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Avatar</dt><dd class=\"crudui-detail__value crudui-value crudui-value--image\"><img alt=\"\" height=\"\" src=\"/img/ada.png\" width=\"\"></dd></div></dl>"
   },
   {
     "name": "format-text-truncate-code-points",
@@ -349,7 +421,7 @@
     "spec": {
       "fields": {
         "emoji": {
-          "field": ".emoji",
+          "field": "emoji",
           "label": "Emoji",
           "format": {
             "type": "text",
@@ -357,7 +429,7 @@
           }
         },
         "hangul": {
-          "field": ".hangul",
+          "field": "hangul",
           "label": "Hangul",
           "format": {
             "type": "text",
@@ -365,7 +437,7 @@
           }
         },
         "fraction": {
-          "field": ".plain",
+          "field": "plain",
           "label": "Fraction",
           "format": {
             "type": "text",
@@ -373,7 +445,7 @@
           }
         },
         "below": {
-          "field": ".short",
+          "field": "short",
           "label": "Below",
           "format": {
             "type": "text",
@@ -381,7 +453,7 @@
           }
         },
         "text": {
-          "field": ".plain",
+          "field": "plain",
           "label": "Text",
           "format": {
             "type": "text",
@@ -399,7 +471,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Emoji</dt><dd class=\"detail-value detail-value-text\">a😀…</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Hangul</dt><dd class=\"detail-value detail-value-text\">가나다…</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Fraction</dt><dd class=\"detail-value detail-value-text\">ab…</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Below</dt><dd class=\"detail-value detail-value-text\">abc</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">Text</dt><dd class=\"detail-value detail-value-text\">abcd</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Emoji</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">a😀…</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Hangul</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">가나다…</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Fraction</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">ab…</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Below</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">abc</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Text</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">abcd</dd></div></dl>"
   },
   {
     "name": "reject-number-decimals-above-range",
@@ -407,7 +479,7 @@
     "spec": {
       "fields": {
         "n": {
-          "field": ".n",
+          "field": "n",
           "label": "N",
           "format": {
             "type": "number",
@@ -430,7 +502,7 @@
     "spec": {
       "fields": {
         "n": {
-          "field": ".n",
+          "field": "n",
           "label": "N",
           "format": {
             "type": "number",
@@ -453,7 +525,7 @@
     "spec": {
       "fields": {
         "notes": {
-          "field": ".notes",
+          "field": "notes",
           "label": "Notes",
           "format": {
             "type": "html"
@@ -469,12 +541,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Notes</dt><dd class=\"detail-value detail-value-html\"><b>bold</b></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Notes</dt><dd class=\"crudui-detail__value crudui-value crudui-value--html\"><b>bold</b></dd></div></dl>"
   },
   {
     "name": "missing-value",
@@ -482,7 +562,7 @@
     "spec": {
       "fields": {
         "missing": {
-          "field": ".missing",
+          "field": "missing",
           "label": "Missing"
         }
       }
@@ -495,12 +575,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Missing</dt><dd class=\"detail-value detail-value-text\"></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Missing</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\"></dd></div></dl>"
   },
   {
     "name": "design-wrapper-and-cell",
@@ -514,7 +602,7 @@
       },
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name",
           "design": {
             "class": "strong",
@@ -531,12 +619,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view card\" style=\"padding: 4px\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text strong\" style=\"color: red\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail card\" style=\"padding: 4px\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text strong\" style=\"color: red\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
     "name": "condition-hidden-field",
@@ -544,11 +640,11 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         },
         "secret": {
-          "field": ".status",
+          "field": "status",
           "label": "Secret",
           "design": {
             "show": false
@@ -564,12 +660,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
     "name": "composed-fields",
@@ -587,7 +691,15 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en",
@@ -595,14 +707,14 @@
         "shared.json": {
           "properties": {
             "name": {
-              "field": ".name",
+              "field": "name",
               "label": "Name"
             }
           }
         }
       }
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
     "name": "empty-fields",
@@ -618,12 +730,20 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"></dl>"
   },
   {
     "name": "reject-non-object-specification",
@@ -637,7 +757,15 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "expectError": {
       "code": "INVALID_FORM_INPUT",
@@ -656,7 +784,15 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "expectError": {
       "code": "INVALID_FORM_INPUT",
@@ -669,7 +805,7 @@
     "spec": {
       "fields": {
         "prefixNumberEntry": {
-          "field": ".n",
+          "field": "n",
           "label": "P",
           "format": {
             "type": "number",
@@ -680,7 +816,7 @@
           }
         },
         "prefixObjectEntry": {
-          "field": ".n",
+          "field": "n",
           "label": "O",
           "format": {
             "type": "number",
@@ -692,7 +828,7 @@
           }
         },
         "prefixNumber": {
-          "field": ".n",
+          "field": "n",
           "label": "N",
           "format": {
             "type": "number",
@@ -700,7 +836,7 @@
           }
         },
         "boolLabelNumberEntry": {
-          "field": ".yes",
+          "field": "yes",
           "label": "B",
           "format": {
             "type": "bool",
@@ -710,7 +846,7 @@
           }
         },
         "choiceNumber": {
-          "field": ".a",
+          "field": "a",
           "label": "C",
           "format": {
             "type": "choice-label",
@@ -720,7 +856,7 @@
           }
         },
         "choiceNumberEntry": {
-          "field": ".b",
+          "field": "b",
           "label": "D",
           "format": {
             "type": "choice-label",
@@ -733,7 +869,7 @@
           }
         },
         "choiceList": {
-          "field": ".a",
+          "field": "a",
           "label": "E",
           "format": {
             "type": "choice-label",
@@ -745,7 +881,7 @@
           }
         },
         "badgeNumberEntry": {
-          "field": ".a",
+          "field": "a",
           "label": "G",
           "format": {
             "type": "badge",
@@ -757,7 +893,7 @@
           }
         },
         "linkTextZero": {
-          "field": ".name",
+          "field": "name",
           "label": "L0",
           "format": {
             "type": "link",
@@ -766,7 +902,7 @@
           }
         },
         "linkTextFalse": {
-          "field": ".name",
+          "field": "name",
           "label": "LF",
           "format": {
             "type": "link",
@@ -775,7 +911,7 @@
           }
         },
         "linkTextEmpty": {
-          "field": ".name",
+          "field": "name",
           "label": "LE",
           "format": {
             "type": "link",
@@ -784,7 +920,7 @@
           }
         },
         "linkTextNumberEntry": {
-          "field": ".name",
+          "field": "name",
           "label": "LN",
           "format": {
             "type": "link",
@@ -795,7 +931,7 @@
           }
         },
         "altList": {
-          "field": ".img",
+          "field": "img",
           "label": "I",
           "format": {
             "type": "image",
@@ -817,7 +953,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">P</dt><dd class=\"detail-value detail-value-number\">K5</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">O</dt><dd class=\"detail-value detail-value-number\">5</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">N</dt><dd class=\"detail-value detail-value-number\">5</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">B</dt><dd class=\"detail-value detail-value-bool\"><span class=\"bool-text\"></span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">C</dt><dd class=\"detail-value detail-value-choice-label\"></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">D</dt><dd class=\"detail-value detail-value-choice-label\">가</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">E</dt><dd class=\"detail-value detail-value-choice-label\"></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">G</dt><dd class=\"detail-value detail-value-badge\"><span class=\"badge\"></span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">L0</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\"></a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">LF</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\"></a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">LE</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\">Ada</a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">LN</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\"></a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">I</dt><dd class=\"detail-value detail-value-image\"><img alt=\"\" src=\"data:image/png;base64,AA==\"></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">P</dt><dd class=\"crudui-detail__value crudui-value crudui-value--number\">K5</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">O</dt><dd class=\"crudui-detail__value crudui-value crudui-value--number\">5</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">N</dt><dd class=\"crudui-detail__value crudui-value crudui-value--number\">5</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">B</dt><dd class=\"crudui-detail__value crudui-value crudui-value--bool\"><span class=\"crudui-bool crudui-bool--text\" data-crudui-state=\"true\"></span></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">C</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\"></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">D</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\">가</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">E</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\"></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">G</dt><dd class=\"crudui-detail__value crudui-value crudui-value--badge\"><span class=\"crudui-badge\"></span></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">L0</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\"></a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">LF</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\"></a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">LE</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\">Ada</a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">LN</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\"></a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">I</dt><dd class=\"crudui-detail__value crudui-value crudui-value--image\"><img alt=\"\" src=\"data:image/png;base64,AA==\"></dd></div></dl>"
   },
   {
     "name": "list-options-ignored",
@@ -825,7 +961,7 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       }
@@ -838,14 +974,22 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "page": 0,
       "total": -1,
       "layout": "grid"
     },
-    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">Name</dt><dd class=\"detail-value detail-value-text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
     "name": "reject-specification-before-record",
@@ -873,7 +1017,7 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       }
@@ -893,7 +1037,7 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name",
           "design": {
             "label": {
@@ -911,7 +1055,15 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "expectError": {
       "code": "INVALID_FORM_INPUT",
@@ -927,7 +1079,7 @@
       },
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       }
@@ -940,7 +1092,15 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "expectError": {
       "code": "INVALID_FORM_INPUT",
@@ -953,7 +1113,7 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       }
@@ -966,7 +1126,15 @@
       "score": 1234567.5,
       "admin": 1,
       "avatar": "/img/ada.png",
-      "notes": "<b>bold</b>"
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
     },
     "options": {
       "data": []
@@ -982,7 +1150,7 @@
     "spec": {
       "fields": {
         "name": {
-          "field": ".name",
+          "field": "name",
           "label": "Name"
         }
       }

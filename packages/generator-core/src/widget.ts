@@ -942,12 +942,7 @@ const button: Evaluator = (ctx) => {
   const script =
     `\n$(function() {\n    ${initScript}\n    $(document.getElementById(${scriptString(id)})).on('click', function() {\n        ${onclick}\n    });\n});\n`;
   const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
-  const textVal =
-    ctx.spec.content !== undefined
-      ? ctx.t(ctx.spec.content as never)
-      : ctx.spec.text !== undefined
-        ? ctx.t(ctx.spec.text as never)
-        : '';
+  const textVal = ctx.spec.content === undefined ? '' : ctx.t(ctx.spec.content as never);
   return {
     kind: 'button',
     layout: 'button',

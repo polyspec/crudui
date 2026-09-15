@@ -58,7 +58,7 @@ final class DatesTest extends TestCase
     {
         $spec = json_decode('{"type":"group","properties":{"date":{"type":"date"},"datetime":{"type":"datetime"}}}');
         $template = Generator::compileForm($spec);
-        $listSpec = json_decode('{"columns":{"value":{"field":".value","format":{"type":"date","pattern":"YYYY-MM-DDTHH:mm:ss"}}}}');
+        $listSpec = json_decode('{"columns":{"value":{"field":"value","format":{"type":"date","pattern":"YYYY-MM-DDTHH:mm:ss"}}}}');
         $data = (object) ['date' => $input, 'datetime' => $input];
         $previousTimezone = date_default_timezone_get();
         $expectedHtml = null;
@@ -79,7 +79,7 @@ final class DatesTest extends TestCase
                 $expectedHtml ??= $html;
                 self::assertSame($expectedHtml, $html);
                 $escaped = htmlspecialchars($datetime, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8');
-                self::assertSame('<div class="list-view"><table class="list-table"><thead><tr><th class="list-th" data-field=".value"><span class="list-th-label">value</span></th></tr></thead><tbody><tr><td class="list-td list-td-date">' . $escaped . '</td></tr></tbody></table></div>', Generator::renderList($listSpec, [(object) ['value' => $input]]));
+                self::assertSame('<div class="crudui-list"><table class="crudui-list__table"><thead><tr><th class="crudui-list__heading" data-field="value"><span class="crudui-list__heading-label">value</span></th></tr></thead><tbody><tr><td class="crudui-list__cell crudui-value crudui-value--date">' . $escaped . '</td></tr></tbody></table></div>', Generator::renderList($listSpec, [(object) ['value' => $input]]));
             }
         } finally {
             date_default_timezone_set($previousTimezone);

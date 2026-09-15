@@ -77,10 +77,10 @@ func TestListAndDetailRenderTheStoredRecord(t *testing.T) {
 		t.Fatal(e)
 	}
 	// Without a stored record the list has no rows and the detail shows an empty record.
-	if body := get(t, s.list, "/list"); !strings.Contains(body, `<div class="list-view">`) || strings.Contains(body, "<a href=\"/detail\">Ada") {
+	if body := get(t, s.list, "/list"); !strings.Contains(body, `<div class="crudui-list">`) || strings.Contains(body, "<a href=\"/detail\">Ada") {
 		t.Fatal("Empty list not rendered", body)
 	}
-	if body := get(t, s.detail, "/detail"); !strings.Contains(body, `<dt class="detail-label">Name</dt>`) {
+	if body := get(t, s.detail, "/detail"); !strings.Contains(body, `<dt class="crudui-detail__label">Name</dt>`) {
 		t.Fatal("Empty detail not rendered", body)
 	}
 
@@ -94,9 +94,9 @@ func TestListAndDetailRenderTheStoredRecord(t *testing.T) {
 
 	list := get(t, s.list, "/list")
 	for _, want := range []string{
-		`<td class="list-td list-td-link"><a href="/detail">Ada</a></td>`,
-		`<td class="list-td list-td-text">ada@example.test</td>`,
-		`<td class="list-td list-td-date">2026-01-02</td>`,
+		`<td class="crudui-list__cell crudui-value crudui-value--link"><a href="/detail">Ada</a></td>`,
+		`<td class="crudui-list__cell crudui-value crudui-value--text">ada@example.test</td>`,
+		`<td class="crudui-list__cell crudui-value crudui-value--date">2026-01-02</td>`,
 		`.crudui-marker{}`,
 	} {
 		if !strings.Contains(list, want) {
@@ -109,10 +109,10 @@ func TestListAndDetailRenderTheStoredRecord(t *testing.T) {
 
 	detail := get(t, s.detail, "/detail")
 	for _, want := range []string{
-		`<dl class="detail-view">`,
-		`<dd class="detail-value detail-value-text">Ada</dd>`,
+		`<dl class="crudui-detail">`,
+		`<dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd>`,
 		`<a href="mailto:ada@example.test">ada@example.test</a>`,
-		`<dd class="detail-value detail-value-date">2026-01-02</dd>`,
+		`<dd class="crudui-detail__value crudui-value crudui-value--date">2026-01-02</dd>`,
 		`.crudui-marker{}`,
 	} {
 		if !strings.Contains(detail, want) {

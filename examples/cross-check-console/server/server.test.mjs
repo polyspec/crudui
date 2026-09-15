@@ -141,7 +141,7 @@ describe('HTTP boundary — client input faults are 4xx { error }', () => {
 describe('HTTP boundary — a detail render failure is a 200 result surface', () => {
   // Boots the Vite SSR engine (the detail render path has no CLI).
   test('clean detail YAML → 200, parity:true, the same detail markup in all three', async () => {
-    const detailSpec = 'fields:\n  name:\n    field: .name\n    label: Name\n';
+    const detailSpec = 'fields:\n  name:\n    field: name\n    label: Name\n';
     const res = await postRaw('/api/render-detail', JSON.stringify({ spec: detailSpec, record: { name: 'Ada' }, options: { language: 'en' } }));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -152,7 +152,7 @@ describe('HTTP boundary — a detail render failure is a 200 result surface', ()
   }, 120000);
 
   test('non-object record → 200 with INVALID_FORM_INPUT in all three, parity:true', async () => {
-    const detailSpec = { fields: { name: { field: '.name', label: 'Name' } } };
+    const detailSpec = { fields: { name: { field: 'name', label: 'Name' } } };
     const res = await postRaw('/api/render-detail', JSON.stringify({ detailSpec, record: [1, 2] }));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -206,7 +206,7 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
   // SAME failure record on all four engines (idempotent). Requires Go/Rust.
   test('list-spec with a forbidden meta key → 200, failure code on all four, idempotent:true', async () => {
     const listSpec = {
-      columns: { name: { field: '.name' }, display_switch: { field: '.x' } },
+      columns: { name: { field: 'name' }, display_switch: { field: 'x' } },
     };
     const res = await postRaw('/api/validate-list', JSON.stringify({ listSpec }));
     expect(res.status).toBe(200);
@@ -219,7 +219,7 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
   }, 60000);
 
   test('detail spec with a forbidden meta key → 200, the same failure on all four', async () => {
-    const detailSpec = { fields: { name: { field: '.name', show_if: '.admin' } } };
+    const detailSpec = { fields: { name: { field: 'name', show_if: '.admin' } } };
     const res = await postRaw('/api/validate-detail', JSON.stringify({ detailSpec }));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -231,7 +231,7 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
   // A clean list-spec → 200, valid:true on all four (idempotent). `data` on the
   // request is ignored — a list has no rows (mode:list runs no DATA pass).
   test('clean list-spec → 200, valid:true on all four, idempotent:true', async () => {
-    const listSpec = { columns: { name: { field: '.name', label: 'Name' } } };
+    const listSpec = { columns: { name: { field: 'name', label: 'Name' } } };
     const res = await postRaw('/api/validate-list', JSON.stringify({ listSpec, data: { ignored: true } }));
     expect(res.status).toBe(200);
     const body = await res.json();

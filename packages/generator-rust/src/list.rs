@@ -65,10 +65,10 @@ fn format(value: Option<&Value>) -> Value {
 }
 
 fn interpolate(template: &str, row: &Value, value: Option<&Value>) -> String {
-    let pattern = regex::Regex::new(r"\.[A-Za-z_][\w.]*").expect("field interpolation pattern");
+    let pattern = regex::Regex::new(r"\{=[A-Za-z_][\w.]*\}").expect("field interpolation pattern");
     pattern
         .replace_all(template, |capture: &regex::Captures<'_>| {
-            let path = &capture[0][1..];
+            let path = &capture[0][2..capture[0].len() - 1];
             scalar(if path == "field" {
                 value
             } else {
@@ -323,7 +323,7 @@ pub(crate) fn build_display(
     }
     let bound_rows = rows.iter().map(|row| {
         let cells = visible.iter().map(|column| {
-            let path = column["field"].as_str().unwrap_or("").strip_prefix('.').unwrap_or(column["field"].as_str().unwrap_or(""));
+            let path = column["field"].as_str().unwrap_or("");
             let value = if path.is_empty() {None} else {value_at(row,path)};
             let raw = &columns[column["key"].as_str().unwrap()];
             // A model is JSON: a path absent from the row is null, and the member is always present.
@@ -377,11 +377,14 @@ pub(crate) fn build_display(
         }
         actions.push(action);
     }
-    let mut result = json!({"columns":visible,"rows":bound_rows,"pagination":pagination,"actions":actions,"empty":translate(spec.get("empty"),&options.language),"design":resolve_design(spec.get("design"),context,"")});
+    let mut result = json!({"columns":visible,"rows":bound_rows,"pagination":pagination});
     if let Some(field) = spec["sort"]["field"].as_str().filter(|s| !s.is_empty()) {
         result["sort"] =
             json!({"field":field,"dir":if spec["sort"]["dir"]=="desc" {"desc"} else {"asc"}});
     }
+    result["actions"] = actions.into();
+    result["empty"] = translate(spec.get("empty"),&options.language).into();
+    result["design"] = resolve_design(spec.get("design"),context,"");
     Ok(result)
 }
 
@@ -396,7 +399,11 @@ fn cell_body(display: &Value) -> String {
     match str_at(display, "kind") {
         "badge" => element(
             "span",
-            &json!({"class":if str_at(display,"variant").is_empty() {"badge".into()} else {format!("badge badge-{}",str_at(display,"variant"))}}),
+            &if str_at(display, "variant").is_empty() {
+                json!({"class":"crudui-badge"})
+            } else {
+                json!({"class":"crudui-badge", "data-crudui-variant":str_at(display,"variant")})
+            },
             &escape(str_at(display, "label")),
         ),
         "link" => {
@@ -418,7 +425,7 @@ fn cell_body(display: &Value) -> String {
         "bool" => match str_at(display, "as") {
             "check" => element(
                 "span",
-                &json!({"class":"bool-check","aria-label":display["label"]}),
+                &json!({"class":"crudui-bool crudui-bool--check","data-crudui-state":display["value"].to_string(),"aria-label":display["label"]}),
                 if display["value"] == true {
                     "✔"
                 } else {
@@ -427,12 +434,12 @@ fn cell_body(display: &Value) -> String {
             ),
             "icon" => element(
                 "span",
-                &json!({"class":if display["value"]==true {"bool-icon bool-true"} else {"bool-icon bool-false"},"aria-label":display["label"]}),
+                &json!({"class":"crudui-bool crudui-bool--icon","data-crudui-state":display["value"].to_string(),"aria-label":display["label"]}),
                 "",
             ),
             _ => element(
                 "span",
-                &json!({"class":"bool-text"}),
+                &json!({"class":"crudui-bool crudui-bool--text","data-crudui-state":display["value"].to_string()}),
                 &escape(str_at(display, "label")),
             ),
         },
@@ -481,7 +488,7 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
         }
         toolbar += &element(
             "span",
-            &json!({"class":"list-action","data-action":action["key"]}),
+            &json!({"class":"crudui-list__action","data-action":action["key"]}),
             &raw_element(
                 if link { "a" } else { "button" },
                 &attrs,
@@ -490,14 +497,14 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
         );
     }
     if !toolbar.is_empty() {
-        content += &element("div", &json!({"class":"list-actions"}), &toolbar);
+        content += &element("div", &json!({"class":"crudui-list__actions"}), &toolbar);
     }
     let columns = model["columns"].as_array().unwrap();
     let rows = model["rows"].as_array().unwrap();
     if rows.is_empty() {
         content += &element(
             "div",
-            &json!({"class":"list-empty"}),
+            &json!({"class":"crudui-list__empty"}),
             &escape(str_at(&model, "empty")),
         );
     } else if layout == "card" {
@@ -511,7 +518,7 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                     .enumerate()
                     .map(|(index, cell)| {
                         let class = join_class(&[
-                            &format!("list-td list-td-{}", str_at(&cell["format"], "type")),
+                            &format!("crudui-list__cell crudui-value crudui-value--{}", str_at(&cell["format"], "type")),
                             str_at(&cell["design"]["main"], "class"),
                         ]);
                         element(
@@ -519,23 +526,23 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                             &json!({"class":class}),
                             &(element(
                                 "span",
-                                &json!({"class":"list-card-label"}),
+                                &json!({"class":"crudui-list__card-label"}),
                                 &escape(str_at(&columns[index], "label")),
-                            ) + &cell_html(cell, "span", "list-card-value")),
+                            ) + &cell_html(cell, "span", "crudui-list__card-value")),
                         )
                     })
                     .collect::<String>();
-                element("article", &json!({"class":"list-card"}), &cells)
+                element("article", &json!({"class":"crudui-list__card"}), &cells)
             })
             .collect::<String>();
-        content += &element("div", &json!({"class":"list-cards"}), &cards);
+        content += &element("div", &json!({"class":"crudui-list__cards"}), &cards);
     } else {
         let header = columns
             .iter()
             .map(|column| {
                 let main = &column["design"]["main"];
                 let mut attrs = appearance_attrs(
-                    join_class(&["list-th", str_at(main, "class")]),
+                    join_class(&["crudui-list__heading", str_at(main, "class")]),
                     str_at(main, "style"),
                 );
                 if !str_at(column, "field").is_empty() {
@@ -552,11 +559,11 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                 }
                 let mut body = element(
                     "span",
-                    &json!({"class":"list-th-label"}),
+                    &json!({"class":"crudui-list__heading-label"}),
                     &escape(str_at(column, "label")),
                 );
                 if column["sortable"] == true {
-                    body += &element("span", &json!({"class":"list-sort"}), "↕");
+                    body += &element("span", &json!({"class":"crudui-list__sort"}), "↕");
                 }
                 element("th", &attrs, &body)
             })
@@ -575,7 +582,7 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                             cell_html(
                                 cell,
                                 "td",
-                                &format!("list-td list-td-{}", str_at(&cell["format"], "type")),
+                                &format!("crudui-list__cell crudui-value crudui-value--{}", str_at(&cell["format"], "type")),
                             )
                         })
                         .collect::<String>(),
@@ -584,14 +591,14 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
             .collect::<String>();
         content += &element(
             "table",
-            &json!({"class":"list-table"}),
+            &json!({"class":"crudui-list__table"}),
             &(element("thead", &json!({}), &element("tr", &json!({}), &header))
                 + &element("tbody", &json!({}), &body)),
         );
     }
     let pagination = &model["pagination"];
     if pagination["enabled"] == true {
-        let mut attrs = json!({"class":"list-pagination"});
+        let mut attrs = json!({"class":"crudui-list__pagination"});
         for (input, output) in [
             ("mode", "data-mode"),
             ("perPage", "data-per-page"),
@@ -641,7 +648,7 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
         + &element(
             "div",
             &appearance_attrs(
-                join_class(&["list-view", str_at(wrapper, "class")]),
+                join_class(&["crudui-list", str_at(wrapper, "class")]),
                 str_at(wrapper, "style"),
             ),
             &content,

@@ -153,12 +153,12 @@ export const listExamples = [
     note: 'list-render basic-columns + format-date(YYYY-MM-DD) + format-number(decimals/thousands/$prefix) + format-badge(map). rows injected; 3 frameworks render the SAME normalized table → parity.',
     spec: `columns:
   name:
-    field: .name
+    field: name
     label:
       ko: 이름
       en: Name
   status:
-    field: .status
+    field: status
     label:
       ko: 상태
       en: Status
@@ -168,13 +168,13 @@ export const listExamples = [
         active: success
         blocked: danger
   joined:
-    field: .joined
+    field: joined
     label: Joined
     format:
       type: date
       pattern: YYYY-MM-DD
   score:
-    field: .score
+    field: score
     label: Score
     format:
       type: number
@@ -212,12 +212,12 @@ search:
           en: Blocked
 columns:
   name:
-    field: .name
+    field: name
     label:
       ko: 이름
       en: Name
   admin:
-    field: .admin
+    field: admin
     label:
       ko: 관리자
       en: Admin
@@ -227,7 +227,7 @@ columns:
       "false": "No"
       as: check
   secret:
-    field: .secret
+    field: secret
     label:
       ko: 비밀
       en: Secret
@@ -272,12 +272,12 @@ export const detailExamples = [
     note: 'detail-render basic-fields: plain text fields with translated labels; values are escaped. The KO/EN toggle picks the label.',
     spec: `fields:
   name:
-    field: .name
+    field: name
     label:
       ko: 이름
       en: Name
   status:
-    field: .status
+    field: status
     label:
       ko: 상태
       en: Status`,
@@ -293,7 +293,7 @@ export const detailExamples = [
     style: padding:4px
 fields:
   name:
-    field: .name
+    field: name
     label: Name
     design:
       class: strong
@@ -306,10 +306,10 @@ fields:
     note: 'detail-render condition-hidden-field: design.show false removes the field from the detail.',
     spec: `fields:
   name:
-    field: .name
+    field: name
     label: Name
   secret:
-    field: .status
+    field: status
     label: Secret
     design:
       show: false`,
@@ -321,7 +321,7 @@ fields:
     note: 'detail-validity red-show-if-on-field: the four validators report failure FORBIDDEN_META_KEY at fields.name.show_if.',
     spec: `fields:
   name:
-    field: .name
+    field: name
     show_if: .admin`,
     record: DETAIL_RECORD,
   },

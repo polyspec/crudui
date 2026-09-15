@@ -77,14 +77,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .collect();
     let list_spec = json!({"columns": {
-        "name": {"field": ".name", "label": "Company", "format": {"type": "link", "href": "#company-.key"}},
-        "key": {"field": ".key", "label": "Row key", "format": "text"},
-        "stores": {"field": ".stores", "label": "Stores", "format": {"type": "badge", "map": {"1": "info", "2": "success"}}}
+        "name": {"field": "name", "label": "Company", "format": {"type": "link", "href": "#company-{=key}"}},
+        "key": {"field": "key", "label": "Row key", "format": "text"},
+        "stores": {"field": "stores", "label": "Stores", "format": {"type": "badge", "map": {"1": "info", "2": "success"}}}
     }});
     let detail_spec = json!({"fields": {
-        "name": {"field": ".name", "label": "Company", "format": "text"},
-        "key": {"field": ".key", "label": "Row key", "format": "text"},
-        "stores": {"field": ".stores", "label": "Stores", "format": {"type": "number", "suffix": " stores"}}
+        "name": {"field": "name", "label": "Company", "format": "text"},
+        "key": {"field": "key", "label": "Row key", "format": "text"},
+        "stores": {"field": "stores", "label": "Stores", "format": {"type": "number", "suffix": " stores"}}
     }});
     let list = render_list(
         &list_spec,
@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     )?;
     assert!(list.contains(&format!("<a href=\"#company-{company}\">Company</a>")));
-    assert!(list.contains("<span class=\"badge badge-success\">2</span>"));
+    assert!(list.contains("<span class=\"crudui-badge\" data-crudui-variant=\"success\">2</span>"));
     // Each list link targets the detail of its company row.
     let mut details = String::new();
     for row in &rows {
@@ -107,12 +107,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ..Default::default()
             },
         )?;
-        assert!(detail.contains("<dt class=\"detail-label\">Company</dt>"));
+        assert!(detail.contains("<dt class=\"crudui-detail__label\">Company</dt>"));
         let key = row["key"].as_str().ok_or("row key must be a string")?;
         details.push_str(&format!("<section id=\"company-{key}\">{detail}</section>"));
     }
     assert!(details.contains(&format!(
-        "<section id=\"company-{company}\"><dl class=\"detail-view\">"
+        "<section id=\"company-{company}\"><dl class=\"crudui-detail\">"
     )));
     assert!(details.contains(">1 stores</dd>") && details.contains(">2 stores</dd>"));
 

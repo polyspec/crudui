@@ -38,6 +38,12 @@ final class Generator
         return Lists::render($spec, $rows, $options);
     }
 
+    /** Build one read-only list model from supplied rows. */
+    public static function buildList(array|stdClass $spec, array $rows = [], array $options = []): stdClass
+    {
+        return Lists::buildPublic($spec, $rows, $options);
+    }
+
     /** Render one read-only detail from a supplied record. */
     public static function renderDetail(array|stdClass $spec, array|stdClass $record = new stdClass(), array $options = []): string
     {

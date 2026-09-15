@@ -263,7 +263,7 @@ test('date models and rendered HTML are identical across browser timezones', { t
     ['2026-09-09T03:04junk', '2026-09-09T03:04junk', '2026-09-09T03:04junk'],
   ];
   const spec = { type: 'group', properties: { day: { type: 'date' }, time: { type: 'datetime' } } };
-  const listSpec = { columns: { time: { field: '.time', format: { type: 'date', pattern: 'YYYY-MM-DDTHH:mm:ss' } } } };
+  const listSpec = { columns: { time: { field: 'time', format: { type: 'date', pattern: 'YYYY-MM-DDTHH:mm:ss' } } } };
   const baseline = new Map();
   for (const timezone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) {
     const { page, failures } = await openPage(timezone);

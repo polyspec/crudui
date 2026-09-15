@@ -338,8 +338,6 @@ func evalWidget(c widgetContext) *Object {
 		text := ""
 		if c.spec.Has("content") {
 			text = c.translate(read(c.spec, "content"))
-		} else if c.spec.Has("text") {
-			text = c.translate(read(c.spec, "text"))
 		}
 		a = NewObject("type", "button", "class", c.class("crudui-action crudui-action--text"), "name", "btn"+name, "id", id, "value", text)
 		w = widget(kind, "button", "", a)

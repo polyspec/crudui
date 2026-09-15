@@ -9,9 +9,9 @@
  *
  * The markup is the SHARED 3-framework list contract (React/Vue/Svelte emit the
  * SAME normalized HTML — tests/fixtures/list-render): a plain string for
- * text/date/number/choice-label; `<span class="badge badge-VAR">` for badge;
- * `<a>` for link; `<img>` for image; `<span class="bool-check|bool-icon|bool-text"
- * aria-label="L">` for bool; and the ONE sanctioned raw passthrough — the `html`
+ * text/date/number/choice-label; `<span class="crudui-badge">` for badge;
+ * `<a>` for link; `<img>` for image; `<span class="crudui-bool">` for bool; and
+ * the ONE sanctioned raw passthrough — the `html`
  * cell, injected verbatim with NO wrapper element. The cell's per-row `design`
  * maps to class/style on the `<td>`/`<span>` host. eval is never called.
  */
@@ -29,9 +29,7 @@ export function CellBody({ cell }: { cell: CellVM }): React.ReactNode {
 
   switch (d.kind) {
     case 'badge':
-      return (
-        <span className={d.variant ? `badge badge-${d.variant}` : 'badge'}>{d.label}</span>
-      );
+      return <span className="crudui-badge" {...(d.variant ? { 'data-crudui-variant': d.variant } : {})}>{d.label}</span>;
 
     case 'link': {
       const target = d.target;
@@ -58,7 +56,7 @@ export function CellBody({ cell }: { cell: CellVM }): React.ReactNode {
       // aria-label for the non-text forms (shared 3-framework contract).
       if (d.as === 'check') {
         return (
-          <span className="bool-check" aria-label={d.label}>
+          <span className="crudui-bool crudui-bool--check" data-crudui-state={String(d.value)} aria-label={d.label}>
             {d.value ? '✔' : '✘'}
           </span>
         );
@@ -66,12 +64,13 @@ export function CellBody({ cell }: { cell: CellVM }): React.ReactNode {
       if (d.as === 'icon') {
         return (
           <span
-            className={d.value ? 'bool-icon bool-true' : 'bool-icon bool-false'}
+            className="crudui-bool crudui-bool--icon"
+            data-crudui-state={String(d.value)}
             aria-label={d.label}
           />
         );
       }
-      return <span className="bool-text">{d.label}</span>;
+      return <span className="crudui-bool crudui-bool--text" data-crudui-state={String(d.value)}>{d.label}</span>;
     }
 
     case 'html':
@@ -105,8 +104,8 @@ function cellHostProps(cell: CellVM, base: string): Record<string, unknown> {
 /**
  * One cell carrying the per-row resolved design. `as` selects the host element:
  * `td` (table layout, default) or `span` (card layout — a `<td>` is illegal
- * outside a table). The base class is `list-td list-td-TYPE` for table cells and
- * `list-card-value` for card cells. The body is identical across hosts EXCEPT the
+ * outside a table). The base class is `crudui-list__cell crudui-value crudui-value--TYPE` for table cells and
+ * `crudui-list__card-value` for card cells. The body is identical across hosts EXCEPT the
  * html cell, whose raw markup is the host's own inner html (no wrapper element).
  */
 export function Cell({
@@ -118,7 +117,7 @@ export function Cell({
   as?: 'td' | 'span';
   base?: string;
 }): React.ReactElement {
-  const hostBase = base ?? `list-td list-td-${cell.format.type}`;
+  const hostBase = base ?? `crudui-list__cell crudui-value crudui-value--${cell.format.type}`;
   const props = cellHostProps(cell, hostBase);
   const d = cell.display;
   if (typeof d !== 'string' && d.kind === 'html') {

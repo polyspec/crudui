@@ -59,7 +59,7 @@ fn utc_date_controls_and_lists_preserve_data_and_injected_html() {
         &CompileOptions::default(),
     )
     .unwrap();
-    let list_spec = json!({"columns":{"time":{"field":".time","format":{"type":"date","pattern":"YYYY-MM-DDTHH:mm:ss"}}}});
+    let list_spec = json!({"columns":{"time":{"field":"time","format":{"type":"date","pattern":"YYYY-MM-DDTHH:mm:ss"}}}});
     for (input, day, time) in [
         (
             "2026-09-09T03:04:05+09:00",
@@ -656,7 +656,7 @@ fn number_cells_preserve_decimal_rounding_and_exponent_notation() {
             vec!["2.50", "-2.50", "1.00", "1e+21", "0.00", "12.50", "16.00"],
         ),
     ] {
-        let spec = json!({"columns":{"n":{"field":".number","format":{"type":"number","decimals":decimals}}}});
+        let spec = json!({"columns":{"n":{"field":"number","format":{"type":"number","decimals":decimals}}}});
         let model = build_list(&spec, &rows, &ListOptions::default()).unwrap();
         let actual = model["rows"]
             .as_array()
@@ -667,14 +667,14 @@ fn number_cells_preserve_decimal_rounding_and_exponent_notation() {
         assert_eq!(actual, expected);
     }
     for decimals in [json!(101), json!(-1)] {
-        let spec = json!({"columns":{"n":{"field":".number","format":{"type":"number","decimals":decimals}}}});
+        let spec = json!({"columns":{"n":{"field":"number","format":{"type":"number","decimals":decimals}}}});
         let error = build_list(&spec, &rows, &ListOptions::default()).unwrap_err();
         assert_eq!(error.code, "INVALID_FORM_INPUT");
         assert_eq!(error.message, "Number decimals must be between 0 and 100");
         assert_eq!(error.at, "");
     }
     let spec =
-        json!({"columns":{"n":{"field":".number","format":{"type":"number","decimals":100}}}});
+        json!({"columns":{"n":{"field":"number","format":{"type":"number","decimals":100}}}});
     let model = build_list(&spec, &[json!({"number":1})], &ListOptions::default()).unwrap();
     assert_eq!(
         model["rows"][0]["cells"][0]["display"],
@@ -693,12 +693,12 @@ fn text_truncation_counts_code_points_of_a_numeric_limit() {
         (json!(4), "abcd", "abcd"),
         (json!(-1), "abcd", "abcd"),
     ] {
-        let spec = json!({"fields":{"v":{"field":".v","label":"V","format":{"type":"text","truncate":truncate}}}});
+        let spec = json!({"fields":{"v":{"field":"v","label":"V","format":{"type":"text","truncate":truncate}}}});
         let html =
             crate::render_detail(&spec, &json!({"v":value}), &ListOptions::default()).unwrap();
         assert!(
             html.contains(&format!(
-                r#"<dd class="detail-value detail-value-text">{expected}</dd>"#
+                r#"<dd class="crudui-detail__value crudui-value crudui-value--text">{expected}</dd>"#
             )),
             "{truncate}: {html}"
         );
@@ -707,7 +707,7 @@ fn text_truncation_counts_code_points_of_a_numeric_limit() {
 
 #[test]
 fn list_input_errors_follow_contract_order() {
-    let valid = json!({"columns":{"n":{"field":".n"}}});
+    let valid = json!({"columns":{"n":{"field":"n"}}});
     let options = |data: Value, layout: &str| ListOptions {
         data,
         layout: layout.into(),
@@ -770,7 +770,7 @@ fn list_input_errors_follow_contract_order() {
             );
         }
     }
-    let paginated = json!({"columns":{"n":{"field":".n"}},"pagination":true});
+    let paginated = json!({"columns":{"n":{"field":"n"}},"pagination":true});
     for (page, total, expected, attrs) in [
         (
             json!(2.0),
@@ -794,7 +794,7 @@ fn list_input_errors_follow_contract_order() {
             Value::Null,
             Value::Null,
             json!({"enabled":true}),
-            "list-pagination",
+            "crudui-list__pagination",
         ),
     ] {
         let options = ListOptions {
@@ -900,7 +900,7 @@ fn number_cells_parse_radix_strings_and_ecmascript_whitespace() {
         (json!(1.25), json!(-0.9), "1"),
         (json!("1e999"), json!(2), "1e999"),
     ] {
-        let spec = json!({"columns":{"number":{"field":".number","format":{"type":"number","decimals":decimals}}}});
+        let spec = json!({"columns":{"number":{"field":"number","format":{"type":"number","decimals":decimals}}}});
         let model = build_list(&spec, &[json!({"number":value})], &ListOptions::default()).unwrap();
         assert_eq!(model["rows"][0]["cells"][0]["display"], expected);
     }
@@ -957,9 +957,9 @@ fn css_values_preserve_nested_separators_comments_and_escapes() {
 #[test]
 fn lists_emit_ordered_image_preloads_and_preserve_raw_html_behavior() {
     let spec = json!({"columns":{
-        "image":{"field":".image","format":"image"},
-        "link":{"field":".image","format":{"type":"link","href":{"true":"javascript:alert(1)"}}},
-        "raw":{"field":".raw","format":"html"}
+        "image":{"field":"image","format":"image"},
+        "link":{"field":"image","format":{"type":"link","href":{"true":"javascript:alert(1)"}}},
+        "raw":{"field":"raw","format":"html"}
     },"actions":{"raw":{"format":{"type":"link","href":"javascript:raw()"}}}});
     let rows = vec![
         json!({"image":"/first.png","raw":"<img src=\"/raw.png\">"}),
@@ -1194,7 +1194,7 @@ fn list_and_detail_designs_follow_the_form_declaration_rules() {
     let list = |spec: Value| display_error(build_list(&spec, &[], &options));
     let detail = |spec: Value| display_error(build_detail(&spec, &json!({}), &options));
     assert_eq!(
-        list(json!({"columns":{"name":{"field":".name","design":{"main":{"class":"x"}}}}})),
+        list(json!({"columns":{"name":{"field":"name","design":{"main":{"class":"x"}}}}})),
         invalid("Invalid design.main at columns.name: unknown key")
     );
     assert_eq!(

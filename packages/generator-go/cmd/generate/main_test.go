@@ -70,9 +70,9 @@ func TestListInputRulesUseDecodedTypes(t *testing.T) {
 		`{"operation":"renderList","spec":{},"rows":[],"options":{"layout":5}}`:                          "List layout must be table or card",
 		`{"operation":"renderList","spec":{},"rows":[],"options":{"data":null,"layout":null}}`:           "",
 	}
-	cases[`{"operation":"renderDetail","spec":{"fields":{"v":{"field":".v"}}},"record":{},"options":{"data":[]}}`] = "Detail context must be an object"
-	cases[`{"operation":"buildDetail","spec":{"fields":{"v":{"field":".v"}}},"record":{},"options":{"data":"s"}}`] = "Detail context must be an object"
-	cases[`{"operation":"renderDetail","spec":{"fields":{"v":{"field":".v"}}},"record":{},"options":{"data":null}}`] = ""
+	cases[`{"operation":"renderDetail","spec":{"fields":{"v":{"field":"v"}}},"record":{},"options":{"data":[]}}`] = "Detail context must be an object"
+	cases[`{"operation":"buildDetail","spec":{"fields":{"v":{"field":"v"}}},"record":{},"options":{"data":"s"}}`] = "Detail context must be an object"
+	cases[`{"operation":"renderDetail","spec":{"fields":{"v":{"field":"v"}}},"record":{},"options":{"data":null}}`] = ""
 	for input, want := range cases {
 		v, err := gen.DecodeJSON([]byte(input))
 		if err != nil {

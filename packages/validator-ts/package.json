@@ -29,8 +29,7 @@
     "test:coverage": "vitest --coverage",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build",
-    "bench": "tsx benchmarks/index.ts"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "form",

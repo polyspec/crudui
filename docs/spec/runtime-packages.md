@@ -59,6 +59,7 @@ the same; no runtime selector is embedded in a field specification.
 | Replace data | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
 | Read data | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
 | Render form | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
+| Build list | `buildList` | `Generator::buildList` | `BuildList` | `build_list` | `Generator::buildList` |
 | Render list | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
 | Build detail | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
 | Render detail | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |

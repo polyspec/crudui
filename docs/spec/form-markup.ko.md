@@ -167,6 +167,27 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 프레임워크에 기대지 않습니다. 페이지는 자기 레이아웃만 스타일링하고 crudui 블록 안은 건드리지
 않습니다. 폼, 구조 맵, 현재 데이터 보기는 `--crudui-*` 사용자 정의 속성 한 벌을 공유합니다.
 
+## 목록·상세 마크업
+
+표시 결과도 폼 결과와 같은 블록·요소·수식자 문법을 사용합니다. 목록 루트는
+`crudui-list`이고 표, 제목, 셀, 카드, 빈 상태, 동작과 페이지 이동은 각각
+`crudui-list__table`, `crudui-list__heading`, `crudui-list__cell`,
+`crudui-list__cards`, `crudui-list__card`, `crudui-list__empty`,
+`crudui-list__actions`, `crudui-list__action`, `crudui-list__pagination`을
+사용합니다. 상세 루트는 `crudui-detail`이고 필드마다
+`crudui-detail__field`, `crudui-detail__label`, `crudui-detail__value`를
+사용합니다.
+
+표시 값은 모두 `crudui-value`와 닫힌 형식 수식자
+`crudui-value--text`, `--date`, `--number`, `--choice-label`, `--badge`,
+`--link`, `--bool`, `--image`, `--html`을 함께 가집니다. 배지 변형은 클래스명이
+아닌 데이터이므로 변형이 있으면 `crudui-badge`에
+`data-crudui-variant`를 기록합니다. 불리언 표시는 `crudui-bool`과 닫힌
+`--text`, `--check`, `--icon` 수식자를 사용하고
+`data-crudui-state="true|false"`를 기록합니다. CSS는 이 속성을 스타일링할 수
+있으며 스크립트는 표시 클래스로 동작을 추론하지 않고 선언된 데이터와 ARIA
+속성을 읽습니다.
+
 ## 기준 폼에서 채택하지 않은 동작
 
 이 문법의 기준이 된 폼과 다음을 의도적으로 다르게 정했습니다.

@@ -5,7 +5,7 @@
   import type { DetailViewModel, CellDisplay } from '@crudui/generator-core';
 
   let { vm }: { vm: DetailViewModel } = $props();
-  const wrapperClass = $derived(['detail-view', vm.design.wrapper.class].filter((s) => s && s.trim()).join(' ').trim());
+  const wrapperClass = $derived(['crudui-detail', vm.design.wrapper.class].filter((s) => s && s.trim()).join(' ').trim());
   const wrapperStyle = $derived(vm.design.wrapper.style?.trim() || undefined);
 </script>
 
@@ -13,18 +13,18 @@
   {#if typeof display === 'string'}
     {display}
   {:else if display.kind === 'badge'}
-    <span class={display.variant ? `badge badge-${display.variant}` : 'badge'}>{display.label}</span>
+    <span class="crudui-badge" data-crudui-variant={display.variant || undefined}>{display.label}</span>
   {:else if display.kind === 'link'}
     <a href={display.href} target={display.target ?? undefined}>{display.text}</a>
   {:else if display.kind === 'image'}
     <img src={display.src} alt={display.alt} width={display.width ?? undefined} height={display.height ?? undefined} />
   {:else if display.kind === 'bool'}
     {#if display.as === 'check'}
-      <span class="bool-check" aria-label={display.label}>{display.value ? '✔' : '✘'}</span>
+      <span class="crudui-bool crudui-bool--check" data-crudui-state={String(display.value)} aria-label={display.label}>{display.value ? '✔' : '✘'}</span>
     {:else if display.as === 'icon'}
-      <span class={display.value ? 'bool-icon bool-true' : 'bool-icon bool-false'} aria-label={display.label}></span>
+      <span class="crudui-bool crudui-bool--icon" data-crudui-state={String(display.value)} aria-label={display.label}></span>
     {:else}
-      <span class="bool-text">{display.label}</span>
+      <span class="crudui-bool crudui-bool--text" data-crudui-state={String(display.value)}>{display.label}</span>
     {/if}
   {:else if display.kind === 'html'}
     {@html display.html}
@@ -33,10 +33,10 @@
 
 <dl class={wrapperClass} style={wrapperStyle}>
   {#each vm.fields as field (field.key)}
-    <div class="detail-field">
-      <dt class="detail-label">{field.label}</dt>
+    <div class="crudui-detail__field">
+      <dt class="crudui-detail__label">{field.label}</dt>
       <dd
-        class={['detail-value', `detail-value-${field.format.type}`, field.design.main.class].filter((s) => s && s.trim()).join(' ').trim()}
+        class={['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class].filter((s) => s && s.trim()).join(' ').trim()}
         style={field.design.main.style?.trim() || undefined}
       >{@render cellDisplay(field.display)}</dd>
     </div>

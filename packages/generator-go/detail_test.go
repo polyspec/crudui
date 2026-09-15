@@ -24,7 +24,7 @@ func TestRenderDetailIsReadOnly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if html != `<dl class="detail-view"><div class="detail-field"><dt class="detail-label">Name</dt><dd class="detail-value detail-value-text">Ada</dd></div></dl>` {
+	if html != `<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd></div></dl>` {
 		t.Fatalf("unexpected detail HTML: %s", html)
 	}
 }

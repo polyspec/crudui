@@ -197,7 +197,7 @@ export class Validator {
         if (isMultiple) {
           if (present) {
             // Keyed rows use sorted-key traversal so the first reported error
-            // is identical in every implementation. Row keys stay in paths.
+            // is identical in every validation implementation. Row keys stay in paths.
             const rows = fieldValue as Record<string, unknown>;
             for (const key of Object.keys(rows).sort()) {
               const row = rows[key];
@@ -301,7 +301,7 @@ export class Validator {
       }
     }
 
-    // 2. Row rules in sorted row-key order.
+    // 2. Row rules in sorted row-key order (the error-order contract).
     for (const key of Object.keys(values).sort()) {
       const value = values[key];
       this.validateElementRules(

@@ -63,13 +63,22 @@ export const buildTargets = Object.freeze([
     restarts: [],
   },
   {
+    id: 'ordered-json-javascript',
+    timeoutMs: 60_000,
+    inputs: [`${example}/src/ordered-json-source.mjs`, 'scripts/install-ordered-json-js.mjs',
+      'package.json', 'package-lock.json'],
+    dependsOn: ['npm-dependencies'],
+    steps: [step('node', ['scripts/install-ordered-json-js.mjs'])],
+    restarts: [],
+  },
+  {
     id: 'frames',
     timeoutMs: 300_000,
     inputs: [
       new RegExp(`^${example}/(?:build\\.mjs|public/|src/|viewer/|fixtures/)`),
       javascriptPackages, 'tests/form-inspector/form-snapshot.mjs',
     ],
-    dependsOn: ['npm-dependencies'],
+    dependsOn: ['npm-dependencies', 'ordered-json-javascript'],
     steps: [step('node', [`${example}/build.mjs`, publicDirectory])],
     restarts: [],
   },

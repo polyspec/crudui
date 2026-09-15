@@ -257,7 +257,7 @@ func listRequest(t *testing.T, specJSON string, files map[string]string) []byte 
 // {valid:true, errors:[]} result shape (no rows → no DATA pass → no field errors),
 // exit 0 — identical wire to a clean form result.
 func TestCliListModeCleanIsValid(t *testing.T) {
-	run := runCli(t, listRequest(t, `{"columns":{"name":{"field":".name","label":"Name"}}}`, nil))
+	run := runCli(t, listRequest(t, `{"columns":{"name":{"field":"name","label":"Name"}}}`, nil))
 	if run.exit != 0 {
 		t.Fatalf("clean list exit: want 0, got %d (stderr: %s)", run.exit, run.stderr)
 	}
@@ -281,7 +281,7 @@ func TestCliListModeCleanIsValid(t *testing.T) {
 // forbidden meta key uses the same failure wire as the form path — exit 2,
 // stdout exactly {error, code: FORBIDDEN_META_KEY, at}.
 func TestCliListModeForbiddenKeyLoadWire(t *testing.T) {
-	run := runCli(t, listRequest(t, `{"columns":{"name":{"field":".name"},"display_switch":{"field":".x"}}}`, nil))
+	run := runCli(t, listRequest(t, `{"columns":{"name":{"field":"name"},"display_switch":{"field":"x"}}}`, nil))
 	var out map[string]any
 	if err := json.Unmarshal(run.stdout, &out); err != nil {
 		t.Fatalf("failure stdout not JSON: %q (%v)", run.stdout, err)
@@ -305,8 +305,8 @@ func TestCliListModeUnresolvedRefLoadWire(t *testing.T) {
 // supplied clean file composes + scans clean through the CLI (compose reuse wire).
 func TestCliListModeRefResolvesAndScansClean(t *testing.T) {
 	run := runCli(t, listRequest(t,
-		`{"columns":{"$ref":"base.yml","$patch":{"extra":{"field":".extra"}}}}`,
-		map[string]string{"base.yml": `{"properties":{"id":{"field":".id"}}}`},
+		`{"columns":{"$ref":"base.yml","$patch":{"extra":{"field":"extra"}}}}`,
+		map[string]string{"base.yml": `{"properties":{"id":{"field":"id"}}}`},
 	))
 	if run.exit != 0 {
 		t.Fatalf("resolved-$ref list exit: want 0, got %d (stderr: %s)", run.exit, run.stderr)
@@ -346,8 +346,8 @@ func modeRequest(t *testing.T, specJSON string, files map[string]string, rawMode
 // and returns exactly {valid:true, errors:[]} with exit 0.
 func TestCliDetailModeRefResolvesAndIsValid(t *testing.T) {
 	run := runCli(t, modeRequest(t,
-		`{"fields":{"$ref":"base.yml","$patch":{"extra":{"field":".extra"}}}}`,
-		map[string]string{"base.yml": `{"properties":{"name":{"field":".name"}}}`},
+		`{"fields":{"$ref":"base.yml","$patch":{"extra":{"field":"extra"}}}}`,
+		map[string]string{"base.yml": `{"properties":{"name":{"field":"name"}}}`},
 		`"detail"`,
 	))
 	if run.exit != 0 {
@@ -366,7 +366,7 @@ func TestCliDetailModeRefResolvesAndIsValid(t *testing.T) {
 // TestCliDetailModeForbiddenKeyLoadWire: a forbidden key in a detail field is a
 // load failure — exit 2, exactly {error, code, at}.
 func TestCliDetailModeForbiddenKeyLoadWire(t *testing.T) {
-	run := runCli(t, modeRequest(t, `{"fields":{"name":{"field":".name","show_if":".admin"}}}`, nil, `"detail"`))
+	run := runCli(t, modeRequest(t, `{"fields":{"name":{"field":"name","show_if":".admin"}}}`, nil, `"detail"`))
 	var out map[string]any
 	if err := json.Unmarshal(run.stdout, &out); err != nil {
 		t.Fatalf("failure stdout not JSON: %q (%v)", run.stdout, err)
@@ -436,7 +436,7 @@ func TestCliRequestRules(t *testing.T) {
 // TestCliNullFilesAndBasepathMeanNone: null files and basepath are accepted as
 // none and the request validates normally.
 func TestCliNullFilesAndBasepathMeanNone(t *testing.T) {
-	run := runCli(t, []byte(`{"spec":{"fields":{"name":{"field":".name"}}},"mode":"detail","files":null,"basepath":null}`))
+	run := runCli(t, []byte(`{"spec":{"fields":{"name":{"field":"name"}}},"mode":"detail","files":null,"basepath":null}`))
 	if run.exit != 0 {
 		t.Fatalf("exit: want 0, got %d (stdout: %s)", run.exit, run.stdout)
 	}
@@ -467,7 +467,7 @@ func TestCliFormDataRule(t *testing.T) {
 		}
 	})
 	t.Run("list ignores data", func(t *testing.T) {
-		run := runCli(t, []byte(`{"spec":{"columns":{"name":{"field":".name"}}},"mode":"list","data":null}`))
+		run := runCli(t, []byte(`{"spec":{"columns":{"name":{"field":"name"}}},"mode":"list","data":null}`))
 		if run.exit != 0 {
 			t.Fatalf("list with null data exit: want 0, got %d (stdout: %s)", run.exit, run.stdout)
 		}

@@ -536,3 +536,122 @@ textarea.crudui-input {
 .crudui-node--lang-item > .crudui-node__body {
   flex: 1;
 }
+
+/* Read-only list and detail output. Format kinds are explicit modifiers; data
+   attributes carry open badge variants and boolean state. */
+.crudui-list,
+.crudui-detail {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.crudui-list__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.crudui-list__heading,
+.crudui-list__cell {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--crudui-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.crudui-list__heading {
+  background: var(--crudui-subtle);
+  font-weight: 600;
+}
+
+.crudui-list__heading-label,
+.crudui-list__sort {
+  display: inline-block;
+}
+
+.crudui-list__sort {
+  margin-left: 0.375rem;
+  color: var(--crudui-muted);
+}
+
+.crudui-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.crudui-list__action {
+  display: inline-flex;
+}
+
+.crudui-list__empty {
+  padding: 1rem;
+  border: 1px dashed var(--crudui-border);
+  color: var(--crudui-muted);
+}
+
+.crudui-list__cards {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.crudui-list__card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: 0.5rem;
+}
+
+.crudui-list__card-label {
+  color: var(--crudui-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.crudui-list__card-value {
+  min-width: 0;
+}
+
+.crudui-list__pagination {
+  display: flex;
+  min-height: 1.5rem;
+  align-items: center;
+}
+
+.crudui-detail {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.crudui-detail__field {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--crudui-border);
+}
+
+.crudui-detail__label {
+  color: var(--crudui-muted);
+  font-weight: 600;
+}
+
+.crudui-detail__value {
+  min-width: 0;
+}
+
+.crudui-badge {
+  display: inline-flex;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--crudui-subtle);
+}
+
+.crudui-bool {
+  display: inline-flex;
+  align-items: center;
+}
+
+.crudui-bool--icon[data-crudui-state='false'] {
+  opacity: 0.55;
+}

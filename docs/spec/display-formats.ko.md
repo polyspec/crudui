@@ -10,7 +10,7 @@
 
 ## 값을 표시하는 과정
 
-1. 열이나 필드의 `field` 경로(예: `.name`, `.company.name`)로 행이나 레코드에서 값을 읽습니다. 모델은 이 값을
+1. 열이나 필드의 `field` 경로(예: `name`, `company.name`)로 행이나 레코드에서 값을 읽습니다. 모델은 이 값을
    `value`로 유지하며, 레코드에 없는 경로는 `null`입니다.
 2. `format`이 값을 `display` 모델로 바꿉니다. 문자열이거나, `badge`, `link`, `bool`, `image`, `html`은 구조화된
    값입니다.
@@ -22,11 +22,15 @@
 
 ```yaml
 columns:
-  name:   { field: .name, label: { ko: 이름, en: Name }, format: { type: link, href: /users/.id } }
-  score:  { field: .score, format: { type: number, decimals: 2, thousands: true, prefix: { en: '$' } } }
-  joined: { field: .joined, format: { type: date, pattern: YYYY-MM-DD } }
-  status: { field: .status, format: { type: badge, map: { active: success, blocked: danger } } }
+  name:   { field: name, label: { ko: 이름, en: Name }, format: { type: link, href: /users/{=id} } }
+  score:  { field: score, format: { type: number, decimals: 2, thousands: true, prefix: { en: '$' } } }
+  joined: { field: joined, format: { type: date, pattern: YYYY-MM-DD } }
+  status: { field: status, format: { type: badge, map: { active: success, blocked: danger } } }
 ```
+
+`field`와 `sort.field`는 앞에 점을 붙이지 않는 점 구분 데이터 경로입니다. 표시 토큰은
+`{=path}` 형식을 사용합니다. 이 하나의 경로 모델은 객체 멤버와 연관 배열 키를 같은 방식으로
+읽으며, `=`는 표시 치환임을 명확히 하여 URL과 파일 확장자의 점이 경로로 오인되지 않게 합니다.
 
 ## 형식 선언
 
@@ -93,8 +97,9 @@ columns:
 
 ### link
 
-- `href`는 문자열이거나 [표현식 규칙](expressions.ko.md)으로 결정하는 조건 맵입니다. `href`의 각 `.path` 토큰은
-  레코드의 해당 경로 값으로 바꿉니다. `.field`는 셀 값이며, 레코드에 없는 경로는 셀 값으로 바꿉니다.
+- `href`는 문자열이거나 [표현식 규칙](expressions.ko.md)으로 결정하는 조건 맵입니다. `href`의 명시적
+  `{=path}` 토큰만 레코드의 해당 경로 값으로 바꿉니다. `{=field}`는 셀 값이며, 레코드에 없는 경로는 셀 값으로 바꿉니다.
+  중괄호 밖의 텍스트는 리터럴입니다.
 - `text`는 링크 문구입니다. `text`가 없거나 `null`이거나 비어 있으면 셀 값이 문구입니다.
 - `target`은 비어 있지 않은 문자열일 때 씁니다.
 - `javascript:` 주소는 React 서버 렌더링과 같이 오류를 던지는 주소로 바꿉니다.
@@ -112,7 +117,7 @@ columns:
 
 ### image
 
-값이 이미지 원본입니다. `alt`는 번역하고 링크와 같이 `.path` 토큰을 바꾸며, `alt`가 없으면 대체 텍스트는
+값이 이미지 원본입니다. `alt`는 번역하고 링크와 같이 명시적 `{=path}` 토큰을 바꾸며, `alt`가 없으면 대체 텍스트는
 비어 있습니다. 선언한 `width`와 `height`는 텍스트로 쓰고, `null`로 선언하면 빈 속성을 씁니다. 원본이 비어 있지
 않고 `data:`로 시작하지 않는 이미지는 preload 링크도 추가합니다. 아래 마크업 절을 참고하세요.
 
@@ -163,13 +168,15 @@ PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체�
 
 | 표시 | 목록 표 셀 | 상세 값 |
 | --- | --- | --- |
-| text, date, number, choice-label | `td.list-td.list-td-TYPE` 안의 이스케이프한 텍스트 | `dd.detail-value.detail-value-TYPE` 안의 이스케이프한 텍스트 |
-| badge | `span.badge.badge-VARIANT`(변형이 없으면 `span.badge`) | `dd` 안에 같은 마크업 |
+| text, date, number, choice-label | `crudui-list__cell crudui-value crudui-value--TYPE` 안의 이스케이프한 텍스트 | `crudui-detail__value crudui-value crudui-value--TYPE` 안의 이스케이프한 텍스트 |
+| badge | 선택적인 `data-crudui-variant`를 가진 `span.crudui-badge` | `dd` 안에 같은 마크업 |
 | link | `href`와 선택적인 `target`을 가진 `a` | `dd` 안에 같은 마크업 |
-| bool | 라벨을 담은 `span.bool-text`, 라벨을 `aria-label`로 가진 `span.bool-icon.bool-true` 또는 `.bool-false`, `✔`나 `✘`와 라벨 `aria-label`을 가진 `span.bool-check` | `dd` 안에 같은 마크업 |
+| bool | `data-crudui-state`와 필요한 `aria-label`을 가진 `span.crudui-bool crudui-bool--text`, `--icon` 또는 `--check` | `dd` 안에 같은 마크업 |
 | image | `src`, `alt`, 선언한 `width`와 `height`를 가진 `img` | `dd` 안에 같은 마크업 |
 | html | 이스케이프하지 않은 마크업 | `dd` 안에 같은 마크업 |
 
-상세는 `dl.detail-view`이며 필드마다 `dt.detail-label`과 값을 담은 `div.detail-field`를 둡니다. 문자열 렌더러는
+상세는 `dl.crudui-detail`이며 필드마다 `dt.crudui-detail__label`과 값을 담은
+`div.crudui-detail__field`를 둡니다. 목록 루트는 `crudui-list`이며 표, 제목, 셀, 카드,
+빈 상태, 동작과 페이지 이동은 해당 `crudui-list__*` 요소를 사용합니다. 문자열 렌더러는
 목록이나 상세 앞에 이미지 preload 링크 `<link rel="preload" as="image" href="…"/>`를 처음 사용한 순서로 중복 없이
 씁니다.

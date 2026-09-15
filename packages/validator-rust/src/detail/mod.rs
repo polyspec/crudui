@@ -73,13 +73,13 @@ mod tests {
 
     #[test]
     fn minimal_fields_passes() {
-        let v = json!({ "fields": { "name": { "field": ".name" } } });
+        let v = json!({ "fields": { "name": { "field": "name" } } });
         assert!(validate_detail(&v, &ValidateDetailOptions::default()).is_ok());
     }
 
     #[test]
     fn forbidden_field_key_is_load_error() {
-        let v = json!({ "fields": { "name": { "field": ".name", "show_if": ".admin" } } });
+        let v = json!({ "fields": { "name": { "field": "name", "show_if": ".admin" } } });
         let err = validate_detail(&v, &ValidateDetailOptions::default()).unwrap_err();
         assert_eq!(err.code, ComposeErrorCode::ForbiddenMetaKey);
         assert_eq!(err.trace.join("."), "fields.name.show_if");

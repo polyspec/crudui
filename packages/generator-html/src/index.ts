@@ -299,7 +299,7 @@ function cellBody(cell: CellVM): string {
   const display = cell.display;
   if (typeof display === 'string') return escape(display);
   switch (display.kind) {
-    case 'badge': return element('span', { class: display.variant ? `badge badge-${display.variant}` : 'badge' }, escape(display.label));
+    case 'badge': return element('span', { class: 'crudui-badge', ...(display.variant ? { 'data-crudui-variant': display.variant } : {}) }, escape(display.label));
     case 'link': return element('a', { href: display.href, ...(display.target ? { target: display.target } : {}) }, escape(display.text));
     case 'image': {
       const values: AttrValues = { src: display.src, alt: display.alt ?? '' };
@@ -309,9 +309,9 @@ function cellBody(cell: CellVM): string {
       return `<img${attrs(values)}/>`;
     }
     case 'bool':
-      if (display.as === 'check') return element('span', { class: 'bool-check', 'aria-label': display.label }, display.value ? '✔' : '✘');
-      if (display.as === 'icon') return element('span', { class: display.value ? 'bool-icon bool-true' : 'bool-icon bool-false', 'aria-label': display.label });
-      return element('span', { class: 'bool-text' }, escape(display.label));
+      if (display.as === 'check') return element('span', { class: 'crudui-bool crudui-bool--check', 'data-crudui-state': String(display.value), 'aria-label': display.label }, display.value ? '✔' : '✘');
+      if (display.as === 'icon') return element('span', { class: 'crudui-bool crudui-bool--icon', 'data-crudui-state': String(display.value), 'aria-label': display.label });
+      return element('span', { class: 'crudui-bool crudui-bool--text', 'data-crudui-state': String(display.value) }, escape(display.label));
     case 'html': return display.html;
     default: return '';
   }
@@ -325,9 +325,9 @@ function cellHtml(cell: CellVM, tag: 'td' | 'span' | 'dd', base: string): string
 
 /** Render one read-only detail field using the same display cell renderer as lists. */
 function detailField(field: DetailViewModel['fields'][number]): string {
-  return element('div', { class: 'detail-field' },
-    element('dt', { class: 'detail-label' }, escape(field.label)) +
-    cellHtml(field, 'dd', `detail-value detail-value-${field.format.type}`));
+  return element('div', { class: 'crudui-detail__field' },
+    element('dt', { class: 'crudui-detail__label' }, escape(field.label)) +
+    cellHtml(field, 'dd', `crudui-detail__value crudui-value crudui-value--${field.format.type}`));
 }
 
 /** Compose, evaluate and render one read-only detail without a framework or database. */
@@ -338,7 +338,7 @@ export function renderDetail(
 ): string {
   const vm = buildDetail(spec, record, options);
   const preloads = imagePreloads([{ cells: vm.fields }]);
-  return preloads + element('dl', { class: joinClass('detail-view', vm.design.wrapper.class), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
+  return preloads + element('dl', { class: joinClass('crudui-detail', vm.design.wrapper.class), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
 }
 
 /** A list action: a link or button written raw, with its behavior attributes. */
@@ -354,12 +354,12 @@ function action(action: ActionVM): string {
     values.type = 'button';
   }
   for (const [event, script] of Object.entries(action.behavior ?? {})) values[`on${event}`] = scalar(script);
-  return element('span', { class: 'list-action', 'data-action': action.key }, `<${tag}${attrs(values, true)}>${escapeText(action.label)}</${tag}>`);
+  return element('span', { class: 'crudui-list__action', 'data-action': action.key }, `<${tag}${attrs(values, true)}>${escapeText(action.label)}</${tag}>`);
 }
 
 function pagination(vm: ListViewModel): string {
   if (!vm.pagination.enabled) return '';
-  const values: AttrValues = { class: 'list-pagination' };
+  const values: AttrValues = { class: 'crudui-list__pagination' };
   if (vm.pagination.mode) values['data-mode'] = vm.pagination.mode;
   if (vm.pagination.perPage !== undefined) values['data-per-page'] = scalar(vm.pagination.perPage);
   if (vm.pagination.page !== undefined) values['data-page'] = scalar(vm.pagination.page);
@@ -368,27 +368,27 @@ function pagination(vm: ListViewModel): string {
 }
 
 function listHtml(vm: ListViewModel, layout: 'table' | 'card'): string {
-  let body = vm.actions.length ? `<div class="list-actions">${vm.actions.map(action).join('')}</div>` : '';
+  let body = vm.actions.length ? `<div class="crudui-list__actions">${vm.actions.map(action).join('')}</div>` : '';
   if (!vm.rows.length) {
-    body += element('div', { class: 'list-empty' }, escape(vm.empty));
+    body += element('div', { class: 'crudui-list__empty' }, escape(vm.empty));
   } else if (layout === 'card') {
-    body += element('div', { class: 'list-cards' }, vm.rows.map((row) => element('article', { class: 'list-card' }, row.cells.map((item, index) =>
-      element('div', { class: joinClass(`list-td list-td-${item.format.type}`, item.design.main.class) },
-        element('span', { class: 'list-card-label' }, escape(vm.columns[index]?.label ?? '')) + cellHtml(item, 'span', 'list-card-value'))).join(''))).join(''));
+    body += element('div', { class: 'crudui-list__cards' }, vm.rows.map((row) => element('article', { class: 'crudui-list__card' }, row.cells.map((item, index) =>
+      element('div', { class: joinClass(`crudui-list__cell crudui-value crudui-value--${item.format.type}`, item.design.main.class) },
+        element('span', { class: 'crudui-list__card-label' }, escape(vm.columns[index]?.label ?? '')) + cellHtml(item, 'span', 'crudui-list__card-value'))).join(''))).join(''));
   } else {
     const heads = vm.columns.map((column) => {
-      const values: AttrValues = { class: joinClass('list-th', column.design.main.class) };
+      const values: AttrValues = { class: joinClass('crudui-list__heading', column.design.main.class) };
       if (column.design.main.style) values.style = column.design.main.style;
       if (column.field) values['data-field'] = column.field;
       if (column.sortable) values['data-sortable'] = 'true';
       const field = vm.sort?.field ?? '';
       if (field !== '' && (field === column.field || field === column.key)) values['data-sort-dir'] = vm.sort?.dir;
-      return element('th', values, element('span', { class: 'list-th-label' }, escape(column.label)) + (column.sortable ? '<span class="list-sort">↕</span>' : ''));
+      return element('th', values, element('span', { class: 'crudui-list__heading-label' }, escape(column.label)) + (column.sortable ? '<span class="crudui-list__sort">↕</span>' : ''));
     }).join('');
-    const rows = vm.rows.map((row) => `<tr>${row.cells.map((item) => cellHtml(item, 'td', `list-td list-td-${item.format.type}`)).join('')}</tr>`).join('');
-    body += `<table class="list-table"><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table>`;
+    const rows = vm.rows.map((row) => `<tr>${row.cells.map((item) => cellHtml(item, 'td', `crudui-list__cell crudui-value crudui-value--${item.format.type}`)).join('')}</tr>`).join('');
+    body += `<table class="crudui-list__table"><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table>`;
   }
-  const wrapper: AttrValues = { class: joinClass('list-view', vm.design.wrapper.class) };
+  const wrapper: AttrValues = { class: joinClass('crudui-list', vm.design.wrapper.class) };
   if (vm.design.wrapper.style) wrapper.style = vm.design.wrapper.style;
   return element('div', wrapper, body + pagination(vm));
 }

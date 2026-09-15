@@ -114,7 +114,7 @@ describe('list validate — does NOT touch form-spec validate (R7 parallel)', ()
     // A list-spec carrying a "data-shaped" key alongside columns is irrelevant:
     // the function signature has no data slot and the result never reflects rows.
     const result = validateList({
-      columns: { name: { field: '.name' } },
+      columns: { name: { field: 'name' } },
     });
     expect(result).toStrictEqual({ valid: true, errors: [] });
     // Two args max (spec, options) — there is no third data argument.

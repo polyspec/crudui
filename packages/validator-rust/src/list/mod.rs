@@ -115,14 +115,14 @@ mod tests {
 
     #[test]
     fn minimal_columns_passes() {
-        let v = json!({ "columns": { "name": { "field": ".name" } } });
+        let v = json!({ "columns": { "name": { "field": "name" } } });
         assert!(run(&v).is_ok());
     }
 
     #[test]
     fn forbidden_column_key_is_load_error() {
         let v = json!({
-            "columns": { "name": { "field": ".name" }, "display_switch": { "field": ".x" } }
+            "columns": { "name": { "field": "name" }, "display_switch": { "field": "x" } }
         });
         let err = run(&v).unwrap_err();
         assert_eq!(err.code, ComposeErrorCode::ForbiddenMetaKey);
@@ -131,14 +131,14 @@ mod tests {
 
     #[test]
     fn x_prefixed_column_key_is_load_error() {
-        let v = json!({ "columns": { "name": { "field": ".name" }, "xclass": { "field": ".x" } } });
+        let v = json!({ "columns": { "name": { "field": "name" }, "xclass": { "field": "x" } } });
         assert_eq!(run(&v).unwrap_err().trace.join("."), "columns.xclass");
     }
 
     #[test]
     fn forbidden_key_in_format_options_bucket_is_load_error() {
         let v = json!({
-            "columns": { "name": { "field": ".name", "format": { "type": "badge", "if": ".admin" } } }
+            "columns": { "name": { "field": "name", "format": { "type": "badge", "if": ".admin" } } }
         });
         assert_eq!(
             run(&v).unwrap_err().trace.join("."),
@@ -151,10 +151,10 @@ mod tests {
         // The columns map is composed by the FORM properties engine: $ref pulls a
         // base file's `properties` layer (detectKey), $patch overlays.
         let files = json!({
-            "base-columns.yml": { "properties": { "name": { "field": ".name" } } }
+            "base-columns.yml": { "properties": { "name": { "field": "name" } } }
         });
         let v = json!({
-            "columns": { "$ref": "base-columns.yml", "$patch": { "extra": { "field": ".extra" } } }
+            "columns": { "$ref": "base-columns.yml", "$patch": { "extra": { "field": "extra" } } }
         });
         assert!(run_with_files(&v, files).is_ok());
     }
@@ -173,7 +173,7 @@ mod tests {
             "search-form.yml": { "properties": { "q": { "type": "text" } } }
         });
         let v = json!({
-            "columns": { "name": { "field": ".name" } },
+            "columns": { "name": { "field": "name" } },
             "search": { "$ref": "search-form.yml", "$patch": { "add": {} } }
         });
         assert!(run_with_files(&v, files).is_ok());
@@ -187,7 +187,7 @@ mod tests {
             "search-form.yml": { "properties": { "q": { "type": "text", "show_if": ".admin" } } }
         });
         let v = json!({
-            "columns": { "name": { "field": ".name" } },
+            "columns": { "name": { "field": "name" } },
             "search": { "$ref": "search-form.yml" }
         });
         // compose_spec on the search $ref resolves the file's `properties` layer
@@ -202,10 +202,10 @@ mod tests {
     fn metaschema_only_shape_violations_pass_the_engine() {
         // The runtime does not report meta-schema-only shape errors.
         for v in [
-            json!({ "columns": { "name": { "field": ".name" } }, "sort": { "dir": "sideways" } }),
-            json!({ "columns": { "name": { "field": ".name" } }, "limit": 10 }),
-            json!({ "columns": { "name": { "field": ".name", "format": ["date"] } } }),
-            json!({ "sort": { "field": ".name" } }),
+            json!({ "columns": { "name": { "field": "name" } }, "sort": { "dir": "sideways" } }),
+            json!({ "columns": { "name": { "field": "name" } }, "limit": 10 }),
+            json!({ "columns": { "name": { "field": "name", "format": ["date"] } } }),
+            json!({ "sort": { "field": "name" } }),
         ] {
             assert!(
                 run(&v).is_ok(),

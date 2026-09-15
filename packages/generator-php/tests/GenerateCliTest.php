@@ -36,17 +36,24 @@ final class GenerateCliTest extends TestCase
 
     public function testMissingRequiredRequestPropertiesProduceOneJsonError(): void
     {
-        foreach (['compileForm', 'bindForm', 'form', 'renderList'] as $operation) {
+        foreach (['compileForm', 'bindForm', 'form', 'renderList', 'buildList'] as $operation) {
             [$status, $result] = self::invoke(['operation' => $operation]);
             self::assertSame(1, $status);
             self::assertSame('INVALID_FORM_INPUT', $result->error->code);
         }
     }
 
+    public function testBuildListReturnsThePublicListModel(): void
+    {
+        $model = Generator::buildList(['columns' => ['name' => ['field' => 'name']]], [['name' => 'Ada']]);
+        self::assertSame('name', $model->columns[0]->field);
+        self::assertSame('Ada', $model->rows[0]->cells[0]->display);
+    }
+
     public function testJsonDecidesListAndDetailInputTypes(): void
     {
-        $spec = json_decode('{"columns":{"v":{"field":".v","label":"V"}}}');
-        $detail = json_decode('{"fields":{"v":{"field":".v"}}}');
+        $spec = json_decode('{"columns":{"v":{"field":"v","label":"V"}}}');
+        $detail = json_decode('{"fields":{"v":{"field":"v"}}}');
         $invalid = fn (string $message) => (object) ['code' => 'INVALID_FORM_INPUT', 'message' => $message, 'at' => ''];
         foreach ([
             [['operation' => 'renderList', 'spec' => [], 'rows' => []], 'List specification must be an object'],
@@ -71,11 +78,11 @@ final class GenerateCliTest extends TestCase
         foreach ([['data' => null], ['layout' => null], ['page' => null], ['total' => null]] as $options) {
             [$status, $result] = self::invoke(['operation' => 'renderList', 'spec' => $spec, 'rows' => [['v' => 'a']], 'options' => $options]);
             self::assertSame(0, $status);
-            self::assertStringContainsString('<table class="list-table">', $result);
+            self::assertStringContainsString('<table class="crudui-list__table">', $result);
         }
         [$status, $result] = self::invoke(['operation' => 'renderDetail', 'spec' => $detail, 'record' => new \stdClass(), 'options' => ['data' => null]]);
         self::assertSame(0, $status);
-        self::assertStringStartsWith('<dl class="detail-view">', $result);
+        self::assertStringStartsWith('<dl class="crudui-detail">', $result);
     }
 
     public function testFailedActionKeepsCompleteStateAndLaterActionRuns(): void

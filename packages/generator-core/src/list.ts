@@ -316,10 +316,10 @@ export function buildDisplay(
   // Rows: one cell per visible column, value read by the column field path.
   const rowVMs: RowVM[] = rows.map((row) => {
     const cells: CellVM[] = columnVMs.map((col, i) => {
-      const value = col.field ? getValueByPath(row, stripLeadingDot(col.field)) : undefined;
+      const value = col.field ? getValueByPath(row, col.field) : undefined;
       // Per-cell expr context: the row is the formData, the field path is current.
       const cellExpr = makeContext(
-        col.field ? parsePathString(stripLeadingDot(col.field)) : [],
+        col.field ? parsePathString(col.field) : [],
         row
       );
       const cellDesign = resolveDesign(colSpecs[i]?.design, cellExpr);
@@ -347,6 +347,3 @@ export function buildDisplay(
 }
 
 /** A column `field` is an Expression path; a leading `.` means root-relative. */
-function stripLeadingDot(field: string): string {
-  return field.startsWith('.') ? field.slice(1) : field;
-}

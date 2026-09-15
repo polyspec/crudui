@@ -98,7 +98,8 @@ their processes. A target also runs when a target it depends on runs.
 | --- | --- | --- | --- |
 | `npm-dependencies` | root `package.json`, `package-lock.json`, package manifests | | public |
 | `javascript-packages` | the TypeScript validator and generator packages, root `tsconfig` files | `npm-dependencies` | |
-| `frames` | the example `build.mjs`, `public/`, `src/`, `viewer/` and `fixtures/`, the TypeScript packages, the form snapshot module | `npm-dependencies` | |
+| `ordered-json-javascript` | the pinned checkout's `js/` package copied to `node_modules/ordered-json` | `npm-dependencies` | |
+| `frames` | the example `build.mjs`, `public/`, `src/`, `viewer/` and `fixtures/`, the TypeScript packages, the form snapshot module | `npm-dependencies`, `ordered-json-javascript` | |
 | `browser-matrix` | `src/runtime-paths.json` | | public, Go, Rust |
 | `public-server` | `server.mjs`, `src/json.mjs` | | public |
 | `composer` | `packages/validator-php/`, the generator Composer manifest and lock | | |

@@ -164,12 +164,12 @@ foreach ($detail->fields as $field) {
 check($detail->fields[0]->value === 'Ada' && $detail->fields[0]->display === 'Ada', 'Detail value changed');
 check($detail->fields[1]->value === null && $detail->fields[1]->display === '', 'Absent detail value is not null');
 same($detail, Generator::buildDetail((object)$detailSpec, (object)['name'=>'Ada']), 'Associative detail arrays differ from objects');
-$detailHtml = '<dl class="detail-view"><div class="detail-field"><dt class="detail-label">Name</dt><dd class="detail-value detail-value-text">Ada</dd></div><div class="detail-field"><dt class="detail-label">Missing</dt><dd class="detail-value detail-value-text"></dd></div></dl>';
+$detailHtml = '<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-detail__value-text">Ada</dd></div><div class="crudui-detail__field"><dt class="crudui-detail__label">Missing</dt><dd class="crudui-detail__value crudui-detail__value-text"></dd></div></dl>';
 same($detailHtml, Generator::renderDetail($detailSpec, ['name'=>'Ada']), 'Detail HTML changed');
 same($detailHtml, Generator::renderDetail((object)$detailSpec, (object)['name'=>'Ada'], []), 'Object detail HTML differs');
-same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]]), 'Omitted detail record changed');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]]), 'Omitted detail record changed');
 // An empty PHP array is the empty root object; a non-empty list-shaped array is not an object.
-same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]], []), 'Empty array detail record changed');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]], []), 'Empty array detail record changed');
 same([], Generator::buildDetail(['fields'=>[]], [])->fields, 'Empty array detail record model changed');
 foreach (['renderDetail', 'buildDetail'] as $method) {
     foreach ([
@@ -189,7 +189,7 @@ $displayFailure = function (callable $operation, string $message): void {
     $error = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
     check($error->getMessage() === $message && $error->getPath() === '', "Display failure changed: $message; received " . $error->getMessage());
 };
-same('<div class="list-view"><div class="list-empty"></div></div>', Generator::renderList([], []), 'Empty array list specification changed');
+same('<div class="crudui-list"><div class="crudui-list__empty"></div></div>', Generator::renderList([], []), 'Empty array list specification changed');
 $displayFailure(fn()=>Generator::renderList([['columns']], []), 'List specification must be an object');
 $displayFailure(fn()=>Generator::renderList($listSpec, ['a'=>['v'=>1]]), 'List rows must be an array');
 foreach ([[1], [[]], [['a']], [null]] as $rows) {
@@ -205,14 +205,14 @@ foreach ([['x'], 'x', 1, true] as $value) {
 }
 // Page and total: PHP int or float whose value is a safe integer, written as decimal digits.
 $pagedSpec = $listSpec + ['pagination'=>true];
-$emptyList = '<div class="list-view"><div class="list-empty"></div>';
+$emptyList = '<div class="crudui-list"><div class="crudui-list__empty"></div>';
 foreach ([
-    [[], '<nav class="list-pagination"></nav>'],
-    [['page'=>2, 'total'=>99], '<nav class="list-pagination" data-page="2" data-total="99"></nav>'],
-    [['page'=>2.0, 'total'=>-0.0], '<nav class="list-pagination" data-page="2" data-total="0"></nav>'],
-    [['page'=>9007199254740991, 'total'=>9007199254740991.0], '<nav class="list-pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>'],
-    [['page'=>1, 'total'=>null], '<nav class="list-pagination" data-page="1"></nav>'],
-    [['total'=>0], '<nav class="list-pagination" data-total="0"></nav>'],
+    [[], '<nav class="crudui-list__pagination"></nav>'],
+    [['page'=>2, 'total'=>99], '<nav class="crudui-list__pagination" data-page="2" data-total="99"></nav>'],
+    [['page'=>2.0, 'total'=>-0.0], '<nav class="crudui-list__pagination" data-page="2" data-total="0"></nav>'],
+    [['page'=>9007199254740991, 'total'=>9007199254740991.0], '<nav class="crudui-list__pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>'],
+    [['page'=>1, 'total'=>null], '<nav class="crudui-list__pagination" data-page="1"></nav>'],
+    [['total'=>0], '<nav class="crudui-list__pagination" data-total="0"></nav>'],
 ] as [$options, $nav]) {
     same($emptyList . $nav . '</div>', Generator::renderList($pagedSpec, [], $options), 'List page options changed: ' . json_encode($options));
 }
@@ -223,7 +223,7 @@ foreach (['2', true, false, [], [2], new stdClass(), 1.5, 0, 0.0, -1, 9007199254
 foreach (['0', true, [], new stdClass(), 2.5, -1, -1.0, 9007199254740992] as $value) {
     $displayFailure(fn()=>Generator::renderList($pagedSpec, [], ['total'=>$value]), 'List total must be a nonnegative integer');
 }
-same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]], [], ['page'=>'x', 'total'=>-1]), 'Detail must ignore list page options');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]], [], ['page'=>'x', 'total'=>-1]), 'Detail must ignore list page options');
 foreach (['grid', '', 5, ['table']] as $layout) {
     $displayFailure(fn()=>Generator::renderList($listSpec, [], ['layout'=>$layout]), 'List layout must be table or card');
 }
@@ -235,7 +235,7 @@ $displayFailure(fn()=>Generator::renderList($listSpec, [], $allInvalid), 'List c
 $displayFailure(fn()=>Generator::renderList($listSpec, [], ['page'=>0, 'total'=>-1, 'layout'=>'grid']), 'List page must be a positive integer');
 $displayFailure(fn()=>Generator::renderList($listSpec, [], ['total'=>-1, 'layout'=>'grid']), 'List total must be a nonnegative integer');
 $displayFailure(fn()=>Generator::renderDetail([], [], ['data'=>1]), 'Detail specification must declare fields');
-same('<dl class="detail-view"></dl>', Generator::renderDetail(['fields'=>[]], [], ['data'=>[]]), 'Empty array detail context changed');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]], [], ['data'=>[]]), 'Empty array detail context changed');
 $displayValue = fn(array $format, mixed $value) => Generator::buildDetail(['fields'=>['v'=>['field'=>'.v','format'=>$format]]], ['v'=>$value])->fields[0]->display;
 foreach ([
     [2, 'a😀bc', 'a😀…'], [3, '가나다라마', '가나다…'], ['2', 'abcd', 'abcd'], [0.5, 'abc', 'abc'],
@@ -243,7 +243,7 @@ foreach ([
 ] as [$limit, $value, $expected]) {
     same($expected, $displayValue(['type'=>'text','truncate'=>$limit], $value), 'Text truncation changed: ' . json_encode($limit));
 }
-same('<dl class="detail-view"><div class="detail-field"><dt class="detail-label">V</dt><dd class="detail-value detail-value-text">a😀…</dd></div></dl>',
+same('<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">V</dt><dd class="crudui-detail__value crudui-detail__value-text">a😀…</dd></div></dl>',
     Generator::renderDetail(['fields'=>['v'=>['field'=>'.v','label'=>'V','format'=>['type'=>'text','truncate'=>2]]]], ['v'=>'a😀bc']), 'Truncated detail HTML changed');
 same('1.' . str_repeat('0', 100), $displayValue(['type'=>'number','decimals'=>100], 1), 'Maximum decimals changed');
 same('1', $displayValue(['type'=>'number','decimals'=>'101'], 1), 'Non-number decimals are not ignored');
