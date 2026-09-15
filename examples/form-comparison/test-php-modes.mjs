@@ -7,18 +7,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const directory = fileURLToPath(new URL('.', import.meta.url));
-const [jsonExtension, cruduiExtension, library,
-  archiveFile = '/archives/source.tar',
-  metadataFile = '/workspace/metadata.json'] = process.argv.slice(2);
-for (const [name, file] of Object.entries({ jsonExtension, cruduiExtension, library, archiveFile, metadataFile })) {
-  assert.ok(file?.startsWith('/'), `An absolute ${name} path is required`);
+const usage = 'Usage: node test-php-modes.mjs /ordered_json.so /crudui.so /library';
+assert.equal(process.argv.length, 5, usage);
+const [jsonExtension, cruduiExtension, library] = process.argv.slice(2);
+for (const [name, file] of Object.entries({ jsonExtension, cruduiExtension, library })) {
+  assert.ok(path.isAbsolute(file), `An absolute ${name} path is required`);
 }
-const digest = file => createHash('sha256').update(readFileSync(file)).digest('hex');
-const metadata = JSON.parse(readFileSync(metadataFile, 'utf8'));
-const archiveSha256 = digest(archiveFile);
-const moduleSha256 = digest(cruduiExtension);
-assert.equal(archiveSha256, metadata.source.archiveSha256,
-  'The deployed source archive differs from metadata');
+const moduleSha256 = createHash('sha256').update(readFileSync(cruduiExtension)).digest('hex');
+const source = '(object)["commit"=>str_repeat("a",40),"changes"=>null]';
 const orderedJsonPhp = path.join(
   library, '.form-comparison/sources/ordered-json/php/src/OrderedJson.php',
 );
@@ -57,12 +53,11 @@ try {
   const signaturesFile = path.join(temporary, 'signatures.json');
   const signatureScript = [
     'require $argv[1];',
-    '$source=(object)["commit"=>str_repeat("a",40),"archiveSha256"=>$argv[3]];',
-    '$generation=new FormGeneration("php",$argv[2],$source,$argv[3],null);',
+    `$generation=new FormGeneration("php",$argv[2],${source},null);`,
     'echo json_encode($generation->provenance()["signatures"], JSON_THROW_ON_ERROR);',
   ].join('');
   const baseline = success('php', 'signature-baseline', [
-    ...extensions('php'), '-r', signatureScript, '--', path.join(directory, 'generation.php'), library, archiveSha256,
+    ...extensions('php'), '-r', signatureScript, '--', path.join(directory, 'generation.php'), library,
   ]);
   writeFileSync(signaturesFile, baseline.stdout);
 
@@ -70,8 +65,8 @@ try {
     const args = extensions(mode);
     for (const script of ['test-json.php', 'test-repository.php']) success(mode, script, [...args, script]);
     success(mode, 'test-generation.php', [
-      ...args, 'test-generation.php', library, mode, archiveFile,
-      mode === 'php-ext' ? cruduiExtension : '-', archiveSha256, mode === 'php-ext' ? moduleSha256 : '-', signaturesFile,
+      ...args, 'test-generation.php', library, mode,
+      mode === 'php-ext' ? cruduiExtension : '-', mode === 'php-ext' ? moduleSha256 : '-', signaturesFile,
     ]);
   }
 
@@ -89,25 +84,27 @@ try {
 
   const constructScript = [
     'require $argv[1];',
-    '$source=(object)["commit"=>str_repeat("a",40),"archiveSha256"=>$argv[3]];',
-    '$module=$argv[5]==="-"?null:$argv[5];',
-    'new FormGeneration($argv[2],$argv[4],$source,$argv[6],$module);',
+    '$module=$argv[4]==="-"?null:$argv[4];',
+    '$source=json_decode($argv[5]);',
+    'new FormGeneration($argv[2],$argv[3],$source,$module);',
   ].join('');
-  for (const [name, mode, verifiedArchive, verifiedModule, expected] of [
-    ['archive', 'php-ext', '0'.repeat(64), moduleSha256, /source archive hash does not match/],
-    ['module', 'php-ext', archiveSha256, '-', /verified CRUDUI module hash is required/],
-    ['pure-module', 'php', archiveSha256, moduleSha256, /must not declare a CRUDUI module hash/],
+  const identity = JSON.stringify({ commit: 'a'.repeat(40), changes: null });
+  for (const [name, mode, verifiedModule, sourceIdentity, expected] of [
+    ['module', 'php-ext', '-', identity, /verified CRUDUI module hash is required/],
+    ['pure-module', 'php', moduleSha256, identity, /must not declare a CRUDUI module hash/],
+    ['source-changes', 'php', '-', JSON.stringify({ commit: 'a'.repeat(40), changes: 'b' }), /Invalid source identity/],
+    ['source-fields', 'php', '-', JSON.stringify({ commit: 'a'.repeat(40) }), /Invalid source identity/],
   ]) {
     const result = run(mode, [
       ...extensions(mode), '-r', constructScript, '--', path.join(directory, 'generation.php'), mode,
-      archiveSha256, library, verifiedModule, verifiedArchive,
+      library, verifiedModule, sourceIdentity,
     ]);
     assert.notEqual(result.status, 0, `${name} mismatch must fail`);
     assert.match(diagnostics(result), expected);
   }
   const unexpectedAutoload = run('php-ext', [
     ...extensions('php-ext'), '-r',
-    `require ${JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php'))}; require ${JSON.stringify(path.join(directory, 'generation.php'))}; $source=(object)["commit"=>str_repeat("a",40),"archiveSha256"=>${JSON.stringify(archiveSha256)}]; new FormGeneration("php-ext",${JSON.stringify(library)},$source,${JSON.stringify(archiveSha256)},${JSON.stringify(moduleSha256)});`,
+    `require ${JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php'))}; require ${JSON.stringify(path.join(directory, 'generation.php'))}; new FormGeneration("php-ext",${JSON.stringify(library)},${source},${JSON.stringify(moduleSha256)});`,
   ]);
   assert.notEqual(unexpectedAutoload.status, 0, 'Native PHP with Composer must fail');
   assert.match(diagnostics(unexpectedAutoload), /Composer autoloader state does not match/);

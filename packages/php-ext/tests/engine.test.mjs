@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { access, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { access, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -11,7 +11,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Node } from '@crudui/generator-react';
 import { buildDetail } from '@crudui/generator-core';
 
-import { requiredSourcePaths } from '../../../examples/form-comparison/prepare.mjs';
+import { buildTargets } from '../../../examples/form-comparison/src/build-targets.mjs';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';
 import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mjs';
 
@@ -88,29 +88,64 @@ export function fixtureProgram(body, declarations = []) {
   ].join('\n');
 }
 
-export function compileAndRunEngineFixture({ root, directory, source, sources, name,
-  compilerFlags = [], runEnvironment }) {
+/*
+ * Every test compiles and runs a C program, so each step reports its start, its
+ * elapsed time and its result while it runs, and the test's own timeout aborts the
+ * step it is in. Measured on macOS (Apple silicon, warm caches): a plain
+ * compile-and-run takes 0.5–1.1 s and a sanitized one up to 1.2 s. The budgets below
+ * leave room for slower and loaded machines, including the CI runners.
+ */
+export const ENGINE_TEST_BUDGET = 30000;
+export const ENGINE_SANITIZER_BUDGET = 60000;
+// Tests that only read repository files; measured at 20–70 ms together.
+export const ENGINE_INSPECTION_BUDGET = 10000;
+const PROGRESS_INTERVAL = 5000;
+
+/** Run one step of a fixture program, reporting progress until it finishes. */
+function runStep(label, command, args, { signal, env } = {}) {
+  const started = Date.now();
+  const elapsed = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
+  process.stderr.write(`    ${label}: started\n`);
+  const running = setInterval(
+    () => process.stderr.write(`    ${label}: still running (${elapsed()})\n`), PROGRESS_INTERVAL);
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      env: env ?? process.env, signal, killSignal: 'SIGKILL', stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', chunk => { stdout += chunk; });
+    child.stderr.on('data', chunk => { stderr += chunk; });
+    child.once('error', error => { clearInterval(running); reject(error); });
+    child.once('close', (status, closeSignal) => {
+      clearInterval(running);
+      process.stderr.write(`    ${label}: ${status === 0 ? 'passed' : `failed (${closeSignal ?? status})`} in ${elapsed()}\n`);
+      resolve({ status, signal: closeSignal, stdout, stderr });
+    });
+  });
+}
+
+export async function compileAndRunEngineFixture({ root, directory, source, sources, name,
+  compilerFlags = [], runEnvironment, signal }) {
   const fixtureSource = path.join(directory, `${name}.c`);
   const executable = path.join(directory, name);
-  return import('node:fs').then(({ writeFileSync }) => {
-    writeFileSync(fixtureSource, source);
-    const extensionSource = file => path.join(root, 'packages/php-ext/src', file);
-    const compile = spawnSync(process.env.CC ?? 'cc', [
+  await writeFile(fixtureSource, source);
+  const extensionSource = file => path.join(root, 'packages/php-ext/src', file);
+  const compile = await runStep(`${name}: compiling ${sources.length} sources`,
+    process.env.CC ?? 'cc', [
       '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
       ...compilerFlags,
       '-I', path.join(root, 'packages/php-ext/src'),
       ...sources.map(extensionSource), fixtureSource, '-o', executable, '-lm',
-    ], { encoding: 'utf8' });
-    assert.equal(compile.error, undefined);
-    assert.equal(compile.signal, null);
-    assert.equal(compile.status, 0, compile.stderr || compile.stdout);
-    const run = spawnSync(executable, [], {
-      encoding: 'utf8', env: runEnvironment ?? process.env,
-    });
-    assert.equal(run.error, undefined);
-    assert.equal(run.signal, null, run.stderr || run.stdout);
-    assert.equal(run.status, 0, run.stderr || run.stdout);
-  });
+    ], { signal });
+  assert.equal(compile.signal, null);
+  assert.equal(compile.status, 0, compile.stderr || compile.stdout);
+  const run = await runStep(`${name}: running`, executable, [],
+    { signal, env: runEnvironment ?? process.env });
+  assert.equal(run.signal, null, run.stderr || run.stdout);
+  assert.equal(run.status, 0, run.stderr || run.stdout);
 }
 
 {
@@ -143,13 +178,13 @@ function sourceForFixtures() {
   return fixtureProgram(lines);
 }
 
-test('PHP extension engine compiles every shared form fixture', async () => {
+test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(fixtures.length, 92,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'compile-fixtures',
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'compile-fixtures',
       sources: ['value.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c'],
     });
   } finally {
@@ -203,13 +238,13 @@ function sourceForInvalidReference() {
   return fixtureProgram(builder.lines);
 }
 
-test('PHP extension engine satisfies all composition fixtures', async () => {
+test('PHP extension engine satisfies all composition fixtures', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(cases.length, 20,
     'Review C composition coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compose-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForCases(), name: 'compose-fixtures',
+      signal: t.signal, root, directory, source: sourceForCases(), name: 'compose-fixtures',
       sources: ['value.c', 'engine_error.c', 'compose.c'],
     });
   } finally {
@@ -217,11 +252,11 @@ test('PHP extension engine satisfies all composition fixtures', async () => {
   }
 });
 
-test('PHP extension engine rejects a null reference value', async () => {
+test('PHP extension engine rejects a null reference value', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compose-invalid-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForInvalidReference(), name: 'compose-invalid',
+      signal: t.signal, root, directory, source: sourceForInvalidReference(), name: 'compose-invalid',
       sources: ['value.c', 'engine_error.c', 'compose.c'],
     });
   } finally {
@@ -266,7 +301,7 @@ function sourceForFixtures() {
   return fixtureProgram(lines);
 }
 
-test('PHP extension engine evaluates every shared expression fixture', async () => {
+test('PHP extension engine evaluates every shared expression fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(fixtures.length, 38,
     'Review C expression coverage when the shared fixture inventory changes');
   assert.equal(fixtures.reduce((total, fixture) => total + fixture.cases.length, 0), 77,
@@ -274,7 +309,7 @@ test('PHP extension engine evaluates every shared expression fixture', async () 
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-expression-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'expression-fixtures',
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'expression-fixtures',
       sources: ['value.c', 'value_path.c', 'expression.c'],
     });
   } finally {
@@ -375,13 +410,13 @@ function sourceForValidation() {
   return fixtureProgram(lines);
 }
 
-test('PHP extension engine validates all shared form, list and detail cases', async () => {
+test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 115,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForValidation(), name: 'validation',
+      signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', 'validation.c',
@@ -392,11 +427,11 @@ test('PHP extension engine validates all shared form, list and detail cases', as
   }
 });
 
-test('PHP extension engine validation has no undefined behavior findings', async () => {
+test('PHP extension engine validation has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-sanitize-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForValidation(), name: 'validation-sanitize',
+      signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-sanitize',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', 'validation.c',
@@ -414,11 +449,12 @@ test('PHP extension engine validation has no undefined behavior findings', async
 
 test('PHP extension engine validation has no address sanitizer findings', {
   skip: process.platform !== 'linux',
-}, async () => {
+  timeout: ENGINE_SANITIZER_BUDGET,
+}, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-address-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForValidation(), name: 'validation-address',
+      signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-address',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', 'validation.c',
@@ -519,12 +555,12 @@ function sourceForValidationAllocationFailures() {
   ]);
 }
 
-test('PHP extension validation returns failure after repeated-field allocation failures', async () => {
+test('PHP extension validation returns failure after repeated-field allocation failures', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(
     os.tmpdir(), 'crudui-extension-validation-allocation-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForValidationAllocationFailures(),
+      signal: t.signal, root, directory, source: sourceForValidationAllocationFailures(),
       name: 'validation-allocation',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
@@ -604,7 +640,7 @@ function sourceForFixtures() {
   return fixtureProgram(lines);
 }
 
-test('PHP extension engine binds every shared form fixture without changing inputs', async () => {
+test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(fixtures.length, 92,
     'Review C binding coverage when the shared fixture inventory changes');
   assert.equal(bindFixtures.length, 91,
@@ -612,7 +648,7 @@ test('PHP extension engine binds every shared form fixture without changing inpu
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
@@ -623,11 +659,11 @@ test('PHP extension engine binds every shared form fixture without changing inpu
   }
 });
 
-test('PHP extension engine binding has no undefined behavior findings', async () => {
+test('PHP extension engine binding has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-sanitize-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
@@ -680,11 +716,11 @@ function sourceForWidgetConstructionFailure() {
   return fixtureProgram(builder.lines, declarations);
 }
 
-test('PHP extension engine reports supported widget construction failures as internal errors', async () => {
+test('PHP extension engine reports supported widget construction failures as internal errors', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-widget-failure-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
+      signal: t.signal, root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'messages.c', 'binding.c',
@@ -768,7 +804,7 @@ function sourceForFixtures() {
   return fixtureProgram(lines);
 }
 
-test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', async () => {
+test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(fixtures.length, 92,
     'Review C rendering coverage when the shared fixture inventory changes');
   assert.equal(renderFixtures.length, 90,
@@ -776,7 +812,7 @@ test('PHP extension engine renders successful shared form fixtures and edge case
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'render-fixtures',
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
@@ -787,11 +823,11 @@ test('PHP extension engine renders successful shared form fixtures and edge case
   }
 });
 
-test('PHP extension engine form rendering has no undefined behavior findings', async () => {
+test('PHP extension engine form rendering has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-sanitize-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
@@ -878,7 +914,7 @@ const sources = [
   'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
 ];
 
-test('PHP extension engine renders the complete list target as exact HTML', async () => {
+test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(fixtures.length, 42,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
@@ -888,18 +924,18 @@ test('PHP extension engine renders the complete list target as exact HTML', asyn
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-list-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'list-fixtures', sources,
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'list-fixtures', sources,
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
 });
 
-test('PHP extension engine list rendering has no undefined behavior findings', async () => {
+test('PHP extension engine list rendering has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-list-sanitize-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'list-fixtures-sanitize', sources,
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'list-fixtures-sanitize', sources,
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
     });
@@ -989,7 +1025,7 @@ const sources = [
   'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
 ];
 
-test('PHP extension engine renders and builds every shared detail fixture', async () => {
+test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(fixtures.length, 30,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
@@ -997,18 +1033,18 @@ test('PHP extension engine renders and builds every shared detail fixture', asyn
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-detail-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'detail-fixtures', sources,
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'detail-fixtures', sources,
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
 });
 
-test('PHP extension engine detail evaluation has no undefined behavior findings', async () => {
+test('PHP extension engine detail evaluation has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-detail-sanitize-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFixtures(), name: 'detail-fixtures-sanitize', sources,
+      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'detail-fixtures-sanitize', sources,
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
     });
@@ -1068,11 +1104,11 @@ function sourceForKeys() {
   ].join('\n');
 }
 
-test('PHP extension engine creates and formats row keys', async () => {
+test('PHP extension engine creates and formats row keys', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-key-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForKeys(), name: 'key',
+      signal: t.signal, root, directory, source: sourceForKeys(), name: 'key',
       sources: ['value.c', 'engine_error.c', 'key.c'],
     });
   } finally {
@@ -1225,11 +1261,11 @@ function sourceForFormState() {
   return fixtureProgram(fixture.lines);
 }
 
-test('PHP extension engine updates form state atomically', async () => {
+test('PHP extension engine updates form state atomically', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-form-'));
   try {
     await compileAndRunEngineFixture({
-      root, directory, source: sourceForFormState(), name: 'form-state',
+      signal: t.signal, root, directory, source: sourceForFormState(), name: 'form-state',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
@@ -1245,23 +1281,21 @@ test('PHP extension engine updates form state atomically', async () => {
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
-test('PHP extension engine compiles composed form templates', async () => {
+test('PHP extension engine compiles composed form templates', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-template-'));
   try {
     const executable = path.join(directory, 'template-test');
     const extensionSource = file => path.join(root, 'packages/php-ext/src', file);
-    const compile = spawnSync(process.env.CC ?? 'cc', [
+    const compile = await runStep('template-test: compiling 5 sources', process.env.CC ?? 'cc', [
       '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
       '-I', path.join(root, 'packages/php-ext/src'),
       extensionSource('value.c'), extensionSource('engine_error.c'),
       extensionSource('compose.c'), extensionSource('declaration.c'), extensionSource('template.c'),
       path.join(root, 'packages/php-ext/tests/template.c'), '-o', executable,
-    ], { encoding: 'utf8' });
-    assert.equal(compile.error, undefined);
+    ], { signal: t.signal });
     assert.equal(compile.signal, null);
     assert.equal(compile.status, 0, compile.stderr || compile.stdout);
-    const run = spawnSync(executable, [], { encoding: 'utf8' });
-    assert.equal(run.error, undefined);
+    const run = await runStep('template-test: running', executable, [], { signal: t.signal });
     assert.equal(run.signal, null);
     assert.equal(run.status, 0, run.stderr || run.stdout);
   } finally {
@@ -1273,23 +1307,21 @@ test('PHP extension engine compiles composed form templates', async () => {
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
-test('PHP extension engine value model preserves order and owns independent values', async () => {
+test('PHP extension engine value model preserves order and owns independent values', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-value-'));
   try {
     const executable = path.join(directory, 'value-test');
     const compiler = process.env.CC ?? 'cc';
-    const compile = spawnSync(compiler, [
+    const compile = await runStep('value-test: compiling 2 sources', compiler, [
       '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
       '-I', path.join(root, 'packages/php-ext/src'),
       path.join(root, 'packages/php-ext/src/value.c'),
       path.join(root, 'packages/php-ext/tests/value.c'),
       '-o', executable,
-    ], { encoding: 'utf8' });
-    assert.equal(compile.error, undefined);
+    ], { signal: t.signal });
     assert.equal(compile.signal, null);
     assert.equal(compile.status, 0, compile.stderr || compile.stdout);
-    const run = spawnSync(executable, [], { encoding: 'utf8' });
-    assert.equal(run.error, undefined);
+    const run = await runStep('value-test: running', executable, [], { signal: t.signal });
     assert.equal(run.signal, null);
     assert.equal(run.status, 0, run.stderr || run.stdout);
   } finally {
@@ -1314,14 +1346,22 @@ function normalized(source) {
   return source.replace(/\s+/g, ' ');
 }
 
-test('PHP modules use the shared builder through explicit entry points', async () => {
+test('PHP modules use the shared builder through explicit entry points', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
   const common = 'scripts/php-extension-builder.mjs';
   const crudui = 'scripts/build-crudui-php-extension.mjs';
   const orderedJson = 'scripts/build-ordered-json-php-extension.mjs';
-  for (const filename of [common, crudui, orderedJson]) {
-    await access(new URL(filename, root));
-    assert.ok(requiredSourcePaths.includes(filename),
-      'Candidate source checks must require ' + filename);
+  const comparisonTarget = id => buildTargets.find(target => target.id === id);
+  const cruduiTarget = comparisonTarget('crudui-php-extension');
+  const orderedJsonTarget = comparisonTarget('ordered-json-php-extension');
+  for (const [target, filenames] of [
+    [cruduiTarget, [common, crudui]], [orderedJsonTarget, [common, orderedJson]],
+  ]) {
+    for (const filename of filenames) {
+      await access(new URL(filename, root));
+      assert.ok(target.inputs.includes(filename),
+        'The form comparison ' + target.id + ' build must rebuild when ' + filename + ' changes');
+    }
+    assert.deepEqual(target.restarts, ['php-ext']);
   }
 
   assert.match(files.Makefile, /node scripts\/build-crudui-php-extension\.mjs/);
@@ -1336,44 +1376,46 @@ test('PHP modules use the shared builder through explicit entry points', async (
     'The native container must declare php-config once',
   );
 
-  const candidate = normalized(files['examples/form-comparison/Containerfile']);
-  assert.match(candidate, /node scripts\/build-crudui-php-extension\.mjs/);
-  assert.match(candidate, /node scripts\/build-ordered-json-php-extension\.mjs/);
-  assert.match(candidate,
-    /--source \/workspace\/source\/\.form-comparison\/sources\/ordered-json\/php-extension\/src/);
-  assert.doesNotMatch(candidate, /phpize|autoconf|libtool/i);
-  assert.doesNotMatch(candidate, /--cc \/usr\/bin\/gcc-14/);
+  // The comparison toolchain image contains no source; its supervisor builds both modules
+  // from the mounted repository with the declared php-config.
+  const commandLine = step => [step.command, ...step.args].join(' ');
+  assert.deepEqual(cruduiTarget.steps.map(commandLine),
+    ['node scripts/build-crudui-php-extension.mjs --php-config /usr/bin/php-config8.4']);
+  assert.deepEqual(orderedJsonTarget.steps.map(commandLine), [
+    'node scripts/build-ordered-json-php-extension.mjs --php-config /usr/bin/php-config8.4'
+      + ' --source /workspace/build/tree/.form-comparison/sources/ordered-json/php-extension/src',
+  ]);
+  const toolchain = normalized(files['examples/form-comparison/Containerfile']);
+  assert.doesNotMatch(toolchain, /scripts\/build-|phpize|autoconf|libtool/i);
+  for (const step of [...cruduiTarget.steps, ...orderedJsonTarget.steps]) {
+    assert.doesNotMatch(commandLine(step), /phpize|autoconf|libtool|--cc /i);
+  }
   assert.doesNotMatch(normalized(files['tests/containers/native.Containerfile']),
     /--cc \/usr\/bin\/gcc-14/);
-  const phpExtensionStage = candidate.match(
-    /FROM dependencies AS php-extension.*?FROM dependencies AS application/,
-  )?.[0];
-  assert.ok(phpExtensionStage, 'The candidate must have one PHP extension stage');
-  assert.doesNotMatch(phpExtensionStage, /rust-toolchain|CARGO_HOME|RUSTUP_HOME/i);
 
   for (const removed of [
     'packages/php-ext/config.m4',
     'scripts/build-php-extension.sh',
     'scripts/build-php-extension.mjs',
   ]) {
-    assert.equal(requiredSourcePaths.includes(removed), false);
+    assert.equal(buildTargets.some(target => target.inputs.includes(removed)), false);
     await assert.rejects(access(new URL(removed, root)));
   }
 });
 
-test('container context excludes direct PHP extension build output', () => {
+test('container context excludes direct PHP extension build output', { timeout: ENGINE_INSPECTION_BUDGET }, () => {
   assert.match(files['.dockerignore'], /^packages\/php-ext\/\.build\/$/m);
   assert.match(files['.dockerignore'], /^packages\/php-ext\/modules\/?$/m);
 });
 
-test('PHP extension instructions use the current direct build entry point', () => {
+test('PHP extension instructions use the current direct build entry point', { timeout: ENGINE_INSPECTION_BUDGET }, () => {
   for (const filename of ['packages/php-ext/README.md', 'packages/php-ext/README.ko.md']) {
     assert.match(files[filename], /node scripts\/build-crudui-php-extension\.mjs/);
     assert.doesNotMatch(files[filename], /sh scripts\/build-php-extension\.sh/);
   }
 });
 
-test('CRUDUI PHP extension package contains one C implementation', async () => {
+test('CRUDUI PHP extension package contains one C implementation', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
   const sourceRoot = new URL('packages/php-ext/', root);
   const generated = new Set(['.build', '.libs', 'autom4te.cache', 'build', 'include',
     'modules', 'target']);
@@ -1390,8 +1432,8 @@ test('CRUDUI PHP extension package contains one C implementation', async () => {
   await inspect(sourceRoot);
   prohibited.sort();
   assert.deepEqual(prohibited, []);
-  assert.equal(requiredSourcePaths.includes('packages/php-ext/Cargo.toml'), false);
-  assert.equal(requiredSourcePaths.includes('packages/php-ext/Cargo.lock'), false);
+  assert.equal(buildTargets.find(target => target.id === 'crudui-php-extension').steps
+    .some(step => step.command === 'cargo'), false);
   assert.doesNotMatch(
     files['scripts/build-crudui-php-extension.mjs'],
     /\b(?:cargo|rustc|rustdoc|Rust)\b/,

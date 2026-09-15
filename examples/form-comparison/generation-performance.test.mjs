@@ -13,12 +13,12 @@ const directory = fileURLToPath(new URL('.', import.meta.url));
 const library = path.resolve(directory, '../..');
 const generation = path.join(directory, 'generation.php');
 const commit = 'a'.repeat(40);
-const archiveSha256 = 'b'.repeat(64);
+const changes = 'b'.repeat(64);
 
 function script(body) {
   return [
     'require ' + JSON.stringify(generation) + ';',
-    '$source=(object)["commit"=>' + JSON.stringify(commit) + ',"archiveSha256"=>' + JSON.stringify(archiveSha256) + '];',
+    '$source=(object)["commit"=>' + JSON.stringify(commit) + ',"changes"=>' + JSON.stringify(changes) + '];',
     body,
   ].join('');
 }
@@ -109,27 +109,23 @@ return ['versions' => [${packageRecord}]];
 }
 
 function constructFrom(root) {
-  return php(
-    'new FormGeneration("php",' + JSON.stringify(root)
-      + ',$source,' + JSON.stringify(archiveSha256) + ',null);',
-  );
+  return php('new FormGeneration("php",' + JSON.stringify(root) + ',$source,null);');
 }
 
 test('constructs a verified generator without deployment file paths', () => {
   const result = php(
     '$generation=new FormGeneration("php",' + JSON.stringify(library)
-      + ',$source,' + JSON.stringify(archiveSha256) + ',null);echo "ok\\n";',
+      + ',$source,null);echo json_encode($generation->provenance()["source"]),"\\n";',
   );
   assert.equal(result.error, undefined);
   assert.equal(result.signal, null);
   assert.equal(result.status, 0, result.stderr + '\n' + result.stdout);
-  assert.equal(result.stdout, 'ok\n');
+  assert.deepEqual(JSON.parse(result.stdout), { commit, changes });
 });
 
-test('uses the Composer-installed validator copy from the candidate source', () => {
+test('uses the Composer-installed validator copy from the build tree', () => {
   const result = php([
-    '$generation=new FormGeneration("php",', JSON.stringify(library),
-    ',$source,', JSON.stringify(archiveSha256), ',null);',
+    '$generation=new FormGeneration("php",', JSON.stringify(library), ',$source,null);',
     'echo json_encode(["generator"=>$generation->provenance(),',
     '"validatorInstall"=>realpath(Composer\\InstalledVersions::getInstallPath("crudui/validator"))],JSON_THROW_ON_ERROR);',
   ].join(''));
@@ -165,8 +161,7 @@ test('uses the selected generator record with another Composer installation', ()
     'class_exists(CRUDUI\\Generator::class);class_exists(CRUDUI\\Form::class);',
     'class_exists(CRUDUI\\Validator::class);',
     'require ', JSON.stringify(path.join(library, 'packages/validator-php/vendor/autoload.php')), ';',
-    'new FormGeneration("php",', JSON.stringify(library),
-    ',$source,', JSON.stringify(archiveSha256), ',null);echo "ok\\n";',
+    'new FormGeneration("php",', JSON.stringify(library), ',$source,null);echo "ok\\n";',
   ].join(''));
   assert.equal(result.error, undefined);
   assert.equal(result.signal, null);
@@ -203,13 +198,17 @@ test('request construction does not read or hash deployment files', () => {
   assert.doesNotMatch(source, /file_get_contents\s*\(\s*\$[^)]*(archive|module)/i);
 });
 
-test('rejects an unverified source digest', () => {
-  const result = php(
-    'new FormGeneration("php",' + JSON.stringify(library)
-      + ',$source,' + JSON.stringify('0'.repeat(64)) + ',null);',
-  );
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /source archive hash does not match/);
+test('rejects an incomplete or malformed source identity', () => {
+  for (const identity of [
+    '(object)["commit"=>' + JSON.stringify(commit) + ']',
+    '(object)["commit"=>' + JSON.stringify(commit) + ',"changes"=>"changed"]',
+    '(object)["commit"=>"HEAD","changes"=>null]',
+    '(object)["changes"=>null,"commit"=>' + JSON.stringify(commit) + ']',
+  ]) {
+    const result = php('new FormGeneration("php",' + JSON.stringify(library) + ',' + identity + ',null);');
+    assert.notEqual(result.status, 0, identity);
+    assert.match(result.stderr + result.stdout, /Invalid source identity/);
+  }
 });
 
 test('constructs request generators without deployment-size work', () => {
@@ -217,9 +216,7 @@ test('constructs request generators without deployment-size work', () => {
     '$start=hrtime(true);',
     'for($index=0;$index<500;$index++)new FormGeneration("php",',
     JSON.stringify(library),
-    ',$source,',
-    JSON.stringify(archiveSha256),
-    ',null);',
+    ',$source,null);',
     'echo (hrtime(true)-$start),"\\n";',
   ].join('');
   const result = php(body);
