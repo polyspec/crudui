@@ -89,3 +89,16 @@ test('rendered views compare their contents, not the containers a framework mark
   view.querySelector('#form-view').firstElementChild.textContent = 'changed';
   assert.notDeepEqual(renderedViews(view), expected);
 });
+
+test('rendered views drop framework anchors and compare style as a declaration block', () => {
+  const { window } = new JSDOM('<div id="view"><div id="form-view"><div style="color:red"><span>a</span></div></div></div>');
+  const view = window.document.querySelector('#view');
+  const server = renderedViews(view).dom;
+  const row = view.querySelector('[style]');
+  // A framework writes the block it computes and keeps anchors that render nothing.
+  row.setAttribute('style', 'color: red;');
+  row.append(window.document.createComment('anchor'), window.document.createTextNode(''));
+  assert.deepEqual(renderedViews(view).dom, server);
+  row.setAttribute('style', 'color: blue;');
+  assert.notDeepEqual(renderedViews(view).dom, server);
+});
