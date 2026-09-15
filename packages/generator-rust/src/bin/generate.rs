@@ -1,11 +1,12 @@
 use std::io::{self, Read};
 
 use crudui_generator::{
-    bind_form, compile_form, render_form, render_list, AddRowOptions, BindOptions, CompileOptions,
-    Form, FormError, FormResult, FormTemplate, ListOptions,
+    bind_form, build_detail, compile_form, render_detail, render_form, render_list, AddRowOptions,
+    BindOptions, CompileOptions, DetailOptions, Form, FormError, FormResult, FormTemplate,
+    ListOptions,
 };
 use serde::de::DeserializeOwned;
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 
 fn input(message: impl Into<String>) -> FormError {
     FormError {
@@ -160,6 +161,34 @@ fn generate(request: &Value) -> FormResult<Value> {
                 None => &[],
             };
             render_list(&request["spec"], rows, &options).map(Value::String)
+        }
+        Some("renderDetail") => {
+            let compilation = compile_options(options)?;
+            let options = DetailOptions {
+                files: compilation.files,
+                basepath: compilation.basepath,
+                loader: None,
+                language: option_string(options, "language")?.unwrap_or_else(|| "ko".into()),
+                data: object(options.get("data").unwrap_or(&empty), "Detail context")?.clone(),
+                page_meta: Map::new(),
+                layout: "table".into(),
+            };
+            let record = object(request.get("record").unwrap_or(&empty), "Detail record")?;
+            render_detail(&request["spec"], record, &options).map(Value::String)
+        }
+        Some("buildDetail") => {
+            let compilation = compile_options(options)?;
+            let options = DetailOptions {
+                files: compilation.files,
+                basepath: compilation.basepath,
+                loader: None,
+                language: option_string(options, "language")?.unwrap_or_else(|| "ko".into()),
+                data: object(options.get("data").unwrap_or(&empty), "Detail context")?.clone(),
+                page_meta: Map::new(),
+                layout: "table".into(),
+            };
+            let record = object(request.get("record").unwrap_or(&empty), "Detail record")?;
+            build_detail(&request["spec"], record, &options)
         }
         Some("form") => {
             let template: FormTemplate = decode(&request["template"])?;

@@ -238,9 +238,8 @@ pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> Fo
             let path = column["field"].as_str().unwrap_or("").strip_prefix('.').unwrap_or(column["field"].as_str().unwrap_or(""));
             let value = if path.is_empty() {None} else {value_at(row,path)};
             let raw = &columns[column["key"].as_str().unwrap()];
-            let mut cell = json!({"format":column["format"],"display":cell_display(&column["format"],value,row,path,&options.language)?,"design":resolve_design(raw.get("design"),row,path)});
-            if let Some(value) = value {cell["value"] = value.clone();}
-            Ok(cell)
+            // A model is JSON: a path absent from the row is null, and the member is always present.
+            Ok(json!({"format":column["format"],"value":value.cloned().unwrap_or(Value::Null),"display":cell_display(&column["format"],value,row,path,&options.language)?,"design":resolve_design(raw.get("design"),row,path)}))
         }).collect::<FormResult<Vec<_>>>()?;
         Ok(json!({"cells":cells}))
     }).collect::<FormResult<Vec<_>>>()?;
@@ -353,7 +352,7 @@ fn cell_body(display: &Value) -> String {
     }
 }
 
-fn cell_html(cell: &Value, tag: &str, base: &str) -> String {
+pub(crate) fn cell_html(cell: &Value, tag: &str, base: &str) -> String {
     let main = &cell["design"]["main"];
     element(
         tag,

@@ -425,28 +425,39 @@
         "ComposeLoadError"
       ],
       "fixtures": [
-        "tests/fixtures/detail-validity/cases.json"
+        "tests/fixtures/detail-render/cases.json"
       ],
       "support": {
         "javascript": "pass",
-        "php": "unsupported",
+        "php": "pass",
         "go": "pass",
-        "rust": "unsupported",
-        "php-native": "unsupported"
+        "rust": "pass",
+        "php-native": "pass"
       },
-      "status": "partial",
+      "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/detail.test.ts"
+        "packages/generator-core/src/detail.test.ts",
+        "packages/generator-php/tests/DetailTest.php",
+        "packages/generator-go/detail_test.go",
+        "packages/generator-rust/src/detail.rs",
+        "packages/php-ext/tests/engine.test.mjs",
+        "packages/php-ext/tests/api.php",
+        "tests/native-generators/run.mjs"
       ],
       "docs": [
         "docs/spec/schema.md",
-        "docs/spec/runtime-packages.md"
+        "docs/spec/runtime-packages.md",
+        "tests/fixtures/detail-render/README.md"
       ],
       "verification": [
         {
           "id": "test-1",
           "command": "npm test -w @crudui/generator-core -- --run src/detail.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "make test-native"
         }
       ]
     },
@@ -460,35 +471,49 @@
         "ComposeLoadError"
       ],
       "fixtures": [
-        "tests/fixtures/detail-validity/cases.json"
+        "tests/fixtures/detail-render/cases.json"
       ],
       "support": {
         "javascript-html": "pass",
         "react": "pass",
         "vue": "pass",
         "svelte": "pass",
-        "php": "unsupported",
+        "php": "pass",
         "go": "pass",
-        "rust": "unsupported",
-        "php-native": "unsupported"
+        "rust": "pass",
+        "php-native": "pass"
       },
-      "status": "partial",
+      "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-html/src/index.test.ts",
-        "packages/generator-react/src/__tests__/detail-render.test.tsx",
-        "packages/generator-vue/src/__tests__/detail-render.test.ts",
-        "packages/generator-svelte/test/detail-render.test.mjs",
-        "packages/generator-go/detail_test.go"
+        "packages/php-ext/tests/engine.test.mjs",
+        "packages/php-ext/tests/api.php",
+        "packages/generator-html/src/detail-conformance.test.ts",
+        "packages/generator-react/src/__tests__/detail-render.conformance.test.ts",
+        "packages/generator-vue/src/__tests__/detail-render.conformance.test.ts",
+        "packages/generator-svelte/test/detail-render.conformance.test.mjs",
+        "packages/generator-php/tests/DetailTest.php",
+        "packages/generator-go/detail_test.go",
+        "packages/generator-rust/src/detail.rs",
+        "tests/native-generators/run.mjs"
       ],
       "docs": [
         "docs/spec/schema.md",
-        "docs/spec/runtime-packages.md"
+        "docs/spec/runtime-packages.md",
+        "tests/fixtures/detail-render/README.md"
       ],
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- --run src/index.test.ts"
+          "command": "npm test -w @crudui/generator-html -- --run src/detail-conformance.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/detail-render.conformance.test.ts"
+        },
+        {
+          "id": "test-3",
+          "command": "make test-native"
         }
       ]
     },

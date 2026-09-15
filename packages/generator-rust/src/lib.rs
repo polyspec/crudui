@@ -6,6 +6,7 @@ mod buttons;
 mod css;
 mod date;
 mod design;
+mod detail;
 mod error;
 mod instance;
 mod list;
@@ -17,6 +18,7 @@ mod util;
 mod widget;
 
 pub use binding::{bind_form, BindOptions};
+pub use detail::{build_detail, render_detail, DetailOptions};
 pub use error::{FormError, FormResult};
 pub use instance::{create_row_key, sequence_row_key, AddRowOptions, Form};
 pub use list::{build_list, render_list, ListOptions};

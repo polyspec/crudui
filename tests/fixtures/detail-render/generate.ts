@@ -17,6 +17,8 @@
 import { renderDetail, type BuildDetailOptions } from '../../../packages/generator-react/src/index';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
+// @ts-expect-error — shared JS preload link helper.
+import { withoutPreloadLinks } from '../preload-links.mjs';
 
 interface DetailFixtureCase {
   name: string;
@@ -127,6 +129,13 @@ const SCENARIOS: DetailFixtureCase[] = [
     options: { language: 'en' },
   },
   {
+    name: 'format-image-empty-size',
+    note: 'a declared null width and height write empty size attributes.',
+    spec: { fields: { avatar: { field: '.avatar', label: 'Avatar', format: { type: 'image', width: null, height: null } } } },
+    record: ADA,
+    options: { language: 'en' },
+  },
+  {
     name: 'format-html',
     note: 'html format writes the declared markup without escaping.',
     spec: { fields: { notes: { field: '.notes', label: 'Notes', format: { type: 'html' } } } },
@@ -201,7 +210,7 @@ const SCENARIOS: DetailFixtureCase[] = [
 
 const cases = SCENARIOS.map((scenario) => {
   if (scenario.expectError) return scenario;
-  const html = renderDetail(scenario.spec, scenario.record ?? {}, scenario.options ?? {});
+  const html = withoutPreloadLinks(renderDetail(scenario.spec, scenario.record ?? {}, scenario.options ?? {}));
   return { ...scenario, expected_html: normalizeHtml(html) };
 });
 

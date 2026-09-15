@@ -124,7 +124,8 @@ final class Lists
             foreach ($columnModels as $i => $column) {
                 $path = str_starts_with($column->field, '.') ? substr($column->field, 1) : $column->field;
                 $value = $path !== '' ? Value::path($row, $path) : Missing::Value;
-                $cells[] = Value::record(['format' => $column->format, 'value' => $value, 'display' => self::display($column->format, $value, $row, Value::segments($path), $language), 'design' => Design::resolve($columnSpecs[$i]->design ?? null, $row, Value::segments($path))]);
+                // A model is JSON: a path absent from the row is null, and the member is always present.
+                $cells[] = Value::record(['format' => $column->format, 'value' => $value === Missing::Value ? null : $value, 'display' => self::display($column->format, $value, $row, Value::segments($path), $language), 'design' => Design::resolve($columnSpecs[$i]->design ?? null, $row, Value::segments($path))]);
             }
             $rowModels[] = (object) ['cells' => $cells];
         }
@@ -291,7 +292,8 @@ final class Lists
         return $attrs;
     }
 
-    private static function cell(stdClass $cell, string $tag, string $base): string
+    /** Render one already-evaluated display cell for another read-only renderer. */
+    public static function renderCell(stdClass $cell, string $tag, string $base): string
     {
         $display = $cell->display;
         if (is_string($display)) {
@@ -310,5 +312,10 @@ final class Lists
             };
         }
         return Rendering::element($tag, self::node($base, $cell->design->main), $body);
+    }
+
+    private static function cell(stdClass $cell, string $tag, string $base): string
+    {
+        return self::renderCell($cell, $tag, $base);
     }
 }
