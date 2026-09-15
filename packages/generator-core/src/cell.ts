@@ -314,10 +314,8 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
     const lookup = itemsLookup(o.items);
     const key = asString(value);
     if (key in lookup) {
-      const label = lookup[key];
-      return typeof label === 'object' && label !== null
-        ? ctx.t(label as LocalizedText)
-        : asString(label);
+      // A choice label is content: a string or a language map.
+      return ctx.t(lookup[key] as LocalizedText);
     }
     // dynamic {model} source or unknown key → preserve the raw code (never fabricate).
     return key;

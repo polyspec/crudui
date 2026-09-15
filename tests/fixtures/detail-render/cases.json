@@ -666,6 +666,162 @@
     }
   },
   {
+    "name": "content-values",
+    "note": "content is a string or a language map with non-empty string entries; any other value is empty text.",
+    "spec": {
+      "fields": {
+        "prefixNumberEntry": {
+          "field": ".n",
+          "label": "P",
+          "format": {
+            "type": "number",
+            "prefix": {
+              "en": 7,
+              "ko": "K"
+            }
+          }
+        },
+        "prefixObjectEntry": {
+          "field": ".n",
+          "label": "O",
+          "format": {
+            "type": "number",
+            "prefix": {
+              "en": {
+                "x": 1
+              }
+            }
+          }
+        },
+        "prefixNumber": {
+          "field": ".n",
+          "label": "N",
+          "format": {
+            "type": "number",
+            "prefix": 0
+          }
+        },
+        "boolLabelNumberEntry": {
+          "field": ".yes",
+          "label": "B",
+          "format": {
+            "type": "bool",
+            "true": {
+              "en": 3
+            }
+          }
+        },
+        "choiceNumber": {
+          "field": ".a",
+          "label": "C",
+          "format": {
+            "type": "choice-label",
+            "items": {
+              "a": 3
+            }
+          }
+        },
+        "choiceNumberEntry": {
+          "field": ".b",
+          "label": "D",
+          "format": {
+            "type": "choice-label",
+            "items": {
+              "b": {
+                "en": 3,
+                "ko": "가"
+              }
+            }
+          }
+        },
+        "choiceList": {
+          "field": ".a",
+          "label": "E",
+          "format": {
+            "type": "choice-label",
+            "items": {
+              "a": [
+                "x"
+              ]
+            }
+          }
+        },
+        "badgeNumberEntry": {
+          "field": ".a",
+          "label": "G",
+          "format": {
+            "type": "badge",
+            "map": {
+              "a": {
+                "en": 3
+              }
+            }
+          }
+        },
+        "linkTextZero": {
+          "field": ".name",
+          "label": "L0",
+          "format": {
+            "type": "link",
+            "href": "/u",
+            "text": 0
+          }
+        },
+        "linkTextFalse": {
+          "field": ".name",
+          "label": "LF",
+          "format": {
+            "type": "link",
+            "href": "/u",
+            "text": false
+          }
+        },
+        "linkTextEmpty": {
+          "field": ".name",
+          "label": "LE",
+          "format": {
+            "type": "link",
+            "href": "/u",
+            "text": ""
+          }
+        },
+        "linkTextNumberEntry": {
+          "field": ".name",
+          "label": "LN",
+          "format": {
+            "type": "link",
+            "href": "/u",
+            "text": {
+              "en": 3
+            }
+          }
+        },
+        "altList": {
+          "field": ".img",
+          "label": "I",
+          "format": {
+            "type": "image",
+            "alt": [
+              "x"
+            ]
+          }
+        }
+      }
+    },
+    "record": {
+      "n": 5,
+      "yes": true,
+      "a": "a",
+      "b": "b",
+      "name": "Ada",
+      "img": "data:image/png;base64,AA=="
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"detail-view\"><div class=\"detail-field\"><dt class=\"detail-label\">P</dt><dd class=\"detail-value detail-value-number\">K5</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">O</dt><dd class=\"detail-value detail-value-number\">5</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">N</dt><dd class=\"detail-value detail-value-number\">5</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">B</dt><dd class=\"detail-value detail-value-bool\"><span class=\"bool-text\"></span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">C</dt><dd class=\"detail-value detail-value-choice-label\"></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">D</dt><dd class=\"detail-value detail-value-choice-label\">가</dd></div><div class=\"detail-field\"><dt class=\"detail-label\">E</dt><dd class=\"detail-value detail-value-choice-label\"></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">G</dt><dd class=\"detail-value detail-value-badge\"><span class=\"badge\"></span></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">L0</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\"></a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">LF</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\"></a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">LE</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\">Ada</a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">LN</dt><dd class=\"detail-value detail-value-link\"><a href=\"/u\"></a></dd></div><div class=\"detail-field\"><dt class=\"detail-label\">I</dt><dd class=\"detail-value detail-value-image\"><img alt=\"\" src=\"data:image/png;base64,AA==\"></dd></div></dl>"
+  },
+  {
     "name": "list-options-ignored",
     "note": "the list-only page, total and layout options are neither checked nor used by a detail.",
     "spec": {

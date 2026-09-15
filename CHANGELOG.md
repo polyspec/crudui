@@ -2,6 +2,35 @@
 
 [한국어](CHANGELOG.ko.md).
 
+## 2026-09-15 — Resolve content text by one rule in every runtime
+
+The schema defines content as a string or a language map whose entries are strings, but no
+specification said how a runtime turns it into text, and measuring the six targets with values
+outside that shape found five behaviors:
+- A number entry in a language map (`prefix: { en: 7 }`) was used as text by JavaScript, PHP, the
+  PHP extension and Go, and skipped by Rust, which fell back to the next language.
+- A choice label that is a number (`items: { a: 3 }`) was written as `3` everywhere, while every
+  other content setting given a number wrote empty text.
+- A language map entry that is an object was written as `[object Object]` by JavaScript.
+- The HTML renderer failed with `value.replace is not a function` for a link text, badge or bool
+  label whose language map entry is a number, because the JavaScript translator returned the
+  number.
+- The C extension used the cell value as link text when `text` was `0` or `false`; every other
+  runtime wrote empty text and falls back to the cell value only for absent, `null` or empty
+  `text`.
+
+The [field specification](docs/spec/schema.md#fields) now states the rule, which Rust already
+followed: a string is itself, a language map yields the first non-empty string among its entry for
+the display language, `en`, `ko` and its first key, and any other value is empty text. The
+translators of JavaScript, PHP, the PHP extension and Go follow it, choice labels use it in every
+runtime, and the C extension's link text falls back only as the others do. The translator also
+resolves form content, so form labels follow the same rule. The shared detail case
+`content-values` covers each behavior.
+
+The detail cases grew to 25. `make test-native` passed 238 of 238 checks in each of the six
+targets (1429 including input checks), and the measurement script for format details reported the
+same result in all six targets.
+
 ## 2026-09-15 — Replace the list pageMeta option with page and total, and give JavaScript input errors their code
 
 The list option `pageMeta` carried the caller's current page and total record count, but its name

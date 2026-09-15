@@ -341,10 +341,8 @@ func renderCell(format *Object, value any, row *Object, lookup map[string]any, p
 		items := read(o, "items")
 		if !dynamicItems(items) {
 			if v := item(items, s); !isAbsent(v) {
-				if object(v) != nil {
-					return translate(v, language), nil
-				}
-				return scalar(v), nil
+				// A choice label is content: a string or a language map.
+				return translate(v, language), nil
 			}
 		}
 		return s, nil

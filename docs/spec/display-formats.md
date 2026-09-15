@@ -46,8 +46,10 @@ Values are read as text in this way: `null` or an absent value is empty, `true` 
 empty, an object or array is empty, and a number uses the shortest decimal representation.
 
 Settings that accept content (`prefix`, `suffix`, `text`, `true`, `false`, `alt` and badge or
-choice labels) accept a string or a language map such as `{ ko: 이름, en: Name }`, translated to
-the display language.
+choice labels) accept a string or a language map such as `{ ko: 이름, en: Name }`, resolved to the
+display language by the [content rule](schema.md#fields): a language map uses its first non-empty
+string entry for the language, `en`, `ko` and its first key, and any other value, a number
+included, is empty text.
 
 ## Formats
 

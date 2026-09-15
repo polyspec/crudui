@@ -988,7 +988,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', async () => {
-  assert.equal(fixtures.length, 24,
+  assert.equal(fixtures.length, 25,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);

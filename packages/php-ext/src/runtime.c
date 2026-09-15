@@ -289,6 +289,10 @@ fail:
     free(out.data); return NULL;
 }
 
+/*
+ * Resolve content: a string is itself; a language map yields the first non-empty string entry for
+ * the language, en, ko and then its first key; any other value is empty.
+ */
 char *ps_translate(const ps_value *value, const char *language)
 {
     if (value && value->kind == PS_STRING) return copy_range(ps_string(value), value->data.string.length);
@@ -296,7 +300,8 @@ char *ps_translate(const ps_value *value, const char *language)
     const char *keys[] = {language ? language : "ko", "en", "ko"};
     for (size_t i = 0; i < 4; ++i) {
         const ps_value *candidate = i < 3 ? ps_get(value, keys[i]) : ps_at(value, 0);
-        if (candidate && ps_truthy(candidate)) return ps_scalar_string(candidate);
+        if (candidate && candidate->kind == PS_STRING && candidate->data.string.length > 0)
+            return copy_range(ps_string(candidate), candidate->data.string.length);
     }
     return copy_range("", 0);
 }

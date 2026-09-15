@@ -34,6 +34,12 @@ data paths. A field separates structure, content and behavior as follows:
 | Type options | `options` | Store settings that apply to one widget type. |
 | Composition | `$ref`, `$patch` | Load, merge and modify field definitions before binding data. |
 
+Content is resolved to text for the display language in the same way in every runtime, for form
+fields and for list and detail display settings alike. A string is itself. A language map yields
+the first non-empty string among its entry for the display language, `en`, `ko` and its first key;
+entries that are not strings are skipped. Any other value (a number, a boolean, an array, or a map
+without such an entry) is empty text.
+
 Dependent settings remain under their subject: repeated row settings under
 `multiple`, language input settings under `lang`, widget settings under `options`
 and dynamic choice descriptors under `items`. Role and structural settings can
