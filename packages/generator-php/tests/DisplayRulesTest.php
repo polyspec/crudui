@@ -13,7 +13,7 @@ use stdClass;
 /** List and detail input, text truncation and number decimal rules of docs/spec/display-formats.md. */
 final class DisplayRulesTest extends TestCase
 {
-    private const SPEC = ['columns' => ['v' => ['field' => '.v', 'label' => 'V']]];
+    private const SPEC = ['columns' => ['v' => ['field' => 'v', 'label' => 'V']]];
 
     private static function assertFailure(string $message, callable $operation): void
     {
@@ -108,11 +108,11 @@ final class DisplayRulesTest extends TestCase
 
     public function testListAndDetailDesignsFollowTheFormDeclarationRules(): void
     {
-        $column = fn (array $design) => ['columns' => ['name' => ['field' => '.name', 'design' => $design]]];
+        $column = fn (array $design) => ['columns' => ['name' => ['field' => 'name', 'design' => $design]]];
         self::assertFailure('Invalid design.main at columns.name: unknown key', fn () => Generator::renderList($column(['main' => ['class' => 'x']]), []));
         self::assertFailure('Invalid design.color at list: unknown key', fn () => Generator::renderList(['design' => ['color' => 'red'], 'columns' => ['name' => ['design' => ['main' => (object) []]]]], []));
         self::assertFailure('Invalid design.show at columns.name: expected an expression, a boolean or a condition map', fn () => Generator::renderList($column(['show' => 1]), []));
-        $field = ['fields' => ['name' => ['field' => '.name', 'design' => ['label' => ['text' => 'x']]]]];
+        $field = ['fields' => ['name' => ['field' => 'name', 'design' => ['label' => ['text' => 'x']]]]];
         self::assertFailure('Invalid design.label.text at fields.name: unknown key', fn () => Generator::renderDetail($field, []));
         self::assertFailure('Invalid design.label.text at fields.name: unknown key', fn () => Generator::buildDetail($field, []));
         self::assertFailure('Invalid design.wrapper at detail: expected an object', fn () => Generator::renderDetail(['design' => ['wrapper' => 'box'], 'fields' => []], []));
@@ -155,7 +155,7 @@ final class DisplayRulesTest extends TestCase
 
     private static function display(array $format, mixed $value): mixed
     {
-        return Generator::buildDetail(['fields' => ['v' => ['field' => '.v', 'format' => $format]]], ['v' => $value])->fields[0]->display;
+        return Generator::buildDetail(['fields' => ['v' => ['field' => 'v', 'format' => $format]]], ['v' => $value])->fields[0]->display;
     }
 
     public static function truncations(): array
@@ -183,7 +183,7 @@ final class DisplayRulesTest extends TestCase
     {
         self::assertSame(
             '<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">V</dt><dd class="crudui-detail__value crudui-value crudui-value--text">a😀…</dd></div></dl>',
-            Generator::renderDetail(['fields' => ['v' => ['field' => '.v', 'label' => 'V', 'format' => ['type' => 'text', 'truncate' => 2]]]], ['v' => 'a😀bc']),
+            Generator::renderDetail(['fields' => ['v' => ['field' => 'v', 'label' => 'V', 'format' => ['type' => 'text', 'truncate' => 2]]]], ['v' => 'a😀bc']),
         );
     }
 
