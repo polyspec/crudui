@@ -12,6 +12,10 @@ the public-instance placeholder case checks parity and its generated row-key con
 its random identity cannot equal the bindForm fixture's fixed bytes. List and detail fixture
 coverage remains complete.
 
+The Rust validator release profile now explicitly disables Cargo's debuginfo strip step. This
+prevents the build from depending on a toolchain-local `rust-objcopy`/`libLLVM.dylib` pairing that
+could emit a warning after producing a nominally successful binary.
+
 ## 2026-09-16 — Keep framework container markers out of content comparisons
 
 The form comparison now compares each view container's rendered contents while preserving

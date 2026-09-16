@@ -11,6 +11,10 @@
 instance placeholder 사례는 무작위 식별자가 bindForm fixture의 고정 바이트와 같을 수 없으므로
 parity와 생성 행 키 계약을 검사합니다. 목록·상세 fixture 전체 실행 범위는 유지됩니다.
 
+Rust validator 릴리스 프로필은 Cargo의 debuginfo strip 단계를 명시적으로 끕니다. 이 설정은
+바이너리를 성공으로 처리한 뒤 toolchain 내부 `rust-objcopy`와 `libLLVM.dylib` 조합 실패를
+경고로 남기는 환경 의존성을 제거합니다.
+
 ## 2026-09-16 — 프레임워크 표시를 보존하는 초기화 비교
 
 폼 비교가 각 뷰 컨테이너의 렌더링된 내용만 비교하고 프레임워크가 소유한 컨테이너 표시를
