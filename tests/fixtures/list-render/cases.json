@@ -769,7 +769,7 @@
       "page": 2,
       "total": 99
     },
-    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"99\"></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"99\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-current=\"page\" aria-label=\"Page 2\" class=\"crudui-list__pagination-page\" data-page=\"2\" disabled=\"\" type=\"button\">2</button><button aria-label=\"Page 3\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"Page 4\" class=\"crudui-list__pagination-page\" data-page=\"4\" type=\"button\">4</button><button aria-label=\"Page 5\" class=\"crudui-list__pagination-page\" data-page=\"5\" type=\"button\">5</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"3\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "pagination-empty-first-page",
@@ -789,7 +789,7 @@
       "page": 9007199254740991,
       "total": 0
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-page=\"9007199254740991\" data-total=\"0\"></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"9007199254740991\" data-per-page=\"20\" data-total=\"0\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "design-column-class-style",

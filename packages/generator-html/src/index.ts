@@ -21,6 +21,7 @@ import {
   type DetailViewModel,
   type UnsupportedVM,
   type WidgetModel,
+  paginationPages,
 } from '@crudui/generator-core';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
@@ -366,7 +367,16 @@ function pagination(vm: ListViewModel): string {
   if (vm.pagination.perPage !== undefined) values['data-per-page'] = scalar(vm.pagination.perPage);
   if (vm.pagination.page !== undefined) values['data-page'] = scalar(vm.pagination.page);
   if (vm.pagination.total !== undefined) values['data-total'] = scalar(vm.pagination.total);
-  return element('nav', values);
+  const pageCount = vm.pagination.pageCount ?? 0;
+  const page = pageCount > 0 ? Math.min(pageCount, Math.max(1, vm.pagination.page ?? 1)) : 1;
+  const previous = Math.max(1, page - 1);
+  const next = pageCount > 0 ? Math.min(pageCount, page + 1) : 1;
+  const button = (className: string, value: number, label: string, disabled: boolean, current = false) =>
+    element('button', { type: 'button', class: className, 'data-page': scalar(value), 'aria-label': label, ...(current ? { 'aria-current': 'page' } : {}), ...(disabled ? { disabled: true } : {}) }, escapeText(label === 'Previous page' ? '‹' : label === 'Next page' ? '›' : String(value)));
+  const controls = button('crudui-list__pagination-prev', previous, 'Previous page', page <= 1 || pageCount === 0)
+    + paginationPages(page, pageCount).map(value => button('crudui-list__pagination-page', value, `Page ${value}`, value === page, value === page)).join('')
+    + button('crudui-list__pagination-next', next, 'Next page', pageCount === 0 || page >= pageCount);
+  return element('nav', values, controls);
 }
 
 function listHtml(vm: ListViewModel, layout: 'table' | 'card'): string {
@@ -435,7 +445,7 @@ function outlineRow(row: OutlineRow): string {
 export function renderOutlineView(state: OutlineState, messages: FormMessages): string {
   const controls = element('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formControls },
     textAction('expand-all', messages.expandAll) + textAction('collapse-all', messages.collapseAll) +
-    textAction('undo', messages.undo, !state.canUndo));
+    textAction('undo', messages.undo, !state.canUndo) + textAction('redo', messages.redo, !state.canRedo));
   return element('div', { class: 'crudui-outline' },
     element('div', { class: 'crudui-outline__header' }, controls) +
     element('div', { class: 'crudui-outline__body' }, buildOutline(state.fields).map(outlineRow).join('')));

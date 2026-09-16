@@ -21,6 +21,7 @@
  */
 
 import { h, type VNode } from 'vue';
+import { paginationPages } from '@crudui/generator-core';
 import type {
   ListViewModel,
   ColumnVM,
@@ -266,7 +267,7 @@ function toolbarVNode(vm: ListViewModel): VNode | null {
   );
 }
 
-/** Pagination chrome (null when paging is off) — declaration + injected meta. */
+/** Pagination controls (null when paging is off); navigation remains caller-owned. */
 function paginationVNode(vm: ListViewModel): VNode | null {
   const p = vm.pagination;
   if (!p.enabled) return null;
@@ -275,7 +276,15 @@ function paginationVNode(vm: ListViewModel): VNode | null {
   if (p.perPage !== undefined) props['data-per-page'] = String(p.perPage);
   if (p.page !== undefined) props['data-page'] = String(p.page);
   if (p.total !== undefined) props['data-total'] = String(p.total);
-  return h('nav', props);
+  const pageCount = p.pageCount ?? 0;
+  const page = pageCount > 0 ? Math.min(pageCount, Math.max(1, p.page ?? 1)) : 1;
+  const button = (className: string, value: number, label: string, disabled: boolean, current = false) =>
+    h('button', { type: 'button', class: className, 'data-page': String(value), 'aria-label': label, ...(current ? { 'aria-current': 'page' } : {}), disabled }, label === 'Previous page' ? '‹' : label === 'Next page' ? '›' : String(value));
+  return h('nav', props, [
+    button('crudui-list__pagination-prev', Math.max(1, page - 1), 'Previous page', page <= 1 || pageCount === 0),
+    ...paginationPages(page, pageCount).map(value => button('crudui-list__pagination-page', value, `Page ${value}`, value === page, value === page)),
+    button('crudui-list__pagination-next', pageCount ? Math.min(pageCount, page + 1) : 1, 'Next page', pageCount === 0 || page >= pageCount),
+  ]);
 }
 
 // ---------------------------------------------------------------------------

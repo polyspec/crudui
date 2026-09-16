@@ -116,12 +116,29 @@ final class Lists
         }
         if ($vm->pagination->enabled) {
             $pagination = ['class' => 'crudui-list__pagination'];
+            $pagination['data-mode'] = (string) ($vm->pagination->mode ?? 'pages');
+            $pagination['data-per-page'] = (string) ($vm->pagination->perPage ?? 20);
+            $pagination['data-page'] = (string) ($vm->pagination->page ?? 1);
             foreach (['mode' => 'mode', 'perPage' => 'per-page', 'page' => 'page', 'total' => 'total'] as $key => $attribute) {
                 if (property_exists($vm->pagination, $key)) {
                     $pagination['data-' . $attribute] = Value::scalar($vm->pagination->{$key});
                 }
             }
-            $body .= Rendering::element('nav', $pagination);
+            $page = max(1, (int) ($vm->pagination->page ?? 1));
+            $perPage = max(1, (int) ($vm->pagination->perPage ?? 20));
+            $pageCount = property_exists($vm->pagination, 'total') ? max(1, (int) ceil(((int) $vm->pagination->total) / $perPage)) : 0;
+            $button = static function (string $class, int $value, string $label, bool $disabled, bool $current): string {
+                $attrs = ['type' => 'button', 'class' => $class, 'data-page' => (string) $value, 'aria-label' => $label];
+                if ($current) $attrs['aria-current'] = 'page';
+                if ($disabled) $attrs['disabled'] = true;
+                return Rendering::element('button', $attrs, $label === 'Previous page' ? '‹' : ($label === 'Next page' ? '›' : (string) $value));
+            };
+            $controls = $button('crudui-list__pagination-prev', max(1, $page - 1), 'Previous page', $page <= 1 || $pageCount === 0, false);
+            for ($value = 1; $value <= min(7, $pageCount); $value++) {
+                $controls .= $button('crudui-list__pagination-page', $value, 'Page ' . $value, $value === $page, $value === $page);
+            }
+            $controls .= $button('crudui-list__pagination-next', max(1, min($pageCount, $page + 1)), 'Next page', $pageCount === 0 || $page >= $pageCount, false);
+            $body .= Rendering::element('nav', $pagination, $controls);
         }
         return self::preloads($vm) . Rendering::element('div', $attrs, $body);
     }

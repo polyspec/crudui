@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-09-16 — Add bidirectional form history
+
+- Form instances now expose `redo()` and snapshots report `canRedo`.
+- Outline controls now render both undo and redo with direction-specific availability.
+- A new data change after undo clears the redo history.
+
+## 2026-09-16 — Render CRUDUI pagination controls in CSR and SSR
+
+- List renderers now emit previous, numbered and next page buttons from the shared pagination model.
+- The resolved current page defaults to 1, exposes `aria-current="page"`, and disables boundary controls.
+- The pipeline example now uses CRUDUI pagination output for both SSR and CSR; its manual page navigation was removed.
+- The pipeline page documents the injected `page` and `total` contract beside the runtime controls.
+
 ## 2026-09-16 — Put sticky state on the header container
 
 Sticky nodes now render a `crudui-node__header-container` around their header in

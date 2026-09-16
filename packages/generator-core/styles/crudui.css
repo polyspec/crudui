@@ -638,8 +638,18 @@ textarea.crudui-input {
 
 .crudui-list__pagination {
   display: flex;
+  gap: 0.25rem;
   min-height: 1.5rem;
   align-items: center;
+}
+
+.crudui-list__pagination button[aria-current='page'] {
+  font-weight: 700;
+}
+
+.crudui-list__pagination button:disabled {
+  cursor: default;
+  opacity: 0.55;
 }
 
 .crudui-detail {

@@ -13,11 +13,12 @@ export type FormActionName =
   | 'select-row'
   | 'expand-all'
   | 'collapse-all'
-  | 'undo';
+  | 'undo'
+  | 'redo';
 
 const ACTIONS: readonly FormActionName[] = [
   'move-up', 'move-down', 'add-row', 'copy-row', 'remove-row',
-  'toggle-row', 'select-row', 'expand-all', 'collapse-all', 'undo',
+  'toggle-row', 'select-row', 'expand-all', 'collapse-all', 'undo', 'redo',
 ];
 
 /** The operation, collection path and row key an action button targets. */
@@ -72,6 +73,10 @@ export function runAction(form: FormInstance, target: ActionTarget): ActionResul
   }
   if (name === 'undo') {
     form.undo();
+    return {};
+  }
+  if (name === 'redo') {
+    form.redo();
     return {};
   }
   if (!path) return undefined;

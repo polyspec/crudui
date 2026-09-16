@@ -10,8 +10,8 @@ be copied. The form declares a cancel link and a save button.
 The page has three columns:
 
 - **Structure map** — `renderOutline` output from `@crudui/generator-html`,
-  connected with `connectOutline`. It expands or collapses every row, undoes
-  changes, and focuses the first control of a selected row in the form.
+  connected with `connectOutline`. It expands or collapses every row, undoes and
+  redoes changes, and focuses the first control of a selected row in the form.
 - **Form** — `renderForm` output, connected with `connectForm` for input and row
   operations such as add, copy, move and remove.
 - **Data** — `renderData` output showing the current form data.
