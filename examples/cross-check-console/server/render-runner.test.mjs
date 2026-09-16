@@ -99,24 +99,33 @@ describe('compareParity — TAMPER (fake-divergent injection)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Real fan-out smoke (boots the Vite SSR engine + renders four renderers). Slow,
-// so a single representative html fixture case is selected — selection is logged
-// so the narrowing is explicit. The same engine.normalizeHtml the gateway uses
-// is what produces the parity key, so the smoke also re-proves the normalizer.
+// Real fan-out over every form-render fixture. The public-instance path generates
+// a random row key when a repeated field has no supplied data; that one fixture
+// therefore proves four-renderer parity but cannot be compared to its bindForm
+// fixture bytes. All other successful cases also compare React to expected_html.
 // ---------------------------------------------------------------------------
 const allCasesObj = JSON.parse(fs.readFileSync(RENDER_FIXTURE, 'utf8'));
 const allCases = Object.values(allCasesObj);
-const SMOKE_NAME = 'design-show-expr-truthy';
-const smoke = allCases.find((c) => c.name === SMOKE_NAME && c.expected_html);
+const randomKeyCase = 'multiple-leaf-empty-placeholder';
 
-describe('renderAll — real four-renderer SSR fan-out (representative fixture)', () => {
-  test(`[selected: ${SMOKE_NAME} of ${allCases.length} form-render cases] HTML/React/Svelte/Vue agree → parity:true`, async () => {
-    expect(smoke, `fixture case ${SMOKE_NAME} must exist with expected_html`).toBeTruthy();
-    const out = await renderAll({ spec: smoke.spec, data: smoke.data, options: smoke.options });
-    const failed = out.results.filter((r) => !r.ok);
-    expect(failed.map((r) => `${r.fw}:${r.error && r.error.code}`)).toEqual([]);
-    expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
-  }, 120000);
+describe('renderAll — real four-renderer SSR fan-out (every fixture case)', () => {
+  for (const c of allCases) {
+    test(`${c.name} — HTML/React/Svelte/Vue agree`, async () => {
+      const out = await renderAll({ spec: c.spec, data: c.data, options: c.options });
+      expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
+      if (c.expectError) {
+        expect(out.results.every((r) => !r.ok && r.error?.code === c.expectError.code)).toBe(true);
+        return;
+      }
+      expect(out.results.every((r) => r.ok)).toBe(true);
+      if (c.name !== randomKeyCase) {
+        expect(out.results.find((r) => r.fw === 'react').normalized).toStrictEqual(c.expected_html);
+      } else {
+        const html = out.results.find((r) => r.fw === 'react').normalized;
+        expect(html).toMatch(/data-crudui-row-key="__[a-f0-9]{13}__"/);
+      }
+    }, 120000);
+  }
 });
 
 
