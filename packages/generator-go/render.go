@@ -370,7 +370,11 @@ func nodeHTML(vm *Object) string {
 	if controls := read(vm, "controls"); stringAt(controls, "placement") == "footer" {
 		footer = element("div", NewObject("class", "crudui-node__footer"), controlsHTML(object(controls)))
 	}
-	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "hidden") == true) + ">" + headerHTML(vm) + bodyHTML(vm) + footer + "</div>"
+	header := headerHTML(vm)
+	if read(vm, "sticky") == true && header != "" {
+		header = element("div", NewObject("class", "crudui-node__header-container"), header)
+	}
+	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "hidden") == true) + ">" + header + bodyHTML(vm) + footer + "</div>"
 }
 func nodesHTML(nodes []*Object) string {
 	var out strings.Builder

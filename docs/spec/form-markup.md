@@ -126,6 +126,12 @@ input's own label inside the body, and its header holds only a description. A
   footer height, so focusing a control scrolls it into view clear of them. No script
   measures or marks rows while scrolling.
 
+  A sticky node wraps its header in `crudui-node__header-container`. The wrapper is
+  the sticky scroll-state container; `crudui-node__header` remains the header
+  content. The wrapper supplies the sticky background, top radius and boundary while
+  the header supplies its content layout. This wrapper is required so state-dependent
+  styles target header descendants without changing the header's semantic slot.
+
 ## Form buttons
 
 A spec declares form buttons at its root with `buttons`, a list of `{ type, text,
