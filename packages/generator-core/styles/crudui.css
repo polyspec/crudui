@@ -347,7 +347,6 @@ textarea.crudui-input {
   align-items: center;
   justify-content: flex-end;
   padding: 0 var(--crudui-row-padding);
-  border-top: var(--crudui-row-border) solid var(--crudui-border);
   background: var(--crudui-surface);
 }
 

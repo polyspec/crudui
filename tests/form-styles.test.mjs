@@ -147,6 +147,19 @@ const containerSource = `(() => {
 })()`;
 
 for (const host of hosts) {
+  test(`${host}: the form footer has no decorative top border`, async () => {
+    const { page, target, failures } = await openHost(host);
+    try {
+      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
+      const footer = await target.evaluate(() => document.querySelector('.crudui-form__footer') && (() => {
+        const style = getComputedStyle(document.querySelector('.crudui-form__footer'));
+        return { borderTopStyle: style.borderTopStyle, borderTopWidth: style.borderTopWidth };
+      })());
+      assert.deepEqual(failures, []);
+      assert.deepEqual(footer, { borderTopStyle: 'none', borderTopWidth: '0px' });
+    } finally { await page.close(); }
+  });
+
   test(`${host}: sticky row headers stack on their lines and show their labels only while stuck`, async () => {
     const { page, target, failures } = await openHost(host);
     try {

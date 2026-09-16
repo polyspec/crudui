@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-16 — Remove the form footer's decorative border
+
+The form footer keeps its sticky position, height and controls without a decorative top
+border. Repeated row borders remain owned by the row styles. Browser style coverage checks
+the footer contract in page, scroll-box and frame hosts.
+
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through
