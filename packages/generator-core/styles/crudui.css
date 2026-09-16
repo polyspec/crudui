@@ -306,7 +306,7 @@ textarea.crudui-input {
 
 .crudui-node--sticky > .crudui-node__header {
   position: sticky;
-  top: calc(var(--crudui-sticky-line) - var(--crudui-row-border));
+  top: calc(var(--crudui-sticky-line) - (2 * var(--crudui-row-border)));
   z-index: calc(20 - var(--crudui-sticky-depth, 0));
   box-sizing: border-box;
   height: var(--crudui-node-header-height);
