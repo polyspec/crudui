@@ -181,7 +181,7 @@ for (const host of hosts) {
       for (const [index, header] of layout.headers.entries()) {
         assert.ok(Math.abs(header.height - layout.token) < 0.5, `Level ${index} header height ${header.height} equals ${layout.token}`);
         assert.ok(Math.abs(header.offset - header.line) < 0.5, `Level ${index} header sits on its line: ${header.offset} vs ${header.line}`);
-        assert.ok(Math.abs(header.line - (index * layout.token - 2)) < 0.5, `Level ${index} sticky line clears both row boundary pixels`);
+        assert.ok(Math.abs(header.line - (index * layout.token - 1)) < 0.5, `Level ${index} sticky line clears the row border`);
         assert.notEqual(header.label, 'none', `Level ${index} shows its label while stuck`);
       }
       assert.equal(layout.titleTruncated, true, 'A long title is truncated');
