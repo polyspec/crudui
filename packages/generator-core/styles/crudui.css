@@ -244,6 +244,7 @@ textarea.crudui-input {
   align-content: start;
   gap: 0;
   border: var(--crudui-row-border) solid var(--crudui-border);
+  border-bottom: 0;
   border-radius: 0.5rem;
   background: var(--crudui-surface);
 }
@@ -279,12 +280,6 @@ textarea.crudui-input {
 .crudui-node--row > .crudui-node__footer {
   padding: 0.5rem 0.75rem;
   border-top: 1px solid var(--crudui-border);
-}
-
-/* The form body ends at its footer; an outermost row does not add a second bottom rule. */
-.crudui-form .crudui-node--row:not(.crudui-node--row .crudui-node--row) {
-  border-bottom: 0;
-  border-radius: 0.5rem 0.5rem 0 0;
 }
 
 /*
