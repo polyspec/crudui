@@ -456,14 +456,26 @@ static bool write_node(render_buffer *out, const ps_value *node)
     char *style_text = take(&style);
     bool path = strcmp(kind, "row") && strcmp(kind, "lang-item") && member(node, "path");
     ps_value *attrs = ps_object_value();
+    render_buffer header = {0};
     bool ok = class_name && style_text && attrs && attr_string(attrs, "class", class_name) &&
         (!*style_text || attr_string(attrs, "style", style_text)) &&
         (!path || attr_clone(attrs, "data-field-path", member(node, "path"))) &&
         (!member(node, "key") || attr_clone(attrs, "data-crudui-row-key", member(node, "key"))) &&
         (!member(node, "lang") || attr_clone(attrs, "data-lang", member(node, "lang"))) &&
         (!bool_member(node, "hidden") || attr_string(attrs, "hidden", "")) &&
-        start_element(out, "div", attrs, false, false) &&
-        write_header(out, node) && write_body(out, node);
+        write_header(&header, node) && start_element(out, "div", attrs, false, false);
+    char *header_html = ok ? take(&header) : NULL;
+    if (ok && header_html && *header_html && bool_member(node, "sticky")) {
+        ps_value *wrapper = ps_object_value();
+        ok = wrapper && attr_string(wrapper, "class", "crudui-node__header-container") &&
+            start_element(out, "div", wrapper, false, false) && text(out, header_html) &&
+            end_element(out, "div", false);
+        ps_value_free(wrapper);
+    } else if (ok && header_html) {
+        ok = text(out, header_html);
+    }
+    free(header_html);
+    ok = ok && write_body(out, node);
     free(class_name); free(style_text); ps_value_free(attrs);
     const ps_value *controls = member(node, "controls");
     if (ok && ps_is_string(member(controls, "placement"), "footer")) {

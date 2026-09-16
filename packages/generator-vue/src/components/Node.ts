@@ -57,6 +57,12 @@ function headerVNode(vm: NodeVM): VNode | null {
   return h('div', { class: classes('crudui-node__header', header?.className), ...(header?.style ? { style: header.style } : {}) }, parts);
 }
 
+function headerSlotVNode(vm: NodeVM): VNode | null {
+  const header = headerVNode(vm);
+  if (!header) return null;
+  return vm.sticky ? h('div', { class: 'crudui-node__header-container' }, [header]) : header;
+}
+
 function bodyVNode(vm: NodeVM): VNode {
   const props: Record<string, unknown> = {
     class: classes('crudui-node__body', vm.body.className),
@@ -93,7 +99,7 @@ export function nodeVNode(vm: NodeVM): VNode {
     hidden: vm.hidden,
   }, [
     // Only grammar nodes: an absent header or footer adds no child, so no placeholder comment.
-    ...[headerVNode(vm)].filter((header): header is VNode => header !== null),
+    ...[headerSlotVNode(vm)].filter((header): header is VNode => header !== null),
     bodyVNode(vm),
     ...(vm.controls?.placement === 'footer' ? [h('div', { class: 'crudui-node__footer' }, [controlsVNode(vm.controls)])] : []),
   ]);

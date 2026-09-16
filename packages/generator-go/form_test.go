@@ -307,7 +307,7 @@ func TestNodeGrammarRowsAndControls(t *testing.T) {
 	html, _ := RenderForm(f)
 	for _, part := range []string{
 		`<div class="crudui-form"><div class="crudui-form__body"><div class="crudui-node crudui-node--collection" data-field-path="items">`,
-		`<div class="crudui-node crudui-node--row crudui-node--sticky" style="--crudui-sticky-depth:0" data-crudui-row-key="first"><div class="crudui-node__header"><button type="button" class="crudui-action" data-crudui-action="toggle-row" aria-expanded="true" aria-controls="crudui:items.first:body" aria-label="Expand or collapse"></button>`,
+		`<div class="crudui-node crudui-node--row crudui-node--sticky" style="--crudui-sticky-depth:0" data-crudui-row-key="first"><div class="crudui-node__header-container"><div class="crudui-node__header"><button type="button" class="crudui-action" data-crudui-action="toggle-row" aria-expanded="true" aria-controls="crudui:items.first:body" aria-label="Expand or collapse"></button>`,
 		`<span class="crudui-node__summary" hidden="">Nested rows: 2</span>`,
 		`data-crudui-action="move-up" aria-label="Move up" aria-disabled="true"></button>`,
 	} {

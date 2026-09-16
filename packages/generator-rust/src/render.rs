@@ -487,7 +487,13 @@ fn node(node: &Value) -> String {
     } else {
         String::new()
     };
-    element("div", &attrs, &(header(node) + &body(node) + &footer))
+    let header_html = header(node);
+    let header_slot = if node["sticky"] == true && !header_html.is_empty() {
+        element("div", &json!({"class":"crudui-node__header-container"}), &header_html)
+    } else {
+        header_html
+    };
+    element("div", &attrs, &(header_slot + &body(node) + &footer))
 }
 
 fn nodes(nodes: &Value) -> String {

@@ -53,6 +53,13 @@ function Header({ vm }: { vm: NodeVM }): React.ReactElement | null {
   );
 }
 
+function HeaderSlot({ vm }: { vm: NodeVM }): React.ReactElement | null {
+  const header = <Header vm={vm} />;
+  if (!header) return null;
+  if (!vm.sticky) return header;
+  return <div className="crudui-node__header-container">{header}</div>;
+}
+
 function Body({ vm }: { vm: NodeVM }): React.ReactElement {
   const props = {
     className: classes('crudui-node__body', vm.body.className),
@@ -93,7 +100,7 @@ export function Node({ vm }: { vm: NodeVM }): React.ReactElement {
       {...(vm.lang !== undefined ? { 'data-lang': vm.lang } : {})}
       hidden={vm.hidden}
     >
-      <Header vm={vm} />
+      <HeaderSlot vm={vm} />
       <Body vm={vm} />
       {vm.controls?.placement === 'footer' ? <div className="crudui-node__footer"><Controls controls={vm.controls} /></div> : null}
     </div>

@@ -119,7 +119,11 @@ final class Rendering
             $attrs['data-lang'] = $vm->lang;
         }
         $footer = ($vm->controls->placement ?? null) === 'footer' ? self::element('div', ['class' => 'crudui-node__footer'], self::controls($vm->controls)) : '';
-        return self::open($attrs, $vm->hidden) . self::header($vm) . self::body($vm) . $footer . '</div>';
+        $header = self::header($vm);
+        if (($vm->sticky ?? false) && $header !== '') {
+            $header = self::element('div', ['class' => 'crudui-node__header-container'], $header);
+        }
+        return self::open($attrs, $vm->hidden) . $header . self::body($vm) . $footer . '</div>';
     }
 
     private static function header(stdClass $vm): string
