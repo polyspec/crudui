@@ -142,6 +142,9 @@ evaluates the buttons (design classes and styles follow the field design rules),
 types are `button` elements, with attributes in the order `type`, `class`, `style`,
 `name`, `value`, `href`, `onclick`. The footer pins to the bottom of its scroll
 container at `--crudui-form-footer-height`, as sticky row headers pin to the top.
+An expanded row header has one bottom divider; the divider is hidden while its header is
+stuck so the row's moving edge does not leave a one-pixel remainder. A collapsed row also
+hides that divider.
 
 ## Structure map and data view
 

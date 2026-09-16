@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-09-16 — Remove the sticky row divider remainder
+
+Row headers retain their divider in their normal position, but the divider is hidden while a
+sticky header is stuck. This prevents one pixel from remaining at the moving row boundary;
+collapsed rows hide the divider as well. Browser coverage checks page, scroll-box and frame
+hosts.
+
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through
