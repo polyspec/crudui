@@ -250,14 +250,28 @@ textarea.crudui-input {
 
 .crudui-node--row > .crudui-node__header {
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--crudui-border);
+  position: relative;
   border-radius: 0.5rem 0.5rem 0 0;
   background: var(--crudui-subtle);
 }
 
+.crudui-node--row > .crudui-node__header::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--crudui-border);
+  pointer-events: none;
+}
+
 .crudui-node--row:has(> .crudui-node__body[hidden]) > .crudui-node__header {
-  border-bottom: 0;
   border-radius: 0.5rem;
+}
+
+.crudui-node--row:has(> .crudui-node__body[hidden]) > .crudui-node__header::after {
+  display: none;
 }
 
 .crudui-node--row > .crudui-node__header > .crudui-node__label {
@@ -317,6 +331,16 @@ textarea.crudui-input {
 
 @container scroll-state(not (stuck: top)) {
   .crudui-node__header > .crudui-node__label {
+    display: none;
+  }
+}
+
+@container scroll-state(stuck: top) {
+  .crudui-node--sticky > .crudui-node__header {
+    border-bottom: 0;
+  }
+
+  .crudui-node--sticky > .crudui-node__header::after {
     display: none;
   }
 }
