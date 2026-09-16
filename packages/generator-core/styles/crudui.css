@@ -295,7 +295,7 @@ textarea.crudui-input {
  *    focusing a control scrolls it into view clear of them.
  */
 .crudui-node--sticky {
-  --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height) - var(--crudui-row-border));
+  --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
   --crudui-sticky-cover: calc(var(--crudui-sticky-line) + var(--crudui-node-header-height));
 }
 
