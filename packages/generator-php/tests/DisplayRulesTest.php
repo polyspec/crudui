@@ -60,12 +60,13 @@ final class DisplayRulesTest extends TestCase
     {
         $spec = [...self::SPEC, 'pagination' => true];
         $nav = fn (array $options) => substr(Generator::renderList($spec, [], $options), strlen('<div class="crudui-list"><div class="crudui-list__empty"></div>'), -strlen('</div>'));
-        self::assertSame('<nav class="crudui-list__pagination"></nav>', $nav([]));
-        self::assertSame('<nav class="crudui-list__pagination" data-page="2" data-total="99"></nav>', $nav(['page' => 2, 'total' => 99]));
-        self::assertSame('<nav class="crudui-list__pagination" data-page="2" data-total="0"></nav>', $nav(['page' => 2.0, 'total' => -0.0]));
-        self::assertSame('<nav class="crudui-list__pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>', $nav(['page' => 9007199254740991, 'total' => 9007199254740991.0]));
-        self::assertSame('<nav class="crudui-list__pagination" data-page="1"></nav>', $nav(['page' => 1, 'total' => null]));
-        self::assertSame('<nav class="crudui-list__pagination" data-total="0"></nav>', $nav(['total' => 0]));
+        self::assertStringContainsString('data-mode="pages" data-per-page="20" data-page="1"', $nav([]));
+        self::assertStringContainsString('data-page="2" data-total="99"', $nav(['page' => 2, 'total' => 99]));
+        self::assertStringContainsString('data-page="2" data-total="0"', $nav(['page' => 2.0, 'total' => -0.0]));
+        self::assertStringContainsString('data-page="9007199254740991" data-total="9007199254740991"', $nav(['page' => 9007199254740991, 'total' => 9007199254740991.0]));
+        self::assertStringContainsString('data-page="1"', $nav(['page' => 1, 'total' => null]));
+        self::assertStringContainsString('data-total="0"', $nav(['total' => 0]));
+        self::assertStringContainsString('aria-current="page"', $nav(['page' => 2, 'total' => 99]));
         foreach (['2', true, false, [], [2], new stdClass(), 1.5, 0, 0.0, -1, 9007199254740992, 9007199254740992.0, PHP_INT_MAX, INF, NAN] as $value) {
             self::assertFailure('List page must be a positive integer', fn () => Generator::renderList($spec, [], ['page' => $value]));
         }

@@ -4,7 +4,7 @@
 
 `cases.json` contains the shared structure map and data view cases for React, the HTML renderer,
 Vue and Svelte. Each case provides `name`, `note`, `spec`, `data`, `options` with `language`,
-`canUndo`, `expected_outline_html` and `expected_data_html`.
+`canUndo`, `canRedo`, `expected_outline_html` and `expected_data_html`.
 
 These cases check the map of top-level and nested rows with undo available, row controls placed in
 the map with `controls: outline` while empty collection controls stay in the form, untitled rows,
@@ -15,7 +15,7 @@ defines both views.
 ## Comparisons
 
 The fields of a case are `bindForm(compileForm(spec), data, options)`. Each renderer draws the
-structure map from `{ fields, canUndo }` and the data view from `data`, normalizes both with the
+structure map from `{ fields, canUndo, canRedo }` and the data view from `data`, normalizes both with the
 [form HTML normalizer](../form-render/README.md#normalization) and must return exactly
 `expected_outline_html` and `expected_data_html`. React renders `OutlineView` and `DataPanel`, the
 HTML renderer `renderOutlineView` and `renderDataPanel`, Vue `outlineVNode` and `dataVNode` through

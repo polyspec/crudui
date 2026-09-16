@@ -26,6 +26,8 @@ export interface FormMessages {
   collapseAll: string;
   /** Undo the last change. */
   undo: string;
+  /** Redo the last undone change. */
+  redo: string;
   /** Accessible name of a row's controls. */
   rowControls: string;
   /** Accessible name of an empty collection's controls. */
@@ -55,7 +57,7 @@ export interface FormMessages {
 const MESSAGES: Readonly<Record<Language, FormMessages>> = {
   ko: {
     moveUp: '위로', moveDown: '아래로', addRow: '추가', copyRow: '복사', removeRow: '제거',
-    toggleRow: '펼치기/접기', expandAll: '모두 펼치기', collapseAll: '모두 접기', undo: '되돌리기',
+    toggleRow: '펼치기/접기', expandAll: '모두 펼치기', collapseAll: '모두 접기', undo: '실행취소', redo: '실행복귀',
     rowControls: '행 컨트롤', collectionControls: '컬렉션 컨트롤', formControls: '폼 컨트롤',
     formActions: '폼 작업', submit: '저장', reset: '초기화',
     outline: '구조 맵', data: '현재 데이터', untitled: '(이름 없음)', collapsed: '접힘',
@@ -63,7 +65,7 @@ const MESSAGES: Readonly<Record<Language, FormMessages>> = {
   },
   en: {
     moveUp: 'Move up', moveDown: 'Move down', addRow: 'Add', copyRow: 'Copy', removeRow: 'Remove',
-    toggleRow: 'Expand or collapse', expandAll: 'Expand all', collapseAll: 'Collapse all', undo: 'Undo',
+    toggleRow: 'Expand or collapse', expandAll: 'Expand all', collapseAll: 'Collapse all', undo: 'Undo', redo: 'Redo',
     rowControls: 'Row controls', collectionControls: 'Collection controls', formControls: 'Form controls',
     formActions: 'Form actions', submit: 'Save', reset: 'Reset',
     outline: 'Structure map', data: 'Current data', untitled: '(untitled)', collapsed: 'Collapsed',
@@ -71,7 +73,7 @@ const MESSAGES: Readonly<Record<Language, FormMessages>> = {
   },
   ja: {
     moveUp: '上へ', moveDown: '下へ', addRow: '追加', copyRow: '複製', removeRow: '削除',
-    toggleRow: '展開/折りたたみ', expandAll: 'すべて展開', collapseAll: 'すべて折りたたむ', undo: '元に戻す',
+    toggleRow: '展開/折りたたみ', expandAll: 'すべて展開', collapseAll: 'すべて折りたたむ', undo: '元に戻す', redo: 'やり直す',
     rowControls: '行の操作', collectionControls: 'コレクションの操作', formControls: 'フォームの操作',
     formActions: 'フォームのアクション', submit: '保存', reset: 'リセット',
     outline: '構造マップ', data: '現在のデータ', untitled: '(名前なし)', collapsed: '折りたたみ中',
@@ -79,7 +81,7 @@ const MESSAGES: Readonly<Record<Language, FormMessages>> = {
   },
   zh: {
     moveUp: '上移', moveDown: '下移', addRow: '添加', copyRow: '复制', removeRow: '删除',
-    toggleRow: '展开/折叠', expandAll: '全部展开', collapseAll: '全部折叠', undo: '撤销',
+    toggleRow: '展开/折叠', expandAll: '全部展开', collapseAll: '全部折叠', undo: '撤销', redo: '重做',
     rowControls: '行操作', collectionControls: '集合操作', formControls: '表单操作',
     formActions: '表单动作', submit: '保存', reset: '重置',
     outline: '结构图', data: '当前数据', untitled: '(未命名)', collapsed: '已折叠',

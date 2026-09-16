@@ -167,7 +167,9 @@ The rules check argument shapes in argument order first, then the declaration, t
 An option that is absent or `null` uses its default: an empty context, no current page, no total
 and the `table` layout. `page` is the current page and `total` the total record count; the caller
 supplies both, the generator derives neither from the rows, and a list whose specification
-enables `pagination` writes them as `data-page` and `data-total`. The upper bound is the largest
+enables `pagination` writes them as `data-page` and `data-total`. It also emits previous,
+numbered and next buttons; the resolved page defaults to 1 and the current button carries
+`aria-current="page"` and `disabled`. The upper bound is the largest
 integer every runtime represents exactly; an integral value such as `2.0` is the integer `2`. When several inputs are invalid, the first failing rule in the table order is
 reported. The Go and Rust library signatures take rows as a sequence, so in those languages the
 rows rule applies where decoded JSON becomes that sequence; every other rule is checked by the

@@ -599,6 +599,9 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
     let pagination = &model["pagination"];
     if pagination["enabled"] == true {
         let mut attrs = json!({"class":"crudui-list__pagination"});
+        attrs["data-mode"] = pagination.get("mode").and_then(Value::as_str).unwrap_or("pages").into();
+        attrs["data-per-page"] = pagination.get("perPage").and_then(Value::as_u64).unwrap_or(20).into();
+        attrs["data-page"] = pagination.get("page").and_then(Value::as_u64).unwrap_or(1).into();
         for (input, output) in [
             ("mode", "data-mode"),
             ("perPage", "data-per-page"),
@@ -612,7 +615,23 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                 attrs[output] = scalar(Some(value)).into();
             }
         }
-        content += &element("nav", &attrs, "");
+        let mut page = pagination.get("page").and_then(Value::as_u64).unwrap_or(1).max(1);
+        let per_page = pagination.get("perPage").and_then(Value::as_u64).unwrap_or(20).max(1);
+        let page_count = pagination.get("total").and_then(Value::as_u64).map(|total| total.div_ceil(per_page).max(1)).unwrap_or(0);
+        if page_count > 0 { page = page.min(page_count); }
+        let button = |class: &str, value: u64, label: &str, disabled: bool, current: bool| {
+            let mut button = json!({"type":"button", "class":class, "data-page":value.to_string(), "aria-label":label});
+            if current { button["aria-current"] = "page".into(); }
+            if disabled { button["disabled"] = true.into(); }
+            let text = if label == "Previous page" { "‹".to_string() } else if label == "Next page" { "›".to_string() } else { value.to_string() };
+            element("button", &button, &text)
+        };
+        let mut controls = button("crudui-list__pagination-prev", page.saturating_sub(1).max(1), "Previous page", page <= 1 || page_count == 0, false);
+        for value in 1..=page_count.min(7) {
+            controls += &button("crudui-list__pagination-page", value, &format!("Page {}", value), value == page, value == page);
+        }
+        controls += &button("crudui-list__pagination-next", page.saturating_add(1).min(page_count.max(1)), "Next page", page_count == 0 || page >= page_count, false);
+        content += &element("nav", &attrs, &controls);
     }
     let wrapper = &model["design"]["wrapper"];
     let mut sources = Vec::new();

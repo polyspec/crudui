@@ -8,6 +8,8 @@ export interface OutlineState {
   readonly fields: NodeVM[];
   /** Whether the undo control is enabled. */
   readonly canUndo: boolean;
+  /** Whether the redo control is enabled. */
+  readonly canRedo: boolean;
 }
 
 /** One row in the structure map. */

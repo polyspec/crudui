@@ -151,9 +151,7 @@ async function renderPipelinePage(url, request, response) {
     }
   } else if (options.initialization === 'ssr') {
     const rendered = await pipelineMarkup(url, match);
-    const page = Number.parseInt(url.searchParams.get('page') || '1', 10);
-    const pageLinks = match === 'list' ? `<nav class="pipeline-pagination" aria-label="${language === 'en' ? 'Pages' : '페이지'}">${[1, 2, 3].map(value => `<a href="/?${new URLSearchParams({ ...Object.fromEntries(url.searchParams), page: String(value) })}"${value === page ? ' aria-current="page"' : ''}>${value}</a>`).join('')}</nav>` : '';
-    const stage = `<div class="stage-heading"><p class="eyebrow">${match.toUpperCase()}</p><h2>${match === 'list' ? (language === 'en' ? 'Customer list' : '고객 목록') : (language === 'en' ? 'Customer detail' : '고객 상세')}</h2><p>${labels.intro}</p></div>${rendered.body.toString()}${pageLinks}`;
+    const stage = `<div class="stage-heading"><p class="eyebrow">${match.toUpperCase()}</p><h2>${match === 'list' ? (language === 'en' ? 'Customer list' : '고객 목록') : (language === 'en' ? 'Customer detail' : '고객 상세')}</h2><p>${labels.intro}</p></div>${rendered.body.toString()}`;
     html = html.replace('<section id="stage" aria-live="polite"></section>', `<section id="stage" aria-live="polite">${stage}</section>`);
   }
   response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });

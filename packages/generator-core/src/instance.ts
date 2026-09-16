@@ -4,7 +4,7 @@ import { bindButtons, type ButtonVM } from './buttons';
 import { formMessages, type FormMessages } from './messages';
 import type { NodeVM } from './viewmodel';
 import { getValueByPath, parsePathString } from './util';
-import { canUndo, emptyHistory, recordChange, undoChange, type History } from './history';
+import { canUndo, canRedo, emptyHistory, recordChange, undoChange, redoChange, type History } from './history';
 import { initialView, rekeyRowView, removeRowView, setAllExpandedView, toggleRowView, type ViewState } from './view';
 
 /** Transport key for an existing database sequence. */
@@ -46,6 +46,8 @@ export interface FormSnapshot {
   readonly revision: number;
   /** Whether `undo` can restore an earlier record. */
   readonly canUndo: boolean;
+  /** Whether `redo` can reapply a reverted change. */
+  readonly canRedo: boolean;
 }
 
 function hasOwn(value: object, key: string): boolean {
@@ -121,6 +123,7 @@ export class FormInstance {
       buttons: bindButtons(template, this.data, this.options),
       revision: 0,
       canUndo: false,
+      canRedo: false,
     };
   }
 
@@ -241,10 +244,19 @@ export class FormInstance {
 
   /** Restore the record before the last data change. */
   undo(): void {
-    const { history, value: previous } = undoChange(this.history);
+    const { history, value: previous } = undoChange(this.history, this.data);
     const fields = this.build(previous, this.view.collapsed);
     this.history = history;
     this.data = previous;
+    this.publish(fields, this.snapshot.revision + 1);
+  }
+
+  /** Reapply the most recently undone data change. */
+  redo(): void {
+    const { history, value: next } = redoChange(this.history, this.data);
+    const fields = this.build(next, this.view.collapsed);
+    this.history = history;
+    this.data = next;
     this.publish(fields, this.snapshot.revision + 1);
   }
 
@@ -258,6 +270,7 @@ export class FormInstance {
       buttons: bindButtons(this.template, this.data, this.options),
       revision,
       canUndo: canUndo(this.history),
+      canRedo: canRedo(this.history),
     };
     for (const listener of this.listeners) listener();
   }

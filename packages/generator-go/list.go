@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
@@ -557,10 +558,11 @@ func listHTML(vm *Object, layout string) string {
 	p := read(vm, "pagination")
 	if truthy(read(p, "enabled")) {
 		at := NewObject("class", "crudui-list__pagination")
-		if s := stringAt(p, "mode"); s != "" {
-			at.Set("data-mode", s)
-		}
+		mode := stringAt(p, "mode"); if mode == "" { mode = "pages" }; at.Set("data-mode", mode)
+		perPageValue, _ := asNumber(read(p, "perPage")); if perPageValue < 1 { perPageValue = 20 }; at.Set("data-per-page", strconv.FormatInt(int64(perPageValue), 10))
+		pageAttributeValue, _ := asNumber(read(p, "page")); if pageAttributeValue < 1 { pageAttributeValue = 1 }; at.Set("data-page", strconv.FormatInt(int64(pageAttributeValue), 10))
 		for _, k := range []string{"perPage", "page", "total"} {
+			if k == "perPage" || k == "page" { continue }
 			if has(p, k) {
 				name := k
 				if k == "perPage" {
@@ -569,7 +571,20 @@ func listHTML(vm *Object, layout string) string {
 				at.Set("data-"+name, stringAt(p, k))
 			}
 		}
-		body += element("nav", at, "")
+		pageValue, _ := asNumber(read(p, "page")); if pageValue < 1 { pageValue = 1 }; page := int64(pageValue)
+		perPage, _ := asNumber(read(p, "perPage")); if perPage < 1 { perPage = 20 }
+		total, totalOK := asNumber(read(p, "total")); pageCount := int64(0)
+		if totalOK { pageCount = int64(math.Max(1, math.Ceil(total/perPage))); if page > pageCount { page = pageCount } }
+		button := func(class string, value int64, label string, disabled, current bool) string {
+			x := NewObject("type", "button", "class", class, "data-page", strconv.FormatInt(value, 10), "aria-label", label)
+			if current { x.Set("aria-current", "page") }; if disabled { x.Set("disabled", true) }
+			text := label; if label == "Previous page" { text = "‹" }; if label == "Next page" { text = "›" }; if strings.HasPrefix(label, "Page ") { text = strings.TrimPrefix(label, "Page ") }
+			return element("button", x, text)
+		}
+		content := button("crudui-list__pagination-prev", int64(math.Max(1, float64(page-1))), "Previous page", page <= 1 || pageCount == 0, false)
+		if pageCount > 0 { limit := int64(math.Min(7, float64(pageCount))); for i := int64(1); i <= limit; i++ { content += button("crudui-list__pagination-page", i, "Page "+strconv.FormatInt(i, 10), i == page, i == page) } }
+		content += button("crudui-list__pagination-next", int64(math.Max(1, math.Min(float64(pageCount), float64(page+1)))), "Next page", pageCount == 0 || page >= pageCount, false)
+		body += element("nav", at, content)
 	}
 	return element("div", a, body)
 }

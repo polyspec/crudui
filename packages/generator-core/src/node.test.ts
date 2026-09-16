@@ -17,6 +17,8 @@ import {
   setAllExpandedView,
   toggleRowView,
   undoChange,
+  redoChange,
+  canRedo,
   type NodeVM,
 } from './index';
 
@@ -174,6 +176,23 @@ describe('instance view state and undo', () => {
     expect(() => form.undo()).toThrow('Nothing to undo');
   });
 
+  it('redoes an undone change and clears redo after a new change', () => {
+    const form = createForm(compileForm(spec), data);
+    const path = `teams.${k1}.name`;
+    form.setValue(path, 'Sales team');
+    form.undo();
+    expect(form.getSnapshot().canRedo).toBe(true);
+    expect(form.getValue(path)).toBe('Sales');
+    form.redo();
+    expect(form.getValue(path)).toBe('Sales team');
+    expect(form.getSnapshot().canUndo).toBe(true);
+    expect(form.getSnapshot().canRedo).toBe(false);
+    form.undo();
+    form.setValue(path, 'Revenue');
+    expect(form.getSnapshot().canRedo).toBe(false);
+    expect(() => form.redo()).toThrow('Nothing to redo');
+  });
+
   it('restarts history and view state when the record is replaced', () => {
     const form = createForm(compileForm(spec), data);
     form.removeRow(`teams.${k1}.members`, k2);
@@ -221,6 +240,8 @@ describe('structure map and actions', () => {
     expect(form.getSnapshot()).toBe(revision);
     expect(runAction(form, { name: 'undo' })).toEqual({});
     expect(form.getValue(members)).toEqual({});
+    expect(runAction(form, { name: 'redo' })).toEqual({});
+    expect(Object.keys(form.getValue(members) as object)).toHaveLength(1);
   });
 
   it('returns the row that receives focus after copying, moving and removing', () => {
@@ -251,11 +272,23 @@ describe('pure view state and history rules', () => {
     expect(history.entries).toEqual([0, 2]);
     for (let value = 0; value < 150; value++) history = recordChange(history, value);
     expect(history.entries).toHaveLength(HISTORY_LIMIT);
-    const { history: rest, value } = undoChange(history);
+    const { history: rest, value } = undoChange(history, 150);
     expect(value).toBe(149);
     expect(rest.entries).toHaveLength(HISTORY_LIMIT - 1);
     expect(rest.lastPath).toBeUndefined();
-    expect(() => undoChange(emptyHistory())).toThrow('Nothing to undo');
+    expect(() => undoChange(emptyHistory(), 0)).toThrow('Nothing to undo');
+  });
+
+  it('redoes an undo and clears redo after a new change', () => {
+    let history = emptyHistory<number>();
+    history = recordChange(history, 0);
+    const undone = undoChange(history, 1);
+    expect(undone.value).toBe(0);
+    expect(canRedo(undone.history)).toBe(true);
+    const redone = redoChange(undone.history, 0);
+    expect(redone.value).toBe(1);
+    expect(canRedo(redone.history)).toBe(false);
+    expect(recordChange(undone.history, 0).redoEntries).toEqual([]);
   });
 
   it('drops, renames and resets the view state of rows', () => {

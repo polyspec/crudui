@@ -125,18 +125,20 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 | --- | --- |
 | `toggleRow(path, key)` | 행 하나를 펼치거나 접습니다. |
 | `setAllExpanded(expanded)` | 접을 수 있는 모든 행을 펼치거나 접습니다. |
-| `undo()` | 마지막 데이터 변경 이전 레코드로 복원하며, 되돌릴 이력이 없으면 실패합니다. |
+| `undo()` | 마지막 데이터 변경 이전 레코드로 복원하고 되돌린 레코드를 실행복귀 대상으로 만들며, 되돌릴 이력이 없으면 실패합니다. |
+| `redo()` | 가장 최근에 실행취소한 데이터 변경을 다시 적용하며, 실행복귀할 이력이 없으면 실패합니다. |
 
-스냅샷은 `canUndo`를 제공합니다. 이력은 최대 100개 레코드를 보관합니다. 같은 경로에
-연속한 `setValue` 호출은 한 항목을 공유합니다. `setData`는 이력과 접힌 행을 새로
+스냅샷은 `canUndo`와 `canRedo`를 제공합니다. 이력은 양방향에 각각 최대 100개
+레코드를 보관합니다. 같은 경로에 연속한 `setValue` 호출은 한 항목을 공유합니다.
+`undo()` 뒤에 새 데이터 변경이 발생하면 실행복귀 이력을 지웁니다. `setData`는 이력과 접힌 행을 새로
 시작합니다. 행을 제거하면 그 행의 뷰 상태를 지우고, 행 키를 바꾸면 새 키로 옮깁니다.
 뷰 변경은 `revision`을 바꾸지 않습니다. 서버 렌더링은 모든 행이 펼쳐진 초기 뷰를
 사용합니다. 구조 맵과 현재 데이터 보기는 [폼 마크업](form-markup.ko.md)에서 정의합니다.
 
 generator-core는 이 규칙을 불변 값에 대한 순수 함수로 export합니다. 뷰 상태는
 `initialView`, `toggleRowView`, `setAllExpandedView`, `removeRowView`,
-`rekeyRowView`, `collapsibleRows`이고, 이력은 `emptyHistory`,
-`recordChange`, `canUndo`, `undoChange`입니다. `bindForm`으로 데이터를 직접 관리하는
+`rekeyRowView`, `collapsibleRows`이고, 이력은 `emptyHistory`, `recordChange`,
+`canUndo`, `canRedo`, `undoChange`, `redoChange`입니다. `bindForm`으로 데이터를 직접 관리하는
 응용 프로그램도 같은 함수를 사용합니다.
 
 ## 렌더링과 검증

@@ -59,6 +59,7 @@ export function OutlineView({ state, messages, rootRef }: OutlineViewProps): Rea
           <TextAction name="expand-all" label={messages.expandAll} />
           <TextAction name="collapse-all" label={messages.collapseAll} />
           <TextAction name="undo" label={messages.undo} disabled={!state.canUndo} />
+          <TextAction name="redo" label={messages.redo} disabled={!state.canRedo} />
         </div>
       </div>
       <div className="crudui-outline__body">
