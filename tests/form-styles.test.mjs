@@ -160,7 +160,7 @@ for (const host of hosts) {
     } finally { await page.close(); }
   });
 
-  test(`${host}: rows have no bottom border beneath their header divider`, async () => {
+  test(`${host}: row cards keep their bottom edge and collapsed headers do not duplicate it`, async () => {
     const { page, target, failures } = await openHost(host);
     try {
       await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
@@ -175,9 +175,23 @@ for (const host of hosts) {
         return { outer: outer && style(outer), nested: nested && style(nested), header: header && style(header) };
       });
       assert.deepEqual(failures, []);
-      assert.deepEqual(rows.outer, { borderBottomStyle: 'none', borderBottomWidth: '0px' });
-      assert.deepEqual(rows.nested, { borderBottomStyle: 'none', borderBottomWidth: '0px' });
+      assert.deepEqual(rows.outer, { borderBottomStyle: 'solid', borderBottomWidth: '1px' });
+      assert.deepEqual(rows.nested, { borderBottomStyle: 'solid', borderBottomWidth: '1px' });
       assert.deepEqual(rows.header, { borderBottomStyle: 'solid', borderBottomWidth: '1px' });
+      const collapsed = await target.evaluate(() => {
+        document.querySelector('.crudui-form .crudui-node--row').querySelector(':scope > .crudui-node__header [data-crudui-action="toggle-row"]').click();
+        const row = document.querySelector('.crudui-form .crudui-node--row');
+        const style = getComputedStyle(row);
+        const headerStyle = getComputedStyle(row.querySelector(':scope > .crudui-node__header'));
+        return {
+          rowBottom: { borderBottomStyle: style.borderBottomStyle, borderBottomWidth: style.borderBottomWidth },
+          headerBottom: { borderBottomStyle: headerStyle.borderBottomStyle, borderBottomWidth: headerStyle.borderBottomWidth },
+        };
+      });
+      assert.deepEqual(collapsed, {
+        rowBottom: { borderBottomStyle: 'solid', borderBottomWidth: '1px' },
+        headerBottom: { borderBottomStyle: 'none', borderBottomWidth: '0px' },
+      });
     } finally { await page.close(); }
   });
 
