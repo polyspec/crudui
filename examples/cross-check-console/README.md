@@ -171,7 +171,8 @@ badge is independently derived:
 
 - `idempotent` (validate / validate-list) — a stable per-language signature
   (the complete failure record, or valid + sorted 5-field errors, numeric `value` collapsed so a
-  Rust-f64-vs-int serialization never trips a false mismatch). A failed CLI
+  Rust-f64-vs-int serialization never trips a false mismatch; object member order in `value` is
+  ignored while array order remains significant). A failed CLI
   (`ok:false`) carries a distinct signature and never silently agrees. Fewer than
   two languages ran → undetermined (null), not false.
 - `parity` (render / render-list / search render) — a success framework signs with

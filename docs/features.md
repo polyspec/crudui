@@ -83,7 +83,9 @@ Chromium widget and timezone checks and `make docs-check` passed.
 A clean source archive passed 136 form-comparison source checks, ten generator
 construction checks, three form-comparison Chromium checks, nine public package
 checks, one repeated-build check, 18 form-inspector checks and six form-inspector
-browser CSS checks. Cross-check rendering passed 33 cases.
+browser CSS checks. Cross-check rendering passed 33 cases. The cross-check gateway suite
+passed 268 tests, including all 64 shared form-validation fixtures through JavaScript,
+PHP, Go and Rust.
 
 The full `make test-native` command passed at commit `e2e1af01` in a non-root
 Linux arm64 image. It rebuilt and loaded the extension, ran the

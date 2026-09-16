@@ -214,7 +214,9 @@ application.
 4. Edit, reorder, remove and add rows without restoring stale values.
 5. Apply a saved sequence key and update field names and rule paths correctly.
 6. Reject invalid operations atomically and permit adding after deleting all rows.
-7. Verify keyed scalar and group validation with shared four-language cases.
+7. Verify every shared validation fixture case through JavaScript, PHP, Go and Rust and
+   require one idempotent result signature from all four languages. Object member order
+   inside an error value is not semantic; array order remains semantic.
 8. Run row operations with pointer and keyboard input and verify the focused row
    in React, Vue and Svelte.
 9. Send consecutive native input events across framework renders; retain every

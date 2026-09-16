@@ -74,6 +74,18 @@ describe('compareIdempotency — agreement', () => {
     );
     expect(compareIdempotency(results).idempotent).toBe(true);
   });
+
+  test('object member order in an error value does not create a false mismatch', () => {
+    const value = { __0000000000002__: 'same', __0000000000001__: 'same' };
+    const reordered = { __0000000000001__: 'same', __0000000000002__: 'same' };
+    const results = [
+      env('js', { errors: [err({ field: 'tags', path: 'tags', rule: 'unique', value })] }),
+      env('php', { errors: [err({ field: 'tags', path: 'tags', rule: 'unique', value })] }),
+      env('go', { errors: [err({ field: 'tags', path: 'tags', rule: 'unique', value: reordered })] }),
+      env('rust', { errors: [err({ field: 'tags', path: 'tags', rule: 'unique', value })] }),
+    ];
+    expect(compareIdempotency(results)).toEqual({ idempotent: true, mismatch: null });
+  });
 });
 
 describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
@@ -164,23 +176,25 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Real fan-out smoke (spawns all four CRUDUI CLIs). Requires the Go + Rust binaries
-// to be built (npm run build:cli). Slow, so a single representative fixture case
-// is selected — selection is logged so the narrowing is explicit, not hidden.
+// Real fan-out (spawns all four CRUDUI CLIs for every shared form fixture).
+// Requires the Go + Rust binaries to be built (npm run build:cli).
 // ---------------------------------------------------------------------------
 const allCases = JSON.parse(fs.readFileSync(VALIDATE_FIXTURE, 'utf8'));
-const SMOKE_NAME = 'conditional-required-true';
-const smoke = allCases.find((c) => c.name === SMOKE_NAME);
-
-describe('validateAll — real 4-language fan-out (representative fixture)', () => {
-  test(`[selected: ${SMOKE_NAME} of ${allCases.length} validate cases] four engines agree → idempotent:true`, async () => {
-    expect(smoke, `fixture case ${SMOKE_NAME} must exist`).toBeTruthy();
-    const out = await validateAll({ spec: smoke.spec, data: smoke.data });
-    // Every engine must have run (ok). A missing Go/Rust binary surfaces here.
-    const failed = out.results.filter((r) => !r.ok);
-    expect(failed.map((r) => `${r.lang}:${r.error}`)).toEqual([]);
-    expect(out.idempotent, JSON.stringify(out.mismatch)).toBe(true);
-    // The shared verdict must reproduce the fixture's expected validity.
-    expect(out.results[0].valid).toBe(smoke.expected.valid);
-  }, 60000);
+describe('validateAll — real 4-language fan-out (every fixture case)', () => {
+  for (const c of allCases) {
+    test(`${c.name} — four engines agree → idempotent:true`, async () => {
+      const out = await validateAll({ spec: c.spec, data: c.data, files: c.files ?? {}, basepath: c.basepath ?? '' });
+      expect(out.results.map((r) => r.lang)).toEqual(['js', 'php', 'go', 'rust']);
+      expect(out.results.filter((r) => !r.ok).map((r) => `${r.lang}:${r.error}`)).toEqual([]);
+      expect(out.idempotent, JSON.stringify(out.mismatch)).toBe(true);
+      if (c.expectFailure) {
+        expect(out.results.every((r) => r.failure
+          && r.failure.code === c.expectFailure.code
+          && r.failure.message === c.expectFailure.message
+          && r.failure.at === c.expectFailure.at)).toBe(true);
+      } else {
+        expect(out.results[0].valid).toBe(c.expected.valid);
+      }
+    }, 60000);
+  }
 });
