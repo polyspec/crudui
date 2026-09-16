@@ -41,7 +41,7 @@
     "docs:check:documents": "node scripts/check-documents.mjs",
     "test:packages": "node scripts/require-current-build.mjs && node scripts/check-packages.mjs",
     "test:dependencies": "node --test --test-timeout=60000 tests/build/dependency-health.test.mjs",
-    "test:runtimes": "node --test --test-timeout=30000 tests/build/runtime-version-policy.test.mjs tests/build/form-comparison-ci.test.mjs tests/build/make-tool-path.test.mjs tests/build/rust-node-entry-points.test.mjs",
+    "test:runtimes": "node --test --test-timeout=30000 tests/build/runtime-version-policy.test.mjs tests/build/form-comparison-ci.test.mjs tests/build/make-tool-path.test.mjs tests/build/rust-node-entry-points.test.mjs tests/build/conformance-coverage.test.mjs",
     "test:docs": "node --test --test-timeout=10000 tests/docs/*.test.mjs",
     "test:build": "node --test --test-timeout=30000 tests/build/public-packages.test.mjs tests/build/vite-config.test.mjs",
     "test:build:repeat": "node --test --test-timeout=120000 tests/build/reproducible-build.test.mjs"
