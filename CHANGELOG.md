@@ -1,11 +1,5 @@
 # Changes
 
-## 2026-09-16 — Align sticky headers with row borders
-
-Sticky header positions now subtract the row border width from their sticky line. Header and
-row borders remain intact while the header clears the one-pixel remainder at the meeting point.
-
-
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through
