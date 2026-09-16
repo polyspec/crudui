@@ -16,6 +16,10 @@ The Rust validator release profile now explicitly disables Cargo's debuginfo str
 prevents the build from depending on a toolchain-local `rust-objcopy`/`libLLVM.dylib` pairing that
 could emit a warning after producing a nominally successful binary.
 
+Added an executable conformance matrix. It checks that declared pass targets, shared fixture
+counts, gateway test links and native operations remain complete. The matrix check runs in
+`test:runtimes`, so a missing test or unsupported execution path fails mechanically.
+
 ## 2026-09-16 — Keep framework container markers out of content comparisons
 
 The form comparison now compares each view container's rendered contents while preserving

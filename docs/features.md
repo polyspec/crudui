@@ -89,6 +89,10 @@ PHP, Go and Rust. Its rendering fan-out covers all 92 form, 42 list and 30 detai
 the one public-instance form fixture with a generated row identity is checked by parity and
 row-key contract rather than fixed bindForm bytes.
 
+The executable conformance matrix checks the declared target groups, fixture inventories, gateway
+test links and native operation surfaces. It runs as part of `npm run test:runtimes` and fails when
+an implemented feature is declared without corresponding target coverage.
+
 The full `make test-native` command passed at commit `e2e1af01` in a non-root
 Linux arm64 image. It rebuilt and loaded the extension, ran the
 PHP, Go and Rust package tests, repeated the PHP API and validation checks, passed

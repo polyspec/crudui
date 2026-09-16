@@ -86,6 +86,10 @@ Chromium 검사 3개, 공개 패키지 검사 9개, 반복 빌드 검사 1개, �
 42개, 상세 30개 fixture 전체를 포함하며, 생성 행 식별자를 사용하는 public instance
 폼 한 건은 고정 bindForm 바이트 대신 parity와 행 키 계약으로 검사합니다.
 
+실행 가능한 적합성 검사 매트릭스는 선언된 대상 그룹, fixture 목록, gateway 검사 연결,
+native 연산 범위를 검사합니다. `npm run test:runtimes`에 포함되며 구현된 기능이 대응하는
+대상 검사 없이 선언되면 실패합니다.
+
 커밋 `e2e1af01`로 만든 일반 사용자 Linux arm64 이미지에서 전체
 `make test-native` 명령이 통과했습니다. 확장을 다시 빌드하고 로드한 뒤
 PHP·Go·Rust 패키지 검사, PHP API·검증 검사, 프로토콜 검사 19개, Chromium
