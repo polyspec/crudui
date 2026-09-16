@@ -133,8 +133,6 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 마크업 생성기입니다. link는 `a`, 나머지 유형은 `button` 요소이며 속성 순서는 `type`, `class`,
 `style`, `name`, `value`, `href`, `onclick`입니다. 푸터는 고정 행 헤더가 위에 붙듯 스크롤 영역
 하단에 `--crudui-form-footer-height` 높이로 붙습니다.
-펼친 행 헤더는 하단 구분선 하나를 가지며, 헤더가 sticky 상태일 때는 행의 이동 경계에
-1픽셀이 남지 않도록 구분선을 숨깁니다. 접힌 행도 해당 구분선을 숨깁니다.
 
 ## 구조 맵과 현재 데이터 보기
 
