@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
-import { compareSnapshots, formSnapshot, renderedViews } from './form-snapshot.mjs';
+import { compareSnapshots, formSnapshot, renderedFormSnapshot, renderedViews } from './form-snapshot.mjs';
 
 function fixture() {
   const { window } = new JSDOM('<form><div class="row" data-key="__0000000000005__"><label>Name</label><input name="form[name]" value="Saved"><input name="form[enabled]" type="checkbox" checked><textarea name="form[notes]">Notes</textarea><select name="form[category]"><option value="a" selected>A</option><option value="b">B</option></select></div><div class="row" data-key="__0000000000001__">Second<!-- kept --></div></form>');
@@ -88,6 +88,17 @@ test('rendered views compare their contents, not the containers a framework mark
   assert.deepEqual(renderedViews(view), expected);
   view.querySelector('#form-view').firstElementChild.textContent = 'changed';
   assert.notDeepEqual(renderedViews(view), expected);
+});
+
+test('rendered form snapshots preserve framework container markers outside the comparison', () => {
+  const { window } = new JSDOM('<div id="view"><div id="form-view"><p>form</p></div><div id="outline-view"></div><div id="data-view"></div></div><form id="form"></form>');
+  const view = window.document.querySelector('#view');
+  const form = window.document.querySelector('#form');
+  const expected = renderedFormSnapshot(view, form);
+  view.querySelector('#form-view').setAttribute('data-v-app', '');
+  assert.deepEqual(renderedFormSnapshot(view, form), expected);
+  view.querySelector('#form-view').firstElementChild.textContent = 'changed';
+  assert.notDeepEqual(renderedFormSnapshot(view, form), expected);
 });
 
 test('rendered views drop framework anchors and compare style as a declaration block', () => {

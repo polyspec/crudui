@@ -1,16 +1,17 @@
 # Changes
 
-## 2026-09-16 — Keep Vue initialization containers identical
+## 2026-09-16 — Keep framework container markers out of content comparisons
 
-The Vue adapters now remove Vue's `data-v-app` diagnostic marker after a CSR mount. The frame owns
-the view container, so SSR hydration and CSR mounting expose the same container contract.
+The form comparison now compares each view container's rendered contents while preserving
+framework-owned container markers. Vue adapters retain Vue's `data-v-app` marker after CSR mount;
+the comparison no longer requires adapters to remove it.
 
 ## 2026-09-16 — Isolate and stabilize initialization comparisons
 
 The benchmark resets the CSR repository before its initialization stages and uses the same
 deterministic generated-row sequence for the `added` stage in both columns. Vue hydration now
-passes the hydration flag to its mount operation, so it does not add a client-only marker to the
-server-rendered container.
+passes the hydration flag to its mount operation, and the comparison preserves Vue's CSR marker
+outside the rendered-content contract.
 
 ## 2026-09-16 — Publish the benchmark run source identity
 

@@ -15,8 +15,6 @@ function start(views, template, language, data, hydrate) {
   });
   const dataView = createApp({ render: () => h(DataView, { form: session }) });
   form.mount(views.form, hydrate);
-  // The frame owns this container; keep its CSR and SSR container contracts identical.
-  views.form.removeAttribute('data-v-app');
   outline.mount(views.outline);
   dataView.mount(views.data);
   return {

@@ -275,10 +275,10 @@ HTML is checked by the generation and native generation checks. A `style` attrib
 block, so it is compared as the CSS object model serializes its declarations: React
 writes a sticky row's `--crudui-sticky-depth:0` as `--crudui-sticky-depth: 0;`. The comparison leaves out the nodes frameworks
 keep as rendering anchors, which render nothing: comments (Vue) and empty text nodes
-(Svelte). It covers what the view containers hold, not the containers themselves. The frame owns
-the view containers and removes Vue's `data-v-app` diagnostic marker after a CSR mount; Vue's SSR
-mount leaves the container unmarked. That a column really hydrated is enforced by the frame's node
-check below, not by this comparison.
+(Svelte). It covers what the view containers hold, not the framework-owned container attributes.
+The frame compares the contents of each view container and leaves framework markers such as Vue's
+CSR `data-v-app` untouched. That a column really hydrated is enforced by the frame's node check
+below, not by this comparison.
 Each adapter declares what hydration does with the server-rendered nodes:
 React, Vue and the HTML renderer adopt them, and the frame requires every one of them
 to survive; Svelte hydrates only markup its own server renderer wrote, which carries

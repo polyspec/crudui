@@ -1,6 +1,6 @@
 import { createBrowserJob } from '../browser-job.mjs';
 import { loadComparisonFrames } from '../frame-readiness.mjs';
-import { compareSnapshots, formSnapshot, snapshotHash, styleSnapshot } from '../form-snapshot.mjs';
+import { compareSnapshots, renderedFormSnapshot, snapshotHash, styleSnapshot } from '../form-snapshot.mjs';
 import {
   formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
   initializationCategories, initializationComparisons, initializationStages,
@@ -44,7 +44,7 @@ async function capture(frame, response) {
   const document = frame.contentDocument;
   await document.fonts.ready;
   const view = document.querySelector('#view');
-  const snapshot = formSnapshot(view, document.querySelector('#form'));
+  const snapshot = renderedFormSnapshot(view, document.querySelector('#form'));
   snapshot.css = styleSnapshot(view);
   snapshot.data = comparison.encodedData();
   snapshot.focus = comparison.focusState();
