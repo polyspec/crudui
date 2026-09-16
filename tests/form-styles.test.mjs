@@ -177,6 +177,7 @@ for (const engine of engines) for (const host of hosts) {
         return {
           token,
           scrollState: CSS.supports('container-type: scroll-state'),
+          border: parseFloat(getComputedStyle(first.parentElement).borderLeftWidth),
           headers: headers.map(header => ({
             offset: header.getBoundingClientRect().top - top,
             line: parseFloat(getComputedStyle(header).top),
@@ -186,6 +187,13 @@ for (const engine of engines) for (const host of hosts) {
             labelBackground: getComputedStyle(header.querySelector('.crudui-node__label')).backgroundColor,
             labelRadius: getComputedStyle(header.querySelector('.crudui-node__label')).borderRadius,
           })),
+          // The card top edge is drawn in the container and goes while the container is stuck,
+          // so no border crosses the line and a seam keeps one border.
+          edges: headers.map(header => ({
+            row: getComputedStyle(header.parentElement).borderTopWidth,
+            edge: getComputedStyle(header.querySelector(':scope > .crudui-node__header'), '::before').display,
+          })),
+          lines: headers.map(header => getComputedStyle(header.querySelector(':scope > .crudui-node__header')).borderBottomWidth),
           titleTruncated: title.scrollWidth > title.clientWidth,
           actionRows: new Set([...first.querySelectorAll('.crudui-action')].map(button => Math.round(button.getBoundingClientRect().top))).size,
         };
@@ -196,12 +204,20 @@ for (const engine of engines) for (const host of hosts) {
       for (const [index, header] of layout.headers.entries()) {
         assert.ok(Math.abs(header.height - layout.token) < 0.5, `Level ${index} header height ${header.height} equals ${layout.token}`);
         assert.ok(Math.abs(header.offset - header.line) < 0.5, `Level ${index} header sits on its line: ${header.offset} vs ${header.line}`);
-        assert.ok(Math.abs(header.line - index * layout.token) < 0.5, `Level ${index} line is ${index} header heights`);
+        assert.ok(Math.abs(header.line - index * (layout.token - layout.border)) < 0.5,
+          `Level ${index} line is ${index} header heights less its border: ${header.line}`);
         assert.notEqual(header.label, 'none', `Level ${index} shows its label while stuck`);
         // A browser with scroll-state queries shows the label by the query; any other marks the header.
         assert.equal(header.marked, !layout.scrollState, `Level ${index} marking with scroll-state support ${layout.scrollState}`);
         assert.notEqual(header.labelBackground, 'rgba(0, 0, 0, 0)', `Level ${index} label has badge background`);
         assert.notEqual(header.labelRadius, '0px', `Level ${index} label has badge radius`);
+      }
+      for (const [index, edge] of layout.edges.entries()) {
+        assert.equal(edge.row, '0px', `Level ${index} row carries no top border`);
+        assert.equal(edge.edge, 'none', `Level ${index} card top edge goes while the header is stuck`);
+      }
+      for (const [index, line] of layout.lines.entries()) {
+        assert.ok(Math.abs(parseFloat(line) - layout.border) < 0.01, `Level ${index} header owns the line under it, one row border: ${line}`);
       }
       assert.equal(layout.titleTruncated, true, 'A long title is truncated');
       assert.equal(layout.actionRows, 1, 'Header controls stay on one line');
@@ -209,14 +225,16 @@ for (const engine of engines) for (const host of hosts) {
       // Scrolled back to the top, nothing is stuck and the level labels are hidden.
       await target.evaluate(source => { eval(source).scroller.scrollTop = 0; }, containerSource);
       await frames(target);
-      const labels = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__label')]
-        .map(label => getComputedStyle(label).display));
-      assert.ok(labels.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${labels}`);
-
+      const loose = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header')].map(header => ({
+        label: getComputedStyle(header.querySelector(':scope > .crudui-node__label')).display,
+        edge: getComputedStyle(header, '::before').display,
+      })));
+      assert.ok(loose.every(header => header.label === 'none'), `Level labels are hidden while headers are not stuck: ${loose.map(header => header.label)}`);
+      assert.ok(loose.every(header => header.edge !== 'none'), `A row that is not stuck draws its card top edge: ${loose.map(header => header.edge)}`);
     } finally { await page.close(); }
   });
 
-  test(`${engine} ${host}: without scroll-state queries, the binding marks stuck headers to show their labels`, async () => {
+  test(`${engine} ${host}: without scroll-state queries, the binding marks stuck headers to show their labels and hide their card top edges`, async () => {
     const { page, target, failures } = await openHost(engine, host);
     try {
       // Act as Firefox or Safari: no scroll-state support and no container rule.
@@ -232,9 +250,14 @@ for (const engine of engines) for (const host of hosts) {
       }, spec, data);
       const labels = () => target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container')]
         .map(header => getComputedStyle(header.querySelector(':scope > .crudui-node__header > .crudui-node__label')).display));
+      // The marking hides the card top edge as the query does.
+      const edges = () => target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header')]
+        .map(header => getComputedStyle(header, '::before').display));
       await frames(target);
       const top = await labels();
       assert.ok(top.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${top}`);
+      const topEdges = await edges();
+      assert.ok(topEdges.every(display => display !== 'none'), `Card top edges show while headers are not stuck: ${topEdges}`);
       await target.evaluate(source => {
         const { scroller, top, token } = eval(source);
         const rows = document.querySelectorAll('.crudui-node--sticky');
@@ -243,15 +266,21 @@ for (const engine of engines) for (const host of hosts) {
       await frames(target);
       const stuck = await labels();
       assert.ok(stuck.every(display => display !== 'none'), `Level labels show while stuck: ${stuck}`);
+      const stuckEdges = await edges();
+      assert.ok(stuckEdges.every(display => display === 'none'), `Card top edges go while stuck: ${stuckEdges}`);
       // A re-render keeps the marks.
       await target.evaluate(() => { const input = document.querySelector('.crudui-form input[name]'); input.value += 'x'; input.dispatchEvent(new Event('input', { bubbles: true })); });
       await frames(target);
       const rendered = await labels();
       assert.ok(rendered.every(display => display !== 'none'), `Level labels still show after a render: ${rendered}`);
+      const renderedEdges = await edges();
+      assert.ok(renderedEdges.every(display => display === 'none'), `Card top edges stay hidden after a render: ${renderedEdges}`);
       await target.evaluate(source => { eval(source).scroller.scrollTop = 0; }, containerSource);
       await frames(target);
       const back = await labels();
       assert.ok(back.every(display => display === 'none'), `Level labels hide again at the top: ${back}`);
+      const backEdges = await edges();
+      assert.ok(backEdges.every(display => display !== 'none'), `Card top edges show again at the top: ${backEdges}`);
       assert.deepEqual(failures, []);
     } finally { await page.close(); }
   });
