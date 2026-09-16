@@ -84,8 +84,10 @@ A clean source archive passed 136 form-comparison source checks, ten generator
 construction checks, three form-comparison Chromium checks, nine public package
 checks, one repeated-build check, 18 form-inspector checks and six form-inspector
 browser CSS checks. Cross-check rendering passed 33 cases. The cross-check gateway suite
-passed 268 tests, including all 64 shared form-validation fixtures through JavaScript,
-PHP, Go and Rust.
+passed 359 tests, including all 64 shared form-validation fixtures through JavaScript,
+PHP, Go and Rust. Its rendering fan-out covers all 92 form, 42 list and 30 detail fixtures;
+the one public-instance form fixture with a generated row identity is checked by parity and
+row-key contract rather than fixed bindForm bytes.
 
 The full `make test-native` command passed at commit `e2e1af01` in a non-root
 Linux arm64 image. It rebuilt and loaded the extension, ran the

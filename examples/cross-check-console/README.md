@@ -185,6 +185,13 @@ A divergent run paints the offending columns red and draws a per-entry diff tabl
 toggle replaces every cooked cell with the server's verbatim JSON entry — raw wins
 over every view — so the console's own verdict is auditable against the source.
 
+The gateway test suite runs every shared validation fixture through all four validator
+languages, every form-render fixture through HTML/React/Svelte/Vue, and the complete
+list-render and detail-render fixtures through the same four renderers. The one public
+form-instance fixture with missing repeated data is checked for parity and the generated
+row-key contract; its bytes are not compared with the bindForm fixture because the public
+instance is required to generate a random identity.
+
 ## Fixture export
 
 Each tab serializes its current run into the matching `cases.json` shape and
