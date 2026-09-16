@@ -292,7 +292,9 @@ function node(vm: NodeVM): string {
     'data-crudui-row-key': vm.key,
     'data-lang': vm.lang,
   };
-  return openDiv(root, vm.hidden) + headerHtml(vm) + bodyHtml(vm) + footerHtml(vm) + '</div>';
+  const header = headerHtml(vm);
+  const headerSlot = vm.sticky && header ? element('div', { class: 'crudui-node__header-container' }, header) : header;
+  return openDiv(root, vm.hidden) + headerSlot + bodyHtml(vm) + footerHtml(vm) + '</div>';
 }
 
 function cellBody(cell: CellVM): string {

@@ -118,6 +118,12 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
   푸터 높이만큼의 아래쪽 스크롤 여백을 가지므로 컨트롤에 포커스하면 이들에 가리지 않게
   스크롤됩니다. 스크롤하는 동안 행을 측정하거나 표시하는 스크립트는 없습니다.
 
+  sticky 노드는 헤더를 `crudui-node__header-container`로 감쌉니다. 이 래퍼가
+  sticky scroll-state 컨테이너이고, `crudui-node__header`는 헤더 콘텐츠의
+  레이아웃을 담당합니다. 래퍼가 sticky 배경·상단 라운드·경계선을 담당합니다. 헤더의
+  하위 요소에 상태 기반 스타일을 적용하면서 헤더 슬롯의 의미를 바꾸지
+  않으려면 이 래퍼가 필요합니다.
+
 ## 폼 버튼
 
 스펙은 루트의 `buttons`로 폼 버튼을 선언합니다. `buttons`는 `{ type, text, name, value,

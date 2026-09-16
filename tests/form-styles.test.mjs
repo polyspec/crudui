@@ -160,7 +160,7 @@ for (const host of hosts) {
       await frames(target);
       const layout = await target.evaluate(source => {
         const { top, token } = eval(source);
-        const headers = [...document.querySelectorAll('.crudui-node--sticky')].map(row => row.firstElementChild);
+        const headers = [...document.querySelectorAll('.crudui-node--sticky')].map(row => row.querySelector(':scope > .crudui-node__header-container'));
         const first = headers[0];
         const title = first.querySelector('.crudui-node__title');
         return {
@@ -170,6 +170,8 @@ for (const host of hosts) {
             line: parseFloat(getComputedStyle(header).top),
             height: header.getBoundingClientRect().height,
             label: getComputedStyle(header.querySelector('.crudui-node__label')).display,
+            labelBackground: getComputedStyle(header.querySelector('.crudui-node__label')).backgroundColor,
+            labelRadius: getComputedStyle(header.querySelector('.crudui-node__label')).borderRadius,
           })),
           titleTruncated: title.scrollWidth > title.clientWidth,
           actionRows: new Set([...first.querySelectorAll('.crudui-action')].map(button => Math.round(button.getBoundingClientRect().top))).size,
@@ -183,6 +185,8 @@ for (const host of hosts) {
         assert.ok(Math.abs(header.offset - header.line) < 0.5, `Level ${index} header sits on its line: ${header.offset} vs ${header.line}`);
         assert.ok(Math.abs(header.line - index * layout.token) < 0.5, `Level ${index} line is ${index} header heights`);
         assert.notEqual(header.label, 'none', `Level ${index} shows its label while stuck`);
+        assert.notEqual(header.labelBackground, 'rgba(0, 0, 0, 0)', `Level ${index} label has badge background`);
+        assert.notEqual(header.labelRadius, '0px', `Level ${index} label has badge radius`);
       }
       assert.equal(layout.titleTruncated, true, 'A long title is truncated');
       assert.equal(layout.actionRows, 1, 'Header controls stay on one line');
@@ -190,7 +194,7 @@ for (const host of hosts) {
       // Scrolled back to the top, nothing is stuck and the level labels are hidden.
       await target.evaluate(source => { eval(source).scroller.scrollTop = 0; }, containerSource);
       await frames(target);
-      const labels = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header > .crudui-node__label')]
+      const labels = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__label')]
         .map(label => getComputedStyle(label).display));
       assert.ok(labels.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${labels}`);
     } finally { await page.close(); }

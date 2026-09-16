@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-09-16 — Put sticky state on the header container
+
+Sticky nodes now render a `crudui-node__header-container` around their header in
+every renderer. The wrapper owns `position: sticky` and `container-type: scroll-state`,
+so header descendants can respond to the wrapper's stuck state without changing the
+header slot or its own styles.
+
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through
