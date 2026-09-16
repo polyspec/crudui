@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-09-16 — A sticky seam is one border wide wherever a row rests
+
+A sticky row's card top edge is drawn inside its header, the box that pins, and goes while the
+header is stuck, when the line of the header above is the seam. The sticky line is the depth
+times the header height less one row border, so a pinned header lands on the line of the header
+above it and a row arriving on the line puts its own edge there too. The top border used to be
+on the row, where it scrolled with the row and stood one pixel below that line, drawing the
+seam as two borders at the position where a row meets it.
+
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through

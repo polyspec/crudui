@@ -241,6 +241,7 @@ textarea.crudui-input {
 
 /* Extra height, such as the last sticky row's minimum, collects below the row content. */
 .crudui-node--row {
+  --crudui-row-header-padding: 0.75rem;
   align-content: start;
   gap: 0;
   border: var(--crudui-row-border) solid var(--crudui-border);
@@ -249,7 +250,7 @@ textarea.crudui-input {
 }
 
 .crudui-node--row > .crudui-node__header {
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem var(--crudui-row-header-padding);
   border-bottom: 1px solid var(--crudui-border);
   border-radius: 0.5rem 0.5rem 0 0;
   background: var(--crudui-subtle);
@@ -295,8 +296,9 @@ textarea.crudui-input {
  *    focusing a control scrolls it into view clear of them.
  */
 .crudui-node--sticky {
-  --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
+  --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * (var(--crudui-node-header-height) - var(--crudui-row-border)));
   --crudui-sticky-cover: calc(var(--crudui-sticky-line) + var(--crudui-node-header-height));
+  border-top: 0;
 }
 
 .crudui-form :is(input, select, textarea, button) {
@@ -304,6 +306,15 @@ textarea.crudui-input {
   scroll-margin-bottom: var(--crudui-form-footer-height);
 }
 
+/*
+ * A sticky row's card top edge is drawn inside its header, the box that pins, and goes
+ * while the header is stuck, when the line of the header above is the seam. The line
+ * is depth × (header height - row border), so a pinned header lands on that line and
+ * a row arriving on it puts its own edge there too. On the row the top border scrolls
+ * with the row and would stand one pixel below that line, drawing the seam twice at
+ * the position where a row meets it. A seam is one border wide wherever a row rests,
+ * and nothing is covered.
+ */
 .crudui-node--sticky > .crudui-node__header {
   position: sticky;
   top: var(--crudui-sticky-line);
@@ -313,6 +324,26 @@ textarea.crudui-input {
   flex-wrap: nowrap;
   overflow: hidden;
   container-type: scroll-state;
+}
+
+/* The row number is in every row header, so the card top edge hangs on it. */
+.crudui-node--sticky > .crudui-node__header > .crudui-node__number::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: calc(-1 * (var(--crudui-row-header-padding) + var(--crudui-row-border)));
+  left: calc(-1 * (var(--crudui-row-header-padding) + var(--crudui-row-border)));
+  height: 0.5rem;
+  border: var(--crudui-row-border) solid var(--crudui-border);
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+  pointer-events: none;
+}
+
+@container scroll-state(stuck: top) {
+  .crudui-node__number::before {
+    display: none;
+  }
 }
 
 @container scroll-state(not (stuck: top)) {

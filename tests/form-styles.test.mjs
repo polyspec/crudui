@@ -165,12 +165,20 @@ for (const host of hosts) {
         const title = first.querySelector('.crudui-node__title');
         return {
           token,
+          border: parseFloat(getComputedStyle(headers[0]).borderBottomWidth),
           headers: headers.map(header => ({
             offset: header.getBoundingClientRect().top - top,
             line: parseFloat(getComputedStyle(header).top),
             height: header.getBoundingClientRect().height,
             label: getComputedStyle(header.querySelector('.crudui-node__label')).display,
           })),
+          // The card top edge is drawn in the header and goes while the header is stuck,
+          // so no border crosses the line and a seam keeps one border.
+          edges: headers.map(header => ({
+            row: getComputedStyle(header.parentElement).borderTopWidth,
+            edge: getComputedStyle(header.querySelector('.crudui-node__number'), '::before').display,
+          })),
+          lines: headers.map(header => getComputedStyle(header).borderBottomWidth),
           titleTruncated: title.scrollWidth > title.clientWidth,
           actionRows: new Set([...first.querySelectorAll('.crudui-action')].map(button => Math.round(button.getBoundingClientRect().top))).size,
         };
@@ -181,8 +189,16 @@ for (const host of hosts) {
       for (const [index, header] of layout.headers.entries()) {
         assert.ok(Math.abs(header.height - layout.token) < 0.5, `Level ${index} header height ${header.height} equals ${layout.token}`);
         assert.ok(Math.abs(header.offset - header.line) < 0.5, `Level ${index} header sits on its line: ${header.offset} vs ${header.line}`);
-        assert.ok(Math.abs(header.line - index * layout.token) < 0.5, `Level ${index} line is ${index} header heights`);
+        assert.ok(Math.abs(header.line - index * (layout.token - layout.border)) < 0.5,
+          `Level ${index} line is ${index} header heights less its border: ${header.line}`);
         assert.notEqual(header.label, 'none', `Level ${index} shows its label while stuck`);
+      }
+      for (const [index, edge] of layout.edges.entries()) {
+        assert.equal(edge.row, '0px', `Level ${index} row carries no top border`);
+        assert.equal(edge.edge, 'none', `Level ${index} card top edge goes while the header is stuck`);
+      }
+      for (const [index, line] of layout.lines.entries()) {
+        assert.ok(parseFloat(line) > 0, `Level ${index} header owns the line under it: ${line}`);
       }
       assert.equal(layout.titleTruncated, true, 'A long title is truncated');
       assert.equal(layout.actionRows, 1, 'Header controls stay on one line');
@@ -190,9 +206,12 @@ for (const host of hosts) {
       // Scrolled back to the top, nothing is stuck and the level labels are hidden.
       await target.evaluate(source => { eval(source).scroller.scrollTop = 0; }, containerSource);
       await frames(target);
-      const labels = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header > .crudui-node__label')]
-        .map(label => getComputedStyle(label).display));
-      assert.ok(labels.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${labels}`);
+      const loose = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header')].map(header => ({
+        label: getComputedStyle(header.querySelector('.crudui-node__label')).display,
+        edge: getComputedStyle(header.querySelector('.crudui-node__number'), '::before').display,
+      })));
+      assert.ok(loose.every(header => header.label === 'none'), `Level labels are hidden while headers are not stuck: ${loose.map(header => header.label)}`);
+      assert.ok(loose.every(header => header.edge !== 'none'), `A row that is not stuck draws its card top edge: ${loose.map(header => header.edge)}`);
     } finally { await page.close(); }
   });
 

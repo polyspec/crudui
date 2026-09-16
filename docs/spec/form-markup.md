@@ -115,7 +115,8 @@ input's own label inside the body, and its header holds only a description. A
   footer.
 - `multiple.header: sticky` adds `crudui-node--sticky`, and the row root style sets
   `--crudui-sticky-depth` to the number of enclosing sticky rows. The row's sticky
-  line is that depth times `--crudui-node-header-height`. Sticky rows are CSS only,
+  line is that depth times `--crudui-node-header-height` less one row border, so a
+  pinned header lands on the line of the header above it. Sticky rows are CSS only,
   so they behave the same wherever the form scrolls: in a page, a frame or a
   scrolling box. The header pins on the line and has exactly the header height,
   border included, without wrapping (a long title is truncated), so pinned levels
@@ -123,8 +124,12 @@ input's own label inside the body, and its header holds only a description. A
   `scroll-state(stuck: top)` container query. A control inside a sticky row has a
   top scroll margin of the headers pinned above it (`--crudui-sticky-cover`, the line
   plus one header height), and every form control has a bottom scroll margin of the
-  footer height, so focusing a control scrolls it into view clear of them. No script
-  measures or marks rows while scrolling.
+  footer height, so focusing a control scrolls it into view clear of them. A sticky row
+  has no top border of its own: its card top edge is drawn inside the header, the box
+  that pins, and goes while the header is stuck, when the line of the header above is
+  the seam. A row arriving on the line puts its own edge on that same line, so a seam
+  is one border wide wherever a row rests and nothing is covered. No script measures or
+  marks rows while scrolling.
 
 ## Form buttons
 
