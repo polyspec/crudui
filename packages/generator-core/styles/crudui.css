@@ -281,6 +281,12 @@ textarea.crudui-input {
   border-top: 1px solid var(--crudui-border);
 }
 
+/* The form body ends at its footer; an outermost row does not add a second bottom rule. */
+.crudui-form .crudui-node--row:not(.crudui-node--row .crudui-node--row) {
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
 /*
  * Sticky rows are CSS only, from one value. A sticky row carries
  * --crudui-sticky-depth, the number of enclosing sticky rows; its sticky line is

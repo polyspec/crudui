@@ -160,6 +160,25 @@ for (const host of hosts) {
     } finally { await page.close(); }
   });
 
+  test(`${host}: the form body's outermost row has no duplicate bottom border`, async () => {
+    const { page, target, failures } = await openHost(host);
+    try {
+      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
+      const rows = await target.evaluate(() => {
+        const outer = document.querySelector('.crudui-form .crudui-node--row:not(.crudui-node--row .crudui-node--row)');
+        const nested = document.querySelector('.crudui-node--row .crudui-node--row');
+        const style = element => {
+          const computed = getComputedStyle(element);
+          return { borderBottomStyle: computed.borderBottomStyle, borderBottomWidth: computed.borderBottomWidth };
+        };
+        return { outer: outer && style(outer), nested: nested && style(nested) };
+      });
+      assert.deepEqual(failures, []);
+      assert.deepEqual(rows.outer, { borderBottomStyle: 'none', borderBottomWidth: '0px' });
+      assert.deepEqual(rows.nested, { borderBottomStyle: 'solid', borderBottomWidth: '1px' });
+    } finally { await page.close(); }
+  });
+
   test(`${host}: sticky row headers stack on their lines and show their labels only while stuck`, async () => {
     const { page, target, failures } = await openHost(host);
     try {
