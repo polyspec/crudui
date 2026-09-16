@@ -125,6 +125,8 @@ input's own label inside the body, and its header holds only a description. A
   plus one header height), and every form control has a bottom scroll margin of the
   footer height, so focusing a control scrolls it into view clear of them. No script
   measures or marks rows while scrolling.
+The sticky line is offset upward by the row border width, so the sticky header clears the
+row's own top border instead of leaving a one-pixel remainder at the meeting point.
 
 ## Form buttons
 
