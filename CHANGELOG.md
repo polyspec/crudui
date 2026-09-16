@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
+
+The cross-check gateway test now executes all 64 shared form-validation fixtures through
+JavaScript, PHP, Go and Rust. Its idempotency signature treats JSON object member order inside
+an error value as non-semantic while preserving array order. The previous single-case smoke test
+missed the Go keyed-scalar `unique` response-order difference.
+
 ## 2026-09-16 — Keep framework container markers out of content comparisons
 
 The form comparison now compares each view container's rendered contents while preserving
