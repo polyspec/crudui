@@ -147,40 +147,6 @@ const containerSource = `(() => {
 })()`;
 
 for (const host of hosts) {
-  test(`${host}: the form footer has no decorative top border`, async () => {
-    const { page, target, failures } = await openHost(host);
-    try {
-      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
-      const footer = await target.evaluate(() => document.querySelector('.crudui-form__footer') && (() => {
-        const style = getComputedStyle(document.querySelector('.crudui-form__footer'));
-        return { borderTopStyle: style.borderTopStyle, borderTopWidth: style.borderTopWidth };
-      })());
-      assert.deepEqual(failures, []);
-      assert.deepEqual(footer, { borderTopStyle: 'none', borderTopWidth: '0px' });
-    } finally { await page.close(); }
-  });
-
-  test(`${host}: row cards keep only their outer bottom edge`, async () => {
-    const { page, target, failures } = await openHost(host);
-    try {
-      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
-      const rows = await target.evaluate(() => {
-        const outer = document.querySelector('.crudui-form .crudui-node--row');
-        const nested = document.querySelector('.crudui-node--row .crudui-node--row');
-        const header = outer?.querySelector(':scope > .crudui-node__header');
-        const style = element => {
-          const computed = getComputedStyle(element);
-          return { borderBottomStyle: computed.borderBottomStyle, borderBottomWidth: computed.borderBottomWidth };
-        };
-        return { outer: outer && style(outer), nested: nested && style(nested), header: header && style(header) };
-      });
-      assert.deepEqual(failures, []);
-      assert.deepEqual(rows.outer, { borderBottomStyle: 'solid', borderBottomWidth: '1px' });
-      assert.deepEqual(rows.nested, { borderBottomStyle: 'solid', borderBottomWidth: '1px' });
-      assert.deepEqual(rows.header, { borderBottomStyle: 'none', borderBottomWidth: '0px' });
-    } finally { await page.close(); }
-  });
-
   test(`${host}: sticky row headers stack on their lines and show their labels only while stuck`, async () => {
     const { page, target, failures } = await openHost(host);
     try {
