@@ -244,7 +244,6 @@ textarea.crudui-input {
   align-content: start;
   gap: 0;
   border: var(--crudui-row-border) solid var(--crudui-border);
-  border-bottom: 0;
   border-radius: 0.5rem;
   background: var(--crudui-surface);
 }

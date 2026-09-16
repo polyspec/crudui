@@ -3,8 +3,9 @@
 ## 2026-09-16 — Remove the form footer's decorative border
 
 The form footer keeps its sticky position, height and controls without a decorative top
-border. Every row now omits its bottom border so the row border cannot duplicate the header's
-bottom divider. Browser style coverage checks both contracts in page, scroll-box and frame hosts.
+border. Rows retain their bottom edge so cards do not end in empty space; collapsed row headers
+remove their own bottom divider when it would duplicate that edge. Browser style coverage
+checks the footer contract in page, scroll-box and frame hosts.
 
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
