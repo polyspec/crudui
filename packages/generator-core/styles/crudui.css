@@ -250,8 +250,14 @@ textarea.crudui-input {
 
 .crudui-node--row > .crudui-node__header {
   padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--crudui-border);
   border-radius: 0.5rem 0.5rem 0 0;
   background: var(--crudui-subtle);
+}
+
+.crudui-node--row:has(> .crudui-node__body[hidden]) > .crudui-node__header {
+  border-bottom: 0;
+  border-radius: 0.5rem;
 }
 
 .crudui-node--row > .crudui-node__header > .crudui-node__label {
@@ -341,6 +347,7 @@ textarea.crudui-input {
   align-items: center;
   justify-content: flex-end;
   padding: 0 var(--crudui-row-padding);
+  border-top: var(--crudui-row-border) solid var(--crudui-border);
   background: var(--crudui-surface);
 }
 
