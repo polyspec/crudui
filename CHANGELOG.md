@@ -1,12 +1,5 @@
 # Changes
 
-## 2026-09-16 — Remove the form footer's decorative border
-
-The form footer keeps its sticky position, height and controls without a decorative top
-border. Rows retain their bottom edge so cards do not end in empty space, while row headers
-have no bottom border that could duplicate the row edge. Browser style coverage checks the
-footer and row-edge contracts in page, scroll-box and frame hosts.
-
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through
