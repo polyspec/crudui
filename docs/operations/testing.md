@@ -7,6 +7,10 @@ Run from the repository root. Install Node dependencies with
 and make PHP, Go and Cargo available on `PATH`. Build JavaScript packages before
 checking their compiled exports.
 
+The Rust validator release profile uses `strip = "none"`. This keeps release builds independent
+of the toolchain's optional `rust-objcopy`/`libLLVM.dylib` strip pairing; a build must not leave a
+strip warning after reporting a successful validator binary.
+
 ```sh
 composer --working-dir=packages/validator-php install
 npm run build
