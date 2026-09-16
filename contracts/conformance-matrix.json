@@ -1,0 +1,47 @@
+{
+  "format": "crudui/conformance-matrix",
+  "version": "0.0.1",
+  "validationGateway": {
+    "targets": ["js", "php", "go", "rust"],
+    "surfaces": [
+      { "id": "form", "fixture": "tests/fixtures/validate/cases.json", "count": 64, "test": "examples/cross-check-console/server/validate-runner.test.mjs" },
+      { "id": "list", "fixture": "tests/fixtures/list-validity/cases.json", "count": 18, "test": "examples/cross-check-console/server/validate-list-runner.test.mjs" },
+      { "id": "detail", "fixture": "tests/fixtures/detail-validity/cases.json", "count": 10, "test": "examples/cross-check-console/server/validate-detail-runner.test.mjs" }
+    ]
+  },
+  "validationExtension": {
+    "targets": ["php-native"],
+    "surfaces": [
+      { "id": "form", "fixture": "tests/fixtures/validate/cases.json", "count": 64, "test": "packages/php-ext/tests/engine.test.mjs" },
+      { "id": "spec", "fixture": "tests/fixtures/spec-validity/cases.json", "count": 23, "test": "packages/php-ext/tests/engine.test.mjs" },
+      { "id": "list", "fixture": "tests/fixtures/list-validity/cases.json", "count": 18, "test": "packages/php-ext/tests/engine.test.mjs" },
+      { "id": "detail", "fixture": "tests/fixtures/detail-validity/cases.json", "count": 10, "test": "packages/php-ext/tests/engine.test.mjs" }
+    ]
+  },
+  "renderGateway": {
+    "targets": ["html", "react", "svelte", "vue"],
+    "surfaces": [
+      { "id": "form", "fixture": "tests/fixtures/form-render/cases.json", "count": 92, "test": "examples/cross-check-console/server/render-runner.test.mjs" },
+      { "id": "list", "fixture": "tests/fixtures/list-render/cases.json", "count": 42, "test": "examples/cross-check-console/server/render-list-runner.test.mjs" },
+      { "id": "detail", "fixture": "tests/fixtures/detail-render/cases.json", "count": 30, "test": "examples/cross-check-console/server/render-detail-runner.test.mjs" }
+    ]
+  },
+  "browserSession": {
+    "targets": ["javascript-dom", "react", "svelte", "vue"],
+    "tests": [
+      "examples/form-comparison/src/browser-job.browser.mjs",
+      "packages/generator-react/src/__tests__/widget-behavior.test.tsx",
+      "packages/generator-svelte/test/form-session.client.mjs",
+      "packages/generator-vue/test/form-session.test.mjs"
+    ]
+  },
+  "nativeGenerator": {
+    "targets": ["javascript", "html", "php", "go", "rust", "php-native"],
+    "fixtures": [
+      { "id": "form", "path": "tests/fixtures/form-render/cases.json", "count": 92 },
+      { "id": "list", "path": "tests/fixtures/list-render/cases.json", "count": 42 },
+      { "id": "detail", "path": "tests/fixtures/detail-render/cases.json", "count": 30 }
+    ],
+    "test": "tests/native-generators/run.mjs"
+  }
+}
