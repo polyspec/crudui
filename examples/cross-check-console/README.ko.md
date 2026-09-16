@@ -161,7 +161,8 @@ http://localhost:4000 을 열고 예제를 고른 뒤 명세와 데이터를 편
 
 - `idempotent`(validate / validate-list) — 언어별 안정 서명(전체 실패 기록, 또는
   valid와 정렬한 5필드 오류이며, Rust f64와 정수 직렬화 차이로 거짓 불일치가 나지 않도록
-  숫자 `value`를 통일함). 실패한 CLI(`ok:false`)는 별도 서명을 가지므로 조용히 일치로
+  숫자 `value`를 통일하고 `value` 내부 객체 멤버 순서는 무시하며 배열 순서는 유지함).
+  실패한 CLI(`ok:false`)는 별도 서명을 가지므로 조용히 일치로
   처리되지 않습니다. 실행된 언어가 둘 미만이면 false가 아니라 판정 불가(null)입니다.
 - `parity`(render / render-list / search 렌더링) — 성공한 프레임워크는
   `html:<normalized>`로, 실패한 프레임워크는 `error:<code>`로 서명합니다(네임스페이스가

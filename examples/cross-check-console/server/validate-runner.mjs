@@ -191,14 +191,24 @@ function isValidationError(error) {
     Object.hasOwn(error, 'value');
 }
 
+/** Serialize object values deterministically; array order remains significant. */
+function stableValue(value) {
+  if (Array.isArray(value)) return value.map(stableValue);
+  if (isObject(value)) {
+    return Object.fromEntries(Object.keys(value).sort().map(key => [key, stableValue(value[key])]));
+  }
+  return value;
+}
+
 /** Stable comparison signature: the complete failure record, or valid + sorted errors. */
 export function signature(r) {
   if (!r.ok) return `__error__:${r.error || ''}`;
   if (r.failure) return `failure:${r.failure.code}|${r.failure.message}|${r.failure.at}`;
   const sorted = [...r.errors].sort((a, b) =>
-    (a.field + '|' + a.rule).localeCompare(b.field + '|' + b.rule)
+    [a.path, a.field, a.rule, a.message].join('|').localeCompare(
+      [b.path, b.field, b.rule, b.message].join('|'))
   );
-  const key = sorted.map((e) => `${e.path}|${e.field}|${e.rule}|${e.message}|${JSON.stringify(e.value)}`);
+  const key = sorted.map((e) => `${e.path}|${e.field}|${e.rule}|${e.message}|${JSON.stringify(stableValue(e.value))}`);
   return `valid=${r.valid}#${key.join(';')}`;
 }
 

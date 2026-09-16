@@ -214,7 +214,7 @@ function extractSearchSpec(listSpecValue) {
 //  raw per-entry results so the badge is independently derived, not trusted.)
 // ---------------------------------------------------------------------------
 
-/** Sort errors by (field, rule) and normalize numeric values (f64 drift). */
+/** Sort errors by their complete identity and normalize their JSON values. */
 function normalizeErrors(errors) {
   if (!Array.isArray(errors)) return [];
   const norm = errors.map((e) => ({
@@ -224,18 +224,17 @@ function normalizeErrors(errors) {
     message: e.message ?? '',
     value: normalizeValue(e.value),
   }));
-  norm.sort((a, b) =>
-    a.path === b.path
-      ? a.rule.localeCompare(b.rule)
-      : a.path.localeCompare(b.path)
-  );
+  norm.sort((a, b) => [a.path, a.field, a.rule, a.message].join('|')
+    .localeCompare([b.path, b.field, b.rule, b.message].join('|')));
   return norm;
 }
 
-/** Collapse 5 vs 5.0 etc. so a float serializer difference is not a mismatch. */
+/** Collapse numeric spelling and object member order; preserve array order. */
 function normalizeValue(v) {
-  if (typeof v === 'number') {
-    return Number.isInteger(v) ? String(v) : String(v);
+  if (typeof v === 'number') return String(v);
+  if (Array.isArray(v)) return v.map(normalizeValue);
+  if (v && typeof v === 'object') {
+    return Object.fromEntries(Object.keys(v).sort().map(key => [key, normalizeValue(v[key])]));
   }
   return v;
 }
