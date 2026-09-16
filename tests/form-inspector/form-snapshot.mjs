@@ -78,6 +78,13 @@ export function formSnapshot(view, form) {
   };
 }
 
+/** Capture a form comparison without treating framework-owned view containers as form content. */
+export function renderedFormSnapshot(view, form) {
+  const snapshot = formSnapshot(view, form);
+  const rendered = renderedViews(view);
+  return { ...snapshot, html: rendered.html, dom: rendered.dom };
+}
+
 /** Report each comparison independently; a mismatch does not stop other checks. */
 export function compareSnapshots(actual, expected, keys = Object.keys(expected)) {
   return keys.map(key => {
