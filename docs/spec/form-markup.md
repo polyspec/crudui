@@ -142,9 +142,9 @@ evaluates the buttons (design classes and styles follow the field design rules),
 types are `button` elements, with attributes in the order `type`, `class`, `style`,
 `name`, `value`, `href`, `onclick`. The footer pins to the bottom of its scroll
 container at `--crudui-form-footer-height`, as sticky row headers pin to the top.
-The footer has no decorative top border. A row retains its bottom border to close its card;
-when its body is collapsed, the header's bottom border is removed so it does not duplicate
-the row's closing border. Expanded headers retain their divider.
+The footer has no decorative top border. A row retains its outer bottom border to close its
+card, and its header has no bottom border, so the two edges cannot be duplicated in the row
+layout.
 
 ## Structure map and data view
 
