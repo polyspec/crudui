@@ -1,11 +1,5 @@
 # Changes
 
-## 2026-09-16 — Align sticky row layers with their moving borders
-
-Sticky row lines now move upward by the row border width. This preserves the row and header
-borders while preventing a one-pixel remainder when the row box moves beneath its sticky layer.
-
-
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through
