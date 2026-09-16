@@ -7,6 +7,10 @@
 순서는 보존합니다. 기존 단일 smoke 검사가 놓친 Go keyed-scalar `unique` 응답 순서 차이를
 검증 범위에 포함했습니다.
 
+게이트웨이는 폼 렌더 fixture 92개도 HTML·React·Svelte·Vue 모두로 실행합니다. public
+instance placeholder 사례는 무작위 식별자가 bindForm fixture의 고정 바이트와 같을 수 없으므로
+parity와 생성 행 키 계약을 검사합니다. 목록·상세 fixture 전체 실행 범위는 유지됩니다.
+
 ## 2026-09-16 — 프레임워크 표시를 보존하는 초기화 비교
 
 폼 비교가 각 뷰 컨테이너의 렌더링된 내용만 비교하고 프레임워크가 소유한 컨테이너 표시를

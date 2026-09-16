@@ -7,6 +7,11 @@ JavaScript, PHP, Go and Rust. Its idempotency signature treats JSON object membe
 an error value as non-semantic while preserving array order. The previous single-case smoke test
 missed the Go keyed-scalar `unique` response-order difference.
 
+The gateway now also executes all 92 form-render fixtures through HTML, React, Svelte and Vue;
+the public-instance placeholder case checks parity and its generated row-key contract because
+its random identity cannot equal the bindForm fixture's fixed bytes. List and detail fixture
+coverage remains complete.
+
 ## 2026-09-16 — Keep framework container markers out of content comparisons
 
 The form comparison now compares each view container's rendered contents while preserving
