@@ -3,7 +3,7 @@
 [English](README.md).
 
 `cases.json`은 React, HTML 렌더러, Vue, Svelte가 공유하는 구조 지도와 데이터 보기 사례입니다. 각 사례는
-`name`, `note`, `spec`, `data`, `language`를 가진 `options`, `canUndo`, `expected_outline_html`,
+`name`, `note`, `spec`, `data`, `language`를 가진 `options`, `canUndo`, `canRedo`, `expected_outline_html`,
 `expected_data_html`을 제공합니다.
 
 실행 취소가 가능한 상태의 최상위·중첩 행 지도, `controls: outline`으로 지도에 둔 행 조작 버튼과 폼에 남는
@@ -13,7 +13,7 @@
 
 ## 비교
 
-사례의 필드는 `bindForm(compileForm(spec), data, options)`입니다. 각 렌더러는 `{ fields, canUndo }`로
+사례의 필드는 `bindForm(compileForm(spec), data, options)`입니다. 각 렌더러는 `{ fields, canUndo, canRedo }`로
 구조 지도를, `data`로 데이터 보기를 그리고 [폼 HTML 정규화기](../form-render/README.ko.md#정규화)로 둘 다
 정규화하며, 결과는 `expected_outline_html`, `expected_data_html`과 정확히 같아야 합니다. React는
 `OutlineView`와 `DataPanel`, HTML 렌더러는 `renderOutlineView`와 `renderDataPanel`, Vue는 서버 렌더러로

@@ -41,6 +41,7 @@ export function outlineVNode(state: OutlineState, messages: FormMessages, root?:
         textActionVNode('expand-all', messages.expandAll),
         textActionVNode('collapse-all', messages.collapseAll),
         textActionVNode('undo', messages.undo, !state.canUndo),
+        textActionVNode('redo', messages.redo, !state.canRedo),
       ]),
     ]),
     h('div', { class: 'crudui-outline__body' }, buildOutline(state.fields).map(rowVNode)),

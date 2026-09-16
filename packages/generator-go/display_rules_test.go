@@ -95,7 +95,7 @@ func TestListPageAndTotalAreIntegers(t *testing.T) {
 		})
 	}
 	html, err := RenderList(spec, nil, ListOptions{Page: 9007199254740991.0, Total: math.Copysign(0, -1)})
-	if err != nil || !strings.Contains(html, `<nav class="crudui-list__pagination" data-page="9007199254740991" data-total="0"></nav>`) {
+	if err != nil || !strings.Contains(html, `class="crudui-list__pagination-page" data-page="1" aria-label="Page 1" aria-current="page" disabled=""`) {
 		t.Fatalf("%s %v", html, err)
 	}
 }

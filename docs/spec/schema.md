@@ -152,7 +152,12 @@ text. Format-specific settings stay in that object. [Display formats](display-fo
 defines each format, the accepted list and detail input and the markup. `sort`, `pagination`,
 `search` and `actions` declare application behavior. `empty` defines translated
 empty-state content. The core does not query a database, filter records or apply
-server pagination. The caller supplies the current page and the total record count.
+server pagination. The caller supplies the current page and the total record count. When
+`pagination` is enabled, the resolved model defaults `perPage` to 20, `mode` to `pages`,
+and `page` to 1 when omitted. It also supplies `pageCount` (at least 1 when the total is
+zero). Every renderer emits previous, numbered and next page buttons. The current page
+has `aria-current="page"` and is disabled; boundary previous/next buttons are disabled.
+The buttons carry `data-page`; navigation and data fetching remain the caller's responsibility.
 
 ## Details
 

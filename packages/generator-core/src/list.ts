@@ -69,6 +69,15 @@ export interface PaginationVM {
   page?: number;
   /** Total record count from the `total` option. */
   total?: number;
+  /** Number of available pages; one page is retained for an empty result. */
+  pageCount?: number;
+}
+
+/** Return a bounded page-number window so a large total cannot allocate an unbounded DOM. */
+export function paginationPages(page: number, pageCount: number): number[] {
+  if (pageCount <= 0) return [];
+  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+  return [...new Set([1, Math.max(1, page - 1), page, Math.min(pageCount, page + 1), pageCount])].sort((a, b) => a - b);
 }
 
 /** Resolved sort declaration. */
@@ -177,6 +186,12 @@ function resolvePagination(pagination: unknown, page: number | null | undefined,
   // `+ 0` writes negative zero as 0, as every runtime does.
   if (page !== undefined && page !== null) base.page = page + 0;
   if (total !== undefined && total !== null) base.total = total + 0;
+  if (base.enabled) {
+    base.perPage ??= 20;
+    base.mode ??= 'pages';
+    base.page ??= 1;
+    base.pageCount = base.total === undefined ? 0 : Math.max(1, Math.ceil(base.total / base.perPage));
+  }
   return base;
 }
 

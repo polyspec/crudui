@@ -147,7 +147,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 컬렉션은 행이 아니므로 폼에만 남습니다. 각 행은 번호와 제목을 담은 `select-row` 버튼을
 가집니다. 중첩된 행 본문은
 한 단계 들여씁니다. 헤더에는 `expand-all`,
-`collapse-all`, `undo`(되돌릴 이력이 없으면 사용할 수 없음)를 둡니다. React, Vue, Svelte는
+`collapse-all`, `undo`, `redo`를 둡니다(각 방향의 이력이 없으면 사용할 수 없음). React, Vue, Svelte는
 `Outline`과 `DataView`를, `bindForm`으로 데이터를 직접 관리하는 응용 프로그램에는
 상태 없는 `OutlineView`와 `DataPanel`(Vue: `outlineVNode`, `dataVNode`)을, HTML 렌더러는 `renderOutline(form)`과 `renderData(form)`, 같은 애플리케이션용
 `renderOutlineView(state, messages)`와 `renderDataPanel(data, messages)`를 제공합니다.
@@ -180,7 +180,12 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 `crudui-list__table`, `crudui-list__heading`, `crudui-list__cell`,
 `crudui-list__cards`, `crudui-list__card`, `crudui-list__empty`,
 `crudui-list__actions`, `crudui-list__action`, `crudui-list__pagination`을
-사용합니다. 상세 루트는 `crudui-detail`이고 필드마다
+사용합니다. 페이징 탐색에는 `crudui-list__pagination-prev`,
+`crudui-list__pagination-page`, `crudui-list__pagination-next` 버튼이 포함됩니다.
+각 버튼은 `data-page`를 가지며 현재 페이지는 `aria-current="page"`와 비활성화를
+사용합니다. 첫 페이지의 이전 버튼과 마지막 페이지의 다음 버튼은 비활성화됩니다.
+매우 큰 전체 수에서도 무한한 DOM을 만들지 않도록 페이지 번호는 제한된 범위로
+출력합니다. 상세 루트는 `crudui-detail`이고 필드마다
 `crudui-detail__field`, `crudui-detail__label`, `crudui-detail__value`를
 사용합니다.
 

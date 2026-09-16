@@ -9,7 +9,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { buildList, ComposeLoadError } from './index';
+import { buildList, ComposeLoadError, paginationPages } from './index';
 
 describe('buildList — structure & engine reuse', () => {
   test('resolves columns, i18n header, sortable, empty (DB-agnostic rows)', () => {
@@ -36,7 +36,7 @@ describe('buildList — structure & engine reuse', () => {
     expect(vm.columns[1]!.sortable).toBe(false);
     expect(vm.empty).toBe('No data');
     expect(vm.sort).toEqual({ field: 'created_at', dir: 'desc' });
-    expect(vm.pagination).toEqual({ enabled: true, perPage: 20, mode: 'pages', page: 1, total: 42 });
+    expect(vm.pagination).toEqual({ enabled: true, perPage: 20, mode: 'pages', page: 1, total: 42, pageCount: 3 });
 
     expect(vm.rows).toHaveLength(2);
     expect(vm.rows[0]!.cells[0]!.value).toBe('Ada');
@@ -202,6 +202,13 @@ describe('renderCell catalog — SPEC §9.2 read display values', () => {
 });
 
 describe('buildList — pagination / actions polymorphism', () => {
+  test('pagination defaults page 1 and derives a bounded page count', () => {
+    expect(buildList({ columns: { c: {} }, pagination: {} }, [], { total: 45 }).pagination)
+      .toMatchObject({ enabled: true, perPage: 20, mode: 'pages', page: 1, pageCount: 3 });
+    expect(paginationPages(2, 3)).toEqual([1, 2, 3]);
+    expect(paginationPages(500, Number.MAX_SAFE_INTEGER)).toHaveLength(5);
+  });
+
   test('pagination false → disabled; absent → disabled', () => {
     expect(buildList({ columns: { c: {} }, pagination: false }, []).pagination).toEqual({ enabled: false });
     expect(buildList({ columns: { c: {} } }, []).pagination).toEqual({ enabled: false });

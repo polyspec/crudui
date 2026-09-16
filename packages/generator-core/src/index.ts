@@ -10,8 +10,8 @@ export {
   initialView, rowPathContains, collapsibleRows, toggleRowView, setAllExpandedView, removeRowView, rekeyRowView,
 } from './view';
 export type { ViewState } from './view';
-export { HISTORY_LIMIT, emptyHistory, recordChange, canUndo, undoChange } from './history';
-export type { History, UndoResult } from './history';
+export { HISTORY_LIMIT, emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange } from './history';
+export type { History, UndoResult, RedoResult } from './history';
 export { connectForm, connectOutline } from './dom';
 export type { FormConnection } from './dom';
 export { resolveAction, runAction } from './actions';
@@ -53,7 +53,7 @@ export { makeTranslate } from './content';
 export type { Language, LocalizedText, Translate } from './content';
 
 // List models and cell rendering.
-export { buildList, listLayout } from './list';
+export { buildList, listLayout, paginationPages } from './list';
 export type {
   ListViewModel,
   ColumnVM,

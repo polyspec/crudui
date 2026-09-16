@@ -155,8 +155,8 @@ The structure map has one rule: one line per form row. `buildOutline(nodes)`
 returns the form's rows, each with the rows nested in it, so the map nests exactly
 as the form does; collections, counts and empty collections are not rows and stay in
 the form. Each row has a `select-row` button with its number and title. A nested row body indents
-one step. Its header holds `expand-all`, `collapse-all` and `undo`
-(unavailable when nothing can be undone). React, Vue and Svelte provide `Outline`
+one step. Its header holds `expand-all`, `collapse-all`, `undo` and `redo`
+(each unavailable when its direction has no history). React, Vue and Svelte provide `Outline`
 and `DataView`, and the stateless `OutlineView` and `DataPanel` (Vue: `outlineVNode`
 and `dataVNode`) for applications that own their data with `bindForm`; the HTML renderer provides `renderOutline(form)` and
 `renderData(form)`, and `renderOutlineView(state, messages)` and
@@ -193,6 +193,11 @@ root is `crudui-list`; its table, headings, cells, cards, empty state, actions a
 pagination use `crudui-list__table`, `crudui-list__heading`, `crudui-list__cell`,
 `crudui-list__cards`, `crudui-list__card`, `crudui-list__empty`,
 `crudui-list__actions`, `crudui-list__action` and `crudui-list__pagination`.
+A pagination navigation contains buttons with `crudui-list__pagination-prev`,
+`crudui-list__pagination-page` and `crudui-list__pagination-next`. Each button has
+`data-page`; the current page has `aria-current="page"` and is disabled. The first
+and last boundary controls are disabled. The renderer emits a bounded page-number
+window for very large totals.
 A detail root is `crudui-detail`; each field uses `crudui-detail__field`,
 `crudui-detail__label` and `crudui-detail__value`.
 

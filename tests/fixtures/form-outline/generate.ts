@@ -1,7 +1,7 @@
 /**
  * Generates shared structure map and data view fixtures.
  *
- * Each case is `{ name, note, spec, data, options, canUndo,
+ * Each case is `{ name, note, spec, data, options, canUndo, canRedo,
  * expected_outline_html, expected_data_html }`. The expected HTML is the
  * normalized static markup of the React reference components `OutlineView` and
  * `DataPanel`, never hand-written. The HTML, Vue and Svelte renderers must
@@ -29,6 +29,7 @@ interface OutlineCase {
   data: Record<string, unknown>;
   options: { language: 'ko' | 'en' | 'ja' | 'zh' };
   canUndo: boolean;
+  canRedo: boolean;
   expected_outline_html?: string;
   expected_data_html?: string;
 }
@@ -74,6 +75,7 @@ const CASES: OutlineCase[] = [
     data,
     options: { language: 'ko' },
     canUndo: true,
+    canRedo: false,
   },
   {
     name: 'outline-controls-in-map-en',
@@ -82,6 +84,7 @@ const CASES: OutlineCase[] = [
     data,
     options: { language: 'en' },
     canUndo: false,
+    canRedo: false,
   },
   {
     name: 'outline-untitled-rows-ja',
@@ -90,6 +93,7 @@ const CASES: OutlineCase[] = [
     data,
     options: { language: 'ja' },
     canUndo: false,
+    canRedo: false,
   },
   {
     name: 'outline-no-collections-zh',
@@ -98,13 +102,14 @@ const CASES: OutlineCase[] = [
     data: { title: 'Plain' },
     options: { language: 'zh' },
     canUndo: false,
+    canRedo: false,
   },
 ];
 
 for (const item of CASES) {
   const fields = bindForm(compileForm(item.spec), item.data, item.options);
   const messages = formMessages(item.options.language);
-  const state = { fields, canUndo: item.canUndo };
+  const state = { fields, canUndo: item.canUndo, canRedo: item.canRedo };
   item.expected_outline_html = normalizeHtml(renderToStaticMarkup(React.createElement(OutlineView, { state, messages })));
   item.expected_data_html = normalizeHtml(renderToStaticMarkup(React.createElement(DataPanel, { data: item.data, messages })));
 }

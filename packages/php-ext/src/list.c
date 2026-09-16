@@ -1109,6 +1109,23 @@ static bool append_empty(list_context *context)
     return ok;
 }
 
+static bool append_page_button(list_context *context, const char *class_name, int64_t page, const char *label, bool disabled, bool current)
+{
+    char page_text[32];
+    snprintf(page_text, sizeof(page_text), "%lld", (long long)page);
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && ps_html_attr_string(attrs, "type", "button") &&
+        ps_html_attr_string(attrs, "class", class_name) &&
+        ps_html_attr_string(attrs, "data-page", page_text) &&
+        ps_html_attr_string(attrs, "aria-label", label);
+    if (ok && current) ok = ps_html_attr_string(attrs, "aria-current", "page");
+    if (ok && disabled) ok = ps_set(attrs, "disabled", ps_bool_value(true));
+    const char *text = strcmp(label, "Previous page") == 0 ? "‹" : (strcmp(label, "Next page") == 0 ? "›" : page_text);
+    if (ok) ok = write_element_start(&context->output, "button", attrs) && ps_html_text(&context->output, text) && write_element_end(&context->output, "button");
+    else ps_value_free(attrs);
+    return ok;
+}
+
 static bool append_pagination(list_context *context)
 {
     const ps_value *pagination = member(context->spec, "pagination");
@@ -1118,10 +1135,13 @@ static bool append_pagination(list_context *context)
     ps_value *attrs = ps_object_value();
     bool ok = attrs && ps_html_attr_string(attrs, "class", "crudui-list__pagination");
     const char *mode = string_member(pagination, "mode");
+    if (ok && !*mode) mode = "pages";
     if (ok && *mode) ok = ps_html_attr_string(attrs, "data-mode", mode);
-    const ps_value *per_page = member(pagination, "per_page");
-    if (ok && per_page && (per_page->kind == PS_INT || per_page->kind == PS_FLOAT))
-        ok = ps_html_attr_clone(attrs, "data-per-page", per_page);
+    const ps_value *declared_per_page = member(pagination, "per_page");
+    if (ok && !declared_per_page) ok = ps_html_attr_string(attrs, "data-per-page", "20");
+    if (ok && declared_per_page && (declared_per_page->kind == PS_INT || declared_per_page->kind == PS_FLOAT))
+        ok = ps_html_attr_clone(attrs, "data-per-page", declared_per_page);
+    if (ok && !member(context->options, "page")) ok = ps_html_attr_string(attrs, "data-page", "1");
     /* The options were checked before rendering; a supplied count is written as an integer. */
     for (size_t i = 0; ok && i < 2; ++i) {
         bool present;
@@ -1131,8 +1151,25 @@ static bool append_pagination(list_context *context)
             ok = value && ps_set(attrs, i ? "data-total" : "data-page", value);
         }
     }
+    int64_t page = 1, total = 0, per_page = 20, page_count = 0;
+    bool present = false;
+    if (ok && !count_option(member(context->options, "page"), 1, &present, &page)) ok = false;
+    if (ok && !present) page = 1;
+    if (declared_per_page && (declared_per_page->kind == PS_INT || declared_per_page->kind == PS_FLOAT)) per_page = declared_per_page->kind == PS_INT ? declared_per_page->data.integer : (int64_t)declared_per_page->data.number;
+    if (per_page < 1) per_page = 20;
+    if (ok && !count_option(member(context->options, "total"), 0, &present, &total)) ok = false;
+    if (present) { page_count = (int64_t)ceil((double)total / (double)per_page); if (page_count < 1) page_count = 1; if (page > page_count) page = page_count; }
     if (ok) ok = write_element_start(&context->output, "nav", attrs) &&
-        write_element_end(&context->output, "nav");
+        append_page_button(context, "crudui-list__pagination-prev", page > 1 ? page - 1 : 1, "Previous page", !present || page <= 1, false);
+    if (ok && present) {
+        int64_t limit = page_count < 7 ? page_count : 7;
+        for (int64_t value = 1; value <= limit && ok; ++value) {
+            char label[32];
+            snprintf(label, sizeof(label), "Page %lld", (long long)value);
+            ok = append_page_button(context, "crudui-list__pagination-page", value, label, value == page, value == page);
+        }
+    }
+    if (ok) ok = append_page_button(context, "crudui-list__pagination-next", present && page < page_count ? page + 1 : 1, "Next page", !present || page >= page_count, false) && write_element_end(&context->output, "nav");
     else ps_value_free(attrs);
     return ok;
 }

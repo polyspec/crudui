@@ -130,10 +130,12 @@ record. View state is never submitted or serialized with the data.
 | --- | --- |
 | `toggleRow(path, key)` | Expand or collapse one row. |
 | `setAllExpanded(expanded)` | Expand or collapse every collapsible row. |
-| `undo()` | Restore the record before the last data change; fails when nothing can be undone. |
+| `undo()` | Restore the record before the last data change and make the reverted record redoable; fails when nothing can be undone. |
+| `redo()` | Reapply the most recently undone data change; fails when nothing can be redone. |
 
-The snapshot reports `canUndo`. History keeps up to 100 records. Consecutive
-`setValue` calls on the same path share one entry. `setData` restarts history and
+The snapshot reports `canUndo` and `canRedo`. History keeps up to 100 records in each
+direction. Consecutive `setValue` calls on the same path share one entry. A new data
+change after `undo()` clears the redo records. `setData` restarts history and
 collapsed rows. Removing a row drops its view state; rekeying a row moves it to the
 new key. View changes do not change `revision`. Server rendering uses the initial
 view: every row expanded. The [form markup](form-markup.md) defines the structure
@@ -142,7 +144,7 @@ map and data view.
 generator-core exports these rules as pure functions over immutable values:
 `initialView`, `toggleRowView`, `setAllExpandedView`, `removeRowView`,
 `rekeyRowView` and `collapsibleRows` for view state, and
-`emptyHistory`, `recordChange`, `canUndo` and `undoChange` for history. An
+`emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` for history. An
 application that owns its data with `bindForm` applies the same functions.
 
 ## Rendering and validation
