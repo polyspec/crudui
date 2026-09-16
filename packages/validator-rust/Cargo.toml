@@ -19,3 +19,9 @@ path = "src/bin/validate.rs"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 regex = "1"
+
+[profile.release]
+# Keep release artifacts unstripped. Cargo's debuginfo strip invokes the
+# toolchain's rust-objcopy, whose macOS distribution may lack libLLVM.dylib.
+# The validator build must not report a successful binary after that step fails.
+strip = "none"

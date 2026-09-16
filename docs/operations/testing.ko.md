@@ -7,6 +7,10 @@
 Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 있게 합니다.
 컴파일된 export를 검사하기 전에 JavaScript 패키지를 빌드합니다.
 
+Rust validator 릴리스 프로필은 `strip = "none"`을 사용합니다. 릴리스 빌드가 toolchain의
+선택적 `rust-objcopy`·`libLLVM.dylib` 조합에 의존하지 않게 하며, validator 바이너리를
+성공으로 보고한 뒤 strip 경고를 남기지 않게 합니다.
+
 ```sh
 composer --working-dir=packages/validator-php install
 npm run build
