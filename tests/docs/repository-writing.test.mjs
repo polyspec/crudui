@@ -24,8 +24,9 @@ const discouraged = [
   ['이식 이력', /포팅|무수정 적용/g],
 ];
 
+// Tracked files and new files not yet added, so prose is checked before it is committed.
 function trackedFiles() {
-  const result = spawnSync('git', ['ls-files', '-z'], { cwd: repository, encoding: 'utf8' });
+  const result = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: repository, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.split('\0').filter(Boolean)
     .filter(file => !excludedPrefixes.some(prefix => file.startsWith(prefix)))

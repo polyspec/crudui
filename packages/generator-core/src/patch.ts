@@ -6,7 +6,7 @@
  *
  * Nodes match by kind and element name, and elements by their identity: a row key, a field
  * path, an id, or a control name with its value for checkboxes and radio buttons. Unkeyed nodes
- * match in order. Attributes are copied from the new markup; control values and checked states
+ * match in order. Attributes are set to those of the new markup; control values and checked states
  * are live properties, which `connectForm().sync()` sets from the form.
  */
 export function patchContent(element: Element, html: string): void {
