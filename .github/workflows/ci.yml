@@ -292,6 +292,8 @@ jobs:
           PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
       - name: Gateway conformance
         run: npm test --prefix examples/cross-check-console/server
+      - name: Feature verification commands
+        run: npm run manifest:test
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
@@ -339,7 +341,6 @@ jobs:
         run: node scripts/check-ci-browser.mjs
       - run: npm run manifest:check
       - run: npm run manifest:docs:check
-      - run: npm run manifest:test
       - run: npm run test:forms
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
