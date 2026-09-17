@@ -17,78 +17,71 @@ permissions:
 
 jobs:
   build-lint:
-    name: build + lint
+    name: build, lint and types
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-
       - name: Setup selected Node.js release line
         uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
-
-      - name: Install workspace deps
+      - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
-
-      - name: Verify runtime version channels
+      - name: Verify runtime version channels and test standards
         run: npm run test:runtimes
-
       - name: Verify dependency graph and advisories
         run: npm run test:dependencies
-
-      - name: Build (validator-ts + generator-react/vue/svelte)
+      - name: Build
         run: npm run build
-
       - name: Lint
         run: npm run lint
+      - name: Type-check
+        run: npm run typecheck
 
-  cross-language:
-    name: cross-language idempotency (1074)
+  legacy-comparison:
+    name: legacy validators in four languages
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-
       - name: Setup selected Node.js release line
         uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
-
-      - name: Setup PHP 8.5
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           tools: composer
       - name: Install PHP dependencies
         run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
-
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
-
       - name: Cargo cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: packages/validator-rust
-
-      - name: Install workspace deps
+      - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
-
-      - name: Build JS validator
+      - name: Build the JavaScript validator
         run: npm run build:validator
-
-      - name: Cross-language compare (JS/PHP/Go/Rust, 1074 cases)
+      - name: Compare the legacy validators
         run: npm test
 
-  validator-unit-js:
-    name: unit · validator-ts (vitest)
+  validator-js:
+    name: validator · JavaScript
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@v6
       - name: Setup selected Node.js release line
@@ -96,18 +89,32 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
-      - name: Install workspace deps
+      - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
       - name: Test
-        run: npm test
-        working-directory: packages/validator-ts
+        run: npm test -w @crudui/validator
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance-evidence-validator-js
+          path: conformance-evidence/
+          if-no-files-found: error
 
-  validator-unit-php:
-    name: unit · validator-php (phpunit)
+  validator-php:
+    name: validator · PHP
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@v6
-      - name: Setup PHP 8.5
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
@@ -115,28 +122,56 @@ jobs:
       - name: Install PHP dependencies
         run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
       - name: Test
-        run: composer test
-        working-directory: packages/validator-php
+        run: composer --working-dir=packages/validator-php test
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance-evidence-validator-php
+          path: conformance-evidence/
+          if-no-files-found: error
 
-  validator-unit-go:
-    name: unit · validator-go (go test)
+  validator-go:
+    name: validator · Go
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@v6
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: npm
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
       - name: Test
-        run: go test ./...
-        working-directory: packages/validator-go
+        run: node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance-evidence-validator-go
+          path: conformance-evidence/
+          if-no-files-found: error
 
-  validator-unit-rust:
-    name: unit · validator-rust (cargo test)
+  validator-rust:
+    name: validator · Rust
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@v6
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: npm
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
       - name: Cargo cache
@@ -144,24 +179,29 @@ jobs:
         with:
           workspaces: packages/validator-rust
       - name: Test
-        run: cargo test
-        working-directory: packages/validator-rust
+        run: node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance-evidence-validator-rust
+          path: conformance-evidence/
+          if-no-files-found: error
 
   docs-coverage:
-    name: doc-coverage gate
+    name: documentation gate
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       DOCS_BASE_PATH: /crudui/
     steps:
       - uses: actions/checkout@v6
-
       - name: Setup selected Node.js release line
         uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
-
-      - name: Setup PHP 8.5
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
@@ -170,30 +210,23 @@ jobs:
         run: |
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
-
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
-
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
-
       - name: Cargo cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: packages/validator-rust
-
-      - name: Install workspace deps (typedoc lives here)
+      - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
-
       - name: Install PHP API documentation generator
         run: sh scripts/install-phpdocumentor.sh
-
-      - name: Doc-coverage gate (libs + servers, 4 langs)
+      - name: Documentation gate (libraries and servers in four languages)
         run: make docs-check
-
       - name: Upload documentation site
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
@@ -205,6 +238,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: docs-coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       pages: write
       id-token: write
@@ -219,193 +253,106 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  validator-current-ts:
-    name: current · validator-ts (vitest src)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.node-version'
-          cache: npm
-      - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci --strict-allow-scripts
-      - name: current conformance (vitest src)
-        run: npm run test:current
-        working-directory: packages/validator-ts
-
-  validator-current-php:
-    name: current · validator-php (phpunit tests)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup PHP 8.5
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          tools: composer
-      - name: Install PHP dependencies
-        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-      - name: current conformance (phpunit tests)
-        run: composer test:current
-        working-directory: packages/validator-php
-
-  validator-current-go:
-    name: current · validator-go (go test ./validator/... + CLI)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: packages/validator-go/go.mod
-      - name: current conformance (go test ./validator/... + validate CLI)
-        run: go test ./validator/... ./cmd/validate
-        working-directory: packages/validator-go
-
-  validator-current-rust:
-    name: current · validator-rust (cargo test current conformance + CLI)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
-      - name: Cargo cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: packages/validator-rust
-      - name: current conformance (expr/compose/validate/spec-validity/list-validity + validate CLI)
-        run: >
-          cargo test
-          --test expr_conformance
-          --test compose_conformance
-          --test validate_conformance
-          --test spec_validity_conformance
-          --test list_validity_conformance
-          --test validate_cli_conformance
-        working-directory: packages/validator-rust
-
-  form-render:
-    name: current render (React/Vue/Svelte SSR — form + list)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.node-version'
-          cache: npm
-
-      - name: Install workspace deps
-        run: npm i -g npm@latest && npm ci --strict-allow-scripts
-
-      - name: Build form packages
-        run: npm run build
-
-      - name: React current render
-        run: npm run test:current
-        working-directory: packages/generator-react
-
-      - name: Vue current render
-        run: npm run test:current
-        working-directory: packages/generator-vue
-
-      - name: Svelte current render
-        run: npm run test:current
-        working-directory: packages/generator-svelte
-
   cross-check-console:
-    name: current · cross-check-console gateway
+    name: cross-check console gateway
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@v6
-
       - name: Setup selected Node.js release line
         uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
-
-      - name: Setup PHP 8.5
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           tools: composer
       - name: Install PHP dependencies
         run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
-
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
-
       - name: Cargo cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: packages/validator-rust
-
-      - name: Install workspace deps
+      - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
-
-      - name: Build form packages
-        run: npm run build
-
-      - name: Gateway conformance (verdict units + fan-out + HTTP boundary)
-        run: npm test
-        working-directory: examples/cross-check-console/server
+      - name: Build the packages and the PHP extension
+        run: make build-php-extension
+        env:
+          PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
+      - name: Gateway conformance
+        run: npm test --prefix examples/cross-check-console/server
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance-evidence-cross-check-console
+          path: conformance-evidence/
+          if-no-files-found: error
 
   cli:
-    name: current · cli (describe/check/explain)
+    name: command-line interface
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-
       - name: Setup selected Node.js release line
         uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
-
-      - name: Install workspace deps
+      - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
-
-      - name: Build validator package
+      - name: Build the validator package
         run: npm run build:validator
-
-      - name: CLI conformance
-        run: npm test
-        working-directory: packages/cli
+      - name: Test
+        run: npm test -w @crudui/cli
 
   form-runtime:
     name: Form instances and data injection
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
       PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
       PUPPETEER_SKIP_DOWNLOAD: 'true'
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
-      - run: npm i -g npm@latest && npm ci --strict-allow-scripts
+      - name: Install workspace dependencies
+        run: npm i -g npm@latest && npm ci --strict-allow-scripts
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - run: npm run manifest:check
       - run: npm run manifest:docs:check
       - run: npm run manifest:test
       - run: npm run test:forms
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance-evidence-form-runtime
+          path: conformance-evidence/
+          if-no-files-found: error
 
   form-comparison:
     name: Form comparison runner regressions
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
       PUPPETEER_SKIP_DOWNLOAD: 'true'
@@ -416,7 +363,7 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
-      - name: Setup PHP 8.5
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
@@ -434,6 +381,7 @@ jobs:
   package-browser:
     name: Packages, public builds and browser inspector
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
       PUPPETEER_SKIP_DOWNLOAD: 'true'
@@ -450,19 +398,17 @@ jobs:
         run: node scripts/check-ci-browser.mjs
       - name: Pack and test package consumers
         run: npm run test:packages
-      - name: Test public package exports and types
-        run: npm run test:build
-      - name: Test reproducible package builds
-        run: npm run test:build:repeat
-      - name: Test form inspector units and browser CSS
-        run: |
-          node --test tests/form-inspector/form-snapshot.test.mjs
-          node tests/form-inspector/browser.mjs
+      - name: Test public package exports, types and reproducible builds
+        run: npm run test:build && npm run test:build:repeat
+      - name: Test the form inspector
+        run: npm run test:inspector
 
   native-generators:
     name: Native generation and PHP API (${{ matrix.php }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
       PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
       PUPPETEER_SKIP_DOWNLOAD: 'true'
     strategy:
@@ -471,7 +417,8 @@ jobs:
         php: ['8.4', '8.5']
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
@@ -479,15 +426,17 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer
-      - uses: actions/setup-go@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/generator-go/go.mod
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
         with:
-          workspaces: |
-            packages/generator-rust
+          workspaces: packages/generator-rust
       - name: Install dependencies
         run: |
           npm i -g npm@latest && npm ci --strict-allow-scripts
@@ -500,9 +449,41 @@ jobs:
         env:
           PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
       - name: Preserve comparison report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: native-generators-php-${{ matrix.php }}
           path: .git/native-generators/report.json
           include-hidden-files: true
           if-no-files-found: error
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance-evidence-native-php-${{ matrix.php }}
+          path: conformance-evidence/
+          if-no-files-found: error
+
+  conformance:
+    name: conformance evidence against the standard
+    needs: [validator-js, validator-php, validator-go, validator-rust, cross-check-console, form-runtime, native-generators]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+      - name: Collect the evidence of every suite
+        uses: actions/download-artifact@v8
+        with:
+          pattern: conformance-evidence-*
+          path: conformance-evidence
+          merge-multiple: true
+      - name: Check the evidence
+        run: node scripts/check-conformance.mjs
+        env:
+          CRUDUI_CONFORMANCE_EVIDENCE: conformance-evidence

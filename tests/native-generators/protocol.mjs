@@ -89,10 +89,20 @@ export function validateResponse(request, value) {
       break;
     }
     case 'bindForm': validateFields(value); break;
+    case 'bindButtons':
+      assert.ok(Array.isArray(value), 'Buttons must be an array');
+      for (const button of value) {
+        assert.deepEqual(Object.keys(button), ['type', 'tag', 'text', 'attrs'], 'Button members differ');
+        assert.ok(object(button.attrs) && Object.values(button.attrs).every(item => typeof item === 'string'), 'Button attributes must be strings');
+      }
+      break;
+    case 'formButtonsHtml': assert.equal(typeof value, 'string', 'Button HTML must be a string'); break;
     case 'renderList': assert.equal(typeof value, 'string', 'List HTML must be a string'); break;
     case 'buildList': {
       assert.ok(object(value), 'List model must be an object');
-      assert.deepEqual(Object.keys(value), ['columns', 'rows', 'pagination', 'sort', 'actions', 'empty', 'design'], 'List model members differ');
+      // A list without a sort declaration has no sort member.
+      const members = ['columns', 'rows', 'pagination', ...(Object.hasOwn(value, 'sort') ? ['sort'] : []), 'actions', 'empty', 'design'];
+      assert.deepEqual(Object.keys(value), members, 'List model members differ');
       assert.ok(Array.isArray(value.columns) && Array.isArray(value.rows) && Array.isArray(value.actions));
       break;
     }

@@ -27,6 +27,15 @@ import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs
 // Vue CRUDUI generator (TypeScript source; Vitest transforms it).
 import { renderFields } from '../src/internal/renderFields.ts';
 import { ComposeLoadError, UnsupportedFieldTypeError } from '../src/index.ts';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+
+/** Run one fixture case and record renderForm evidence for it. */
+function proves(name, body) {
+  return provesConformance(
+    { features: ['renderForm'], fixture: 'tests/fixtures/form-render/cases.json', runtime: 'vue', case: name },
+    body
+  );
+}
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.json');
@@ -38,20 +47,20 @@ async function renderSSR(c) {
 
 describe('form rendering: Vue 3 SSR reproduces the normalized expected_html', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
-    test(c.name, async () => {
+    test(c.name, () => proves(c.name, async () => {
       const actual = normalizeHtml(await renderSSR(c));
       expect(actual).toStrictEqual(c.expected_html);
-    });
+    }));
   }
 });
 
 describe('form rendering: Vue SSR is idempotent (stable across re-render)', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
-    test(`${c.name} — re-render is stable`, async () => {
+    test(`${c.name} — re-render is stable`, () => proves(c.name, async () => {
       const a = normalizeHtml(await renderSSR(c));
       const b = normalizeHtml(await renderSSR(c));
       expect(a).toStrictEqual(b);
-    });
+    }));
   }
 });
 
@@ -65,7 +74,7 @@ const ERROR_CLASS_BY_CODE = {
 
 describe('form rendering: a load/registry gap is a surfaced ERROR, never silent', () => {
   for (const c of cases.filter((x) => x.expectError)) {
-    test(c.name, async () => {
+    test(c.name, () => proves(c.name, async () => {
       let thrown;
       try {
         await renderSSR(c);
@@ -76,7 +85,7 @@ describe('form rendering: a load/registry gap is a surfaced ERROR, never silent'
       expect(expectedClass, `${c.name}: unknown error code ${c.expectError.code}`).toBeTruthy();
       expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(expectedClass);
       expect(thrown.code).toStrictEqual(c.expectError.code);
-    });
+    }));
   }
 });
 
@@ -89,7 +98,7 @@ const FORBIDDEN_KEYSHAPE = [/"if"/, /"when"/];
 
 describe('form rendering: eval is never used (no legacy condition metadata)', () => {
   for (const c of cases.filter((x) => x.expected_html)) {
-    test(`${c.name} — no forbidden meta-key markup`, async () => {
+    test(`${c.name} — no forbidden meta-key markup`, () => proves(c.name, async () => {
       const raw = await renderSSR(c);
 
       // 1: no legacy condition meta key reaches the markup (eval/legacy path never ran).
@@ -100,7 +109,7 @@ describe('form rendering: eval is never used (no legacy condition metadata)', ()
         expect(raw, `${c.name}: ${re} leaked into raw output`).not.toMatch(re);
       }
 
-    });
+    }));
   }
 
   // 3: G4 data identity — a real row id (e.g. people.p1) is preserved verbatim

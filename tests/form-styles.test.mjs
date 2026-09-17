@@ -1,10 +1,10 @@
-// Chromium layout checks for the core stylesheet (@crudui/generator-core/crudui.css).
-// jsdom has no layout, so sticky stacking and focus scrolling are verified in a real browser.
-// Sticky rows are CSS only, so every check runs the same way in a page, in a scrolling box
-// and in a frame.
+// Browser layout checks for the core stylesheet (@crudui/generator-core/crudui.css) in Chromium
+// and Firefox. jsdom has no layout, so sticky stacking and focus scrolling are verified in real
+// browsers. Every check runs the same way in a page, in a scrolling box and in a frame.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -38,7 +38,7 @@ const siblingData = { [levels[0]]: { [key]: { ...levelData(0)[key], name: 'ACME'
 
 const browserSource = `
 import '/packages/generator-core/styles/crudui.css';
-import { compileForm, connectForm, connectOutline, createForm } from '@crudui/generator-core';
+import { compileForm, connectForm, connectOutline, createForm, patchContent } from '@crudui/generator-core';
 import { renderForm, renderOutline } from '@crudui/generator-html';
 
 const element = document.getElementById('form');
@@ -50,17 +50,27 @@ window.formStylesTest = {
     outline.innerHTML = renderOutline(form);
     const connection = connectForm(element, form);
     connectOutline(outline, form, element);
-    // Render every change and synchronize, as an HTML renderer application does.
+    // Patch every change into the page and synchronize, as an HTML renderer application does.
     form.subscribe(() => {
-      element.innerHTML = renderForm(form);
+      patchContent(element, renderForm(form));
       connection.sync();
-      outline.innerHTML = renderOutline(form);
+      patchContent(outline, renderOutline(form));
     });
   },
 };
 `;
 
-let server, browser, url, frameUrl, cacheDirectory;
+/** The Firefox executable: CRUDUI_FIREFOX_EXECUTABLE, or the platform's installed Firefox. */
+function firefoxExecutable() {
+  const candidates = [process.env.CRUDUI_FIREFOX_EXECUTABLE, '/Applications/Firefox.app/Contents/MacOS/firefox', '/usr/bin/firefox'].filter(Boolean);
+  const found = candidates.find(candidate => existsSync(candidate));
+  if (!found) throw new Error(`Firefox is required for the layout checks; set CRUDUI_FIREFOX_EXECUTABLE (looked in ${candidates.join(', ')})`);
+  return found;
+}
+
+const engines = ['chromium', 'firefox'];
+const browsers = {};
+let server, url, frameUrl, cacheDirectory;
 before(async () => {
   cacheDirectory = await mkdtemp(join(tmpdir(), 'crudui-form-styles-'));
   server = await createServer({
@@ -91,10 +101,11 @@ before(async () => {
   await server.listen();
   url = `${server.resolvedUrls.local[0]}form-styles`;
   frameUrl = `${server.resolvedUrls.local[0]}form-styles-frame`;
-  browser = await puppeteer.launch({ headless: true });
+  browsers.chromium = await puppeteer.launch({ headless: true });
+  browsers.firefox = await puppeteer.launch({ headless: true, browser: 'firefox', executablePath: firefoxExecutable() });
 }, { timeout: 60000 });
 after(async () => {
-  try { await browser?.close(); }
+  try { await Promise.all(Object.values(browsers).map(browser => browser.close())); }
   finally {
     try { await server?.close(); }
     finally { if (cacheDirectory) await rm(cacheDirectory, { recursive: true, force: true }); }
@@ -105,8 +116,8 @@ after(async () => {
  * Open the form document in a host: the page itself, a 420 px scrolling box in the page,
  * or a 600 px frame. Returns the frame that runs the form and records page errors.
  */
-async function openHost(host) {
-  const page = await browser.newPage();
+async function openHost(engine, host) {
+  const page = await browsers[engine].newPage();
   const failures = [];
   page.on('pageerror', error => failures.push(error.message));
   page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });
@@ -146,9 +157,9 @@ const containerSource = `(() => {
   return { scroller, top, height, token };
 })()`;
 
-for (const host of hosts) {
-  test(`${host}: sticky row headers stack on their lines and show their labels only while stuck`, async () => {
-    const { page, target, failures } = await openHost(host);
+for (const engine of engines) for (const host of hosts) {
+  test(`${engine} ${host}: sticky row headers stack on their lines and show their labels only while stuck`, async () => {
+    const { page, target, failures } = await openHost(engine, host);
     try {
       await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, data);
       // Scroll until the deepest row's top is 10 px past its line, under the four pinned ancestor headers.
@@ -165,11 +176,13 @@ for (const host of hosts) {
         const title = first.querySelector('.crudui-node__title');
         return {
           token,
+          scrollState: CSS.supports('container-type: scroll-state'),
           headers: headers.map(header => ({
             offset: header.getBoundingClientRect().top - top,
             line: parseFloat(getComputedStyle(header).top),
             height: header.getBoundingClientRect().height,
             label: getComputedStyle(header.querySelector('.crudui-node__label')).display,
+            marked: header.hasAttribute('data-crudui-stuck'),
             labelBackground: getComputedStyle(header.querySelector('.crudui-node__label')).backgroundColor,
             labelRadius: getComputedStyle(header.querySelector('.crudui-node__label')).borderRadius,
           })),
@@ -185,6 +198,8 @@ for (const host of hosts) {
         assert.ok(Math.abs(header.offset - header.line) < 0.5, `Level ${index} header sits on its line: ${header.offset} vs ${header.line}`);
         assert.ok(Math.abs(header.line - index * layout.token) < 0.5, `Level ${index} line is ${index} header heights`);
         assert.notEqual(header.label, 'none', `Level ${index} shows its label while stuck`);
+        // A browser with scroll-state queries shows the label by the query; any other marks the header.
+        assert.equal(header.marked, !layout.scrollState, `Level ${index} marking with scroll-state support ${layout.scrollState}`);
         assert.notEqual(header.labelBackground, 'rgba(0, 0, 0, 0)', `Level ${index} label has badge background`);
         assert.notEqual(header.labelRadius, '0px', `Level ${index} label has badge radius`);
       }
@@ -197,11 +212,52 @@ for (const host of hosts) {
       const labels = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__label')]
         .map(label => getComputedStyle(label).display));
       assert.ok(labels.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${labels}`);
+
     } finally { await page.close(); }
   });
 
-  test(`${host}: focusing a row after an action or a map selection scrolls it clear of the sticky headers and the footer`, async () => {
-    const { page, target, failures } = await openHost(host);
+  test(`${engine} ${host}: without scroll-state queries, the binding marks stuck headers to show their labels`, async () => {
+    const { page, target, failures } = await openHost(engine, host);
+    try {
+      // Act as Firefox or Safari: no scroll-state support and no container rule.
+      await target.evaluate((spec, data) => {
+        const supports = CSS.supports;
+        CSS.supports = (...args) => !String(args.join(':')).includes('scroll-state') && supports.apply(CSS, args);
+        for (const sheet of document.styleSheets) {
+          for (let index = sheet.cssRules.length - 1; index >= 0; index--) {
+            if (sheet.cssRules[index] instanceof CSSContainerRule && sheet.cssRules[index].conditionText.includes('scroll-state')) sheet.deleteRule(index);
+          }
+        }
+        window.formStylesTest.mount(spec, data);
+      }, spec, data);
+      const labels = () => target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container')]
+        .map(header => getComputedStyle(header.querySelector(':scope > .crudui-node__header > .crudui-node__label')).display));
+      await frames(target);
+      const top = await labels();
+      assert.ok(top.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${top}`);
+      await target.evaluate(source => {
+        const { scroller, top, token } = eval(source);
+        const rows = document.querySelectorAll('.crudui-node--sticky');
+        scroller.scrollTop += rows[rows.length - 1].getBoundingClientRect().top - top - (4 * token - 10);
+      }, containerSource);
+      await frames(target);
+      const stuck = await labels();
+      assert.ok(stuck.every(display => display !== 'none'), `Level labels show while stuck: ${stuck}`);
+      // A re-render keeps the marks.
+      await target.evaluate(() => { const input = document.querySelector('.crudui-form input[name]'); input.value += 'x'; input.dispatchEvent(new Event('input', { bubbles: true })); });
+      await frames(target);
+      const rendered = await labels();
+      assert.ok(rendered.every(display => display !== 'none'), `Level labels still show after a render: ${rendered}`);
+      await target.evaluate(source => { eval(source).scroller.scrollTop = 0; }, containerSource);
+      await frames(target);
+      const back = await labels();
+      assert.ok(back.every(display => display === 'none'), `Level labels hide again at the top: ${back}`);
+      assert.deepEqual(failures, []);
+    } finally { await page.close(); }
+  });
+
+  test(`${engine} ${host}: focusing a row after an action or a map selection scrolls it clear of the sticky headers and the footer`, async () => {
+    const { page, target, failures } = await openHost(engine, host);
     try {
       await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
       const focused = () => target.evaluate(source => {
@@ -251,8 +307,8 @@ for (const host of hosts) {
     } finally { await page.close(); }
   });
 
-  test(`${host}: a restored focus keeps its visibility and a moved focus is visible, after pointer or keyboard input`, async () => {
-    const { page, target, failures } = await openHost(host);
+  test(`${engine} ${host}: a restored focus keeps its visibility and a moved focus is visible, after pointer or keyboard input`, async () => {
+    const { page, target, failures } = await openHost(engine, host);
     try {
       await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
       const state = () => target.evaluate(() => ({

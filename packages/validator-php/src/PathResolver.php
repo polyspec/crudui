@@ -239,7 +239,7 @@ class PathResolver
      * For fields, each extra dot climbs one group: . = sibling, .. = parent's sibling.
      * For groups ($fromGroup = true), the group itself counts as the first scope level:
      * both . and .. resolve to the group's sibling scope, ... climbs one group, etc.
-     * (canonical per tests/cases/display-switch.json: display-switch-group-001 and
+     * (canonical per tests/fixtures/legacy-validate/cases.json: display-switch-group-001 and
      * display-switch-nested-001 together force this asymmetry)
      *
      * @param string $relativePath The relative path (e.g., ".field", "..field")

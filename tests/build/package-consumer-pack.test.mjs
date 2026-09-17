@@ -13,13 +13,13 @@ function packageSource(name) {
   return directory;
 }
 
-test('package consumer packs the current package without workspace selection', () => {
+test('package consumer packs the current package without workspace selection', async () => {
   const source = packageSource('@crudui/generator-core');
   const destination = path.resolve('/temporary/consumer');
   const calls = [];
   try {
-    const archive = packPackage(
-      source, destination, '@crudui/generator-core', (command, args, cwd) => {
+    const archive = await packPackage(
+      source, destination, '@crudui/generator-core', async (command, args, cwd) => {
       calls.push({ command, args, cwd });
       return JSON.stringify([{
         name: '@crudui/generator-core',
@@ -38,11 +38,11 @@ test('package consumer packs the current package without workspace selection', (
   }
 });
 
-test('package consumer rejects an empty npm pack report', () => {
+test('package consumer rejects an empty npm pack report', async () => {
   const source = packageSource('@crudui/package');
   try {
-    assert.throws(
-      () => packPackage(source, '/temporary/consumer', '@crudui/package', () => '[]'),
+    await assert.rejects(
+      () => packPackage(source, '/temporary/consumer', '@crudui/package', async () => '[]'),
       /npm pack must produce one archive; received 0/,
     );
   } finally {

@@ -13,7 +13,12 @@
         "createForm",
         "connectForm",
         "buildList",
-        "buildDetail"
+        "buildDetail",
+        "connectOutline",
+        "connectStickyHeaders",
+        "patchContent",
+        "bindButtons",
+        "formButtonsHtml"
       ]
     },
     {
@@ -99,6 +104,30 @@
       "kind": "validation"
     },
     {
+      "path": "tests/fixtures/spec-validity/cases.json",
+      "kind": "spec-validity"
+    },
+    {
+      "path": "tests/fixtures/list-validity/cases.json",
+      "kind": "list-validity"
+    },
+    {
+      "path": "tests/fixtures/detail-validity/cases.json",
+      "kind": "detail-validity"
+    },
+    {
+      "path": "tests/fixtures/validator-cli/cases.json",
+      "kind": "validator-cli"
+    },
+    {
+      "path": "tests/fixtures/translate/cases.json",
+      "kind": "translation"
+    },
+    {
+      "path": "tests/fixtures/legacy-validate/cases.json",
+      "kind": "legacy-validation"
+    },
+    {
       "path": "tests/fixtures/form-render/cases.json",
       "kind": "form-html"
     },
@@ -111,12 +140,43 @@
       "kind": "list-html"
     },
     {
-      "path": "tests/fixtures/detail-validity/cases.json",
-      "kind": "detail-validity"
+      "path": "tests/fixtures/detail-render/cases.json",
+      "kind": "detail-html"
+    },
+    {
+      "path": "tests/native-generators/cases.mjs",
+      "kind": "form-instance",
+      "export": "formScenarios"
     },
     {
       "path": "tests/fixtures/form-session/scenario.mjs",
-      "kind": "browser-session"
+      "kind": "browser-session",
+      "cases": [
+        "exerciseSessionDom"
+      ]
+    },
+    {
+      "path": "tests/fixtures/form-session/controls.mjs",
+      "kind": "browser-session",
+      "cases": [
+        "exerciseControls"
+      ]
+    },
+    {
+      "path": "tests/fixtures/form-session/initialization.mjs",
+      "kind": "browser-session",
+      "cases": [
+        "compareServerTakeover",
+        "compareInitialization"
+      ]
+    },
+    {
+      "path": "tests/fixtures/specs/LargeForm.yml",
+      "kind": "corpus"
+    },
+    {
+      "path": "tests/fixtures/specs/OptionCombination.yml",
+      "kind": "corpus"
     }
   ],
   "supportValues": [
@@ -159,11 +219,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/form.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
         }
       ]
     },
@@ -178,8 +238,7 @@
         "UnsupportedFieldTypeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-render/cases.json",
-        "tests/fixtures/form-session/controls.mjs"
+        "tests/fixtures/form-render/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -203,11 +262,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/form.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
         }
       ]
     },
@@ -242,7 +301,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -276,7 +335,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -291,8 +350,7 @@
         "FormError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs",
-        "tests/fixtures/form-session/initialization.mjs"
+        "tests/native-generators/cases.mjs"
       ],
       "support": {
         "javascript": "pass",
@@ -316,11 +374,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/form.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node --test tests/fixtures/form-session/scenario.mjs"
+          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
         }
       ]
     },
@@ -335,8 +393,7 @@
         "ComposeLoadError"
       ],
       "fixtures": [
-        "tests/fixtures/form-render/cases.json",
-        "tests/form-inspector/form-snapshot.test.mjs"
+        "tests/fixtures/form-render/cases.json"
       ],
       "support": {
         "javascript-html": "pass",
@@ -352,7 +409,8 @@
       "state": "none",
       "tests": [
         "packages/generator-html/src/conformance.test.ts",
-        "packages/generator-react/src/__tests__/form-render.conformance.test.ts"
+        "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
+        "tests/form-inspector/form-snapshot.test.mjs"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -363,11 +421,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- --run src/conformance.test.ts"
+          "command": "npm test -w @crudui/generator-html -- src/conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
         }
       ]
     },
@@ -407,11 +465,47 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- --run src/list-conformance.test.ts"
+          "command": "npm test -w @crudui/generator-html -- src/list-conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/list-render.conformance.test.ts"
+          "command": "npm test -w @crudui/generator-react -- src/__tests__/list-render.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "buildList",
+      "owner": "@crudui/generator-core",
+      "signature": "buildList(spec, rows, options?) -> ListViewModel",
+      "input": "list specification and supplied rows",
+      "output": "list view model with columns, rows, pagination, sort, actions, empty state and design",
+      "errors": [
+        "FormInputError",
+        "ComposeLoadError"
+      ],
+      "fixtures": [
+        "tests/fixtures/list-render/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/generator-core/src/list.test.ts"
+      ],
+      "docs": [
+        "docs/spec/display-formats.md",
+        "docs/spec/schema.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- src/list.test.ts"
         }
       ]
     },
@@ -453,7 +547,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/detail.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/detail.test.ts"
         }
       ]
     },
@@ -501,11 +595,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- --run src/detail-conformance.test.ts"
+          "command": "npm test -w @crudui/generator-html -- src/detail-conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- --run src/__tests__/detail-render.conformance.test.ts"
+          "command": "npm test -w @crudui/generator-react -- src/__tests__/detail-render.conformance.test.ts"
         }
       ]
     },
@@ -549,11 +643,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/validator -- --run src/detail-metaschema.conformance.test.ts"
+          "command": "npm test -w @crudui/validator -- src/detail-metaschema.conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/validator -- --run src/validate-detail/validate-detail.conformance.test.ts"
+          "command": "npm test -w @crudui/validator -- src/validate-detail/validate-detail.conformance.test.ts"
         }
       ]
     },
@@ -569,7 +663,8 @@
       ],
       "fixtures": [
         "tests/fixtures/form-session/scenario.mjs",
-        "tests/fixtures/form-session/controls.mjs"
+        "tests/fixtures/form-session/controls.mjs",
+        "tests/fixtures/form-session/initialization.mjs"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -591,11 +686,46 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/widget-controls.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/widget-controls.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node --test tests/fixtures/form-session/scenario.mjs"
+          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "patchContent",
+      "owner": "@crudui/generator-core",
+      "signature": "patchContent(element, html) -> void",
+      "input": "a mounted element and newly rendered markup",
+      "output": "the element's content equal to the markup, keeping every node the markup still contains",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/form-session/initialization.mjs"
+      ],
+      "support": {
+        "javascript-dom": "pass"
+      },
+      "status": "implemented",
+      "state": "the mounted DOM",
+      "tests": [
+        "packages/generator-core/src/patch.test.ts",
+        "packages/generator-html/src/form-session.test.ts"
+      ],
+      "docs": [
+        "docs/operations/forms.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-core -- src/patch.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-html -- src/form-session.test.ts"
         }
       ]
     },
@@ -609,11 +739,13 @@
         "TypeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs",
         "tests/fixtures/form-outline/cases.json"
       ],
       "support": {
-        "javascript": "pass",
+        "javascript-html": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass",
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
@@ -630,7 +762,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -664,7 +796,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -682,7 +814,10 @@
         "tests/fixtures/form-session/scenario.mjs"
       ],
       "support": {
-        "javascript": "pass",
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass",
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
@@ -701,7 +836,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -718,7 +853,10 @@
         "tests/fixtures/form-session/scenario.mjs"
       ],
       "support": {
-        "javascript": "pass",
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass",
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
@@ -736,7 +874,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -753,7 +891,10 @@
         "tests/fixtures/form-session/scenario.mjs"
       ],
       "support": {
-        "javascript": "pass",
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass",
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
@@ -771,7 +912,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- --run src/node.test.ts"
+          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -787,7 +928,8 @@
       ],
       "fixtures": [
         "tests/fixtures/validate/cases.json",
-        "tests/fixtures/expr/cases.json"
+        "tests/fixtures/expr/cases.json",
+        "tests/fixtures/spec-validity/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -800,7 +942,7 @@
       "state": "none",
       "tests": [
         "packages/validator-ts/src/validate.conformance.test.ts",
-        "tests/fixtures/validate/cases.json"
+        "packages/validator-ts/src/forbidden-scan.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/validation-rules.md",
@@ -809,7 +951,143 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/validator -- --run src/validate.conformance.test.ts"
+          "command": "npm test -w @crudui/validator -- src/validate.conformance.test.ts src/forbidden-scan.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "validateList",
+      "owner": "@crudui/validator",
+      "signature": "validateList(spec, options?) -> ValidationResult",
+      "input": "list specification",
+      "output": "valid flag, or the composition or forbidden-key load error",
+      "errors": [
+        "ComposeLoadError",
+        "SchemaError"
+      ],
+      "fixtures": [
+        "tests/fixtures/list-validity/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/validator-ts/src/validate-list/validate-list.conformance.test.ts"
+      ],
+      "docs": [
+        "docs/spec/display-formats.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "validatorCli",
+      "owner": "@crudui/validator",
+      "signature": "validate < request.json > response.json",
+      "input": "one JSON request on standard input",
+      "output": "one JSON response on standard output and the exit status",
+      "errors": [
+        "Request must be valid JSON"
+      ],
+      "fixtures": [
+        "tests/fixtures/validator-cli/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "examples/cross-check-console/server/validator-cli-requests.test.mjs"
+      ],
+      "docs": [
+        "docs/spec/validation-rules.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test --prefix examples/cross-check-console/server -- validator-cli-requests"
+        }
+      ]
+    },
+    {
+      "id": "translateLegacy",
+      "owner": "@crudui/validator",
+      "signature": "translateLegacy(legacy) -> { schema, notes, roundtrip }",
+      "input": "legacy field declaration",
+      "output": "specification with translation notes and the round-trip result",
+      "errors": [
+        "TypeError"
+      ],
+      "fixtures": [
+        "tests/fixtures/translate/cases.json"
+      ],
+      "support": {
+        "javascript": "pass"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/validator-ts/src/legacy/translate/translate.conformance.test.ts"
+      ],
+      "docs": [
+        "docs/spec/legacy-schema.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/validator -- src/legacy/translate/translate.conformance.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "validateLegacy",
+      "owner": "@crudui/validator",
+      "signature": "new Validator(legacySpec).validate(data) -> { valid, errors } from the explicit legacy module (@crudui/validator/legacy)",
+      "input": "legacy field declaration and submitted data",
+      "output": "valid flag with the rule and path of the first error",
+      "errors": [
+        "none"
+      ],
+      "fixtures": [
+        "tests/fixtures/legacy-validate/cases.json"
+      ],
+      "support": {
+        "javascript": "pass",
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "unsupported"
+      },
+      "status": "implemented",
+      "state": "none",
+      "tests": [
+        "packages/validator-ts/src/__tests__/conformance.test.ts",
+        "packages/validator-php/tests/ConformanceTest.php",
+        "packages/validator-go/validator/legacy/validator_test.go",
+        "packages/validator-rust/tests/conformance.rs"
+      ],
+      "docs": [
+        "docs/spec/legacy-schema.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/validator -- conformance"
         }
       ]
     }

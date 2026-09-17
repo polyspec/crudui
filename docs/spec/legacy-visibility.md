@@ -45,7 +45,7 @@ legacy declarations: current forms render the [current schema](schema.md), where
 - [PHP legacy validator](../../packages/validator-php/src/Legacy/Validator.php)
 - [Go legacy validator](../../packages/validator-go/validator/legacy/validator.go)
 - [Rust legacy validator](../../packages/validator-rust/src/legacy/validator.rs)
-- [Shared legacy validator cases](../../tests/cases/display-switch.json)
+- [Shared legacy validator cases](../../tests/fixtures/legacy-validate/cases.json), suite `display-switch`
 
 Test results and deployment status are maintained separately in
 [feature status](../features.md).

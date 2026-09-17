@@ -6,20 +6,27 @@ Run the maintained package and form checks from the repository root:
 
 ```sh
 npm run test:dependencies
+npm run typecheck
+make test-validators
 make test-native
 npm run test:forms
 npm run test:form-comparison
-node --test tests/form-inspector/form-snapshot.test.mjs
-node tests/form-inspector/browser.mjs
+npm run test:inspector
 npm run test:packages
+make conformance
 make docs-check
 ```
 
 Every command must return status 0 for the same source tree before tree
 verification. `npm run test:dependencies` verifies package declarations and install
-policy. `make test-native` builds and loads the PHP extension and runs the PHP, Go,
-Rust, shared protocol and generator checks, including the Chromium widget and
-timezone checks. The tree verification below verifies HTTP and browser integration.
+policy. `npm run typecheck` type-checks every TypeScript package. `make test-validators`
+runs the TypeScript, PHP, Go and Rust validator suites. `make test-native` builds the PHP
+extension, runs its engine, builder and API tests (`make test-php-extension`) and runs the PHP,
+Go, Rust, shared protocol and generator checks, including the Chromium widget and timezone
+checks. `npm run test:inspector` runs the form snapshot and browser inspector tests.
+`make conformance` runs the suites again with evidence recording and checks the evidence
+([conformance evidence](../spec/conformance.md)). Every test runs through the
+[test runner](testing.md#test-runner). The tree verification below verifies HTTP and browser integration.
 A successful repository check does not replace tree verification, and successful
 tree verification does not replace the repository check.
 

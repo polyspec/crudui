@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -45,4 +46,82 @@ func TestFormButtonsDefaultDeclaredAndRejected(t *testing.T) {
 			t.Fatalf("%s: %v", source, e)
 		}
 	}
+}
+
+// buttonsSpec declares a link, a submit with name, value and a record-dependent design, and a behavior button.
+const buttonsSpec = `{"type":"group","buttons":[{"type":"link","text":{"ko":"목록","en":"List"},"href":"../?a=1&b=\"2\""},{"type":"submit","name":"__submitted__","value":"go","design":{"class":{"name == \"a\"":"primary","true":"plain"},"style":"color: red; width: 5px"}},{"type":"button","text":"Back <now>","behavior":{"onclick":{"label":"x","script":"history.back()"}}}],"properties":{"name":{"type":"text"}}}`
+
+// Expected values below are produced by the JavaScript bindButtons and formButtonsHtml.
+func TestBindButtonsAndFormButtonsHTMLMatchJavaScript(t *testing.T) {
+	declared := compile(t, buttonsSpec)
+	for _, c := range []struct{ data, class string }{{`{"name":"a"}`, "primary"}, {`{}`, "plain"}} {
+		buttons, e := BindButtons(declared, parseObject(t, c.data), BindOptions{Language: "en"})
+		if e != nil {
+			t.Fatal(e)
+		}
+		wantVM := `[{"type":"link","tag":"a","text":"List","attrs":{"class":"crudui-action crudui-action--text","href":"../?a=1&b=\"2\""}},{"type":"submit","tag":"button","text":"Save","attrs":{"type":"submit","class":"crudui-action crudui-action--text ` + c.class + `","style":"color: red; width: 5px","name":"__submitted__","value":"go"}},{"type":"button","tag":"button","text":"Back <now>","attrs":{"type":"button","class":"crudui-action crudui-action--text","onclick":"history.back()"}}]`
+		if got := plainJSON(t, buttons); got != wantVM {
+			t.Fatalf("%s\n%s", got, wantVM)
+		}
+		html, e := FormButtonsHTML(buttons)
+		wantHTML := `<a class="crudui-action crudui-action--text" href="../?a=1&amp;b=&quot;2&quot;">List</a><button type="submit" class="crudui-action crudui-action--text ` + c.class + `" style="color: red; width: 5px" name="__submitted__" value="go">Save</button><button type="button" class="crudui-action crudui-action--text" onclick="history.back()">Back &lt;now&gt;</button>`
+		if e != nil || html != wantHTML {
+			t.Fatalf("%v\n%s", e, html)
+		}
+	}
+	plain := compile(t, `{"type":"group","properties":{}}`)
+	buttons, e := BindButtons(plain, nil, BindOptions{})
+	if e != nil || encode(t, buttons) != `[{"type":"submit","tag":"button","text":"저장","attrs":{"type":"submit","class":"crudui-action crudui-action--text"}}]` {
+		t.Fatal(e, encode(t, buttons))
+	}
+	if html, e := FormButtonsHTML(buttons); e != nil || html != `<button type="submit" class="crudui-action crudui-action--text">저장</button>` {
+		t.Fatal(e, html)
+	}
+	if html, e := FormButtonsHTML(nil); e != nil || html != "" {
+		t.Fatal(e, html)
+	}
+	for _, c := range []struct {
+		template *FormTemplate
+		options  BindOptions
+		message  string
+	}{
+		{nil, BindOptions{}, "Unsupported form template"},
+		{&FormTemplate{Kind: "other"}, BindOptions{}, "Unsupported form template"},
+		{plain, BindOptions{Language: 1}, "Language must be a string"},
+		{plain, BindOptions{Language: "fr"}, func() string { _, e := BindForm(plain, nil, BindOptions{Language: "fr"}); return e.Error() }()},
+	} {
+		if _, e := BindButtons(c.template, nil, c.options); e == nil || e.Error() != c.message {
+			t.Fatalf("%v: %v", c.message, e)
+		}
+	}
+	for _, bad := range []*Object{
+		nil,
+		NewObject(),
+		NewObject("tag", "div", "text", "x", "attrs", NewObject()),
+		NewObject("tag", "a", "text", 1, "attrs", NewObject()),
+		NewObject("tag", "a", "text", "x"),
+		NewObject("tag", "a", "text", "x", "attrs", []any{}),
+		NewObject("tag", "a", "text", "x", "attrs", NewObject("id", "i")),
+		NewObject("tag", "a", "text", "x", "attrs", NewObject("href", 1)),
+	} {
+		if _, e := FormButtonsHTML([]*Object{buttons[0], bad}); e == nil || e.Error() != "Form buttons must be evaluated button objects" {
+			t.Fatalf("%v: %v", bad, e)
+		}
+	}
+	// Members other than tag, text and attrs are ignored.
+	if html, e := FormButtonsHTML([]*Object{NewObject("type", 1, "tag", "a", "text", "x", "attrs", NewObject("href", "/"), "extra", true)}); e != nil || html != `<a href="/">x</a>` {
+		t.Fatal(e, html)
+	}
+}
+
+// plainJSON encodes a value as JavaScript JSON.stringify does; ordered objects escape HTML characters internally, so those escapes are undone.
+func plainJSON(t *testing.T, v any) string {
+	t.Helper()
+	var b strings.Builder
+	enc := json.NewEncoder(&b)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		t.Fatal(err)
+	}
+	return strings.NewReplacer(`\u0026`, "&", `\u003c`, "<", `\u003e`, ">").Replace(strings.TrimSuffix(b.String(), "\n"))
 }

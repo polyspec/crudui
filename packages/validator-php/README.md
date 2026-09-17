@@ -7,7 +7,7 @@ Compose specifications, evaluate expressions and validate data in PHP.
 ```sh
 composer install --working-dir=packages/validator-php
 composer test --working-dir=packages/validator-php
-composer test:current --working-dir=packages/validator-php
+composer test --working-dir=packages/validator-php
 ```
 
 ## Public API
@@ -76,7 +76,7 @@ must be a JSON object. A load or input failure writes exactly
 `{ "error", "code", "at" }` and exits with code two. A malformed request writes
 `{ "error" }` and exits with code one. Every language's CLI uses this contract.
 
-`composer test:current` runs composition, expression, current validation and
-field-model tests. `composer test` also runs the retained legacy rule suite and
-public symbol documentation checks. [Feature status](../../docs/features.md)
+`composer test` runs composition, expression, current validation, field-model,
+legacy rule and public symbol documentation tests through the repository test
+runner, which prints every test with its elapsed time. [Feature status](../../docs/features.md)
 records current verification separately from publication.

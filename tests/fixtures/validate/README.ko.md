@@ -35,8 +35,7 @@ Go·Rust·PHP는 숫자를 값으로 비교하므로 `5`와 `5.0`은 같습니�
 [Go](../../../packages/validator-go/cmd/validate/main_test.go),
 [Rust](../../../packages/validator-rust/tests/validate_cli_conformance.rs)의 명령행 검사,
 [PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs)와
-[`run.mjs`](../../../packages/php-ext/tests/run.mjs)가 PHP 검증기와 네이티브 검증기로 실행하는 PHP 확장
-실행기, 고정 사례를 네 명령행 검증기에 보내는 교차 검증 콘솔의
+PHP 검증기와 네이티브 검증기를 실행하는 [PHP 확장 API 검사](../../../packages/php-ext/tests/api.test.mjs), 고정 사례를 네 명령행 검증기에 보내는 교차 검증 콘솔의
 [검증 실행기 검사](../../../examples/cross-check-console/server/validate-runner.test.mjs)가 사용합니다.
 
 ## 재생성

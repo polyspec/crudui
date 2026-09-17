@@ -13,7 +13,7 @@ checks to collect their actual results.
 node scripts/require-current-build.mjs
 generator_php=packages/generator-php
 composer install --working-dir="$generator_php"
-node --test --test-timeout=10000 tests/native-generators/protocol.test.mjs
+node scripts/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
 node tests/native-generators/run.mjs \
   --extension /absolute/path/to/crudui.so \
   --report .git/native-generators/report.json

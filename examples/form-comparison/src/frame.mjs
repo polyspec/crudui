@@ -1,3 +1,4 @@
+import { connectStickyHeaders } from '@crudui/generator-core';
 import { hydrateView, hydration, mountView } from '#adapter';
 import { formValidation } from './form-validation.mjs';
 import { bindFormController } from './bind-form-controller.mjs';
@@ -29,6 +30,9 @@ const views = {
   outline: document.querySelector('#outline-view'),
   data: document.querySelector('#data-view'),
 };
+// A bindForm application renders the form itself, without connectForm, so it connects the
+// sticky header state once for its form container.
+if (renderingPath === 'bindForm') connectStickyHeaders(views.form);
 const transport = document.querySelector('#transport');
 const spec = specFor();
 const generation = serverGeneration(server, renderingPath, framework);

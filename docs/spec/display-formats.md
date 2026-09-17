@@ -183,6 +183,22 @@ column's `design` `columns.{name}`, of the detail's own `design` `detail` and of
 `fields.{name}`. The own `design` is checked first, then each column or field in
 [member order](schema.md#member-order).
 
+A list's `pagination` is checked last, at path `list`:
+
+| Declaration | Accepted value | Failure message |
+| --- | --- | --- |
+| `pagination` | a boolean or an object | `Invalid pagination at list: expected a boolean or an object` |
+| a member of the object | `per_page` or `mode` | `Invalid pagination.{key} at list: unknown key` |
+| `per_page` | an integer from 1 to 9007199254740991 | `Invalid pagination.per_page at list: expected a positive integer` |
+| `mode` | `pages`, `offset`, `cursor` or `none` | `Invalid pagination.mode at list: expected pages, offset, cursor or none` |
+
+The resolved pagination model has its members in this order: `enabled`; for enabled paging
+`perPage` (default 20), `mode` (default `pages`) and `page` (default 1); the supplied `total`;
+and for enabled paging `pageCount`. Disabled paging keeps only the supplied `page` and `total`.
+The page-number window holds every page up to seven pages, and otherwise the first, previous,
+current, next and last page. Without a total the current page is 1; a page after the last page
+selects the last page.
+
 In PHP, the [PHP API contract](php-extension.md) decides which PHP values are objects: an empty
 PHP array is accepted for a root object argument and for the fixed object options `data` and
 `files`, while nested values keep their type.

@@ -73,6 +73,42 @@ pub fn bind_form(
     bind_ordered(&member_ordered_template(template), data, options)
 }
 
+/// Evaluate the template's form buttons for a record.
+///
+/// Each button is an ordered JSON object `type, tag, text, attrs`; `attrs` keeps the
+/// output order type, class, style, name, value, href, onclick. Text is the declared
+/// content or the interface text of the button type in `options.language`; only the
+/// language option applies.
+pub fn bind_buttons(
+    template: &FormTemplate,
+    data: &Value,
+    options: &BindOptions,
+) -> FormResult<Vec<Value>> {
+    if !data.is_object() {
+        return Err(FormError::input("Form data must be an object"));
+    }
+    if template.kind != "crudui/form-template" {
+        return Err(FormError::input("Unsupported form template"));
+    }
+    let language = string_option(&options.language, "Language must be a string")?.unwrap_or("ko");
+    let messages = form_messages(language)?;
+    Ok(crate::buttons::button_models(
+        &member_ordered_template(template).buttons,
+        data,
+        language,
+        messages,
+    ))
+}
+
+/// Markup of buttons evaluated by [`bind_buttons`], identical to the form footer buttons.
+///
+/// Every button must be an object with tag `a` or `button`, string text and `attrs`
+/// whose names are type, class, style, name, value, href or onclick and whose values are
+/// strings; anything else is an input error.
+pub fn form_buttons_html(buttons: &[Value]) -> FormResult<String> {
+    crate::buttons::buttons_markup(buttons)
+}
+
 /// `bind_form` over a template already in specification member order.
 pub(crate) fn bind_ordered(
     template: &FormTemplate,

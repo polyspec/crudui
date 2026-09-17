@@ -115,26 +115,20 @@ final class Lists
             $body .= Rendering::element('div', ['class' => 'crudui-list__cards'], $cards);
         }
         if ($vm->pagination->enabled) {
-            $pagination = ['class' => 'crudui-list__pagination'];
-            $pagination['data-mode'] = (string) ($vm->pagination->mode ?? 'pages');
-            $pagination['data-per-page'] = (string) ($vm->pagination->perPage ?? 20);
-            $pagination['data-page'] = (string) ($vm->pagination->page ?? 1);
-            foreach (['mode' => 'mode', 'perPage' => 'per-page', 'page' => 'page', 'total' => 'total'] as $key => $attribute) {
-                if (property_exists($vm->pagination, $key)) {
-                    $pagination['data-' . $attribute] = Value::scalar($vm->pagination->{$key});
-                }
+            $pagination = ['class' => 'crudui-list__pagination', 'data-mode' => $vm->pagination->mode, 'data-per-page' => (string) $vm->pagination->perPage, 'data-page' => (string) $vm->pagination->page];
+            if (property_exists($vm->pagination, 'total')) {
+                $pagination['data-total'] = (string) $vm->pagination->total;
             }
-            $page = max(1, (int) ($vm->pagination->page ?? 1));
-            $perPage = max(1, (int) ($vm->pagination->perPage ?? 20));
-            $pageCount = property_exists($vm->pagination, 'total') ? max(1, (int) ceil(((int) $vm->pagination->total) / $perPage)) : 0;
+            $pageCount = $vm->pagination->pageCount;
+            $page = $pageCount > 0 ? min($pageCount, $vm->pagination->page) : 1;
             $button = static function (string $class, int $value, string $label, bool $disabled, bool $current): string {
                 $attrs = ['type' => 'button', 'class' => $class, 'data-page' => (string) $value, 'aria-label' => $label];
                 if ($current) $attrs['aria-current'] = 'page';
-                if ($disabled) $attrs['disabled'] = true;
+                if ($disabled) $attrs['disabled'] = '';
                 return Rendering::element('button', $attrs, $label === 'Previous page' ? '‹' : ($label === 'Next page' ? '›' : (string) $value));
             };
             $controls = $button('crudui-list__pagination-prev', max(1, $page - 1), 'Previous page', $page <= 1 || $pageCount === 0, false);
-            for ($value = 1; $value <= min(7, $pageCount); $value++) {
+            foreach (self::paginationPages($page, $pageCount) as $value) {
                 $controls .= $button('crudui-list__pagination-page', $value, 'Page ' . $value, $value === $page, $value === $page);
             }
             $controls .= $button('crudui-list__pagination-next', max(1, min($pageCount, $page + 1)), 'Next page', $pageCount === 0 || $page >= $pageCount, false);
@@ -154,7 +148,7 @@ final class Lists
         self::optionObject($options, 'data', 'List context must be an object');
         $data = Value::object($options['data'] ?? []);
         $columns = Compose::properties((array) ($spec->columns ?? new stdClass()), Template::loader($options), $options['basepath'] ?? '');
-        // Declarations are checked after the input rules and composition: the own design, then each member.
+        // Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
         if (property_exists($spec, 'design')) {
             Template::checkDesignDeclaration($spec->design, $own);
         }
@@ -162,6 +156,9 @@ final class Lists
             if (($raw instanceof stdClass || is_array($raw)) && array_key_exists('design', (array) $raw)) {
                 Template::checkDesignDeclaration(((array) $raw)['design'], $members . '.' . $key);
             }
+        }
+        if (property_exists($spec, 'pagination')) {
+            self::checkPaginationDeclaration($spec->pagination, $own);
         }
         $columnModels = [];
         $columnSpecs = [];
@@ -192,21 +189,7 @@ final class Lists
             }
             $rowModels[] = (object) ['cells' => $cells];
         }
-        $page = $spec->pagination ?? null;
-        $pagination = ['enabled' => $page === true || $page instanceof stdClass];
-        if ($page instanceof stdClass) {
-            if (is_int($page->per_page ?? null) || is_float($page->per_page ?? null)) {
-                $pagination['perPage'] = $page->per_page;
-            }
-            if (is_string($page->mode ?? null)) {
-                $pagination['mode'] = $page->mode;
-            }
-        }
-        foreach (self::countOptions($options) as $key => $count) {
-            if ($count !== null) {
-                $pagination[$key] = $count;
-            }
-        }
+        $pagination = self::pagination($spec->pagination ?? null, self::countOptions($options));
         $sort = isset($spec->sort->field) && is_string($spec->sort->field) && $spec->sort->field !== '' ? (object) ['field' => $spec->sort->field, 'dir' => ($spec->sort->dir ?? null) === 'desc' ? 'desc' : 'asc'] : Missing::Value;
         $actions = [];
         if (($spec->actions ?? null) instanceof stdClass) {
@@ -261,6 +244,69 @@ final class Lists
         }
     }
 
+    /** Reject a wrong value type or an unknown key in the pagination declaration at `$path`. */
+    private static function checkPaginationDeclaration(mixed $pagination, string $path): void
+    {
+        $fail = static fn(string $key, string $expected): never => throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at %s: expected %s', $key, $path, $expected));
+        if (!is_bool($pagination) && !$pagination instanceof stdClass) {
+            $fail('pagination', 'a boolean or an object');
+        }
+        if (!$pagination instanceof stdClass) {
+            return;
+        }
+        foreach (array_keys((array) $pagination) as $key) {
+            if (!in_array((string) $key, ['per_page', 'mode'], true)) {
+                throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid pagination.%s at %s: unknown key', $key, $path));
+            }
+        }
+        if (property_exists($pagination, 'per_page') && self::safeInteger($pagination->per_page, 1) === null) {
+            $fail('pagination.per_page', 'a positive integer');
+        }
+        if (property_exists($pagination, 'mode') && !in_array($pagination->mode, ['pages', 'offset', 'cursor', 'none'], true)) {
+            $fail('pagination.mode', 'pages, offset, cursor or none');
+        }
+    }
+
+    /**
+     * The pagination model, in member order: enabled, then for enabled paging perPage, mode and
+     * page with their defaults, the supplied total and pageCount. Disabled paging keeps only the
+     * supplied page and total.
+     *
+     * @param array{page: ?int, total: ?int} $counts
+     */
+    private static function pagination(mixed $declared, array $counts): stdClass
+    {
+        $enabled = $declared === true || $declared instanceof stdClass;
+        $pagination = ['enabled' => $enabled];
+        $perPage = 20;
+        if ($enabled) {
+            $perPage = $declared instanceof stdClass && property_exists($declared, 'per_page') ? (int) $declared->per_page : 20;
+            $pagination['perPage'] = $perPage;
+            $pagination['mode'] = $declared instanceof stdClass && property_exists($declared, 'mode') ? $declared->mode : 'pages';
+            $pagination['page'] = $counts['page'] ?? 1;
+        } elseif ($counts['page'] !== null) {
+            $pagination['page'] = $counts['page'];
+        }
+        if ($counts['total'] !== null) {
+            $pagination['total'] = $counts['total'];
+        }
+        if ($enabled) {
+            $pagination['pageCount'] = $counts['total'] === null ? 0 : max(1, (int) ceil($counts['total'] / $perPage));
+        }
+        return (object) $pagination;
+    }
+
+    /** A PHP int or float whose value is an integer from `$min` to 2^53 - 1, as int; otherwise null. */
+    private static function safeInteger(mixed $value, int $min): ?int
+    {
+        $integral = is_int($value) || is_float($value) && is_finite($value) && floor($value) === $value;
+        if (!$integral || $value < $min || $value > 9007199254740991) {
+            return null;
+        }
+        // An integral float such as 2.0 or -0.0 is the integer 2 or 0.
+        return (int) $value;
+    }
+
     /**
      * The page and total options, checked in that order: absent or null is none; otherwise a PHP
      * int or float whose value is an integer from 1 (page) or 0 (total) to 2^53 - 1, returned as int.
@@ -276,12 +322,7 @@ final class Lists
                 $counts[$key] = null;
                 continue;
             }
-            $integral = is_int($value) || is_float($value) && is_finite($value) && floor($value) === $value;
-            if (!$integral || $value < $min || $value > 9007199254740991) {
-                throw new FormError('INVALID_FORM_INPUT', $message);
-            }
-            // An integral float such as 2.0 or -0.0 is the integer 2 or 0.
-            $counts[$key] = (int) $value;
+            $counts[$key] = self::safeInteger($value, $min) ?? throw new FormError('INVALID_FORM_INPUT', $message);
         }
         return $counts;
     }
@@ -420,6 +461,18 @@ final class Lists
             };
         }
         return Rendering::element($tag, self::node($base, $cell->design->main), $body);
+    }
+
+    /**
+     * The bounded page-number window: every page up to seven pages, otherwise the first,
+     * previous, current, next and last page.
+     *
+     * @return list<int>
+     */
+    private static function paginationPages(int $page, int $pageCount): array
+    {
+        if ($pageCount <= 7) return $pageCount > 0 ? range(1, $pageCount) : [];
+        return array_values(array_unique([1, max(1, $page - 1), $page, min($pageCount, $page + 1), $pageCount]));
     }
 
     private static function cell(stdClass $cell, string $tag, string $base): string

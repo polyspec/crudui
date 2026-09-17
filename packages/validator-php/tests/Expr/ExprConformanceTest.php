@@ -10,6 +10,8 @@ use CRUDUI\Validator\Expr\Expression;
 use CRUDUI\Validator\Expr\Node;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
+
 /**
  * CRUDUI expression-engine conformance (expressions.md §9 three-stage check):
  *   (1) lexer(expr)  == fixture tokens
@@ -41,10 +43,26 @@ final class ExprConformanceTest extends TestCase
     }
 
     /**
+     * Run the three stages of one fixture entry and record one result for it.
+     *
      * @dataProvider fixtureProvider
      * @param array<string, mixed> $spec
      */
-    public function testLexerMatchesFixture(array $spec): void
+    public function testExpressionMatchesFixture(array $spec): void
+    {
+        $passed = false;
+        try {
+            $this->assertLexer($spec);
+            $this->assertParser($spec);
+            $this->assertEvaluation($spec);
+            $passed = true;
+        } finally {
+            crudui_record_conformance('validate', 'tests/fixtures/expr/cases.json', 'php', $spec['name'], $passed);
+        }
+    }
+
+    /** @param array<string, mixed> $spec */
+    private function assertLexer(array $spec): void
     {
         $tokens = array_map(
             static fn ($t): array => $t->toArray(),
@@ -58,11 +76,8 @@ final class ExprConformanceTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider fixtureProvider
-     * @param array<string, mixed> $spec
-     */
-    public function testParserMatchesFixture(array $spec): void
+    /** @param array<string, mixed> $spec */
+    private function assertParser(array $spec): void
     {
         $ast = Expression::parse($spec['expr'])->toArray();
 
@@ -73,11 +88,8 @@ final class ExprConformanceTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider fixtureProvider
-     * @param array<string, mixed> $spec
-     */
-    public function testEvaluationMatchesFixture(array $spec): void
+    /** @param array<string, mixed> $spec */
+    private function assertEvaluation(array $spec): void
     {
         foreach ($spec['cases'] as $i => $case) {
             $data = $case['data'];

@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: ed68338107ccfac9a1843e200c085097abd09944 */
+ * Stub hash: 18a5f569aff7130f84f0fb9e96076269d5881d96 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_CRUDUI_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -10,6 +10,12 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Generator_bindForm,
 	ZEND_ARG_OBJ_INFO(0, template, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, data, stdClass, MAY_BE_ARRAY, "[]")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_CRUDUI_Generator_bindButtons arginfo_class_CRUDUI_Generator_bindForm
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Generator_formButtonsHtml, 0, 1, IS_STRING, 0)
+	ZEND_ARG_TYPE_INFO(0, buttons, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_CRUDUI_Generator_renderForm, 0, 1, IS_STRING, 0)
@@ -155,6 +161,8 @@ ZEND_END_ARG_INFO()
 
 ZEND_METHOD(CRUDUI_Generator, compileForm);
 ZEND_METHOD(CRUDUI_Generator, bindForm);
+ZEND_METHOD(CRUDUI_Generator, bindButtons);
+ZEND_METHOD(CRUDUI_Generator, formButtonsHtml);
 ZEND_METHOD(CRUDUI_Generator, renderForm);
 ZEND_METHOD(CRUDUI_Generator, renderList);
 ZEND_METHOD(CRUDUI_Generator, buildList);
@@ -194,6 +202,8 @@ ZEND_METHOD(CRUDUI_Validator_Validate_FormInputError, getErrorCode);
 static const zend_function_entry class_CRUDUI_Generator_methods[] = {
 	ZEND_ME(CRUDUI_Generator, compileForm, arginfo_class_CRUDUI_Generator_compileForm, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, bindForm, arginfo_class_CRUDUI_Generator_bindForm, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(CRUDUI_Generator, bindButtons, arginfo_class_CRUDUI_Generator_bindButtons, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(CRUDUI_Generator, formButtonsHtml, arginfo_class_CRUDUI_Generator_formButtonsHtml, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, renderForm, arginfo_class_CRUDUI_Generator_renderForm, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, renderList, arginfo_class_CRUDUI_Generator_renderList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(CRUDUI_Generator, buildList, arginfo_class_CRUDUI_Generator_buildList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)

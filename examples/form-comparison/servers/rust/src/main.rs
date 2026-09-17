@@ -11,8 +11,8 @@ use axum::{
     routing::any,
     Router,
 };
-use crudui_validator::validate::{validate, ValidateOptions};
 use crudui_generator::{render_detail, render_list, DetailOptions, ListOptions};
+use crudui_validator::validate::{validate, ValidateOptions};
 use repository::{load_data, read_object, Repository};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Arc};
@@ -310,30 +310,80 @@ async fn health(State(server): State<Arc<Server>>) -> Result<Response> {
 
 async fn pipeline(Path(operation): Path<String>, request: Request) -> Result<Response> {
     if request.method() != Method::POST {
-        return Err(Error { status: StatusCode::METHOD_NOT_ALLOWED, message: "Method not allowed".into() });
+        return Err(Error {
+            status: StatusCode::METHOD_NOT_ALLOWED,
+            message: "Method not allowed".into(),
+        });
     }
-    let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES).await.map_err(|e| Error { status: StatusCode::PAYLOAD_TOO_LARGE, message: e.to_string() })?;
+    let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES)
+        .await
+        .map_err(|e| Error {
+            status: StatusCode::PAYLOAD_TOO_LARGE,
+            message: e.to_string(),
+        })?;
     let payload = json::decode(&bytes)?;
-    let spec = payload.get("spec").ok_or_else(|| bad("Expected spec object"))?;
+    let spec = payload
+        .get("spec")
+        .ok_or_else(|| bad("Expected spec object"))?;
     let options = payload.get("options").and_then(Value::as_object);
-    let language = options.and_then(|value| value.get("language")).and_then(Value::as_str).unwrap_or("ko").to_string();
+    let language = options
+        .and_then(|value| value.get("language"))
+        .and_then(Value::as_str)
+        .unwrap_or("ko")
+        .to_string();
     let html = if operation == "list" {
-        let rows = payload.get("rows").and_then(Value::as_array).ok_or_else(|| bad("Expected rows array"))?;
-        render_list(spec, rows, &ListOptions {
-            language,
-            data: json!({}),
-            page: options.and_then(|value| value.get("page")).cloned().unwrap_or(Value::Null),
-            total: options.and_then(|value| value.get("total")).cloned().unwrap_or_else(|| json!(rows.len())),
-            layout: json!("table"),
-            ..Default::default()
-        }).map_err(|e| bad(e.to_string()))?
+        let rows = payload
+            .get("rows")
+            .and_then(Value::as_array)
+            .ok_or_else(|| bad("Expected rows array"))?;
+        render_list(
+            spec,
+            rows,
+            &ListOptions {
+                language,
+                data: json!({}),
+                page: options
+                    .and_then(|value| value.get("page"))
+                    .cloned()
+                    .unwrap_or(Value::Null),
+                total: options
+                    .and_then(|value| value.get("total"))
+                    .cloned()
+                    .unwrap_or_else(|| json!(rows.len())),
+                layout: json!("table"),
+                ..Default::default()
+            },
+        )
+        .map_err(|e| bad(e.to_string()))?
     } else if operation == "detail" {
-        let record = payload.get("record").ok_or_else(|| bad("Expected record object"))?;
-        render_detail(spec, record, &DetailOptions { language, data: json!({}), ..Default::default() }).map_err(|e| bad(e.to_string()))?
+        let record = payload
+            .get("record")
+            .ok_or_else(|| bad("Expected record object"))?;
+        render_detail(
+            spec,
+            record,
+            &DetailOptions {
+                language,
+                data: json!({}),
+                ..Default::default()
+            },
+        )
+        .map_err(|e| bad(e.to_string()))?
     } else {
-        return Err(Error { status: StatusCode::NOT_FOUND, message: "Unknown endpoint".into() });
+        return Err(Error {
+            status: StatusCode::NOT_FOUND,
+            message: "Unknown endpoint".into(),
+        });
     };
-    Ok((StatusCode::OK, [("Content-Type", "text/html; charset=utf-8"), ("Cache-Control", "no-store")], html).into_response())
+    Ok((
+        StatusCode::OK,
+        [
+            ("Content-Type", "text/html; charset=utf-8"),
+            ("Cache-Control", "no-store"),
+        ],
+        html,
+    )
+        .into_response())
 }
 
 fn application(server: Arc<Server>) -> Router {

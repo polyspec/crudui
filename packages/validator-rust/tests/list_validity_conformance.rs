@@ -5,6 +5,11 @@
 //! `"pass"` requires successful composition and forbidden-key scanning; `{ code, at }` requires the declared
 //! load-error code and complete dotted trace. Row validation does not apply.
 
+mod common;
+
+const FEATURE: &str = "validateList";
+const FIXTURE: &str = "tests/fixtures/list-validity/cases.json";
+
 use std::path::{Path, PathBuf};
 
 use crudui_validator::list::{validate_list, ValidateListOptions};
@@ -43,64 +48,71 @@ fn list_engine_matches_fixture() {
 
     for case in &cases {
         ran += 1;
-        let name = case.get("name").and_then(Value::as_str).unwrap_or("?");
+        let name = case
+            .get("name")
+            .and_then(Value::as_str)
+            .unwrap_or_else(|| panic!("fixture case missing name"));
+        failures.extend(common::prove_case(FEATURE, FIXTURE, name, || {
+            let mut failures: Vec<String> = Vec::new();
 
-        let spec = case.get("spec").cloned().unwrap_or(Value::Null);
-        let options = ValidateListOptions {
-            files: case.get("files").and_then(Value::as_object).cloned(),
-            loader: None,
-            basepath: None,
-        };
+            let spec = case.get("spec").cloned().unwrap_or(Value::Null);
+            let options = ValidateListOptions {
+                files: case.get("files").and_then(Value::as_object).cloned(),
+                loader: None,
+                basepath: None,
+            };
 
-        let result = validate_list(&spec, &options);
+            let result = validate_list(&spec, &options);
 
-        let engine = case
-            .get("engine")
-            .unwrap_or_else(|| panic!("[{}] fixture case missing the `engine` channel", name));
+            let engine = case
+                .get("engine")
+                .unwrap_or_else(|| panic!("[{}] fixture case missing the `engine` channel", name));
 
-        match engine {
-            // engine:"pass" — the structure check completes with no load failure.
-            // The Rust structure API returns `Ok(())` for that result, the
-            // equivalent of `{ valid: true, errors: [] }` in the other runtimes.
-            Value::String(s) if s == "pass" => match &result {
-                Ok(()) => {}
-                Err(e) => failures.push(format!(
-                    "[{}] engine:\"pass\" but rejected: {} ({})",
-                    name, e.code, e.message
-                )),
-            },
-            // engine:{code,at} — the load path must reject with this code + trace.
-            Value::Object(want) => {
-                let want_code = want.get("code").and_then(Value::as_str).unwrap_or("?");
-                let want_at = want.get("at").and_then(Value::as_str).unwrap_or("?");
-                match &result {
-                    Ok(()) => failures.push(format!(
-                        "[{}] engine expected LOAD failure {} at {} but the spec passed",
-                        name, want_code, want_at
+            match engine {
+                // engine:"pass" — the structure check completes with no load failure.
+                // The Rust structure API returns `Ok(())` for that result, the
+                // equivalent of `{ valid: true, errors: [] }` in the other runtimes.
+                Value::String(s) if s == "pass" => match &result {
+                    Ok(()) => {}
+                    Err(e) => failures.push(format!(
+                        "[{}] engine:\"pass\" but rejected: {} ({})",
+                        name, e.code, e.message
                     )),
-                    Err(e) => {
-                        let got_code = e.code.as_str();
-                        let got_at = e.trace.join(".");
-                        if got_code != want_code {
-                            failures.push(format!(
-                                "[{}] LOAD code mismatch: want {} got {}",
-                                name, want_code, got_code
-                            ));
-                        }
-                        if got_at != want_at {
-                            failures.push(format!(
-                                "[{}] LOAD trace mismatch: want `{}` got `{}`",
-                                name, want_at, got_at
-                            ));
+                },
+                // engine:{code,at} — the load path must reject with this code + trace.
+                Value::Object(want) => {
+                    let want_code = want.get("code").and_then(Value::as_str).unwrap_or("?");
+                    let want_at = want.get("at").and_then(Value::as_str).unwrap_or("?");
+                    match &result {
+                        Ok(()) => failures.push(format!(
+                            "[{}] engine expected LOAD failure {} at {} but the spec passed",
+                            name, want_code, want_at
+                        )),
+                        Err(e) => {
+                            let got_code = e.code.as_str();
+                            let got_at = e.trace.join(".");
+                            if got_code != want_code {
+                                failures.push(format!(
+                                    "[{}] LOAD code mismatch: want {} got {}",
+                                    name, want_code, got_code
+                                ));
+                            }
+                            if got_at != want_at {
+                                failures.push(format!(
+                                    "[{}] LOAD trace mismatch: want `{}` got `{}`",
+                                    name, want_at, got_at
+                                ));
+                            }
                         }
                     }
                 }
+                other => failures.push(format!(
+                    "[{}] `engine` must be \"pass\" or {{code, at}}, got {}",
+                    name, other
+                )),
             }
-            other => failures.push(format!(
-                "[{}] `engine` must be \"pass\" or {{code, at}}, got {}",
-                name, other
-            )),
-        }
+            failures
+        }));
     }
 
     assert!(ran > 0, "no list-validity fixture cases were loaded");

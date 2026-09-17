@@ -23,7 +23,7 @@ const colors = {
 };
 
 // Paths
-const CASES_DIR = path.join(__dirname, '..', 'cases');
+const FIXTURE_PATH = path.join(__dirname, '..', 'fixtures', 'legacy-validate', 'cases.json');
 const JS_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-ts');
 const PHP_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-php');
 const GO_VALIDATOR_DIR = path.join(__dirname, '..', '..', 'packages', 'validator-go');
@@ -426,18 +426,17 @@ function formatResult(langResult) {
 /**
  * Run comparison for all test cases
  */
-function runComparison(jsModule, testFile, enabledLangs) {
-  const content = fs.readFileSync(testFile, 'utf-8');
-  const suite = JSON.parse(content);
+function runComparison(jsModule, suite, entries, enabledLangs, lines) {
   const discrepancies = [];
 
-  console.log(`\n${colors.bold}${colors.blue}=== ${suite.testSuite} ===${colors.reset}`);
-  console.log(`${colors.gray}${suite.description}${colors.reset}\n`);
+  console.log(`\n${colors.bold}${colors.blue}=== ${suite} ===${colors.reset}\n`);
 
-  for (const testDef of suite.tests) {
+  for (const testDef of entries) {
     for (let caseIndex = 0; caseIndex < testDef.cases.length; caseIndex++) {
       const testCase = testDef.cases[caseIndex];
+      const id = `${suite} › ${testDef.name} › case ${caseIndex + 1}`;
       stats.total++;
+      lines.start(id);
 
       const results = {};
 
@@ -470,16 +469,18 @@ function runComparison(jsModule, testFile, enabledLangs) {
 
       if (allMatch) {
         stats.matching++;
+        lines.pass(id);
       } else {
+        lines.fail(id, undefined, Object.entries(results).map(([lang, result]) => `${lang}: ${formatResult(result)}`).join('\n'));
         stats.discrepancies++;
         // Axis classification: which agreement axis broke?
         const axis = classifyAxis(results);
         if (axis.clientServer) stats.clientServerMismatch++;
         if (axis.serverSide) stats.serverSideDivergence++;
         discrepancies.push({
-          testId: testDef.id,
+          testId: testDef.name,
           caseIndex,
-          description: testDef.description,
+          description: testDef.note,
           input: testCase.input,
           expected: testCase.expected,
           results,
@@ -528,7 +529,7 @@ async function main() {
   // Parse arguments
   let enabledLangs = ['js', 'php', 'go', 'rust'];
   let verbose = false;
-  let specificFile = null;
+  let specificSuite = null;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -548,8 +549,8 @@ async function main() {
       enabledLangs = enabledLangs.filter((l) => l !== 'rust');
     } else if (arg === '--verbose' || arg === '-v') {
       verbose = true;
-    } else if (arg === '--file' || arg === '-f') {
-      specificFile = args[++i];
+    } else if (arg === '--suite' || arg === '-s') {
+      specificSuite = args[++i];
     } else if (arg === '--help' || arg === '-h') {
       console.log(`
 ${colors.cyan}Legacy Cross-Language Test Runner${colors.reset}
@@ -566,14 +567,14 @@ Options:
   --no-go         Skip Go validator
   --no-php        Skip PHP validator
   --no-rust       Skip Rust validator
-  --file, -f      Test specific file only
+  --suite, -s     Test one fixture suite only
   --verbose, -v   Show all results, not just discrepancies
   --help, -h      Show this help message
 
 Examples:
   node compare-all.js                    # Compare all four languages
   node compare-all.js --no-go            # Compare JS, PHP and Rust only
-  node compare-all.js -f required.json   # Test specific file
+  node compare-all.js -s required        # Test one suite
 `);
       process.exit(0);
     }
@@ -611,38 +612,43 @@ Examples:
     process.exit(1);
   }
 
-  // Find test files
-  let testFiles;
-  if (specificFile) {
-    const fullPath = path.join(CASES_DIR, specificFile);
-    if (!fs.existsSync(fullPath)) {
-      console.error(`${colors.red}Test file not found: ${specificFile}${colors.reset}`);
+  // Group the fixture entries by suite, in fixture order
+  const entries = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8'));
+  if (!Array.isArray(entries)) throw new Error(`Fixture is not a list: ${FIXTURE_PATH}`);
+  const suites = new Map();
+  for (const entry of entries) {
+    if (typeof entry?.suite !== 'string' || !entry.suite) throw new Error(`Fixture entry has no suite: ${entry?.name}`);
+    if (!suites.has(entry.suite)) suites.set(entry.suite, []);
+    suites.get(entry.suite).push(entry);
+  }
+  if (specificSuite !== null) {
+    if (!suites.has(specificSuite)) {
+      console.error(`${colors.red}Test suite not found: ${specificSuite}${colors.reset}`);
       process.exit(1);
     }
-    testFiles = [fullPath];
-  } else {
-    testFiles = fs
-      .readdirSync(CASES_DIR)
-      .filter((f) => f.endsWith('.json'))
-      .map((f) => path.join(CASES_DIR, f));
+    for (const suite of [...suites.keys()]) if (suite !== specificSuite) suites.delete(suite);
   }
 
-  console.log(`${colors.gray}Running ${testFiles.length} test suite(s)...${colors.reset}`);
+  console.log(`${colors.gray}Running ${suites.size} test suite(s)...${colors.reset}`);
 
-  if (!testFiles.length) throw new Error('No test suites found');
+  if (!suites.size) throw new Error('No test suites found');
 
-  // Run comparisons
+  // Run comparisons: every case prints its start, its result and its elapsed time.
+  const { createProgress } = await import('../../scripts/test-progress/progress.mjs');
+  const lines = createProgress({ write: text => process.stdout.write(text) });
   let totalDiscrepancies = 0;
-  for (const testFile of testFiles) {
+  for (const [suite, suiteEntries] of suites) {
     try {
-      totalDiscrepancies += runComparison(jsModule, testFile, enabledLangs);
+      totalDiscrepancies += runComparison(jsModule, suite, suiteEntries, enabledLangs, lines);
     } catch (error) {
       totalDiscrepancies++;
       console.error(
-        `${colors.red}Error processing ${path.basename(testFile)}: ${error.message}${colors.reset}`
+        `${colors.red}Error processing ${suite}: ${error.message}${colors.reset}`
       );
     }
   }
+
+  lines.close('legacy comparison');
 
   // Print axis diagnostics. Idempotency stays binary (all-equal == pass);
   // these labels only classify which agreement axis broke when it did.

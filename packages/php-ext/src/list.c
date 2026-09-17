@@ -18,11 +18,11 @@ typedef struct {
     const ps_value *columns;
     const ps_value *rows;
     const ps_value *options;
-    const char *language;
+    ps_text language;
     const char *layout;
     const ps_value *data;
     ps_html_buffer output;
-    char **preloads;
+    ps_chars *preloads;
     size_t preload_count;
     size_t preload_capacity;
     /* The input failure message of a cell that cannot be displayed, or NULL. */
@@ -30,10 +30,10 @@ typedef struct {
 } list_context;
 
 typedef struct {
-    const char *key;
+    ps_text key;
     const ps_value *column;
-    const char *field;
-    const char *type;
+    ps_text field;
+    ps_text type;
     const ps_value *format;
     ps_value *design;
     bool sortable;
@@ -69,10 +69,9 @@ static bool count_option(const ps_value *value, int64_t min, bool *present, int6
     return true;
 }
 
-static const char *string_member(const ps_value *object, const char *key)
+static ps_text string_member(const ps_value *object, const char *key)
 {
-    const ps_value *value = member(object, key);
-    return value && value->kind == PS_STRING ? ps_string(value) : "";
+    return ps_string(member(object, key));
 }
 
 static bool bool_member(const ps_value *object, const char *key)
@@ -81,25 +80,16 @@ static bool bool_member(const ps_value *object, const char *key)
     return value && value->kind == PS_BOOL && value->data.boolean;
 }
 
-static char *copy_bytes(const char *value, size_t length)
-{
-    char *copy = calloc(length + 1, 1);
-    if (!copy) return NULL;
-    if (length) memcpy(copy, value, length);
-    copy[length] = '\0';
-    return copy;
-}
-
 static bool write_element_start(ps_html_buffer *out, const char *tag, ps_value *attrs)
 {
-    bool ok = ps_html_start_element(out, tag, attrs, false, false);
+    bool ok = ps_html_start_element(out, ps_fixed(tag), attrs, false, false);
     ps_value_free(attrs);
     return ok;
 }
 
 static bool write_element_end(ps_html_buffer *out, const char *tag)
 {
-    return ps_html_end_element(out, tag);
+    return ps_html_end_element(out, ps_fixed(tag));
 }
 
 static const ps_value *format_options(const ps_value *column)
@@ -108,15 +98,15 @@ static const ps_value *format_options(const ps_value *column)
     return format && format->kind == PS_OBJECT ? format : NULL;
 }
 
-static const char *format_type(const ps_value *column)
+static ps_text format_type(const ps_value *column)
 {
     const ps_value *format = member(column, "format");
     if (format && format->kind == PS_STRING && format->data.string.length) return ps_string(format);
     if (format && format->kind == PS_OBJECT) {
-        const char *type = string_member(format, "type");
-        if (*type) return type;
+        ps_text type = string_member(format, "type");
+        if (type.length) return type;
     }
-    return "text";
+    return PS_TEXT("text");
 }
 
 static bool is_string(const ps_value *value, const char *text)
@@ -130,15 +120,15 @@ static bool list_truthy(const ps_value *value)
     return ps_truthy(value);
 }
 
-static const ps_value *column_value(const ps_value *row, const char *field)
+static const ps_value *column_value(const ps_value *row, ps_text field)
 {
-    if (!field || !*field) return NULL;
+    if (!field.length) return NULL;
     return ps_path(row, field);
 }
 
 static bool visible_column(const ps_value *column, const ps_value *data, ps_value **design)
 {
-    *design = ps_design(member(column, "design"), data, "");
+    *design = ps_design(member(column, "design"), data, PS_TEXT(""));
     return *design && bool_member(*design, "show");
 }
 
@@ -170,9 +160,9 @@ static bool collect_columns(list_context *context, list_column **result, size_t 
         list_column *resized = realloc(*result, (*count + 1) * sizeof(**result));
         if (!resized) { ps_value_free(design); goto fail; }
         *result = resized;
-        const char *field = string_member(column, "field");
+        ps_text field = string_member(column, "field");
         (*result)[(*count)++] = (list_column){
-            ps_key_at(context->columns, i), column, field, format_type(column),
+            ps_key(context->columns, i), column, field, format_type(column),
             format_options(column), design, sortable_column(column, context->data)
         };
     }
@@ -191,19 +181,19 @@ static void free_columns(list_column *columns, size_t count)
     free(columns);
 }
 
-static char *translated(const ps_value *value, const char *language)
+static ps_chars translated(const ps_value *value, ps_text language)
 {
     return ps_translate(value, language);
 }
 
-static bool append_class_style(ps_value *attrs, const char *base, const ps_value *design)
+static bool append_class_style(ps_value *attrs, ps_text base, const ps_value *design)
 {
     const ps_value *main = member(design, "main");
-    char *class_name = ps_join_classes(base, string_member(main, "class"), "");
-    bool ok = class_name && ps_html_attr_string(attrs, "class", class_name);
-    const char *style = string_member(main, "style");
-    if (ok && *style) ok = ps_html_attr_string(attrs, "style", style);
-    free(class_name);
+    ps_chars class_name = ps_join_classes(base, string_member(main, "class"), PS_TEXT(""));
+    bool ok = class_name.bytes && ps_html_attr_text(attrs, "class", ps_view(class_name));
+    ps_text style = string_member(main, "style");
+    if (ok && style.length) ok = ps_html_attr_text(attrs, "style", style);
+    free(class_name.bytes);
     return ok;
 }
 
@@ -223,14 +213,12 @@ static bool append_interpolated(ps_html_buffer *out, const ps_value *template,
                 if (!ps_html_character(out, value[i++])) return false;
                 continue;
             }
-            char *path = copy_bytes(value + i + 2, end - i - 2);
-            if (!path) return false;
-            const ps_value *replacement = !strcmp(path, "field") ? field : ps_path(row, path);
+            ps_text path = {value + i + 2, end - i - 2};
+            const ps_value *replacement = ps_text_is(path, "field") ? field : ps_path(row, path);
             if (!replacement) replacement = field;
-            free(path);
-            char *scalar = ps_scalar_string(replacement);
-            if (!scalar || !ps_html_text(out, scalar)) { free(scalar); return false; }
-            free(scalar);
+            ps_chars scalar = ps_scalar_string(replacement);
+            if (!scalar.bytes || !ps_html_append(out, ps_view(scalar))) { free(scalar.bytes); return false; }
+            free(scalar.bytes);
             i = end + 1;
         } else {
             if (!ps_html_character(out, value[i++])) return false;
@@ -264,9 +252,10 @@ static bool utf8_space(const unsigned char *value, size_t length, size_t *width)
     return false;
 }
 
-static bool numeric_text(const ps_value *value, char **result)
+/* The text of a value with Unicode spaces trimmed; the owned copy ends with a zero byte. */
+static bool numeric_text(const ps_value *value, ps_chars *result)
 {
-    if (!value) { *result = copy_bytes("", 0); return *result != NULL; }
+    if (!value) { *result = ps_copy(PS_TEXT("")); return result->bytes != NULL; }
     if (value->kind == PS_STRING) {
         size_t start = 0, end = value->data.string.length, width;
         const unsigned char *bytes = (const unsigned char *)value->data.string.bytes;
@@ -277,11 +266,11 @@ static bool numeric_text(const ps_value *value, char **result)
             if (!utf8_space(bytes + candidate, end - candidate, &width) || candidate + width != end) break;
             end = candidate;
         }
-        *result = copy_bytes(value->data.string.bytes + start, end - start);
-        return *result != NULL;
+        *result = ps_copy(ps_text_slice(ps_string(value), start, end));
+        return result->bytes != NULL;
     }
     *result = ps_scalar_string(value);
-    return *result != NULL;
+    return result->bytes != NULL;
 }
 
 static void normalize_exponent(char *value)
@@ -296,7 +285,7 @@ static void normalize_exponent(char *value)
         memmove(digits, digits + 1, strlen(digits));
 }
 
-static char *shortest_number(double number)
+static ps_chars shortest_number(double number)
 {
     char candidate[128] = {0};
     for (int precision = 1; precision <= DBL_DECIMAL_DIG; ++precision) {
@@ -305,7 +294,7 @@ static char *shortest_number(double number)
         if (strtod(candidate, &end) == number && end && !*end) break;
     }
     normalize_exponent(candidate);
-    return copy_bytes(candidate, strlen(candidate));
+    return ps_copy(ps_fixed(candidate));
 }
 
 static void bigint_normalize(list_bigint *value)
@@ -455,7 +444,7 @@ static uint32_t bigint_divide(list_bigint *value, uint32_t divisor)
 
 static char *bigint_decimal(const list_bigint *value)
 {
-    if (!value->length) return copy_bytes("0", 1);
+    if (!value->length) return ps_copy(PS_TEXT("0")).bytes;
     list_bigint work = *value;
     uint32_t chunks[64];
     size_t count = 0;
@@ -469,15 +458,15 @@ static char *bigint_decimal(const list_bigint *value)
     return result;
 }
 
-static bool parse_radix_number(const char *source, unsigned radix, double *number)
+static bool parse_radix_number(ps_text source, unsigned radix, double *number)
 {
     list_bigint integer;
     bigint_from_u64(&integer, 0);
-    for (size_t i = 2; source[i]; ++i) {
-        unsigned digit = source[i] >= '0' && source[i] <= '9'
-            ? (unsigned)(source[i] - '0')
-            : source[i] >= 'a' && source[i] <= 'f' ? (unsigned)(source[i] - 'a' + 10)
-            : source[i] >= 'A' && source[i] <= 'F' ? (unsigned)(source[i] - 'A' + 10)
+    for (size_t i = 2; i < source.length; ++i) {
+        char c = source.bytes[i];
+        unsigned digit = c >= '0' && c <= '9' ? (unsigned)(c - '0')
+            : c >= 'a' && c <= 'f' ? (unsigned)(c - 'a' + 10)
+            : c >= 'A' && c <= 'F' ? (unsigned)(c - 'A' + 10)
             : radix;
         if (digit >= radix || !bigint_multiply(&integer, radix) ||
             !bigint_add(&integer, digit)) return false;
@@ -503,27 +492,30 @@ static bool parse_number(const ps_value *value, double *number)
 {
     if (value && value->kind == PS_INT) { *number = (double)value->data.integer; return true; }
     if (value && value->kind == PS_FLOAT) { *number = value->data.number; return true; }
-    char *source = NULL;
+    ps_chars source = {NULL, 0};
     if (!numeric_text(value, &source)) return false;
-    if (!*source) { free(source); *number = 0; return true; }
-    bool radix_number = source[0] == '0' && (source[1] == 'x' || source[1] == 'X' ||
-        source[1] == 'o' || source[1] == 'O' || source[1] == 'b' || source[1] == 'B');
+    if (!source.length) { free(source.bytes); *number = 0; return true; }
+    char marker = source.length > 1 ? source.bytes[1] : 0;
+    bool radix_number = source.bytes[0] == '0' && (marker == 'x' || marker == 'X' ||
+        marker == 'o' || marker == 'O' || marker == 'b' || marker == 'B');
     if (radix_number) {
-        unsigned radix = source[1] == 'x' || source[1] == 'X' ? 16
-            : source[1] == 'o' || source[1] == 'O' ? 8 : 2;
-        bool ok = source[2] && parse_radix_number(source, radix, number);
-        free(source);
+        unsigned radix = marker == 'x' || marker == 'X' ? 16
+            : marker == 'o' || marker == 'O' ? 8 : 2;
+        bool ok = source.length > 2 && parse_radix_number(ps_view(source), radix, number);
+        free(source.bytes);
         return ok;
     }
+    /* strtod stops at a NUL character inside the copy or at its terminating zero. */
     char *end = NULL;
-    *number = strtod(source, &end);
-    bool ok = end && *end == '\0' && isfinite(*number);
-    free(source);
+    *number = strtod(source.bytes, &end);
+    bool ok = end == source.bytes + source.length && isfinite(*number);
+    free(source.bytes);
     return ok;
 }
 
-static char *fixed_number(double number, int decimals)
+static ps_chars fixed_number(double number, int decimals)
 {
+    const ps_chars failed = {NULL, 0};
     if (fabs(number) >= 1e21) return shortest_number(number);
     bool negative = number < 0;
     double absolute = fabs(number);
@@ -539,25 +531,25 @@ static char *fixed_number(double number, int decimals)
     list_bigint integer;
     bigint_from_u64(&integer, significand);
     for (int i = 0; i < decimals; ++i)
-        if (!bigint_multiply(&integer, 5)) return NULL;
+        if (!bigint_multiply(&integer, 5)) return failed;
     int binary_shift = exponent + decimals;
     if (binary_shift >= 0) {
-        if (!bigint_shift_left(&integer, (unsigned)binary_shift)) return NULL;
+        if (!bigint_shift_left(&integer, (unsigned)binary_shift)) return failed;
     } else {
         unsigned shift = (unsigned)-binary_shift;
         bool round_up = shift && bigint_bit(&integer, shift - 1);
         bigint_shift_right(&integer, shift);
-        if (round_up && !bigint_increment(&integer)) return NULL;
+        if (round_up && !bigint_increment(&integer)) return failed;
     }
     char *digits = bigint_decimal(&integer);
-    if (!digits) return NULL;
+    if (!digits) return failed;
     size_t length = strlen(digits);
     size_t integer_length = length > (size_t)decimals ? length - (size_t)decimals : 1;
     size_t zeros = length < (size_t)decimals ? (size_t)decimals - length : 0;
     size_t total = (negative ? 1 : 0) + integer_length +
         (decimals ? 1 + (size_t)decimals : 0);
     char *result = malloc(total + 1);
-    if (!result) { free(digits); return NULL; }
+    if (!result) { free(digits); return failed; }
     char *cursor = result;
     if (negative) *cursor++ = '-';
     if (!decimals) { memcpy(cursor, digits, length); cursor += length; }
@@ -572,29 +564,28 @@ static char *fixed_number(double number, int decimals)
     }
     *cursor = '\0';
     free(digits);
-    return result;
+    return (ps_chars){result, (size_t)(cursor - result)};
 }
 
-static bool append_grouped(ps_html_buffer *out, const char *number)
+/* A decimal number with its integer digits grouped by three; the number has no NUL character. */
+static bool append_grouped(ps_html_buffer *out, ps_text number)
 {
-    const char *dot = strchr(number, '.');
-    const char *end = dot ? dot : number + strlen(number);
-    const char *start = *number == '-' ? number + 1 : number;
-    if (start != number && !ps_html_character(out, '-')) return false;
-    for (const char *cursor = start; cursor < end; ++cursor) {
-        if (cursor > start && (size_t)(end - cursor) % 3 == 0 &&
+    size_t dot = ps_text_find_byte(number, '.', 0);
+    size_t end = dot == SIZE_MAX ? number.length : dot;
+    size_t start = number.length && number.bytes[0] == '-' ? 1 : 0;
+    if (start && !ps_html_character(out, '-')) return false;
+    for (size_t cursor = start; cursor < end; ++cursor) {
+        if (cursor > start && (end - cursor) % 3 == 0 &&
             !ps_html_character(out, ',')) return false;
-        if (!ps_html_character(out, *cursor)) return false;
+        if (!ps_html_character(out, number.bytes[cursor])) return false;
     }
-    return !dot || ps_html_text(out, dot);
+    return dot == SIZE_MAX || ps_html_append(out, ps_text_slice(number, dot, number.length));
 }
 
-/* Take ownership of a C string and return it as a string value. */
-static ps_value *owned_text(char *text)
+/* Take ownership of owned text and return it as a string value. */
+static ps_value *owned_text(ps_chars text)
 {
-    ps_value *value = ps_string_value(text);
-    free(text);
-    return value;
+    return ps_chars_value(text);
 }
 
 /* The unescaped text collected in a buffer, or NULL after a failure. */
@@ -612,12 +603,12 @@ static ps_value *scalar_text(const ps_value *value)
     return value && value->kind == PS_STRING ? ps_value_clone(value) : owned_text(ps_scalar_string(value));
 }
 
-static ps_value *number_display(const ps_value *value, const ps_value *options, const char *language,
+static ps_value *number_display(const ps_value *value, const ps_value *options, ps_text language,
                                 const char **failure)
 {
     double number;
     if (!parse_number(value, &number)) return scalar_text(value);
-    char *body = NULL;
+    ps_chars body = {NULL, 0};
     const ps_value *decimals = member(options, "decimals");
     if (decimals && (decimals->kind == PS_INT || decimals->kind == PS_FLOAT)) {
         double raw = decimals->kind == PS_INT ? (double)decimals->data.integer : decimals->data.number;
@@ -629,27 +620,28 @@ static ps_value *number_display(const ps_value *value, const ps_value *options, 
         }
         body = fixed_number(number, (int)truncated);
     } else body = shortest_number(number);
-    char *prefix = translated(member(options, "prefix"), language);
-    char *suffix = translated(member(options, "suffix"), language);
+    ps_chars prefix = translated(member(options, "prefix"), language);
+    ps_chars suffix = translated(member(options, "suffix"), language);
     ps_html_buffer text = {0};
-    bool ok = body && prefix && suffix && ps_html_text(&text, prefix);
+    bool ok = body.bytes && prefix.bytes && suffix.bytes && ps_html_append(&text, ps_view(prefix));
     if (ok) ok = list_truthy(member(options, "thousands"))
-        ? append_grouped(&text, body) : ps_html_text(&text, body);
-    if (ok) ok = ps_html_text(&text, suffix);
-    free(body); free(prefix); free(suffix);
+        ? append_grouped(&text, ps_view(body)) : ps_html_append(&text, ps_view(body));
+    if (ok) ok = ps_html_append(&text, ps_view(suffix));
+    free(body.bytes); free(prefix.bytes); free(suffix.bytes);
     return buffer_text(&text, ok);
 }
 
 static ps_value *text_display(const ps_value *value, const ps_value *options)
 {
     ps_html_buffer out = {0};
-    char *text = ps_scalar_string(value);
-    if (!text) return NULL;
+    ps_chars owned = ps_scalar_string(value);
+    if (!owned.bytes) return NULL;
+    const char *text = owned.bytes;
     /* Only a number limits the text; its integer part counts Unicode code points. */
     const ps_value *limit_value = member(options, "truncate");
     double limit = limit_value && limit_value->kind == PS_INT ? (double)limit_value->data.integer
         : limit_value && limit_value->kind == PS_FLOAT ? trunc(limit_value->data.number) : 0;
-    size_t length = strlen(text), bytes = length;
+    size_t length = owned.length, bytes = length;
     /* NaN fails the comparison. */
     if (limit >= 1) {
         size_t points = 0;
@@ -665,35 +657,38 @@ static ps_value *text_display(const ps_value *value, const ps_value *options)
     }
     bool ok = ps_html_bytes(&out, text, bytes);
     if (ok && bytes < length) ok = ps_html_text(&out, "…");
-    free(text);
+    free(owned.bytes);
     return buffer_text(&out, ok);
 }
 
 static bool add_preload(list_context *context, const ps_value *source)
 {
     if (!source || source->kind != PS_STRING || !source->data.string.length) return true;
-    if (source->data.string.length >= 5 &&
-        !strncasecmp(source->data.string.bytes, "data:", 5)) return true;
+    ps_text text = ps_string(source);
+    if (text.length >= 5 && !strncasecmp(text.bytes, "data:", 5)) return true;
     for (size_t i = 0; i < context->preload_count; ++i)
-        if (strlen(context->preloads[i]) == source->data.string.length &&
-            !memcmp(context->preloads[i], source->data.string.bytes, source->data.string.length))
-            return true;
+        if (ps_text_equal(ps_view(context->preloads[i]), text)) return true;
     if (context->preload_count == context->preload_capacity) {
         size_t capacity = context->preload_capacity ? context->preload_capacity * 2 : 4;
-        char **items = realloc(context->preloads, capacity * sizeof(*items));
+        ps_chars *items = realloc(context->preloads, capacity * sizeof(*items));
         if (!items) return false;
         context->preloads = items;
         context->preload_capacity = capacity;
     }
-    char *copy = copy_bytes(source->data.string.bytes, source->data.string.length);
-    if (!copy) return false;
+    ps_chars copy = ps_copy(text);
+    if (!copy.bytes) return false;
     context->preloads[context->preload_count++] = copy;
     return true;
 }
 
-static bool set_text(ps_value *object, const char *key, const char *text)
+static bool set_text(ps_value *object, const char *key, ps_text text)
 {
-    return text && ps_set(object, key, ps_string_value(text));
+    return text.bytes && ps_set(object, key, ps_text_value(text));
+}
+
+static bool set_fixed(ps_value *object, const char *key, const char *text)
+{
+    return ps_set(object, key, ps_string_value(text));
 }
 
 static bool set_value(ps_value *object, const char *key, ps_value **value)
@@ -707,7 +702,7 @@ static bool set_value(ps_value *object, const char *key, ps_value **value)
 static ps_value *display_object(const char *kind)
 {
     ps_value *display = ps_object_value();
-    if (display && !set_text(display, "kind", kind)) { ps_value_free(display); return NULL; }
+    if (display && !set_fixed(display, "kind", kind)) { ps_value_free(display); return NULL; }
     return display;
 }
 
@@ -717,33 +712,35 @@ static ps_value *display_object(const char *kind)
  * detail writers render only from this model.
  */
 static ps_value *cell_display(const list_column *column, const ps_value *row,
-                              const ps_value *value, const char *language, const char **failure)
+                              const ps_value *value, ps_text language, const char **failure)
 {
     const ps_value *options = column->format;
-    const char *type = column->type;
-    if (!strcmp(type, "date")) {
-        char *scalar = ps_scalar_string(value);
-        const char *pattern = string_member(options, "pattern");
-        if (!*pattern) pattern = "YYYY-MM-DD";
-        char *formatted = scalar ? ps_format_date_pattern(scalar, pattern) : NULL;
-        free(scalar);
+    ps_text type = column->type;
+    if (ps_text_is(type, "date")) {
+        ps_chars scalar = ps_scalar_string(value);
+        ps_text pattern = string_member(options, "pattern");
+        if (!pattern.length) pattern = PS_TEXT("YYYY-MM-DD");
+        ps_chars formatted = scalar.bytes ? ps_format_date_pattern(ps_view(scalar), pattern) : scalar;
+        free(scalar.bytes);
         return owned_text(formatted);
     }
-    if (!strcmp(type, "number")) return number_display(value, options, language, failure);
-    if (!strcmp(type, "badge")) {
-        char *key = ps_scalar_string(value);
-        const ps_value *mapped = key ? member(member(options, "map"), key) : NULL;
+    if (ps_text_is(type, "number")) return number_display(value, options, language, failure);
+    if (ps_text_is(type, "badge")) {
+        ps_chars key = ps_scalar_string(value);
+        const ps_value *map = member(options, "map");
+        const ps_value *mapped = key.bytes && map && map->kind == PS_OBJECT
+            ? ps_get_text(map, ps_view(key)) : NULL;
         bool localized = mapped && (mapped->kind == PS_OBJECT || mapped->kind == PS_ARRAY);
-        char *variant = localized ? translated(mapped, language) : ps_scalar_string(mapped);
-        char *label = localized ? translated(mapped, language)
-            : copy_bytes(key ? key : "", strlen(key ? key : ""));
-        ps_value *display = key ? display_object("badge") : NULL;
-        bool ok = display && set_text(display, "variant", variant) && set_text(display, "label", label);
-        free(key); free(variant); free(label);
+        ps_chars variant = localized ? translated(mapped, language) : ps_scalar_string(mapped);
+        ps_chars label = localized ? translated(mapped, language) : ps_copy(ps_view(key));
+        ps_value *display = key.bytes ? display_object("badge") : NULL;
+        bool ok = display && variant.bytes && label.bytes &&
+            set_text(display, "variant", ps_view(variant)) && set_text(display, "label", ps_view(label));
+        free(key.bytes); free(variant.bytes); free(label.bytes);
         if (!ok) { ps_value_free(display); return NULL; }
         return display;
     }
-    if (!strcmp(type, "link")) {
+    if (ps_text_is(type, "link")) {
         const ps_value *href_template = member(options, "href");
         ps_value *selected = NULL, *href = NULL;
         if (href_template && href_template->kind == PS_OBJECT)
@@ -755,51 +752,53 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         /* Only absent, null or empty-string text falls back to the cell value. */
         bool fallback = !caption_source || caption_source->kind == PS_NULL ||
             (caption_source->kind == PS_STRING && caption_source->data.string.length == 0);
-        char *caption = fallback ? ps_scalar_string(value) : translated(caption_source, language);
+        ps_chars caption = fallback ? ps_scalar_string(value) : translated(caption_source, language);
         ps_value *display = display_object("link");
-        if (ok) ok = display && set_value(display, "href", &href) && set_text(display, "text", caption);
-        const char *target = string_member(options, "target");
-        if (ok && *target) ok = set_text(display, "target", target);
-        ps_value_free(href); free(caption);
+        if (ok) ok = display && caption.bytes && set_value(display, "href", &href) &&
+            set_text(display, "text", ps_view(caption));
+        ps_text target = string_member(options, "target");
+        if (ok && target.length) ok = set_text(display, "target", target);
+        ps_value_free(href); free(caption.bytes);
         if (!ok) { ps_value_free(display); return NULL; }
         return display;
     }
-    if (!strcmp(type, "choice-label")) {
-        char *key = ps_scalar_string(value);
+    if (ps_text_is(type, "choice-label")) {
+        ps_chars key = ps_scalar_string(value);
+        if (!key.bytes) return NULL;
         const ps_value *items = member(options, "items");
         const ps_value *label = NULL;
-        if (items && items->kind == PS_ARRAY && key) {
-            char *end = NULL; unsigned long index = strtoul(key, &end, 10);
-            if (end && !*end) label = ps_at(items, (size_t)index);
-        } else if (items && items->kind == PS_OBJECT && !ps_has(items, "model") && key)
-            label = ps_get(items, key);
+        if (items && items->kind == PS_ARRAY) {
+            /* strtoul stops at a NUL character inside the key or at its terminating zero. */
+            char *end = NULL; unsigned long index = strtoul(key.bytes, &end, 10);
+            if (end == key.bytes + key.length) label = ps_at(items, (size_t)index);
+        } else if (items && items->kind == PS_OBJECT && !ps_has(items, "model"))
+            label = ps_get_text(items, ps_view(key));
         /* A choice label is content: a string or a language map. */
-        char *display = label ? translated(label, language)
-            : copy_bytes(key ? key : "", strlen(key ? key : ""));
-        free(key);
+        ps_chars display = label ? translated(label, language) : ps_copy(ps_view(key));
+        free(key.bytes);
         return owned_text(display);
     }
-    if (!strcmp(type, "bool")) {
+    if (ps_text_is(type, "bool")) {
         bool truth = list_truthy(value);
         const ps_value *source = member(options, truth ? "true" : "false");
-        char *label = source && source->kind != PS_NULL ? translated(source, language)
-            : copy_bytes(truth ? "true" : "false", truth ? 4 : 5);
-        const char *as = string_member(options, "as");
-        if (!*as) as = "text";
+        ps_chars label = source && source->kind != PS_NULL ? translated(source, language)
+            : ps_copy(truth ? PS_TEXT("true") : PS_TEXT("false"));
+        ps_text as = string_member(options, "as");
+        if (!as.length) as = PS_TEXT("text");
         ps_value *display = display_object("bool");
-        bool ok = display && ps_set(display, "value", ps_bool_value(truth)) &&
-            set_text(display, "label", label) && set_text(display, "as", as);
-        free(label);
+        bool ok = display && label.bytes && ps_set(display, "value", ps_bool_value(truth)) &&
+            set_text(display, "label", ps_view(label)) && set_text(display, "as", as);
+        free(label.bytes);
         if (!ok) { ps_value_free(display); return NULL; }
         return display;
     }
-    if (!strcmp(type, "image")) {
+    if (ps_text_is(type, "image")) {
         const ps_value *alt_template = member(options, "alt");
-        char *translated_alt = alt_template ? translated(alt_template, language) : copy_bytes("", 0);
-        ps_value *translated_value = translated_alt ? ps_string_value(translated_alt) : NULL;
+        ps_chars translated_alt = alt_template ? translated(alt_template, language) : ps_copy(PS_TEXT(""));
+        ps_value *translated_value = translated_alt.bytes ? ps_text_value(ps_view(translated_alt)) : NULL;
         ps_value *alt = NULL;
         bool ok = translated_value && interpolated_value(translated_value, row, value, &alt);
-        ps_value_free(translated_value); free(translated_alt);
+        ps_value_free(translated_value); free(translated_alt.bytes);
         ps_value *display = display_object("image");
         ps_value *source = scalar_text(value);
         if (ok) ok = display && set_value(display, "src", &source) && set_value(display, "alt", &alt);
@@ -815,7 +814,7 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         if (!ok) { ps_value_free(display); return NULL; }
         return display;
     }
-    if (!strcmp(type, "html")) {
+    if (ps_text_is(type, "html")) {
         ps_value *display = display_object("html");
         ps_value *html = scalar_text(value);
         if (!display || !set_value(display, "html", &html)) {
@@ -829,8 +828,7 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
 static bool append_text_member(ps_html_buffer *out, const ps_value *display, const char *key)
 {
     const ps_value *text = member(display, key);
-    return text && text->kind == PS_STRING &&
-        ps_html_escaped(out, text->data.string.bytes, text->data.string.length, false);
+    return text && text->kind == PS_STRING && ps_html_escaped(out, ps_string(text), false);
 }
 
 /* Write the markup of one display model and record the image it preloads. */
@@ -838,31 +836,27 @@ static bool append_display(list_context *context, const ps_value *display)
 {
     ps_html_buffer *out = &context->output;
     if (!display) return false;
-    if (display->kind == PS_STRING)
-        return ps_html_escaped(out, display->data.string.bytes, display->data.string.length, false);
-    const char *kind = string_member(display, "kind");
-    if (!strcmp(kind, "html")) {
+    if (display->kind == PS_STRING) return ps_html_escaped(out, ps_string(display), false);
+    ps_text kind = string_member(display, "kind");
+    if (ps_text_is(kind, "html")) {
         const ps_value *html = member(display, "html");
-        return html && html->kind == PS_STRING &&
-            ps_html_bytes(out, html->data.string.bytes, html->data.string.length);
+        return html && html->kind == PS_STRING && ps_html_append(out, ps_string(html));
     }
     ps_value *attrs = ps_object_value();
     if (!attrs) return false;
     const char *tag = "span", *text = NULL, *glyph = NULL;
     bool ok = true;
-    if (!strcmp(kind, "badge")) {
-        const char *variant = string_member(display, "variant");
-        char *class_name = ps_string_join("crudui-badge", "", "");
-        ok = class_name && ps_html_attr_string(attrs, "class", class_name);
-        if (ok && *variant) ok = ps_html_attr_string(attrs, "data-crudui-variant", variant);
-        free(class_name);
+    if (ps_text_is(kind, "badge")) {
+        ps_text variant = string_member(display, "variant");
+        ok = ps_html_attr_string(attrs, "class", "crudui-badge");
+        if (ok && variant.length) ok = ps_html_attr_text(attrs, "data-crudui-variant", variant);
         text = "label";
-    } else if (!strcmp(kind, "link")) {
+    } else if (ps_text_is(kind, "link")) {
         tag = "a";
         ok = ps_html_attr_clone(attrs, "href", member(display, "href"));
         if (ok && ps_has(display, "target")) ok = ps_html_attr_clone(attrs, "target", member(display, "target"));
         text = "text";
-    } else if (!strcmp(kind, "image")) {
+    } else if (ps_text_is(kind, "image")) {
         tag = "img";
         ok = ps_html_attr_clone(attrs, "src", member(display, "src")) &&
             ps_html_attr_clone(attrs, "alt", member(display, "alt"));
@@ -871,15 +865,15 @@ static bool append_display(list_context *context, const ps_value *display)
             if (ps_has(display, name)) ok = ps_html_attr_clone(attrs, name, member(display, name));
         }
         if (ok) ok = add_preload(context, member(display, "src"));
-    } else if (!strcmp(kind, "bool")) {
-        const char *as = string_member(display, "as");
+    } else if (ps_text_is(kind, "bool")) {
+        ps_text as = string_member(display, "as");
         bool truth = bool_member(display, "value");
-        if (!strcmp(as, "check")) {
+        if (ps_text_is(as, "check")) {
             ok = ps_html_attr_string(attrs, "class", "crudui-bool crudui-bool--check") &&
                 ps_html_attr_string(attrs, "data-crudui-state", truth ? "true" : "false") &&
                 ps_html_attr_clone(attrs, "aria-label", member(display, "label"));
             glyph = truth ? "✔" : "✘";
-        } else if (!strcmp(as, "icon")) {
+        } else if (ps_text_is(as, "icon")) {
             ok = ps_html_attr_string(attrs, "class", "crudui-bool crudui-bool--icon") &&
                 ps_html_attr_string(attrs, "data-crudui-state", truth ? "true" : "false") &&
                 ps_html_attr_clone(attrs, "aria-label", member(display, "label"));
@@ -899,18 +893,13 @@ static bool append_display(list_context *context, const ps_value *display)
     return ok && write_element_end(out, tag);
 }
 
-static const char *field_path(const list_column *column)
-{
-    return column->field;
-}
-
 /* Read one cell of a row: its value, its row-evaluated design and its display. */
 static bool evaluate_cell(list_context *context, const list_column *column,
                           const ps_value *row, const ps_value **value,
                           ps_value **display, ps_value **design)
 {
     *value = column_value(row, column->field);
-    *design = ps_design(member(column->column, "design"), row, field_path(column));
+    *design = ps_design(member(column->column, "design"), row, column->field);
     *display = *design ? cell_display(column, row, *value, context->language, &context->failure) : NULL;
     if (*display) return true;
     ps_value_free(*design);
@@ -920,7 +909,7 @@ static bool evaluate_cell(list_context *context, const list_column *column,
 
 /* Write an evaluated cell inside a host element carrying the cell design. */
 static bool write_cell(list_context *context, const ps_value *design, const ps_value *display,
-                       const char *tag, const char *base)
+                       const char *tag, ps_text base)
 {
     ps_value *attrs = design ? ps_object_value() : NULL;
     if (!attrs || !append_class_style(attrs, base, design)) { ps_value_free(attrs); return false; }
@@ -929,7 +918,7 @@ static bool write_cell(list_context *context, const ps_value *design, const ps_v
 }
 
 static bool append_cell(list_context *context, const list_column *column,
-                        const ps_value *row, const char *tag, const char *base)
+                        const ps_value *row, const char *tag, ps_text base)
 {
     const ps_value *value = NULL;
     ps_value *display = NULL, *design = NULL;
@@ -940,10 +929,26 @@ static bool append_cell(list_context *context, const list_column *column,
     return ok;
 }
 
-static char *column_label(const list_column *column, const char *language)
+static ps_chars column_label(const list_column *column, ps_text language)
 {
     const ps_value *label = member(column->column, "label");
-    return label ? translated(label, language) : copy_bytes(column->key, strlen(column->key));
+    return label ? translated(label, language) : ps_copy(column->key);
+}
+
+/* An action label: the translated label of an object action, else the action key. */
+static ps_chars action_label(const ps_value *action, ps_text key, ps_text language)
+{
+    return action->kind == PS_OBJECT && member(action, "label")
+        ? translated(member(action, "label"), language) : ps_copy(key);
+}
+
+/* Set the event attribute on<name> to a script value. */
+static bool set_event(ps_value *attrs, ps_text name, const ps_value *script)
+{
+    ps_chars event = PS_CONCAT(PS_TEXT("on"), name);
+    bool ok = event.bytes && ps_set_text(attrs, ps_view(event), ps_value_clone(script));
+    free(event.bytes);
+    return ok;
 }
 
 static bool append_toolbar(list_context *context)
@@ -952,53 +957,49 @@ static bool append_toolbar(list_context *context)
     if (!actions || actions->kind != PS_OBJECT) return true;
     size_t count = 0;
     for (size_t i = 0; i < ps_size(actions); ++i) {
-        const char *key = ps_key_at(actions, i);
-        if (strcmp(key, "$ref") && strcmp(key, "$patch")) count++;
+        ps_text key = ps_key(actions, i);
+        if (!ps_text_is(key, "$ref") && !ps_text_is(key, "$patch")) count++;
     }
     if (!count) return true;
     ps_value *toolbar = ps_object_value();
     if (!toolbar || !ps_html_attr_string(toolbar, "class", "crudui-list__actions") ||
         !write_element_start(&context->output, "div", toolbar)) { ps_value_free(toolbar); return false; }
     for (size_t i = 0; i < ps_size(actions); ++i) {
-        const char *key = ps_key_at(actions, i);
+        ps_text key = ps_key(actions, i);
         const ps_value *action = ps_at(actions, i);
-        if (!strcmp(key, "$ref") || !strcmp(key, "$patch") ||
+        if (ps_text_is(key, "$ref") || ps_text_is(key, "$patch") ||
             (!action || (action->kind != PS_STRING && action->kind != PS_OBJECT))) continue;
-        char *label = action->kind == PS_OBJECT && member(action, "label")
-            ? translated(member(action, "label"), context->language) : copy_bytes(key, strlen(key));
+        ps_chars label = action_label(action, key, context->language);
         const ps_value *format = action->kind == PS_OBJECT ? member(action, "format") : NULL;
-        const char *type = format && format->kind == PS_OBJECT ? string_member(format, "type") : "";
-        bool link = !strcmp(type, "link");
+        ps_text type = format && format->kind == PS_OBJECT ? string_member(format, "type") : PS_TEXT("");
+        bool link = ps_text_is(type, "link");
         ps_value *span = ps_object_value();
         ps_value *attrs = ps_object_value();
-        bool ok = label && span && attrs && ps_html_attr_string(span, "class", "crudui-list__action") &&
-            ps_html_attr_string(span, "data-action", key) &&
-            ps_html_attr_string(attrs, link ? "href" : "type", link ? string_member(format, "href") : "button");
-        if (ok && link && *string_member(format, "target"))
-            ok = ps_html_attr_string(attrs, "target", string_member(format, "target"));
+        bool ok = label.bytes && span && attrs && ps_html_attr_string(span, "class", "crudui-list__action") &&
+            ps_html_attr_text(span, "data-action", key) &&
+            (link ? ps_html_attr_text(attrs, "href", string_member(format, "href"))
+                  : ps_html_attr_string(attrs, "type", "button"));
+        if (ok && link && string_member(format, "target").length)
+            ok = ps_html_attr_text(attrs, "target", string_member(format, "target"));
         const ps_value *behavior = action->kind == PS_STRING ? NULL : member(action, "behavior");
         if (action->kind == PS_STRING) {
-            char *event = ps_string_join("on", key, "");
-            ok = ok && event && ps_html_attr_clone(attrs, event, action);
-            free(event);
+            ok = ok && set_event(attrs, key, action);
         } else if (behavior && behavior->kind == PS_OBJECT) {
             for (size_t j = 0; ok && j < ps_size(behavior); ++j) {
                 const ps_value *script = ps_at(behavior, j);
                 if (script && script->kind == PS_OBJECT) script = member(script, "script");
                 if (!script || script->kind != PS_STRING) continue;
-                char *event = ps_string_join("on", ps_key_at(behavior, j), "");
-                ok = event && ps_html_attr_clone(attrs, event, script);
-                free(event);
+                ok = set_event(attrs, ps_key(behavior, j), script);
             }
         }
         if (ok) ok = write_element_start(&context->output, "span", span) &&
-            ps_html_start_element(&context->output, link ? "a" : "button", attrs, true, false) &&
-            ps_html_raw_text(&context->output, label, strlen(label)) &&
+            ps_html_start_element(&context->output, link ? PS_TEXT("a") : PS_TEXT("button"), attrs, true, false) &&
+            ps_html_raw_text(&context->output, ps_view(label)) &&
             write_element_end(&context->output, link ? "a" : "button") &&
             write_element_end(&context->output, "span");
-        if (!ok) { ps_value_free(span); ps_value_free(attrs); free(label); return false; }
+        if (!ok) { ps_value_free(span); ps_value_free(attrs); free(label.bytes); return false; }
         ps_value_free(attrs);
-        free(label);
+        free(label.bytes);
     }
     return write_element_end(&context->output, "div");
 }
@@ -1008,22 +1009,23 @@ static bool append_header(list_context *context, const list_column *columns, siz
     if (!write_element_start(&context->output, "thead", ps_object_value()) ||
         !write_element_start(&context->output, "tr", ps_object_value())) return false;
     const ps_value *sort = member(context->spec, "sort");
-    const char *sort_field = string_member(sort, "field");
+    ps_text sort_field = string_member(sort, "field");
     const char *sort_dir = is_string(member(sort, "dir"), "desc") ? "desc" : "asc";
     for (size_t i = 0; i < count; ++i) {
         ps_value *attrs = ps_object_value();
-        char *label = column_label(&columns[i], context->language);
-        bool ok = attrs && label && append_class_style(attrs, "crudui-list__heading", columns[i].design);
-        if (ok && *columns[i].field) ok = ps_html_attr_string(attrs, "data-field", columns[i].field);
+        ps_chars label = column_label(&columns[i], context->language);
+        bool ok = attrs && label.bytes && append_class_style(attrs, PS_TEXT("crudui-list__heading"), columns[i].design);
+        if (ok && columns[i].field.length) ok = ps_html_attr_text(attrs, "data-field", columns[i].field);
         if (ok && columns[i].sortable) ok = ps_html_attr_string(attrs, "data-sortable", "true");
-        if (ok && *sort_field && (!strcmp(sort_field, columns[i].field) || !strcmp(sort_field, columns[i].key)))
+        if (ok && sort_field.length && (ps_text_equal(sort_field, columns[i].field) ||
+                                        ps_text_equal(sort_field, columns[i].key)))
             ok = ps_html_attr_string(attrs, "data-sort-dir", sort_dir);
         if (ok) ok = write_element_start(&context->output, "th", attrs);
         else ps_value_free(attrs);
         ps_value *label_attrs = ps_object_value();
         if (ok) ok = label_attrs && ps_html_attr_string(label_attrs, "class", "crudui-list__heading-label") &&
             write_element_start(&context->output, "span", label_attrs) &&
-            ps_html_escaped(&context->output, label, strlen(label), false) &&
+            ps_html_escaped(&context->output, ps_view(label), false) &&
             write_element_end(&context->output, "span");
         else ps_value_free(label_attrs);
         if (ok && columns[i].sortable) {
@@ -1034,10 +1036,16 @@ static bool append_header(list_context *context, const list_column *columns, siz
             if (!ok) ps_value_free(sort_attrs);
         }
         if (ok) ok = write_element_end(&context->output, "th");
-        free(label);
+        free(label.bytes);
         if (!ok) return false;
     }
     return write_element_end(&context->output, "tr") && write_element_end(&context->output, "thead");
+}
+
+/* The class list of a value host: the base followed by the format type modifier. */
+static ps_chars value_class(const char *base, ps_text type)
+{
+    return PS_CONCAT(ps_fixed(base), type);
 }
 
 static bool append_table(list_context *context, const list_column *columns, size_t count)
@@ -1051,9 +1059,9 @@ static bool append_table(list_context *context, const list_column *columns, size
         const ps_value *row = ps_at(context->rows, row_index);
         if (!write_element_start(&context->output, "tr", ps_object_value())) return false;
         for (size_t i = 0; i < count; ++i) {
-            char *base = ps_string_join("crudui-list__cell crudui-value crudui-value--", columns[i].type, "");
-            bool ok = base && append_cell(context, &columns[i], row, "td", base);
-            free(base);
+            ps_chars base = value_class("crudui-list__cell crudui-value crudui-value--", columns[i].type);
+            bool ok = base.bytes && append_cell(context, &columns[i], row, "td", ps_view(base));
+            free(base.bytes);
             if (!ok) return false;
         }
         if (!write_element_end(&context->output, "tr")) return false;
@@ -1072,23 +1080,22 @@ static bool append_cards(list_context *context, const list_column *columns, size
         if (!article || !ps_html_attr_string(article, "class", "crudui-list__card") ||
             !write_element_start(&context->output, "article", article)) return false;
         for (size_t i = 0; i < count; ++i) {
-            ps_value *design = ps_design(member(columns[i].column, "design"), row,
-                columns[i].field);
-            char *base = ps_string_join("crudui-list__cell crudui-value crudui-value--", columns[i].type, "");
+            ps_value *design = ps_design(member(columns[i].column, "design"), row, columns[i].field);
+            ps_chars base = value_class("crudui-list__cell crudui-value crudui-value--", columns[i].type);
             ps_value *host = ps_object_value();
-            char *label = column_label(&columns[i], context->language);
-            bool ok = design && base && host && label && append_class_style(host, base, design) &&
+            ps_chars label = column_label(&columns[i], context->language);
+            bool ok = design && base.bytes && host && label.bytes && append_class_style(host, ps_view(base), design) &&
                 write_element_start(&context->output, "div", host);
             if (!ok) ps_value_free(host);
             ps_value *label_attrs = ps_object_value();
             if (ok) ok = label_attrs && ps_html_attr_string(label_attrs, "class", "crudui-list__card-label") &&
                 write_element_start(&context->output, "span", label_attrs) &&
-                ps_html_escaped(&context->output, label, strlen(label), false) &&
+                ps_html_escaped(&context->output, ps_view(label), false) &&
                 write_element_end(&context->output, "span");
             else ps_value_free(label_attrs);
-            if (ok) ok = append_cell(context, &columns[i], row, "span", "crudui-list__card-value") &&
+            if (ok) ok = append_cell(context, &columns[i], row, "span", PS_TEXT("crudui-list__card-value")) &&
                 write_element_end(&context->output, "div");
-            ps_value_free(design); free(base); free(label);
+            ps_value_free(design); free(base.bytes); free(label.bytes);
             if (!ok) return false;
         }
         if (!write_element_end(&context->output, "article")) return false;
@@ -1099,13 +1106,13 @@ static bool append_cards(list_context *context, const list_column *columns, size
 static bool append_empty(list_context *context)
 {
     ps_value *attrs = ps_object_value();
-    char *empty = translated(member(context->spec, "empty"), context->language);
-    bool ok = attrs && empty && ps_html_attr_string(attrs, "class", "crudui-list__empty") &&
+    ps_chars empty = translated(member(context->spec, "empty"), context->language);
+    bool ok = attrs && empty.bytes && ps_html_attr_string(attrs, "class", "crudui-list__empty") &&
         write_element_start(&context->output, "div", attrs) &&
-        ps_html_escaped(&context->output, empty, strlen(empty), false) &&
+        ps_html_escaped(&context->output, ps_view(empty), false) &&
         write_element_end(&context->output, "div");
     if (!ok) ps_value_free(attrs);
-    free(empty);
+    free(empty.bytes);
     return ok;
 }
 
@@ -1126,51 +1133,98 @@ static bool append_page_button(list_context *context, const char *class_name, in
     return ok;
 }
 
+/* A wrong value type or an unknown key in the pagination declaration at path. */
+static bool pagination_declaration_valid(const ps_value *pagination, ps_text path, ps_value **error)
+{
+    static const char *const keys[] = {"per_page", "mode"};
+    static const char *const modes[] = {"pages", "offset", "cursor", "none"};
+    if (pagination->kind != PS_BOOL && pagination->kind != PS_OBJECT)
+        return ps_declaration_error(PS_TEXT("pagination"), path, "a boolean or an object", error);
+    if (pagination->kind != PS_OBJECT) return true;
+    if (!ps_known_keys(pagination, "pagination", keys, 2, path, error)) return false;
+    const ps_value *per_page = ps_get(pagination, "per_page");
+    bool present = false;
+    int64_t count = 0;
+    if (per_page && (!count_option(per_page, 1, &present, &count) || !present))
+        return ps_declaration_error(PS_TEXT("pagination.per_page"), path, "a positive integer", error);
+    const ps_value *mode = ps_get(pagination, "mode");
+    bool known = false;
+    for (size_t i = 0; mode && mode->kind == PS_STRING && !known && i < 4; ++i) known = ps_is_string(mode, modes[i]);
+    if (mode && !known) return ps_declaration_error(PS_TEXT("pagination.mode"), path, "pages, offset, cursor or none", error);
+    return true;
+}
+
+/* The resolved pagination. The declaration and the options were checked before rendering. */
+typedef struct {
+    bool enabled, page_present, total_present;
+    int64_t per_page, page, total, page_count;
+    const char *mode;
+} pagination_state;
+
+static const char *pagination_mode(const ps_value *mode)
+{
+    static const char *const modes[] = {"pages", "offset", "cursor", "none"};
+    for (size_t i = 0; i < 4; ++i) if (ps_is_string(mode, modes[i])) return modes[i];
+    return "pages";
+}
+
+/* Enabled paging defaults perPage to 20, mode to pages and page to 1; pageCount is 0 without a
+   total and otherwise at least 1. */
+static void resolve_pagination(const list_context *context, pagination_state *state)
+{
+    const ps_value *declared = member(context->spec, "pagination");
+    bool present = false;
+    int64_t count = 0;
+    state->enabled = declared && (declared->kind == PS_OBJECT || (declared->kind == PS_BOOL && declared->data.boolean));
+    state->per_page = 20;
+    state->mode = "pages";
+    if (count_option(member(declared, "per_page"), 1, &present, &count) && present) state->per_page = count;
+    /* The declaration was checked, so a declared mode is one of the four modes. */
+    state->mode = pagination_mode(member(declared, "mode"));
+    state->page = 1;
+    if (!count_option(member(context->options, "page"), 1, &state->page_present, &state->page)) state->page_present = false;
+    if (!state->page_present) state->page = 1;
+    state->total = 0;
+    if (!count_option(member(context->options, "total"), 0, &state->total_present, &state->total)) state->total_present = false;
+    state->page_count = 0;
+    if (state->enabled && state->total_present) {
+        state->page_count = (int64_t)ceil((double)state->total / (double)state->per_page);
+        if (state->page_count < 1) state->page_count = 1;
+    }
+}
+
 static bool append_pagination(list_context *context)
 {
-    const ps_value *pagination = member(context->spec, "pagination");
-    if (!pagination || pagination->kind == PS_NULL ||
-        (pagination->kind == PS_BOOL && !pagination->data.boolean)) return true;
-    if (pagination->kind != PS_BOOL && pagination->kind != PS_OBJECT) return true;
+    pagination_state state;
+    resolve_pagination(context, &state);
+    if (!state.enabled) return true;
     ps_value *attrs = ps_object_value();
-    bool ok = attrs && ps_html_attr_string(attrs, "class", "crudui-list__pagination");
-    const char *mode = string_member(pagination, "mode");
-    if (ok && !*mode) mode = "pages";
-    if (ok && *mode) ok = ps_html_attr_string(attrs, "data-mode", mode);
-    const ps_value *declared_per_page = member(pagination, "per_page");
-    if (ok && !declared_per_page) ok = ps_html_attr_string(attrs, "data-per-page", "20");
-    if (ok && declared_per_page && (declared_per_page->kind == PS_INT || declared_per_page->kind == PS_FLOAT))
-        ok = ps_html_attr_clone(attrs, "data-per-page", declared_per_page);
-    if (ok && !member(context->options, "page")) ok = ps_html_attr_string(attrs, "data-page", "1");
-    /* The options were checked before rendering; a supplied count is written as an integer. */
-    for (size_t i = 0; ok && i < 2; ++i) {
-        bool present;
-        int64_t count = 0;
-        if (count_option(member(context->options, i ? "total" : "page"), i ? 0 : 1, &present, &count) && present) {
-            ps_value *value = ps_int_value(count);
-            ok = value && ps_set(attrs, i ? "data-total" : "data-page", value);
-        }
-    }
-    int64_t page = 1, total = 0, per_page = 20, page_count = 0;
-    bool present = false;
-    if (ok && !count_option(member(context->options, "page"), 1, &present, &page)) ok = false;
-    if (ok && !present) page = 1;
-    if (declared_per_page && (declared_per_page->kind == PS_INT || declared_per_page->kind == PS_FLOAT)) per_page = declared_per_page->kind == PS_INT ? declared_per_page->data.integer : (int64_t)declared_per_page->data.number;
-    if (per_page < 1) per_page = 20;
-    if (ok && !count_option(member(context->options, "total"), 0, &present, &total)) ok = false;
-    if (present) { page_count = (int64_t)ceil((double)total / (double)per_page); if (page_count < 1) page_count = 1; if (page > page_count) page = page_count; }
+    bool ok = attrs && ps_html_attr_string(attrs, "class", "crudui-list__pagination") &&
+        ps_html_attr_string(attrs, "data-mode", state.mode) &&
+        ps_set(attrs, "data-per-page", ps_int_value(state.per_page)) &&
+        ps_set(attrs, "data-page", ps_int_value(state.page));
+    if (ok && state.total_present) ok = ps_set(attrs, "data-total", ps_int_value(state.total));
+    int64_t page_count = state.page_count;
+    int64_t page = page_count > 0 ? (state.page < page_count ? state.page : page_count) : 1;
     if (ok) ok = write_element_start(&context->output, "nav", attrs) &&
-        append_page_button(context, "crudui-list__pagination-prev", page > 1 ? page - 1 : 1, "Previous page", !present || page <= 1, false);
-    if (ok && present) {
-        int64_t limit = page_count < 7 ? page_count : 7;
-        for (int64_t value = 1; value <= limit && ok; ++value) {
-            char label[32];
-            snprintf(label, sizeof(label), "Page %lld", (long long)value);
-            ok = append_page_button(context, "crudui-list__pagination-page", value, label, value == page, value == page);
-        }
-    }
-    if (ok) ok = append_page_button(context, "crudui-list__pagination-next", present && page < page_count ? page + 1 : 1, "Next page", !present || page >= page_count, false) && write_element_end(&context->output, "nav");
+        append_page_button(context, "crudui-list__pagination-prev", page > 1 ? page - 1 : 1, "Previous page", page_count == 0 || page <= 1, false);
     else ps_value_free(attrs);
+    /* The bounded page-number window: every page up to seven pages, otherwise the first,
+       previous, current, next and last page. */
+    int64_t pages[7];
+    size_t page_total = 0;
+    if (page_count <= 7) {
+        for (int64_t value = 1; value <= page_count; ++value) pages[page_total++] = value;
+    } else {
+        const int64_t window[5] = {1, page > 1 ? page - 1 : 1, page, page < page_count ? page + 1 : page_count, page_count};
+        for (size_t i = 0; i < 5; ++i) if (!page_total || pages[page_total - 1] < window[i]) pages[page_total++] = window[i];
+    }
+    for (size_t i = 0; ok && i < page_total; ++i) {
+        char label[32];
+        snprintf(label, sizeof(label), "Page %lld", (long long)pages[i]);
+        ok = append_page_button(context, "crudui-list__pagination-page", pages[i], label, pages[i] == page, pages[i] == page);
+    }
+    if (ok) ok = append_page_button(context, "crudui-list__pagination-next", page_count == 0 ? 1 : page < page_count ? page + 1 : page_count, "Next page", page_count == 0 || page >= page_count, false) && write_element_end(&context->output, "nav");
     return ok;
 }
 
@@ -1180,7 +1234,7 @@ static bool append_preloads(list_context *context, ps_html_buffer *target)
         ps_value *attrs = ps_object_value();
         if (!attrs || !ps_html_attr_string(attrs, "rel", "preload") ||
             !ps_html_attr_string(attrs, "as", "image") ||
-            !ps_html_attr_string(attrs, "href", context->preloads[i]) ||
+            !ps_html_attr_text(attrs, "href", ps_view(context->preloads[i])) ||
             !write_element_start(target, "link", attrs)) { ps_value_free(attrs); return false; }
     }
     return true;
@@ -1192,18 +1246,18 @@ static bool append_container_start(list_context *context, const char *tag, const
 {
     const ps_value *wrapper = member(design, "wrapper");
     ps_value *attrs = design ? ps_object_value() : NULL;
-    char *class_name = ps_join_classes(base, string_member(wrapper, "class"), "");
-    bool ok = attrs && class_name && ps_html_attr_string(attrs, "class", class_name);
-    const char *style = string_member(wrapper, "style");
-    if (ok && *style) ok = ps_html_attr_string(attrs, "style", style);
-    free(class_name);
+    ps_chars class_name = ps_join_classes(ps_fixed(base), string_member(wrapper, "class"), PS_TEXT(""));
+    bool ok = attrs && class_name.bytes && ps_html_attr_text(attrs, "class", ps_view(class_name));
+    ps_text style = string_member(wrapper, "style");
+    if (ok && style.length) ok = ps_html_attr_text(attrs, "style", style);
+    free(class_name.bytes);
     if (!ok) { ps_value_free(attrs); return false; }
     return write_element_start(&context->output, tag, attrs);
 }
 
 static bool render_list(list_context *context, list_column *columns, size_t count)
 {
-    ps_value *design = ps_design(member(context->spec, "design"), context->data, "");
+    ps_value *design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
     bool ok = append_container_start(context, "div", "crudui-list", design) && append_toolbar(context);
     if (ok) ok = !ps_size(context->rows) ? append_empty(context)
         : !strcmp(context->layout, "card") ? append_cards(context, columns, count)
@@ -1226,7 +1280,7 @@ typedef struct {
 static void list_close(list_session *session)
 {
     free(session->context.output.data);
-    for (size_t i = 0; i < session->context.preload_count; ++i) free(session->context.preloads[i]);
+    for (size_t i = 0; i < session->context.preload_count; ++i) free(session->context.preloads[i].bytes);
     free(session->context.preloads);
     free_columns(session->columns, session->column_count);
     ps_value_free(session->declarations);
@@ -1246,8 +1300,8 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
                            const char *own, const char *members)
 {
     *session = (list_session){0};
-    const char *language = string_member(options, "language");
-    if (!*language) language = "ko";
+    ps_text language = string_member(options, "language");
+    if (!language.length) language = PS_TEXT("ko");
     const ps_value *data = member(options, "data");
     /* An absent or null context is empty. */
     if (!data || data->kind == PS_NULL) data = session->empty_data = ps_object_value();
@@ -1255,31 +1309,26 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
         return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "").error;
     const ps_value *files = member(options, "files");
     if (!files) files = session->empty_files = ps_object_value();
-    const ps_value *basepath_value = member(options, "basepath");
-    const char *basepath = basepath_value && basepath_value->kind == PS_STRING
-        ? ps_string(basepath_value) : "";
+    ps_text basepath = string_member(options, "basepath");
     ps_value *error = NULL;
     session->declarations = ps_compose_properties(declarations, files, basepath, &error);
     if (error) return error;
     if (!session->declarations)
         return ps_fail("internal", "INTERNAL_ERROR", "C list composition failed", "").error;
-    /* Declarations are checked after the input rules and composition: the own design, then each member. */
+    /* Declarations are checked after the input rules and composition: the own design, each member, then the pagination. */
     const ps_value *own_design = ps_get(spec, "design");
-    bool valid = !own_design || ps_design_declaration_valid(own_design, own, &error);
+    bool valid = !own_design || ps_design_declaration_valid(own_design, ps_fixed(own), &error);
     for (size_t i = 0; valid && i < ps_size(session->declarations); ++i) {
         const ps_value *column = ps_at(session->declarations, i);
         const ps_value *design = column && column->kind == PS_OBJECT ? ps_get(column, "design") : NULL;
         if (!design) continue;
-        const char *key = ps_key_at(session->declarations, i);
-        size_t prefix = strlen(members), size = strlen(key);
-        char *path = malloc(prefix + size + 2);
-        if (!path) { valid = false; break; }
-        memcpy(path, members, prefix);
-        path[prefix] = '.';
-        memcpy(path + prefix + 1, key, size + 1);
-        valid = ps_design_declaration_valid(design, path, &error);
-        free(path);
+        ps_chars path = PS_CONCAT(ps_fixed(members), PS_TEXT("."), ps_key(session->declarations, i));
+        if (!path.bytes) { valid = false; break; }
+        valid = ps_design_declaration_valid(design, ps_view(path), &error);
+        free(path.bytes);
     }
+    const ps_value *pagination = ps_get(spec, "pagination");
+    if (valid && pagination) valid = pagination_declaration_valid(pagination, ps_fixed(own), &error);
     if (!valid)
         return error ? error : ps_fail("internal", "INTERNAL_ERROR", "C list declaration check failed", "").error;
     session->context = (list_context){
@@ -1296,7 +1345,7 @@ static ps_result list_finish(list_session *session, bool ok, const char *failure
     ps_html_buffer result = {0};
     list_context *context = &session->context;
     if (ok) ok = append_preloads(context, &result) &&
-        ps_html_bytes(&result, context->output.data ? context->output.data : "", context->output.length);
+        ps_html_bytes(&result, context->output.data, context->output.length);
     ps_value *output = ok ? ps_html_value(&result) : NULL;
     if (!ok) free(result.data);
     const char *input_failure = context->failure;
@@ -1390,15 +1439,15 @@ static ps_value *list_model(list_session *session)
     for (size_t i = 0; ok && i < session->column_count; ++i) {
         const list_column *column = &session->columns[i];
         ps_value *entry = ps_object_value(), *format = ps_object_value();
-        char *label = column_label(column, context->language);
-        ok = entry && format && label &&
+        ps_chars label = column_label(column, context->language);
+        ok = entry && format && label.bytes &&
             set_text(entry, "key", column->key) && set_text(entry, "field", column->field) &&
-            set_text(entry, "label", label) && set_text(format, "type", column->type) &&
+            set_text(entry, "label", ps_view(label)) && set_text(format, "type", column->type) &&
             ps_set(format, "options", column->format ? ps_value_clone(column->format) : ps_object_value()) &&
             set_value(entry, "format", &format) && ps_set(entry, "sortable", ps_bool_value(column->sortable)) &&
             ps_set(entry, "design", ps_value_clone(column->design));
         if (ok) ok = ps_append(columns, entry), entry = NULL;
-        ps_value_free(entry); ps_value_free(format); free(label);
+        ps_value_free(entry); ps_value_free(format); free(label.bytes);
     }
     for (size_t r = 0; ok && r < ps_size(context->rows); ++r) {
         ps_value *row_model = ps_object_value(), *cells = ps_array_value();
@@ -1408,13 +1457,11 @@ static ps_value *list_model(list_session *session)
             const list_column *column = &session->columns[i];
             const ps_value *value = NULL;
             ps_value *display = NULL, *cell_design = NULL, *cell = ps_object_value(), *format = ps_object_value();
-            char *failure = NULL;
             ok = cell && format && evaluate_cell(context, column, row, &value, &display, &cell_design) &&
                 set_text(format, "type", column->type) &&
                 ps_set(format, "options", column->format ? ps_value_clone(column->format) : ps_object_value()) &&
                 set_value(cell, "format", &format) && ps_set(cell, "value", value ? ps_value_clone(value) : ps_null_value()) &&
                 set_value(cell, "display", &display) && set_value(cell, "design", &cell_design);
-            (void)failure;
             if (ok) ok = ps_append(cells, cell), cell = NULL;
             ps_value_free(cell); ps_value_free(format); ps_value_free(display); ps_value_free(cell_design);
         }
@@ -1424,44 +1471,45 @@ static ps_value *list_model(list_session *session)
         ps_value_free(row_model);
     }
     if (ok) {
-        bool page_present, total_present; int64_t page = 0, total = 0;
-        ok = ps_set(pagination, "enabled", ps_bool_value(member(context->spec, "pagination") &&
-            (member(context->spec, "pagination")->kind == PS_BOOL ? member(context->spec, "pagination")->data.boolean : member(context->spec, "pagination")->kind == PS_OBJECT)));
-        const ps_value *declared = member(context->spec, "pagination");
-        if (ok && declared && declared->kind == PS_OBJECT) {
-            if (member(declared, "per_page")) ok = ps_set(pagination, "perPage", ps_value_clone(member(declared, "per_page")));
-            if (ok && member(declared, "mode")) ok = ps_set(pagination, "mode", ps_value_clone(member(declared, "mode")));
-        }
-        if (ok && count_option(member(context->options, "page"), 1, &page_present, &page) && page_present) ok = ps_set(pagination, "page", ps_int_value(page));
-        if (ok && count_option(member(context->options, "total"), 0, &total_present, &total) && total_present) ok = ps_set(pagination, "total", ps_int_value(total));
-        design = ps_design(member(context->spec, "design"), context->data, "");
+        pagination_state state;
+        resolve_pagination(context, &state);
+        ok = ps_set(pagination, "enabled", ps_bool_value(state.enabled));
+        if (ok && state.enabled)
+            ok = ps_set(pagination, "perPage", ps_int_value(state.per_page)) &&
+                set_fixed(pagination, "mode", state.mode) &&
+                ps_set(pagination, "page", ps_int_value(state.page));
+        else if (ok && state.page_present) ok = ps_set(pagination, "page", ps_int_value(state.page));
+        if (ok && state.total_present) ok = ps_set(pagination, "total", ps_int_value(state.total));
+        if (ok && state.enabled) ok = ps_set(pagination, "pageCount", ps_int_value(state.page_count));
+        design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
         ok = ok && design && set_value(model, "columns", &columns) && set_value(model, "rows", &row_models) &&
             set_value(model, "pagination", &pagination);
         const ps_value *sort = member(context->spec, "sort");
-        if (ok && sort && sort->kind == PS_OBJECT && member(sort, "field") && member(sort, "field")->kind == PS_STRING && ps_string(member(sort, "field"))[0]) {
+        if (ok && sort && sort->kind == PS_OBJECT && string_member(sort, "field").length) {
             ps_value *sort_model = ps_object_value();
             ok = sort_model && ps_set(sort_model, "field", ps_value_clone(member(sort, "field"))) &&
-                set_text(sort_model, "dir", is_string(member(sort, "dir"), "desc") ? "desc" : "asc") &&
+                set_fixed(sort_model, "dir", is_string(member(sort, "dir"), "desc") ? "desc" : "asc") &&
                 set_value(model, "sort", &sort_model);
             ps_value_free(sort_model);
         }
         const ps_value *declared_actions = member(context->spec, "actions");
         for (size_t i = 0; ok && declared_actions && declared_actions->kind == PS_OBJECT && i < ps_size(declared_actions); ++i) {
-            const char *key = ps_key_at(declared_actions, i);
+            ps_text key = ps_key(declared_actions, i);
             const ps_value *raw = ps_at(declared_actions, i);
-            if (!strcmp(key, "$ref") || !strcmp(key, "$patch") || !raw || (raw->kind != PS_STRING && raw->kind != PS_OBJECT)) continue;
+            if (ps_text_is(key, "$ref") || ps_text_is(key, "$patch") || !raw || (raw->kind != PS_STRING && raw->kind != PS_OBJECT)) continue;
             ps_value *action = ps_object_value();
-            char *label = raw->kind == PS_OBJECT && member(raw, "label") ? translated(member(raw, "label"), context->language) : copy_bytes(key, strlen(key));
-            ok = action && label && set_text(action, "key", key) && set_text(action, "label", label);
+            ps_chars label = action_label(raw, key, context->language);
+            ok = action && label.bytes && set_text(action, "key", key) && set_text(action, "label", ps_view(label));
             if (ok && raw->kind == PS_STRING) {
                 ps_value *behavior = ps_object_value();
-                ok = behavior && ps_set(behavior, key, ps_value_clone(raw)) && set_value(action, "behavior", &behavior);
+                ok = behavior && ps_set_text(behavior, key, ps_value_clone(raw)) && set_value(action, "behavior", &behavior);
                 ps_value_free(behavior);
             } else if (ok && member(raw, "format")) {
                 const ps_value *raw_format = member(raw, "format");
                 ps_value *format = ps_object_value();
-                const char *type = raw_format && raw_format->kind == PS_OBJECT ? string_member(raw_format, "type") : raw_format && raw_format->kind == PS_STRING ? ps_string(raw_format) : "text";
-                ok = format && set_text(format, "type", *type ? type : "text") &&
+                ps_text type = raw_format && raw_format->kind == PS_OBJECT ? string_member(raw_format, "type")
+                    : raw_format && raw_format->kind == PS_STRING ? ps_string(raw_format) : PS_TEXT("text");
+                ok = format && set_text(format, "type", type.length ? type : PS_TEXT("text")) &&
                     ps_set(format, "options", raw_format->kind == PS_OBJECT ? ps_value_clone(raw_format) : ps_object_value()) &&
                     set_value(action, "format", &format);
                 ps_value_free(format);
@@ -1472,17 +1520,18 @@ static ps_value *list_model(list_session *session)
                 for (size_t j = 0; ok && j < ps_size(source); ++j) {
                     const ps_value *entry = ps_at(source, j);
                     if (entry && entry->kind == PS_OBJECT) entry = member(entry, "script");
-                    if (entry && entry->kind == PS_STRING) ok = ps_set(behavior, ps_key_at(source, j), ps_value_clone(entry));
+                    if (entry && entry->kind == PS_STRING) ok = ps_set_text(behavior, ps_key(source, j), ps_value_clone(entry));
                 }
                 if (ok && ps_size(behavior)) ok = set_value(action, "behavior", &behavior);
                 ps_value_free(behavior);
             }
             if (ok) ok = ps_append(actions, action), action = NULL;
-            ps_value_free(action); free(label);
+            ps_value_free(action); free(label.bytes);
         }
-        char *empty = translated(member(context->spec, "empty"), context->language);
-        if (ok) ok = set_value(model, "actions", &actions) && set_text(model, "empty", empty) && set_value(model, "design", &design);
-        free(empty);
+        ps_chars empty = translated(member(context->spec, "empty"), context->language);
+        if (ok) ok = set_value(model, "actions", &actions) && empty.bytes &&
+            set_text(model, "empty", ps_view(empty)) && set_value(model, "design", &design);
+        free(empty.bytes);
     }
     ps_value_free(columns); ps_value_free(row_models); ps_value_free(pagination); ps_value_free(actions); ps_value_free(design);
     if (!ok) { ps_value_free(model); return NULL; }
@@ -1545,23 +1594,23 @@ static ps_value *detail_model(list_session *session, const ps_value *record)
         const ps_value *value = NULL;
         ps_value *display = NULL, *cell_design = NULL, *format = ps_object_value();
         ps_value *field = ps_object_value();
-        char *label = column_label(column, context->language);
-        ok = field && format && label &&
+        ps_chars label = column_label(column, context->language);
+        ok = field && format && label.bytes &&
             evaluate_cell(context, column, record, &value, &display, &cell_design) &&
             set_text(format, "type", column->type) &&
             ps_set(format, "options", column->format ? ps_value_clone(column->format) : ps_object_value()) &&
-            set_text(field, "key", column->key) && set_text(field, "label", label) &&
+            set_text(field, "key", column->key) && set_text(field, "label", ps_view(label)) &&
             set_value(field, "format", &format) &&
             /* An absent path is null. */
             ps_set(field, "value", value ? ps_value_clone(value) : ps_null_value()) &&
             set_value(field, "display", &display) && set_value(field, "design", &cell_design);
         if (ok) { ok = ps_append(fields, field); field = NULL; }
-        free(label);
+        free(label.bytes);
         ps_value_free(field); ps_value_free(format);
         ps_value_free(display); ps_value_free(cell_design);
     }
     if (ok) {
-        design = ps_design(member(context->spec, "design"), context->data, "");
+        design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
         ok = set_value(model, "fields", &fields) && set_value(model, "design", &design);
     }
     ps_value_free(fields); ps_value_free(design);
@@ -1595,10 +1644,11 @@ static ps_result render_detail_view(const ps_value *spec, const ps_value *record
     for (size_t i = 0; ok && i < ps_size(fields); ++i) {
         const ps_value *field = ps_at(fields, i);
         const ps_value *label = member(field, "label");
-        char *base = ps_string_join("crudui-detail__value crudui-value crudui-value--", string_member(member(field, "format"), "type"), "");
+        ps_chars base = value_class("crudui-detail__value crudui-value crudui-value--",
+                                    string_member(member(field, "format"), "type"));
         ps_value *field_attrs = ps_object_value();
         ps_value *label_attrs = ps_object_value();
-        ok = base && field_attrs && label_attrs && label && label->kind == PS_STRING &&
+        ok = base.bytes && field_attrs && label_attrs && label && label->kind == PS_STRING &&
             ps_html_attr_string(field_attrs, "class", "crudui-detail__field") &&
             ps_html_attr_string(label_attrs, "class", "crudui-detail__label");
         if (!ok) { ps_value_free(field_attrs); ps_value_free(label_attrs); }
@@ -1607,12 +1657,12 @@ static ps_result render_detail_view(const ps_value *spec, const ps_value *record
             ok = write_element_start(out, "div", field_attrs);
             if (ok) ok = write_element_start(out, "dt", label_attrs);
             else ps_value_free(label_attrs);
-            if (ok) ok = ps_html_escaped(out, label->data.string.bytes, label->data.string.length, false) &&
+            if (ok) ok = ps_html_escaped(out, ps_string(label), false) &&
                 write_element_end(out, "dt") &&
-                write_cell(context, member(field, "design"), member(field, "display"), "dd", base) &&
+                write_cell(context, member(field, "design"), member(field, "display"), "dd", ps_view(base)) &&
                 write_element_end(out, "div");
         }
-        free(base);
+        free(base.bytes);
     }
     if (ok) ok = write_element_end(out, "dl");
     ps_value_free(model);

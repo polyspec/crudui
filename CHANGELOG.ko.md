@@ -1,5 +1,100 @@
 # 변경 기록
 
+## 2026-09-17 — 모든 런타임의 폼 버튼 공개
+
+기능 기준은 모든 서버 런타임에 `bindButtons`와 `formButtonsHtml`을 선언했지만 JavaScript만 공개하고
+있었습니다. PHP 라이브러리와 PHP 확장은 `Generator::bindButtons`와 `Generator::formButtonsHtml`을, Go는
+`BindButtons`와 `FormButtonsHTML`을, Rust는 `bind_buttons`와 `form_buttons_html`을 추가하며, 각 생성기
+명령행 어댑터가 두 연산을 제공합니다. 모두 JavaScript와 같은 순서의 버튼 객체와 같은 마크업을 반환하고
+같은 입력을 검사합니다. `formButtonsHtml`은 평가된 버튼 목록(`tag`가 `a` 또는 `button`, 문자열 `text`,
+`type`, `class`, `style`, `name`, `value`, `href`, `onclick`의 문자열 값만 가진 `attrs`)만 받으며, 그렇지
+않으면 `Form buttons must be a list` 또는 `Form buttons must be evaluated button objects`로 실패합니다.
+native 실행기가 모든 폼 fixture에서 두 연산과, 모든 런타임에서 거부되는 형태를 비교합니다.
+
+## 2026-09-17 — 테스트 명령 표준 강제
+
+- 모든 테스트는 `node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit>`로 실행합니다. 실행기는
+  테스트마다 시작, 실행 중 5초마다 한 줄, 경과 시간을 포함한 결과를 출력하고 테스트마다 자체
+  타임아웃(명령이 따로 선언하지 않으면 30초)을 적용합니다. node와 Vitest는 타임아웃에 테스트를
+  멈추고, Go·Rust·PHPUnit은 테스트가 타임아웃을 넘기면 실행기가 도구를 멈춥니다.
+  `scripts/test-progress/progress.mjs`가 이 줄을 쓰며, native 생성기 실행기, 레거시 비교, 패키지
+  소비자 검사, 계약 명령 실행기, 빌드 최신성 검사, CI 브라우저 검사, 적합성 검사가 이 모듈로
+  출력합니다.
+- `tests/build/test-commands.test.mjs`는 package, Composer, Makefile, CI, 기능 검증 명령이 테스트
+  도구를 직접 호출할 때, CI 작업에 `timeout-minutes`가 없을 때, 테스트 명령이 공용 줄로 출력하지
+  않는 스크립트를 실행할 때, 어떤 명령도 `node:test` 파일을 실행하지 않을 때, TypeScript 패키지에
+  `typecheck`가 없거나 CI가 `npm run typecheck`를 실행하지 않을 때 실패합니다. 어떤 명령도 실행하지
+  않던 테스트 파일 3개는 `test:form-comparison:source`와 `test:build`에서 실행합니다.
+- CI 작업마다 자체 시간 제한이 있습니다. unit 작업의 일부를 반복하던 `current` 작업을 제거했습니다.
+  적합성 증거를 기록하는 작업은 증거를 올리고 마지막 작업이 모든 증거를 검사합니다. 폼 인스펙터는
+  `npm run test:inspector`로 실행합니다.
+- 오래된 경로를 제거했습니다. 패키지 스크립트 `test:current`, `test:list`, `test:watch`,
+  `test:coverage`, `test:client`, Composer `test:current`, `tests/package.json`, 사용되지 않던
+  `tests/runner/run-js.ts`, `run-php.php`, `tests/runner/go`, `docs-check-all` 별칭입니다. PHP 확장
+  API 비교는 `node:test` 파일 `packages/php-ext/tests/api.test.mjs`이고, `make build-php-extension`은
+  빌드만 하며 `make test-php-extension`이 엔진·빌더·API 검사를 실행합니다. 패키지 소비자 검사는
+  명령을 비동기로 실행하며 단계별 제한을 측정 시간의 약 10배로 줄였습니다.
+- `npm run typecheck`가 Vue를 포함한 모든 TypeScript 패키지를 검사하며, `canRedo`를 넘기지 않던
+  React 개요 테스트를 고쳤습니다.
+
+## 2026-09-17 — 기능 기준에 대한 적합성 증거 검사
+
+`contracts/features.json`이 하나의 기준입니다. 각 기능은 지원 런타임과 그 기능을 증명하는 공용
+fixture를 선언하고, 매니페스트는 모든 fixture를 등록합니다. 테스트는 fixture 사례와 기능마다 증거
+한 줄을 기록하며(`tests/conformance/evidence.mjs`, `evidence.php`, Go 패키지
+`validator/internal/conformance`, Rust 테스트 모듈 `tests/common`), `scripts/check-conformance.mjs`는
+지원 런타임의 사례 증거가 없거나 실패했을 때, 선언되지 않았거나 지원하지 않는 런타임의 증거가 있을
+때, 등록되지 않은 fixture 가족이 있을 때, 어떤 기능도 증명하지 않는 등록 fixture가 있을 때 실패합니다.
+`make conformance`는 기록하는 모든 테스트와 검사를 실행합니다. [적합성 증거](docs/spec/conformance.ko.md)가
+런타임 키와 규칙을 설명하며, 제거한 `contracts/conformance-matrix.json`과
+`tests/build/conformance-coverage.test.mjs`의 문자열 검사를 대체합니다.
+
+기준은 이제 `buildList`, `validateList`, `validatorCli`, `translateLegacy`를 선언하고, `validate`에 스펙
+유효성 fixture를 더하며, `createForm`을 native 인스턴스 시나리오로 증명하고, DOM 세션 기능을 그
+시나리오를 실행하는 바인딩에 선언합니다. 기준으로 측정해 다음 빈틈을 찾아 메웠습니다.
+
+- native 실행기가 모든 서버 런타임에서 폼 fixture 92개의 폼 HTML을 바이트 단위로, 모든 목록 fixture의
+  목록 모델을 비교합니다.
+- PHP 확장이 검증기 CLI fixture를 실행합니다.
+- HTML DOM 바인딩이 공용 세션 시나리오를 실행합니다. 이전에는 한 번도 실행하지 않았습니다.
+- native 실행기 프로토콜이 `sort` 멤버가 있는 목록 모델만 받았지만, 정렬 선언이 없는 목록에는 그
+  멤버가 없습니다.
+- `createForm`의 기능 검증 명령이 테스트가 없는 fixture 모듈을 실행하고 있었습니다.
+
+## 2026-09-17 — HTML 렌더러의 노드 유지와 모든 브라우저의 스티키 배지
+
+- `@crudui/generator-core`의 `patchContent(element, html)`은 요소의 내용을 새 마크업으로 바꾸되 새
+  마크업에도 있는 노드(행 키, 필드 경로, id, 컨트롤 이름과 값으로 대응)를 모두 유지합니다. HTML
+  렌더러 앱은 다시 그릴 때마다 페이지에 패치하므로, 프레임워크 렌더러처럼 포커스된 컨트롤, 선택 영역,
+  입력기 조합이 유지됩니다. HTML DOM 바인딩은 반복 데이터 주입 뒤에도 같은 컨트롤 요소를 요구하는
+  공용 초기화 시나리오를 통과합니다.
+- 스티키 행 헤더의 레벨 배지는 기본으로 숨기고 `@container scroll-state(stuck: top)` 안에서
+  표시합니다. 기존 규칙은 `scroll-state(not (stuck: top))` 안에서 숨겼는데 Firefox와 Safari는 이 규칙을
+  무시해 배지가 항상 보였습니다. 이 브라우저들에서는 `connectStickyHeaders(element)`(`connectForm`이
+  사용)가 sticky 위치 지정으로 헤더가 행 위쪽에서 밀려난 동안 `data-crudui-stuck`을 붙이고, 다시 그려
+  속성이 사라지면 다시 붙입니다. 쿼리를 지원하는 Chromium에서는 아무것도 연결하지 않습니다. Chromium
+  검사가 scroll-state 지원·미지원 상태로 페이지, 스크롤 박스, 프레임에서 실행되며 Chromium에는 속성이
+  붙지 않음을 확인합니다.
+
+## 2026-09-17 — 모든 서버 런타임의 같은 페이지네이션
+
+PHP 라이브러리, PHP 확장, Go, Rust가 JavaScript와 다른 페이지네이션을 출력했습니다. PHP 라이브러리는
+`disabled="1"`을 쓰고 페이지를 마지막 페이지로 맞추지 않았으며, 네 런타임 모두 범위가 제한된 번호 대신
+1~7페이지를 나열했습니다. 이제 모든 런타임이 하나의 규칙을 따릅니다. 7페이지까지는 모든 페이지, 그보다
+많으면 첫·이전·현재·다음·마지막 페이지이며, 전체 수가 없으면 현재 페이지는 1이고, 마지막 페이지보다 큰
+페이지는 마지막 페이지를 선택합니다. 목록 모델은 어디서나 같은 멤버를 같은 순서로 가집니다(`enabled`,
+기본값이 적용된 `perPage`·`mode`·`page`, 제공된 `total`, `pageCount`). `pagination` 선언은 `design`처럼
+검사합니다. 불리언이거나 `per_page`(1 이상의 정수)와 `mode`(`pages`, `offset`, `cursor`, `none`)를 가진
+객체이며, 스키마의 `per_page`는 1 이상의 정수입니다. 목록 fixture는 경계 페이지와 선언 오류를 더해
+42개에서 57개가 되었고, native 실행기가 켜짐·선언·꺼짐 상태의 페이지네이션 모델을 비교합니다.
+
+## 2026-09-17 — 실패하던 CI 작업 복구
+
+최근 세 번의 push가 CI에서 실패했습니다. Svelte 헤더와 노드 컴포넌트에 형제 블록 사이 공백이 있어
+Svelte가 텍스트로 유지했으며, 공백 없이 다시 작성했습니다. 루트 패키지는 폼 비교 예제가 가져오는
+`@crudui/generator-html`을 선언하고, 폼 비교 소스 검사가 이를 빌드합니다. PHP 확장 API 검사는 이전
+페이지네이션 마크업을 기대하고 있었습니다. `rustfmt`와 `gofmt`에 맞지 않던 Rust·Go 소스를 정리했습니다.
+
 ## 2026-09-16 — 교차 검사 게이트웨이에서 모든 검증 fixture 실행
 
 교차 검사 게이트웨이가 공용 폼 검증 fixture 64개를 JavaScript·PHP·Go·Rust 모두로

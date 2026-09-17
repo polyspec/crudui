@@ -17,7 +17,7 @@ typedef enum {
 
 typedef struct {
     token_kind kind;
-    char *text;
+    ps_chars text;
     ps_value *literal;
     size_t dots;
 } token;
@@ -26,7 +26,7 @@ typedef enum { NODE_TERNARY, NODE_BINARY, NODE_UNARY, NODE_IN, NODE_PATH,
                NODE_LITERAL, NODE_GROUP } node_kind;
 typedef enum { SEGMENT_IDENTIFIER, SEGMENT_INDEX, SEGMENT_WILDCARD } segment_kind;
 
-typedef struct { segment_kind kind; char *text; } path_segment;
+typedef struct { segment_kind kind; ps_chars text; } path_segment;
 typedef struct expression_node expression_node;
 struct expression_node {
     node_kind kind;
@@ -43,15 +43,8 @@ struct expression_node {
 
 typedef struct { token *items; size_t length; size_t capacity; bool valid; } lexer_output;
 typedef struct { token *tokens; size_t length; size_t current; bool valid; } parser;
-typedef struct { const ps_value *data; const char *const *path; size_t path_length; } evaluator;
+typedef struct { const ps_value *data; const ps_text *path; size_t path_length; } evaluator;
 typedef struct { ps_value *value; bool wildcard; } resolved_value;
-
-static char *copy_range(const char *start, size_t length)
-{
-    char *copy = malloc(length + 1);
-    if (!copy) return NULL;
-    memcpy(copy, start, length); copy[length] = '\0'; return copy;
-}
 
 static bool push_token(lexer_output *output, token item)
 {
@@ -67,7 +60,7 @@ static bool push_token(lexer_output *output, token item)
 static void free_tokens(lexer_output *output)
 {
     for (size_t i = 0; i < output->length; ++i) {
-        free(output->items[i].text); ps_value_free(output->items[i].literal);
+        free(output->items[i].text.bytes); ps_value_free(output->items[i].literal);
     }
     free(output->items);
 }
@@ -77,113 +70,140 @@ static bool word_character(char c)
     return isalnum((unsigned char)c) || c == '_';
 }
 
-static bool token_text(lexer_output *out, token_kind kind, const char *start,
-                       size_t length, ps_value *literal, size_t dots)
+static bool token_text(lexer_output *out, token_kind kind, ps_text text,
+                       ps_value *literal, size_t dots)
 {
-    char *text = copy_range(start, length);
-    if (!text || !push_token(out, (token){kind, text, literal, dots})) {
-        free(text); ps_value_free(literal); return false;
+    ps_chars copy = ps_copy(text);
+    if (!copy.bytes || !push_token(out, (token){kind, copy, literal, dots})) {
+        free(copy.bytes); ps_value_free(literal); return false;
     }
     return true;
 }
 
-static lexer_output tokenize(const char *source)
+/* The byte at index, or zero past the end. */
+static char byte_at(ps_text text, size_t index)
+{
+    return index < text.length ? text.bytes[index] : 0;
+}
+
+static bool starts_at(ps_text text, size_t index, const char *word)
+{
+    return index <= text.length && ps_text_starts(ps_text_slice(text, index, text.length), word);
+}
+
+/* A word character at index; nothing past the end is one. */
+static bool word_at(ps_text text, size_t index)
+{
+    return index < text.length && word_character(text.bytes[index]);
+}
+
+static bool digit_at(ps_text text, size_t index)
+{
+    return index < text.length && isdigit((unsigned char)text.bytes[index]);
+}
+
+static bool space_at(ps_text text, size_t index)
+{
+    return index < text.length && isspace((unsigned char)text.bytes[index]);
+}
+
+static lexer_output tokenize(ps_text source)
 {
     lexer_output out = {.valid = true};
-    const char *cursor = source;
-    while (*cursor && out.valid) {
-        if (isspace((unsigned char)*cursor)) { cursor++; continue; }
-        const char *start = cursor;
+    size_t cursor = 0;
+    while (cursor < source.length && out.valid) {
+        if (space_at(source, cursor)) { cursor++; continue; }
+        size_t start = cursor;
+        char current = source.bytes[cursor];
         token_kind kind = TOK_INVALID;
         size_t length = 1;
         ps_value *literal = NULL;
         size_t dots = 0;
-        if (!strncmp(cursor, "not", 3) && !word_character(cursor[3])) {
-            const char *look = cursor + 3;
-            while (isspace((unsigned char)*look)) look++;
-            if (!strncmp(look, "in", 2) && !word_character(look[2])) {
-                kind = TOK_NOT_IN; length = (size_t)(look + 2 - cursor);
+        if (starts_at(source, cursor, "not") && !word_at(source, cursor + 3)) {
+            size_t look = cursor + 3;
+            while (space_at(source, look)) look++;
+            if (starts_at(source, look, "in") && !word_at(source, look + 2)) {
+                kind = TOK_NOT_IN; length = look + 2 - cursor;
             }
         }
-        if (kind == TOK_INVALID && !strncmp(cursor, "&&", 2)) { kind = TOK_AND; length = 2; }
-        else if (kind == TOK_INVALID && !strncmp(cursor, "||", 2)) { kind = TOK_OR; length = 2; }
-        else if (kind == TOK_INVALID && !strncmp(cursor, "==", 2)) { kind = TOK_EQ; length = 2; }
-        else if (kind == TOK_INVALID && !strncmp(cursor, "!=", 2)) { kind = TOK_NE; length = 2; }
-        else if (kind == TOK_INVALID && !strncmp(cursor, ">=", 2)) { kind = TOK_GE; length = 2; }
-        else if (kind == TOK_INVALID && !strncmp(cursor, "<=", 2)) { kind = TOK_LE; length = 2; }
-        else if (kind == TOK_INVALID && *cursor == '>') kind = TOK_GT;
-        else if (kind == TOK_INVALID && *cursor == '<') kind = TOK_LT;
-        else if (kind == TOK_INVALID && *cursor == '!') kind = TOK_NOT;
-        else if (kind == TOK_INVALID && *cursor == '.') {
-            while (cursor[dots] == '.') dots++;
+        if (kind == TOK_INVALID && starts_at(source, cursor, "&&")) { kind = TOK_AND; length = 2; }
+        else if (kind == TOK_INVALID && starts_at(source, cursor, "||")) { kind = TOK_OR; length = 2; }
+        else if (kind == TOK_INVALID && starts_at(source, cursor, "==")) { kind = TOK_EQ; length = 2; }
+        else if (kind == TOK_INVALID && starts_at(source, cursor, "!=")) { kind = TOK_NE; length = 2; }
+        else if (kind == TOK_INVALID && starts_at(source, cursor, ">=")) { kind = TOK_GE; length = 2; }
+        else if (kind == TOK_INVALID && starts_at(source, cursor, "<=")) { kind = TOK_LE; length = 2; }
+        else if (kind == TOK_INVALID && current == '>') kind = TOK_GT;
+        else if (kind == TOK_INVALID && current == '<') kind = TOK_LT;
+        else if (kind == TOK_INVALID && current == '!') kind = TOK_NOT;
+        else if (kind == TOK_INVALID && current == '.') {
+            while (byte_at(source, cursor + dots) == '.' && cursor + dots < source.length) dots++;
             kind = dots > 1 ? TOK_DOT_DOT : TOK_DOT; length = dots;
-        } else if (kind == TOK_INVALID && *cursor == '*') kind = TOK_ASTERISK;
-        else if (kind == TOK_INVALID && *cursor == '(') kind = TOK_LPAREN;
-        else if (kind == TOK_INVALID && *cursor == ')') kind = TOK_RPAREN;
-        else if (kind == TOK_INVALID && *cursor == '[') kind = TOK_LBRACKET;
-        else if (kind == TOK_INVALID && *cursor == ']') kind = TOK_RBRACKET;
-        else if (kind == TOK_INVALID && *cursor == ',') kind = TOK_COMMA;
-        else if (kind == TOK_INVALID && *cursor == '?') kind = TOK_QUESTION;
-        else if (kind == TOK_INVALID && *cursor == ':') kind = TOK_COLON;
-        else if (kind == TOK_INVALID && (*cursor == '\'' || *cursor == '"')) {
-            char quote = *cursor++;
-            size_t capacity = strlen(cursor) + 1, used = 0;
-            char *decoded = malloc(capacity);
-            if (!decoded) { out.valid = false; break; }
-            while (*cursor && *cursor != quote) {
-                char value = *cursor++;
-                if (value == '\\' && *cursor) {
-                    value = *cursor++;
+        } else if (kind == TOK_INVALID && current == '*') kind = TOK_ASTERISK;
+        else if (kind == TOK_INVALID && current == '(') kind = TOK_LPAREN;
+        else if (kind == TOK_INVALID && current == ')') kind = TOK_RPAREN;
+        else if (kind == TOK_INVALID && current == '[') kind = TOK_LBRACKET;
+        else if (kind == TOK_INVALID && current == ']') kind = TOK_RBRACKET;
+        else if (kind == TOK_INVALID && current == ',') kind = TOK_COMMA;
+        else if (kind == TOK_INVALID && current == '?') kind = TOK_QUESTION;
+        else if (kind == TOK_INVALID && current == ':') kind = TOK_COLON;
+        else if (kind == TOK_INVALID && (current == '\'' || current == '"')) {
+            char quote = current;
+            cursor++;
+            ps_html_buffer decoded = {0};
+            while (cursor < source.length && source.bytes[cursor] != quote) {
+                char value = source.bytes[cursor++];
+                if (value == '\\' && cursor < source.length) {
+                    value = source.bytes[cursor++];
                     if (value == 'n') value = '\n';
                     else if (value == 't') value = '\t';
                     else if (value == 'r') value = '\r';
                 }
-                decoded[used++] = value;
+                ps_html_character(&decoded, value);
             }
-            if (*cursor != quote) { free(decoded); out.valid = false; break; }
-            cursor++; decoded[used] = '\0';
-            kind = TOK_STRING; length = (size_t)(cursor - start);
-            literal = ps_string_value(decoded); free(decoded);
-        } else if (kind == TOK_INVALID && (isdigit((unsigned char)*cursor) ||
-                   (*cursor == '-' && isdigit((unsigned char)cursor[1])))) {
-            const char *number = cursor;
-            if (*cursor == '-') cursor++;
-            while (isdigit((unsigned char)*cursor)) cursor++;
+            if (cursor >= source.length) { free(decoded.data); out.valid = false; break; }
+            cursor++;
+            kind = TOK_STRING; length = cursor - start;
+            literal = ps_html_value(&decoded);
+            if (!literal) { out.valid = false; break; }
+        } else if (kind == TOK_INVALID && (isdigit((unsigned char)current) ||
+                   (current == '-' && digit_at(source, cursor + 1)))) {
+            size_t number = cursor;
+            if (current == '-') cursor++;
+            while (digit_at(source, cursor)) cursor++;
             bool decimal = false;
-            if (*cursor == '.' && isdigit((unsigned char)cursor[1])) {
-                decimal = true; cursor++; while (isdigit((unsigned char)*cursor)) cursor++;
+            if (byte_at(source, cursor) == '.' && cursor < source.length && digit_at(source, cursor + 1)) {
+                decimal = true; cursor++; while (digit_at(source, cursor)) cursor++;
             }
-            if (*cursor == 'e' || *cursor == 'E') {
+            if (cursor < source.length && (source.bytes[cursor] == 'e' || source.bytes[cursor] == 'E')) {
                 decimal = true; cursor++;
-                if (*cursor == '+' || *cursor == '-') cursor++;
-                while (isdigit((unsigned char)*cursor)) cursor++;
+                if (cursor < source.length && (source.bytes[cursor] == '+' || source.bytes[cursor] == '-')) cursor++;
+                while (digit_at(source, cursor)) cursor++;
             }
-            length = (size_t)(cursor - number);
-            char *raw = copy_range(number, length);
-            if (!raw) { out.valid = false; break; }
-            if (decimal) literal = ps_float_value(strtod(raw, NULL));
+            length = cursor - number;
+            /* The copy holds only digits, signs, a point and an exponent marker. */
+            ps_chars raw = ps_copy(ps_text_slice(source, number, cursor));
+            if (!raw.bytes) { out.valid = false; break; }
+            if (decimal) literal = ps_float_value(strtod(raw.bytes, NULL));
             else {
-                errno = 0; char *end = NULL; long long value = strtoll(raw, &end, 10);
-                literal = errno || !end || *end ? ps_float_value(strtod(raw, NULL))
-                                                : ps_int_value((int64_t)value);
+                errno = 0; char *end = NULL; long long value = strtoll(raw.bytes, &end, 10);
+                literal = errno || !end || end != raw.bytes + raw.length
+                    ? ps_float_value(strtod(raw.bytes, NULL)) : ps_int_value((int64_t)value);
             }
-            free(raw); kind = TOK_NUMBER;
-        } else if (kind == TOK_INVALID && (isalpha((unsigned char)*cursor) || *cursor == '_')) {
-            cursor++; while (word_character(*cursor)) cursor++;
-            length = (size_t)(cursor - start);
-            char *word = copy_range(start, length);
-            if (!word) { out.valid = false; break; }
-            if (!strcmp(word, "true")) { kind = TOK_BOOLEAN; literal = ps_bool_value(true); }
-            else if (!strcmp(word, "false")) { kind = TOK_BOOLEAN; literal = ps_bool_value(false); }
-            else if (!strcmp(word, "null")) { kind = TOK_NULL; literal = ps_null_value(); }
-            else if (!strcmp(word, "in")) kind = TOK_IN;
-            else { kind = TOK_IDENTIFIER; literal = ps_string_value(word); }
-            free(word);
+            free(raw.bytes); kind = TOK_NUMBER;
+        } else if (kind == TOK_INVALID && (isalpha((unsigned char)current) || current == '_')) {
+            cursor++; while (word_at(source, cursor)) cursor++;
+            length = cursor - start;
+            ps_text word = ps_text_slice(source, start, cursor);
+            if (ps_text_is(word, "true")) { kind = TOK_BOOLEAN; literal = ps_bool_value(true); }
+            else if (ps_text_is(word, "false")) { kind = TOK_BOOLEAN; literal = ps_bool_value(false); }
+            else if (ps_text_is(word, "null")) { kind = TOK_NULL; literal = ps_null_value(); }
+            else if (ps_text_is(word, "in")) kind = TOK_IN;
+            else { kind = TOK_IDENTIFIER; literal = ps_text_value(word); }
         }
-        if (!token_text(&out, kind, start, length, literal, dots)) out.valid = false;
+        if (!token_text(&out, kind, ps_text_slice(source, start, start + length), literal, dots)) out.valid = false;
         cursor = start + length;
     }
-    if (out.valid && !token_text(&out, TOK_EOF, "", 0, NULL, 0)) out.valid = false;
+    if (out.valid && !token_text(&out, TOK_EOF, PS_TEXT(""), NULL, 0)) out.valid = false;
     return out;
 }
 
@@ -209,7 +229,7 @@ static void free_node(expression_node *node)
             for (size_t i = 0; i < node->data.in.length; ++i) free_node(node->data.in.items[i]);
             free(node->data.in.items); break;
         case NODE_PATH:
-            for (size_t i = 0; i < node->data.path.length; ++i) free(node->data.path.segments[i].text);
+            for (size_t i = 0; i < node->data.path.length; ++i) free(node->data.path.segments[i].text.bytes);
             free(node->data.path.segments); break;
         case NODE_LITERAL: ps_value_free(node->data.literal); break;
         case NODE_GROUP: free_node(node->data.group); break;
@@ -237,14 +257,14 @@ static expression_node *literal_node(const ps_value *value)
     return node;
 }
 
-static bool append_segment(expression_node *node, segment_kind kind, const char *text)
+static bool append_segment(expression_node *node, segment_kind kind, ps_text text)
 {
     size_t length = node->data.path.length;
     path_segment *segments = realloc(node->data.path.segments, (length + 1) * sizeof(*segments));
     if (!segments) return false;
     node->data.path.segments = segments;
-    char *copy = text ? copy_range(text, strlen(text)) : NULL;
-    if (text && !copy) return false;
+    ps_chars copy = ps_copy(text);
+    if (!copy.bytes) return false;
     segments[length] = (path_segment){kind, copy}; node->data.path.length++; return true;
 }
 
@@ -255,18 +275,18 @@ static expression_node *parse_path_node(parser *p)
     if (match(p, TOK_DOT_DOT)) { node->data.path.relative = true; node->data.path.levels_up = previous(p)->dots - 1; }
     else if (match(p, TOK_DOT)) node->data.path.relative = true;
     if (match(p, TOK_IDENTIFIER)) {
-        if (!append_segment(node, SEGMENT_IDENTIFIER, previous(p)->text)) goto fail;
+        if (!append_segment(node, SEGMENT_IDENTIFIER, ps_view(previous(p)->text))) goto fail;
     } else if (node->data.path.relative) goto fail;
     while (match(p, TOK_DOT)) {
-        if (match(p, TOK_ASTERISK)) { if (!append_segment(node, SEGMENT_WILDCARD, NULL)) goto fail; }
+        if (match(p, TOK_ASTERISK)) { if (!append_segment(node, SEGMENT_WILDCARD, PS_TEXT("*"))) goto fail; }
         else if (match(p, TOK_NUMBER)) {
             char number[32];
             if (previous(p)->literal->kind == PS_INT)
                 snprintf(number, sizeof(number), "%lld", (long long)previous(p)->literal->data.integer);
             else snprintf(number, sizeof(number), "%lld", (long long)previous(p)->literal->data.number);
-            if (!append_segment(node, SEGMENT_INDEX, number)) goto fail;
+            if (!append_segment(node, SEGMENT_INDEX, ps_fixed(number))) goto fail;
         } else if (match(p, TOK_IDENTIFIER)) {
-            if (!append_segment(node, SEGMENT_IDENTIFIER, previous(p)->text)) goto fail;
+            if (!append_segment(node, SEGMENT_IDENTIFIER, ps_view(previous(p)->text))) goto fail;
         } else goto fail;
     }
     return node;
@@ -408,30 +428,34 @@ static expression_node *parse_expression(lexer_output *tokens)
     return node;
 }
 
-static bool numeric_segment(const char *text)
+static bool numeric_segment(ps_text text)
 {
-    if (!*text) return false;
-    for (; *text; ++text) if (!isdigit((unsigned char)*text)) return false;
+    if (!text.length) return false;
+    for (size_t i = 0; i < text.length; ++i) if (!isdigit((unsigned char)text.bytes[i])) return false;
     return true;
 }
 
-static ps_value *value_at(const ps_value *data, char **segments, size_t length)
+static bool wildcard_segment(ps_text text)
 {
-    const char **borrowed = (const char **)segments;
-    const ps_value *value = ps_path_segments(data, borrowed, length);
+    return ps_text_is(text, "*");
+}
+
+static ps_value *value_at(const ps_value *data, const ps_text *segments, size_t length)
+{
+    const ps_value *value = ps_path_segments(data, segments, length);
     return value ? ps_value_clone(value) : ps_null_value();
 }
 
-static bool has_wildcard(char **segments, size_t length)
+static bool has_wildcard(const ps_text *segments, size_t length)
 {
-    for (size_t i = 0; i < length; ++i) if (!strcmp(segments[i], "*")) return true;
+    for (size_t i = 0; i < length; ++i) if (wildcard_segment(segments[i])) return true;
     return false;
 }
 
-static ps_value *wildcard_values(const ps_value *data, char **segments, size_t length)
+static ps_value *wildcard_values(const ps_value *data, ps_text *segments, size_t length)
 {
     size_t wildcard = length;
-    for (size_t i = 0; i < length; ++i) if (!strcmp(segments[i], "*")) { wildcard = i; break; }
+    for (size_t i = 0; i < length; ++i) if (wildcard_segment(segments[i])) { wildcard = i; break; }
     if (wildcard == length) {
         ps_value *array = ps_array_value();
         ps_value *value = value_at(data, segments, length);
@@ -444,14 +468,14 @@ static ps_value *wildcard_values(const ps_value *data, char **segments, size_t l
         memmove(&segments[wildcard], &segments[wildcard + 1], (length - wildcard - 1) * sizeof(*segments));
         ps_value *out = wildcard_values(data, segments, length - 1);
         memmove(&segments[wildcard + 1], &segments[wildcard], (length - wildcard - 1) * sizeof(*segments));
-        segments[wildcard] = "*"; ps_value_free(source); return out;
+        segments[wildcard] = PS_TEXT("*"); ps_value_free(source); return out;
     }
     ps_value *out = ps_array_value();
     if (!out) { ps_value_free(source); return NULL; }
     if (source->kind == PS_ARRAY) {
         for (size_t i = 0; i < ps_size(source); ++i) {
             char index[32]; snprintf(index, sizeof(index), "%zu", i);
-            char *saved = segments[wildcard]; segments[wildcard] = index;
+            ps_text saved = segments[wildcard]; segments[wildcard] = ps_fixed(index);
             ps_value *items = wildcard_values(data, segments, length); segments[wildcard] = saved;
             if (!items) { ps_value_free(out); ps_value_free(source); return NULL; }
             for (size_t j = 0; j < ps_size(items); ++j)
@@ -476,16 +500,16 @@ static resolved_value resolve_path_node(const expression_node *node, const evalu
         }
     }
     size_t length = base + node->data.path.length;
-    char **segments = calloc(length ? length : 1, sizeof(*segments));
+    ps_text *segments = calloc(length ? length : 1, sizeof(*segments));
     if (!segments) return (resolved_value){ps_null_value(), false};
-    for (size_t i = 0; i < base; ++i) segments[i] = (char *)eval->path[i];
+    for (size_t i = 0; i < base; ++i) segments[i] = eval->path[i];
     for (size_t i = 0; i < node->data.path.length; ++i)
         segments[base + i] = node->data.path.segments[i].kind == SEGMENT_WILDCARD
-            ? "*" : node->data.path.segments[i].text;
+            ? PS_TEXT("*") : ps_view(node->data.path.segments[i].text);
     size_t current_index = 0;
-    for (size_t i = 0; i < length; ++i) if (!strcmp(segments[i], "*")) {
+    for (size_t i = 0; i < length; ++i) if (wildcard_segment(segments[i])) {
         while (current_index < eval->path_length && !numeric_segment(eval->path[current_index])) current_index++;
-        if (current_index < eval->path_length) segments[i] = (char *)eval->path[current_index++];
+        if (current_index < eval->path_length) segments[i] = eval->path[current_index++];
     }
     bool wildcard = has_wildcard(segments, length);
     ps_value *value = wildcard ? wildcard_values(eval->data, segments, length)
@@ -508,12 +532,18 @@ static bool number_value(const ps_value *value, bool whole_string, double *numbe
     if (value->kind == PS_FLOAT) { *number = value->data.number; return true; }
     if (value->kind == PS_BOOL) { *number = value->data.boolean ? 1 : 0; return true; }
     if (value->kind != PS_STRING) return false;
-    const char *text = ps_string(value);
-    while (isspace((unsigned char)*text)) text++;
-    if (!*text) { *number = 0; return true; }
-    char *end = NULL; errno = 0; double parsed = strtod(text, &end);
-    if (end == text || errno == ERANGE) return false;
-    if (whole_string) { while (isspace((unsigned char)*end)) end++; if (*end) return false; }
+    ps_text text = ps_string(value);
+    const char *start = text.bytes, *limit = text.bytes + text.length;
+    while (start < limit && isspace((unsigned char)*start)) start++;
+    if (start == limit) { *number = 0; return true; }
+    /* strtod stops at a NUL character inside the text or at the zero byte after it. */
+    char *end = NULL; errno = 0; double parsed = strtod(start, &end);
+    if (end == start || errno == ERANGE) return false;
+    if (whole_string) {
+        const char *rest = end;
+        while (rest < limit && isspace((unsigned char)*rest)) rest++;
+        if (rest != limit) return false;
+    }
     *number = parsed; return true;
 }
 
@@ -531,8 +561,9 @@ static bool loose_equal(const ps_value *left, const ps_value *right)
     if (!right || right->kind == PS_NULL) return false;
     double a, b;
     if (number_value(left, true, &a) && number_value(right, true, &b)) return a == b;
-    char *sa = ps_scalar_string(left), *sb = ps_scalar_string(right);
-    bool equal = sa && sb && !strcmp(sa, sb); free(sa); free(sb); return equal;
+    ps_chars sa = ps_scalar_string(left), sb = ps_scalar_string(right);
+    bool equal = sa.bytes && sb.bytes && ps_text_equal(ps_view(sa), ps_view(sb));
+    free(sa.bytes); free(sb.bytes); return equal;
 }
 
 static bool compare_values(const ps_value *left, const ps_value *right, token_kind operation)
@@ -612,8 +643,8 @@ static ps_value *evaluate_value_node(const expression_node *node, const evaluato
         ? branch_value(node->data.ternary.yes, eval) : branch_value(node->data.ternary.no, eval);
 }
 
-ps_value *ps_expression_value(const char *expression, const ps_value *data,
-                              const char *const *current_path, size_t path_length,
+ps_value *ps_expression_value(ps_text expression, const ps_value *data,
+                              const ps_text *current_path, size_t path_length,
                               bool *parsed)
 {
     lexer_output tokens = tokenize(expression);
@@ -624,8 +655,8 @@ ps_value *ps_expression_value(const char *expression, const ps_value *data,
     free_node(node); free_tokens(&tokens); return value;
 }
 
-bool ps_expression_truth(const char *expression, const ps_value *data,
-                         const char *const *current_path, size_t path_length,
+bool ps_expression_truth(ps_text expression, const ps_value *data,
+                         const ps_text *current_path, size_t path_length,
                          bool *parsed)
 {
     lexer_output tokens = tokenize(expression);
@@ -637,13 +668,13 @@ bool ps_expression_truth(const char *expression, const ps_value *data,
 }
 
 ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
-                             const char *const *current_path, size_t path_length)
+                             const ps_text *current_path, size_t path_length)
 {
     if (!map || map->kind != PS_OBJECT) return ps_null_value();
     const ps_value *fallback = NULL;
     for (size_t i = 0; i < ps_size(map); ++i) {
-        const char *condition = ps_key_at(map, i);
-        if (!strcmp(condition, "true")) { fallback = ps_at(map, i); continue; }
+        ps_text condition = ps_key(map, i);
+        if (ps_text_is(condition, "true")) { fallback = ps_at(map, i); continue; }
         bool parsed = false;
         if (ps_expression_truth(condition, data, current_path, path_length, &parsed) && parsed)
             return ps_value_clone(ps_at(map, i));

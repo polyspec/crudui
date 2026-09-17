@@ -8,6 +8,8 @@ use CRUDUI\Validator\Compose\ComposeLoadError;
 use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
+
 /**
  * CRUDUI recursive forbidden-scan conformance (SPEC §6 global meta-key rejection).
  *
@@ -53,6 +55,19 @@ final class ForbiddenScanConformanceTest extends TestCase
      * @param array<string, mixed> $case
      */
     public function testForbiddenScanMatchesFixture(array $case): void
+    {
+        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        $passed = false;
+        try {
+            $this->assertCase($case);
+            $passed = true;
+        } finally {
+            crudui_record_conformance('validate', 'tests/fixtures/spec-validity/cases.json', 'php', $case['name'], $passed);
+        }
+    }
+
+    /** @param array<string, mixed> $case */
+    private function assertCase(array $case): void
     {
         self::assertArrayHasKey('engine', $case, "case {$case['name']} must declare an engine expectation");
 

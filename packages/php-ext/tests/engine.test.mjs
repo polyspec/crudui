@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { access, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,10 +14,17 @@ import { buildDetail } from '@crudui/generator-core';
 import { buildTargets } from '../../../examples/form-comparison/src/build-targets.mjs';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';
 import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mjs';
+import { recordConformance } from '../../../tests/conformance/evidence.mjs';
 
+/* A C string literal of the UTF-8 bytes of a value; a NUL character is a zero byte in it. */
 export function cString(value) {
   const bytes = Buffer.from(value, 'utf8');
   return `"${[...bytes].map(byte => `\\${byte.toString(8).padStart(3, '0')}`).join('')}"`;
+}
+
+/* The same bytes as engine text with their explicit length. */
+export function cText(value) {
+  return `((ps_text){${cString(value)}, ${Buffer.byteLength(value, 'utf8')}})`;
 }
 
 export class EngineFixtureSource {
@@ -36,14 +43,14 @@ export class EngineFixtureSource {
       // which C would read as an integer literal and convert.
       this.lines.push(`  ps_value *${name} = ps_float_value(${/[.eE]|Infinity|NaN/.test(String(value)) ? value : `${value}.0`});`);
     else if (typeof value === 'string')
-      this.lines.push(`  ps_value *${name} = string_value(${cString(value)}, ${Buffer.byteLength(value, 'utf8')});`);
+      this.lines.push(`  ps_value *${name} = ps_text_value_checked(${cText(value)});`);
     else if (Array.isArray(value)) {
       this.lines.push(`  ps_value *${name} = ps_array_value();`);
       for (const item of value) this.lines.push(`  push(${name}, ${this.emit(item)});`);
     } else {
       this.lines.push(`  ps_value *${name} = ps_object_value();`);
       for (const [key, item] of Object.entries(value))
-        this.lines.push(`  put(${name}, ${cString(key)}, ${this.emit(item)});`);
+        this.lines.push(`  put(${name}, ${cText(key)}, ${this.emit(item)});`);
     }
     return name;
   }
@@ -52,23 +59,89 @@ export class EngineFixtureSource {
 /* Shared C value builders; a program includes only the helpers it calls. */
 const fixtureHelpers = [
   ['put', [
-      'static void put(ps_value *object, const char *key, ps_value *value)',
-      '{ if (!value || !ps_set(object, key, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
+      'static void put(ps_value *object, ps_text key, ps_value *value)',
+      '{ if (!value || !ps_set_text(object, key, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
   ]],
   ['push', [
       'static void push(ps_value *array, ps_value *value)',
       '{ if (!value || !ps_append(array, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
   ]],
-  ['string_value', [
-      'static ps_value *string_value(const char *text, size_t length)',
-      '{ ps_value *value = ps_value_new(PS_NULL); if (!value || !ps_value_string(value, (const uint8_t *)text, length)) { ps_value_free(value); fputs("fixture string allocation failed\\n", stderr); abort(); } return value; }',,
+  ['ps_text_value_checked', [
+      'static ps_value *ps_text_value_checked(ps_text text)',
+      '{ ps_value *value = ps_text_value(text); if (!value) { fputs("fixture string allocation failed\\n", stderr); abort(); } return value; }',,
+  ]],
+  ['text_is', [
+      '/* A string value with exactly these bytes. */',
+      'static bool text_is(const ps_value *value, ps_text text)',
+      '{ return value && value->kind == PS_STRING && ps_text_equal(ps_string(value), text); }',,
+  ]],
+  ['print_text', [
+      '/* Write text with every byte, including NUL characters, to standard error. */',
+      'static void print_text(const char *label, ps_text text)',
+      '{ fputs(label, stderr); fwrite(text.bytes, 1, text.length, stderr); fputc(\'\\n\', stderr); }',,
+  ]],
+  ['print_json', [
+      'static void print_json(const char *label, const ps_value *value)',
+      '{ ps_chars json = ps_json_string(value); print_text(label, json.bytes ? ps_view(json) : PS_TEXT("null")); free(json.bytes); }',,
   ]],
 ];
 
+/*
+ * Per-case results of a fixture program. A program that reports cases declares
+ * `int failed = 0;` first (caseProgramStart), runs each case in its own block that sets
+ * `ok = 0` on a mismatch instead of returning, prints `crudui-case <id> pass|fail` with
+ * caseReport and ends with caseProgramEnd, which exits with the first failing case id.
+ */
+const caseProgramStart = ['  int failed = 0;'];
+const caseProgramEnd = ['  return failed;'];
+function caseReport(id) {
+  return [
+    `  printf("crudui-case ${id} %s\\n", ok ? "pass" : "fail"); fflush(stdout);`,
+    `  if (!ok && !failed) failed = ${id};`,
+  ];
+}
+
+/**
+ * Case results printed by a fixture program: id to passed. A case reported more than once
+ * passes only when every report passed.
+ */
+export function caseResults(stdout) {
+  const results = new Map();
+  for (const [, id, state] of stdout.matchAll(/^crudui-case (\d+) (pass|fail)$/gm)) {
+    results.set(Number(id), (results.get(Number(id)) ?? true) && state === 'pass');
+  }
+  return results;
+}
+
+/**
+ * Record php-native conformance evidence for the cases of a fixture program. A case the
+ * program did not report, because compilation failed or the program stopped, did not pass.
+ */
+function recordCases(cases, stdout) {
+  const results = caseResults(stdout);
+  cases.forEach(({ features, fixture, name }, index) => {
+    const passed = results.get(index + 1) === true;
+    for (const feature of features) {
+      recordConformance({ feature, fixture, runtime: 'php-native', case: name, passed });
+    }
+  });
+}
+
 export function fixtureProgram(body, declarations = []) {
-  const source = [...declarations, ...body].join('\n');
+  // A helper is included when the program or an included helper calls it.
+  let used = [...declarations, ...body].join('\n');
+  const included = new Set();
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const [name, lines] of fixtureHelpers) {
+      if (included.has(name) || !new RegExp(`\\b${name}\\(`).test(used)) continue;
+      included.add(name);
+      used += `\n${lines.join('\n')}`;
+      changed = true;
+    }
+  }
   const helpers = fixtureHelpers
-    .filter(([name]) => new RegExp(`\\b${name}\\(`).test(source))
+    .filter(([name]) => included.has(name))
     .flatMap(([, lines]) => lines);
   return [
     '#include "engine_internal.h"',
@@ -128,7 +201,7 @@ function runStep(label, command, args, { signal, env } = {}) {
 }
 
 export async function compileAndRunEngineFixture({ root, directory, source, sources, name,
-  compilerFlags = [], runEnvironment, signal }) {
+  compilerFlags = [], runEnvironment, signal, onOutput }) {
   const fixtureSource = path.join(directory, `${name}.c`);
   const executable = path.join(directory, name);
   await writeFile(fixtureSource, source);
@@ -144,6 +217,7 @@ export async function compileAndRunEngineFixture({ root, directory, source, sour
   assert.equal(compile.status, 0, compile.stderr || compile.stdout);
   const run = await runStep(`${name}: running`, executable, [],
     { signal, env: runEnvironment ?? process.env });
+  onOutput?.(run.stdout);
   assert.equal(run.signal, null, run.stderr || run.stdout);
   assert.equal(run.status, 0, run.stderr || run.stdout);
 }
@@ -167,10 +241,10 @@ function sourceForFixtures() {
     const options = builder.emit(request.options);
     lines.push(`  ps_result actual = ps_compile_form(${spec}, ${options});`);
     if (expectedError) {
-      lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(expectedError.code)})) { fputs(${cString(`${fixture.name}: error differs\n`)}, stderr); return ${index + 1}; }`);
+      lines.push(`  if (actual.value || !actual.error || !text_is(ps_get(actual.error, "code"), ${cText(expectedError.code)})) { print_text("error differs: ", ${cText(fixture.name)}); return ${index + 1}; }`);
     } else {
       const value = builder.emit(expected);
-      lines.push(`  if (!actual.value || actual.error || !ps_equal(actual.value, ${value})) { fputs(${cString(`${fixture.name}: template differs\n`)}, stderr); return ${index + 1}; }`);
+      lines.push(`  if (!actual.value || actual.error || !ps_equal(actual.value, ${value})) { print_text("template differs: ", ${cText(fixture.name)}); return ${index + 1}; }`);
       lines.push(`  ps_value_free(${value});`);
     }
     lines.push(`  ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${spec}); ps_value_free(${options});`, '  }');
@@ -179,7 +253,7 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 92,
+  assert.equal(fixtures.length, 93,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
@@ -202,24 +276,28 @@ function sourceForCases() {
   const builder = new EngineFixtureSource();
   const { lines } = builder;
 
+  lines.push(...caseProgramStart);
   cases.forEach((fixture, index) => {
     lines.push('  {');
     lines.push(`  /* ${fixture.name} */`);
+    lines.push('  int ok = 1;');
     const entry = builder.emit(fixture.input.entry);
     const files = builder.emit(fixture.input.files ?? {});
     lines.push('  ps_value *error = NULL;');
     const operation = fixture.input.kind === 'spec' ? 'ps_compose_spec' : 'ps_compose_properties';
-    lines.push(`  ps_value *actual = ${operation}(${entry}, ${files}, ${cString(fixture.input.basepath ?? '')}, &error);`);
+    lines.push(`  ps_value *actual = ${operation}(${entry}, ${files}, ${cText(fixture.input.basepath ?? '')}, &error);`);
     if (fixture.expected) {
       const expected = builder.emit(fixture.expected);
-      lines.push(`  if (!actual || error || !ps_equal(actual, ${expected})) { fprintf(stderr, ${cString(`${fixture.name}: composed result differs\n`)}); return ${index + 1}; }`);
+      lines.push(`  if (!actual || error || !ps_equal(actual, ${expected})) { ok = 0; print_text("composed result differs: ", ${cText(fixture.name)}); }`);
       lines.push(`  ps_value_free(${expected});`);
     } else {
-      lines.push(`  if (actual || !error || !ps_is_string(ps_get(error, "code"), ${cString(fixture.expectError.code)})) { fprintf(stderr, ${cString(`${fixture.name}: error differs\n`)}); return ${index + 1}; }`);
+      lines.push(`  if (actual || !error || !text_is(ps_get(error, "code"), ${cText(fixture.expectError.code)})) { ok = 0; print_text("error differs: ", ${cText(fixture.name)}); }`);
     }
     lines.push(`  ps_value_free(actual); ps_value_free(error); ps_value_free(${entry}); ps_value_free(${files});`);
+    lines.push(...caseReport(index + 1));
     lines.push('  }');
   });
+  lines.push(...caseProgramEnd);
   return fixtureProgram(lines);
 }
 
@@ -229,7 +307,7 @@ function sourceForInvalidReference() {
   const files = builder.emit({});
   builder.lines.push(
     '  ps_value *error = NULL;',
-    `  ps_value *actual = ps_compose_properties(${entry}, ${files}, "", &error);`,
+    `  ps_value *actual = ps_compose_properties(${entry}, ${files}, PS_TEXT(""), &error);`,
     '  if (actual || !error ||',
     '      !ps_is_string(ps_get(error, "code"), "REF_VALUE_TYPE")) return 1;',
     '  ps_value_free(error);',
@@ -242,12 +320,17 @@ test('PHP extension engine satisfies all composition fixtures', { timeout: ENGIN
   assert.equal(cases.length, 20,
     'Review C composition coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compose-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForCases(), name: 'compose-fixtures',
       sources: ['value.c', 'engine_error.c', 'compose.c'],
+      onOutput: stdout => { output = stdout; },
     });
   } finally {
+    recordCases(cases.map(fixture => ({
+      features: ['compileForm'], fixture: 'tests/fixtures/compose/cases.json', name: fixture.name,
+    })), output);
     await rm(directory, { recursive: true, force: true });
   }
 });
@@ -274,30 +357,34 @@ function sourceForFixtures() {
   const builder = new EngineFixtureSource();
   const { lines } = builder;
   let caseIndex = 0;
-  for (const fixture of fixtures) {
+  lines.push(...caseProgramStart);
+  for (const [fixtureIndex, fixture] of fixtures.entries()) {
     for (const example of fixture.cases) {
       caseIndex += 1;
-      lines.push('  {', `  /* ${fixture.name} */`);
+      lines.push('  {', `  /* ${fixture.name} */`, '  int ok = 1;');
       const data = builder.emit(example.data);
       const expected = builder.emit(example.value);
       const pathItems = example.currentPath ?? [];
       const currentPath = `path${caseIndex}`;
       if (pathItems.length) {
-        lines.push(`  const char *${currentPath}[] = {${pathItems.map(cString).join(', ')}};`);
+        lines.push(`  const ps_text ${currentPath}[] = {${pathItems.map(cText).join(', ')}};`);
       } else {
-        lines.push(`  const char **${currentPath} = NULL;`);
+        lines.push(`  const ps_text *${currentPath} = NULL;`);
       }
       lines.push('  bool parsed_value = false;');
-      lines.push(`  ps_value *actual = ps_expression_value(${cString(fixture.expr)}, ${data}, ${currentPath}, ${pathItems.length}, &parsed_value);`);
+      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, ${currentPath}, ${pathItems.length}, &parsed_value);`);
       lines.push('  bool parsed_truth = false;');
-      lines.push(`  bool truth = ps_expression_truth(${cString(fixture.expr)}, ${data}, ${currentPath}, ${pathItems.length}, &parsed_truth);`);
+      lines.push(`  bool truth = ps_expression_truth(${cText(fixture.expr)}, ${data}, ${currentPath}, ${pathItems.length}, &parsed_truth);`);
       lines.push(`  if (!parsed_value || !parsed_truth || !actual || !ps_equal(actual, ${expected}) || truth != ${example.truthy}) {`);
-      lines.push(`    fputs(${cString(`${fixture.name} case ${caseIndex}: expression result differs\n`)}, stderr); return ${caseIndex};`);
+      lines.push(`    ok = 0; print_text("expression result differs: ", ${cText(`${fixture.name} case ${caseIndex}`)});`);
       lines.push('  }');
       lines.push(`  ps_value_free(actual); ps_value_free(${expected}); ps_value_free(${data});`);
+      // Every example of an entry reports under the entry, which passes only when all do.
+      lines.push(...caseReport(fixtureIndex + 1));
       lines.push('  }');
     }
   }
+  lines.push(...caseProgramEnd);
   return fixtureProgram(lines);
 }
 
@@ -307,12 +394,17 @@ test('PHP extension engine evaluates every shared expression fixture', { timeout
   assert.equal(fixtures.reduce((total, fixture) => total + fixture.cases.length, 0), 77,
     'Review C expression coverage when the shared fixture cases change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-expression-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'expression-fixtures',
       sources: ['value.c', 'value_path.c', 'expression.c'],
+      onOutput: stdout => { output = stdout; },
     });
   } finally {
+    recordCases(fixtures.map(fixture => ({
+      features: ['validate'], fixture: 'tests/fixtures/expr/cases.json', name: fixture.name,
+    })), output);
     await rm(directory, { recursive: true, force: true });
   }
 });
@@ -329,42 +421,126 @@ const listCases = JSON.parse(await readFile(
 const detailCases = JSON.parse(await readFile(
   path.join(root, 'tests/fixtures/detail-validity/cases.json'), 'utf8'));
 
+/* Every pattern or match rule value declared in a specification tree. */
+function patternParameters(value, found = []) {
+  if (!value || typeof value !== 'object') return found;
+  for (const [key, item] of Object.entries(value)) {
+    if (key === 'validate' && item && typeof item === 'object' && !Array.isArray(item)) {
+      for (const rule of ['match', 'pattern']) if (Object.hasOwn(item, rule)) found.push(item[rule]);
+    }
+    patternParameters(item, found);
+  }
+  return found;
+}
+
+/* Every scalar in a data tree: the values a pattern rule can receive. */
+function scalarValues(value, found = []) {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') found.push(value);
+  else if (value && typeof value === 'object') for (const item of Object.values(value)) scalarValues(item, found);
+  return found;
+}
+
+/*
+ * The pattern rule results of the pure PHP library (CRUDUI\Validator\Rules\Pattern) for every
+ * parameter and value pair. The engine delegates the rule to its host; the fixture programs
+ * answer it from this table and fail on any input the table does not hold.
+ */
+function libraryPatternResults(pairs) {
+  if (!pairs.length) return [];
+  const autoload = path.join(root, 'packages/validator-php/vendor/autoload.php');
+  const script = [
+    'require $argv[1];',
+    '$rule = new CRUDUI\\Validator\\Rules\\Pattern();',
+    '$pairs = json_decode(stream_get_contents(STDIN), false, 512, JSON_THROW_ON_ERROR);',
+    'echo json_encode(array_map(fn($pair) => $rule->validate($pair[1], $pair[0], [], ""), $pairs), JSON_THROW_ON_ERROR);',
+  ].join(' ');
+  const result = spawnSync(process.env.PHP ?? 'php',
+    ['-n', '-d', 'display_errors=stderr', '-r', script, autoload],
+    { input: JSON.stringify(pairs), encoding: 'utf8' });
+  assert.equal(result.error, undefined);
+  assert.equal(result.status, 0, result.stderr);
+  const results = JSON.parse(result.stdout);
+  assert.equal(results.length, pairs.length);
+  return results;
+}
+
+function patternRuleDeclarations(count) {
+  return [
+    'typedef struct { ps_value *parameter; ps_value *value; int result; } pattern_case;',
+    `static pattern_case pattern_cases[${count + 1}];`,
+    'static size_t pattern_case_count;',
+    '',
+    'int ps_pattern_rule(const ps_value *value, const ps_value *parameter)',
+    '{',
+    '  for (size_t i = 0; i < pattern_case_count; ++i)',
+    '    if (ps_equal(pattern_cases[i].parameter, parameter) && ps_equal(pattern_cases[i].value, value))',
+    '      return pattern_cases[i].result;',
+    '  fputs("unexpected pattern rule input\\n", stderr);',
+    '  return -1;',
+    '}',
+    '',
+  ];
+}
+
+/** The evidence each validation program case proves, in program order. */
+const validationEvidence = [
+  ...validationCases.map(fixture => ({ features: ['validate'], fixture: 'tests/fixtures/validate/cases.json', name: fixture.name })),
+  ...specCases.map(fixture => ({ features: ['validate'], fixture: 'tests/fixtures/spec-validity/cases.json', name: fixture.name })),
+  ...listCases.map(fixture => ({ features: ['validateList'], fixture: 'tests/fixtures/list-validity/cases.json', name: fixture.name })),
+  ...detailCases.map(fixture => ({ features: ['validateDetail'], fixture: 'tests/fixtures/detail-validity/cases.json', name: fixture.name })),
+];
+
 function sourceForValidation() {
   const builder = new EngineFixtureSource();
   const { lines } = builder;
   let status = 1;
+  lines.push(...caseProgramStart);
+  const pairs = new Map();
+  for (const fixture of validationCases) {
+    const parameters = patternParameters([fixture.spec, fixture.files ?? {}]);
+    for (const parameter of parameters)
+      for (const value of scalarValues(fixture.data))
+        pairs.set(JSON.stringify([parameter, value]), [parameter, value]);
+  }
+  const patternPairs = [...pairs.values()];
+  libraryPatternResults(patternPairs).forEach((passed, index) => {
+    const [parameter, value] = patternPairs[index];
+    const parameterValue = builder.emit(parameter);
+    const valueValue = builder.emit(value);
+    lines.push(`  pattern_cases[pattern_case_count++] = (pattern_case){${parameterValue}, ${valueValue}, ${passed ? 1 : 0}};`);
+  });
 
   const check = ({ name, operation, inputs, expected, error }) => {
-    lines.push('  {', `  /* ${name} */`);
+    lines.push('  {', `  /* ${name} */`, '  int ok = 1;');
     const arguments_ = inputs.map(value => builder.emit(value));
     lines.push(`  ps_result actual = ${operation}(${arguments_.join(', ')});`);
     if (error) {
-      const conditions = [`!ps_is_string(ps_get(actual.error, "code"), ${cString(error.code)})`];
+      const conditions = [`!text_is(ps_get(actual.error, "code"), ${cText(error.code)})`];
       if (error.message !== undefined)
-        conditions.push(`!ps_is_string(ps_get(actual.error, "message"), ${cString(error.message)})`);
+        conditions.push(`!text_is(ps_get(actual.error, "message"), ${cText(error.message)})`);
       if (error.at !== undefined)
-        conditions.push(`!ps_is_string(ps_get(actual.error, "at"), ${cString(error.at)})`);
+        conditions.push(`!text_is(ps_get(actual.error, "at"), ${cText(error.at)})`);
       lines.push(`  if (actual.value || !actual.error || ${conditions.join(' || ')})`);
       lines.push('  {');
-      lines.push(`    fputs(${cString(`${name}: error differs\n`)}, stderr); return ${status};`);
+      lines.push(`    ok = 0; print_text("error differs: ", ${cText(name)});`);
       lines.push('  }');
     } else if (expected !== undefined) {
       const expectedValue = builder.emit(expected);
       lines.push(`  if (!actual.value || actual.error || !ps_equal(actual.value, ${expectedValue})) {`);
-      lines.push(`    char *actual_json = ps_json_string(actual.value);`);
-      lines.push(`    char *expected_json = ps_json_string(${expectedValue});`);
-      lines.push(`    fprintf(stderr, ${cString(`${name}: result differs\nactual: %s\nexpected: %s\n`)}, actual_json ? actual_json : "null", expected_json ? expected_json : "null");`);
-      lines.push('    free(actual_json); free(expected_json);');
-      lines.push(`    return ${status};`);
+      lines.push(`    print_text("result differs: ", ${cText(name)});`);
+      lines.push('    print_json("actual: ", actual.value);');
+      lines.push(`    print_json("expected: ", ${expectedValue});`);
+      lines.push('    ok = 0;');
       lines.push('  }');
       lines.push(`  ps_value_free(${expectedValue});`);
     } else {
       lines.push('  if (!actual.value || actual.error) {');
-      lines.push(`    fputs(${cString(`${name}: operation failed\n`)}, stderr); return ${status};`);
+      lines.push(`    ok = 0; print_text("operation failed: ", ${cText(name)});`);
       lines.push('  }');
     }
     lines.push('  ps_value_free(actual.value); ps_value_free(actual.error);');
-    lines.push(...arguments_.map(value => `  ps_value_free(${value});`), '  }');
+    lines.push(...arguments_.map(value => `  ps_value_free(${value});`));
+    lines.push(...caseReport(status), '  }');
     status += 1;
   };
 
@@ -407,13 +583,16 @@ function sourceForValidation() {
       });
     }
   }
-  return fixtureProgram(lines);
+  lines.push('  for (size_t i = 0; i < pattern_case_count; ++i) { ps_value_free(pattern_cases[i].parameter); ps_value_free(pattern_cases[i].value); }');
+  lines.push(...caseProgramEnd);
+  return fixtureProgram(lines, patternRuleDeclarations(patternPairs.length));
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 115,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation',
@@ -421,8 +600,10 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', 'validation.c',
       ],
+      onOutput: stdout => { output = stdout; },
     });
   } finally {
+    recordCases(validationEvidence, output);
     await rm(directory, { recursive: true, force: true });
   }
 });
@@ -496,9 +677,16 @@ function sourceForValidationAllocationFailures() {
     '#include <ctype.h>',
     '#include <errno.h>',
     '#include <math.h>',
-    '#include <regex.h>',
     '#include <strings.h>',
     '#include <time.h>',
+    '',
+    '/* The specifications of this program declare no pattern rule. */',
+    'int ps_pattern_rule(const ps_value *value, const ps_value *parameter)',
+    '{',
+    '  (void)value; (void)parameter;',
+    '  fputs("unexpected pattern rule input\\n", stderr);',
+    '  return -1;',
+    '}',
     '',
     'static size_t validation_allocation_index;',
     'static size_t validation_fail_at;',
@@ -604,16 +792,16 @@ function sourceForFixtures() {
     lines.push(`  ps_value *data_before = ps_value_clone(${dataValue});`);
     lines.push(`  ps_result actual = ps_bind_form(${templateValue}, ${dataValue}, ${optionsValue});`);
     if (expectedError) {
-      lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(expectedError.code)}) || !ps_is_string(ps_get(actual.error, "at"), ${cString(expectedError.at)})) { fputs(${cString(`${fixture.name}: error differs\n`)}, stderr); return ${index + 1}; }`);
+      lines.push(`  if (actual.value || !actual.error || !text_is(ps_get(actual.error, "code"), ${cText(expectedError.code)}) || !text_is(ps_get(actual.error, "at"), ${cText(expectedError.at)})) { print_text("error differs: ", ${cText(fixture.name)}); return ${index + 1}; }`);
     } else {
       const expectedValue = builder.emit(expected);
       lines.push(`  if (!actual.value || actual.error || !ps_equal(actual.value, ${expectedValue})) {`);
-      lines.push(`    char *actual_json = ps_json_string(actual.value); char *expected_json = ps_json_string(${expectedValue});`);
-      lines.push(`    fprintf(stderr, ${cString(`${fixture.name}: fields differ\nactual: %s\nexpected: %s\n`)}, actual_json ? actual_json : "null", expected_json ? expected_json : "null");`);
-      lines.push(`    free(actual_json); free(expected_json); return ${index + 1}; }`);
+      lines.push(`    print_text("fields differ: ", ${cText(fixture.name)});`);
+      lines.push(`    print_json("actual: ", actual.value); print_json("expected: ", ${expectedValue});`);
+      lines.push(`    return ${index + 1}; }`);
       lines.push(`  ps_value_free(${expectedValue});`);
     }
-    lines.push(`  if (!ps_equal(${templateValue}, template_before) || !ps_equal(${dataValue}, data_before)) { fputs(${cString(`${fixture.name}: input changed\n`)}, stderr); return ${index + 1}; }`);
+    lines.push(`  if (!ps_equal(${templateValue}, template_before) || !ps_equal(${dataValue}, data_before)) { print_text("input changed: ", ${cText(fixture.name)}); return ${index + 1}; }`);
     lines.push(`  ps_value_free(template_before); ps_value_free(data_before); ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
   });
   const template = dispatch({ operation: 'compileForm', spec: { type: 'group', properties: { name: { type: 'text' } } }, options: {} });
@@ -634,16 +822,16 @@ function sourceForFixtures() {
     const dataValue = builder.emit({});
     const optionsValue = builder.emit(options);
     lines.push(`  ps_result actual = ps_bind_form(${templateValue}, ${dataValue}, ${optionsValue});`);
-    lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(languageError.code)}) || !ps_is_string(ps_get(actual.error, "message"), ${cString(languageError.message)}) || !ps_is_string(ps_get(actual.error, "at"), "")) { fputs(${cString(`option-rejection-${index}: error differs\n`)}, stderr); return ${bindFixtures.length + 1 + index}; }`);
+    lines.push(`  if (actual.value || !actual.error || !text_is(ps_get(actual.error, "code"), ${cText(languageError.code)}) || !text_is(ps_get(actual.error, "message"), ${cText(languageError.message)}) || !text_is(ps_get(actual.error, "at"), PS_TEXT(""))) { print_text("error differs: ", ${cText(`option-rejection-${index}`)}); return ${bindFixtures.length + 1 + index}; }`);
     lines.push(`  ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
   });
   return fixtureProgram(lines);
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 92,
+  assert.equal(fixtures.length, 93,
     'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 91,
+  assert.equal(bindFixtures.length, 92,
     'Review C binding coverage when compilation error fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
@@ -689,14 +877,14 @@ function sourceForWidgetConstructionFailure() {
   const data = builder.emit({});
   const options = builder.emit({});
   const declarations = [
-    'bool ps_widget_supported(const char *type)',
+    'bool ps_widget_supported(ps_text type)',
     '{',
-    '  return !strcmp(type, "text");',
+    '  return ps_text_is(type, "text");',
     '}',
     '',
     'ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,',
-    '                    const char *path, const ps_value *design, const char *key_prefix,',
-    '                    const char *id_prefix, const char *language,',
+    '                    ps_text path, const ps_value *design, ps_text key_prefix,',
+    '                    ps_text id_prefix, ps_text language,',
     '                    const size_t *row_segments, size_t row_count)',
     '{',
     '  (void)spec; (void)value; (void)value_present; (void)path; (void)design;',
@@ -794,20 +982,21 @@ function sourceForFixtures() {
     lines.push(`  ps_result fields = ps_bind_form(${templateValue}, ${dataValue}, ${optionsValue});`);
     lines.push('  if (!fields.value || fields.error) { fputs("binding failed\\n", stderr); return 1; }');
     lines.push('  ps_value *fields_before = ps_value_clone(fields.value);');
-    lines.push('  char *actual = ps_render_fields(fields.value);');
-    lines.push(`  if (!actual || strcmp(actual, ${cString(expectedHtml)}) != 0) {`);
-    lines.push(`    fprintf(stderr, ${cString(`${fixture.name}: HTML differs\nactual: %s\nexpected: %s\n`)}, actual ? actual : "null", ${cString(expectedHtml)});`);
-    lines.push(`    free(actual); return ${index + 1}; }`);
-    lines.push(`  if (!fields_before || !ps_equal(fields.value, fields_before)) { fputs(${cString(`${fixture.name}: fields changed\n`)}, stderr); return ${index + 1}; }`);
-    lines.push(`  free(actual); ps_value_free(fields_before); ps_value_free(fields.value); ps_value_free(fields.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
+    lines.push('  ps_chars actual = ps_render_fields(fields.value);');
+    lines.push(`  if (!actual.bytes || !ps_text_equal(ps_view(actual), ${cText(expectedHtml)})) {`);
+    lines.push(`    print_text("HTML differs: ", ${cText(fixture.name)});`);
+    lines.push(`    print_text("actual: ", actual.bytes ? ps_view(actual) : PS_TEXT("null")); print_text("expected: ", ${cText(expectedHtml)});`);
+    lines.push(`    free(actual.bytes); return ${index + 1}; }`);
+    lines.push(`  if (!fields_before || !ps_equal(fields.value, fields_before)) { print_text("fields changed: ", ${cText(fixture.name)}); return ${index + 1}; }`);
+    lines.push(`  free(actual.bytes); ps_value_free(fields_before); ps_value_free(fields.value); ps_value_free(fields.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
   });
   return fixtureProgram(lines);
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 92,
+  assert.equal(fixtures.length, 93,
     'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 90,
+  assert.equal(renderFixtures.length, 91,
     'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {
@@ -897,13 +1086,14 @@ function sourceForFixtures() {
     lines.push(`  ps_value *options_before = ps_value_clone(${optionsValue});`);
     lines.push(`  ps_result actual = ps_render_list(${specValue}, ${rowsValue}, ${optionsValue});`);
     if (expectedError) {
-      lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(expectedError.code)}) || !ps_is_string(ps_get(actual.error, "message"), ${cString(expectedError.message)}) || !ps_is_string(ps_get(actual.error, "at"), ${cString(expectedError.at)})) { fputs(${cString(`${fixture.name}: error differs\n`)}, stderr); return ${index + 1}; }`);
+      lines.push(`  if (actual.value || !actual.error || !text_is(ps_get(actual.error, "code"), ${cText(expectedError.code)}) || !text_is(ps_get(actual.error, "message"), ${cText(expectedError.message)}) || !text_is(ps_get(actual.error, "at"), ${cText(expectedError.at)})) { print_text("error differs: ", ${cText(fixture.name)}); return ${index + 1}; }`);
     } else {
-      lines.push(`  if (!actual.value || actual.error || !ps_is_string(actual.value, ${cString(expected)})) {`);
-      lines.push(`    fprintf(stderr, ${cString(`${fixture.name}: HTML differs\nactual: %s\nexpected: %s\n`)}, actual.value ? ps_string(actual.value) : "null", ${cString(expected)});`);
+      lines.push(`  if (!actual.value || actual.error || !text_is(actual.value, ${cText(expected)})) {`);
+      lines.push(`    print_text("HTML differs: ", ${cText(fixture.name)});`);
+      lines.push(`    print_text("actual: ", actual.value ? ps_string(actual.value) : PS_TEXT("null")); print_text("expected: ", ${cText(expected)});`);
       lines.push(`    return ${index + 1}; }`);
     }
-    lines.push(`  if (!spec_before || !rows_before || !options_before || !ps_equal(${specValue}, spec_before) || !ps_equal(${rowsValue}, rows_before) || !ps_equal(${optionsValue}, options_before)) { fputs(${cString(`${fixture.name}: input changed\n`)}, stderr); return ${index + 1}; }`);
+    lines.push(`  if (!spec_before || !rows_before || !options_before || !ps_equal(${specValue}, spec_before) || !ps_equal(${rowsValue}, rows_before) || !ps_equal(${optionsValue}, options_before)) { print_text("input changed: ", ${cText(fixture.name)}); return ${index + 1}; }`);
     lines.push(`  ps_value_free(spec_before); ps_value_free(rows_before); ps_value_free(options_before); ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${specValue}); ps_value_free(${rowsValue}); ps_value_free(${optionsValue});`, '  }');
   });
   return fixtureProgram(lines);
@@ -915,7 +1105,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 42,
+  assert.equal(fixtures.length, 58,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -987,23 +1177,24 @@ function sourceForFixtures() {
       lines.push(...inputs.map(value => `  ps_value *${value}_before = ps_value_clone(${value});`));
       lines.push(`  ps_result actual = ps_${operation}_detail(${inputs.join(', ')});`);
       if (error) {
-        lines.push(`  if (actual.value || !actual.error || !ps_is_string(ps_get(actual.error, "code"), ${cString(error.code)}) || !ps_is_string(ps_get(actual.error, "message"), ${cString(error.message)}) || !ps_is_string(ps_get(actual.error, "at"), ${cString(error.at)})) { fputs(${cString(`${name}: error differs\n`)}, stderr); return ${status}; }`);
+        lines.push(`  if (actual.value || !actual.error || !text_is(ps_get(actual.error, "code"), ${cText(error.code)}) || !text_is(ps_get(actual.error, "message"), ${cText(error.message)}) || !text_is(ps_get(actual.error, "at"), ${cText(error.at)})) { print_text("error differs: ", ${cText(name)}); return ${status}; }`);
       } else if (operation === 'render') {
-        lines.push(`  if (!actual.value || actual.error || !ps_is_string(actual.value, ${cString(expected)})) {`);
-        lines.push(`    fprintf(stderr, ${cString(`${name}: HTML differs\nactual: %s\nexpected: %s\n`)}, actual.value ? ps_string(actual.value) : "null", ${cString(expected)});`);
+        lines.push(`  if (!actual.value || actual.error || !text_is(actual.value, ${cText(expected)})) {`);
+        lines.push(`    print_text("HTML differs: ", ${cText(name)});`);
+        lines.push(`    print_text("actual: ", actual.value ? ps_string(actual.value) : PS_TEXT("null")); print_text("expected: ", ${cText(expected)});`);
         lines.push(`    return ${status}; }`);
       } else {
         const expectedValue = builder.emit(expected);
         lines.push(`  if (!actual.value || actual.error || !ps_equal(actual.value, ${expectedValue})) {`);
-        lines.push(`    char *actual_json = ps_json_string(actual.value); char *expected_json = ps_json_string(${expectedValue});`);
-        lines.push(`    fprintf(stderr, ${cString(`${name}: model differs\nactual: %s\nexpected: %s\n`)}, actual_json ? actual_json : "null", expected_json ? expected_json : "null");`);
-        lines.push(`    free(actual_json); free(expected_json); return ${status}; }`);
-        lines.push(`  if (!member_order(actual.value, (const char *[]){"fields", "design"}, 2)) { fputs(${cString(`${name}: model member order differs\n`)}, stderr); return ${status}; }`);
+        lines.push(`    print_text("model differs: ", ${cText(name)});`);
+        lines.push(`    print_json("actual: ", actual.value); print_json("expected: ", ${expectedValue});`);
+        lines.push(`    return ${status}; }`);
+        lines.push(`  if (!member_order(actual.value, (const char *[]){"fields", "design"}, 2)) { print_text("model member order differs: ", ${cText(name)}); return ${status}; }`);
         lines.push(`  for (size_t i = 0; i < ps_size(ps_get(actual.value, "fields")); ++i)`);
-        lines.push(`    if (!member_order(ps_at(ps_get(actual.value, "fields"), i), (const char *[]){${fieldMembers.map(cString).join(', ')}}, ${fieldMembers.length})) { fputs(${cString(`${name}: field member order differs\n`)}, stderr); return ${status}; }`);
+        lines.push(`    if (!member_order(ps_at(ps_get(actual.value, "fields"), i), (const char *[]){${fieldMembers.map(cString).join(', ')}}, ${fieldMembers.length})) { print_text("field member order differs: ", ${cText(name)}); return ${status}; }`);
         lines.push(`  ps_value_free(${expectedValue});`);
       }
-      lines.push(`  if (${inputs.map(value => `!ps_equal(${value}, ${value}_before)`).join(' || ')}) { fputs(${cString(`${name}: input changed\n`)}, stderr); return ${status}; }`);
+      lines.push(`  if (${inputs.map(value => `!ps_equal(${value}, ${value}_before)`).join(' || ')}) { print_text("input changed: ", ${cText(name)}); return ${status}; }`);
       lines.push(`  ps_value_free(actual.value); ps_value_free(actual.error);`);
       lines.push(...inputs.map(value => `  ps_value_free(${value}); ps_value_free(${value}_before);`), '  }');
       status += 1;
@@ -1013,7 +1204,7 @@ function sourceForFixtures() {
     'static bool member_order(const ps_value *object, const char *const *keys, size_t count)',
     '{',
     '  if (!object || ps_size(object) != count) return false;',
-    '  for (size_t i = 0; i < count; ++i) if (strcmp(ps_key_at(object, i), keys[i])) return false;',
+    '  for (size_t i = 0; i < count; ++i) if (!ps_text_is(ps_key(object, i), keys[i])) return false;',
     '  return true;',
     '}',
     '',
@@ -1026,7 +1217,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 30,
+  assert.equal(fixtures.length, 31,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);
@@ -1089,7 +1280,7 @@ function sourceForKeys() {
     '    result = ps_create_key();',
     '    if (result.error || !result.value || result.value->kind != PS_STRING ||',
     '        result.value->data.string.length != 17) return 4;',
-    '    const char *key = ps_string(result.value);',
+    '    const char *key = ps_string(result.value).bytes;',
     "    if (key[0] != '_' || key[1] != '_' || key[15] != '_' || key[16] != '_') return 5;",
     "    for (size_t j = 2; j < 15; ++j)",
     "      if (!((key[j] >= '0' && key[j] <= '9') ||",
@@ -1175,7 +1366,7 @@ function sourceForFormState() {
     '  if (result.error || !result.value || result.value->kind != PS_NULL) return 4;',
     '  ps_value_free(result.value);',
     '  ps_value *copy_options = ps_object_value();',
-    '  put(copy_options, "key", ps_string_value("store_copy"));',
+    '  put(copy_options, PS_TEXT("key"), ps_string_value("store_copy"));',
     '  args = ps_array_value();',
     '  push(args, ps_string_value("companies.row_a.stores"));',
     '  push(args, ps_string_value("store_a"));',
@@ -1184,11 +1375,11 @@ function sourceForFormState() {
     '  if (result.error || !ps_is_string(result.value, "store_copy")) return 5;',
     '  ps_value_free(result.value);',
     '  result = ps_form_read(form, 1);',
-    '  const ps_value *copied = ps_path(result.value, "companies.row_a.stores.store_copy");',
+    '  const ps_value *copied = ps_path(result.value, PS_TEXT("companies.row_a.stores.store_copy"));',
     '  const ps_value *departments = copied ? ps_get(copied, "departments") : NULL;',
     '  if (!copied || !ps_is_string(ps_get(copied, "name"), "Changed") ||',
     '      !departments || departments->kind != PS_OBJECT || ps_size(departments) != 1 ||',
-    '      !strcmp(ps_key_at(departments, 0), "dept_a")) return 6;',
+    '      ps_text_is(ps_key(departments, 0), "dept_a")) return 6;',
     '  ps_value_free(result.value);',
     '  args = ps_array_value();',
     '  push(args, ps_string_value("companies.row_a.stores"));',
@@ -1205,13 +1396,13 @@ function sourceForFormState() {
     '  if (result.error) return 8;',
     '  ps_value_free(result.value);',
     '  result = ps_form_read(form, 1);',
-    '  const ps_value *stores = ps_path(result.value, "companies.row_a.stores");',
-    '  if (!stores || strcmp(ps_key_at(stores, 0), "__0000000000042__")) return 9;',
+    '  const ps_value *stores = ps_path(result.value, PS_TEXT("companies.row_a.stores"));',
+    '  if (!stores || !ps_text_is(ps_key(stores, 0), "__0000000000042__")) return 9;',
     '  ps_value *before = result.value;',
     '  result = ps_form_read(form, 3);',
     '  int64_t revision = result.value->data.integer; ps_value_free(result.value);',
     '  ps_value *duplicate = ps_object_value();',
-    '  put(duplicate, "key", ps_string_value("__0000000000042__"));',
+    '  put(duplicate, PS_TEXT("key"), ps_string_value("__0000000000042__"));',
     '  args = ps_array_value();',
     '  push(args, ps_string_value("companies.row_a.stores")); push(args, duplicate);',
     '  result = ps_form_apply(form, 3, args); ps_value_free(args);',
@@ -1236,11 +1427,11 @@ function sourceForFormState() {
     '  ps_value_free(result.value);',
     '  result = ps_form_read(form, 4);',
     '  if (result.error || !result.value || result.value->kind != PS_STRING ||',
-    '      !strstr(ps_string(result.value),',
-    '              "companies[row_a][stores][__0000000000042__][name]")) return 16;',
+    '      ps_text_find(ps_string(result.value),',
+    '                   PS_TEXT("companies[row_a][stores][__0000000000042__][name]"), 0) == SIZE_MAX) return 16;',
     '  ps_value_free(result.value); ps_form_free(clone); ps_form_free(form);',
     '  ps_value *explicit_empty = ps_object_value();',
-    '  put(explicit_empty, "companies", ps_object_value());',
+    '  put(explicit_empty, PS_TEXT("companies"), ps_object_value());',
     '  created = ps_form_new(compiled.value, explicit_empty, ' + formOptions + ');',
     '  if (created.error || !created.form) return 17;',
     '  result = ps_form_read(created.form, 1);',
@@ -1249,7 +1440,7 @@ function sourceForFormState() {
     '  ps_value_free(result.value); ps_form_free(created.form);',
     '  ps_value_free(explicit_empty);',
     '  ps_value *invalid = ps_object_value();',
-    '  put(invalid, "companies", ps_array_value());',
+    '  put(invalid, PS_TEXT("companies"), ps_array_value());',
     '  created = ps_form_new(compiled.value, invalid, ' + formOptions + ');',
     '  if (created.form || !created.error ||',
     '      !ps_is_string(ps_get(created.error, "code"), "INVALID_FORM_INPUT")) return 19;',

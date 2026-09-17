@@ -50,3 +50,13 @@ test('raw HTML, values and style attributes are never removed for comparison', (
     assert.throws(() => equalState({ ...initial, html }, initial));
   }
 });
+test('a list model has a sort member only when the list declares a sort', () => {
+  const request = { operation: 'buildList' };
+  const model = { columns: [], rows: [], pagination: { enabled: false }, actions: [], empty: '', design: {} };
+  const sorted = { columns: [], rows: [], pagination: { enabled: false }, sort: { field: 'name', dir: 'asc' }, actions: [], empty: '', design: {} };
+  assert.deepEqual(parseCLIResponse(request, result(model)), model);
+  assert.deepEqual(parseCLIResponse(request, result(sorted)), sorted);
+  const { sort, ...rest } = sorted;
+  assert.throws(() => parseCLIResponse(request, result({ sort, ...rest })), /List model members differ/);
+  assert.throws(() => parseCLIResponse(request, result({ ...model, extra: true })), /List model members differ/);
+});

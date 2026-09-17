@@ -5,93 +5,22 @@
 #include <string.h>
 
 typedef struct {
-    char *property;
-    char *value;
+    ps_chars property;
+    ps_chars value;
 } style_declaration;
 
-static bool reserve(ps_html_buffer *out, size_t extra)
+static ps_text trimmed(ps_text text)
 {
-    if (out->failed) return false;
-    if (extra > SIZE_MAX - out->length - 1) { out->failed = true; return false; }
-    size_t needed = out->length + extra + 1;
-    if (needed <= out->capacity) return true;
-    size_t capacity = out->capacity ? out->capacity : 256;
-    while (capacity < needed) {
-        if (capacity > SIZE_MAX / 2) { capacity = needed; break; }
-        capacity *= 2;
-    }
-    char *data = realloc(out->data, capacity);
-    if (!data) { out->failed = true; return false; }
-    out->data = data;
-    out->capacity = capacity;
-    return true;
+    size_t start = 0, end = text.length;
+    while (start < end && isspace((unsigned char)text.bytes[start])) start++;
+    while (end > start && isspace((unsigned char)text.bytes[end - 1])) end--;
+    return ps_text_slice(text, start, end);
 }
 
-bool ps_html_bytes(ps_html_buffer *out, const char *value, size_t length)
+bool ps_html_escaped(ps_html_buffer *out, ps_text value, bool raw)
 {
-    if (!reserve(out, length)) return false;
-    if (length) memcpy(out->data + out->length, value, length);
-    out->length += length;
-    out->data[out->length] = '\0';
-    return true;
-}
-
-bool ps_html_text(ps_html_buffer *out, const char *value)
-{
-    return ps_html_bytes(out, value ? value : "", strlen(value ? value : ""));
-}
-
-bool ps_html_character(ps_html_buffer *out, char value)
-{
-    return ps_html_bytes(out, &value, 1);
-}
-
-char *ps_html_take(ps_html_buffer *out)
-{
-    if (out->failed) { free(out->data); out->data = NULL; return NULL; }
-    if (!out->data) {
-        out->data = calloc(1, 1);
-        if (!out->data) return NULL;
-    }
-    char *result = out->data;
-    out->data = NULL;
-    out->length = out->capacity = 0;
-    return result;
-}
-
-ps_value *ps_html_value(ps_html_buffer *out)
-{
-    if (out->failed) { free(out->data); out->data = NULL; return NULL; }
-    ps_value *value = ps_value_new(PS_STRING);
-    if (!value || !ps_value_string(value, (const uint8_t *)(out->data ? out->data : ""),
-                                   out->length)) {
-        ps_value_free(value);
-        free(out->data);
-        out->data = NULL;
-        return NULL;
-    }
-    free(out->data);
-    out->data = NULL;
-    out->length = out->capacity = 0;
-    return value;
-}
-
-static char *copy_range(const char *start, const char *end)
-{
-    while (start < end && isspace((unsigned char)*start)) start++;
-    while (end > start && isspace((unsigned char)end[-1])) end--;
-    size_t length = (size_t)(end - start);
-    char *copy = malloc(length + 1);
-    if (!copy) return NULL;
-    if (length) memcpy(copy, start, length);
-    copy[length] = '\0';
-    return copy;
-}
-
-bool ps_html_escaped(ps_html_buffer *out, const char *value, size_t length, bool raw)
-{
-    for (size_t i = 0; i < length; ++i) {
-        switch ((unsigned char)value[i]) {
+    for (size_t i = 0; i < value.length; ++i) {
+        switch ((unsigned char)value.bytes[i]) {
             case '&': if (!ps_html_text(out, "&amp;")) return false; break;
             case '<': if (!ps_html_text(out, "&lt;")) return false; break;
             case '>':
@@ -103,94 +32,101 @@ bool ps_html_escaped(ps_html_buffer *out, const char *value, size_t length, bool
                 if (raw) { if (!ps_html_character(out, '\'')) return false; }
                 else if (!ps_html_text(out, "&#x27;")) return false;
                 break;
-            default: if (!ps_html_character(out, value[i])) return false;
+            default: if (!ps_html_character(out, value.bytes[i])) return false;
         }
     }
     return true;
 }
 
-bool ps_html_raw_text(ps_html_buffer *out, const char *value, size_t length)
+bool ps_html_raw_text(ps_html_buffer *out, ps_text value)
 {
-    for (size_t i = 0; i < length; ++i) {
-        if (value[i] == '&') { if (!ps_html_text(out, "&amp;")) return false; }
-        else if (value[i] == '<') { if (!ps_html_text(out, "&lt;")) return false; }
-        else if (value[i] == '>') { if (!ps_html_text(out, "&gt;")) return false; }
-        else if (!ps_html_character(out, value[i])) return false;
+    for (size_t i = 0; i < value.length; ++i) {
+        char c = value.bytes[i];
+        if (c == '&') { if (!ps_html_text(out, "&amp;")) return false; }
+        else if (c == '<') { if (!ps_html_text(out, "&lt;")) return false; }
+        else if (c == '>') { if (!ps_html_text(out, "&gt;")) return false; }
+        else if (!ps_html_character(out, c)) return false;
     }
     return true;
 }
 
-static char *style_property(const char *start, const char *end)
+static ps_chars style_property(ps_text source)
 {
     ps_html_buffer cleaned = {0};
-    for (const char *cursor = start; cursor < end;) {
-        if (cursor + 1 < end && cursor[0] == '/' && cursor[1] == '*') {
-            if (cleaned.length && cleaned.data[cleaned.length - 1] != ' ' &&
-                !ps_html_character(&cleaned, ' ')) return ps_html_take(&cleaned);
+    for (size_t cursor = 0; cursor < source.length;) {
+        if (cursor + 1 < source.length && source.bytes[cursor] == '/' && source.bytes[cursor + 1] == '*') {
+            if (cleaned.length && cleaned.data[cleaned.length - 1] != ' ')
+                ps_html_character(&cleaned, ' ');
             cursor += 2;
-            while (cursor < end && !(cursor + 1 < end && cursor[0] == '*' && cursor[1] == '/'))
+            while (cursor < source.length &&
+                   !(cursor + 1 < source.length && source.bytes[cursor] == '*' && source.bytes[cursor + 1] == '/'))
                 cursor++;
-            if (cursor < end) cursor += 2;
-        } else if (!ps_html_character(&cleaned, *cursor++)) return ps_html_take(&cleaned);
+            if (cursor < source.length) cursor += 2;
+        } else ps_html_character(&cleaned, source.bytes[cursor++]);
     }
-    char *raw = ps_html_take(&cleaned);
-    if (!raw) return NULL;
-    char *trimmed = copy_range(raw, raw + strlen(raw));
-    free(raw);
-    if (!trimmed || !strncmp(trimmed, "--", 2)) return trimmed;
-
+    ps_chars raw = ps_html_take(&cleaned);
+    if (!raw.bytes) return raw;
+    ps_text key = trimmed(ps_view(raw));
+    if (ps_text_starts(key, "--")) {
+        ps_chars custom = ps_copy(key);
+        free(raw.bytes);
+        return custom;
+    }
     ps_html_buffer camel = {0};
-    for (size_t i = 0; trimmed[i]; ++i) {
-        if (trimmed[i] == '-' && trimmed[i + 1] >= 'a' && trimmed[i + 1] <= 'z') {
-            if (!ps_html_character(&camel, (char)toupper((unsigned char)trimmed[++i]))) break;
-        } else if (!ps_html_character(&camel, trimmed[i])) break;
+    for (size_t i = 0; i < key.length; ++i) {
+        if (key.bytes[i] == '-' && i + 1 < key.length && key.bytes[i + 1] >= 'a' && key.bytes[i + 1] <= 'z')
+            ps_html_character(&camel, (char)toupper((unsigned char)key.bytes[++i]));
+        else ps_html_character(&camel, key.bytes[i]);
     }
-    free(trimmed);
-    char *key = ps_html_take(&camel);
-    if (!key) return NULL;
+    free(raw.bytes);
+    ps_chars named = ps_html_take(&camel);
+    if (!named.bytes) return named;
     ps_html_buffer css = {0};
-    for (const char *cursor = key; *cursor; ++cursor) {
-        if (*cursor >= 'A' && *cursor <= 'Z') {
-            if (!ps_html_character(&css, '-') ||
-                !ps_html_character(&css, (char)tolower((unsigned char)*cursor))) break;
-        } else if (!ps_html_character(&css, *cursor)) break;
+    for (size_t i = 0; i < named.length; ++i) {
+        char c = named.bytes[i];
+        if (c >= 'A' && c <= 'Z') {
+            ps_html_character(&css, '-');
+            ps_html_character(&css, (char)tolower((unsigned char)c));
+        } else ps_html_character(&css, c);
     }
-    free(key);
-    char *property = ps_html_take(&css);
-    if (!property) return NULL;
-    if (!strncmp(property, "ms-", 3)) {
-        size_t length = strlen(property);
-        char *prefixed = malloc(length + 2);
-        if (!prefixed) { free(property); return NULL; }
-        prefixed[0] = '-';
-        memcpy(prefixed + 1, property, length + 1);
-        free(property);
-        property = prefixed;
-    }
-    return property;
+    free(named.bytes);
+    ps_chars property = ps_html_take(&css);
+    if (!property.bytes || !ps_text_starts(ps_view(property), "ms-")) return property;
+    ps_chars prefixed = PS_CONCAT(PS_TEXT("-"), ps_view(property));
+    free(property.bytes);
+    return prefixed;
 }
 
-static bool style_finish(const char *end, const char *start, const char *colon,
+static void free_declarations(style_declaration *items, size_t length)
+{
+    for (size_t i = 0; i < length; ++i) {
+        free(items[i].property.bytes);
+        free(items[i].value.bytes);
+    }
+    free(items);
+}
+
+static bool style_finish(ps_text source, size_t end, size_t start, size_t colon,
                          style_declaration **items, size_t *length, size_t *capacity)
 {
-    if (!colon) return true;
-    char *property = style_property(start, colon);
-    char *value = copy_range(colon + 1, end);
-    if (!property || !value) { free(property); free(value); return false; }
-    if (!*property || !*value) { free(property); free(value); return true; }
+    if (colon == SIZE_MAX) return true;
+    ps_chars property = style_property(ps_text_slice(source, start, colon));
+    ps_chars value = ps_copy(trimmed(ps_text_slice(source, colon + 1, end)));
+    if (!property.bytes || !value.bytes) { free(property.bytes); free(value.bytes); return false; }
+    if (!property.length || !value.length) { free(property.bytes); free(value.bytes); return true; }
     for (size_t i = 0; i < *length; ++i) {
-        if (!strcmp((*items)[i].property, property)) {
-            free((*items)[i].value);
+        if (ps_text_equal(ps_view((*items)[i].property), ps_view(property))) {
+            free((*items)[i].value.bytes);
             (*items)[i].value = value;
-            free(property);
+            free(property.bytes);
             return true;
         }
     }
     if (*length == *capacity) {
         size_t next = *capacity ? *capacity * 2 : 4;
-        if (next > SIZE_MAX / sizeof(**items)) { free(property); free(value); return false; }
-        style_declaration *resized = realloc(*items, next * sizeof(**items));
-        if (!resized) { free(property); free(value); return false; }
+        style_declaration *resized = next > SIZE_MAX / sizeof(**items) ? NULL
+            : realloc(*items, next * sizeof(**items));
+        if (!resized) { free(property.bytes); free(value.bytes); return false; }
         *items = resized;
         *capacity = next;
     }
@@ -198,186 +134,176 @@ static bool style_finish(const char *end, const char *start, const char *colon,
     return true;
 }
 
-static char *render_style(const char *source)
+static ps_chars render_style(ps_text source)
 {
     style_declaration *items = NULL;
     size_t length = 0, capacity = 0;
-    const char *start = source, *colon = NULL;
+    size_t start = 0, colon = SIZE_MAX;
     char quote = 0, blocks[128];
     size_t depth = 0;
     bool escaped = false, comment = false;
-    for (const char *cursor = source;; ++cursor) {
-        char current = *cursor, next = current ? cursor[1] : 0;
+    for (size_t cursor = 0;; ++cursor) {
+        bool end = cursor >= source.length;
+        char current = end ? 0 : source.bytes[cursor];
+        bool has_next = cursor + 1 < source.length;
+        char next = has_next ? source.bytes[cursor + 1] : 0;
         if (comment) {
-            if (current == '*' && next == '/') { comment = false; cursor++; }
-            if (!current) break;
+            if (!end && current == '*' && has_next && next == '/') { comment = false; cursor++; }
+            if (end) break;
             continue;
         }
-        if (escaped) { escaped = false; if (!current) break; continue; }
-        if (current == '\\') { escaped = true; continue; }
-        if (quote) { if (current == quote) quote = 0; if (!current) break; continue; }
-        if (current == '/' && next == '*') { comment = true; cursor++; continue; }
-        if (current == '"' || current == '\'') { quote = current; continue; }
-        if (current == '(' || current == '[' || current == '{') {
+        if (escaped) { escaped = false; if (end) break; continue; }
+        if (!end && current == '\\') { escaped = true; continue; }
+        if (quote) { if (!end && current == quote) quote = 0; if (end) break; continue; }
+        if (!end && current == '/' && has_next && next == '*') { comment = true; cursor++; continue; }
+        if (!end && (current == '"' || current == '\'')) { quote = current; continue; }
+        if (!end && (current == '(' || current == '[' || current == '{')) {
             if (depth < sizeof(blocks)) blocks[depth++] = current;
             continue;
         }
-        if (current == ')' || current == ']' || current == '}') {
+        if (!end && (current == ')' || current == ']' || current == '}')) {
             char open = current == ')' ? '(' : current == ']' ? '[' : '{';
             if (depth && blocks[depth - 1] == open) depth--;
             continue;
         }
-        if (!depth && current == ':' && !colon) { colon = cursor; continue; }
-        if ((!depth && current == ';') || !current) {
-            if (!style_finish(cursor, start, colon, &items, &length, &capacity)) goto fail;
+        if (!end && !depth && current == ':' && colon == SIZE_MAX) { colon = cursor; continue; }
+        if ((!end && !depth && current == ';') || end) {
+            if (!style_finish(source, cursor, start, colon, &items, &length, &capacity)) {
+                free_declarations(items, length);
+                return (ps_chars){NULL, 0};
+            }
             start = cursor + 1;
-            colon = NULL;
+            colon = SIZE_MAX;
         }
-        if (!current) break;
+        if (end) break;
     }
     ps_html_buffer out = {0};
     for (size_t i = 0; i < length; ++i) {
-        if ((i && !ps_html_character(&out, ';')) || !ps_html_text(&out, items[i].property) ||
-            !ps_html_character(&out, ':') || !ps_html_text(&out, items[i].value))
-            out.failed = true;
-        free(items[i].property);
-        free(items[i].value);
+        if (i) ps_html_character(&out, ';');
+        ps_html_append(&out, ps_view(items[i].property));
+        ps_html_character(&out, ':');
+        ps_html_append(&out, ps_view(items[i].value));
     }
-    free(items);
+    free_declarations(items, length);
     return ps_html_take(&out);
-fail:
-    for (size_t i = 0; i < length; ++i) {
-        free(items[i].property);
-        free(items[i].value);
-    }
-    free(items);
-    return NULL;
 }
 
-static bool dangerous_url(const char *value, size_t length)
+/* A URL whose scheme is javascript after leading C0 controls and spaces, as React checks it. */
+static bool dangerous_url(ps_text value)
 {
     size_t cursor = 0;
-    while (cursor < length && (unsigned char)value[cursor] <= 0x20) cursor++;
+    while (cursor < value.length && (unsigned char)value.bytes[cursor] <= 0x20) cursor++;
     const char *scheme = "javascript";
     for (size_t i = 0; scheme[i]; ++i) {
         if (i) {
-            while (cursor < length &&
-                   (value[cursor] == '\r' || value[cursor] == '\n' || value[cursor] == '\t'))
+            while (cursor < value.length &&
+                   (value.bytes[cursor] == '\r' || value.bytes[cursor] == '\n' || value.bytes[cursor] == '\t'))
                 cursor++;
         }
-        if (cursor >= length || tolower((unsigned char)value[cursor]) != scheme[i]) return false;
+        if (cursor >= value.length || tolower((unsigned char)value.bytes[cursor]) != scheme[i]) return false;
         cursor++;
     }
-    while (cursor < length &&
-           (value[cursor] == '\r' || value[cursor] == '\n' || value[cursor] == '\t'))
+    while (cursor < value.length &&
+           (value.bytes[cursor] == '\r' || value.bytes[cursor] == '\n' || value.bytes[cursor] == '\t'))
         cursor++;
-    return cursor < length && value[cursor] == ':';
+    return cursor < value.length && value.bytes[cursor] == ':';
 }
 
-static const char *attribute_name(const char *name)
+static ps_text attribute_name(ps_text name)
 {
-    if (!strcmp(name, "autocomplete")) return "autoComplete";
-    if (!strcmp(name, "readonly")) return "readOnly";
-    if (!strcmp(name, "maxlength")) return "maxLength";
-    if (!strcmp(name, "minlength")) return "minLength";
-    if (!strcmp(name, "colspan")) return "colSpan";
-    if (!strcmp(name, "rowspan")) return "rowSpan";
+    if (ps_text_is(name, "autocomplete")) return PS_TEXT("autoComplete");
+    if (ps_text_is(name, "readonly")) return PS_TEXT("readOnly");
+    if (ps_text_is(name, "maxlength")) return PS_TEXT("maxLength");
+    if (ps_text_is(name, "minlength")) return PS_TEXT("minLength");
+    if (ps_text_is(name, "colspan")) return PS_TEXT("colSpan");
+    if (ps_text_is(name, "rowspan")) return PS_TEXT("rowSpan");
     return name;
 }
 
-static bool boolean_attribute(const char *name)
+static bool boolean_attribute(ps_text name)
 {
-    return !strcmp(name, "readonly") || !strcmp(name, "disabled") ||
-        !strcmp(name, "required") || !strcmp(name, "multiple") ||
-        !strcmp(name, "autofocus");
+    return ps_text_is(name, "readonly") || ps_text_is(name, "disabled") ||
+        ps_text_is(name, "required") || ps_text_is(name, "multiple") ||
+        ps_text_is(name, "autofocus");
 }
 
-static bool moved_input_attribute(const char *name)
+static bool moved_input_attribute(ps_text name)
 {
-    return !strcmp(name, "name") || !strcmp(name, "checked") || !strcmp(name, "value");
+    return ps_text_is(name, "name") || ps_text_is(name, "checked") || ps_text_is(name, "value");
 }
 
-static bool append_attribute(ps_html_buffer *out, const char *name,
+static bool append_attribute(ps_html_buffer *out, ps_text name,
                              const ps_value *value, bool raw)
 {
     if (!value || value->kind == PS_NULL) return true;
-    char *owned = NULL, *style = NULL;
-    const char *rendered;
-    size_t length;
-    if (value->kind == PS_STRING) {
-        rendered = value->data.string.bytes;
-        length = value->data.string.length;
-    } else {
+    ps_chars owned = {NULL, 0}, style = {NULL, 0};
+    ps_text rendered;
+    if (value->kind == PS_STRING) rendered = ps_string(value);
+    else {
         owned = ps_scalar_string(value);
-        if (!owned) return false;
-        rendered = owned;
-        length = strlen(owned);
+        if (!owned.bytes) return false;
+        rendered = ps_view(owned);
     }
-    if (!raw && !strcmp(name, "style")) {
-        if (memchr(rendered, '\0', length)) { free(owned); return false; }
+    if (!raw && ps_text_is(name, "style")) {
         style = render_style(rendered);
-        if (!style) { free(owned); return false; }
-        rendered = style;
-        length = strlen(style);
-        if (!length) { free(style); free(owned); return true; }
+        if (!style.bytes) { free(owned.bytes); return false; }
+        rendered = ps_view(style);
+        if (!rendered.length) { free(style.bytes); free(owned.bytes); return true; }
     } else if (!raw && boolean_attribute(name)) {
-        rendered = "";
-        length = 0;
-    } else if (!raw && (!strcmp(name, "href") || !strcmp(name, "src"))) {
-        if (!strcmp(name, "src") && !length) { free(owned); return true; }
-        if (dangerous_url(rendered, length)) {
-            rendered = "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')";
-            length = strlen(rendered);
-        }
+        rendered = PS_TEXT("");
+    } else if (!raw && (ps_text_is(name, "href") || ps_text_is(name, "src"))) {
+        if (ps_text_is(name, "src") && !rendered.length) { free(owned.bytes); return true; }
+        if (dangerous_url(rendered))
+            rendered = PS_TEXT("javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')");
     }
-    bool ok = ps_html_character(out, ' ') && ps_html_text(out, raw ? name : attribute_name(name)) &&
-        ps_html_text(out, "=\"") && ps_html_escaped(out, rendered, length, raw) &&
+    bool ok = ps_html_character(out, ' ') && ps_html_append(out, raw ? name : attribute_name(name)) &&
+        ps_html_text(out, "=\"") && ps_html_escaped(out, rendered, raw) &&
         ps_html_character(out, '"');
-    free(style);
-    free(owned);
+    free(style.bytes);
+    free(owned.bytes);
     return ok;
 }
 
-static bool append_attributes(ps_html_buffer *out, const char *tag,
+static bool append_attributes(ps_html_buffer *out, ps_text tag,
                               const ps_value *attrs, bool raw, bool style_last)
 {
     if (!attrs || attrs->kind != PS_OBJECT) return true;
-    bool input = !raw && !strcmp(tag, "input");
-    bool value_control = !raw && (!strcmp(tag, "select") || !strcmp(tag, "textarea"));
+    bool input = !raw && ps_text_is(tag, "input");
+    bool value_control = !raw && (ps_text_is(tag, "select") || ps_text_is(tag, "textarea"));
     for (size_t i = 0; i < ps_size(attrs); ++i) {
-        const char *name = ps_key_at(attrs, i);
-        if ((input && moved_input_attribute(name)) || (value_control && !strcmp(name, "value")) ||
-            (style_last && !strcmp(name, "style"))) continue;
+        ps_text name = ps_key(attrs, i);
+        if ((input && moved_input_attribute(name)) || (value_control && ps_text_is(name, "value")) ||
+            (style_last && ps_text_is(name, "style"))) continue;
         if (!append_attribute(out, name, ps_at(attrs, i), raw)) return false;
     }
     if (style_last && ps_has(attrs, "style") &&
-        !append_attribute(out, "style", ps_get(attrs, "style"), raw)) return false;
+        !append_attribute(out, PS_TEXT("style"), ps_get(attrs, "style"), raw)) return false;
     if (input) {
-        const char *names[] = {"name", "checked", "value"};
+        static const char *const names[] = {"name", "checked", "value"};
         for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
             if (ps_has(attrs, names[i]) &&
-                !append_attribute(out, names[i], ps_get(attrs, names[i]), false)) return false;
+                !append_attribute(out, ps_fixed(names[i]), ps_get(attrs, names[i]), false)) return false;
     }
     return true;
 }
 
-bool ps_html_void_tag(const char *tag)
+bool ps_html_void_tag(ps_text tag)
 {
-    return !strcmp(tag, "input") || !strcmp(tag, "img") || !strcmp(tag, "br") ||
-        !strcmp(tag, "hr") || !strcmp(tag, "link");
+    return ps_text_is(tag, "input") || ps_text_is(tag, "img") || ps_text_is(tag, "br") ||
+        ps_text_is(tag, "hr") || ps_text_is(tag, "link");
 }
 
-bool ps_html_start_element(ps_html_buffer *out, const char *tag,
+bool ps_html_start_element(ps_html_buffer *out, ps_text tag,
                            const ps_value *attrs, bool raw, bool style_last)
 {
-    return ps_html_character(out, '<') && ps_html_text(out, tag) &&
+    return ps_html_character(out, '<') && ps_html_append(out, tag) &&
         append_attributes(out, tag, attrs, raw, style_last) &&
         ps_html_text(out, !raw && ps_html_void_tag(tag) ? "/>" : ">");
 }
 
-bool ps_html_end_element(ps_html_buffer *out, const char *tag)
+bool ps_html_end_element(ps_html_buffer *out, ps_text tag)
 {
-    return ps_html_void_tag(tag) ? true : ps_html_text(out, "</") && ps_html_text(out, tag) &&
+    return ps_html_void_tag(tag) ? true : ps_html_text(out, "</") && ps_html_append(out, tag) &&
         ps_html_character(out, '>');
 }
 
@@ -386,16 +312,21 @@ bool ps_html_attr_string(ps_value *attrs, const char *name, const char *value)
     return ps_set(attrs, name, ps_string_value(value ? value : ""));
 }
 
+bool ps_html_attr_text(ps_value *attrs, const char *name, ps_text value)
+{
+    return ps_set(attrs, name, ps_text_value(value.bytes ? value : PS_TEXT("")));
+}
+
 bool ps_html_attr_clone(ps_value *attrs, const char *name, const ps_value *value)
 {
     return value && ps_set(attrs, name, ps_value_clone(value));
 }
 
-ps_value *ps_html_appearance_attrs(const char *class_name, const char *style)
+ps_value *ps_html_appearance_attrs(ps_text class_name, ps_text style)
 {
     ps_value *attrs = ps_object_value();
-    if (!attrs || (*class_name && !ps_html_attr_string(attrs, "class", class_name)) ||
-        (*style && !ps_html_attr_string(attrs, "style", style))) {
+    if (!attrs || (class_name.length && !ps_html_attr_text(attrs, "class", class_name)) ||
+        (style.length && !ps_html_attr_text(attrs, "style", style))) {
         ps_value_free(attrs);
         return NULL;
     }

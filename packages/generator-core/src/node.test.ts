@@ -334,6 +334,13 @@ describe('form buttons', () => {
       ['a', 'List', { class: 'crudui-action crudui-action--text', href: '../?a=1&b="2"' }],
     ]);
     expect(formButtonsHtml(buttons.slice(3))).toBe('<a class="crudui-action crudui-action--text" href="../?a=1&amp;b=&quot;2&quot;">List</a>');
+    // Only evaluated buttons are rendered, with one error for any other shape.
+    expect(() => formButtonsHtml({} as never)).toThrow('Form buttons must be a list');
+    const button = buttons[0];
+    for (const invalid of [null, [], { ...button, tag: 'div' }, { ...button, text: 1 }, { ...button, attrs: [] },
+      { ...button, attrs: { onmouseover: 'x' } }, { ...button, attrs: { class: 1 } }]) {
+      expect(() => formButtonsHtml([invalid] as never)).toThrow('Form buttons must be evaluated button objects');
+    }
   });
 
   it('rejects wrong button and action declarations', () => {

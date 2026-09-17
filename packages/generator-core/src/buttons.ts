@@ -1,5 +1,7 @@
 /** Form buttons: the actions a spec declares with root `buttons`, rendered in the form footer. */
 
+import { FormInputError } from '@crudui/validator';
+
 import { makeTranslate, type Language } from './content';
 import { styleString } from './css';
 import { resolveDesign } from './design';
@@ -74,9 +76,24 @@ export function bindButtons(
   });
 }
 
-/** Markup of the form buttons. Every renderer inserts this one string into the footer controls group. */
+/** The attributes a button may carry, in output order. */
+const BUTTON_ATTRIBUTES = new Set(['type', 'class', 'style', 'name', 'value', 'href', 'onclick']);
+
+const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+/**
+ * Markup of the form buttons. Every renderer inserts this one string into the footer controls
+ * group. The buttons are evaluated buttons: a list of objects whose `tag` is `a` or `button`,
+ * whose `text` is a string and whose `attrs` holds string values of the button attributes.
+ */
 export function formButtonsHtml(buttons: readonly ButtonVM[]): string {
-  return buttons.map(button =>
+  if (!Array.isArray(buttons)) throw new FormInputError('Form buttons must be a list');
+  for (const button of buttons as unknown[]) {
+    const evaluated = isObject(button) && (button.tag === 'a' || button.tag === 'button') && typeof button.text === 'string'
+      && isObject(button.attrs) && Object.entries(button.attrs).every(([name, value]) => BUTTON_ATTRIBUTES.has(name) && typeof value === 'string');
+    if (!evaluated) throw new FormInputError('Form buttons must be evaluated button objects');
+  }
+  return (buttons as readonly ButtonVM[]).map(button =>
     `<${button.tag}${Object.entries(button.attrs).map(([name, value]) => ` ${name}="${escAttr(value)}"`).join('')}>` +
     `${escText(button.text)}</${button.tag}>`).join('');
 }

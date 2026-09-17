@@ -26,8 +26,7 @@
         }
     },
     "scripts": {
-        "test": "phpunit",
-        "test:current": "phpunit tests/Compose tests/Expr tests/Validate tests/FieldSpecTest.php"
+        "test": "node ../../scripts/run-tests.mjs phpunit --cwd packages/validator-php"
     },
     "minimum-stability": "stable"
 }

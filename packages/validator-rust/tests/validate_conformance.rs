@@ -7,6 +7,11 @@
 //! errors are compared IN ORDER (declaration / traversal order), key by key:
 //! path, field, rule, message, value. A reorder is a failure.
 
+mod common;
+
+const FEATURE: &str = "validate";
+const FIXTURE: &str = "tests/fixtures/validate/cases.json";
+
 use crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::{json, Map, Value};
 use std::path::{Path, PathBuf};
@@ -70,59 +75,66 @@ fn validate_matches_fixture() {
 
     for case in &cases {
         ran += 1;
-        let name = case.get("name").and_then(Value::as_str).unwrap_or("?");
-        let spec = case.get("spec").expect("case missing spec");
-        let data = case.get("data").cloned().unwrap_or(Value::Null);
+        let name = case
+            .get("name")
+            .and_then(Value::as_str)
+            .unwrap_or_else(|| panic!("fixture case missing name"));
+        failures.extend(common::prove_case(FEATURE, FIXTURE, name, || {
+            let mut failures: Vec<String> = Vec::new();
+            let spec = case.get("spec").expect("case missing spec");
+            let data = case.get("data").cloned().unwrap_or(Value::Null);
 
-        let files = case.get("files").and_then(Value::as_object).cloned();
-        let options = ValidateOptions {
-            files,
-            loader: None,
-            basepath: None,
-        };
+            let files = case.get("files").and_then(Value::as_object).cloned();
+            let options = ValidateOptions {
+                files,
+                loader: None,
+                basepath: None,
+            };
 
-        let result = validate(spec, &data, &options);
+            let result = validate(spec, &data, &options);
 
-        match (case.get("expected"), case.get("expectFailure")) {
-            (Some(expected), None) => match result {
-                Ok(actual) => {
-                    let actual_v = result_to_value(&actual);
-                    if normalize(expected) != normalize(&actual_v) {
-                        failures.push(format!(
-                            "[{}] result mismatch\n  expected: {}\n  actual:   {}",
-                            name, expected, actual_v
-                        ));
+            match (case.get("expected"), case.get("expectFailure")) {
+                (Some(expected), None) => match result {
+                    Ok(actual) => {
+                        let actual_v = result_to_value(&actual);
+                        if normalize(expected) != normalize(&actual_v) {
+                            failures.push(format!(
+                                "[{}] result mismatch\n  expected: {}\n  actual:   {}",
+                                name, expected, actual_v
+                            ));
+                        }
                     }
-                }
-                Err(e) => failures.push(format!(
-                    "[{}] expected validation result but got failure {}: {}",
-                    name,
-                    e.code(),
-                    e.message()
-                )),
-            },
-            (None, Some(expect_failure)) => match result {
-                Ok(actual) => failures.push(format!(
-                    "[{}] expected failure {} but validated successfully: {}",
-                    name,
-                    expect_failure,
-                    result_to_value(&actual)
-                )),
-                Err(e) => {
-                    let got = json!({ "code": e.code(), "message": e.message(), "at": e.at() });
-                    if &got != expect_failure {
-                        failures.push(format!(
-                            "[{}] failure mismatch\n  expected: {}\n  actual:   {}",
-                            name, expect_failure, got
-                        ));
+                    Err(e) => failures.push(format!(
+                        "[{}] expected validation result but got failure {}: {}",
+                        name,
+                        e.code(),
+                        e.message()
+                    )),
+                },
+                (None, Some(expect_failure)) => match result {
+                    Ok(actual) => failures.push(format!(
+                        "[{}] expected failure {} but validated successfully: {}",
+                        name,
+                        expect_failure,
+                        result_to_value(&actual)
+                    )),
+                    Err(e) => {
+                        let got = json!({ "code": e.code(), "message": e.message(), "at": e.at() });
+                        if &got != expect_failure {
+                            failures.push(format!(
+                                "[{}] failure mismatch\n  expected: {}\n  actual:   {}",
+                                name, expect_failure, got
+                            ));
+                        }
                     }
-                }
-            },
-            _ => failures.push(format!(
-                "[{}] case must declare exactly one of expected/expectFailure",
-                name
-            )),
-        }
+                },
+                _ => failures.push(format!(
+                    "[{}] case must declare exactly one of expected/expectFailure",
+                    name
+                )),
+            }
+            failures
+        }));
     }
 
     assert!(ran > 0, "no validate fixture cases were loaded");

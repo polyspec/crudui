@@ -12,6 +12,7 @@ import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { renderDataPanel, renderOutlineView } from './index';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
 
 interface OutlineCase {
   name: string;
@@ -19,6 +20,7 @@ interface OutlineCase {
   data: Record<string, unknown>;
   options: { language: string };
   canUndo: boolean;
+  canRedo: boolean;
   expected_outline_html: string;
   expected_data_html: string;
 }
@@ -27,12 +29,14 @@ const cases = JSON.parse(readFileSync(new URL('../../../tests/fixtures/form-outl
 
 describe('structure map and data view: HTML reproduces the fixture', () => {
   for (const c of cases) {
-    test(c.name, () => {
+    test(c.name, () => provesConformance({
+      features: ['buildOutline'], fixture: 'tests/fixtures/form-outline/cases.json', runtime: 'javascript-html', case: c.name,
+    }, () => {
       const messages = formMessages(c.options.language);
       const fields = bindForm(compileForm(c.spec), c.data, c.options as never);
-      const state = { fields, canUndo: c.canUndo };
+      const state = { fields, canUndo: c.canUndo, canRedo: c.canRedo };
       expect(normalizeHtml(renderOutlineView(state, messages))).toBe(c.expected_outline_html);
       expect(normalizeHtml(renderDataPanel(c.data, messages))).toBe(c.expected_data_html);
-    });
+    }));
   }
 });

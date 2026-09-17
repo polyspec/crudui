@@ -7,7 +7,7 @@ PHP에서 명세를 합성하고, 표현식을 평가하고, 데이터를 검증
 ```sh
 composer install --working-dir=packages/validator-php
 composer test --working-dir=packages/validator-php
-composer test:current --working-dir=packages/validator-php
+composer test --working-dir=packages/validator-php
 ```
 
 ## 공개 API
@@ -77,6 +77,6 @@ CLI는 검증 전에 요청을 다음 순서로 검사합니다. 처음 실패�
 `{ "error" }`를 출력하고 종료 코드 1로 종료합니다. 모든 언어의 CLI가 이 계약을
 사용합니다.
 
-`composer test:current`는 합성, 표현식, 현재 검증과 필드 모델 검사를 실행합니다.
-`composer test`는 유지하는 레거시 규칙 검사와 공개 심볼 문서 검사도 실행합니다.
+`composer test`는 저장소 테스트 실행기로 합성, 표현식, 현재 검증, 필드 모델, 레거시 규칙,
+공개 심볼 문서 검사를 실행하며 모든 테스트를 경과 시간과 함께 출력합니다.
 [기능 상태](../../docs/features.ko.md)는 현재 검증과 게시 상태를 구분하여 기록합니다.

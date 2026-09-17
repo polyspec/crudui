@@ -12,6 +12,11 @@
 //!   { name, note, spec, files?, expect: "ok" }
 //!   { name, note, spec, files?, expect: { error_code, at_path } }
 
+mod common;
+
+const FEATURE: &str = "validate";
+const FIXTURE: &str = "tests/fixtures/spec-validity/cases.json";
+
 use crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -67,50 +72,57 @@ fn spec_validity_matches_fixture() {
 
     for case in &cases {
         ran += 1;
-        let name = case.get("name").and_then(Value::as_str).unwrap_or("?");
-        let engine = case.get("engine").expect("case missing engine");
+        let name = case
+            .get("name")
+            .and_then(Value::as_str)
+            .unwrap_or_else(|| panic!("fixture case missing name"));
+        failures.extend(common::prove_case(FEATURE, FIXTURE, name, || {
+            let mut failures: Vec<String> = Vec::new();
+            let engine = case.get("engine").expect("case missing engine");
 
-        let result = run(case);
+            let result = run(case);
 
-        match engine {
-            // "pass" — no load failure and { valid: true, errors: [] }.
-            Value::String(s) if s == "pass" => match result {
-                Ok((true, 0)) => {}
-                Ok((valid, errors)) => failures.push(format!(
-                    "[{}] engine:\"pass\" but valid={} with {} error(s)",
-                    name, valid, errors
-                )),
-                Err(got) => failures.push(format!(
-                    "[{}] engine:\"pass\" but got load error: {}",
-                    name, got
-                )),
-            },
-            // { code, at } — must be a LOAD ERROR with that exact code AND that
-            // exact dotted path (depth is load-bearing).
-            Value::Object(want) => {
-                let code = want.get("code").and_then(Value::as_str).unwrap_or("?");
-                let at = want.get("at").and_then(Value::as_str).unwrap_or("?");
-                let expected = format!("{}|{}", code, at);
-                match result {
-                    Ok(_) => failures.push(format!(
-                        "[{}] expected load error {} but loaded successfully",
-                        name, expected
+            match engine {
+                // "pass" — no load failure and { valid: true, errors: [] }.
+                Value::String(s) if s == "pass" => match result {
+                    Ok((true, 0)) => {}
+                    Ok((valid, errors)) => failures.push(format!(
+                        "[{}] engine:\"pass\" but valid={} with {} error(s)",
+                        name, valid, errors
                     )),
-                    Err(got) => {
-                        if got != expected {
-                            failures.push(format!(
-                                "[{}] mismatch: expected {} got {}",
-                                name, expected, got
-                            ));
+                    Err(got) => failures.push(format!(
+                        "[{}] engine:\"pass\" but got load error: {}",
+                        name, got
+                    )),
+                },
+                // { code, at } — must be a LOAD ERROR with that exact code AND that
+                // exact dotted path (depth is load-bearing).
+                Value::Object(want) => {
+                    let code = want.get("code").and_then(Value::as_str).unwrap_or("?");
+                    let at = want.get("at").and_then(Value::as_str).unwrap_or("?");
+                    let expected = format!("{}|{}", code, at);
+                    match result {
+                        Ok(_) => failures.push(format!(
+                            "[{}] expected load error {} but loaded successfully",
+                            name, expected
+                        )),
+                        Err(got) => {
+                            if got != expected {
+                                failures.push(format!(
+                                    "[{}] mismatch: expected {} got {}",
+                                    name, expected, got
+                                ));
+                            }
                         }
                     }
                 }
+                other => failures.push(format!(
+                    "[{}] engine must be \"pass\" | {{code, at}}, got {}",
+                    name, other
+                )),
             }
-            other => failures.push(format!(
-                "[{}] engine must be \"pass\" | {{code, at}}, got {}",
-                name, other
-            )),
-        }
+            failures
+        }));
     }
 
     assert!(ran > 0, "no spec-validity fixture cases were loaded");

@@ -14,7 +14,7 @@ for (const mode of ['failure', 'wrong-result']) {
       const script = mode === 'failure' ? 'exit 12' : "printf '%s' '{\"valid\":true}'";
       writeFileSync(join(directory, 'php'), `#!/bin/sh\n${script}\n`, { mode: 0o755 });
       const result = spawnSync(process.execPath, [resolve(__dirname, 'compare-all.js'),
-        '--php-only', '--file', 'required.json'], {
+        '--php-only', '--suite', 'required'], {
         encoding: 'utf8', env: { ...process.env, PATH: directory },
       });
       assert.equal(result.status, 1, result.stdout + result.stderr);
@@ -67,7 +67,7 @@ test('comparison resolves Rust tools from one Rustup toolchain record', () => {
     ].join('\n'), { mode: 0o755 });
 
     const result = spawnSync(process.execPath, [resolve(__dirname, 'compare-all.js'),
-      '--rust-only', '--file', 'required.json'], {
+      '--rust-only', '--suite', 'required'], {
       encoding: 'utf8',
       env: {
         HOME: home, LANG: 'C', LC_ALL: 'C', PATH: directory,

@@ -10,6 +10,8 @@ let dispatch, errorRecord;
 import { parseCLIResponse, OperationError, equalOrdered, equalModels, equalState } from './protocol.mjs';
 import { formScenarios, numberCases, companySpec, companyData, row, imageCase, urlCase, dateCases, dateFormSpec, dateFormData, dateListSpec } from './cases.mjs';
 import { runRustCommand } from '../../scripts/run-rust-command.mjs';
+import { recordConformance } from '../conformance/evidence.mjs';
+import { createProgress } from '../../scripts/test-progress/progress.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const USAGE = 'Usage: node tests/native-generators/run.mjs --extension /absolute/crudui.so [--report path] [--source-commit hash] [--target names] [--check patterns]';
@@ -30,13 +32,15 @@ const buildDirectory = await mkdtemp(path.join(os.tmpdir(), 'crudui-native-gener
 const report = { completed: false, passed: false, targets: [], checks: [], buildDirectory };
 if (selectedTargets.length || checkPatterns.length) report.filter = { targets: selectedTargets, checks: checkPatterns };
 
-// A run reports what it is doing while it runs: every group and every slow check
+// A run reports what it is doing while it runs: every check
 // prints its own start, its elapsed time and its result.
 const suiteStart = Date.now();
 const seconds = since => `${((Date.now() - since) / 1000).toFixed(1)}s`;
-const progress = text => process.stdout.write(`[${seconds(suiteStart).padStart(8)}] ${text}\n`);
+// Every check prints its start, a line while it keeps running, and its result.
+const lines = createProgress({ write: text => process.stdout.write(text) });
+const progress = text => lines.line(text);
 const RUNNING_INTERVAL = 5000;
-// A check id is `group:case`; the group selects the progress line and the time budget.
+// A check id is `group:case`; the group selects the time budget.
 const groupOf = name => name.includes(':') ? name.slice(0, name.indexOf(':')) : name;
 const pattern = text => new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, character => character === '*' ? '.*' : `\\${character}`)}$`);
 const checkFilters = checkPatterns.map(pattern);
@@ -195,32 +199,30 @@ async function invoke(target, request, timezone) {
 }
 function oracle(request) { return jsonValue(dispatch(jsonValue(request))); }
 
-// One group of checks at a time: its start, its result and its elapsed time are printed
-// as it runs, and a check that outlives one interval prints a running line of its own.
-let group;
-function openGroup(target, name) {
-  if (group && group.target === target.name && group.name === name) return;
-  closeGroup();
-  group = { target: target.name, name, started: Date.now(), reported: Date.now(), checks: 0, failures: 0 };
-  progress(`  ${target.name} · ${name}: running`);
-}
-function closeGroup() {
-  if (!group) return;
-  const passed = group.checks - group.failures;
-  progress(`  ${group.target} · ${group.name}: ${passed}/${group.checks} passed (${seconds(group.started)})`);
-  group = undefined;
+/**
+ * Conformance evidence of one check: the model features a target proves as its own runtime, and
+ * the HTML features it proves as a string renderer. The React reference proves no HTML feature
+ * (it is the expected output), and the HTML renderer proves no model feature (it shares the
+ * JavaScript model).
+ */
+function recordEvidence(target, proves, passed) {
+  const runtimes = [
+    ...(target.name === 'html' ? [] : (proves.model ?? []).map(feature => [feature, target.name])),
+    ...(target.name === 'javascript' ? [] : (proves.html ?? []).map(feature => [feature, target.name === 'html' ? 'javascript-html' : target.name])),
+  ];
+  for (const [feature, runtime] of runtimes) recordConformance({ feature, fixture: proves.fixture, runtime, case: proves.case, passed });
 }
 
-async function check(target, name, operation) {
+async function check(target, name, operation, proves) {
   if (!selectsCheck(name)) return;
   selectedCount++;
-  openGroup(target, groupOf(name));
+  const id = `${target.name} › ${name}`;
   const started = Date.now(), budget = checkBudget(name);
   const controller = new AbortController();
   const previousSignal = currentSignal;
   currentSignal = controller.signal;
   let expired;
-  const running = setInterval(() => progress(`  ${target.name} · ${name}: still running (${seconds(started)} of ${budget / 1000}s)`), RUNNING_INTERVAL);
+  lines.start(id);
   const budgetTimer = setTimeout(() => {
     expired = new Error(`${name} exceeded its ${budget} ms budget; the check and its processes were stopped`);
     controller.abort(expired);
@@ -230,20 +232,16 @@ async function check(target, name, operation) {
   try {
     const details = await Promise.race([operation(), expiry]);
     report.checks.push({ target: target.name, case: name, passed: true, durationMs: Date.now() - started, ...details });
+    if (proves) recordEvidence(target, proves, true);
+    lines.pass(id, Date.now() - started);
   } catch (error) {
     const failure = expired ?? error;
+    if (proves) recordEvidence(target, proves, false);
     report.checks.push({ target: target.name, case: name, passed: false, durationMs: Date.now() - started, timedOut: expired !== undefined, error: { name: failure.name, message: failure.message, code: failure.code, at: failure.at, expected: failure.expected, actual: failure.actual } });
-    group.failures++;
-    process.stderr.write(`${target.name}: ${name}: ${failure.message.split('\n')[0]}\n`);
+    lines.fail(id, Date.now() - started, failure.message);
   } finally {
     clearTimeout(budgetTimer);
-    clearInterval(running);
     currentSignal = previousSignal;
-    group.checks++;
-    if (Date.now() - group.reported >= RUNNING_INTERVAL) {
-      group.reported = Date.now();
-      progress(`  ${group.target} · ${group.name}: ${group.checks - group.failures}/${group.checks} passed so far (${seconds(group.started)})`);
-    }
   }
 }
 function compareError(actual, expected) {
@@ -292,9 +290,9 @@ const memberOrderRequests = [
 ];
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
-assert.equal(formCases.length, 92, 'The form fixture inventory changed; review coverage before changing this assertion');
-assert.equal(listCases.length, 42, 'The list fixture inventory changed; review coverage before changing this assertion');
-assert.equal(detailCases.length, 30, 'The detail fixture inventory changed; review coverage before changing this assertion');
+assert.equal(formCases.length, 93, 'The form fixture inventory changed; review coverage before changing this assertion');
+assert.equal(listCases.length, 58, 'The list fixture inventory changed; review coverage before changing this assertion');
+assert.equal(detailCases.length, 31, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 const targetNames = targets.map(target => target.name);
 for (const name of selectedTargets) assert.ok(targetNames.includes(name), `Unknown target: ${name}; available targets are ${targetNames.join(', ')}`);
@@ -354,8 +352,23 @@ for (const target of runTargets) {
     const foreignFields = await invoke(target, { operation: 'bindForm', template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions });
     equalModels(foreignFields, expectedFields);
     equalModels(oracle({ operation: 'bindForm', template: actualTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions }), expectedFields);
-    return { template: digest(actualTemplate), fields: digest(actualFields), interoperability: true };
-  });
+    // Server HTML is byte-identical: the form a target renders equals the reference bytes. A row
+    // key the instance generates is random, so each distinct generated key becomes its position.
+    const formRequest = { operation: 'form', template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions };
+    const generatedKeys = html => {
+      const positions = new Map();
+      return html.replace(/__[0-9a-f]{13}__/g, key => `__generated-${positions.has(key) ? positions.get(key) : positions.set(key, positions.size).get(key)}__`);
+    };
+    const actualHtml = (await invoke(target, formRequest)).html;
+    assert.equal(generatedKeys(actualHtml), generatedKeys(oracle(formRequest).html), 'Raw form HTML differs');
+    // The form buttons of the record, as a model and as the footer markup built from that model.
+    const buttonsRequest = { operation: 'bindButtons', template: expectedTemplate, data: formRequest.data, options: { language: bindingOptions.language ?? 'ko' } };
+    const buttons = await invoke(target, buttonsRequest);
+    equalOrdered(buttons, oracle(buttonsRequest), '$.buttons');
+    const buttonsHtmlRequest = { operation: 'formButtonsHtml', buttons };
+    assert.equal(await invoke(target, buttonsHtmlRequest), oracle(buttonsHtmlRequest), 'Raw button HTML differs');
+    return { template: digest(actualTemplate), fields: digest(actualFields), html: digest(actualHtml), interoperability: true };
+  }, { fixture: 'tests/fixtures/form-render/cases.json', case: fixture.name, model: ['compileForm', 'bindForm', 'bindButtons', 'formButtonsHtml'], html: ['renderForm'] });
 
   for (const fixture of [...listCases, imageCase, urlCase]) await check(target, `list:${fixture.name}`, async () => {
     const request = { operation: 'renderList', spec: fixture.spec, rows: fixture.rows ?? [], options: fixture.options ?? {} };
@@ -369,13 +382,23 @@ for (const target of runTargets) {
     }
     let actual, actualError;
     try { actual = await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
+    // The list model of the same input: the same members in the same order, or the same error.
+    const modelRequest = { ...request, operation: 'buildList' };
+    let expectedModel, expectedModelError, actualModel, actualModelError;
+    try { expectedModel = oracle(modelRequest); } catch (error) { expectedModelError = errorRecord(error); }
+    try { actualModel = await invoke(target, modelRequest); } catch (error) { if (!(error instanceof OperationError)) throw error; actualModelError = error; }
+    if (expectedModelError) compareError(actualModelError, expectedModelError);
+    else {
+      assert.equal(actualModelError, undefined);
+      equalOrdered(actualModel, expectedModel, '$.list');
+    }
     if (expectedError) { compareError(actualError, expectedError); return { errorCode: actualError.code }; }
     assert.equal(actualError, undefined);
     assert.equal(actual, expected, 'Raw list HTML differs');
     if (fixture === imageCase) assert.ok(actual.startsWith('<link rel="preload" as="image" href="/b.png"/><link rel="preload" as="image" href="/a.png"/>'));
     if (fixture === urlCase) assert.ok(!actual.includes('alert(1)'), 'Ordinary URL contains the rejected script');
-    return { html: digest(actual), rawHTML: true };
-  });
+    return { html: digest(actual), model: digest(actualModel), rawHTML: true };
+  }, listCases.includes(fixture) ? { fixture: 'tests/fixtures/list-render/cases.json', case: fixture.name, model: ['buildList'], html: ['renderList'] } : undefined);
 
   await check(target, 'build-list-model', async () => {
     const request = {
@@ -396,6 +419,39 @@ for (const target of runTargets) {
     const actual = await invoke(target, request);
     equalOrdered(actual, expected, '$.list');
     return { model: digest(actual) };
+  });
+
+  // Form button markup accepts evaluated buttons only, with the same error in every runtime.
+  const button = { type: 'submit', tag: 'button', text: 'Save', attrs: { type: 'submit', class: 'crudui-action' } };
+  for (const [name, buttons] of [
+    ['object', {}], ['string', 'buttons'], ['null-button', [null]], ['array-button', [[]]],
+    ['tag', [{ ...button, tag: 'div' }]], ['text', [{ ...button, text: 1 }]], ['attrs-array', [{ ...button, attrs: [] }]],
+    ['attribute-name', [{ ...button, attrs: { onmouseover: 'x' } }]], ['attribute-value', [{ ...button, attrs: { class: 1 } }]],
+  ]) await check(target, `reject-buttons:${name}`, async () => {
+    const request = { operation: 'formButtonsHtml', buttons };
+    let expected;
+    try { oracle(request); } catch (error) { expected = errorRecord(error); }
+    assert.ok(expected, 'JavaScript accepted invalid buttons');
+    let actual;
+    try { await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actual = error; }
+    compareError(actual, expected);
+    return { errorCode: actual.code };
+  });
+
+  // The pagination model: member order and defaults for enabled, declared and disabled paging.
+  for (const [name, pagination, options] of [
+    ['enabled-defaults', true, {}],
+    ['enabled-total', true, { page: 9, total: 41 }],
+    ['declared-mode', { mode: 'cursor' }, { total: 0 }],
+    ['declared-per-page', { per_page: 7 }, { page: 1 }],
+    ['disabled-counts', false, { page: 3, total: 12 }],
+    ['absent-counts', undefined, { total: 5 }],
+  ]) await check(target, `list-pagination-model:${name}`, async () => {
+    const spec = { columns: { name: { field: 'name', label: 'Name' } }, sort: { field: 'name', dir: 'asc' }, ...(pagination === undefined ? {} : { pagination }) };
+    const request = { operation: 'buildList', spec, rows: [], options: { language: 'en', ...options } };
+    const actual = await invoke(target, request);
+    equalOrdered(actual.pagination, oracle(request).pagination, '$.pagination');
+    return { pagination: digest(actual.pagination) };
   });
 
   // A detail is checked at both levels a runtime exposes: the model and its raw HTML.
@@ -422,7 +478,7 @@ for (const target of runTargets) {
       evidence[operation] = digest(actual);
     }
     return { model: evidence.buildDetail, html: evidence.renderDetail, rawHTML: true };
-  });
+  }, { fixture: 'tests/fixtures/detail-render/cases.json', case: fixture.name, model: ['buildDetail'], html: ['renderDetail'] });
 
   for (const [index, item] of numberCases.entries()) await check(target, `number:${index}`, async () => {
     const format = { type: 'number' };
@@ -473,7 +529,7 @@ for (const target of runTargets) {
       assert.equal(step.html, initial.html, 'Repeated injection changes raw HTML');
     }
     return { data: digest(actual.data), fields: digest(actual.fields), html: digest(actual.html), steps: actual.steps.length, rawHTML: true };
-  });
+  }, { fixture: 'tests/native-generators/cases.mjs', case: scenario.name, model: ['createForm'] });
 
   await check(target, 'instance:nested-copy-fresh-keys-and-original-values', async () => {
     const template = await invoke(target, { operation: 'compileForm', spec: companySpec, options: { keyPrefix: 'form' } });
@@ -652,7 +708,6 @@ for (const target of runTargets) {
     return { timezone, dateValues: dateCases.length, html: digest(html), fields: digest(initial.fields), rawHTML: true };
   });
 
-  closeGroup();
   status.checks = report.checks.filter(check => check.target === target.name).length;
   status.failures = report.checks.filter(check => check.target === target.name && !check.passed).length;
   status.passed = status.failures === 0;
@@ -684,5 +739,6 @@ if (report.passed) {
   process.stderr.write(`Build directory retained: ${buildDirectory}\n`);
 }
 if (reportPath) { await mkdir(path.dirname(reportPath), { recursive: true }); await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`); }
+lines.close('native generators');
 process.stdout.write(`${JSON.stringify(report.summary)}\n`);
 if (!report.passed) process.exitCode = 1;

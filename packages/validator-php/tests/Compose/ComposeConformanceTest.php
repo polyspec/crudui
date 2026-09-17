@@ -9,6 +9,8 @@ use CRUDUI\Validator\Compose\ComposeLoadError;
 use CRUDUI\Validator\Compose\MemoryLoader;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
+
 /**
  * Compare composed values and load error codes with the shared fixtures.
  * This test normalizes object member order and numeric representations.
@@ -44,6 +46,18 @@ final class ComposeConformanceTest extends TestCase
      * @param array<string, mixed> $spec
      */
     public function testComposeMatchesFixture(array $spec): void
+    {
+        $passed = false;
+        try {
+            $this->assertCase($spec);
+            $passed = true;
+        } finally {
+            crudui_record_conformance('compileForm', 'tests/fixtures/compose/cases.json', 'php', $spec['name'], $passed);
+        }
+    }
+
+    /** @param array<string, mixed> $spec */
+    private function assertCase(array $spec): void
     {
         /** @var array<string, mixed> $input */
         $input = $spec['input'];

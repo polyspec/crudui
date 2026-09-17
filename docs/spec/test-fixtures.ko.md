@@ -18,7 +18,7 @@
 | `tests/fixtures/expr/` | 토큰·AST·표현식 평가. |
 | `tests/fixtures/form-render/` | 기대 폼 렌더링. |
 | `tests/fixtures/form-session/` | 공통 폼 입력과 상호작용 시나리오. |
-| `tests/cases/*.json` | 구형 검증 사례. |
+| `tests/fixtures/legacy-validate/cases.json` | 구형 검증 사례. |
 
 ## 현재 검증
 
@@ -49,16 +49,18 @@
 
 ## 구형 검증
 
-구형 스위트는 `testSuite`, `version`, `description`, `tests`를 포함합니다.
-사례 버전은 패키지 버전이 아니라 사례 형식을 설명합니다. 각 테스트는 `id`,
-`spec`, `cases`를 포함합니다. 사례는 `input`과 `expected`를 포함하며
+구형 검증 사례 파일은 목록입니다. 각 항목은 고유한 `name`, 속한 묶음 `suite`,
+`note`, `spec`, `cases`를 포함합니다. 사례는 `input`과 `expected`를 포함하며
 `expected.valid`는 결과를, 선택적인 `error`와 `field`는 첫 규칙과 필드 경로를
-검사합니다.
+검사합니다. [사례 README](../../tests/fixtures/legacy-validate/README.ko.md)가
+묶음을 나열합니다.
 
 구형 연동 검사는 단일 필드 스펙을 그룹의 `value` 아래에 추가하고 입력도 같은
 키 아래에 추가합니다. `properties`가 있는 그룹은 그대로 사용합니다.
 `"__undefined__"` 입력 표시는 연동 검사에서 값 없음을 나타냅니다.
 [구형 TypeScript 연동 검사](../../packages/validator-ts/src/__tests__/conformance.test.ts)를 참고합니다.
+각 런타임의 연동 검사는 항목마다 `validateLegacy` 증거를 한 줄 기록합니다.
+[적합성 증거](conformance.ko.md)를 참고합니다.
 
 ## 사례 추가와 검토
 

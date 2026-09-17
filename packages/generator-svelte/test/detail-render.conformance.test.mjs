@@ -15,22 +15,31 @@ import { describe, expect, test } from 'vitest';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mjs';
 import { renderDetail } from '../src/index.ts';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+
+/** Run one fixture case and record renderDetail evidence for it. */
+function proves(name, body) {
+  return provesConformance(
+    { features: ['renderDetail'], fixture: 'tests/fixtures/detail-render/cases.json', runtime: 'svelte', case: name },
+    body
+  );
+}
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fixtures = JSON.parse(fs.readFileSync(path.resolve(here, '../../../tests/fixtures/detail-render/cases.json'), 'utf8'));
 
 describe('detail render — Svelte reproduces the normalized expected_html', () => {
   for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
-    test(item.name, () => {
+    test(item.name, () => proves(item.name, () => {
       expect(normalizeHtml(withoutPreloadLinks(renderDetail(item.spec, item.record ?? {}, item.options)))).toBe(item.expected_html);
-    });
+    }));
   }
 });
 
 describe('detail render — Svelte rejects invalid input with the shared message', () => {
   for (const item of fixtures.filter((fixture) => fixture.expectError)) {
-    test(item.name, () => {
+    test(item.name, () => proves(item.name, () => {
       expect(() => renderDetail(item.spec, item.record ?? {}, item.options)).toThrow(item.expectError.message);
-    });
+    }));
   }
 });

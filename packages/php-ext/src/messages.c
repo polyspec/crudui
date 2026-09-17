@@ -43,30 +43,24 @@ static const struct {
     }},
 };
 
-const ps_form_messages *ps_form_messages_for(const char *language)
+const ps_form_messages *ps_form_messages_for(ps_text language)
 {
     for (size_t i = 0; i < sizeof(tables) / sizeof(tables[0]); ++i)
-        if (!strcmp(tables[i].language, language)) return &tables[i].messages;
+        if (ps_text_is(language, tables[i].language)) return &tables[i].messages;
     return NULL;
 }
 
-char *ps_format_count(const char *template, size_t count)
+ps_chars ps_format_count(const char *template, size_t count)
 {
-    char number[32];
-    snprintf(number, sizeof(number), "%zu", count);
-    const char *marker = strstr(template, "{count}");
-    size_t head = marker ? (size_t)(marker - template) : strlen(template);
-    const char *tail = marker ? marker + strlen("{count}") : "";
-    size_t length = head + (marker ? strlen(number) : 0) + strlen(tail);
-    char *out = malloc(length + 1);
-    if (!out) return NULL;
-    memcpy(out, template, head);
-    size_t cursor = head;
-    if (marker) {
-        memcpy(out + cursor, number, strlen(number));
-        cursor += strlen(number);
-    }
-    memcpy(out + cursor, tail, strlen(tail) + 1);
+    ps_text text = ps_fixed(template);
+    size_t marker = ps_text_find(text, PS_TEXT("{count}"), 0);
+    if (marker == SIZE_MAX) return ps_copy(text);
+    ps_chars number = ps_decimal(count);
+    ps_chars out = number.bytes
+        ? PS_CONCAT(ps_text_slice(text, 0, marker), ps_view(number),
+                    ps_text_slice(text, marker + strlen("{count}"), text.length))
+        : number;
+    free(number.bytes);
     return out;
 }
 

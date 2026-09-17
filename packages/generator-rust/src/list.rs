@@ -5,7 +5,7 @@ use serde_json::{json, Map, Value};
 
 use crate::design::{appearance, resolve_design, show};
 use crate::render::{appearance_attrs, element, escape, raw_element, raw_text};
-use crate::template::check_design_declaration;
+use crate::template::{check_design_declaration, check_known_keys};
 use crate::util::{join_class, scalar, segments, translate, value_at};
 use crate::{FormError, FormResult};
 
@@ -301,7 +301,7 @@ pub(crate) fn build_display(
         options.loader.unwrap_or(&memory),
         &ComposeOptions::with_basepath(&options.basepath),
     )?;
-    // Declarations are checked after the input rules and composition: the own design, then each member.
+    // Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
     if let Some(design) = spec.get("design") {
         check_design_declaration(design, own)?;
     }
@@ -309,6 +309,9 @@ pub(crate) fn build_display(
         if let Some(design) = raw.as_object().and_then(|raw| raw.get("design")) {
             check_design_declaration(design, &format!("{members}.{key}"))?;
         }
+    }
+    if let Some(pagination) = spec.get("pagination") {
+        check_pagination_declaration(pagination, own)?;
     }
     let mut visible = Vec::new();
     for (key, raw) in &columns {
@@ -331,25 +334,7 @@ pub(crate) fn build_display(
         }).collect::<FormResult<Vec<_>>>()?;
         Ok(json!({"cells":cells}))
     }).collect::<FormResult<Vec<_>>>()?;
-    let mut pagination =
-        json!({"enabled":spec["pagination"] == true || spec["pagination"].is_object()});
-    for (input, output) in [("per_page", "perPage"), ("mode", "mode")] {
-        if let Some(value) = spec["pagination"].get(input).filter(|v| {
-            if input == "mode" {
-                v.is_string()
-            } else {
-                v.is_number()
-            }
-        }) {
-            pagination[output] = value.clone();
-        }
-    }
-    // Supplied page and total are written as JSON integers; absent or null ones are left out.
-    for (key, value) in [("page", checked.page), ("total", checked.total)] {
-        if let Some(value) = value {
-            pagination[key] = value.into();
-        }
-    }
+    let pagination = pagination_model(&spec["pagination"], checked.page, checked.total);
     let mut actions = Vec::new();
     for (key, raw) in spec["actions"].as_object().into_iter().flatten() {
         if ["$ref", "$patch"].contains(&key.as_str()) {
@@ -383,8 +368,8 @@ pub(crate) fn build_display(
             json!({"field":field,"dir":if spec["sort"]["dir"]=="desc" {"desc"} else {"asc"}});
     }
     result["actions"] = actions.into();
-    result["empty"] = translate(spec.get("empty"),&options.language).into();
-    result["design"] = resolve_design(spec.get("design"),context,"");
+    result["empty"] = translate(spec.get("empty"), &options.language).into();
+    result["design"] = resolve_design(spec.get("design"), context, "");
     Ok(result)
 }
 
@@ -518,7 +503,10 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                     .enumerate()
                     .map(|(index, cell)| {
                         let class = join_class(&[
-                            &format!("crudui-list__cell crudui-value crudui-value--{}", str_at(&cell["format"], "type")),
+                            &format!(
+                                "crudui-list__cell crudui-value crudui-value--{}",
+                                str_at(&cell["format"], "type")
+                            ),
                             str_at(&cell["design"]["main"], "class"),
                         ]);
                         element(
@@ -582,7 +570,10 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                             cell_html(
                                 cell,
                                 "td",
-                                &format!("crudui-list__cell crudui-value crudui-value--{}", str_at(&cell["format"], "type")),
+                                &format!(
+                                    "crudui-list__cell crudui-value crudui-value--{}",
+                                    str_at(&cell["format"], "type")
+                                ),
                             )
                         })
                         .collect::<String>(),
@@ -599,38 +590,62 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
     let pagination = &model["pagination"];
     if pagination["enabled"] == true {
         let mut attrs = json!({"class":"crudui-list__pagination"});
-        attrs["data-mode"] = pagination.get("mode").and_then(Value::as_str).unwrap_or("pages").into();
-        attrs["data-per-page"] = pagination.get("perPage").and_then(Value::as_u64).unwrap_or(20).into();
-        attrs["data-page"] = pagination.get("page").and_then(Value::as_u64).unwrap_or(1).into();
         for (input, output) in [
             ("mode", "data-mode"),
             ("perPage", "data-per-page"),
             ("page", "data-page"),
             ("total", "data-total"),
         ] {
-            if let Some(value) = pagination
-                .get(input)
-                .filter(|v| input != "mode" || **v != "")
-            {
+            if let Some(value) = pagination.get(input) {
                 attrs[output] = scalar(Some(value)).into();
             }
         }
-        let mut page = pagination.get("page").and_then(Value::as_u64).unwrap_or(1).max(1);
-        let per_page = pagination.get("perPage").and_then(Value::as_u64).unwrap_or(20).max(1);
-        let page_count = pagination.get("total").and_then(Value::as_u64).map(|total| total.div_ceil(per_page).max(1)).unwrap_or(0);
-        if page_count > 0 { page = page.min(page_count); }
+        let page_count = pagination["pageCount"].as_u64().unwrap_or(0);
+        let page = if page_count > 0 {
+            pagination["page"].as_u64().unwrap_or(1).min(page_count)
+        } else {
+            1
+        };
         let button = |class: &str, value: u64, label: &str, disabled: bool, current: bool| {
             let mut button = json!({"type":"button", "class":class, "data-page":value.to_string(), "aria-label":label});
-            if current { button["aria-current"] = "page".into(); }
-            if disabled { button["disabled"] = true.into(); }
-            let text = if label == "Previous page" { "‹".to_string() } else if label == "Next page" { "›".to_string() } else { value.to_string() };
+            if current {
+                button["aria-current"] = "page".into();
+            }
+            if disabled {
+                button["disabled"] = true.into();
+            }
+            let text = if label == "Previous page" {
+                "‹".to_string()
+            } else if label == "Next page" {
+                "›".to_string()
+            } else {
+                value.to_string()
+            };
             element("button", &button, &text)
         };
-        let mut controls = button("crudui-list__pagination-prev", page.saturating_sub(1).max(1), "Previous page", page <= 1 || page_count == 0, false);
-        for value in 1..=page_count.min(7) {
-            controls += &button("crudui-list__pagination-page", value, &format!("Page {}", value), value == page, value == page);
+        let mut controls = button(
+            "crudui-list__pagination-prev",
+            page.saturating_sub(1).max(1),
+            "Previous page",
+            page <= 1 || page_count == 0,
+            false,
+        );
+        for value in pagination_pages(page, page_count) {
+            controls += &button(
+                "crudui-list__pagination-page",
+                value,
+                &format!("Page {}", value),
+                value == page,
+                value == page,
+            );
         }
-        controls += &button("crudui-list__pagination-next", page.saturating_add(1).min(page_count.max(1)), "Next page", page_count == 0 || page >= page_count, false);
+        controls += &button(
+            "crudui-list__pagination-next",
+            page.saturating_add(1).min(page_count.max(1)),
+            "Next page",
+            page_count == 0 || page >= page_count,
+            false,
+        );
         content += &element("nav", &attrs, &controls);
     }
     let wrapper = &model["design"]["wrapper"];
@@ -672,4 +687,88 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
             ),
             &content,
         ))
+}
+
+/// Reject a wrong value type or an unknown key in the pagination declaration at `path`.
+fn check_pagination_declaration(pagination: &Value, path: &str) -> FormResult<()> {
+    let fail = |key: &str, expected: &str| {
+        Err(FormError::input(format!(
+            "Invalid {key} at {path}: expected {expected}"
+        )))
+    };
+    if !pagination.is_boolean() && !pagination.is_object() {
+        return fail("pagination", "a boolean or an object");
+    }
+    let Some(pagination) = pagination.as_object() else {
+        return Ok(());
+    };
+    check_known_keys("pagination", pagination, &["per_page", "mode"], path)?;
+    if let Some(per_page) = pagination.get("per_page") {
+        if per_page.is_null() || list_integer(per_page, 1, "").is_err() {
+            return fail("pagination.per_page", "a positive integer");
+        }
+    }
+    if let Some(mode) = pagination.get("mode") {
+        if !mode
+            .as_str()
+            .is_some_and(|mode| ["pages", "offset", "cursor", "none"].contains(&mode))
+        {
+            return fail("pagination.mode", "pages, offset, cursor or none");
+        }
+    }
+    Ok(())
+}
+
+/// The pagination model, in member order: enabled, then for enabled paging perPage, mode and
+/// page with their defaults, the supplied total and pageCount. Disabled paging keeps only the
+/// supplied page and total.
+fn pagination_model(declared: &Value, page: Option<u64>, total: Option<u64>) -> Value {
+    let enabled = *declared == true || declared.is_object();
+    let mut pagination = json!({"enabled":enabled});
+    let per_page = declared
+        .get("per_page")
+        .and_then(|value| list_integer(value, 1, "").ok().flatten())
+        .unwrap_or(20);
+    if enabled {
+        pagination["perPage"] = per_page.into();
+        pagination["mode"] = declared
+            .get("mode")
+            .and_then(Value::as_str)
+            .unwrap_or("pages")
+            .into();
+        pagination["page"] = page.unwrap_or(1).into();
+    } else if let Some(page) = page {
+        pagination["page"] = page.into();
+    }
+    if let Some(total) = total {
+        pagination["total"] = total.into();
+    }
+    if enabled {
+        pagination["pageCount"] = total
+            .map(|total| total.div_ceil(per_page).max(1))
+            .unwrap_or(0)
+            .into();
+    }
+    pagination
+}
+
+/// The bounded page-number window: every page up to seven pages, otherwise the first,
+/// previous, current, next and last page.
+fn pagination_pages(page: u64, page_count: u64) -> Vec<u64> {
+    if page_count <= 7 {
+        return (1..=page_count).collect();
+    }
+    let mut pages: Vec<u64> = Vec::new();
+    for value in [
+        1,
+        page.saturating_sub(1).max(1),
+        page,
+        page.saturating_add(1).min(page_count),
+        page_count,
+    ] {
+        if pages.last().is_none_or(|last| *last < value) {
+            pages.push(value);
+        }
+    }
+    pages
 }

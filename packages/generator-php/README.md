@@ -118,7 +118,8 @@ browser row editing or an ordered JSON HTTP endpoint.
 
 `php packages/generator-php/bin/generate.php` reads one JSON request from stdin
 and writes one JSON value to stdout. Supported operations are `compileForm`,
-`bindForm`, `buildList`, `renderList`, `buildDetail`, `renderDetail` and `form`. The form operation records data, fields,
+`bindForm`, `bindButtons`, `formButtonsHtml`, `buildList`, `renderList`, `buildDetail`, `renderDetail`
+and `form`. The form operation records data, fields,
 HTML and revision after each action, including failed operations. The adapter
 uses the public classes and can execute with the PHP implementation or a loaded
 native implementation.

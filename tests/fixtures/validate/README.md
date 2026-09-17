@@ -37,8 +37,8 @@ Consumers are the validation conformance tests in
 [PHP](../../../packages/validator-php/tests/Validate/ValidateCliTest.php),
 [Go](../../../packages/validator-go/cmd/validate/main_test.go) and
 [Rust](../../../packages/validator-rust/tests/validate_cli_conformance.rs); the
-[PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs) and the PHP extension
-runner, which [`run.mjs`](../../../packages/php-ext/tests/run.mjs) starts with the PHP and native
+[PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs) and the
+[PHP extension API test](../../../packages/php-ext/tests/api.test.mjs), which runs the PHP and native
 validators; and the cross-check console
 [validation runner test](../../../examples/cross-check-console/server/validate-runner.test.mjs),
 which sends a fixture case to the four command-line validators.

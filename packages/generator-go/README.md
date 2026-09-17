@@ -76,11 +76,11 @@ instance prefix (`KeyPrefix: ""`) both omit that name segment.
 
 ## Run and verify
 
-From this package directory:
+From the repository root:
 
 ```sh
-go test ./...
-go run ./examples/server -data /tmp/crudui-go-record.json
+node scripts/run-tests.mjs go --cwd packages/generator-go -- ./...
+go -C packages/generator-go run ./examples/server -data /tmp/crudui-go-record.json
 ```
 
 The example renders a form, a list and a detail from one record set: the record stored
@@ -112,7 +112,7 @@ curl http://127.0.0.1:8087/detail
 ```
 
 The `cmd/generate` CLI accepts one JSON request on stdin and returns one JSON
-value. Supported operations are `compileForm`, `bindForm`, `form`,
-`renderList`, `buildDetail` and `renderDetail`. The `form` operation executes actions and records complete state
+value. Supported operations are `compileForm`, `bindForm`, `bindButtons`,
+`formButtonsHtml`, `form`, `buildList`, `renderList`, `buildDetail` and `renderDetail`. The `form` operation executes actions and records complete state
 after both successful and rejected operations. It is a conformance adapter;
 applications call the library directly.

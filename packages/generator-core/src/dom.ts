@@ -48,6 +48,48 @@ function firstRowControl(row: HTMLElement): HTMLElement | undefined {
   return input ?? rowButton(row, 'toggle-row') ?? rowButton(row, 'add-row');
 }
 
+/**
+ * Mark stuck sticky row headers in a browser without scroll-state container queries
+ * (Firefox, Safari), and do nothing elsewhere. A header container is stuck while sticky
+ * positioning moves it from the top of its row; `data-crudui-stuck` then shows its level
+ * label, as the stylesheet's `scroll-state(stuck: top)` query does in other browsers.
+ * Rendering inside the element is observed, so an application that renders the form
+ * itself connects its container once; a render that drops the attribute is marked again before
+ * the page is painted. Only the attribute changes, never a scroll position.
+ */
+export function connectStickyHeaders(element: HTMLElement): FormConnection {
+  const view = element.ownerDocument.defaultView;
+  if (!view?.CSS?.supports || view.CSS.supports('container-type: scroll-state')) {
+    return { sync() {}, disconnect() {} };
+  }
+  let frame = 0;
+  const mark = () => {
+    frame = 0;
+    for (const header of element.querySelectorAll<HTMLElement>('.crudui-node--sticky > .crudui-node__header-container')) {
+      const row = header.parentElement!;
+      const moved = header.getBoundingClientRect().top - (row.getBoundingClientRect().top + row.clientTop);
+      header.toggleAttribute('data-crudui-stuck', moved > 0.5);
+    }
+  };
+  const schedule = () => { if (!frame) frame = view.requestAnimationFrame(mark); };
+  // Scroll events do not bubble; capturing on the document sees every scrolling box.
+  element.ownerDocument.addEventListener('scroll', schedule, { capture: true, passive: true });
+  view.addEventListener('resize', schedule, { passive: true });
+  // Marking sets the attribute only when the state changes, so marking again settles at once.
+  const observer = new view.MutationObserver(mark);
+  observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-crudui-stuck'] });
+  mark();
+  return {
+    sync: mark,
+    disconnect() {
+      if (frame) view.cancelAnimationFrame(frame);
+      observer.disconnect();
+      element.ownerDocument.removeEventListener('scroll', schedule, { capture: true });
+      view.removeEventListener('resize', schedule);
+    },
+  };
+}
+
 /** Browser event delegation for all adapters, including raw leaf controls. */
 export function connectForm(element: HTMLElement, session: FormInstance): FormConnection {
   type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -214,6 +256,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     }
   };
   const unsubscribe = session.subscribe(captureFocus);
+  const stuck = connectStickyHeaders(element);
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
@@ -222,6 +265,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     sync,
     disconnect() {
       unsubscribe();
+      stuck.disconnect();
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);

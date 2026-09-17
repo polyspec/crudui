@@ -24,6 +24,15 @@ import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.
 import fixtureCases from '../../../../tests/fixtures/list-render/cases.json';
 // @ts-expect-error — shared JS preload link helper.
 import { withoutPreloadLinks } from '../../../../tests/fixtures/preload-links.mjs';
+import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+
+/** Run one fixture case and record renderList evidence for it. */
+function proves(name: string, body: () => unknown): Promise<unknown> {
+  return provesConformance(
+    { features: ['renderList'], fixture: 'tests/fixtures/list-render/cases.json', runtime: 'react', case: name },
+    body
+  );
+}
 
 interface ListFixtureCase {
   name: string;
@@ -43,29 +52,29 @@ function render(c: ListFixtureCase): string {
 
 describe('list render — React reproduces the normalized expected_html', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
-    test(c.name, () => {
+    test(c.name, () => proves(c.name, () => {
       expect(normalizeHtml(render(c))).toStrictEqual(c.expected_html);
-    });
+    }));
   }
 });
 
 describe('list render — render is idempotent (stable across re-render)', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
-    test(`${c.name} — re-render is stable`, () => {
+    test(`${c.name} — re-render is stable`, () => proves(c.name, () => {
       expect(normalizeHtml(render(c))).toStrictEqual(normalizeHtml(render(c)));
-    });
+    }));
   }
 });
 
 describe('list render — read-only invariant (no input control EVER reaches output)', () => {
   for (const c of cases.filter((x) => x.expected_html)) {
-    test(`${c.name} — no input/select/textarea/form`, () => {
+    test(`${c.name} — no input/select/textarea/form`, () => proves(c.name, () => {
       const raw = render(c);
       expect(raw).not.toMatch(/<input\b/);
       expect(raw).not.toMatch(/<select\b/);
       expect(raw).not.toMatch(/<textarea\b/);
       expect(raw).not.toMatch(/<form\b/);
-    });
+    }));
   }
 });
 
@@ -73,15 +82,15 @@ const ERROR_CLASS_BY_CODE: Record<string, unknown> = { REF_FILE_NOT_FOUND: Compo
 
 describe('list render — invalid input fails with the shared message', () => {
   for (const c of cases.filter((x) => x.expectError?.message)) {
-    test(c.name, () => {
+    test(c.name, () => proves(c.name, () => {
       expect(() => render(c)).toThrow(c.expectError!.message);
-    });
+    }));
   }
 });
 
 describe('list render — a load gap is a surfaced ERROR, never a silent table', () => {
   for (const c of cases.filter((x) => x.expectError && !x.expectError.message)) {
-    test(c.name, () => {
+    test(c.name, () => proves(c.name, () => {
       let thrown: unknown;
       try {
         render(c);
@@ -93,6 +102,6 @@ describe('list render — a load gap is a surfaced ERROR, never a silent table',
       expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(
         expectedClass as new (...args: never[]) => Error
       );
-    });
+    }));
   }
 });

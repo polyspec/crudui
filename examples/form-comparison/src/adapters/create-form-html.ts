@@ -1,4 +1,4 @@
-import { connectForm, connectOutline, createForm } from '@crudui/generator-core';
+import { connectForm, connectOutline, createForm, patchContent } from '@crudui/generator-core';
 import { renderData, renderForm, renderOutline } from '#html';
 
 /** The markup renderer writes no framework anchors, so it adopts the server-rendered nodes. */
@@ -6,14 +6,15 @@ export const hydration = 'keep';
 
 function start(views, template, language, data, hydrate) {
   const session = createForm(template, data, { language });
-  // The HTML renderer returns markup: every view is rendered again on every change, and browser
-  // bindings run the actions of the form and of the structure map beside it.
+  // The HTML renderer returns markup: every view is rendered again on every change and patched
+  // into the page, which keeps the nodes the new markup still contains, and browser bindings run
+  // the actions of the form and of the structure map beside it.
   const renderTools = () => {
-    views.outline.innerHTML = renderOutline(session);
-    views.data.innerHTML = renderData(session);
+    patchContent(views.outline, renderOutline(session));
+    patchContent(views.data, renderData(session));
   };
   const render = () => {
-    views.form.innerHTML = renderForm(session);
+    patchContent(views.form, renderForm(session));
     renderTools();
   };
   // Hydration keeps the server-rendered form and writes only the browser-only views.

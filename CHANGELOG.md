@@ -1,5 +1,113 @@
 # Changes
 
+## 2026-09-17 — Expose form buttons in every runtime
+
+The feature standard declared `bindButtons` and `formButtonsHtml` for every server runtime, but only
+JavaScript exposed them. The PHP library and the PHP extension add `Generator::bindButtons` and
+`Generator::formButtonsHtml`, Go adds `BindButtons` and `FormButtonsHTML`, and Rust adds
+`bind_buttons` and `form_buttons_html`; each generator command-line adapter serves both operations.
+They return the same ordered button objects and the same markup as JavaScript, and they check the
+same input: `formButtonsHtml` accepts only a list of evaluated buttons (`tag` `a` or `button`,
+string `text`, and `attrs` with string values of `type`, `class`, `style`, `name`, `value`, `href`
+or `onclick`) and otherwise fails with `Form buttons must be a list` or
+`Form buttons must be evaluated button objects`. The native runner compares both operations for
+every form fixture and the rejected shapes in every runtime.
+
+## 2026-09-17 — Enforce the test command standard
+
+- Every test runs through `node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit>`. The runner
+  prints each test as it starts, a line every five seconds while it runs, and its result with the
+  elapsed time, and it gives every test its own timeout (30 seconds unless a command declares
+  another). node and Vitest stop a test at its timeout; for Go, Rust and PHPUnit the runner stops
+  the tool when a test outlives it. `scripts/test-progress/progress.mjs` writes the lines; the
+  native generator runner, the legacy comparison, the package consumer check, the contract command
+  runner, the build freshness check, the CI browser check and the conformance check print through
+  it.
+- `tests/build/test-commands.test.mjs` fails when a package, Composer, Makefile, CI or feature
+  verification command calls a test tool directly, when a CI job has no `timeout-minutes`, when a
+  test command starts a script that does not print through the shared lines, when no command runs
+  a `node:test` file, and when a TypeScript package has no `typecheck` or CI does not run
+  `npm run typecheck`. Three test files that no command ran now run in `test:form-comparison:source`
+  and `test:build`.
+- CI jobs have their own time limits. The `current` jobs, which repeated subsets of the unit jobs,
+  are removed. Each suite that records conformance evidence uploads it, and a final job checks all
+  of it. The form inspector runs as `npm run test:inspector`.
+- Removed old paths: the `test:current`, `test:list`, `test:watch`, `test:coverage` and
+  `test:client` package scripts, the Composer `test:current` script, `tests/package.json`, the
+  unused `tests/runner/run-js.ts`, `run-php.php` and `tests/runner/go`, and the `docs-check-all`
+  alias. The PHP extension API comparison is the `node:test` file
+  `packages/php-ext/tests/api.test.mjs`; `make build-php-extension` only builds, and
+  `make test-php-extension` runs the engine, builder and API tests. The package consumer check runs
+  its commands asynchronously, and its step limits were reduced to about ten times their measured
+  durations.
+- `npm run typecheck` checks every TypeScript package, including Vue; a React outline test that did
+  not pass `canRedo` now does.
+
+## 2026-09-17 — Check conformance evidence against the feature standard
+
+`contracts/features.json` is the one standard: each feature declares its supporting runtimes and
+the shared fixtures that prove it, and the manifest registers every fixture. Tests record one
+evidence line per fixture case and feature (`tests/conformance/evidence.mjs`, `evidence.php`, the
+Go package `validator/internal/conformance` and the Rust test module `tests/common`), and
+`scripts/check-conformance.mjs` fails on a missing or failing case of a supported runtime, on
+evidence for an undeclared or unsupported runtime, on an unregistered fixture family and on a
+registered fixture no feature proves. `make conformance` runs every recording suite and the check.
+[Conformance evidence](docs/spec/conformance.md) describes the runtime keys and the rules; it
+replaces the substring checks of `contracts/conformance-matrix.json` and
+`tests/build/conformance-coverage.test.mjs`, which are removed.
+
+The standard now declares `buildList`, `validateList`, `validatorCli` and `translateLegacy`, adds the
+spec-validity fixture to `validate`, proves `createForm` with the native instance scenarios, and
+declares the DOM session features for the bindings that run them. Measuring against it found and
+closed these gaps:
+
+- The native runner compares the form HTML of all 92 form fixtures byte for byte and the list model
+  of every list fixture in every server runtime.
+- The PHP extension runs the validator CLI fixture.
+- The HTML DOM binding runs the shared session scenarios; it had never run them.
+- The native runner's protocol accepted a list model only with a `sort` member, although a list
+  without a sort declaration has none.
+- The feature verification command of `createForm` ran a fixture module with no tests.
+
+## 2026-09-17 — Keep rendered nodes in the HTML renderer and show sticky labels everywhere
+
+- `patchContent(element, html)` from `@crudui/generator-core` replaces an element's content with new
+  markup and keeps every node the markup still contains (matched by row key, field path, id, or a
+  control name and value). An HTML renderer application patches each re-render into the page, so
+  the focused control, its selection and an input method composition survive, as they do in the
+  framework renderers; the HTML DOM binding now passes the shared initialization scenario that
+  requires the same control element after repeated data injection.
+- The level label in a sticky row header is hidden by default and shown inside
+  `@container scroll-state(stuck: top)`. The previous rule hid it inside
+  `scroll-state(not (stuck: top))`, which Firefox and Safari ignore, so those browsers showed the
+  label at all times. There, `connectStickyHeaders(element)` (used by `connectForm`) sets
+  `data-crudui-stuck` while sticky positioning moves a header from the top of its row, and marks a
+  header again when a render drops the attribute; Chromium, which supports the query, connects
+  nothing. The Chromium checks run with and without scroll-state support in a page, a scrolling box
+  and a frame, and assert that Chromium never receives the attribute.
+
+## 2026-09-17 — Render the same pagination in every server runtime
+
+The PHP library, the PHP extension, Go and Rust rendered pagination differently from JavaScript:
+the PHP library wrote `disabled="1"` and did not clamp the page to the last page, and all four
+listed pages 1 to 7 instead of the bounded window. Every runtime now follows one rule: every page
+up to seven pages, otherwise the first, previous, current, next and last page; without a total the
+current page is 1; a page after the last page selects the last page. The list model has the same
+members in the same order everywhere (`enabled`, then `perPage`, `mode` and `page` with their
+defaults, the supplied `total`, and `pageCount`). A `pagination` declaration is checked like
+`design`: a boolean or an object with `per_page` (an integer from 1) and `mode` (`pages`,
+`offset`, `cursor` or `none`); the schema's `per_page` is an integer of at least 1. The list
+fixture grew from 42 to 57 cases with the boundary pages and the declaration errors, and the
+native runner compares the pagination model of enabled, declared and disabled paging.
+
+## 2026-09-17 — Repair the failing CI jobs
+
+The last three pushes failed CI. The Svelte header and node components had whitespace between
+sibling blocks, which Svelte kept as text; they are written without it again. The root package
+now declares `@crudui/generator-html`, which the form comparison example imports, and the form
+comparison source suite builds it. The PHP extension API test expected the old pagination markup.
+Rust and Go sources that did not match `rustfmt` and `gofmt` are formatted.
+
 ## 2026-09-16 — Add bidirectional form history
 
 - Form instances now expose `redo()` and snapshots report `canRedo`.

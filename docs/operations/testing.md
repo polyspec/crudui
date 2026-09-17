@@ -14,10 +14,10 @@ strip warning after reporting a successful validator binary.
 ```sh
 composer --working-dir=packages/validator-php install
 npm run build
-npm test --workspace @crudui/validator -- --run
+npm test --workspace @crudui/validator
 composer --working-dir=packages/validator-php test
-go -C packages/validator-go test ./...
-cargo test --locked --manifest-path packages/validator-rust/Cargo.toml
+node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 npm test --workspace @crudui/cli
 npm run test:forms
 npm run test:packages
@@ -30,9 +30,33 @@ Compare the expected validation result or complete failure record, not only
 agreement between implementations. Package checks verify exported files, declarations,
 consumer compilation and production rendering.
 
+## Test runner
+
+Every test runs through `scripts/run-tests.mjs`:
+
+```sh
+node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
+```
+
+The runner prints each test's start, a line while it is still running, its result and its
+elapsed time. Every test has its own timeout, 30 seconds unless `--timeout` sets another.
+Package scripts, Composer scripts and Makefile targets call test tools only through this runner.
+
+`tests/build/test-commands.test.mjs`, run by `npm run test:runtimes`, fails when:
+
+- a package script, Composer script, Makefile target or CI step calls a test tool directly;
+- a CI job has no `timeout-minutes`;
+- a script that a test command starts does not print through `scripts/test-progress/progress.mjs`;
+- a `node:test` file is run by no project command;
+- a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.
+
+`make conformance` runs every suite that records conformance evidence and checks that evidence
+against the feature contract; see [conformance evidence](../spec/conformance.md).
+
 ## Legacy comparison
 
-Root `npm test` runs `tests/runner/compare-all.js` against `tests/cases/*.json`.
+Root `npm test` runs `tests/runner/compare-all.js` against
+`tests/fixtures/legacy-validate/cases.json`; `--suite <suite>` selects one suite.
 It is a legacy comparison, not the current API conformance suite. JavaScript loads
 the explicit compiled legacy entry; PHP uses the legacy stdin worker. Go and Rust
 legacy executables are rebuilt before their selected comparisons.
@@ -40,8 +64,8 @@ legacy executables are rebuilt before their selected comparisons.
 ```sh
 npm run build
 npm test
-node --test tests/runner/compare-all.test.cjs
-node tests/runner/compare-all.js --js-only --file required.json
+node scripts/run-tests.mjs node -- tests/runner/compare-all.test.cjs
+node tests/runner/compare-all.js --js-only --suite required
 ```
 
 Every selected implementation must execute, match each expected result and agree

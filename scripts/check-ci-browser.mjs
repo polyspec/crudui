@@ -4,6 +4,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 
+import { createProgress } from './test-progress/progress.mjs';
+
 const forbiddenArguments = new Set(['--no-sandbox', '--disable-setuid-sandbox']);
 
 function requireExecutableFile(metadata, filename) {
@@ -75,6 +77,15 @@ export async function checkCiBrowser({
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const result = await checkCiBrowser();
-  console.log(`Sandboxed Chrome passed: ${result.executablePath}`);
+  const lines = createProgress({ write: text => process.stdout.write(text), timeoutMs: 60_000, onTimeout: () => process.exit(1) });
+  const id = `sandboxed Chrome at ${process.env.PUPPETEER_EXECUTABLE_PATH}`;
+  lines.start(id);
+  try {
+    await checkCiBrowser();
+    lines.pass(id);
+  } catch (error) {
+    lines.fail(id, undefined, error.stack ?? error.message);
+    process.exitCode = 1;
+  }
+  lines.close('CI browser');
 }

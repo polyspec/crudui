@@ -14,10 +14,10 @@ Rust validator 릴리스 프로필은 `strip = "none"`을 사용합니다. 릴�
 ```sh
 composer --working-dir=packages/validator-php install
 npm run build
-npm test --workspace @crudui/validator -- --run
+npm test --workspace @crudui/validator
 composer --working-dir=packages/validator-php test
-go -C packages/validator-go test ./...
-cargo test --locked --manifest-path packages/validator-rust/Cargo.toml
+node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 npm test --workspace @crudui/cli
 npm run test:forms
 npm run test:packages
@@ -29,18 +29,43 @@ make docs-check
 아니라 기대 검증 결과 또는 전체 실패 기록을 비교합니다. 패키지 검사는 export 파일,
 선언·소비자 컴파일·프로덕션 렌더링을 확인합니다.
 
+## 테스트 실행기
+
+모든 테스트는 `scripts/run-tests.mjs`로 실행합니다.
+
+```sh
+node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
+```
+
+실행기는 각 테스트의 시작, 실행 중임을 알리는 줄, 결과와 경과 시간을 출력합니다. 모든
+테스트는 자기 제한 시간을 가지며, `--timeout`으로 지정하지 않으면 30초입니다. 패키지
+스크립트, Composer 스크립트, Makefile 대상은 이 실행기를 통해서만 테스트 도구를 호출합니다.
+
+`npm run test:runtimes`가 실행하는 `tests/build/test-commands.test.mjs`는 다음 경우에
+실패합니다.
+
+- 패키지 스크립트, Composer 스크립트, Makefile 대상, CI 단계가 테스트 도구를 직접 호출합니다.
+- CI 작업에 `timeout-minutes`가 없습니다.
+- 테스트 명령이 시작하는 스크립트가 `scripts/test-progress/progress.mjs`로 출력하지 않습니다.
+- 어떤 프로젝트 명령도 실행하지 않는 `node:test` 파일이 있습니다.
+- TypeScript 패키지에 `typecheck` 스크립트가 없거나 CI가 `npm run typecheck`를 실행하지 않습니다.
+
+`make conformance`는 적합성 근거를 기록하는 모든 테스트 모음을 실행하고 그 근거를 기능
+계약과 대조합니다. [적합성 근거](../spec/conformance.ko.md)를 참고합니다.
+
 ## 구형 비교
 
-루트 `npm test`는 `tests/cases/*.json`에 대해 `tests/runner/compare-all.js`를
-실행합니다. 현재 API 적합성 검사가 아닌 구형 비교입니다. JavaScript는 명시적인
-컴파일된 legacy 진입점을 로드하고 PHP는 구형 stdin 실행기를 사용합니다.
+루트 `npm test`는 `tests/fixtures/legacy-validate/cases.json`에 대해
+`tests/runner/compare-all.js`를 실행하며 `--suite <suite>`는 묶음 하나를 선택합니다.
+현재 API 적합성 검사가 아닌 구형 비교입니다. JavaScript는 명시적인 컴파일된
+legacy 진입점을 로드하고 PHP는 구형 stdin 실행기를 사용합니다.
 Go와 Rust 구형 실행 파일은 해당 언어의 비교를 선택하면 비교 전에 다시 빌드합니다.
 
 ```sh
 npm run build
 npm test
-node --test tests/runner/compare-all.test.cjs
-node tests/runner/compare-all.js --js-only --file required.json
+node scripts/run-tests.mjs node -- tests/runner/compare-all.test.cjs
+node tests/runner/compare-all.js --js-only --suite required
 ```
 
 선택한 모든 구현은 실행에 성공하고 각 기대 결과와 일치하며 다른 구현과도 일치해야

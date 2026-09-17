@@ -6,21 +6,28 @@
 
 ```sh
 npm run test:dependencies
+npm run typecheck
+make test-validators
 make test-native
 npm run test:forms
 npm run test:form-comparison
-node --test tests/form-inspector/form-snapshot.test.mjs
-node tests/form-inspector/browser.mjs
+npm run test:inspector
 npm run test:packages
+make conformance
 make docs-check
 ```
 
 트리 검증 전에 같은 소스 트리에서 모든 명령이 종료 상태 0을 반환해야 합니다.
 `npm run test:dependencies`는 패키지 선언과 설치 정책을 검사합니다.
-`make test-native`는 PHP 확장을 빌드하고 로드한 뒤 PHP, Go, Rust, 공통 프로토콜,
-생성기 검사와 Chromium 위젯·시간대 검사를 실행합니다. 아래 트리 검증은 HTTP와 브라우저
-통합을 검사합니다. 저장소 검사 성공은 트리 검증을 대체하지 않으며 트리 검증 성공도 저장소
-검사를 대체하지 않습니다.
+`npm run typecheck`는 모든 TypeScript 패키지의 타입을 검사합니다. `make test-validators`는
+TypeScript, PHP, Go, Rust 검증기 테스트 모음을 실행합니다. `make test-native`는 PHP 확장을
+빌드하고 엔진·빌더·API 테스트(`make test-php-extension`)를 실행한 뒤 PHP, Go, Rust, 공통
+프로토콜, 생성기 검사와 Chromium 위젯·시간대 검사를 실행합니다. `npm run test:inspector`는
+폼 스냅샷과 브라우저 검사기 테스트를 실행합니다. `make conformance`는 근거를 기록하며
+테스트 모음을 다시 실행하고 그 근거를 검사합니다([적합성 근거](../spec/conformance.ko.md)).
+모든 테스트는 [테스트 실행기](testing.ko.md#테스트-실행기)로 실행합니다. 아래 트리 검증은
+HTTP와 브라우저 통합을 검사합니다. 저장소 검사 성공은 트리 검증을 대체하지 않으며 트리 검증
+성공도 저장소 검사를 대체하지 않습니다.
 
 폼 검사기는 검사 대상 폼을 변경하지 않고 HTML 원문, 파싱한 DOM, 계산된
 스타일, 현재 입력 상태를 비교합니다. 프레임워크 초기화 테스트는 초기 데이터와

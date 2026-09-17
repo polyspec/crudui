@@ -154,8 +154,10 @@ defines each format, the accepted list and detail input and the markup. `sort`, 
 empty-state content. The core does not query a database, filter records or apply
 server pagination. The caller supplies the current page and the total record count. When
 `pagination` is enabled, the resolved model defaults `perPage` to 20, `mode` to `pages`,
-and `page` to 1 when omitted. It also supplies `pageCount` (at least 1 when the total is
-zero). Every renderer emits previous, numbered and next page buttons. The current page
+and `page` to 1 when omitted. It also supplies `pageCount` (0 without a total, otherwise at
+least 1, also when the total is zero). `per_page` is an integer of at least 1, and the
+[display rules](display-formats.md) define the declaration checks and the page-number window.
+Every renderer emits previous, numbered and next page buttons. The current page
 has `aria-current="page"` and is disabled; boundary previous/next buttons are disabled.
 The buttons carry `data-page`; navigation and data fetching remain the caller's responsibility.
 

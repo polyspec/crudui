@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI;
 
 use CRUDUI\Generator\Binding;
+use CRUDUI\Generator\Buttons;
 use CRUDUI\Generator\Details;
 use CRUDUI\Generator\Lists;
 use CRUDUI\Generator\Rendering;
@@ -24,6 +25,18 @@ final class Generator
     public static function bindForm(stdClass $template, array|stdClass $data = [], array $options = []): array
     {
         return Binding::bind($template, $data, $options);
+    }
+
+    /** Evaluate the template buttons for a record as objects with type, tag, text and ordered attrs. */
+    public static function bindButtons(stdClass $template, array|stdClass $data = [], array $options = []): array
+    {
+        return Buttons::bindPublic($template, $data, $options);
+    }
+
+    /** Render evaluated buttons as the markup every renderer places in the form footer; reject any other element. */
+    public static function formButtonsHtml(array $buttons): string
+    {
+        return Buttons::htmlPublic($buttons);
     }
 
     /** Render the current instance inside its crudui-form block. */

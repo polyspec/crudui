@@ -1,15 +1,19 @@
 /**
- * Conformance test bridge
+ * Legacy validator conformance
  *
- * Runs every fixture from tests/cases/*.json (repository root) through the
- * Validator via vitest. The fixtures are the single source of truth - this
- * file must not weaken or reinterpret their expectations.
+ * Runs every entry of tests/fixtures/legacy-validate/cases.json (repository
+ * root) through the explicit legacy Validator via vitest. The fixture is the
+ * single source of truth - this file must not weaken or reinterpret its
+ * expectations.
  *
- * Mirrors the semantics of tests/runner/run-js.ts:
+ * The other runtimes' legacy conformance tests use the same semantics:
  * - simple field specs are wrapped in a group with a 'value' property
  * - the '__undefined__' input marker maps to undefined
  * - expected.valid, expected.error (rule name) and expected.field (path)
  *   are compared
+ *
+ * One test runs every case of an entry and records one validateLegacy
+ * evidence line for the entry, passed only when all of its cases pass.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -18,6 +22,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Validator } from '../legacy/Validator';
 import type { Spec } from '../types';
+import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
 
 interface FixtureCase {
   input: unknown;
@@ -28,22 +33,17 @@ interface FixtureCase {
   };
 }
 
-interface FixtureTest {
-  id: string;
-  description: string;
+interface FixtureEntry {
+  name: string;
+  suite: string;
+  note: string;
   spec: Record<string, unknown>;
   cases: FixtureCase[];
 }
 
-interface FixtureSuite {
-  testSuite: string;
-  version: string;
-  description: string;
-  tests: FixtureTest[];
-}
-
+const FIXTURE = 'tests/fixtures/legacy-validate/cases.json';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-const casesDir = path.resolve(dirname, '../../../../tests/cases');
+const fixturePath = path.resolve(dirname, '../../../..', FIXTURE);
 
 /**
  * Convert spec from fixture format to Validator format.
@@ -80,48 +80,46 @@ function convertInput(
   return { value: input };
 }
 
-const suiteFiles = fs
-  .readdirSync(casesDir)
-  .filter((f) => f.endsWith('.json'))
-  .sort();
+const entries: FixtureEntry[] = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
 
-expect(suiteFiles.length).toBeGreaterThan(0);
+expect(entries.length).toBeGreaterThan(0);
 
-for (const file of suiteFiles) {
-  const suite: FixtureSuite = JSON.parse(
-    fs.readFileSync(path.join(casesDir, file), 'utf-8')
-  );
+const suites = new Map<string, FixtureEntry[]>();
+for (const entry of entries) {
+  suites.set(entry.suite, [...(suites.get(entry.suite) ?? []), entry]);
+}
 
-  describe(`${suite.testSuite} (${file})`, () => {
-    for (const fixtureTest of suite.tests) {
-      const rows = fixtureTest.cases.map((testCase, caseIndex) => ({
-        caseIndex: caseIndex + 1,
-        testCase,
-      }));
+for (const [suite, suiteEntries] of suites) {
+  describe(suite, () => {
+    for (const entry of suiteEntries) {
+      test(entry.name, () =>
+        provesConformance(
+          { features: ['validateLegacy'], fixture: FIXTURE, runtime: 'javascript', case: entry.name },
+          () => {
+            entry.cases.forEach((testCase, index) => {
+              const label = `${entry.name} case ${index + 1}`;
+              const spec = convertSpec(entry.spec);
+              const input = convertInput(entry.spec, testCase.input);
 
-      test.each(rows)(
-        `${fixtureTest.id} case $caseIndex`,
-        ({ testCase }) => {
-          const spec = convertSpec(fixtureTest.spec);
-          const input = convertInput(fixtureTest.spec, testCase.input);
+              const validator = new Validator(spec);
+              const result = validator.validate(input);
 
-          const validator = new Validator(spec);
-          const result = validator.validate(input);
+              expect(result.valid, `${label}: valid`).toBe(testCase.expected.valid);
 
-          expect(result.valid).toBe(testCase.expected.valid);
+              if (!testCase.expected.valid) {
+                const firstError = result.errors[0];
+                expect(firstError, `${label}: first error`).toBeDefined();
 
-          if (!testCase.expected.valid) {
-            const firstError = result.errors[0];
-            expect(firstError).toBeDefined();
-
-            if (testCase.expected.error !== undefined) {
-              expect(firstError!.rule).toBe(testCase.expected.error);
-            }
-            if (testCase.expected.field !== undefined) {
-              expect(firstError!.path).toBe(testCase.expected.field);
-            }
+                if (testCase.expected.error !== undefined) {
+                  expect(firstError!.rule, `${label}: error rule`).toBe(testCase.expected.error);
+                }
+                if (testCase.expected.field !== undefined) {
+                  expect(firstError!.path, `${label}: error field`).toBe(testCase.expected.field);
+                }
+              }
+            });
           }
-        }
+        )
       );
     }
   });
