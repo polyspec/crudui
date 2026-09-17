@@ -11,14 +11,17 @@ failure's `at` is empty.
 
 These cases check relative, parent and field paths in rules, ternary and condition-map limits,
 conditional requiredness, keyed groups and scalars, repeated-field paths, `unique`, `mincount`,
-`equalto`, regular expression and `accept` values, choice membership with translated and empty
-labels, member order, composed specifications, the first error per field, message overrides,
-unregistered rules, empty values that skip format rules, and the shape of submitted data. The
+`equalTo`, regular expression and `accept` values, choice membership with translated and empty
+labels, member order, composed specifications, the first error per field, message overrides under
+the declared rule name, rule names that are not registered (in `validate` and `messages`, at
+nested row paths, for hidden fields and in check order), empty values that skip format rules, and
+the shape of submitted data. The
 visibility cases check that a field hidden by `design.show` (an expression, a condition map or
 `false`, in its row context) skips all of its rules and those of every field it contains, while
 other rules still read its kept value, and a three-step toggle that validates kept values again
 once the field is shown. The `multiple: only` cases check per-row validation of data rows and
-missing data that has no row but still fails `required` and `mincount`. Failure cases use `REF_FILE_NOT_FOUND` and `INVALID_FORM_INPUT`. The
+missing data that has no row but still fails `required` and `mincount`. Failure cases use `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
+`UNKNOWN_RULE` and `INVALID_FORM_INPUT`. The
 [test fixture contract](../../../docs/spec/test-fixtures.md) describes the format.
 
 ## Comparisons

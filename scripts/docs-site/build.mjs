@@ -12,6 +12,7 @@ const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 const SITE_CSS = join(SOURCE_DIRECTORY, 'site.css');
 const EXTERNAL_SCHEME = /^[A-Za-z][A-Za-z\d+.-]*:/;
 const HEADING_COMBINING = /[\u0300-\u036F]/g;
+// eslint-disable-next-line no-control-regex -- heading slugs drop the C0 control characters this class names.
 const HEADING_CONTROL = /[\u0000-\u001F]/g;
 const HEADING_SPECIAL = /[\s~\x60!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g;
 

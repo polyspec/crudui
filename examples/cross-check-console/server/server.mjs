@@ -97,7 +97,7 @@ export function coerceSpec(spec) {
     try {
       parsed = yaml.load(spec);
     } catch (e) {
-      throw new Error('Spec YAML parse error: ' + e.message);
+      throw new Error('Spec YAML parse error: ' + e.message, { cause: e });
     }
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
       throw new Error('Spec must parse to an object');

@@ -1,8 +1,10 @@
 //! Rule parameter checks (validation rules, "Parameter errors").
 //!
-//! A parameter outside the definitions is a load failure located at the field's
-//! declaration path. Parameters are checked when the specification loads, fields
-//! and rules in declaration order, including every literal a condition map or a
+//! A parameter outside the definitions, and a `validate` or `messages` key that is
+//! not a registered rule, is a load failure located at the field's declaration
+//! path. Rule names and parameters are checked when the specification loads,
+//! fields and rules in declaration order (a field's `messages` keys after its
+//! rules, before the fields it contains), including every literal a condition map or a
 //! ternary can select; a value a ternary takes from the data is checked when it is
 //! selected. Checking yields the typed parameter the rule uses.
 
@@ -17,6 +19,7 @@ use super::errors::ValidateError;
 use super::length::{limit, range_limits, MAX_LIMIT};
 use super::membership::{members, Comparable};
 use super::pattern::{compile, Program};
+use super::rules::get_rule;
 use super::validator::{
     is_conditional, is_disabled, is_group_with_properties, selectable_literals,
 };
@@ -66,6 +69,7 @@ fn check_fields(
         path.push(key.clone());
         if let Some(Value::Object(rules)) = field.get("validate") {
             for (rule, value) in rules {
+                check_name(rule, path)?;
                 if is_disabled(value) {
                     continue;
                 }
@@ -84,12 +88,30 @@ fn check_fields(
                 }
             }
         }
+        if let Some(Value::Object(messages)) = field.get("messages") {
+            for rule in messages.keys() {
+                check_name(rule, path)?;
+            }
+        }
         if let Some(children) = is_group_with_properties(field) {
             check_fields(children, path, patterns)?;
         }
         path.pop();
     }
     Ok(())
+}
+
+/// Fail with `UNKNOWN_RULE` when `rule`, a `validate` or `messages` key, is not a
+/// registered rule; `path` is the field's declaration path.
+fn check_name(rule: &str, path: &[String]) -> Result<(), ValidateError> {
+    if get_rule(rule).is_some() {
+        return Ok(());
+    }
+    Err(ValidateError::Load(ComposeLoadError::with_trace(
+        ComposeErrorCode::UnknownRule,
+        format!("Unknown rule: {rule}"),
+        path.to_vec(),
+    )))
 }
 
 /// Check the parameter `rule` uses; `path` is the field's declaration path.
@@ -268,12 +290,37 @@ mod tests {
     }
 
     #[test]
+    fn unknown_rule_names_fail_the_load() {
+        for (properties, name, at) in [
+            (
+                json!({ "a": { "type": "text", "validate": { "unknown": false } } }),
+                "unknown",
+                "a",
+            ),
+            (
+                json!({ "g": { "type": "group", "messages": { "Required": "x" },
+                    "properties": { "a": { "type": "text", "validate": { "typo": true } } } } }),
+                "Required",
+                "g",
+            ),
+        ] {
+            let Err(ValidateError::Load(error)) = check_declared(properties.as_object().unwrap())
+            else {
+                panic!("{name} loaded");
+            };
+            assert_eq!(error.code.as_str(), "UNKNOWN_RULE");
+            assert_eq!(error.message, format!("Unknown rule: {name}"));
+            assert_eq!(error.trace.join("."), at);
+        }
+    }
+
+    #[test]
     fn disabled_conditional_and_unchecked_parameters_load() {
         let properties = json!({
             "a": { "type": "text", "validate": {
                 "minlength": false, "maxlength": null, "in": false, "pattern": null,
                 "rangelength": ".x ? .range : false", "match": false,
-                "min": ".x", "unknown": [],
+                "min": ".x",
             } },
             "b": { "type": "text", "validate": {
                 "maxlength": { ".x": 3, "true": null },

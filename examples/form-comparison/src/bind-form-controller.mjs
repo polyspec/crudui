@@ -3,10 +3,9 @@ import {
   resolveAction, setAllExpandedView, toggleRowView, undoChange,
 } from '@crudui/generator-core';
 
-const inputSegments = name => name.match(/[^\[\]]+/g)?.slice(1) ?? [];
+const inputSegments = name => name.match(/[^[\]]+/g)?.slice(1) ?? [];
 const pathSegments = path => path.split('.').filter(Boolean);
 const valueAt = (data, segments) => segments.reduce((value, segment) => value?.[segment], data);
-const inputName = segments => `form${segments.map(segment => `[${segment}]`).join('')}`;
 
 function record(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);

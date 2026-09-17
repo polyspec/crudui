@@ -149,7 +149,7 @@ export function cargoEvents(progress) {
   };
 }
 
-const unescapeTeamcity = value => value.replace(/\|(['|\]\[nr])/g, (match, character) => ({ n: '\n', r: '\r' })[character] ?? character);
+const unescapeTeamcity = value => value.replace(/\|(['|\][nr])/g, (match, character) => ({ n: '\n', r: '\r' })[character] ?? character);
 
 /** Read PHPUnit TeamCity messages into progress lines. */
 export function phpunitEvents(progress) {
@@ -190,7 +190,8 @@ async function main() {
   const reads = ['go', 'cargo', 'phpunit'].includes(options.tool);
   const cargo = options.tool === 'cargo';
   // A runner started from inside node --test must not join that run as its child.
-  const { NODE_TEST_CONTEXT, ...env } = process.env;
+  const env = { ...process.env };
+  delete env.NODE_TEST_CONTEXT;
   const child = spawn(command, args, { cwd: options.cwd, env, stdio: ['ignore', reads ? 'pipe' : 'inherit', cargo ? 'pipe' : 'inherit'], detached: reads });
   let timedOut = false;
   const progress = reads ? createProgress({

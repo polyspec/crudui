@@ -296,7 +296,7 @@ async function postJson(pathname, payload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  let body = null;
+  let body;
   try {
     body = await res.json();
   } catch {
@@ -1094,7 +1094,7 @@ function renderLangMatrix(host, v, title) {
 
   let mismatchPanel = '';
   if (idempotent === false) {
-    mismatchPanel = validateMismatchPanel(results, groups);
+    mismatchPanel = validateMismatchPanel(results);
   }
 
   host.innerHTML =
@@ -1150,7 +1150,7 @@ function validateColumn(lang, entry, divergent) {
   </div>`;
 }
 
-function validateMismatchPanel(results, groups) {
+function validateMismatchPanel(results) {
   // Show each lang's signature so the divergent path/rule is visible.
   const rows = VALIDATE_LANGS.map((lang) => {
     const entry = results.find((r) => r.lang === lang);

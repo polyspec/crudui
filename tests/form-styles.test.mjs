@@ -94,7 +94,7 @@ const drivers = {
   webkit: {
     launch: async () => {
       try { return await webkit.launch({ headless: true }); }
-      catch (error) { throw new Error(`WebKit is required for the layout checks; install it with \`npx playwright install --with-deps webkit\`:\n${error.message}`); }
+      catch (error) { throw new Error(`WebKit is required for the layout checks; install it with \`npx playwright install --with-deps webkit\`:\n${error.message}`, { cause: error }); }
     },
     // A Playwright page opened from the browser owns its context and closes it with itself.
     open: browser => browser.newPage({ viewport }),

@@ -53,10 +53,22 @@ final class RuleParametersTest extends TestCase
         }
     }
 
-    public function testDisabledAndUnregisteredRulesAreNotChecked(): void
+    public function testDisabledRulesAreNotChecked(): void
     {
-        $spec = json_decode('{"type":"group","properties":{"a":{"type":"text","validate":{"pattern":null,"match":false,"in":false,"minlength":null,"custom":{"x":1}}}}}');
+        $spec = json_decode('{"type":"group","properties":{"a":{"type":"text","validate":{"pattern":null,"match":false,"in":false,"minlength":null}}}}');
         self::assertTrue(Validator::validate($spec, json_decode('{"a":""}'))->valid);
+    }
+
+    public function testUnregisteredRuleNamesFailTheLoad(): void
+    {
+        self::assertSame(
+            ['code' => 'UNKNOWN_RULE', 'message' => 'Unknown rule: custom', 'at' => 'a'],
+            self::failure('{"type":"group","properties":{"a":{"type":"text","validate":{"pattern":null,"custom":false}}}}'),
+        );
+        self::assertSame(
+            ['code' => 'UNKNOWN_RULE', 'message' => 'Unknown rule: 7', 'at' => 'g.a'],
+            self::failure('{"type":"group","properties":{"g":{"type":"group","properties":{"a":{"type":"text","messages":{"7":"x"}}}}}}'),
+        );
     }
 
     public function testEveryLiteralAConditionCanSelectIsCheckedAtLoad(): void

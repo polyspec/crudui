@@ -30,13 +30,14 @@
 [TypeScript 등록부](../../packages/validator-ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
 [CLI 절차](../operations/cli.ko.md)를 참고합니다. 모든 런타임은 같은 기본 규칙을 가지며 다른 규칙을
-등록하는 방법은 없습니다.
+등록하는 방법은 없습니다. 이 이름이 아닌 `validate` 또는 `messages` 키는 `UNKNOWN_RULE`로 로드에
+실패합니다([매개변수 오류](#매개변수-오류) 참고). 이름은 정확히 비교하므로 `equalto`는 `equalTo`가 아닙니다.
 
 ## 평가
 
 규칙은 선언 순서대로 실행하며 필드별 첫 실패에서 중단합니다. 해석된 매개변수가
-`false` 또는 `null`이면 규칙을 비활성화합니다. 런타임은 미등록 규칙을 건너뜁니다.
-런타임의 수용을 스키마 검증으로 판단하지 않고 선언 형식을 별도로 검사합니다.
+`false` 또는 `null`이면 규칙을 비활성화합니다. 등록되지 않은 규칙 이름은 매개변수와 관계없이
+로드 실패이므로 철자가 틀린 규칙이 검증을 조용히 끄는 일은 없습니다. 메타 스키마도 같은 이름을 거부합니다.
 
 `number` 필드는 해당 규칙을 명시적으로 선언하지 않았으면 다른 규칙보다 먼저
 암묵적인 `number` 검사를 실행합니다. 비유한 숫자 입력은 숫자 검증에 실패합니다.
@@ -138,12 +139,17 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 
 ## 매개변수 오류
 
-이 정의를 벗어난 매개변수는 로드 실패입니다. 매개변수는 조합과 금지 키 검사 다음에, 필드는 선언 순서로,
-필드의 규칙은 그 필드가 포함한 필드보다 먼저 선언 순서로 검사하며 첫 실패를 보고합니다. 위치는 필드의 선언 경로, 즉 루트부터의 속성 이름을
+이 정의를 벗어난 매개변수와 등록된 규칙이 아닌 규칙 이름은 로드 실패입니다. 규칙 이름과 매개변수는
+조합과 금지 키 검사 다음에 검사합니다. 필드는 선언 순서로, 필드의 `validate` 규칙은 선언 순서로(규칙마다
+이름을 매개변수보다 먼저), 이어서 그 필드의 `messages` 키를 선언 순서로 검사하며, 모두 그 필드가 포함한
+필드보다 먼저 검사하고 첫 실패를 보고합니다. `messages` 키는 메시지를 재정의할 규칙의 이름이며, 암묵적인
+`number` 검사처럼 필드가 선언하지 않은 등록 규칙을 가리킬 수 있습니다. 숨겨진 필드와 데이터가 없는 필드의
+이름도 검사합니다. 위치는 필드의 선언 경로, 즉 루트부터의 속성 이름을
 `.`로 이은 값이며 행 키를 포함하지 않습니다. 모든 런타임은 같은 코드와 메시지를 보고합니다.
 
 | 매개변수 | 코드 | 메시지 |
 | --- | --- | --- |
+| 등록된 규칙이 아닌 `validate` 또는 `messages` 키 | `UNKNOWN_RULE` | `Unknown rule: {name}` |
 | `minlength`, `maxlength` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | `rangelength` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum` |
 | `number`, `digits` 매개변수 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected true or false` |

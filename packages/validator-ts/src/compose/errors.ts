@@ -66,6 +66,11 @@ export type ComposeErrorCode =
   /** A `match`/`pattern` string outside the CRUDUI pattern language. */
   | 'INVALID_RULE_PATTERN'
   /**
+   * A `validate` or `messages` key that is not a registered rule name
+   * (validation-rules.md, "Parameter errors"). `trace` is the field's declaration path.
+   */
+  | 'UNKNOWN_RULE'
+  /**
    * A string or member name in the specification or a composition file that is not a sequence
    * of Unicode scalar values (docs/spec/input-text.md). `trace` is its path.
    */

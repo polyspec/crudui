@@ -32,9 +32,6 @@ const buildDirectory = await mkdtemp(path.join(os.tmpdir(), 'crudui-native-gener
 const report = { completed: false, passed: false, targets: [], checks: [], buildDirectory };
 if (selectedTargets.length || checkPatterns.length) report.filter = { targets: selectedTargets, checks: checkPatterns };
 
-// A run reports what it is doing while it runs: every check
-// prints its own start, its elapsed time and its result.
-const suiteStart = Date.now();
 const seconds = since => `${((Date.now() - since) / 1000).toFixed(1)}s`;
 // Every check prints its start, a line while it keeps running, and its result.
 const lines = createProgress({ write: text => process.stdout.write(text) });
@@ -57,7 +54,7 @@ const CHECK_BUDGETS = [
   [/^(?:form-fixture|instance|dates)$/, 20000],
 ];
 const DEFAULT_CHECK_BUDGET = 10000;
-const checkBudget = name => (CHECK_BUDGETS.find(([match]) => match.test(groupOf(name))) ?? [, DEFAULT_CHECK_BUDGET])[1];
+const checkBudget = name => CHECK_BUDGETS.find(([match]) => match.test(groupOf(name)))?.[1] ?? DEFAULT_CHECK_BUDGET;
 // Preparation builds the Go and Rust generators; a cold Cargo build dominates it.
 const PREPARE_BUDGET = { go: 300000, rust: 900000 };
 const digest = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');

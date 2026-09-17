@@ -36,16 +36,9 @@ export const matchRule: RuleDefinition = {
     // A value without canonical text (an array or object) cannot match.
     const text = canonicalText(value);
     if (text === undefined || !matcher.test(text)) {
-      // Look up the message under the invoked rule name first
-      // ('pattern' is an alias of 'match'), then fall back
-      const named =
-        ruleName !== undefined ? messages?.[ruleName] : undefined;
-      return (
-        named ??
-        messages?.pattern ??
-        messages?.match ??
-        'Please enter a valid format.'
-      );
+      // The custom message is found under the declared rule name only.
+      const named = ruleName === 'pattern' ? messages?.pattern : messages?.match;
+      return named ?? 'Please enter a valid format.';
     }
 
     return null;

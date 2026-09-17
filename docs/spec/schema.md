@@ -229,7 +229,7 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 | `lang.only` | List of language-code strings or object |
 | `design` | Boolean or object |
 | `content` | Text or a language map; the control text of a button or action field |
-| `messages` | Object of rule name to message string |
+| `messages` | Object of registered rule name to message string |
 | `buttons` | List of buttons (`type`: `submit`, `reset`, `button` or `link`); the form root only |
 | `action` | Object with string `method`, `url` and `enctype`; the form root only |
 | `design.show` | Expression, boolean or condition map |
@@ -242,9 +242,11 @@ The schema closes `multiple`, `lang`, `design`, the design nodes and `behavior`:
 not list fails with `Invalid {bucket}.{key} at {path}: unknown key` (for example
 `Invalid design.label.text at name: unknown key`). Within a bucket, unknown keys are checked in
 declaration order before the values. The order is `buttons` and `action`, `multiple`, `lang`,
-`design` (then each node: `label`, `wrapper`, `group`, `prepend`) and `behavior`. `validate`,
-`options` and dynamic `items` sources stay open for type-specific settings; forbidden meta keys
-are rejected everywhere. The meta-schema declares the parameter shapes of every registered
+`design` (then each node: `label`, `wrapper`, `group`, `prepend`) and `behavior`. `options`
+and dynamic `items` sources stay open for type-specific settings; forbidden meta keys are
+rejected everywhere. `validate` and `messages` keys are the registered rule names: the
+meta-schema rejects any other name, and validation fails the load with `UNKNOWN_RULE`
+([parameter errors](validation-rules.md#parameter-errors)). The meta-schema declares the parameter shapes of every registered
 validation rule and rejects forbidden keys at every depth of every value it leaves open.
 
 ## Widget and source settings

@@ -434,7 +434,8 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
     }
     if (ps_text_is(rule, "url")) return parameter->kind == PS_BOOL && !parameter->data.boolean ? 1 : value->kind == PS_STRING && url_valid(ps_trim(ps_string(value)));
     if (ps_text_is(rule, "accept")) return accept_value(value, parameter);
-    (void)field; return 1;
+    /* Rule names are checked when the specification loads. */
+    (void)field; return -1;
 }
 
 static bool append_error(validation_context *context, const ps_text *path, size_t length,

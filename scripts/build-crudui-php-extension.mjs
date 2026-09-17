@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import {
-  assertRegularPath,
   buildPhpExtension,
   declaredValue,
   resolveHomebrewPhpConfig,

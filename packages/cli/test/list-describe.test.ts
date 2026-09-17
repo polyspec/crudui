@@ -45,6 +45,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = resolve(HERE, '../../..', 'schema/crudui.schema.json');
 const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
 
+/** The object member of a meta-schema definition written as `anyOf`. */
+type SchemaObject = { type?: string; properties: Record<string, { enum?: unknown[] }> };
+const objectMember = (definition: { anyOf: SchemaObject[] }): SchemaObject =>
+  definition.anyOf.find((m) => m.type === 'object')!;
+
 descTest('describe.list is a drift-0 projection of cell.ts + the meta-schema', () => {
   const r = describe();
 
@@ -80,9 +85,7 @@ descTest('describe.list is a drift-0 projection of cell.ts + the meta-schema', (
   });
 
   it('cellFormatSchemaKeys equal the meta-schema CellFormat object-member keys', () => {
-    const obj = (schema.definitions.CellFormat.anyOf as any[]).find(
-      (m) => m.type === 'object'
-    );
+    const obj = objectMember(schema.definitions.CellFormat);
     expect(r.list.cellFormatSchemaKeys).toEqual(Object.keys(obj.properties));
   });
 
@@ -102,9 +105,7 @@ descTest('describe.list is a drift-0 projection of cell.ts + the meta-schema', (
     );
     expect(r.list.structure.column.firstClass).toEqual(colProps);
 
-    const pagObj = (schema.definitions.Pagination.anyOf as any[]).find(
-      (m) => m.type === 'object'
-    );
+    const pagObj = objectMember(schema.definitions.Pagination);
     expect(r.list.structure.pagination.keys).toEqual(Object.keys(pagObj.properties));
     expect(r.list.structure.pagination.modes).toEqual(pagObj.properties.mode.enum);
 
@@ -113,9 +114,7 @@ descTest('describe.list is a drift-0 projection of cell.ts + the meta-schema', (
     );
     expect(r.list.structure.sort.dirs).toEqual(schema.definitions.Sort.properties.dir.enum);
 
-    const actObj = (schema.definitions.ListAction.anyOf as any[]).find(
-      (m) => m.type === 'object'
-    );
+    const actObj = objectMember(schema.definitions.ListAction);
     expect(r.list.structure.action.objectKeys).toEqual(Object.keys(actObj.properties));
   });
 });

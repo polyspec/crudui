@@ -253,4 +253,4 @@ const replacements = new Map(NEW.map(c => [c.name, c]));
 const merged = [...existing.map(c => replacements.get(c.name) ?? c), ...additions];
 
 writeFileSync(casesPath, JSON.stringify(merged, null, 2) + '\n', 'utf8');
-console.log(`existing=${existing.length} new=${additions.length} total=${merged.length}`);
+process.stdout.write(`existing=${existing.length} new=${additions.length} total=${merged.length}\n`);

@@ -28,6 +28,6 @@
   >{#if hasHeader}{#if vm.sticky}<div class="crudui-node__header-container"><Header vm={vm} /></div>{:else}<Header vm={vm} />{/if}{/if
   }<div class={classes('crudui-node__body', vm.body.className)} style={vm.body.style} id={vm.body.id} hidden={bodyHidden}
     >{#if vm.checkbox}<input class={vm.checkbox.className} id={vm.checkbox.id} name={vm.checkbox.name} type="checkbox" value="1" checked={vm.checkbox.checked || undefined} defaultChecked={vm.checkbox.checked} /><label for={vm.checkbox.id}>{#if vm.checkbox.caption}{vm.checkbox.caption}{/if}</label
-    >{:else if widgetRaw !== null}{@html widgetRaw}{:else if vm.widget}<Widget w={vm.widget} />{:else}{#each vm.children ?? [] as child, index (child.key ?? child.path ?? child.lang ?? index)}<Self vm={child} />{/each}{/if
+    >{:else if widgetRaw !== null}{@html widgetRaw}<!-- eslint-disable-line svelte/no-at-html-tags -- widgetRootRaw serializes escaped control bytes plus the widget's declared host script (raw.ts). -->{:else if vm.widget}<Widget w={vm.widget} />{:else}{#each vm.children ?? [] as child, index (child.key ?? child.path ?? child.lang ?? index)}<Self vm={child} />{/each}{/if
   }</div>{#if vm.controls?.placement === 'footer'}<div class="crudui-node__footer"><Controls controls={vm.controls} /></div>{/if
 }</div>

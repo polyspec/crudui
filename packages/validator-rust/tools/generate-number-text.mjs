@@ -24,7 +24,7 @@ function next() {
 const values = new Set();
 const add = value => { if (Number.isFinite(value)) values.add(bitsOf(value)); };
 for (let exponent = -330; exponent <= 310; exponent++) {
-  for (const mantissa of [1, 1.5, 2.5, 5, 9.999999999999999, 1.2345678901234567]) add(Number(`${mantissa}e${exponent}`));
+  for (const mantissa of [1, 1.5, 2.5, 5, 9.999999999999998, 1.2345678901234567]) add(Number(`${mantissa}e${exponent}`));
 }
 for (let power = 0; power <= 1100; power++) { add(2 ** power); add(2 ** -power); }
 for (const value of [0, -0, 0.1 + 0.2, 1 / 3, Number.MAX_VALUE, Number.MIN_VALUE, Number.EPSILON, Number.MAX_SAFE_INTEGER]) add(value);

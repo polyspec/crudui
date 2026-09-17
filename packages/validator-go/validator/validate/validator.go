@@ -54,9 +54,10 @@ type Validator struct {
 
 // NewValidator builds a validator from a COMPOSED properties OMap (composition
 // keys already eliminated by the compose pass) and checks its declared rule
-// parameters. A parameter outside its rule's definition returns a
-// *compose.ComposeLoadError (INVALID_RULE_PARAMETER or INVALID_RULE_PATTERN) at
-// the field's declaration path.
+// names and parameters. A rule name that is not registered, or a parameter
+// outside its rule's definition, returns a *compose.ComposeLoadError
+// (UNKNOWN_RULE, INVALID_RULE_PARAMETER or INVALID_RULE_PATTERN) at the field's
+// declaration path.
 func NewValidator(properties *compose.OMap) (*Validator, error) {
 	if properties == nil {
 		properties = compose.NewOMap()
@@ -302,8 +303,8 @@ func (v *Validator) runRule(run fieldRun, ruleName string, ruleValue any, value 
 
 	fn, ok := getRule(ruleName)
 	if !ok {
-		// Unregistered rule: no error (VALIDATION-RULES common §4).
-		return "", false, nil
+		// Rule names are checked when the specification loads.
+		panic("crudui: rule " + ruleName + " is not registered")
 	}
 
 	ctx := ruleContext{

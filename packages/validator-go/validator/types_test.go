@@ -3,6 +3,9 @@ package validator
 import (
 	"bytes"
 	"encoding/json"
+	"os"
+	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -225,12 +228,12 @@ func TestClosedBucketsRejectUnknownKeys(t *testing.T) {
 }
 
 func TestValidateExtraStructuralRoundTrip(t *testing.T) {
-	in := `{"validate":{"required":true,"min_length":3,"custom":{"rule":"x"}}}`
+	in := `{"validate":{"required":true,"minlength":3,"in":{"a":"A"}}}`
 	var f FieldSpec
 	if err := json.Unmarshal([]byte(in), &f); err != nil {
 		t.Fatal(err)
 	}
-	if f.Validate.Extra["min_length"] != float64(3) {
+	if f.Validate.Extra["minlength"] != float64(3) {
 		t.Fatalf("validate Extra not captured: %#v", f.Validate.Extra)
 	}
 	out, err := json.Marshal(&f)
@@ -241,11 +244,11 @@ func TestValidateExtraStructuralRoundTrip(t *testing.T) {
 	if err := json.Unmarshal(out, &got); err != nil {
 		t.Fatal(err)
 	}
-	if got.Validate.Required != true || got.Validate.Extra["min_length"] != float64(3) || got.Validate.Extra["custom"] == nil {
+	if got.Validate.Required != true || got.Validate.Extra["minlength"] != float64(3) || got.Validate.Extra["in"] == nil {
 		t.Fatalf("validate structural round-trip lost data: %s", out)
 	}
 	var forbidden FieldSpec
-	if err := json.Unmarshal([]byte(`{"validate":{"custom":1,"when":1}}`), &forbidden); err == nil {
+	if err := json.Unmarshal([]byte(`{"validate":{"required":1,"when":1}}`), &forbidden); err == nil {
 		t.Fatal("forbidden key accepted under validate")
 	}
 }
@@ -255,5 +258,55 @@ func TestNestedForbiddenKeyInPropertiesChild(t *testing.T) {
 	var f FieldSpec
 	if err := json.Unmarshal([]byte(in), &f); err == nil {
 		t.Fatalf("forbidden key in nested child accepted")
+	}
+}
+
+func TestRuleKeysAreRegisteredRules(t *testing.T) {
+	cases := map[string]string{
+		`{"validate":{"required":true,"custom":1}}`:   `model: unknown key "custom" in validate`,
+		`{"validate":{"equalto":".a"}}`:               `model: unknown key "equalto" in validate`,
+		`{"messages":{"required":"r","requird":"x"}}`: `model: unknown key "requird" in messages`,
+	}
+	for in, want := range cases {
+		var f FieldSpec
+		if err := json.Unmarshal([]byte(in), &f); err == nil || err.Error() != want {
+			t.Fatalf("%s: want %s, got %v", in, want, err)
+		}
+	}
+	var f FieldSpec
+	if err := json.Unmarshal([]byte(`{"messages":{"required":1}}`), &f); err == nil {
+		t.Fatal("a message that is not a string was accepted")
+	}
+	roundTrip(t, `{"type":"number","messages":{"number":"n","required":"r"}}`)
+	roundTrip(t, `{"type":"button","content":{"ko":"저장","en":"Save"}}`)
+}
+
+func TestTopLevelKeysAreTheSchemaFieldKeys(t *testing.T) {
+	data, err := os.ReadFile("../../../schema/crudui.schema.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var schema struct {
+		Definitions struct {
+			Field struct {
+				Properties json.RawMessage `json:"properties"`
+			} `json:"Field"`
+		} `json:"definitions"`
+	}
+	if err := json.Unmarshal(data, &schema); err != nil {
+		t.Fatal(err)
+	}
+	keys, _, err := objectMembers(schema.Definitions.Field.Properties)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fieldKeys []string
+	model := reflect.TypeOf(FieldSpec{})
+	for i := 0; i < model.NumField(); i++ {
+		fieldKeys = append(fieldKeys, strings.Split(model.Field(i).Tag.Get("json"), ",")[0])
+	}
+	want := slices.DeleteFunc(slices.Clone(keys), func(key string) bool { return key == "$ref" || key == "$patch" })
+	if !slices.Equal(fieldKeys, want) {
+		t.Fatalf("model keys %v, schema keys %v", fieldKeys, want)
 	}
 }

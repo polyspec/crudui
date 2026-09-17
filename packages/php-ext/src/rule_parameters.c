@@ -4,10 +4,23 @@
 #include <stdlib.h>
 
 /*
- * Rule parameter checks (docs/spec/validation-rules.md, "Parameter errors"). A parameter outside
- * the definitions is a load failure (kind compose) whose location is the field's declaration
- * path: at is the property names joined with '.', trace is the list of those names.
+ * Rule name and parameter checks (docs/spec/validation-rules.md, "Parameter errors"). A parameter
+ * outside the definitions, and a validate or messages key that is not a registered rule, is a load
+ * failure (kind compose) whose location is the field's declaration path: at is the property names
+ * joined with '.', trace is the list of those names.
  */
+
+bool ps_registered_rule(ps_text rule)
+{
+    static const char *const rules[] = {
+        "required", "email", "minlength", "maxlength", "min", "max", "match", "pattern",
+        "unique", "in", "range", "rangelength", "number", "digits", "equalTo", "notEqual",
+        "date", "dateISO", "enddate", "url", "accept", "mincount", "maxcount", "step",
+    };
+    for (size_t i = 0; i < sizeof(rules) / sizeof(rules[0]); ++i)
+        if (ps_text_is(rule, rules[i])) return true;
+    return false;
+}
 
 static bool pattern_rule(ps_text rule)
 {
@@ -58,7 +71,9 @@ ps_value *ps_parameter_error(ps_text rule, const ps_parameter_problem *problem,
     }
     ps_chars location = ps_html_take(&at);
     ps_chars message;
-    if (problem->reason) {
+    if (!strcmp(problem->code, "UNKNOWN_RULE")) {
+        message = PS_CONCAT(PS_TEXT("Unknown rule: "), rule);
+    } else if (problem->reason) {
         char offset[32];
         snprintf(offset, sizeof(offset), "%zu", problem->offset);
         message = PS_CONCAT(PS_TEXT("Invalid "), rule, PS_TEXT(" pattern: "), ps_fixed(problem->reason),
@@ -128,15 +143,29 @@ static ps_value *check_declared(ps_text rule, const ps_value *parameter, const p
     return error;
 }
 
+/* The UNKNOWN_RULE load failure of a name that is not a registered rule, or NULL. */
+static ps_value *check_name(ps_text rule, const ps_text *path, size_t length)
+{
+    if (ps_registered_rule(rule)) return NULL;
+    static const ps_parameter_problem unknown = {.code = "UNKNOWN_RULE"};
+    ps_value *error = ps_parameter_error(rule, &unknown, path, length);
+    return error ? error : internal_error();
+}
+
+/* A field's rule names and parameters in declaration order, then its messages keys. */
 static ps_value *check_field(const ps_value *field, const ps_text *path, size_t length,
                              ps_pattern_cache *patterns)
 {
     const ps_value *rules = ps_get(field, "validate");
-    if (!rules || rules->kind != PS_OBJECT) return NULL;
-    for (size_t i = 0; i < ps_size(rules); ++i) {
+    for (size_t i = 0; rules && rules->kind == PS_OBJECT && i < ps_size(rules); ++i) {
         ps_text rule = ps_key(rules, i);
-        const ps_value *parameter = ps_at(rules, i);
-        ps_value *error = check_declared(rule, parameter, path, length, patterns);
+        ps_value *error = check_name(rule, path, length);
+        if (!error) error = check_declared(rule, ps_at(rules, i), path, length, patterns);
+        if (error) return error;
+    }
+    const ps_value *messages = ps_get(field, "messages");
+    for (size_t i = 0; messages && messages->kind == PS_OBJECT && i < ps_size(messages); ++i) {
+        ps_value *error = check_name(ps_key(messages, i), path, length);
         if (error) return error;
     }
     return NULL;

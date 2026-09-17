@@ -9,7 +9,7 @@ function workflowJob(source, name) {
   const lines = source.split('\n');
   const start = lines.findIndex(line => line === `  ${name}:`);
   assert.notEqual(start, -1, `CI must define the ${name} job`);
-  const endOffset = lines.slice(start + 1).findIndex(line => /^  [a-z0-9-]+:$/.test(line));
+  const endOffset = lines.slice(start + 1).findIndex(line => /^ {2}[a-z0-9-]+:$/.test(line));
   const end = endOffset === -1 ? lines.length : start + 1 + endOffset;
   return lines.slice(start, end).join('\n');
 }
