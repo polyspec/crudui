@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check deploy deploy-verify github-settings github-settings-check
+.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check deploy deploy-verify github-settings github-settings-check ci
 .NOTPARALLEL: docs docs-site docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -39,6 +39,7 @@ help: ## 타겟 설명
 	@echo "  make test-validators       Test the JavaScript, PHP, Go and Rust validators"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
+	@echo "  make ci                    Run every command of the CI workflow in order"
 	@echo "  make deploy                Deploy the comparison service from the current tree"
 	@echo "  make deploy-verify         Verify the deployed comparison service"
 	@echo "  make github-settings       Apply the repository settings in .github/repository.json"
@@ -221,3 +222,42 @@ github-settings: ## Apply the declared repository settings (idempotent)
 
 github-settings-check: ## Fail when the repository settings differ from the declaration
 	node scripts/github-repository.mjs check
+
+# Every command the CI workflow runs after installing tools and dependencies, in workflow order,
+# with the conformance evidence collected and checked like the final CI job
+# (tests/build/ci-local.test.mjs keeps this list equal to .github/workflows/ci.yml).
+CI_COMMANDS = \
+	'npm run test:runtimes' \
+	'npm run test:dependencies' \
+	'npm run build' \
+	'npm run lint' \
+	'npm run typecheck' \
+	'npm test -w @crudui/validator' \
+	'composer --working-dir=packages/validator-php test' \
+	'node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...' \
+	'node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml' \
+	'make docs-check' \
+	'make build-php-extension' \
+	'npm test --prefix examples/cross-check-console/server' \
+	'npm run manifest:test' \
+	'node scripts/require-current-build.mjs' \
+	'npm test -w @crudui/cli' \
+	'npm run manifest:check' \
+	'npm run manifest:docs:check' \
+	'npm run test:forms' \
+	'npm run test:form-comparison' \
+	'npm run test:packages' \
+	'npm run test:build && npm run test:build:repeat' \
+	'npm run test:inspector' \
+	'make test-native' \
+	'node scripts/check-conformance.mjs'
+ci: ## Run every command of the CI workflow in order
+	rm -rf "$(CONFORMANCE_EVIDENCE)"
+	@status=0; failed=''; \
+	export CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)"; \
+	for command in $(CI_COMMANDS); do \
+		echo "[ci] $$command"; \
+		if ! sh -c "$$command"; then status=1; failed="$$failed\n  $$command"; fi; \
+	done; \
+	if [ $$status -ne 0 ]; then printf "[ci] failed:$$failed\n"; fi; \
+	exit $$status

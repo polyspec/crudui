@@ -11,6 +11,10 @@ The release profile of the cross-check console's Rust validator program uses `st
 This keeps release builds independent of the toolchain's optional `rust-objcopy`/`libLLVM.dylib`
 strip pairing; a build must not leave a strip warning after reporting a successful binary.
 
+`make ci` runs every checking command of the CI workflow in the workflow's order, collects the
+conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
+when the list differs from `.github/workflows/ci.yml`. The individual commands are:
+
 ```sh
 composer --working-dir=packages/validator-php install
 npm run build

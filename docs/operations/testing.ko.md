@@ -11,6 +11,10 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 빌드가 toolchain의 선택적 `rust-objcopy`·`libLLVM.dylib` 조합에 의존하지 않게 하며, 바이너리를
 성공으로 보고한 뒤 strip 경고를 남기지 않게 합니다.
 
+`make ci`는 CI 워크플로의 모든 검사 명령을 워크플로 순서대로 실행하고, 적합성 증거를 모아 CI의 마지막
+작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
+실패합니다. 개별 명령은 다음과 같습니다.
+
 ```sh
 composer --working-dir=packages/validator-php install
 npm run build

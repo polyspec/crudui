@@ -1,5 +1,16 @@
 # 변경 기록
 
+## 2026-09-17 — CI 워크플로를 로컬에서 실행하고 첫 실행에서 드러난 문제 수정
+
+- `make ci`는 `.github/workflows/ci.yml`의 모든 검사 명령을 순서대로 실행하고 적합성 증거를
+  검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 워크플로와 다르면 실패합니다.
+- 다시 만든 저장소의 첫 CI 실행은 세 가지로 실패했습니다. 루트 패키지가 폼 비교 예제가 가져오는
+  `@crudui/validator`를 선언하지 않았고, PHP 검증기가 ctype 없는 PHP 빌드에는 없는 `ctype_digit`과
+  `ctype_xdigit`을 호출했으며, PHP 확장 엔진 검사가 정적 표를 복합 리터럴로 초기화해 GCC가
+  `-pedantic`에서 거부했습니다. 의존성을 선언하고, PHP 패턴 파서는 문자를 직접 비교하며, 표는 중괄호
+  초기화를 씁니다. `tests/build/php-extensions.test.mjs`는 PHP 패키지가 선택 확장(mbstring, ctype,
+  iconv, intl, bcmath, gmp, sodium, dom)을 요구하지 않고 쓰면 실패합니다.
+
 ## 2026-09-17 — 저장소 설정 선언과 make 배포
 
 - `.github/repository.json`이 GitHub 저장소 설정을 선언합니다. 홈페이지, 저장소 기능과 병합 방식,

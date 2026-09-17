@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-09-17 — Run the CI workflow locally and fix what its first run found
+
+- `make ci` runs every checking command of `.github/workflows/ci.yml` in order and checks the
+  conformance evidence; `tests/build/ci-local.test.mjs` fails when the list differs from the workflow.
+- The first CI run of the recreated repository failed three ways: the root package did not declare
+  `@crudui/validator`, which the form-comparison example imports; the PHP validator called
+  `ctype_digit` and `ctype_xdigit`, which a PHP build without ctype lacks; and the PHP extension's
+  engine test initialized static tables with compound literals, which GCC rejects under `-pedantic`.
+  The dependency is declared, the PHP pattern parser compares characters directly, and the tables
+  use brace initializers. `tests/build/php-extensions.test.mjs` fails when a PHP package uses an
+  optional extension (mbstring, ctype, iconv, intl, bcmath, gmp, sodium, dom) without requiring it.
+
 ## 2026-09-17 — Declare the repository settings and deploy through make
 
 - `.github/repository.json` declares the GitHub repository settings: homepage, repository features
