@@ -20,6 +20,15 @@ regular executable paths before compilation and rejects symbolic links, multiple
 discovery results and mismatched PHP installations. It does not use `phpize`,
 Autoconf or libtool.
 
+The `pattern` and `match` rules use PHP's PCRE2 API. When `main/php_config.h`
+of the target PHP leaves `HAVE_BUNDLED_PCRE` undefined, PHP uses an external
+PCRE2, and the build adds the include paths that `pkg-config --cflags libpcre2-8`
+reports. It runs the regular `pkgconf` executable of the Homebrew `pkgconf`
+formula on macOS or of the Debian `pkgconf-bin` package on Linux, or the one
+given with `--pkg-config` or `PHP_EXTENSION_PKG_CONFIG`, and needs the PCRE2
+development files (Homebrew `pcre2`, Debian `libpcre2-dev`). A PHP with the
+bundled PCRE2 needs nothing further.
+
 Run from the repository root:
 
 ```sh
