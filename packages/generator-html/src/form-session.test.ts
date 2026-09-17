@@ -100,3 +100,30 @@ test('connects labels and preserves multiple choice values through editing and s
     unmount();
   }
 });
+
+// @ts-expect-error Shared data-only collection and visibility assertions across all renderers.
+import { onlySpec, exerciseOnlyRows, visibilitySpec, visibilityData, exerciseHiddenValues } from '../../../tests/fixtures/form-session/data-rows.mjs';
+
+test('keeps a data-only collection to the rows of its data', async () => {
+  const session = createForm(compileForm(onlySpec));
+  const element = document.createElement('form');
+  const unmount = mount(session, element);
+  try {
+    await proves('data-rows.mjs', 'exerciseOnlyRows', ['connectForm'], () =>
+      exerciseOnlyRows({ element, session, expect, flush }));
+  } finally {
+    unmount();
+  }
+});
+
+test('keeps the values of a group hidden by design.show', async () => {
+  const session = createForm(compileForm(visibilitySpec), visibilityData);
+  const element = document.createElement('form');
+  const unmount = mount(session, element);
+  try {
+    await proves('data-rows.mjs', 'exerciseHiddenValues', ['connectForm'], () =>
+      exerciseHiddenValues({ element, session, expect, flush }));
+  } finally {
+    unmount();
+  }
+});

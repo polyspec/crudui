@@ -47,6 +47,9 @@ func buttonScript(button *Object, action string) string {
 // Each button is an object with type, tag, text and attrs; attrs keeps the output order
 // type, class, style, name, value, href, onclick. Only the Language option applies.
 func BindButtons(template *FormTemplate, data *Object, options BindOptions) ([]*Object, error) {
+	if e := CheckBindText(template, data, options); e != nil {
+		return nil, e
+	}
 	if e := checkOrderedValue(data); e != nil {
 		return nil, e
 	}

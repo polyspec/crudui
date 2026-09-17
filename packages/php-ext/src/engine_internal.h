@@ -93,6 +93,12 @@ ps_value *ps_value_clone(const ps_value *value);
 bool ps_value_order(ps_value *value);
 ps_value *ps_value_ordered(const ps_value *value);
 /*
+ * True when a template is exactly the shape compileForm produces: only kind
+ * (crudui/form-template), fields, buttons (objects), an optional string keyPrefix and an optional
+ * object action; each field has exactly a string name, an object spec and a field list children.
+ */
+bool ps_form_template_shape(const ps_value *template);
+/*
  * Copy a specification (or template) in member order and, when ordered_options is given, copy the
  * options with only options.files in member order; record data keeps its order. NULL inputs stay
  * NULL. Returns false only on allocation failure.
@@ -234,6 +240,21 @@ bool ps_expression_truth(ps_text expression, const ps_value *data,
 ps_value *ps_expression_literals(ps_text expression, bool *parsed);
 ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
                              const ps_text *current_path, size_t path_length);
+/*
+ * A conditional declaration resolved in the row context (docs/spec/validation-rules.md,
+ * "Conditional parameters"): a condition map selects its first matching value or its true default
+ * (null when nothing matches), a condition expression gives its value, and any other value,
+ * including a string that is not a valid expression, is itself. NULL only on allocation failure
+ * (or for a NULL declaration).
+ */
+ps_value *ps_resolve_conditional(const ps_value *declared, const ps_value *data,
+                                 const ps_text *current_path, size_t path_length);
+/*
+ * Visibility of design.show: only a value that resolves to false hides; a missing show is visible.
+ * *failed is set when the resolution cannot be allocated.
+ */
+bool ps_shown(const ps_value *show, const ps_value *data,
+              const ps_text *current_path, size_t path_length, bool *failed);
 
 /*
  * Values (whitespace.c, canonical.c; docs/spec/validation-rules.md, "Values").
@@ -277,6 +298,35 @@ int ps_length_passes(ps_text rule, const ps_value *value, const ps_value *parame
 /* Membership (rule_in.c). ps_in_passes: 1, 0, or -1 on allocation failure; the parameter is valid. */
 ps_parameter_problem ps_in_parameter(const ps_value *parameter);
 int ps_in_passes(const ps_value *value, const ps_value *parameter);
+
+/*
+ * Locale-independent number text (number_text.c); no engine path uses strtod or printf for a
+ * floating-point number.
+ * ps_numeric_text: whether trimmed text is numeric text (the HTML valid floating-point number)
+ * whose value is finite, with that value, the nearest double.
+ * ps_c_number: the number strtod reads in the "C" locale from the start of text (after ASCII
+ * space): the byte count read, 0 when nothing is a number; *overflow is set, with an infinite
+ * number, when a finite spelling overflows.
+ * ps_format_general: printf "%.*g" in the "C" locale (precision 1 to 17); NULL bytes on
+ * allocation failure.
+ */
+bool ps_numeric_text(ps_text text, double *number);
+size_t ps_c_number(ps_text text, double *number, bool *overflow);
+ps_chars ps_format_general(double number, int precision);
+
+/*
+ * Numbers (rule_number.c; docs/spec/validation-rules.md, "Numbers").
+ * ps_numeric_value: a finite number, or a string that is numeric text after trimming.
+ * ps_step_multiple: whether |value| is an integer multiple of a positive step, both read exactly as
+ * the decimal numbers their canonical texts write: 1 or 0, -1 on allocation failure.
+ * ps_number_rule: number, digits, min, max, range, step, mincount and maxcount.
+ * ps_number_passes: 1 or 0 for a valid parameter, -1 otherwise or on allocation failure.
+ */
+bool ps_numeric_value(const ps_value *value, double *number);
+int ps_step_multiple(double value, double step);
+bool ps_number_rule(ps_text rule);
+ps_parameter_problem ps_number_parameter(ps_text rule, const ps_value *parameter);
+int ps_number_passes(ps_text rule, const ps_value *value, const ps_value *parameter);
 
 /*
  * Unicode data (unicode_data.c, generated from contracts/unicode-properties.json): inclusive
@@ -356,9 +406,9 @@ void ps_pattern_cache_free(ps_pattern_cache *cache);
 
 /* Rule parameter checks (rule_parameters.c). */
 /*
- * The problem of a parameter that takes effect (not false or null) for one rule; only the
- * length, membership and pattern rules have parameter checks. Returns false on allocation
- * failure.
+ * The problem of a parameter that takes effect (not false or null) for one rule; the length,
+ * numeric, count, membership and pattern rules have parameter checks. Returns false on
+ * allocation failure.
  */
 bool ps_rule_parameter(ps_text rule, const ps_value *parameter, ps_pattern_cache *patterns,
                        ps_parameter_problem *problem);
@@ -367,7 +417,7 @@ ps_value *ps_parameter_error(ps_text rule, const ps_parameter_problem *problem,
                              const ps_text *path, size_t length);
 /*
  * Check the declared parameters of composed form properties: fields in declaration order (a group
- * before its children), each field's rules in declaration order. A length limit given by a
+ * before its children), each field's rules in declaration order. A resolved parameter given by a
  * condition is checked when validation resolves it. Returns the first load failure, an internal
  * error on allocation failure, or NULL.
  */

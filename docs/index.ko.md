@@ -17,6 +17,7 @@
 - [데이터 검증](operations/validation.ko.md)
 - [스펙 CLI](operations/cli.ko.md)
 - [검증 규칙](spec/validation-rules.ko.md)
+- [입력 텍스트](spec/input-text.ko.md)
 
 저장소 루트에서 `make docs`로 API 참조와 문서 사이트를 생성합니다.
 검증 결과를 기록하기 전에 `make docs-check`를 실행합니다.

@@ -3,7 +3,7 @@ use crudui_validator::compose::{
 };
 use serde_json::{json, Map, Value};
 
-use crate::design::{appearance, resolve_design, show};
+use crate::design::{appearance, flag, resolve_design};
 use crate::render::{appearance_attrs, element, escape, raw_element, raw_text};
 use crate::template::{check_design_declaration, check_known_keys};
 use crate::util::{join_class, scalar, segments, translate, value_at};
@@ -322,7 +322,7 @@ pub(crate) fn build_display(
         if design["show"] == false {
             continue;
         }
-        visible.push(json!({"key":key,"field":raw["field"].as_str().unwrap_or(""),"label":raw.get("label").map(|v|translate(Some(v),&options.language)).unwrap_or_else(||key.clone()),"format":format(raw.get("format")),"sortable":raw.get("sortable").filter(|v|!v.is_null()).is_some_and(|v|show(Some(v),context,&[])),"design":design}));
+        visible.push(json!({"key":key,"field":raw["field"].as_str().unwrap_or(""),"label":raw.get("label").map(|v|translate(Some(v),&options.language)).unwrap_or_else(||key.clone()),"format":format(raw.get("format")),"sortable":raw.get("sortable").filter(|v|!v.is_null()).is_some_and(|v|flag(Some(v),context,&[])),"design":design}));
     }
     let bound_rows = rows.iter().map(|row| {
         let cells = visible.iter().map(|column| {

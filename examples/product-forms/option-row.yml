@@ -1,0 +1,49 @@
+properties:
+  name:
+    type: text
+    label: { en: Option name, ko: 옵션명 }
+    placeholder: { en: "e.g. Red / Small", ko: "예) 빨강 / 소" }
+    validate:
+      required: true
+      maxlength: 60
+  sale:
+    type: choice
+    label: { en: On sale, ko: 판매 여부 }
+    default: open
+    items:
+      open: { en: Open, ko: 판매 }
+      closed: { en: Closed, ko: 판매 중지 }
+    validate:
+      in: [open, closed]
+  list_price:
+    type: number
+    label: { en: List price, ko: 정가 }
+    append: { en: USD, ko: USD }
+    validate:
+      min: 0
+  price:
+    type: number
+    label: { en: Price, ko: 판매가 }
+    append: { en: USD, ko: USD }
+    validate:
+      required: ".sale == 'open'"
+      min: ".sale == 'open' ? 1 : 0"
+  stock:
+    type: number
+    label: { en: Stock, ko: 재고 }
+    design:
+      show: "options.stock_mode == 'tracked'"
+    validate:
+      required: ".sale == 'open'"
+      digits: true
+      max: 100000
+  visible:
+    type: checkbox
+    label: { en: Visible, ko: 노출 }
+    default: 1
+  sku:
+    type: text
+    label: { en: SKU, ko: 품목 코드 }
+    placeholder: "ABC-001"
+    validate:
+      pattern: "^[A-Z0-9-]{3,20}$"

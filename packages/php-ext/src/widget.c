@@ -730,6 +730,30 @@ static ps_value *button_control(const widget_context *context)
     return model;
 }
 
+/* Widget model members in output order. */
+static const char *const widget_members[] = {
+    "kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass",
+    "script", "styleChrome", "buttonText", "prepend", "append", "extra",
+};
+
+/* Reorder the widget's members in place to the output order; unlisted members keep their order after. */
+static ps_value *ordered_widget(ps_value *model)
+{
+    if (!model || model->kind != PS_OBJECT) return model;
+    ps_member *items = model->data.children.items;
+    size_t length = model->data.children.length, placed = 0;
+    for (size_t name = 0; name < sizeof(widget_members) / sizeof(*widget_members); ++name) {
+        for (size_t i = placed; i < length; ++i) {
+            if (!ps_text_is((ps_text){items[i].key, items[i].key_length}, widget_members[name])) continue;
+            ps_member found = items[i];
+            memmove(&items[placed + 1], &items[placed], (i - placed) * sizeof(*items));
+            items[placed++] = found;
+            break;
+        }
+    }
+    return model;
+}
+
 ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,
                     ps_text path, const ps_value *design, ps_text key_prefix,
                     ps_text id_prefix, ps_text language,
@@ -770,5 +794,5 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
             }
         }
     }
-    free(id.bytes); return model;
+    free(id.bytes); return ordered_widget(model);
 }

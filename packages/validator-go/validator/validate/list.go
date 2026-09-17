@@ -38,6 +38,10 @@ import (
 // *compose.ComposeLoadError (the caller distinguishes a LOAD failure from a
 // validation result), identical to the form path.
 func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
+	// Input text is checked first (docs/spec/input-text.md).
+	if err := checkText(spec, opts); err != nil {
+		return ValidationResult{}, err
+	}
 	if spec == nil {
 		spec = compose.NewOMap()
 	}

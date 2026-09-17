@@ -4,6 +4,7 @@ import { composeProperties, MemoryLoader, type FileLoader } from '../compose/ind
 import { composeRoot } from '../compose-root';
 import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
+import { checkOptionText, checkedComposition } from '../text/index';
 
 /** Options for a detail structure validation run. */
 export interface ValidateDetailOptions {
@@ -24,7 +25,10 @@ export function validateDetail(
   spec: Record<string, unknown>,
   options: ValidateDetailOptions = {},
 ): ValidationResult {
-  const loader = options.loader ?? new MemoryLoader(options.files ?? {});
+  // Input text is checked first: the specification and files, then the options.
+  const checked = checkedComposition(spec, options);
+  checkOptionText(options, ['basepath']);
+  const loader = checked ?? new MemoryLoader(options.files ?? {});
   const opts = options.basepath ? { basepath: options.basepath } : {};
   // The root composes exactly as a list root does.
   const composed = composeRoot(spec, loader, opts);

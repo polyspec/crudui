@@ -115,11 +115,18 @@ At a JSON input boundary, use `json_decode($json, false, 512, JSON_THROW_ON_ERRO
 associative mode cannot preserve empty objects and can make objects with
 sequential numeric keys appear as arrays. Associative arrays remain valid for
 internal API calls when the caller already knows that the value is an object.
+`json_decode` refuses JSON text with an unpaired surrogate escape. To report the
+[input text](input-text.md) failure instead, decode with
+`CRUDUI\Validator\Support\JsonText::decode`, which returns the same values and keeps
+that text for the check.
 The fixed object options `files` and `data` also accept an empty PHP array.
 Returned record objects and cached templates use `stdClass`; lists use arrays.
 Object member order and row keys survive conversion in both directions.
-Unsupported PHP values, invalid UTF-8 strings or member names, and recursive
-structures fail explicitly.
+Returned templates and form, node, widget and button models keep the library's
+member order.
+Unsupported PHP values and recursive structures fail explicitly. Strings and
+member names that are not valid UTF-8 fail as the [input text](input-text.md)
+rule defines, before any other check of the method.
 
 The extension does not introduce hidden identity or ordering fields. Form
 transport and ordered JSON transport submit the same keyed records. JSON parsing

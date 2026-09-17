@@ -26,6 +26,8 @@ typedef struct {
     bool has_min, has_max;
     double min, max;
     bool copy, sortable, sticky;
+    /* Rows come only from the data: missing data is zero rows and no row control renders. */
+    bool only;
     ps_text title;
     const char *controls;
 } multiple_settings;
@@ -90,7 +92,9 @@ static bool resolve_multiple(const ps_value *multiple, multiple_settings *settin
     *settings = (multiple_settings){0};
     settings->controls = "header";
     if (multiple && multiple->kind == PS_BOOL && multiple->data.boolean) return true;
+    if (ps_is_string(multiple, "only")) { settings->only = true; return true; }
     if (!multiple || multiple->kind != PS_OBJECT) return false;
+    settings->only = enabled_bool(multiple, "only");
     settings->has_min = number_value(member(multiple, "min"), &settings->min);
     settings->has_max = number_value(member(multiple, "max"), &settings->max);
     settings->copy = enabled_bool(multiple, "copy");
@@ -398,16 +402,21 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
     ps_value *actions = ps_array_value();
     ps_value *row = ps_object_value();
     bool ok = row_path.bytes && row_design && number.bytes && actions && row;
-    if (ok && settings->sortable)
+    /* Rows of a data-only collection have no row controls. */
+    if (ok && settings->only) {
+        ps_value_free(actions);
+        actions = NULL;
+    }
+    if (ok && actions && settings->sortable)
         ok = append_action(actions, "move-up", messages->move_up, index == 0) &&
             append_action(actions, "move-down", messages->move_down, index + 1 == count);
-    if (ok) ok = append_action(actions, "add-row", messages->add_row, full);
-    if (ok && settings->copy) ok = append_action(actions, "copy-row", messages->copy_row, full);
-    if (ok) ok = append_action(actions, "remove-row", messages->remove_row,
-                               settings->has_min && (double)count <= settings->min);
+    if (ok && actions) ok = append_action(actions, "add-row", messages->add_row, full);
+    if (ok && actions && settings->copy) ok = append_action(actions, "copy-row", messages->copy_row, full);
+    if (ok && actions) ok = append_action(actions, "remove-row", messages->remove_row,
+                                          settings->has_min && (double)count <= settings->min);
     ok = ok && set_string(row, "kind", "row") && set_text(row, "key", key) &&
         set_string(row, "className", "") && ps_set(row, "hidden", ps_bool_value(false)) &&
-        attach_controls(row, settings->controls, messages->row_controls, &actions);
+        (!actions || attach_controls(row, settings->controls, messages->row_controls, &actions));
     if (ok && settings->sticky)
         ok = ps_set(row, "sticky", ps_bool_value(true)) &&
             ps_set(row, "stickyDepth", ps_int_value((int64_t)scope->sticky_depth));
@@ -489,7 +498,7 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
         segments[scope->count] = path_length;
     }
     bool group = ps_text_is(type, "group");
-    size_t count = value ? ps_size(value) : 1;
+    size_t count = value ? ps_size(value) : settings->only ? 0 : 1;
     for (size_t i = 0; ok && i < count; ++i) {
         ps_text key = value ? ps_key(value, i) : PS_TEXT("__0000000000000__");
         ps_value *row = build_row(field, spec, path, key, i, count, group, label, settings,
@@ -504,7 +513,7 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
     ok = node && attach_header(node, design, header, 3) &&
         attach_body(node, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
         set_string(node, "item", group ? "group" : "field");
-    if (ok && !count) {
+    if (ok && !count && !settings->only) {
         ps_value *actions = ps_array_value();
         bool full = settings->has_max && 0 >= settings->max;
         ok = actions && append_action(actions, "add-row", context->messages->add_row, full) &&
@@ -637,12 +646,56 @@ ps_result ps_bind_form(const ps_value *template, const ps_value *data,
 }
 
 /* Template, data, options and language checks shared by form and button binding. */
+/* Every member of an object is one of the allowed names. */
+static bool only_members(const ps_value *object, const char *const *allowed, size_t count)
+{
+    for (size_t index = 0; index < ps_size(object); index++) {
+        ps_text key = ps_key(object, index);
+        bool known = false;
+        for (size_t name = 0; name < count && !known; name++)
+            known = ps_text_is(key, allowed[name]);
+        if (!known) return false;
+    }
+    return true;
+}
+
+/* A list of field templates, each with exactly a string name, an object spec and a list children. */
+static bool field_template_list(const ps_value *fields)
+{
+    static const char *const names[] = {"name", "spec", "children"};
+    if (!fields || fields->kind != PS_ARRAY) return false;
+    for (size_t index = 0; index < ps_size(fields); index++) {
+        const ps_value *field = ps_at(fields, index);
+        const ps_value *name = member(field, "name"), *spec = member(field, "spec");
+        if (!field || field->kind != PS_OBJECT || ps_size(field) != 3 ||
+            !only_members(field, names, 3) || !name || name->kind != PS_STRING ||
+            !spec || spec->kind != PS_OBJECT || !field_template_list(member(field, "children")))
+            return false;
+    }
+    return true;
+}
+
+bool ps_form_template_shape(const ps_value *template)
+{
+    static const char *const names[] = {"kind", "keyPrefix", "fields", "buttons", "action"};
+    if (!template || template->kind != PS_OBJECT || !only_members(template, names, 5) ||
+        !ps_is_string(member(template, "kind"), "crudui/form-template") ||
+        !field_template_list(member(template, "fields")))
+        return false;
+    const ps_value *buttons = member(template, "buttons");
+    if (!buttons || buttons->kind != PS_ARRAY) return false;
+    for (size_t index = 0; index < ps_size(buttons); index++) {
+        const ps_value *button = ps_at(buttons, index);
+        if (!button || button->kind != PS_OBJECT) return false;
+    }
+    const ps_value *key_prefix = member(template, "keyPrefix"), *action = member(template, "action");
+    return (!key_prefix || key_prefix->kind == PS_STRING) && (!action || action->kind == PS_OBJECT);
+}
+
 static ps_result check_bind_input(const ps_value *template, const ps_value *data,
                                   const ps_value *options, ps_text *language_output)
 {
-    if (!template || template->kind != PS_OBJECT ||
-        !ps_is_string(member(template, "kind"), "crudui/form-template") ||
-        !member(template, "fields") || member(template, "fields")->kind != PS_ARRAY)
+    if (!ps_form_template_shape(template))
         return ps_fail("form", "INVALID_FORM_INPUT", "Unsupported form template", "");
     if (!data || data->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Form data must be an object", "");

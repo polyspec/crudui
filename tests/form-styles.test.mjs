@@ -353,7 +353,7 @@ for (const engine of engines) for (const host of hosts) {
       assert.ok(added.bottom <= added.height - added.marginBottom + 0.5, `The new row input is above the footer: ${added.bottom} vs ${added.height - added.marginBottom}`);
 
       // Scrolled to the end, selecting the first store from the structure map moves focus back
-      // up; the browser scrolls its input into view clear of the pinned headers and the footer.
+      // up; the binding scrolls its input into view clear of the pinned headers and the footer.
       await target.evaluate(source => { const { scroller } = eval(source); scroller.scrollTop = scroller.scrollHeight; }, containerSource);
       await frames(target);
       await target.evaluate(() => {

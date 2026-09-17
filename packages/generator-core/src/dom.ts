@@ -49,6 +49,19 @@ function firstRowControl(row: HTMLElement): HTMLElement | undefined {
 }
 
 /**
+ * Move focus to a control and scroll it into view only as far as needed, clear of the sticky
+ * headers above and the footer below: the stylesheet's scroll margins declare those bands and
+ * the standard scroll-into-view steps honour them in every engine. Focus itself never scrolls,
+ * since how far a browser scrolls a newly focused control is its own choice (WebKit on Linux
+ * does not keep to the margins); the moved focus is visible.
+ */
+function revealControl(control: HTMLElement): void {
+  control.focus({ preventScroll: true, focusVisible: true });
+  // A document without layout (jsdom) has no scrollIntoView.
+  control.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+}
+
+/**
  * Mark stuck sticky row headers in a browser without scroll-state container queries
  * (Firefox, Safari), and do nothing elsewhere. A header container is stuck while sticky
  * positioning moves it from the top of its row; `data-crudui-stuck` then shows its level
@@ -162,9 +175,8 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   };
   /**
    * Focus the row an action affected, or the enclosing row or Add button of an emptied
-   * collection. The browser scrolls the focused control into view only as far as needed;
-   * the stylesheet's scroll margins keep it clear of the sticky headers and the footer.
-   * Moving focus relocates the user, so the moved focus is visible.
+   * collection, and scroll it into view clear of the sticky headers and the footer. Moving
+   * focus relocates the user, so the moved focus is visible.
    */
   const moveFocus = ({ path, key }: FocusTarget) => {
     const row = key === undefined
@@ -173,7 +185,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     const control = row ? firstRowControl(row)
       : Array.from(element.querySelectorAll<HTMLButtonElement>('[data-crudui-action="add-row"]'))
         .find(button => !unavailable(button) && resolveAction(button)?.path === path);
-    control?.focus({ focusVisible: true });
+    if (control) revealControl(control);
   };
   const onInput = (event: Event) => {
     const control = event.target as Control;
@@ -276,7 +288,8 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
 
 /**
  * Connect a rendered structure map: its buttons act on the form, and selecting a row
- * focuses that form row's first control, which the browser scrolls into view.
+ * focuses that form row's first control and scrolls it into view clear of the sticky headers
+ * and the footer.
  */
 export function connectOutline(element: HTMLElement, session: FormInstance, formElement: HTMLElement): FormConnection {
   const onClick = (event: Event) => {
@@ -288,7 +301,8 @@ export function connectOutline(element: HTMLElement, session: FormInstance, form
     event.preventDefault();
     if (target.name === 'select-row' && result.focus?.key !== undefined) {
       const row = rowElement(formElement, result.focus.path, result.focus.key);
-      if (row) firstRowControl(row)?.focus({ focusVisible: true });
+      const control = row && firstRowControl(row);
+      if (control) revealControl(control);
     }
   };
   element.addEventListener('click', onClick);

@@ -9,7 +9,9 @@ require the recorded composition error.
 
 These fixtures exercise the internal `renderFields` evaluation and rendering
 path. They cover appearance, conditions, composition, translated content,
-language inputs, repetition and widget output. Repeated fixture data uses keyed
+language inputs, repetition and widget output, including `multiple: only` collections (rows under
+their data keys without row controls, and an empty or missing collection with its header, an empty
+body and no add-row control) and a hidden group that keeps its values. Repeated fixture data uses keyed
 collections as defined in the [form runtime](../../../docs/spec/form-runtime.md).
 
 ## Normalization
@@ -38,5 +40,6 @@ npm run test:forms
 
 The generation scripts use React's internal `renderFields` helper as the layout
 reference and normalize its output. The second script updates or appends widget
-cases. Review generated changes before accepting them; regeneration alone is not
+cases and the cases in [`written-cases.ts`](written-cases.ts), whose `expected_html` is
+written from the specification and never rendered. Review generated changes before accepting them; regeneration alone is not
 a correctness check. All three framework conformance suites must pass.

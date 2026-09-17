@@ -183,14 +183,14 @@ export const AUTHORED_CASES: AuthoredCase[] = [
   // --- membership ---
   {
     name: 'value-in-comma-string',
-    note: 'comma items are trimmed; values are trimmed; numbers match by value only in the decimal grammar; booleans match by canonical text.',
+    note: 'comma items are trimmed; values are trimmed; numeric values match by value (numeric text includes exponents); booleans match by canonical text.',
     ...fields({
       plain: 'a', spaced: ' b\u3000', decimal: '1.0', padded: '01', number: 1, yes: true,
       hex: '0x1', exponent: '1e0', upper: 'A', nul: 'a\u0000', no: false, list: ['a', 'b'], mixed: ['a', 'z'],
     }, { in: 'a, b,1' }),
     outcomes: {
       plain: null, spaced: null, decimal: null, padded: null, number: null, yes: null,
-      hex: fail('in'), exponent: fail('in'), upper: fail('in'), nul: fail('in'), no: fail('in'), list: null, mixed: fail('in'),
+      hex: fail('in'), exponent: null, upper: fail('in'), nul: fail('in'), no: fail('in'), list: null, mixed: fail('in'),
     },
   },
   {

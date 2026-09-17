@@ -1,5 +1,88 @@
 # 변경 기록
 
+## 2026-09-17 — 모든 런타임에서 유니코드 스칼라 값이 아닌 텍스트 거부
+
+- 명세와 데이터의 텍스트는 유니코드 스칼라 값의 나열입니다
+  ([입력 텍스트](docs/spec/input-text.ko.md)). JavaScript 문자열의 쌍이 없는 서로게이트, PHP·Go·C
+  문자열의 UTF-8이 아닌 바이트, JSON 텍스트의 쌍이 없는 서로게이트 이스케이프는 `validate`,
+  `validateList`, `validateDetail`, `compileForm`, `bindForm`, `bindButtons`, `createForm`, 폼
+  인스턴스 메서드, `buildList`, `buildDetail`과 그 렌더링 연산의 다른 모든 검사보다 먼저 거부됩니다.
+  Go는 더 이상 이를 U+FFFD로 바꾸지 않고, PHP와 Rust는 더 이상 JSON 디코딩에서 다른 오류로 실패하지
+  않습니다.
+- 명세나 합성 파일의 실패는 텍스트 경로에 위치한 로드 실패 `INVALID_TEXT`이고, 다른 인수나 옵션은
+  `INVALID_FORM_INPUT`과 메시지 `Text must be Unicode scalar values: {name}`으로 실패합니다. 멤버
+  이름도 텍스트이며 멤버는 이름의 코드 포인트 순서로 검사합니다.
+- Go의 `compose.DecodeOrdered`, `generator.DecodeJSON`, `ValidateJSON`은 검사를 위해 텍스트를
+  보존하고, PHP는 `CRUDUI\Validator\Support\JsonText`, Rust는 `crudui_validator::text`와
+  `crudui_generator::text`를 추가하며, PHP 확장은 변환 전에 PHP 값을 검사합니다.
+- 새 케이스 묶음 `tests/fixtures/text-validity`는 연산마다 케이스 파일을 하나씩 둡니다. 검증기, PHP
+  확장, 교차 검증 콘솔의 다섯 프로세스, 네이티브 생성기 프로그램이 이를 실행하고 적합성 증거를
+  기록하며, 프로그램은 UTF-8이 아닌 표준 입력을 거부합니다.
+
+## 2026-09-17 — 완전한 표현식이 아닌 외형 문자열을 리터럴 텍스트로 읽기
+
+- `design.class`, `design.style`과 다른 외형 설정은 `design.show`가 이미 따르는 규칙을 따릅니다.
+  문자열은 표현식 문법으로 끝까지 파싱될 때만 표현식이고 그 밖의 문자열은 리터럴 텍스트입니다.
+  `modal fade in show` 같은 클래스나 `font-family: Made in Script` 같은 스타일은 실패한 표현식으로
+  평가되어 버려졌지만, 이제 JavaScript, PHP, Go, Rust 생성기와 PHP 확장에서 작성한 그대로
+  렌더링됩니다.
+- 작성한 폼 사례 두 개가 리터럴 클래스와 스타일 문자열을 다루며, 공유 폼 사례는 103개가 됩니다.
+
+## 2026-09-17 — 모든 런타임의 숨김 필드, 데이터 전용 행, 하나의 숫자 해석
+
+- 데이터에 대해 `design.show`가 `false`로 해석되는 필드는 숨겨진 필드입니다. 검증은 그 필드와 내부의 모든
+  규칙을 건너뛰고 오류를 보고하지 않으며 값은 유지하므로, 꺼 둔 설정은 값을 유지하다가 다시 켜면 다시
+  검증합니다. `false`로 해석될 때만 숨기며, 아무것도 선택하지 않는 조건 맵과 완전한 표현식이 아닌 문자열은
+  보입니다. 숨겨진 필드도 데이터 모양은 검사합니다. 폼도 같은 규칙으로 표시 여부를 정하고 숨겨진 값을
+  인스턴스와 `getData()`에 유지합니다.
+- 목록 열의 `sortable`은 생성기가 이미 읽던 대로 조건 맵일 수 있으며, 아무것도 선택하지 않는 맵은 정렬할
+  수 없음을 뜻합니다.
+- `multiple.only: true`와 같은 `multiple: only`는 데이터에만 존재하는 행을 선언합니다. 데이터의 키가 행이고,
+  데이터가 없으면 행이 없으며, 폼은 행 컨트롤과 행 추가 컨트롤을 렌더링하지 않고, 모든 행 연산은
+  `Rows of {path} come only from data`로 실패합니다. `title`, `header`와 함께 쓰며, 그 밖의 키와 잘못된 값은
+  [스키마](docs/spec/schema.ko.md)의 메시지로 컴파일 오류를 보고합니다.
+- 반복 필드나 그룹의 데이터가 없으면 빈 컬렉션이므로 `required`와 개수 규칙이 적용됩니다.
+- 숫자를 한 가지 방식으로 읽습니다. 숫자 텍스트는 값이 유한한 HTML 유효 부동소수점 수(`+`와 끝의 점은
+  불가, 지수 허용)입니다. `min`, `max`, `range`, `step`은 숫자가 아닌 값에 실패하고, `step`은 10진 텍스트로
+  0부터의 배수를 정확히 판정하며, `digits`는 정규 텍스트를 읽고, 개수 규칙은 배열의 길이, 객체의 키 수,
+  값 없음·null·공백 값은 0, 그 밖의 스칼라는 1로 셉니다. `in`은 같은 방식으로 숫자 멤버를 비교하고 목록
+  멤버는 쓴 그대로 읽습니다. 숫자·개수 매개변수는 길이 제한처럼 검사합니다(`INVALID_RULE_PARAMETER`).
+  메시지는 매개변수를 정규 텍스트로 표시하고 규칙에 있는 매개변수의 자리 표시자를 모두 치환합니다.
+- 제거: 런타임별 숫자 파서(`is_numeric`, `strconv.ParseFloat`, `str::parse`, `strtod`, `parseFloat` 대체
+  경로), step 허용 오차와 반올림, C 엔진의 로캘 의존 숫자 읽기·쓰기(쉼표 소수점 로캘에서 검사하는 정확한
+  변환으로 교체). PHP 패키지 검사는 경고, notice, deprecation이 하나라도 나오면 실패합니다.
+- 공용 검증 사례는 238개로 늘었고 폼, 목록, 구조 맵, 세션 사례가 추가되었으며, `examples/product-forms`는
+  옵션 조합 폼과 큰 상품 폼을 현재 문법으로 보여 주고 검사에서 검증·렌더링합니다.
+
+## 2026-09-17 — 컴파일된 템플릿 형태만 받고 위젯 멤버 순서 통일
+
+- 모든 런타임(JavaScript, PHP 라이브러리와 확장, Go, Rust)의 `bindForm`, `bindButtons`와 폼
+  인스턴스는 `compileForm`이 만드는 형태와 정확히 같은 템플릿만 받습니다. `kind`, `fields`,
+  `buttons`, 선택 항목인 문자열 `keyPrefix`와 객체 `action`만 있고, 필드 템플릿은 `name`,
+  `spec`, `children`만 정확히 갖습니다. 그 밖의 값은 `INVALID_FORM_INPUT`과
+  `Unsupported form template`으로 실패합니다. Rust는 `FormTemplate::from_json`으로 템플릿을
+  읽고, `Deserialize` 구현도 이를 사용합니다.
+- 모든 런타임에서 위젯 모델의 멤버 순서가 하나이고, 파일 위젯의 `extra`는 `display`가
+  `file`보다 앞섭니다. 네이티브 생성기 비교는 멤버 순서와 템플릿 형태 요청 69개를 검사하며, 폼
+  런타임과 PHP 확장 명세가 이를 설명합니다.
+
+## 2026-09-17 — 옮긴 포커스를 모든 엔진에서 같게 스크롤
+
+- CI 작업 "Form instances and data injection"이 Linux의 WebKit에서 실패했습니다. 행 추가 작업
+  뒤 새 행의 입력이 고정 푸터 아래에 놓였습니다(700px 페이지에서 한계 644px에 대해 709px,
+  스크롤 박스와 프레임에서도 같은 65px). Playwright 이미지에서 측정하니 그 엔진의 `focus()`는
+  멀리 있는 컨트롤을 스크롤 여백을 지키지 않고 스크롤했고(아래쪽이 화면을 9px 넘고, 아래에서
+  올라올 때는 위쪽이 화면 위로 9px 나가 고정 헤더에 가림), `scrollIntoView({ block: 'nearest' })`는
+  여백을 지켰습니다.
+- `connectForm`과 `connectOutline`은 더 이상 스크롤을 포커스에 맡기지 않습니다. 포커스를 행으로
+  옮길 때 `preventScroll`로 포커스한 뒤 `scrollIntoView({ block: 'nearest', inline: 'nearest' })`로
+  필요한 만큼만 컨트롤을 보이게 스크롤하므로, Chromium, Firefox, macOS와 Linux의 WebKit에서
+  스타일시트의 스크롤 여백이 컨트롤을 고정 헤더와 푸터에 가리지 않게 합니다. 폼 마크업과 폼
+  런타임 명세가 이를 설명합니다.
+- `make test-form-styles-linux`(`scripts/test-form-styles-linux.sh`)는 고정된 버전의 Playwright
+  이미지에서 macOS의 `container` 또는 `docker`로 스타일시트 레이아웃 검사를 CI 러너처럼 Linux에서
+  실행합니다. `make ci`에는 포함되지 않습니다.
+
 ## 2026-09-17 — WebKit에서 스타일시트 레이아웃 검사
 
 - `tests/form-styles.test.mjs`가 sticky 헤더, 단계 레이블, 이음매, 행 카드, 포커스 시나리오를

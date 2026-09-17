@@ -32,7 +32,7 @@
     "manifest:docs:check": "node scripts/generate-feature-contract-docs.mjs --check",
     "manifest:test": "node scripts/require-current-build.mjs && node scripts/run-contract-tests.mjs",
     "spec:schema": "node scripts/check-schema.mjs",
-    "test:forms": "node scripts/require-current-build.mjs && npm test -w @crudui/generator-core && npm test -w @crudui/generator-html && npm test -w @crudui/generator-react && npm test -w @crudui/generator-vue && npm test -w @crudui/generator-svelte && node scripts/run-tests.mjs node -- tests/fixtures/form-render/normalize.test.mjs tests/form-styles.test.mjs tests/form-markup/naming.test.mjs",
+    "test:forms": "node scripts/require-current-build.mjs && npm test -w @crudui/generator-core && npm test -w @crudui/generator-html && npm test -w @crudui/generator-react && npm test -w @crudui/generator-vue && npm test -w @crudui/generator-svelte && node scripts/run-tests.mjs node -- tests/fixtures/form-render/normalize.test.mjs tests/form-styles.test.mjs tests/form-markup/naming.test.mjs examples/product-forms/examples.test.mjs",
     "test:form-comparison": "npm run test:form-comparison:build && npm run test:form-comparison:browser",
     "test:form-comparison:build": "npm run test:form-comparison:source && npm run test:form-comparison:library",
     "test:form-comparison:source": "npm run build:validator && npm run build -w @crudui/generator-core && npm run build -w @crudui/generator-html && node scripts/run-tests.mjs node -- examples/form-comparison/browser-report.test.mjs examples/form-comparison/check-*.test.mjs examples/form-comparison/container-runtime.test.mjs examples/form-comparison/public/*.test.mjs examples/form-comparison/src/*.test.mjs",

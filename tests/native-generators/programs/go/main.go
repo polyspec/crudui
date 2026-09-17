@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode/utf8"
 
 	gen "github.com/polyspec/crudui/packages/generator-go"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
@@ -141,7 +142,7 @@ func run(request *gen.Object) (any, error) {
 		if spec != nil && record == nil && request.Has("record") {
 			return nil, fmt.Errorf("Detail record must be an object")
 		}
-		detailOptions := gen.DetailOptions{Language: str(val(options, "language")), Data: val(options, "data"), Files: c.Files, Basepath: c.Basepath}
+		detailOptions := gen.DetailOptions{Language: str(val(options, "language")), Data: val(options, "data"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")}
 		if str(val(request, "operation")) == "buildDetail" {
 			return gen.BuildDetail(spec, record, detailOptions)
 		}
@@ -164,6 +165,11 @@ func run(request *gen.Object) (any, error) {
 		// A form template is a JSON object; the library checks its kind.
 		if obj(val(request, "template")) == nil {
 			return nil, fmt.Errorf("Unsupported form template")
+		}
+		// The text checks run on the decoded template, whose JSON encoding would
+		// replace invalid text.
+		if e := gen.CheckBindText(val(request, "template"), obj(val(request, "data")), bindOptions(options)); e != nil {
+			return nil, e
 		}
 		b, e := json.Marshal(val(request, "template"))
 		if e != nil {
@@ -229,8 +235,10 @@ func main() {
 	data, e := io.ReadAll(os.Stdin)
 	var result any
 	if e == nil {
+		// Standard input that is not UTF-8 is not JSON text; a decoded request
+		// keeps its text exactly, so the generator checks it.
 		v, decodeErr := gen.DecodeJSON(data)
-		if decodeErr != nil {
+		if !utf8.Valid(data) || decodeErr != nil {
 			e = fmt.Errorf("Request must be valid JSON")
 		} else if request := obj(v); request != nil {
 			result, e = run(request)

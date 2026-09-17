@@ -8,8 +8,9 @@ Vue and Svelte. Each case provides `name`, `note`, `spec`, `data`, `options` wit
 
 These cases check the map of top-level and nested rows with undo available, row controls placed in
 the map with `controls: outline` while empty collection controls stay in the form, untitled rows,
-a form without repeated fields, markup characters escaped in the data view, and the interface
-messages in Korean, English, Japanese and Chinese. The [form markup](../../../docs/spec/form-markup.md)
+a form without repeated fields, rows of a `multiple.only` collection that have no row controls in
+the map while their enclosing rows keep theirs, markup characters escaped in the data view, and the
+interface messages in Korean, English, Japanese and Chinese. The [form markup](../../../docs/spec/form-markup.md)
 defines both views.
 
 ## Comparisons
@@ -39,5 +40,6 @@ npm run test:forms
 ```
 
 The generator writes `cases.json` itself from the normalized static markup of React's
-`OutlineView` and `DataPanel`. Review changes against the specification before accepting them.
+`OutlineView` and `DataPanel`; a structure map declared on a case (`outline-only-rows-en`) is
+written from the specification and kept as written. Review changes against the specification before accepting them.
 Regeneration alone is not verification.

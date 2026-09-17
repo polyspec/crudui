@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/text"
 )
 
 // ListOptions supplies composition, display language, layout and caller-owned pagination data.
@@ -95,6 +96,11 @@ func normalizeFormat(v any) *Object {
 
 // BuildList creates a complete list model from the specification and ordered records.
 func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, error) {
+	// Input text is checked first (docs/spec/input-text.md).
+	options, e := checkDisplayText(spec, text.Input{Name: "rows", Value: rows}, options)
+	if e != nil {
+		return nil, e
+	}
 	return buildDisplay(spec, rows, options, displayPaths{own: "list", members: "columns"})
 }
 
@@ -177,7 +183,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 		}
 		sort := false
 		if v := read(raw, "sortable"); v != nil && !isAbsent(v) {
-			sort = evalShow(v, lookup, nil)
+			sort = evalFlag(v, lookup, nil)
 		}
 		cols = append(cols, NewObject("key", key, "field", stringAt(raw, "field"), "label", label, "format", normalizeFormat(read(raw, "format")), "sortable", sort, "design", d))
 	}
@@ -680,6 +686,10 @@ func paginationPages(page, pageCount int64) []int64 {
 
 // RenderList renders a table or card list with image resource hints in first-use order.
 func RenderList(spec *Object, rows []*Object, options ListOptions) (string, error) {
+	options, e := checkDisplayText(spec, text.Input{Name: "rows", Value: rows}, options)
+	if e != nil {
+		return "", e
+	}
 	if e := checkListInput(spec, rows, options); e != nil {
 		return "", e
 	}

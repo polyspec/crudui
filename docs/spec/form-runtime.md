@@ -16,6 +16,22 @@ without modifying the template or data.
 It does not load composition files. Evaluated values and display conditions are
 instance state and must not be stored in a shared template cache.
 
+`bindForm`, `bindButtons` and `createForm` accept only a template that has exactly
+the shape `compileForm` produces; any other value fails with `INVALID_FORM_INPUT`,
+message `Unsupported form template` and an empty location. The template is an
+object whose only members are `kind` (`crudui/form-template`), `fields` (a list
+of field templates), `buttons` (a list of objects), an optional `keyPrefix`
+(a string) and an optional `action` (an object); a template has no `version`
+member. Each field template has exactly a string `name`, an object `spec` and a
+field template list `children`. The contents of `spec` and of the buttons are
+not checked again. In JavaScript a member whose value is `undefined` is absent;
+in PHP an associative array is an object and an empty or list array is a list.
+Node models keep the member order the [form markup](form-markup.md) defines, and
+every widget model lists its members in the order `kind`, `layout`, `tag`,
+`attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`, `script`,
+`styleChrome`, `buttonText`, `prepend`, `append`, `extra`, with `display` before
+`file` in `extra`, in every runtime.
+
 `createForm(template, data, options)` creates an editable instance.
 `Form` renders the instance in React, Vue or Svelte. The host owns the HTML
 `form` element and submission handling. `renderForm(instance)` renders that same
@@ -117,6 +133,12 @@ scope. Key collisions, unknown rows and invalid positions fail without changing
 the current data or view. `multiple.min` and `multiple.max` constrain row count.
 
 Missing repeated data creates one editable row. Explicit `{}` means zero rows.
+A collection declared `multiple: only` has exactly the rows its data holds, in data order and
+under the data's keys; missing data means zero rows, and `addRow`, `copyRow`, `removeRow`,
+`moveRow` and `rekeyRow` on it fail with `INVALID_FORM_INPUT` and the message
+`Rows of {path} come only from data` without changing the data or view.
+A field hidden by `design.show` keeps its value in the instance and in `getData()`; when the data
+shows the field again, it shows that value.
 Removing the last row leaves the collection's `add-row` control. Adding a row does not restore deleted
 data. Default values apply only when input data is missing.
 Rendering rules are defined in [empty collections](empty-collections.md).
@@ -177,9 +199,11 @@ enclosing row, then the collection's Add button. Focus goes to the row's first
 enabled visible input, or to its toggle or Add button when it has none.
 
 Moving to a row, after a row operation or from the structure map, is focusing that
-row's control (or the Add button of an emptied collection); the browser scrolls it
-into view only as far as needed, and the stylesheet's scroll margins keep it clear of
-the sticky headers and the footer. No script follows the scroll position, and the
+row's control (or the Add button of an emptied collection) without scrolling and then
+scrolling it into view only as far as needed (`scrollIntoView` with
+`block: 'nearest'`), so the stylesheet's scroll margins keep it clear of the sticky
+headers and the footer in every engine. Scrolling on focus is left to no browser:
+WebKit on Linux does not keep to the margins. No script follows the scroll position, and the
 bindings never restore scroll positions. Toggling, selecting and undoing keep the
 focused control, including a focused action button, without scrolling.
 

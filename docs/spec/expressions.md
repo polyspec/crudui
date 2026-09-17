@@ -92,6 +92,8 @@ Condition evaluation returns a boolean. Value evaluation returns the selected
 branch value for a ternary, including nested ternaries; other expressions return
 their boolean condition result. A condition map returns its selected value as
 stored. A literal path outside a ternary does not return raw form data.
+A string in a conditional setting is an expression only when it parses
+completely under this grammar; any other string is a literal value.
 
 Logical operators short circuit. Membership uses the same equality operation as
 `==`; `not in` negates membership. Equality compares matching scalar types

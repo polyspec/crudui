@@ -1,6 +1,6 @@
 use crate::binding::bind_ordered;
 use crate::template::member_ordered_template;
-use crate::template::repeats;
+use crate::template::{data_only, repeats};
 use crate::util::{segments, value_at};
 use crate::{BindOptions, FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
@@ -111,6 +111,8 @@ fn normalize_fields(
         if repeats(field) {
             let mut rows = Map::new();
             match raw {
+                // A data-only collection has no row without data.
+                None if data_only(field) => {}
                 None => {
                     let key = fresh_key(&rows)?;
                     let row = normalize_row(field, None, &format!("{field_path}.{key}"))?;
@@ -268,6 +270,17 @@ impl Form {
         Ok(())
     }
 
+    /// A collection whose rows the form may add, copy, remove, move or rekey.
+    fn editable_collection(&self, path: &str) -> FormResult<(&FieldTemplate, &Map<String, Value>)> {
+        let found = self.collection(path)?;
+        if data_only(found.0) {
+            return Err(FormError::input(format!(
+                "Rows of {path} come only from data"
+            )));
+        }
+        Ok(found)
+    }
+
     fn collection(&self, path: &str) -> FormResult<(&FieldTemplate, &Map<String, Value>)> {
         let parts = checked_segments(path)?;
         let mut fields = &self.template.fields;
@@ -299,7 +312,7 @@ impl Form {
 
     /// Insert a row with supplied data or field defaults.
     pub fn add_row(&mut self, path: &str, options: AddRowOptions) -> FormResult<String> {
-        let (field, rows) = self.collection(path)?;
+        let (field, rows) = self.editable_collection(path)?;
         if field
             .spec
             .get("multiple")
@@ -356,7 +369,7 @@ impl Form {
         key: &str,
         mut options: AddRowOptions,
     ) -> FormResult<String> {
-        let (field, rows) = self.collection(path)?;
+        let (field, rows) = self.editable_collection(path)?;
         let value = rows
             .get(key)
             .ok_or_else(|| FormError::input(format!("Unknown row: {key}")))?;
@@ -369,7 +382,7 @@ impl Form {
 
     /// Remove a row while enforcing the minimum count.
     pub fn remove_row(&mut self, path: &str, key: &str) -> FormResult<()> {
-        let (field, rows) = self.collection(path)?;
+        let (field, rows) = self.editable_collection(path)?;
         if !rows.contains_key(key) {
             return Err(FormError::input(format!("Unknown row: {key}")));
         }
@@ -391,7 +404,7 @@ impl Form {
 
     /// Move a row without changing its identity or values.
     pub fn move_row(&mut self, path: &str, key: &str, index: usize) -> FormResult<()> {
-        let (_, rows) = self.collection(path)?;
+        let (_, rows) = self.editable_collection(path)?;
         let mut entries = rows
             .iter()
             .map(|(k, v)| (k.clone(), v.clone()))
@@ -417,7 +430,7 @@ impl Form {
 
     /// Apply a saved sequence key to one row and update its descendant paths.
     pub fn rekey_row(&mut self, path: &str, old_key: &str, new_key: &str) -> FormResult<()> {
-        let (_, rows) = self.collection(path)?;
+        let (_, rows) = self.editable_collection(path)?;
         check_key(new_key)?;
         if !rows.contains_key(old_key) {
             return Err(FormError::input(format!("Unknown row: {old_key}")));

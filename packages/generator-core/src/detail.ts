@@ -1,7 +1,9 @@
 /** Build the read-only detail model from the shared list display engine. */
 
 import { FormInputError } from '@crudui/validator';
+import { checkedComposition } from '@crudui/validator/internal';
 import { buildDisplay, type BuildListOptions, type CellVM } from './list';
+import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import type { ResolvedDesign } from './design';
 
 export interface DetailFieldVM extends CellVM {
@@ -32,6 +34,9 @@ export function buildDetail(
   record: Record<string, unknown> = {},
   options: BuildDetailOptions = {},
 ): DetailViewModel {
+  // Input text is checked first (docs/spec/input-text.md).
+  const loader = checkedComposition(detailSpec, options);
+  checkArgumentText([['record', record]], options, DISPLAY_OPTIONS);
   if (detailSpec === null || typeof detailSpec !== 'object' || Array.isArray(detailSpec)) {
     throw new FormInputError('Detail specification must be an object');
   }
@@ -51,7 +56,7 @@ export function buildDetail(
   const vm = buildDisplay(
     { columns: fields, ...(Object.prototype.hasOwnProperty.call(detailSpec, 'design') ? { design: detailSpec.design } : {}) },
     [record],
-    { ...options, page: null, total: null },
+    { ...options, ...(loader ? { loader } : {}), page: null, total: null },
     { own: 'detail', members: 'fields' },
   );
   const row = vm.rows[0];

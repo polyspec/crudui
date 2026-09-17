@@ -1,6 +1,6 @@
 import { renderFields } from '../../../packages/generator-react/src/internal/renderFields';
 import type { BindFormOptions, CompileFormOptions } from '@crudui/generator-core';
-import { compileForm } from '@crudui/generator-core';
+import { ComposeLoadError, compileForm } from '@crudui/generator-core';
 /**
  * Generates shared form-render fixtures for four languages and three frameworks.
  *
@@ -15,9 +15,6 @@ import { compileForm } from '@crudui/generator-core';
  *   node_modules/.bin/tsx tests/fixtures/form-render/generate.ts > tests/fixtures/form-render/cases.json
  */
 
-import {
-  ComposeLoadError,
-} from '../../../packages/generator-react/src/index';
 // @ts-expect-error — JS normalizer shared across the fixture harness.
 import { normalizeHtml } from './normalize.mjs';
 

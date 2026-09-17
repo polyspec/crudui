@@ -12,12 +12,12 @@ final class PublicApiTest extends TestCase
 {
     public function testPublicValidationRejectsInvalidUtf8ValuesAndObjectKeys(): void
     {
-        foreach ([['name' => "\xC3\x28"], (object) ["key\xFF" => 'value']] as $data) {
+        foreach ([': data.name' => ['name' => "\xC3\x28"], ': data' => (object) ["key\xFF" => 'value']] as $location => $data) {
             try {
                 Validator::validate([], $data);
                 self::fail('Invalid UTF-8 must fail before validation');
-            } catch (\InvalidArgumentException $error) {
-                self::assertStringContainsString('valid UTF-8', $error->getMessage());
+            } catch (Validator\Validate\FormInputError $error) {
+                self::assertSame('Text must be Unicode scalar values' . $location, $error->getMessage());
             }
         }
         self::assertTrue(Validator::validate([], ['name' => '한글 🎉'])->valid);

@@ -179,18 +179,27 @@
             "ARRAY_LEVEL_RULES",
             "FORBIDDEN_META_KEYS",
             "FORBIDDEN_META_KEY_PATTERN",
+            "INVALID_TEXT_MESSAGE",
             "LITERAL_PARAM_RULES",
             "MEMBERSHIP_PARAM_RULES",
             "MemoryLoader",
             "PATH_REFERENCE_RULES",
             "REGEX_PARAM_RULES",
             "Validator",
+            "checkInputText",
+            "checkOptionText",
+            "checkSpecificationText",
+            "checkedComposition",
+            "checkedLoader",
+            "compareCodePoints",
             "composeProperties",
             "composeSpec",
             "evaluateCondition",
             "evaluateExpressionValue",
             "getRuleNames",
+            "invalidTextPath",
             "isConditionExpression",
+            "isScalarText",
             "parseCondition",
             "scanForbiddenKeys"
           ]
@@ -241,6 +250,38 @@
       "kind": "detail-validity"
     },
     {
+      "path": "tests/fixtures/text-validity/validate/cases.json",
+      "kind": "input-text"
+    },
+    {
+      "path": "tests/fixtures/text-validity/validateList/cases.json",
+      "kind": "input-text"
+    },
+    {
+      "path": "tests/fixtures/text-validity/validateDetail/cases.json",
+      "kind": "input-text"
+    },
+    {
+      "path": "tests/fixtures/text-validity/compileForm/cases.json",
+      "kind": "input-text"
+    },
+    {
+      "path": "tests/fixtures/text-validity/bindForm/cases.json",
+      "kind": "input-text"
+    },
+    {
+      "path": "tests/fixtures/text-validity/createForm/cases.json",
+      "kind": "input-text"
+    },
+    {
+      "path": "tests/fixtures/text-validity/buildList/cases.json",
+      "kind": "input-text"
+    },
+    {
+      "path": "tests/fixtures/text-validity/buildDetail/cases.json",
+      "kind": "input-text"
+    },
+    {
       "path": "tests/fixtures/form-render/cases.json",
       "kind": "form-html"
     },
@@ -282,6 +323,14 @@
         "compareServerTakeover",
         "compareInitialization"
       ]
+    },
+    {
+      "path": "tests/fixtures/form-session/data-rows.mjs",
+      "kind": "browser-session",
+      "cases": [
+        "exerciseOnlyRows",
+        "exerciseHiddenValues"
+      ]
     }
   ],
   "supportValues": [
@@ -302,7 +351,8 @@
       ],
       "fixtures": [
         "tests/fixtures/compose/cases.json",
-        "tests/fixtures/form-render/cases.json"
+        "tests/fixtures/form-render/cases.json",
+        "tests/fixtures/text-validity/compileForm/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -315,11 +365,13 @@
       "state": "none",
       "tests": [
         "packages/generator-core/src/form.test.ts",
-        "packages/generator-react/src/__tests__/form-render.conformance.test.ts"
+        "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
+        "packages/generator-core/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
-        "docs/operations/forms.md"
+        "docs/operations/forms.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
@@ -329,6 +381,10 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
+        },
+        {
+          "id": "test-3",
+          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -343,7 +399,8 @@
         "UnsupportedFieldTypeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-render/cases.json"
+        "tests/fixtures/form-render/cases.json",
+        "tests/fixtures/text-validity/bindForm/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -357,12 +414,14 @@
       "tests": [
         "packages/generator-core/src/form.test.ts",
         "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
-        "packages/generator-core/src/node.test.ts"
+        "packages/generator-core/src/node.test.ts",
+        "packages/generator-core/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
         "docs/operations/forms.md",
-        "docs/spec/form-markup.md"
+        "docs/spec/form-markup.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
@@ -372,6 +431,10 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
+        },
+        {
+          "id": "test-3",
+          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -455,7 +518,8 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/native-generators/cases.mjs"
+        "tests/native-generators/cases.mjs",
+        "tests/fixtures/text-validity/createForm/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -469,12 +533,14 @@
       "tests": [
         "packages/generator-core/src/form.test.ts",
         "tests/fixtures/form-session/scenario.mjs",
-        "packages/generator-core/src/node.test.ts"
+        "packages/generator-core/src/node.test.ts",
+        "packages/generator-core/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
         "docs/operations/forms.md",
-        "docs/spec/form-markup.md"
+        "docs/spec/form-markup.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
@@ -484,6 +550,10 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
+        },
+        {
+          "id": "test-3",
+          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -589,7 +659,8 @@
         "ComposeLoadError"
       ],
       "fixtures": [
-        "tests/fixtures/list-render/cases.json"
+        "tests/fixtures/list-render/cases.json",
+        "tests/fixtures/text-validity/buildList/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -601,16 +672,22 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/list.test.ts"
+        "packages/generator-core/src/list.test.ts",
+        "packages/generator-core/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/display-formats.md",
-        "docs/spec/schema.md"
+        "docs/spec/schema.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
           "id": "test-1",
           "command": "npm test -w @crudui/generator-core -- src/list.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -624,7 +701,8 @@
         "ComposeLoadError"
       ],
       "fixtures": [
-        "tests/fixtures/detail-render/cases.json"
+        "tests/fixtures/detail-render/cases.json",
+        "tests/fixtures/text-validity/buildDetail/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -642,17 +720,23 @@
         "packages/generator-rust/src/detail.rs",
         "packages/php-ext/tests/engine.test.mjs",
         "packages/php-ext/tests/api.php",
-        "tests/native-generators/run.mjs"
+        "tests/native-generators/run.mjs",
+        "packages/generator-core/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/schema.md",
         "docs/spec/runtime-packages.md",
-        "tests/fixtures/detail-render/README.md"
+        "tests/fixtures/detail-render/README.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
           "id": "test-1",
           "command": "npm test -w @crudui/generator-core -- src/detail.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -715,10 +799,12 @@
       "input": "detail specification",
       "output": "structure validation result",
       "errors": [
-        "ComposeLoadError"
+        "ComposeLoadError",
+        "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/detail-validity/cases.json"
+        "tests/fixtures/detail-validity/cases.json",
+        "tests/fixtures/text-validity/validateDetail/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -737,12 +823,14 @@
         "packages/validator-rust/tests/detail_validity_conformance.rs",
         "packages/php-ext/tests/validate.php",
         "packages/php-ext/tests/engine.test.mjs",
-        "examples/cross-check-console/server/validate-detail-runner.test.mjs"
+        "examples/cross-check-console/server/validate-detail-runner.test.mjs",
+        "packages/validator-ts/src/text/text-validity.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/schema.md",
         "docs/spec/php-extension.md",
-        "docs/operations/validation.md"
+        "docs/operations/validation.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
@@ -752,6 +840,10 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/validator -- src/validate-detail/validate-detail.conformance.test.ts"
+        },
+        {
+          "id": "test-3",
+          "command": "npm test -w @crudui/validator -- src/text/text-validity.conformance.test.ts"
         }
       ]
     },
@@ -768,7 +860,8 @@
       "fixtures": [
         "tests/fixtures/form-session/scenario.mjs",
         "tests/fixtures/form-session/controls.mjs",
-        "tests/fixtures/form-session/initialization.mjs"
+        "tests/fixtures/form-session/initialization.mjs",
+        "tests/fixtures/form-session/data-rows.mjs"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -1033,7 +1126,8 @@
       "fixtures": [
         "tests/fixtures/validate/cases.json",
         "tests/fixtures/expr/cases.json",
-        "tests/fixtures/spec-validity/cases.json"
+        "tests/fixtures/spec-validity/cases.json",
+        "tests/fixtures/text-validity/validate/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -1046,16 +1140,22 @@
       "state": "none",
       "tests": [
         "packages/validator-ts/src/validate.conformance.test.ts",
-        "packages/validator-ts/src/forbidden-scan.conformance.test.ts"
+        "packages/validator-ts/src/forbidden-scan.conformance.test.ts",
+        "packages/validator-ts/src/text/text-validity.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/validation-rules.md",
-        "docs/operations/validation.md"
+        "docs/operations/validation.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
           "id": "test-1",
           "command": "npm test -w @crudui/validator -- src/validate.conformance.test.ts src/forbidden-scan.conformance.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/validator -- src/text/text-validity.conformance.test.ts"
         }
       ]
     },
@@ -1066,10 +1166,12 @@
       "input": "list specification",
       "output": "valid flag, or the composition or forbidden-key load error",
       "errors": [
-        "ComposeLoadError"
+        "ComposeLoadError",
+        "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/list-validity/cases.json"
+        "tests/fixtures/list-validity/cases.json",
+        "tests/fixtures/text-validity/validateList/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -1081,15 +1183,21 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/validator-ts/src/validate-list/validate-list.conformance.test.ts"
+        "packages/validator-ts/src/validate-list/validate-list.conformance.test.ts",
+        "packages/validator-ts/src/text/text-validity.conformance.test.ts"
       ],
       "docs": [
-        "docs/spec/display-formats.md"
+        "docs/spec/display-formats.md",
+        "docs/spec/input-text.md"
       ],
       "verification": [
         {
           "id": "test-1",
           "command": "npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/validator -- src/text/text-validity.conformance.test.ts"
         }
       ]
     }

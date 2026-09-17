@@ -123,9 +123,13 @@ final class Widget
         return Value::display($this->value, Value::get($this->spec, 'default'));
     }
 
+    /** Widget model members in their output order (docs/spec/form-runtime.md). */
+    private const MEMBERS = ['kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options', 'itemLabelClass', 'script', 'styleChrome', 'buttonText', 'prepend', 'append', 'extra'];
+
     private function model(string $kind, string $layout, array $attrs, array $extra = []): stdClass
     {
-        return Value::record(array_replace(['kind' => $kind, 'layout' => $layout, 'attrs' => (object) $attrs], $extra));
+        $members = array_replace(['kind' => $kind, 'layout' => $layout, 'attrs' => (object) $attrs], $extra);
+        return Value::record(array_merge(array_intersect_key(array_flip(self::MEMBERS), $members), $members));
     }
 
     private function affixes(): array

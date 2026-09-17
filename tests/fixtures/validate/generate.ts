@@ -34,8 +34,9 @@ import {
   ComposeLoadError,
   FormInputError,
 } from '../../../packages/validator-ts/src/validate/index';
-import { getRule } from '../../../packages/validator-ts/src/rules/index';
 import { AUTHORED_CASES, type AuthoredCase } from './value-rules';
+import { DEFAULT_MESSAGES, VISIBILITY_CASES, type FailingCase, type WrittenCase } from './visibility';
+import { NUMERIC_CASES } from './numeric-rules';
 
 interface CaseSpec {
   /** Specification written as JSON text, so array-index member names keep the order they were written in the fixture file. */
@@ -607,18 +608,6 @@ const SPECS: CaseSpec[] = [
     },
     data: { photo: 'snapshot.gif' },
   },
-  // 20. design.show does NOT skip validation (SPEC R1 show/validate split).
-  {
-    name: 'design-show-does-not-skip',
-    note: 'design.show hidden field still validates (R1 — visibility != validation)',
-    spec: {
-      type: 'group',
-      properties: {
-        x: { type: 'text', design: { show: '.flag' }, validate: { required: true } },
-      },
-    },
-    data: { flag: false, x: '' },
-  },
   // 21. First-error-per-field — required fires; email never evaluated.
   {
     name: 'first-error-per-field',
@@ -938,16 +927,22 @@ function authored(c: AuthoredCase): Record<string, unknown> {
   const errors = [];
   for (const [field, outcome] of Object.entries(c.outcomes ?? {})) {
     if (outcome === null) continue;
-    const rule = getRule(outcome.rule);
-    if (!rule?.defaultMessage) throw new Error(`No default message for ${outcome.rule}`);
-    const message = (outcome.params ?? []).reduce<string>((text, param, index) => text.replace(`{${index}}`, String(param)), rule.defaultMessage);
+    const template = DEFAULT_MESSAGES[outcome.rule];
+    if (template === undefined) throw new Error(`No default message for ${outcome.rule}`);
+    const message = (outcome.params ?? []).reduce<string>((text, param, index) => text.replace(`{${index}}`, String(param)), template);
     errors.push({ path: field, field, rule: outcome.rule, message, value: c.data[field] ?? null });
   }
   base.expected = { valid: errors.length === 0, errors };
   return base;
 }
 
-const out = [...SPECS.map(build), ...AUTHORED_CASES.map(authored)];
+/** A case whose complete result record is written from the specification. */
+function written(c: WrittenCase | FailingCase): Record<string, unknown> {
+  const { name, note, spec, data } = c;
+  return 'expectFailure' in c ? { name, note, spec, data, expectFailure: c.expectFailure } : { name, note, spec, data, expected: c.expected };
+}
+
+const out = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written)];
 let text = JSON.stringify(out, null, 2);
 for (const c of SPECS) {
   if (c.specText === undefined) continue;

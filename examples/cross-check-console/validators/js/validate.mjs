@@ -16,7 +16,14 @@ function readStdin() {
   return new Promise((resolve, reject) => {
     const chunks = [];
     process.stdin.on('data', chunk => chunks.push(chunk));
-    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    // Standard input that is not UTF-8 is not JSON text; it is never decoded with replacements.
+    process.stdin.on('end', () => {
+      try {
+        resolve(new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(Buffer.concat(chunks)));
+      } catch (error) {
+        reject(error);
+      }
+    });
     process.stdin.on('error', reject);
   });
 }

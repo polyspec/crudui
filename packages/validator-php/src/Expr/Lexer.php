@@ -241,7 +241,8 @@ final class Lexer
      */
     private static function parseNumberLiteral(string $value): int|float
     {
-        if (preg_match('/^-?\d+$/', $value) === 1) {
+        // An integer literal stays an int while the double it denotes is exact.
+        if (preg_match('/^-?\d+$/', $value) === 1 && abs((float) $value) <= 9007199254740992.0) {
             return (int) $value;
         }
 

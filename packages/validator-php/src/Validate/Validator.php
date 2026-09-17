@@ -27,8 +27,10 @@ use CRUDUI\Validator\Rules\MinCount;
 use CRUDUI\Validator\Rules\MaxCount;
 use CRUDUI\Validator\Rules\Step;
 use CRUDUI\Validator\Rules\RuleInterface;
-use CRUDUI\Validator\Expr\ConditionMap;
 use CRUDUI\Validator\Expr\Expression;
+use CRUDUI\Validator\Expr\ConditionalValue;
+use CRUDUI\Validator\Expr\Visibility;
+use CRUDUI\Validator\Values\CanonicalText;
 use CRUDUI\Validator\Values\EmptyValue;
 
 /**
@@ -44,9 +46,7 @@ use CRUDUI\Validator\Values\EmptyValue;
  *   (a) reading the `validate` slot,
  *   (b) evaluating a rule value that is an expression OR a condition map (G1 —
  *       the condition is the value's expression, never a separate if/when key),
- *   (c) omitting display_switch/display_target visibility conditions (G1
- *       forbids those meta keys; visibility-driven requiredness is
- *       required:'<expr>').
+ *   (c) skipping every field hidden by `design.show`, with everything it contains.
  *
  * The rule instances return a bool and skip nothing on empty values, so this engine
  * applies the empty-value skip of the validation rules centrally and builds the error
@@ -65,8 +65,8 @@ final class Validator
 
     /**
      * Default error messages per rule (identical in every runtime). The
-     * `pattern` and `match` aliases share one message. {0}/{1} are replaced from
-     * the (possibly array) effective param.
+     * `pattern` and `match` aliases share one message. {0}/{1} are replaced by the
+     * parameters of the rules that have them.
      */
     private const DEFAULT_MESSAGES = [
         'required' => 'This field is required.',
@@ -168,6 +168,8 @@ final class Validator
      * @param list<string>         $declarationPath $currentPath without row keys
      * @param array<string, mixed> $allData
      * @param array<int, array<string, mixed>> $errors
+     * @param bool                 $hidden          whether an enclosing field is hidden: its
+     *                                              descendants' data shape is still checked, their rules are not
      */
     private function validateProperties(
         array $properties,
@@ -176,6 +178,7 @@ final class Validator
         array $declarationPath,
         array $allData,
         array &$errors,
+        bool $hidden = false,
     ): void {
         foreach ($properties as $propertyKey => $field) {
             if (!is_array($field) && !$field instanceof \stdClass) {
@@ -190,9 +193,10 @@ final class Validator
             $present = array_key_exists($fieldName, $data);
             $fieldValue = $present ? $data[$fieldName] : null;
 
-            // No display_switch or display_target condition exists (G1: those meta keys
-            // do not exist in CRUDUI; visibility-conditioned requiredness is
-            // required:'<expr>').
+            // A field hidden by design.show has no rules evaluated, nor has anything it
+            // contains; its data shape is still checked. Its value stays in the data, where
+            // conditions elsewhere still read it.
+            $fieldHidden = $hidden || !Visibility::shown(Visibility::declared($field), $allData, $fieldPath);
 
             $childProps = $this->childProperties($field);
 
@@ -214,17 +218,25 @@ final class Validator
                             if (!self::isObject($row)) {
                                 throw new FormInputError('Group data must be an object: ' . implode('.', $rowPath));
                             }
-                            $this->validateProperties($childProps, (array) $row, $rowPath, $fieldDeclaration, $allData, $errors);
+                            $this->validateProperties($childProps, (array) $row, $rowPath, $fieldDeclaration, $allData, $errors, $fieldHidden);
                         }
+                    }
+                    // Missing data is an empty collection: it has no rows, and the
+                    // collection rules still evaluate it.
+                    if (!$fieldHidden) {
                         $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
                     }
                 } else {
                     if ($present && !self::isObject($fieldValue)) {
                         throw new FormInputError('Group data must be an object: ' . implode('.', $fieldPath));
                     }
-                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $fieldDeclaration, $allData, $errors);
-                    $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
+                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $fieldDeclaration, $allData, $errors, $fieldHidden);
+                    if (!$fieldHidden) {
+                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
+                    }
                 }
+            } elseif ($fieldHidden) {
+                continue;
             } elseif ($isMultiple && $present) {
                 // Repeated scalar field: collection rules on the keyed object, the
                 // rest on each row value.
@@ -241,11 +253,11 @@ final class Validator
         return $value instanceof \stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
     }
 
-    /** Whether a CRUDUI field repeats (multiple:true or multiple:{ … }). */
+    /** Whether a CRUDUI field repeats (multiple: true, only or { … }). */
     private function isMultiple(array $field): bool
     {
         $m = $field['multiple'] ?? null;
-        return $m === true || $m instanceof \stdClass || (is_array($m) && !array_is_list($m));
+        return $m === true || $m === 'only' || $m instanceof \stdClass || (is_array($m) && !array_is_list($m));
     }
 
     /**
@@ -454,14 +466,10 @@ final class Validator
         }
 
         // Central empty-skip. The rule instances do not skip empty values
-        // themselves. required always fires; mincount/maxcount on an array fire on
-        // the empty array too.
-        if ($ruleName !== 'required' && EmptyValue::is($value)) {
-            $isCountRuleOnArray = (is_array($value) || $value instanceof \stdClass)
-                && in_array($ruleName, ['mincount', 'maxcount'], true);
-            if (!$isCountRuleOnArray) {
-                return null;
-            }
+        // themselves. required fails on an empty value, and the collection counts
+        // evaluate it (an empty value counts 0).
+        if (!in_array($ruleName, ['required', 'mincount', 'maxcount'], true) && EmptyValue::is($value)) {
+            return null;
         }
 
         // unique with a filter/field-reference param needs the CRUDUI expression
@@ -488,15 +496,9 @@ final class Validator
     /**
      * Resolve a rule value to the effective param (G1).
      *
-     * The value is Evaluated<V> = literal | Expression(string) | ConditionMap.
-     *   - Path-reference / literal-param / regex rules keep their string param
-     *     verbatim (SPEC §10) — never evaluated as a condition.
-     *   - A ConditionMap (plain object whose keys are expressions) is evaluated in
-     *     declaration order; first truthy key's value is the param; else `true`
-     *     key; else null (disabled).
-     *   - A string is evaluated as a ternary (value-returning branch) or a plain
-     *     condition expression.
-     *   - Anything else is a literal param.
+     * Path-reference, literal-param, regex and membership rules keep their parameter
+     * verbatim; any other rule value resolves as a conditional parameter
+     * ({@see ConditionalValue}).
      *
      * @param list<string> $path
      * @param array<string, mixed> $allData
@@ -514,64 +516,7 @@ final class Validator
             return $ruleValue;
         }
 
-        // ConditionMap: a plain object of expression→value, declaration-ordered.
-        if ($ruleValue instanceof \stdClass || (is_array($ruleValue) && !array_is_list($ruleValue) && $ruleValue !== [])) {
-            return ConditionMap::resolve($ruleValue, $allData, $path);
-        }
-
-        // String: ternary value-return or plain condition.
-        if (is_string($ruleValue)) {
-            $ternary = $this->tryEvaluateTernary($ruleValue, $path, $allData);
-            if ($ternary['handled']) {
-                return $ternary['value'];
-            }
-            if ($this->isConditionExpression($ruleValue) && preg_match('/\?[^:]*:/', $ruleValue) !== 1) {
-                return $this->evaluateExpressionValue($ruleValue, $path, $allData);
-            }
-        }
-
-        // Literal param (number, boolean, array such as rangelength/range).
-        return $ruleValue;
-    }
-
-    /**
-     * Evaluate a complete ternary AST; other strings remain literal parameters.
-     *
-     * @param list<string> $path
-     * @param array<string, mixed> $allData
-     * @return array{handled: bool, value?: mixed}
-     */
-    private function tryEvaluateTernary(string $expression, array $path, array $allData): array
-    {
-        try {
-            $node = Expression::parse($expression);
-            if (!$node instanceof \CRUDUI\Validator\Expr\TernaryNode) {
-                return ['handled' => false];
-            }
-            return ['handled' => true, 'value' => Expression::evaluateValue($expression, $allData, $path)];
-        } catch (\Throwable) {
-            return ['handled' => false];
-        }
-    }
-
-    /** @param list<string> $path @param array<string, mixed> $allData */
-    private function evaluateCondition(string $expression, array $path, array $allData): bool
-    {
-        try {
-            return Expression::evaluate($expression, $allData, $path);
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    /** @param list<string> $path @param array<string, mixed> $allData */
-    private function evaluateExpressionValue(string $expression, array $path, array $allData): mixed
-    {
-        try {
-            return Expression::evaluateValue($expression, $allData, $path);
-        } catch (\Throwable) {
-            return false;
-        }
+        return ConditionalValue::resolve($ruleValue, $allData, $path);
     }
 
     // =========================================================================
@@ -785,7 +730,8 @@ final class Validator
 
     /**
      * Build the display message: per-field override → DEFAULT_MESSAGES → fallback,
-     * with {0}/{1} replaced from the (possibly array) effective param.
+     * with every {0}/{1} of a rule that has those parameters replaced by their
+     * canonical texts.
      *
      * @param array<string, mixed>|null $messages
      */
@@ -800,30 +746,26 @@ final class Validator
             $message = $message['en'] ?? $message['ko'] ?? (reset($message) ?: 'Validation failed.');
         }
 
-        if (is_array($param)) {
-            foreach ($param as $index => $paramValue) {
-                $message = str_replace('{' . $index . '}', $this->stringify($paramValue), $message);
-            }
-        } else {
-            $message = str_replace('{0}', $this->stringify($param), $message);
+        // Only the rules with parameters replace placeholders; any other placeholder stays as written.
+        $parameters = match ($ruleName) {
+            'minlength', 'maxlength', 'min', 'max', 'mincount', 'maxcount', 'step' => [$param],
+            'range', 'rangelength' => is_array($param) && array_is_list($param) ? $param : [],
+            default => [],
+        };
+        foreach (array_slice($parameters, 0, 2) as $index => $parameter) {
+            $message = str_replace('{' . $index . '}', $this->stringify($parameter), $message);
         }
 
         return $message;
     }
 
-    /** Scalar stringification for {0}/{1} placeholders (PHP (string) parity). */
+    /** Placeholder text: the canonical text of a scalar; false, null, arrays and objects are empty. */
     private function stringify(mixed $value): string
     {
-        if ($value === true) {
-            return '1';
-        }
-        if ($value === false || $value === null) {
+        if ($value === false || (is_float($value) && !is_finite($value))) {
             return '';
         }
-        if (is_array($value) || $value instanceof \stdClass) {
-            return '';
-        }
-        return (string) $value;
+        return CanonicalText::of($value) ?? '';
     }
 
     /**

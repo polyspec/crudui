@@ -10,31 +10,6 @@ import (
 	"strings"
 )
 
-// numberValue returns the double value of a number, whatever Go numeric type
-// carries it; an integer converts to the nearest double.
-func numberValue(value any) (float64, bool) {
-	switch n := value.(type) {
-	case uint:
-		return float64(n), true
-	case uint64:
-		return float64(n), true
-	case uint32:
-		return float64(n), true
-	case float64:
-		return n, true
-	case float32:
-		return float64(n), true
-	case int:
-		return float64(n), true
-	case int64:
-		return float64(n), true
-	case int32:
-		return float64(n), true
-	default:
-		return 0, false
-	}
-}
-
 // canonicalText returns the canonical text of a scalar. It reports false for an
 // array, an object, null and a nonfinite number, which have no canonical text.
 func canonicalText(value any) (string, bool) {

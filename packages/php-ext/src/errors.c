@@ -42,6 +42,27 @@ PHP_METHOD(CRUDUI_Validator_Validate_FormInputError, __construct)
     zend_string_release(code);
 }
 
+void crudui_text_load_failure(zval *trace)
+{
+    zend_string *message = zend_string_init(ZEND_STRL("Text must be Unicode scalar values"), false);
+    zend_string *code = zend_string_init(ZEND_STRL("INVALID_TEXT"), false);
+    zend_object *object = throw_message(crudui_compose_error_ce, zend_ce_exception, message);
+    initialize_error(crudui_compose_error_ce, object, code, message, trace);
+    zend_string_release(code);
+    zend_string_release(message);
+}
+
+void crudui_text_input_failure(zend_string *message, bool form_error)
+{
+    zend_class_entry *ce = form_error ? crudui_form_error_ce : crudui_input_error_ce;
+    zend_string *code = zend_string_init(ZEND_STRL("INVALID_FORM_INPUT"), false);
+    zend_object *object = throw_message(ce, zend_ce_exception, message);
+    zval path;
+    ZVAL_EMPTY_STRING(&path);
+    initialize_error(ce, object, code, message, &path);
+    zend_string_release(code);
+}
+
 void crudui_invalid_value(const char *message, bool form_error)
 {
     if (!form_error) { zend_throw_exception(spl_ce_InvalidArgumentException, message, 0); return; }

@@ -1578,40 +1578,6 @@
     }
   },
   {
-    "name": "design-show-does-not-skip",
-    "note": "design.show hidden field still validates (R1 — visibility != validation)",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "x": {
-          "type": "text",
-          "design": {
-            "show": ".flag"
-          },
-          "validate": {
-            "required": true
-          }
-        }
-      }
-    },
-    "data": {
-      "flag": false,
-      "x": ""
-    },
-    "expected": {
-      "valid": false,
-      "errors": [
-        {
-          "path": "x",
-          "field": "x",
-          "rule": "required",
-          "message": "This field is required.",
-          "value": ""
-        }
-      ]
-    }
-  },
-  {
     "name": "first-error-per-field",
     "note": "required+email; empty value → only required (email not reached)",
     "spec": {
@@ -3352,7 +3318,7 @@
   },
   {
     "name": "value-in-comma-string",
-    "note": "comma items are trimmed; values are trimmed; numbers match by value only in the decimal grammar; booleans match by canonical text.",
+    "note": "comma items are trimmed; values are trimmed; numeric values match by value (numeric text includes exponents); booleans match by canonical text.",
     "spec": {
       "type": "group",
       "properties": {
@@ -3466,13 +3432,6 @@
           "rule": "in",
           "message": "Please select a valid option.",
           "value": "0x1"
-        },
-        {
-          "path": "exponent",
-          "field": "exponent",
-          "rule": "in",
-          "message": "Please select a valid option.",
-          "value": "1e0"
         },
         {
           "path": "upper",
@@ -6737,6 +6696,3118 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid match parameter: expected a pattern string",
       "at": "value"
+    }
+  },
+  {
+    "name": "visibility-condition-map-without-selection",
+    "note": "Only a resolved false hides a field: a condition map that selects nothing leaves the field visible.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text"
+        },
+        "unselected": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".mode == 'on'": false
+            }
+          },
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "unselected": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "unselected",
+          "field": "unselected",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-literal-string-show",
+    "note": "A design.show string that is not a valid expression is a literal, and only false hides: the field is visible.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "literal": {
+          "type": "text",
+          "design": {
+            "show": ".mode == ("
+          },
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "literal": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "literal",
+          "field": "literal",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-hidden-data-shape",
+    "note": "The data shape is an input contract, checked whether or not the field is visible.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "design": {
+            "show": false
+          },
+          "properties": {
+            "code": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": [
+        {
+          "code": "x"
+        }
+      ]
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "visibility-hidden-field-skips-all-rules",
+    "note": "A field whose design.show resolves to false is hidden: none of its rules run (required, pattern, lengths, the implicit number check, email, mincount) and it reports no error. Its value is kept.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "enabled": {
+          "type": "checkbox"
+        },
+        "name": {
+          "type": "text",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "required": true
+          }
+        },
+        "code": {
+          "type": "text",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "required": true,
+            "pattern": "^[a-z]+$"
+          }
+        },
+        "title": {
+          "type": "text",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "minlength": 3,
+            "maxlength": 10
+          }
+        },
+        "amount": {
+          "type": "number",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "min": 1
+          }
+        },
+        "contact": {
+          "type": "email",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "email": true
+          }
+        },
+        "tags": {
+          "type": "text",
+          "multiple": true,
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "mincount": 2
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": 0,
+      "name": "",
+      "code": "x!",
+      "title": "ab",
+      "amount": "abc",
+      "contact": "not-an-address",
+      "tags": {
+        "__t1__": "one"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "visibility-shown-field-validates",
+    "note": "The same fields with design.show resolving to true are visible, and each reports its first failing rule in declaration order.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "enabled": {
+          "type": "checkbox"
+        },
+        "name": {
+          "type": "text",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "required": true
+          }
+        },
+        "code": {
+          "type": "text",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "required": true,
+            "pattern": "^[a-z]+$"
+          }
+        },
+        "title": {
+          "type": "text",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "minlength": 3,
+            "maxlength": 10
+          }
+        },
+        "amount": {
+          "type": "number",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "min": 1
+          }
+        },
+        "contact": {
+          "type": "email",
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "email": true
+          }
+        },
+        "tags": {
+          "type": "text",
+          "multiple": true,
+          "design": {
+            "show": ".enabled"
+          },
+          "validate": {
+            "mincount": 2
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": 1,
+      "name": "",
+      "code": "x!",
+      "title": "ab",
+      "amount": "abc",
+      "contact": "not-an-address",
+      "tags": {
+        "__t1__": "one"
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "name",
+          "field": "name",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "code",
+          "field": "code",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x!"
+        },
+        {
+          "path": "title",
+          "field": "title",
+          "rule": "minlength",
+          "message": "Please enter at least 3 characters.",
+          "value": "ab"
+        },
+        {
+          "path": "amount",
+          "field": "amount",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "abc"
+        },
+        {
+          "path": "contact",
+          "field": "contact",
+          "rule": "email",
+          "message": "Please enter a valid email address.",
+          "value": "not-an-address"
+        },
+        {
+          "path": "tags",
+          "field": "tags",
+          "rule": "mincount",
+          "message": "Please select at least 2 items.",
+          "value": {
+            "__t1__": "one"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-literal-show",
+    "note": "design.show: false hides a field whatever the data; design.show: true and a field without design.show are visible.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "hidden": {
+          "type": "text",
+          "design": {
+            "show": false
+          },
+          "validate": {
+            "required": true
+          }
+        },
+        "shown": {
+          "type": "text",
+          "design": {
+            "show": true
+          },
+          "validate": {
+            "required": true
+          }
+        },
+        "plain": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "hidden": "",
+      "shown": "",
+      "plain": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "shown",
+          "field": "shown",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "plain",
+          "field": "plain",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-condition-map",
+    "note": "A condition map resolves design.show to its first matching value or its true default: the first two maps select false and hide their fields, the third selects true.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text"
+        },
+        "defaulted": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".mode == 'on'": true,
+              "true": false
+            }
+          },
+          "validate": {
+            "required": true
+          }
+        },
+        "matched": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".mode == 'off'": false,
+              "true": true
+            }
+          },
+          "validate": {
+            "required": true
+          }
+        },
+        "visible": {
+          "type": "text",
+          "design": {
+            "show": {
+              ".mode == 'on'": false,
+              "true": true
+            }
+          },
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "defaulted": "",
+      "matched": "",
+      "visible": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "visible",
+          "field": "visible",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-hidden-group-descendants",
+    "note": "Every field inside a hidden group is skipped, including a nested group, a nested repeated group with mincount, the rows of that collection and a child whose own design.show is true. A hidden top-level collection skips its count rule.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "enabled": {
+          "type": "checkbox"
+        },
+        "details": {
+          "type": "group",
+          "design": {
+            "show": ".enabled"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "always": {
+              "type": "text",
+              "design": {
+                "show": true
+              },
+              "validate": {
+                "required": true
+              }
+            },
+            "inner": {
+              "type": "group",
+              "properties": {
+                "code": {
+                  "type": "text",
+                  "validate": {
+                    "pattern": "^[0-9]+$"
+                  }
+                }
+              }
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "validate": {
+                "mincount": 2
+              },
+              "properties": {
+                "code": {
+                  "type": "text",
+                  "validate": {
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "design": {
+            "show": false
+          },
+          "validate": {
+            "mincount": 3
+          },
+          "properties": {
+            "label": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "enabled": "",
+      "details": {
+        "name": "",
+        "always": "",
+        "inner": {
+          "code": "abc"
+        },
+        "items": {
+          "__i1__": {
+            "code": ""
+          }
+        }
+      },
+      "rows": {
+        "__r1__": {
+          "label": ""
+        }
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "visibility-per-row",
+    "note": "design.show resolves in the row context: '.kind' reads the sibling in the same row, so only the row whose kind is custom validates its note.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "kind": {
+              "type": "text"
+            },
+            "note": {
+              "type": "text",
+              "design": {
+                "show": ".kind == 'custom'"
+              },
+              "validate": {
+                "required": true,
+                "minlength": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": {
+        "__b__": {
+          "kind": "custom",
+          "note": "x"
+        },
+        "__a__": {
+          "kind": "plain",
+          "note": ""
+        },
+        "__c__": {
+          "kind": "custom",
+          "note": ""
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "items.__b__.note",
+          "field": "note",
+          "rule": "minlength",
+          "message": "Please enter at least 2 characters.",
+          "value": "x"
+        },
+        {
+          "path": "items.__c__.note",
+          "field": "note",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-hidden-value-still-read",
+    "note": "A hidden field reports nothing, but equalTo and a required condition elsewhere read its kept value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "secret": {
+          "type": "text",
+          "design": {
+            "show": false
+          },
+          "validate": {
+            "minlength": 10
+          }
+        },
+        "confirm": {
+          "type": "text",
+          "validate": {
+            "equalTo": ".secret"
+          }
+        },
+        "reason": {
+          "type": "text",
+          "validate": {
+            "required": ".secret == 'open'"
+          }
+        }
+      }
+    },
+    "data": {
+      "secret": "open",
+      "confirm": "other",
+      "reason": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "confirm",
+          "field": "confirm",
+          "rule": "equalTo",
+          "message": "Please enter the same value again.",
+          "value": "other"
+        },
+        {
+          "path": "reason",
+          "field": "reason",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-toggle-step-1-shown-valid",
+    "note": "Step 1 of 3: the flag is 1, the group is shown and its values are valid.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "is_display": {
+          "type": "text"
+        },
+        "display": {
+          "type": "group",
+          "design": {
+            "show": ".is_display == 1"
+          },
+          "properties": {
+            "code": {
+              "type": "text",
+              "validate": {
+                "required": true,
+                "pattern": "^[A-Z]{3}$"
+              }
+            },
+            "title": {
+              "type": "text",
+              "validate": {
+                "required": true,
+                "maxlength": 10
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "is_display": "1",
+      "display": {
+        "code": "ABC",
+        "title": "Hello"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "visibility-toggle-step-2-hidden-invalid",
+    "note": "Step 2 of 3: the flag is 0, the group is hidden, and a pattern-violating code and a missing required title report nothing.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "is_display": {
+          "type": "text"
+        },
+        "display": {
+          "type": "group",
+          "design": {
+            "show": ".is_display == 1"
+          },
+          "properties": {
+            "code": {
+              "type": "text",
+              "validate": {
+                "required": true,
+                "pattern": "^[A-Z]{3}$"
+              }
+            },
+            "title": {
+              "type": "text",
+              "validate": {
+                "required": true,
+                "maxlength": 10
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "is_display": "0",
+      "display": {
+        "code": "abc1",
+        "title": ""
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "visibility-toggle-step-3-shown-invalid",
+    "note": "Step 3 of 3: the flag is 1 again, and the values kept while the group was hidden are validated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "is_display": {
+          "type": "text"
+        },
+        "display": {
+          "type": "group",
+          "design": {
+            "show": ".is_display == 1"
+          },
+          "properties": {
+            "code": {
+              "type": "text",
+              "validate": {
+                "required": true,
+                "pattern": "^[A-Z]{3}$"
+              }
+            },
+            "title": {
+              "type": "text",
+              "validate": {
+                "required": true,
+                "maxlength": 10
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "is_display": "1",
+      "display": {
+        "code": "abc1",
+        "title": ""
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "display.code",
+          "field": "code",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "abc1"
+        },
+        {
+          "path": "display.title",
+          "field": "title",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-only-rows-validated",
+    "note": "multiple: only takes its rows from the data keys; each row is validated, and errors follow sorted key order.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {
+        "__opt_b2__": {
+          "name": "",
+          "price": 5
+        },
+        "__opt_a1__": {
+          "name": "Red",
+          "price": -1
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "variants.__opt_a1__.price",
+          "field": "price",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 0.",
+          "value": -1
+        },
+        {
+          "path": "variants.__opt_b2__.name",
+          "field": "name",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-only-missing-data-valid",
+    "note": "Missing data of a multiple: only collection has no row, so its row rules do not run.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "multiple-only-missing-data-required",
+    "note": "A required multiple.only collection without data fails required with the missing value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": {
+            "only": true,
+            "title": "name"
+          },
+          "validate": {
+            "required": true
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "variants",
+          "field": "variants",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-only-missing-data-mincount",
+    "note": "Collection counts evaluate empty collections, and missing data is an empty value: a multiple: only collection without data fails mincount with the missing value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": "only",
+          "validate": {
+            "mincount": 1
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "variants",
+          "field": "variants",
+          "rule": "mincount",
+          "message": "Please select at least 1 items.",
+          "value": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-missing-data-required",
+    "note": "Missing data of any repeated group is an empty collection: required fails with the missing value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": true,
+          "validate": {
+            "required": true
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "variants",
+          "field": "variants",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-missing-data-mincount",
+    "note": "Missing data of any repeated group is an empty collection: mincount counts 0.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": true,
+          "validate": {
+            "mincount": 1
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "variants",
+          "field": "variants",
+          "rule": "mincount",
+          "message": "Please select at least 1 items.",
+          "value": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple-only-empty-required",
+    "note": "A required multiple: only collection with {} has zero rows and fails required with the empty object.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": "only",
+          "validate": {
+            "required": true
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {}
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "variants",
+          "field": "variants",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": {}
+        }
+      ]
+    }
+  },
+  {
+    "name": "number-text-accepted",
+    "note": "numeric text and finite numbers are numeric.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "integer": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "negative": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "fraction": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "leadingDot": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "exponent": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "upperExponent": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "signedExponent": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "padded": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "zero": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "fractionNumber": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        }
+      }
+    },
+    "data": {
+      "integer": "12",
+      "negative": "-12",
+      "fraction": "0.5",
+      "leadingDot": ".5",
+      "exponent": "1e5",
+      "upperExponent": "1E-3",
+      "signedExponent": "-.5e+2",
+      "padded": "　 12\t",
+      "zero": "0",
+      "number": 12,
+      "fractionNumber": 1.5
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "number-text-rejected",
+    "note": "other spellings, overflow, booleans, arrays and objects are not numeric.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "plus": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "trailingDot": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "hex": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "infinity": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "nan": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "separator": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "arabicDigits": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "bareExponent": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "exponentOnly": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "doubleSign": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "overflow": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "comma": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "inner": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "yes": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "no": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "list": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "record": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        }
+      }
+    },
+    "data": {
+      "plus": "+1",
+      "trailingDot": "1.",
+      "hex": "0x10",
+      "infinity": "Infinity",
+      "nan": "NaN",
+      "separator": "1_000",
+      "arabicDigits": "١٢",
+      "bareExponent": "1e",
+      "exponentOnly": "e5",
+      "doubleSign": "--1",
+      "overflow": "1e999",
+      "comma": "1,5",
+      "inner": "1 2",
+      "yes": true,
+      "no": false,
+      "list": [
+        "1"
+      ],
+      "record": {
+        "a": 1
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "plus",
+          "field": "plus",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "+1"
+        },
+        {
+          "path": "trailingDot",
+          "field": "trailingDot",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "1."
+        },
+        {
+          "path": "hex",
+          "field": "hex",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "0x10"
+        },
+        {
+          "path": "infinity",
+          "field": "infinity",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "Infinity"
+        },
+        {
+          "path": "nan",
+          "field": "nan",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "NaN"
+        },
+        {
+          "path": "separator",
+          "field": "separator",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "1_000"
+        },
+        {
+          "path": "arabicDigits",
+          "field": "arabicDigits",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "١٢"
+        },
+        {
+          "path": "bareExponent",
+          "field": "bareExponent",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "1e"
+        },
+        {
+          "path": "exponentOnly",
+          "field": "exponentOnly",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "e5"
+        },
+        {
+          "path": "doubleSign",
+          "field": "doubleSign",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "--1"
+        },
+        {
+          "path": "overflow",
+          "field": "overflow",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "1e999"
+        },
+        {
+          "path": "comma",
+          "field": "comma",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "1,5"
+        },
+        {
+          "path": "inner",
+          "field": "inner",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": "1 2"
+        },
+        {
+          "path": "yes",
+          "field": "yes",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": true
+        },
+        {
+          "path": "no",
+          "field": "no",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": false
+        },
+        {
+          "path": "list",
+          "field": "list",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": [
+            "1"
+          ]
+        },
+        {
+          "path": "record",
+          "field": "record",
+          "rule": "number",
+          "message": "Please enter a valid number.",
+          "value": {
+            "a": 1
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "number-empty-skipped",
+    "note": "an empty value is not evaluated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "missing": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "blank": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        },
+        "nothing": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        }
+      }
+    },
+    "data": {
+      "blank": " ",
+      "nothing": null
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "number-underflow",
+    "note": "text whose value underflows reads as 0 and is numeric.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tiny": {
+          "type": "text",
+          "validate": {
+            "number": true
+          }
+        }
+      }
+    },
+    "data": {
+      "tiny": "1e-400"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "min-inclusive",
+    "note": "min is inclusive and reads numeric text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "equal": {
+          "type": "text",
+          "validate": {
+            "min": 5
+          }
+        },
+        "text": {
+          "type": "text",
+          "validate": {
+            "min": 5
+          }
+        },
+        "exponent": {
+          "type": "text",
+          "validate": {
+            "min": 5
+          }
+        },
+        "below": {
+          "type": "text",
+          "validate": {
+            "min": 5
+          }
+        },
+        "belowText": {
+          "type": "text",
+          "validate": {
+            "min": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "equal": 5,
+      "text": "5.0",
+      "exponent": "5e0",
+      "below": 4.999,
+      "belowText": "4.999"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "below",
+          "field": "below",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 5.",
+          "value": 4.999
+        },
+        {
+          "path": "belowText",
+          "field": "belowText",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 5.",
+          "value": "4.999"
+        }
+      ]
+    }
+  },
+  {
+    "name": "max-inclusive",
+    "note": "max is inclusive.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "equal": {
+          "type": "text",
+          "validate": {
+            "max": 5
+          }
+        },
+        "above": {
+          "type": "text",
+          "validate": {
+            "max": 5
+          }
+        },
+        "aboveNumber": {
+          "type": "text",
+          "validate": {
+            "max": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "equal": "5",
+      "above": "5.0001",
+      "aboveNumber": 6
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "above",
+          "field": "above",
+          "rule": "max",
+          "message": "Please enter a value less than or equal to 5.",
+          "value": "5.0001"
+        },
+        {
+          "path": "aboveNumber",
+          "field": "aboveNumber",
+          "rule": "max",
+          "message": "Please enter a value less than or equal to 5.",
+          "value": 6
+        }
+      ]
+    }
+  },
+  {
+    "name": "range-inclusive",
+    "note": "range includes both bounds.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "low": {
+          "type": "text",
+          "validate": {
+            "range": [
+              1,
+              5
+            ]
+          }
+        },
+        "high": {
+          "type": "text",
+          "validate": {
+            "range": [
+              1,
+              5
+            ]
+          }
+        },
+        "below": {
+          "type": "text",
+          "validate": {
+            "range": [
+              1,
+              5
+            ]
+          }
+        },
+        "above": {
+          "type": "text",
+          "validate": {
+            "range": [
+              1,
+              5
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "low": 1,
+      "high": "5",
+      "below": "0.999",
+      "above": 5.5
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "below",
+          "field": "below",
+          "rule": "range",
+          "message": "Please enter a value between 1 and 5.",
+          "value": "0.999"
+        },
+        {
+          "path": "above",
+          "field": "above",
+          "rule": "range",
+          "message": "Please enter a value between 1 and 5.",
+          "value": 5.5
+        }
+      ]
+    }
+  },
+  {
+    "name": "bounds-fail-non-numeric",
+    "note": "a value that is not numeric fails min, max and range.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "text": {
+          "type": "text",
+          "validate": {
+            "min": 1,
+            "max": 10,
+            "range": [
+              1,
+              10
+            ]
+          }
+        },
+        "exponent": {
+          "type": "text",
+          "validate": {
+            "min": 1,
+            "max": 10,
+            "range": [
+              1,
+              10
+            ]
+          }
+        },
+        "yes": {
+          "type": "text",
+          "validate": {
+            "min": 1,
+            "max": 10,
+            "range": [
+              1,
+              10
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "text": "abc",
+      "exponent": "1e3x",
+      "yes": true
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "text",
+          "field": "text",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 1.",
+          "value": "abc"
+        },
+        {
+          "path": "exponent",
+          "field": "exponent",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 1.",
+          "value": "1e3x"
+        },
+        {
+          "path": "yes",
+          "field": "yes",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 1.",
+          "value": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "max-reads-exponent",
+    "note": "exponent text is numeric: 1e3 is above 10.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "exponent": {
+          "type": "text",
+          "validate": {
+            "max": 10
+          }
+        }
+      }
+    },
+    "data": {
+      "exponent": "1e3"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "exponent",
+          "field": "exponent",
+          "rule": "max",
+          "message": "Please enter a value less than or equal to 10.",
+          "value": "1e3"
+        }
+      ]
+    }
+  },
+  {
+    "name": "bounds-negative-zero-and-fractions",
+    "note": "fractional and negative bounds compare as doubles.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "inside": {
+          "type": "text",
+          "validate": {
+            "range": [
+              -0.5,
+              0.5
+            ]
+          }
+        },
+        "outside": {
+          "type": "text",
+          "validate": {
+            "range": [
+              -0.5,
+              0.5
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "inside": "-0.25",
+      "outside": "-0.75"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "outside",
+          "field": "outside",
+          "rule": "range",
+          "message": "Please enter a value between -0.5 and 0.5.",
+          "value": "-0.75"
+        }
+      ]
+    }
+  },
+  {
+    "name": "step-exact-decimal",
+    "note": "multiples are decided on the decimal texts without a tolerance.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "exact": {
+          "type": "text",
+          "validate": {
+            "step": 0.1
+          }
+        },
+        "drift": {
+          "type": "text",
+          "validate": {
+            "step": 0.1
+          }
+        },
+        "tiny": {
+          "type": "text",
+          "validate": {
+            "step": 0.1
+          }
+        },
+        "near": {
+          "type": "text",
+          "validate": {
+            "step": 0.1
+          }
+        },
+        "negative": {
+          "type": "text",
+          "validate": {
+            "step": 0.1
+          }
+        },
+        "zero": {
+          "type": "text",
+          "validate": {
+            "step": 0.1
+          }
+        },
+        "large": {
+          "type": "text",
+          "validate": {
+            "step": 0.1
+          }
+        }
+      }
+    },
+    "data": {
+      "exact": "0.3",
+      "drift": 0.30000000000000004,
+      "tiny": 2e-7,
+      "near": "1.0000000001",
+      "negative": -0.6,
+      "zero": 0,
+      "large": "1e21"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "drift",
+          "field": "drift",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 0.1.",
+          "value": 0.30000000000000004
+        },
+        {
+          "path": "tiny",
+          "field": "tiny",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 0.1.",
+          "value": 2e-7
+        },
+        {
+          "path": "near",
+          "field": "near",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 0.1.",
+          "value": "1.0000000001"
+        }
+      ]
+    }
+  },
+  {
+    "name": "step-small-and-large",
+    "note": "small and large steps count from 0.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "small": {
+          "type": "text",
+          "validate": {
+            "step": 2e-7
+          }
+        },
+        "notSmall": {
+          "type": "text",
+          "validate": {
+            "step": 2e-7
+          }
+        }
+      }
+    },
+    "data": {
+      "small": 2e-7,
+      "notSmall": 3e-7
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "notSmall",
+          "field": "notSmall",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 2e-7.",
+          "value": 3e-7
+        }
+      ]
+    }
+  },
+  {
+    "name": "step-large",
+    "note": "a large step keeps exact multiples.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "multiple": {
+          "type": "text",
+          "validate": {
+            "step": 100000000000000000000
+          }
+        },
+        "fifteen": {
+          "type": "text",
+          "validate": {
+            "step": 100000000000000000000
+          }
+        },
+        "notMultiple": {
+          "type": "text",
+          "validate": {
+            "step": 100000000000000000000
+          }
+        }
+      }
+    },
+    "data": {
+      "multiple": 1e+21,
+      "fifteen": "1.5e21",
+      "notMultiple": "1.05e21"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "notMultiple",
+          "field": "notMultiple",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 100000000000000000000.",
+          "value": "1.05e21"
+        }
+      ]
+    }
+  },
+  {
+    "name": "step-fails-non-numeric",
+    "note": "a value that is not numeric fails step.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "text": {
+          "type": "text",
+          "validate": {
+            "step": 5
+          }
+        },
+        "exponentOk": {
+          "type": "text",
+          "validate": {
+            "step": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "text": "ten",
+      "exponentOk": "1e1"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "text",
+          "field": "text",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 5.",
+          "value": "ten"
+        }
+      ]
+    }
+  },
+  {
+    "name": "step-quarter",
+    "note": "a quarter step.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "yes": {
+          "type": "text",
+          "validate": {
+            "step": 0.25
+          }
+        },
+        "no": {
+          "type": "text",
+          "validate": {
+            "step": 0.25
+          }
+        }
+      }
+    },
+    "data": {
+      "yes": 1.75,
+      "no": "1.8"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "no",
+          "field": "no",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 0.25.",
+          "value": "1.8"
+        }
+      ]
+    }
+  },
+  {
+    "name": "digits-values",
+    "note": "digits accepts ASCII digit strings and numbers whose canonical text is digits.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "text": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "padded": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "leadingZeros": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "zero": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "letters": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "signed": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "decimal": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "fraction": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "exponentNumber": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "yes": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "arabic": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        },
+        "inner": {
+          "type": "text",
+          "validate": {
+            "digits": true
+          }
+        }
+      }
+    },
+    "data": {
+      "text": "123",
+      "padded": " 123 ",
+      "leadingZeros": "007",
+      "number": 42,
+      "zero": 0,
+      "letters": "12a",
+      "signed": "-1",
+      "decimal": "1.0",
+      "fraction": 1.5,
+      "exponentNumber": 1e+21,
+      "yes": true,
+      "arabic": "١٢",
+      "inner": "1 2"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "letters",
+          "field": "letters",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": "12a"
+        },
+        {
+          "path": "signed",
+          "field": "signed",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": "-1"
+        },
+        {
+          "path": "decimal",
+          "field": "decimal",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": "1.0"
+        },
+        {
+          "path": "fraction",
+          "field": "fraction",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": 1.5
+        },
+        {
+          "path": "exponentNumber",
+          "field": "exponentNumber",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": 1e+21
+        },
+        {
+          "path": "yes",
+          "field": "yes",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": true
+        },
+        {
+          "path": "arabic",
+          "field": "arabic",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": "١٢"
+        },
+        {
+          "path": "inner",
+          "field": "inner",
+          "rule": "digits",
+          "message": "Please enter only digits.",
+          "value": "1 2"
+        }
+      ]
+    }
+  },
+  {
+    "name": "count-values",
+    "note": "arrays count elements, objects count keys, missing, null and blank count 0, other scalars count 1.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "missing": {
+          "type": "text",
+          "validate": {
+            "mincount": 1
+          }
+        },
+        "nothing": {
+          "type": "text",
+          "validate": {
+            "mincount": 1
+          }
+        },
+        "blank": {
+          "type": "text",
+          "validate": {
+            "mincount": 1
+          }
+        },
+        "scalar": {
+          "type": "text",
+          "validate": {
+            "mincount": 1,
+            "maxcount": 1
+          }
+        },
+        "scalarOver": {
+          "type": "text",
+          "validate": {
+            "maxcount": 0
+          }
+        },
+        "list": {
+          "type": "text",
+          "validate": {
+            "mincount": 2,
+            "maxcount": 2
+          }
+        },
+        "emptyList": {
+          "type": "text",
+          "validate": {
+            "mincount": 1
+          }
+        },
+        "record": {
+          "type": "text",
+          "validate": {
+            "maxcount": 1
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "mincount": 1
+          }
+        }
+      }
+    },
+    "data": {
+      "nothing": null,
+      "blank": " ",
+      "scalar": "x",
+      "scalarOver": "x",
+      "list": [
+        "a",
+        "b"
+      ],
+      "emptyList": [],
+      "record": {
+        "a": 1,
+        "b": 2
+      },
+      "number": 0
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "missing",
+          "field": "missing",
+          "rule": "mincount",
+          "message": "Please select at least 1 items.",
+          "value": null
+        },
+        {
+          "path": "nothing",
+          "field": "nothing",
+          "rule": "mincount",
+          "message": "Please select at least 1 items.",
+          "value": null
+        },
+        {
+          "path": "blank",
+          "field": "blank",
+          "rule": "mincount",
+          "message": "Please select at least 1 items.",
+          "value": " "
+        },
+        {
+          "path": "scalarOver",
+          "field": "scalarOver",
+          "rule": "maxcount",
+          "message": "Please select no more than 0 items.",
+          "value": "x"
+        },
+        {
+          "path": "emptyList",
+          "field": "emptyList",
+          "rule": "mincount",
+          "message": "Please select at least 1 items.",
+          "value": []
+        },
+        {
+          "path": "record",
+          "field": "record",
+          "rule": "maxcount",
+          "message": "Please select no more than 1 items.",
+          "value": {
+            "a": 1,
+            "b": 2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "in-numeric-text",
+    "note": "in compares numeric values read with the numeric text grammar.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "exponent": {
+          "type": "text",
+          "validate": {
+            "in": [
+              100
+            ]
+          }
+        },
+        "padded": {
+          "type": "text",
+          "validate": {
+            "in": [
+              100
+            ]
+          }
+        },
+        "fraction": {
+          "type": "text",
+          "validate": {
+            "in": [
+              100
+            ]
+          }
+        },
+        "plus": {
+          "type": "text",
+          "validate": {
+            "in": [
+              100
+            ]
+          }
+        },
+        "trailingDot": {
+          "type": "text",
+          "validate": {
+            "in": [
+              100
+            ]
+          }
+        },
+        "hex": {
+          "type": "text",
+          "validate": {
+            "in": [
+              100
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "exponent": "1e2",
+      "padded": " 100 ",
+      "fraction": "100.0",
+      "plus": "+100",
+      "trailingDot": "100.",
+      "hex": "0x64"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "plus",
+          "field": "plus",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "+100"
+        },
+        {
+          "path": "trailingDot",
+          "field": "trailingDot",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "100."
+        },
+        {
+          "path": "hex",
+          "field": "hex",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "0x64"
+        }
+      ]
+    }
+  },
+  {
+    "name": "message-parameter-text",
+    "note": "a message shows parameters as canonical text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "fraction": {
+          "type": "text",
+          "validate": {
+            "min": 5.5
+          }
+        },
+        "large": {
+          "type": "text",
+          "validate": {
+            "min": 5.5
+          }
+        }
+      }
+    },
+    "data": {
+      "fraction": 1,
+      "large": 1
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "fraction",
+          "field": "fraction",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 5.5.",
+          "value": 1
+        },
+        {
+          "path": "large",
+          "field": "large",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 5.5.",
+          "value": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "message-large-parameter",
+    "note": "a large parameter uses the exponent form of the canonical text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": 1e+21
+          }
+        }
+      }
+    },
+    "data": {
+      "value": 1
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 1e+21.",
+          "value": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "message-every-placeholder",
+    "note": "every placeholder of a declared message is replaced.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "range": [
+              2,
+              4
+            ]
+          },
+          "messages": {
+            "range": "{0}..{1} ({0} to {1})"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": 9
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "range",
+          "message": "2..4 (2 to 4)",
+          "value": 9
+        }
+      ]
+    }
+  },
+  {
+    "name": "message-missing-placeholder",
+    "note": "a placeholder for a parameter the rule does not have stays as written.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": 3
+          },
+          "messages": {
+            "min": "at least {0}, not {1}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": 1
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "min",
+          "message": "at least 3, not {1}",
+          "value": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "in-member-as-written",
+    "note": "list members are read as written: a member with whitespace is not numeric text, and a trimmed value never equals it.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "number": {
+          "type": "text",
+          "validate": {
+            "in": [
+              " 100"
+            ]
+          }
+        },
+        "text": {
+          "type": "text",
+          "validate": {
+            "in": [
+              " 100"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "number": 100,
+      "text": " 100"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "number",
+          "field": "number",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": 100
+        },
+        {
+          "path": "text",
+          "field": "text",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": " 100"
+        }
+      ]
+    }
+  },
+  {
+    "name": "number-parameter-number",
+    "note": "number takes true or false.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "number": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid number parameter: expected true or false",
+      "at": "value"
+    }
+  },
+  {
+    "name": "digits-parameter-number",
+    "note": "digits takes true or false.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "digits": 1
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid digits parameter: expected true or false",
+      "at": "value"
+    }
+  },
+  {
+    "name": "min-parameter-true",
+    "note": "a bound is a finite number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": true
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid min parameter: expected a finite number",
+      "at": "value"
+    }
+  },
+  {
+    "name": "max-parameter-list",
+    "note": "a bound is a finite number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "max": [
+              5
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid max parameter: expected a finite number",
+      "at": "value"
+    }
+  },
+  {
+    "name": "min-parameter-object",
+    "note": "a bound is a finite number, not a condition map with a non-number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": {
+              ".x": "high",
+              "true": 1
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid min parameter: expected a finite number",
+      "at": "value"
+    }
+  },
+  {
+    "name": "range-parameter-reversed",
+    "note": "a range starts at its minimum.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "range": [
+              5,
+              1
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
+      "at": "value"
+    }
+  },
+  {
+    "name": "range-parameter-short",
+    "note": "a range has two bounds.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "range": [
+              1
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
+      "at": "value"
+    }
+  },
+  {
+    "name": "range-parameter-long",
+    "note": "a range has exactly two bounds.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "range": [
+              1,
+              5,
+              9
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
+      "at": "value"
+    }
+  },
+  {
+    "name": "range-parameter-null-bound",
+    "note": "range bounds are finite numbers.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "range": [
+              null,
+              5
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
+      "at": "value"
+    }
+  },
+  {
+    "name": "step-parameter-zero",
+    "note": "a step is above 0.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "step": 0
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid step parameter: expected a finite number above 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "step-parameter-negative",
+    "note": "a step is above 0.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "step": -1
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid step parameter: expected a finite number above 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "step-parameter-true",
+    "note": "a step is a number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "step": true
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid step parameter: expected a finite number above 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "mincount-parameter-fraction",
+    "note": "a count is an integer.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "mincount": 1.5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid mincount parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "maxcount-parameter-negative",
+    "note": "a count is not negative.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "maxcount": -1
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid maxcount parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "maxcount-parameter-true",
+    "note": "a count is a number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "maxcount": true
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "1"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid maxcount parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "min-parameter-from-data",
+    "note": "a bound a ternary takes from the data is checked when selected.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "strict": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".strict ? .limit : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "strict": 1,
+      "limit": "high",
+      "value": "3"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid min parameter: expected a finite number",
+      "at": "value"
+    }
+  },
+  {
+    "name": "min-parameter-from-data-numeric",
+    "note": "a finite number taken from the data is a bound.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "strict": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "min": ".strict ? .limit : 0"
+          }
+        }
+      }
+    },
+    "data": {
+      "strict": 1,
+      "limit": 4,
+      "value": "3"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "min",
+          "message": "Please enter a value greater than or equal to 4.",
+          "value": "3"
+        }
+      ]
     }
   }
 ]

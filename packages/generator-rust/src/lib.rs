@@ -14,6 +14,7 @@ mod messages;
 mod number;
 mod render;
 mod template;
+pub mod text;
 mod util;
 mod widget;
 

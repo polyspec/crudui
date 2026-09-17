@@ -17,6 +17,7 @@
 - [Data validation](operations/validation.md)
 - [Specification CLI](operations/cli.md)
 - [Validation rules](spec/validation-rules.md)
+- [Input text](spec/input-text.md)
 
 Generate API references and the documentation site with `make docs` from the
 repository root. Run `make docs-check` before recording verification results.

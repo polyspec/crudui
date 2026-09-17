@@ -8,7 +8,7 @@
  */
 
 import { ComposeLoadError } from '../compose/errors';
-import { isLengthLimit, isLengthRange, readMembers } from '../values/index';
+import { isFiniteNumber, isLengthLimit, isLengthRange, isNumberRange, isStep, readMembers } from '../values/index';
 import { PatternSyntaxError, compilePattern } from '../pattern/index';
 
 /** The failure a rule parameter causes. */
@@ -18,7 +18,22 @@ export interface ParameterFailure {
 }
 
 /** Rule names whose parameters this module checks. */
-const CHECKED_RULES = new Set(['minlength', 'maxlength', 'rangelength', 'in', 'match', 'pattern']);
+const CHECKED_RULES = new Set([
+  'minlength',
+  'maxlength',
+  'rangelength',
+  'number',
+  'digits',
+  'min',
+  'max',
+  'range',
+  'step',
+  'mincount',
+  'maxcount',
+  'in',
+  'match',
+  'pattern',
+]);
 
 /**
  * The failure an effective (resolved) parameter of a rule causes, or `null`.
@@ -32,6 +47,8 @@ export function ruleParameterFailure(ruleName: string, param: unknown): Paramete
   switch (ruleName) {
     case 'minlength':
     case 'maxlength':
+    case 'mincount':
+    case 'maxcount':
       return isLengthLimit(param)
         ? null
         : invalid(`Invalid ${ruleName} parameter: expected an integer from 0 to 9007199254740991`);
@@ -39,6 +56,18 @@ export function ruleParameterFailure(ruleName: string, param: unknown): Paramete
       return isLengthRange(param)
         ? null
         : invalid('Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum');
+    case 'number':
+    case 'digits':
+      return param === true ? null : invalid(`Invalid ${ruleName} parameter: expected true or false`);
+    case 'min':
+    case 'max':
+      return isFiniteNumber(param) ? null : invalid(`Invalid ${ruleName} parameter: expected a finite number`);
+    case 'range':
+      return isNumberRange(param)
+        ? null
+        : invalid('Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum');
+    case 'step':
+      return isStep(param) ? null : invalid('Invalid step parameter: expected a finite number above 0');
     case 'in': {
       const members = readMembers(param);
       return 'error' in members ? invalid(members.error) : null;

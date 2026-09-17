@@ -1,0 +1,104 @@
+[
+  {
+    "name": "pass-paired-surrogates",
+    "note": "a surrogate pair is valid text in a field label.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "A😀"
+        }
+      }
+    },
+    "expect": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "spec-lone-low-in-label",
+    "note": "a lone low surrogate in a field label is a load failure.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "\udc00"
+        }
+      }
+    },
+    "expect": {
+      "code": "INVALID_TEXT",
+      "message": "Text must be Unicode scalar values",
+      "at": "fields.name.label"
+    }
+  },
+  {
+    "name": "spec-reversed-pair-in-format",
+    "note": "a reversed pair in format options is a load failure at its path.",
+    "spec": {
+      "fields": {
+        "state": {
+          "field": "state",
+          "format": {
+            "type": "badge",
+            "map": {
+              "active": "\udc00\ud800"
+            }
+          }
+        }
+      }
+    },
+    "expect": {
+      "code": "INVALID_TEXT",
+      "message": "Text must be Unicode scalar values",
+      "at": "fields.state.format.map.active"
+    }
+  },
+  {
+    "name": "file-name",
+    "note": "an invalid file name is located at the empty path.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "files": {
+      "\ud800": {
+        "properties": {
+          "extra": {
+            "type": "text",
+            "label": "Extra"
+          }
+        }
+      }
+    },
+    "expect": {
+      "code": "INVALID_TEXT",
+      "message": "Text must be Unicode scalar values",
+      "at": ""
+    }
+  },
+  {
+    "name": "basepath",
+    "note": "an invalid base path is an input failure naming the option.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "options": {
+      "basepath": "\udc00"
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: options.basepath",
+      "at": ""
+    }
+  }
+]

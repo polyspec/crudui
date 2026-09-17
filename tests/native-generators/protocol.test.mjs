@@ -40,8 +40,10 @@ test('record member order and empty JSON shapes are compared', () => {
   assert.throws(() => equalOrdered({ value: null }, {}));
   equalOrdered({ five: {}, seven: [], one: null }, { five: {}, seven: [], one: null });
 });
-test('model attributes retain order while unrelated object metadata need not', () => {
-  equalModels({ name: 'field', attrs: { type: 'text', name: 'field' } }, { attrs: { type: 'text', name: 'field' }, name: 'field' });
+test('models retain member order at every depth', () => {
+  equalModels({ name: 'field', attrs: { type: 'text', name: 'field' } }, { name: 'field', attrs: { type: 'text', name: 'field' } });
+  assert.throws(() => equalModels({ name: 'field', attrs: { type: 'text' } }, { attrs: { type: 'text' }, name: 'field' }));
+  assert.throws(() => equalModels([{ widget: { kind: 'text', attrs: {}, tag: 'input' } }], [{ widget: { kind: 'text', tag: 'input', attrs: {} } }]));
   assert.throws(() => equalModels({ attrs: { name: 'field', type: 'text' } }, { attrs: { type: 'text', name: 'field' } }));
 });
 test('raw HTML, values and style attributes are never removed for comparison', () => {

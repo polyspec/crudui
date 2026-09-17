@@ -54,8 +54,9 @@ export function renderList(
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {}
 ): string {
-  const { layout, ...buildOpts } = options;
-  const vm = buildList(listSpec, rows, buildOpts);
+  // The whole options reach the model, whose input text check reads the layout too.
+  const { layout } = options;
+  const vm = buildList(listSpec, rows, options);
   const element = React.createElement(List, { vm, layout: listLayout(layout) }) as React.ReactElement;
   return renderToStaticMarkup(element as Parameters<typeof renderToStaticMarkup>[0]);
 }

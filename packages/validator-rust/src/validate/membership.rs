@@ -3,6 +3,7 @@
 use serde_json::Value;
 
 use super::canonical::canonical_text;
+use super::numeric::numeric_text_value;
 use super::whitespace::{is_empty, trim};
 
 /// Why an `in` parameter is outside the definition.
@@ -31,7 +32,7 @@ impl MembersError {
     }
 }
 
-/// A comparable scalar: its canonical text and, for a number or a decimal string,
+/// A comparable scalar: its canonical text and, for a number or a numeric string,
 /// its value as a double.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Comparable {
@@ -41,7 +42,9 @@ pub(crate) struct Comparable {
 
 impl Comparable {
     fn of_text(text: String) -> Self {
-        let number = decimal_value(&text);
+        // Read as written: callers trim a comma item and a value, never a list
+        // element or a map key.
+        let number = numeric_text_value(&text);
         Comparable { text, number }
     }
 
@@ -124,28 +127,6 @@ fn scalar_is_member(value: &Value, members: &[Comparable]) -> bool {
     members.iter().any(|member| comparable.matches(member))
 }
 
-/// The value of a string matching `^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$`.
-fn decimal_value(text: &str) -> Option<f64> {
-    if !is_decimal_text(text) {
-        return None;
-    }
-    text.parse::<f64>().ok()
-}
-
-/// Whether `text` matches `^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$`.
-pub(crate) fn is_decimal_text(text: &str) -> bool {
-    let unsigned = text.strip_prefix(['-', '+']).unwrap_or(text);
-    let (integer, fraction) = match unsigned.split_once('.') {
-        Some((integer, fraction)) => (integer, Some(fraction)),
-        None => (unsigned, None),
-    };
-    let digits = |part: &str| part.bytes().all(|b| b.is_ascii_digit());
-    if !digits(integer) || !fraction.is_none_or(digits) {
-        return false;
-    }
-    !integer.is_empty() || fraction.is_some_and(|f| !f.is_empty())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,29 +134,6 @@ mod tests {
 
     fn check(parameter: Value, value: Value) -> bool {
         is_member(&value, &members(&parameter).unwrap())
-    }
-
-    #[test]
-    fn decimal_grammar() {
-        for text in [
-            "1",
-            "1.",
-            ".5",
-            "1.5",
-            "+2",
-            "-3",
-            "007",
-            "-.0",
-            "1234567890",
-        ] {
-            assert!(is_decimal_text(text), "{text}");
-        }
-        for text in [
-            "", ".", "+", "-", "1.2.3", "Infinity", "NaN", "1e0", "0x1", " 1", "+-1", "1_0",
-            "\u{661}",
-        ] {
-            assert!(!is_decimal_text(text), "{text}");
-        }
     }
 
     #[test]
@@ -210,13 +168,16 @@ mod tests {
         assert!(check(comma.clone(), json!(" b\u{3000}")));
         assert!(check(comma.clone(), json!("1.0")));
         assert!(check(comma.clone(), json!("01")));
+        assert!(check(comma.clone(), json!("1e0")));
+        assert!(check(comma.clone(), json!(".1e1")));
         assert!(check(comma.clone(), json!(1)));
         assert!(check(comma.clone(), json!(true)));
         assert!(check(comma.clone(), json!(["a", "b"])));
         assert!(check(comma.clone(), json!(["a", "", " ", null, [], {}])));
         for value in [
             json!("0x1"),
-            json!("1e0"),
+            json!("+1"),
+            json!("1."),
             json!("A"),
             json!("a\u{0}"),
             json!(false),
@@ -234,6 +195,8 @@ mod tests {
         // A string value is trimmed, so it never equals an untrimmed member.
         assert!(!check(list.clone(), json!(" c ")));
         assert!(check(list.clone(), json!("2.50")));
+        assert!(!check(json!([" 100"]), json!(100)));
+        assert!(!check(json!({ " 100": "x" }), json!("100")));
         assert!(check(list.clone(), json!(0)));
         assert!(check(list, json!(false)));
         let map = json!({ "x": "X", "2": "Two" });

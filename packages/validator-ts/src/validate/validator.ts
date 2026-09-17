@@ -9,15 +9,17 @@
  * parser/PathResolver). The logic here is: (a) reading the `validate` slot,
  * (b) evaluating a rule value that is an expression OR a condition map (G1 — the
  * condition is the value's expression, never a separate `if`/`when` key), and
- * (c) expressing visibility-driven requiredness as `required: '<expr>'` (G1
- * forbids the `display_switch`/`display_target` meta keys).
+ * (c) resolving `design.show` like a conditional parameter to skip hidden fields
+ * (G1 forbids the `display_switch`/`display_target` meta keys).
  *
  * Pipeline (SPEC):
  *   1. compose — `composeSpec`/`composeProperties` (compose/) is run by the
  *      caller (`validate`) BEFORE this engine. An unresolved `$ref` throws a
  *      `ComposeLoadError` there (never `valid:true`).
- *   2. field traversal — recurse `properties`; group nesting, `multiple` arrays
- *      (items.i), object-key `multiple` (sorted keys, items.__uid__).
+ *   2. field traversal — recurse `properties`; group nesting and keyed
+ *      `multiple` rows (sorted keys, items.__uid__). A field whose
+ *      `design.show` resolves to false is hidden: it and everything it contains
+ *      is skipped. Missing repeated data is an empty collection.
  *   3. validate-slot evaluation — per field, walk the `validate` slot in
  *      declaration order; for each rule, evaluate its value (expression /
  *      condition map → effective param); skip when the result is false/null;
@@ -139,6 +141,16 @@ function isTernary(expression: string): boolean {
   }
 }
 
+/** Whether a string parses as a complete expression; any other string is a literal. */
+function isValidExpression(expression: string): boolean {
+  try {
+    parseCondition(expression);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Classify a declared rule value (G1).
  *
@@ -147,8 +159,9 @@ function isTernary(expression: string): boolean {
  *     membership map is a value set, not a condition map.
  *   - A plain object is a ConditionMap (expression → value, declaration order).
  *   - A string that parses as a ternary returns its selected branch value.
- *   - Another condition expression string evaluates to its value.
- *   - Anything else is a literal parameter.
+ *   - Another string that parses as a condition expression evaluates to its value.
+ *   - Anything else, including a string that is not a valid expression, is a
+ *     literal parameter.
  */
 function ruleValueForm(ruleName: string, ruleValue: unknown): RuleValueForm {
   if (
@@ -166,7 +179,11 @@ function ruleValueForm(ruleName: string, ruleValue: unknown): RuleValueForm {
     if (isTernary(ruleValue)) {
       return 'ternary';
     }
-    if (isConditionExpression(ruleValue) && !/\?[^:]*:/.test(ruleValue)) {
+    if (
+      isConditionExpression(ruleValue) &&
+      !/\?[^:]*:/.test(ruleValue) &&
+      isValidExpression(ruleValue)
+    ) {
       return 'expression';
     }
   }
@@ -285,7 +302,8 @@ export class Validator {
     currentPath: string[],
     declarationPath: string[],
     allData: Record<string, unknown>,
-    errors: ValidationError[]
+    errors: ValidationError[],
+    insideHidden = false
   ): void {
     for (const [propertyKey, field] of Object.entries(properties)) {
       if (!field || typeof field !== 'object') {
@@ -298,8 +316,10 @@ export class Validator {
       const present = Object.prototype.hasOwnProperty.call(data, fieldName);
       const fieldValue = data[fieldName];
 
-      // No display_switch or display_target condition exists (G1: those meta keys do
-      // not exist in CRUDUI; visibility-conditioned requiredness is required:'<expr>').
+      // A hidden field and every field it contains are not evaluated; its value
+      // is kept for conditions and references elsewhere. The data shape is an
+      // input contract, so hidden data is still traversed for shape checks.
+      const hidden = insideHidden || this.isHidden(field, { currentPath: fieldPath, formData: allData });
 
       const childProps = this.childProperties(field);
 
@@ -311,19 +331,20 @@ export class Validator {
 
       if (field.type === 'group' && childProps) {
         if (isMultiple) {
-          if (present) {
-            // Keyed rows use sorted-key traversal so the first reported error
-            // is identical in every validation implementation. Row keys stay in paths.
-            const rows = fieldValue as Record<string, unknown>;
-            for (const key of Object.keys(rows).sort()) {
-              const row = rows[key];
-              if (!isPlainObject(row)) {
-                throw new FormInputError(
-                  `Group data must be an object: ${pathToString([...fieldPath, key])}`
-                );
-              }
-              this.validateProperties(childProps, row, [...fieldPath, key], fieldDeclaration, allData, errors);
+          // Keyed rows use sorted-key traversal so the first reported error
+          // is identical in every validation implementation. Row keys stay in paths.
+          // Missing data is an empty collection: no rows, collection rules still run.
+          const rows = present ? (fieldValue as Record<string, unknown>) : {};
+          for (const key of Object.keys(rows).sort()) {
+            const row = rows[key];
+            if (!isPlainObject(row)) {
+              throw new FormInputError(
+                `Group data must be an object: ${pathToString([...fieldPath, key])}`
+              );
             }
+            this.validateProperties(childProps, row, [...fieldPath, key], fieldDeclaration, allData, errors, hidden);
+          }
+          if (!hidden) {
             this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
           }
         } else {
@@ -338,16 +359,21 @@ export class Validator {
             fieldPath,
             fieldDeclaration,
             allData,
-            errors
+            errors,
+            hidden
           );
-          this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
+          if (!hidden) {
+            this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
+          }
         }
-      } else if (isMultiple && present) {
+      } else if (hidden) {
+        continue;
+      } else if (isMultiple) {
         // Repeated scalar field: collection rules on the keyed object, the rest
-        // on each row value.
+        // on each row value. Missing data is an empty collection without rows.
         this.validateMultipleFieldRules(
           field,
-          fieldValue as Record<string, unknown>,
+          fieldValue as Record<string, unknown> | undefined,
           fieldPath,
           fieldDeclaration,
           allData,
@@ -359,10 +385,23 @@ export class Validator {
     }
   }
 
-  /** Whether a CRUDUI field repeats (`multiple: true` or `multiple: { ... }`). */
+  /** Whether a CRUDUI field repeats (`multiple: true`, `multiple: only` or `multiple: { ... }`). */
   private isMultiple(field: ComposedField): boolean {
     const m = field.multiple;
-    return m === true || (m !== null && typeof m === 'object' && !Array.isArray(m));
+    return m === true || m === 'only' || isPlainObject(m);
+  }
+
+  /**
+   * Whether a field is hidden: its `design.show` resolves to `false` in the
+   * field's row context, like a conditional parameter (a boolean, an expression
+   * or a condition map). A field without `design.show` is visible.
+   */
+  private isHidden(field: ComposedField, context: PathContext): boolean {
+    const design = field.design;
+    if (!isPlainObject(design) || !('show' in design)) {
+      return false;
+    }
+    return this.resolveRuleValue('show', design.show, context) === false;
   }
 
   /** The child field map of a group (composed, plain object), or undefined. */
@@ -383,7 +422,7 @@ export class Validator {
   /** Collection rules and per-row rules for a repeated scalar field. */
   private validateMultipleFieldRules(
     field: ComposedField,
-    values: Record<string, unknown>,
+    values: Record<string, unknown> | undefined,
     fieldPath: string[],
     declarationPath: string[],
     allData: Record<string, unknown>,
@@ -422,8 +461,9 @@ export class Validator {
     }
 
     // 2. Row rules in sorted row-key order (the error-order contract).
-    for (const key of Object.keys(values).sort()) {
-      const value = values[key];
+    const rows = values ?? {};
+    for (const key of Object.keys(rows).sort()) {
+      const value = rows[key];
       this.validateElementRules(
         field,
         value,

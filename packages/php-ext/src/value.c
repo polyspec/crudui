@@ -30,6 +30,11 @@ static bool valid_utf8(const uint8_t *input, size_t length)
     return true;
 }
 
+bool ps_text_valid(const uint8_t *input, size_t length)
+{
+    return valid_utf8(input, length);
+}
+
 static char *copy_bytes(const uint8_t *input, size_t length)
 {
     char *copy = malloc(length + 1);

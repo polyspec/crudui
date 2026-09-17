@@ -4,26 +4,19 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
-use CRUDUI\Validator\Values\Whitespace;
+use CRUDUI\Validator\Values\InvalidRuleParameter;
+use CRUDUI\Validator\Values\Numeric;
 
 /**
- * Digits validation rule.
- * Validates that a value contains only digits (integer only, no decimals).
+ * Digits: a string or number whose canonical text (a string trimmed) is ASCII digits passes.
  */
 class Digits implements RuleInterface
 {
     /**
-     * Validate that a value contains only digits.
+     * @throws InvalidRuleParameter when the parameter is outside the validation rules
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
-        if ($param === false) {
-            return true;
-        }
-
-        $stringValue = \is_string($value) ? Whitespace::trim($value) : (string)$value;
-
-        // Only allow positive integers (no sign, no decimal)
-        return preg_match('/^[0-9]+$/D', $stringValue) === 1;
+        return !Numeric::flag('digits', $param) || Numeric::isDigits($value);
     }
 }

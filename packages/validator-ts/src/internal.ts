@@ -18,3 +18,14 @@ export { getRuleNames } from './rules/index';
 export { isConditionExpression, parseCondition } from './parser/ConditionParser';
 export { evaluateCondition, evaluateExpressionValue } from './parser/PathResolver';
 export type { PathContext } from './types';
+export {
+  INVALID_TEXT_MESSAGE,
+  checkInputText,
+  checkOptionText,
+  checkSpecificationText,
+  checkedComposition,
+  checkedLoader,
+  compareCodePoints,
+  invalidTextPath,
+  isScalarText,
+} from './text/index';

@@ -6,6 +6,8 @@ require __DIR__ . '/../../../../packages/validator-php/vendor/autoload.php';
 
 use CRUDUI\Validator;
 use CRUDUI\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Support\JsonText;
+use CRUDUI\Validator\Support\Text;
 use CRUDUI\Validator\Validate\FormInputError;
 
 /*
@@ -16,7 +18,7 @@ use CRUDUI\Validator\Validate\FormInputError;
  * extension's classes. A result exits 0 with {valid, errors}. A load or input
  * failure exits 2 with {error, code, at}. A malformed request exits 1 with
  * exactly {error}. The request is checked in this order:
- *  1. stdin is not valid JSON                  → "Request must be valid JSON"
+ *  1. stdin is not UTF-8 or not valid JSON     → "Request must be valid JSON"
  *  2. the request is not a JSON object         → "Request must be an object"
  *  3. spec absent or not an object             → "Request spec must be an object"
  *  4. mode present and not exactly "form", "list" or "detail" (null and
@@ -41,8 +43,14 @@ function reject(string $message): never
     emit(['error' => $message], 1);
 }
 
+// Standard input that is not UTF-8 is not JSON text. JsonText keeps an unpaired surrogate
+// escape as text the validator rejects instead of failing like json_decode.
+$input = stream_get_contents(STDIN);
+if (!is_string($input) || preg_match('//u', $input) !== 1) {
+    reject('Request must be valid JSON');
+}
 try {
-    $request = json_decode(stream_get_contents(STDIN), false, 512, JSON_THROW_ON_ERROR);
+    $request = JsonText::decode($input);
 } catch (JsonException) {
     reject('Request must be valid JSON');
 }
@@ -66,7 +74,13 @@ try {
         $output = Validator::validateDetail($request->spec, $options);
     } else {
         $data = property_exists($request, 'data') ? $request->data : new stdClass();
-        if (!$data instanceof stdClass) throw new FormInputError('Form data must be an object');
+        if (!$data instanceof stdClass) {
+            // The PHP API takes only an object, so the input text rules that precede the data
+            // shape rule are applied here in the library's order.
+            Text::checkSpecification($request->spec, $files);
+            $failure = Text::inputFailure([['data', $data], ['options.basepath', $basepath]]);
+            throw new FormInputError($failure ?? 'Form data must be an object');
+        }
         $output = Validator::validate($request->spec, $data, $options);
     }
 } catch (ComposeLoadError $error) {

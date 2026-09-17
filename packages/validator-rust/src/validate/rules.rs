@@ -16,7 +16,8 @@ use crate::expr::Expression;
 
 use super::canonical::{canonical_text, number_text};
 use super::length::value_length;
-use super::membership::{is_decimal_text, is_member};
+use super::membership::is_member;
+use super::numeric::{is_multiple, numeric_value};
 use super::parameters::Parameter;
 use super::whitespace::{is_empty, trim};
 
@@ -87,55 +88,12 @@ fn message_override<'a>(messages: Option<&'a Value>, key: &str) -> Option<&'a st
         .and_then(Value::as_str)
 }
 
-/// JS `Number(value)` over a JSON value used for THRESHOLD params (min/max etc).
-/// numbers pass; booleans → 1/0; a string is numeric only when the WHOLE string
-/// parses (JS `Number`), else NaN (None). null/array/object → NaN here (the JS
-/// `Number(ruleParam)` path only ever receives number/string/bool params).
-fn js_number_param(value: &Value) -> Option<f64> {
-    match value {
-        Value::Number(n) => n.as_f64(),
-        Value::Bool(b) => Some(if *b { 1.0 } else { 0.0 }),
-        Value::String(s) => {
-            let trimmed = trim(s);
-            if trimmed.is_empty() {
-                return Some(0.0); // JS Number('') === 0
-            }
-            trimmed.parse::<f64>().ok()
-        }
-        Value::Null => Some(0.0), // JS Number(null) === 0
-        _ => None,
-    }
-}
-
-/// Strict input-value → number (JS `rules/min.toNumber`). Returns `None` for a
-/// non-finite or partially-numeric string ("12abc", "Infinity", "NaN").
-/// Threshold parameters continue to accept Infinity.
-fn to_number_input(value: &Value) -> Option<f64> {
-    match value {
-        Value::Number(n) => {
-            let f = n.as_f64()?;
-            if f.is_finite() {
-                Some(f)
-            } else {
-                None
-            }
-        }
-        Value::String(s) => {
-            let trimmed = trim(s);
-            if trimmed.is_empty() {
-                return None;
-            }
-            if !is_decimal_text(trimmed) {
-                return None;
-            }
-            let f = trimmed.parse::<f64>().ok()?;
-            if f.is_finite() {
-                Some(f)
-            } else {
-                None
-            }
-        }
-        _ => None,
+/// A message with every `{0}` and `{1}` replaced by the parameters.
+fn fill(message: &str, first: &str, second: Option<&str>) -> String {
+    let message = message.replace("{0}", first);
+    match second {
+        Some(second) => message.replace("{1}", second),
+        None => message,
     }
 }
 
@@ -342,7 +300,7 @@ fn rule_minlength(ctx: &RuleContext) -> Option<String> {
     let msg = message_override(ctx.messages, "minlength")
         .map(str::to_string)
         .unwrap_or_else(|| format!("Please enter at least {min} characters."));
-    Some(msg.replacen("{0}", &min.to_string(), 1))
+    Some(fill(&msg, &min.to_string(), None))
 }
 
 fn rule_maxlength(ctx: &RuleContext) -> Option<String> {
@@ -358,7 +316,7 @@ fn rule_maxlength(ctx: &RuleContext) -> Option<String> {
     let msg = message_override(ctx.messages, "maxlength")
         .map(str::to_string)
         .unwrap_or_else(|| format!("Please enter no more than {max} characters."));
-    Some(msg.replacen("{0}", &max.to_string(), 1))
+    Some(fill(&msg, &max.to_string(), None))
 }
 
 fn rule_rangelength(ctx: &RuleContext) -> Option<String> {
@@ -374,10 +332,7 @@ fn rule_rangelength(ctx: &RuleContext) -> Option<String> {
     let msg = message_override(ctx.messages, "rangelength")
         .map(str::to_string)
         .unwrap_or_else(|| format!("Please enter a value between {min} and {max} characters."));
-    Some(
-        msg.replacen("{0}", &min.to_string(), 1)
-            .replacen("{1}", &max.to_string(), 1),
-    )
+    Some(fill(&msg, &min.to_string(), Some(&max.to_string())))
 }
 
 // ---------------------------------------------------------------------------
@@ -385,77 +340,44 @@ fn rule_rangelength(ctx: &RuleContext) -> Option<String> {
 // ---------------------------------------------------------------------------
 
 fn rule_number(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param == &Value::Bool(false) {
+    if ctx.rule_param != &Value::Bool(true) || is_empty(ctx.value) {
         return None;
     }
-    if is_empty(ctx.value) {
+    if numeric_value(ctx.value).is_some() {
         return None;
     }
-    if !is_valid_number(ctx.value) {
-        return Some(
-            message_override(ctx.messages, "number")
-                .unwrap_or("Please enter a valid number.")
-                .to_string(),
-        );
-    }
-    None
-}
-
-fn is_valid_number(value: &Value) -> bool {
-    match value {
-        Value::Number(n) => n.as_f64().map(f64::is_finite).unwrap_or(false),
-        Value::String(s) => {
-            let trimmed = trim(s);
-            if trimmed.is_empty() {
-                return false;
-            }
-            if !is_decimal_text(trimmed) {
-                return false;
-            }
-            trimmed.parse::<f64>().map(f64::is_finite).unwrap_or(false)
-        }
-        _ => false,
-    }
+    Some(
+        message_override(ctx.messages, "number")
+            .unwrap_or("Please enter a valid number.")
+            .to_string(),
+    )
 }
 
 fn rule_digits(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param == &Value::Bool(false) {
+    if ctx.rule_param != &Value::Bool(true) || is_empty(ctx.value) {
         return None;
     }
-    if is_empty(ctx.value) {
+    if is_digits_only(ctx.value) {
         return None;
     }
-    if !is_digits_only(ctx.value) {
-        return Some(
-            message_override(ctx.messages, "digits")
-                .unwrap_or("Please enter only digits.")
-                .to_string(),
-        );
-    }
-    None
+    Some(
+        message_override(ctx.messages, "digits")
+            .unwrap_or("Please enter only digits.")
+            .to_string(),
+    )
 }
 
+/// A string (trimmed) or a number whose canonical text is ASCII digits only.
 fn is_digits_only(value: &Value) -> bool {
-    match value {
-        Value::Number(n) => {
-            // Number.isInteger(value) && value >= 0
-            if let Some(i) = n.as_i64() {
-                i >= 0
-            } else if let Some(u) = n.as_u64() {
-                let _ = u;
-                true
-            } else if let Some(f) = n.as_f64() {
-                f.is_finite() && f.fract() == 0.0 && f >= 0.0
-            } else {
-                false
-            }
-        }
-        Value::String(s) => {
-            let trimmed = trim(s);
-            !trimmed.is_empty() && trimmed.bytes().all(|b| b.is_ascii_digit())
-        }
-        _ => false,
-    }
+    let text = match value {
+        Value::String(text) => trim(text).to_string(),
+        Value::Number(_) => match canonical_text(value) {
+            Some(text) => text.into_owned(),
+            None => return false,
+        },
+        _ => return false,
+    };
+    !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit())
 }
 
 // ---------------------------------------------------------------------------
@@ -463,132 +385,55 @@ fn is_digits_only(value: &Value) -> bool {
 // ---------------------------------------------------------------------------
 
 fn rule_min(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
-    if is_empty(ctx.value) {
-        return None;
-    }
-    let min = match js_number_param(ctx.rule_param) {
-        Some(n) if !n.is_nan() => n,
-        _ => return None,
+    let Parameter::Bound(min) = *ctx.parameter else {
+        unreachable!("min receives a checked bound")
     };
-    let num = to_number_input(ctx.value)?;
-    if num < min {
-        let msg = message_override(ctx.messages, "min")
-            .unwrap_or("Please enter a value greater than or equal to {0}.")
-            .to_string();
-        return Some(msg.replacen("{0}", &number_text(min), 1));
+    if is_empty(ctx.value) || numeric_value(ctx.value).is_some_and(|number| number >= min) {
+        return None;
     }
-    None
+    let msg = message_override(ctx.messages, "min")
+        .unwrap_or("Please enter a value greater than or equal to {0}.");
+    Some(fill(msg, &number_text(min), None))
 }
 
 fn rule_max(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
-    if is_empty(ctx.value) {
-        return None;
-    }
-    let max = match js_number_param(ctx.rule_param) {
-        Some(n) if !n.is_nan() => n,
-        _ => return None,
+    let Parameter::Bound(max) = *ctx.parameter else {
+        unreachable!("max receives a checked bound")
     };
-    let num = to_number_input(ctx.value)?;
-    if num > max {
-        let msg = message_override(ctx.messages, "max")
-            .unwrap_or("Please enter a value less than or equal to {0}.")
-            .to_string();
-        return Some(msg.replacen("{0}", &number_text(max), 1));
+    if is_empty(ctx.value) || numeric_value(ctx.value).is_some_and(|number| number <= max) {
+        return None;
     }
-    None
+    let msg = message_override(ctx.messages, "max")
+        .unwrap_or("Please enter a value less than or equal to {0}.");
+    Some(fill(msg, &number_text(max), None))
 }
 
 fn rule_range(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
+    let Parameter::Bounds(min, max) = *ctx.parameter else {
+        unreachable!("range receives checked bounds")
+    };
+    if is_empty(ctx.value)
+        || numeric_value(ctx.value).is_some_and(|number| min <= number && number <= max)
+    {
         return None;
     }
-    if is_empty(ctx.value) {
-        return None;
-    }
-    let arr = match ctx.rule_param.as_array() {
-        Some(a) if a.len() == 2 => a,
-        _ => return None,
-    };
-    let (min, max) = match (js_number_param(&arr[0]), js_number_param(&arr[1])) {
-        (Some(a), Some(b)) if !a.is_nan() && !b.is_nan() => (a, b),
-        _ => return None,
-    };
-    let num = to_number_input(ctx.value)?;
-    if num < min || num > max {
-        let msg = message_override(ctx.messages, "range")
-            .map(str::to_string)
-            .unwrap_or_else(|| {
-                format!(
-                    "Please enter a value between {} and {}.",
-                    number_text(min),
-                    number_text(max)
-                )
-            });
-        return Some(msg.replacen("{0}", &number_text(min), 1).replacen(
-            "{1}",
-            &number_text(max),
-            1,
-        ));
-    }
-    None
+    let msg = message_override(ctx.messages, "range")
+        .unwrap_or("Please enter a value between {0} and {1}.");
+    Some(fill(msg, &number_text(min), Some(&number_text(max))))
 }
 
 fn rule_step(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
-    if is_empty(ctx.value) {
-        return None;
-    }
-    let step = match js_number_param(ctx.rule_param) {
-        Some(n) if !n.is_nan() && n > 0.0 => n,
-        _ => return None,
+    let Parameter::Step(step) = *ctx.parameter else {
+        unreachable!("step receives a checked step")
     };
-    let num = to_number_input(ctx.value)?;
-    if !is_valid_step(num, step, 0.0) {
-        let msg = message_override(ctx.messages, "step")
-            .map(str::to_string)
-            .unwrap_or_else(|| {
-                format!(
-                    "Please enter a value that is a multiple of {}.",
-                    number_text(step)
-                )
-            });
-        return Some(msg.replacen("{0}", &number_text(step), 1));
+    if is_empty(ctx.value)
+        || numeric_value(ctx.value).is_some_and(|number| is_multiple(number, step))
+    {
+        return None;
     }
-    None
-}
-
-/// JS `isValidStep`: integer-scaled modulo to dodge float error.
-fn is_valid_step(value: f64, step: f64, base: f64) -> bool {
-    if step == 0.0 {
-        return true;
-    }
-    let decimal_places = decimal_places(value)
-        .max(decimal_places(step))
-        .max(decimal_places(base));
-    let multiplier = 10f64.powi(decimal_places as i32);
-    let int_value = ((value - base) * multiplier).round() as i64;
-    let int_step = (step * multiplier).round() as i64;
-    if int_step == 0 {
-        return true;
-    }
-    int_value % int_step == 0
-}
-
-/// Decimal-place count of a number's JS string form (JS `getDecimalPlaces`).
-fn decimal_places(num: f64) -> usize {
-    let s = number_text(num);
-    match s.find('.') {
-        Some(i) => s.len() - i - 1,
-        None => 0,
-    }
+    let msg = message_override(ctx.messages, "step")
+        .unwrap_or("Please enter a value that is a multiple of {0}.");
+    Some(fill(msg, &number_text(step), None))
 }
 
 // ---------------------------------------------------------------------------
@@ -1070,48 +915,39 @@ fn matches_extension(filename: &str, accept_list: &[String]) -> bool {
 // ---------------------------------------------------------------------------
 
 fn rule_mincount(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
+    let Parameter::Count(min) = *ctx.parameter else {
+        unreachable!("mincount receives a checked limit")
+    };
+    // Counts evaluate empty collections.
+    if count(ctx.value) >= min {
         return None;
     }
-    // mincount does NOT skip empty (an empty array must fail mincount>=1).
-    let min = match js_number_param(ctx.rule_param) {
-        Some(n) if !n.is_nan() => n,
-        _ => return None,
-    };
-    let count = array_length(ctx.value) as f64;
-    if count < min {
-        let msg = message_override(ctx.messages, "mincount")
-            .map(str::to_string)
-            .unwrap_or_else(|| format!("Please select at least {} items.", number_text(min)));
-        return Some(msg.replacen("{0}", &number_text(min), 1));
-    }
-    None
+    let msg =
+        message_override(ctx.messages, "mincount").unwrap_or("Please select at least {0} items.");
+    Some(fill(msg, &min.to_string(), None))
 }
 
 fn rule_maxcount(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
+    let Parameter::Count(max) = *ctx.parameter else {
+        unreachable!("maxcount receives a checked limit")
+    };
+    if count(ctx.value) <= max {
         return None;
     }
-    let max = match js_number_param(ctx.rule_param) {
-        Some(n) if !n.is_nan() => n,
-        _ => return None,
-    };
-    let count = array_length(ctx.value) as f64;
-    if count > max {
-        let msg = message_override(ctx.messages, "maxcount")
-            .map(str::to_string)
-            .unwrap_or_else(|| format!("Please select no more than {} items.", number_text(max)));
-        return Some(msg.replacen("{0}", &number_text(max), 1));
-    }
-    None
+    let msg = message_override(ctx.messages, "maxcount")
+        .unwrap_or("Please select no more than {0} items.");
+    Some(fill(msg, &max.to_string(), None))
 }
 
-/// JS `getArrayLength`: array length; object-key multiple counts entries.
-fn array_length(value: &Value) -> usize {
+/// The count of a value: array elements or object keys; a missing value, `null`
+/// and a blank string count 0 and any other scalar counts 1.
+fn count(value: &Value) -> u64 {
     match value {
-        Value::Array(a) => a.len(),
-        Value::Object(o) => o.len(),
-        _ => 0,
+        Value::Array(elements) => elements.len() as u64,
+        Value::Object(keys) => keys.len() as u64,
+        Value::Null => 0,
+        Value::String(text) if trim(text).is_empty() => 0,
+        _ => 1,
     }
 }
 

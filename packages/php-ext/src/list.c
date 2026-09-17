@@ -141,6 +141,13 @@ static bool sortable_column(const ps_value *column, const ps_value *data)
         bool result = ps_expression_truth(ps_string(sortable), data, NULL, 0, &parsed);
         return parsed && result;
     }
+    /* A condition map that selects nothing is false. */
+    if (sortable->kind == PS_OBJECT) {
+        ps_value *selected = ps_condition_value(sortable, data, NULL, 0);
+        bool result = ps_truthy(selected);
+        ps_value_free(selected);
+        return result;
+    }
     return ps_truthy(sortable);
 }
 
@@ -289,9 +296,13 @@ static ps_chars shortest_number(double number)
 {
     char candidate[128] = {0};
     for (int precision = 1; precision <= DBL_DECIMAL_DIG; ++precision) {
-        snprintf(candidate, sizeof(candidate), "%.*g", precision, number);
-        char *end = NULL;
-        if (strtod(candidate, &end) == number && end && !*end) break;
+        ps_chars text = ps_format_general(number, precision);
+        if (!text.bytes) return text;
+        memcpy(candidate, text.bytes, text.length < sizeof(candidate) ? text.length + 1 : sizeof(candidate) - 1);
+        double parsed = 0; bool overflow = false;
+        bool whole = ps_c_number(ps_view(text), &parsed, &overflow) == text.length;
+        free(text.bytes);
+        if (whole && parsed == number) break;
     }
     normalize_exponent(candidate);
     return ps_copy(ps_fixed(candidate));
@@ -505,10 +516,9 @@ static bool parse_number(const ps_value *value, double *number)
         free(source.bytes);
         return ok;
     }
-    /* strtod stops at a NUL character inside the copy or at its terminating zero. */
-    char *end = NULL;
-    *number = strtod(source.bytes, &end);
-    bool ok = end == source.bytes + source.length && isfinite(*number);
+    /* The C number syntax, read independently of the locale. */
+    bool overflow = false;
+    bool ok = ps_c_number(ps_view(source), number, &overflow) == source.length && isfinite(*number);
     free(source.bytes);
     return ok;
 }

@@ -14,10 +14,10 @@ entry points, load failures and input failures.
 | `email`, `url` | Boolean enablement of the corresponding format check. |
 | `minlength`, `maxlength` | Integer minimum or maximum length; see [values](#values). |
 | `rangelength` | `[minimum, maximum]` length; see [values](#values). |
-| `number`, `digits` | Boolean enablement of numeric or digit-only input checks. |
-| `min`, `max` | Numeric lower or upper bound. |
-| `range` | `[minimum, maximum]` numeric bounds. |
-| `step` | Numeric increment. |
+| `number`, `digits` | Boolean enablement of the [numeric](#values) or digit-only check. |
+| `min`, `max` | Inclusive numeric lower or upper bound. |
+| `range` | Inclusive `[minimum, maximum]` numeric bounds. |
+| `step` | Numeric increment counted from 0. |
 | `match`, `pattern` | Whole-value [pattern](#patterns); both names use the same rule implementation. |
 | `equalTo`, `notEqual` | Field comparison; the rule receives its reference or literal parameter unchanged. |
 | `in` | [Membership](#values) in a list, comma-separated string or map. |
@@ -29,8 +29,8 @@ entry points, load failures and input failures.
 
 The [TypeScript registry](../../packages/validator-ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
-see the [CLI procedure](../operations/cli.md). Registering a custom TypeScript
-rule does not install that rule in other languages.
+see the [CLI procedure](../operations/cli.md). Every runtime has the same built-in rules and
+no way to register others.
 
 ## Evaluation
 
@@ -41,6 +41,18 @@ runtime acceptance as schema verification.
 
 A `number` field runs the implicit `number` check before other rules unless it
 declares that rule explicitly. Nonfinite numeric inputs fail numeric validation.
+
+**Visibility.** A field whose `design.show` resolves to `false` against the data being
+validated is hidden. The rules of a hidden field and of every field it contains are not
+evaluated — `required`, collection counts and all others — and it reports no error. Its value
+is neither changed nor removed: the data keeps it, and conditions and references elsewhere read
+it as it is, so a value kept while its field is hidden is validated again once the data shows the
+field. `design.show` resolves like a conditional parameter (a boolean, an expression or a
+condition map, in the field's row context); only a resolved `false` hides, so a field without
+`design.show`, with a condition map that selects nothing, or with a string that is not a valid
+expression (a literal) is visible. The shape of the data is an
+input contract and is checked for hidden fields too. Visibility
+depends on the data alone, so a server reaches the same result as the form that showed it.
 
 ## Values
 
@@ -62,7 +74,8 @@ U+202F, U+205F and U+3000. U+0000, U+180E, U+200B and U+FEFF are not whitespace.
 trimming, an empty array and an empty object. `0` and `false` are supplied values.
 `required` fails on an empty value. Every other rule except `mincount` and
 `maxcount` passes an empty value without evaluating it; collection-count rules
-evaluate empty collections. Requiredness and collection limits are separate; see
+evaluate empty collections. A repeated field or group whose data is missing is an empty
+collection. Requiredness and collection limits are separate; see
 [empty collections](empty-collections.md).
 
 **Canonical text** of a scalar is: a string itself; `true` as `1` and `false` as
@@ -76,6 +89,28 @@ points of a scalar's canonical text, untrimmed. Their limits are integers from 0
 to 9007199254740991; `rangelength` requires minimum ≤ maximum. An array or object
 value has no canonical text and fails a length rule, `pattern` and `match`.
 
+**Numbers.** A value is numeric when it is a finite number, or a string that after trimming is
+*numeric text* whose value is finite. Numeric text is the HTML valid floating-point number: an
+optional `-`, then digits, digits followed by `.` and digits, or `.` and digits, then optionally
+`e` or `E`, an optional `-` or `+` and digits (`^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$`);
+its value is the nearest double. `+1`, `1.`, hexadecimal, `Infinity`, `NaN`, separators and
+non-ASCII digits are not numeric text, and text whose value overflows is not numeric. Booleans,
+`null`, arrays and objects are not numeric.
+
+- `number` passes a numeric value.
+- `min`, `max` and `range` pass a numeric value that is not below the minimum and not above the
+  maximum; `step` passes a numeric value that is an integer multiple of the step, counted from 0.
+  A value that is not numeric fails these rules. Multiples are decided exactly: the value and the
+  step are read as the decimal numbers their canonical texts write, without a tolerance, so
+  `0.3` is a multiple of `0.1` and `0.30000000000000004` is not.
+- `digits` passes a string or a number whose canonical text (a string trimmed) consists only of
+  ASCII digits; booleans and other values fail.
+- `mincount` and `maxcount` count the elements of an array or the keys of an object; a missing
+  value, `null` and a string that is empty after trimming count 0, and any other scalar counts 1.
+- A message shows a numeric parameter as its canonical text. Every `{0}` and `{1}` of a default or
+  declared message is replaced when the rule has that parameter; a placeholder for a parameter the
+  rule does not have stays as written.
+
 **Membership** (`in`) takes its members from a list (each element as is), a
 comma-separated string (split at U+002C, each item trimmed) or a map (its keys).
 Members are strings, numbers or booleans; a member of another type, an
@@ -84,9 +119,9 @@ declaration errors; members are checked in order, each for its type before its e
 string value is trimmed; an array value passes when every element passes, an empty element
 (including an empty array or object) passes as an empty value does, and a non-empty array or
 object element fails. A value matches a member
-when their canonical texts are the same code points, or when both are numbers or
-strings matching `^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$` with equal values as
-doubles. Case, Unicode normalization and other numeric spellings never match.
+when their canonical texts are the same code points, or when both are numeric with equal
+values. List elements and map keys are read as they are, so a member with surrounding whitespace
+is not numeric text. Case, Unicode normalization and text that is not numeric never match.
 
 ## Patterns
 
@@ -136,6 +171,11 @@ without row keys. Every runtime reports the same code and message:
 | --- | --- | --- |
 | `minlength`, `maxlength` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | `rangelength` limits | `INVALID_RULE_PARAMETER` | `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum` |
+| `number`, `digits` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected true or false` |
+| `min`, `max` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a finite number` |
+| `range` limits | `INVALID_RULE_PARAMETER` | `Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum` |
+| `step` | `INVALID_RULE_PARAMETER` | `Invalid step parameter: expected a finite number above 0` |
+| `mincount`, `maxcount` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | `in` members of another type | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
 | `in` member that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
 | `in` without members, or with an empty member | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
@@ -207,9 +247,8 @@ For `enddate`, `.start` resolves a sibling field and `..start` resolves one
 group level above, using the common field-reference resolver.
 Membership maps are value sets, not condition maps.
 
-`design.show` does not disable validation. Conditional requiredness must be
-declared in `validate.required`. Browser visibility and server validation remain
-separate operations.
+`design.show` decides whether a field's rules run; see [visibility](#evaluation). A condition in
+`validate.required` makes a visible field optional.
 
 ## Errors and verification
 

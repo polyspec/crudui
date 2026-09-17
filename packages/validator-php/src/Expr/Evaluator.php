@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Expr;
 
+use CRUDUI\Validator\Values\CanonicalText;
+
 /**
  * CRUDUI expression evaluator (expressions.md §5/§6/§7, JS PathResolver parity).
  *
@@ -519,14 +521,12 @@ final class Evaluator
         if (is_bool($value)) {
             return $value ? 'true' : 'false';
         }
-        if (is_int($value)) {
-            return (string) $value;
+        if (is_float($value) && !is_finite($value)) {
+            return is_nan($value) ? 'NaN' : ($value > 0 ? 'Infinity' : '-Infinity');
         }
-        if (is_float($value)) {
-            if (is_finite($value) && $value === floor($value)) {
-                return (string) (int) $value;
-            }
-            return (string) $value;
+        if (is_int($value) || is_float($value)) {
+            // A number reads as the text ECMAScript writes for its double.
+            return (string) CanonicalText::of($value);
         }
         return '';
     }

@@ -7,6 +7,7 @@ pub mod expr;
 pub mod forbidden_scan;
 pub mod list;
 mod structure;
+pub mod text;
 pub mod types;
 pub mod validate;
 

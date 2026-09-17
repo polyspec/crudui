@@ -1,11 +1,12 @@
 /**
  * Max Count validation rule
  *
- * Validates that an array has at most the specified number of items
+ * The count of the value (validation-rules.md, "Numbers") is at most the limit.
+ * It evaluates empty values, which count 0.
  */
 
 import { RuleDefinition, ValidationContext } from '../types';
-import { getArrayLength } from './mincount';
+import { countOf, formatMessage, isLengthLimit } from '../values/index';
 
 /**
  * Max Count rule definition
@@ -14,24 +15,16 @@ export const maxcountRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
     const { value, ruleParam, messages } = context;
 
-    // Skip if no rule param
-    if (ruleParam === null || ruleParam === undefined) {
+    // A false or null parameter disables the rule.
+    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
       return null;
     }
-
-    // NOTE: maxcount does not skip empty values; an empty array always
-    // satisfies maxcount (count 0 <= max)
-
-    const maxCount = Number(ruleParam);
-    if (isNaN(maxCount)) {
-      return null;
+    if (!isLengthLimit(ruleParam)) {
+      throw new TypeError('Invalid maxcount parameter: expected an integer from 0 to 9007199254740991');
     }
 
-    const count = getArrayLength(value);
-
-    if (count > maxCount) {
-      const message = messages?.maxcount ?? `Please select no more than ${maxCount} items.`;
-      return message.replace('{0}', String(maxCount));
+    if (countOf(value) > ruleParam) {
+      return formatMessage(messages?.maxcount ?? 'Please select no more than {0} items.', ruleParam);
     }
 
     return null;

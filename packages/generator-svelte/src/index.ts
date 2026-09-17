@@ -44,8 +44,9 @@ export function renderList(
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {}
 ): string {
-  const { layout, ...buildOpts } = options;
-  const vm = buildList(listSpec, rows, buildOpts);
+  // The whole options reach the model, whose input text check reads the layout too.
+  const { layout } = options;
+  const vm = buildList(listSpec, rows, options);
   const { body } = render(List, { props: { vm, layout: listLayout(layout) } });
   return body;
 }

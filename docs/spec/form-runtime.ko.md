@@ -16,6 +16,20 @@
 로드하지 않습니다. 평가한 값과 표시 조건은 인스턴스 상태이므로 공용 템플릿
 캐시에 저장하면 안 됩니다.
 
+`bindForm`, `bindButtons`, `createForm`은 `compileForm`이 만드는 형태와 정확히 같은
+템플릿만 받습니다. 그 밖의 값은 `INVALID_FORM_INPUT`, 메시지
+`Unsupported form template`, 빈 위치로 실패합니다. 템플릿은 `kind`
+(`crudui/form-template`), `fields`(필드 템플릿 목록), `buttons`(객체 목록), 선택
+항목인 `keyPrefix`(문자열)와 `action`(객체)만 멤버로 갖는 객체이며, `version`
+멤버는 없습니다. 각 필드 템플릿은 문자열 `name`, 객체 `spec`, 필드 템플릿 목록
+`children`만 정확히 갖습니다. `spec`과 버튼의 내용은 다시 검사하지 않습니다.
+JavaScript에서 값이 `undefined`인 멤버는 없는 멤버이고, PHP에서 연관 배열은
+객체, 빈 배열과 리스트 배열은 목록입니다. 노드 모델은 [폼 마크업](form-markup.ko.md)이
+정한 멤버 순서를 지키며, 모든 런타임에서 위젯 모델의 멤버는 `kind`, `layout`,
+`tag`, `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`,
+`script`, `styleChrome`, `buttonText`, `prepend`, `append`, `extra` 순서이고
+`extra`에서는 `display`가 `file`보다 앞섭니다.
+
 `createForm(template, data, options)`는 편집 인스턴스를 생성합니다.
 `Form`은 React, Vue, Svelte에서 인스턴스를 렌더링합니다. 호스트가 HTML
 `form` 요소와 제출 처리를 관리합니다. `renderForm(instance)`는 같은 인스턴스를
@@ -112,7 +126,11 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 행 개수를 제한합니다.
 
 반복 데이터가 없으면 편집 가능한 행 하나를 생성합니다. 명시적인 `{}`는 행이
-0개라는 뜻입니다. 마지막 행을 제거해도 컬렉션의 `add-row` 컨트롤은 유지합니다. 행을 추가할 때
+0개라는 뜻입니다. `multiple: only`로 선언한 컬렉션은 데이터에 있는 행만 데이터 순서와 데이터 키로
+가지며, 데이터가 없으면 행이 0개입니다. 이 컬렉션에 대한 `addRow`, `copyRow`, `removeRow`, `moveRow`,
+`rekeyRow`는 데이터와 화면을 바꾸지 않고 `INVALID_FORM_INPUT`과 메시지
+`Rows of {path} come only from data`로 실패합니다. `design.show`가 숨긴 필드는 인스턴스와
+`getData()`에 값을 유지하며, 데이터가 필드를 다시 보이게 하면 그 값을 표시합니다. 마지막 행을 제거해도 컬렉션의 `add-row` 컨트롤은 유지합니다. 행을 추가할 때
 삭제한 데이터를 복원하지 않습니다. 기본값은 입력 데이터가 없을 때만 적용합니다.
 출력 규칙은 [빈 컬렉션](empty-collections.ko.md)에 정의합니다.
 
@@ -167,8 +185,10 @@ generator-core는 이 규칙을 불변 값에 대한 순수 함수로 export합�
 표시 입력으로 가고, 입력이 없으면 행의 펼치기/접기 또는 추가 버튼으로 갑니다.
 
 행 작업 뒤나 구조 맵에서 어떤 행으로 이동하는 것은 그 행의 컨트롤(비워진 컬렉션이면 추가
-버튼)에 포커스하는 것입니다. 브라우저는 필요한 만큼만 그 컨트롤을 보이게 스크롤하고,
-스타일시트의 스크롤 여백이 고정 헤더와 푸터에 가리지 않게 합니다. 스크롤 위치를 따르는
+버튼)에 스크롤 없이 포커스한 뒤 그 컨트롤을 필요한 만큼만 보이게 스크롤하는 것입니다
+(`scrollIntoView`, `block: 'nearest'`). 그래서 모든 엔진에서 스타일시트의 스크롤 여백이 고정
+헤더와 푸터에 가리지 않게 합니다. 포커스에 따른 스크롤은 브라우저에 맡기지 않습니다. Linux의
+WebKit은 그 여백을 지키지 않습니다. 스크롤 위치를 따르는
 스크립트는 없고, 바인딩은 스크롤 위치를 복원하지 않습니다. 펼치기/접기, 선택, 되돌리기는
 포커스를 받은 작업 버튼을 포함해 현재 포커스를 스크롤 없이 유지합니다.
 

@@ -64,4 +64,9 @@ export type ComposeErrorCode =
    */
   | 'INVALID_RULE_PARAMETER'
   /** A `match`/`pattern` string outside the CRUDUI pattern language. */
-  | 'INVALID_RULE_PATTERN';
+  | 'INVALID_RULE_PATTERN'
+  /**
+   * A string or member name in the specification or a composition file that is not a sequence
+   * of Unicode scalar values (docs/spec/input-text.md). `trace` is its path.
+   */
+  | 'INVALID_TEXT';

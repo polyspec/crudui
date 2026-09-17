@@ -20,10 +20,45 @@ func conditionMap(o *Object, data map[string]any, path []string) any {
 	}
 	return nil
 }
+
+// evalShow resolves design.show like the validators resolve a conditional
+// parameter in the row context: a condition map selects its value, a ternary its
+// branch and a condition expression that parses completely its result; any
+// other string is a literal.
+// Only a resolved false hides; a missing show, a map that selects nothing and a
+// literal string are visible.
 func evalShow(v any, data map[string]any, path []string) bool {
 	if v == nil || isAbsent(v) {
 		return true
 	}
+	return resolveParameter(v, data, path) != false
+}
+
+// resolveParameter resolves a conditional parameter value.
+func resolveParameter(v any, data map[string]any, path []string) any {
+	if o := object(v); o != nil {
+		return conditionMap(o, data, path)
+	}
+	s, ok := v.(string)
+	if !ok {
+		return v
+	}
+	if ast, e := expr.Parse(s); e == nil {
+		if _, ok := ast.(*expr.TernaryNode); ok {
+			x, _ := expr.EvaluateValue(s, data, path)
+			return x
+		}
+	}
+	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
+		x, _ := expr.EvaluateValue(s, data, path)
+		return x
+	}
+	return s
+}
+
+// evalFlag resolves a boolean flag such as a list column's sortable: a
+// condition map that selects nothing, and a failed condition, are false.
+func evalFlag(v any, data map[string]any, path []string) bool {
 	if o := object(v); o != nil {
 		return truthy(conditionMap(o, data, path))
 	}
@@ -35,6 +70,9 @@ func evalShow(v any, data map[string]any, path []string) bool {
 
 var ternaryTextRE = regexp.MustCompile(`\?[^:]*:`)
 
+// evalAppearance resolves an appearance setting such as design.class: a
+// condition map selects its value, a ternary its branch and a condition
+// expression that parses completely its result; any other string is literal text.
 func evalAppearance(v any, data map[string]any, path []string) string {
 	if v == nil || isAbsent(v) {
 		return ""
@@ -59,7 +97,7 @@ func evalAppearance(v any, data map[string]any, path []string) string {
 			return jsString(x)
 		}
 	}
-	if expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
+	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
 		x, e := expr.EvaluateValue(s, data, path)
 		if e != nil || x == nil || x == false {
 			return ""

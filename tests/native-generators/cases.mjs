@@ -107,6 +107,50 @@ export const formScenarios = [
   },
 ];
 
+// docs/spec/schema.md and docs/spec/form-runtime.md: `multiple: only` rows come only from the data.
+const onlySpec = {
+  type: 'group',
+  properties: {
+    variants: {
+      type: 'group', label: 'Variants', multiple: { only: true, title: 'name' },
+      properties: { name: { type: 'text', label: 'Name' }, price: { type: 'number', label: 'Price' } },
+    },
+  },
+};
+const onlyRowOperations = [
+  { method: 'addRow', args: ['variants', {}] },
+  { method: 'addRow', args: ['variants', { key: '__opt_c3__', value: { name: 'Added', price: 3 } }] },
+  { method: 'copyRow', args: ['variants', '__opt_b2__'] },
+  { method: 'removeRow', args: ['variants', '__opt_a1__'] },
+  { method: 'moveRow', args: ['variants', '__opt_a1__', 0] },
+  { method: 'rekeyRow', args: ['variants', '__opt_b2__', '__opt_d4__'] },
+];
+formScenarios.push(
+  {
+    name: 'only-collection-rows-come-from-data', spec: onlySpec,
+    data: { variants: { __opt_b2__: { name: 'Blue', price: 2 }, __opt_a1__: { name: 'Red', price: 1 } } },
+    options: { language: 'en' }, rejectAll: true, actions: onlyRowOperations,
+  },
+  {
+    name: 'only-collection-missing-data-has-no-rows', spec: onlySpec, data: {},
+    options: { language: 'en' }, rejectAll: true, actions: onlyRowOperations.slice(0, 2),
+  },
+  {
+    name: 'hidden-group-keeps-values',
+    spec: { type: 'group', properties: {
+      is_display: { type: 'text' },
+      display: { type: 'group', design: { show: '.is_display == 1' }, properties: { code: { type: 'text' }, items: { type: 'text', multiple: true } } },
+    } },
+    data: { is_display: '1', display: { code: 'abc1', items: { __opt_a1__: 'row' } } },
+    options: { language: 'en' },
+    actions: [
+      { method: 'setValue', args: ['is_display', '0'] },
+      { method: 'setValue', args: ['display.code', 'kept'] },
+      { method: 'setValue', args: ['is_display', '1'] },
+    ],
+  },
+);
+
 export const numberCases = [
   { value: 2.5, decimals: 0, expected: '3' },
   { value: -2.5, decimals: 0, expected: '-3' },

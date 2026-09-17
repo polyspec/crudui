@@ -193,6 +193,30 @@ const SCENARIOS: ListFixtureCase[] = [
     rows: [{ name: 'Ada', secret: 'visible' }],
     options: { language: 'en', data: { admin: true } },
   },
+  {
+    name: 'column-show-map-without-selection',
+    note: 'A design.show condition map that selects nothing leaves the column visible: only a resolved false hides.',
+    spec: {
+      columns: {
+        name: { field: 'name', label: 'Name' },
+        secret: { field: 'secret', label: 'Secret', design: { show: { '.admin': false } } },
+      },
+    },
+    rows: [{ name: 'Ada', secret: 'visible' }],
+    options: { language: 'en', data: { admin: false } },
+  },
+  {
+    name: 'column-show-literal-string',
+    note: 'A design.show string that is not a valid expression is a literal and leaves the column visible.',
+    spec: {
+      columns: {
+        name: { field: 'name', label: 'Name' },
+        secret: { field: 'secret', label: 'Secret', design: { show: '.admin == (' } },
+      },
+    },
+    rows: [{ name: 'Ada', secret: 'visible' }],
+    options: { language: 'en', data: { admin: false } },
+  },
 
   // --- i18n headers (ko vs en) over the SAME spec ---
   {
@@ -233,6 +257,18 @@ const SCENARIOS: ListFixtureCase[] = [
     },
     rows: PEOPLE,
     options: { language: 'en' },
+  },
+  {
+    name: 'sortable-map-without-selection',
+    note: 'A sortable condition map that selects nothing is false: the column is not sortable (a map selecting a true value is).',
+    spec: {
+      columns: {
+        name: { field: 'name', label: 'Name', sortable: { '.admin': true } },
+        status: { field: 'status', label: 'Status', sortable: { '.admin': false, true: true } },
+      },
+    },
+    rows: PEOPLE,
+    options: { language: 'en', data: { admin: false } },
   },
 
   // --- pagination display (declared + injected meta; DB-agnostic) ---

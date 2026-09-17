@@ -11,13 +11,16 @@ JavaScript와 TypeScript에서 CRUDUI 폼 데이터를 검증하고 목록·상�
 
 - `validate(spec, data, options?)`는 폼 명세를 조합하고 금지 키를 거부한 뒤
   `data`를 검증합니다. `{ valid, errors }`를 반환하며 각 오류는 `path`,
-  `field`, `rule`, `message`, `value`를 포함합니다.
+  `field`, `rule`, `message`, `value`를 포함합니다. `design.show`가 `false`로
+  결정되는 필드는 숨겨지며 그 필드와 그 안의 모든 필드의 규칙을 건너뜁니다(데이터 형태는 계속 검사합니다).
+  데이터가 없는 반복 필드는 빈 컬렉션입니다.
 - `validateList(spec, options?)`는 목록 명세를 조합하고 금지 키를 거부합니다.
   목록에는 제출 데이터가 없으므로 정상적으로 로드되면
   `{ valid: true, errors: [] }`를 반환합니다.
 - `validateDetail(spec, options?)`는 상세 명세의 `fields` 맵을 포함해 같은 구조
   검사를 수행합니다.
-- `ComposeLoadError`는 해석되지 않은 `$ref`나 `$patch`, 금지 키에 사용합니다.
+- `ComposeLoadError`는 해석되지 않은 `$ref`나 `$patch`, 금지 키, 정의를 벗어난
+  규칙 매개변수에 사용합니다.
 - `FormInputError`(코드 `INVALID_FORM_INPUT`)는 객체가 아닌 루트 데이터, 객체가
   아닌 그룹 데이터, 키 객체가 아닌 반복 데이터에 사용합니다.
 
