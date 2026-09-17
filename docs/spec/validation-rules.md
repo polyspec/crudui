@@ -30,14 +30,16 @@ entry points, load failures and input failures.
 The [TypeScript registry](../../packages/validator-ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
 see the [CLI procedure](../operations/cli.md). Every runtime has the same built-in rules and
-no way to register others.
+no way to register others. A `validate` or `messages` key that is not one of these names fails the
+load with `UNKNOWN_RULE` (see [parameter errors](#parameter-errors)); names are compared exactly,
+so `equalto` is not `equalTo`.
 
 ## Evaluation
 
 Rules run in declaration order and stop at the first failure for each field.
-A resolved `false` or `null` parameter disables the rule. The runtime skips
-unregistered rules; validate declaration shapes separately rather than treating
-runtime acceptance as schema verification.
+A resolved `false` or `null` parameter disables the rule. A rule name that is
+not registered is a load failure whatever its parameter, so a misspelled rule never
+disables validation silently; the meta-schema rejects the same names.
 
 A `number` field runs the implicit `number` check before other rules unless it
 declares that rule explicitly. Nonfinite numeric inputs fail numeric validation.
@@ -161,14 +163,19 @@ a string, `false` or `null`.
 
 ## Parameter errors
 
-A parameter outside these definitions is a load failure. Parameters are checked
-after composition and the forbidden-key scan, fields in declaration order, each field's
-rules in declaration order before the fields it contains, and the first failure is reported. Its location
+A parameter outside these definitions is a load failure, and so is a rule name that is not a
+registered rule. Rule names and parameters are checked after composition and the forbidden-key
+scan, fields in declaration order, each field's `validate` rules in declaration order (a rule's
+name before its parameter) and then its `messages` keys in declaration order, all before the
+fields it contains, and the first failure is reported. A `messages` key names the rule whose
+message it overrides; it may name a registered rule the field does not declare, such as the
+implicit `number` check. Names are checked for hidden fields and fields without data too. Its location
 is the field's declaration path: the property names from the root joined with `.`,
 without row keys. Every runtime reports the same code and message:
 
 | Parameter | Code | Message |
 | --- | --- | --- |
+| `validate` or `messages` key that is not a registered rule | `UNKNOWN_RULE` | `Unknown rule: {name}` |
 | `minlength`, `maxlength` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | `rangelength` limits | `INVALID_RULE_PARAMETER` | `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum` |
 | `number`, `digits` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected true or false` |

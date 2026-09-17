@@ -67,6 +67,28 @@ for (const [extra, expected] of [
   assert.equal(validateForm(spec), expected, `buttons: ${JSON.stringify(extra)} ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
+// `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
+const registeredRules = [...readText('packages/validator-ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
+  .map((match) => match[1]);
+assert.equal(registeredRules.length, 24, 'the rule registry lists 24 rules');
+const validateObject = schema.definitions.Validate.anyOf.find((shape) => shape.type === 'object');
+assert.deepEqual(Object.keys(validateObject.properties).sort(), [...registeredRules].sort(), 'validate lists the registered rules');
+assert.deepEqual(Object.keys(schema.definitions.Messages.properties).sort(), [...registeredRules].sort(), 'messages lists the registered rules');
+for (const [field, expected, keyword] of [
+  [{ validate: { required: true, minlength: 2, dateISO: true, equalTo: '.other' } }, true],
+  [{ validate: { no_such_rule: true } }, false, 'additionalProperties'],
+  [{ validate: { requried: false } }, false, 'additionalProperties'],
+  [{ validate: { equalto: '.other' } }, false, 'additionalProperties'],
+  [{ messages: { required: 'Enter a value.', number: 'Enter a number.', pattern: 'Wrong format.' } }, true],
+  [{ messages: { requird: 'Enter a value.' } }, false, 'additionalProperties'],
+  [{ messages: { required: 1 } }, false, 'type'],
+]) {
+  const spec = { type: 'group', properties: { value: { type: 'text', ...field } } };
+  const label = `rule names: ${JSON.stringify(field)}`;
+  assert.equal(validateForm(spec), expected, `${label} ${JSON.stringify(validateForm.errors)}`);
+  if (keyword) assert.ok(validateForm.errors.some((error) => error.keyword === keyword), `${label}: expected ${keyword}`);
+  checked++;
+}
 // The structure-validity families share one case shape:
 // { name, note, spec, files?, expect: "ok"|"fail", reason?, engine: "pass"|{ code, at } }.
 // `expect` and `reason` are the meta-schema result for the family entry point.

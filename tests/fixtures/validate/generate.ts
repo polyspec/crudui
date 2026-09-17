@@ -646,18 +646,6 @@ const SPECS: CaseSpec[] = [
     },
     data: { name: '' },
   },
-  // 24. Unregistered rule is skipped (no error) — VALIDATION-RULES common §4.
-  {
-    name: 'unregistered-rule-skipped',
-    note: 'an unknown rule name produces no error; the field is valid',
-    spec: {
-      type: 'group',
-      properties: {
-        x: { type: 'text', validate: { no_such_rule: true } },
-      },
-    },
-    data: { x: 'anything' },
-  },
   // 25. Slot off (validate:false) — no rules run.
   {
     name: 'validate-slot-off',
@@ -922,6 +910,10 @@ function authored(c: AuthoredCase): Record<string, unknown> {
   const base: Record<string, unknown> = { name: c.name, note: c.note, spec: c.spec, data: c.data };
   if (c.failure) {
     base.expectFailure = c.failure;
+    return base;
+  }
+  if (c.expected) {
+    base.expected = c.expected;
     return base;
   }
   const errors = [];

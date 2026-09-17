@@ -39,8 +39,8 @@ type ruleContext struct {
 // ruleFn validates value with the effective param. Returns (message, failed).
 type ruleFn func(value any, ruleParam any, ctx ruleContext) (string, bool)
 
-// builtInRules is the model rule registry. "pattern" aliases "match". An unregistered
-// rule produces no error (VALIDATION-RULES common §4).
+// builtInRules is the model rule registry. "pattern" aliases "match". Any other
+// rule name fails the load with UNKNOWN_RULE.
 var builtInRules = map[string]ruleFn{
 	"required":    ruleRequired,
 	"email":       ruleEmail,

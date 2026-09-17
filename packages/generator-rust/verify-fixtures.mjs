@@ -73,7 +73,7 @@ try {
   }
   for (const failure of failures) console.error(failure.message);
   if (failures.length) throw new Error(`${failures.length} Rust fixture comparisons failed`);
-  console.log(`Rust fixtures passed: ${forms.length} forms, ${lists.length} lists; complete templates, models and original HTML, plus normalized form layouts.`);
+  process.stdout.write(`Rust fixtures passed: ${forms.length} forms, ${lists.length} lists; complete templates, models and original HTML, plus normalized form layouts.\n`);
 } finally {
   await server?.close();
   await rm(temporary, { recursive: true, force: true });

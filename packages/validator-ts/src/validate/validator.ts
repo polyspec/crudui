@@ -39,7 +39,7 @@ import type {
 } from '../types';
 import { getRule } from '../rules/index';
 import { FormInputError } from './errors';
-import { assertRuleParameter } from './parameters';
+import { assertRuleParameter, assertRuleName } from './parameters';
 import {
   parseCondition,
   isConditionExpression,
@@ -262,13 +262,13 @@ export class Validator {
   // =========================================================================
 
   /**
-   * Check every declared rule parameter before any value is validated: fields in
-   * declaration order (a group before its children), each field's rules in
-   * declaration order. Every literal a condition map or a ternary can select is
+   * Check every declared rule name and parameter before any value is validated:
+   * fields in declaration order (a group before its children), each field's rules
+   * in declaration order and then its `messages` keys. Every literal a condition map or a ternary can select is
    * checked here, selected or not; a value taken from the data is checked when
    * it is selected (`runRule`).
    *
-   * @throws {ComposeLoadError} for the first parameter outside the definitions.
+   * @throws {ComposeLoadError} for the first unknown rule name or parameter outside the definitions.
    */
   private checkDeclaredParameters(
     properties: Record<string, ComposedField>,
@@ -281,9 +281,13 @@ export class Validator {
       const path = [...declarationPath, propertyKey];
       const rules = normalizeValidateSlot(field.validate);
       for (const [ruleName, ruleValue] of Object.entries(rules ?? {})) {
+        assertRuleName(ruleName, path);
         for (const literal of declaredLiterals(ruleName, ruleValue)) {
           assertRuleParameter(ruleName, literal, path);
         }
+      }
+      for (const ruleName of Object.keys(fieldMessages(field) ?? {})) {
+        assertRuleName(ruleName, path);
       }
       const childProps = this.childProperties(field);
       if (field.type === 'group' && childProps) {
@@ -615,8 +619,8 @@ export class Validator {
 
     const ruleDefinition = getRule(ruleName);
     if (!ruleDefinition) {
-      // Unregistered rule: no error (VALIDATION-RULES common §4).
-      return null;
+      // Rule names are checked when the specification loads.
+      throw new Error(`Rule ${ruleName} is not registered`);
     }
 
     const validationContext: ValidationContext = {

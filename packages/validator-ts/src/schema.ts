@@ -273,9 +273,8 @@ export interface PatchDirective {
  * The named members are every built-in rule, with the parameter shapes the
  * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `notEqual`,
  * `unique`, `enddate`, `accept`, `match`, `pattern` and `in` receive their
- * parameter unchanged, so they take no condition map. The slot stays open: other
- * rule names are admitted by the index signature. Forbidden meta keys are
- * rejected at every depth by the meta-schema and the runtime scan, not by this type.
+ * parameter unchanged, so they take no condition map. No other rule name exists:
+ * the meta-schema rejects it and the runtime fails the load with `UNKNOWN_RULE`.
  */
 export interface ValidateSlot {
   /** Requires a supplied, nonempty value when enabled. */
@@ -326,8 +325,6 @@ export interface ValidateSlot {
   accept?: string | string[] | false | null;
   /** Allowed values: comma-separated string, list, or value-to-label map. */
   in?: string | Array<string | number | boolean | null> | Record<string, LangMap | string | null> | false | null;
-  /** Index signature for other rule names. */
-  [rule: string]: unknown;
 }
 
 // ============================================================================

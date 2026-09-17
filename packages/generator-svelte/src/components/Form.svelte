@@ -18,7 +18,8 @@
     binding = connectForm(root!, current);
     return () => { binding?.disconnect(); unsubscribe(); };
   });
-  $effect(() => { snapshot; binding?.sync(); });
+  // Reading the snapshot makes every new snapshot sync the rendered controls.
+  $effect(() => { if (snapshot) binding?.sync(); });
 </script>
 
 <FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} bind:root />

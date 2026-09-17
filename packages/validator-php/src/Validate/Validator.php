@@ -64,11 +64,12 @@ final class Validator
     private const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
 
     /**
-     * Default error messages per rule (identical in every runtime). The
+     * Default error messages per rule (identical in every runtime). Every registered
+     * rule has one, so the keys are the registered rule names. The
      * `pattern` and `match` aliases share one message. {0}/{1} are replaced by the
      * parameters of the rules that have them.
      */
-    private const DEFAULT_MESSAGES = [
+    public const DEFAULT_MESSAGES = [
         'required' => 'This field is required.',
         'email' => 'Please enter a valid email address.',
         'minlength' => 'Please enter at least {0} characters.',
@@ -104,7 +105,7 @@ final class Validator
     /**
      * @param array<string, mixed> $composedSpec a composed CRUDUI root spec — a group
      *        with `properties` (already free of $ref/$patch and forbidden keys).
-     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when a declared rule parameter is invalid
+     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when a declared rule name or parameter is invalid
      */
     public function __construct(array $composedSpec)
     {
@@ -481,8 +482,8 @@ final class Validator
 
         $rule = $this->rules[$ruleName] ?? null;
         if ($rule === null) {
-            // Unregistered rule: no error (VALIDATION-RULES §4).
-            return null;
+            // Rule names are checked when the specification loads.
+            throw new \LogicException('Rule ' . $ruleName . ' is not registered');
         }
 
         $ok = $rule->validate($value, $effectiveParam, $allData, $this->pathToString($path));

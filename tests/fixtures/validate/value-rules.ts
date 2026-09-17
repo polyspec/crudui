@@ -18,6 +18,8 @@ export interface AuthoredCase {
   outcomes?: Record<string, Outcome>;
   /** The load failure the specification causes. */
   failure?: { code: string; message: string; at: string };
+  /** The complete result record, when the outcomes cannot state it. */
+  expected?: { valid: boolean; errors: unknown[] };
 }
 
 const WHITESPACE = [
@@ -49,6 +51,9 @@ function declaration(name: string, note: string, validate: Record<string, unknow
     failure: { code, message, at: 'value' },
   };
 }
+
+/** The load failure of a rule name that is not a registered rule. */
+const unknownRule = (name: string, at: string) => ({ code: 'UNKNOWN_RULE', message: `Unknown rule: ${name}`, at });
 
 const pattern = (rule: string, reason: string, offset: number) => `Invalid ${rule} pattern: ${reason} at ${offset}`;
 
@@ -372,4 +377,137 @@ export const AUTHORED_CASES: AuthoredCase[] = [
     'Invalid pattern parameter: expected a pattern string'),
   declaration('pattern-invalid-true-parameter', 'true is not a pattern.', { match: true },
     'Invalid match parameter: expected a pattern string'),
+  {
+    name: 'unregistered-rule-rejected',
+    note: 'a rule name that is not a registered rule fails the load at the field\'s declaration path.',
+    spec: { type: 'group', properties: { x: { type: 'text', validate: { no_such_rule: true } } } },
+    data: { x: 'anything' },
+    failure: unknownRule('no_such_rule', 'x'),
+  },
+  {
+    name: 'unregistered-rule-disabled-rejected',
+    note: 'a rule name is checked whatever its parameter, so a misspelled rule set to false still fails the load.',
+    spec: { type: 'group', properties: { x: { type: 'text', validate: { requried: false } } } },
+    data: { x: '' },
+    failure: unknownRule('requried', 'x'),
+  },
+  {
+    name: 'unregistered-rule-case-rejected',
+    note: 'rule names are compared exactly; equalto is not equalTo.',
+    spec: { type: 'group', properties: { a: { type: 'text' }, b: { type: 'text', validate: { equalto: '.a' } } } },
+    data: { a: 'x', b: 'x' },
+    failure: unknownRule('equalto', 'b'),
+  },
+  {
+    name: 'unregistered-rule-row-path',
+    note: 'the location of an unknown rule inside nested repeated rows is the declaration path, without row keys.',
+    spec: {
+      type: 'group',
+      properties: {
+        companies: {
+          type: 'group',
+          multiple: true,
+          properties: {
+            stores: { type: 'group', multiple: true, properties: { name: { type: 'text', validate: { required: true, minLenght: 2 } } } },
+          },
+        },
+      },
+    },
+    data: { companies: { c1: { stores: { s1: { name: 'x' } } } } },
+    failure: unknownRule('minLenght', 'companies.stores.name'),
+  },
+  {
+    name: 'unregistered-rule-hidden-field',
+    note: 'rule names are checked when the specification loads, so a hidden field and a field without data are checked too.',
+    spec: { type: 'group', properties: { rows: { type: 'text', multiple: true, design: { show: false }, validate: { maxcont: 2 } } } },
+    data: {},
+    failure: unknownRule('maxcont', 'rows'),
+  },
+  {
+    name: 'unregistered-rule-after-parameter',
+    note: 'rule names and parameters are checked together in declaration order; an invalid parameter declared first is reported.',
+    spec: { type: 'group', properties: { x: { type: 'text', validate: { maxlength: -1, no_such_rule: true } } } },
+    data: { x: 'a' },
+    failure: { code: 'INVALID_RULE_PARAMETER', message: 'Invalid maxlength parameter: expected an integer from 0 to 9007199254740991', at: 'x' },
+  },
+  {
+    name: 'unregistered-rule-before-parameter',
+    note: 'an unknown rule declared before an invalid parameter is reported.',
+    spec: { type: 'group', properties: { x: { type: 'text', validate: { no_such_rule: true, maxlength: -1 } } } },
+    data: { x: 'a' },
+    failure: unknownRule('no_such_rule', 'x'),
+  },
+  {
+    name: 'unregistered-rule-field-order',
+    note: 'fields are checked in declaration order, a field before the fields it contains.',
+    spec: {
+      type: 'group',
+      properties: {
+        first: { type: 'text', validate: { minlength: 1 } },
+        outer: { type: 'group', validate: { mincunt: 1 }, properties: { inner: { type: 'text', validate: { pattern: '(' } } } },
+        last: { type: 'text', validate: { typo: true } },
+      },
+    },
+    data: { first: 'a', outer: { inner: 'x' }, last: 'b' },
+    failure: unknownRule('mincunt', 'outer'),
+  },
+  {
+    name: 'unregistered-rule-message',
+    note: 'a messages key is a rule name, so a key that is not a registered rule fails the load.',
+    spec: { type: 'group', properties: { x: { type: 'text', validate: { required: true }, messages: { requierd: 'Enter a value.' } } } },
+    data: { x: '' },
+    failure: unknownRule('requierd', 'x'),
+  },
+  {
+    name: 'unregistered-rule-message-order',
+    note: 'a field\'s messages keys are checked after its rules and before the fields it contains.',
+    spec: {
+      type: 'group',
+      properties: {
+        outer: {
+          type: 'group',
+          validate: { mincount: 0 },
+          messages: { mincount: 'Too few.', typo: 'Never used.' },
+          properties: { inner: { type: 'text', validate: { typo: true } } },
+        },
+      },
+    },
+    data: { outer: { inner: 'x' } },
+    failure: unknownRule('typo', 'outer'),
+  },
+  {
+    name: 'unregistered-rule-message-after-parameter',
+    note: 'a field\'s rule parameters are checked before its messages keys.',
+    spec: { type: 'group', properties: { x: { type: 'text', validate: { maxlength: -1 }, messages: { typo: 'Never used.' } } } },
+    data: { x: 'a' },
+    failure: { code: 'INVALID_RULE_PARAMETER', message: 'Invalid maxlength parameter: expected an integer from 0 to 9007199254740991', at: 'x' },
+  },
+  {
+    name: 'pattern-message-declared-name',
+    note: 'a custom message is found under the declared rule name only; match does not use the pattern message, nor pattern the match message.',
+    spec: {
+      type: 'group',
+      properties: {
+        a: { type: 'text', validate: { match: '[0-9]+' }, messages: { pattern: 'Pattern message.' } },
+        b: { type: 'text', validate: { pattern: '[0-9]+' }, messages: { match: 'Match message.' } },
+        c: { type: 'text', validate: { pattern: '[0-9]+' }, messages: { match: 'Match message.', pattern: 'Pattern message.' } },
+      },
+    },
+    data: { a: 'x', b: 'x', c: 'x' },
+    expected: {
+      valid: false,
+      errors: [
+        { path: 'a', field: 'a', rule: 'match', message: 'Please enter a valid format.', value: 'x' },
+        { path: 'b', field: 'b', rule: 'pattern', message: 'Please enter a valid format.', value: 'x' },
+        { path: 'c', field: 'c', rule: 'pattern', message: 'Pattern message.', value: 'x' },
+      ],
+    },
+  },
+  {
+    name: 'registered-rule-message-undeclared',
+    note: 'a messages key may name a registered rule the field does not declare, such as the implicit number check.',
+    spec: { type: 'group', properties: { amount: { type: 'number', messages: { number: 'Enter a number.', required: 'Unused.' } } } },
+    data: { amount: 'abc' },
+    expected: { valid: false, errors: [{ path: 'amount', field: 'amount', rule: 'number', message: 'Enter a number.', value: 'abc' }] },
+  },
 ];

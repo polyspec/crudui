@@ -22,7 +22,7 @@ import { describe, test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compareIdempotency, signature, validateAll } from './validate-runner.mjs';
+import { compareIdempotency, validateAll } from './validate-runner.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../..');

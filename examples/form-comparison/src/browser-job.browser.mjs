@@ -113,11 +113,13 @@ test('collects a browser job whose total duration exceeds one protocol call',
           Object.assign(window.testJob, {
             status: 'completed', completedReports: 1, current: null,
           });
-          const { reports, ...state } = window.testJob;
+          const state = { ...window.testJob };
+          delete state.reports;
           window.publishTestJobEvent({ type: 'report', index: 0, report, state })
             .then(() => window.publishTestJobEvent({ type: 'state', state }));
         }, milliseconds);
-        const { reports, ...state } = window.testJob;
+        const state = { ...window.testJob };
+        delete state.reports;
         return state;
       }, durationMs),
     };

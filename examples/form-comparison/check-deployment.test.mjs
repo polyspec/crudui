@@ -40,7 +40,7 @@ test('renders one deterministic deployment that mounts the repository read-only'
   const first = renderDeploymentCompose({ repositoryRoot, imageReference });
   assert.equal(renderDeploymentCompose({ repositoryRoot, imageReference }), first);
   assert.match(first, new RegExp(`^    image: ${imageReference}$`, 'm'));
-  assert.match(first, /^      containerctl\.domain: crudui\.test$/m);
+  assert.match(first, /^ {6}containerctl\.domain: crudui\.test$/m);
   const volumes = first.split('\n').filter(line => line.startsWith('      - '))
     .map(line => JSON.parse(line.slice('      - '.length)));
   assert.deepEqual(volumes, [
@@ -70,7 +70,7 @@ test('waits for health within a budget sized from the measured start', () => {
   const compose = renderDeploymentCompose({ repositoryRoot, imageReference });
   const seconds = key => Number(compose.match(new RegExp(`^      ${key}: (\\d+)s$`, 'm'))?.[1]);
   const [interval, timeout, startPeriod] = ['interval', 'timeout', 'start_period'].map(seconds);
-  const retries = Number(compose.match(/^      retries: (\d+)$/m)?.[1]);
+  const retries = Number(compose.match(/^ {6}retries: (\d+)$/m)?.[1]);
   assert.deepEqual({ interval, timeout, retries, startPeriod }, {
     interval: deploymentHealth.intervalSeconds, timeout: deploymentHealth.timeoutSeconds,
     retries: deploymentHealth.retries, startPeriod: deploymentHealth.startPeriodSeconds,

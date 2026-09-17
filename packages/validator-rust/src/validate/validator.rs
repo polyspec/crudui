@@ -472,9 +472,9 @@ impl Validator {
             return Ok(None);
         }
 
-        // unregistered rule: no error
+        // Rule names are checked when the specification loads.
         let Some(rule_fn) = get_rule(rule_name) else {
-            return Ok(None);
+            unreachable!("rule {rule_name} is not registered");
         };
 
         // Declared parameters were checked when the specification loaded (patterns

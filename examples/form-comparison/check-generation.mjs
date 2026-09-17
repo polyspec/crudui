@@ -4,6 +4,8 @@ import { mkdir, open, readFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+// Runtimes share one comparison: values and object member order at every depth.
+import { equalModels, equalOrdered } from '../../tests/native-generators/protocol.mjs';
 import { encodeJson, decodeJson } from './src/json.mjs';
 import { readFrameDocument } from './src/frame-document.mjs';
 import { frameUrl } from './src/frame-readiness.mjs';
@@ -149,34 +151,10 @@ function argumentsFor(argv) {
   return { url: url.href.replace(/\/$/, ''), library: args.get('--library'), report: path.resolve(args.get('--report')) };
 }
 
-// Object member order is significant in declarations, attributes and row data.
-function equalOrdered(actual, expected, name) {
-  assert.deepStrictEqual(actual, expected, `${name}: value differs`);
-  function visit(a, e, at) {
-    if (Array.isArray(a)) a.forEach((value, index) => visit(value, e[index], `${at}[${index}]`));
-    else if (object(a)) {
-      assert.deepStrictEqual(Object.keys(a), Object.keys(e), `${at}: member order differs`);
-      for (const key of Object.keys(a)) visit(a[key], e[key], `${at}.${key}`);
-    }
-  }
-  visit(actual, expected, name);
-}
-
-function equalModels(actual, expected) {
-  assert.deepStrictEqual(actual, expected, 'Complete field models differ');
-  function visit(a, e, at) {
-    if (Array.isArray(a)) a.forEach((value, index) => visit(value, e[index], `${at}[${index}]`));
-    else if (object(a)) for (const key of Object.keys(a)) {
-      if (key === 'attrs' || (at.endsWith('.extra') && object(a[key]))) equalOrdered(a[key], e[key], `${at}.${key}`);
-      else visit(a[key], e[key], `${at}.${key}`);
-    }
-  }
-  visit(actual, expected, '$.fields');
-}
-
-function equalRendered(actual, expected) {
+/** Compare one rendered form: record data, complete field models and raw HTML, each with member order. */
+export function equalRendered(actual, expected) {
   equalOrdered(actual.data, expected.data, '$.data');
-  equalModels(actual.fields, expected.fields);
+  equalModels(actual.fields, expected.fields, '$.fields');
   assert.equal(actual.html, expected.html, 'Raw form HTML differs');
 }
 
@@ -247,12 +225,6 @@ function freshDefaults(data) {
 
 function allNodes(node) {
   return [node, ...(node.childNodes ?? []).flatMap(allNodes)];
-}
-const attr = (node, name) => node.attrs?.find(item => item.name === name)?.value;
-function oneNode(nodes, predicate, message) {
-  const found = nodes.filter(predicate);
-  assert.equal(found.length, 1, message);
-  return found[0];
 }
 
 /**

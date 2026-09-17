@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Tests;
 
 use CRUDUI\Validator\FieldSpec;
+use CRUDUI\Validator\Validate\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -95,8 +96,8 @@ final class FieldSpecTest extends TestCase
     }
 
     /**
-     * design, design nodes, behavior, multiple and lang are closed: an unknown key
-     * is a violation. validate, options and the items dynamic source stay open.
+     * design, design nodes, behavior, multiple, lang and validate are closed: an
+     * unknown key is a violation. options and the items dynamic source stay open.
      */
     public function testClosedBucketsRejectUnknownKeys(): void
     {
@@ -105,11 +106,12 @@ final class FieldSpecTest extends TestCase
         self::assertSame(['unknown key under behavior: onsubmit'], FieldSpec::validate(['behavior' => ['onclick' => 'go()', 'onsubmit' => 'x']]));
         self::assertSame(['unknown key under multiple: foo'], FieldSpec::validate(['multiple' => ['min' => 1, 'foo' => 1]]));
         self::assertSame(['unknown key under lang: append'], FieldSpec::validate(['lang' => ['mode' => 'x', 'append' => true]]));
+        self::assertSame(['unknown key under validate: custom_rule'], FieldSpec::validate(['validate' => ['required' => true, 'custom_rule' => 1]]));
         self::assertSame([], FieldSpec::validate([
             'design'   => ['show' => true, 'class' => 'a', 'style' => 'b', 'label' => ['class' => 'c', 'style' => 'd'], 'wrapper' => [], 'group' => ['class' => 'e'], 'prepend' => ['style' => 'f']],
             'behavior' => ['onchange' => 'a', 'onclick' => 'b', 'onload' => 'c'],
             'lang'     => ['mode' => 'append', 'only' => ['ko'], 'name' => 'n', 'key' => 'k', 'frame' => false, 'title' => false, 'group_class' => 'g'],
-            'validate' => ['required' => true, 'custom_rule' => 1],
+            'validate' => ['required' => true, 'minlength' => 1, 'dateISO' => true, 'step' => 1],
             'options'  => ['custom' => 1],
             'items'    => ['model' => 'm', 'custom_source' => 1],
         ]));
@@ -171,5 +173,27 @@ final class FieldSpecTest extends TestCase
             self::assertStringNotContainsString('*', $k);
             self::assertStringNotContainsString(':', $k);
         }
+    }
+
+    /** The validate slot accepts exactly the registered rule names. */
+    public function testValidateKeysAreTheRegisteredRules(): void
+    {
+        self::assertSame(array_keys(Validator::DEFAULT_MESSAGES), FieldSpec::VALIDATE_SUB_KEYS);
+        self::assertSame(FieldSpec::VALIDATE_SUB_KEYS, FieldSpec::CLOSED_BUCKET_KEYS['validate']);
+    }
+
+    /** The top-level keys are the schema's field keys other than the composition directives. */
+    public function testTopLevelKeysAreTheSchemaFieldKeys(): void
+    {
+        $schema = json_decode((string) file_get_contents(__DIR__ . '/../../../schema/crudui.schema.json'), true);
+        $keys = array_values(array_diff(array_keys($schema['definitions']['Field']['properties']), FieldSpec::COMPOSITION_DIRECTIVES));
+        self::assertSame($keys, array_keys(FieldSpec::TOP_LEVEL));
+    }
+
+    /** A messages key is a registered rule name. */
+    public function testMessagesKeysAreRegisteredRules(): void
+    {
+        self::assertSame([], FieldSpec::validate(['messages' => ['required' => 'a', 'number' => 'b']]));
+        self::assertSame(['unknown key under messages: requird'], FieldSpec::validate(['messages' => ['requird' => 'a']]));
     }
 }

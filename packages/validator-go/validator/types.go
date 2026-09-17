@@ -28,8 +28,9 @@
 //
 // Buckets are closed or open, as in the JSON schema. The closed buckets design,
 // design.{label,wrapper,group,prepend}, behavior, multiple and lang reject any
-// key they do not model on Unmarshal. The open buckets validate (Validate.Extra)
-// and options (Options.Extra) keep unknown keys.
+// key they do not model on Unmarshal, and validate and messages accept the
+// registered rule names only (RuleNames). The open bucket options
+// (Options.Extra) keeps unknown keys.
 //
 // Forbidden meta keys are rejected GLOBALLY, not only at top level: every open
 // bucket guards against them on Unmarshal, one level under the bucket too. A
@@ -115,8 +116,15 @@ type FieldSpec struct {
 	// Help is content — help text (may be a language map, G3).
 	Help *Content `json:"help,omitempty"`
 
+	// Content is content — the control text of a button or action field (may
+	// be a language map, G3).
+	Content *Content `json:"content,omitempty"`
+
 	// Validate is the validation role slot (common, every field).
 	Validate *ValidateSlot `json:"validate,omitempty"`
+
+	// Messages are error message overrides keyed by registered rule name.
+	Messages *Messages `json:"messages,omitempty"`
 
 	// Design is the appearance role slot — display condition plus a per-node
 	// appearance map.
@@ -450,8 +458,9 @@ func (c *ConditionMap) UnmarshalJSON(data []byte) error {
 //
 // Each sub-key value may be an expression or a condition map, so conditional
 // validation is expressed without a separate key (e.g. required: '.subscribe',
-// email: true). validate is an open bucket: Extra keeps every further rule key,
-// and every ForbiddenMetaKey is still rejected on Unmarshal.
+// email: true). validate accepts the registered rule names only (RuleNames):
+// Extra keeps every further registered rule, and any other key is rejected on
+// Unmarshal.
 type ValidateSlot struct {
 	// Cancel is the false shape: cancels a composed-in validate slot.
 	Cancel bool `json:"-"`
@@ -465,13 +474,75 @@ type ValidateSlot struct {
 	// Match is the cross-field match rule.
 	Match any `json:"match,omitempty"`
 
-	// Extra holds any further rule keys not modeled above. Forbidden meta keys
-	// are rejected here too.
+	// Extra holds the further registered rules not modeled above.
 	Extra map[string]any `json:"-"`
 }
 
-// validateNamedKeys are the modeled validate sub-keys; everything else in the
-// object goes into Extra on Unmarshal.
+// RuleNames are the registered rule names, the only keys of validate and
+// messages. The validate package's rule registry has exactly these rules.
+var RuleNames = []string{
+	"required", "email", "minlength", "maxlength", "min", "max", "match", "pattern",
+	"unique", "in", "range", "rangelength", "number", "digits", "equalTo", "notEqual",
+	"date", "dateISO", "enddate", "url", "accept", "mincount", "maxcount", "step",
+}
+
+// Messages are error message overrides keyed by registered rule name, in
+// declaration order. Every message is a string.
+type Messages struct {
+	// Keys holds rule names in declaration order.
+	Keys []string
+	// Values maps each rule name to its message.
+	Values map[string]string
+}
+
+// MarshalJSON emits Messages as a JSON object in declaration order.
+func (m *Messages) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte('{')
+	for i, key := range m.Keys {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+		name, err := json.Marshal(key)
+		if err != nil {
+			return nil, err
+		}
+		value, err := json.Marshal(m.Values[key])
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(name)
+		buf.WriteByte(':')
+		buf.Write(value)
+	}
+	buf.WriteByte('}')
+	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON reads Messages and rejects a key that is not a registered rule
+// name and a message that is not a string.
+func (m *Messages) UnmarshalJSON(data []byte) error {
+	if err := rejectUnknownKeys(data, "messages", RuleNames); err != nil {
+		return err
+	}
+	keys, values, err := objectMembers(data)
+	if err != nil {
+		return err
+	}
+	m.Keys = keys
+	m.Values = make(map[string]string, len(keys))
+	for i, key := range keys {
+		var message string
+		if err := json.Unmarshal(values[i], &message); err != nil {
+			return fmt.Errorf("model: message %q is not a string: %w", key, err)
+		}
+		m.Values[key] = message
+	}
+	return nil
+}
+
+// validateNamedKeys are the modeled validate sub-keys; every other registered
+// rule in the object goes into Extra on Unmarshal.
 var validateNamedKeys = map[string]bool{
 	"required": true,
 	"email":    true,
@@ -505,6 +576,9 @@ func (s *ValidateSlot) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	if err := rejectForbiddenKeys(data, "validate"); err != nil {
+		return err
+	}
+	if err := rejectUnknownKeys(data, "validate", RuleNames); err != nil {
 		return err
 	}
 	type alias ValidateSlot

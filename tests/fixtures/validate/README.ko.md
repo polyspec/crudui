@@ -9,14 +9,15 @@
 `.`으로 이은 값이고 입력 실패의 `at`은 빈 문자열입니다.
 
 규칙 안의 상대·부모·필드 경로, 삼항식과 조건맵 제한값, 조건부 필수 입력, 키를 가진 그룹과 스칼라, 반복
-필드 경로, `unique`, `mincount`, `equalto`, 정규식과 `accept` 값, 번역한 라벨과 빈 라벨을 가진 선택지
-포함 검사, 멤버 순서, 합성한 명세, 필드별 첫 오류, 메시지 재정의, 등록되지 않은 규칙, 형식 규칙을
-건너뛰는 빈 값, 제출 데이터의 형태를 검사합니다. 표시 여부 사례는 `design.show`(행 문맥의 표현식, 조건맵
+필드 경로, `unique`, `mincount`, `equalTo`, 정규식과 `accept` 값, 번역한 라벨과 빈 라벨을 가진 선택지
+포함 검사, 멤버 순서, 합성한 명세, 필드별 첫 오류, 선언한 규칙 이름 기준의 메시지 재정의, 등록되지 않은
+규칙 이름(`validate`와 `messages`, 중첩 행 경로, 숨긴 필드, 검사 순서), 형식 규칙을 건너뛰는 빈 값, 제출
+데이터의 형태를 검사합니다. 표시 여부 사례는 `design.show`(행 문맥의 표현식, 조건맵
 또는 `false`)로 숨긴 필드가 자신과 포함한 모든 필드의 규칙을 건너뛰고, 다른 규칙은 유지한 값을 그대로
 읽으며, 세 단계 전환에서 필드를 다시 보이면 유지한 값을 다시 검증하는지 확인합니다. `multiple: only`
 사례는 데이터 행의 행별 검증과, 행이 없지만 `required`와 `mincount`에는 실패하는 데이터 없음 상태를
-확인합니다. 실패 사례는 `REF_FILE_NOT_FOUND`와
-`INVALID_FORM_INPUT`을 사용합니다. [테스트 고정 데이터 계약](../../../docs/spec/test-fixtures.ko.md)이
+확인합니다. 실패 사례는 `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
+`UNKNOWN_RULE`, `INVALID_FORM_INPUT`을 사용합니다. [테스트 고정 데이터 계약](../../../docs/spec/test-fixtures.ko.md)이
 형식을 설명합니다.
 
 ## 비교
