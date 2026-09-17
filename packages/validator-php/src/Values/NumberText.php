@@ -33,6 +33,21 @@ final class NumberText
     }
 
     /**
+     * The decimal a positive finite double's canonical text writes, as an integer
+     * significand of at most 17 digits and a power of ten.
+     *
+     * @return array{int, int} significand and exponent: the number is significand × 10^exponent
+     */
+    public static function decimal(float $number): array
+    {
+        if (!is_finite($number) || $number <= 0.0) {
+            throw new \InvalidArgumentException('Only positive finite numbers have a decimal significand');
+        }
+        [$digits, $exponent] = self::shortest($number);
+        return [(int) $digits, $exponent - (\strlen($digits) - 1)];
+    }
+
+    /**
      * Shortest round-trip significant digits of a positive finite double.
      *
      * @return array{string, int} digits without trailing zeros, and the decimal exponent of the first digit

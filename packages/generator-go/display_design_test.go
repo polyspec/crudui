@@ -52,3 +52,39 @@ func TestListAndDetailDesignDeclarations(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// TestShowUsesTheValidatorVisibilityRule pins design.show to the validators'
+// rule (only a resolved false hides) and keeps flags such as sortable on their own
+// rule (a condition map that selects nothing is false).
+func TestShowUsesTheValidatorVisibilityRule(t *testing.T) {
+	data := map[string]any{"kind": "a"}
+	cases := []struct {
+		name       string
+		value      any
+		show, flag bool
+	}{
+		{"missing", nil, true, false},
+		{"false", false, false, false},
+		{"condition true", "kind == 'a'", true, true},
+		{"condition false", "kind == 'b'", false, false},
+		{"literal string", "not an expression ((", true, false},
+		{"unparsable expression", ".mode == (", true, false},
+		{"ternary false branch", "kind == 'a' ? false : true", false, false},
+		{"map selects nothing", decodeObject(t, `{"kind == 'b'":false}`), true, false},
+		{"map selects false", decodeObject(t, `{"kind == 'a'":false}`), false, false},
+		{"map default true", decodeObject(t, `{"kind == 'b'":false,"true":true}`), true, true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := evalShow(c.value, data, nil); got != c.show {
+				t.Fatalf("show = %v, want %v", got, c.show)
+			}
+			if c.value == nil {
+				return
+			}
+			if got := evalFlag(c.value, data, nil); got != c.flag {
+				t.Fatalf("flag = %v, want %v", got, c.flag)
+			}
+		})
+	}
+}

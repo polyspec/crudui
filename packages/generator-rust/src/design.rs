@@ -14,7 +14,13 @@ fn resolve_map(value: &Value, data: &Value, path: &[String]) -> Value {
     condition_map::resolve(&entries, data, path).unwrap_or(Value::Null)
 }
 
-pub(crate) fn show(value: Option<&Value>, data: &Value, path: &[String]) -> bool {
+/// Form visibility, resolved as the validator resolves it, so a server skips exactly
+/// the rules of the fields the form hides.
+pub(crate) use crudui_validator::validate::visibility::show;
+
+/// A conditional flag other than visibility: a condition map that selects nothing,
+/// and an invalid expression, are false.
+pub(crate) fn flag(value: Option<&Value>, data: &Value, path: &[String]) -> bool {
     match value {
         None | Some(Value::Null) => true,
         Some(Value::Object(_)) => is_truthy(&resolve_map(value.unwrap(), data, path)),
@@ -23,6 +29,9 @@ pub(crate) fn show(value: Option<&Value>, data: &Value, path: &[String]) -> bool
     }
 }
 
+/// An appearance setting such as `design.class`: a condition map selects its value, a
+/// ternary its branch and a condition expression that parses completely its result; any
+/// other string is literal text.
 pub(crate) fn appearance(value: Option<&Value>, data: &Value, path: &[String]) -> String {
     match value {
         None | Some(Value::Null) => String::new(),
@@ -43,7 +52,7 @@ pub(crate) fn appearance(value: Option<&Value>, data: &Value, path: &[String]) -
                     js_string(&result)
                 };
             }
-            if is_condition_expression(s) && !has_ternary_text(s) {
+            if Expression::parse(s).is_ok() && is_condition_expression(s) && !has_ternary_text(s) {
                 let result =
                     Expression::evaluate_value(s, data, path).unwrap_or(Value::Bool(false));
                 return if result.is_null() || result == false {

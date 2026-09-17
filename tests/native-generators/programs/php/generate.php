@@ -8,6 +8,7 @@ use CRUDUI\Form;
 use CRUDUI\FormError;
 use CRUDUI\Generator;
 use CRUDUI\Validator\Compose\ComposeLoadError;
+use CRUDUI\Validator\Support\JsonText;
 
 /*
  * PHP generator process of the native generator conformance suite. It reads one JSON
@@ -50,8 +51,14 @@ function options(mixed $value): array
     return (array) $value;
 }
 try {
+    // Standard input that is not UTF-8 is not JSON text. JsonText keeps an unpaired surrogate
+    // escape as text the generator rejects instead of failing like json_decode.
+    $input = stream_get_contents(STDIN);
     try {
-        $request = json_decode(stream_get_contents(STDIN), false, 512, JSON_THROW_ON_ERROR);
+        if (!is_string($input) || preg_match('//u', $input) !== 1) {
+            throw new JsonException('Malformed UTF-8 characters', JSON_ERROR_UTF8);
+        }
+        $request = JsonText::decode($input);
     } catch (JsonException) {
         throw new InvalidArgumentException('Request must be valid JSON');
     }

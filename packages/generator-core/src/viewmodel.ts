@@ -175,6 +175,8 @@ export interface NodeVM {
 
 /** Evaluated controls and limits for a repeated field. */
 interface MultipleSettings {
+  /** Rows come only from the data: missing data is zero rows and no row control renders. */
+  only: boolean;
   min?: number;
   max?: number;
   copy: boolean;
@@ -186,10 +188,12 @@ interface MultipleSettings {
 
 function resolveMultiple(spec: Record<string, unknown>): MultipleSettings | null {
   const m = spec.multiple;
-  if (m === true) return { copy: false, sortable: false, controls: 'header', header: 'static' };
+  if (m === true) return { only: false, copy: false, sortable: false, controls: 'header', header: 'static' };
+  if (m === 'only') return { only: true, copy: false, sortable: false, controls: 'header', header: 'static' };
   if (!m || typeof m !== 'object' || Array.isArray(m)) return null;
   const o = m as Record<string, unknown>;
   return {
+    only: o.only === true,
     ...(typeof o.min === 'number' ? { min: o.min } : {}),
     ...(typeof o.max === 'number' ? { max: o.max } : {}),
     copy: o.copy === true,
@@ -226,9 +230,9 @@ function resolveLang(spec: Record<string, unknown>): LangSettings | null {
   return null;
 }
 
-/** Row keys of a keyed collection. Missing data has one initial row. */
-function rowKeys(value: unknown, path: string): string[] {
-  if (value === undefined) return ['__0000000000000__'];
+/** Row keys of a keyed collection. Missing data has one initial row, or none in a data-only collection. */
+function rowKeys(value: unknown, path: string, only: boolean): string[] {
+  if (value === undefined) return only ? [] : ['__0000000000000__'];
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     throw new FormInputError(`Repeated data must be a keyed object: ${path}`);
   }
@@ -387,7 +391,7 @@ function buildCollection(
   state: BuildState,
   templates: readonly FormFieldTemplate[]
 ): NodeVM {
-  const keys = rowKeys(getValueByPath(state.data, path), path);
+  const keys = rowKeys(getValueByPath(state.data, path), path, settings.only);
   const item = spec.type === 'group' ? 'group' : 'field';
   const full = settings.max !== undefined && keys.length >= settings.max;
   const rows = keys.map((key, index) => buildRow(spec, path, key, index, keys.length, item, label, settings, state, templates));
@@ -397,7 +401,7 @@ function buildCollection(
     ...(header ? { header } : {}),
     body: nodeBody(),
     item,
-    ...(keys.length === 0 ? {
+    ...(keys.length === 0 && !settings.only ? {
       controls: {
         placement: 'footer',
         label: state.messages.collectionControls,
@@ -431,20 +435,13 @@ function buildRow(
     rowNumbers: numbers,
     stickyDepth: (state.stickyDepth ?? 0) + (sticky ? 1 : 0),
   };
-  const full = settings.max !== undefined && count >= settings.max;
-  const actions: ActionVM[] = [];
-  if (settings.sortable) {
-    actions.push(action('move-up', messages.moveUp, index === 0), action('move-down', messages.moveDown, index === count - 1));
-  }
-  actions.push(action('add-row', messages.addRow, full));
-  if (settings.copy) actions.push(action('copy-row', messages.copyRow, full));
-  actions.push(action('remove-row', messages.removeRow, settings.min !== undefined && count <= settings.min));
   const row = {
     kind: 'row' as const,
     key,
     className: '',
     hidden: false,
-    controls: { placement: settings.controls, label: messages.rowControls, actions },
+    // Rows of a data-only collection have no row controls.
+    ...(settings.only ? {} : { controls: rowControls(settings, messages, index, count) }),
     ...(sticky ? { sticky: true, stickyDepth: state.stickyDepth ?? 0 } : {}),
   };
   const number = numbers.join('.');
@@ -476,6 +473,18 @@ function buildRow(
     toggleLabel: messages.toggleRow,
     children,
   };
+}
+
+function rowControls(settings: MultipleSettings, messages: FormMessages, index: number, count: number): ControlsVM {
+  const full = settings.max !== undefined && count >= settings.max;
+  const actions: ActionVM[] = [];
+  if (settings.sortable) {
+    actions.push(action('move-up', messages.moveUp, index === 0), action('move-down', messages.moveDown, index === count - 1));
+  }
+  actions.push(action('add-row', messages.addRow, full));
+  if (settings.copy) actions.push(action('copy-row', messages.copyRow, full));
+  actions.push(action('remove-row', messages.removeRow, settings.min !== undefined && count <= settings.min));
+  return { placement: settings.controls, label: messages.rowControls, actions };
 }
 
 function buildChildren(

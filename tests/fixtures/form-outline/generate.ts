@@ -67,6 +67,12 @@ const data = {
   },
 };
 
+/**
+ * The structure map of rows in a `multiple: only` collection, written from docs/spec/form-markup.md:
+ * those rows have no row controls in the map, and missing data is zero rows.
+ */
+const ONLY_ROWS_OUTLINE = '<div class="crudui-outline"><div class="crudui-outline__header"><div aria-label="Form controls" class="crudui-controls" role="group"><button class="crudui-action crudui-action--text" data-crudui-action="expand-all" type="button">Expand all</button><button class="crudui-action crudui-action--text" data-crudui-action="collapse-all" type="button">Collapse all</button><button aria-disabled="true" class="crudui-action crudui-action--text" data-crudui-action="undo" type="button">Undo</button><button aria-disabled="true" class="crudui-action crudui-action--text" data-crudui-action="redo" type="button">Redo</button></div></div><div class="crudui-outline__body"><div class="crudui-node crudui-node--row" data-crudui-row-key="__0000000000001__" data-field-path="sections"><div class="crudui-node__header"><button class="crudui-action crudui-action--text" data-crudui-action="select-row" type="button"><span class="crudui-node__number">1</span><span class="crudui-node__title">First</span></button><div aria-label="Row controls" class="crudui-controls" role="group"><button aria-label="Add" class="crudui-action" data-crudui-action="add-row" type="button"></button><button aria-label="Remove" class="crudui-action" data-crudui-action="remove-row" type="button"></button></div></div><div class="crudui-node__body"><div class="crudui-node crudui-node--row" data-crudui-row-key="__opt_b2__" data-field-path="sections.__0000000000001__.variants"><div class="crudui-node__header"><button class="crudui-action crudui-action--text" data-crudui-action="select-row" type="button"><span class="crudui-node__number">1.1</span><span class="crudui-node__title">Blue</span></button></div></div><div class="crudui-node crudui-node--row" data-crudui-row-key="__opt_a1__" data-field-path="sections.__0000000000001__.variants"><div class="crudui-node__header"><button class="crudui-action crudui-action--text" data-crudui-action="select-row" type="button"><span class="crudui-node__number">1.2</span><span class="crudui-node__title">Red</span></button></div></div></div></div><div class="crudui-node crudui-node--row" data-crudui-row-key="__0000000000002__" data-field-path="sections"><div class="crudui-node__header"><button class="crudui-action crudui-action--text" data-crudui-action="select-row" type="button"><span class="crudui-node__number">2</span><span class="crudui-node__title">Second</span></button><div aria-label="Row controls" class="crudui-controls" role="group"><button aria-label="Add" class="crudui-action" data-crudui-action="add-row" type="button"></button><button aria-label="Remove" class="crudui-action" data-crudui-action="remove-row" type="button"></button></div></div></div></div></div>';
+
 const CASES: OutlineCase[] = [
   {
     name: 'outline-rows-ko',
@@ -104,13 +110,48 @@ const CASES: OutlineCase[] = [
     canUndo: false,
     canRedo: false,
   },
+  {
+    name: 'outline-only-rows-en',
+    note: 'Rows of a multiple.only collection appear in the map under their data keys without row controls, while the enclosing rows keep theirs; the second section has no data for the collection and so no nested rows.',
+    spec: {
+      type: 'group',
+      properties: {
+        sections: {
+          type: 'group',
+          label: 'Section',
+          multiple: { title: 'name', controls: 'outline' },
+          properties: {
+            name: { type: 'text' },
+            variants: {
+              type: 'group',
+              label: 'Variant',
+              multiple: { only: true, title: 'name' },
+              properties: { name: { type: 'text' } },
+            },
+          },
+        },
+      },
+    },
+    data: {
+      sections: {
+        [k1]: { name: 'First', variants: { __opt_b2__: { name: 'Blue' }, __opt_a1__: { name: 'Red' } } },
+        [k2]: { name: 'Second' },
+      },
+    },
+    options: { language: 'en' },
+    canUndo: false,
+    canRedo: false,
+    expected_outline_html: ONLY_ROWS_OUTLINE,
+  },
 ];
 
 for (const item of CASES) {
-  const fields = bindForm(compileForm(item.spec), item.data, item.options);
   const messages = formMessages(item.options.language);
-  const state = { fields, canUndo: item.canUndo, canRedo: item.canRedo };
-  item.expected_outline_html = normalizeHtml(renderToStaticMarkup(React.createElement(OutlineView, { state, messages })));
+  if (item.expected_outline_html === undefined) {
+    const fields = bindForm(compileForm(item.spec), item.data, item.options);
+    const state = { fields, canUndo: item.canUndo, canRedo: item.canRedo };
+    item.expected_outline_html = normalizeHtml(renderToStaticMarkup(React.createElement(OutlineView, { state, messages })));
+  }
   item.expected_data_html = normalizeHtml(renderToStaticMarkup(React.createElement(DataPanel, { data: item.data, messages })));
 }
 

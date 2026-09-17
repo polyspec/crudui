@@ -7,6 +7,7 @@
 | [교차 검사 콘솔](cross-check-console/) | JavaScript·PHP·Go·Rust의 폼·목록·상세 검증 비교와 React·Vue·Svelte의 폼·목록·상세 렌더링 비교 |
 | [폼 비교 페이지](form-comparison/) | PHP·PHP 확장·Go·Rust를 통한 중첩 키 폼 검증과 React·Vue·Svelte·HTML 렌더러 초기화 경로의 나란한 비교 |
 | [폼 구조 미리보기](form-structure/) | HTML 렌더러로 렌더링한 5단계 기준 폼과 구조 개요, 데이터 패널의 로컬 Vite 미리보기 |
+| [상품 폼](product-forms/) | 생성된 조합(`multiple: only`)과 `design.show`로 전환하는 영역이 있는 옵션 폼, 이를 합성한 대형 상품 폼, 이를 검증하고 렌더링하는 테스트 |
 | [Go 패키지 예제](../packages/generator-go/examples/server/main.go) | 저장된 레코드 하나로 렌더링하는 폼·목록·상세 페이지 |
 | [PHP 패키지 예제](../packages/generator-php/examples/index.php) | PHP 구현이나 확장에서 저장된 레코드 하나로 렌더링하는 폼·목록(`?view=list`)·상세(`?view=detail`) 페이지 |
 | [Rust 패키지 예제](../packages/generator-rust/examples/form.rs) | 레코드 하나로 렌더링한 폼·목록·상세를 담은 HTML 문서 하나 |

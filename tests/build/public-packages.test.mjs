@@ -69,10 +69,12 @@ for (const mode of ['import', 'require']) {
       const entry = mode === 'import' ? await import(name) : require(name);
       return [entry, Object.keys(entry).filter(key => key !== 'default' && key !== '__esModule').sort()];
     };
-    const internals = {
-      '@crudui/generator-core': ['CELL_FORMATS', 'CELL_FORMAT_DEFAULT', 'CELL_RENDERERS', 'WIDGET_CANONICAL', 'WIDGET_COUNT', 'WIDGET_KINDS', 'WIDGET_LAYOUTS', 'listLayout', 'paginationPages', 'parseStyle'],
-      '@crudui/validator': ['ARRAY_LEVEL_RULES', 'FORBIDDEN_META_KEYS', 'FORBIDDEN_META_KEY_PATTERN', 'LITERAL_PARAM_RULES', 'MEMBERSHIP_PARAM_RULES', 'MemoryLoader', 'PATH_REFERENCE_RULES', 'REGEX_PARAM_RULES', 'Validator', 'composeProperties', 'composeSpec', 'evaluateCondition', 'evaluateExpressionValue', 'getRuleNames', 'isConditionExpression', 'parseCondition', 'scanForbiddenKeys'],
-    };
+    // The built internal entries export exactly what the contract manifest declares for them.
+    const declared = JSON.parse(readFileSync(new URL('../../contracts/features.json', import.meta.url), 'utf8'));
+    const internals = Object.fromEntries(declared.packages
+      .filter(({ entries }) => entries['./internal'])
+      .map(({ name, entries }) => [name, [...entries['./internal'].exports].sort()]));
+    assert.deepEqual(Object.keys(internals).sort(), ['@crudui/generator-core', '@crudui/validator']);
     const loaded = {};
     for (const [name, expected] of Object.entries(internals)) {
       const pkg = packages.find(({ manifest }) => manifest.name === name);

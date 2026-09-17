@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/polyspec/crudui/packages/validator-go/validator/text"
 	"math"
 	"regexp"
 	"strings"
@@ -76,6 +77,9 @@ type Form struct {
 
 // NewForm copies the template and record, applies missing defaults and binds fields.
 func NewForm(template *FormTemplate, data *Object, options BindOptions) (*Form, error) {
+	if e := CheckBindText(template, data, options); e != nil {
+		return nil, e
+	}
 	if e := checkOrderedValue(data); e != nil {
 		return nil, e
 	}
@@ -120,6 +124,9 @@ func (f *Form) Revision() uint64 { return f.revision }
 
 // GetValue returns a detached value at a record path; absent values return nil.
 func (f *Form) GetValue(path string) (any, error) {
+	if e := checkInputText(text.Input{Name: "path", Value: path}); e != nil {
+		return nil, e
+	}
 	if _, e := checkedSegments(path); e != nil {
 		return nil, e
 	}
@@ -132,6 +139,9 @@ func (f *Form) GetValue(path string) (any, error) {
 
 // SetData replaces the complete record and rebinds fields atomically.
 func (f *Form) SetData(data *Object) error {
+	if e := checkInputText(text.Input{Name: "data", Value: data}); e != nil {
+		return e
+	}
 	if e := checkOrderedValue(data); e != nil {
 		return e
 	}
@@ -147,6 +157,9 @@ func (f *Form) SetData(data *Object) error {
 
 // SetValue replaces one path value and rebinds fields atomically.
 func (f *Form) SetValue(path string, value any) error {
+	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "value", Value: value}); e != nil {
+		return e
+	}
 	if e := checkOrderedValue(value); e != nil {
 		return e
 	}
@@ -217,7 +230,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (
 				return nil, fmt.Errorf("Repeated data must be a keyed object: %s", fieldPath)
 			}
 			rows := NewObject()
-			if isAbsent(raw) {
+			if isAbsent(raw) && !dataOnly(field.Spec) {
 				k, e := freshKey(nil)
 				if e != nil {
 					return nil, e
@@ -227,7 +240,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (
 					return nil, e
 				}
 				rows.Set(k, v)
-			} else {
+			} else if !isAbsent(raw) {
 				for _, k := range object(raw).Keys() {
 					if e := checkKey(k); e != nil {
 						return nil, e
@@ -291,6 +304,9 @@ func (f *Form) collection(path string) (FieldTemplate, *Object, error) {
 		fields = found.Children
 		found = nil
 	}
+	if found != nil && repeated(*found) && dataOnly(found.Spec) {
+		return FieldTemplate{}, nil, fmt.Errorf("Rows of %s come only from data", path)
+	}
 	rows := object(getPath(f.data, path))
 	if found == nil || !repeated(*found) || rows == nil {
 		return FieldTemplate{}, nil, fmt.Errorf("Not a keyed collection: %s", path)
@@ -300,6 +316,9 @@ func (f *Form) collection(path string) (FieldTemplate, *Object, error) {
 
 // AddRow inserts a default or supplied row in the selected repeated collection.
 func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
+	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "options.afterKey", Value: options.AfterKey}, text.Input{Name: "options.key", Value: options.Key}, text.Input{Name: "options.value", Value: options.Value}); e != nil {
+		return "", e
+	}
 	if e := checkOrderedValue(options.Value); e != nil {
 		return "", e
 	}
@@ -353,6 +372,9 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 
 // CopyRow copies a row and generates fresh keys for its repeated descendants.
 func (f *Form) CopyRow(path, key string, options AddRowOptions) (string, error) {
+	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "key", Value: key}, text.Input{Name: "options.afterKey", Value: options.AfterKey}, text.Input{Name: "options.key", Value: options.Key}); e != nil {
+		return "", e
+	}
 	field, rows, e := f.collection(path)
 	if e != nil {
 		return "", e
@@ -410,6 +432,9 @@ func (f *Form) copyChildren(fields []FieldTemplate, value *Object) (*Object, err
 
 // RemoveRow removes a row when the collection minimum permits removal.
 func (f *Form) RemoveRow(path, key string) error {
+	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "key", Value: key}); e != nil {
+		return e
+	}
 	field, rows, e := f.collection(path)
 	if e != nil {
 		return e
@@ -428,6 +453,9 @@ func (f *Form) RemoveRow(path, key string) error {
 
 // MoveRow moves an existing row to a zero-based collection position.
 func (f *Form) MoveRow(path, key string, index int) error {
+	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "key", Value: key}); e != nil {
+		return e
+	}
 	_, rows, e := f.collection(path)
 	if e != nil {
 		return e
@@ -462,6 +490,9 @@ func (f *Form) MoveRow(path, key string, index int) error {
 
 // RekeyRow replaces a row key without changing its value or collection position.
 func (f *Form) RekeyRow(path, oldKey, newKey string) error {
+	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "oldKey", Value: oldKey}, text.Input{Name: "newKey", Value: newKey}); e != nil {
+		return e
+	}
 	_, rows, e := f.collection(path)
 	if e != nil {
 		return e

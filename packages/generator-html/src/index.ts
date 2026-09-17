@@ -494,7 +494,8 @@ export function renderList(
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {},
 ): string {
-  const { layout, ...buildOptions } = options;
-  const vm = buildList(spec, rows, buildOptions);
+  // The whole options reach the model, whose input text check reads the layout too.
+  const { layout } = options;
+  const vm = buildList(spec, rows, options);
   return imagePreloads(vm.rows) + listHtml(vm, listLayout(layout));
 }

@@ -1138,6 +1138,23 @@ export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
   return out;
 })();
 
+/** Widget model members in their output order (docs/spec/form-runtime.md). */
+const WIDGET_MEMBERS = [
+  'kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options',
+  'itemLabelClass', 'script', 'styleChrome', 'buttonText', 'prepend', 'append', 'extra',
+] as const satisfies readonly (keyof WidgetModel)[];
+/** Every widget model member has an output position. */
+type UnorderedWidgetMember = Exclude<keyof WidgetModel, (typeof WIDGET_MEMBERS)[number]>;
+const everyWidgetMemberOrdered: [UnorderedWidgetMember] extends [never] ? true : never = true;
+void everyWidgetMemberOrdered;
+
+/** The widget with its members in output order. */
+function orderedWidget(widget: WidgetModel): WidgetModel {
+  const ordered: Record<string, unknown> = {};
+  for (const name of WIDGET_MEMBERS) if (Object.prototype.hasOwnProperty.call(widget, name)) ordered[name] = widget[name];
+  return ordered as unknown as WidgetModel;
+}
+
 /** Evaluate one leaf field to a markup-free WidgetModel, or undefined if unported. */
 export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefined {
   const ev = REGISTRY[type.toLowerCase()];
@@ -1151,7 +1168,7 @@ export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefine
   if (widget.layout === 'choices') {
     for (const [index, option] of (widget.options ?? []).entries()) option.id = `${id}:${index}`;
   }
-  return widget;
+  return orderedWidget(widget);
 }
 
 /** True when a field `type` has a registered widget evaluator. */

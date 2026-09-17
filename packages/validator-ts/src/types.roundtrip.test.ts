@@ -82,6 +82,8 @@ describe('FieldSpec round-trip (canonical JSON shape)', () => {
     roundTrip(JSON.stringify({ type: 'group', multiple: false }));
     roundTrip(JSON.stringify({ type: 'group', multiple: true }));
     roundTrip(JSON.stringify({ type: 'group', multiple: { max: 2 } }));
+    roundTrip(JSON.stringify({ type: 'group', multiple: 'only' }));
+    roundTrip(JSON.stringify({ type: 'group', multiple: { only: true, title: 'name', header: 'sticky' } }));
     roundTrip(JSON.stringify({ type: 'text', lang: true }));
     roundTrip(JSON.stringify({ type: 'text', lang: { mode: 'append' } }));
   });

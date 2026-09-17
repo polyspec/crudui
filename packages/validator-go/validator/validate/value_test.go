@@ -193,26 +193,27 @@ func TestInMembership(t *testing.T) {
 	if perr != nil {
 		t.Fatal(perr.message)
 	}
-	for _, v := range []any{1.0, "1", " +1. ", "x", " x\u3000", "true", []any{"x", 1.0}, []any{"x", "", nil, " ", []any{}, map[string]any{}}, []any{nil}} {
+	for _, v := range []any{1.0, "1", " 1e0 ", ".1e1", "x", " x\u3000", "true", []any{"x", 1.0}, []any{"x", "", nil, " ", []any{}, map[string]any{}}, []any{nil}} {
 		if !inMatches(v, members) {
 			t.Errorf("%#v should be a member", v)
 		}
 	}
-	for _, v := range []any{"X", true, "1e0", "0x1", []any{"x", "y"}, []any{"x", []any{"x"}}, []any{map[string]any{"a": "x"}}, []any{"x", "y"}, map[string]any{"x": 1.0}, "01.00x"} {
+	for _, v := range []any{"X", true, " +1. ", "1.", "0x1", []any{"x", "y"}, []any{"x", []any{"x"}}, []any{map[string]any{"a": "x"}}, []any{"x", "y"}, map[string]any{"x": 1.0}, "01.00x"} {
 		if inMatches(v, members) {
 			t.Errorf("%#v should not be a member", v)
 		}
 	}
 
-	// List members keep their spelling; strings match by value only in the
-	// decimal grammar, and booleans only by canonical text.
+	// List members are read as written: " 2" is not numeric text, and a trimmed
+	// value never equals it. Values match by value when they are numeric text
+	// after trimming, and booleans only by canonical text.
 	members, _ = inMembers([]any{" 2", "-0", false, 1e21})
-	for _, v := range []any{"0", 0.0, "0.", false, 1e21, "1e+21", "1000000000000000000000"} {
+	for _, v := range []any{"0", 0.0, "-0.0e5", false, 1e21, "1e+21", "1000000000000000000000"} {
 		if !inMatches(v, members) {
 			t.Errorf("%#v should be a member of the list", v)
 		}
 	}
-	for _, v := range []any{2.0, " 2", true, 1e21 + 1e6} {
+	for _, v := range []any{"0.", "+2", true, 1e21 + 1e6, 2.0, "2", " 2", "2e0"} {
 		if inMatches(v, members) {
 			t.Errorf("%#v should not be a member of the list", v)
 		}

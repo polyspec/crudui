@@ -440,5 +440,61 @@
     "expect": "fail",
     "reason": "additionalProperties",
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "action.if" }
+  },
+  {
+    "name": "ok-multiple-only",
+    "note": "multiple: only declares rows that exist only in the data; missing data is zero rows, so empty data loads and validates.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            },
+            "price": {
+              "type": "number",
+              "validate": {
+                "min": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
+    "name": "ok-multiple-only-object",
+    "note": "multiple.only: true combines with title and header; missing data is zero rows.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "multiple": {
+            "only": true,
+            "title": "name",
+            "header": "sticky"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
   }
 ]

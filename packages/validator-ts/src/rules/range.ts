@@ -1,12 +1,18 @@
 /**
  * Range validation rule
  *
- * Validates that a numeric value is within the specified range [min, max]
+ * A nonempty value passes when it is numeric and within the inclusive
+ * `[minimum, maximum]` (validation-rules.md, "Numbers"). A value that is not
+ * numeric fails.
  */
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-import { toNumber } from './min';
+import { formatMessage, isNumberRange, numericValue } from '../values/index';
+
+/** The parameter message of `range`. */
+export const RANGE_PARAMETER_ERROR =
+  'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum';
 
 /**
  * Range rule definition
@@ -15,37 +21,23 @@ export const rangeRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
     const { value, ruleParam, messages } = context;
 
-    // Skip if no rule param
-    if (ruleParam === null || ruleParam === undefined) {
+    // A false or null parameter disables the rule.
+    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
       return null;
     }
+    if (!isNumberRange(ruleParam)) {
+      throw new TypeError(RANGE_PARAMETER_ERROR);
+    }
 
-    // Skip validation if value is empty (required rule handles this)
+    // An empty value passes without evaluation (required handles it).
     if (isEmpty(value)) {
       return null;
     }
 
-    // Expect [min, max] array
-    if (!Array.isArray(ruleParam) || ruleParam.length !== 2) {
-      return null;
-    }
-
-    const [min, max] = ruleParam;
-    const minValue = Number(min);
-    const maxValue = Number(max);
-
-    if (isNaN(minValue) || isNaN(maxValue)) {
-      return null;
-    }
-
-    const numValue = toNumber(value);
-    if (numValue === null) {
-      return null; // Not a valid number, skip validation
-    }
-
-    if (numValue < minValue || numValue > maxValue) {
-      const message = messages?.range ?? `Please enter a value between ${minValue} and ${maxValue}.`;
-      return message.replace('{0}', String(minValue)).replace('{1}', String(maxValue));
+    const [minimum, maximum] = ruleParam;
+    const number = numericValue(value);
+    if (number === undefined || number < minimum || number > maximum) {
+      return formatMessage(messages?.range ?? 'Please enter a value between {0} and {1}.', minimum, maximum);
     }
 
     return null;

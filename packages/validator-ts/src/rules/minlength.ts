@@ -7,7 +7,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-import { codePointLength, isLengthLimit } from '../values/index';
+import { codePointLength, formatMessage, isLengthLimit } from '../values/index';
 
 /**
  * Minlength rule definition
@@ -33,7 +33,7 @@ export const minlengthRule: RuleDefinition = {
     if (length === undefined || length < ruleParam) {
       const message =
         messages?.minlength ?? 'Please enter at least {0} characters.';
-      return message.replace('{0}', String(ruleParam));
+      return formatMessage(message, ruleParam);
     }
 
     return null;

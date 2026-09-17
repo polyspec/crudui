@@ -74,15 +74,15 @@ function resolveConditionMap(
 // ---------------------------------------------------------------------------
 
 /**
- * `design.show` → boolean. Absent = always shown (true). Expression evaluated as
- * a condition; condition map resolved; failures fall back to the validator
- * safety result (false). Uses the shared validator expression evaluator.
+ * A boolean flag other than visibility (e.g. a list column's `sortable`) →
+ * boolean. Absent = false. An expression is evaluated as a condition; a
+ * condition map selecting nothing is false; failures are false.
  */
-export function evalShow(
+export function evalFlag(
   value: unknown,
   context: PathContext
 ): boolean {
-  if (value === undefined || value === null) return true;
+  if (value === undefined || value === null) return false;
   if (typeof value === 'boolean') return value;
   if (typeof value === 'object' && !Array.isArray(value)) {
     return Boolean(resolveConditionMap(value as Record<string, unknown>, context));
@@ -93,10 +93,49 @@ export function evalShow(
   return Boolean(value);
 }
 
+/** Whether a string is a well-formed expression. */
+function isValidExpression(expression: string): boolean {
+  try {
+    parseCondition(expression);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * `design.show` → boolean, by the validators' visibility rule: the value is
+ * resolved like a conditional parameter and only a resolved `false` hides.
+ * Absent = visible; a condition map selecting nothing, a literal string (not a
+ * valid expression) and any other literal are visible; a ternary yields its
+ * branch value (an unevaluable ternary stays a literal); a bare expression
+ * yields its value, and an evaluation failure is `false`.
+ */
+export function evalShow(
+  value: unknown,
+  context: PathContext
+): boolean {
+  return resolveShow(value, context) !== false;
+}
+
+function resolveShow(value: unknown, context: PathContext): unknown {
+  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+    return resolveConditionMap(value as Record<string, unknown>, context);
+  }
+  if (typeof value !== 'string') return value;
+  const ternary = tryEvaluateTernary(value, context);
+  if (ternary.handled) return ternary.value;
+  if (isConditionExpression(value) && !/\?[^:]*:/.test(value) && isValidExpression(value)) {
+    return evalExpressionValue(value, context);
+  }
+  return value;
+}
+
 /**
  * `design.class` / `design.style` → string. Mirrors validator.ts
  * resolveRuleValue: object → condition map; string → ternary value-return, else
- * a bare condition expression returns its evaluated value, else the literal.
+ * a bare condition expression that parses completely returns its evaluated value,
+ * else the literal.
  * A non-string literal is returned as-is (then string-cast by the caller).
  */
 export function evalAppearance(
@@ -118,8 +157,9 @@ export function evalAppearance(
         ? ''
         : String(ternary.value);
     }
-    // A bare condition expression (no ternary) returns its evaluated value.
-    if (isConditionExpression(value) && !/\?[^:]*:/.test(value)) {
+    // A bare condition expression (no ternary) that parses completely returns its
+    // evaluated value; any other string is a literal.
+    if (isConditionExpression(value) && !/\?[^:]*:/.test(value) && isValidExpression(value)) {
       const v = evalExpressionValue(value, context);
       return v === null || v === undefined || v === false ? '' : String(v);
     }

@@ -3,55 +3,40 @@ package validate
 // Membership rule in (docs/spec/validation-rules.md, Values).
 //
 // Members come from a list (each element as is), a comma-separated string (split
-// at U+002C, each item trimmed) or a map (its keys). A value matches a member when
-// their canonical texts are the same code points, or when both are decimal numbers
-// (numbers, or strings in the decimal grammar) with equal values as doubles.
+// at U+002C, each item trimmed) or a map (its keys); list elements and map keys
+// are read as written. A value matches a member when
+// their canonical texts are the same code points, or when both are numeric with
+// equal values.
 
 import (
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
-// decimalGrammar is the numeric spelling a string member or value may use to
-// match by value.
-var decimalGrammar = regexp.MustCompile(`^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$`)
-
-// member is one membership value: its canonical text and, when it is a decimal
-// number, its value as a double.
+// member is one membership value: its canonical text and, when it is numeric,
+// its value.
 type member struct {
 	text    string
 	number  float64
 	numeric bool
 }
 
-// newMember builds the member of a scalar value; false when the value is not a
-// string, a finite number or a boolean.
+// newMember builds the member of a scalar value as written (a string is numeric
+// only when it is numeric text without surrounding whitespace); false when the
+// value is not a string, a finite number or a boolean.
 func newMember(value any) (member, bool) {
 	text, ok := canonicalText(value)
 	if !ok {
 		return member{}, false
 	}
 	m := member{text: text}
-	switch v := value.(type) {
-	case string:
-		if decimalGrammar.MatchString(v) {
-			m.number, m.numeric = parseDecimal(v), true
-		}
-	case bool:
-	default:
-		m.number, m.numeric = numberValue(v)
+	if s, ok := value.(string); ok {
+		m.number, m.numeric = numericText(s)
+	} else {
+		m.number, m.numeric = finiteNumber(value)
 	}
 	return m, true
-}
-
-// parseDecimal reads a string in the decimal grammar as the nearest double. A
-// spelling beyond the double range reads as an infinity, as ECMAScript reads it.
-func parseDecimal(s string) float64 {
-	n, _ := strconv.ParseFloat(s, 64)
-	return n
 }
 
 // inMembers returns the members of an in parameter, or its parameter error.

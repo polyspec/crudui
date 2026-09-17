@@ -96,7 +96,7 @@ describe('cached structure and nested row lifecycle', () => {
 it('rejects a wrong value type in multiple and design declarations at compilation', () => {
   const compile = (field: Record<string, unknown>) => () =>
     compileForm({ type: 'group', properties: { rows: field } });
-  expect(compile({ type: 'text', multiple: 'yes' })).toThrow('Invalid multiple at rows: expected a boolean or an object');
+  expect(compile({ type: 'text', multiple: 'yes' })).toThrow('Invalid multiple at rows: expected a boolean, only or an object');
   expect(compile({ type: 'text', multiple: { max: '2' } })).toThrow('Invalid multiple.max at rows: expected a number');
   expect(compile({ type: 'text', multiple: { sortable: 1 } })).toThrow('Invalid multiple.sortable at rows: expected a boolean');
   expect(compile({ type: 'text', design: 'hidden' })).toThrow('Invalid design at rows: expected a boolean or an object');
@@ -107,6 +107,48 @@ it('rejects a wrong value type in multiple and design declarations at compilatio
     .toThrow('Invalid design.prepend.class at rows.name: expected a string or a condition map');
   expect(compile({ type: 'text', multiple: { min: 0, copy: true }, design: { show: '.on', class: { '.on': 'a', true: '' }, label: {} } }))
     .not.toThrow();
+});
+
+it('accepts multiple: only with title and header and rejects row settings beside it', () => {
+  const compile = (field: Record<string, unknown>) => () =>
+    compileForm({ type: 'group', properties: { rows: field } });
+  expect(compile({ type: 'text', multiple: 'all' })).toThrow('Invalid multiple at rows: expected a boolean, only or an object');
+  expect(compile({ type: 'group', multiple: { only: 'yes' }, properties: {} })).toThrow('Invalid multiple.only at rows: expected a boolean');
+  for (const [key, value] of Object.entries({ min: 1, max: 3, copy: true, sortable: true, controls: 'header', onclick: 'go()' })) {
+    expect(compile({ type: 'group', multiple: { only: true, [key]: value }, properties: {} }))
+      .toThrow(`Invalid multiple.${key} at rows: unknown key`);
+    expect(compile({ type: 'group', multiple: { only: false, [key]: value }, properties: {} })).not.toThrow();
+  }
+  expect(compile({ type: 'text', multiple: 'only' })).not.toThrow();
+  expect(compile({ type: 'group', multiple: { only: true, title: 'name', header: 'sticky' },
+    properties: { name: { type: 'text' } } })).not.toThrow();
+});
+
+it('keeps a data-only collection to the rows of its data and rejects row operations', () => {
+  const template = compileForm({ type: 'group', properties: {
+    rows: { type: 'group', multiple: 'only', properties: { name: { type: 'text' } } },
+  } });
+  const empty = bindForm(template)[0];
+  expect(empty.children).toEqual([]);
+  expect(empty.controls).toBeUndefined();
+  const data = { rows: { __opt_b2__: { name: 'b' }, __opt_a1__: { name: 'a' } } };
+  const [collection] = bindForm(template, data);
+  expect(collection.children?.map(row => row.key)).toEqual(['__opt_b2__', '__opt_a1__']);
+  expect(collection.children?.every(row => row.controls === undefined)).toBe(true);
+  expect(createForm(template).getData()).toEqual({ rows: {} });
+  const session = createForm(template, data);
+  const before = session.getSnapshot();
+  for (const operation of [
+    () => session.addRow('rows'),
+    () => session.copyRow('rows', '__opt_a1__'),
+    () => session.removeRow('rows', '__opt_a1__'),
+    () => session.moveRow('rows', '__opt_a1__', 0),
+    () => session.rekeyRow('rows', '__opt_a1__', '__opt_c3__'),
+  ]) {
+    expect(operation).toThrow(expect.objectContaining({ code: 'INVALID_FORM_INPUT', message: 'Rows of rows come only from data' }));
+    expect(session.getData()).toEqual(data);
+    expect(session.getSnapshot()).toBe(before);
+  }
 });
 
 it('preserves sequence row keys in names and generates distinct stable DOM scopes', () => {

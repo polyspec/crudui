@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/text"
 	"slices"
 	"strconv"
 )
@@ -52,6 +53,14 @@ type BindOptions struct {
 
 // CompileForm resolves field composition without binding record data.
 func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
+	// Input text is checked first (docs/spec/input-text.md).
+	loader, e := checkSpecText(spec, options.Files, options.Loader)
+	if e != nil {
+		return nil, e
+	}
+	if e := checkInputText(text.Input{Name: "options.basepath", Value: options.Basepath}, text.Input{Name: "options.keyPrefix", Value: options.KeyPrefix}); e != nil {
+		return nil, e
+	}
 	if e := checkOrderedValue(spec); e != nil {
 		return nil, e
 	}
@@ -61,10 +70,6 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	}
 	if e := checkFormDeclarations(spec); e != nil {
 		return nil, e
-	}
-	loader := options.Loader
-	if loader == nil {
-		loader = compose.NewMemoryLoader(options.Files)
 	}
 	p, e := compose.ComposeProperties(object(read(spec, "properties")), loader, compose.ComposeOptions{Basepath: options.Basepath})
 	if e != nil {
@@ -183,18 +188,20 @@ func scalarChild(v any) bool {
 		return false
 	}
 	multiple, lang := read(child, "multiple"), read(child, "lang")
-	repeated := multiple == true || object(multiple) != nil
+	repeated := multiple == true || multiple == "only" || object(multiple) != nil
 	language := lang == true || object(lang) != nil
 	return stringAt(child, "type") != "group" && !child.Has("properties") && !repeated && !language
 }
 
 // closedKeys lists the keys each closed declaration bucket allows.
 var closedKeys = map[string][]string{
-	"multiple":    {"min", "max", "copy", "sortable", "title", "controls", "header", "onclick"},
-	"lang":        {"mode", "only", "name", "key", "frame", "title", "group_class"},
-	"design":      {"show", "class", "style", "label", "wrapper", "group", "prepend"},
-	"design node": {"class", "style"},
-	"behavior":    {"onchange", "onclick", "onload"},
+	"multiple": {"only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick"},
+	// multiple.only: true combines with title and header only.
+	"multiple only": {"only", "title", "header"},
+	"lang":          {"mode", "only", "name", "key", "frame", "title", "group_class"},
+	"design":        {"show", "class", "style", "label", "wrapper", "group", "prepend"},
+	"design node":   {"class", "style"},
+	"behavior":      {"onchange", "onclick", "onload"},
 }
 
 // unknownKey returns the first key of o, in declaration order, that the bucket does not allow.
@@ -225,12 +232,19 @@ func checkDeclarations(spec *Object, path string) error {
 		multiple := read(spec, "multiple")
 		_, isBool := multiple.(bool)
 		settings := object(multiple)
-		if !isBool && settings == nil {
-			return fail("multiple", "a boolean or an object")
+		if !isBool && multiple != "only" && settings == nil {
+			return fail("multiple", "a boolean, only or an object")
 		}
 		if settings != nil {
-			if key, found := unknownKey(settings, "multiple"); found {
+			bucket := "multiple"
+			if read(settings, "only") == true {
+				bucket = "multiple only"
+			}
+			if key, found := unknownKey(settings, bucket); found {
 				return unknown("multiple." + key)
+			}
+			if _, ok := read(settings, "only").(bool); settings.Has("only") && !ok {
+				return fail("multiple.only", "a boolean")
 			}
 			for _, key := range []string{"min", "max"} {
 				if _, ok := asNumber(read(settings, key)); settings.Has(key) && !ok {
@@ -344,19 +358,43 @@ func checkDesignDeclaration(design any, path string) error {
 	return nil
 }
 
-// UnmarshalJSON reads the template in specification member order.
+// errTemplateShape rejects a value that is not exactly the compiled template shape.
+var errTemplateShape = fmt.Errorf("Unsupported form template")
+
+// onlyMembers reports whether every member of o is one of names.
+func onlyMembers(o *Object, names ...string) bool {
+	for _, key := range o.Keys() {
+		known := false
+		for _, name := range names {
+			known = known || key == name
+		}
+		if !known {
+			return false
+		}
+	}
+	return true
+}
+
+// UnmarshalJSON reads the template in specification member order. A value that is not
+// exactly the compiled shape is rejected: the template kind, a field list, a button object
+// list, an optional string keyPrefix, an optional object action and no other member.
 func (t *FormTemplate) UnmarshalJSON(data []byte) error {
 	v, e := DecodeJSON(data)
 	if e != nil {
 		return e
 	}
 	o := object(compose.OrderMembers(v))
-	if o == nil || stringAt(o, "kind") != "crudui/form-template" {
-		return fmt.Errorf("Unsupported form template")
+	if o == nil || !onlyMembers(o, "kind", "keyPrefix", "fields", "buttons", "action") || read(o, "kind") != "crudui/form-template" {
+		return errTemplateShape
+	}
+	keyPrefix, keyPrefixOK := read(o, "keyPrefix").(string)
+	action := object(read(o, "action"))
+	if (o.Has("keyPrefix") && !keyPrefixOK) || (o.Has("action") && action == nil) {
+		return errTemplateShape
 	}
 	a, ok := read(o, "fields").([]any)
 	if !ok {
-		return fmt.Errorf("Form template fields must be an array")
+		return errTemplateShape
 	}
 	fields, e := decodeFields(a)
 	if e != nil {
@@ -364,28 +402,33 @@ func (t *FormTemplate) UnmarshalJSON(data []byte) error {
 	}
 	declared, ok := read(o, "buttons").([]any)
 	if !ok {
-		return fmt.Errorf("Form template buttons must be an array")
+		return errTemplateShape
 	}
 	buttons := []*Object{}
 	for _, value := range declared {
 		button := object(value)
 		if button == nil {
-			return fmt.Errorf("Malformed form button template")
+			return errTemplateShape
 		}
 		buttons = append(buttons, button)
 	}
-	*t = FormTemplate{Kind: "crudui/form-template", KeyPrefix: stringAt(o, "keyPrefix"), keyPrefixProvided: o.Has("keyPrefix"), Fields: fields, Buttons: buttons, Action: object(read(o, "action"))}
+	*t = FormTemplate{Kind: "crudui/form-template", KeyPrefix: keyPrefix, keyPrefixProvided: o.Has("keyPrefix"), Fields: fields, Buttons: buttons, Action: action}
 	return nil
 }
+
+// decodeFields reads a field list; each field has exactly a string name, an object spec and a field list children.
 func decodeFields(a []any) ([]FieldTemplate, error) {
 	out := []FieldTemplate{}
 	for _, v := range a {
 		o := object(v)
+		if o == nil || !onlyMembers(o, "name", "spec", "children") {
+			return nil, errTemplateShape
+		}
 		s := object(read(o, "spec"))
 		name, ok := read(o, "name").(string)
 		ch, childrenOK := read(o, "children").([]any)
 		if !ok || s == nil || !childrenOK {
-			return nil, fmt.Errorf("Malformed form field template")
+			return nil, errTemplateShape
 		}
 		c, e := decodeFields(ch)
 		if e != nil {

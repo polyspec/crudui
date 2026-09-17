@@ -57,6 +57,25 @@ static zend_object *clone_form_object(zend_object *object)
     return clone;
 }
 
+static const char *const bind_options[] = {"idPrefix", "keyPrefix", "language", "unsupported"};
+static const char *const display_options[] = {"basepath", "data", "language", "layout"};
+static const char *const basepath_option[] = {"basepath"};
+#define COUNT(items) (sizeof(items) / sizeof(*(items)))
+
+/* Input text of a list or detail method: the specification, the files, the rows or record, the options. */
+static bool display_text(zval *spec, const char *name, zval *value, zval *options)
+{
+    return crudui_check_specification_text(spec, options) &&
+        crudui_check_input_text(&(crudui_text_input){name, value}, 1, options, display_options, COUNT(display_options), true);
+}
+
+/* Input text of a form binding: the template, the data, then the options. */
+static bool bind_text(zval *template, zval *data, zval *options)
+{
+    crudui_text_input inputs[] = {{"template", template}, {"data", data}};
+    return crudui_check_input_text(inputs, 2, options, bind_options, COUNT(bind_options), true);
+}
+
 static void call_two(zval *first, zval *options, bool form_errors, ps_result (*operation)(const ps_value *, const ps_value *), zval *return_value)
 {
     ps_value *input = crudui_from_php(first, true, form_errors);
@@ -113,6 +132,9 @@ PHP_METHOD(CRUDUI_Generator, compileForm)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    static const char *const names[] = {"basepath", "keyPrefix"};
+    if (!crudui_check_specification_text(spec, options) ||
+        !crudui_check_input_text(NULL, 0, options, names, COUNT(names), true)) return;
     call_two(spec, options, true, ps_compile_form, return_value);
 }
 
@@ -125,6 +147,7 @@ PHP_METHOD(CRUDUI_Generator, bindForm)
         Z_PARAM_ARRAY_OR_OBJECT(data)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!bind_text(template, data, options)) return;
     call_three(template, data, true, options, true, false, ps_bind_form, return_value);
 }
 
@@ -137,6 +160,7 @@ PHP_METHOD(CRUDUI_Generator, bindButtons)
         Z_PARAM_ARRAY_OR_OBJECT(data)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!bind_text(template, data, options)) return;
     call_three(template, data, true, options, true, false, ps_bind_form_buttons, return_value);
 }
 
@@ -177,6 +201,7 @@ PHP_METHOD(CRUDUI_Generator, renderList)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!display_text(spec, "rows", rows, options)) return;
     /* The specification is a root object; rows is a list whose rows keep their PHP type. */
     if (list_array(spec)) {
         crudui_invalid_value("List specification must be an object", true);
@@ -194,6 +219,7 @@ PHP_METHOD(CRUDUI_Generator, buildList)
         Z_PARAM_ARRAY(rows)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!display_text(spec, "rows", rows, options)) return;
     if (list_array(spec)) {
         crudui_invalid_value("List specification must be an object", true);
         return;
@@ -220,6 +246,7 @@ static void call_detail(INTERNAL_FUNCTION_PARAMETERS, ps_result (*operation)(con
         Z_PARAM_ARRAY_OR_OBJECT(record)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!display_text(spec, "record", record, options)) return;
     if (list_array(spec)) {
         crudui_invalid_value("Detail specification must be an object", true);
         return;
@@ -250,6 +277,9 @@ PHP_METHOD(CRUDUI_Validator, validate)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    /* Input text is checked first: the specification, the files, the data, then the options. */
+    if (!crudui_check_specification_text(spec, options) ||
+        !crudui_check_input_text(&(crudui_text_input){"data", data}, 1, options, basepath_option, 1, false)) return;
     /* Root data is a request precondition; an empty PHP array is an empty object. */
     if (Z_TYPE_P(data) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(data)) != 0 &&
         zend_array_is_list(Z_ARRVAL_P(data))) {
@@ -267,6 +297,8 @@ PHP_METHOD(CRUDUI_Validator, validateList)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!crudui_check_specification_text(spec, options) ||
+        !crudui_check_input_text(NULL, 0, options, basepath_option, 1, false)) return;
     call_two(spec, options, false, ps_validate_list, return_value);
 }
 
@@ -278,6 +310,8 @@ PHP_METHOD(CRUDUI_Validator, validateDetail)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!crudui_check_specification_text(spec, options) ||
+        !crudui_check_input_text(NULL, 0, options, basepath_option, 1, false)) return;
     call_two(spec, options, false, ps_validate_detail, return_value);
 }
 
@@ -317,6 +351,7 @@ PHP_METHOD(CRUDUI_Form, __construct)
         Z_PARAM_ARRAY_OR_OBJECT(data)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
+    if (!bind_text(template, data, options)) return;
     ps_value *compiled = crudui_from_php(template, true, true);
     if (!compiled) return;
     ps_value *values = crudui_from_php(data, true, true);
@@ -358,10 +393,30 @@ PHP_METHOD(CRUDUI_Form, getMessages)
     if (Z_TYPE_P(return_value) == IS_OBJECT) convert_to_array(return_value);
 }
 
+static const char *const form_arguments[][3] = {
+    {"path"}, {"data"}, {"path", "value"}, {"path"}, {"path", "key"}, {"path", "key"}, {"path", "key"}, {"path", "oldKey", "newKey"},
+};
+
+/* Input text of a form method: its text arguments in order, then the row options. */
+static bool form_text(uint8_t method, size_t count, zval **values)
+{
+    static const char *const add_options[] = {"afterKey", "key", "value"};
+    crudui_text_input inputs[3];
+    size_t used = 0;
+    zval *options = NULL;
+    for (size_t i = 0; i < count; ++i) {
+        if (form_arguments[method][i]) inputs[used++] = (crudui_text_input){form_arguments[method][i], values[i]};
+        else options = values[i];
+    }
+    /* addRow reads a row value; copyRow copies one. */
+    return crudui_check_input_text(inputs, used, options, add_options, method == 3 ? 3 : method == 4 ? 2 : 0, true);
+}
+
 static void apply_form(zend_object *object, uint8_t method, size_t count, zval **values, const bool *objects, zval *return_value)
 {
     ps_form *form = require_form(object);
     if (!form) return;
+    if (!form_text(method, count, values)) return;
     ps_value *arguments = ps_value_new(5);
     for (size_t i = 0; i < count; ++i) {
         ps_value *value = crudui_from_php(values[i], objects[i], true);

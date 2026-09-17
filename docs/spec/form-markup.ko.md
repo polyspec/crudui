@@ -94,6 +94,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 - group 행은 접을 수 있습니다. 요약은 행 본문에 직접 있는 컬렉션들의 행 수 합계를
   표시하고, 컬렉션이 없으면 접힘 문구를 표시합니다. 스칼라 행에는 토글, 제목, 요약이
   없습니다.
+- `multiple: only` 컬렉션의 행에는 행 컨트롤이 없으며 구조 맵에도 표시하지 않습니다.
 - 컨트롤 순서는 `move-up`·`move-down`(`multiple.sortable`), `add-row`,
   `copy-row`(`multiple.copy`), `remove-row`입니다. 첫 행의 `move-up`과 마지막 행의
   `move-down`은 사용할 수 없습니다. 행 수가 `multiple.max`에 도달하면 `add-row`와
@@ -125,8 +126,9 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
   표시하고 카드의 위쪽 선을 숨깁니다. 스크립트가 바꾸는 것은 이 속성뿐이며, 레이아웃을 위해
   행을 측정하거나 스크롤 위치를 옮기지 않습니다. 고정 행 안의 컨트롤은 그 위에 고정되는
   헤더만큼의 위쪽 스크롤 여백(`--crudui-sticky-cover`, 고정선에 헤더 높이 하나를 더한 값)을,
-  모든 폼 컨트롤은 푸터 높이만큼의 아래쪽 스크롤 여백을 가지므로 컨트롤에 포커스하면 이들에
-  가리지 않게 스크롤됩니다.
+  모든 폼 컨트롤은 푸터 높이만큼의 아래쪽 스크롤 여백을 가집니다. 바인딩이 포커스를 옮길 때는
+  스크롤 없이 포커스한 뒤 컨트롤을 필요한 만큼만 보이게 스크롤하므로(`scrollIntoView`,
+  `block: 'nearest'`) 모든 엔진에서 이 여백이 지켜져 컨트롤이 이들에 가리지 않습니다.
 
   sticky 노드는 헤더를 `crudui-node__header-container`로 감쌉니다. 이 래퍼가
   sticky scroll-state 컨테이너이며 카드의 위쪽 선을 담고, `crudui-node__header`는 헤더
@@ -163,7 +165,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 `renderOutlineView(state, messages)`와 `renderDataPanel(data, messages)`를 제공합니다.
 네 렌더러 모두 공유 [구조 맵 사례](../../tests/fixtures/form-outline/cases.json)를 재현합니다. `connectForm`은 폼 안의 작업을 실행합니다.
 `connectOutline(element, form, formElement)`는 구조 맵의 작업을 실행하고, `select-row`
-버튼이 가리키는 폼 행의 첫 컨트롤에 포커스하며, 브라우저가 그 컨트롤을 보이게 스크롤합니다.
+버튼이 가리키는 폼 행의 첫 컨트롤에 포커스하고, 그 컨트롤을 고정 헤더와 푸터에 가리지 않게 스크롤합니다.
 
 ## 화면 문구
 

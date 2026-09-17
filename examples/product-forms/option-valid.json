@@ -1,0 +1,55 @@
+{
+  "options": {
+    "mode": "combined",
+    "stock_mode": "tracked",
+    "single": {
+      "name": "",
+      "sale": "open",
+      "price": -5
+    },
+    "combined": {
+      "axes": {
+        "__axis_color__": {
+          "name": "Color",
+          "values": {
+            "__value_red__": "Red",
+            "__value_blue__": "Blue"
+          }
+        },
+        "__axis_size__": {
+          "name": "Size",
+          "values": {
+            "__value_small__": "Small"
+          }
+        }
+      },
+      "generated": {
+        "__opt_b2__": {
+          "name": "Blue / Small",
+          "sale": "closed",
+          "list_price": 20,
+          "price": 0,
+          "visible": "",
+          "sku": "BLU-S"
+        },
+        "__opt_a1__": {
+          "name": "Red / Small",
+          "sale": "open",
+          "list_price": 20,
+          "price": 18.5,
+          "stock": 12,
+          "visible": 1,
+          "sku": "RED-S"
+        }
+      }
+    },
+    "free": {
+      "rows": {
+        "__row_1__": {
+          "name": "",
+          "price": "abc"
+        }
+      }
+    }
+  }
+}

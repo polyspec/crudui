@@ -58,7 +58,7 @@ node tests/native-generators/run.mjs --extension /absolute/crudui.so \
 `--target`은 `javascript`, `html`, `php`, `go`, `rust`, `php-native`를 받습니다.
 `--check`는 그룹 이름(`form-fixture`, `list`, `detail`, `number`, `instance`,
 `request`, `reject`, `compile-reject`, `member-order`, `bindForm-option-reject`,
-`form-option-reject`, `bindForm-shape-reject`, `form-shape-reject`, `dates`), 전체
+`form-option-reject`, `bindForm-shape-reject`, `form-shape-reject`, `dates`, `text`), 전체
 검사 id, `*`를 포함한 패턴을 받습니다. 두 옵션 모두 쉼표로 여러 값을 지정할 수 있고
 여러 번 쓸 수 있습니다. 어떤 검사와도 일치하지 않는 선택은 실패하며, 보고서에
 선택 내용을 기록하므로 선택 실행을 전체 실행으로 오인하지 않습니다.
@@ -73,10 +73,10 @@ PHP 메서드 서명과 수명 검사는 별도로 관리합니다. 검사 중 �
 `CRUDUI_SOURCE_COMMIT`으로 선택적인 소스 커밋을 기록할 수 있으며 해시
 비교에는 영향을 주지 않습니다.
 
-기존 폼 사례 92개는 전체 컴파일 템플릿과 바인딩 모델을 비교합니다. JavaScript가
+폼 사례 103개는 전체 컴파일 템플릿과 바인딩 모델을 비교합니다. JavaScript가
 각 대상의 템플릿을 바인딩하고 각 대상이 JavaScript의 템플릿을 바인딩합니다.
 바인딩에는 합성 로더나 파일을 제공하지 않습니다.
-명세 멤버 순서와 컨트롤 속성 순서를 비교합니다. 목록 사례 42개는 이미지
+명세 멤버 순서와 컨트롤 속성 순서를 비교하고, 모델은 멤버 순서까지 비교합니다. 목록 사례 42개는 이미지
 리소스 힌트를 포함한 원본 HTML 문자열을 비교하고, 입력 오류 사례는 코드, 메시지, 위치를
 비교합니다. 기존 정규화된 레이아웃 검사는 별도로 유지합니다.
 [상세 사례](../fixtures/detail-render/README.ko.md) 30개는
@@ -90,6 +90,14 @@ PHP 메서드 서명과 수명 검사는 별도로 관리합니다. 검사 중 �
 두 번 적용하고 각 결과를 초기 데이터로 생성한 결과와 비교합니다. 숫자 사례에는 JavaScript 결과만을 기준으로
 삼지 않고 명시적인 소수 출력 기대값을 지정합니다. 잘못된 연산은 데이터, 필드,
 HTML, 리비전을 유지해야 합니다.
+
+`multiple: only` 컬렉션은 데이터 순서의 데이터 행만 가지며, 데이터가 없으면 행이 0개이고, 행 컨트롤을
+렌더링하지 않으며, 이 컬렉션에 대한 각 행 연산은 데이터와 HTML을 그대로 둔 채 `INVALID_FORM_INPUT`과
+`Rows of variants come only from data`로 실패해야 합니다. `design.show`로 숨긴 그룹은 숨긴 동안 설정한
+값을 포함해 값을 유지하고, 다시 보이면 그 값을 렌더링해야 합니다. 이 기대값은 JavaScript와의 비교에
+더해 검사기 안에 명세에서 작성했습니다. 컴파일은 불리언, `only`, 객체가 아닌 `multiple`, 불리언이 아닌
+`multiple.only`, 그리고 `only: true`와 함께 쓴 `min`, `max`, `copy`, `sortable`, `controls`,
+`onclick`을 알 수 없는 키로 거부합니다.
 
 날짜 사례는 UTC, Asia/Seoul, America/Los_Angeles에서 실행합니다. 검사기는 `TZ`와
 PHP의 `date.timezone`을 모두 설정하고 날짜/날짜시간/목록의 명시적 UTC 기대값을
@@ -132,13 +140,13 @@ node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path 
 
 | 입력 | 메시지 |
 | --- | --- |
-| 표준 입력이 JSON 값 하나가 아님 | `Request must be valid JSON` |
+| 표준 입력이 UTF-8이 아니거나 JSON 값 하나가 아님 | `Request must be valid JSON` |
 | 요청이 객체가 아님 | `Request must be an object` |
 | `options`가 있고 객체가 아님 | `Options must be an object` |
 | `data`가 있고 객체가 아님 | `Form data must be an object` |
 | `operation`이 어떤 연산도 아님 | `Unknown generator operation` |
 | `compileForm`의 `spec`이 객체가 아님 | `A form spec must be a group with properties` |
-| `bindForm`, `bindButtons`, `form`의 `template`이 객체가 아님 | `Unsupported form template` |
+| `bindForm`, `bindButtons`, `form`의 `template`이 컴파일된 템플릿 형태와 정확히 같지 않음 | `Unsupported form template` |
 | `form`의 `actions`가 있고 배열이 아님 | `Actions must be an array` |
 
 객체가 아니거나 폼 메서드를 지정하지 않았거나 `args` 배열이 없는 폼 액션은 해당 단계에서
@@ -146,3 +154,12 @@ node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path 
 계속합니다. `request` 검사는 같은 표준 입력을 모든 프로그램에 전달하고 JavaScript
 결과나 그 오류 코드, 메시지, 위치를 요구합니다. 오류 코드, 메시지, 위치와 유지한
 상태는 모든 구현에서 일치해야 합니다.
+
+`text` 검사는 [`tests/fixtures/text-validity`](../fixtures/text-validity/README.ko.md)의
+`compileForm`, `bindForm`, `createForm`(케이스의 액션을 포함한 `form` 연산), `buildList`,
+`buildDetail` 케이스를 모두 쌍이 없는 서로게이트 이스케이프가 있는 JSON 텍스트로 보내고, 케이스의
+[입력 텍스트](../../docs/spec/input-text.ko.md) 실패나 성공을 요구합니다. 각 프로그램은 디코딩하면서
+그 텍스트를 보존합니다. JavaScript는 `JSON.parse`, PHP는 `JsonText::decode`, Go는
+`generator.DecodeJSON`과 템플릿 디코딩 전의 `generator.CheckBindText`, Rust는 `JsonText`를 씁니다.
+Rust는 `JsonText`의 형태로 프로토콜 규칙을 검사하고, `crudui_generator::text`가 각 연산의 텍스트를
+먼저 검사합니다. 마지막 검사는 UTF-8이 아닌 표준 입력을 보냅니다.

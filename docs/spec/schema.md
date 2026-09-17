@@ -83,7 +83,11 @@ Conditions are values in the relevant setting. `design.show` controls visibility
 Condition maps select the value of the first matching expression. The literal key
 `true` is the optional default, applied only after every other condition fails,
 whatever its position; with no match and no default the result is null
-([condition maps](expressions.md#8-condition-maps)). Dedicated conditional
+([condition maps](expressions.md#8-condition-maps)). In every conditional
+setting, including `design.show`, `design.class` and `design.style`, a string is
+an expression only when it parses completely under the
+[expression grammar](expressions.md); any other string is a literal, so
+`class: "modal fade in show"` is class text. Dedicated conditional
 metadata such as `show_if`, `display_switch`
 and `display_target` is rejected in CRUDUI schemas.
 
@@ -194,6 +198,13 @@ limits, `multiple.copy` and `multiple.sortable` for row controls, `multiple.titl
 for the child field whose value titles each row, `multiple.controls` for the
 control position (default `header`) and `multiple.header` for static (default) or
 sticky row headers. The [form markup](form-markup.md) defines their rendering.
+`multiple: only`, the same as `multiple.only: true`, declares rows that exist only in the data:
+the data's keys are the rows, missing data has no row, and the form offers no row controls or
+row operations. `multiple.only` combines with `title` and `header` and excludes `min`, `max`,
+`copy`, `sortable`, `controls` and `onclick`. Compilation reports another string as
+`Invalid multiple at {path}: expected a boolean, only or an object`, a non-boolean `only` as
+`Invalid multiple.only at {path}: expected a boolean`, and an excluded key beside `only: true` as
+`Invalid multiple.{key} at {path}: unknown key`.
 Instance collection keys identify rows; the schema does not define hidden
 identity fields. See [form runtime](form-runtime.md) for row operations.
 
@@ -207,7 +218,8 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 
 | Key | Accepted value |
 | --- | --- |
-| `multiple` | Boolean or object |
+| `multiple` | Boolean, `only` or object |
+| `multiple.only` | Boolean |
 | `multiple.min`, `multiple.max` | Number |
 | `multiple.copy`, `multiple.sortable` | Boolean |
 | `multiple.title` | Name of a direct child of a repeated group that is not repeated, not a group and has no `lang` |

@@ -144,6 +144,41 @@ foreach ([
     $buttonError = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
     if ($message !== null) check($buttonError->getMessage() === $message, "Button input failure changed: $message; received " . $buttonError->getMessage());
 }
+// A template that is not exactly the compiled shape fails the same way in every entry point.
+$shapeTemplate = Generator::compileForm(['type'=>'group','properties'=>['name'=>['type'=>'text']]]);
+$reshaped = function (callable $change) use ($shapeTemplate): stdClass {
+    $copy = json_decode(json_encode($shapeTemplate, JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR);
+    $change($copy);
+    return $copy;
+};
+$shapeEntries = [
+    fn(stdClass $template)=>Generator::bindForm($template, ['name'=>'a']),
+    fn(stdClass $template)=>Generator::bindButtons($template, ['name'=>'a']),
+    fn(stdClass $template)=>new Form($template, ['name'=>'a']),
+];
+foreach ([
+    function ($t) { unset($t->fields); },
+    function ($t) { $t->fields = new stdClass(); },
+    function ($t) { $t->fields = ['name'=>$t->fields[0]]; },
+    function ($t) { $t->fields[] = 'name'; },
+    function ($t) { $t->fields[0]->spec = []; },
+    function ($t) { $t->fields[0]->children = new stdClass(); },
+    function ($t) { $t->fields[0]->label = 'Name'; },
+    function ($t) { unset($t->buttons); },
+    function ($t) { $t->buttons = 'submit'; },
+    function ($t) { $t->buttons = [[]]; },
+    function ($t) { $t->version = 1; },
+    function ($t) { $t->keyPrefix = null; },
+    function ($t) { $t->action = '/save'; },
+] as $index => $change) {
+    foreach ($shapeEntries as $entry) {
+        $shapeError = fails(fn()=>$entry($reshaped($change)), FormError::class, 'INVALID_FORM_INPUT');
+        check($shapeError->getMessage() === 'Unsupported form template' && $shapeError->getPath() === '', "Template shape $index failure changed: " . $shapeError->getMessage());
+    }
+}
+// A PHP associative array is an object: a field given as one is the compiled field.
+$arrayField = $reshaped(function ($t) { $t->fields[0] = ['name'=>'name','spec'=>['type'=>'text'],'children'=>[]]; });
+same(Generator::bindForm($shapeTemplate, ['name'=>'a']), Generator::bindForm($arrayField, ['name'=>'a']), 'An associative array field changed binding');
 fails(fn()=>Generator::bindButtons($buttonTemplate, null), TypeError::class);
 fails(fn()=>Generator::formButtonsHtml(null), TypeError::class);
 foreach ([['k'=>(object)['tag'=>'a','text'=>'','attrs'=>new stdClass()]], [1=>(object)['tag'=>'a','text'=>'','attrs'=>new stdClass()]]] as $unlisted) {
@@ -212,10 +247,15 @@ $formError = new FormError('TEST','message','rows.invalid');
 check($formError->getPath() === 'rows.invalid', 'Form error path changed');
 $cycle = new stdClass(); $cycle->self = $cycle;
 fails(fn()=>new Form($template,$cycle), FormError::class, 'INVALID_FORM_INPUT');
-foreach ([['value'=>"\xFF"], (object)["\xFF"=>'value']] as $invalidUtf8) {
-    fails(fn()=>new Form($template,$invalidUtf8), FormError::class, 'INVALID_FORM_INPUT');
-    fails(fn()=>Validator::validate($spec,$invalidUtf8), InvalidArgumentException::class);
+// Invalid text is an input failure naming its path (docs/spec/input-text.md).
+foreach (['data.value' => ['value'=>"\xFF"], 'data' => (object)["\xFF"=>'value']] as $location => $invalidUtf8) {
+    $error = fails(fn()=>new Form($template,$invalidUtf8), FormError::class, 'INVALID_FORM_INPUT');
+    check($error->getMessage() === 'Text must be Unicode scalar values: ' . $location && $error->getPath() === '', 'Form input text failure changed');
+    $error = fails(fn()=>Validator::validate($spec,$invalidUtf8), FormInputError::class, 'INVALID_FORM_INPUT');
+    check($error->getMessage() === 'Text must be Unicode scalar values: ' . $location, 'Validation input text failure changed');
 }
+$error = fails(fn()=>Validator::validateList(['columns'=>['c'=>['label'=>"\xED\xA0\x80"]]]), ComposeLoadError::class, 'INVALID_TEXT');
+check($error->getCompositionTrace() === ['columns', 'c', 'label'] && $error->getMessage() === 'Text must be Unicode scalar values', 'Specification text failure changed');
 $inputError = fails(fn()=>Validator::validate($spec, ['a']), FormInputError::class, 'INVALID_FORM_INPUT');
 check($inputError->getMessage() === 'Form data must be an object', 'Root input failure message changed');
 $inputError = fails(fn()=>Validator::validate($spec, ['companies'=>[]]), FormInputError::class, 'INVALID_FORM_INPUT');
@@ -331,4 +371,37 @@ for ($index=0; $index<300; $index++) {
     unset($instance);
 }
 
-echo json_encode(['native'=>$native,'checks'=>$checks,'signatures'=>$signatures], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES), "\n";
+// Every form fixture as JSON text, so the comparison sees object member order. A generated row
+// key is random, so each distinct generated key becomes its position.
+$models = [];
+$jsonFlags = JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+$generatedKeys = function (string $text): string {
+    $positions = [];
+    return preg_replace_callback('/__[0-9a-f]{13}__/', function (array $match) use (&$positions): string {
+        $positions[$match[0]] ??= count($positions);
+        return '__generated-' . $positions[$match[0]] . '__';
+    }, $text);
+};
+foreach (json_decode(file_get_contents(dirname(__DIR__, 3) . '/tests/fixtures/form-render/cases.json'), false, 512, JSON_THROW_ON_ERROR) as $case) {
+    $caseOptions = (array) ($case->options ?? []);
+    $bindOptions = array_intersect_key($caseOptions, array_flip(['idPrefix', 'language', 'keyPrefix', 'unsupported']));
+    $record = property_exists($case, 'data') ? $case->data : new stdClass();
+    try {
+        $compiled = Generator::compileForm($case->spec, $caseOptions);
+        $form = new Form($compiled, $record, $bindOptions);
+        $model = [
+            'template'=>$compiled,
+            'bindForm'=>Generator::bindForm($compiled, $record, $bindOptions),
+            'bindButtons'=>Generator::bindButtons($compiled, $record, ['language'=>$bindOptions['language'] ?? 'ko']),
+            'getTemplate'=>$form->getTemplate(),
+            'getData'=>$form->getData(),
+            'getFields'=>$form->getFields(),
+            'getButtons'=>$form->getButtons(),
+        ];
+    } catch (FormError|ComposeLoadError $failure) {
+        $model = ['error'=>$failure::class, 'message'=>$failure->getMessage()];
+    }
+    $models[$case->name] = $generatedKeys(json_encode($model, $jsonFlags));
+}
+
+echo json_encode(['native'=>$native,'checks'=>$checks,'signatures'=>$signatures,'models'=>$models], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES), "\n";

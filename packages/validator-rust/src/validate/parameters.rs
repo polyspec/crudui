@@ -29,6 +29,14 @@ pub(crate) enum Parameter {
     Limit(u64),
     /// `rangelength` limits.
     Range(u64, u64),
+    /// A `min` or `max` bound.
+    Bound(f64),
+    /// `range` bounds.
+    Bounds(f64, f64),
+    /// A `step` above 0.
+    Step(f64),
+    /// A `mincount` or `maxcount` limit.
+    Count(u64),
     /// `in` members.
     Members(Vec<Comparable>),
     /// A compiled `pattern` or `match`.
@@ -114,6 +122,44 @@ pub(crate) fn check(
                         .to_string(),
                 )
             }),
+        "number" | "digits" => match parameter {
+            Value::Bool(_) => Ok(Parameter::Unchecked),
+            _ => Err(invalid(format!(
+                "Invalid {rule} parameter: expected true or false"
+            ))),
+        },
+        "min" | "max" => finite(parameter).map(Parameter::Bound).ok_or_else(|| {
+            invalid(format!(
+                "Invalid {rule} parameter: expected a finite number"
+            ))
+        }),
+        "range" => match parameter.as_array().map(Vec::as_slice) {
+            Some([minimum, maximum]) => match (finite(minimum), finite(maximum)) {
+                (Some(minimum), Some(maximum)) if minimum <= maximum => {
+                    Some(Parameter::Bounds(minimum, maximum))
+                }
+                _ => None,
+            },
+            _ => None,
+        }
+        .ok_or_else(|| {
+            invalid(
+                "Invalid range parameter: expected [minimum, maximum] finite numbers \
+                 with minimum not above maximum"
+                    .to_string(),
+            )
+        }),
+        "step" => finite(parameter)
+            .filter(|step| *step > 0.0)
+            .map(Parameter::Step)
+            .ok_or_else(|| {
+                invalid("Invalid step parameter: expected a finite number above 0".to_string())
+            }),
+        "mincount" | "maxcount" => limit(parameter).map(Parameter::Count).ok_or_else(|| {
+            invalid(format!(
+                "Invalid {rule} parameter: expected an integer from 0 to {MAX_LIMIT}"
+            ))
+        }),
         "in" => members(parameter)
             .map(Parameter::Members)
             .map_err(|error| invalid(error.message().to_string())),
@@ -138,6 +184,11 @@ pub(crate) fn check(
         }
         _ => Ok(Parameter::Unchecked),
     }
+}
+
+/// A JSON number as a finite double.
+fn finite(value: &Value) -> Option<f64> {
+    value.as_f64().filter(|number| number.is_finite())
 }
 
 #[cfg(test)]
@@ -222,7 +273,7 @@ mod tests {
             "a": { "type": "text", "validate": {
                 "minlength": false, "maxlength": null, "in": false, "pattern": null,
                 "rangelength": ".x ? .range : false", "match": false,
-                "min": "x", "unknown": [],
+                "min": ".x", "unknown": [],
             } },
             "b": { "type": "text", "validate": {
                 "maxlength": { ".x": 3, "true": null },

@@ -28,17 +28,22 @@ static bool option_string(const ps_value *options, const char *name,
     *value = ps_string(item); return true;
 }
 
-/* A multiple or lang declaration that enables the feature: true or an object. */
+/* A multiple or lang declaration that enables the feature: true or an object (or only, for multiple). */
 static bool enabled_declaration(const ps_value *value)
 {
     return value && ((value->kind == PS_BOOL && value->data.boolean) || value->kind == PS_OBJECT);
+}
+
+static bool repeated_declaration(const ps_value *value)
+{
+    return enabled_declaration(value) || ps_is_string(value, "only");
 }
 
 /* A child that renders one scalar value: not repeated, not a group and not a language field. */
 static bool scalar_child(const ps_value *child)
 {
     return child && child->kind == PS_OBJECT && !ps_is_string(ps_get(child, "type"), "group") &&
-        !ps_has(child, "properties") && !enabled_declaration(ps_get(child, "multiple")) &&
+        !ps_has(child, "properties") && !repeated_declaration(ps_get(child, "multiple")) &&
         !enabled_declaration(ps_get(child, "lang"));
 }
 
@@ -62,14 +67,21 @@ static bool declarations_valid(const ps_value *spec, ps_text path, ps_value **er
     static const char *const headers[] = {"static", "sticky"};
     static const char *const numbers[][2] = {{"min", "multiple.min"}, {"max", "multiple.max"}};
     static const char *const booleans[][2] = {{"copy", "multiple.copy"}, {"sortable", "multiple.sortable"}};
-    static const char *const multiple_keys[] = {"min", "max", "copy", "sortable", "title", "controls", "header", "onclick"};
+    static const char *const multiple_keys[] = {"only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick"};
+    /* Rows of a data-only collection come from the data: row limits and row controls do not apply. */
+    static const char *const only_keys[] = {"only", "title", "header"};
     static const char *const lang_keys[] = {"mode", "only", "name", "key", "frame", "title", "group_class"};
     static const char *const behavior_keys[] = {"onchange", "onclick", "onload"};
     const ps_value *multiple = ps_get(spec, "multiple");
     if (multiple) {
-        if (multiple->kind != PS_BOOL && multiple->kind != PS_OBJECT)
-            return ps_declaration_error(PS_TEXT("multiple"), path, "a boolean or an object", error);
-        if (multiple->kind == PS_OBJECT && !ps_known_keys(multiple, "multiple", multiple_keys, 8, path, error))
+        if (multiple->kind != PS_BOOL && multiple->kind != PS_OBJECT && !ps_is_string(multiple, "only"))
+            return ps_declaration_error(PS_TEXT("multiple"), path, "a boolean, only or an object", error);
+        if (multiple->kind == PS_OBJECT && !ps_known_keys(multiple, "multiple", multiple_keys, 9, path, error))
+            return false;
+        const ps_value *only = multiple->kind == PS_OBJECT ? ps_get(multiple, "only") : NULL;
+        if (only && only->kind != PS_BOOL)
+            return ps_declaration_error(PS_TEXT("multiple.only"), path, "a boolean", error);
+        if (only && only->data.boolean && !ps_known_keys(multiple, "multiple", only_keys, 3, path, error))
             return false;
         for (size_t i = 0; multiple->kind == PS_OBJECT && i < 2; ++i) {
             const ps_value *value = ps_get(multiple, numbers[i][0]);

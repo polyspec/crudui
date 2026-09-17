@@ -4,35 +4,21 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
-use CRUDUI\Validator\Values\Whitespace;
+use CRUDUI\Validator\Values\InvalidRuleParameter;
+use CRUDUI\Validator\Values\Numeric;
 
 /**
- * Range validation rule.
- * Validates that a numeric value is within the specified range [min, max].
+ * Inclusive numeric range: a numeric value within [minimum, maximum] passes; any other value fails.
  */
 class Range implements RuleInterface
 {
     /**
-     * Validate that a numeric value is within the specified range.
+     * @throws InvalidRuleParameter when the parameter is outside the validation rules
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
-        if (\is_string($value)) {
-            $value = Whitespace::trim($value);
-        }
-        if (!is_numeric($value)) {
-            return false;
-        }
-
-        if (!is_array($param) || count($param) !== 2) {
-            return true;
-        }
-
-        [$min, $max] = $param;
-        $minValue = is_numeric($min) ? (float)$min : 0;
-        $maxValue = is_numeric($max) ? (float)$max : PHP_FLOAT_MAX;
-        $numValue = (float)$value;
-
-        return $numValue >= $minValue && $numValue <= $maxValue;
+        [$minimum, $maximum] = Numeric::range($param);
+        $number = Numeric::of($value);
+        return $number !== null && $number >= $minimum && $number <= $maximum;
     }
 }

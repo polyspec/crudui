@@ -48,7 +48,15 @@ static bool field_repeats(const ps_value *field)
 {
     const ps_value *multiple = member(member(field, "spec"), "multiple");
     return multiple && ((multiple->kind == PS_BOOL && multiple->data.boolean) ||
-                        multiple->kind == PS_OBJECT);
+                        multiple->kind == PS_OBJECT || ps_is_string(multiple, "only"));
+}
+
+/* A multiple: only collection: its rows come only from the data. */
+static bool field_data_only(const ps_value *field)
+{
+    const ps_value *multiple = member(member(field, "spec"), "multiple");
+    const ps_value *only = member(multiple, "only");
+    return ps_is_string(multiple, "only") || (only && only->kind == PS_BOOL && only->data.boolean);
 }
 
 static bool field_group(const ps_value *field)
@@ -170,7 +178,8 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
                 *error = internal_error();
                 goto fail;
             }
-            if (!raw) {
+            /* Missing data creates one row, except in a data-only collection. */
+            if (!raw && !field_data_only(field)) {
                 ps_value *key = fresh_key(rows, error);
                 ps_value *row = key
                     ? normalize_keyed_row(field, NULL, ps_view(field_path), ps_string(key), error) : NULL;
@@ -181,7 +190,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
                     goto fail;
                 }
                 ps_value_free(key);
-            } else {
+            } else if (raw) {
                 for (size_t row_index = 0; row_index < ps_size(raw); ++row_index) {
                     ps_text key = ps_key(raw, row_index);
                     *error = checked_key_error(key);
@@ -304,6 +313,17 @@ static bool collection(const ps_form *form, ps_text source, form_path *path,
     *field = selected;
     *rows = data;
     return true;
+}
+
+/* A collection whose rows the form may add, copy, remove, move or rekey. */
+static bool editable_collection(const ps_form *form, ps_text source, form_path *path,
+                                const ps_value **field, const ps_value **rows, ps_value **error)
+{
+    if (!collection(form, source, path, field, rows, error)) return false;
+    if (!field_data_only(*field)) return true;
+    free_path(path);
+    *error = input_error_with("Rows of ", source, " come only from data");
+    return false;
 }
 
 static ps_result commit(ps_form *form, ps_value *data)
@@ -455,7 +475,7 @@ static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
     ps_value *error = NULL;
-    if (!collection(form, source, &path, &field, &rows, &error))
+    if (!editable_collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
     bool has_max = false;
     double maximum = numeric_setting(field, "max", &has_max);
@@ -528,7 +548,7 @@ static ps_result copy_row(ps_form *form, ps_text source, ps_text key,
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
     ps_value *error = NULL;
-    if (!collection(form, source, &path, &field, &rows, &error))
+    if (!editable_collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
     const ps_value *value = ps_get_text(rows, key);
     if (!value) {
@@ -555,7 +575,7 @@ static ps_result remove_row(ps_form *form, ps_text source, ps_text key)
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
     ps_value *error = NULL;
-    if (!collection(form, source, &path, &field, &rows, &error))
+    if (!editable_collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
     if (!ps_has_text(rows, key)) {
         free_path(&path);
@@ -603,7 +623,7 @@ static ps_result move_row(ps_form *form, ps_text source, ps_text key,
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
     ps_value *error = NULL;
-    if (!collection(form, source, &path, &field, &rows, &error))
+    if (!editable_collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
     (void)field;
     size_t from = row_position(rows, key);
@@ -632,13 +652,18 @@ static ps_result move_row(ps_form *form, ps_text source, ps_text key,
 static ps_result rekey_row(ps_form *form, ps_text source, ps_text old_key,
                            ps_text new_key)
 {
-    ps_value *error = checked_key_error(new_key);
-    if (error) return (ps_result){NULL, error};
+    ps_value *error = NULL;
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
-    if (!collection(form, source, &path, &field, &rows, &error))
+    if (!editable_collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
     (void)field;
+    /* The collection is found before the new key is checked. */
+    error = checked_key_error(new_key);
+    if (error) {
+        free_path(&path);
+        return (ps_result){NULL, error};
+    }
     if (!ps_has_text(rows, old_key)) {
         free_path(&path);
         return (ps_result){NULL, input_error_with("Unknown row: ", old_key, "")};
@@ -669,8 +694,9 @@ static ps_result rekey_row(ps_form *form, ps_text source, ps_text old_key,
 ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
                            const ps_value *options)
 {
-    if (!template || template->kind != PS_OBJECT || !data || data->kind != PS_OBJECT ||
-        !options || options->kind != PS_OBJECT)
+    if (!ps_form_template_shape(template))
+        return (ps_form_result){NULL, input_error("Unsupported form template")};
+    if (!data || data->kind != PS_OBJECT || !options || options->kind != PS_OBJECT)
         return (ps_form_result){NULL, input_error("Invalid form input")};
     /* The template is a specification: the form keeps it in specification member order. */
     ps_value *ordered = ps_value_ordered(template);

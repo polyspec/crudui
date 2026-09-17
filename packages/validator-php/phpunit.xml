@@ -5,6 +5,8 @@
          colors="true"
          failOnRisky="true"
          failOnWarning="true"
+         failOnNotice="true"
+         failOnDeprecation="true"
          cacheDirectory=".phpunit.cache"
          enforceTimeLimit="true"
          defaultTimeLimit="10">

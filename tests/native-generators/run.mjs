@@ -133,7 +133,7 @@ async function inputManifest() {
   for (const entry of packages.sort((a, b) => a.name.localeCompare(b.name))) {
     if (entry.isDirectory() && /^(?:generator-|validator-|php-ext$)/.test(entry.name)) await walk(`packages/${entry.name}`);
   }
-  for (const directory of ['tests/native-generators', 'tests/fixtures/form-render', 'tests/fixtures/list-render', 'tests/fixtures/detail-render']) await walk(directory);
+  for (const directory of ['tests/native-generators', 'tests/fixtures/form-render', 'tests/fixtures/list-render', 'tests/fixtures/detail-render', 'tests/fixtures/text-validity']) await walk(directory);
   for (const directory of ['packages/generator-core/dist', 'packages/generator-react/dist', 'packages/validator-ts/dist']) await walk(directory, true);
   for (const file of ['package.json', 'package-lock.json']) entries[file] = digest(await readFile(path.join(ROOT, file)));
   if (extension) {
@@ -302,7 +302,38 @@ const requestCases = (() => {
   const list = '{"columns":{"v":{"field":"v","label":"V"}}}';
   const detail = '{"fields":{"v":{"field":"v"}}}';
   const evaluated = dispatch({ operation: 'bindButtons', template: JSON.parse(buttons), data: { name: 'a' }, options: { language: 'en' } });
+  // A template that is not exactly the compiled shape (docs/spec/form-runtime.md) is rejected by every operation.
+  const reshaped = change => { const value = JSON.parse(named); change(value); return JSON.stringify(value); };
+  const templateShapes = Object.entries({
+    'fields-missing': value => { delete value.fields; },
+    'fields-object': value => { value.fields = {}; },
+    'fields-null': value => { value.fields = null; },
+    'field-string': value => { value.fields = ['name']; },
+    'field-null': value => { value.fields.push(null); },
+    'field-name-number': value => { value.fields[0].name = 1; },
+    'field-spec-missing': value => { delete value.fields[0].spec; },
+    'field-spec-array': value => { value.fields[0].spec = []; },
+    'field-children-missing': value => { delete value.fields[0].children; },
+    'field-children-object': value => { value.fields[0].children = {}; },
+    'field-child-array': value => { value.fields[0].children = [[]]; },
+    'field-unknown-member': value => { value.fields[0].label = 'Name'; },
+    'buttons-missing': value => { delete value.buttons; },
+    'buttons-object': value => { value.buttons = {}; },
+    'button-string': value => { value.buttons = ['submit']; },
+    'button-array': value => { value.buttons = [[]]; },
+    'unknown-member': value => { value.version = 1; },
+    'kind-missing': value => { delete value.kind; },
+    'kind-other': value => { value.kind = 'crudui/form-template-2'; },
+    'key-prefix-null': value => { value.keyPrefix = null; },
+    'key-prefix-number': value => { value.keyPrefix = 1; },
+    'action-string': value => { value.action = '/save'; },
+    'action-null': value => { value.action = null; },
+  }).flatMap(([name, change]) => ['bindForm', 'bindButtons', 'form'].map(operation => [
+    `template-${name}-${operation}`, `{"operation":"${operation}","template":${reshaped(change)},"data":{"name":"a"}}`,
+  ]));
   return [
+    ...templateShapes,
+    ['template-declared-members', `{"operation":"form","template":${reshaped(value => { value.keyPrefix = 'p'; value.action = { url: '/save' }; })},"data":{"name":"a"}}`],
     ['text-two-values', '{} {}'], ['text-truncated', '{'], ['text-empty', ''],
     ['null', 'null'], ['array', '[]'], ['string', '"compileForm"'], ['no-operation', '{}'], ['unknown-operation', '{"operation":"render"}'],
     ...['compileForm', 'bindForm', 'bindButtons', 'form', 'renderList', 'buildList', 'formButtonsHtml'].map(operation => [`missing-input-${operation}`, `{"operation":"${operation}"}`]),
@@ -352,10 +383,28 @@ const requestCases = (() => {
     ['detail-record-array', `{"operation":"renderDetail","spec":${detail},"record":[]}`],
   ];
 })();
+// Input text cases (docs/spec/input-text.md): JSON text with unpaired surrogate escapes.
+const textFamilies = [];
+for (const feature of ['compileForm', 'bindForm', 'createForm', 'buildList', 'buildDetail']) {
+  const fixture = `tests/fixtures/text-validity/${feature}/cases.json`;
+  textFamilies.push({ feature, fixture, cases: JSON.parse(await readFile(path.join(ROOT, fixture), 'utf8')) });
+}
+function textRequest(feature, fixture) {
+  const options = fixture.options ?? {};
+  // A case gives its template as JSON text, or the specification it is compiled from.
+  const template = () => fixture.template ?? oracle({ operation: 'compileForm', spec: fixture.spec });
+  switch (feature) {
+    case 'compileForm': return { operation: 'compileForm', spec: fixture.spec, options };
+    case 'bindForm': return { operation: 'bindForm', template: template(), data: fixture.data ?? {}, options };
+    case 'createForm': return { operation: 'form', template: template(), data: fixture.data ?? {}, options, actions: fixture.action ? [fixture.action] : [] };
+    case 'buildList': return { operation: 'buildList', spec: fixture.spec, rows: fixture.rows ?? [], options };
+    default: return { operation: 'buildDetail', spec: fixture.spec, record: fixture.record ?? {}, options };
+  }
+}
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
-assert.equal(formCases.length, 93, 'The form fixture inventory changed; review coverage before changing this assertion');
-assert.equal(listCases.length, 58, 'The list fixture inventory changed; review coverage before changing this assertion');
+assert.equal(formCases.length, 103, 'The form fixture inventory changed; review coverage before changing this assertion');
+assert.equal(listCases.length, 61, 'The list fixture inventory changed; review coverage before changing this assertion');
 assert.equal(detailCases.length, 31, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 const targetNames = targets.map(target => target.name);
@@ -510,6 +559,9 @@ for (const target of runTargets) {
     let expected, expectedError;
     if (!parsed) expectedError = { code: 'INVALID_FORM_INPUT', message: 'Request must be valid JSON', at: '' };
     else try { expected = oracle(request); } catch (caught) { expectedError = errorRecord(caught); }
+    if (name.startsWith('template-') && name !== 'template-declared-members') {
+      assert.deepEqual(expectedError, { code: 'INVALID_FORM_INPUT', message: 'Unsupported form template', at: '' }, 'JavaScript does not meet the template shape contract');
+    }
     const result = await execute(target.command, target.args, { input: text });
     assert.equal(result.stderr, '', 'The program wrote diagnostics');
     let actual, actualError;
@@ -529,6 +581,29 @@ for (const target of runTargets) {
       });
     } else equalOrdered(actual, expected, '$');
     return { digest: digest(actual) };
+  });
+
+  // Invalid input text fails with the same code, message and location in every program; a
+  // request that is not UTF-8 is not JSON text.
+  for (const { feature, fixture: file, cases } of textFamilies) for (const fixture of cases) await check(target, `text:${feature}:${fixture.name}`, async () => {
+    const request = textRequest(feature, fixture);
+    let actual, actualError;
+    try { actual = await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
+    const failure = fixture.action && actualError === undefined ? actual.steps[0].error : actualError ?? null;
+    if (fixture.expect === 'pass') {
+      assert.equal(failure, null, `The input was rejected: ${failure?.message}`);
+      return { passed: true };
+    }
+    compareError(failure, fixture.expect);
+    return { error: fixture.expect };
+  }, { fixture: file, case: fixture.name, model: [feature] });
+  await check(target, 'text:request-not-utf8', async () => {
+    const result = await execute(target.command, target.args, { input: Buffer.from([0x7b, 0x22, 0x6f, 0x22, 0x3a, 0x22, 0xed, 0xa0, 0x80, 0x22, 0x7d]) });
+    assert.equal(result.stderr, '', 'The program wrote diagnostics');
+    let actualError;
+    try { parseCLIResponse({}, result); } catch (caught) { if (!(caught instanceof OperationError)) throw caught; actualError = caught; }
+    compareError(actualError, { code: 'INVALID_FORM_INPUT', message: 'Request must be valid JSON', at: '' });
+    return { error: 'Request must be valid JSON' };
   });
 
   // The pagination model: member order and defaults for enabled, declared and disabled paging.
@@ -602,6 +677,29 @@ for (const target of runTargets) {
     }
     if (scenario.name === 'repeated-and-language-controls-retain-behavior') {
       assert.equal((actual.html.match(/ onchange=/g) ?? []).length, 4, 'Repeated or language controls lost behavior attributes');
+    }
+    if (scenario.name === 'only-collection-rows-come-from-data' || scenario.name === 'only-collection-missing-data-has-no-rows') {
+      // docs/spec/form-runtime.md: exactly the data's rows under the data's keys; row operations fail unchanged.
+      const keys = scenario.name === 'only-collection-rows-come-from-data' ? ['__opt_b2__', '__opt_a1__'] : [];
+      assert.deepEqual(Object.keys(initial.data.variants ?? {}), keys, 'A data-only collection does not hold exactly the data rows');
+      assert.deepEqual([...initial.html.matchAll(/data-crudui-row-key="([^"]*)"/g)].map(match => match[1]), keys, 'A data-only collection renders other rows');
+      assert.doesNotMatch(initial.html, /data-crudui-action="(?:add-row|copy-row|remove-row|move-up|move-down)"/, 'A data-only collection renders a row control');
+      for (const step of actual.steps) {
+        assert.deepEqual(step.error, { code: 'INVALID_FORM_INPUT', message: 'Rows of variants come only from data', at: '' }, 'A row operation on a data-only collection did not fail as declared');
+        assert.deepEqual(step.data, initial.data, 'A rejected row operation changed the data');
+        assert.equal(step.html, initial.html, 'A rejected row operation changed the view');
+      }
+    }
+    if (scenario.name === 'hidden-group-keeps-values') {
+      // docs/spec/form-runtime.md: a field hidden by design.show keeps its value and shows it again.
+      const [hidden, edited, shown] = actual.steps;
+      assert.equal(hidden.data.display.code, 'abc1', 'Hiding a group dropped its value');
+      assert.match(hidden.html, /data-field-path="display" hidden=""/, 'The hidden group has no hidden attribute');
+      assert.match(hidden.html, /name="display\[code\]"[^>]* value="abc1"/, 'The hidden group does not render its value');
+      assert.equal(edited.data.display.code, 'kept', 'A value set while hidden was not kept');
+      assert.deepEqual(shown.data.display, { code: 'kept', items: { __opt_a1__: 'row' } }, 'Showing the group changed its values');
+      assert.doesNotMatch(shown.html, /data-field-path="display" hidden=""/, 'The shown group is still hidden');
+      assert.match(shown.html, /name="display\[code\]"[^>]* value="kept"/, 'The shown group does not render the kept value');
     }
     if (scenario.name === 'explicit-null-does-not-apply-default') {
       assert.equal(actual.data.text, null);
@@ -689,7 +787,14 @@ for (const target of runTargets) {
     ['array-nested-group', groupSpec, { address: { city: 'Seoul', geo: [] } }, 'Group data must be an object: address.geo'],
   ];
   const declarationRejections = [
-    ['multiple-string', { type: 'text', multiple: 'yes' }, 'Invalid multiple at rows: expected a boolean or an object'],
+    ['multiple-string', { type: 'text', multiple: 'yes' }, 'Invalid multiple at rows: expected a boolean, only or an object'],
+    ['multiple-all', { type: 'text', multiple: 'all' }, 'Invalid multiple at rows: expected a boolean, only or an object'],
+    ['multiple-only-string', { type: 'group', multiple: { only: 'yes' }, properties: {} }, 'Invalid multiple.only at rows: expected a boolean'],
+    ...['min', 'max', 'copy', 'sortable', 'controls', 'onclick'].map(key => [
+      `multiple-only-with-${key}`,
+      { type: 'group', multiple: { only: true, [key]: { min: 1, max: 3, copy: true, sortable: true, controls: 'header', onclick: 'go()' }[key] }, properties: {} },
+      `Invalid multiple.${key} at rows: unknown key`,
+    ]),
     ['multiple-min-string', { type: 'text', multiple: { min: '1' } }, 'Invalid multiple.min at rows: expected a number'],
     ['multiple-copy-object', { type: 'text', multiple: { copy: {} } }, 'Invalid multiple.copy at rows: expected a boolean'],
     ['design-array', { type: 'text', design: [] }, 'Invalid design at rows: expected a boolean or an object'],

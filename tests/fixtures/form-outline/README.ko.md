@@ -7,7 +7,8 @@
 `expected_data_html`을 제공합니다.
 
 실행 취소가 가능한 상태의 최상위·중첩 행 지도, `controls: outline`으로 지도에 둔 행 조작 버튼과 폼에 남는
-빈 컬렉션 조작 버튼, 제목 없는 행, 반복 필드가 없는 폼, 데이터 보기에서 이스케이프한 마크업 문자, 한국어·
+빈 컬렉션 조작 버튼, 제목 없는 행, 반복 필드가 없는 폼, 감싸는 행은 조작 버튼을 유지하면서 지도에 행
+조작 버튼이 없는 `multiple.only` 컬렉션의 행, 데이터 보기에서 이스케이프한 마크업 문자, 한국어·
 영어·일본어·중국어 인터페이스 메시지를 검사합니다. [폼 마크업](../../../docs/spec/form-markup.ko.md)이 두
 보기를 정의합니다.
 
@@ -35,5 +36,6 @@ node_modules/.bin/tsx tests/fixtures/form-outline/generate.ts
 npm run test:forms
 ```
 
-생성기는 React `OutlineView`와 `DataPanel`의 정규화한 정적 마크업으로 `cases.json`을 직접 씁니다. 변경을
+생성기는 React `OutlineView`와 `DataPanel`의 정규화한 정적 마크업으로 `cases.json`을 직접 씁니다. 사례에
+선언한 구조 지도(`outline-only-rows-en`)는 명세에서 작성하며 작성한 그대로 둡니다. 변경을
 반영하기 전에 명세와 비교하여 검토합니다. 재생성만으로 검증이 완료되지는 않습니다.

@@ -7,7 +7,7 @@
 //
 // Request rules, checked in this order; each failure exits 1 with stdout
 // exactly {"error": <message>}:
-//  1. stdin is not valid JSON → "Request must be valid JSON"
+//  1. stdin is not UTF-8 or not valid JSON → "Request must be valid JSON"
 //  2. the request is not a JSON object → "Request must be an object"
 //  3. spec absent or not an object → "Request spec must be an object"
 //  4. mode present and not exactly "form", "list" or "detail" (null and
@@ -30,6 +30,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
@@ -123,7 +124,8 @@ func jsonKind(raw []byte) byte {
 // first failing message, or "" with the checked request.
 func parseRequest(input []byte) (request, string) {
 	var req request
-	if !json.Valid(input) {
+	// Standard input that is not UTF-8 is not JSON text.
+	if !utf8.Valid(input) || !json.Valid(input) {
 		return req, msgInvalidJSON
 	}
 	if jsonKind(input) != '{' {
@@ -159,22 +161,29 @@ func parseRequest(input []byte) (request, string) {
 		if jsonKind(raw) != '{' {
 			return req, msgFiles
 		}
-		var files map[string]json.RawMessage
-		if err := json.Unmarshal(raw, &files); err != nil {
+		// File names keep their text exactly, so the validator checks them.
+		files, err := compose.DecodeRawMembers(raw)
+		if err != nil {
 			return req, msgFiles
 		}
-		for k, doc := range files {
-			if jsonKind(doc) != '{' {
+		for _, file := range files {
+			if jsonKind(file.Value) != '{' {
 				return req, msgFileMembers
 			}
-			req.Files[k] = []byte(doc)
+			req.Files[file.Name] = file.Value
 		}
 	}
 
 	if raw, present := members["basepath"]; present && jsonKind(raw) != 'n' {
-		if jsonKind(raw) != '"' || json.Unmarshal(raw, &req.Basepath) != nil {
+		if jsonKind(raw) != '"' {
 			return req, msgBasepath
 		}
+		// The base path keeps its text exactly, so the validator checks it.
+		basepath, err := compose.DecodeOrdered(raw)
+		if err != nil {
+			return req, msgBasepath
+		}
+		req.Basepath = basepath.(string)
 	}
 
 	req.Data = members["data"]

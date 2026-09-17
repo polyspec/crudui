@@ -156,12 +156,15 @@ final class ValuesTest extends TestCase
         self::assertTrue($comma->contains('b'));
         self::assertTrue($comma->contains(" a\u{2028}"));
         self::assertTrue($comma->contains(1.5));
-        self::assertTrue($comma->contains('+1.5'));
+        self::assertFalse($comma->contains('+1.5'));
         self::assertTrue($comma->contains('01.500'));
+        self::assertFalse($comma->contains('1.500.'));
         self::assertTrue($comma->contains(['a', 'b ']));
         self::assertFalse($comma->contains(['a', 'c']));
         self::assertFalse($comma->contains('A'));
-        self::assertFalse($comma->contains('1.5e0'));
+        self::assertTrue($comma->contains('1.5e0'));
+        self::assertTrue($comma->contains('15E-1'));
+        self::assertFalse($comma->contains('0x1.8'));
         self::assertFalse($comma->contains(null));
         self::assertFalse($comma->contains((object) ['a' => 'a']));
         self::assertTrue($comma->contains(['a', null, " \u{3000}", '']));

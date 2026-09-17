@@ -10,9 +10,9 @@ package validate
 // tryEvaluateTernary (G1 — the condition is the value's expression, never a
 // separate if/when key).
 //
-// No display_switch or display_target visibility condition exists (G1: those meta keys do not
-// exist in model; visibility-conditioned requiredness is required:'<expr>'). design
-// .show does NOT skip validation (SPEC R1 show/validate separation).
+// A field whose design.show resolves to false against the data is hidden: its
+// rules and the rules of every field it contains are skipped, and its value is
+// kept for conditions and references elsewhere (validation-rules.md, Evaluation).
 
 import (
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
@@ -78,7 +78,7 @@ func (v *Validator) Validate(data any) (ValidationResult, error) {
 		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
 	}
 	var errors []ValidationError
-	if err := v.validateProperties(v.properties, root, nil, nil, root, &errors); err != nil {
+	if err := v.validateProperties(v.properties, root, nil, nil, root, false, &errors); err != nil {
 		return ValidationResult{}, err
 	}
 	return ValidationResult{Valid: len(errors) == 0, Errors: errors}, nil
@@ -105,7 +105,9 @@ func (r fieldRun) report(errors *[]ValidationError, rule, message string, value 
 }
 
 // validateProperties recurses a properties map (SPEC §3; JS validateProperties).
-func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath, declaration []string, allData map[string]any, errors *[]ValidationError) error {
+// Inside a hidden field (hidden is true) no rule runs, but the data shape is
+// still checked.
+func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath, declaration []string, allData map[string]any, hidden bool, errors *[]ValidationError) error {
 	for _, propertyKey := range properties.Keys() {
 		raw, _ := properties.Get(propertyKey)
 		field, ok := raw.(*compose.OMap)
@@ -124,23 +126,26 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 		if isMultiple && present && !isObject(fieldValue) {
 			return &FormInputError{Message: "Repeated data must be a keyed object: " + pathToString(fieldPath)}
 		}
+		// A hidden field's rules and its descendants' rules are not evaluated.
+		fieldHidden := hidden || !v.fieldVisible(field, fieldPath, allData)
 
 		if fieldType(field) == "group" && childProps != nil {
 			if isMultiple {
-				if present {
-					// Keyed rows use sorted-key traversal so the first reported
-					// error is identical in every validation implementation.
-					rows := fieldValue.(map[string]any)
-					for _, key := range sortedKeys(rows) {
-						rowPath := appendPath(fieldPath, key)
-						row, ok := rows[key].(map[string]any)
-						if !ok {
-							return &FormInputError{Message: "Group data must be an object: " + pathToString(rowPath)}
-						}
-						if err := v.validateProperties(childProps, row, rowPath, run.declaration, allData, errors); err != nil {
-							return err
-						}
+				// Keyed rows use sorted-key traversal so the first reported
+				// error is identical in every validation implementation. Missing
+				// data is an empty collection.
+				rows, _ := fieldValue.(map[string]any)
+				for _, key := range sortedKeys(rows) {
+					rowPath := appendPath(fieldPath, key)
+					row, ok := rows[key].(map[string]any)
+					if !ok {
+						return &FormInputError{Message: "Group data must be an object: " + pathToString(rowPath)}
 					}
+					if err := v.validateProperties(childProps, row, rowPath, run.declaration, allData, fieldHidden, errors); err != nil {
+						return err
+					}
+				}
+				if !fieldHidden {
 					if err := v.validateFieldRules(run, fieldValue, errors); err != nil {
 						return err
 					}
@@ -150,15 +155,20 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 			if present && !isObject(fieldValue) {
 				return &FormInputError{Message: "Group data must be an object: " + pathToString(fieldPath)}
 			}
-			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, run.declaration, allData, errors); err != nil {
+			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, run.declaration, allData, fieldHidden, errors); err != nil {
 				return err
 			}
-			if err := v.validateFieldRules(run, fieldValue, errors); err != nil {
-				return err
+			if !fieldHidden {
+				if err := v.validateFieldRules(run, fieldValue, errors); err != nil {
+					return err
+				}
 			}
 			continue
 		}
 
+		if fieldHidden {
+			continue
+		}
 		var err error
 		if isMultiple && present {
 			err = v.validateMultipleFieldRules(run, fieldValue.(map[string]any), errors)
@@ -170,6 +180,31 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 		}
 	}
 	return nil
+}
+
+// fieldVisible resolves a field's design.show in its row context like a
+// conditional parameter: a condition map selects its value, a ternary its
+// branch and a condition expression its result. Only a resolved false hides the
+// field; a field without design.show, and a condition map that selects nothing,
+// are visible.
+func (v *Validator) fieldVisible(field *compose.OMap, path []string, allData map[string]any) bool {
+	design, ok := fieldDesign(field)
+	if !ok || !design.Has("show") {
+		return true
+	}
+	show, _ := design.Get("show")
+	resolved, _ := v.resolveRuleValue("show", show, path, allData)
+	return resolved != false
+}
+
+// fieldDesign returns a field's design object.
+func fieldDesign(field *compose.OMap) (*compose.OMap, bool) {
+	raw, ok := field.Get("design")
+	if !ok {
+		return nil, false
+	}
+	design, ok := raw.(*compose.OMap)
+	return design, ok && design != nil
 }
 
 // validateMultipleFieldRules runs collection rules on the keyed rows, then row
@@ -298,9 +333,16 @@ func isConditionalRuleValue(ruleName string, ruleValue any) bool {
 		if _, ok := parseTernary(value); ok {
 			return true
 		}
-		return isConditionExpression(value) && !ternaryRE.MatchString(value)
+		return isConditionExpression(value) && !ternaryRE.MatchString(value) && isValidExpression(value)
 	}
 	return false
+}
+
+// isValidExpression reports whether a string parses as a complete expression;
+// any other string is a literal.
+func isValidExpression(expression string) bool {
+	_, err := expr.Parse(expression)
+	return err == nil
 }
 
 // resolveRuleValue resolves a rule value to the effective param (G1) and reports
@@ -318,12 +360,12 @@ func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []stri
 	}
 	switch value := ruleValue.(type) {
 	case *compose.OMap:
-		return v.resolveConditionMap(value, path, allData), true
+		return resolveConditionMap(value, path, allData), true
 	case string:
 		if node, ok := parseTernary(value); ok {
 			return expr.NewEvaluator(allData, path).EvaluateValue(node), true
 		}
-		return v.evaluateExpressionValue(value, path, allData), true
+		return evaluateExpressionValue(value, path, allData), true
 	}
 	return ruleValue, false
 }
@@ -331,12 +373,12 @@ func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []stri
 // resolveConditionMap evaluates a condition map (expressions.md §8): keys in
 // declaration order, first truthy key's value wins; else the "true" key; else nil
 // (rule disabled). JS resolveConditionMap.
-func (v *Validator) resolveConditionMap(m *compose.OMap, path []string, allData map[string]any) any {
+func resolveConditionMap(m *compose.OMap, path []string, allData map[string]any) any {
 	for _, key := range m.Keys() {
 		if key == expr.DefaultKey {
 			continue // default evaluated last
 		}
-		if v.evaluateCondition(key, path, allData) {
+		if evaluateCondition(key, path, allData) {
 			val, _ := m.Get(key)
 			return val
 		}
@@ -363,7 +405,7 @@ func parseTernary(expression string) (expr.Node, bool) {
 
 // evaluateCondition evaluates a condition string to a boolean (JS
 // evaluateCondition wrapper — a parse/eval error is false).
-func (v *Validator) evaluateCondition(expression string, path []string, allData map[string]any) bool {
+func evaluateCondition(expression string, path []string, allData map[string]any) bool {
 	ok, err := expr.Evaluate(expression, allData, path)
 	if err != nil {
 		return false
@@ -373,7 +415,7 @@ func (v *Validator) evaluateCondition(expression string, path []string, allData 
 
 // evaluateExpressionValue evaluates a plain expression to its value (JS
 // evaluateExpressionValue wrapper — a parse/eval error is false).
-func (v *Validator) evaluateExpressionValue(expression string, path []string, allData map[string]any) any {
+func evaluateExpressionValue(expression string, path []string, allData map[string]any) any {
 	val, err := expr.EvaluateValue(expression, allData, path)
 	if err != nil {
 		return false
@@ -395,17 +437,19 @@ func fieldType(field *compose.OMap) string {
 	return ""
 }
 
-// fieldIsMultiple reports whether a field repeats (multiple:true or multiple:{}).
+// fieldIsMultiple reports whether a field repeats (multiple: true, only or an object).
 func fieldIsMultiple(field *compose.OMap) bool {
 	v, ok := field.Get("multiple")
 	if !ok {
 		return false
 	}
-	if b, ok := v.(bool); ok {
-		return b
-	}
-	if _, ok := v.(*compose.OMap); ok {
-		return true
+	switch value := v.(type) {
+	case bool:
+		return value
+	case string:
+		return value == "only"
+	case *compose.OMap:
+		return value != nil
 	}
 	return false
 }

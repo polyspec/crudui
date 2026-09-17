@@ -142,7 +142,7 @@ describe('multiple layout declarations', () => {
     }
     expect(compile({ type: 'text', lang: { only: ['ko', 'en'] } })).not.toThrow();
     expect(compile({ type: 'text', multiple: 'yes', lang: null }))
-      .toThrow('Invalid multiple at rows: expected a boolean or an object');
+      .toThrow('Invalid multiple at rows: expected a boolean, only or an object');
   });
 });
 

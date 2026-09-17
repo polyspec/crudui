@@ -50,6 +50,8 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 		return checkLengthLimit(rule, param)
 	case "rangelength":
 		return checkLengthRange(param)
+	case "number", "digits", "min", "max", "range", "step", "mincount", "maxcount":
+		return checkNumericParameter(rule, param)
 	case "in":
 		return checkIn(param)
 	case "match", "pattern":

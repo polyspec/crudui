@@ -155,17 +155,10 @@ export function equalOrdered(actual, expected, path = '$') {
   }
 }
 
+// Node and widget models have one member order in every runtime (docs/spec/form-runtime.md).
 export function equalModels(actual, expected, path = '$') {
   assert.deepStrictEqual(actual, expected, `Different model at ${path}`);
-  const visit = (a, e, name) => {
-    if (Array.isArray(a)) return a.forEach((value, index) => visit(value, e[index], `${name}[${index}]`));
-    if (!object(a)) return;
-    for (const key of Object.keys(a)) {
-      if (key === 'attrs' || (name.endsWith('.extra') && object(a[key]))) equalOrdered(a[key], e[key], `${name}.${key}`);
-      else visit(a[key], e[key], `${name}.${key}`);
-    }
-  };
-  visit(actual, expected, path);
+  equalOrdered(actual, expected, path);
 }
 
 export function equalState(actual, expected) {

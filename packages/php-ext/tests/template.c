@@ -98,7 +98,7 @@ int main(void)
         {NULL, ps_null_value(), "Invalid lang at rows: expected a boolean or an object"},
         {NULL, ps_string_value("ko"), "Invalid lang at rows: expected a boolean or an object"},
         {NULL, array(), "Invalid lang at rows: expected a boolean or an object"},
-        {ps_string_value("yes"), ps_null_value(), "Invalid multiple at rows: expected a boolean or an object"},
+        {ps_string_value("yes"), ps_null_value(), "Invalid multiple at rows: expected a boolean, only or an object"},
     };
     for (size_t i = 0; i < sizeof(languages) / sizeof(languages[0]); ++i) {
         ps_value *rows = field("text");

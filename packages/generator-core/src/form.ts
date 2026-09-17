@@ -1,8 +1,10 @@
 import { FormInputError, type FileLoader } from '@crudui/validator';
-import { composeProperties, MemoryLoader } from '@crudui/validator/internal';
+import { checkOptionText, checkedComposition, composeProperties, MemoryLoader } from '@crudui/validator/internal';
+import { checkBindText } from './input-text';
 import { makeTranslate, type Language } from './content';
 import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
 import { formMessages } from './messages';
+import { checkFormTemplate } from './template-shape';
 import { buildField, type BuildState, type NodeVM, type UnsupportedMode } from './viewmodel';
 
 /** A data-independent field blueprint. Repeated children are stored just once. */
@@ -85,19 +87,22 @@ function conditionValue(value: unknown): boolean {
 /** A child that renders one scalar value: not repeated, not a group and not a language field. */
 function scalarChild(child: unknown): boolean {
   if (!isRecord(child)) return false;
-  const repeated = child.multiple === true || isRecord(child.multiple);
+  const repeated = child.multiple === true || child.multiple === 'only' || isRecord(child.multiple);
   const lang = child.lang === true || isRecord(child.lang);
   return child.type !== 'group' && !('properties' in child) && !repeated && !lang;
 }
 
 /** Keys of the buckets the schema closes; any other key in them is rejected. */
 const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
-  multiple: ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+  multiple: ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
   lang: ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'],
   design: ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
   node: ['class', 'style'],
   behavior: ['onchange', 'onclick', 'onload'],
 };
+
+/** Keys `multiple` accepts beside `only: true`. */
+const ONLY_MULTIPLE_KEYS: readonly string[] = ['only', 'title', 'header'];
 
 /**
  * Reject an unknown key or a wrong value type in one field's `multiple`, `lang`, `design` and
@@ -120,9 +125,18 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
   }
   if (has(spec, 'multiple')) {
     const multiple = spec.multiple;
-    if (typeof multiple !== 'boolean' && !isRecord(multiple)) fail('multiple', 'a boolean or an object');
+    if (typeof multiple !== 'boolean' && multiple !== 'only' && !isRecord(multiple)) {
+      fail('multiple', 'a boolean, only or an object');
+    }
     if (isRecord(multiple)) {
       closed(multiple, 'multiple', CLOSED_BUCKET_KEYS.multiple!);
+      if (has(multiple, 'only') && typeof multiple.only !== 'boolean') fail('multiple.only', 'a boolean');
+      // Rows of a data-only collection come from the data: row limits and row controls do not apply.
+      if (multiple.only === true) {
+        for (const key of Object.keys(multiple)) {
+          if (!ONLY_MULTIPLE_KEYS.includes(key)) throw new FormInputError(`Invalid multiple.${key} at ${path}: unknown key`);
+        }
+      }
       for (const key of ['min', 'max']) {
         if (has(multiple, key) && typeof multiple[key] !== 'number') fail(`multiple.${key}`, 'a number');
       }
@@ -245,6 +259,9 @@ export function compileForm(
   rootSpec: Record<string, unknown>,
   options: CompileFormOptions = {}
 ): FormTemplate {
+  // Input text is checked first (docs/spec/input-text.md).
+  const checkedLoader = checkedComposition(rootSpec, options);
+  checkOptionText(options, ['basepath', 'keyPrefix']);
   if (rootSpec.type !== 'group' || !rootSpec.properties ||
       typeof rootSpec.properties !== 'object' || Array.isArray(rootSpec.properties)) {
     throw new FormInputError('A form spec must be a group with properties');
@@ -252,7 +269,7 @@ export function compileForm(
   checkFormDeclarations(rootSpec);
   const properties = composeProperties(
     (rootSpec.properties as Record<string, unknown>) ?? {},
-    options.loader ?? new MemoryLoader(options.files ?? {}),
+    checkedLoader ?? new MemoryLoader(options.files ?? {}),
     options.basepath ? { basepath: options.basepath } : {}
   );
   return freezeTree({
@@ -270,7 +287,8 @@ export function bindForm(
   data: Record<string, unknown> = {},
   options: BindFormOptions = {}
 ): NodeVM[] {
-  if (template.kind !== 'crudui/form-template') throw new FormInputError('Unsupported form template');
+  checkBindText(template, data, options);
+  checkFormTemplate(template);
   const language = options.language ?? 'ko';
   // Callers can pass decoded JSON; each text option is a string when present.
   if (typeof language !== 'string') throw new FormInputError('Language must be a string');

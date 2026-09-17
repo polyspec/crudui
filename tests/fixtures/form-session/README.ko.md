@@ -16,6 +16,13 @@
   배열, 네이티브 `FormData`, 레코드 복원, 요소 ID의 고유성을 확인합니다.
 - [`initialization.mjs`](initialization.mjs)는 `compareServerTakeover`와 `compareInitialization`을
   내보냅니다.
+- [`data-rows.mjs`](data-rows.mjs)는 `onlySpec`, `onlyData`, `exerciseOnlyRows`를 내보냅니다.
+  `exerciseOnlyRows`는 데이터가 없는 `multiple: only` 컬렉션에 행과 행 컨트롤이 없고, `setData` 뒤에는
+  데이터의 행만 그 키로 가지며, `addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow`가 데이터와
+  화면을 바꾸지 않고 `INVALID_FORM_INPUT`과 `Rows of variants come only from data`로 실패하는지
+  확인합니다. 또한 `visibilitySpec`, `visibilityData`, `exerciseHiddenValues`를 내보냅니다.
+  `exerciseHiddenValues`는 `design.show`가 읽는 체크박스를 눌러 그룹을 숨기고 다시 보이며, 숨긴 동안
+  설정한 값을 포함해 그룹의 값이 컨트롤과 `getData()`에 남는지 확인합니다.
 
 ## 비교
 
@@ -29,7 +36,8 @@
 
 [React](../../../packages/generator-react/src/__tests__/Form.test.tsx),
 [Vue](../../../packages/generator-vue/test/form-session.test.mjs),
-[Svelte](../../../packages/generator-svelte/test/form-session.client.mjs) 폼 검사가 세 모듈을 모두
+[Svelte](../../../packages/generator-svelte/test/form-session.client.mjs) 폼 검사와
+[HTML 렌더러 세션 검사](../../../packages/generator-html/src/form-session.test.ts)가 네 모듈을 모두
 사용합니다. [코어 폼 검사](../../../packages/generator-core/src/form.test.ts)는 시나리오의 `spec`,
 `data`, 행 키, `storesPath`를 사용합니다.
 

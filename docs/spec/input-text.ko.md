@@ -1,0 +1,105 @@
+# 입력 텍스트
+
+[English](input-text.md).
+
+명세와 데이터의 텍스트는 유니코드 스칼라 값의 나열입니다. 코드 포인트 U+0000부터 U+D7FF까지와
+U+E000부터 U+10FFFF까지입니다. 모든 런타임은 아래 규칙을 같은 연산에서 같은 순서와 같은 실패로
+적용합니다. 규칙을 어긴 텍스트는 거부합니다. U+FFFD 같은 문자로 바꾸지 않고 결과로 넘기지도
+않습니다.
+
+## 잘못된 텍스트
+
+| 런타임 값 | 잘못된 텍스트 |
+| --- | --- |
+| JavaScript 문자열 | 상위·하위 쌍을 이루지 않는 서로게이트 코드 유닛 |
+| PHP, Go, C 문자열 | UTF-8이 아닌 바이트. 인코딩된 서로게이트, 과잉 길이 형식, U+10FFFF를 넘는 값을 포함합니다 |
+| Rust `String` | 없음. 이 타입은 유니코드 스칼라 값만 담습니다 |
+| JSON 텍스트 | `"\ud800"`이나 순서가 뒤바뀐 `"\udc00\ud800"`처럼 쌍을 이루지 않는 서로게이트의 `\u` 이스케이프 |
+
+규칙은 모든 깊이의 모든 문자열 값과 객체 멤버 이름에 적용합니다. 숫자, 불리언, `null`에는 텍스트가
+없습니다.
+
+## 연산과 순서
+
+각 연산은 인수 형태 검사를 포함한 다른 모든 검사보다 먼저 텍스트를 검사합니다. 검사 순서는
+다음과 같습니다.
+
+1. 명세, 이어서 명세가 읽는 합성 파일.
+2. 나머지 인수. 표의 순서를 따릅니다.
+3. 옵션. 이름의 코드 포인트 순서를 따릅니다.
+
+| 연산 | 명세 | 나머지 인수 | 옵션 |
+| --- | --- | --- | --- |
+| `validate` | `spec`, `files` | `data` | `basepath` |
+| `validateList`, `validateDetail` | `spec`, `files` | | `basepath` |
+| `compileForm` | `spec`, `files` | | `basepath`, `keyPrefix` |
+| `bindForm`, `bindButtons`, `createForm` | | `template`, `data` | `idPrefix`, `keyPrefix`, `language`, `unsupported` |
+| `buildList`, `renderList` | `spec`, `files` | `rows` | `basepath`, `data`, `language`, `layout` |
+| `buildDetail`, `renderDetail` | `spec`, `files` | `record` | `basepath`, `data`, `language`, `layout` |
+| Form `setData` | | `data` | |
+| Form `setValue` | | `path`, `value` | |
+| Form `getValue` | | `path` | |
+| Form `addRow` | | `path` | `afterKey`, `key`, `value` |
+| Form `copyRow` | | `path`, `key` | `afterKey`, `key` |
+| Form `removeRow`, `moveRow` | | `path`, `key` | |
+| Form `rekeyRow` | | `path`, `oldKey`, `newKey` | |
+
+이름은 문서에 정의한 인수와 옵션 이름입니다. Go의 `KeyPrefix`나 Rust의 `key_prefix`처럼 런타임이
+다르게 표기해도 같은 이름으로 보고합니다. 호출자가 주지 않은 옵션은 검사하지 않습니다. `files`
+대신 사용자 정의 로더로 합성하는 연산은 로더가 문서를 반환할 때 그 문서를 검사합니다.
+
+한 값 안에서는 배열 항목을 인덱스 순서로 방문합니다. 객체는 먼저 모든 멤버 이름을 검사하고, 이어서
+멤버를 이름의 코드 포인트 순서로 방문합니다. 처음 찾은 잘못된 텍스트를 보고합니다.
+
+## 실패
+
+명세나 합성 파일의 실패는 합성 로드 실패입니다.
+
+- 코드 `INVALID_TEXT`
+- 메시지 `Text must be Unicode scalar values`
+- 위치: 문자열의 경로를 `.`로 이은 값이며 배열 항목은 인덱스입니다. 잘못된 멤버 이름은 그 멤버를
+  가진 객체에 위치합니다. 파일 안의 경로는 파일 이름으로 시작합니다. 잘못된 파일 이름과 명세 루트의
+  잘못된 멤버 이름은 빈 경로에 위치합니다.
+
+다른 인수나 옵션의 실패는 입력 실패입니다.
+
+- 코드 `INVALID_FORM_INPUT`
+- 메시지 `Text must be Unicode scalar values: {name}`. `{name}`은 인수 이름, 또는 `options.`와
+  옵션 이름이며 그 뒤에 값 안의 경로가 붙습니다. 예: `data.rows.k1.name`, `options.data.admin`
+- 빈 위치
+
+| 런타임 | 로드 실패 | 입력 실패 |
+| --- | --- | --- |
+| JavaScript | `ComposeLoadError` | `FormInputError` |
+| PHP와 PHP 확장, 검증 | `ComposeLoadError` | `FormInputError` |
+| PHP와 PHP 확장, 생성 | `ComposeLoadError` | `FormError` |
+| Go | `*compose.ComposeLoadError` | 검증은 `*validate.FormInputError`, 생성은 메시지를 담은 오류 |
+| Rust | `ValidateError::Load` 또는 `FormError` 안의 `ComposeLoadError` | `ValidateError::Input` 또는 `FormError` 안의 `FormInputError` |
+
+## JSON 텍스트
+
+쌍이 없는 서로게이트 이스케이프를 바꾸거나 거부하는 JSON 디코더는 그 텍스트를 규칙에 넘길 수
+없습니다. 그래서 각 런타임은 텍스트를 보존하는 디코더로 JSON 텍스트를 읽습니다.
+
+- JavaScript: `JSON.parse`는 각 이스케이프를 코드 유닛으로 보존합니다.
+- Go: `compose.DecodeOrdered`, `generator.DecodeJSON`과 `ValidateJSON`, `ValidateListJSON`,
+  `ValidateDetailJSON` 진입점은 이스케이프된 서로게이트를 3바이트로, UTF-8이 아닌 바이트를 그대로
+  보존하므로 검사가 둘 다 보고합니다. `encoding/json`만 쓰면 둘 다 바뀝니다.
+  `compose.DecodeRawMembers`는 값을 디코딩하지 않고 객체를 멤버로 나눕니다.
+  `generator.CheckBindText`는 `FormTemplate` 디코딩 전에 디코딩된 템플릿을 검사합니다.
+  `FormTemplate`의 JSON 인코딩은 잘못된 텍스트를 바꾸기 때문입니다.
+- PHP: `CRUDUI\Validator\Support\JsonText::decode`는
+  `json_decode($json, false, 512, JSON_THROW_ON_ERROR)`와 같은 값을 반환하고, 이스케이프된
+  서로게이트를 3바이트로 보존합니다. 이 클래스는 의존성이 없습니다.
+- Rust: `crudui_validator::text::JsonText`는 아무것도 바꾸지 않고 텍스트를 읽습니다.
+  `validate_text`, `validate_list_text`, `validate_detail_text`는 이 값으로 검증 진입점을 실행하고,
+  `crudui_generator::text`는 생성 진입점의 검사를 제공합니다.
+
+JSON 텍스트는 UTF-8입니다. JSON 요청을 읽는 프로그램은 디코딩 전에 UTF-8이 아닌 입력을 잘못된
+JSON으로 거부합니다.
+
+## 공유 케이스
+
+[`tests/fixtures/text-validity`](../../tests/fixtures/text-validity/README.ko.md)에는 연산마다
+케이스 파일이 하나씩 있습니다. JSON 텍스트로 전달할 수 없는 바이트 문자열은 바이트 문자열 런타임의
+각 테스트가 검사합니다.

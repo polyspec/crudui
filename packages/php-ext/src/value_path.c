@@ -61,9 +61,9 @@ ps_chars ps_scalar_string(const ps_value *value)
         return ps_copy(PS_TEXT(""));
     if (value->kind == PS_STRING) return ps_copy(ps_string(value));
     if (value->kind == PS_BOOL) return ps_copy(value->data.boolean ? PS_TEXT("1") : PS_TEXT(""));
+    if (value->kind != PS_INT) return ps_format_general(value->data.number, 15);
     char buffer[64];
-    if (value->kind == PS_INT) snprintf(buffer, sizeof(buffer), "%lld", (long long)value->data.integer);
-    else snprintf(buffer, sizeof(buffer), "%.15g", value->data.number);
+    snprintf(buffer, sizeof(buffer), "%lld", (long long)value->data.integer);
     return ps_copy(ps_fixed(buffer));
 }
 

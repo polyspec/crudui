@@ -54,3 +54,31 @@ it('connects labels and preserves multiple choice values through editing and sub
     });
   } finally { view.unmount(); element.remove(); }
 });
+
+// @ts-expect-error Shared data-only collection and visibility assertions across frameworks.
+import { onlySpec, exerciseOnlyRows, visibilitySpec, visibilityData, exerciseHiddenValues } from '../../../../tests/fixtures/form-session/data-rows.mjs';
+it('keeps a data-only collection to the rows of its data', async () => {
+  const session = createForm(compileForm(onlySpec));
+  const element = document.createElement('form');
+  document.body.append(element);
+  const view = render(<Form form={session} />, { container: element });
+  try {
+    await act(async () => {
+      await proves('data-rows.mjs', 'exerciseOnlyRows', ['connectForm'], () =>
+        exerciseOnlyRows({ element, session, expect, flush: async () => { await act(async () => {}); } }));
+    });
+  } finally { view.unmount(); element.remove(); }
+});
+
+it('keeps the values of a group hidden by design.show', async () => {
+  const session = createForm(compileForm(visibilitySpec), visibilityData);
+  const element = document.createElement('form');
+  document.body.append(element);
+  const view = render(<Form form={session} />, { container: element });
+  try {
+    await act(async () => {
+      await proves('data-rows.mjs', 'exerciseHiddenValues', ['connectForm'], () =>
+        exerciseHiddenValues({ element, session, expect, flush: async () => { await act(async () => {}); } }));
+    });
+  } finally { view.unmount(); element.remove(); }
+});

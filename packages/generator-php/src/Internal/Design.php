@@ -6,9 +6,10 @@ namespace CRUDUI\Generator;
 
 use CRUDUI\Validator\Expr\Expression;
 use CRUDUI\Validator\Expr\TernaryNode;
+use CRUDUI\Validator\Expr\Visibility;
 use stdClass;
 
-/** Evaluate visibility and appearance with the shared expression engine. */
+/** Evaluate visibility and appearance with the shared expression engine and visibility rule. */
 final class Design
 {
     private static function condition(string $expression, stdClass $data, array $path, bool $raw = false): mixed
@@ -30,12 +31,19 @@ final class Design
         return $map->true ?? null;
     }
 
-    /** Resolve a visibility value, expression or ordered condition map. */
+    /** Whether a field is visible, by the validator's visibility rule: only a resolved false hides. */
     public static function show(mixed $value, stdClass $data, array $path): bool
     {
-        if ($value === Missing::Value || $value === null) {
-            return true;
-        }
+        return $value === Missing::Value || Visibility::shown($value, $data, $path);
+    }
+
+    /**
+     * A boolean flag other than visibility, such as a list column's `sortable`: a missing value
+     * is false, a condition map that selects nothing is false and an expression that cannot be
+     * evaluated is false.
+     */
+    public static function flag(mixed $value, stdClass $data, array $path): bool
+    {
         if ($value instanceof stdClass) {
             return Value::truthy(self::conditionMap($value, $data, $path));
         }
@@ -45,7 +53,21 @@ final class Design
         return Value::truthy($value);
     }
 
-    /** Resolve appearance text from a literal, expression or condition map. */
+    /** Whether a string parses completely as an expression. */
+    private static function parses(string $value): bool
+    {
+        try {
+            Expression::parse($value);
+            return true;
+        } catch (\InvalidArgumentException|\RuntimeException $error) {
+            return false;
+        }
+    }
+
+    /**
+     * Resolve appearance text from a literal, expression or condition map: a string is an
+     * expression only when it parses completely; any other string is literal text.
+     */
     public static function appearance(mixed $value, stdClass $data, array $path): string
     {
         if ($value === Missing::Value || $value === null) {
@@ -63,7 +85,7 @@ final class Design
                 }
             } catch (\InvalidArgumentException|\RuntimeException $error) {
             }
-            if (Expression::isConditionExpression($value) && !preg_match('/\?[^:]*:/', $value)) {
+            if (Expression::isConditionExpression($value) && !preg_match('/\?[^:]*:/', $value) && self::parses($value)) {
                 $result = self::condition($value, $data, $path, true);
                 return $result === false || $result === null ? '' : Value::string($result);
             }

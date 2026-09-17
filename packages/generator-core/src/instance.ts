@@ -6,6 +6,8 @@ import type { NodeVM } from './viewmodel';
 import { getValueByPath, parsePathString } from './util';
 import { canUndo, canRedo, emptyHistory, recordChange, undoChange, redoChange, type History } from './history';
 import { initialView, rekeyRowView, removeRowView, setAllExpandedView, toggleRowView, type ViewState } from './view';
+import { checkFormTemplate } from './template-shape';
+import { checkArgumentText, checkBindText } from './input-text';
 
 /** Transport key for an existing database sequence. */
 export function sequenceRowKey(sequence: string | number | bigint): string {
@@ -60,7 +62,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function repeats(field: FormFieldTemplate): boolean {
-  return field.spec.multiple === true || isRecord(field.spec.multiple);
+  return field.spec.multiple === true || dataOnly(field) || isRecord(field.spec.multiple);
+}
+
+/** A `multiple: only` collection: its rows come only from the data. */
+function dataOnly(field: FormFieldTemplate): boolean {
+  const multiple = field.spec.multiple;
+  return multiple === 'only' || (isRecord(multiple) && multiple.only === true);
 }
 
 function checkedSegments(path: string): string[] {
@@ -115,6 +123,8 @@ export class FormInstance {
 
   /** Create an instance with independent record data. */
   constructor(template: FormTemplate, data: Record<string, unknown> = {}, options: CreateFormOptions = {}) {
+    checkBindText(template, data, options);
+    checkFormTemplate(template);
     this.template = template;
     this.options = { ...options };
     this.data = this.normalizeFields(template.fields, data);
@@ -147,17 +157,20 @@ export class FormInstance {
 
   /** Read a detached value relative to the data root. */
   getValue(path: string): unknown {
+    checkArgumentText([['path', path]]);
     checkedSegments(path);
     return copyFormValue(getValueByPath(this.data, path));
   }
 
   /** Replace the record after an asynchronous load or save; history and view state restart. */
   setData(data: Record<string, unknown>): void {
+    checkArgumentText([['data', data]]);
     this.commit(this.normalizeFields(this.template.fields, data), { reset: true });
   }
 
   /** Update one data path and reevaluate affected form presentation. */
   setValue(path: string, value: unknown): void {
+    checkArgumentText([['path', path], ['value', value]]);
     const segments = checkedSegments(path);
     this.commit(this.normalizeFields(this.template.fields, putAt(this.data, segments, copyFormValue(value))),
       { path: segments.join('.') });
@@ -165,7 +178,8 @@ export class FormInstance {
 
   /** Insert a blank/defaulted row, or supplied row data, with one new identity. */
   addRow(path: string, options: AddRowOptions = {}): string {
-    const { field, rows } = this.collection(path);
+    checkArgumentText([['path', path]], options, ['afterKey', 'key', 'value']);
+    const { field, rows } = this.editableCollection(path);
     const settings = isRecord(field.spec.multiple) ? field.spec.multiple : {};
     if (typeof settings.max === 'number' && Object.keys(rows).length >= settings.max) {
       throw new FormInputError(`Maximum row count reached: ${path}`);
@@ -183,7 +197,8 @@ export class FormInstance {
 
   /** Copy current values and give every descendant repeated row a fresh key. */
   copyRow(path: string, key: string, options: Omit<AddRowOptions, 'value'> = {}): string {
-    const { field, rows } = this.collection(path);
+    checkArgumentText([['path', path], ['key', key]], options, ['afterKey', 'key']);
+    const { field, rows } = this.editableCollection(path);
     if (!hasOwn(rows, key)) throw new FormInputError(`Unknown row: ${key}`);
     const value = this.copyRowValue(field, rows[key]);
     return this.addRow(path, { ...options, afterKey: options.afterKey ?? key, value });
@@ -191,7 +206,8 @@ export class FormInstance {
 
   /** Remove one row unless the minimum count would be violated. */
   removeRow(path: string, key: string): void {
-    const { field, rows } = this.collection(path);
+    checkArgumentText([['path', path], ['key', key]]);
+    const { field, rows } = this.editableCollection(path);
     if (!hasOwn(rows, key)) throw new FormInputError(`Unknown row: ${key}`);
     const settings = isRecord(field.spec.multiple) ? field.spec.multiple : {};
     if (typeof settings.min === 'number' && Object.keys(rows).length <= settings.min) {
@@ -205,7 +221,8 @@ export class FormInstance {
 
   /** Change order without changing row keys, values or descendant identities. */
   moveRow(path: string, key: string, toIndex: number): void {
-    const { rows } = this.collection(path);
+    checkArgumentText([['path', path], ['key', key]]);
+    const { rows } = this.editableCollection(path);
     const entries = Object.entries(rows);
     const from = entries.findIndex(([k]) => k === key);
     if (from === -1) throw new FormInputError(`Unknown row: ${key}`);
@@ -220,7 +237,8 @@ export class FormInstance {
 
   /** Apply a saved seq key to exactly one row. Descendant paths and view state follow. */
   rekeyRow(path: string, oldKey: string, newKey: string): void {
-    const { rows } = this.collection(path);
+    checkArgumentText([['path', path], ['oldKey', oldKey], ['newKey', newKey]]);
+    const { rows } = this.editableCollection(path);
     checkKey(newKey);
     if (!hasOwn(rows, oldKey)) throw new FormInputError(`Unknown row: ${oldKey}`);
     if (oldKey === newKey) return;
@@ -317,9 +335,9 @@ export class FormInstance {
       const fieldPath = path ? `${path}.${field.name}` : field.name;
       if (repeats(field)) {
         const rows: Record<string, unknown> = {};
-        // Missing data creates one usable prototype. Explicit {} means zero rows.
+        // Missing data creates one usable prototype, except in a data-only collection. Explicit {} means zero rows.
         if (raw !== undefined && !isRecord(raw)) throw new FormInputError(`Repeated data must be a keyed object: ${fieldPath}`);
-        const entries = raw === undefined ? [[this.freshKey(new Set()), undefined] as const]
+        const entries = raw === undefined ? (dataOnly(field) ? [] : [[this.freshKey(new Set()), undefined] as const])
           : Object.entries(raw as Record<string, unknown>);
         for (const [key, row] of entries) {
           checkKey(key);
@@ -363,6 +381,13 @@ export class FormInstance {
       }
     }
     return out;
+  }
+
+  /** A collection whose rows the form may add, copy, remove, move or rekey. */
+  private editableCollection(path: string): { field: FormFieldTemplate; rows: Record<string, unknown> } {
+    const found = this.collection(path);
+    if (dataOnly(found.field)) throw new FormInputError(`Rows of ${path} come only from data`);
+    return found;
   }
 
   private collection(path: string): { field: FormFieldTemplate; rows: Record<string, unknown> } {

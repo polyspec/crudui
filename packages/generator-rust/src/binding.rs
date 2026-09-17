@@ -147,6 +147,8 @@ pub(crate) fn bind_ordered(
 
 /// Evaluated controls and limits for a repeated field.
 struct Multiple {
+    /// Rows come only from the data: missing data is zero rows and no row control renders.
+    only: bool,
     min: Option<f64>,
     max: Option<f64>,
     copy: bool,
@@ -159,6 +161,17 @@ struct Multiple {
 fn multiple(spec: &Value) -> Option<Multiple> {
     match spec.get("multiple") {
         Some(Value::Bool(true)) => Some(Multiple {
+            only: false,
+            min: None,
+            max: None,
+            copy: false,
+            sortable: false,
+            title: None,
+            controls: "header",
+            sticky: false,
+        }),
+        Some(Value::String(keyword)) if keyword == "only" => Some(Multiple {
+            only: true,
             min: None,
             max: None,
             copy: false,
@@ -168,6 +181,7 @@ fn multiple(spec: &Value) -> Option<Multiple> {
             sticky: false,
         }),
         Some(Value::Object(m)) => Some(Multiple {
+            only: m.get("only").is_some_and(|v| *v == true),
             min: m.get("min").and_then(Value::as_f64),
             max: m.get("max").and_then(Value::as_f64),
             copy: m.get("copy").is_some_and(|v| *v == true),
@@ -216,9 +230,11 @@ fn lang(spec: &Value) -> Option<Lang<'_>> {
     }
 }
 
-/// Row keys of a keyed collection. Missing data has one initial row.
-fn rows(value: Option<&Value>, path: &str) -> FormResult<Vec<String>> {
+/// Row keys of a keyed collection. Missing data has one initial row, or none in a
+/// data-only collection.
+fn rows(value: Option<&Value>, path: &str, only: bool) -> FormResult<Vec<String>> {
     match value {
+        None if only => Ok(Vec::new()),
         None => Ok(vec!["__0000000000000__".into()]),
         Some(Value::Object(m)) => Ok(m.keys().cloned().collect()),
         Some(_) => Err(FormError::input(format!(
@@ -285,6 +301,22 @@ fn node_body(class: &str, inline: &str, id: Option<String>) -> Value {
         put_nonempty(&mut body, "id", id);
     }
     body.into()
+}
+
+fn row_controls(settings: &Multiple, messages: &Messages, index: usize, count: usize) -> Value {
+    let full = settings.max.is_some_and(|max| count as f64 >= max);
+    let mut actions = Vec::new();
+    if settings.sortable {
+        actions.push(action("move-up", messages.move_up, index == 0));
+        actions.push(action("move-down", messages.move_down, index + 1 == count));
+    }
+    actions.push(action("add-row", messages.add_row, full));
+    if settings.copy {
+        actions.push(action("copy-row", messages.copy_row, full));
+    }
+    let minimum = settings.min.is_some_and(|min| count as f64 <= min);
+    actions.push(action("remove-row", messages.remove_row, minimum));
+    json!({"placement": settings.controls, "label": messages.row_controls, "actions": actions})
 }
 
 fn action(name: &str, label: &str, disabled: bool) -> Value {
@@ -459,7 +491,7 @@ impl Binding<'_> {
         settings: &Multiple,
         scope: &Scope,
     ) -> FormResult<Value> {
-        let keys = rows(value_at(self.data, path), path)?;
+        let keys = rows(value_at(self.data, path), path, settings.only)?;
         let item = if spec["type"] == "group" {
             "group"
         } else {
@@ -497,7 +529,7 @@ impl Binding<'_> {
         }
         node.insert("body".into(), node_body("", "", None));
         put_string(&mut node, "item", item);
-        if keys.is_empty() {
+        if keys.is_empty() && !settings.only {
             node.insert(
                 "controls".into(),
                 json!({
@@ -531,27 +563,18 @@ impl Binding<'_> {
         inner.row_segments.push(segments(collection).len());
         inner.row_numbers.push(index + 1);
         inner.sticky_depth += usize::from(settings.sticky);
-        let full = settings.max.is_some_and(|max| count as f64 >= max);
-        let mut actions = Vec::new();
-        if settings.sortable {
-            actions.push(action("move-up", messages.move_up, index == 0));
-            actions.push(action("move-down", messages.move_down, index + 1 == count));
-        }
-        actions.push(action("add-row", messages.add_row, full));
-        if settings.copy {
-            actions.push(action("copy-row", messages.copy_row, full));
-        }
-        let minimum = settings.min.is_some_and(|min| count as f64 <= min);
-        actions.push(action("remove-row", messages.remove_row, minimum));
         let mut row = Map::new();
         put_string(&mut row, "kind", "row");
         put_string(&mut row, "key", key);
         put_string(&mut row, "className", "");
         row.insert("hidden".into(), false.into());
-        row.insert(
-            "controls".into(),
-            json!({"placement": settings.controls, "label": messages.row_controls, "actions": actions}),
-        );
+        // Rows of a data-only collection have no row controls.
+        if !settings.only {
+            row.insert(
+                "controls".into(),
+                row_controls(settings, messages, index, count),
+            );
+        }
         if settings.sticky {
             row.insert("sticky".into(), true.into());
             row.insert("stickyDepth".into(), scope.sticky_depth.into());

@@ -59,10 +59,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const name = index === -1 ? 'react' : process.argv[index + 1];
     const renderers = { react, html };
     if (!Object.hasOwn(renderers, name)) throw new FormInputError('Unknown JavaScript renderer');
-    let input = '';
-    for await (const chunk of process.stdin) input += chunk;
+    const chunks = [];
+    for await (const chunk of process.stdin) chunks.push(chunk);
     let request;
-    try { request = JSON.parse(input); } catch { throw new FormInputError('Request must be valid JSON'); }
+    // Standard input that is not UTF-8 is not JSON text; it is never decoded with replacements.
+    try { request = JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(Buffer.concat(chunks))); }
+    catch { throw new FormInputError('Request must be valid JSON'); }
     process.stdout.write(`${JSON.stringify(createDispatch(renderers[name])(request))}\n`);
   } catch (error) {
     process.stdout.write(`${JSON.stringify({ error: errorRecord(error) })}\n`);

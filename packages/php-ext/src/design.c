@@ -8,21 +8,11 @@ static ps_chars empty_string(void)
     return ps_copy(PS_TEXT(""));
 }
 
+/* Only a design.show that resolves to false hides a field; *failed reports an allocation failure. */
 static bool show_value(const ps_value *value, const ps_value *data,
-                       const ps_text *path, size_t path_length)
+                       const ps_text *path, size_t path_length, bool *failed)
 {
-    if (!value || value->kind == PS_NULL) return true;
-    if (value->kind == PS_OBJECT) {
-        ps_value *selected = ps_condition_value(value, data, path, path_length);
-        bool result = ps_truthy(selected);
-        ps_value_free(selected); return result;
-    }
-    if (value->kind == PS_STRING) {
-        bool parsed = false;
-        bool result = ps_expression_truth(ps_string(value), data, path, path_length, &parsed);
-        return parsed && result;
-    }
-    return ps_truthy(value);
+    return ps_shown(value, data, path, path_length, failed);
 }
 
 static bool ternary_text(ps_text value)
@@ -56,7 +46,9 @@ static ps_chars appearance(const ps_value *value, const ps_value *data,
         if (ps_condition_expression(text) && !ternary_text(text)) {
             bool parsed = false;
             ps_value *selected = ps_expression_value(text, data, path, path_length, &parsed);
-            if (!parsed || !selected || selected->kind == PS_NULL ||
+            /* A string that does not parse completely is literal text. */
+            if (!parsed) { ps_value_free(selected); return ps_copy(text); }
+            if (!selected || selected->kind == PS_NULL ||
                 (selected->kind == PS_BOOL && !selected->data.boolean)) {
                 ps_value_free(selected); return empty_string();
             }
@@ -108,9 +100,10 @@ ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path)
                                   path_parts, path_length);
     ps_value *prepend = design_node(object ? ps_get(object, "prepend") : NULL, data,
                                     path_parts, path_length);
+    bool failed = false;
     ps_value *show = ps_bool_value(show_value(object ? ps_get(object, "show") : NULL,
-                                              data, path_parts, path_length));
-    bool ok = result && main && label && wrapper && group && prepend && show;
+                                              data, path_parts, path_length, &failed));
+    bool ok = !failed && result && main && label && wrapper && group && prepend && show;
     if (ok) ok = set_owned(result, "show", &show);
     if (ok) ok = set_owned(result, "main", &main);
     if (ok) ok = set_owned(result, "label", &label);

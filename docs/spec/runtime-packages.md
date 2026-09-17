@@ -84,7 +84,8 @@ class provenance and method signatures.
 ## Shared contracts and separate responsibilities
 
 All runtimes implement the same [schema](schema.md), [expressions](expressions.md),
-[validation rules](validation-rules.md) and [form runtime](form-runtime.md).
+[validation rules](validation-rules.md), [form runtime](form-runtime.md) and
+[input text](input-text.md) rules.
 Within each runtime, generation and validation reuse composition and expression
 evaluation. Rendering does not redefine requiredness or validation rules.
 

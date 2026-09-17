@@ -26,6 +26,9 @@ type bindState struct {
 
 // BindForm creates the node models of the form grammar without changing the template or record.
 func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Object, error) {
+	if e := CheckBindText(template, data, options); e != nil {
+		return nil, e
+	}
 	if e := checkOrderedValue(data); e != nil {
 		return nil, e
 	}
@@ -92,7 +95,20 @@ func checkGroupData(value any, path string) error {
 	return nil
 }
 func repeated(f FieldTemplate) bool {
-	return read(f.Spec, "multiple") == true || object(read(f.Spec, "multiple")) != nil
+	return repeatedSpec(f.Spec)
+}
+
+// repeatedSpec reports a field declared multiple: true, only or an object.
+func repeatedSpec(spec *Object) bool {
+	v := read(spec, "multiple")
+	return v == true || v == "only" || object(v) != nil
+}
+
+// dataOnly reports a collection declared multiple: only or multiple.only: true, whose rows come
+// only from the data.
+func dataOnly(spec *Object) bool {
+	v := read(spec, "multiple")
+	return v == "only" || read(object(v), "only") == true
 }
 
 // multiple holds the evaluated controls and limits of a repeated field.
@@ -100,22 +116,24 @@ type multiple struct {
 	min, max       float64
 	hasMin, hasMax bool
 	copy, sortable bool
-	title          string
-	hasTitle       bool
-	controls       string
-	header         string
+	// only marks rows that come only from the data.
+	only     bool
+	title    string
+	hasTitle bool
+	controls string
+	header   string
 }
 
 func multipleSettings(spec *Object) *multiple {
 	v := read(spec, "multiple")
-	if v == true {
-		return &multiple{controls: "header", header: "static"}
+	if v == true || v == "only" {
+		return &multiple{only: v == "only", controls: "header", header: "static"}
 	}
 	o := object(v)
 	if o == nil {
 		return nil
 	}
-	m := &multiple{copy: read(o, "copy") == true, sortable: read(o, "sortable") == true, controls: "header", header: "static"}
+	m := &multiple{copy: read(o, "copy") == true, sortable: read(o, "sortable") == true, only: read(o, "only") == true, controls: "header", header: "static"}
 	m.min, m.hasMin = asNumber(read(o, "min"))
 	m.max, m.hasMax = asNumber(read(o, "max"))
 	m.title, m.hasTitle = read(o, "title").(string)
@@ -257,6 +275,8 @@ func buildGroup(f FieldTemplate, path string, d *Object, label, description stri
 func buildCollection(f FieldTemplate, path string, d *Object, label, description string, m *multiple, s bindState) (*Object, error) {
 	var keys []string
 	switch value := getPath(s.data, path); {
+	case isAbsent(value) && m.only:
+		keys = []string{}
 	case isAbsent(value):
 		keys = []string{"__0000000000000__"}
 	case object(value) != nil:
@@ -280,7 +300,7 @@ func buildCollection(f FieldTemplate, path string, d *Object, label, description
 	setHeader(vm, d, "label", label, "description", description, "count", formatCount(s.messages.count, len(keys)))
 	vm.Set("body", nodeBody("", "", ""))
 	vm.Set("item", item)
-	if len(keys) == 0 {
+	if len(keys) == 0 && !m.only {
 		full := m.hasMax && 0 >= m.max
 		vm.Set("controls", NewObject("placement", "footer", "label", s.messages.collectionControls, "actions", []*Object{actionModel("add-row", s.messages.addRow, full)}))
 	}
@@ -298,17 +318,21 @@ func buildRow(f FieldTemplate, collectionPath, key string, index, count int, ite
 	if sticky {
 		rowState.stickyDepth++
 	}
-	full := m.hasMax && float64(count) >= m.max
-	actions := []*Object{}
-	if m.sortable {
-		actions = append(actions, actionModel("move-up", msg.moveUp, index == 0), actionModel("move-down", msg.moveDown, index == count-1))
+	vm := NewObject("kind", "row", "key", key, "className", "", "hidden", false)
+	// Rows that come only from the data have no row controls.
+	if !m.only {
+		full := m.hasMax && float64(count) >= m.max
+		actions := []*Object{}
+		if m.sortable {
+			actions = append(actions, actionModel("move-up", msg.moveUp, index == 0), actionModel("move-down", msg.moveDown, index == count-1))
+		}
+		actions = append(actions, actionModel("add-row", msg.addRow, full))
+		if m.copy {
+			actions = append(actions, actionModel("copy-row", msg.copyRow, full))
+		}
+		actions = append(actions, actionModel("remove-row", msg.removeRow, m.hasMin && float64(count) <= m.min))
+		vm.Set("controls", NewObject("placement", m.controls, "label", msg.rowControls, "actions", actions))
 	}
-	actions = append(actions, actionModel("add-row", msg.addRow, full))
-	if m.copy {
-		actions = append(actions, actionModel("copy-row", msg.copyRow, full))
-	}
-	actions = append(actions, actionModel("remove-row", msg.removeRow, m.hasMin && float64(count) <= m.min))
-	vm := NewObject("kind", "row", "key", key, "className", "", "hidden", false, "controls", NewObject("placement", m.controls, "label", msg.rowControls, "actions", actions))
 	if sticky {
 		vm.Set("sticky", true)
 		vm.Set("stickyDepth", s.stickyDepth)

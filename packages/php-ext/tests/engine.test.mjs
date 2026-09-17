@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { access, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -67,6 +67,20 @@ export class EngineFixtureSource {
 
 /* Shared C value builders; a program includes only the helpers it calls. */
 const fixtureHelpers = [
+  ['crudui_locale_start', [
+      '/*',
+      ' * With CRUDUI_COMMA_LOCALE set, switch to the environment locale and prove that it writes and',
+      ' * reads a comma decimal separator, so the checks that follow run under it.',
+      ' */',
+      'static void crudui_locale_start(void)',
+      '{',
+      '  if (!getenv("CRUDUI_COMMA_LOCALE")) return;',
+      '  char text[16];',
+      '  if (!setlocale(LC_ALL, "") || strcmp(localeconv()->decimal_point, ",") || strtod("1.5", NULL) == 1.5 ||',
+      '      snprintf(text, sizeof(text), "%.1f", 1.5) != 3 || strcmp(text, "1,5"))',
+      '  { fputs("the comma decimal locale is not active\\n", stderr); exit(98); }',
+      '}',
+  ]],
   ['put', [
       'static void put(ps_value *object, ps_text key, ps_value *value)',
       '{ if (!value || !ps_set_text(object, key, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
@@ -136,9 +150,10 @@ function recordCases(cases, stdout) {
   });
 }
 
-export function fixtureProgram(body, declarations = []) {
-  // A helper is included when the program or an included helper calls it.
-  let used = [...declarations, ...body].join('\n');
+export function fixtureProgram(body, declarations = [], { explicitLocale = false } = {}) {
+  // A helper is included when the program or an included helper calls it; every program can run
+  // under a comma decimal locale (commaLocaleEnvironment).
+  let used = [...declarations, ...body, 'crudui_locale_start('].join('\n');
   const included = new Set();
   for (let changed = true; changed;) {
     changed = false;
@@ -154,6 +169,7 @@ export function fixtureProgram(body, declarations = []) {
     .flatMap(([, lines]) => lines);
   return [
     '#include "engine_internal.h"',
+    '#include <locale.h>',
     '#include <stdio.h>',
     '#include <stdlib.h>',
     '#include <string.h>',
@@ -163,11 +179,54 @@ export function fixtureProgram(body, declarations = []) {
     ...declarations,
     'int main(void)',
     '{',
+    ...(explicitLocale ? [] : ['  crudui_locale_start();']),
     ...body,
     '  return 0;',
     '}',
     '',
   ].join('\n');
+}
+
+/*
+ * The environment of a program run under a locale whose decimal separator is a comma. macOS has
+ * de_DE.UTF-8; a Linux toolchain without locale data gets a locale compiled into the directory
+ * from a definition that sets only the numeric category.
+ */
+export async function commaLocaleEnvironment(directory, signal) {
+  if (process.platform === 'darwin') {
+    const listed = await runStep('comma locale: listing', 'locale', ['-a'], { signal });
+    assert.match(listed.stdout, /^de_DE\.UTF-8$/m, 'macOS provides the de_DE.UTF-8 locale');
+    return { ...process.env, CRUDUI_COMMA_LOCALE: '1', LC_ALL: 'de_DE.UTF-8' };
+  }
+  const source = path.join(directory, 'comma-locale');
+  const charmap = path.join(directory, 'ascii.charmap');
+  const locales = path.join(directory, 'locales');
+  await writeFile(source, 'LC_NUMERIC\ndecimal_point "<U002C>"\nthousands_sep "<U002E>"\ngrouping 3\nEND LC_NUMERIC\n');
+  const characters = [];
+  for (let code = 0; code < 128; code += 1) {
+    const hex = code.toString(16).padStart(2, '0');
+    characters.push(`<U00${hex.toUpperCase()}> /x${hex} CHARACTER ${code}`);
+  }
+  await writeFile(charmap, ['<code_set_name> CRUDUI-ASCII', '<comment_char> %', '<escape_char> /',
+    '<mb_cur_min> 1', '<mb_cur_max> 1', 'CHARMAP', ...characters, 'END CHARMAP', ''].join('\n'));
+  // Categories other than the numeric one are absent; -c writes the locale anyway.
+  await mkdir(locales, { recursive: true });
+  const compiled = await runStep('comma locale: compiling', 'localedef',
+    ['-c', '--no-warnings=ascii', '-i', source, '-f', charmap, path.join(locales, 'crudui-comma')], { signal });
+  await access(path.join(locales, 'crudui-comma', 'LC_NUMERIC'))
+    .catch(() => assert.fail(`localedef wrote no locale:\n${compiled.stderr}${compiled.stdout}`));
+  return { ...process.env, CRUDUI_COMMA_LOCALE: '1', LOCPATH: locales, LC_ALL: 'crudui-comma' };
+}
+
+/* Compile and run a fixture program under a comma decimal locale. */
+export async function runUnderCommaLocale({ signal, root, prefix, name, source, sources }) {
+  const directory = await mkdtemp(path.join(os.tmpdir(), prefix));
+  try {
+    const runEnvironment = await commaLocaleEnvironment(directory, signal);
+    await compileAndRunEngineFixture({ signal, root, directory, source, sources, name, runEnvironment });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 }
 
 /*
@@ -262,13 +321,13 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 93,
+  assert.equal(fixtures.length, 103,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'compile-fixtures',
-      sources: ['value.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c'],
+      sources: ['value.c', 'number_text.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c'],
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -333,7 +392,7 @@ test('PHP extension engine satisfies all composition fixtures', { timeout: ENGIN
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForCases(), name: 'compose-fixtures',
-      sources: ['value.c', 'engine_error.c', 'compose.c'],
+      sources: ['value.c', 'number_text.c', 'engine_error.c', 'compose.c'],
       onOutput: stdout => { output = stdout; },
     });
   } finally {
@@ -349,7 +408,7 @@ test('PHP extension engine rejects a null reference value', { timeout: ENGINE_TE
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForInvalidReference(), name: 'compose-invalid',
-      sources: ['value.c', 'engine_error.c', 'compose.c'],
+      sources: ['value.c', 'number_text.c', 'engine_error.c', 'compose.c'],
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -407,7 +466,7 @@ test('PHP extension engine evaluates every shared expression fixture', { timeout
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'expression-fixtures',
-      sources: ['value.c', 'value_path.c', 'expression.c'],
+      sources: ['value.c', 'number_text.c', 'value_path.c', 'expression.c'],
       onOutput: stdout => { output = stdout; },
     });
   } finally {
@@ -432,7 +491,7 @@ const detailCases = JSON.parse(await readFile(
 
 /* The engine units of rule evaluation, shared by the validation programs. */
 const ruleSources = [
-  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'unicode_data.c',
+  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'rule_number.c', 'unicode_data.c',
   'pattern_set.c', 'pattern.c', 'pattern_match.c', 'rule_parameters.c',
 ];
 
@@ -528,9 +587,9 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length, 179,
+  assert.equal(validationCases.length, 238,
     'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 230,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 291,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -538,7 +597,7 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', ...ruleSources, 'validation.c',
       ],
       onOutput: stdout => { output = stdout; },
@@ -549,13 +608,24 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
   }
 });
 
+test('PHP extension engine validation does not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  await runUnderCommaLocale({
+    signal: t.signal, root, prefix: 'crudui-extension-validation-locale-', name: 'validation-locale',
+    source: sourceForValidation(),
+    sources: [
+      'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+      'runtime.c', ...ruleSources, 'validation.c',
+    ],
+  });
+});
+
 test('PHP extension engine validation has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-sanitize-'));
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-sanitize',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', ...ruleSources, 'validation.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
@@ -578,7 +648,7 @@ test('PHP extension engine validation has no address sanitizer findings', {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-address',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', ...ruleSources, 'validation.c',
       ],
       compilerFlags: ['-fsanitize=address', '-fno-omit-frame-pointer'],
@@ -657,7 +727,7 @@ function sourceForValidationAllocationFailures() {
     '    validation_allocation_index = 0;',
     '    validation_fail_at = fail_at;',
     '    validation_allocation_failed = false;',
-    '    bool result = validate_properties(properties, data, &context, NULL, 0, 0);',
+    '    bool result = validate_properties(properties, data, &context, NULL, 0, 0, false);',
     '    validation_fail_at = 0;',
     '    ps_value_free(context.errors);',
     '    free(context.declaration);',
@@ -669,7 +739,7 @@ function sourceForValidationAllocationFailures() {
     '  validation_allocation_index = 0;',
     '  validation_fail_at = allocation_count + 1;',
     '  validation_allocation_failed = false;',
-    '  bool result = validate_properties(properties, data, &context, NULL, 0, 0);',
+    '  bool result = validate_properties(properties, data, &context, NULL, 0, 0, false);',
     '  validation_fail_at = 0;',
     '  ps_value_free(context.errors);',
     '  free(context.declaration);',
@@ -686,7 +756,7 @@ test('PHP extension validation returns failure after repeated-field allocation f
       signal: t.signal, root, directory, source: sourceForValidationAllocationFailures(),
       name: 'validation-allocation',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
         'runtime.c', ...ruleSources,
       ],
     });
@@ -759,6 +829,71 @@ function canonicalNumbers() {
   }
   for (const bits of bitPatterns(0x9E3779B97F4A7C15n, 20000)) values.add(doubleOfBits(bits));
   return [...values].filter(Number.isFinite);
+}
+
+/* Numeric text: the HTML valid floating-point number whose value (the nearest double) is finite. */
+const NUMERIC_TEXT = /^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$/;
+function numericTexts() {
+  const texts = new Set([
+    '', '-', '.', '1.', '+1', '.5', '-.5', '0', '-0', '00012', '1e', 'e5', '1e+', '1E-3', '--1', '0x10', 'Infinity',
+    'NaN', '1_000', '1,5', '1 2', '\u0661', '1e999', '-1e999', '1e-400', '-1e-400', '1e308', '1.7976931348623157e308',
+    '1.7976931348623158e308', '1.7976931348623159e308', '179769313486231580793728971405301e276',
+    '2.2250738585072011e-308', '2.2250738585072014e-308', '4.9406564584124654e-324', '2.4703282292062327e-324',
+    '2.4703282292062328e-324', '7.4109846876186982e-324', '1e-324', '3e-324', '0.1', '0.3', '1e23', '8.41e21',
+    '9007199254740993', '9007199254740992.5', '1e0000000000000000000000000005', '1e-0000000000000000000000000400',
+    `0.${'0'.repeat(400)}1e400`, `1${'0'.repeat(400)}e-400`, `${'9'.repeat(900)}e-900`, `0.${'1'.repeat(1000)}`,
+    `4.${'9'.repeat(799)}e-324`, `2.4703282292062327208828439643411068618252990130716238221279284125033775363510437593264991818081799618989828234772285886546332835517796989819938739800539093906315035659515570226392290858392449105184435931802849936536152500319370457678249219365623669863658480757001585769269903706311928279558551332927834338409351978015531246597263579574622766465272827220056374006485499977096599470454020828166226237857393450736339007967761930577506740176324673600968951340535537458516661134223766678604162159680461914467291840300530057530849048765391711386591646239524912623653881879636239373280423891018672348497668235089863388587925628302755995657524455507255189313690836254779186948667994968324049705821028513185451396213837722826145437693412532098591327667236328125e-324`,
+    `2.4703282292062327208828439643411068618252990130716238221279284125033775363510437593264991818081799618989828234772285886546332835517796989819938739800539093906315035659515570226392290858392449105184435931802849936536152500319370457678249219365623669863658480757001585769269903706311928279558551332927834338409351978015531246597263579574622766465272827220056374006485499977096599470454020828166226237857393450736339007967761930577506740176324673600968951340535537458516661134223766678604162159680461914467291840300530057530849048765391711386591646239524912623653881879636239373280423891018672348497668235089863388587925628302755995657524455507255189313690836254779186948667994968324049705821028513185451396213837722826145437693412532098591327667236328125001e-324`,
+  ]);
+  for (const number of canonicalNumbers().filter((_, index) => index % 7 === 0)) {
+    texts.add(String(number));
+    texts.add(number.toExponential());
+    texts.add(number.toPrecision(21).replace('+', ''));
+  }
+  for (const bits of bitPatterns(0x243F6A8885A308D3n, 3000)) {
+    const number = doubleOfBits(bits);
+    if (!Number.isFinite(number)) continue;
+    texts.add(number.toPrecision(17));
+    texts.add(number.toExponential(25));
+  }
+  return [...texts].map(text => {
+    const number = Number(text);
+    return [text, NUMERIC_TEXT.test(text) && Number.isFinite(number), number];
+  });
+}
+
+/* Texts in the C number syntax beyond numeric text: signs, spaces, prefixes, words and hexadecimal. */
+const cNumberTexts = [
+  '  +1.5e3xyz', '\t-0.25e-2,5', '1.', '1.e5', '.e1', '1e+', '1ex', '+', '-.', '0x', '0x1p', '0x1.8p1', '0X.8P-2',
+  '0x1fffffffffffffp971', '0x1p1024', '-0x1p-1074', '0x1p-1080', '0x123456789abcdef0123p-60', '0xg', 'inf', '-INF',
+  'Infinity', 'infinit', 'nan', 'NaN(123abc)', 'nan(', 'nanx', '1e999', '-1e999', '1e-999', '  12abc', '1,5',
+  '\u00a01', '٣', '0.000000000000000000000000000000000000001e-300',
+];
+
+/* Step multiples decided on the exact decimal numbers of the canonical texts. */
+function decimalOf(number) {
+  const [mantissa, power = '0'] = String(Math.abs(number)).split('e');
+  const [whole, fraction = ''] = mantissa.split('.');
+  return [BigInt(whole + fraction), Number(power) - fraction.length];
+}
+function stepMultiple(value, step) {
+  const [a, p] = decimalOf(value);
+  const [b, q] = decimalOf(step);
+  const base = Math.min(p, q);
+  return (a * 10n ** BigInt(p - base)) % (b * 10n ** BigInt(q - base)) === 0n;
+}
+function stepCases() {
+  const cases = [[0.3, 0.1], [0.30000000000000004, 0.1], [2e-7, 0.1], [-0.6, 0.1], [0, 0.1], [1e21, 1e20],
+    [1.05e21, 1e20], [1.5e21, 1e20], [3e-7, 2e-7], [4e-7, 2e-7], [1.75, 0.25], [1.8, 0.25], [5e-324, 5e-324],
+    [1e-323, 5e-324], [Number.MAX_VALUE, 1e-300], [Number.MAX_VALUE, 7], [1e308, 3e-5], [123456789012345680000, 17],
+    [0.000001, 1e-7], [9007199254740993, 3], [12, 1e-320], [1e-7, 1e21]];
+  const numbers = canonicalNumbers().filter((_, index) => index % 97 === 0);
+  for (let i = 0; i + 1 < numbers.length; i += 2) {
+    cases.push([numbers[i], Math.abs(numbers[i + 1]) || 1]);
+    cases.push([numbers[i] * 3, Math.abs(numbers[i]) || 1]);
+  }
+  return cases.filter(([value, step]) => Number.isFinite(value) && Number.isFinite(step) && step > 0)
+    .map(([value, step]) => [value, step, stepMultiple(value, step)]);
 }
 
 /* Integers are written as their nearest double. */
@@ -908,6 +1043,19 @@ function sourceForValues() {
       return `  {UINT64_C(0x${bitsOfDouble(number).toString(16)}), ${cString(text)}, ${text.length}},`;
     }),
     '};',
+    'typedef struct { ps_text text; bool numeric; uint64_t bits; } numeric_case;',
+    'static const numeric_case numeric_cases[] = {',
+    ...numericTexts().map(([text, numeric, number]) =>
+      `  {${cTextInitializer(text)}, ${numeric}, UINT64_C(0x${numeric ? bitsOfDouble(number).toString(16) : '0'})},`),
+    '};',
+    'static const ps_text syntax_cases[] = {',
+    ...[...numericTexts().map(([text]) => text), ...cNumberTexts].map(text => `  ${cTextInitializer(text)},`),
+    '};',
+    'typedef struct { uint64_t value, step; bool multiple; } step_case;',
+    'static const step_case step_cases[] = {',
+    ...stepCases().map(([value, step, multiple]) =>
+      `  {UINT64_C(0x${bitsOfDouble(value).toString(16)}), UINT64_C(0x${bitsOfDouble(step).toString(16)}), ${multiple}},`),
+    '};',
     'typedef struct { int64_t integer; const char *text; } integer_case;',
     'static const integer_case integer_cases[] = {',
     ...canonicalIntegers.map(integer => `  {${integer === -9223372036854775808n ? 'INT64_MIN' : `INT64_C(${integer})`}, ${cString(String(Number(integer)))}},`),
@@ -925,12 +1073,41 @@ function sourceForValues() {
     ...matchCases.map(([source, text, matches]) => `  {${cTextInitializer(source)}, ${cTextInitializer(text)}, ${matches}},`),
     '};',
     '',
+    '#include <errno.h>',
+    '#include <math.h>',
     'static int failures;',
     'static void failure(const char *label, ps_text text)',
     '{ fputs(label, stderr); fwrite(text.bytes, 1, text.length > 200 ? 200 : text.length, stderr); fputc(10, stderr); failures++; }',
     '',
   ];
   const lines = [
+    '  /*',
+    '   * The C library is the reference for the C number syntax and for "%.*g", read in the "C"',
+    '   * locale before the program switches to the locale under test.',
+    '   */',
+    '  setlocale(LC_ALL, "C");',
+    '  static const int precisions[] = {1, 2, 6, 15, 17};',
+    '  size_t number_count = sizeof(number_cases) / sizeof(number_cases[0]);',
+    '  char (*general_references)[5][32] = malloc(number_count * sizeof(*general_references));',
+    '  if (!general_references) return 1;',
+    '  for (size_t i = 0; i < number_count; ++i) {',
+    '    double number;',
+    '    memcpy(&number, &number_cases[i].bits, sizeof(number));',
+    '    for (size_t p = 0; p < 5; ++p) snprintf(general_references[i][p], 32, "%.*g", precisions[p], number);',
+    '  }',
+    '  size_t syntax_count = sizeof(syntax_cases) / sizeof(syntax_cases[0]);',
+    '  typedef struct { size_t length; double number; bool overflow; } syntax_reference;',
+    '  syntax_reference *syntax_references = malloc(syntax_count * sizeof(*syntax_references));',
+    '  if (!syntax_references) return 1;',
+    '  for (size_t i = 0; i < syntax_count; ++i) {',
+    '    char *end = NULL;',
+    '    errno = 0;',
+    '    syntax_references[i].number = strtod(syntax_cases[i].bytes, &end);',
+    '    syntax_references[i].length = (size_t)(end - syntax_cases[i].bytes);',
+    '    syntax_references[i].overflow = errno == ERANGE && isinf(syntax_references[i].number);',
+    '  }',
+    '  crudui_locale_start();',
+    '',
     '  /* The embedded Unicode data is the contract. */',
     `  if (strcmp(ps_unicode_version, ${cString(unicode.unicodeVersion)})) failure("Unicode version differs", PS_TEXT(""));`,
     '  if (!same_ranges(ps_white_space, ps_white_space_count, contract_white_space, sizeof(contract_white_space) / sizeof(contract_white_space[0])))',
@@ -1027,6 +1204,50 @@ function sourceForValues() {
     '    }',
     '  }',
     '',
+    '  /* The C number syntax and "%.*g" equal the C library in the "C" locale. */',
+    '  for (size_t i = 0; i < syntax_count; ++i) {',
+    '    double number = 0;',
+    '    bool overflow = false;',
+    '    size_t length = ps_c_number(syntax_cases[i], &number, &overflow);',
+    '    const syntax_reference *expected = &syntax_references[i];',
+    '    bool same = length == expected->length && overflow == expected->overflow &&',
+    '      (isnan(expected->number) ? isnan(number) : !memcmp(&number, &expected->number, sizeof(number)));',
+    '    if (!same) failure("C number syntax differs: ", syntax_cases[i]);',
+    '  }',
+    '  for (size_t i = 0; i < number_count; ++i) {',
+    '    double number;',
+    '    memcpy(&number, &number_cases[i].bits, sizeof(number));',
+    '    for (size_t p = 0; p < 5; ++p) {',
+    '      ps_chars text = ps_format_general(number, precisions[p]);',
+    '      if (!text.bytes || !ps_text_equal(ps_view(text), ps_fixed(general_references[i][p]))) {',
+    '        failure("general number text differs from ", ps_fixed(general_references[i][p]));',
+    '        if (text.bytes) failure("  actual: ", ps_view(text));',
+    '      }',
+    '      free(text.bytes);',
+    '    }',
+    '  }',
+    '  free(general_references);',
+    '  free(syntax_references);',
+    '',
+    '  /* Numeric text is read exactly and independently of the locale; step multiples are exact. */',
+    '  for (size_t i = 0; i < sizeof(numeric_cases) / sizeof(numeric_cases[0]); ++i) {',
+    '    double number = 0;',
+    '    bool numeric = ps_numeric_text(numeric_cases[i].text, &number);',
+    '    uint64_t bits;',
+    '    memcpy(&bits, &number, sizeof(bits));',
+    '    if (numeric != numeric_cases[i].numeric || (numeric && bits != numeric_cases[i].bits))',
+    '      failure(numeric ? "numeric text differs: " : "numeric text rejected: ", numeric_cases[i].text);',
+    '  }',
+    '  for (size_t i = 0; i < sizeof(step_cases) / sizeof(step_cases[0]); ++i) {',
+    '    double value, step;',
+    '    memcpy(&value, &step_cases[i].value, sizeof(value));',
+    '    memcpy(&step, &step_cases[i].step, sizeof(step));',
+    '    if (ps_step_multiple(value, step) != (step_cases[i].multiple ? 1 : 0)) {',
+    '      char detail[96]; snprintf(detail, sizeof(detail), "step multiple differs: %.17g / %.17g", value, step);',
+    '      failure(detail, PS_TEXT(""));',
+    '    }',
+    '  }',
+    '',
     '  /* The pattern language. */',
     '  for (size_t i = 0; i < sizeof(rejected_cases) / sizeof(rejected_cases[0]); ++i) {',
     '    const rejected_case *item = &rejected_cases[i];',
@@ -1079,8 +1300,15 @@ function sourceForValues() {
     '  }',
     '  if (failures) { fprintf(stderr, "%d failures\\n", failures); return 1; }',
   ];
-  return fixtureProgram(lines, declarations);
+  return fixtureProgram(lines, declarations, { explicitLocale: true });
 }
+
+test('PHP extension engine values and number text do not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  await runUnderCommaLocale({
+    signal: t.signal, root, prefix: 'crudui-extension-values-locale-', name: 'values-locale', source: sourceForValues(),
+    sources: ['value.c', 'number_text.c', 'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_number.c', 'unicode_data.c', 'pattern_set.c', 'pattern.c', 'pattern_match.c'],
+  });
+});
 
 for (const sanitized of [false, true]) {
   test(`PHP extension engine values, Unicode data, patterns and the matcher follow the specification${sanitized ? ' without undefined behavior' : ''}`, {
@@ -1091,7 +1319,7 @@ for (const sanitized of [false, true]) {
       await compileAndRunEngineFixture({
         signal: t.signal, root, directory, source: sourceForValues(),
         name: sanitized ? 'values-sanitize' : 'values',
-        sources: ['value.c', 'whitespace.c', 'canonical.c', 'unicode_data.c', 'pattern_set.c', 'pattern.c', 'pattern_match.c'],
+        sources: ['value.c', 'number_text.c', 'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_number.c', 'unicode_data.c', 'pattern_set.c', 'pattern.c', 'pattern_match.c'],
         compilerFlags: sanitized ? ['-fsanitize=undefined', '-fno-omit-frame-pointer'] : ['-O2'],
         runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
       });
@@ -1170,16 +1398,16 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 93,
+  assert.equal(fixtures.length, 103,
     'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 92,
+  assert.equal(bindFixtures.length, 102,
     'Review C binding coverage when compilation error fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
       ],
     });
@@ -1194,7 +1422,7 @@ test('PHP extension engine binding has no undefined behavior findings', { timeou
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
@@ -1251,7 +1479,7 @@ test('PHP extension engine reports supported widget construction failures as int
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'messages.c', 'binding.c',
       ],
     });
@@ -1335,16 +1563,16 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 93,
+  assert.equal(fixtures.length, 103,
     'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 91,
+  assert.equal(renderFixtures.length, 101,
     'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
       ],
     });
@@ -1353,13 +1581,23 @@ test('PHP extension engine renders successful shared form fixtures and edge case
   }
 });
 
+test('PHP extension engine form rendering does not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  await runUnderCommaLocale({
+    signal: t.signal, root, prefix: 'crudui-c-render-locale-', name: 'render-fixtures-locale', source: sourceForFixtures(),
+    sources: [
+      'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
+      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
+    ],
+  });
+});
+
 test('PHP extension engine form rendering has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-sanitize-'));
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
@@ -1441,12 +1679,12 @@ function sourceForFixtures() {
 }
 
 const sources = [
-  'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+  'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
   'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 58,
+  assert.equal(fixtures.length, 61,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -1460,6 +1698,12 @@ test('PHP extension engine renders the complete list target as exact HTML', { ti
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('PHP extension engine list rendering does not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  await runUnderCommaLocale({
+    signal: t.signal, root, prefix: 'crudui-c-list-locale-', name: 'list-fixtures-locale', source: sourceForFixtures(), sources,
+  });
 });
 
 test('PHP extension engine list rendering has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
@@ -1553,7 +1797,7 @@ function sourceForFixtures() {
 }
 
 const sources = [
-  'value.c', 'value_path.c', 'engine_error.c', 'expression.c',
+  'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
   'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
 ];
 
@@ -1641,7 +1885,7 @@ test('PHP extension engine creates and formats row keys', { timeout: ENGINE_TEST
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForKeys(), name: 'key',
-      sources: ['value.c', 'engine_error.c', 'key.c'],
+      sources: ['value.c', 'number_text.c', 'engine_error.c', 'key.c'],
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -1799,7 +2043,7 @@ test('PHP extension engine updates form state atomically', { timeout: ENGINE_TES
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFormState(), name: 'form-state',
       sources: [
-        'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
         'messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c',
       ],
@@ -1972,6 +2216,58 @@ test('CRUDUI PHP extension package contains one C implementation', { timeout: EN
   );
   for (const filename of ['packages/php-ext/README.md', 'packages/php-ext/README.ko.md']) {
     assert.doesNotMatch(files[filename], /\b(?:Cargo|Rust|rustc|rustdoc)\b/);
+  }
+});
+}
+
+{
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+/* Byte strings and whether each is a sequence of Unicode scalar values (docs/spec/input-text.md). */
+const textBytes = [
+  [[], true], [[0x00, 0x41], true], [[0xc3, 0xa9], true], [[0xed, 0x9f, 0xbf], true], [[0xee, 0x80, 0x80], true],
+  [[0xef, 0xbf, 0xbf], true], [[0xf0, 0x9f, 0x98, 0x80], true], [[0xf4, 0x8f, 0xbf, 0xbf], true],
+  [[0xff], false], [[0x61, 0x80], false], [[0xe2, 0x82], false], [[0xc0, 0xaf], false], [[0xe0, 0x80, 0xaf], false],
+  [[0xed, 0xa0, 0x80], false], [[0xed, 0xbf, 0xbf], false], [[0xf4, 0x90, 0x80, 0x80], false],
+  [[0xf8, 0x88, 0x80, 0x80, 0x80], false], [[0xf0, 0x9f, 0x98], false],
+];
+function sourceForText() {
+  const cases = textBytes.map(([bytes, valid]) =>
+    `    {(const uint8_t *)"${bytes.map(byte => `\\${byte.toString(8).padStart(3, '0')}`).join('')}", ${bytes.length}, ${valid}},`);
+  return [
+    '#include <stdio.h>',
+    '#include "crudui_engine.h"',
+    'int main(void) {',
+    '  static const struct { const uint8_t *bytes; size_t length; bool valid; } cases[] = {',
+    ...cases,
+    '  };',
+    '  int failed = 0;',
+    '  for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {',
+    '    ps_value *value = ps_value_new(PS_NULL);',
+    '    ps_value *object = ps_value_new(PS_OBJECT);',
+    '    bool stored = ps_value_string(value, cases[i].bytes, cases[i].length);',
+    '    bool named = ps_value_insert(object, cases[i].bytes, cases[i].length, ps_value_new(PS_NULL));',
+    '    if (ps_text_valid(cases[i].bytes, cases[i].length) != cases[i].valid || stored != cases[i].valid || named != cases[i].valid) {',
+    '      printf("text case %zu differs\\n", i);',
+    '      failed = 1;',
+    '    }',
+    '    ps_value_free(value);',
+    '    ps_value_free(object);',
+    '  }',
+    '  return failed;',
+    '}',
+    '',
+  ].join('\n');
+}
+
+test('PHP extension engine text is exactly Unicode scalar values', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-text-'));
+  try {
+    await compileAndRunEngineFixture({
+      signal: t.signal, root, directory, source: sourceForText(), name: 'text-valid',
+      sources: ['value.c', 'number_text.c'],
+    });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 });
 }

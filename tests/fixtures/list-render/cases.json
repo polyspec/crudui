@@ -529,6 +529,72 @@
     "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"secret\"><span class=\"crudui-list__heading-label\">Secret</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">visible</td></tr></tbody></table></div>"
   },
   {
+    "name": "column-show-map-without-selection",
+    "note": "A design.show condition map that selects nothing leaves the column visible: only a resolved false hides.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        },
+        "secret": {
+          "field": "secret",
+          "label": "Secret",
+          "design": {
+            "show": {
+              ".admin": false
+            }
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada",
+        "secret": "visible"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "data": {
+        "admin": false
+      }
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"secret\"><span class=\"crudui-list__heading-label\">Secret</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">visible</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "column-show-literal-string",
+    "note": "A design.show string that is not a valid expression is a literal and leaves the column visible.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        },
+        "secret": {
+          "field": "secret",
+          "label": "Secret",
+          "design": {
+            "show": ".admin == ("
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada",
+        "secret": "visible"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "data": {
+        "admin": false
+      }
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"secret\"><span class=\"crudui-list__heading-label\">Secret</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">visible</td></tr></tbody></table></div>"
+  },
+  {
     "name": "i18n-header-ko",
     "note": "i18n header resolves to ko under language:ko.",
     "spec": {
@@ -712,6 +778,72 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\" data-sort-dir=\"asc\" data-sortable=\"true\"><span class=\"crudui-list__heading-label\">Name</span><span class=\"crudui-list__sort\">↕</span></th><th class=\"crudui-list__heading\" data-field=\"status\"><span class=\"crudui-list__heading-label\">Status</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">active</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">blocked</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "sortable-map-without-selection",
+    "note": "A sortable condition map that selects nothing is false: the column is not sortable (a map selecting a true value is).",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name",
+          "sortable": {
+            ".admin": true
+          }
+        },
+        "status": {
+          "field": "status",
+          "label": "Status",
+          "sortable": {
+            ".admin": false,
+            "true": true
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
+      }
+    ],
+    "options": {
+      "language": "en",
+      "data": {
+        "admin": false
+      }
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"status\" data-sortable=\"true\"><span class=\"crudui-list__heading-label\">Status</span><span class=\"crudui-list__sort\">↕</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">active</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">blocked</td></tr></tbody></table></div>"
   },
   {
     "name": "pagination-display",

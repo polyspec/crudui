@@ -1,10 +1,11 @@
 /** Evaluate list declarations and supplied records for framework renderers. */
 
 import { FormInputError, type FileLoader } from '@crudui/validator';
-import { composeProperties, MemoryLoader } from '@crudui/validator/internal';
+import { checkedComposition, composeProperties, MemoryLoader } from '@crudui/validator/internal';
+import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import { makeTranslate, type Language, type LocalizedText } from './content';
 import { resolveDesign, type ResolvedDesign } from './design';
-import { evalShow, makeContext } from './expr';
+import { evalFlag, makeContext } from './expr';
 import { parsePathString, getValueByPath } from './util';
 import {
   normalizeFormat,
@@ -156,7 +157,7 @@ function resolveSortable(
   if (sortable === undefined || sortable === null) return false;
   if (typeof sortable === 'boolean') return sortable;
   // An Expression → evaluated as a condition against the list context.
-  return evalShow(sortable, ctx);
+  return evalFlag(sortable, ctx);
 }
 
 /** A page or total option: absent or null, or a safe integer of at least `min`. */
@@ -274,7 +275,10 @@ export function buildList(
   rows: Array<Record<string, unknown>> = [],
   options: BuildListOptions = {}
 ): ListViewModel {
-  return buildDisplay(listSpec, rows, options, { own: 'list', members: 'columns' });
+  // Input text is checked first (docs/spec/input-text.md).
+  const loader = checkedComposition(listSpec, options);
+  checkArgumentText([['rows', rows]], options, DISPLAY_OPTIONS);
+  return buildDisplay(listSpec, rows, loader ? { ...options, loader } : options, { own: 'list', members: 'columns' });
 }
 
 /** Declaration path names of a display specification: its own design and its columns or fields. */

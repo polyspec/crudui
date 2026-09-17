@@ -171,7 +171,7 @@ final class Lists
             if (!$design->show) {
                 continue;
             }
-            $columnModels[] = (object) ['key' => (string) $key, 'field' => is_string($raw->field ?? null) ? $raw->field : '', 'label' => property_exists($raw, 'label') ? Value::translate($raw->label, $language) : (string) $key, 'format' => self::format($raw->format ?? null), 'sortable' => isset($raw->sortable) ? Design::show($raw->sortable, $data, []) : false, 'design' => $design];
+            $columnModels[] = (object) ['key' => (string) $key, 'field' => is_string($raw->field ?? null) ? $raw->field : '', 'label' => property_exists($raw, 'label') ? Value::translate($raw->label, $language) : (string) $key, 'format' => self::format($raw->format ?? null), 'sortable' => Design::flag($raw->sortable ?? null, $data, []), 'design' => $design];
             $columnSpecs[] = $raw;
         }
         $rowModels = [];

@@ -17,7 +17,6 @@ package validate
 
 import (
 	"encoding/json"
-	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -90,8 +89,8 @@ func (ctx ruleContext) msg(name, fallback string) string {
 // ---------------------------------------------------------------------------
 
 // jsString mirrors JS String(value) for the rule layer: strings pass; numbers use
-// Number.prototype.toString; booleans → "true"/"false"; null → "" (rules only
-// reach String() on non-empty values, but keep parity).
+// their canonical text; booleans → "true"/"false"; null → "" (rules only reach
+// String() on non-empty values, but keep parity).
 func jsString(value any) string {
 	switch v := value.(type) {
 	case nil:
@@ -103,92 +102,15 @@ func jsString(value any) string {
 			return "true"
 		}
 		return "false"
-	case float64, float32, int, int64, int32, uint, uint64, uint32:
-		n, _ := numberValue(v)
+	}
+	if n, ok := numberValue(value); ok {
 		return canonicalNumber(n)
-	default:
-		b, err := json.Marshal(v)
-		if err != nil {
-			return ""
-		}
-		return string(b)
 	}
-}
-
-// jsNumber mirrors JS Number(value): a whole-string number parses; an empty
-// string is 0; booleans → 1/0; numbers pass; otherwise NaN (ok=false). Used by
-// rules that call Number(ruleParam) / Number(value).
-func jsNumber(value any) (float64, bool) {
-	switch v := value.(type) {
-	case int:
-		return float64(v), true
-	case int64:
-		return float64(v), true
-	case float32:
-		return float64(v), true
-	case float64:
-		return v, true
-	case bool:
-		if v {
-			return 1, true
-		}
-		return 0, true
-	case string:
-		trimmed := trimText(v)
-		if trimmed == "" {
-			return 0, true // JS Number('') === 0
-		}
-		f, err := strconv.ParseFloat(trimmed, 64)
-		if err != nil {
-			return 0, false
-		}
-		return f, true
-	default:
-		return 0, false
+	b, err := json.Marshal(value)
+	if err != nil {
+		return ""
 	}
-}
-
-// numberPattern recognizes finite decimal input for min and number rules
-// isValidNumber): optional sign, digits with optional decimal point.
-// "Infinity"/"-Infinity"/"NaN" do not match.
-var numberPattern = regexp.MustCompile(`^[-+]?(\d+\.?\d*|\d*\.?\d+)$`)
-
-// toNumber mirrors JS rules/min toNumber: a number passes only if finite; a
-// string must wholly match numberPattern AND be finite. Returns (n, true) or
-// (0, false) when the input is not a finite real number.
-func toNumber(value any) (float64, bool) {
-	switch v := value.(type) {
-	case int:
-		return float64(v), true
-	case int64:
-		return float64(v), true
-	case float32:
-		f := float64(v)
-		if math.IsInf(f, 0) || math.IsNaN(f) {
-			return 0, false
-		}
-		return f, true
-	case float64:
-		if math.IsInf(v, 0) || math.IsNaN(v) {
-			return 0, false
-		}
-		return v, true
-	case string:
-		trimmed := trimText(v)
-		if trimmed == "" {
-			return 0, false
-		}
-		if !numberPattern.MatchString(trimmed) {
-			return 0, false
-		}
-		f, err := strconv.ParseFloat(trimmed, 64)
-		if err != nil || math.IsInf(f, 0) || math.IsNaN(f) {
-			return 0, false
-		}
-		return f, true
-	default:
-		return 0, false
-	}
+	return string(b)
 }
 
 // ---------------------------------------------------------------------------
@@ -243,49 +165,28 @@ func ruleEmail(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	return "", false
 }
 
-// ruleMin: value >= param (numeric). Empty skips; a NaN threshold skips; a
-// non-number value skips (number rule handles it). JS minRule.
+// ruleMin fails a value that is not numeric or is below the bound. Empty
+// values pass.
 func ruleMin(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
 	if isEmpty(value) {
 		return "", false
 	}
-	minValue, ok := jsNumber(ruleParam)
-	if !ok {
-		return "", false
-	}
-	num, ok := toNumber(value)
-	if !ok {
-		return "", false
-	}
-	if num < minValue {
-		m := ctx.msg("min", "Please enter a value greater than or equal to {0}.")
-		return strings.ReplaceAll(m, "{0}", canonicalNumber(minValue)), true
+	bound, _ := numericBound(ruleParam)
+	if n, ok := numeric(value); !ok || n < bound {
+		return withParameters(ctx.msg("min", "Please enter a value greater than or equal to {0}."), bound), true
 	}
 	return "", false
 }
 
-// ruleMax: value <= param. Empty skips; NaN threshold skips; non-number skips.
+// ruleMax fails a value that is not numeric or is above the bound. Empty
+// values pass.
 func ruleMax(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
 	if isEmpty(value) {
 		return "", false
 	}
-	maxValue, ok := jsNumber(ruleParam)
-	if !ok {
-		return "", false
-	}
-	num, ok := toNumber(value)
-	if !ok {
-		return "", false
-	}
-	if num > maxValue {
-		m := ctx.msg("max", "Please enter a value less than or equal to {0}.")
-		return strings.ReplaceAll(m, "{0}", canonicalNumber(maxValue)), true
+	bound, _ := numericBound(ruleParam)
+	if n, ok := numeric(value); !ok || n > bound {
+		return withParameters(ctx.msg("max", "Please enter a value less than or equal to {0}."), bound), true
 	}
 	return "", false
 }
@@ -301,10 +202,10 @@ func comparisonKey(value any) string {
 		return "s:" + v
 	case bool:
 		return "b:" + strconv.FormatBool(v)
-	case float64, float32, int, int64, int32, uint, uint64, uint32:
-		n, _ := numberValue(v)
-		return "n:" + canonicalNumber(n)
 	default:
+		if n, ok := numberValue(v); ok {
+			return "n:" + canonicalNumber(n)
+		}
 		b, err := json.Marshal(v)
 		if err != nil {
 			return "x:"
@@ -475,106 +376,39 @@ func extractFieldValues(items []any, fieldName string) []any {
 	return out
 }
 
-// ruleRange: numeric value within [min,max]. Empty skips; a non-number value
-// fails with the number message (JS rangeRule).
+// ruleRange fails a value that is not numeric or is outside [minimum,
+// maximum]. Empty values pass.
 func ruleRange(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	if isEmpty(value) {
 		return "", false
 	}
-	lo, hi, ok := twoNumbers(ruleParam)
-	if !ok {
-		return "", false
-	}
-	num, ok := jsNumber(value)
-	if !ok {
-		return ctx.msg("range", "Please enter a valid number."), true
-	}
-	if num < lo || num > hi {
-		m := ctx.msg("range", "Please enter a value between {0} and {1}.")
-		m = strings.ReplaceAll(m, "{0}", canonicalNumber(lo))
-		m = strings.ReplaceAll(m, "{1}", canonicalNumber(hi))
-		return m, true
+	lo, hi, _ := numericRange(ruleParam)
+	if n, ok := numeric(value); !ok || n < lo || n > hi {
+		return withParameters(ctx.msg("range", "Please enter a value between {0} and {1}."), lo, hi), true
 	}
 	return "", false
 }
 
-// twoNumbers reads a [min,max] param (a 2-element array). Returns ok=false when
-// the shape is wrong or a bound is not a number.
-func twoNumbers(param any) (float64, float64, bool) {
-	arr, ok := param.([]any)
-	if !ok || len(arr) < 2 {
-		return 0, 0, false
-	}
-	lo, ok1 := jsNumber(arr[0])
-	hi, ok2 := jsNumber(arr[1])
-	if !ok1 || !ok2 {
-		return 0, 0, false
-	}
-	return lo, hi, true
-}
-
-// ruleNumber: finite-number validation. Skipped when param is false; empty skips;
-// "Infinity"/"-Infinity"/"NaN" rejected (JS numberRule / isValidNumber).
+// ruleNumber fails a value that is not numeric. Empty values pass.
 func ruleNumber(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if b, ok := ruleParam.(bool); ok && !b {
-		return "", false
-	}
 	if isEmpty(value) {
 		return "", false
 	}
-	if !isValidNumber(value) {
+	if _, ok := numeric(value); !ok {
 		return ctx.msg("number", "Please enter a valid number."), true
 	}
 	return "", false
 }
 
-// isValidNumber mirrors JS isValidNumber: a finite number, or a whole-string
-// number that is finite.
-func isValidNumber(value any) bool {
-	_, ok := toNumber(value)
-	return ok
-}
-
-// digitsPattern matches a non-empty all-digit string.
-var digitsPattern = regexp.MustCompile(`^\d+$`)
-
-// ruleDigits: digits only. Skipped when param is false; empty skips (JS
-// digitsRule / isDigitsOnly).
+// ruleDigits fails a value that is not ASCII digit text. Empty values pass.
 func ruleDigits(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if b, ok := ruleParam.(bool); ok && !b {
-		return "", false
-	}
 	if isEmpty(value) {
 		return "", false
 	}
-	if !isDigitsOnly(value) {
+	if !isDigits(value) {
 		return ctx.msg("digits", "Please enter only digits."), true
 	}
 	return "", false
-}
-
-// isDigitsOnly mirrors JS isDigitsOnly: a number must be a non-negative integer;
-// a string must be all digits after trim.
-func isDigitsOnly(value any) bool {
-	switch v := value.(type) {
-	case int:
-		return v >= 0
-	case int64:
-		return v >= 0
-	case float64:
-		return v == math.Floor(v) && v >= 0 && !math.IsInf(v, 0)
-	case float32:
-		f := float64(v)
-		return f == math.Floor(f) && f >= 0
-	case string:
-		trimmed := trimText(v)
-		if trimmed == "" {
-			return false
-		}
-		return digitsPattern.MatchString(trimmed)
-	default:
-		return false
-	}
 }
 
 // ruleEqualTo: value must equal a referenced field's value. The param is a field
@@ -596,7 +430,7 @@ func ruleEqualTo(value any, ruleParam any, ctx ruleContext) (string, bool) {
 }
 
 // strictEquals mirrors JS === over decoded JSON values: same JS type and equal.
-// Numbers compare numerically across int/float spellings; strings, booleans, null
+// Numbers compare numerically across Go numeric types; strings, booleans, null
 // compare directly; objects/arrays compare by reference (never equal here).
 func strictEquals(a, b any) bool {
 	switch av := a.(type) {
@@ -608,29 +442,10 @@ func strictEquals(a, b any) bool {
 	case bool:
 		bv, ok := b.(bool)
 		return ok && av == bv
-	case int, int64, float32, float64:
-		an, aok := numericValue(a)
-		bn, bok := numericValue(b)
-		return aok && bok && an == bn
-	default:
-		return false
 	}
-}
-
-// numericValue reports a value's numeric value when it is a JS number.
-func numericValue(v any) (float64, bool) {
-	switch n := v.(type) {
-	case int:
-		return float64(n), true
-	case int64:
-		return float64(n), true
-	case float32:
-		return float64(n), true
-	case float64:
-		return n, true
-	default:
-		return 0, false
-	}
+	an, aok := numberValue(a)
+	bn, bok := numberValue(b)
+	return aok && bok && an == bn
 }
 
 // ruleNotEqual: value must differ from a reference (param starts with '.') or a
@@ -807,99 +622,35 @@ func firstString(m map[string]any, keys ...string) string {
 	return ""
 }
 
-// arrayLength returns the JS getArrayLength: an array's length; an object's key
-// count (object-key multiple groups); else 0.
-func arrayLength(value any) int {
-	switch v := value.(type) {
-	case []any:
-		return len(v)
-	case map[string]any:
-		return len(v)
-	default:
-		return 0
-	}
-}
-
-// ruleMinCount: item count >= param. Does NOT skip empty (an empty array fails
-// mincount>=1). JS mincountRule.
+// ruleMinCount fails a value whose count is below the limit. Empty values are
+// counted.
 func ruleMinCount(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	minCount, ok := jsNumber(ruleParam)
-	if !ok {
-		return "", false
-	}
-	if float64(arrayLength(value)) < minCount {
-		m := ctx.msg("mincount", "Please select at least {0} items.")
-		return strings.ReplaceAll(m, "{0}", canonicalNumber(minCount)), true
+	limit, _ := lengthLimit(ruleParam)
+	if float64(countOf(value)) < limit {
+		return withParameters(ctx.msg("mincount", "Please select at least {0} items."), limit), true
 	}
 	return "", false
 }
 
-// ruleMaxCount: item count <= param. Empty array counts 0 (passes). JS
-// maxcountRule.
+// ruleMaxCount fails a value whose count is above the limit. Empty values are
+// counted.
 func ruleMaxCount(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	maxCount, ok := jsNumber(ruleParam)
-	if !ok {
-		return "", false
-	}
-	if float64(arrayLength(value)) > maxCount {
-		m := ctx.msg("maxcount", "Please select no more than {0} items.")
-		return strings.ReplaceAll(m, "{0}", canonicalNumber(maxCount)), true
+	limit, _ := lengthLimit(ruleParam)
+	if float64(countOf(value)) > limit {
+		return withParameters(ctx.msg("maxcount", "Please select no more than {0} items."), limit), true
 	}
 	return "", false
 }
 
-// ruleStep: value must be a multiple of the step. Empty skips; a non-positive or
-// non-number step skips. JS stepRule.
+// ruleStep fails a value that is not numeric or is not an integer multiple of
+// the step counted from 0. Empty values pass.
 func ruleStep(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
 	if isEmpty(value) {
 		return "", false
 	}
-	step, ok := jsNumber(ruleParam)
-	if !ok || step <= 0 {
-		return "", false
-	}
-	num, ok := jsNumber(value)
-	if !ok {
-		return "", false
-	}
-	if !isValidStep(num, step) {
-		m := ctx.msg("step", "Please enter a value that is a multiple of {0}.")
-		return strings.ReplaceAll(m, "{0}", canonicalNumber(step)), true
+	step, _ := stepSize(ruleParam)
+	if n, ok := numeric(value); !ok || !isStepMultiple(n, step) {
+		return withParameters(ctx.msg("step", "Please enter a value that is a multiple of {0}."), step), true
 	}
 	return "", false
-}
-
-// isValidStep reports whether num is an integer multiple of step, accounting for
-// float precision (JS isValidStep).
-func isValidStep(num, step float64) bool {
-	dp := decimalPlaces(num)
-	if sp := decimalPlaces(step); sp > dp {
-		dp = sp
-	}
-	mult := math.Pow(10, float64(dp))
-	iv := int64(math.Round(num * mult))
-	is := int64(math.Round(step * mult))
-	if is == 0 {
-		return true
-	}
-	return iv%is == 0
-}
-
-// decimalPlaces counts the fractional digits of a number's shortest decimal form.
-func decimalPlaces(n float64) int {
-	s := strconv.FormatFloat(n, 'f', -1, 64)
-	_, frac, found := strings.Cut(s, ".")
-	if !found {
-		return 0
-	}
-	return len(frac)
 }

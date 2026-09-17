@@ -6,6 +6,7 @@ namespace CRUDUI;
 
 use CRUDUI\Generator\Binding;
 use CRUDUI\Generator\Buttons;
+use CRUDUI\Generator\InputText;
 use CRUDUI\Generator\Messages;
 use CRUDUI\Generator\Missing;
 use CRUDUI\Generator\Template;
@@ -30,8 +31,8 @@ final class Form
     /** Create independent instance data over a copied template. */
     public function __construct(stdClass $template, array|stdClass $data = [], array $options = [])
     {
-        Template::check($template);
-        $this->template = Value::spec($template);
+        InputText::inputs([['template', $template], ['data', $data]], $options, InputText::BIND);
+        $this->template = Template::checked($template);
         $this->options = $options;
         $this->data = $this->normalizeFields($this->template->fields, Value::object($data));
         $this->fields = Binding::bind($this->template, $this->data, $options);
@@ -77,6 +78,7 @@ final class Form
     /** Return a detached path value, or null when missing. */
     public function getValue(string $path): mixed
     {
+        InputText::inputs([['path', $path]]);
         self::checkedPath($path);
         $value = Value::path($this->data, $path);
         return $value === Missing::Value ? null : Value::copy($value);
@@ -85,12 +87,14 @@ final class Form
     /** Replace the record and reevaluate fields atomically. */
     public function setData(array|stdClass $data): void
     {
+        InputText::inputs([['data', $data]]);
         $this->commit($this->normalizeFields($this->template->fields, Value::object($data)));
     }
 
     /** Replace one path value and reevaluate fields atomically. */
     public function setValue(string $path, mixed $value): void
     {
+        InputText::inputs([['path', $path], ['value', $value]]);
         $data = self::put($this->data, self::checkedPath($path), Value::copy($value));
         $this->commit($this->normalizeFields($this->template->fields, $data));
     }
@@ -98,7 +102,8 @@ final class Form
     /** Insert one supplied or defaulted row and return its key. */
     public function addRow(string $path, array $options = []): string
     {
-        [$field, $rows] = $this->collection($path);
+        InputText::inputs([['path', $path]], $options, ['afterKey', 'key', 'value']);
+        [$field, $rows] = $this->editableCollection($path);
         $maximum = $field->spec->multiple->max ?? null;
         if ((is_int($maximum) || is_float($maximum)) && count((array) $rows) >= $maximum) {
             self::fail('Maximum row count reached: ' . $path);
@@ -129,7 +134,8 @@ final class Form
     /** Copy current row values and regenerate nested repeated keys. */
     public function copyRow(string $path, string $key, array $options = []): string
     {
-        [$field, $rows] = $this->collection($path);
+        InputText::inputs([['path', $path], ['key', $key]], $options, ['afterKey', 'key']);
+        [$field, $rows] = $this->editableCollection($path);
         if (!property_exists($rows, $key)) {
             self::fail('Unknown row: ' . $key);
         }
@@ -141,7 +147,8 @@ final class Form
     /** Remove one row while respecting the minimum count. */
     public function removeRow(string $path, string $key): void
     {
-        [$field, $rows] = $this->collection($path);
+        InputText::inputs([['path', $path], ['key', $key]]);
+        [$field, $rows] = $this->editableCollection($path);
         if (!property_exists($rows, $key)) {
             self::fail('Unknown row: ' . $key);
         }
@@ -157,7 +164,8 @@ final class Form
     /** Change row order without changing row identity. */
     public function moveRow(string $path, string $key, int $index): void
     {
-        [, $rows] = $this->collection($path);
+        InputText::inputs([['path', $path], ['key', $key]]);
+        [, $rows] = $this->editableCollection($path);
         if (!property_exists($rows, $key)) {
             self::fail('Unknown row: ' . $key);
         }
@@ -177,7 +185,8 @@ final class Form
     /** Replace one row key and regenerate descendant field paths. */
     public function rekeyRow(string $path, string $oldKey, string $newKey): void
     {
-        [, $rows] = $this->collection($path);
+        InputText::inputs([['path', $path], ['oldKey', $oldKey], ['newKey', $newKey]]);
+        [, $rows] = $this->editableCollection($path);
         self::checkKey($newKey);
         if (!property_exists($rows, $oldKey)) {
             self::fail('Unknown row: ' . $oldKey);
@@ -237,7 +246,14 @@ final class Form
 
     private static function repeats(stdClass $field): bool
     {
-        return ($field->spec->multiple ?? null) === true || ($field->spec->multiple ?? null) instanceof stdClass;
+        return ($field->spec->multiple ?? null) === true || self::dataOnly($field) || ($field->spec->multiple ?? null) instanceof stdClass;
+    }
+
+    /** A `multiple: only` collection: its rows come only from the data. */
+    private static function dataOnly(stdClass $field): bool
+    {
+        $multiple = $field->spec->multiple ?? null;
+        return $multiple === 'only' || ($multiple instanceof stdClass && ($multiple->only ?? null) === true);
     }
 
     private static function freshKey(array $used): string
@@ -266,7 +282,7 @@ final class Form
                     self::fail('Repeated data must be a keyed object: ' . $fieldPath);
                 }
                 $rows = new stdClass();
-                $entries = $raw === Missing::Value ? (object) [self::freshKey([]) => Missing::Value] : $raw;
+                $entries = $raw !== Missing::Value ? $raw : (self::dataOnly($field) ? new stdClass() : (object) [self::freshKey([]) => Missing::Value]);
                 foreach ($entries as $key => $row) {
                     self::checkKey((string) $key);
                     $rows->{$key} = $this->normalizeRow($field, $row, $fieldPath . '.' . $key);
@@ -309,6 +325,16 @@ final class Form
             }
         }
         return $value;
+    }
+
+    /** A collection whose rows the form may add, copy, remove, move or rekey. */
+    private function editableCollection(string $path): array
+    {
+        $found = $this->collection($path);
+        if (self::dataOnly($found[0])) {
+            self::fail('Rows of ' . $path . ' come only from data');
+        }
+        return $found;
     }
 
     private function collection(string $path): array

@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { renderFields } from '../../../packages/generator-react/src/internal/renderFields';
 import { normalizeHtml } from './normalize.mjs';
+import { WRITTEN_CASES } from './written-cases';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const casesPath = resolve(__dirname, 'cases.json');
@@ -239,6 +240,9 @@ const NEW: FixtureCase[] = [
     G({ b: { type: 'button', label: { ko: '버튼' }, content: { ko: '실행' },
       behavior: { onclick: 'window.run() && go()' } } }), {}, { language: 'ko' }),
 ];
+
+// Cases whose expected HTML is written from the specification, not rendered.
+NEW.push(...WRITTEN_CASES);
 
 void group; // (kept for ad-hoc use)
 
