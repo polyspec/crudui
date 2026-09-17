@@ -15,7 +15,7 @@ composer test --working-dir=packages/generator-php
 ```
 
 The Composer path repository copies `crudui/validator` from the adjacent
-package into `vendor/`. 64-bit PHP 8.2 or newer and `mbstring` are required.
+package into `vendor/`. 64-bit PHP 8.4 or newer and `mbstring` are required.
 Development tests also require the extensions used by PHPUnit, including DOM.
 
 ## Form API
@@ -114,15 +114,7 @@ the `crudui` extension is loaded, for example with
 `-d "extension=$(pwd)/packages/php-ext/modules/crudui.so"`. It does not provide
 browser row editing or an ordered JSON HTTP endpoint.
 
-## Test adapter
-
-`php packages/generator-php/bin/generate.php` reads one JSON request from stdin
-and writes one JSON value to stdout. Supported operations are `compileForm`,
-`bindForm`, `bindButtons`, `formButtonsHtml`, `buildList`, `renderList`, `buildDetail`, `renderDetail`
-and `form`. The form operation records data, fields,
-HTML and revision after each action, including failed operations. The adapter
-uses the public classes and can execute with the PHP implementation or a loaded
-native implementation.
+## Conformance
 
 The [native conformance suite](../../tests/native-generators/README.md) compares
 complete templates and models, original form and list HTML, injection, row

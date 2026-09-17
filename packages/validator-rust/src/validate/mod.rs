@@ -5,19 +5,25 @@
 //!
 //! 1. compose — `compose_spec` / `compose_properties` expand `$ref`/`$patch` into
 //!    a single spec. An unresolved composition returns `Err(ComposeLoadError)`
-//!    HERE (a LOAD failure, NOT `valid:false`) — closing the legacy
-//!    `valid:true`-on-unresolved-`$ref` gap (LargeForm.yml:873).
+//!    HERE (a LOAD failure, NOT `valid:false`) — an unresolved `$ref` never
+//!    yields `valid:true`.
 //! 2. validate — `Validator` traverses the composed spec and runs the `validate`
 //!    slot (conditional rule values evaluated by the CRUDUI expression engine, then
 //!    handed to the rule registry).
 //!
 //! The compose pass reuses the existing `crate::compose` module and the
-//! expression engine reuses `crate::expr`. Nothing re-implements them, and
-//! nothing touches the legacy model (R7 parallel run).
+//! expression engine reuses `crate::expr`. Nothing re-implements them.
 
+mod canonical;
 pub mod errors;
+mod length;
+mod membership;
+mod parameters;
+mod pattern;
 pub mod rules;
+mod unicode;
 pub mod validator;
+mod whitespace;
 
 pub use errors::{FormInputError, ValidateError};
 pub use validator::{ValidationError, ValidationResult, Validator};
@@ -41,7 +47,8 @@ pub struct ValidateOptions<'a> {
 }
 
 /// Validate `data` against a CRUDUI spec. The spec may carry `$ref`/`$patch`; they are
-/// expanded first via the compose pass. An unresolved composition returns
+/// expanded first via the compose pass. An unresolved composition or a rule
+/// parameter outside the validation-rule definitions returns
 /// `Err(ValidateError::Load)` and data with the wrong shape returns
 /// `Err(ValidateError::Input)`; neither produces a validation result.
 ///
@@ -103,6 +110,7 @@ pub fn validate(
         }
     }
 
-    let validator = Validator::new(properties);
-    Ok(validator.validate(data)?)
+    // Rule parameters are checked after composition and the forbidden-key scan.
+    let validator = Validator::new(properties)?;
+    validator.validate(data)
 }

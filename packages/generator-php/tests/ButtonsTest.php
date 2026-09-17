@@ -82,16 +82,11 @@ JSON;
     public function testFormButtonsHtmlRejectsUnevaluatedButtons(string $buttons): void
     {
         $this->expectFormError(fn () => Generator::formButtonsHtml(json_decode($buttons)), 'Form buttons must be evaluated button objects');
-        $expected = '{"error":{"code":"INVALID_FORM_INPUT","message":"Form buttons must be evaluated button objects","at":""}}';
-        self::assertSame($expected, self::invoke(['operation' => 'formButtonsHtml', 'buttons' => json_decode($buttons)]));
     }
 
     public function testFormButtonsHtmlRequiresAList(): void
     {
         $this->expectFormError(fn () => Generator::formButtonsHtml(['a' => json_decode('{"tag":"a","text":"A","attrs":{}}')]), 'Form buttons must be a list');
-        foreach (['{}', '"x"', 'null', '1'] as $buttons) {
-            self::assertSame('{"error":{"code":"INVALID_FORM_INPUT","message":"Form buttons must be a list","at":""}}', self::invoke(['operation' => 'formButtonsHtml', 'buttons' => json_decode($buttons)]));
-        }
     }
 
     public function testFormButtonsHtmlIgnoresOtherMembers(): void
@@ -107,27 +102,5 @@ JSON;
         } catch (FormError $error) {
             self::assertSame(['INVALID_FORM_INPUT', $message, ''], [$error->getErrorCode(), $error->getMessage(), $error->getPath()]);
         }
-    }
-
-    public function testCliServesButtonOperations(): void
-    {
-        $template = Generator::compileForm(json_decode('{"type":"group","properties":{}}'));
-        $buttons = self::invoke(['operation' => 'bindButtons', 'template' => $template, 'data' => new \stdClass(), 'options' => ['language' => 'en']]);
-        self::assertSame(self::EXPECTED['defaultEn'][0], $buttons);
-        self::assertSame(json_encode(self::EXPECTED['defaultEn'][1], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), self::invoke(['operation' => 'formButtonsHtml', 'buttons' => json_decode($buttons)]));
-        self::assertStringContainsString('"code":"INVALID_FORM_INPUT"', self::invoke(['operation' => 'formButtonsHtml', 'buttons' => [1]]));
-        self::assertStringContainsString('"code":"INVALID_FORM_INPUT"', self::invoke(['operation' => 'bindButtons']));
-    }
-
-    private static function invoke(array $request): string
-    {
-        $process = proc_open([PHP_BINARY, __DIR__ . '/../bin/generate.php'], [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']], $pipes);
-        fwrite($pipes[0], json_encode($request, JSON_THROW_ON_ERROR));
-        fclose($pipes[0]);
-        $output = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        proc_close($process);
-        return rtrim($output, "\n");
     }
 }

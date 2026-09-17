@@ -73,8 +73,4 @@ export const emailRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a valid email address.',
 };
-
-export default emailRule;

@@ -24,14 +24,4 @@ class Email implements RuleInterface
 
         return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
     }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a valid email address.';
-    }
 }

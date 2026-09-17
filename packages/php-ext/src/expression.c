@@ -247,6 +247,7 @@ static bool match(parser *p, token_kind kind)
 }
 static token *previous(parser *p) { return &p->tokens[p->current - 1]; }
 static expression_node *parse_ternary(parser *p);
+static expression_node *parse_or(parser *p);
 static expression_node *parse_primary(parser *p);
 
 static expression_node *literal_node(const ps_value *value)
@@ -299,7 +300,8 @@ static expression_node *parse_primary(parser *p)
     if (match(p, TOK_LPAREN)) {
         expression_node *node = new_node(NODE_GROUP);
         if (!node) return NULL;
-        node->data.group = parse_ternary(p);
+        /* primary = "(" logic_or ")": a parenthesized expression holds no ternary. */
+        node->data.group = parse_or(p);
         if (!node->data.group || !match(p, TOK_RPAREN)) { p->valid = false; free_node(node); return NULL; }
         return node;
     }
@@ -665,6 +667,35 @@ bool ps_expression_truth(ps_text expression, const ps_value *data,
     evaluator eval = {data, current_path, path_length};
     bool value = node ? evaluate_node(node, &eval) : false;
     free_node(node); free_tokens(&tokens); return value;
+}
+
+/* Append the literal values a branch can return; a path or a computed value is not a literal. */
+static bool append_branch_literals(const expression_node *node, ps_value *literals)
+{
+    switch (node->kind) {
+        case NODE_TERNARY:
+            return append_branch_literals(node->data.ternary.yes, literals) &&
+                append_branch_literals(node->data.ternary.no, literals);
+        case NODE_GROUP:
+            return append_branch_literals(node->data.group, literals);
+        case NODE_LITERAL:
+            return ps_append(literals, ps_value_clone(node->data.literal));
+        default:
+            return true;
+    }
+}
+
+ps_value *ps_expression_literals(ps_text expression, bool *parsed)
+{
+    lexer_output tokens = tokenize(expression);
+    expression_node *node = parse_expression(&tokens);
+    *parsed = node != NULL;
+    ps_value *literals = ps_array_value();
+    if (literals && node && node->kind == NODE_TERNARY && !append_branch_literals(node, literals)) {
+        ps_value_free(literals);
+        literals = NULL;
+    }
+    free_node(node); free_tokens(&tokens); return literals;
 }
 
 ps_value *ps_condition_value(const ps_value *map, const ps_value *data,

@@ -3,17 +3,19 @@
 [English](cli.md).
 
 비공개 `@crudui/cli` 워크스페이스는 `describe`, `list-widgets`, `check`,
-`explain`을 제공합니다. 명령이나 테스트를 실행하기 전에 저장소 루트에서
-의존성을 설치하고 validator를 빌드합니다.
+`explain`을 제공합니다. 명령을 실행하기 전에 저장소 루트에서 의존성을 설치하고
+패키지를 빌드합니다.
 
 ```sh
 npm ci --strict-allow-scripts
-npm run build:validator
+npm run build
 ```
 
-CLI는 `tsx`로 실행하며 import한 생성기 모듈은 빌드된 validator 패키지를
-사용합니다. validator 소스를 변경하면 다시 빌드합니다. CI도 같은 순서로
-설치·빌드·테스트를 실행합니다.
+CLI는 `tsx`로 실행하며 패키지 엔트리만 import합니다. `@crudui/validator`,
+`@crudui/generator-core`와 각 `internal` 엔트리는 빌드된 패키지로 해석됩니다.
+패키지 소스를 변경하면 다시 빌드합니다. `npm test --workspace @crudui/cli`는
+패키지 출력이 최신이 아니면 먼저 빌드하며, CI도 테스트 전에 같은 빌드를
+실행합니다.
 
 저장소 루트에서 명령을 실행합니다.
 

@@ -1,5 +1,5 @@
 /**
- * Detail structure validation across the JavaScript, PHP, Go and Rust CLIs.
+ * Detail structure validation across the JavaScript, PHP, Go and Rust validator processes.
  *
  * Every case in tests/fixtures/detail-validity/cases.json runs through `validateAllDetail`
  * (`mode: "detail"`). The engine verdict follows each case's `engine` member: `"pass"` loads cleanly

@@ -3,8 +3,7 @@
 //! `tests/fixtures/expr/cases.json`; this engine matches it byte-for-byte
 //! (tokens, AST without `position`, evaluated value, and truthy).
 //!
-//! This is CRUDUI-new and runs parallel to the legacy engine (`crate::condition_parser`),
-//! which is untouched (SPEC R7). No eval / no regex-split anywhere
+//! No eval / no regex-split anywhere
 //! (GRAMMAR §10) — a strictly staged pipeline.
 
 pub mod ast;

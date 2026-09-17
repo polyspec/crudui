@@ -1,11 +1,7 @@
 /** Evaluate list declarations and supplied records for framework renderers. */
 
-import {
-  FormInputError,
-  composeProperties,
-  MemoryLoader,
-  type FileLoader,
-} from '@crudui/validator';
+import { FormInputError, type FileLoader } from '@crudui/validator';
+import { composeProperties, MemoryLoader } from '@crudui/validator/internal';
 import { makeTranslate, type Language, type LocalizedText } from './content';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { evalShow, makeContext } from './expr';

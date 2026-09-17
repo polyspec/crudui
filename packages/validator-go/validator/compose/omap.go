@@ -9,8 +9,7 @@ import (
 
 // OMap is an insertion-order-preserving string map — the Go stand-in for a JS
 // object. Declaration order is LOAD-BEARING in composition (a key declared after
-// $ref overrides the inherited base; a key before it is overridden — legacy
-// positional array_merge). Go's native map randomizes iteration, and
+// $ref overrides the inherited base; a key before it is overridden by it). Go's native map randomizes iteration, and
 // encoding/json drops object key order, so the engine carries order explicitly
 // in OMap and decodes JSON through it.
 //

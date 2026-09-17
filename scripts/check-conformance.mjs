@@ -4,8 +4,7 @@
 // shared fixture case records evidence (tests/conformance/evidence.mjs and its PHP, Go and Rust
 // counterparts). This check fails when a supported runtime has no passing evidence for a case,
 // when evidence exists for a runtime the standard does not declare, when a fixture family is not
-// registered and when a registered case fixture is proven by no feature. A registered corpus is
-// shared input without cases.
+// registered and when a registered fixture is proven by no feature.
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -37,11 +36,10 @@ export function checkConformance({ features, registry, cases, families, evidence
   const problems = {
     undeclaredFixtures: [], unregisteredFamilies: [], unprovenFixtures: [], missing: [], failed: [], undeclaredEvidence: [],
   };
-  const registered = new Map(registry.map(fixture => [fixture.path, fixture]));
   for (const feature of features) {
     declared.set(feature.id, feature);
     for (const fixture of feature.fixtures) {
-      const names = registered.get(fixture)?.kind === 'corpus' ? undefined : cases[fixture];
+      const names = cases[fixture];
       if (!names) {
         problems.undeclaredFixtures.push({ feature: feature.id, fixture });
         continue;
@@ -63,7 +61,7 @@ export function checkConformance({ features, registry, cases, families, evidence
   }
   const proven = new Set(features.flatMap(feature => feature.fixtures));
   for (const fixture of registry) {
-    if (fixture.kind !== 'corpus' && !proven.has(fixture.path)) problems.unprovenFixtures.push(fixture.path);
+    if (!proven.has(fixture.path)) problems.unprovenFixtures.push(fixture.path);
   }
   const reported = new Set();
   for (const item of evidence) {
@@ -131,8 +129,7 @@ async function main() {
   const registry = standard.fixtures;
   const cases = {};
   for (const fixture of registry) {
-    const names = fixture.kind === 'corpus' ? undefined : await fixtureCases(fixture);
-    if (names) cases[fixture.path] = names;
+    cases[fixture.path] = await fixtureCases(fixture);
   }
   const families = (await readdir(path.join(ROOT, 'tests/fixtures'), { withFileTypes: true }))
     .filter(entry => entry.isDirectory()).map(entry => `tests/fixtures/${entry.name}`).sort();

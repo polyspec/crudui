@@ -6,71 +6,196 @@
       "name": "@crudui/generator-core",
       "path": "packages/generator-core",
       "layer": "model",
-      "exports": [
-        "compileForm",
-        "bindForm",
-        "FormInstance",
-        "createForm",
-        "connectForm",
-        "buildList",
-        "buildDetail",
-        "connectOutline",
-        "connectStickyHeaders",
-        "patchContent",
-        "bindButtons",
-        "formButtonsHtml"
-      ]
+      "entries": {
+        ".": {
+          "visibility": "public",
+          "exports": [
+            "ComposeLoadError",
+            "FormInputError",
+            "FormInstance",
+            "UnsupportedFieldTypeError",
+            "bindButtons",
+            "bindForm",
+            "buildDetail",
+            "buildList",
+            "buildOutline",
+            "canRedo",
+            "canUndo",
+            "collapsibleRows",
+            "compileForm",
+            "connectForm",
+            "connectOutline",
+            "connectStickyHeaders",
+            "createForm",
+            "createRowKey",
+            "emptyHistory",
+            "formButtonsHtml",
+            "formMessages",
+            "initialView",
+            "patchContent",
+            "recordChange",
+            "redoChange",
+            "rekeyRowView",
+            "removeRowView",
+            "resolveAction",
+            "runAction",
+            "sequenceRowKey",
+            "setAllExpandedView",
+            "toggleRowView",
+            "undoChange"
+          ]
+        },
+        "./internal": {
+          "visibility": "internal",
+          "exports": [
+            "CELL_FORMATS",
+            "CELL_FORMAT_DEFAULT",
+            "CELL_RENDERERS",
+            "WIDGET_CANONICAL",
+            "WIDGET_COUNT",
+            "WIDGET_KINDS",
+            "WIDGET_LAYOUTS",
+            "listLayout",
+            "paginationPages",
+            "parseStyle"
+          ]
+        }
+      }
     },
     {
       "name": "@crudui/generator-html",
       "path": "packages/generator-html",
       "layer": "renderer",
-      "exports": [
-        "renderForm",
-        "renderList",
-        "renderDetail"
-      ]
+      "entries": {
+        ".": {
+          "visibility": "public",
+          "exports": [
+            "renderData",
+            "renderDataPanel",
+            "renderDetail",
+            "renderForm",
+            "renderFormView",
+            "renderList",
+            "renderOutline",
+            "renderOutlineView"
+          ]
+        }
+      }
     },
     {
       "name": "@crudui/generator-react",
       "path": "packages/generator-react",
       "layer": "renderer",
-      "exports": [
-        "Form",
-        "renderForm",
-        "renderList",
-        "renderDetail"
-      ]
+      "entries": {
+        ".": {
+          "visibility": "public",
+          "exports": [
+            "Cell",
+            "Controls",
+            "DataPanel",
+            "DataView",
+            "Detail",
+            "Form",
+            "List",
+            "Node",
+            "Outline",
+            "OutlineView",
+            "Widget",
+            "renderDetail",
+            "renderForm",
+            "renderList"
+          ]
+        }
+      }
     },
     {
       "name": "@crudui/generator-vue",
       "path": "packages/generator-vue",
       "layer": "renderer",
-      "exports": [
-        "Form",
-        "renderForm",
-        "renderList"
-      ]
+      "entries": {
+        ".": {
+          "visibility": "public",
+          "exports": [
+            "DataView",
+            "Detail",
+            "Form",
+            "List",
+            "Outline",
+            "Widget",
+            "controlsVNode",
+            "dataVNode",
+            "nodeVNode",
+            "outlineVNode",
+            "renderDetail",
+            "renderForm",
+            "renderList"
+          ]
+        }
+      }
     },
     {
       "name": "@crudui/generator-svelte",
       "path": "packages/generator-svelte",
       "layer": "renderer",
-      "exports": [
-        "Form",
-        "renderForm",
-        "renderList"
-      ]
+      "entries": {
+        ".": {
+          "visibility": "public",
+          "exports": [
+            "Controls",
+            "DataPanel",
+            "DataView",
+            "Detail",
+            "Form",
+            "List",
+            "Node",
+            "Outline",
+            "OutlineView",
+            "Widget",
+            "renderDetail",
+            "renderForm",
+            "renderList"
+          ]
+        }
+      }
     },
     {
       "name": "@crudui/validator",
       "path": "packages/validator-ts",
       "layer": "validation",
-      "exports": [
-        "validate",
-        "validateList",
-        "validateDetail"
-      ]
+      "entries": {
+        ".": {
+          "visibility": "public",
+          "exports": [
+            "ComposeLoadError",
+            "FormInputError",
+            "validate",
+            "validateDetail",
+            "validateList"
+          ]
+        },
+        "./internal": {
+          "visibility": "internal",
+          "exports": [
+            "ARRAY_LEVEL_RULES",
+            "FORBIDDEN_META_KEYS",
+            "FORBIDDEN_META_KEY_PATTERN",
+            "LITERAL_PARAM_RULES",
+            "MEMBERSHIP_PARAM_RULES",
+            "MemoryLoader",
+            "PATH_REFERENCE_RULES",
+            "REGEX_PARAM_RULES",
+            "Validator",
+            "composeProperties",
+            "composeSpec",
+            "evaluateCondition",
+            "evaluateExpressionValue",
+            "getRuleNames",
+            "isConditionExpression",
+            "parseCondition",
+            "scanForbiddenKeys"
+          ]
+        }
+      }
     }
   ],
   "examples": [
@@ -116,18 +241,6 @@
       "kind": "detail-validity"
     },
     {
-      "path": "tests/fixtures/validator-cli/cases.json",
-      "kind": "validator-cli"
-    },
-    {
-      "path": "tests/fixtures/translate/cases.json",
-      "kind": "translation"
-    },
-    {
-      "path": "tests/fixtures/legacy-validate/cases.json",
-      "kind": "legacy-validation"
-    },
-    {
       "path": "tests/fixtures/form-render/cases.json",
       "kind": "form-html"
     },
@@ -169,14 +282,6 @@
         "compareServerTakeover",
         "compareInitialization"
       ]
-    },
-    {
-      "path": "tests/fixtures/specs/LargeForm.yml",
-      "kind": "corpus"
-    },
-    {
-      "path": "tests/fixtures/specs/OptionCombination.yml",
-      "kind": "corpus"
     }
   ],
   "supportValues": [
@@ -347,7 +452,7 @@
       "output": "independent editable form instance",
       "errors": [
         "TypeError",
-        "FormError"
+        "FormInputError"
       ],
       "fixtures": [
         "tests/native-generators/cases.mjs"
@@ -629,7 +734,6 @@
         "packages/validator-ts/src/validate-detail/validate-detail.conformance.test.ts",
         "packages/validator-go/validator/validate/detail_conformance_test.go",
         "packages/validator-php/tests/Validate/DetailValidateConformanceTest.php",
-        "packages/validator-php/tests/Validate/DetailValidateCliTest.php",
         "packages/validator-rust/tests/detail_validity_conformance.rs",
         "packages/php-ext/tests/validate.php",
         "packages/php-ext/tests/engine.test.mjs",
@@ -659,7 +763,7 @@
       "output": "event connection with disconnect and sync",
       "errors": [
         "TypeError",
-        "FormError"
+        "FormInputError"
       ],
       "fixtures": [
         "tests/fixtures/form-session/scenario.mjs",
@@ -774,7 +878,7 @@
       "output": "event connection that runs map actions and focuses the selected form row",
       "errors": [
         "TypeError",
-        "FormError"
+        "FormInputError"
       ],
       "fixtures": [
         "tests/fixtures/form-session/scenario.mjs"
@@ -803,12 +907,12 @@
     {
       "id": "runAction",
       "owner": "@crudui/generator-core",
-      "signature": "runAction(form, target) -> ActionResult | undefined",
+      "signature": "resolveAction(button) -> ActionTarget | undefined; runAction(form, target) -> ActionResult | undefined",
       "input": "form instance and an action target from resolveAction(button)",
       "output": "the row, collection or view action applied to the instance and the row that receives focus",
       "errors": [
         "RangeError",
-        "FormError"
+        "FormInputError"
       ],
       "fixtures": [
         "tests/fixtures/form-session/scenario.mjs"
@@ -843,7 +947,7 @@
     {
       "id": "viewState",
       "owner": "@crudui/generator-core",
-      "signature": "initialView() -> ViewState; toggleRowView | removeRowView | rekeyRowView(view, ...) -> ViewState; setAllExpandedView(nodes, expanded) -> ViewState",
+      "signature": "initialView() -> ViewState; toggleRowView | removeRowView | rekeyRowView(view, ...) -> ViewState; setAllExpandedView(nodes, expanded) -> ViewState; collapsibleRows(nodes) -> string[]",
       "input": "current view state, row paths and evaluated nodes",
       "output": "new view state with collapsed row paths",
       "errors": [
@@ -881,9 +985,9 @@
     {
       "id": "formHistory",
       "owner": "@crudui/generator-core",
-      "signature": "emptyHistory() -> History; recordChange(history, previous, path?) -> History; undoChange(history) -> UndoResult",
+      "signature": "emptyHistory() -> History; recordChange(history, previous, path?) -> History; canUndo | canRedo(history) -> boolean; undoChange(history, current) -> UndoResult; redoChange(history, current) -> RedoResult",
       "input": "current history, the record before a change and the edited path",
-      "output": "history with at most HISTORY_LIMIT records and the restored record",
+      "output": "history with at most 100 records in each direction and the restored record",
       "errors": [
         "RangeError"
       ],
@@ -924,7 +1028,7 @@
       "output": "valid flag and complete error entries",
       "errors": [
         "ComposeLoadError",
-        "SchemaError"
+        "FormInputError"
       ],
       "fixtures": [
         "tests/fixtures/validate/cases.json",
@@ -962,8 +1066,7 @@
       "input": "list specification",
       "output": "valid flag, or the composition or forbidden-key load error",
       "errors": [
-        "ComposeLoadError",
-        "SchemaError"
+        "ComposeLoadError"
       ],
       "fixtures": [
         "tests/fixtures/list-validity/cases.json"
@@ -987,107 +1090,6 @@
         {
           "id": "test-1",
           "command": "npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts"
-        }
-      ]
-    },
-    {
-      "id": "validatorCli",
-      "owner": "@crudui/validator",
-      "signature": "validate < request.json > response.json",
-      "input": "one JSON request on standard input",
-      "output": "one JSON response on standard output and the exit status",
-      "errors": [
-        "Request must be valid JSON"
-      ],
-      "fixtures": [
-        "tests/fixtures/validator-cli/cases.json"
-      ],
-      "support": {
-        "javascript": "pass",
-        "php": "pass",
-        "go": "pass",
-        "rust": "pass",
-        "php-native": "pass"
-      },
-      "status": "implemented",
-      "state": "none",
-      "tests": [
-        "examples/cross-check-console/server/validator-cli-requests.test.mjs"
-      ],
-      "docs": [
-        "docs/spec/validation-rules.md"
-      ],
-      "verification": [
-        {
-          "id": "test-1",
-          "command": "npm test --prefix examples/cross-check-console/server -- validator-cli-requests"
-        }
-      ]
-    },
-    {
-      "id": "translateLegacy",
-      "owner": "@crudui/validator",
-      "signature": "translateLegacy(legacy) -> { schema, notes, roundtrip }",
-      "input": "legacy field declaration",
-      "output": "specification with translation notes and the round-trip result",
-      "errors": [
-        "TypeError"
-      ],
-      "fixtures": [
-        "tests/fixtures/translate/cases.json"
-      ],
-      "support": {
-        "javascript": "pass"
-      },
-      "status": "implemented",
-      "state": "none",
-      "tests": [
-        "packages/validator-ts/src/legacy/translate/translate.conformance.test.ts"
-      ],
-      "docs": [
-        "docs/spec/legacy-schema.md"
-      ],
-      "verification": [
-        {
-          "id": "test-1",
-          "command": "npm test -w @crudui/validator -- src/legacy/translate/translate.conformance.test.ts"
-        }
-      ]
-    },
-    {
-      "id": "validateLegacy",
-      "owner": "@crudui/validator",
-      "signature": "new Validator(legacySpec).validate(data) -> { valid, errors } from the explicit legacy module (@crudui/validator/legacy)",
-      "input": "legacy field declaration and submitted data",
-      "output": "valid flag with the rule and path of the first error",
-      "errors": [
-        "none"
-      ],
-      "fixtures": [
-        "tests/fixtures/legacy-validate/cases.json"
-      ],
-      "support": {
-        "javascript": "pass",
-        "php": "pass",
-        "go": "pass",
-        "rust": "pass",
-        "php-native": "unsupported"
-      },
-      "status": "implemented",
-      "state": "none",
-      "tests": [
-        "packages/validator-ts/src/__tests__/conformance.test.ts",
-        "packages/validator-php/tests/ConformanceTest.php",
-        "packages/validator-go/validator/legacy/validator_test.go",
-        "packages/validator-rust/tests/conformance.rs"
-      ],
-      "docs": [
-        "docs/spec/legacy-schema.md"
-      ],
-      "verification": [
-        {
-          "id": "test-1",
-          "command": "npm test -w @crudui/validator -- conformance"
         }
       ]
     }

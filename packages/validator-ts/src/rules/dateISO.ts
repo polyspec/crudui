@@ -6,6 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import { trim } from '../values/index';
 
 /**
  * ISO date pattern (YYYY-MM-DD)
@@ -20,7 +21,7 @@ export function isValidDateISO(value: unknown): boolean {
     return false;
   }
 
-  const trimmed = value.trim();
+  const trimmed = trim(value);
   if (!ISO_DATE_PATTERN.test(trimmed)) {
     return false;
   }
@@ -77,8 +78,4 @@ export const dateISORule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a valid date in ISO format (YYYY-MM-DD).',
 };
-
-export default dateISORule;

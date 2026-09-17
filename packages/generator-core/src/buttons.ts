@@ -54,6 +54,7 @@ export function bindButtons(
   data: Record<string, unknown> = {},
   options: BindButtonsOptions = {},
 ): ButtonVM[] {
+  if (template.kind !== 'crudui/form-template') throw new FormInputError('Unsupported form template');
   const language = options.language ?? 'ko';
   const t = makeTranslate(language);
   const messages = formMessages(language) as unknown as Readonly<Record<string, string | undefined>>;

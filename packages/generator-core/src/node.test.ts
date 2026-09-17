@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  HISTORY_LIMIT,
   bindButtons,
   bindForm,
   buildOutline,
@@ -21,6 +20,7 @@ import {
   canRedo,
   type NodeVM,
 } from './index';
+import { HISTORY_LIMIT } from './history';
 
 const k1 = '__0000000000001__';
 const k2 = '__0000000000002__';
@@ -313,6 +313,12 @@ describe('form buttons', () => {
     expect(bindButtons(template, {}, { language: 'en' })).toEqual([
       { type: 'submit', tag: 'button', text: 'Save', attrs: { type: 'submit', class: 'crudui-action crudui-action--text' } },
     ]);
+  });
+
+  it('rejects a value that is not a compiled form template before reading its buttons', () => {
+    for (const template of [{ kind: 'other' }, { kind: 'other', buttons: [] }]) {
+      expect(() => bindButtons(template as never)).toThrow('Unsupported form template');
+    }
   });
 
   it('evaluates declared buttons in order with text, design and behavior', () => {

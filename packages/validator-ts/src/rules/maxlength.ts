@@ -1,12 +1,13 @@
 /**
  * Maximum length validation rule
  *
- * Validates that a string has at most the specified number of characters
+ * The canonical text of the value has at most the given number of code points
+ * (validation-rules.md, "Values"). An array or object value fails.
  */
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-import { getLength } from './minlength';
+import { codePointLength, isLengthLimit } from '../values/index';
 
 /**
  * Maxlength rule definition
@@ -15,33 +16,26 @@ export const maxlengthRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
     const { value, ruleParam, messages } = context;
 
-    // Skip if no rule param
-    if (ruleParam === null || ruleParam === undefined) {
+    // A false or null parameter disables the rule.
+    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
       return null;
     }
+    if (!isLengthLimit(ruleParam)) {
+      throw new TypeError('Invalid maxlength parameter: expected an integer from 0 to 9007199254740991');
+    }
 
-    // Skip validation if value is empty (required rule handles this)
+    // An empty value passes without evaluation (required handles it).
     if (isEmpty(value)) {
       return null;
     }
 
-    const maxLength = Number(ruleParam);
-    if (isNaN(maxLength)) {
-      return null;
-    }
-
-    const length = getLength(value);
-
-    if (length > maxLength) {
+    const length = codePointLength(value);
+    if (length === undefined || length > ruleParam) {
       const message =
-        messages?.maxlength ?? `Please enter no more than ${maxLength} characters.`;
-      return message.replace('{0}', String(maxLength));
+        messages?.maxlength ?? 'Please enter no more than {0} characters.';
+      return message.replace('{0}', String(ruleParam));
     }
 
     return null;
   },
-
-  defaultMessage: 'Please enter no more than {0} characters.',
 };
-
-export default maxlengthRule;

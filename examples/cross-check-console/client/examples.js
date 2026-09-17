@@ -79,7 +79,7 @@ properties:
   {
     id: 'edge-ref',
     name: 'edge — unresolved $ref (REF_FILE_NOT_FOUND)',
-    note: 'compose/$ref → Missing.yml not in files → load failure, NOT valid:false. 4 langs return failure{code:REF_FILE_NOT_FOUND, message, at:"Missing.yml"}; 4 renderers return error{code:REF_FILE_NOT_FOUND}. legacy gap (LargeForm.yml:873) closed.',
+    note: 'compose/$ref → Missing.yml not in files → load failure, NOT valid:false. 4 langs return failure{code:REF_FILE_NOT_FOUND, message, at:"Missing.yml"}; 4 renderers return error{code:REF_FILE_NOT_FOUND}.',
     spec: `type: group
 properties:
   $ref: Missing.yml`,

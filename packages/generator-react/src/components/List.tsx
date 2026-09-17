@@ -26,7 +26,7 @@ import type {
   ListRowVM,
 } from '@crudui/generator-core';
 import { Cell } from './Cell';
-import { paginationPages } from '@crudui/generator-core';
+import { paginationPages } from '@crudui/generator-core/internal';
 import { resolvedStyleProps, styleObject } from './attrs';
 import { escAttr, escText } from './raw';
 

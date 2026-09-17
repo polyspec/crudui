@@ -22,7 +22,7 @@ import {
   TernaryNode,
   PathSegment,
 } from '../types';
-import { ConditionCache, getDefaultCache, CacheStats } from './ConditionCache';
+import { ConditionCache, getDefaultCache } from './ConditionCache';
 
 // ============================================================================
 // Lexer
@@ -167,29 +167,6 @@ export class ParseError extends Error {
       default:
         return `"${token.value}"`;
     }
-  }
-
-  /**
-   * Get a visual representation of the error location in the expression
-   */
-  getErrorPointer(expression: string): string {
-    const lines = expression.split('\n');
-    const lineIndex = this.position.line - 1;
-
-    if (lineIndex >= 0 && lineIndex < lines.length) {
-      const line = lines[lineIndex];
-      const pointer = ' '.repeat(this.position.column - 1) + '^';
-      return `${line}\n${pointer}`;
-    }
-
-    return expression;
-  }
-
-  /**
-   * Get the partial AST if available
-   */
-  getPartialAST(): ASTNode | null {
-    return this.context.partialAST ?? null;
   }
 
   /**
@@ -570,20 +547,6 @@ export class Lexer {
 // ============================================================================
 
 /**
- * Parse result containing AST and optional partial AST on error
- */
-export interface ParseResult {
-  /** The successfully parsed AST (null if parsing failed) */
-  ast: ASTNode | null;
-  /** Whether parsing was successful */
-  success: boolean;
-  /** Error if parsing failed */
-  error?: ParseError;
-  /** Partial AST constructed before the error occurred */
-  partialAST?: ASTNode | null;
-}
-
-/**
  * Parser class for building AST from tokens
  */
 export class Parser {
@@ -618,29 +581,6 @@ export class Parser {
     }
 
     return expression;
-  }
-
-  /**
-   * Try to parse and return a result object instead of throwing
-   */
-  tryParse(): ParseResult {
-    try {
-      const ast = this.parse();
-      return {
-        ast,
-        success: true,
-      };
-    } catch (error) {
-      if (error instanceof ParseError) {
-        return {
-          ast: null,
-          success: false,
-          error,
-          partialAST: error.getPartialAST(),
-        };
-      }
-      throw error;
-    }
   }
 
   // ternary_expression = or_expression [ "?" ternary_expression ":" ternary_expression ]
@@ -1123,7 +1063,7 @@ export class Parser {
 /**
  * Default cache instance for parsed conditions
  */
-let conditionCache: ConditionCache = getDefaultCache();
+const conditionCache: ConditionCache = getDefaultCache();
 
 /**
  * Parse a condition expression string into an AST
@@ -1150,102 +1090,6 @@ export function parseCondition(expression: string, cache?: ConditionCache): ASTN
   activeCache.set(expression, ast);
 
   return ast;
-}
-
-/**
- * Extended parse result with expression context
- */
-export interface TryParseResult extends ParseResult {
-  /** The original expression that was parsed */
-  expression: string;
-  /** Error pointer showing where the error occurred (if error) */
-  errorPointer?: string;
-}
-
-/**
- * Try to parse a condition expression without throwing
- * Returns a result object with success/failure info and partial AST on error
- * @param expression The condition expression to parse
- * @param cache Optional custom cache instance (uses default if not provided)
- */
-export function tryParseCondition(expression: string, cache?: ConditionCache): TryParseResult {
-  const activeCache = cache || conditionCache;
-
-  // Check cache
-  const cached = activeCache.get(expression);
-  if (cached) {
-    return {
-      ast: cached,
-      success: true,
-      expression,
-    };
-  }
-
-  try {
-    // Tokenize and parse
-    const lexer = new Lexer(expression);
-    const tokens = lexer.tokenize();
-    const parser = new Parser(tokens);
-    const result = parser.tryParse();
-
-    if (result.success && result.ast) {
-      // Cache successful result
-      activeCache.set(expression, result.ast);
-    }
-
-    return {
-      ...result,
-      expression,
-      errorPointer: result.error ? result.error.getErrorPointer(expression) : undefined,
-    };
-  } catch (error) {
-    if (error instanceof ParseError) {
-      return {
-        ast: null,
-        success: false,
-        error,
-        partialAST: error.getPartialAST(),
-        expression,
-        errorPointer: error.getErrorPointer(expression),
-      };
-    }
-    throw error;
-  }
-}
-
-/**
- * Clear the condition cache
- * @param cache Optional custom cache instance (uses default if not provided)
- */
-export function clearConditionCache(cache?: ConditionCache): void {
-  const activeCache = cache || conditionCache;
-  activeCache.clear();
-}
-
-/**
- * Get cache statistics
- * @param cache Optional custom cache instance (uses default if not provided)
- * @returns Cache statistics including hits, misses, and hit rate
- */
-export function getConditionCacheStats(cache?: ConditionCache): CacheStats {
-  const activeCache = cache || conditionCache;
-  return activeCache.getStats();
-}
-
-/**
- * Set the default condition cache instance
- * @param cache The cache instance to use as default
- */
-export function setConditionCache(cache: ConditionCache): void {
-  conditionCache = cache;
-}
-
-/**
- * Get the default condition cache instance
- * @returns The default ConditionCache instance
- */
-export function getConditionCache(): ConditionCache {
-  return conditionCache;
 }
 
 /**

@@ -21,7 +21,7 @@
  */
 
 import { h, type VNode } from 'vue';
-import { paginationPages } from '@crudui/generator-core';
+import { paginationPages } from '@crudui/generator-core/internal';
 import type {
   ListViewModel,
   ColumnVM,

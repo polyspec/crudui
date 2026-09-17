@@ -10,9 +10,8 @@ recorded in [features](../features.md).
 CRUDUI starts at package version `0.0.1`. File names, public APIs and internal
 identifiers describe their roles without implementation-generation markers.
 Package roots expose the current validator and form renderers, including the
-framework-independent `@crudui/generator-html` renderer. Older implementations use explicit `legacy` modules. Shared
-rules and expression utilities are independent of legacy modules. Replaced
-versioned paths have no compatibility aliases.
+framework-independent `@crudui/generator-html` renderer. Replaced versioned
+paths have no compatibility aliases.
 
 The machine-readable contract is maintained in
 [`schema/crudui.schema.json`](../../schema/crudui.schema.json). It validates

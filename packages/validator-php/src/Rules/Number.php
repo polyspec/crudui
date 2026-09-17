@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * Number validation rule.
  * Validates that a value is a valid number (integer or decimal).
@@ -29,16 +31,6 @@ class Number implements RuleInterface
 
         // is_numeric covers ints and numeric strings. "Infinity"/"-Infinity"/
         // "NaN" are not numeric strings in PHP, so they are rejected here.
-        return is_numeric($value);
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a valid number.';
+        return is_numeric(\is_string($value) ? Whitespace::trim($value) : $value);
     }
 }

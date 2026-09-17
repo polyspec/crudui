@@ -17,7 +17,7 @@
  * into existence — never a `valid:false` validation result.
  *
  * Forbidden set (SPEC §6): the enumerated `FORBIDDEN_META_KEYS`
- * (condition-only / legacy / magic-symbol meta keys) PLUS the `x{key}` comment
+ * (condition-only / composition-directive / magic-symbol meta keys) PLUS the `x{key}` comment
  * family (any `x`-prefixed key). `$ref`/`$patch` are NOT forbidden — compose
  * already consumed them, so they do not survive to here; `x{key}` IS strip-
  * eligible, so any `x{key}` that survives to this scan is rejected (the strip

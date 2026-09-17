@@ -6,6 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import { trim } from '../values/index';
 
 /**
  * Convert an input value to a number for comparison.
@@ -21,7 +22,7 @@ export function toNumber(value: unknown): number | null {
   }
 
   if (typeof value === 'string') {
-    const trimmed = value.trim();
+    const trimmed = trim(value);
     if (trimmed === '') {
       return null;
     }
@@ -74,8 +75,4 @@ export const minRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a value greater than or equal to {0}.',
 };
-
-export default minRule;

@@ -66,8 +66,4 @@ export const equalToRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter the same value again.',
 };
-
-export default equalToRule;

@@ -58,11 +58,11 @@ make docs
 make docs-verify-idempotent
 ```
 
-TypeScript 참조는 공개 패키지 진입점 다섯 개를 설명합니다. Svelte는 레거시
-보조 모듈 대신 `Form`을 포함한 빌드된 선언을 사용합니다. PHP·Rust의 자체
+TypeScript 참조는 공개 패키지 진입점 다섯 개를 설명합니다. Svelte는
+`Form`을 포함한 빌드된 선언을 사용합니다. PHP·Rust의 자체
 HTML은 `docs/public/api/`에서 사이트에 포함합니다. 반복 생성 검사는 해당
 자산, Markdown 참조, 스키마를 비교합니다.
-Go 참조는 조합·표현식·검증과 명시적인 레거시 패키지를 포함해 `validator/`
+Go 참조는 조합·표현식·검증을 포함해 `validator/`
 아래의 모든 패키지를 설명합니다.
 
 번역과 링크 검사는 저장소 안내 문서, 생성기 패키지 README, 예제 색인, 기능 상태와
@@ -100,5 +100,5 @@ DOCS_BASE_PATH=/crudui/ npm run docs:preview
 제공합니다.
 
 `npm run test:docs`는 관리하는 Markdown·소스 주석·설명용 고정 데이터가 이 작성
-규칙을 준수하는지 검사합니다. 외부 의존성, 생성한 참조 문서, 보존한 구형 입력은
+규칙을 준수하는지 검사합니다. 외부 의존성과 생성한 참조 문서는
 원문을 유지하며 이 검사에서 제외합니다.

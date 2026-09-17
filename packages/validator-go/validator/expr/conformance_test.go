@@ -37,7 +37,7 @@ type fixtureSpec struct {
 
 func loadFixture(t *testing.T) []fixtureSpec {
 	t.Helper()
-	// validator-go/validator/model/expr → repo root is five levels up.
+	// packages/validator-go/validator/expr → repo root is four levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "expr", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

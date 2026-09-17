@@ -41,9 +41,12 @@ container at `https://crudui.test`. Apply the deployment, then verify the tree i
 runs:
 
 ```sh
-node examples/form-comparison/comparison-deployment.mjs
-node examples/form-comparison/verification.mjs
+make deploy
+make deploy-verify
 ```
+
+`make deploy` runs `examples/form-comparison/comparison-deployment.mjs` and `make deploy-verify`
+runs `examples/form-comparison/verification.mjs`.
 
 The deployment command builds the toolchain image only when
 `examples/form-comparison/Containerfile` changed. It mounts the repository

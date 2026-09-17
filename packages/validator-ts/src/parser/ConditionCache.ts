@@ -259,11 +259,3 @@ export function getDefaultCache(maxSize: number = 1000): ConditionCache {
   }
   return defaultCache;
 }
-
-/**
- * Reset the default global cache instance
- * (mainly for testing purposes)
- */
-export function resetDefaultCache(): void {
-  defaultCache = null;
-}

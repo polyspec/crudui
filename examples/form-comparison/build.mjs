@@ -63,13 +63,14 @@ for (const renderingPath of formRenderingPaths) {
           '#adapter': path.join(exampleDirectory, 'src/adapters',
             renderingPath === 'bindForm' ? 'bind-form-' + framework + '.' + extension
               : 'create-form-' + framework + '.' + extension),
-          '#validation-entry': path.join(exampleDirectory, 'src/adapters/validation.mjs'),
-          '#validator': path.join(source, 'packages/validator-ts/src/validate/index.ts'),
           '#react': path.join(source, 'packages/generator-react/src/components'),
           '#vue': path.join(source, 'packages/generator-vue/src/components'),
           '#svelte': path.join(source, 'packages/generator-svelte/src/components'),
           '#html': path.join(source, 'packages/generator-html/src/index.ts'),
+          // Each internal entry precedes its main entry, whose alias also matches its subpaths.
+          '@crudui/generator-core/internal': path.join(source, 'packages/generator-core/src/internal.ts'),
           '@crudui/generator-core': path.join(source, 'packages/generator-core/src/index.ts'),
+          '@crudui/validator/internal': path.join(source, 'packages/validator-ts/src/internal.ts'),
           '@crudui/validator': path.join(source, 'packages/validator-ts/src/index.ts'),
         },
       },

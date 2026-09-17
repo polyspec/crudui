@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { MemoryLoader, Validator } from '@crudui/validator';
+import { MemoryLoader, Validator } from '@crudui/validator/internal';
 import { compileForm, bindForm, createForm, sequenceRowKey, createRowKey } from './index';
 // @ts-expect-error Shared cross-framework scenario.
 import { spec, data, companyKey, storeKey, otherStoreKey, storesPath } from '../../../tests/fixtures/form-session/scenario.mjs';

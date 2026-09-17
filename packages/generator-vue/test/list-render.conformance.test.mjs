@@ -23,7 +23,7 @@ import { describe, test, expect } from 'vitest';
 
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { renderList } from '../src/listSsr.ts';
-import { ComposeLoadError } from '../src/index.ts';
+import { ComposeLoadError } from '@crudui/generator-core';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';
 
 /** Run one fixture case and record renderList evidence for it. */

@@ -7,7 +7,7 @@
  * (the spec graph is the input; no disk needed) while production wires a real
  * disk + YAML loader. One engine, two backends — identical semantics.
  *
- * Path normalization rules:
+ * Path normalization:
  *   - absolute (`/…`) paths pass through unchanged
  *   - relative paths get the basepath prefix (`basepath + '/' + path`)
  * The loader receives the ALREADY-normalized absolute key, so cycle detection

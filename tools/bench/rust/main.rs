@@ -41,14 +41,13 @@ fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
     let (spec_value, raw_input) = load_fixture(dir, name);
     let validator_input = raw_input;
 
-    // Build the validator once; reuse across iterations. `validate` takes
-    // &mut self, so the instance is rebuilt-free but mutated in place.
+    // Build the validator once; reuse across iterations.
     let properties = spec_value
         .get("properties")
         .and_then(Value::as_object)
         .cloned()
         .unwrap_or_default();
-    let v = Validator::new(properties);
+    let v = Validator::new(properties).expect("declared specification");
 
     // Warmup.
     for _ in 0..warmup {
@@ -127,7 +126,7 @@ fn main() {
 
     let specs: Vec<String> = match spec {
         Some(s) => vec![s],
-        None => vec!["contact".to_string(), "large-form".to_string()],
+        None => vec!["contact".to_string(), "large".to_string()],
     };
 
     for name in &specs {

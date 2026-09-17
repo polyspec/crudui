@@ -77,8 +77,4 @@ export const stepRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a value that is a multiple of {0}.',
 };
-
-export default stepRule;

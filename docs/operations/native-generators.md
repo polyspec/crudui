@@ -10,7 +10,7 @@ defines the required operations and comparisons.
 ## Local build and tests
 
 Use a 64-bit PHP installation with `php-config` and matching development headers.
-Pure PHP requires PHP 8.2 or later; the extension requires PHP 8.4 or later.
+Pure PHP and the extension require PHP 8.4 or later; CI tests every line from 8.4 to 8.5.
 Install Composer, Node, Go, Cargo and a C compiler. The container below provides
 a complete Linux toolchain.
 
@@ -24,7 +24,9 @@ make docs-check
 
 `make test-native` builds the JavaScript packages, builds and loads the extension,
 runs generator package tests and compares the JavaScript reference (React server rendering),
-the JavaScript HTML renderer, PHP, Go, Rust and native PHP.
+the JavaScript HTML renderer, PHP, Go, Rust and native PHP. Each runtime answers through
+a program in [`tests/native-generators/programs`](../../tests/native-generators/README.md#programs)
+that calls its package's public API; the packages publish libraries only.
 The extension build reads the PHP executable, headers and build flags from
 `php-config`, compiles the C binding and links Cargo's locked Rust output directly.
 It does not require `phpize`, Autoconf or libtool. Tool discovery rejects relative

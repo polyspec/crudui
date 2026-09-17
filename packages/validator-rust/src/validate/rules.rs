@@ -7,13 +7,18 @@
 //! same skip-on-empty behaviour, same default messages with `{0}`/`{1}`
 //! substitution, same loose comparisons.
 //!
-//! CRUDUI-NEW only in that the call site is the CRUDUI validate slot; the rule SEMANTICS
-//! are the legacy single source of truth re-expressed in Rust (R7 — never imports the
-//! legacy `crate::rules` model).
+//! The call site is the CRUDUI validate slot; the rule semantics are the JS rule
+//! registry re-expressed in Rust.
 
 use serde_json::Value;
 
 use crate::expr::Expression;
+
+use super::canonical::{canonical_text, number_text};
+use super::length::value_length;
+use super::membership::{is_decimal_text, is_member};
+use super::parameters::Parameter;
+use super::whitespace::{is_empty, trim};
 
 /// The per-rule invocation context handed to a rule function.
 pub struct RuleContext<'a> {
@@ -21,9 +26,11 @@ pub struct RuleContext<'a> {
     /// array-level rule).
     pub value: &'a Value,
     /// The EFFECTIVE rule param (already resolved from any expression/condition
-    /// map). Never an expression for evaluated rules; verbatim for path/regex/
+    /// map). Never an expression for evaluated rules; verbatim for path/pattern/
     /// literal rules.
     pub rule_param: &'a Value,
+    /// The checked parameter of a rule whose parameter has a definition.
+    pub(crate) parameter: &'a Parameter,
     /// The field's `messages` override map, if any.
     pub messages: Option<&'a Value>,
     /// The invoked rule name (so `pattern`/`match` aliasing resolves messages by
@@ -72,18 +79,6 @@ pub fn get_rule(name: &str) -> Option<fn(&RuleContext) -> Option<String>> {
 // Shared helpers (JS rules/required.isEmpty, min.toNumber, etc.).
 // ---------------------------------------------------------------------------
 
-/// JS `isEmpty`: null/undefined; trim-empty string; empty array; empty object.
-/// Numbers and booleans (including 0/false) are NOT empty.
-pub fn is_empty(value: &Value) -> bool {
-    match value {
-        Value::Null => true,
-        Value::String(s) => s.trim().is_empty(),
-        Value::Array(a) => a.is_empty(),
-        Value::Object(o) => o.is_empty(),
-        _ => false,
-    }
-}
-
 /// Message lookup for a rule: the field `messages[key]` override, else `None`.
 fn message_override<'a>(messages: Option<&'a Value>, key: &str) -> Option<&'a str> {
     messages
@@ -101,7 +96,7 @@ fn js_number_param(value: &Value) -> Option<f64> {
         Value::Number(n) => n.as_f64(),
         Value::Bool(b) => Some(if *b { 1.0 } else { 0.0 }),
         Value::String(s) => {
-            let trimmed = s.trim();
+            let trimmed = trim(s);
             if trimmed.is_empty() {
                 return Some(0.0); // JS Number('') === 0
             }
@@ -126,11 +121,11 @@ fn to_number_input(value: &Value) -> Option<f64> {
             }
         }
         Value::String(s) => {
-            let trimmed = s.trim();
+            let trimmed = trim(s);
             if trimmed.is_empty() {
                 return None;
             }
-            if !is_number_string(trimmed) {
+            if !is_decimal_text(trimmed) {
                 return None;
             }
             let f = trimmed.parse::<f64>().ok()?;
@@ -144,58 +139,13 @@ fn to_number_input(value: &Value) -> Option<f64> {
     }
 }
 
-/// JS number regex `^[-+]?(\d+\.?\d*|\d*\.?\d+)$` — accepts "1", "1.", ".5",
-/// "1.5", "+2", "-3"; rejects "", ".", "1.2.3", "Infinity", "NaN".
-fn is_number_string(s: &str) -> bool {
-    let bytes = s.as_bytes();
-    let mut i = 0;
-    if i < bytes.len() && (bytes[i] == b'+' || bytes[i] == b'-') {
-        i += 1;
-    }
-    let mut int_digits = 0;
-    while i < bytes.len() && bytes[i].is_ascii_digit() {
-        i += 1;
-        int_digits += 1;
-    }
-    let mut has_dot = false;
-    let mut frac_digits = 0;
-    if i < bytes.len() && bytes[i] == b'.' {
-        has_dot = true;
-        i += 1;
-        while i < bytes.len() && bytes[i].is_ascii_digit() {
-            i += 1;
-            frac_digits += 1;
-        }
-    }
-    if i != bytes.len() {
-        return false; // trailing chars
-    }
-    // Branch 1: \d+\.?\d*  → int_digits>=1
-    // Branch 2: \d*\.?\d+  → frac_digits>=1 (dot required when no int digits)
-    if int_digits >= 1 {
-        // \d+\.?\d* always matches once we have int digits and no trailing junk.
-        return true;
-    }
-    // No integer digits: need a dot and at least one fraction digit.
-    has_dot && frac_digits >= 1
-}
-
-/// Unicode code-point length (JS `[...value].length`).
-fn char_length(value: &Value) -> usize {
-    match value {
-        Value::String(s) => s.chars().count(),
-        Value::Array(a) => a.len(),
-        _ => 0,
-    }
-}
-
-/// JS `String(value)` (rule-side stringification for `match`/`accept`).
+/// JS `String(value)` (rule-side stringification for field references).
 fn js_string(value: &Value) -> String {
     match value {
         Value::Null => "null".to_string(),
         Value::String(s) => s.clone(),
         Value::Bool(b) => b.to_string(),
-        Value::Number(n) => n.to_string(),
+        Value::Number(n) => n.as_f64().map(number_text).unwrap_or_default(),
         // Arrays/objects stringify per JS, but rule call sites never reach here
         // with one for the relevant rules; keep a stable fallback.
         Value::Array(_) | Value::Object(_) => value.to_string(),
@@ -351,7 +301,7 @@ fn rule_url(ctx: &RuleContext) -> Option<String> {
 /// where scheme is http/https/ftp and `rest` is non-empty with no whitespace.
 fn is_valid_url(value: &Value) -> bool {
     let s = match value {
-        Value::String(s) => s.trim(),
+        Value::String(s) => trim(s),
         _ => return false,
     };
     if s.is_empty() {
@@ -380,79 +330,54 @@ fn is_valid_url(value: &Value) -> bool {
 // ---------------------------------------------------------------------------
 
 fn rule_minlength(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
+    let Parameter::Limit(min) = *ctx.parameter else {
+        unreachable!("minlength receives a checked limit")
+    };
     if is_empty(ctx.value) {
         return None;
     }
-    let min = match js_number_param(ctx.rule_param) {
-        Some(n) if !n.is_nan() => n,
-        _ => return None,
-    };
-    let len = char_length(ctx.value) as f64;
-    if len < min {
-        let msg = message_override(ctx.messages, "minlength")
-            .map(str::to_string)
-            .unwrap_or_else(|| format!("Please enter at least {} characters.", fmt_num(min)));
-        return Some(msg.replacen("{0}", &fmt_num(min), 1));
+    if value_length(ctx.value).is_some_and(|length| length >= min) {
+        return None;
     }
-    None
+    let msg = message_override(ctx.messages, "minlength")
+        .map(str::to_string)
+        .unwrap_or_else(|| format!("Please enter at least {min} characters."));
+    Some(msg.replacen("{0}", &min.to_string(), 1))
 }
 
 fn rule_maxlength(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
+    let Parameter::Limit(max) = *ctx.parameter else {
+        unreachable!("maxlength receives a checked limit")
+    };
     if is_empty(ctx.value) {
         return None;
     }
-    let max = match js_number_param(ctx.rule_param) {
-        Some(n) if !n.is_nan() => n,
-        _ => return None,
-    };
-    let len = char_length(ctx.value) as f64;
-    if len > max {
-        let msg = message_override(ctx.messages, "maxlength")
-            .map(str::to_string)
-            .unwrap_or_else(|| format!("Please enter no more than {} characters.", fmt_num(max)));
-        return Some(msg.replacen("{0}", &fmt_num(max), 1));
+    if value_length(ctx.value).is_some_and(|length| length <= max) {
+        return None;
     }
-    None
+    let msg = message_override(ctx.messages, "maxlength")
+        .map(str::to_string)
+        .unwrap_or_else(|| format!("Please enter no more than {max} characters."));
+    Some(msg.replacen("{0}", &max.to_string(), 1))
 }
 
 fn rule_rangelength(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
+    let Parameter::Range(min, max) = *ctx.parameter else {
+        unreachable!("rangelength receives checked limits")
+    };
     if is_empty(ctx.value) {
         return None;
     }
-    let arr = match ctx.rule_param.as_array() {
-        Some(a) if a.len() == 2 => a,
-        _ => return None,
-    };
-    let (min, max) = match (js_number_param(&arr[0]), js_number_param(&arr[1])) {
-        (Some(a), Some(b)) if !a.is_nan() && !b.is_nan() => (a, b),
-        _ => return None,
-    };
-    let len = char_length(ctx.value) as f64;
-    if len < min || len > max {
-        let msg = message_override(ctx.messages, "rangelength")
-            .map(str::to_string)
-            .unwrap_or_else(|| {
-                format!(
-                    "Please enter a value between {} and {} characters.",
-                    fmt_num(min),
-                    fmt_num(max)
-                )
-            });
-        return Some(
-            msg.replacen("{0}", &fmt_num(min), 1)
-                .replacen("{1}", &fmt_num(max), 1),
-        );
+    if value_length(ctx.value).is_some_and(|length| (min..=max).contains(&length)) {
+        return None;
     }
-    None
+    let msg = message_override(ctx.messages, "rangelength")
+        .map(str::to_string)
+        .unwrap_or_else(|| format!("Please enter a value between {min} and {max} characters."));
+    Some(
+        msg.replacen("{0}", &min.to_string(), 1)
+            .replacen("{1}", &max.to_string(), 1),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -480,11 +405,11 @@ fn is_valid_number(value: &Value) -> bool {
     match value {
         Value::Number(n) => n.as_f64().map(f64::is_finite).unwrap_or(false),
         Value::String(s) => {
-            let trimmed = s.trim();
+            let trimmed = trim(s);
             if trimmed.is_empty() {
                 return false;
             }
-            if !is_number_string(trimmed) {
+            if !is_decimal_text(trimmed) {
                 return false;
             }
             trimmed.parse::<f64>().map(f64::is_finite).unwrap_or(false)
@@ -526,7 +451,7 @@ fn is_digits_only(value: &Value) -> bool {
             }
         }
         Value::String(s) => {
-            let trimmed = s.trim();
+            let trimmed = trim(s);
             !trimmed.is_empty() && trimmed.bytes().all(|b| b.is_ascii_digit())
         }
         _ => false,
@@ -553,7 +478,7 @@ fn rule_min(ctx: &RuleContext) -> Option<String> {
         let msg = message_override(ctx.messages, "min")
             .unwrap_or("Please enter a value greater than or equal to {0}.")
             .to_string();
-        return Some(msg.replacen("{0}", &fmt_num(min), 1));
+        return Some(msg.replacen("{0}", &number_text(min), 1));
     }
     None
 }
@@ -574,7 +499,7 @@ fn rule_max(ctx: &RuleContext) -> Option<String> {
         let msg = message_override(ctx.messages, "max")
             .unwrap_or("Please enter a value less than or equal to {0}.")
             .to_string();
-        return Some(msg.replacen("{0}", &fmt_num(max), 1));
+        return Some(msg.replacen("{0}", &number_text(max), 1));
     }
     None
 }
@@ -601,14 +526,15 @@ fn rule_range(ctx: &RuleContext) -> Option<String> {
             .unwrap_or_else(|| {
                 format!(
                     "Please enter a value between {} and {}.",
-                    fmt_num(min),
-                    fmt_num(max)
+                    number_text(min),
+                    number_text(max)
                 )
             });
-        return Some(
-            msg.replacen("{0}", &fmt_num(min), 1)
-                .replacen("{1}", &fmt_num(max), 1),
-        );
+        return Some(msg.replacen("{0}", &number_text(min), 1).replacen(
+            "{1}",
+            &number_text(max),
+            1,
+        ));
     }
     None
 }
@@ -631,10 +557,10 @@ fn rule_step(ctx: &RuleContext) -> Option<String> {
             .unwrap_or_else(|| {
                 format!(
                     "Please enter a value that is a multiple of {}.",
-                    fmt_num(step)
+                    number_text(step)
                 )
             });
-        return Some(msg.replacen("{0}", &fmt_num(step), 1));
+        return Some(msg.replacen("{0}", &number_text(step), 1));
     }
     None
 }
@@ -658,7 +584,7 @@ fn is_valid_step(value: f64, step: f64, base: f64) -> bool {
 
 /// Decimal-place count of a number's JS string form (JS `getDecimalPlaces`).
 fn decimal_places(num: f64) -> usize {
-    let s = fmt_num(num);
+    let s = number_text(num);
     match s.find('.') {
         Some(i) => s.len() - i - 1,
         None => 0,
@@ -670,44 +596,23 @@ fn decimal_places(num: f64) -> usize {
 // ---------------------------------------------------------------------------
 
 fn rule_match(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
+    let Parameter::Pattern(program) = ctx.parameter else {
+        unreachable!("pattern and match receive a compiled pattern")
+    };
     if is_empty(ctx.value) {
         return None;
     }
-    let pattern = match ctx.rule_param {
-        Value::String(s) => s.clone(),
-        _ => return None,
-    };
-    // invalid pattern: skip (JS getPattern → null)
-    let regex = compile_anchored(&pattern)?;
-    let str_value = js_string(ctx.value);
-    if !regex.is_match(&str_value) {
-        // Message lookup: invoked rule name first (pattern/match alias), then
-        // pattern, then match, then the default.
-        let named = message_override(ctx.messages, ctx.rule_name);
-        let msg = named
-            .or_else(|| message_override(ctx.messages, "pattern"))
-            .or_else(|| message_override(ctx.messages, "match"))
-            .unwrap_or("Please enter a valid format.");
-        return Some(msg.to_string());
+    // The whole canonical text must match; an array or object has none.
+    if canonical_text(ctx.value).is_some_and(|text| program.is_match(&text)) {
+        return None;
     }
-    None
-}
-
-/// Anchor `^…$` (JS `anchorPattern`) and compile. Returns `None` on a regex the
-/// engine cannot build.
-fn compile_anchored(pattern: &str) -> Option<regex::Regex> {
-    let mut anchored = String::new();
-    if !pattern.starts_with('^') {
-        anchored.push('^');
-    }
-    anchored.push_str(pattern);
-    if !pattern.ends_with('$') {
-        anchored.push('$');
-    }
-    regex::Regex::new(&anchored).ok()
+    // Message lookup: invoked rule name first (pattern/match alias), then
+    // pattern, then match, then the default.
+    let msg = message_override(ctx.messages, ctx.rule_name)
+        .or_else(|| message_override(ctx.messages, "pattern"))
+        .or_else(|| message_override(ctx.messages, "match"))
+        .unwrap_or("Please enter a valid format.");
+    Some(msg.to_string())
 }
 
 // ---------------------------------------------------------------------------
@@ -715,114 +620,17 @@ fn compile_anchored(pattern: &str) -> Option<regex::Regex> {
 // ---------------------------------------------------------------------------
 
 fn rule_in(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param == &Value::Bool(false) || ctx.rule_param.is_null() {
+    let Parameter::Members(members) = ctx.parameter else {
+        unreachable!("in receives checked members")
+    };
+    if is_empty(ctx.value) || is_member(ctx.value, members) {
         return None;
     }
-    if is_empty(ctx.value) {
-        return None;
-    }
-    let allowed = flatten_in_values(ctx.rule_param);
-    if allowed.is_empty() {
-        return None;
-    }
-    let msg = message_override(ctx.messages, "in")
-        .unwrap_or("Please select a valid option.")
-        .to_string();
-
-    if let Value::Array(items) = ctx.value {
-        for item in items {
-            if !is_in_list(item, &allowed) {
-                return Some(msg);
-            }
-        }
-        return None;
-    }
-    if !is_in_list(ctx.value, &allowed) {
-        return Some(msg);
-    }
-    None
-}
-
-fn flatten_in_values(param: &Value) -> Vec<Value> {
-    match param {
-        Value::Array(items) => {
-            let mut out = Vec::new();
-            for item in items {
-                if item.is_array() || item.is_object() {
-                    out.extend(flatten_in_values(item));
-                } else {
-                    out.push(item.clone());
-                }
-            }
-            out
-        }
-        Value::String(s) => s
-            .split(',')
-            .map(|v| Value::String(v.trim().to_string()))
-            .collect(),
-        Value::Object(map) => {
-            // Static value→label content map (SPEC §2 G3): the option VALUE is the
-            // KEY; the label (string | LangMap | null) is display-only and never a
-            // member. A null label slot has no effect. Detected when every entry
-            // value is a label (string | object | null); other objects keep the
-            // legacy values-flatten.
-            if is_value_label_map(map) {
-                map.keys().map(|k| Value::String(k.clone())).collect()
-            } else {
-                let values: Vec<Value> = map.values().cloned().collect();
-                flatten_in_values(&Value::Array(values))
-            }
-        }
-        other => vec![other.clone()],
-    }
-}
-
-/// Whether `map` is a static value→label content map (G3): a non-empty object
-/// whose entry values are all display labels — a string, a LangMap object, or
-/// null. For such a map membership uses the KEYS (the option values), never the
-/// labels. An object carrying any non-label value (number, bool, array) is not a
-/// content map (legacy values-flatten).
-fn is_value_label_map(map: &serde_json::Map<String, Value>) -> bool {
-    if map.is_empty() {
-        return false;
-    }
-    map.values()
-        .all(|v| matches!(v, Value::Null | Value::String(_) | Value::Object(_)))
-}
-
-fn normalize_in(value: &Value) -> String {
-    match value {
-        Value::Null => String::new(),
-        Value::Bool(b) => {
-            if *b {
-                "1".to_string()
-            } else {
-                "0".to_string()
-            }
-        }
-        Value::String(s) => s.trim().to_string(),
-        Value::Number(n) => n.to_string(),
-        other => other.to_string(),
-    }
-}
-
-fn is_in_list(value: &Value, allowed: &[Value]) -> bool {
-    let nv = normalize_in(value);
-    for a in allowed {
-        let na = normalize_in(a);
-        if nv == na {
-            return true;
-        }
-        // Numeric comparison (JS Number on both, both non-empty, both numeric).
-        if !nv.is_empty() && !na.is_empty() {
-            if let (Ok(vn), Ok(an)) = (nv.parse::<f64>(), na.parse::<f64>()) {
-                if vn == an {
-                    return true;
-                }
-            }
-        }
-    }
-    false
+    Some(
+        message_override(ctx.messages, "in")
+            .unwrap_or("Please select a valid option.")
+            .to_string(),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -918,7 +726,7 @@ fn rule_date(ctx: &RuleContext) -> Option<String> {
 fn is_valid_date(value: &Value) -> bool {
     match value {
         Value::Number(_) => true,
-        Value::String(s) => parse_date(s.trim()).is_some(),
+        Value::String(s) => parse_date(trim(s)).is_some(),
         _ => false,
     }
 }
@@ -976,7 +784,7 @@ fn rule_date_iso(ctx: &RuleContext) -> Option<String> {
 
 fn is_valid_date_iso(value: &Value) -> bool {
     let s = match value {
-        Value::String(s) => s.trim(),
+        Value::String(s) => trim(s),
         _ => return false,
     };
     let bytes = s.as_bytes();
@@ -1028,7 +836,7 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
         return None;
     }
     let end = match ctx.value {
-        Value::String(s) => parse_date(s.trim())?,
+        Value::String(s) => parse_date(trim(s))?,
         Value::Number(_) => 0,
         _ => return None,
     };
@@ -1049,7 +857,7 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
         return None;
     }
     let start = match &start_value {
-        Value::String(s) => parse_date(s.trim())?,
+        Value::String(s) => parse_date(trim(s))?,
         Value::Number(_) => 0,
         _ => return None,
     };
@@ -1188,7 +996,7 @@ fn parse_accept_param(param: &Value) -> Vec<String> {
     match param {
         Value::String(s) => {
             for raw in s.split(',') {
-                let part = raw.trim().to_ascii_lowercase();
+                let part = trim(raw).to_ascii_lowercase();
                 if let Some(stripped) = part.strip_prefix('.') {
                     if let Some(mimes) = extension_to_mime(stripped) {
                         out.extend(mimes.iter().map(|m| m.to_string()));
@@ -1274,8 +1082,8 @@ fn rule_mincount(ctx: &RuleContext) -> Option<String> {
     if count < min {
         let msg = message_override(ctx.messages, "mincount")
             .map(str::to_string)
-            .unwrap_or_else(|| format!("Please select at least {} items.", fmt_num(min)));
-        return Some(msg.replacen("{0}", &fmt_num(min), 1));
+            .unwrap_or_else(|| format!("Please select at least {} items.", number_text(min)));
+        return Some(msg.replacen("{0}", &number_text(min), 1));
     }
     None
 }
@@ -1292,8 +1100,8 @@ fn rule_maxcount(ctx: &RuleContext) -> Option<String> {
     if count > max {
         let msg = message_override(ctx.messages, "maxcount")
             .map(str::to_string)
-            .unwrap_or_else(|| format!("Please select no more than {} items.", fmt_num(max)));
-        return Some(msg.replacen("{0}", &fmt_num(max), 1));
+            .unwrap_or_else(|| format!("Please select no more than {} items.", number_text(max)));
+        return Some(msg.replacen("{0}", &number_text(max), 1));
     }
     None
 }
@@ -1463,7 +1271,7 @@ fn comparison_key(value: &Value) -> String {
     match value {
         Value::Object(_) | Value::Array(_) => value.to_string(),
         Value::String(s) => format!("s:{}", s),
-        Value::Number(n) => format!("n:{}", n),
+        Value::Number(n) => format!("n:{}", n.as_f64().map(number_text).unwrap_or_default()),
         Value::Bool(b) => format!("b:{}", b),
         Value::Null => "null".to_string(),
     }
@@ -1490,7 +1298,7 @@ fn item_passes_condition(condition: &str, item_field_path: &[String], form_data:
 
 /// JS `isConditionExpression`: a string that looks like a condition.
 pub fn is_condition_expression(value: &str) -> bool {
-    let trimmed = value.trim();
+    let trimmed = trim(value);
     if trimmed.starts_with('.') {
         return true;
     }
@@ -1640,17 +1448,4 @@ pub fn resolve_field_reference(
         return get_value_by_path(form_data, &sibling);
     }
     get_value_by_path(form_data, &[trimmed.to_string()])
-}
-
-// ---------------------------------------------------------------------------
-// number formatting (JS `String(number)` for message substitution / decimals).
-// ---------------------------------------------------------------------------
-
-/// JS `String(number)`: integral floats drop the fraction (10.0 → "10").
-pub fn fmt_num(n: f64) -> String {
-    if n.is_finite() && n.fract() == 0.0 && n.abs() < 1e15 {
-        (n as i64).to_string()
-    } else {
-        n.to_string()
-    }
 }

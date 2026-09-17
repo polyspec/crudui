@@ -1,8 +1,7 @@
 package validate
 
 // Rule registry — a self-contained port of the JS reference rules
-// (validator-ts/src/rules). model does NOT import the legacy validator rules (R7
-// isolation); the semantics and default messages mirror the JS engine, which is
+// (validator-ts/src/rules); the semantics and default messages mirror the JS engine, which is
 // the source the shared 4-language fixture is generated from.
 //
 // A rule receives the field value, the EFFECTIVE param (already resolved from a
@@ -12,17 +11,16 @@ package validate
 //
 // Empty-value skip: every rule except required / mincount / maxcount passes on an
 // empty value (required is the only rule that fails empty; count rules count an
-// empty array as 0). isEmpty mirrors JS isEmpty (rules/required).
+// empty array as 0). Emptiness, whitespace and canonical text are defined in
+// value_whitespace.go and value_text.go; the length, membership and pattern
+// rules live in their own rule_*.go files.
 
 import (
 	"encoding/json"
 	"math"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
 
 // ruleContext carries the data a rule needs beyond value + param.
@@ -35,6 +33,8 @@ type ruleContext struct {
 	messages map[string]string
 	// ruleName is the invoked rule key (pattern vs match alias preserved).
 	ruleName string
+	// pattern is the matcher of a pattern or match parameter.
+	pattern *patternMatcher
 }
 
 // ruleFn validates value with the effective param. Returns (message, failed).
@@ -86,29 +86,11 @@ func (ctx ruleContext) msg(name, fallback string) string {
 }
 
 // ---------------------------------------------------------------------------
-// Value helpers (JS isEmpty / Number / toNumber parity).
+// Value helpers (JS String / Number / toNumber parity).
 // ---------------------------------------------------------------------------
 
-// isEmpty mirrors JS isEmpty (rules/required): null/undefined empty; a string is
-// empty when trim is ""; an array is empty when len 0; an object is empty when no
-// keys; numbers / booleans (including 0 / false) are NOT empty.
-func isEmpty(value any) bool {
-	switch v := value.(type) {
-	case nil:
-		return true
-	case string:
-		return strings.TrimSpace(v) == ""
-	case []any:
-		return len(v) == 0
-	case map[string]any:
-		return len(v) == 0
-	default:
-		return false
-	}
-}
-
 // jsString mirrors JS String(value) for the rule layer: strings pass; numbers use
-// the JS number→string form; booleans → "true"/"false"; null → "" (rules only
+// Number.prototype.toString; booleans → "true"/"false"; null → "" (rules only
 // reach String() on non-empty values, but keep parity).
 func jsString(value any) string {
 	switch v := value.(type) {
@@ -121,14 +103,9 @@ func jsString(value any) string {
 			return "true"
 		}
 		return "false"
-	case int:
-		return strconv.Itoa(v)
-	case int64:
-		return strconv.FormatInt(v, 10)
-	case float64:
-		return formatJSNumber(v)
-	case float32:
-		return formatJSNumber(float64(v))
+	case float64, float32, int, int64, int32, uint, uint64, uint32:
+		n, _ := numberValue(v)
+		return canonicalNumber(n)
 	default:
 		b, err := json.Marshal(v)
 		if err != nil {
@@ -136,19 +113,6 @@ func jsString(value any) string {
 		}
 		return string(b)
 	}
-}
-
-// formatJSNumber renders a float the way JS String(n) would for finite numbers:
-// an integral value prints without a fractional part.
-func formatJSNumber(v float64) string {
-	if math.IsInf(v, 0) || math.IsNaN(v) {
-		// JS String prints Infinity/NaN; not reached by the fixtures but kept.
-		return strconv.FormatFloat(v, 'g', -1, 64)
-	}
-	if v == math.Floor(v) && math.Abs(v) < 1e21 {
-		return strconv.FormatInt(int64(v), 10)
-	}
-	return strconv.FormatFloat(v, 'g', -1, 64)
 }
 
 // jsNumber mirrors JS Number(value): a whole-string number parses; an empty
@@ -170,7 +134,7 @@ func jsNumber(value any) (float64, bool) {
 		}
 		return 0, true
 	case string:
-		trimmed := strings.TrimSpace(v)
+		trimmed := trimText(v)
 		if trimmed == "" {
 			return 0, true // JS Number('') === 0
 		}
@@ -210,7 +174,7 @@ func toNumber(value any) (float64, bool) {
 		}
 		return v, true
 	case string:
-		trimmed := strings.TrimSpace(v)
+		trimmed := trimText(v)
 		if trimmed == "" {
 			return 0, false
 		}
@@ -225,13 +189,6 @@ func toNumber(value any) (float64, bool) {
 	default:
 		return 0, false
 	}
-}
-
-// runeLength returns the JS string length in UTF-16 code units is approximated by
-// rune count for the BMP; the fixtures use ASCII, so rune count is exact for the
-// shared contract. (JS .length is UTF-16; non-BMP differs, not exercised.)
-func runeLength(s string) int {
-	return len([]rune(s))
 }
 
 // ---------------------------------------------------------------------------
@@ -286,44 +243,6 @@ func ruleEmail(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	return "", false
 }
 
-// ruleMinLength: string length >= param. Empty skips.
-func ruleMinLength(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	if isEmpty(value) {
-		return "", false
-	}
-	minLen, ok := jsNumber(ruleParam)
-	if !ok {
-		return "", false
-	}
-	if float64(runeLength(jsString(value))) < minLen {
-		m := ctx.msg("minlength", "Please enter at least {0} characters.")
-		return strings.ReplaceAll(m, "{0}", formatJSNumber(minLen)), true
-	}
-	return "", false
-}
-
-// ruleMaxLength: string length <= param. Empty skips.
-func ruleMaxLength(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	if isEmpty(value) {
-		return "", false
-	}
-	maxLen, ok := jsNumber(ruleParam)
-	if !ok {
-		return "", false
-	}
-	if float64(runeLength(jsString(value))) > maxLen {
-		m := ctx.msg("maxlength", "Please enter no more than {0} characters.")
-		return strings.ReplaceAll(m, "{0}", formatJSNumber(maxLen)), true
-	}
-	return "", false
-}
-
 // ruleMin: value >= param (numeric). Empty skips; a NaN threshold skips; a
 // non-number value skips (number rule handles it). JS minRule.
 func ruleMin(value any, ruleParam any, ctx ruleContext) (string, bool) {
@@ -343,7 +262,7 @@ func ruleMin(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	}
 	if num < minValue {
 		m := ctx.msg("min", "Please enter a value greater than or equal to {0}.")
-		return strings.ReplaceAll(m, "{0}", formatJSNumber(minValue)), true
+		return strings.ReplaceAll(m, "{0}", canonicalNumber(minValue)), true
 	}
 	return "", false
 }
@@ -366,59 +285,7 @@ func ruleMax(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	}
 	if num > maxValue {
 		m := ctx.msg("max", "Please enter a value less than or equal to {0}.")
-		return strings.ReplaceAll(m, "{0}", formatJSNumber(maxValue)), true
-	}
-	return "", false
-}
-
-// anchorPattern forces full-string match (^...$) without double-anchoring (JS
-// anchorPattern / PHP Pattern parity).
-func anchorPattern(pattern string) string {
-	a := pattern
-	if !strings.HasPrefix(a, "^") {
-		a = "^" + a
-	}
-	if !strings.HasSuffix(a, "$") {
-		a = a + "$"
-	}
-	return a
-}
-
-// ruleMatch: regex match. The param is a regex string preserved verbatim. Empty
-// skips; an invalid pattern skips. Message lookup tries the invoked ruleName
-// (pattern/match), then pattern, then match, then the default (JS matchRule).
-func ruleMatch(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	if isEmpty(value) {
-		return "", false
-	}
-	pattern, ok := ruleParam.(string)
-	if !ok {
-		return "", false
-	}
-	re, err := regexp.Compile(anchorPattern(pattern))
-	if err != nil {
-		return "", false // invalid pattern, skip
-	}
-	if !re.MatchString(jsString(value)) {
-		// JS message precedence: messages[ruleName] → messages.pattern →
-		// messages.match → default.
-		if ctx.messages != nil {
-			if ctx.ruleName != "" {
-				if m, ok := ctx.messages[ctx.ruleName]; ok {
-					return m, true
-				}
-			}
-			if m, ok := ctx.messages["pattern"]; ok {
-				return m, true
-			}
-			if m, ok := ctx.messages["match"]; ok {
-				return m, true
-			}
-		}
-		return "Please enter a valid format.", true
+		return strings.ReplaceAll(m, "{0}", canonicalNumber(maxValue)), true
 	}
 	return "", false
 }
@@ -434,14 +301,9 @@ func comparisonKey(value any) string {
 		return "s:" + v
 	case bool:
 		return "b:" + strconv.FormatBool(v)
-	case int:
-		return "n:" + formatJSNumber(float64(v))
-	case int64:
-		return "n:" + formatJSNumber(float64(v))
-	case float32:
-		return "n:" + formatJSNumber(float64(v))
-	case float64:
-		return "n:" + formatJSNumber(v)
+	case float64, float32, int, int64, int32, uint, uint64, uint32:
+		n, _ := numberValue(v)
+		return "n:" + canonicalNumber(n)
 	default:
 		b, err := json.Marshal(v)
 		if err != nil {
@@ -613,125 +475,6 @@ func extractFieldValues(items []any, fieldName string) []any {
 	return out
 }
 
-// ruleIn: membership in the allowed list. Empty skips. The param may be a
-// comma-string, an array (nested flattened), or an object; comparison is loose
-// (string-normalized with numeric equivalence) — JS inRule.
-func ruleIn(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	if isEmpty(value) {
-		return "", false
-	}
-	allowed := flattenInValues(ruleParam)
-	if len(allowed) == 0 {
-		return "", false
-	}
-	if slices.ContainsFunc(allowed, func(a any) bool { return looseInEquals(value, a) }) {
-		return "", false
-	}
-	return ctx.msg("in", "Please select a valid option."), true
-}
-
-// flattenInValues normalizes the in-param to a flat list of allowed values
-// (JS flattenInValues): a comma-string splits and trims; an array flattens
-// nested arrays; an object yields its values.
-func flattenInValues(param any) []any {
-	switch p := param.(type) {
-	case string:
-		var out []any
-		for _, part := range strings.Split(p, ",") {
-			out = append(out, strings.TrimSpace(part))
-		}
-		return out
-	case []any:
-		var out []any
-		for _, item := range p {
-			out = append(out, flattenInValues(item)...)
-		}
-		return out
-	case *compose.OMap:
-		// Composed object node (the value universe the model validate pass operates
-		// on): same value→label vs values decision as a plain object.
-		return flattenOrderedObject(p.Keys(), func(k string) any {
-			v, _ := p.Get(k)
-			return v
-		})
-	case map[string]any:
-		return flattenOrderedObject(sortedKeys(p), func(k string) any { return p[k] })
-	default:
-		return []any{param}
-	}
-}
-
-// flattenOrderedObject flattens an object (ordered keys + value lookup) for the
-// `in` rule. Static value→label content map (SPEC §2 G3): the option VALUE is
-// the KEY; the label (string | LangMap | null) is display-only and never a
-// member, so membership uses the KEYS. A null label slot has no effect. Other
-// objects keep the legacy values-flatten.
-func flattenOrderedObject(keys []string, get func(string) any) []any {
-	if isValueLabelMap(keys, get) {
-		out := make([]any, 0, len(keys))
-		for _, k := range keys {
-			out = append(out, k)
-		}
-		return out
-	}
-	var out []any
-	for _, k := range keys {
-		out = append(out, flattenInValues(get(k))...)
-	}
-	return out
-}
-
-// isValueLabelMap reports whether an object (ordered keys + value lookup) is a
-// static value→label content map (G3): a non-empty object whose entry values are
-// all display labels — a string, a LangMap object (*compose.OMap or
-// map[string]any), or null. An object carrying any non-label value (number,
-// bool, array) is not a content map (legacy values-flatten).
-func isValueLabelMap(keys []string, get func(string) any) bool {
-	if len(keys) == 0 {
-		return false
-	}
-	for _, k := range keys {
-		switch get(k).(type) {
-		case nil, string, *compose.OMap, map[string]any:
-			// label shape
-		default:
-			return false
-		}
-	}
-	return true
-}
-
-// looseInEquals is the in-rule loose comparison: normalize both to strings, with
-// booleans mapped to '1'/'0' and numeric equivalence ('1' == 1) honored.
-func looseInEquals(a, b any) bool {
-	if normalizeInValue(a) == normalizeInValue(b) {
-		return true
-	}
-	an, aok := jsNumber(a)
-	bn, bok := jsNumber(b)
-	if aok && bok {
-		return an == bn
-	}
-	return false
-}
-
-// normalizeInValue maps a value to its in-rule string form: booleans → '1'/'0';
-// numbers → JS number string; strings as-is.
-func normalizeInValue(v any) string {
-	switch x := v.(type) {
-	case bool:
-		if x {
-			return "1"
-		}
-		return "0"
-	default:
-		return jsString(v)
-	}
-}
-
 // ruleRange: numeric value within [min,max]. Empty skips; a non-number value
 // fails with the number message (JS rangeRule).
 func ruleRange(value any, ruleParam any, ctx ruleContext) (string, bool) {
@@ -748,27 +491,8 @@ func ruleRange(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	}
 	if num < lo || num > hi {
 		m := ctx.msg("range", "Please enter a value between {0} and {1}.")
-		m = strings.ReplaceAll(m, "{0}", formatJSNumber(lo))
-		m = strings.ReplaceAll(m, "{1}", formatJSNumber(hi))
-		return m, true
-	}
-	return "", false
-}
-
-// ruleRangeLength: string length within [min,max]. Empty skips.
-func ruleRangeLength(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if isEmpty(value) {
-		return "", false
-	}
-	lo, hi, ok := twoNumbers(ruleParam)
-	if !ok {
-		return "", false
-	}
-	length := float64(runeLength(jsString(value)))
-	if length < lo || length > hi {
-		m := ctx.msg("rangelength", "Please enter a value between {0} and {1} characters.")
-		m = strings.ReplaceAll(m, "{0}", formatJSNumber(lo))
-		m = strings.ReplaceAll(m, "{1}", formatJSNumber(hi))
+		m = strings.ReplaceAll(m, "{0}", canonicalNumber(lo))
+		m = strings.ReplaceAll(m, "{1}", canonicalNumber(hi))
 		return m, true
 	}
 	return "", false
@@ -843,7 +567,7 @@ func isDigitsOnly(value any) bool {
 		f := float64(v)
 		return f == math.Floor(f) && f >= 0
 	case string:
-		trimmed := strings.TrimSpace(v)
+		trimmed := trimText(v)
 		if trimmed == "" {
 			return false
 		}
@@ -1108,7 +832,7 @@ func ruleMinCount(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	}
 	if float64(arrayLength(value)) < minCount {
 		m := ctx.msg("mincount", "Please select at least {0} items.")
-		return strings.ReplaceAll(m, "{0}", formatJSNumber(minCount)), true
+		return strings.ReplaceAll(m, "{0}", canonicalNumber(minCount)), true
 	}
 	return "", false
 }
@@ -1125,7 +849,7 @@ func ruleMaxCount(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	}
 	if float64(arrayLength(value)) > maxCount {
 		m := ctx.msg("maxcount", "Please select no more than {0} items.")
-		return strings.ReplaceAll(m, "{0}", formatJSNumber(maxCount)), true
+		return strings.ReplaceAll(m, "{0}", canonicalNumber(maxCount)), true
 	}
 	return "", false
 }
@@ -1149,7 +873,7 @@ func ruleStep(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	}
 	if !isValidStep(num, step) {
 		m := ctx.msg("step", "Please enter a value that is a multiple of {0}.")
-		return strings.ReplaceAll(m, "{0}", formatJSNumber(step)), true
+		return strings.ReplaceAll(m, "{0}", canonicalNumber(step)), true
 	}
 	return "", false
 }

@@ -7,7 +7,6 @@ Compose specifications, evaluate expressions and validate data in PHP.
 ```sh
 composer install --working-dir=packages/validator-php
 composer test --working-dir=packages/validator-php
-composer test --working-dir=packages/validator-php
 ```
 
 ## Public API
@@ -47,36 +46,7 @@ The [PHP API contract](../../docs/spec/php-extension.md) defines method equality
 and loading behavior. Internal composition and expression modules are shared
 with the [PHP generator](../generator-php/README.md).
 
-## Validation CLI
-
-```sh
-php packages/validator-php/bin/validate.php < request.json
-```
-
-The CLI reads `{ "spec": {}, "data": {}, "files": {}, "basepath": "", "mode": "form" }`.
-Only `spec` is required. An absent `mode` means `form`, which validates `data`.
-`list` runs `validateList` and `detail` runs `validateDetail`; both ignore
-`data`. Absent or `null` `files` and `basepath` mean none.
-
-Before validation the CLI checks the request in this order. The first failure
-writes exactly `{ "error": MESSAGE }` and exits with code one:
-
-1. stdin is not valid JSON: `Request must be valid JSON`.
-2. The request is not a JSON object: `Request must be an object`.
-3. `spec` is absent or not an object: `Request spec must be an object`.
-4. `mode` is present and not exactly `form`, `list` or `detail`, including
-   `null` and non-string values: `Unsupported validation mode`.
-5. `files` is present, not `null` and not an object: `Request files must be an object`.
-6. A `files` member is not an object: `Request files must contain objects`.
-7. `basepath` is present, not `null` and not a string: `Request basepath must be a string`.
-
-Successful execution writes `{ "valid": true, "errors": [] }` or data errors
-with exit code zero. An omitted `data` member validates `{}`; a supplied value
-must be a JSON object. A load or input failure writes exactly
-`{ "error", "code", "at" }` and exits with code two. A malformed request writes
-`{ "error" }` and exits with code one. Every language's CLI uses this contract.
-
 `composer test` runs composition, expression, current validation, field-model,
-legacy rule and public symbol documentation tests through the repository test
+rule and public symbol documentation tests through the repository test
 runner, which prints every test with its elapsed time. [Feature status](../../docs/features.md)
 records current verification separately from publication.

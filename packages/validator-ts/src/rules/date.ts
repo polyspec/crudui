@@ -6,6 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import { trim } from '../values/index';
 
 /**
  * Check if a value is a valid date
@@ -16,7 +17,7 @@ export function isValidDate(value: unknown): boolean {
   }
 
   if (typeof value === 'string') {
-    const trimmed = value.trim();
+    const trimmed = trim(value);
     if (trimmed === '') {
       return false;
     }
@@ -67,7 +68,7 @@ export function parseDate(value: unknown): Date | null {
   }
 
   if (typeof value === 'string') {
-    const trimmed = value.trim();
+    const trimmed = trim(value);
     if (trimmed === '') {
       return null;
     }
@@ -106,8 +107,4 @@ export const dateRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a valid date.',
 };
-
-export default dateRule;

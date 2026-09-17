@@ -24,6 +24,8 @@ renderer는 평가된 core 모델을 소비하고 HTML fragment를 반환합니�
 
 `renderList(spec, rows, { layout: 'table' | 'card' })`는 평가된 목록을 렌더링합니다.
 `renderDetail(spec, record)`는 전달한 레코드 하나를 읽기 전용 상세로 렌더링합니다.
+`renderOutline(form)`과 `renderData(form)`는 폼 인스턴스의 구조 맵과 데이터 보기를 렌더링합니다.
+패키지 진입점은 이 여덟 렌더 함수입니다.
 
 - [런타임 계약](../../docs/spec/form-runtime.ko.md)
 - [폼 작업](../../docs/operations/forms.ko.md)

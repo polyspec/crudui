@@ -2158,5 +2158,4585 @@
       "message": "Repeated data must be a keyed object: companies.__a__.stores",
       "at": ""
     }
+  },
+  {
+    "name": "value-required-whitespace",
+    "note": "every White_Space code point alone, and mixed, is empty for required.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "u0009": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u000A": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u000B": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u000C": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u000D": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u0020": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u0085": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u00A0": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u1680": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2000": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2001": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2002": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2003": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2004": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2005": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2006": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2007": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2008": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2009": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u200A": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2028": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u2029": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u202F": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u205F": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "u3000": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "mixed": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "u0009": "\t",
+      "u000A": "\n",
+      "u000B": "\u000b",
+      "u000C": "\f",
+      "u000D": "\r",
+      "u0020": " ",
+      "u0085": "",
+      "u00A0": " ",
+      "u1680": " ",
+      "u2000": " ",
+      "u2001": " ",
+      "u2002": " ",
+      "u2003": " ",
+      "u2004": " ",
+      "u2005": " ",
+      "u2006": " ",
+      "u2007": " ",
+      "u2008": " ",
+      "u2009": " ",
+      "u200A": " ",
+      "u2028": " ",
+      "u2029": " ",
+      "u202F": " ",
+      "u205F": " ",
+      "u3000": "　",
+      "mixed": "　\t   "
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "u0009",
+          "field": "u0009",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": "\t"
+        },
+        {
+          "path": "u000A",
+          "field": "u000A",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": "\n"
+        },
+        {
+          "path": "u000B",
+          "field": "u000B",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": "\u000b"
+        },
+        {
+          "path": "u000C",
+          "field": "u000C",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": "\f"
+        },
+        {
+          "path": "u000D",
+          "field": "u000D",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": "\r"
+        },
+        {
+          "path": "u0020",
+          "field": "u0020",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u0085",
+          "field": "u0085",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "u00A0",
+          "field": "u00A0",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u1680",
+          "field": "u1680",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2000",
+          "field": "u2000",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2001",
+          "field": "u2001",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2002",
+          "field": "u2002",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2003",
+          "field": "u2003",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2004",
+          "field": "u2004",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2005",
+          "field": "u2005",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2006",
+          "field": "u2006",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2007",
+          "field": "u2007",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2008",
+          "field": "u2008",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2009",
+          "field": "u2009",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u200A",
+          "field": "u200A",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2028",
+          "field": "u2028",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u2029",
+          "field": "u2029",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u202F",
+          "field": "u202F",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u205F",
+          "field": "u205F",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": " "
+        },
+        {
+          "path": "u3000",
+          "field": "u3000",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": "　"
+        },
+        {
+          "path": "mixed",
+          "field": "mixed",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": "　\t   "
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-required-not-whitespace",
+    "note": "NUL, U+180E, U+200B and U+FEFF are not whitespace, and text inside whitespace is a value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "nul": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "mongolian": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "zeroWidth": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "bom": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "padded": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "text": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "zero": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "no": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        }
+      }
+    },
+    "data": {
+      "nul": "\u0000",
+      "mongolian": "᠎",
+      "zeroWidth": "​",
+      "bom": "﻿",
+      "padded": " \u0000 ",
+      "text": "　x ",
+      "zero": 0,
+      "no": false
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "value-empty-skips-other-rules",
+    "note": "an empty value is not evaluated by other rules; a value that only looks blank is.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "ideographic": {
+          "type": "text",
+          "validate": {
+            "maxlength": 0,
+            "pattern": "a",
+            "in": "a"
+          }
+        },
+        "nbsp": {
+          "type": "text",
+          "validate": {
+            "maxlength": 0,
+            "pattern": "a",
+            "in": "a"
+          }
+        },
+        "nul": {
+          "type": "text",
+          "validate": {
+            "maxlength": 0,
+            "pattern": "a",
+            "in": "a"
+          }
+        },
+        "bom": {
+          "type": "text",
+          "validate": {
+            "maxlength": 0,
+            "pattern": "a",
+            "in": "a"
+          }
+        },
+        "empty": {
+          "type": "text",
+          "validate": {
+            "maxlength": 0,
+            "pattern": "a",
+            "in": "a"
+          }
+        },
+        "array": {
+          "type": "text",
+          "validate": {
+            "maxlength": 0,
+            "pattern": "a",
+            "in": "a"
+          }
+        },
+        "object": {
+          "type": "text",
+          "validate": {
+            "maxlength": 0,
+            "pattern": "a",
+            "in": "a"
+          }
+        }
+      }
+    },
+    "data": {
+      "ideographic": "　",
+      "nbsp": "  ",
+      "nul": "\u0000",
+      "bom": "﻿",
+      "empty": "",
+      "array": [],
+      "object": {}
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "nul",
+          "field": "nul",
+          "rule": "maxlength",
+          "message": "Please enter no more than 0 characters.",
+          "value": "\u0000"
+        },
+        {
+          "path": "bom",
+          "field": "bom",
+          "rule": "maxlength",
+          "message": "Please enter no more than 0 characters.",
+          "value": "﻿"
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-length-canonical-text",
+    "note": "lengths count the code points of the canonical text: numbers as ECMAScript writes them, booleans as 1 and 0, strings untrimmed.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "integer": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              2,
+              2
+            ]
+          }
+        },
+        "fraction": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              3,
+              3
+            ]
+          }
+        },
+        "large": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              5,
+              5
+            ]
+          }
+        },
+        "small": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              4,
+              4
+            ]
+          }
+        },
+        "sixDecimals": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              8,
+              8
+            ]
+          }
+        },
+        "shortest": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              19,
+              19
+            ]
+          }
+        },
+        "wide": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              21,
+              21
+            ]
+          }
+        },
+        "yes": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              1,
+              1
+            ]
+          }
+        },
+        "no": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              1,
+              1
+            ]
+          }
+        },
+        "emoji": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              1,
+              1
+            ]
+          }
+        },
+        "skin": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              2,
+              2
+            ]
+          }
+        },
+        "combining": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              2,
+              2
+            ]
+          }
+        },
+        "family": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              5,
+              5
+            ]
+          }
+        },
+        "hangul": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              2,
+              2
+            ]
+          }
+        },
+        "padded": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              3,
+              3
+            ]
+          }
+        },
+        "nul": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              3,
+              3
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "integer": 12,
+      "fraction": 1.5,
+      "large": 1e+21,
+      "small": 1e-7,
+      "sixDecimals": 0.000001,
+      "shortest": 0.30000000000000004,
+      "wide": 123456789012345680000,
+      "yes": true,
+      "no": false,
+      "emoji": "😀",
+      "skin": "👍🏽",
+      "combining": "é",
+      "family": "👨‍👩‍👧",
+      "hangul": "한글",
+      "padded": " x ",
+      "nul": "a\u0000b"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "value-length-limits",
+    "note": "numbers and booleans fail length limits by their canonical text; arrays and non-empty objects fail length rules.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "number": {
+          "type": "text",
+          "validate": {
+            "maxlength": 1
+          }
+        },
+        "decimal": {
+          "type": "text",
+          "validate": {
+            "minlength": 4
+          }
+        },
+        "boolean": {
+          "type": "text",
+          "validate": {
+            "minlength": 2
+          }
+        },
+        "list": {
+          "type": "text",
+          "validate": {
+            "maxlength": 5
+          }
+        },
+        "map": {
+          "type": "text",
+          "validate": {
+            "minlength": 0
+          }
+        },
+        "range": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              2,
+              3
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "number": 12,
+      "decimal": 1.5,
+      "boolean": true,
+      "list": [
+        "a"
+      ],
+      "map": {
+        "a": 1
+      },
+      "range": 1234
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "number",
+          "field": "number",
+          "rule": "maxlength",
+          "message": "Please enter no more than 1 characters.",
+          "value": 12
+        },
+        {
+          "path": "decimal",
+          "field": "decimal",
+          "rule": "minlength",
+          "message": "Please enter at least 4 characters.",
+          "value": 1.5
+        },
+        {
+          "path": "boolean",
+          "field": "boolean",
+          "rule": "minlength",
+          "message": "Please enter at least 2 characters.",
+          "value": true
+        },
+        {
+          "path": "list",
+          "field": "list",
+          "rule": "maxlength",
+          "message": "Please enter no more than 5 characters.",
+          "value": [
+            "a"
+          ]
+        },
+        {
+          "path": "map",
+          "field": "map",
+          "rule": "minlength",
+          "message": "Please enter at least 0 characters.",
+          "value": {
+            "a": 1
+          }
+        },
+        {
+          "path": "range",
+          "field": "range",
+          "rule": "rangelength",
+          "message": "Please enter a value between 2 and 3 characters.",
+          "value": 1234
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-length-fraction-limit",
+    "note": "a length limit is an integer.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": 1.5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-negative-limit",
+    "note": "a length limit is not negative.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "maxlength": -1
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-unsafe-limit",
+    "note": "a length limit is a safe integer.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "maxlength": 9007199254740992
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-condition-map-limit",
+    "note": "every value a condition map can select is checked when the specification loads, selected or not.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "big": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": {
+              ".big": 1.5,
+              "true": 2
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "big": 0,
+      "value": "abc"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-ternary-limit",
+    "note": "every literal branch of a ternary is checked when the specification loads, selected or not.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "big": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "maxlength": ".big ? 3 : -1"
+          }
+        }
+      }
+    },
+    "data": {
+      "big": 1,
+      "value": "abc"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-data-limit-selected",
+    "note": "a limit a ternary takes from the data is checked when selected, before the empty-value skip.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "big": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": ".big ? .limit : 2"
+          }
+        }
+      }
+    },
+    "data": {
+      "big": 1,
+      "limit": 1.5,
+      "value": ""
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-data-limit-unselected",
+    "note": "a data value a ternary does not select is not checked.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "big": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": ".big ? .limit : 2"
+          }
+        }
+      }
+    },
+    "data": {
+      "big": 0,
+      "limit": 1.5,
+      "value": "a"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "minlength",
+          "message": "Please enter at least 2 characters.",
+          "value": "a"
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-length-data-limit-valid",
+    "note": "a selected data limit that is an integer applies.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "big": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": ".big ? .limit : 2"
+          }
+        }
+      }
+    },
+    "data": {
+      "big": 1,
+      "limit": 4,
+      "value": "abc"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "minlength",
+          "message": "Please enter at least 4 characters.",
+          "value": "abc"
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-length-condition-true",
+    "note": "a condition expression that yields true is not a length limit; it fails when selected, even for an empty value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "on": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": ".on"
+          }
+        }
+      }
+    },
+    "data": {
+      "on": 1,
+      "value": ""
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-condition-false",
+    "note": "a condition expression that yields false disables the rule.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "on": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": ".on"
+          }
+        }
+      }
+    },
+    "data": {
+      "on": 0,
+      "value": "a"
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "value-length-invalid-expression",
+    "note": "a string that is not a valid expression is a literal, and a literal string is not a length limit.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "minlength": ".a ? 1 : (.b ? 2 : 3)"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-reversed-range",
+    "note": "a length range starts at its minimum.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              3,
+              2
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-length-fraction-range",
+    "note": "length range limits are integers.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "rangelength": [
+              1,
+              2.5
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-comma-string",
+    "note": "comma items are trimmed; values are trimmed; numbers match by value only in the decimal grammar; booleans match by canonical text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "plain": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "spaced": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "decimal": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "padded": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "yes": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "hex": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "exponent": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "upper": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "nul": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "no": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "list": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        },
+        "mixed": {
+          "type": "text",
+          "validate": {
+            "in": "a, b,1"
+          }
+        }
+      }
+    },
+    "data": {
+      "plain": "a",
+      "spaced": " b　",
+      "decimal": "1.0",
+      "padded": "01",
+      "number": 1,
+      "yes": true,
+      "hex": "0x1",
+      "exponent": "1e0",
+      "upper": "A",
+      "nul": "a\u0000",
+      "no": false,
+      "list": [
+        "a",
+        "b"
+      ],
+      "mixed": [
+        "a",
+        "z"
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "hex",
+          "field": "hex",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "0x1"
+        },
+        {
+          "path": "exponent",
+          "field": "exponent",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "1e0"
+        },
+        {
+          "path": "upper",
+          "field": "upper",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "A"
+        },
+        {
+          "path": "nul",
+          "field": "nul",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "a\u0000"
+        },
+        {
+          "path": "no",
+          "field": "no",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": false
+        },
+        {
+          "path": "mixed",
+          "field": "mixed",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": [
+            "a",
+            "z"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-in-list",
+    "note": "list elements are members as they are: never split and never trimmed.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "joined": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a,b",
+              " c ",
+              2.5,
+              false
+            ]
+          }
+        },
+        "part": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a,b",
+              " c ",
+              2.5,
+              false
+            ]
+          }
+        },
+        "inner": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a,b",
+              " c ",
+              2.5,
+              false
+            ]
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a,b",
+              " c ",
+              2.5,
+              false
+            ]
+          }
+        },
+        "zero": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a,b",
+              " c ",
+              2.5,
+              false
+            ]
+          }
+        },
+        "off": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a,b",
+              " c ",
+              2.5,
+              false
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "joined": "a,b",
+      "part": "a",
+      "inner": "c",
+      "number": "2.50",
+      "zero": 0,
+      "off": false
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "part",
+          "field": "part",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "a"
+        },
+        {
+          "path": "inner",
+          "field": "inner",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "c"
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-in-map",
+    "note": "a map contributes its keys.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "key": {
+          "type": "text",
+          "validate": {
+            "in": {
+              "2": "Two",
+              "x": "X"
+            }
+          }
+        },
+        "numeric": {
+          "type": "text",
+          "validate": {
+            "in": {
+              "2": "Two",
+              "x": "X"
+            }
+          }
+        },
+        "decimal": {
+          "type": "text",
+          "validate": {
+            "in": {
+              "2": "Two",
+              "x": "X"
+            }
+          }
+        },
+        "label": {
+          "type": "text",
+          "validate": {
+            "in": {
+              "2": "Two",
+              "x": "X"
+            }
+          }
+        },
+        "other": {
+          "type": "text",
+          "validate": {
+            "in": {
+              "2": "Two",
+              "x": "X"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "key": "x",
+      "numeric": 2,
+      "decimal": "2.0",
+      "label": "X",
+      "other": "y"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "label",
+          "field": "label",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "X"
+        },
+        {
+          "path": "other",
+          "field": "other",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "y"
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-in-array-elements",
+    "note": "an array value passes when every element passes; empty elements pass and nested elements fail.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "blanks": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a"
+            ]
+          }
+        },
+        "nested": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a"
+            ]
+          }
+        },
+        "record": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a"
+            ]
+          }
+        },
+        "other": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "blanks": [
+        "a",
+        "",
+        " ",
+        null,
+        [],
+        {}
+      ],
+      "nested": [
+        "a",
+        [
+          "a"
+        ]
+      ],
+      "record": [
+        "a",
+        {
+          "a": "a"
+        }
+      ],
+      "other": [
+        "a",
+        "b"
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "nested",
+          "field": "nested",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": [
+            "a",
+            [
+              "a"
+            ]
+          ]
+        },
+        {
+          "path": "record",
+          "field": "record",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": [
+            "a",
+            {
+              "a": "a"
+            }
+          ]
+        },
+        {
+          "path": "other",
+          "field": "other",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": [
+            "a",
+            "b"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-in-member-order",
+    "note": "members are checked in order, each for its type first.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a",
+              5,
+              [
+                1
+              ],
+              ""
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must be strings, numbers or booleans",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-member-emptiness-first",
+    "note": "an earlier empty member is reported before a later member of another type.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "",
+              [
+                1
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must not be empty",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-empty-list",
+    "note": "a membership list has members.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": []
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must not be empty",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-empty-map",
+    "note": "a membership map has members.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": {}
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must not be empty",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-blank-string",
+    "note": "a membership string has members.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": " 　"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must not be empty",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-empty-item",
+    "note": "every comma item is a member.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": "a,,b"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must not be empty",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-blank-element",
+    "note": "a list member is not blank.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a",
+              " "
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must not be empty",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-nested-list",
+    "note": "members are scalars.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              [
+                "a"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must be strings, numbers or booleans",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-null-member",
+    "note": "members are strings, numbers or booleans.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a",
+              null
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must be strings, numbers or booleans",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-number-parameter",
+    "note": "membership is a list, a string or a map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected a list, a comma-separated string or a map",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-true-parameter",
+    "note": "true is not a membership declaration.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": true
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected a list, a comma-separated string or a map",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-whole-alternation",
+    "note": "alternation is wrapped as a group before the whole match.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|b"
+          }
+        },
+        "b": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|b"
+          }
+        },
+        "ab": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|b"
+          }
+        },
+        "ba": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|b"
+          }
+        },
+        "az": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|b"
+          }
+        }
+      }
+    },
+    "data": {
+      "a": "a",
+      "b": "b",
+      "ab": "ab",
+      "ba": "ba",
+      "az": "az"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "ab",
+          "field": "ab",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "ab"
+        },
+        {
+          "path": "ba",
+          "field": "ba",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "ba"
+        },
+        {
+          "path": "az",
+          "field": "az",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "az"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-whole-trailing-newline",
+    "note": "the end of the value is its end; a final newline is text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "plain": {
+          "type": "text",
+          "validate": {
+            "pattern": "x"
+          }
+        },
+        "newline": {
+          "type": "text",
+          "validate": {
+            "pattern": "x"
+          }
+        },
+        "before": {
+          "type": "text",
+          "validate": {
+            "pattern": "x"
+          }
+        }
+      }
+    },
+    "data": {
+      "plain": "x",
+      "newline": "x\n",
+      "before": "\nx"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "newline",
+          "field": "newline",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x\n"
+        },
+        {
+          "path": "before",
+          "field": "before",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "\nx"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-anchors",
+    "note": "a leading ^ and a trailing $ add nothing to a whole match.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "exact": {
+          "type": "text",
+          "validate": {
+            "pattern": "^ab$"
+          }
+        },
+        "longer": {
+          "type": "text",
+          "validate": {
+            "pattern": "^ab$"
+          }
+        }
+      }
+    },
+    "data": {
+      "exact": "ab",
+      "longer": "abc"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "longer",
+          "field": "longer",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "abc"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-shorthand-ascii",
+    "note": "\\d and \\w are ASCII sets.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "ascii": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\d\\w"
+          }
+        },
+        "underscore": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\d\\w"
+          }
+        },
+        "arabic": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\d\\w"
+          }
+        },
+        "fullwidth": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\d\\w"
+          }
+        },
+        "accent": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\d\\w"
+          }
+        }
+      }
+    },
+    "data": {
+      "ascii": "1a",
+      "underscore": "9_",
+      "arabic": "١a",
+      "fullwidth": "１a",
+      "accent": "1é"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "arabic",
+          "field": "arabic",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "١a"
+        },
+        {
+          "path": "fullwidth",
+          "field": "fullwidth",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "１a"
+        },
+        {
+          "path": "accent",
+          "field": "accent",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "1é"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-shorthand-space",
+    "note": "\\s is the whitespace set.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "space": {
+          "type": "text",
+          "validate": {
+            "pattern": "a\\sb"
+          }
+        },
+        "ideographic": {
+          "type": "text",
+          "validate": {
+            "pattern": "a\\sb"
+          }
+        },
+        "nel": {
+          "type": "text",
+          "validate": {
+            "pattern": "a\\sb"
+          }
+        },
+        "vertical": {
+          "type": "text",
+          "validate": {
+            "pattern": "a\\sb"
+          }
+        },
+        "bom": {
+          "type": "text",
+          "validate": {
+            "pattern": "a\\sb"
+          }
+        },
+        "nul": {
+          "type": "text",
+          "validate": {
+            "pattern": "a\\sb"
+          }
+        }
+      }
+    },
+    "data": {
+      "space": "a b",
+      "ideographic": "a　b",
+      "nel": "ab",
+      "vertical": "a\u000bb",
+      "bom": "a﻿b",
+      "nul": "a\u0000b"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "bom",
+          "field": "bom",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "a﻿b"
+        },
+        {
+          "path": "nul",
+          "field": "nul",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "a\u0000b"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-complements",
+    "note": "\\D, \\W and \\S are complements.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\D\\W\\S"
+          }
+        },
+        "digit": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\D\\W\\S"
+          }
+        },
+        "word": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\D\\W\\S"
+          }
+        },
+        "space": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\D\\W\\S"
+          }
+        }
+      }
+    },
+    "data": {
+      "match": "x-y",
+      "digit": "1-y",
+      "word": "xay",
+      "space": "x- "
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "digit",
+          "field": "digit",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "1-y"
+        },
+        {
+          "path": "word",
+          "field": "word",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "xay"
+        },
+        {
+          "path": "space",
+          "field": "space",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x- "
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-any-character",
+    "note": ". is any code point except U+000A.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "emoji": {
+          "type": "text",
+          "validate": {
+            "pattern": "a.b"
+          }
+        },
+        "carriage": {
+          "type": "text",
+          "validate": {
+            "pattern": "a.b"
+          }
+        },
+        "separator": {
+          "type": "text",
+          "validate": {
+            "pattern": "a.b"
+          }
+        },
+        "nul": {
+          "type": "text",
+          "validate": {
+            "pattern": "a.b"
+          }
+        },
+        "newline": {
+          "type": "text",
+          "validate": {
+            "pattern": "a.b"
+          }
+        },
+        "pair": {
+          "type": "text",
+          "validate": {
+            "pattern": "a.b"
+          }
+        }
+      }
+    },
+    "data": {
+      "emoji": "a😀b",
+      "carriage": "a\rb",
+      "separator": "a b",
+      "nul": "a\u0000b",
+      "newline": "a\nb",
+      "pair": "axyb"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "newline",
+          "field": "newline",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "a\nb"
+        },
+        {
+          "path": "pair",
+          "field": "pair",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "axyb"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-escapes",
+    "note": "literal, control, hexadecimal and code point escapes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\.\\t\\x41\\u{1F600}\\u{41}\\/\\-"
+          }
+        },
+        "dot": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\.\\t\\x41\\u{1F600}\\u{41}\\/\\-"
+          }
+        }
+      }
+    },
+    "data": {
+      "match": ".\tA😀A/-",
+      "dot": "x\tA😀A/-"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "dot",
+          "field": "dot",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x\tA😀A/-"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-classes",
+    "note": "bracket classes with ranges, escapes and shorthands.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "[a-c\\d\\-\\]]+[^x]"
+          }
+        },
+        "negated": {
+          "type": "text",
+          "validate": {
+            "pattern": "[a-c\\d\\-\\]]+[^x]"
+          }
+        },
+        "outside": {
+          "type": "text",
+          "validate": {
+            "pattern": "[a-c\\d\\-\\]]+[^x]"
+          }
+        }
+      }
+    },
+    "data": {
+      "match": "b9-]y",
+      "negated": "b9-]x",
+      "outside": "d"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "negated",
+          "field": "negated",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "b9-]x"
+        },
+        {
+          "path": "outside",
+          "field": "outside",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "d"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-properties",
+    "note": "general categories and scripts.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{Lu}\\p{Script=Hangul}\\P{N}"
+          }
+        },
+        "lower": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{Lu}\\p{Script=Hangul}\\P{N}"
+          }
+        },
+        "latin": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{Lu}\\p{Script=Hangul}\\P{N}"
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{Lu}\\p{Script=Hangul}\\P{N}"
+          }
+        }
+      }
+    },
+    "data": {
+      "match": "A한x",
+      "lower": "a한x",
+      "latin": "Aax",
+      "number": "A한1"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "lower",
+          "field": "lower",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "a한x"
+        },
+        {
+          "path": "latin",
+          "field": "latin",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "Aax"
+        },
+        {
+          "path": "number",
+          "field": "number",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "A한1"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-groups-quantifiers",
+    "note": "groups and bounded quantifiers.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<head>ab){2}(?:c|d){1,3}e*?f+g?"
+          }
+        },
+        "single": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<head>ab){2}(?:c|d){1,3}e*?f+g?"
+          }
+        },
+        "many": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<head>ab){2}(?:c|d){1,3}e*?f+g?"
+          }
+        },
+        "lazy": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<head>ab){2}(?:c|d){1,3}e*?f+g?"
+          }
+        }
+      }
+    },
+    "data": {
+      "match": "ababcdcf",
+      "single": "abcf",
+      "many": "ababccccf",
+      "lazy": "ababceeffg"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "single",
+          "field": "single",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "abcf"
+        },
+        {
+          "path": "many",
+          "field": "many",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "ababccccf"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-class-members",
+    "note": "a class holds \\s and properties; nested bounds may reach the limit.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "([\\s\\p{Lu}]{10}){100}"
+          }
+        },
+        "short": {
+          "type": "text",
+          "validate": {
+            "pattern": "([\\s\\p{Lu}]{10}){100}"
+          }
+        }
+      }
+    },
+    "data": {
+      "match": "A 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGHA 　BCDEFGH",
+      "short": "A"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "short",
+          "field": "short",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "A"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-script-complement",
+    "note": "\\P{Script=Name} is the complement of a script.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "hangul": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\P{Script=Latin}+"
+          }
+        },
+        "digits": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\P{Script=Latin}+"
+          }
+        },
+        "latin": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\P{Script=Latin}+"
+          }
+        },
+        "mixed": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\P{Script=Latin}+"
+          }
+        }
+      }
+    },
+    "data": {
+      "hangul": "한",
+      "digits": "12",
+      "latin": "x",
+      "mixed": "1x"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "latin",
+          "field": "latin",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x"
+        },
+        {
+          "path": "mixed",
+          "field": "mixed",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "1x"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-empty-alternatives",
+    "note": "empty alternatives and empty groups match the empty text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|(|b)c"
+          }
+        },
+        "c": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|(|b)c"
+          }
+        },
+        "bc": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|(|b)c"
+          }
+        },
+        "ac": {
+          "type": "text",
+          "validate": {
+            "pattern": "a|(|b)c"
+          }
+        }
+      }
+    },
+    "data": {
+      "a": "a",
+      "c": "c",
+      "bc": "bc",
+      "ac": "ac"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "ac",
+          "field": "ac",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "ac"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-anchors-only",
+    "note": "a pattern of anchors alone matches only the empty text, and an empty value is skipped.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "empty": {
+          "type": "text",
+          "validate": {
+            "pattern": "^$"
+          }
+        },
+        "blank": {
+          "type": "text",
+          "validate": {
+            "pattern": "^$"
+          }
+        },
+        "text": {
+          "type": "text",
+          "validate": {
+            "pattern": "^$"
+          }
+        }
+      }
+    },
+    "data": {
+      "empty": "",
+      "blank": " ",
+      "text": "x"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "text",
+          "field": "text",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-array-value",
+    "note": "an array or object value has no canonical text and fails pattern and match.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "list": {
+          "type": "text",
+          "validate": {
+            "pattern": ".*"
+          }
+        },
+        "record": {
+          "type": "text",
+          "validate": {
+            "match": ".*"
+          }
+        }
+      }
+    },
+    "data": {
+      "list": [
+        "a"
+      ],
+      "record": {
+        "a": "a"
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "list",
+          "field": "list",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": [
+            "a"
+          ]
+        },
+        {
+          "path": "record",
+          "field": "record",
+          "rule": "match",
+          "message": "Please enter a valid format.",
+          "value": {
+            "a": "a"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-size-limit",
+    "note": "unbounded quantifiers count their minimum plus one; size 1000 is accepted.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "ten": {
+          "type": "text",
+          "validate": {
+            "pattern": "((a{10})*){100}"
+          }
+        },
+        "many": {
+          "type": "text",
+          "validate": {
+            "pattern": "((a{10})*){100}"
+          }
+        },
+        "three": {
+          "type": "text",
+          "validate": {
+            "pattern": "((a{10})*){100}"
+          }
+        }
+      }
+    },
+    "data": {
+      "ten": "aaaaaaaaaa",
+      "many": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "three": "aaa"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "three",
+          "field": "three",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "aaa"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-depth-limit",
+    "note": "groups nest 100 deep.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text",
+          "validate": {
+            "pattern": "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((a))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))"
+          }
+        },
+        "b": {
+          "type": "text",
+          "validate": {
+            "pattern": "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((a))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))"
+          }
+        }
+      }
+    },
+    "data": {
+      "a": "a",
+      "b": "b"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "b",
+          "field": "b",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "b"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-linear-alternation",
+    "note": "overlapping alternatives are matched in linear time.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "long": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?:a|aa)*c"
+          }
+        },
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?:a|aa)*c"
+          }
+        }
+      }
+    },
+    "data": {
+      "long": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "match": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "long",
+          "field": "long",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-linear-repetition",
+    "note": "nested unbounded repetition is matched in linear time.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "long": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?:.*a){12}c"
+          }
+        },
+        "match": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?:.*a){12}c"
+          }
+        }
+      }
+    },
+    "data": {
+      "long": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "match": "aaaaaaaaaaaac"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "long",
+          "field": "long",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-large-property-repetition",
+    "note": "a property repeated 1000 times is matched quickly.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "hangul": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{L}{1000}"
+          }
+        },
+        "short": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{L}{1000}"
+          }
+        },
+        "digit": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{L}{1000}"
+          }
+        }
+      }
+    },
+    "data": {
+      "hangul": "한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한",
+      "short": "한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한",
+      "digit": "한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한1"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "short",
+          "field": "short",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한"
+        },
+        {
+          "path": "digit",
+          "field": "digit",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한1"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-unicode-data",
+    "note": "properties use the Unicode 16.0 data: U+088F and U+A7CE are unassigned there.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "unassigned": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\P{L}\\p{C}\\P{Script=Arabic}\\P{Script=Latin}"
+          }
+        },
+        "letter": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\P{L}\\p{C}\\P{Script=Arabic}\\P{Script=Latin}"
+          }
+        }
+      }
+    },
+    "data": {
+      "unassigned": "࢏꟎࢏꟎",
+      "letter": "a꟎࢏꟎"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "letter",
+          "field": "letter",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "a꟎࢏꟎"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-class-literals",
+    "note": "inside a class only [, ], \\ and an inner - are escaped; ranges may be one code point.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "dots": {
+          "type": "text",
+          "validate": {
+            "pattern": "[.$^*a-a|]{2}"
+          }
+        },
+        "stars": {
+          "type": "text",
+          "validate": {
+            "pattern": "[.$^*a-a|]{2}"
+          }
+        },
+        "letters": {
+          "type": "text",
+          "validate": {
+            "pattern": "[.$^*a-a|]{2}"
+          }
+        },
+        "other": {
+          "type": "text",
+          "validate": {
+            "pattern": "[.$^*a-a|]{2}"
+          }
+        }
+      }
+    },
+    "data": {
+      "dots": ".$",
+      "stars": "*|",
+      "letters": "aa",
+      "other": "ab"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "other",
+          "field": "other",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "ab"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-leading-zero-bounds",
+    "note": "bounds are decimal digits.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "two": {
+          "type": "text",
+          "validate": {
+            "pattern": "a{002}"
+          }
+        },
+        "one": {
+          "type": "text",
+          "validate": {
+            "pattern": "a{002}"
+          }
+        }
+      }
+    },
+    "data": {
+      "two": "aa",
+      "one": "a"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "one",
+          "field": "one",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "a"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-single-anchor",
+    "note": "a pattern of one $ is an anchor.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "text": {
+          "type": "text",
+          "validate": {
+            "pattern": "$"
+          }
+        },
+        "blank": {
+          "type": "text",
+          "validate": {
+            "pattern": "$"
+          }
+        }
+      }
+    },
+    "data": {
+      "text": "x",
+      "blank": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "text",
+          "field": "text",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-integer-canonical-text",
+    "note": "an integer is written as the nearest double.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "odd": {
+          "type": "text",
+          "validate": {
+            "pattern": "9007199254740992|9223372036854776000"
+          }
+        },
+        "largest": {
+          "type": "text",
+          "validate": {
+            "pattern": "9007199254740992|9223372036854776000"
+          }
+        }
+      }
+    },
+    "data": {
+      "odd": 9007199254740993,
+      "largest": 9223372036854775807
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "pattern-delimiters-are-text",
+    "note": "delimiters have no meaning.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "text": {
+          "type": "text",
+          "validate": {
+            "pattern": "/x/i"
+          }
+        },
+        "letter": {
+          "type": "text",
+          "validate": {
+            "pattern": "/x/i"
+          }
+        },
+        "upper": {
+          "type": "text",
+          "validate": {
+            "pattern": "/x/i"
+          }
+        }
+      }
+    },
+    "data": {
+      "text": "/x/i",
+      "letter": "x",
+      "upper": "X"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "letter",
+          "field": "letter",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "x"
+        },
+        {
+          "path": "upper",
+          "field": "upper",
+          "rule": "pattern",
+          "message": "Please enter a valid format.",
+          "value": "X"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-canonical-text",
+    "note": "numbers and booleans are matched by their canonical text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "integer": {
+          "type": "text",
+          "validate": {
+            "pattern": "[0-9.e+]+"
+          }
+        },
+        "decimal": {
+          "type": "text",
+          "validate": {
+            "pattern": "[0-9.e+]+"
+          }
+        },
+        "large": {
+          "type": "text",
+          "validate": {
+            "pattern": "[0-9.e+]+"
+          }
+        },
+        "yes": {
+          "type": "text",
+          "validate": {
+            "pattern": "[0-9.e+]+"
+          }
+        },
+        "no": {
+          "type": "text",
+          "validate": {
+            "pattern": "[0-9.e+]+"
+          }
+        }
+      }
+    },
+    "data": {
+      "integer": 12,
+      "decimal": 1.5,
+      "large": 1e+21,
+      "yes": true,
+      "no": false
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "pattern-match-name",
+    "note": "match is the same rule under its own name.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "ok": {
+          "type": "text",
+          "validate": {
+            "match": "a|ab"
+          }
+        },
+        "bad": {
+          "type": "text",
+          "validate": {
+            "match": "a|ab"
+          }
+        }
+      }
+    },
+    "data": {
+      "ok": "ab",
+      "bad": "abc"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "bad",
+          "field": "bad",
+          "rule": "match",
+          "message": "Please enter a valid format.",
+          "value": "abc"
+        }
+      ]
+    }
+  },
+  {
+    "name": "pattern-invalid-empty",
+    "note": "the pattern \"\" is outside the pattern language: empty pattern.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": ""
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: empty pattern at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-open-group",
+    "note": "the pattern \"a(b\" is outside the pattern language: unterminated group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a(b"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unterminated group at 3",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-open-class",
+    "note": "the pattern \"a[b\" is outside the pattern language: unterminated class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a[b"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unterminated class at 3",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-close-group",
+    "note": "the pattern \"a)\" is outside the pattern language: unexpected character.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a)"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unexpected character at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-close-class",
+    "note": "the pattern \"a]\" is outside the pattern language: unexpected character.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unexpected character at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-brace",
+    "note": "the pattern \"a{\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a{"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-bare-brace",
+    "note": "the pattern \"{a\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "{a"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-leading-quantifier",
+    "note": "the pattern \"*a\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "*a"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-stacked-quantifier",
+    "note": "the pattern \"a**\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a**"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 2",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-possessive",
+    "note": "the pattern \"a++\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a++"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 2",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-reversed-bounds",
+    "note": "the pattern \"a{3,2}\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a{3,2}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-large-bound",
+    "note": "the pattern \"a{1001}\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a{1001}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-open-bound",
+    "note": "the pattern \"a{,2}\" is outside the pattern language: invalid quantifier.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a{,2}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid quantifier at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-inner-anchor",
+    "note": "the pattern \"a^b\" is outside the pattern language: unexpected character.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a^b"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unexpected character at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-leading-end",
+    "note": "the pattern \"$a\" is outside the pattern language: unexpected character.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "$a"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unexpected character at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-unknown-escape",
+    "note": "the pattern \"a\\\\q\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a\\q"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-word-boundary",
+    "note": "the pattern \"\\\\bx\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\bx"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-backreference",
+    "note": "the pattern \"(a)\\\\1\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(a)\\1"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 3",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-short-unicode",
+    "note": "the pattern \"\\\\u0041\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\u0041"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-surrogate",
+    "note": "the pattern \"\\\\u{D800}\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\u{D800}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-large-code-point",
+    "note": "the pattern \"\\\\u{110000}\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\u{110000}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-hex",
+    "note": "the pattern \"\\\\x4\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\x4"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-inline-flag",
+    "note": "the pattern \"(?i)x\" is outside the pattern language: unsupported construct.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?i)x"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unsupported construct at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-lookahead",
+    "note": "the pattern \"a(?=b)\" is outside the pattern language: unsupported construct.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a(?=b)"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unsupported construct at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-lookbehind",
+    "note": "the pattern \"(?<=a)b\" is outside the pattern language: unsupported construct.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<=a)b"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unsupported construct at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-group-name",
+    "note": "the pattern \"(?<1a>x)\" is outside the pattern language: invalid group name.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<1a>x)"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid group name at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-duplicate-name",
+    "note": "the pattern \"(?<n>a)(?<n>b)\" is outside the pattern language: duplicate group name.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<n>a)(?<n>b)"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: duplicate group name at 7",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-empty-class",
+    "note": "the pattern \"a[]\" is outside the pattern language: invalid class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a[]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid class at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-class-bracket",
+    "note": "the pattern \"[[a]\" is outside the pattern language: invalid class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[[a]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid class at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-posix-class",
+    "note": "the pattern \"[[:alpha:]]\" is outside the pattern language: invalid class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[[:alpha:]]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid class at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-reversed-range",
+    "note": "the pattern \"[z-a]\" is outside the pattern language: invalid range.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[z-a]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid range at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-shorthand-range",
+    "note": "the pattern \"[\\\\d-z]\" is outside the pattern language: invalid range.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[\\d-z]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid range at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-class-complement",
+    "note": "the pattern \"a[\\\\S]\" is outside the pattern language: invalid class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a[\\S]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid class at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-nested-size",
+    "note": "the pattern \"(a{100}){20}\" is outside the pattern language: pattern too large.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(a{100}){20}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: pattern too large at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-unknown-script",
+    "note": "the pattern \"\\\\p{Script=Klingon}\" is outside the pattern language: invalid property.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{Script=Klingon}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid property at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-property",
+    "note": "the pattern \"\\\\p{Letter}\" is outside the pattern language: invalid property.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{Letter}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid property at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-short-property",
+    "note": "the pattern \"\\\\pL\" is outside the pattern language: invalid property.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\pL"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid property at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-class-dash",
+    "note": "the pattern \"[a-b-c]\" is outside the pattern language: invalid class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[a-b-c]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid class at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-set-range-end",
+    "note": "the pattern \"[a-\\\\d]\" is outside the pattern language: invalid range.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[a-\\d]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid range at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-outer-size",
+    "note": "the pattern \"((a{10}){10}){11}\" is outside the pattern language: pattern too large.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "((a{10}){10}){11}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: pattern too large at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-size",
+    "note": "the pattern \"a{1000}b\" is outside the pattern language: pattern too large.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "a{1000}b"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: pattern too large at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-plus-size",
+    "note": "the pattern \"(?:a+){500}b\" is outside the pattern language: pattern too large.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?:a+){500}b"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: pattern too large at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-size-after-syntax",
+    "note": "the pattern \"(?:a{1000}){2}(\" is outside the pattern language: unterminated group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?:a{1000}){2}("
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: unterminated group at 15",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-depth",
+    "note": "the pattern \"(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((a)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))\" is outside the pattern language: nesting too deep.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((a)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: nesting too deep at 100",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-class-shorthand-end",
+    "note": "the pattern \"[a-\\\\D]\" is outside the pattern language: invalid class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[a-\\D]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid class at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-class-escape",
+    "note": "the pattern \"[\\\\q]\" is outside the pattern language: invalid escape.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[\\q]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid escape at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-class-property",
+    "note": "the pattern \"[\\\\p{Letter}]\" is outside the pattern language: invalid property.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "[\\p{Letter}]"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid property at 1",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-unclosed-name",
+    "note": "the pattern \"(?<abc\" is outside the pattern language: invalid group name.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "(?<abc"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid group name at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-surrogate-category",
+    "note": "the pattern \"\\\\p{Cs}\" is outside the pattern language: invalid property.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": "\\p{Cs}"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid pattern pattern: invalid property at 0",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-parameter-order",
+    "note": "a field's own rules are checked before the fields it contains, and the location is the declaration path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "outer": {
+          "type": "group",
+          "validate": {
+            "maxlength": -1
+          },
+          "properties": {
+            "inner": {
+              "type": "text",
+              "validate": {
+                "pattern": "("
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "outer": {
+        "inner": "x"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
+      "at": "outer"
+    }
+  },
+  {
+    "name": "value-parameter-row-path",
+    "note": "the location of a parameter inside repeated rows has no row keys.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text",
+              "validate": {
+                "match": "a("
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "r1": {
+          "name": "x"
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PATTERN",
+      "message": "Invalid match pattern: unterminated group at 2",
+      "at": "rows.name"
+    }
+  },
+  {
+    "name": "pattern-invalid-number-parameter",
+    "note": "a pattern is a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "pattern": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid pattern parameter: expected a pattern string",
+      "at": "value"
+    }
+  },
+  {
+    "name": "pattern-invalid-true-parameter",
+    "note": "true is not a pattern.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "match": true
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid match parameter: expected a pattern string",
+      "at": "value"
+    }
   }
 ]

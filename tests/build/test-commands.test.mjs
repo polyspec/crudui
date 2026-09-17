@@ -13,7 +13,9 @@ import { directTestTools, isTestCommand, matchesArgument, nodeScripts, nodeTestA
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const tracked = [
-  ...execFileSync('git', ['ls-files', '*package.json', '*composer.json', '*Makefile', '.github/workflows/*.yml'], { cwd: ROOT, encoding: 'utf8' }).split('\n').filter(Boolean),
+  // A tracked file deleted in the working tree is no longer a project command source.
+  ...execFileSync('git', ['ls-files', '*package.json', '*composer.json', '*Makefile', '.github/workflows/*.yml'], { cwd: ROOT, encoding: 'utf8' })
+    .split('\n').filter(file => file && existsSync(path.join(ROOT, file))),
   'contracts/features.json',
 ];
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');

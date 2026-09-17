@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * Date validation rule.
  * Validates that a value is a valid date.
@@ -27,7 +29,7 @@ class Date implements RuleInterface
             return false;
         }
 
-        $stringValue = trim((string)$value);
+        $stringValue = Whitespace::trim((string)$value);
         if ($stringValue === '') {
             return false;
         }
@@ -39,15 +41,5 @@ class Date implements RuleInterface
         } catch (\Exception $e) {
             return false;
         }
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a valid date.';
     }
 }

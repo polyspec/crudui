@@ -13,8 +13,8 @@
  *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
  *   - schema/crudui.schema.json   → list definitions (List/Column/CellFormat/…) (parse)
- *   - expressions.md      → tokens / precedence / truthy / unsupported (parse)
- *   - spec/schema.md             → classification rules (parse)
+ *   - docs/spec/expressions.md → tokens / precedence / truthy / unsupported (parse)
+ *   - docs/spec/schema.md        → classification rules (parse)
  *
  * Drift 0: a widget added to REGISTRY, a rule added to builtInRules, a slot key
  * changed in the schema, or a forbidden key added to FORBIDDEN_META_KEYS appears
@@ -27,30 +27,26 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-// -- CODE single-source-of-truth (in-process import via tsx loader) -----------
+// -- CODE single-source-of-truth (the packages' internal entries) --------------
 import {
   WIDGET_COUNT,
   WIDGET_KINDS,
   WIDGET_LAYOUTS,
   WIDGET_CANONICAL,
-} from '../../generator-core/src/widget.ts';
-import {
   CELL_FORMATS,
   CELL_FORMAT_DEFAULT,
-} from '../../generator-core/src/cell.ts';
-import { getRuleNames } from '../../validator-ts/src/rules/index.ts';
+} from '@crudui/generator-core/internal';
 import {
+  getRuleNames,
   ARRAY_LEVEL_RULES,
   PATH_REFERENCE_RULES,
   LITERAL_PARAM_RULES,
   REGEX_PARAM_RULES,
   MEMBERSHIP_PARAM_RULES,
-} from '../../validator-ts/src/validate/validator.ts';
-import {
   FORBIDDEN_META_KEYS,
   FORBIDDEN_META_KEY_PATTERN,
-} from '../../validator-ts/src/schema.ts';
-import { scanForbiddenKeys } from '../../validator-ts/src/forbidden-scan.ts';
+  scanForbiddenKeys,
+} from '@crudui/validator/internal';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
@@ -342,7 +338,7 @@ function collectGrammar(): DescribeResult['grammar'] {
 }
 
 // ---------------------------------------------------------------------------
-// classification (spec/schema.md — quoted, the prose single-source for placement)
+// classification (docs/spec/schema.md — quoted, the prose single-source for placement)
 // ---------------------------------------------------------------------------
 
 function collectClassification(): DescribeResult['classification'] {

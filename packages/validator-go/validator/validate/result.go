@@ -2,10 +2,9 @@
 // the THIRD pass of the model pipeline.
 //
 // It consumes a model field model (the validate / design / behavior / options role
-// slots) AFTER the compose pass (validator-go/validator/model/compose) has expanded
-// $ref / $patch into a single spec. It does NOT touch the legacy validator (R7
-// parallel run) and it does NOT re-implement the expression engine — it CALLS the
-// existing engine (validator-go/validator/model/expr) for conditional rule values.
+// slots) AFTER the compose pass (validator-go/validator/compose) has expanded
+// $ref / $patch into a single spec. It does NOT re-implement the expression engine — it CALLS the
+// existing engine (validator-go/validator/expr) for conditional rule values.
 // The rule semantics mirror the JS reference (validator-ts/src/rules) byte for
 // byte; the shared 4-language fixture tests/fixtures/validate/cases.json is the
 // single truth, generated from the JS engine.
@@ -14,7 +13,7 @@
 //
 //	(1) compose  — ComposeProperties / ComposeSpec (compose/) runs BEFORE this
 //	    engine (Validate in index.go). An unresolved $ref is a *ComposeLoadError
-//	    there (never valid:true) — the legacy LargeForm.yml:873 gap closed.
+//	    there (never valid:true).
 //	(2) field traversal — recurse properties; group nesting, multiple arrays
 //	    (items.i), object-key multiple (sorted keys, items.__uid__). Data order is
 //	    preserved by form state and rendering; sorted order is validation errors.
@@ -31,8 +30,8 @@ package validate
 
 import "strings"
 
-// ValidationError is one validation failure. Field shape is identical to the legacy
-// validator (path / field / rule / message / value) so the 4-language idempotence
+// ValidationError is one validation failure. Field shape (path / field / rule /
+// message / value) is identical in every runtime so the 4-language idempotence
 // comparison (SPEC G-B) holds with the same (path, rule, message).
 type ValidationError struct {
 	// Path is the dot-joined full path to the field (items.0.name, rows.__uid__.v).

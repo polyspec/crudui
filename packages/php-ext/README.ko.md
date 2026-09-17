@@ -19,14 +19,11 @@
 심볼릭 링크, 여러 발견 결과, 서로 다른 PHP 설치 정보를 거부합니다. `phpize`,
 Autoconf, libtool은 사용하지 않습니다.
 
-`pattern`과 `match` 규칙은 PHP의 PCRE2 API를 사용합니다. 대상 PHP의
-`main/php_config.h`에 `HAVE_BUNDLED_PCRE`가 정의되지 않았으면 PHP는 외부
-PCRE2를 사용하고, 빌드는 `pkg-config --cflags libpcre2-8`이 알려 주는 include
-경로를 추가합니다. 이때 macOS에서는 Homebrew `pkgconf` formula, Linux에서는
-Debian `pkgconf-bin` 패키지의 정규 `pkgconf` 실행 파일을 사용하며,
-`--pkg-config` 또는 `PHP_EXTENSION_PKG_CONFIG`로 지정할 수도 있습니다. PCRE2
-개발 파일(Homebrew `pcre2`, Debian `libpcre2-dev`)이 필요합니다. 번들 PCRE2를
-사용하는 PHP에는 추가 요구 사항이 없습니다.
+`pattern`과 `match` 규칙은 정규 표현식 라이브러리를 사용하지 않습니다. 엔진이
+CRUDUI 패턴을 직접 해석하고, 내장한 유니코드 데이터(`src/unicode_data.c`,
+`node packages/php-ext/tools/generate-unicode-data.mjs`가
+`contracts/unicode-properties.json`에서 생성)로 선형 시간에 매칭합니다. 빌드에는
+PCRE2 파일이나 `pkg-config`가 필요하지 않습니다.
 
 저장소 루트에서 실행합니다.
 

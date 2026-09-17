@@ -39,9 +39,12 @@ HTTP·브라우저 검증기는 이 저장소에서 관리합니다. 검증기�
 적용한 뒤 그 컨테이너가 실행하는 트리를 검증합니다.
 
 ```sh
-node examples/form-comparison/comparison-deployment.mjs
-node examples/form-comparison/verification.mjs
+make deploy
+make deploy-verify
 ```
+
+`make deploy`는 `examples/form-comparison/comparison-deployment.mjs`를, `make deploy-verify`는
+`examples/form-comparison/verification.mjs`를 실행합니다.
 
 배포 명령은 `examples/form-comparison/Containerfile`이 바뀌었을 때만 툴체인 이미지를
 빌드합니다. 저장소를 읽기 전용으로 마운트하고 빌드 산출물은 `crudui-comparison-build`와

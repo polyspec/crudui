@@ -1,9 +1,5 @@
-import {
-  FormInputError,
-  composeProperties,
-  MemoryLoader,
-  type FileLoader,
-} from '@crudui/validator';
+import { FormInputError, type FileLoader } from '@crudui/validator';
+import { composeProperties, MemoryLoader } from '@crudui/validator/internal';
 import { makeTranslate, type Language } from './content';
 import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
 import { formMessages } from './messages';

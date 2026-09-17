@@ -5,7 +5,7 @@
 [`contracts/features.json`](../../contracts/features.json)은 모든 런타임을 재는 기준입니다. 각 기능은
 지원하는 런타임(`pass`, `partial`, `unsupported`)과 그 기능을 증명하는 공용 fixture를 선언합니다.
 매니페스트의 `fixtures` 목록은 모든 fixture를 등록합니다. `cases.json` 가족, `cases`를 선언하거나 사례
-목록을 내보내는 export를 지정한 모듈 fixture, 또는 사례가 없는 공용 입력인 `corpus`입니다.
+목록을 내보내는 export를 지정한 모듈 fixture입니다.
 
 ## 런타임 키
 

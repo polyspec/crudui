@@ -146,6 +146,9 @@ generator-core exports these rules as pure functions over immutable values:
 `rekeyRowView` and `collapsibleRows` for view state, and
 `emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` for history. Data
 owned through `bindForm` takes the same functions.
+`resolveAction(button)` reads the operation, collection path and row key of a
+`data-crudui-action` button, and `runAction(form, target)` applies that target to
+a form instance.
 
 ## Rendering and validation
 

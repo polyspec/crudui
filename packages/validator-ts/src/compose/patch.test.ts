@@ -1,13 +1,12 @@
 /**
- * legacy-parity unit tests for the $patch deep-merge / deep-remove semantics
- * (ArrayUtil::mergeDeep = arr::drupal_array_merge_deep_array; arr::remove).
+ * Unit tests for the $patch deep-merge / deep-remove semantics.
  *
  * cases.json (the shared 4-language fixture) covers the SPEC §5 surface; these
  * tests pin the merge/remove RULES that the fixture does not separately isolate:
- *   - both-object leaf → recursive deep-merge (legacy $merge)
+ *   - both-object leaf → recursive deep-merge
  *   - scalar leaf → replace (latter wins)
- *   - array leaf → replace (NOT concat; legacy latter wins for non-int-key arrays)
- *   - nested-map remove form (legacy arr::remove, missing key tolerated)
+ *   - array leaf → replace (NOT concat; the latter wins)
+ *   - nested-map remove form (missing key tolerated)
  *   - structured-remove array form (strict: missing target throws)
  */
 

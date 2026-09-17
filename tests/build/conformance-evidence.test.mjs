@@ -50,21 +50,19 @@ test('evidence for an unsupported or undeclared runtime, feature, fixture or cas
 
 test('unregistered families, unproven fixtures and named fixtures without cases are reported', () => {
   const problems = checkConformance({
-    features: [{ ...feature, fixtures: [fixture, 'tests/fixtures/form-session/scenario.mjs', 'tests/fixtures/specs/Product.yml'] }],
+    features: [{ ...feature, fixtures: [fixture, 'tests/fixtures/form-session/scenario.mjs'] }],
     registry: [
       ...registry,
-      { path: 'tests/fixtures/translate/cases.json', kind: 'translation' },
-      { path: 'tests/fixtures/specs/Product.yml', kind: 'corpus' },
+      { path: 'tests/fixtures/expr/cases.json', kind: 'expression' },
     ],
-    cases: { ...base.cases, 'tests/fixtures/translate/cases.json': ['t'] },
-    families: ['tests/fixtures/list-render', 'tests/fixtures/translate', 'tests/fixtures/form-session', 'tests/fixtures/specs'],
+    cases: { ...base.cases, 'tests/fixtures/expr/cases.json': ['t'] },
+    families: ['tests/fixtures/list-render', 'tests/fixtures/expr', 'tests/fixtures/form-session'],
     evidence: [record('php', 'a'), record('php', 'b')],
   });
   assert.deepEqual(problems.unregisteredFamilies, ['tests/fixtures/form-session']);
-  assert.deepEqual(problems.unprovenFixtures, ['tests/fixtures/translate/cases.json']);
+  assert.deepEqual(problems.unprovenFixtures, ['tests/fixtures/expr/cases.json']);
   assert.deepEqual(problems.undeclaredFixtures, [
     { feature: 'renderList', fixture: 'tests/fixtures/form-session/scenario.mjs' },
-    { feature: 'renderList', fixture: 'tests/fixtures/specs/Product.yml' },
   ]);
 });
 

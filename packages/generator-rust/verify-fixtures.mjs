@@ -31,7 +31,13 @@ try {
   const lists = JSON.parse(await readFile(join(repositoryRoot, 'tests/fixtures/list-render/cases.json'), 'utf8'));
   server = await createServer({
     root: repositoryRoot, configFile: false, logLevel: 'error', server: { middlewareMode: true },
-    resolve: { alias: { '@crudui/validator': join(repositoryRoot, 'packages/validator-ts/src/index.ts') } },
+    resolve: {
+      alias: {
+        // The internal entry precedes the main entry, whose alias also matches its subpaths.
+        '@crudui/validator/internal': join(repositoryRoot, 'packages/validator-ts/src/internal.ts'),
+        '@crudui/validator': join(repositoryRoot, 'packages/validator-ts/src/index.ts'),
+      },
+    },
   });
   const { compileForm, bindForm, bindButtons, formMessages, buildList } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-core/src/index.ts'));
   const { FormFields } = await server.ssrLoadModule(join(repositoryRoot, 'packages/generator-react/src/components/FormFields.tsx'));

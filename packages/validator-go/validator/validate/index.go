@@ -7,8 +7,8 @@ package validate
 //	(1) compose — ComposeProperties / ComposeSpec expands $ref / $patch into a
 //	    single spec. An unresolved composition returns a *compose.ComposeLoadError
 //	    HERE (a LOAD failure, NOT valid:false) — the spec never comes into
-//	    existence, so there is no validation result. This closes the legacy
-//	    valid:true-on-unresolved-$ref gap (LargeForm.yml:873).
+//	    existence, so there is no validation result; an unresolved $ref never
+//	    yields valid:true.
 //	(2/3) validate — Validator traverses the composed spec and runs the validate
 //	    slot (conditional rule values via the model expression engine).
 
@@ -101,7 +101,12 @@ func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, err
 		}
 	}
 
-	return NewValidator(properties).Validate(data)
+	// Rule parameters are checked after composition and the forbidden-key scan.
+	validator, err := NewValidator(properties)
+	if err != nil {
+		return ValidationResult{}, err
+	}
+	return validator.Validate(data)
 }
 
 // ValidateJSON is a convenience wrapper that decodes a raw JSON spec and raw JSON

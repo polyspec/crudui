@@ -115,7 +115,7 @@ export function fileGroupBody(w: WidgetModel): string {
 /**
  * search full html: style?/script chrome (`nonce=""`, verbatim) + the select2
  * host `<select>` inside `.crudui-widget--search`. The host select needs
- * `selected="selected"` (legacy select2 contract), so the whole search body is raw.
+ * `selected="selected"` (select2 contract), so the whole search body is raw.
  */
 export function searchHtml(w: WidgetModel): string {
   const fieldSearch =

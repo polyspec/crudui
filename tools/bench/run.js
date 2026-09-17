@@ -12,8 +12,8 @@
  * Each driver does its OWN warmup + timing in-process. This orchestrator only
  * launches one process per language per run; process startup is amortized over
  * the whole N-iteration loop and is NOT inside any per-iteration measurement.
- * Contrast compare-all.js, which spawns one process PER CASE — correct for an
- * idempotency check, wrong for a throughput benchmark.
+ * Spawning one process PER CASE would fold interpreter/binary boot into every
+ * call, which is wrong for a throughput benchmark.
  *
  * Absolute times are machine-dependent. Read the columns RELATIVELY: the ratios
  * between backends are the signal, not the microsecond counts.
@@ -34,7 +34,7 @@ const RUST_COMMAND = path.join(REPO_ROOT, 'scripts/run-rust-command.mjs');
 
 const SPECS = [
   { name: 'contact', label: 'contact (small, ~6 fields)' },
-  { name: 'large-form', label: 'LargeForm (large, ~80 fields)' },
+  { name: 'large', label: 'Large (80 fields)' },
 ];
 
 function parseArgs(argv) {
@@ -230,7 +230,7 @@ function writeResultsMd(table, args, langs, meta) {
     '- **The two specs are not comparable to each other.** `contact` runs a'
   );
   lines.push(
-    '  fully-valid payload through every rule; `large-form` runs the empty'
+    '  fully-valid payload through every rule; `large` runs the empty'
   );
   lines.push(
     '  form, which short-circuits at the first required field. A spec being'
@@ -249,12 +249,9 @@ function writeResultsMd(table, args, langs, meta) {
   );
   lines.push('  `validate()`-only. Startup cost is excluded by construction.');
   lines.push(
-    '- One process per backend per run (not one per iteration). The per-case'
+    '- One process per backend per run (not one per iteration). A per-case'
   );
-  lines.push(
-    '  spawn in `tests/runner/compare-all.js` is correct for idempotency but'
-  );
-  lines.push('  would fold interpreter/binary boot into every call — unfair here.');
+  lines.push('  spawn would fold interpreter/binary boot into every call — unfair here.');
   lines.push(
     '- All four read the SAME `tools/bench/fixtures/*.json` spec+input, and the'
   );

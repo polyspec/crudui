@@ -50,8 +50,4 @@ export const rangeRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a value between {0} and {1}.',
 };
-
-export default rangeRule;
