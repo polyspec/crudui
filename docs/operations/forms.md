@@ -101,6 +101,13 @@ node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-
 The shared DOM scenario covers late data injection, edits, nested row operations,
 saved keys, checkboxes, dates, language fields and conditional display. DOM tests
 use jsdom; they do not establish external editor or browser file-picker behavior.
+`tests/form-styles.test.mjs` checks the layout of `crudui.css` in Chromium, Firefox and
+WebKit: sticky header stacking, the level label and its `data-crudui-stuck` fallback, one-border
+seams, row card edges and focus scrolling, each in a page, a scrolling box and a frame. Every
+engine runs the same scenarios; Chromium and Firefox are driven by Puppeteer, WebKit by
+Playwright. Firefox is found at `CRUDUI_FIREFOX_EXECUTABLE` or the platform's install path, and
+WebKit is installed with `npx playwright install --with-deps webkit`. A missing browser fails the
+run; no engine is skipped.
 Record current results in [features](../features.md) and [changelog](../../CHANGELOG.md).
 
 The Svelte package build emits JavaScript, preprocessed Svelte components and

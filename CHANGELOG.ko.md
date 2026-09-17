@@ -1,5 +1,18 @@
 # 변경 기록
 
+## 2026-09-17 — WebKit에서 스타일시트 레이아웃 검사
+
+- `tests/form-styles.test.mjs`가 sticky 헤더, 단계 레이블, 이음매, 행 카드, 포커스 시나리오를
+  Chromium, Firefox와 함께 WebKit에서도 실행합니다. 엔진 어댑터 하나가 각 브라우저를
+  실행하고(Chromium과 Firefox는 Puppeteer, WebKit은 Playwright) 모든 엔진이 같은 시나리오 코드를
+  실행합니다. 브라우저를 시작할 수 없으면 이유와 함께 실행이 실패합니다.
+- macOS의 WebKit은 포인터로 누른 버튼에 포커스를 주지 않습니다. 포커스 시나리오는 일반 버튼으로
+  엔진의 규칙을 측정하고, 복원된 포커스가 그 규칙과 같기를 요구합니다. 누름이 포커스를 주는
+  엔진에서는 보이는 포커스 없이 토글이, 주지 않는 엔진에서는 아무것도 포커스되지 않습니다.
+  Chromium과 Firefox는 포커스를 주어야 하고, macOS의 WebKit은 주지 않아야 합니다.
+- `playwright`가 루트 개발 의존성이 되었고, `npm run test:forms`를 실행하는 CI 작업은
+  `npx playwright install --with-deps webkit`으로 WebKit을 설치하며 제한 시간은 15분입니다.
+
 ## 2026-09-17 — CI 워크플로를 로컬에서 실행하고 첫 실행에서 드러난 문제 수정
 
 - `make ci`는 `.github/workflows/ci.yml`의 모든 검사 명령을 순서대로 실행하고 적합성 증거를

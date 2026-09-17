@@ -101,6 +101,13 @@ node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-
 공유 DOM 시나리오는 지연 데이터 주입, 편집, 중첩 행 연산, 저장된 키, 체크박스,
 날짜, 언어 필드, 조건부 표시를 검사합니다. DOM 테스트는 jsdom을 사용하며 외부
 편집기나 브라우저 파일 선택기의 동작을 검증하지 않습니다.
+`tests/form-styles.test.mjs`는 `crudui.css`의 레이아웃을 Chromium, Firefox, WebKit에서
+검사합니다. sticky 헤더 쌓임, 단계 레이블과 그 `data-crudui-stuck` 대체 경로, 테두리 한 겹의
+이음매, 행 카드의 선, 포커스 스크롤을 페이지, 스크롤 상자, 프레임에서 각각 확인합니다. 모든
+엔진이 같은 시나리오를 실행하며, Chromium과 Firefox는 Puppeteer로, WebKit은 Playwright로
+구동합니다. Firefox는 `CRUDUI_FIREFOX_EXECUTABLE` 또는 플랫폼 설치 경로에서 찾고, WebKit은
+`npx playwright install --with-deps webkit`으로 설치합니다. 브라우저가 없으면 실행이 실패하며
+어떤 엔진도 건너뛰지 않습니다.
 현재 결과는 [기능 상태](../features.ko.md)와 [변경 기록](../../CHANGELOG.ko.md)에 기록합니다.
 
 Svelte 패키지 빌드는 JavaScript, 전처리한 Svelte 컴포넌트, TypeScript 선언을

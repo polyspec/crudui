@@ -90,6 +90,7 @@
     "markdown-it": "15.0.1",
     "ordered-json": "https://codeload.github.com/ordered-json/javascript/tar.gz/d3b1f3473ce2645c79c772940df622c4d8b0bca7",
     "parse5": "^8.0.1",
+    "playwright": "^1.63.0",
     "postcss": "^8.5.28",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
