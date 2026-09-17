@@ -112,6 +112,8 @@ export const buildTargets = Object.freeze([
   },
   {
     // PHP reads its sources per request; only the installed Composer copies need an update.
+    // `install` keeps the validator's path-repository copy while the lock is unchanged, so the copy
+    // is reinstalled from the tree.
     id: 'composer',
     timeoutMs: 300_000,
     inputs: [/^packages\/validator-php\//, /^packages\/generator-php\/composer\.(?:json|lock)$/],
@@ -121,6 +123,8 @@ export const buildTargets = Object.freeze([
         '--prefer-dist']),
       step('composer', ['--working-dir=packages/generator-php', 'install', '--no-interaction',
         '--prefer-dist']),
+      step('composer', ['--working-dir=packages/generator-php', 'reinstall', 'crudui/validator',
+        '--no-interaction']),
     ],
     restarts: [],
   },

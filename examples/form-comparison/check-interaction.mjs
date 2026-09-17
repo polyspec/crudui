@@ -6,6 +6,12 @@ import {
 
 const actions = ['pointer', 'keyboard', 'condition', 'validation', 'empty-keyboard'];
 const collectionSelector = '[data-field-path="companies"]';
+
+/** The row-header button of `action` in the collection's rows, as the renderers write it. */
+export function rowActionSelector(action) {
+  return `${collectionSelector} > .crudui-node__body > [data-crudui-row-key] > .crudui-node__header-container`
+    + ` > .crudui-node__header [data-crudui-action="${action}"]`;
+}
 const storeSelector = 'input[name$="[stores][__0000000000001__][name]"]';
 
 /** Clear a text control deterministically without relying on multi-click selection. */
@@ -90,9 +96,7 @@ export async function checkInteraction(page, servers) {
             try {
               await frame.evaluate(() => window.comparison.reset());
               if (action === 'empty-keyboard') {
-                const remove = await frame.$(
-                  `${collectionSelector} > .crudui-node__body > [data-crudui-row-key] > .crudui-node__header [data-crudui-action="remove-row"]`,
-                );
+                const remove = await frame.$(rowActionSelector('remove-row'));
                 await remove.click();
                 await frame.evaluate(() => window.comparison.idle());
                 const selector = `${collectionSelector} > .crudui-node__footer [data-crudui-action="add-row"]`;
@@ -168,9 +172,7 @@ export async function checkInteraction(page, servers) {
                 assert.equal(await frame.$eval('textarea', item =>
                   item.closest('[data-field-path]').hidden), false);
               } else {
-                const button = await frame.$(
-                  `${collectionSelector} > .crudui-node__body > [data-crudui-row-key] > .crudui-node__header [data-crudui-action="add-row"]`,
-                );
+                const button = await frame.$(rowActionSelector('add-row'));
                 await button.scrollIntoView();
                 await frame.evaluate((selectedButton, selectedAction) => {
                   const active = selectedAction === 'pointer'

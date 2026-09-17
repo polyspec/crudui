@@ -44,13 +44,17 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 ## Current comparison deployment verification
 
 The current `main` tree is served by the comparison deployment. PHP, PHP extension, Go and Rust
-passed 450 generation checks, 120 persistence checks and 7,008 browser checks with zero failures.
-Every browser report and phase completed within its own limit, and the container reported zero
-zombie processes after verification. The current public contract is the root pipeline example; the
-separate benchmark screen is `/benchmark-console/`. The 45-record canonical list uses three pages
-of 20, 20 and 5 records. Page-level SSR contains the selected CRUDUI list or detail markup, while
-CSR contains only the stage shell. Initialization comparison preserves framework-owned container
-markers and compares rendered container contents; Vue's `data-v-app` is not removed.
+passed 450 generation checks, 120 persistence checks and 7,008 browser checks, and the canonical
+flow passed all 40 combinations of five servers, four clients and both initializations, with zero
+failures. The run started from repositories holding non-default records, so every initialization
+column loaded its own reset record. Every browser report and phase completed within its own limit,
+and the container reported zero zombie processes after verification. The public root is the
+canonical page: list, detail, form, save and refreshed list; the separate benchmark screen is
+`/benchmark-console/`. The 45-record canonical list uses three pages of 20, 20 and 5 records.
+Page-level SSR contains the selected server's list, detail or form markup, while CSR contains only
+the stage shell that the selected client fills. Initialization comparison preserves
+framework-owned container markers and compares rendered container contents; Vue's `data-v-app` is
+not removed.
 
 ## Native package verification
 

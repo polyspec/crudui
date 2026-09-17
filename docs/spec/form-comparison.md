@@ -304,7 +304,9 @@ carries that server's name. The PHP built-in server writes an `Accepted` and a
 dropped and every other line, warnings included, is kept.
 
 PHP reads its sources on every request, so a PHP source change needs no build or
-restart; only the installed Composer copies are replaced. A `.gitignore` change
+restart; only the installed Composer copies are replaced. `composer install` keeps the
+validator's path-repository copy while the lock is unchanged, so the build reinstalls that copy
+(`composer reinstall crudui/validator`). A `.gitignore` change
 synchronizes the whole tree. A change to a supervisor module reloads that process in
 the existing container and preserves all volumes.
 
