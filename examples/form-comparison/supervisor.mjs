@@ -165,15 +165,17 @@ async function checkSource() {
   await runCycle(plan, source);
 }
 
-/** Reload this process from the mounted source without restarting its container or volumes. */
+/**
+ * Reload this process from the mounted source without restarting its container or volumes. The
+ * supervisor is the only child of the container's init process, so it replaces its own process
+ * image and keeps its process id instead of exiting.
+ */
 async function reloadSupervisor() {
   stopping = true;
   await Promise.all([...processes.keys()].map(stopProcess));
-  const child = spawn(process.execPath, [path.join(sourceMount, 'examples/form-comparison/supervisor.mjs')], {
-    cwd: sourceMount, env: process.env, stdio: 'inherit', detached: true,
-  });
-  child.unref();
-  process.exit(0);
+  process.chdir(sourceMount);
+  process.execve(process.execPath, [process.execPath,
+    path.join(sourceMount, 'examples/form-comparison/supervisor.mjs')], process.env);
 }
 
 async function watchSource() {
