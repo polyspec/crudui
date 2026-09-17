@@ -253,7 +253,7 @@ final class PatternParser
             $name .= \chr($this->source[$end]);
             $end++;
         }
-        if ($name === '' || ctype_digit($name[0]) || !$this->is($end, '>')) {
+        if ($name === '' || ($name[0] >= '0' && $name[0] <= '9') || !$this->is($end, '>')) {
             throw new PatternSyntaxError('invalid group name', $at);
         }
         if (isset($this->names[$name])) {
@@ -457,7 +457,8 @@ final class PatternParser
         $digits = '';
         for ($index = $start; $index < $this->length && \strlen($digits) < $limit; $index++) {
             $character = $this->source[$index];
-            if ($character >= 0x80 || !ctype_xdigit(\chr($character))) {
+            if (!(($character >= 0x30 && $character <= 0x39) || ($character >= 0x41 && $character <= 0x46)
+                || ($character >= 0x61 && $character <= 0x66))) {
                 break;
             }
             $digits .= \chr($character);

@@ -28,7 +28,12 @@ export function cString(value) {
 
 /* The same bytes as engine text with their explicit length. */
 export function cText(value) {
-  return `((ps_text){${cString(value)}, ${Buffer.byteLength(value, 'utf8')}})`;
+  return `((ps_text)${cTextInitializer(value)})`;
+}
+
+/* Engine text as a brace initializer: a static table member must not be a compound literal. */
+export function cTextInitializer(value) {
+  return `{${cString(value)}, ${Buffer.byteLength(value, 'utf8')}}`;
 }
 
 export class EngineFixtureSource {
@@ -910,14 +915,14 @@ function sourceForValues() {
     '',
     'typedef struct { ps_text source; const char *reason; size_t offset; } rejected_case;',
     'static const rejected_case rejected_cases[] = {',
-    ...rejectedPatterns.map(([source, reason, offset]) => `  {${cText(source)}, ${cString(reason)}, ${offset}},`),
+    ...rejectedPatterns.map(([source, reason, offset]) => `  {${cTextInitializer(source)}, ${cString(reason)}, ${offset}},`),
     '};',
     'static const ps_text accepted_cases[] = {',
-    ...acceptedPatterns.map(source => `  ${cText(source)},`),
+    ...acceptedPatterns.map(source => `  ${cTextInitializer(source)},`),
     '};',
     'typedef struct { ps_text source; ps_text text; bool matches; } match_case;',
     'static const match_case match_cases[] = {',
-    ...matchCases.map(([source, text, matches]) => `  {${cText(source)}, ${cText(text)}, ${matches}},`),
+    ...matchCases.map(([source, text, matches]) => `  {${cTextInitializer(source)}, ${cTextInitializer(text)}, ${matches}},`),
     '};',
     '',
     'static int failures;',
