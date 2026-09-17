@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-17 — Remove the Linux style-check image a run pulled
+
+`make test-form-styles-linux` needs the Playwright image of the pinned version, about 10 GB. A run
+that pulled the image now removes it when it ends, successful or not, and leaves an image that was
+already present; the testing procedure describes the command.
+
 ## 2026-09-17 — Lint every JavaScript, TypeScript and Svelte source
 
 - `npm run lint` ran `eslint packages` and its configuration skipped every `.js` and `.mjs` file,

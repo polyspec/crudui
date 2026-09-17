@@ -10,6 +10,8 @@
 # since the cache mount keeps no symbolic links. Chrome is at the path the CI runner has, and
 # the tests run as the image's unprivileged user, as Chrome's sandbox requires.
 #
+# The image is removed after the run when this run pulled it.
+#
 # It uses the `container` command line tool on macOS, or `docker` elsewhere; set
 # CRUDUI_CONTAINER to choose. Extra arguments replace the test files to run.
 #
@@ -54,7 +56,17 @@ chown -R pwuser /work
 exec setpriv --reuid=pwuser --regid=pwuser --init-groups env HOME=/tmp/pwuser node scripts/run-tests.mjs node -- "$@"
 '
 
-exec "$TOOL" run --rm $PLATFORM --memory 8g --cpus 4 \
+# The image takes about 10 GB; a run that pulled it removes it again, success or not, and an image
+# that was already present is left alone.
+if "$TOOL" image inspect "$IMAGE" >/dev/null 2>&1; then PULLED=no; else PULLED=yes; fi
+remove_pulled_image() {
+  if [ "$PULLED" = yes ]; then
+    if [ "$TOOL" = container ]; then container image delete "$IMAGE" >/dev/null; else docker image rm "$IMAGE" >/dev/null; fi
+  fi
+}
+trap remove_pulled_image EXIT
+
+"$TOOL" run --rm $PLATFORM --memory 8g --cpus 4 \
   --mount "type=bind,source=$ROOT,target=/repo,readonly" \
   --mount "type=bind,source=$CACHE,target=/cache" \
   -e "NODE_LINE=$NODE_LINE" \
