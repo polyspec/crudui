@@ -308,7 +308,9 @@ restart; only the installed Composer copies are replaced. `composer install` kee
 validator's path-repository copy while the lock is unchanged, so the build reinstalls that copy
 (`composer reinstall crudui/validator`). A `.gitignore` change
 synchronizes the whole tree. A change to a supervisor module reloads that process in
-the existing container and preserves all volumes.
+the existing container and preserves all volumes. The supervisor is the only child of the
+container's init process, so it stops its servers and replaces its own process image with the
+new supervisor (`process.execve`), keeping its process id; exiting would stop the container.
 
 ### Source identity
 
