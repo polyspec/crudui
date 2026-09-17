@@ -1,0 +1,256 @@
+[
+  {
+    "name": "pass-paired-surrogates",
+    "note": "a surrogate pair is valid text in a label, a row value and the context.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "A😀"
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "😀"
+      }
+    ],
+    "options": {
+      "data": {
+        "😀": "😀"
+      }
+    },
+    "expect": "pass"
+  },
+  {
+    "name": "spec-lone-high-in-label",
+    "note": "a lone high surrogate in a column label is a load failure.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "\ud800"
+        }
+      }
+    },
+    "rows": [],
+    "expect": {
+      "code": "INVALID_TEXT",
+      "message": "Text must be Unicode scalar values",
+      "at": "columns.name.label"
+    }
+  },
+  {
+    "name": "spec-before-rows",
+    "note": "the specification is checked before the rows.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "\udc00"
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "\ud800"
+      }
+    ],
+    "expect": {
+      "code": "INVALID_TEXT",
+      "message": "Text must be Unicode scalar values",
+      "at": "columns.name.label"
+    }
+  },
+  {
+    "name": "file-document",
+    "note": "invalid text in a file is located at the file name and path.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "files": {
+        "c.yml": {
+          "properties": {
+            "x": {
+              "field": "\udc00\ud800"
+            }
+          }
+        }
+      }
+    },
+    "expect": {
+      "code": "INVALID_TEXT",
+      "message": "Text must be Unicode scalar values",
+      "at": "c.yml.properties.x.field"
+    }
+  },
+  {
+    "name": "row-value",
+    "note": "a row value is located by row index and member name.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "a"
+      },
+      {
+        "name": "b\udc00\ud800"
+      }
+    ],
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: rows.1.name",
+      "at": ""
+    }
+  },
+  {
+    "name": "row-member-name",
+    "note": "an invalid row member name is reported at its row.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [
+      {
+        "\ud800": "a"
+      }
+    ],
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: rows.0",
+      "at": ""
+    }
+  },
+  {
+    "name": "rows-before-options",
+    "note": "the rows are checked before the options.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "\ud800"
+      }
+    ],
+    "options": {
+      "language": "\ud800"
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: rows.0.name",
+      "at": ""
+    }
+  },
+  {
+    "name": "context",
+    "note": "invalid text in the list context is an input failure.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "data": {
+        "admin": "\udc00"
+      }
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: options.data.admin",
+      "at": ""
+    }
+  },
+  {
+    "name": "options-in-name-order",
+    "note": "options are checked in code point order of their names.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "\ud800",
+      "data": {
+        "x": "\ud800"
+      },
+      "basepath": "\udc00"
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: options.basepath",
+      "at": ""
+    }
+  },
+  {
+    "name": "language-before-support",
+    "note": "an invalid language is a text failure.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "\ud800"
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: options.language",
+      "at": ""
+    }
+  },
+  {
+    "name": "layout",
+    "note": "the renderer layout option is checked by the model too, before the layout rule.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "layout": "card\udc00"
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Text must be Unicode scalar values: options.layout",
+      "at": ""
+    }
+  }
+]

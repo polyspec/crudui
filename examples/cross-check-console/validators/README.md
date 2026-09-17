@@ -46,7 +46,7 @@ A malformed request fails the first of these rules, checked in this order:
 
 | Rule | Message |
 | --- | --- |
-| standard input is valid JSON | `Request must be valid JSON` |
+| standard input is UTF-8 and valid JSON | `Request must be valid JSON` |
 | the request is an object | `Request must be an object` |
 | `spec` is an object | `Request spec must be an object` |
 | `mode` is absent, `form`, `list` or `detail` | `Unsupported validation mode` |
@@ -56,6 +56,12 @@ A malformed request fails the first of these rules, checked in this order:
 
 In form mode, `data` that is present and not an object, `null` included, is the input failure
 `Form data must be an object` (exit `2`).
+
+A request may write an unpaired surrogate as a JSON escape, such as `"\ud800"`. Each program
+decodes it without replacing it, so the validator reports the [input text](../../../docs/spec/input-text.md)
+failure (exit `2`) of the specification, a file, the data or the base path, in the validator's
+order and after the rules above. The PHP program applies the text rules that precede the data
+shape rule itself when `data` is not an object, because its API takes only an object.
 
 ## Tests
 

@@ -44,6 +44,9 @@ const (
 	// InvalidRulePattern: a pattern or match parameter outside the CRUDUI pattern
 	// language. Trace is the field's declaration path.
 	InvalidRulePattern ComposeErrorCode = "INVALID_RULE_PATTERN"
+	// InvalidText: a string or member name in the specification or a composition
+	// file that is not valid UTF-8 (docs/spec/input-text.md). Trace is its path.
+	InvalidText ComposeErrorCode = "INVALID_TEXT"
 )
 
 // ComposeLoadError is every composition load failure. NOT a validation error.

@@ -57,3 +57,30 @@ it('connects labels and preserves multiple choice values through editing and sub
   }
   finally { app.unmount(); element.remove(); }
 });
+
+import { onlySpec, exerciseOnlyRows, visibilitySpec, visibilityData, exerciseHiddenValues } from '../../../tests/fixtures/form-session/data-rows.mjs';
+it('keeps a data-only collection to the rows of its data', async () => {
+  const session = createForm(compileForm(onlySpec));
+  const element = document.createElement('form');
+  document.body.append(element);
+  const app = createApp({ render: () => h(Form, { form: session }) });
+  app.mount(element);
+  try {
+    await proves('data-rows.mjs', 'exerciseOnlyRows', ['connectForm'], () =>
+      exerciseOnlyRows({ element, session, expect, flush: nextTick }));
+  }
+  finally { app.unmount(); element.remove(); }
+});
+
+it('keeps the values of a group hidden by design.show', async () => {
+  const session = createForm(compileForm(visibilitySpec), visibilityData);
+  const element = document.createElement('form');
+  document.body.append(element);
+  const app = createApp({ render: () => h(Form, { form: session }) });
+  app.mount(element);
+  try {
+    await proves('data-rows.mjs', 'exerciseHiddenValues', ['connectForm'], () =>
+      exerciseHiddenValues({ element, session, expect, flush: nextTick }));
+  }
+  finally { app.unmount(); element.remove(); }
+});

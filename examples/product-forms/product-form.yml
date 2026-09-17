@@ -1,0 +1,419 @@
+type: group
+action:
+  method: post
+  url: ./save
+buttons:
+  - type: link
+    text: { en: Cancel, ko: 취소 }
+    href: ./
+  - type: submit
+    name: __submitted__
+    value: save
+    text: { en: Save product, ko: 상품 저장 }
+    design:
+      class: primary
+properties:
+  basics:
+    type: group
+    label: { en: Basic information, ko: 기본 정보 }
+    properties:
+      status:
+        type: choice
+        label: { en: Status, ko: 상태 }
+        default: draft
+        items:
+          draft: { en: Draft, ko: 작성 중 }
+          active: { en: Active, ko: 판매 중 }
+          archived: { en: Archived, ko: 보관 }
+        validate:
+          required: true
+          in: [draft, active, archived]
+      name:
+        type: text
+        label: { en: Product name, ko: 상품명 }
+        validate:
+          required: true
+          maxlength: 120
+      code:
+        type: text
+        label: { en: Product code, ko: 상품 코드 }
+        placeholder: "PRD-0001"
+        validate:
+          required: ".status == 'active'"
+          pattern: "^PRD-[0-9]{4,8}$"
+      category:
+        type: select
+        label: { en: Category, ko: 분류 }
+        items:
+          general: { en: General, ko: 일반 }
+          digital: { en: Digital, ko: 디지털 }
+          service: { en: Service, ko: 서비스 }
+        validate:
+          required: true
+          in: [general, digital, service]
+      title:
+        type: text
+        label: { en: Display title, ko: 표시 제목 }
+        lang:
+          only: [en, ko]
+          title: { en: Display title by language, ko: 언어별 표시 제목 }
+      summary:
+        type: textarea
+        label: { en: Summary, ko: 요약 }
+        validate:
+          maxlength: 300
+      tags:
+        type: text
+        label: { en: Tag, ko: 태그 }
+        multiple:
+          max: 10
+          sortable: true
+        validate:
+          unique: true
+          maxcount: 10
+          maxlength: 20
+
+  visibility:
+    type: group
+    label: { en: Visibility, ko: 공개 설정 }
+    properties:
+      listed:
+        type: choice
+        label: { en: Listing, ko: 노출 }
+        default: public
+        items:
+          public: { en: Public, ko: 공개 }
+          hidden: { en: Hidden, ko: 비공개 }
+          scheduled: { en: Scheduled, ko: 예약 }
+        validate:
+          in: [public, hidden, scheduled]
+      schedule:
+        type: group
+        label: { en: Schedule, ko: 예약 기간 }
+        design:
+          show: ".listed == 'scheduled'"
+        properties:
+          start:
+            type: date
+            label: { en: Start date, ko: 시작일 }
+            validate:
+              required: true
+              dateISO: true
+          end:
+            type: date
+            label: { en: End date, ko: 종료일 }
+            validate:
+              dateISO: true
+              enddate: .start
+      hours:
+        type: group
+        label: { en: Sales hours, ko: 판매 시간 }
+        properties:
+          all_day:
+            type: checkbox
+            label: { en: All day, ko: 종일 }
+            default: 1
+          days:
+            type: multichoice
+            label: { en: Days, ko: 요일 }
+            items:
+              mon: { en: Mon, ko: 월 }
+              tue: { en: Tue, ko: 화 }
+              wed: { en: Wed, ko: 수 }
+              thu: { en: Thu, ko: 목 }
+              fri: { en: Fri, ko: 금 }
+              sat: { en: Sat, ko: 토 }
+              sun: { en: Sun, ko: 일 }
+            design:
+              show: "!.all_day"
+            validate:
+              required: true
+              in: [mon, tue, wed, thu, fri, sat, sun]
+          opens:
+            type: text
+            label: { en: Opens, ko: 시작 시각 }
+            placeholder: "09:00"
+            design:
+              show: "!.all_day"
+            validate:
+              required: true
+              pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+          closes:
+            type: text
+            label: { en: Closes, ko: 종료 시각 }
+            placeholder: "18:00"
+            design:
+              show: "!.all_day"
+            validate:
+              required: true
+              pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              notEqual: .opens
+
+  pricing:
+    type: group
+    label: { en: Pricing, ko: 가격 }
+    properties:
+      base_price:
+        type: number
+        label: { en: Base price, ko: 기본 가격 }
+        append: { en: USD, ko: USD }
+        validate:
+          required: true
+          min: 0
+          max: 1000000
+      discount:
+        type: choice
+        label: { en: Discount, ko: 할인 }
+        default: none
+        items:
+          none: { en: None, ko: 없음 }
+          percent: { en: Percent, ko: 비율 }
+          amount: { en: Amount, ko: 금액 }
+        validate:
+          in: [none, percent, amount]
+      discount_value:
+        type: number
+        label: { en: Discount value, ko: 할인 값 }
+        design:
+          show: ".discount != 'none'"
+        validate:
+          required: true
+          min: 0
+          max: ".discount == 'percent' ? 100 : 1000000"
+      limits:
+        type: group
+        label: { en: Purchase limits, ko: 구매 제한 }
+        properties:
+          min_quantity:
+            type: number
+            label: { en: Minimum quantity, ko: 최소 수량 }
+            default: 1
+            validate:
+              required: true
+              digits: true
+              min: 1
+          max_quantity:
+            type: number
+            label: { en: Maximum quantity, ko: 최대 수량 }
+            validate:
+              digits: true
+              min: 1
+              max: 999
+
+  attributes:
+    type: group
+    label: { en: Attribute, ko: 속성 }
+    multiple:
+      max: 20
+      sortable: true
+      copy: true
+      title: name
+      header: sticky
+    validate:
+      maxcount: 20
+    properties:
+      name:
+        type: text
+        label: { en: Attribute name, ko: 속성 이름 }
+        validate:
+          required: true
+          maxlength: 40
+      kind:
+        type: select
+        label: { en: Kind, ko: 종류 }
+        default: text
+        items:
+          text: { en: Text, ko: 텍스트 }
+          list: { en: List, ko: 목록 }
+      value:
+        type: text
+        label: { en: Value, ko: 값 }
+        design:
+          show: ".kind == 'text'"
+        validate:
+          required: true
+          maxlength: 200
+      values:
+        type: text
+        label: { en: List value, ko: 목록 값 }
+        multiple:
+          max: 30
+        design:
+          show: ".kind == 'list'"
+        validate:
+          required: true
+          unique: true
+          maxlength: 40
+
+  media:
+    type: group
+    label: { en: Media, ko: 미디어 }
+    properties:
+      cover:
+        type: image
+        label: { en: Cover image, ko: 대표 이미지 }
+        validate:
+          accept: "jpg,png,webp"
+      gallery:
+        type: image
+        label: { en: Gallery image, ko: 추가 이미지 }
+        multiple:
+          max: 10
+          sortable: true
+        validate:
+          maxcount: 10
+          accept: "jpg,png,webp"
+      description:
+        type: textarea
+        label: { en: Description, ko: 상세 설명 }
+        validate:
+          maxlength: 5000
+
+  options:
+    type: group
+    label: { en: Options, ko: 옵션 }
+    properties:
+      $ref: "(option-form.yml).properties.options"
+
+  shipping:
+    type: group
+    label: { en: Shipping, ko: 배송 }
+    properties:
+      method:
+        type: choice
+        label: { en: Shipping fee, ko: 배송비 }
+        default: free
+        items:
+          free: { en: Free, ko: 무료 }
+          flat: { en: Flat fee, ko: 고정 금액 }
+          weight: { en: By weight, ko: 무게별 }
+        validate:
+          in: [free, flat, weight]
+      fee:
+        type: number
+        label: { en: Flat fee, ko: 고정 배송비 }
+        design:
+          show: ".method == 'flat'"
+        validate:
+          required: true
+          min: 0
+      rates:
+        type: group
+        label: { en: Weight rate, ko: 무게별 요금 }
+        design:
+          show: ".method == 'weight'"
+        multiple:
+          min: 1
+          sortable: true
+        validate:
+          mincount: 1
+        properties:
+          up_to:
+            type: number
+            label: { en: Up to (kg), ko: 최대 무게(kg) }
+            validate:
+              required: true
+              min: 0
+          fee:
+            type: number
+            label: { en: Fee, ko: 요금 }
+            validate:
+              required: true
+              min: 0
+      regions:
+        type: group
+        label: { en: Region, ko: 지역 }
+        description:
+          en: The application supplies one row for every region it serves.
+          ko: 애플리케이션이 배송하는 지역마다 한 행을 제공합니다.
+        multiple: only
+        properties:
+          region:
+            type: dummy
+            label: { en: Region, ko: 지역 }
+          enabled:
+            type: checkbox
+            label: { en: Ships here, ko: 배송 가능 }
+          surcharge:
+            type: number
+            label: { en: Surcharge, ko: 추가 요금 }
+            design:
+              show: ".enabled"
+            validate:
+              min: 0
+              max: 10000
+      returns:
+        type: group
+        label: { en: Returns, ko: 반품 }
+        properties:
+          accepted:
+            type: checkbox
+            label: { en: Returns accepted, ko: 반품 가능 }
+          days:
+            type: number
+            label: { en: Return window (days), ko: 반품 기간(일) }
+            design:
+              show: ".accepted"
+            validate:
+              required: true
+              digits: true
+              range: [1, 90]
+          address:
+            type: group
+            label: { en: Return address, ko: 반품 주소 }
+            design:
+              show: ".accepted"
+            properties:
+              line1:
+                type: text
+                label: { en: Address, ko: 주소 }
+                validate:
+                  required: true
+              postal_code:
+                type: text
+                label: { en: Postal code, ko: 우편번호 }
+                validate:
+                  required: true
+                  pattern: "^[0-9]{5}$"
+
+  seo:
+    type: group
+    label: { en: Search, ko: 검색 설정 }
+    properties:
+      slug:
+        type: text
+        label: { en: URL slug, ko: URL 슬러그 }
+        validate:
+          required: "basics.status == 'active'"
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+      meta_title:
+        type: text
+        label: { en: Page title, ko: 페이지 제목 }
+        validate:
+          maxlength: 60
+      meta_description:
+        type: textarea
+        label: { en: Page description, ko: 페이지 설명 }
+        validate:
+          maxlength: 160
+
+  notices:
+    type: group
+    label: { en: Notice, ko: 안내 }
+    multiple:
+      max: 5
+      sortable: true
+      title: heading
+    properties:
+      heading:
+        type: text
+        label: { en: Heading, ko: 제목 }
+        validate:
+          required: true
+          maxlength: 80
+      body:
+        type: textarea
+        label: { en: Body, ko: 내용 }
+        validate:
+          required: true
+          maxlength: 1000

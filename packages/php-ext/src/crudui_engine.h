@@ -27,6 +27,8 @@ void ps_value_bool(ps_value *value, bool input);
 void ps_value_int(ps_value *value, int64_t input);
 bool ps_value_float(ps_value *value, double input);
 bool ps_value_string(ps_value *value, const uint8_t *input, size_t length);
+/* Whether bytes are UTF-8 without encoded surrogates: a sequence of Unicode scalar values. */
+bool ps_text_valid(const uint8_t *input, size_t length);
 /* insert consumes child on both success and failure; all other inputs are borrowed. */
 bool ps_value_insert(ps_value *parent, const uint8_t *key, size_t length, ps_value *child);
 uint8_t ps_value_read(const ps_value *, int64_t *, double *, const uint8_t **, size_t *);

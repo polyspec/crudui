@@ -8,6 +8,8 @@ import { resolveDesign } from './design';
 import { makeContext } from './expr';
 import type { FormTemplate } from './form';
 import { formMessages } from './messages';
+import { checkBindText } from './input-text';
+import { checkFormTemplate } from './template-shape';
 import { escAttr, escText } from './util';
 
 /** Button kinds a spec can declare. A `link` renders an anchor. */
@@ -54,7 +56,8 @@ export function bindButtons(
   data: Record<string, unknown> = {},
   options: BindButtonsOptions = {},
 ): ButtonVM[] {
-  if (template.kind !== 'crudui/form-template') throw new FormInputError('Unsupported form template');
+  checkBindText(template, data, options);
+  checkFormTemplate(template);
   const language = options.language ?? 'ko';
   const t = makeTranslate(language);
   const messages = formMessages(language) as unknown as Readonly<Record<string, string | undefined>>;

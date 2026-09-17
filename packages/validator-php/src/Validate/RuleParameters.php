@@ -14,6 +14,7 @@ use CRUDUI\Validator\Patterns\PatternParameter;
 use CRUDUI\Validator\Values\InvalidRuleParameter;
 use CRUDUI\Validator\Values\LengthLimit;
 use CRUDUI\Validator\Values\Membership;
+use CRUDUI\Validator\Values\Numeric;
 
 /**
  * Rule parameter checks. Declared parameters are checked when the specification
@@ -42,8 +43,12 @@ final class RuleParameters
         }
         try {
             match ($rule) {
-                'minlength', 'maxlength' => LengthLimit::single($rule, $parameter),
+                'minlength', 'maxlength', 'mincount', 'maxcount' => LengthLimit::single($rule, $parameter),
                 'rangelength' => LengthLimit::range($parameter),
+                'number', 'digits' => Numeric::flag($rule, $parameter),
+                'min', 'max' => Numeric::bound($rule, $parameter),
+                'range' => Numeric::range($parameter),
+                'step' => Numeric::step($parameter),
                 'in' => Membership::fromParameter($parameter),
                 'match', 'pattern' => PatternParameter::compile($rule, $parameter),
                 default => null,

@@ -7,7 +7,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-import { codePointLength, isLengthRange } from '../values/index';
+import { codePointLength, formatMessage, isLengthRange } from '../values/index';
 
 /**
  * Range length rule definition
@@ -35,7 +35,7 @@ export const rangelengthRule: RuleDefinition = {
     const length = codePointLength(value);
     if (length === undefined || length < minLength || length > maxLength) {
       const message = messages?.rangelength ?? 'Please enter a value between {0} and {1} characters.';
-      return message.replace('{0}', String(minLength)).replace('{1}', String(maxLength));
+      return formatMessage(message, minLength, maxLength);
     }
 
     return null;

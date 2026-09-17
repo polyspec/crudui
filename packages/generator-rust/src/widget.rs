@@ -339,10 +339,15 @@ fn file_control(kind: &str, ctx: &WidgetContext<'_>) -> Value {
         .map(str::to_owned)
         .unwrap_or_else(|| ctx.opt("accept", if kind == "file" { "*/*" } else { "image/*" }));
     put_string(&mut file, "accept", accept);
-    let mut extra = json!({"file":file});
+    // `display` precedes `file` in the model.
+    let mut extra = Map::new();
     if kind != "cover" {
-        extra["display"] = json!({"type":"text","class":"crudui-input","value":"","readonly":""});
+        extra.insert(
+            "display".into(),
+            json!({"type":"text","class":"crudui-input","value":"","readonly":""}),
+        );
     }
+    extra.insert("file".into(), Value::Object(file));
     let mut model = json!({"kind":kind,"layout":"file","attrs":{},"extra":extra});
     ctx.affixes(&mut model, false);
     model
@@ -578,5 +583,40 @@ pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Opti
             option["id"] = format!("{id}:{i}").into();
         }
     }
-    Some(model)
+    Some(ordered_widget(model))
+}
+
+/// Widget model members in output order.
+pub(crate) const WIDGET_MEMBERS: [&str; 15] = [
+    "kind",
+    "layout",
+    "tag",
+    "attrs",
+    "text",
+    "rawHtml",
+    "source",
+    "options",
+    "itemLabelClass",
+    "script",
+    "styleChrome",
+    "buttonText",
+    "prepend",
+    "append",
+    "extra",
+];
+
+/// The widget with its members in output order.
+fn ordered_widget(model: Value) -> Value {
+    let Value::Object(mut members) = model else {
+        return model;
+    };
+    let mut ordered = Map::new();
+    for key in WIDGET_MEMBERS {
+        if let Some(value) = members.remove(key) {
+            ordered.insert(key.into(), value);
+        }
+    }
+    debug_assert!(members.is_empty(), "unordered widget members: {members:?}");
+    ordered.extend(members);
+    Value::Object(ordered)
 }

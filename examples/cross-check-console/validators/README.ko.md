@@ -46,7 +46,7 @@ Composer 자동 로더를 불러옵니다. 배포 환경은 `CRUDUI_CROSS_CHECK_
 
 | 규칙 | 메시지 |
 | --- | --- |
-| 표준 입력이 올바른 JSON | `Request must be valid JSON` |
+| 표준 입력이 UTF-8이며 올바른 JSON | `Request must be valid JSON` |
 | 요청이 객체 | `Request must be an object` |
 | `spec`이 객체 | `Request spec must be an object` |
 | `mode`가 없거나 `form`, `list`, `detail` | `Unsupported validation mode` |
@@ -56,6 +56,11 @@ Composer 자동 로더를 불러옵니다. 배포 환경은 `CRUDUI_CROSS_CHECK_
 
 폼 모드에서 값이 있으면서 객체가 아닌 `data`(`null` 포함)는 입력 실패
 `Form data must be an object`(종료 상태 `2`)입니다.
+
+요청은 `"\ud800"`처럼 쌍이 없는 서로게이트를 JSON 이스케이프로 쓸 수 있습니다. 각 프로그램은 이를
+바꾸지 않고 디코딩하므로, 검증기가 위 규칙 다음에 검증기의 순서대로 명세, 파일, 데이터, 기본 경로의
+[입력 텍스트](../../../docs/spec/input-text.ko.md) 실패(종료 상태 `2`)를 보고합니다. PHP 프로그램은 API가
+객체만 받으므로 `data`가 객체가 아닐 때 데이터 형태 규칙보다 앞선 텍스트 규칙을 직접 적용합니다.
 
 ## 검사
 

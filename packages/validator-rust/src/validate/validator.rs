@@ -5,7 +5,8 @@
 //! expanded `$ref`/`$patch`. Its field-model logic: (a) reading the `validate` slot
 //! (there is no `rules` key); (b) evaluating a rule value that is an expression OR a condition
 //! map (G1 — the condition is the value's expression, never a separate key); and
-//! (c) no visibility conditions (`display_switch`/`display_target` are forbidden keys, G1).
+//! (c) visibility from `design.show` alone: a hidden field and its descendants are
+//! not evaluated (`display_switch`/`display_target` are forbidden keys, G1).
 //!
 //! Byte-for-byte with the JS reference; the shared 4-language fixture
 //! `tests/fixtures/validate/cases.json` is the single source of truth. errors are
@@ -18,6 +19,7 @@ use crate::expr::{Evaluator, Expression, Node};
 use super::errors::{FormInputError, ValidateError};
 use super::parameters::{check, check_declared, Patterns};
 use super::rules::{get_rule, is_condition_expression, RuleContext};
+use super::visibility::is_visible;
 
 /// A single validation error (JS `ValidationError`: path/field/rule/message/value).
 #[derive(Debug, Clone, PartialEq)]
@@ -107,7 +109,7 @@ impl Validator {
             return Err(FormInputError::new("Form data must be an object").into());
         }
         let mut errors: Vec<ValidationError> = Vec::new();
-        self.validate_properties(&self.properties, data, &[], &[], data, &mut errors)?;
+        self.validate_properties(&self.properties, data, &[], &[], data, false, &mut errors)?;
         Ok(ValidationResult {
             valid: errors.is_empty(),
             errors,
@@ -119,7 +121,9 @@ impl Validator {
     // =====================================================================
 
     /// `current_path` is the data path (with row keys); `declaration_path` is the
-    /// field's declaration path (without row keys).
+    /// field's declaration path (without row keys); `hidden` says an enclosing field
+    /// is hidden, so only the data shape is checked.
+    #[allow(clippy::too_many_arguments)]
     fn validate_properties(
         &self,
         properties: &Map<String, Value>,
@@ -127,6 +131,7 @@ impl Validator {
         current_path: &[String],
         declaration_path: &[String],
         all_data: &Value,
+        hidden: bool,
         errors: &mut Vec<ValidationError>,
     ) -> Result<(), ValidateError> {
         let empty = Value::Object(Map::new());
@@ -140,6 +145,9 @@ impl Validator {
             let mut declaration = declaration_path.to_vec();
             declaration.push(property_key.clone());
             let declaration = declaration.as_slice();
+            // The rules of a hidden field and of everything it contains are not
+            // evaluated; the data shape is checked all the same.
+            let hidden = hidden || !is_visible(field, all_data, &field_path);
             let present = data.get(property_key);
             let field_value = present.cloned().unwrap_or(Value::Null);
 
@@ -153,6 +161,7 @@ impl Validator {
 
             if let Some(child_props) = is_group_with_properties(field) {
                 if is_multiple {
+                    // Missing data is an empty collection: no rows.
                     if let Some(Value::Object(rows)) = present {
                         // Keyed rows use sorted-key traversal so the first reported
                         // error is identical in every validation implementation.
@@ -175,9 +184,12 @@ impl Validator {
                                 &row_path,
                                 declaration,
                                 all_data,
+                                hidden,
                                 errors,
                             )?;
                         }
+                    }
+                    if !hidden {
                         self.validate_field_rules(
                             field,
                             &field_value,
@@ -202,18 +214,29 @@ impl Validator {
                         &field_path,
                         declaration,
                         all_data,
+                        hidden,
                         errors,
                     )?;
-                    self.validate_field_rules(
-                        field,
-                        &field_value,
-                        &field_path,
-                        declaration,
-                        all_data,
-                        errors,
-                    )?;
+                    if !hidden {
+                        self.validate_field_rules(
+                            field,
+                            &field_value,
+                            &field_path,
+                            declaration,
+                            all_data,
+                            errors,
+                        )?;
+                    }
                 }
-            } else if let (true, Some(Value::Object(rows))) = (is_multiple, present) {
+            } else if hidden {
+                // A hidden scalar field has no rules to run and no shape below it.
+            } else if is_multiple {
+                // Missing data is an empty collection: no rows.
+                let no_rows = Map::new();
+                let rows = match present {
+                    Some(Value::Object(rows)) => rows,
+                    _ => &no_rows,
+                };
                 self.validate_multiple_field_rules(
                     field,
                     &field_value,
@@ -635,11 +658,13 @@ fn evaluate_expression_value(
 // field helpers.
 // ---------------------------------------------------------------------------
 
+/// Whether a field repeats: `multiple` is `true`, `only` or a settings object.
 fn is_multiple(field: &Value) -> bool {
-    matches!(
-        field.get("multiple"),
-        Some(Value::Bool(true)) | Some(Value::Object(_))
-    )
+    match field.get("multiple") {
+        Some(Value::Bool(true)) | Some(Value::Object(_)) => true,
+        Some(Value::String(keyword)) => keyword == "only",
+        _ => false,
+    }
 }
 
 /// Normalize a polymorphic `validate` slot to a rule map. false/true/{}/absent →

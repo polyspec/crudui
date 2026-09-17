@@ -13,8 +13,12 @@ These cases check relative, parent and field paths in rules, ternary and conditi
 conditional requiredness, keyed groups and scalars, repeated-field paths, `unique`, `mincount`,
 `equalto`, regular expression and `accept` values, choice membership with translated and empty
 labels, member order, composed specifications, the first error per field, message overrides,
-unregistered rules, a hidden field that still validates, empty values that skip format rules, and
-the shape of submitted data. Failure cases use `REF_FILE_NOT_FOUND` and `INVALID_FORM_INPUT`. The
+unregistered rules, empty values that skip format rules, and the shape of submitted data. The
+visibility cases check that a field hidden by `design.show` (an expression, a condition map or
+`false`, in its row context) skips all of its rules and those of every field it contains, while
+other rules still read its kept value, and a three-step toggle that validates kept values again
+once the field is shown. The `multiple: only` cases check per-row validation of data rows and
+missing data that has no row but still fails `required` and `mincount`. Failure cases use `REF_FILE_NOT_FOUND` and `INVALID_FORM_INPUT`. The
 [test fixture contract](../../../docs/spec/test-fixtures.md) describes the format.
 
 ## Comparisons
@@ -49,7 +53,10 @@ Run from the repository root:
 node_modules/.bin/tsx tests/fixtures/validate/generate.ts > tests/fixtures/validate/cases.json
 ```
 
-The generator runs the TypeScript validator and records each result or failure record.
+The generator runs the TypeScript validator and records each result or failure record, except
+for two groups written from the specification: [`value-rules.ts`](value-rules.ts) states each
+field's outcome, and [`visibility.ts`](visibility.ts) states the complete result record. Both use
+the default rule messages in `visibility.ts`.
 Specifications that the generator holds as JSON text keep their member order in `cases.json`.
 Review changes against the specification and run every consumer before accepting them.
 Regeneration alone is not verification.

@@ -1,0 +1,141 @@
+{
+  "basics": {
+    "status": "active",
+    "name": "",
+    "code": "PRD-42",
+    "category": "general",
+    "title": {
+      "en": "Canvas tote",
+      "ko": "캔버스 가방"
+    },
+    "summary": "A sturdy everyday bag.",
+    "tags": {
+      "__tag_1__": "bag",
+      "__tag_2__": "canvas"
+    }
+  },
+  "visibility": {
+    "listed": "scheduled",
+    "schedule": {
+      "start": "2026-10-10",
+      "end": "2026-10-01"
+    },
+    "hours": {
+      "all_day": "",
+      "days": [
+        "mon",
+        "tue"
+      ],
+      "opens": "09:00",
+      "closes": "18:00"
+    }
+  },
+  "pricing": {
+    "base_price": 25,
+    "discount": "percent",
+    "discount_value": 150,
+    "limits": {
+      "min_quantity": 1,
+      "max_quantity": 5
+    }
+  },
+  "attributes": {
+    "__attr_1__": {
+      "name": "Material",
+      "kind": "text",
+      "value": "Cotton",
+      "values": {}
+    },
+    "__attr_2__": {
+      "name": "Colors",
+      "kind": "list",
+      "value": "",
+      "values": {
+        "__list_1__": "Natural",
+        "__list_2__": "Black"
+      }
+    }
+  },
+  "media": {
+    "description": "Made of heavy cotton canvas."
+  },
+  "options": {
+    "mode": "combined",
+    "stock_mode": "tracked",
+    "single": {
+      "name": "Only"
+    },
+    "combined": {
+      "axes": {
+        "__axis_color__": {
+          "name": "Color",
+          "values": {
+            "__value_red__": "Red",
+            "__value_blue__": "Blue"
+          }
+        },
+        "__axis_size__": {
+          "name": "Size",
+          "values": {
+            "__value_small__": "Small"
+          }
+        }
+      },
+      "generated": {
+        "__opt_c3__": {
+          "name": "Blue / Large",
+          "sale": "open",
+          "price": 0.5,
+          "stock": "2.5",
+          "sku": "blue"
+        },
+        "__opt_a1__": {
+          "name": "Red / Small",
+          "sale": "open",
+          "price": "",
+          "stock": 5
+        },
+        "__opt_b2__": {
+          "name": "",
+          "sale": "closed",
+          "price": 0
+        }
+      }
+    }
+  },
+  "shipping": {
+    "method": "flat",
+    "rates": {},
+    "regions": {
+      "__region_north__": {
+        "region": "North",
+        "enabled": 1,
+        "surcharge": 3
+      },
+      "__region_south__": {
+        "region": "South",
+        "enabled": "",
+        "surcharge": -10
+      }
+    },
+    "returns": {
+      "accepted": 1,
+      "days": 120,
+      "address": {
+        "line1": "",
+        "postal_code": "123"
+      }
+    }
+  },
+  "seo": {
+    "slug": "Canvas Tote",
+    "meta_title": "Canvas tote bag",
+    "meta_description": "Everyday bag."
+  },
+  "notices": {
+    "__notice_1__": {
+      "heading": "Care",
+      "body": "Hand wash only."
+    }
+  }
+}

@@ -18,11 +18,13 @@ mod canonical;
 pub mod errors;
 mod length;
 mod membership;
+mod numeric;
 mod parameters;
 mod pattern;
 pub mod rules;
 mod unicode;
 pub mod validator;
+pub mod visibility;
 mod whitespace;
 
 pub use errors::{FormInputError, ValidateError};

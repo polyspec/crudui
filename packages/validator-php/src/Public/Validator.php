@@ -10,6 +10,7 @@ use CRUDUI\Validator\Compose\Patch;
 use CRUDUI\Validator\Compose\Ref;
 use CRUDUI\Validator\ForbiddenScan;
 use CRUDUI\Validator\Support\JsonValue;
+use CRUDUI\Validator\Support\Text;
 use CRUDUI\Validator\Validate\FormInputError;
 use CRUDUI\Validator\Validate\Validator as DataValidator;
 use stdClass;
@@ -18,13 +19,17 @@ use stdClass;
 final class Validator
 {
     /**
-     * Return object validation results. Root data that is a non-empty list raises
+     * Return object validation results. Invalid input text raises ComposeLoadError in the
+     * specification and files and FormInputError elsewhere, before any other check. Root data
+     * that is a non-empty list raises
      * FormInputError before composition; composition failures raise
      * ComposeLoadError; group or repeated data with the wrong shape raises
      * FormInputError.
      */
     public static function validate(array|stdClass $spec, array|stdClass $data, array $options = []): stdClass
     {
+        // Input text is checked first: the specification and files, the data, then the options.
+        self::checkText($spec, $options, [['data', $data]]);
         if (is_array($data) && $data !== [] && array_is_list($data)) {
             throw new FormInputError('Form data must be an object');
         }
@@ -54,6 +59,7 @@ final class Validator
     /** Validate list composition and metadata without validating row data. */
     public static function validateList(array|stdClass $spec, array $options = []): stdClass
     {
+        self::checkText($spec, $options, []);
         $loader = self::loader($options);
         $basepath = $options['basepath'] ?? '';
         $composed = self::composeRoot($spec, $loader, $basepath);
@@ -71,6 +77,7 @@ final class Validator
     /** Validate detail composition and metadata without validating record data. */
     public static function validateDetail(array|stdClass $spec, array $options = []): stdClass
     {
+        self::checkText($spec, $options, []);
         $loader = self::loader($options);
         $basepath = $options['basepath'] ?? '';
         $composed = self::composeRoot($spec, $loader, $basepath);
@@ -111,6 +118,21 @@ final class Validator
     {
         if (JsonValue::isObject($composed[$key] ?? null)) {
             $composed[$key] = Compose::properties((array) $composed[$key], $loader, $basepath);
+        }
+    }
+
+    /**
+     * Check the text of a specification, its files, the named inputs and the base path option
+     * (docs/spec/input-text.md).
+     *
+     * @param list<array{0: string, 1: mixed}> $inputs
+     */
+    private static function checkText(array|stdClass $spec, array $options, array $inputs): void
+    {
+        Text::checkSpecification($spec, $options['files'] ?? null);
+        $failure = Text::inputFailure([...$inputs, ...Text::options($options, ['basepath'])]);
+        if ($failure !== null) {
+            throw new FormInputError($failure);
         }
     }
 

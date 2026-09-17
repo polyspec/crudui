@@ -15,8 +15,7 @@ final class Binding
     /** Evaluate every field using one template and record. */
     public static function bind(stdClass $template, array|stdClass $data, array $options): array
     {
-        Template::check($template);
-        $template = Value::spec($template);
+        $template = Template::checked($template);
         $data = Value::object($data);
         $options['language'] = self::language($options);
         foreach (['keyPrefix', 'idPrefix'] as $name) {
@@ -72,13 +71,13 @@ final class Binding
     private static function multiple(stdClass $spec): ?array
     {
         $multiple = $spec->multiple ?? null;
-        if ($multiple === true) {
-            return ['copy' => false, 'sortable' => false, 'controls' => 'header', 'header' => 'static'];
+        if ($multiple === true || $multiple === 'only') {
+            return ['only' => $multiple === 'only', 'copy' => false, 'sortable' => false, 'controls' => 'header', 'header' => 'static'];
         }
         if (!$multiple instanceof stdClass) {
             return null;
         }
-        $settings = [];
+        $settings = ['only' => ($multiple->only ?? null) === true];
         foreach (['min', 'max'] as $key) {
             if (is_int($multiple->{$key} ?? null) || is_float($multiple->{$key} ?? null)) {
                 $settings[$key] = $multiple->{$key};
@@ -141,7 +140,8 @@ final class Binding
     {
         $value = Value::path($data, $path);
         if ($value === Missing::Value) {
-            $keys = ['__0000000000000__'];
+            // Missing data has one initial row, or none in a data-only collection.
+            $keys = $settings['only'] ? [] : ['__0000000000000__'];
         } elseif ($value instanceof stdClass) {
             $keys = array_map('strval', array_keys(get_object_vars($value)));
         } else {
@@ -154,7 +154,7 @@ final class Binding
         }
         $messages = $state['messages'];
         $controls = Missing::Value;
-        if ($keys === []) {
+        if ($keys === [] && !$settings['only']) {
             $full = isset($settings['max']) && count($keys) >= $settings['max'];
             $controls = (object) ['placement' => 'footer', 'label' => $messages['collectionControls'], 'actions' => [self::action('add-row', $messages['addRow'], $full)]];
         }
@@ -183,7 +183,11 @@ final class Binding
             $actions[] = self::action('copy-row', $messages['copyRow'], $full);
         }
         $actions[] = self::action('remove-row', $messages['removeRow'], isset($settings['min']) && $count <= $settings['min']);
-        $row = ['kind' => 'row', 'key' => $key, 'className' => '', 'hidden' => false, 'controls' => (object) ['placement' => $settings['controls'], 'label' => $messages['rowControls'], 'actions' => $actions]];
+        $row = ['kind' => 'row', 'key' => $key, 'className' => '', 'hidden' => false];
+        // Rows of a data-only collection have no row controls.
+        if (!$settings['only']) {
+            $row['controls'] = (object) ['placement' => $settings['controls'], 'label' => $messages['rowControls'], 'actions' => $actions];
+        }
         if ($sticky) {
             $row += ['sticky' => true, 'stickyDepth' => $state['stickyDepth']];
         }

@@ -1,0 +1,107 @@
+type: group
+buttons:
+  - type: link
+    text: { en: Cancel, ko: 취소 }
+    href: ./
+  - type: submit
+    text: { en: Save options, ko: 옵션 저장 }
+properties:
+  options:
+    type: group
+    label: { en: Options, ko: 옵션 }
+    properties:
+      mode:
+        type: choice
+        label: { en: Option type, ko: 옵션 유형 }
+        default: single
+        items:
+          single: { en: Single option, ko: 단일 옵션 }
+          combined: { en: Option combinations, ko: 옵션 조합 }
+          free: { en: Free-form options, ko: 직접 입력 옵션 }
+        validate:
+          required: true
+          in: [single, combined, free]
+      stock_mode:
+        type: choice
+        label: { en: Stock, ko: 재고 관리 }
+        default: none
+        items:
+          none: { en: Not tracked, ko: 관리 안 함 }
+          tracked: { en: Tracked, ko: 관리 }
+        validate:
+          in: [none, tracked]
+      single:
+        type: group
+        label: { en: Single option, ko: 단일 옵션 }
+        design:
+          show: "options.mode == 'single'"
+        properties:
+          $ref: option-row.yml
+      combined:
+        type: group
+        label: { en: Option combinations, ko: 옵션 조합 }
+        design:
+          show: "options.mode == 'combined'"
+        properties:
+          axes:
+            type: group
+            label: { en: Option axis, ko: 옵션 축 }
+            multiple:
+              min: 1
+              max: 3
+              sortable: true
+              title: name
+            validate:
+              mincount: 1
+              maxcount: 3
+            properties:
+              name:
+                type: text
+                label: { en: Axis name, ko: 축 이름 }
+                placeholder: { en: "e.g. Color", ko: "예) 색상" }
+                validate:
+                  required: true
+                  maxlength: 30
+              values:
+                type: text
+                label: { en: Values, ko: 값 }
+                multiple:
+                  max: 20
+                validate:
+                  required: true
+                  maxcount: 20
+                  maxlength: 30
+          generated:
+            type: group
+            label: { en: Generated combination, ko: 생성된 조합 }
+            description:
+              en: Rows come from the combinations the application generated from the axes.
+              ko: 행은 애플리케이션이 옵션 축에서 생성한 조합에서 옵니다.
+            multiple:
+              only: true
+              title: name
+              header: sticky
+            validate:
+              mincount: 1
+            properties:
+              $ref: option-row.yml
+      free:
+        type: group
+        label: { en: Free-form options, ko: 직접 입력 옵션 }
+        design:
+          show: "options.mode == 'free'"
+        properties:
+          rows:
+            type: group
+            label: { en: Option, ko: 옵션 }
+            multiple:
+              min: 1
+              max: 50
+              copy: true
+              sortable: true
+              title: name
+            validate:
+              mincount: 1
+              maxcount: 50
+            properties:
+              $ref: option-row.yml

@@ -131,9 +131,10 @@ one in its own process through small programs that call the same functions; its
 [validator processes](../../examples/cross-check-console/validators/README.md)
 document that request and response contract.
 
-Visibility does not disable validation. `design.show: false` hides a field but
-does not change its required rule. Conditional requirements use an expression in
-`validate.required`; see the [expression contract](../spec/expressions.md).
+A field that `design.show` hides for the submitted data is not validated, and its value stays in
+the data; see [visibility](../spec/validation-rules.md#evaluation). The application decides which
+values to store from the same data. A condition in `validate.required` makes a visible field
+optional; see the [expression contract](../spec/expressions.md).
 
 Data validation does not implement HTTP decoding, persistence or transport order.
 Follow the [ordered JSON procedure](ordered-json.md) and

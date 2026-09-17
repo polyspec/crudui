@@ -13,11 +13,11 @@ package validate
 //	    slot (conditional rule values via the model expression engine).
 
 import (
-	"encoding/json"
 	"fmt"
 
 	model "github.com/polyspec/crudui/packages/validator-go/validator"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/text"
 )
 
 // FileSet is a virtual file set $ref resolves against ({ key: doc }).
@@ -37,6 +37,11 @@ type Options struct {
 // *compose.ComposeLoadError, and data with the wrong shape returns a
 // *FormInputError; neither produces a validation result. G5 → §3 → §2 G1.
 func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, error) {
+	// Input text is checked first: the specification and files, the data, then
+	// the options (docs/spec/input-text.md).
+	if err := checkText(spec, opts, text.Input{Name: "data", Value: data}); err != nil {
+		return ValidationResult{}, err
+	}
 	// Root data is a request precondition, checked before composition.
 	if _, ok := data.(map[string]any); !ok {
 		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
@@ -109,10 +114,44 @@ func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, err
 	return validator.Validate(data)
 }
 
+// checkText checks the text of a specification, its files, the named inputs and
+// the base path option, in that order.
+func checkText(spec *compose.OMap, opts Options, inputs ...text.Input) error {
+	if failure := text.CheckSpecification(spec, opts.Files); failure != nil {
+		return failure
+	}
+	inputs = append(inputs, text.Input{Name: "options.basepath", Value: opts.Basepath})
+	if message := text.CheckInputs(inputs...); message != "" {
+		return &FormInputError{Message: message}
+	}
+	return nil
+}
+
+// plainValue converts decoded objects to map[string]any, the data model of
+// Validate.
+func plainValue(value any) any {
+	switch v := value.(type) {
+	case *compose.OMap:
+		out := make(map[string]any, v.Len())
+		for _, key := range v.Keys() {
+			child, _ := v.Get(key)
+			out[key] = plainValue(child)
+		}
+		return out
+	case []any:
+		for i, child := range v {
+			v[i] = plainValue(child)
+		}
+		return v
+	}
+	return value
+}
+
 // ValidateJSON is a convenience wrapper that decodes a raw JSON spec and raw JSON
 // data, then runs Validate. The spec is decoded with compose.DecodeOrdered so
-// declaration order survives; data is decoded with encoding/json (objects →
-// map[string]any, arrays → []any, numbers → float64). Empty data bytes validate
+// declaration order survives; data is decoded with compose.DecodeOrdered into
+// plain values (objects → map[string]any, arrays → []any, numbers → float64).
+// Both keep text as written, so invalid text reaches the input text check. Empty data bytes validate
 // an empty object; any decoded data value is passed to Validate unchanged.
 // Files is a { key: rawJSON } map.
 func ValidateJSON(specJSON []byte, dataJSON []byte, filesJSON map[string][]byte, basepath string) (ValidationResult, error) {
@@ -127,9 +166,11 @@ func ValidateJSON(specJSON []byte, dataJSON []byte, filesJSON map[string][]byte,
 
 	var data any = map[string]any{}
 	if len(dataJSON) > 0 {
-		if err := json.Unmarshal(dataJSON, &data); err != nil {
+		decoded, err := compose.DecodeOrdered(dataJSON)
+		if err != nil {
 			return ValidationResult{}, fmt.Errorf("validate: data decode: %w", err)
 		}
+		data = plainValue(decoded)
 	}
 
 	files := FileSet{}

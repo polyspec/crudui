@@ -15,8 +15,11 @@ in its `crudui-node__footer`, or in the structure map when `multiple.controls` i
 does not submit a value; it is disabled when `multiple.max` allows no row.
 The shared browser binding inserts the new row into the control's collection.
 The [form markup](form-markup.md) defines the node grammar.
+A collection declared `multiple: only` has no `add-row` control; an empty one renders its header
+and an empty body. Missing data of such a collection is zero rows, not an initial row.
 `design.show` controls visibility independently of row count. Hiding a collection
-preserves its data; named controls in hidden rows remain part of native submission.
+preserves its data and skips its rules; named controls in hidden rows remain part of native
+submission.
 
 Editable sessions use keyed objects as specified by the
 [form runtime](form-runtime.md); an explicit empty object has zero rows.

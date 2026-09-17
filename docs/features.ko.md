@@ -55,19 +55,23 @@ CRUDUI 목록 또는 상세 마크업이 포함되고 CSR에는 단계 셸만 �
 ## 네이티브 패키지 검증
 
 2026-09-17에 작업 트리는 PHP 8.5.10, Node.js 26.8.1, Go 1.27.0, Rust 1.98.1을 쓰는 macOS arm64에서
-저장소의 모든 검사를 통과했습니다.
+`make ci`를 통과했습니다. `make ci`는 CI 워크플로의 모든 검사 명령을 실행하고 적합성 증거를
+`contracts/features.json`과 비교합니다.
 
-- `make conformance`가 통과했고 적합성 증거가 `contracts/features.json`과 일치했습니다. 검증기
-  검사는 JavaScript 462개, PHP 540개, Go 470개, Rust 101개가 통과했으며 각각 공용 검증 사례 179개를
-  모두 포함합니다. PHP 확장 검사는 37개가 통과했으며 주소 새니타이저 검사는 Linux에서만 실행합니다.
-- 공용 생성기 보고서는 JavaScript, HTML 렌더러, PHP, Go, Rust, 네이티브 PHP에서 각각 358개 검사를
-  통과했고(합계 2,148개, 실패 0개) 실행 중 입력이 바뀌지 않았습니다. 생성기 패키지는 PHP 226개,
-  Go 101개, Rust 32개 검사를 통과했습니다.
-- 교차 검증 콘솔은 검사 726개를 통과했으며, 공용 검증·목록·상세 사례 전체와 요청 사례 45개를 다섯
+- 검증기는 JavaScript 568개, PHP 682개, Go 572개, Rust 108개 검사를 통과했으며, 각각 공용 검증
+  사례 238개 전체와 검증·생성 연산의 공용 입력 텍스트 사례 80개를 포함합니다. PHP 확장 검사는 42개를
+  통과했으며 주소 새니타이저 검사는 Linux에서 실행합니다.
+- 공용 생성기 보고서는 JavaScript, HTML 렌더러, PHP, Go, Rust, 네이티브 PHP에서 각각 501개 검사를
+  통과했고(합계 3,006개, 실패 0개) 실행 중 입력이 바뀌지 않았습니다. 생성기 패키지는 PHP 240개, Go 115개,
+  Rust 35개 검사를 통과했습니다.
+- 교차 검증 콘솔은 검사 890개를 통과했으며, 공용 검증·목록·상세·입력 텍스트 사례 전체와 요청 사례를 다섯
   검증기 프로세스로 보냅니다.
-- 폼 패키지는 core 121개, HTML 282개, React 460개, Vue 430개, Svelte 427개와 마운트한 Svelte 검사
-  10개를 통과했고 명세 CLI는 38개를 통과했습니다. 폼 비교 소스 검사 148개, 패키지 소비자 검사 7단계,
-  `make format-check`, `make docs-check`, `make github-settings-check`가 통과했습니다.
+- 폼 패키지는 core 216개, HTML 308개, React 502개, Vue 472개, Svelte 467개와 마운트한 Svelte 검사 12개를
+  통과했고, 명세 CLI는 38개, Node 폼 검사는 Chromium·Firefox·WebKit의 스타일시트 배치를 포함해 54개를
+  통과했습니다. 폼 비교 소스 검사 148개, 패키지 소비자 검사 7단계, `make format-check`가 통과했습니다.
+- Linux 툴체인 이미지에서 PHP 확장 엔진은 주소 새니타이저와 쉼표 소수점 로캘 실행을 포함해 33개 검사를
+  통과했고, `make test-form-styles-linux`는 Chromium·Firefox·WebKit의 스타일시트 검사 36개를 모두
+  통과했습니다.
 
 적합성은 증거로 검사합니다. 공용 fixture를 실행하는 모든 검사가 통과한 기능·fixture 사례·런타임을
 기록하고, `make conformance`(와 CI의 마지막 작업)가 그 증거를 `contracts/features.json`과 비교합니다.

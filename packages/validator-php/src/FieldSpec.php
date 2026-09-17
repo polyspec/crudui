@@ -195,7 +195,7 @@ final class FieldSpec
     public const CLOSED_BUCKET_KEYS = [
         'design'   => self::DESIGN_SUB_KEYS,
         'behavior' => self::BEHAVIOR_SUB_KEYS,
-        'multiple' => ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+        'multiple' => ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
         'lang'     => ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'],
     ];
 
@@ -246,7 +246,7 @@ final class FieldSpec
         ],
         'multiple' => [
             'location' => 'multiple',
-            'keys'     => ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+            'keys'     => ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
         ],
         'lang' => [
             'location' => 'lang',

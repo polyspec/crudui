@@ -9,6 +9,7 @@
 import { canonicalText } from './canonical';
 import { trim } from './whitespace';
 import { isEmptyValue } from './empty';
+import { numericValue, numericValueAsWritten } from './numeric';
 
 /** The parameter messages of `in` (validation-rules.md, "Parameter errors"). */
 export const MEMBERSHIP_ERRORS = {
@@ -47,23 +48,14 @@ export function readMembers(param: unknown): MembersResult {
   return { members: members as Member[] };
 }
 
-/** The decimal grammar under which numbers and strings compare as doubles. */
-const DECIMAL = /^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$/;
-
-/** The double a number or decimal-grammar string denotes, or `undefined`. */
-function decimalValue(item: unknown): number | undefined {
-  if (typeof item === 'number') return item;
-  if (typeof item === 'string' && DECIMAL.test(item)) return Number(item);
-  return undefined;
-}
-
 /** Whether one scalar value matches one member. */
 function matchesMember(value: string | number | boolean, member: Member): boolean {
   const text = canonicalText(value);
   if (text === undefined) return false;
   if (text === canonicalText(member)) return true;
-  const left = decimalValue(value);
-  const right = decimalValue(member);
+  const left = numericValue(value);
+  // Members are read as written; the value is already trimmed.
+  const right = numericValueAsWritten(member);
   return left !== undefined && right !== undefined && left === right;
 }
 

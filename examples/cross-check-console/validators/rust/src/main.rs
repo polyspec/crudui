@@ -9,7 +9,7 @@
 //!   - detail: `crudui_validator::validate_detail` composes and scans the detail; `data` is ignored.
 //!
 //! Request rules, checked in this order (each → exit 1, stdout exactly `{ "error" }`):
-//!   1. stdin is not valid JSON → "Request must be valid JSON"
+//!   1. stdin is not UTF-8 or not valid JSON → "Request must be valid JSON"
 //!   2. the request is not an object → "Request must be an object"
 //!   3. `spec` absent or not an object → "Request spec must be an object"
 //!   4. `mode` present and not "form"/"list"/"detail" → "Unsupported validation mode"
@@ -25,6 +25,7 @@ use std::io::{self, Read, Write};
 
 use serde_json::{Map, Value};
 
+use crudui_validator::text::{self, JsonText};
 use crudui_validator::validate::ValidationResult;
 use crudui_validator::{
     validate, validate_detail, validate_list, ValidateDetailOptions, ValidateListOptions,
@@ -34,13 +35,19 @@ use crudui_validator::{
 fn main() {
     // Request rules, checked in the shared order (each → exit 1, `{ "error" }`).
     // 1. stdin must be valid JSON (an unreadable stdin counts as invalid JSON).
+    // Standard input that is not UTF-8 is not JSON text.
     let mut input_bytes = String::new();
     if io::stdin().read_to_string(&mut input_bytes).is_err() {
         fail_request("Request must be valid JSON");
     }
-    let req: Value = match serde_json::from_str(&input_bytes) {
-        Ok(v) => v,
-        Err(_) => fail_request("Request must be valid JSON"),
+    // JSON text with an unpaired surrogate escape is read without replacing it;
+    // the request rules read its shape and the validator checks its text.
+    let (req, text): (Value, Option<JsonText>) = match serde_json::from_str(&input_bytes) {
+        Ok(v) => (v, None),
+        Err(_) => match JsonText::parse(&input_bytes) {
+            Ok(doc) if doc.has_invalid_text() => (doc.shape(), Some(doc)),
+            _ => fail_request("Request must be valid JSON"),
+        },
     };
 
     // 2. the request must be an object.
@@ -81,6 +88,31 @@ fn main() {
         Some(Value::String(s)) => Some(s.clone()),
         Some(_) => fail_request("Request basepath must be a string"),
     };
+
+    if let Some(doc) = &text {
+        let spec = doc.get("spec").expect("a checked specification");
+        let present = |name: &str| doc.get(name).filter(|value| **value != JsonText::Null);
+        let result = match mode {
+            "list" => {
+                text::validate_list_text(spec, present("files"), present("basepath")).map(|()| {
+                    ValidationResult {
+                        valid: true,
+                        errors: Vec::new(),
+                    }
+                })
+            }
+            "detail" => text::validate_detail_text(spec, present("files"), present("basepath"))
+                .map(|()| ValidationResult {
+                    valid: true,
+                    errors: Vec::new(),
+                }),
+            _ => text::validate_text(spec, doc.get("data"), present("files"), present("basepath")),
+        };
+        match result {
+            Ok(result) => emit_result(&result),
+            Err(err) => failure(err.message(), err.code(), &err.at()),
+        }
+    }
 
     if mode == "list" || mode == "detail" {
         let result = if mode == "list" {

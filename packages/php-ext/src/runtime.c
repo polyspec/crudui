@@ -203,9 +203,12 @@ static bool append_json(ps_html_buffer *out, const ps_value *value)
         case PS_INT:
             snprintf(number, sizeof(number), "%lld", (long long)value->data.integer);
             return ps_html_text(out, number);
-        case PS_FLOAT:
-            snprintf(number, sizeof(number), "%.15g", value->data.number);
-            return ps_html_text(out, number);
+        case PS_FLOAT: {
+            ps_chars text = ps_format_general(value->data.number, 15);
+            bool ok = text.bytes && ps_html_append(out, ps_view(text));
+            free(text.bytes);
+            return ok;
+        }
         case PS_STRING:
             return append_quoted(out, ps_string(value));
         case PS_ARRAY:
@@ -297,23 +300,3 @@ ps_chars ps_style_string(ps_text source)
     return ps_html_take(&out);
 }
 
-bool ps_condition_expression(ps_text value)
-{
-    size_t first = 0;
-    while (first < value.length && whitespace(value.bytes[first])) first++;
-    ps_text text = ps_text_slice(value, first, value.length);
-    if (text.length && text.bytes[0] == '.') return true;
-    if (text.length && (isalpha((unsigned char)text.bytes[0]) || text.bytes[0] == '_')) {
-        size_t cursor = 1;
-        while (cursor < text.length &&
-               (isalnum((unsigned char)text.bytes[cursor]) || text.bytes[cursor] == '_')) cursor++;
-        if (cursor < text.length && text.bytes[cursor] == '.') return true;
-    }
-    size_t question = ps_text_find_byte(text, '?', 0);
-    if (question != SIZE_MAX && ps_text_find_byte(text, ':', question + 1) != SIZE_MAX) return true;
-    static const char *const words[] = {" == ", " != ", " > ", " >= ", " < ", " <= ",
-                                        " && ", " || ", " in ", " not in "};
-    for (size_t i = 0; i < sizeof(words) / sizeof(words[0]); ++i)
-        if (ps_text_find(text, ps_fixed(words[i]), 0) != SIZE_MAX) return true;
-    return false;
-}

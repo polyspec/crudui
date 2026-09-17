@@ -564,7 +564,8 @@ export type StaticItem =
 
 /**
  * Repeated-row settings (dependency isolation: multiple-dependent → `multiple`
- * sub). `true` is the bare default (repetition on, no settings); an object
+ * sub). `true` is the bare default (repetition on, no settings); `only`, the
+ * same as `{ only: true }`, declares rows that exist only in the data; an object
  * carries the repetition settings.
  *
  * Row identity is not a `multiple` field. Repeated data is an object keyed by
@@ -572,14 +573,19 @@ export type StaticItem =
  * hidden identity or order field (see docs/spec/form-runtime.md).
  *
  * The named keys are the canonical `dependency_buckets.multiple.keys`
- * (`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`). Other
+ * (`only`/`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`). Other
  * spellings such as `multiple_max`, `sortable*` or `add_buttons` are not
  * recognition keys (R2 anti-duplication, R4 no magic tokens).
  */
-export type Multiple = boolean | MultipleSettings;
+export type Multiple = boolean | 'only' | MultipleSettings;
 
 /** Repeated-row settings object (kept under `multiple`). */
 export interface MultipleSettings {
+  /**
+   * Rows exist only in the data: the data keys are the rows and the form offers
+   * no row controls. With `true`, only `title` and `header` may accompany it.
+   */
+  only?: boolean;
   /** Minimum number of rows. */
   min?: number;
   /** Maximum number of rows. */

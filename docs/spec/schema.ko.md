@@ -76,6 +76,9 @@ properties:
 조건 맵은 처음 일치한 표현식의 값을 선택합니다. 리터럴 키 `true`는 선택적 기본값이며 위치와 무관하게
 다른 조건이 모두 실패한 뒤에만 적용됩니다. 일치하는 조건도 기본값도 없으면 결과는 null입니다
 ([조건맵](expressions.ko.md#8-조건맵)).
+`design.show`, `design.class`, `design.style`을 포함한 모든 조건 설정에서 문자열은
+[표현식 문법](expressions.ko.md)으로 끝까지 파싱될 때만 표현식이고 그 밖의 문자열은
+리터럴이므로 `class: "modal fade in show"`는 클래스 텍스트입니다.
 CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 조건 메타키를
 거부합니다.
 
@@ -179,6 +182,12 @@ must declare fields`, 객체가 아닌 레코드는 `Detail record must be an ob
 고정 여부로 `multiple.header`(기본 `static`, 또는 `sticky`)를 받습니다. 렌더링은
 [폼 마크업](form-markup.ko.md)에서 정의합니다. 인스턴스의 컬렉션 키가 행을 식별하며
 스키마는 숨김 식별자 필드를 정의하지 않습니다. 행 연산은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
+`multiple.only: true`와 같은 `multiple: only`는 데이터에만 존재하는 행을 선언합니다. 데이터의 키가 곧
+행이고, 데이터가 없으면 행이 없으며, 폼은 행 컨트롤과 행 연산을 제공하지 않습니다. `multiple.only`는
+`title`, `header`와 함께 쓰며 `min`, `max`, `copy`, `sortable`, `controls`, `onclick`과 함께 쓸 수
+없습니다. 컴파일은 그 밖의 문자열을 `Invalid multiple at {path}: expected a boolean, only or an object`로,
+불리언이 아닌 `only`를 `Invalid multiple.only at {path}: expected a boolean`으로, `only: true` 옆의 제외된
+키를 `Invalid multiple.{key} at {path}: unknown key`로 보고합니다.
 
 button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 필드 호환 키 `text`는
 사용하지 않습니다. 폼 컴파일은 `multiple`, `lang`, `design`의 값 형식이 잘못되면 `INVALID_FORM_INPUT`와
@@ -188,7 +197,8 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 
 | 키 | 허용 값 |
 | --- | --- |
-| `multiple` | 불리언 또는 객체 |
+| `multiple` | 불리언, `only` 또는 객체 |
+| `multiple.only` | 불리언 |
 | `multiple.min`, `multiple.max` | 숫자 |
 | `multiple.copy`, `multiple.sortable` | 불리언 |
 | `multiple.title` | 반복 그룹의 직속 자식 중 반복·그룹·`lang`이 아닌 필드 이름 |

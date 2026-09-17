@@ -54,22 +54,25 @@ markers and compares rendered container contents; Vue's `data-v-app` is not remo
 
 ## Native package verification
 
-On 2026-09-17 the working tree passed every repository check on macOS arm64 with PHP 8.5.10,
-Node.js 26.8.1, Go 1.27.0 and Rust 1.98.1:
+On 2026-09-17 the working tree passed `make ci`, which runs every checking command of the CI
+workflow and checks the conformance evidence against `contracts/features.json`, on macOS arm64 with
+PHP 8.5.10, Node.js 26.8.1, Go 1.27.0 and Rust 1.98.1:
 
-- `make conformance` passed and the conformance evidence matched `contracts/features.json`. The
-  validator suites passed 462 JavaScript, 540 PHP, 470 Go and 101 Rust tests, each including all
-  179 shared validation cases. The PHP extension suite passed 37 tests; the address-sanitizer test
-  runs on Linux only.
-- The shared generator report passed 358 checks in each of JavaScript, the HTML renderer, PHP, Go,
-  Rust and native PHP (2,148 in total, zero failed), and its inputs did not change during the run.
-  The generator packages passed 226 PHP, 101 Go and 32 Rust tests.
-- The cross-check console passed 726 tests, which send every shared validation, list and detail case
-  and 45 request cases through all five validator processes.
-- The form packages passed core 121, HTML 282, React 460, Vue 430, Svelte 427 and ten mounted
-  Svelte checks; the specification CLI passed 38. The form-comparison source suite passed 148
-  checks, the package consumer check seven steps, `make format-check`, `make docs-check` and
-  `make github-settings-check` passed.
+- The validators passed 568 JavaScript, 682 PHP, 572 Go and 108 Rust tests, each including all 238
+  shared validation cases, and the 80 shared input-text cases across the validation and generation
+  operations. The PHP extension suite passed 42 tests; its address-sanitizer test runs on Linux.
+- The shared generator report passed 501 checks in each of JavaScript, the HTML renderer, PHP, Go,
+  Rust and native PHP (3,006 in total, zero failed), and its inputs did not change during the run.
+  The generator packages passed 240 PHP, 115 Go and 35 Rust tests.
+- The cross-check console passed 890 tests, which send every shared validation, list, detail and
+  input-text case and the request cases through all five validator processes.
+- The form packages passed core 216, HTML 308, React 502, Vue 472, Svelte 467 and twelve mounted
+  Svelte checks; the specification CLI passed 38; the node form checks passed 54, including the
+  stylesheet layout in Chromium, Firefox and WebKit. The form-comparison source suite passed 148
+  checks, the package consumer check seven steps, and `make format-check` passed.
+- In the Linux toolchain image the PHP extension engine passed 33 tests, including the
+  address-sanitizer and comma-decimal-locale runs, and `make test-form-styles-linux` passed all 36
+  stylesheet checks in Chromium, Firefox and WebKit.
 
 Conformance is checked from evidence. Every suite that runs a shared fixture records which feature,
 fixture case and runtime passed, and `make conformance` (and the final CI job) compares that evidence

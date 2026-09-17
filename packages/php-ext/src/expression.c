@@ -7,6 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* ASCII space characters around a condition expression and a number. */
+static bool condition_space(char value)
+{
+    return value == ' ' || value == '\t' || value == '\n' || value == '\r' || value == '\f' || value == '\v';
+}
+
 typedef enum {
     TOK_STRING, TOK_NUMBER, TOK_BOOLEAN, TOK_NULL, TOK_IDENTIFIER, TOK_DOT,
     TOK_DOT_DOT, TOK_ASTERISK, TOK_EQ, TOK_NE, TOK_GT, TOK_GE, TOK_LT, TOK_LE,
@@ -183,11 +189,13 @@ static lexer_output tokenize(ps_text source)
             /* The copy holds only digits, signs, a point and an exponent marker. */
             ps_chars raw = ps_copy(ps_text_slice(source, number, cursor));
             if (!raw.bytes) { out.valid = false; break; }
-            if (decimal) literal = ps_float_value(strtod(raw.bytes, NULL));
+            double parsed = 0; bool overflow = false;
+            ps_c_number(ps_view(raw), &parsed, &overflow);
+            if (decimal) literal = ps_float_value(parsed);
             else {
                 errno = 0; char *end = NULL; long long value = strtoll(raw.bytes, &end, 10);
                 literal = errno || !end || end != raw.bytes + raw.length
-                    ? ps_float_value(strtod(raw.bytes, NULL)) : ps_int_value((int64_t)value);
+                    ? ps_float_value(parsed) : ps_int_value((int64_t)value);
             }
             free(raw.bytes); kind = TOK_NUMBER;
         } else if (kind == TOK_INVALID && (isalpha((unsigned char)current) || current == '_')) {
@@ -535,16 +543,16 @@ static bool number_value(const ps_value *value, bool whole_string, double *numbe
     if (value->kind == PS_BOOL) { *number = value->data.boolean ? 1 : 0; return true; }
     if (value->kind != PS_STRING) return false;
     ps_text text = ps_string(value);
-    const char *start = text.bytes, *limit = text.bytes + text.length;
-    while (start < limit && isspace((unsigned char)*start)) start++;
-    if (start == limit) { *number = 0; return true; }
-    /* strtod stops at a NUL character inside the text or at the zero byte after it. */
-    char *end = NULL; errno = 0; double parsed = strtod(start, &end);
-    if (end == start || errno == ERANGE) return false;
+    size_t start = 0;
+    while (start < text.length && condition_space(text.bytes[start])) start++;
+    if (start == text.length) { *number = 0; return true; }
+    /* The C number syntax, read independently of the locale; an overflowing spelling is not a number. */
+    double parsed = 0; bool overflow = false;
+    size_t end = start + ps_c_number(ps_text_slice(text, start, text.length), &parsed, &overflow);
+    if (end == start || overflow) return false;
     if (whole_string) {
-        const char *rest = end;
-        while (rest < limit && isspace((unsigned char)*rest)) rest++;
-        if (rest != limit) return false;
+        while (end < text.length && condition_space(text.bytes[end])) end++;
+        if (end != text.length) return false;
     }
     *number = parsed; return true;
 }
@@ -711,4 +719,52 @@ ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
             return ps_value_clone(ps_at(map, i));
     }
     return fallback ? ps_value_clone(fallback) : ps_null_value();
+}
+
+ps_value *ps_resolve_conditional(const ps_value *declared, const ps_value *data,
+                                 const ps_text *current_path, size_t path_length)
+{
+    if (!declared) return NULL;
+    if (declared->kind == PS_OBJECT) return ps_condition_value(declared, data, current_path, path_length);
+    if (declared->kind == PS_STRING && ps_condition_expression(ps_string(declared))) {
+        bool parsed = false;
+        ps_value *value = ps_expression_value(ps_string(declared), data, current_path, path_length, &parsed);
+        if (parsed) return value;
+        ps_value_free(value);
+    }
+    return ps_value_clone(declared);
+}
+
+bool ps_shown(const ps_value *show, const ps_value *data,
+              const ps_text *current_path, size_t path_length, bool *failed)
+{
+    *failed = false;
+    if (!show) return true;
+    ps_value *resolved = ps_resolve_conditional(show, data, current_path, path_length);
+    if (!resolved) { *failed = true; return true; }
+    bool shown = resolved->kind != PS_BOOL || resolved->data.boolean;
+    ps_value_free(resolved);
+    return shown;
+}
+
+
+bool ps_condition_expression(ps_text value)
+{
+    size_t first = 0;
+    while (first < value.length && condition_space(value.bytes[first])) first++;
+    ps_text text = ps_text_slice(value, first, value.length);
+    if (text.length && text.bytes[0] == '.') return true;
+    if (text.length && (isalpha((unsigned char)text.bytes[0]) || text.bytes[0] == '_')) {
+        size_t cursor = 1;
+        while (cursor < text.length &&
+               (isalnum((unsigned char)text.bytes[cursor]) || text.bytes[cursor] == '_')) cursor++;
+        if (cursor < text.length && text.bytes[cursor] == '.') return true;
+    }
+    size_t question = ps_text_find_byte(text, '?', 0);
+    if (question != SIZE_MAX && ps_text_find_byte(text, ':', question + 1) != SIZE_MAX) return true;
+    static const char *const words[] = {" == ", " != ", " > ", " >= ", " < ", " <= ",
+                                        " && ", " || ", " in ", " not in "};
+    for (size_t i = 0; i < sizeof(words) / sizeof(words[0]); ++i)
+        if (ps_text_find(text, ps_fixed(words[i]), 0) != SIZE_MAX) return true;
+    return false;
 }

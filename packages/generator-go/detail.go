@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"github.com/polyspec/crudui/packages/validator-go/validator/text"
 	"strings"
 )
 
@@ -12,6 +13,11 @@ type DetailOptions = ListOptions
 // BuildDetail creates a read-only detail model from one supplied record.
 // Field composition, design evaluation and cell formatting are shared with BuildList.
 func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, error) {
+	// Input text is checked first (docs/spec/input-text.md).
+	options, e := checkDisplayText(spec, text.Input{Name: "record", Value: record}, options)
+	if e != nil {
+		return nil, e
+	}
 	if spec == nil {
 		return nil, fmt.Errorf("Detail specification must be an object")
 	}

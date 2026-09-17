@@ -83,8 +83,8 @@ Composer가 PHP 클래스를 자동 로드합니다. 예제는 두 설정에서 
 ## 공용 계약과 책임 분리
 
 모든 런타임은 같은 [스키마](schema.ko.md), [표현식](expressions.ko.md),
-[검증 규칙](validation-rules.ko.md), [폼 런타임](form-runtime.ko.md)을
-구현합니다. 각 런타임의 생성과 검증은 조합과 표현식 계산을 재사용합니다.
+[검증 규칙](validation-rules.ko.md), [폼 런타임](form-runtime.ko.md),
+[입력 텍스트](input-text.ko.md) 규칙을 구현합니다. 각 런타임의 생성과 검증은 조합과 표현식 계산을 재사용합니다.
 렌더링에서 필수 입력 여부나 검증 규칙을 다시 정의하지 않습니다.
 
 1. 컴파일은 레코드 데이터 없이 참조를 해석하고 전체 폼 구조를 준비합니다.

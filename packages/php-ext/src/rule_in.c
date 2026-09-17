@@ -6,8 +6,8 @@
 /*
  * Membership (docs/spec/validation-rules.md, "Values"): members come from a list (each element as
  * is), a comma-separated string (each item trimmed) or a map (its keys). A value matches a member
- * when their canonical texts are the same code points, or when both are numbers or decimal
- * strings with equal values as doubles.
+ * when their canonical texts are the same code points, or when both are numeric (numbers, or
+ * strings that are numeric text) with equal values.
  */
 
 /* A value or member as the comparison sees it. */
@@ -17,40 +17,12 @@ typedef struct {
     double number;
 } member_text;
 
-/* ^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$ */
-static bool decimal_text(ps_text text)
-{
-    size_t index = 0, digits = 0, points = 0;
-    if (index < text.length && (text.bytes[index] == '-' || text.bytes[index] == '+')) index++;
-    for (; index < text.length; ++index) {
-        char c = text.bytes[index];
-        if (c >= '0' && c <= '9') digits++;
-        else if (c == '.' && !points) points++;
-        else return false;
-    }
-    return digits > 0;
-}
-
-/* The double of a decimal text; the grammar leaves nothing strtod would read differently. */
-static bool decimal_number(ps_text text, double *number)
-{
-    char stack[64];
-    char *buffer = text.length < sizeof(stack) ? stack : malloc(text.length + 1);
-    if (!buffer) return false;
-    memcpy(buffer, text.bytes, text.length);
-    buffer[text.length] = '\0';
-    *number = strtod(buffer, NULL);
-    if (buffer != stack) free(buffer);
-    return true;
-}
-
-/* Describe a text as a member: numeric when it is a decimal string. False on allocation failure. */
+/* Describe a text as a member: numeric when it is numeric text with a finite value. */
 static bool string_member(ps_text text, member_text *member)
 {
     *member = (member_text){text, false, 0};
-    if (!decimal_text(text)) return true;
-    member->numeric = true;
-    return decimal_number(text, &member->number);
+    member->numeric = ps_numeric_text(text, &member->number);
+    return true;
 }
 
 static bool same_member(const member_text *left, const member_text *right)
@@ -105,8 +77,8 @@ static int visit_members(const ps_value *parameter, void *context, member_visito
         }
         ps_chars text;
         if (ps_canonical_text(item, &text) <= 0) return -1;
-        member = (member_text){ps_view(text), item->kind == PS_INT || item->kind == PS_FLOAT,
-            item->kind == PS_INT ? (double)item->data.integer : item->kind == PS_FLOAT ? item->data.number : 0};
+        member = (member_text){ps_view(text), false, 0};
+        if (item->kind != PS_BOOL) member.numeric = ps_numeric_value(item, &member.number);
         int result = visit(context, &member);
         free(text.bytes);
         if (result) return result;
@@ -177,8 +149,8 @@ int ps_in_passes(const ps_value *value, const ps_value *parameter)
         if (!string_member(ps_trim(ps_string(value)), &context.value)) return -1;
     } else {
         if (ps_canonical_text(value, &owned) <= 0) return -1;
-        context.value = (member_text){ps_view(owned), value->kind != PS_BOOL,
-            value->kind == PS_INT ? (double)value->data.integer : value->kind == PS_FLOAT ? value->data.number : 0};
+        context.value = (member_text){ps_view(owned), false, 0};
+        if (value->kind != PS_BOOL) context.value.numeric = ps_numeric_value(value, &context.value.number);
     }
     int result = visit_members(parameter, &context, matching_member);
     free(owned.bytes);

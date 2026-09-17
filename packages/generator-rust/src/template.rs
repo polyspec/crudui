@@ -18,7 +18,10 @@ pub struct FieldTemplate {
 }
 
 /// A JSON-serializable form structure without record data.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+///
+/// Reading one from JSON accepts exactly the shape `compile_form` produces; see
+/// [`FormTemplate::from_json`].
+#[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct FormTemplate {
     /// Template format identifier.
@@ -33,6 +36,81 @@ pub struct FormTemplate {
     /// Submission target declared by the spec, kept for the application.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub action: Option<Map<String, Value>>,
+}
+
+impl FormTemplate {
+    /// Read a template that is exactly what `compile_form` produces: an object whose only
+    /// members are `kind` (`crudui/form-template`), `fields`, `buttons` (objects), an optional
+    /// string `keyPrefix` and an optional object `action`; each field has exactly a string
+    /// `name`, an object `spec` and a field list `children`. Any other value fails with
+    /// `Unsupported form template`.
+    pub fn from_json(value: &Value) -> FormResult<FormTemplate> {
+        let shape = || FormError::input("Unsupported form template");
+        let object = value.as_object().ok_or_else(shape)?;
+        if !only_members(
+            object,
+            &["kind", "keyPrefix", "fields", "buttons", "action"],
+        ) || object.get("kind").and_then(Value::as_str) != Some("crudui/form-template")
+        {
+            return Err(shape());
+        }
+        let key_prefix = match object.get("keyPrefix") {
+            None => None,
+            Some(Value::String(prefix)) => Some(prefix.clone()),
+            Some(_) => return Err(shape()),
+        };
+        let action = match object.get("action") {
+            None => None,
+            Some(Value::Object(action)) => Some(action.clone()),
+            Some(_) => return Err(shape()),
+        };
+        let fields = field_templates(object.get("fields")).ok_or_else(shape)?;
+        let buttons = object
+            .get("buttons")
+            .and_then(Value::as_array)
+            .ok_or_else(shape)?
+            .iter()
+            .map(|button| button.as_object().cloned())
+            .collect::<Option<Vec<_>>>()
+            .ok_or_else(shape)?;
+        Ok(FormTemplate {
+            kind: "crudui/form-template".into(),
+            key_prefix,
+            fields,
+            buttons,
+            action,
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for FormTemplate {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = Value::deserialize(deserializer)?;
+        FormTemplate::from_json(&value).map_err(serde::de::Error::custom)
+    }
+}
+
+fn only_members(object: &Map<String, Value>, allowed: &[&str]) -> bool {
+    object.keys().all(|key| allowed.contains(&key.as_str()))
+}
+
+/// A field template list with exactly `name`, `spec` and `children` in every field.
+fn field_templates(value: Option<&Value>) -> Option<Vec<FieldTemplate>> {
+    value?
+        .as_array()?
+        .iter()
+        .map(|field| {
+            let field = field.as_object()?;
+            if field.len() != 3 || !only_members(field, &["name", "spec", "children"]) {
+                return None;
+            }
+            Some(FieldTemplate {
+                name: field.get("name")?.as_str()?.to_owned(),
+                spec: field.get("spec")?.as_object()?.clone(),
+                children: field_templates(field.get("children"))?,
+            })
+        })
+        .collect()
 }
 
 /// Inputs used only during structure compilation.
@@ -62,13 +140,16 @@ fn scalar_child(child: &Value) -> bool {
     child.get("type").is_none_or(|t| t != "group")
         && !child.contains_key("properties")
         && !enabled("multiple")
+        && child.get("multiple").is_none_or(|v| v != "only")
         && !enabled("lang")
 }
 
 /// Allowed keys of the closed `multiple` bucket.
 const MULTIPLE_KEYS: &[&str] = &[
-    "min", "max", "copy", "sortable", "title", "controls", "header", "onclick",
+    "only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick",
 ];
+/// Keys `multiple` accepts beside `only: true`.
+const ONLY_MULTIPLE_KEYS: &[&str] = &["only", "title", "header"];
 /// Allowed keys of the closed `lang` bucket.
 const LANG_KEYS: &[&str] = &[
     "mode",
@@ -164,11 +245,19 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
         }
     }
     if let Some(multiple) = spec.get("multiple") {
-        if !multiple.is_boolean() && !multiple.is_object() {
-            return fail("multiple", "a boolean or an object");
+        if !multiple.is_boolean() && multiple != "only" && !multiple.is_object() {
+            return fail("multiple", "a boolean, only or an object");
         }
         if let Some(settings) = multiple.as_object() {
             check_known_keys("multiple", settings, MULTIPLE_KEYS, path)?;
+            if settings.get("only").is_some_and(|v| !v.is_boolean()) {
+                return fail("multiple.only", "a boolean");
+            }
+            // Rows of a data-only collection come from the data: row limits and row
+            // controls do not apply.
+            if settings.get("only").is_some_and(|v| *v == true) {
+                check_known_keys("multiple", settings, ONLY_MULTIPLE_KEYS, path)?;
+            }
             for key in ["min", "max"] {
                 if settings.get(key).is_some_and(|v| !v.is_number()) {
                     return fail(&format!("multiple.{key}"), "a number");
@@ -377,5 +466,13 @@ pub(crate) fn repeats(field: &FieldTemplate) -> bool {
     field
         .spec
         .get("multiple")
-        .is_some_and(|v| *v == true || v.is_object())
+        .is_some_and(|v| *v == true || *v == "only" || v.is_object())
+}
+
+/// A `multiple: only` collection: its rows come only from the data.
+pub(crate) fn data_only(field: &FieldTemplate) -> bool {
+    field
+        .spec
+        .get("multiple")
+        .is_some_and(|v| *v == "only" || v.get("only").is_some_and(|only| *only == true))
 }

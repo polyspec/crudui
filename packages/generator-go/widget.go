@@ -354,7 +354,27 @@ func evalWidget(c widgetContext) *Object {
 			object(read(w, "attrs")).Set("id", c.id())
 		}
 	}
-	return w
+	return orderedWidget(w)
+}
+
+// widgetMembers lists the widget model members in their output order (docs/spec/form-runtime.md).
+var widgetMembers = []string{"kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass", "script", "styleChrome", "buttonText", "prepend", "append", "extra"}
+
+// orderedWidget returns the widget with its members in output order.
+func orderedWidget(w *Object) *Object {
+	out := NewObject()
+	for _, key := range widgetMembers {
+		if value, ok := w.Get(key); ok {
+			out.Set(key, value)
+		}
+	}
+	for _, key := range w.Keys() {
+		if !out.Has(key) {
+			value, _ := w.Get(key)
+			out.Set(key, value)
+		}
+	}
+	return out
 }
 func searchWidget(c widgetContext) *Object {
 	items := read(c.spec, "items")

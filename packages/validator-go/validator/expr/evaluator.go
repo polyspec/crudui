@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"encoding/json"
 	"math"
 	"slices"
 	"strconv"
@@ -420,17 +421,12 @@ func IsTruthy(value any) bool {
 		return false
 	case bool:
 		return v
-	case int:
-		return v != 0
-	case int64:
-		return v != 0
-	case float64:
-		return v != 0
-	case float32:
-		return v != 0
 	case string:
 		return v != ""
 	default:
+		if n, ok := NumberValue(value); ok {
+			return n != 0 && !math.IsNaN(n)
+		}
 		// Lists and objects (and any other reference value) are truthy in JS.
 		return true
 	}
@@ -486,43 +482,29 @@ func jsTypeOf(v any) string {
 		return "null"
 	case bool:
 		return "boolean"
-	case int, int64, float32, float64:
-		return "number"
 	case string:
 		return "string"
 	default:
+		if IsNumber(v) {
+			return "number"
+		}
 		return "object"
 	}
 }
 
 func toFloat(v any) float64 {
-	switch n := v.(type) {
-	case int:
-		return float64(n)
-	case int64:
-		return float64(n)
-	case float32:
-		return float64(n)
-	case float64:
-		return n
-	default:
-		return 0
-	}
+	n, _ := NumberValue(v)
+	return n
 }
 
 // coerceNumber coerces a value to a number for comparison (JS coerceNumber):
 // numbers pass through; a string is parseFloat-ed (NaN→0); booleans → 1/0;
 // else 0.
 func coerceNumber(value any) float64 {
+	if n, ok := NumberValue(value); ok {
+		return n
+	}
 	switch v := value.(type) {
-	case int:
-		return float64(v)
-	case int64:
-		return float64(v)
-	case float32:
-		return float64(v)
-	case float64:
-		return v
 	case bool:
 		if v {
 			return 1
@@ -541,15 +523,10 @@ func coerceNumber(value any) float64 {
 // jsNumber is JS Number(value) for equality: numbers pass; a string is numeric
 // only when the WHOLE string parses (JS Number('12abc') is NaN); booleans → 1/0.
 func jsNumber(value any) (float64, bool) {
+	if n, ok := NumberValue(value); ok {
+		return n, true
+	}
 	switch v := value.(type) {
-	case int:
-		return float64(v), true
-	case int64:
-		return float64(v), true
-	case float32:
-		return float64(v), true
-	case float64:
-		return v, true
 	case bool:
 		if v {
 			return 1, true
@@ -631,13 +608,15 @@ func jsToString(value any) string {
 			return "true"
 		}
 		return "false"
-	case int:
-		return strconv.Itoa(v)
-	case int64:
-		return strconv.FormatInt(v, 10)
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, json.Number:
+		n, _ := NumberValue(v)
+		return jsToString(n)
 	case float64:
-		if !math.IsInf(v, 0) && !math.IsNaN(v) && v == math.Floor(v) {
-			return strconv.FormatInt(int64(v), 10)
+		if v == 0 {
+			return "0"
+		}
+		if !math.IsInf(v, 0) && !math.IsNaN(v) && v == math.Floor(v) && math.Abs(v) < 1e21 {
+			return strconv.FormatFloat(v, 'f', -1, 64)
 		}
 		return strconv.FormatFloat(v, 'g', -1, 64)
 	case float32:

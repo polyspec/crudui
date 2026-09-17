@@ -172,6 +172,50 @@ final class FormTest extends TestCase
         }
     }
 
+    public function testDataOnlyCollectionsTakeRowsOnlyFromData(): void
+    {
+        $template = Generator::compileForm(self::object('{"type":"group","properties":{"lines":{"type":"group","label":"Lines","multiple":"only","properties":{"code":{"type":"text"}}},"tags":{"type":"text","multiple":{"only":true,"header":"sticky"}}}}'));
+        $empty = new Form($template);
+        self::assertSame('{"lines":{},"tags":{}}', json_encode($empty->getData()));
+        self::assertSame([[], []], array_map(static fn ($node) => $node->children, $empty->getFields()));
+        self::assertFalse(property_exists($empty->getFields()[0], 'controls'));
+        self::assertStringNotContainsString('data-crudui-action', Generator::renderForm($empty));
+        $form = new Form($template, ['lines' => ['b' => ['code' => 'B'], 'a' => ['code' => 'A']], 'tags' => ['t' => 'x']]);
+        self::assertSame(['b', 'a'], array_map(static fn ($row) => $row->key, $form->getFields()[0]->children));
+        foreach ($form->getFields() as $node) {
+            foreach ($node->children as $row) {
+                self::assertFalse(property_exists($row, 'controls'));
+            }
+        }
+        self::assertStringNotContainsString('data-crudui-action="add-row"', Generator::renderForm($form));
+        $before = [json_encode($form->getData()), json_encode($form->getFields()), $form->getRevision()];
+        $operations = [
+            fn () => $form->addRow('lines'),
+            fn () => $form->copyRow('lines', 'a'),
+            fn () => $form->removeRow('lines', 'a'),
+            fn () => $form->moveRow('lines', 'a', 0),
+            fn () => $form->rekeyRow('tags', 't', 'u'),
+        ];
+        foreach ($operations as $operation) {
+            try {
+                $operation();
+                self::fail('Rows of a data-only collection must not change');
+            } catch (FormError $error) {
+                self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
+                self::assertMatchesRegularExpression('/^Rows of (lines|tags) come only from data$/', $error->getMessage());
+            }
+            self::assertSame($before, [json_encode($form->getData()), json_encode($form->getFields()), $form->getRevision()]);
+        }
+    }
+
+    public function testHiddenFieldsKeepTheirValuesAndOnlyFalseHides(): void
+    {
+        $template = Generator::compileForm(self::object('{"type":"group","properties":{"mode":{"type":"text"},"off":{"type":"text","design":{"show":".mode == \'on\'"}},"unselected":{"type":"text","design":{"show":{".mode == \'on\'":false}}},"literal":{"type":"text","design":{"show":".mode == ("}}}}'));
+        $form = new Form($template, ['mode' => 'off', 'off' => 'kept', 'unselected' => 'u', 'literal' => 'l']);
+        self::assertSame([false, true, false, false], array_map(static fn ($node) => $node->hidden, $form->getFields()));
+        self::assertSame('kept', $form->getData()->off);
+    }
+
     public function testMissingAndExplicitNullObjectAndArrayRemainDistinct(): void
     {
         $template = Generator::compileForm(self::object('{"type":"group","properties":{"value":{"type":"text","default":"default"},"tags":{"type":"text","multiple":true}}}'));
@@ -227,7 +271,10 @@ final class FormTest extends TestCase
             ['{"type":"text","lang":null}', 'Invalid lang at rows: expected a boolean or an object'],
             ['{"type":"text","lang":"ko"}', 'Invalid lang at rows: expected a boolean or an object'],
             ['{"type":"text","lang":["ko"]}', 'Invalid lang at rows: expected a boolean or an object'],
-            ['{"type":"text","multiple":"yes","lang":null}', 'Invalid multiple at rows: expected a boolean or an object'],
+            ['{"type":"text","multiple":"yes","lang":null}', 'Invalid multiple at rows: expected a boolean, only or an object'],
+            ['{"type":"text","multiple":{"only":"yes"}}', 'Invalid multiple.only at rows: expected a boolean'],
+            ['{"type":"text","multiple":{"only":true,"min":1}}', 'Invalid multiple.min at rows: unknown key'],
+            ['{"type":"group","multiple":{"only":true,"copy":false},"properties":{}}', 'Invalid multiple.copy at rows: unknown key'],
             ['{"type":"text","lang":null,"design":[]}', 'Invalid lang at rows: expected a boolean or an object'],
             ['{"type":"text","lang":{"only":"ko"}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],
             ['{"type":"text","lang":{"only":null}}', 'Invalid lang.only at rows: expected a list of language codes or an object'],

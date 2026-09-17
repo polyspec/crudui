@@ -14,10 +14,10 @@
 | `email`, `url` | 해당 형식 검사를 불리언으로 활성화합니다. |
 | `minlength`, `maxlength` | 길이의 정수 최소 또는 최대입니다. [값](#값)을 참고합니다. |
 | `rangelength` | 길이의 `[최소, 최대]`입니다. [값](#값)을 참고합니다. |
-| `number`, `digits` | 숫자 또는 숫자 문자만 포함하는 입력 검사를 불리언으로 활성화합니다. |
-| `min`, `max` | 숫자 하한 또는 상한입니다. |
-| `range` | 숫자 범위의 `[최소, 최대]`입니다. |
-| `step` | 숫자 증분입니다. |
+| `number`, `digits` | [숫자](#값) 검사 또는 숫자 문자만 허용하는 검사를 불리언으로 활성화합니다. |
+| `min`, `max` | 경계를 포함하는 숫자 하한 또는 상한입니다. |
+| `range` | 경계를 포함하는 숫자 범위 `[최소, 최대]`입니다. |
+| `step` | 0부터 세는 숫자 증분입니다. |
 | `match`, `pattern` | 값 전체에 대한 [패턴](#패턴)이며 두 이름은 같은 규칙 구현을 사용합니다. |
 | `equalTo`, `notEqual` | 필드 비교이며 참조 또는 리터럴 매개변수를 그대로 받습니다. |
 | `in` | 목록, 쉼표 문자열, 맵에 대한 [포함](#값) 여부입니다. |
@@ -29,8 +29,8 @@
 
 [TypeScript 등록부](../../packages/validator-ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
-[CLI 절차](../operations/cli.ko.md)를 참고합니다. 사용자 지정 TypeScript 규칙을
-등록해도 다른 언어에 해당 규칙이 설치되지는 않습니다.
+[CLI 절차](../operations/cli.ko.md)를 참고합니다. 모든 런타임은 같은 기본 규칙을 가지며 다른 규칙을
+등록하는 방법은 없습니다.
 
 ## 평가
 
@@ -40,6 +40,15 @@
 
 `number` 필드는 해당 규칙을 명시적으로 선언하지 않았으면 다른 규칙보다 먼저
 암묵적인 `number` 검사를 실행합니다. 비유한 숫자 입력은 숫자 검증에 실패합니다.
+
+**표시 여부.** 검증하는 데이터에 대해 `design.show`가 `false`로 해석되는 필드는 숨겨진 필드입니다.
+숨겨진 필드와 그 필드에 포함된 모든 필드의 규칙은 `required`와 컬렉션 개수 규칙을 포함해 평가하지 않으며
+오류를 보고하지 않습니다. 값은 바꾸거나 제거하지 않습니다. 데이터는 값을 유지하고 다른 조건과 참조도 그
+값을 그대로 읽으므로, 필드가 숨겨진 동안 유지한 값은 데이터가 필드를 다시 보이게 하면 다시 검증합니다.
+`design.show`는 조건부 매개변수처럼(불리언, 표현식, 조건 맵을 필드의 행 문맥에서) 해석하며,
+`false`로 해석될 때만 숨기므로 `design.show`가 없거나, 조건 맵이 아무것도 선택하지 않거나, 유효한 표현식이
+아닌 문자열(리터럴)인 필드는 보이는 필드입니다. 데이터 모양은 입력 계약이므로 숨겨진 필드에도 검사합니다. 표시 여부는 데이터만으로 결정하므로 서버는 폼을 표시한
+화면과 같은 결론을 냅니다.
 
 ## 값
 
@@ -56,7 +65,7 @@ U+0000, U+180E, U+200B, U+FEFF는 공백이 아닙니다. **다듬기**는 앞�
 
 **빈 값**은 값 없음, `null`, 다듬은 뒤 비는 문자열, 빈 배열, 빈 객체입니다. `0`과 `false`는
 입력된 값입니다. `required`는 빈 값에서 실패합니다. `mincount`와 `maxcount`를 제외한 다른
-규칙은 빈 값을 평가하지 않고 통과시키며, 컬렉션 개수 규칙은 빈 컬렉션도 평가합니다. 필수 입력과
+규칙은 빈 값을 평가하지 않고 통과시키며, 컬렉션 개수 규칙은 빈 컬렉션도 평가합니다. 데이터가 없는 반복 필드나 그룹은 빈 컬렉션입니다. 필수 입력과
 컬렉션 제한은 별도입니다. [빈 컬렉션](empty-collections.ko.md)을 참고합니다.
 
 스칼라의 **정규 텍스트**는 문자열이면 그 문자열, `true`는 `1`, `false`는 `0`, 유한한 숫자는
@@ -68,14 +77,33 @@ U+0000, U+180E, U+200B, U+FEFF는 공백이 아닙니다. **다듬기**는 앞�
 Unicode 코드 포인트 수로 셉니다. 제한값은 0부터 9007199254740991까지의 정수이며
 `rangelength`는 최소 ≤ 최대여야 합니다. 배열이나 객체 값은 정규 텍스트가 없으므로 길이 규칙, `pattern`, `match`에 실패합니다.
 
+**숫자.** 유한한 수이거나, 다듬은 뒤 값이 유한한 *숫자 텍스트*인 문자열은 숫자 값입니다. 숫자 텍스트는
+HTML의 유효한 부동소수점 수입니다. 선택적인 `-` 다음에 숫자, 숫자와 `.`과 숫자, 또는 `.`과 숫자가 오고,
+선택적으로 `e`나 `E`, 선택적인 `-`나 `+`, 숫자가 옵니다
+(`^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$`). 그 값은 가장 가까운 double입니다. `+1`,
+`1.`, 16진수, `Infinity`, `NaN`, 구분 기호, ASCII가 아닌 숫자는 숫자 텍스트가 아니며, 값이 넘치는 텍스트는
+숫자가 아닙니다. 불리언, `null`, 배열, 객체는 숫자가 아닙니다.
+
+- `number`는 숫자 값을 통과시킵니다.
+- `min`, `max`, `range`는 최솟값보다 작지 않고 최댓값보다 크지 않은 숫자 값을 통과시키며, `step`은 0부터
+  센 간격의 정수배인 숫자 값을 통과시킵니다. 숫자가 아닌 값은 이 규칙들에 실패합니다. 배수 여부는 값과
+  간격을 정규 텍스트가 쓰는 10진수로 읽어 허용 오차 없이 정확히 판정하므로 `0.3`은 `0.1`의 배수이고
+  `0.30000000000000004`는 아닙니다.
+- `digits`는 정규 텍스트(문자열은 다듬은 뒤)가 ASCII 숫자로만 이루어진 문자열이나 수를 통과시키며, 불리언과
+  그 밖의 값은 실패합니다.
+- `mincount`와 `maxcount`는 배열의 원소나 객체의 키를 셉니다. 값 없음, `null`, 다듬으면 비는 문자열은 0개,
+  그 밖의 스칼라는 1개입니다.
+- 메시지는 숫자 매개변수를 정규 텍스트로 표시합니다. 기본 메시지와 선언한 메시지의 `{0}`과 `{1}`은 규칙에
+  해당 매개변수가 있으면 모두 치환하고, 규칙에 없는 매개변수의 자리 표시자는 쓴 그대로 둡니다.
+
 **포함**(`in`)은 목록(각 원소 그대로), 쉼표 문자열(U+002C로 나누고 각 항목을 다듬음), 맵(키)에서
 멤버를 얻습니다. 멤버는 문자열, 숫자, 불리언이며 그 밖의 형식인 멤버, 빈 멤버 집합, 정규 텍스트를 다듬으면 비는 멤버는
 선언 오류이며, 멤버는 순서대로 각각 형식을 먼저, 빈 값 여부를 다음에 검사합니다. 문자열 값은 다듬고, 배열
 값은 모든 원소가 통과해야 통과합니다. 빈 원소(빈 배열·빈 객체 포함)는 빈 값처럼 통과하고 비어 있지 않은 배열이나 객체
 원소는 실패합니다. 값과 멤버의 정규 텍스트가
-같은 코드 포인트이거나, 둘 다 숫자이거나
-`^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$`에 맞는 문자열이고 double 값이 같으면 일치합니다.
-대소문자, Unicode 정규화, 그 밖의 숫자 표기는 일치하지 않습니다.
+같은 코드 포인트이거나, 둘 다 숫자이고 값이 같으면 일치합니다. 목록 원소와 맵 키는 그대로 읽으므로 앞뒤에
+공백이 있는 멤버는 숫자 텍스트가 아닙니다. 대소문자, Unicode 정규화, 숫자가 아닌
+텍스트는 일치하지 않습니다.
 
 ## 패턴
 
@@ -118,6 +146,11 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 | --- | --- | --- |
 | `minlength`, `maxlength` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | `rangelength` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum` |
+| `number`, `digits` 매개변수 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected true or false` |
+| `min`, `max` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a finite number` |
+| `range` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum` |
+| `step` | `INVALID_RULE_PARAMETER` | `Invalid step parameter: expected a finite number above 0` |
+| `mincount`, `maxcount` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | 다른 형식의 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
 | 문자열·숫자·불리언이 아닌 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
 | 멤버가 없거나 빈 멤버가 있는 `in` | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
@@ -176,8 +209,8 @@ properties:
 `enddate`의 `.start`는 형제 필드, `..start`는 한 그룹 위의 필드를 공통 필드 참조
 해석기로 조회합니다.
 
-`design.show`는 검증을 비활성화하지 않습니다. 조건부 필수 입력은
-`validate.required`에 선언해야 합니다. 브라우저 표시와 서버 검증은 별도 작업입니다.
+`design.show`는 필드의 규칙 실행 여부를 결정합니다. [표시 여부](#평가)를 참고합니다.
+`validate.required`의 조건은 보이는 필드를 선택 입력으로 만듭니다.
 
 ## 오류와 검증
 

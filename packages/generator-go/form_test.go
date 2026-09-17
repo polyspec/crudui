@@ -399,7 +399,7 @@ func TestInterfaceLanguagesAndRejections(t *testing.T) {
 		`{"type":"text","lang":null}`:                                                                    "Invalid lang at rows: expected a boolean or an object",
 		`{"type":"text","lang":"ko"}`:                                                                    "Invalid lang at rows: expected a boolean or an object",
 		`{"type":"text","lang":["ko"]}`:                                                                  "Invalid lang at rows: expected a boolean or an object",
-		`{"type":"text","multiple":"yes","lang":null}`:                                                   "Invalid multiple at rows: expected a boolean or an object",
+		`{"type":"text","multiple":"yes","lang":null}`:                                                   "Invalid multiple at rows: expected a boolean, only or an object",
 		`{"type":"text","lang":1,"design":[]}`:                                                           "Invalid lang at rows: expected a boolean or an object",
 		`{"type":"text","multiple":{"header":true}}`:                                                     "Invalid multiple.header at rows: expected static or sticky",
 	} {

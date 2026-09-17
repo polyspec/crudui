@@ -98,6 +98,8 @@ input's own label inside the body, and its header holds only a description. A
 - Group rows are collapsible. The summary counts the rows of the collections
   directly in the row body, or shows the collapsed message when there are none.
   Scalar rows have no toggle, title or summary.
+- Rows of a `multiple: only` collection have no row controls, and the structure map shows none
+  for them.
 - Controls follow this order: `move-up` and `move-down` (`multiple.sortable`),
   `add-row`, `copy-row` (`multiple.copy`) and `remove-row`. `move-up` is unavailable
   on the first row and `move-down` on the last. `add-row` and `copy-row` are
@@ -134,8 +136,10 @@ input's own label inside the body, and its header holds only a description. A
   attribute is the only thing a script changes; it never measures rows for layout or
   moves a scroll position. A control inside a sticky row has a top scroll margin of
   the headers pinned above it (`--crudui-sticky-cover`, the line plus one header
-  height), and every form control has a bottom scroll margin of the footer height, so
-  focusing a control scrolls it into view clear of them.
+  height), and every form control has a bottom scroll margin of the footer height. When
+  a binding moves focus it focuses without scrolling and then scrolls the control into
+  view only as far as needed (`scrollIntoView` with `block: 'nearest'`), which keeps to
+  those margins in every engine, so the control lands clear of them.
 
   A sticky node wraps its header in `crudui-node__header-container`. The wrapper is
   the sticky scroll-state container and holds the card top edge; `crudui-node__header`
@@ -175,8 +179,8 @@ and `dataVNode`) for applications that own their data with `bindForm`; the HTML 
 `renderDataPanel(data, messages)` for the same applications. All four renderers
 reproduce the shared [structure map fixture](../../tests/fixtures/form-outline/cases.json). `connectForm` runs actions in the form.
 `connectOutline(element, form, formElement)` runs structure-map actions and focuses
-the first control of the form row a `select-row` button names, which the browser
-scrolls into view.
+the first control of the form row a `select-row` button names and scrolls it into
+view clear of the sticky headers and the footer.
 
 ## Interface messages
 

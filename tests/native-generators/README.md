@@ -60,7 +60,7 @@ node tests/native-generators/run.mjs --extension /absolute/crudui.so \
 `--target` accepts `javascript`, `html`, `php`, `go`, `rust` and `php-native`.
 `--check` accepts a group name (`form-fixture`, `list`, `detail`, `number`,
 `instance`, `request`, `reject`, `compile-reject`, `member-order`, `bindForm-option-reject`,
-`form-option-reject`, `bindForm-shape-reject`, `form-shape-reject`, `dates`), a
+`form-option-reject`, `bindForm-shape-reject`, `form-shape-reject`, `dates`, `text`), a
 complete check id or a pattern with `*`. Both flags accept comma-separated values and
 may be repeated. A selection that matches no check fails, and the report records the
 selection so a filtered run is not mistaken for a complete one.
@@ -75,10 +75,10 @@ records both input manifests. Source directories are read directly, so Git is
 not required. `--source-commit` or `CRUDUI_SOURCE_COMMIT` can record an optional
 source commit without changing the hash comparison.
 
-The existing 92 form cases compare complete compiled templates and bound models.
+The 103 form cases compare complete compiled templates and bound models.
 Templates from each target are bound by JavaScript and JavaScript templates are
 bound by each target without composition loaders or files. Specification member order and control attribute order are
-compared. The 42 list cases compare original HTML strings, including
+compared, and models are compared in member order. The 42 list cases compare original HTML strings, including
 image resource hints, and their input error cases compare code, message and location.
 Historical normalized layout tests remain separate. The 30
 [detail cases](../fixtures/detail-render/README.md) compare both levels a runtime exposes:
@@ -93,6 +93,15 @@ restoration. Each injection case starts with an empty record, then applies the
 record twice and compares each result with initial-data construction. Numeric cases have explicit decimal results rather than accepting
 the JavaScript result as the only expectation. Invalid operations must retain
 data, fields, HTML and revision.
+
+A `multiple: only` collection holds exactly its data rows in data order, missing data is zero
+rows, it renders no row controls, and each row operation on it fails with `INVALID_FORM_INPUT` and
+`Rows of variants come only from data` while the data and HTML stay as they were. A group hidden
+by `design.show` keeps its values while hidden, including a value set then, and renders them when
+shown again. These expectations are written from the specification in the suite, in addition to
+the comparison with JavaScript. Compilation rejects `multiple` other than a boolean, `only` or an
+object, a non-boolean `multiple.only`, and each of `min`, `max`, `copy`, `sortable`, `controls`
+and `onclick` beside `only: true` as an unknown key.
 
 Date cases run in UTC, Asia/Seoul and America/Los_Angeles. The suite sets both
 `TZ` and PHP's `date.timezone`, compares explicit UTC date/datetime/list results,
@@ -136,18 +145,28 @@ with an empty `at`:
 
 | Input | Message |
 | --- | --- |
-| standard input is not one JSON value | `Request must be valid JSON` |
+| standard input is not UTF-8 or not one JSON value | `Request must be valid JSON` |
 | the request is not an object | `Request must be an object` |
 | `options` is present and not an object | `Options must be an object` |
 | `data` is present and not an object | `Form data must be an object` |
 | `operation` is none of the operations | `Unknown generator operation` |
 | the `compileForm` `spec` is not an object | `A form spec must be a group with properties` |
-| the `bindForm`, `bindButtons` or `form` `template` is not an object | `Unsupported form template` |
+| the `bindForm`, `bindButtons` or `form` `template` is not exactly the compiled template shape | `Unsupported form template` |
 | the `form` `actions` is present and not an array | `Actions must be an array` |
 
 A form action that is not an object, names no form method or has no `args` array fails
 its step with `Invalid form action`. Every action failure is recorded in its step and
 execution continues. The `request` checks run the same standard input through every
 program and require the JavaScript result, or its error code, message and location.
+
+The `text` checks send every case of
+[`tests/fixtures/text-validity`](../fixtures/text-validity/README.md) for `compileForm`,
+`bindForm`, `createForm` (the `form` operation, with the case's action), `buildList` and
+`buildDetail` as JSON text with unpaired surrogate escapes, and require the case's
+[input text](../../docs/spec/input-text.md) failure or success. Each program keeps that text
+while decoding: JavaScript with `JSON.parse`, PHP with `JsonText::decode`, Go with
+`generator.DecodeJSON` and `generator.CheckBindText` before template decoding, and Rust with
+`JsonText`, whose shape serves the protocol rules while `crudui_generator::text` checks each
+operation's text first. A last check sends standard input that is not UTF-8.
 Error code, message and location must match in every implementation, as must preserved
 state.

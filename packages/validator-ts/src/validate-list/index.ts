@@ -43,6 +43,7 @@ import { composeRoot } from '../compose-root';
 import type { FileLoader } from '../compose/index';
 import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
+import { checkOptionText, checkedComposition } from '../text/index';
 
 /** Options for a CRUDUI list validation run (mirrors `ValidateOptions`). */
 export interface ValidateListOptions {
@@ -78,8 +79,10 @@ export function validateList(
   spec: Record<string, unknown>,
   options: ValidateListOptions = {}
 ): ValidationResult {
-  const loader: FileLoader =
-    options.loader ?? new MemoryLoader(options.files ?? {});
+  // Input text is checked first: the specification and files, then the options.
+  const checked = checkedComposition(spec, options);
+  checkOptionText(options, ['basepath']);
+  const loader: FileLoader = checked ?? new MemoryLoader(options.files ?? {});
   const opts = options.basepath ? { basepath: options.basepath } : {};
 
   // Pass 1 (G5): compose. Build the composed list tree the forbidden-scan walks.

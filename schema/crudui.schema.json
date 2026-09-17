@@ -175,28 +175,28 @@
               "$ref": "#/definitions/RuleLengthBounds"
             },
             "number": {
-              "description": "Requires a finite number when enabled.",
+              "description": "Requires a numeric value (a finite number or numeric text) when enabled.",
               "$ref": "#/definitions/RuleSwitch"
             },
             "digits": {
-              "description": "Requires digits only when enabled.",
+              "description": "Requires a value whose canonical text is ASCII digits only when enabled.",
               "$ref": "#/definitions/RuleSwitch"
             },
             "min": {
-              "description": "Numeric lower bound.",
+              "description": "Inclusive numeric lower bound, a finite number.",
               "$ref": "#/definitions/RuleNumber"
             },
             "max": {
-              "description": "Numeric upper bound.",
+              "description": "Inclusive numeric upper bound, a finite number.",
               "$ref": "#/definitions/RuleNumber"
             },
             "range": {
-              "description": "Numeric lower and upper bounds.",
+              "description": "Inclusive numeric lower and upper bounds, finite numbers with the minimum not above the maximum.",
               "$ref": "#/definitions/RuleBounds"
             },
             "step": {
-              "description": "Numeric increment.",
-              "$ref": "#/definitions/RuleNumber"
+              "description": "Numeric increment above 0, counted from 0.",
+              "$ref": "#/definitions/RuleStep"
             },
             "match": {
               "description": "Pattern in the CRUDUI pattern language that the whole value must match.",
@@ -294,11 +294,11 @@
             },
             "mincount": {
               "description": "Minimum collection size.",
-              "$ref": "#/definitions/RuleNumber"
+              "$ref": "#/definitions/RuleLength"
             },
             "maxcount": {
               "description": "Maximum collection size.",
-              "$ref": "#/definitions/RuleNumber"
+              "$ref": "#/definitions/RuleLength"
             },
             "unique": {
               "description": "Uniqueness when enabled; a string names an item field or a filter condition. Passed unchanged.",
@@ -866,15 +866,23 @@
       ]
     },
     "Multiple": {
-      "description": "Repeated rows use keyed instance data. Repetition options belong under multiple; row identity is carried by collection keys, without hidden identity fields.",
+      "description": "Repeated rows use keyed instance data. Repetition options belong under multiple; row identity is carried by collection keys, without hidden identity fields. `only`, the same as `{ only: true }`, declares rows that exist only in the data: the data keys are the rows, missing data has no row, and the form offers no row controls or row operations.",
       "anyOf": [
         {
           "type": "boolean"
         },
         {
+          "description": "Rows that exist only in the data; the same as { only: true }.",
+          "const": "only"
+        },
+        {
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "only": {
+              "description": "Whether the rows exist only in the data. With true, only title and header may accompany it.",
+              "const": false
+            },
             "min": {
               "description": "Minimum repeated row count.",
               "type": "number"
@@ -913,6 +921,30 @@
             "onclick": {
               "description": "Opaque repeated-row button action.",
               "$ref": "#/definitions/BehaviorAction"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "only"
+          ],
+          "properties": {
+            "only": {
+              "description": "Whether the rows exist only in the data. With true, only title and header may accompany it.",
+              "const": true
+            },
+            "title": {
+              "description": "Direct child field of a repeated group whose value titles each row.",
+              "type": "string"
+            },
+            "header": {
+              "description": "Whether row headers stay visible while scrolling.",
+              "enum": [
+                "static",
+                "sticky"
+              ]
             }
           }
         }
@@ -976,7 +1008,7 @@
           "$ref": "#/definitions/Items"
         },
         "multiple": {
-          "description": "Repeated rows use keyed instance data. Repetition options belong under multiple; row identity is carried by collection keys, without hidden identity fields.",
+          "description": "Repeated rows use keyed instance data. Repetition options belong under multiple; row identity is carried by collection keys, without hidden identity fields. `only`, the same as `{ only: true }`, declares rows that exist only in the data: the data keys are the rows, missing data has no row, and the form offers no row controls or row operations.",
           "$ref": "#/definitions/Multiple"
         },
         "lang": {
@@ -1213,13 +1245,16 @@
           "$ref": "#/definitions/Design"
         },
         "sortable": {
-          "description": "Whether sorting by this column is available. The application applies sorting.",
+          "description": "Whether sorting by this column is available, optionally selected by an expression or condition map; a map that selects nothing is false. The application applies sorting.",
           "anyOf": [
             {
               "type": "boolean"
             },
             {
               "$ref": "#/definitions/Expression"
+            },
+            {
+              "$ref": "#/definitions/ConditionMap"
             }
           ]
         },
@@ -1703,6 +1738,47 @@
             false,
             null
           ]
+        }
+      ]
+    },
+    "RuleStep": {
+      "description": "Step rule parameter: a finite number above 0, optionally selected by an expression or condition map.",
+      "anyOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        },
+        {
+          "$ref": "#/definitions/Expression"
+        },
+        {
+          "description": "Condition map selecting the parameter.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "enum": [
+                  false,
+                  null
+                ]
+              }
+            ]
+          }
         }
       ]
     }

@@ -1026,7 +1026,8 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 
 // Multiple is repeated rows (true = on) and the dependency-isolation bucket for
 // the multiple target — repetition-control keys live under it, never at top
-// level. Polymorphic false | {} | true.
+// level. Polymorphic false | {} | true | "only"; "only" is the same as
+// {"only": true}, rows that exist only in the data (docs/spec/schema.md).
 //
 // Row identity is not a Multiple field. Repeated data is an object keyed by row
 // identity, and object member order is row order; the specification has no
@@ -1042,7 +1043,11 @@ type Multiple struct {
 	Cancel bool `json:"-"`
 	// Enabled is the true shape: the bare on switch with no body.
 	Enabled bool `json:"-"`
+	// DataOnly is the "only" shape: rows come only from the data.
+	DataOnly bool `json:"-"`
 
+	// Only declares rows that exist only in the data.
+	Only any `json:"only,omitempty"`
 	// Min is the minimum row count.
 	Min any `json:"min,omitempty"`
 	// Max caps the row count.
@@ -1072,21 +1077,29 @@ func (m *Multiple) MarshalJSON() ([]byte, error) {
 	if m.Enabled {
 		return []byte("true"), nil
 	}
+	if m.DataOnly {
+		return []byte(`"only"`), nil
+	}
 	type alias Multiple
 	return json.Marshal((*alias)(m))
 }
 
-// UnmarshalJSON reads Multiple in its polymorphic false | {} | true shape.
+// UnmarshalJSON reads Multiple in its polymorphic false | {} | true | "only"
+// shape.
 func (m *Multiple) UnmarshalJSON(data []byte) error {
 	if b, ok := scalarBool(data); ok {
 		m.Cancel = !b
 		m.Enabled = b
 		return nil
 	}
+	if string(bytes.TrimSpace(data)) == `"only"` {
+		*m = Multiple{DataOnly: true}
+		return nil
+	}
 	if err := rejectForbiddenKeys(data, "multiple"); err != nil {
 		return err
 	}
-	if err := rejectUnknownKeys(data, "multiple", []string{"min", "max", "copy", "sortable", "title", "controls", "header", "onclick"}); err != nil {
+	if err := rejectUnknownKeys(data, "multiple", []string{"only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick"}); err != nil {
 		return err
 	}
 	type alias Multiple

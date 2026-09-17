@@ -36,6 +36,19 @@ for (const [multiple, expected] of [
   [{ title: 'name', controls: 'outline', header: 'sticky' }, true],
   [{ controls: 'side' }, false],
   [{ header: 'fixed' }, false],
+  // `multiple: only` is `multiple.only: true`: it combines with title and header only.
+  ['only', true],
+  [{ only: true }, true],
+  [{ only: true, title: 'name', header: 'sticky' }, true],
+  [{ only: false, min: 1, copy: true }, true],
+  ['all', false],
+  [{ only: 'yes' }, false],
+  [{ only: true, min: 1 }, false],
+  [{ only: true, max: 3 }, false],
+  [{ only: true, copy: true }, false],
+  [{ only: true, sortable: true }, false],
+  [{ only: true, controls: 'header' }, false],
+  [{ only: true, onclick: 'go()' }, false],
 ]) {
   const spec = { type: 'group', properties: { rows: { type: 'text', multiple } } };
   assert.equal(validateForm(spec), expected, `multiple: ${JSON.stringify(validateForm.errors)}`);
@@ -257,6 +270,8 @@ for (const test of read('../examples/cross-check-console/validators/requests.jso
 for (const [file, exported] of [
   ['scenario.mjs', 'spec'],
   ['controls.mjs', 'controlSpec'],
+  ['data-rows.mjs', 'onlySpec'],
+  ['data-rows.mjs', 'visibilitySpec'],
 ]) {
   const module = await import(pathToFileURL(at(`tests/fixtures/form-session/${file}`)));
   checkSpec(`form-session:${file}`, module[exported], validateForm);
@@ -266,6 +281,17 @@ for (const [file, exported] of [
 // Example specifications.
 // ---------------------------------------------------------------------------
 checkSpec('examples/form-structure', YAML.parse(readText('examples/form-structure/spec.yml')), validateForm);
+// The product forms: two specifications and the option-row file they compose with `$ref`.
+const productFiles = {
+  'option-row.yml': YAML.parse(readText('examples/product-forms/option-row.yml')),
+  'option-form.yml': YAML.parse(readText('examples/product-forms/option-form.yml')),
+};
+const productForm = YAML.parse(readText('examples/product-forms/product-form.yml'));
+checkSpec('examples/product-forms/option-form', productFiles['option-form.yml'], validateForm);
+checkSpec('examples/product-forms/product-form', productForm, validateForm);
+checkSpec('examples/product-forms/option-row', productFiles['option-row.yml'].properties, validateProperties);
+checkFiles('examples/product-forms/option-form', productFiles['option-form.yml'], productFiles, 'properties');
+checkFiles('examples/product-forms/product-form', productForm, productFiles, 'properties');
 
 // The console client is a browser module, so it is loaded by its source rather
 // than by path: the nearest package.json does not declare a module type.
@@ -335,7 +361,12 @@ for (const [file, pattern, extract] of packageExamples) {
 // tests, several of them invalid on purpose. Any other YAML file would be a
 // specification no check reads.
 // ---------------------------------------------------------------------------
-const checkedYaml = new Set(['examples/form-structure/spec.yml']);
+const checkedYaml = new Set([
+  'examples/form-structure/spec.yml',
+  'examples/product-forms/option-row.yml',
+  'examples/product-forms/option-form.yml',
+  'examples/product-forms/product-form.yml',
+]);
 const trackedYaml = execFileSync('git', ['ls-files', '*.yml', '*.yaml'], { cwd: repository, encoding: 'utf8' })
   .split('\n').filter((file) => file && !file.startsWith('.github/') && existsSync(at(file)));
 const unchecked = trackedYaml.filter((file) =>

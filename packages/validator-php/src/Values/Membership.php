@@ -6,21 +6,19 @@ namespace CRUDUI\Validator\Values;
 
 /**
  * The member set of `in`: a list (each element as is), a comma-separated string
- * (split at U+002C, each item trimmed) or a map (its keys). A value matches a member
- * when their canonical texts are the same code points, or when both are decimal
- * numbers with equal values as doubles.
+ * (split at U+002C, each item trimmed) or a map (its keys); list elements and map keys are
+ * read as written. A trimmed value matches a member
+ * when their canonical texts are the same code points, or when both are numeric
+ * with equal values.
  *
  * @internal
  */
 final class Membership
 {
-    /** Numbers and strings in this grammar compare by value. */
-    private const DECIMAL = '/^[-+]?(?:[0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$/D';
-
     /** @var array<string, true> canonical member texts */
     private array $texts = [];
 
-    /** @var list<float> member values of decimal members */
+    /** @var list<float> values of numeric members */
     private array $numbers = [];
 
     /** @param list<string|int|float|bool> $members checked scalar members */
@@ -28,7 +26,8 @@ final class Membership
     {
         foreach ($members as $member) {
             $this->texts[(string) CanonicalText::of($member)] = true;
-            $number = self::decimal($member);
+            // Members are read as written: a member with whitespace is not numeric text.
+            $number = Numeric::asWritten($member);
             if ($number !== null) {
                 $this->numbers[] = $number;
             }
@@ -99,7 +98,7 @@ final class Membership
         if (isset($this->texts[$text])) {
             return true;
         }
-        $number = self::decimal($value);
+        $number = Numeric::of($value);
         if ($number !== null) {
             foreach ($this->numbers as $member) {
                 // IEEE equality: -0 equals 0.
@@ -109,18 +108,6 @@ final class Membership
             }
         }
         return false;
-    }
-
-    /** The double of a number or of a string in the decimal grammar. */
-    private static function decimal(mixed $value): ?float
-    {
-        if (\is_int($value) || \is_float($value)) {
-            return (float) $value;
-        }
-        if (\is_string($value) && preg_match(self::DECIMAL, $value) === 1) {
-            return (float) $value;
-        }
-        return null;
     }
 
     private static function failure(string $reason): InvalidRuleParameter

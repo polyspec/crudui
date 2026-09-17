@@ -1,5 +1,97 @@
 # Changes
 
+## 2026-09-17 — Reject text that is not Unicode scalar values in every runtime
+
+- Text in specifications and data is a sequence of Unicode scalar values
+  ([input text](docs/spec/input-text.md)). An unpaired surrogate in a JavaScript string, bytes
+  that are not UTF-8 in a PHP, Go or C string, and an unpaired surrogate escape in JSON text are
+  rejected before any other check of `validate`, `validateList`, `validateDetail`,
+  `compileForm`, `bindForm`, `bindButtons`, `createForm`, the form instance methods,
+  `buildList`, `buildDetail` and their render operations. Go no longer replaces them with U+FFFD,
+  and PHP and Rust no longer fail at JSON decoding with a different error.
+- A specification or composition file failure is the load failure `INVALID_TEXT` located at the
+  path of the text; any other argument or option fails with `INVALID_FORM_INPUT` and the message
+  `Text must be Unicode scalar values: {name}`. Member names count as text, and members are
+  checked in code point order of their names.
+- Go's `compose.DecodeOrdered`, `generator.DecodeJSON` and `ValidateJSON` keep the text for the
+  check, PHP adds `CRUDUI\Validator\Support\JsonText`, Rust adds `crudui_validator::text` and
+  `crudui_generator::text`, and the PHP extension checks PHP values before converting them.
+- The new family `tests/fixtures/text-validity` holds one case file per operation. The validators,
+  the PHP extension, the cross-check console's five processes and the native generator programs
+  run it and record conformance evidence; the programs reject standard input that is not UTF-8.
+
+## 2026-09-17 — Read appearance strings that are not complete expressions as literal text
+
+- `design.class`, `design.style` and the other appearance settings follow the rule `design.show`
+  already follows: a string is an expression only when it parses completely under the expression
+  grammar, and any other string is literal text. A class such as `modal fade in show` or a style
+  such as `font-family: Made in Script` was evaluated as a failing expression and dropped; it is now
+  rendered as written in the JavaScript, PHP, Go and Rust generators and the PHP extension.
+- Two written form cases cover the literal class and style strings; the shared form cases grow to
+  103.
+
+## 2026-09-17 — Hidden fields, data-only rows and one numeric reading in every runtime
+
+- A field whose `design.show` resolves to `false` against the data is hidden: validation skips its
+  rules and every rule inside it, reports no error for it, and keeps its value, so a setting switched
+  off keeps its values and is validated again when it is switched back on. Only a resolved `false`
+  hides; a condition map that selects nothing and a string that is not a complete expression are
+  visible. The data shape is still checked for hidden fields. Forms decide visibility with the same
+  rule and keep hidden values in the instance and in `getData()`.
+- A list column's `sortable` may be a condition map, as the generators already read it; a map that
+  selects nothing is not sortable.
+- `multiple: only` (the same as `multiple.only: true`) declares rows that exist only in the data: the
+  data's keys are the rows, missing data has no row, the form renders no row controls and no add-row
+  control, and every row operation fails with `Rows of {path} come only from data`. It combines with
+  `title` and `header`; compilation reports the other keys and wrong values with the messages in
+  [schema](docs/spec/schema.md).
+- Missing data of a repeated field or group is an empty collection, so `required` and the count
+  rules apply to it.
+- Numbers are read one way: numeric text is the HTML valid floating-point number (no `+`, no
+  trailing dot, exponents allowed) with a finite value. `min`, `max`, `range` and `step` fail values
+  that are not numeric; `step` decides multiples exactly on the decimal texts, counted from 0;
+  `digits` reads the canonical text; counts give arrays their length, objects their key count,
+  missing, null and blank values 0 and other scalars 1; `in` compares numeric members with the same
+  reading and reads list members as written. Numeric and count parameters are checked like length
+  limits (`INVALID_RULE_PARAMETER`). Messages print parameters as canonical text and replace every
+  placeholder of a parameter the rule has.
+- Removed: the per-runtime number parsers (`is_numeric`, `strconv.ParseFloat`, `str::parse`,
+  `strtod`, `parseFloat` fallbacks), the step tolerance and rounding, and the C engine's
+  locale-dependent number reading and writing, which is replaced by exact conversions tested under a
+  comma-decimal locale. The PHP packages' tests fail on any warning, notice or deprecation.
+- The shared validation cases grow to 238, with new form, list, structure-map and session cases, and
+  `examples/product-forms` shows an option-combination form and a large product form in the current
+  grammar, validated and rendered by a test.
+
+## 2026-09-17 — Accept only the compiled template shape and order widget members
+
+- `bindForm`, `bindButtons` and form instances in every runtime (JavaScript, PHP library and
+  extension, Go, Rust) accept only a template with exactly the shape `compileForm` produces:
+  `kind`, `fields`, `buttons`, an optional string `keyPrefix` and an optional object `action`,
+  and field templates with exactly `name`, `spec` and `children`. Any other value fails with
+  `INVALID_FORM_INPUT` and `Unsupported form template`. Rust reads templates through
+  `FormTemplate::from_json`, which its `Deserialize` implementation uses.
+- Widget models list their members in one order in every runtime, and a file widget's `extra`
+  has `display` before `file`. The native generator comparison checks member order and 69
+  template shape requests; the form runtime and PHP extension specifications say so.
+
+## 2026-09-17 — Scroll a moved focus the same way in every engine
+
+- The CI job "Form instances and data injection" failed in WebKit on Linux: after an Add row
+  action the new row's input ended below the sticky footer (709 px against a 644 px limit in a
+  700 px page, and the same 65 px in a scrolling box and a frame). Measured in the Playwright
+  image, `focus()` in that engine scrolls a far control without keeping to its scroll margins
+  (its bottom 9 px past the view, and from below its top 9 px above the view, under the pinned
+  headers), while `scrollIntoView({ block: 'nearest' })` keeps to them.
+- `connectForm` and `connectOutline` no longer leave scrolling to focus. When they move focus to
+  a row, they focus with `preventScroll` and then scroll the control into view only as far as
+  needed with `scrollIntoView({ block: 'nearest', inline: 'nearest' })`, so the stylesheet's
+  scroll margins keep it clear of the sticky headers and the footer in Chromium, Firefox and
+  WebKit on macOS and Linux. The form markup and form runtime specifications say so.
+- `make test-form-styles-linux` (`scripts/test-form-styles-linux.sh`) runs the stylesheet layout
+  checks on Linux as the CI runner does, in the Playwright image of the pinned version, through
+  `container` on macOS or `docker`; it is not part of `make ci`.
+
 ## 2026-09-17 — Check the stylesheet layout in WebKit
 
 - `tests/form-styles.test.mjs` runs its sticky header, level label, seam, row card and focus

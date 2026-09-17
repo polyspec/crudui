@@ -4,33 +4,20 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\InvalidRuleParameter;
+use CRUDUI\Validator\Values\LengthLimit;
+use CRUDUI\Validator\Values\Numeric;
+
 /**
- * Min Count validation rule.
- * Validates that an array has at least the specified number of items.
+ * Minimum collection size: array elements, object keys, 0 for a missing or blank value, 1 for another scalar.
  */
 class MinCount implements RuleInterface
 {
     /**
-     * Validate that an array has at least the minimum number of items.
+     * @throws InvalidRuleParameter when the parameter is outside the validation rules
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
-        if (!is_numeric($param)) {
-            return true;
-        }
-
-        $minCount = (int)$param;
-
-        if ($value instanceof \stdClass) $value = (array) $value;
-        if (is_array($value)) {
-            return count($value) >= $minCount;
-        }
-
-        // Handle countable objects
-        if ($value instanceof \Countable) {
-            return count($value) >= $minCount;
-        }
-
-        return false;
+        return Numeric::count($value) >= LengthLimit::single('mincount', $param);
     }
 }

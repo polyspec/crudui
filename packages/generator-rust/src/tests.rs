@@ -266,6 +266,58 @@ fn appearance_uses_the_validator_expression_recognizer() {
 }
 
 #[test]
+fn data_only_collections_hold_exactly_the_data_rows() {
+    for multiple in [json!("only"), json!({"only":true,"title":"name"})] {
+        let template = compile_form(&json!({"type":"group","properties":{
+            "variants":{"type":"group","multiple":multiple,"properties":{"name":{"type":"text"}}},
+            "tags":{"type":"text","multiple":"only"}
+        }}), &CompileOptions::default()).unwrap();
+        let empty = Form::new(template.clone(), &json!({}), BindOptions::default()).unwrap();
+        assert_eq!(empty.get_data(), json!({"variants":{},"tags":{}}));
+        for node in empty.fields() {
+            assert_eq!(node["children"], json!([]));
+            assert!(node.get("controls").is_none(), "{node}");
+        }
+        let data = json!({"variants":{"b":{"name":"B"},"a":{"name":"A"}},"tags":{"t":"x"}});
+        let mut form = Form::new(template, &data, BindOptions::default()).unwrap();
+        let rows = form.fields()[0]["children"].as_array().unwrap().clone();
+        assert_eq!(
+            rows.iter()
+                .map(|row| row["key"].clone())
+                .collect::<Vec<_>>(),
+            ["b", "a"]
+        );
+        assert!(rows.iter().all(|row| row.get("controls").is_none()));
+        let before = (form.get_data(), form.fields().to_vec(), form.revision());
+        let results = [
+            form.add_row("variants", AddRowOptions::default())
+                .map(|_| ()),
+            form.copy_row("variants", "a", AddRowOptions::default())
+                .map(|_| ()),
+            form.remove_row("variants", "a"),
+            form.move_row("variants", "a", 0),
+            form.rekey_row("variants", "a", "c"),
+            form.add_row("tags", AddRowOptions::default()).map(|_| ()),
+        ];
+        for (index, result) in results.into_iter().enumerate() {
+            let error = result.unwrap_err();
+            let path = if index == 5 { "tags" } else { "variants" };
+            assert_eq!(
+                (error.code.as_str(), error.message),
+                (
+                    "INVALID_FORM_INPUT",
+                    format!("Rows of {path} come only from data")
+                )
+            );
+        }
+        assert_eq!(
+            (form.get_data(), form.fields().to_vec(), form.revision()),
+            before
+        );
+    }
+}
+
+#[test]
 fn rows_have_ordered_controls_titles_and_sticky_headers() {
     let template = compile_form(&json!({"type":"group","properties":{
         "items":{"type":"group","label":"Items","multiple":{"min":1,"max":2,"copy":true,"sortable":true,"title":"name","header":"sticky"},"properties":{
@@ -437,7 +489,16 @@ fn repeated_declarations_reject_titles_controls_and_headers() {
         (json!({"type":"text","lang":null}), "Invalid lang at rows: expected a boolean or an object"),
         (json!({"type":"text","lang":"ko"}), "Invalid lang at rows: expected a boolean or an object"),
         (json!({"type":"text","lang":["ko"]}), "Invalid lang at rows: expected a boolean or an object"),
-        (json!({"type":"text","multiple":"yes","lang":null}), "Invalid multiple at rows: expected a boolean or an object"),
+        (json!({"type":"text","multiple":"yes","lang":null}), "Invalid multiple at rows: expected a boolean, only or an object"),
+        (json!({"type":"group","multiple":"ONLY","properties":{"name":{"type":"text"}}}), "Invalid multiple at rows: expected a boolean, only or an object"),
+        (json!({"type":"group","multiple":{"only":"yes"},"properties":{"name":{"type":"text"}}}), "Invalid multiple.only at rows: expected a boolean"),
+        (json!({"type":"group","multiple":{"only":true,"title":"name","max":3},"properties":{"name":{"type":"text"}}}), "Invalid multiple.max at rows: unknown key"),
+        (json!({"type":"group","multiple":{"sortable":true,"only":true},"properties":{"name":{"type":"text"}}}), "Invalid multiple.sortable at rows: unknown key"),
+        (json!({"type":"group","multiple":{"only":true,"controls":"footer"},"properties":{"name":{"type":"text"}}}), "Invalid multiple.controls at rows: unknown key"),
+        (json!({"type":"group","multiple":{"only":true,"onclick":"x()"},"properties":{"name":{"type":"text"}}}), "Invalid multiple.onclick at rows: unknown key"),
+        (json!({"type":"group","multiple":{"only":true,"copy":false},"properties":{"name":{"type":"text"}}}), "Invalid multiple.copy at rows: unknown key"),
+        (json!({"type":"group","multiple":{"only":true,"min":0},"properties":{"name":{"type":"text"}}}), "Invalid multiple.min at rows: unknown key"),
+        (json!({"type":"group","multiple":{"title":"tags"},"properties":{"tags":{"type":"text","multiple":"only"}}}), "Invalid multiple.title at rows: expected the name of a direct child field without multiple, properties or lang"),
         (json!({"type":"text","lang":null,"design":[]}), "Invalid lang at rows: expected a boolean or an object"),
         (json!({"type":"text","lang":{"only":"ko"}}), "Invalid lang.only at rows: expected a list of language codes or an object"),
         (json!({"type":"text","lang":{"only":null}}), "Invalid lang.only at rows: expected a list of language codes or an object"),
@@ -465,7 +526,7 @@ fn closed_declaration_buckets_reject_unknown_keys() {
         ),
         (
             json!({"type":"group","multiple":"yes"}),
-            "Invalid multiple at items: expected a boolean or an object",
+            "Invalid multiple at items: expected a boolean, only or an object",
         ),
         (
             json!({"type":"text","lang":{"mode":"append","langs":["ko"],"only":"ko"}}),
@@ -1427,4 +1488,105 @@ fn bind_buttons_and_form_buttons_html_match_the_javascript_output() {
         .unwrap(),
         r#"<button onclick="go()">x</button>"#
     );
+}
+
+/// A template that is not exactly the compiled shape is rejected when it is read.
+#[test]
+fn template_shape_is_rejected() {
+    for text in [
+        r#"null"#,
+        r#"[]"#,
+        r#"{"kind":"crudui/form-template","buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":{},"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":["name"],"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[{"name":"name","spec":{}}],"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[{"name":"name","spec":{},"children":[],"label":"x"}],"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[{"name":1,"spec":{},"children":[]}],"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[{"name":"n","spec":[],"children":[]}],"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[{"name":"n","spec":{},"children":[1]}],"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[],"buttons":{}}"#,
+        r#"{"kind":"crudui/form-template","fields":[],"buttons":[[]]}"#,
+        r#"{"kind":"crudui/form-template","fields":[],"buttons":[],"version":1}"#,
+        r#"{"kind":"other","fields":[],"buttons":[]}"#,
+        r#"{"fields":[],"buttons":[]}"#,
+        r#"{"kind":"crudui/form-template","fields":[],"buttons":[],"keyPrefix":null}"#,
+        r#"{"kind":"crudui/form-template","fields":[],"buttons":[],"action":"/save"}"#,
+        r#"{"kind":"crudui/form-template","fields":[],"buttons":[],"action":null}"#,
+    ] {
+        let value: Value = serde_json::from_str(text).unwrap();
+        let error = FormTemplate::from_json(&value).unwrap_err();
+        assert_eq!(
+            (
+                error.code.as_str(),
+                error.message.as_str(),
+                error.at.as_str()
+            ),
+            ("INVALID_FORM_INPUT", "Unsupported form template", ""),
+            "{text}"
+        );
+        let decoded = serde_json::from_value::<FormTemplate>(value);
+        assert_eq!(
+            decoded.unwrap_err().to_string(),
+            "Unsupported form template",
+            "{text}"
+        );
+    }
+    let declared = json!({"kind":"crudui/form-template","keyPrefix":"p","action":{"url":"/save"},
+        "fields":[{"name":"name","spec":{"type":"text"},"children":[]}],"buttons":[{"type":"submit"}]});
+    let template = FormTemplate::from_json(&declared).unwrap();
+    assert_eq!(template.key_prefix.as_deref(), Some("p"));
+    assert_eq!(serde_json::to_value(&template).unwrap(), declared);
+    let compiled = self::template();
+    let text = serde_json::to_value(&compiled).unwrap();
+    assert_eq!(
+        serde_json::from_value::<FormTemplate>(text).unwrap(),
+        compiled
+    );
+}
+
+/// Widget model members follow one output order; a file widget's `extra` has `display` before `file`.
+#[test]
+fn widget_members_follow_the_output_order() {
+    let template = compile_form(
+        &json!({"type":"group","properties":{
+            "memo":{"type":"textarea","prepend":"P"},"note":{"type":"dummy"},"go":{"type":"button"},
+            "pick":{"type":"choice","items":{"a":"A"}},"doc":{"type":"file"}
+        }}),
+        &CompileOptions::default(),
+    )
+    .unwrap();
+    let nodes = bind_form(&template, &json!({}), &BindOptions::default()).unwrap();
+    let mut checked = 0;
+    for node in &nodes {
+        let Some(widget) = node["widget"].as_object() else {
+            continue;
+        };
+        checked += 1;
+        let positions: Vec<usize> = widget
+            .keys()
+            .map(|key| {
+                crate::widget::WIDGET_MEMBERS
+                    .iter()
+                    .position(|member| member == key)
+                    .unwrap_or_else(|| panic!("unordered member {key}"))
+            })
+            .collect();
+        assert!(
+            positions.windows(2).all(|pair| pair[0] < pair[1]),
+            "{:?}",
+            widget.keys()
+        );
+        if widget["kind"] == "file" {
+            assert_eq!(
+                widget["extra"]
+                    .as_object()
+                    .unwrap()
+                    .keys()
+                    .collect::<Vec<_>>(),
+                ["display", "file"]
+            );
+        }
+    }
+    assert_eq!(checked, 5);
 }

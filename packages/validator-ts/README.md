@@ -11,13 +11,16 @@ The package root exports:
 
 - `validate(spec, data, options?)` composes the form specification, rejects
   forbidden keys and validates `data`. It returns `{ valid, errors }`; each error
-  has `path`, `field`, `rule`, `message` and `value`.
+  has `path`, `field`, `rule`, `message` and `value`. A field whose
+  `design.show` resolves to `false` is hidden and its rules, and those of every
+  field it contains, are skipped (their data shape is still checked); missing repeated data is an empty collection.
 - `validateList(spec, options?)` composes a list specification and rejects
   forbidden keys. A list has no submitted data, so a clean load returns
   `{ valid: true, errors: [] }`.
 - `validateDetail(spec, options?)` performs the same structure check for a detail
   specification, including its `fields` map.
-- `ComposeLoadError` for an unresolved `$ref` or `$patch` and for a forbidden key.
+- `ComposeLoadError` for an unresolved `$ref` or `$patch`, a forbidden key and a
+  rule parameter outside the definitions.
 - `FormInputError` (code `INVALID_FORM_INPUT`) for root data that is not an
   object, group data that is not an object and repeated data that is not a keyed
   object.

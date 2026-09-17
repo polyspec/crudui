@@ -22,6 +22,10 @@ bool ps_rule_parameter(ps_text rule, const ps_value *parameter, ps_pattern_cache
         *problem = ps_length_parameter(rule, parameter);
         return true;
     }
+    if (ps_number_rule(rule)) {
+        *problem = ps_number_parameter(rule, parameter);
+        return true;
+    }
     if (ps_text_is(rule, "in")) {
         *problem = ps_in_parameter(parameter);
         return !problem->code || strcmp(problem->code, "INTERNAL_ERROR");
@@ -89,15 +93,17 @@ static ps_value *check_value(ps_text rule, const ps_value *parameter, const ps_t
 }
 
 /*
- * The load failure of a declared parameter. A length limit may be conditional: every value of a
- * condition map and every literal branch of a ternary is checked, selected or not; a branch that
- * takes its value from the data, and the result of any other expression, is checked when
- * validation selects it. A string that is not an expression is a literal.
+ * The load failure of a declared parameter. A length, numeric or count parameter may be
+ * conditional: every value of a condition map and every literal branch of a ternary is checked,
+ * selected or not; a branch that takes its value from the data, and the result of any other
+ * expression, is checked when validation selects it. A string that is not an expression is a
+ * literal. Pattern and membership parameters are used as declared.
  */
 static ps_value *check_declared(ps_text rule, const ps_value *parameter, const ps_text *path, size_t length,
                                 ps_pattern_cache *patterns)
 {
-    if (!ps_length_rule(rule)) return check_value(rule, parameter, path, length, patterns);
+    if (!ps_length_rule(rule) && !ps_number_rule(rule))
+        return check_value(rule, parameter, path, length, patterns);
     if (parameter->kind == PS_OBJECT) {
         for (size_t i = 0; i < ps_size(parameter); ++i) {
             ps_value *error = check_value(rule, ps_at(parameter, i), path, length, patterns);

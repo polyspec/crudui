@@ -80,7 +80,7 @@ final class Template
             return false;
         }
         $child = (array) $child;
-        $repeated = ($child['multiple'] ?? null) === true || self::isObject($child['multiple'] ?? null);
+        $repeated = ($child['multiple'] ?? null) === true || ($child['multiple'] ?? null) === 'only' || self::isObject($child['multiple'] ?? null);
         $lang = ($child['lang'] ?? null) === true || self::isObject($child['lang'] ?? null);
         return ($child['type'] ?? null) !== 'group' && !array_key_exists('properties', $child) && !$repeated && !$lang;
     }
@@ -148,12 +148,19 @@ final class Template
         }
         if (array_key_exists('multiple', $spec)) {
             $multiple = $spec['multiple'];
-            if (!is_bool($multiple) && !self::isObject($multiple)) {
-                $fail('multiple', 'a boolean or an object');
+            if (!is_bool($multiple) && $multiple !== 'only' && !self::isObject($multiple)) {
+                $fail('multiple', 'a boolean, only or an object');
             }
             if (self::isObject($multiple)) {
                 $settings = (array) $multiple;
-                self::closed('multiple', $settings, ['min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'], $path);
+                self::closed('multiple', $settings, ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'], $path);
+                if (array_key_exists('only', $settings) && !is_bool($settings['only'])) {
+                    $fail('multiple.only', 'a boolean');
+                }
+                // Rows of a data-only collection come from the data: row limits and row controls do not apply.
+                if (($settings['only'] ?? null) === true) {
+                    self::closed('multiple', $settings, ['only', 'title', 'header'], $path);
+                }
                 foreach (['min', 'max'] as $key) {
                     if (array_key_exists($key, $settings) && !is_int($settings[$key]) && !is_float($settings[$key])) {
                         $fail('multiple.' . $key, 'a number');
@@ -258,11 +265,46 @@ final class Template
         }
     }
 
-    /** Reject values without the compiled form template kind and field list. */
-    public static function check(stdClass $template): void
+    /**
+     * Copy a template input as JSON values, rejecting a value that is not exactly the shape
+     * compile produces: the template kind, a field list, a button object list, an optional
+     * string keyPrefix, an optional object action and no other member; each field has exactly
+     * a string name, an object spec and a field list children.
+     */
+    public static function checked(stdClass $template): stdClass
     {
-        if (($template->kind ?? null) !== 'crudui/form-template' || !is_array($template->fields ?? null)) {
+        $copy = Value::spec($template);
+        $members = array_map('strval', array_keys((array) $copy));
+        $valid = array_diff($members, ['kind', 'keyPrefix', 'fields', 'buttons', 'action']) === []
+            && ($copy->kind ?? null) === 'crudui/form-template'
+            && self::fieldList($copy->fields ?? null)
+            && is_array($copy->buttons ?? null)
+            && array_filter($copy->buttons, static fn ($button) => !$button instanceof stdClass) === []
+            && (!property_exists($copy, 'keyPrefix') || is_string($copy->keyPrefix))
+            && (!property_exists($copy, 'action') || $copy->action instanceof stdClass);
+        if (!$valid) {
             throw new FormError('INVALID_FORM_INPUT', 'Unsupported form template');
         }
+        return $copy;
+    }
+
+    /** A JSON list of field templates. */
+    private static function fieldList(mixed $fields): bool
+    {
+        if (!is_array($fields)) {
+            return false;
+        }
+        foreach ($fields as $field) {
+            if (!$field instanceof stdClass) {
+                return false;
+            }
+            $members = array_map('strval', array_keys((array) $field));
+            sort($members);
+            if ($members !== ['children', 'name', 'spec'] || !is_string($field->name)
+                || !$field->spec instanceof stdClass || !self::fieldList($field->children)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -27,6 +27,7 @@ import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 import { Validator } from './validator';
 import { FormInputError } from './errors';
+import { checkInputText, checkOptionText, checkedComposition } from '../text/index';
 
 export { Validator, type ComposedField } from './validator';
 export { ComposeLoadError } from '../compose/index';
@@ -60,12 +61,16 @@ export function validate(
   data: unknown,
   options: ValidateOptions = {}
 ): ValidationResult {
+  // Input text is checked first: the specification and files, the data, then the options.
+  const checked = checkedComposition(spec, options);
+  checkInputText([['data', data]]);
+  checkOptionText(options, ['basepath']);
   // Root data is a request precondition, checked before composition.
   if (data === null || typeof data !== 'object' || Array.isArray(data)) {
     throw new FormInputError('Form data must be an object');
   }
   const loader: FileLoader =
-    options.loader ?? new MemoryLoader(options.files ?? {});
+    checked ?? new MemoryLoader(options.files ?? {});
   const opts = options.basepath ? { basepath: options.basepath } : {};
 
   // Pass 1 (G5): compose. Throws ComposeLoadError on unresolved $ref/$patch.

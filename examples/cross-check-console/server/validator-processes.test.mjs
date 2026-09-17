@@ -8,7 +8,9 @@
  *   - every form case in tests/fixtures/validate/cases.json (exit 0 with exactly
  *     `{ valid, errors }`, or exit 2 with exactly `{ error, code, at }`);
  *   - every list and detail case in tests/fixtures/{list,detail}-validity/cases.json with
- *     non-object `data`, which those modes ignore.
+ *     non-object `data`, which those modes ignore;
+ *   - every validation case in tests/fixtures/text-validity, whose unpaired surrogate escapes each
+ *     process reports as the validator's input text failure, and standard input that is not UTF-8.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -93,6 +95,31 @@ describe('validator processes — form validation cases', () => {
       expectResponses(JSON.stringify(request), expected);
     }, 60000);
   }
+});
+
+describe('validator processes — input text cases', () => {
+  const modes = { validate: 'form', validateList: 'list', validateDetail: 'detail' };
+  for (const [feature, mode] of Object.entries(modes)) {
+    for (const c of read(`tests/fixtures/text-validity/${feature}/cases.json`)) {
+      test(`${feature}: ${c.name}`, () => {
+        const request = { mode, spec: c.spec };
+        if (Object.hasOwn(c, 'data')) request.data = c.data;
+        if (Object.hasOwn(c, 'files')) request.files = c.files;
+        if (c.options?.basepath !== undefined) request.basepath = c.options.basepath;
+        // JSON text keeps each unpaired surrogate as an escape.
+        const input = JSON.stringify(request);
+        if (c.expect.code) expect(input).toMatch(/\\ud[89a-f][0-9a-f]{2}/);
+        const expected = c.expect.code
+          ? { exit: 2, output: { error: c.expect.message, code: c.expect.code, at: c.expect.at } }
+          : { exit: 0, output: c.expect };
+        expectResponses(input, expected);
+      }, 60000);
+    }
+  }
+  test('standard input that is not UTF-8 is not JSON text', () => {
+    const input = Buffer.concat([Buffer.from('{"spec":{"type":"group","properties":{}},"data":{"a":"'), Buffer.from([0xed, 0xa0, 0x80]), Buffer.from('"}}')]);
+    expectResponses(input, { exit: 1, output: { error: 'Request must be valid JSON' } });
+  }, 60000);
 });
 
 for (const mode of ['list', 'detail']) {

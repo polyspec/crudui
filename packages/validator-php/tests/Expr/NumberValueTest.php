@@ -34,4 +34,13 @@ final class NumberValueTest extends TestCase
         self::assertTrue(Expression::evaluate('.value == 5', ['value' => '0b101']));
         self::assertFalse(Expression::evaluate('.value == 16', ['value' => '-0x10']));
     }
+
+    public function testNumbersBeyondTheIntegerRangeKeepTheirValue(): void
+    {
+        self::assertTrue(Expression::evaluate('.value == 100000000000000000000000000', ['value' => 1e26]));
+        self::assertTrue(Expression::evaluate(".value == '1e+26'", ['value' => 1e26]));
+        self::assertTrue(Expression::evaluate(".value == '-9223372036854776000'", ['value' => -9223372036854775807 - 1]));
+        self::assertTrue(Expression::evaluate(".value != 'x'", ['value' => 1e26]));
+        self::assertTrue(Expression::evaluateValue('.flag ? 100000000000000000000000000 : 0', ['flag' => true]) === 1e26);
+    }
 }

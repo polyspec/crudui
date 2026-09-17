@@ -4,6 +4,9 @@
 
 use std::io::{self, Read};
 
+use crudui_generator::text::{
+    check_bind, check_compile_form, check_display, check_form_method, JsonText,
+};
 use crudui_generator::{
     bind_buttons, bind_form, build_detail, build_list, compile_form, form_buttons_html, list_rows,
     render_detail, render_form, render_list, AddRowOptions, BindOptions, CompileOptions,
@@ -25,13 +28,9 @@ fn decode<T: DeserializeOwned>(value: &Value) -> FormResult<T> {
     serde_json::from_value(value.clone()).map_err(|error| input(error.to_string()))
 }
 
-/// A form template is a JSON object of the compiled template kind; any other value is
-/// rejected before it is decoded.
+/// A form template is exactly the compiled template shape; any other value is rejected.
 fn template(value: &Value) -> FormResult<FormTemplate> {
-    if value["kind"] != "crudui/form-template" {
-        return Err(input("Unsupported form template"));
-    }
-    decode(value)
+    FormTemplate::from_json(value)
 }
 
 fn object<'a>(value: &'a Value, name: &str) -> FormResult<&'a Value> {
@@ -77,7 +76,12 @@ fn string_arg(args: &[Value], index: usize) -> FormResult<&str> {
         .ok_or_else(|| input(format!("Argument {index} must be a string")))
 }
 
-fn action(form: &mut Form, action: &Value) -> FormResult<Value> {
+/// The text checks of a request part, when the request holds invalid text.
+fn part<'a>(text: Option<&'a JsonText>, name: &str) -> Option<&'a JsonText> {
+    text.and_then(|text| text.get(name))
+}
+
+fn action(form: &mut Form, action: &Value, text: Option<&JsonText>) -> FormResult<Value> {
     const METHODS: [&str; 9] = [
         "setData",
         "setValue",
@@ -94,6 +98,9 @@ fn action(form: &mut Form, action: &Value) -> FormResult<Value> {
     };
     if !METHODS.contains(&method) {
         return Err(input("Invalid form action"));
+    }
+    if let Some(JsonText::Array(args)) = part(text, "args") {
+        check_form_method(method, args)?;
     }
     match method {
         "setData" => {
@@ -148,21 +155,26 @@ fn action(form: &mut Form, action: &Value) -> FormResult<Value> {
     Ok(Value::Null)
 }
 
-fn generate(request: &Value) -> FormResult<Value> {
+fn generate(request: &Value, text: Option<&JsonText>) -> FormResult<Value> {
     object(request, "Request")?;
     let empty = json!({});
     let options = object(request.get("options").unwrap_or(&empty), "Options")?;
     match request["operation"].as_str() {
         Some("compileForm") => {
+            if text.is_some() {
+                check_compile_form(part(text, "spec"), part(text, "options"))?;
+            }
             serde_json::to_value(compile_form(&request["spec"], &compile_options(options)?)?)
                 .map_err(|error| input(error.to_string()))
         }
         Some("bindForm") => {
+            check_template_text(request, text)?;
             let template = template(&request["template"])?;
             let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
             Ok(bind_form(&template, data, &decode::<BindOptions>(options)?)?.into())
         }
         Some("bindButtons") => {
+            check_template_text(request, text)?;
             let template = template(&request["template"])?;
             let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
             Ok(bind_buttons(&template, data, &decode::<BindOptions>(options)?)?.into())
@@ -174,6 +186,14 @@ fn generate(request: &Value) -> FormResult<Value> {
             Ok(form_buttons_html(buttons)?.into())
         }
         Some("buildList") | Some("renderList") => {
+            if text.is_some() {
+                check_display(
+                    part(text, "spec"),
+                    "rows",
+                    part(text, "rows"),
+                    part(text, "options"),
+                )?;
+            }
             let compilation = compile_options(options)?;
             let language = option_string(options, "language")?.unwrap_or_else(|| "ko".into());
             // The specification rule precedes the rows rule, which only decoded JSON can break.
@@ -200,6 +220,14 @@ fn generate(request: &Value) -> FormResult<Value> {
             }
         }
         Some("renderDetail") => {
+            if text.is_some() {
+                check_display(
+                    part(text, "spec"),
+                    "record",
+                    part(text, "record"),
+                    part(text, "options"),
+                )?;
+            }
             let compilation = compile_options(options)?;
             let options = DetailOptions {
                 files: compilation.files,
@@ -216,6 +244,14 @@ fn generate(request: &Value) -> FormResult<Value> {
             render_detail(&request["spec"], record, &options).map(Value::String)
         }
         Some("buildDetail") => {
+            if text.is_some() {
+                check_display(
+                    part(text, "spec"),
+                    "record",
+                    part(text, "record"),
+                    part(text, "options"),
+                )?;
+            }
             let compilation = compile_options(options)?;
             let options = DetailOptions {
                 files: compilation.files,
@@ -232,6 +268,7 @@ fn generate(request: &Value) -> FormResult<Value> {
             build_detail(&request["spec"], record, &options)
         }
         Some("form") => {
+            check_template_text(request, text)?;
             let template = template(&request["template"])?;
             let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
             let mut form = Form::new(template, data, decode(options)?)?;
@@ -243,8 +280,9 @@ fn generate(request: &Value) -> FormResult<Value> {
                     .as_slice(),
                 None => &[],
             };
-            for step in actions {
-                let (result, error) = match action(&mut form, step) {
+            for (index, step) in actions.iter().enumerate() {
+                let step_text = part(text, "actions").and_then(|actions| actions.item(index));
+                let (result, error) = match action(&mut form, step, step_text) {
                     Ok(value) => (value, Value::Null),
                     Err(error) => (Value::Null, error_json(error)),
                 };
@@ -258,15 +296,35 @@ fn generate(request: &Value) -> FormResult<Value> {
     }
 }
 
+/// A binding's text checks follow the template object rule.
+fn check_template_text(request: &Value, text: Option<&JsonText>) -> FormResult<()> {
+    if text.is_none() {
+        return Ok(());
+    }
+    if !request["template"].is_object() {
+        return Err(input("Unsupported form template"));
+    }
+    check_bind(
+        part(text, "template"),
+        part(text, "data"),
+        part(text, "options"),
+    )
+}
+
 fn main() {
+    // Standard input that is not UTF-8 is not JSON text. JSON text with an
+    // unpaired surrogate escape is read without replacing it: the protocol
+    // rules read its shape and each operation's text checks run first.
     let mut source = String::new();
     let result = io::stdin()
         .read_to_string(&mut source)
-        .map_err(|error| input(error.to_string()))
-        .and_then(|_| {
-            let request: Value =
-                serde_json::from_str(&source).map_err(|_| input("Request must be valid JSON"))?;
-            generate(&request)
+        .map_err(|_| input("Request must be valid JSON"))
+        .and_then(|_| match serde_json::from_str::<Value>(&source) {
+            Ok(request) => generate(&request, None),
+            Err(_) => match JsonText::parse(&source) {
+                Ok(text) if text.has_invalid_text() => generate(&text.shape(), Some(&text)),
+                _ => Err(input("Request must be valid JSON")),
+            },
         });
     match result {
         Ok(value) => println!("{value}"),

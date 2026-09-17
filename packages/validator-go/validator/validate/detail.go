@@ -26,6 +26,10 @@ import (
 // clean. An unresolved composition or a forbidden meta key returns a
 // *compose.ComposeLoadError.
 func ValidateDetail(spec *compose.OMap, opts Options) (ValidationResult, error) {
+	// Input text is checked first (docs/spec/input-text.md).
+	if err := checkText(spec, opts); err != nil {
+		return ValidationResult{}, err
+	}
 	if spec == nil {
 		spec = compose.NewOMap()
 	}

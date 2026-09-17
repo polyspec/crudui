@@ -128,9 +128,10 @@ fn main() {
 구현을 비교합니다. 그 요청과 응답 계약은 콘솔의
 [검증기 프로세스](../../examples/cross-check-console/validators/README.ko.md) 문서에 있습니다.
 
-표시 여부는 검증을 비활성화하지 않습니다. `design.show: false`는 필드를 숨기지만
-필수 규칙을 변경하지 않습니다. 조건부 필수 입력은 `validate.required`에 표현식을
-사용합니다. [표현식 계약](../spec/expressions.ko.md)을 참고합니다.
+제출된 데이터에 대해 `design.show`가 숨기는 필드는 검증하지 않으며 그 값은 데이터에 남습니다.
+[표시 여부](../spec/validation-rules.ko.md#평가)를 참고합니다. 어떤 값을 저장할지는 애플리케이션이 같은
+데이터로 결정합니다. `validate.required`의 조건은 보이는 필드를 선택 입력으로 만듭니다.
+[표현식 계약](../spec/expressions.ko.md)을 참고합니다.
 
 데이터 검증은 HTTP 디코딩, 저장 또는 전송 순서를 구현하지 않습니다.
 해당 작업은 [ordered JSON 절차](ordered-json.ko.md)와
