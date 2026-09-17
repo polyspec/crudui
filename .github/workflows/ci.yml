@@ -293,7 +293,7 @@ jobs:
   form-runtime:
     name: Form instances and data injection
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
       PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
@@ -307,6 +307,8 @@ jobs:
           cache: npm
       - name: Install workspace dependencies
         run: npm i -g npm@latest && npm ci --strict-allow-scripts
+      - name: Install WebKit for the stylesheet layout checks
+        run: npx playwright install --with-deps webkit
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - run: npm run manifest:check

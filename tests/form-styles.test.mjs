@@ -1,6 +1,7 @@
-// Browser layout checks for the core stylesheet (@crudui/generator-core/crudui.css) in Chromium
-// and Firefox. jsdom has no layout, so sticky stacking and focus scrolling are verified in real
-// browsers. Every check runs the same way in a page, in a scrolling box and in a frame.
+// Browser layout checks for the core stylesheet (@crudui/generator-core/crudui.css) in Chromium,
+// Firefox and WebKit. jsdom has no layout, so sticky stacking and focus scrolling are verified in
+// real browsers. Every check runs the same way in a page, in a scrolling box and in a frame, and
+// every engine runs the same scenario through one engine adapter.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +9,7 @@ import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { webkit } from 'playwright';
 import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
 
@@ -68,7 +70,40 @@ function firefoxExecutable() {
   return found;
 }
 
-const engines = ['chromium', 'firefox'];
+const viewport = { width: 1000, height: 700 };
+
+/**
+ * The engine adapter: how each engine launches and opens a page of the viewport size. Chromium
+ * and Firefox run through Puppeteer, WebKit through Playwright. The pages of both drivers share
+ * the calls the scenarios use: `on('pageerror' | 'console')`, `goto`, `waitForSelector`,
+ * `mainFrame`, and on frames `evaluate(fn, arg)`, `evaluateHandle` and `waitForFunction(fn)`.
+ * `pointerFocusesButtons` is the engine's known convention for a pointer press on a button.
+ * A browser that cannot start fails the run with the reason; no engine is ever skipped.
+ */
+const drivers = {
+  chromium: {
+    launch: () => puppeteer.launch({ headless: true }),
+    open: async browser => { const page = await browser.newPage(); await page.setViewport(viewport); return page; },
+    pointerFocusesButtons: true,
+  },
+  firefox: {
+    launch: () => puppeteer.launch({ headless: true, browser: 'firefox', executablePath: firefoxExecutable() }),
+    open: async browser => { const page = await browser.newPage(); await page.setViewport(viewport); return page; },
+    pointerFocusesButtons: true,
+  },
+  webkit: {
+    launch: async () => {
+      try { return await webkit.launch({ headless: true }); }
+      catch (error) { throw new Error(`WebKit is required for the layout checks; install it with \`npx playwright install --with-deps webkit\`:\n${error.message}`); }
+    },
+    // A Playwright page opened from the browser owns its context and closes it with itself.
+    open: browser => browser.newPage({ viewport }),
+    // Safari on macOS does not focus a button on a pointer press; other WebKit ports follow
+    // their own platform, which the scenario measures.
+    pointerFocusesButtons: process.platform === 'darwin' ? false : undefined,
+  },
+};
+const engines = Object.keys(drivers);
 const browsers = {};
 let server, url, frameUrl, cacheDirectory;
 before(async () => {
@@ -101,8 +136,7 @@ before(async () => {
   await server.listen();
   url = `${server.resolvedUrls.local[0]}form-styles`;
   frameUrl = `${server.resolvedUrls.local[0]}form-styles-frame`;
-  browsers.chromium = await puppeteer.launch({ headless: true });
-  browsers.firefox = await puppeteer.launch({ headless: true, browser: 'firefox', executablePath: firefoxExecutable() });
+  for (const engine of engines) browsers[engine] = await drivers[engine].launch();
 }, { timeout: 60000 });
 after(async () => {
   try { await Promise.all(Object.values(browsers).map(browser => browser.close())); }
@@ -117,11 +151,10 @@ after(async () => {
  * or a 600 px frame. Returns the frame that runs the form and records page errors.
  */
 async function openHost(engine, host) {
-  const page = await browsers[engine].newPage();
+  const page = await drivers[engine].open(browsers[engine]);
   const failures = [];
   page.on('pageerror', error => failures.push(error.message));
   page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });
-  await page.setViewport({ width: 1000, height: 700 });
   await page.goto(host === 'frame' ? frameUrl : url);
   const target = host === 'frame' ? await (await page.waitForSelector('iframe')).contentFrame() : page.mainFrame();
   await target.waitForFunction(() => window.formStylesTest !== undefined);
@@ -161,7 +194,7 @@ for (const engine of engines) for (const host of hosts) {
   test(`${engine} ${host}: sticky row headers stack on their lines and show their labels only while stuck`, async () => {
     const { page, target, failures } = await openHost(engine, host);
     try {
-      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, data);
+      await target.evaluate(([spec, data]) => window.formStylesTest.mount(spec, data), [spec, data]);
       // Scroll until the deepest row's top is 10 px past its line, under the four pinned ancestor headers.
       await target.evaluate(source => {
         const { scroller, top, token } = eval(source);
@@ -238,7 +271,7 @@ for (const engine of engines) for (const host of hosts) {
     const { page, target, failures } = await openHost(engine, host);
     try {
       // Act as Firefox or Safari: no scroll-state support and no container rule.
-      await target.evaluate((spec, data) => {
+      await target.evaluate(([spec, data]) => {
         const supports = CSS.supports;
         CSS.supports = (...args) => !String(args.join(':')).includes('scroll-state') && supports.apply(CSS, args);
         for (const sheet of document.styleSheets) {
@@ -247,7 +280,7 @@ for (const engine of engines) for (const host of hosts) {
           }
         }
         window.formStylesTest.mount(spec, data);
-      }, spec, data);
+      }, [spec, data]);
       const labels = () => target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container')]
         .map(header => getComputedStyle(header.querySelector(':scope > .crudui-node__header > .crudui-node__label')).display));
       // The marking hides the card top edge as the query does.
@@ -288,7 +321,7 @@ for (const engine of engines) for (const host of hosts) {
   test(`${engine} ${host}: focusing a row after an action or a map selection scrolls it clear of the sticky headers and the footer`, async () => {
     const { page, target, failures } = await openHost(engine, host);
     try {
-      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
+      await target.evaluate(([spec, data]) => window.formStylesTest.mount(spec, data), [spec, siblingData]);
       const focused = () => target.evaluate(source => {
         const { top, height } = eval(source);
         const active = document.activeElement;
@@ -339,20 +372,36 @@ for (const engine of engines) for (const host of hosts) {
   test(`${engine} ${host}: a restored focus keeps its visibility and a moved focus is visible, after pointer or keyboard input`, async () => {
     const { page, target, failures } = await openHost(engine, host);
     try {
-      await target.evaluate((spec, data) => window.formStylesTest.mount(spec, data), spec, siblingData);
+      await target.evaluate(([spec, data]) => window.formStylesTest.mount(spec, data), [spec, siblingData]);
       const state = () => target.evaluate(() => ({
         action: document.activeElement.getAttribute('data-crudui-action'),
         name: document.activeElement.getAttribute('name'),
         visible: document.activeElement.matches(':focus-visible'),
       }));
-      const toggle = () => target.evaluateHandle(() => document.querySelector('#form [data-crudui-action="toggle-row"]'));
+      const toggle = async () => (await target.evaluateHandle(() => document.querySelector('#form [data-crudui-action="toggle-row"]'))).asElement();
 
-      // A pointer press focuses the toggle without visible focus. Every change re-renders the
-      // form, so the toggle is a new element and its restored focus stays without it.
+      // Whether a pointer press focuses a button is the platform's convention: Chromium and
+      // Firefox focus it, WebKit on macOS leaves the focus where it was. A plain button outside
+      // the form shows the convention the restored focus must keep.
+      const probe = (await target.evaluateHandle(() => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Probe';
+        button.style.cssText = 'position:fixed;left:0;top:0';
+        document.body.append(button);
+        return button;
+      })).asElement();
+      await probe.click();
+      const pointerFocuses = await probe.evaluate(button => { const focused = document.activeElement === button; button.blur(); button.remove(); return focused; });
+      if (drivers[engine].pointerFocusesButtons !== undefined) assert.equal(pointerFocuses, drivers[engine].pointerFocusesButtons, `${engine} pointer focus convention`);
+
+      // A pointer press focuses the toggle, where the platform does, without visible focus. Every
+      // change re-renders the form, so the toggle is a new element and its restored focus stays
+      // without it; where the press focuses nothing, the render focuses nothing either.
       await (await toggle()).click();
       await frames(target);
       const pointerRestored = await state();
-      await target.evaluate(() => document.activeElement.click());
+      await target.evaluate(() => document.querySelector('#form [data-crudui-action="toggle-row"]').click());
       await frames(target);
 
       // A toggle focused visibly, as from the keyboard, keeps visible focus through the re-render.
@@ -369,16 +418,19 @@ for (const engine of engines) for (const host of hosts) {
       await frames(target);
 
       // A pointer press on Add moves focus to the new row's first input, visibly.
-      const add = await target.evaluateHandle(() => {
+      const add = (await target.evaluateHandle(() => {
         const row = [...document.querySelectorAll('#form .crudui-node--sticky')].find(node => node.querySelector('input[name$="[name]"]')?.value === 'stores one');
         return [...row.querySelectorAll('[data-crudui-action="add-row"]')].find(button => button.closest('[data-crudui-row-key]') === row);
-      });
+      })).asElement();
       await add.click();
       await frames(target);
       const moved = await state();
 
       assert.deepEqual(failures, []);
-      assert.deepEqual(pointerRestored, { action: 'toggle-row', name: null, visible: false }, 'A pointer-focused toggle is restored without visible focus');
+      assert.deepEqual(pointerRestored, pointerFocuses
+        ? { action: 'toggle-row', name: null, visible: false }
+        : { action: null, name: null, visible: false },
+      pointerFocuses ? 'A pointer-focused toggle is restored without visible focus' : 'A pointer press that focuses nothing leaves nothing focused after the render');
       assert.deepEqual(keyboardRestored, { action: 'toggle-row', name: null, visible: true }, 'A visibly focused toggle is restored with visible focus');
       assert.match(moved.name ?? '', /\[stores\]\[[^\]]+\]\[name\]$/, 'Focus moved to the new store row');
       assert.equal(moved.visible, true, 'The moved focus is visible');

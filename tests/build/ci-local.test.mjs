@@ -13,6 +13,7 @@ const preparation = [
   /^composer --working-dir=\S+ install\b/,
   /^sh scripts\/install-phpdocumentor\.sh$/,
   /^node scripts\/check-ci-browser\.mjs$/,
+  /^npx playwright install --with-deps webkit$/,
 ];
 
 /** The checking commands of the workflow, in job and step order. */

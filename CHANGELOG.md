@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-09-17 — Check the stylesheet layout in WebKit
+
+- `tests/form-styles.test.mjs` runs its sticky header, level label, seam, row card and focus
+  scenarios in WebKit as well as Chromium and Firefox. One engine adapter launches each browser
+  (Puppeteer for Chromium and Firefox, Playwright for WebKit) and every engine runs the same
+  scenario code. A browser that cannot start fails the run with the reason.
+- WebKit on macOS does not focus a button on a pointer press. The focus scenario measures the
+  engine's convention with a plain button and requires the restored focus to match it: the toggle
+  without visible focus where the press focuses it, nothing focused where it does not. Chromium
+  and Firefox are required to focus, and WebKit on macOS not to.
+- `playwright` is a root development dependency, and the CI job that runs `npm run test:forms`
+  installs WebKit with `npx playwright install --with-deps webkit` and has a 15 minute limit.
+
 ## 2026-09-17 — Run the CI workflow locally and fix what its first run found
 
 - `make ci` runs every checking command of `.github/workflows/ci.yml` in order and checks the
