@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { lstat, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -113,40 +113,70 @@ export async function resolvePhpBuildTools(options = {}) {
   return { phpConfig, compiler };
 }
 
-function installedHomebrewVersion(output) {
+function installedHomebrewVersion(output, formulaName) {
   const record = JSON.parse(output);
-  assert.deepEqual(record.casks ?? [], [], 'PHP must be installed as one formula');
-  assert.ok(Array.isArray(record.formulae), 'PHP package record is invalid');
-  const formulae = record.formulae.filter(formula => formula.name === 'php');
-  assert.equal(formulae.length, 1, 'PHP package record must contain one formula');
+  assert.deepEqual(record.casks ?? [], [], formulaName + ' must be installed as one formula');
+  assert.ok(Array.isArray(record.formulae), formulaName + ' package record is invalid');
+  const formulae = record.formulae.filter(formula => formula.name === formulaName);
+  assert.equal(formulae.length, 1, formulaName + ' package record must contain one formula');
   const formula = formulae[0];
-  assert.ok(Array.isArray(formula.installed), 'PHP installed-version record is invalid');
+  assert.ok(Array.isArray(formula.installed),
+    formulaName + ' installed-version record is invalid');
   assert.equal(formula.installed.length, 1,
-    'PHP discovery requires one installed version');
+    'The Homebrew formula ' + formulaName + ' must be installed in exactly one version');
   const version = formula.installed[0]?.version;
-  assert.match(version ?? '', /^[0-9][0-9A-Za-z._-]*$/, 'Installed PHP version is invalid');
+  assert.match(version ?? '', /^[0-9][0-9A-Za-z._-]*$/,
+    'Installed ' + formulaName + ' version is invalid');
   assert.equal(formula.linked_keg, version,
-    'Linked PHP version differs from the installed version');
+    'Linked ' + formulaName + ' version differs from the installed version');
   return version;
 }
 
-/** Resolve php-config from one Homebrew installation record on macOS. */
-export async function resolveHomebrewPhpConfig(options = {}) {
+/** Resolve one executable of one installed Homebrew formula through its Cellar record. */
+export async function resolveHomebrewExecutable(formulaName, relativePath, options = {}) {
   const environment = options.environment ?? process.env;
   const run = options.run ?? runCommand;
   const brew = await discoverOneExecutable('brew', environment);
-  const packageRecord = await run(brew, ['info', '--json=v2', 'php'], {
+  const packageRecord = await run(brew, ['info', '--json=v2', formulaName], {
     capture: true, environment,
   });
-  const version = installedHomebrewVersion(packageRecord.stdout);
-  const cellarRecord = await run(brew, ['--cellar', 'php'], {
+  const version = installedHomebrewVersion(packageRecord.stdout, formulaName);
+  const cellarRecord = await run(brew, ['--cellar', formulaName], {
     capture: true, environment,
   });
   const cellar = cellarRecord.stdout.trim();
   await assertRegularPath(cellar, 'directory');
-  const phpConfig = path.join(cellar, version, 'bin', 'php-config');
-  await assertExecutable(phpConfig, 'php-config');
-  return phpConfig;
+  const executable = path.join(cellar, version, relativePath);
+  await assertExecutable(executable, relativePath);
+  return executable;
+}
+
+/** Resolve php-config from one Homebrew installation record on macOS. */
+export async function resolveHomebrewPhpConfig(options = {}) {
+  return resolveHomebrewExecutable('php', path.join('bin', 'php-config'), options);
+}
+
+/** Resolve one declared executable from an installed Debian package record. */
+export async function resolveDebianPackageExecutable(packageName, filename, options = {}) {
+  const environment = options.environment ?? process.env;
+  const run = options.run ?? runCommand;
+  const packageQuery = options.packageQuery ?? '/usr/bin/dpkg-query';
+  await assertExecutable(packageQuery, 'dpkg-query');
+  let status;
+  try {
+    status = await run(packageQuery,
+      ['-W', '-f=' + '${db:Status-Abbrev}\n', packageName],
+      { capture: true, environment });
+  } catch (error) {
+    throw new Error('The Debian package ' + packageName + ' must be installed', { cause: error });
+  }
+  assert.equal(status.stdout.trim(), 'ii',
+    'The Debian package ' + packageName + ' must be installed');
+  const files = await run(packageQuery, ['-L', packageName], { capture: true, environment });
+  assert.ok(files.stdout.split(/\r?\n/).includes(filename),
+    'The Debian package ' + packageName + ' must contain ' + filename);
+  await assertExecutable(filename, packageName);
+  return filename;
 }
 
 function parseShellWords(value) {
@@ -224,9 +254,12 @@ export async function readPhpMetadata(phpConfig, options = {}) {
   const run = options.run ?? runCommand;
   const environment = options.environment ?? process.env;
   await assertExecutable(phpConfig, 'php-config');
-  const [prefixInput, includesInput, versionInput, executableInput] = await Promise.all([
+  const [
+    prefixInput, includesInput, includeDirectoryInput, versionInput, executableInput,
+  ] = await Promise.all([
     phpConfigValue(phpConfig, '--prefix', run, environment),
     phpConfigValue(phpConfig, '--includes', run, environment),
+    phpConfigValue(phpConfig, '--include-dir', run, environment),
     phpConfigValue(phpConfig, '--vernum', run, environment),
     phpConfigValue(phpConfig, '--php-binary', run, environment),
   ]);
@@ -247,6 +280,8 @@ export async function readPhpMetadata(phpConfig, options = {}) {
     assert.equal(inside(prefix, directory), true,
       'PHP headers must belong to the php-config installation');
   }
+  assert.ok(includeDirectories.includes(includeDirectoryInput),
+    'php-config --include-dir must be one of the declared include paths');
 
   const runtime = await run(executable, ['-n', '-r',
     'echo json_encode([PHP_VERSION_ID, PHP_INT_SIZE, PHP_ZTS, PHP_DEBUG], JSON_THROW_ON_ERROR);',
@@ -263,11 +298,119 @@ export async function readPhpMetadata(phpConfig, options = {}) {
 
   return {
     prefix,
+    includeDirectory: includeDirectoryInput,
     includeArguments: includeDirectories.map(directory => '-I' + directory),
     executable,
     version,
     zts: details[2],
     debug: details[3],
+  };
+}
+
+function phpConfigDefinition(source, name) {
+  const defined = [...source.matchAll(new RegExp('^#define ' + name + '(?:[ \\t]+(.*))?$', 'gm'))];
+  const undefined_ = source.match(new RegExp('^/\\* #undef ' + name + ' \\*/$', 'gm')) ?? [];
+  assert.equal(defined.length + undefined_.length, 1,
+    'PHP main/php_config.h must declare ' + name + ' once');
+  return defined.length ? (defined[0][1] ?? '').trim() : null;
+}
+
+/** Read how the target PHP was built against PCRE2 from its main/php_config.h. */
+export async function readPhpPcreConfiguration(includeDirectory) {
+  const header = path.join(includeDirectory, 'main', 'php_config.h');
+  await assertRegularPath(header, 'file');
+  const source = await readFile(header, 'utf8');
+  const bundled = phpConfigDefinition(source, 'HAVE_BUNDLED_PCRE');
+  assert.ok(bundled === null || bundled === '1',
+    'PHP main/php_config.h declares an invalid HAVE_BUNDLED_PCRE value');
+  // php_config.h defines PCRE2_CODE_UNIT_WIDTH for php_pcre.h and every module including it;
+  // the PCRE functions PHP exports work on 8-bit code units, so no other width is accepted.
+  const width = phpConfigDefinition(source, 'PCRE2_CODE_UNIT_WIDTH');
+  assert.equal(width, '8',
+    'PHP main/php_config.h must define PCRE2_CODE_UNIT_WIDTH as 8');
+  return { bundled: bundled !== null, codeUnitWidth: 8, library: 'libpcre2-8' };
+}
+
+function pkgConfigIncludeArguments(value, library) {
+  const includes = [];
+  const tokens = parseShellWords(value);
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token === '-I') {
+      index += 1;
+      assert.ok(tokens[index], 'pkg-config --cflags ' + library + ' ends with -I');
+      includes.push(tokens[index]);
+    } else {
+      assert.ok(token.startsWith('-I') && token.length > 2,
+        'Unsupported pkg-config --cflags ' + library + ' flag: ' + token);
+      includes.push(token.slice(2));
+    }
+  }
+  return [...new Set(includes)];
+}
+
+async function resolvePkgConfig(options) {
+  const { environment, run, platform } = options;
+  if (options.pkgConfig) {
+    await assertExecutable(options.pkgConfig, 'pkg-config');
+    await verifyVersion(options.pkgConfig, /^\d+\.\d+/, run, environment);
+    return options.pkgConfig;
+  }
+  const required = packageName => error => {
+    throw new Error('The target PHP uses an external PCRE2 library, whose compiler flags are read '
+      + 'with pkg-config; install the ' + packageName + ' package', { cause: error });
+  };
+  // The pkg-config names on PATH are symbolic links to pkgconf on Homebrew and Debian, so the
+  // regular pkgconf executable is taken from its package record, as php-config and cc are.
+  const executable = platform === 'darwin'
+    ? await resolveHomebrewExecutable('pkgconf', path.join('bin', 'pkgconf'), options)
+      .catch(required('Homebrew pkgconf'))
+    : await resolveDebianPackageExecutable('pkgconf-bin', '/usr/bin/pkgconf', options)
+      .catch(required('Debian pkgconf-bin (pkg-config)'));
+  await verifyVersion(executable, /^\d+\.\d+/, run, environment);
+  return executable;
+}
+
+/**
+ * Compiler arguments that make php_pcre.h and its pcre2.h resolvable for one PHP installation:
+ * none for the bundled PCRE2, whose headers PHP installs under ext/pcre/pcre2lib, and the
+ * pkg-config include paths of the external library otherwise.
+ */
+export async function resolvePhpPcreArguments(php, options = {}) {
+  const environment = options.environment ?? process.env;
+  const run = options.run ?? runCommand;
+  const platform = options.platform ?? process.platform;
+  const configuration = await readPhpPcreConfiguration(php.includeDirectory);
+  if (configuration.bundled) {
+    const header = path.join(php.includeDirectory, 'ext', 'pcre', 'pcre2lib', 'pcre2.h');
+    await assertRegularPath(header, 'file').catch(error => {
+      throw new Error('The target PHP uses the bundled PCRE2 library, whose installed header is '
+        + 'required: ' + header, { cause: error });
+    });
+    return { ...configuration, pkgConfig: null, version: null, compilerArguments: [] };
+  }
+  const pkgConfig = await resolvePkgConfig({
+    environment, run, platform, pkgConfig: options.pkgConfig, packageQuery: options.packageQuery,
+  });
+  const { library } = configuration;
+  let version;
+  try {
+    version = (await run(pkgConfig, ['--modversion', library],
+      { capture: true, environment })).stdout.trim();
+  } catch (error) {
+    throw new Error('The target PHP uses an external PCRE2 library and pkg-config cannot find '
+      + library + '; install the PCRE2 development package (Debian: libpcre2-dev, '
+      + 'Homebrew: pcre2)', { cause: error });
+  }
+  assert.match(version, /^\d+\.\d+/, 'pkg-config returned an invalid ' + library + ' version');
+  const flags = await run(pkgConfig, ['--cflags', library], { capture: true, environment });
+  const includes = pkgConfigIncludeArguments(flags.stdout.trim(), library);
+  for (const directory of includes) await assertRegularPath(directory, 'directory');
+  return {
+    ...configuration,
+    pkgConfig,
+    version,
+    compilerArguments: includes.map(directory => '-I' + directory),
   };
 }
 
@@ -336,6 +479,8 @@ function validateDescriptor(descriptor) {
     'Generated path declarations are required');
   assert.ok(Array.isArray(descriptor.compilerArguments ?? []),
     'Compiler argument declarations must be an array');
+  assert.ok(descriptor.phpPcre === undefined || typeof descriptor.phpPcre === 'boolean',
+    'The PHP PCRE declaration must be a boolean');
   assert.ok(Number.isSafeInteger(descriptor.minimumPhpVersion),
     'Minimum PHP version is required');
   assert.ok(Array.isArray(descriptor.loadChecks) && descriptor.loadChecks.length > 0,
@@ -384,6 +529,12 @@ export async function buildPhpExtension(descriptor, options = {}) {
     require64Bit: descriptor.require64Bit,
     run,
   });
+  const pcre = descriptor.phpPcre
+    ? await resolvePhpPcreArguments(php, {
+      environment, run, platform,
+      pkgConfig: options.pkgConfig, packageQuery: options.packageQuery,
+    })
+    : null;
 
   for (const source of descriptor.sources) {
     await assertRegularPath(declaredSource(sourceRoot, source), 'file');
@@ -422,6 +573,7 @@ export async function buildPhpExtension(descriptor, options = {}) {
     ...(descriptor.compilerArguments ?? []),
     ...platformCompileArguments,
     ...php.includeArguments,
+    ...(pcre?.compilerArguments ?? []),
     ...(descriptor.includeDirectories ?? []).map(directory =>
       '-I' + declaredSource(sourceRoot, directory)),
     ...definitions.map(definition => '-D' + definition),
@@ -463,12 +615,16 @@ export async function buildPhpExtension(descriptor, options = {}) {
     platform,
     php: { executable: php.executable, version: php.version },
     tools,
+    pcre: pcre && {
+      bundled: pcre.bundled, library: pcre.library, version: pcre.version,
+      pkgConfig: pcre.pkgConfig, compilerArguments: pcre.compilerArguments,
+    },
     macosDeploymentTarget: deploymentTarget,
   }, null, 2) + '\n');
   await assertGeneratedTree(buildDirectory);
   await assertGeneratedTree(moduleDirectory);
   process.stdout.write('PHP extension built and loaded: ' + module + '\n');
-  return { buildDirectory, module, php, tools };
+  return { buildDirectory, module, php, pcre, tools };
 }
 
 /** Reject duplicate CLI and environment declarations for one explicit input. */

@@ -1,5 +1,6 @@
 #include "php_crudui.h"
 #include "zend_smart_str.h"
+#include "ext/pcre/php_pcre.h"
 #include <math.h>
 #include <string.h>
 
@@ -126,22 +127,95 @@ void crudui_return(ps_result result, zval *return_value)
     ps_value_free(result.value);
 }
 
-/* preg_match($pattern, $subject) through PHP's own function: 1, 0, or -1 when it returned false. */
+/* pcre_handle_exec_error of ext/pcre/php_pcre.c: the preg_last_error() code of one match error. */
+static void pattern_match_error(int code)
+{
+    php_pcre_error_code error;
+    switch (code) {
+        case PCRE2_ERROR_MATCHLIMIT: error = PHP_PCRE_BACKTRACK_LIMIT_ERROR; break;
+        case PCRE2_ERROR_RECURSIONLIMIT: error = PHP_PCRE_RECURSION_LIMIT_ERROR; break;
+        case PCRE2_ERROR_BADUTFOFFSET: error = PHP_PCRE_BAD_UTF8_OFFSET_ERROR; break;
+#ifdef HAVE_PCRE_JIT_SUPPORT
+        case PCRE2_ERROR_JIT_STACKLIMIT: error = PHP_PCRE_JIT_STACKLIMIT_ERROR; break;
+#endif
+        default:
+            error = code <= PCRE2_ERROR_UTF8_ERR1 && code >= PCRE2_ERROR_UTF8_ERR21
+                ? PHP_PCRE_BAD_UTF8_ERROR : PHP_PCRE_INTERNAL_ERROR;
+            break;
+    }
+    PCRE_G(error_code) = error;
+}
+
+/*
+ * preg_match($pattern, $subject) with PHP's PCRE2 API, following php_do_pcre_match and
+ * php_pcre_match_impl (PHP 8.4 and 8.5) for a call without subpatterns, flags or offset:
+ * the compiled-pattern cache reports compilation failures with PHP's own warning, the match
+ * uses PHP's match context and the explicit subject length, and preg_last_error() is set as
+ * preg_match sets it. Returns 1 or 0, or -1 where preg_match returns false.
+ */
 static int preg_match_result(zend_string *pattern, zend_string *subject)
 {
-    zend_function *function = zend_hash_str_find_ptr(EG(function_table), ZEND_STRL("preg_match"));
-    if (!function) {
-        zend_throw_error(NULL, "The pattern rule requires the PHP pcre extension");
+    pcre_cache_entry *entry = pcre_get_compiled_regex_cache(pattern);
+    if (!entry) return -1;
+    php_pcre_pce_incref(entry);
+    pcre2_code *code = php_pcre_pce_re(entry);
+    /* The cache entry keeps the options PHP passed to pcre2_compile (compile_options). */
+    uint32_t compile_options = 0;
+    bool utf = pcre2_pattern_info(code, PCRE2_INFO_ARGOPTIONS, &compile_options) == 0
+        && (compile_options & PCRE2_UTF);
+#ifdef HAVE_PCRE_JIT_SUPPORT
+    /* PHP marks an entry PREG_JIT exactly when pcre2_jit_compile left a nonzero JIT size. */
+    size_t jit_size = 0;
+    bool jit = pcre2_pattern_info(code, PCRE2_INFO_JITSIZE, &jit_size) == 0 && jit_size > 0;
+#endif
+    const char *text = ZSTR_VAL(subject);
+    size_t length = ZSTR_LEN(subject);
+
+    PCRE_G(error_code) = PHP_PCRE_NO_ERROR;
+    pcre2_match_data *data = php_pcre_create_match_data(0, code);
+    if (!data) {
+        PCRE_G(error_code) = PHP_PCRE_INTERNAL_ERROR;
+        php_pcre_pce_decref(entry);
         return -1;
     }
-    zval arguments[2], result;
-    ZVAL_STR(&arguments[0], pattern);
-    ZVAL_STR(&arguments[1], subject);
-    ZVAL_UNDEF(&result);
-    zend_call_known_function(function, NULL, NULL, &result, 2, arguments, NULL);
-    int matched = Z_TYPE(result) == IS_LONG ? (Z_LVAL(result) == 1 ? 1 : 0) : -1;
-    zval_ptr_dtor(&result);
-    return matched;
+    pcre2_match_context *context = php_pcre_mctx();
+    /* is_known_valid_utf8() at offset 0. */
+    bool known_valid = ZSTR_IS_VALID_UTF8(subject)
+        && (length == 0 || (text[0] & 0xc0) != 0x80);
+    uint32_t options = utf && !known_valid ? 0 : PCRE2_NO_UTF_CHECK;
+
+    int count;
+#ifdef HAVE_PCRE_JIT_SUPPORT
+    if (jit && options)
+        count = pcre2_jit_match(code, (PCRE2_SPTR) text, length, 0, PCRE2_NO_UTF_CHECK, data, context);
+    else
+#endif
+    count = pcre2_match(code, (PCRE2_SPTR) text, length, 0, options, data, context);
+
+    int matched = 0;
+    if (count >= 0) {
+        if (UNEXPECTED(count == 0)) php_error_docref(NULL, E_NOTICE, "Matched, but too many substrings");
+        matched = 1;
+        /* After an empty match PHP retries once at the same offset before it stops. */
+        PCRE2_SIZE *offsets = pcre2_get_ovector_pointer(data);
+        if (offsets[1] == offsets[0]) {
+            count = pcre2_match(code, (PCRE2_SPTR) text, length, offsets[1],
+                PCRE2_NO_UTF_CHECK | PCRE2_NOTEMPTY_ATSTART | PCRE2_ANCHORED, data, context);
+            if (count < 0 && count != PCRE2_ERROR_NOMATCH) pattern_match_error(count);
+        }
+    } else if (count != PCRE2_ERROR_NOMATCH) {
+        pattern_match_error(count);
+    }
+    php_pcre_free_match_data(data);
+
+    int result = -1;
+    if (PCRE_G(error_code) == PHP_PCRE_NO_ERROR) {
+        /* A /u match without error records that the subject is valid UTF-8. */
+        if (utf && !ZSTR_IS_INTERNED(subject)) GC_ADD_FLAGS(subject, IS_STR_VALID_UTF8);
+        result = matched;
+    }
+    php_pcre_pce_decref(entry);
+    return result;
 }
 
 /*
