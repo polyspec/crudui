@@ -47,6 +47,14 @@ test('native PHP matrix passes the selected regular php-config path', async () =
   );
 });
 
+test('native job caches the generator packages and the programs that run them', async () => {
+  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
+  const job = workflowJob(workflow, 'native-generators');
+  for (const entry of ['packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod', 'packages/generator-rust', 'tests/native-generators/programs/rust']) {
+    assert.match(job, new RegExp(`^\\s+${entry.replaceAll('.', '\\.')}$`, 'm'), entry);
+  }
+});
+
 test('native report upload uses the current Node.js 24 artifact action', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'native-generators');

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * ISO Date validation rule.
  * Validates that a value is a valid ISO 8601 date format (YYYY-MM-DD).
@@ -23,10 +25,10 @@ class DateISO implements RuleInterface
             return false;
         }
 
-        $stringValue = trim($value);
+        $stringValue = Whitespace::trim($value);
 
         // Check format YYYY-MM-DD
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $stringValue)) {
+        if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $stringValue)) {
             return false;
         }
 
@@ -34,15 +36,5 @@ class DateISO implements RuleInterface
         [$year, $month, $day] = explode('-', $stringValue);
 
         return checkdate((int)$month, (int)$day, (int)$year);
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a valid date in ISO format (YYYY-MM-DD).';
     }
 }

@@ -12,7 +12,13 @@
 typedef struct {
     const ps_value *data;
     ps_value *errors;
+    /* The failure that ends validation; NULL with a false result means an internal failure. */
     ps_value *failure;
+    /* The declaration path of the current field: property names without row keys. */
+    ps_text *declaration;
+    size_t declaration_capacity;
+    /* Compiled patterns by source text, filled when the parameters are checked. */
+    ps_pattern_cache *patterns;
 } validation_context;
 
 static bool string_in(ps_text value, const char *const *items, size_t count)
@@ -93,40 +99,18 @@ static ps_value *scan_forbidden(const ps_value *node, ps_text *path, size_t leng
     return NULL;
 }
 
-static bool space_byte(char value)
-{
-    return isspace((unsigned char)value) != 0;
-}
-
-static bool empty_value(const ps_value *value)
-{
-    if (!value || value->kind == PS_NULL) return true;
-    if (value->kind == PS_STRING) {
-        ps_text text = ps_string(value);
-        size_t start = 0, end = text.length;
-        while (start < end && space_byte(text.bytes[start])) start++;
-        while (end > start && space_byte(text.bytes[end - 1])) end--;
-        return start == end;
-    }
-    return (value->kind == PS_ARRAY || value->kind == PS_OBJECT) && ps_size(value) == 0;
-}
-
 static bool strict_number(const ps_value *value, double *out)
 {
     if (!value) return false;
     if (value->kind == PS_INT) { *out = (double)value->data.integer; return true; }
     if (value->kind == PS_FLOAT) { *out = value->data.number; return isfinite(*out); }
     if (value->kind != PS_STRING) return false;
-    ps_text text = ps_string(value);
-    const char *source = text.bytes, *limit = text.bytes + text.length;
-    while (source < limit && space_byte(*source)) source++;
-    if (source == limit) return false;
+    ps_text text = ps_trim(ps_string(value));
+    if (!text.length) return false;
     /* strtod stops at a NUL character inside the value or at the zero byte after it. */
+    const char *source = text.bytes, *limit = text.bytes + text.length;
     errno = 0; char *end = NULL; double number = strtod(source, &end);
-    if (end == source || errno == ERANGE || !isfinite(number)) return false;
-    const char *rest = end;
-    while (rest < limit && space_byte(*rest)) rest++;
-    if (rest != limit) return false;
+    if (end != limit || errno == ERANGE || !isfinite(number)) return false;
     *out = number; return true;
 }
 
@@ -138,20 +122,16 @@ static bool parameter_number(const ps_value *value, double *out)
     return strict_number(value, out);
 }
 
-/* The number of Unicode code points: every byte that does not continue a sequence. */
-static size_t utf8_length(ps_text text)
-{
-    size_t length = 0;
-    for (size_t i = 0; i < text.length; ++i)
-        if (((unsigned char)text.bytes[i] >> 6) != 2) length++;
-    return length;
-}
-
 static const ps_value *relative_field(ps_text reference, const validation_context *context,
                                       const ps_text *path, size_t length)
 {
     size_t first = 0;
-    while (first < reference.length && space_byte(reference.bytes[first])) first++;
+    while (first < reference.length) {
+        uint32_t point;
+        size_t size = ps_utf8_decode(reference, first, &point);
+        if (!ps_whitespace(point)) break;
+        first += size;
+    }
     reference = ps_text_slice(reference, first, reference.length);
     size_t dots = 0;
     while (dots < reference.length && reference.bytes[dots] == '.') dots++;
@@ -198,7 +178,7 @@ static bool digits_only(const ps_value *value)
     if (value->kind == PS_INT) return value->data.integer >= 0;
     if (value->kind == PS_FLOAT) return value->data.number >= 0 && floor(value->data.number) == value->data.number;
     if (value->kind != PS_STRING) return false;
-    ps_text text = ps_string(value);
+    ps_text text = ps_trim(ps_string(value));
     if (!text.length) return false;
     for (size_t i = 0; i < text.length; ++i) if (!isdigit((unsigned char)text.bytes[i])) return false;
     return true;
@@ -243,10 +223,7 @@ static bool mime_extension(ps_text filename, ps_text extension)
 
 static bool accept_one(ps_text value, ps_text item)
 {
-    size_t start = 0, length = item.length;
-    while (start < length && space_byte(item.bytes[start])) start++;
-    while (length > start && space_byte(item.bytes[length - 1])) length--;
-    item = ps_text_slice(item, start, length);
+    item = ps_trim(item);
     if (!item.length) return false;
     if (item.bytes[0] == '.') {
         /* An extension of 31 bytes or fewer. */
@@ -276,52 +253,6 @@ static bool accept_value(const ps_value *value, const ps_value *parameter)
     return false;
 }
 
-/* 1 when the value is in the parameter, 0 when not, -1 on allocation failure. */
-static int in_value(const ps_value *value, const ps_value *parameter)
-{
-    if (!parameter) return 1;
-    if (parameter->kind == PS_OBJECT) {
-        bool labels = ps_size(parameter) > 0;
-        for (size_t i = 0; i < ps_size(parameter); ++i) {
-            const ps_value *label = ps_at(parameter, i);
-            if (label->kind != PS_NULL && label->kind != PS_STRING && label->kind != PS_OBJECT) { labels = false; break; }
-        }
-        if (labels) {
-            ps_chars text = ps_scalar_string(value);
-            if (!text.bytes) return -1;
-            bool found = ps_has_text(parameter, ps_view(text));
-            free(text.bytes); return found;
-        }
-    }
-    if (parameter->kind == PS_ARRAY || parameter->kind == PS_OBJECT) {
-        for (size_t i = 0; i < ps_size(parameter); ++i) {
-            int found = in_value(value, ps_at(parameter, i));
-            if (found) return found;
-        }
-        return 0;
-    }
-    if (parameter->kind == PS_STRING && ps_text_find_byte(ps_string(parameter), ',', 0) != SIZE_MAX) {
-        ps_text list = ps_string(parameter);
-        ps_chars actual = ps_scalar_string(value);
-        if (!actual.bytes) return -1;
-        size_t start = 0;
-        int found = 0;
-        for (;;) {
-            size_t comma = ps_text_find_byte(list, ',', start);
-            size_t end = comma == SIZE_MAX ? list.length : comma;
-            size_t first = start, last = end;
-            while (first < last && space_byte(list.bytes[first])) first++;
-            while (last > first && space_byte(list.bytes[last - 1])) last--;
-            if (ps_text_equal(ps_view(actual), ps_text_slice(list, first, last))) { found = 1; break; }
-            if (comma == SIZE_MAX) break;
-            start = comma + 1;
-        }
-        free(actual.bytes);
-        return found;
-    }
-    return ps_equal(value, parameter);
-}
-
 /* The member name of an array or object item at index, with index text in the buffer. */
 static ps_text item_key(const ps_value *container, size_t index, char *buffer, size_t size)
 {
@@ -348,7 +279,7 @@ static int unique_values(const ps_value *values, const ps_value *parameter,
             if (!parsed || !included) { free(left_path); continue; }
         }
         if (parameter && parameter->kind == PS_STRING && !condition) left = ps_path(left, ps_string(parameter));
-        free(left_path); if (empty_value(left)) continue;
+        free(left_path); if (ps_empty_value(left)) continue;
         for (size_t j = 0; j < i; ++j) {
             const ps_value *right = ps_at(values, j);
             char right_index[32];
@@ -361,7 +292,7 @@ static int unique_values(const ps_value *values, const ps_value *parameter,
                 free(right_path); if (!parsed || !included) continue;
             }
             if (parameter && parameter->kind == PS_STRING && !condition) right = ps_path(right, ps_string(parameter));
-            if (!empty_value(right) && ps_equal(left, right)) return 0;
+            if (!ps_empty_value(right) && ps_equal(left, right)) return 0;
         }
     }
     return 1;
@@ -449,49 +380,53 @@ static bool url_valid(ps_text value)
         same_letters(scheme, PS_TEXT("ftp"));
 }
 
+/*
+ * The whole-value pattern match of a nonempty value (docs/spec/validation-rules.md, "Patterns"):
+ * the canonical text of a scalar against the pattern compiled when it was checked; an array or
+ * object has no canonical text and fails.
+ */
+static int pattern_passes(validation_context *context, const ps_value *value, const ps_value *parameter)
+{
+    const ps_pattern *pattern = NULL;
+    ps_pattern_error error;
+    if (parameter->kind != PS_STRING ||
+        ps_pattern_cache_get(context->patterns, ps_string(parameter), &pattern, &error) <= 0) return -1;
+    ps_chars text;
+    int scalar = ps_canonical_text(value, &text);
+    if (scalar <= 0) return scalar;
+    int matched = ps_pattern_matches(pattern, ps_view(text));
+    free(text.bytes);
+    return matched;
+}
+
 /* 1 when the rule passes, 0 when it fails, -1 when validation cannot continue. */
 static int rule_passes(ps_text rule, const ps_value *value, const ps_value *parameter,
-                       const ps_value *field, const validation_context *context,
+                       const ps_value *field, validation_context *context,
                        const ps_text *path, size_t length)
 {
-    if (ps_text_is(rule, "required")) return !(parameter->kind == PS_BOOL && parameter->data.boolean && empty_value(value));
-    if (empty_value(value) && !ps_text_is(rule, "mincount") && !ps_text_is(rule, "maxcount")) return 1;
+    if (ps_text_is(rule, "required")) return !(parameter->kind == PS_BOOL && parameter->data.boolean && ps_empty_value(value));
+    if (ps_empty_value(value) && !ps_text_is(rule, "mincount") && !ps_text_is(rule, "maxcount")) return 1;
     if (ps_text_is(rule, "email")) return parameter->kind != PS_BOOL || !parameter->data.boolean ||
         (value->kind == PS_STRING && valid_email(ps_string(value)));
     if (ps_text_is(rule, "number")) { double number; return parameter->kind == PS_BOOL && !parameter->data.boolean ? 1 : strict_number(value, &number); }
     if (ps_text_is(rule, "digits")) return parameter->kind == PS_BOOL && !parameter->data.boolean ? 1 : digits_only(value);
-    if (ps_text_is(rule, "minlength") || ps_text_is(rule, "maxlength")) {
-        double limit; if (!parameter_number(parameter, &limit)) return 1;
-        size_t count = value->kind == PS_STRING ? utf8_length(ps_string(value)) : (value->kind == PS_ARRAY ? ps_size(value) : 0);
-        return ps_text_is(rule, "minlength") ? (double)count >= limit : (double)count <= limit;
-    }
+    if (ps_length_rule(rule)) return ps_length_passes(rule, value, parameter);
     if (ps_text_is(rule, "min") || ps_text_is(rule, "max")) {
         double actual, limit; if (!strict_number(value, &actual) || !parameter_number(parameter, &limit)) return 1;
         return ps_text_is(rule, "min") ? actual >= limit : actual <= limit;
     }
-    if (ps_text_is(rule, "range") || ps_text_is(rule, "rangelength")) {
+    if (ps_text_is(rule, "range")) {
         if (parameter->kind != PS_ARRAY || ps_size(parameter) != 2) return 1;
         double low, high; if (!parameter_number(ps_at(parameter, 0), &low) || !parameter_number(ps_at(parameter, 1), &high)) return 1;
-        double actual;
-        if (ps_text_is(rule, "range")) { if (!strict_number(value, &actual)) return 1; }
-        else actual = value->kind == PS_STRING ? (double)utf8_length(ps_string(value)) : (value->kind == PS_ARRAY ? (double)ps_size(value) : 0);
+        double actual; if (!strict_number(value, &actual)) return 1;
         return actual >= low && actual <= high;
     }
     if (ps_text_is(rule, "step")) {
         double actual, step; if (!strict_number(value, &actual) || !parameter_number(parameter, &step) || step <= 0) return 1;
         double quotient = actual / step; return fabs(quotient - round(quotient)) < 1e-9;
     }
-    if (ps_text_is(rule, "match") || ps_text_is(rule, "pattern")) return ps_pattern_rule(value, parameter);
-    if (ps_text_is(rule, "in")) {
-        if (value->kind == PS_ARRAY) {
-            for (size_t i = 0; i < ps_size(value); ++i) {
-                int found = in_value(ps_at(value, i), parameter);
-                if (found <= 0) return found;
-            }
-            return 1;
-        }
-        return in_value(value, parameter);
-    }
+    if (ps_text_is(rule, "match") || ps_text_is(rule, "pattern")) return pattern_passes(context, value, parameter);
+    if (ps_text_is(rule, "in")) return ps_in_passes(value, parameter);
     if (ps_text_is(rule, "mincount") || ps_text_is(rule, "maxcount")) {
         double limit; if (!parameter_number(parameter, &limit)) return 1;
         size_t count = value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT) ? ps_size(value) : 0;
@@ -499,7 +434,7 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
     }
     if (ps_text_is(rule, "unique")) {
         if (value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT)) return unique_values(value, parameter, context, path, length);
-        if (length < 2 || empty_value(value)) return 1;
+        if (length < 2 || ps_empty_value(value)) return 1;
         const ps_value *container = ps_path_segments(context->data, path, length - 2);
         if (!container || (container->kind != PS_ARRAY && container->kind != PS_OBJECT)) return 1;
         ps_text item_name = path[length - 2], field_name = path[length - 1];
@@ -511,7 +446,7 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
             if (ps_text_equal(key, item_name)) break;
             const ps_value *item = ps_at(container, i);
             const ps_value *other = item && item->kind == PS_OBJECT ? ps_get_text(item, field_name) : NULL;
-            if (empty_value(other)) continue;
+            if (ps_empty_value(other)) continue;
             if (condition) {
                 ps_text *sibling = calloc(length, sizeof(*sibling)); if (!sibling) return -1;
                 for (size_t p = 0; p < length; ++p) sibling[p] = path[p];
@@ -527,14 +462,14 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
         const ps_value *other = parameter->kind == PS_STRING ? relative_field(ps_string(parameter), context, path, length) : parameter;
         bool equal = ps_equal(value, other); return ps_text_is(rule, "equalTo") ? equal : !equal;
     }
-    if (ps_text_is(rule, "dateISO")) { int serial; return value->kind == PS_STRING && iso_date(ps_string(value), &serial); }
-    if (ps_text_is(rule, "date")) { int serial; return value->kind == PS_INT || value->kind == PS_FLOAT || (value->kind == PS_STRING && iso_date(ps_string(value), &serial)); }
+    if (ps_text_is(rule, "dateISO")) { int serial; return value->kind == PS_STRING && iso_date(ps_trim(ps_string(value)), &serial); }
+    if (ps_text_is(rule, "date")) { int serial; return value->kind == PS_INT || value->kind == PS_FLOAT || (value->kind == PS_STRING && iso_date(ps_trim(ps_string(value)), &serial)); }
     if (ps_text_is(rule, "enddate")) {
         if (value->kind != PS_STRING || parameter->kind != PS_STRING) return 1;
         int end, start; const ps_value *other = relative_field(ps_string(parameter), context, path, length);
-        return !other || other->kind != PS_STRING || !iso_date(ps_string(value), &end) || !iso_date(ps_string(other), &start) || end >= start;
+        return !other || other->kind != PS_STRING || !iso_date(ps_trim(ps_string(value)), &end) || !iso_date(ps_trim(ps_string(other)), &start) || end >= start;
     }
-    if (ps_text_is(rule, "url")) return parameter->kind == PS_BOOL && !parameter->data.boolean ? 1 : value->kind == PS_STRING && url_valid(ps_string(value));
+    if (ps_text_is(rule, "url")) return parameter->kind == PS_BOOL && !parameter->data.boolean ? 1 : value->kind == PS_STRING && url_valid(ps_trim(ps_string(value)));
     if (ps_text_is(rule, "accept")) return accept_value(value, parameter);
     (void)field; return 1;
 }
@@ -572,9 +507,13 @@ static bool array_level_rule(ps_text rule)
         ps_text_is(rule, "mincount") || ps_text_is(rule, "maxcount");
 }
 
+/*
+ * The rules of a field. depth is the length of the field's declaration path in
+ * context->declaration.
+ */
 static bool validate_rules(const ps_value *field, const ps_value *value,
                            validation_context *context, ps_text *path, size_t length,
-                           bool array_level, bool element)
+                           size_t depth, bool array_level, bool element)
 {
     const ps_value *rules = ps_get(field, "validate");
     if (ps_is_string(ps_get(field, "type"), "number") && (!rules || !ps_has(rules, "number"))) {
@@ -591,6 +530,15 @@ static bool validate_rules(const ps_value *field, const ps_value *value,
         if ((array_level && !collection) || (element && collection)) continue;
         ps_value *owned = NULL; const ps_value *parameter = effective_parameter(rule, ps_at(rules, i), context, path, length, &owned);
         if (!parameter || parameter->kind == PS_NULL || (parameter->kind == PS_BOOL && !parameter->data.boolean)) { ps_value_free(owned); continue; }
+        if (owned) {
+            /* A parameter selected by a condition is checked when it is selected. */
+            ps_parameter_problem problem;
+            if (!ps_rule_parameter(rule, parameter, context->patterns, &problem)) { ps_value_free(owned); return false; }
+            if (problem.code) {
+                context->failure = ps_parameter_error(rule, &problem, context->declaration, depth);
+                ps_value_free(owned); return false;
+            }
+        }
         int pass = rule_passes(rule, value, parameter, field, context, path, length);
         if (pass <= 0) {
             bool ok = pass == 0 && rule_error(context, path, length, field, rule, parameter, value);
@@ -627,13 +575,22 @@ static ps_text *sorted_row_keys(const ps_value *rows, size_t *count)
     return keys;
 }
 
+/* Validate fields; path is owned and freed. depth is the declaration path length of properties. */
 static bool validate_properties(const ps_value *properties, const ps_value *data,
-                                validation_context *context, ps_text *path, size_t length)
+                                validation_context *context, ps_text *path, size_t length,
+                                size_t depth)
 {
-    if (!properties || properties->kind != PS_OBJECT) return true;
+    if (!properties || properties->kind != PS_OBJECT) { free(path); return true; }
     for (size_t i = 0; i < ps_size(properties); ++i) {
         ps_text name = ps_key(properties, i); const ps_value *field = ps_at(properties, i);
         if (!field || field->kind != PS_OBJECT) continue;
+        if (depth + 1 > context->declaration_capacity) {
+            size_t capacity = context->declaration_capacity ? context->declaration_capacity * 2 : 8;
+            ps_text *declaration = realloc(context->declaration, capacity * sizeof(*declaration));
+            if (!declaration) { free(path); return false; }
+            context->declaration = declaration; context->declaration_capacity = capacity;
+        }
+        context->declaration[depth] = name;
         ps_text *field_path = realloc(path, (length + 1) * sizeof(*field_path));
         if (!field_path) { free(path); return false; } path = field_path; path[length] = name;
         const ps_value *value = data && data->kind == PS_OBJECT ? ps_get_text(data, name) : NULL;
@@ -661,11 +618,11 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
                             input_failure(context, "Group data must be an object: ", item_path, length + 2);
                             free(item_path); valid = false; break;
                         }
-                        if (!validate_properties(children, item, context, item_path, length + 2))
+                        if (!validate_properties(children, item, context, item_path, length + 2, depth + 1))
                             valid = false;
                     }
                     if (valid)
-                        valid = validate_rules(field, value, context, path, length + 1, false, false);
+                        valid = validate_rules(field, value, context, path, length + 1, depth + 1, false, false);
                     free(keys);
                     if (!valid) { free(path); return false; }
                 }
@@ -676,12 +633,12 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
                 }
                 ps_text *child_path = malloc((length + 1) * sizeof(*child_path));
                 if (!child_path) { free(path); return false; } memcpy(child_path, path, (length + 1) * sizeof(*child_path));
-                if (!validate_properties(children, value, context, child_path, length + 1) ||
-                    !validate_rules(field, value, context, path, length + 1, false, false)) { free(path); return false; }
+                if (!validate_properties(children, value, context, child_path, length + 1, depth + 1) ||
+                    !validate_rules(field, value, context, path, length + 1, depth + 1, false, false)) { free(path); return false; }
             }
         } else if (repeated && value) {
             size_t before = ps_size(context->errors);
-            if (!validate_rules(field, value, context, path, length + 1, true, false)) { free(path); return false; }
+            if (!validate_rules(field, value, context, path, length + 1, depth + 1, true, false)) { free(path); return false; }
             if (ps_size(context->errors) == before) {
                 size_t count = 0; ps_text *keys = sorted_row_keys(value, &count);
                 if (!keys) { free(path); return false; }
@@ -691,13 +648,13 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
                     ps_text *item_path = malloc((length + 2) * sizeof(*item_path));
                     if (!item_path) { valid = false; break; }
                     memcpy(item_path, path, (length + 1) * sizeof(*item_path)); item_path[length + 1] = keys[j];
-                    valid = validate_rules(field, item, context, item_path, length + 2, false, true);
+                    valid = validate_rules(field, item, context, item_path, length + 2, depth + 1, false, true);
                     free(item_path);
                 }
                 free(keys);
                 if (!valid) { free(path); return false; }
             }
-        } else if (!validate_rules(field, value, context, path, length + 1, false, false)) { free(path); return false; }
+        } else if (!validate_rules(field, value, context, path, length + 1, depth + 1, false, false)) { free(path); return false; }
     }
     free(path); return true;
 }
@@ -784,14 +741,22 @@ static ps_result validate_form(const ps_value *spec, const ps_value *data, const
         ps_text form_path[1] = {ps_fixed(form_keys[i])};
         if (ps_get(spec, form_keys[i])) error = scan_forbidden(ps_get(spec, form_keys[i]), form_path, 1);
     }
-    if (error) { ps_value_free(properties); return (ps_result){NULL, error}; }
-    validation_context context = {data, ps_array_value(), NULL};
-    if (!context.errors || !validate_properties(properties, data, &context, NULL, 0)) {
-        ps_value_free(properties); ps_value_free(context.errors);
+    ps_pattern_cache *patterns = error ? NULL : ps_pattern_cache_new();
+    if (!error && !patterns) error = ps_error("internal", "INTERNAL_ERROR", "Validation failed", "", NULL);
+    /* Rule parameters are checked after composition and the forbidden-key scan. */
+    if (!error) error = ps_check_rule_parameters(properties, patterns);
+    if (error) { ps_pattern_cache_free(patterns); ps_value_free(properties); return (ps_result){NULL, error}; }
+    validation_context context = {data, ps_array_value(), NULL, NULL, 0, patterns};
+    bool valid = context.errors && validate_properties(properties, data, &context, NULL, 0, 0);
+    free(context.declaration);
+    ps_pattern_cache_free(patterns);
+    ps_value_free(properties);
+    if (!valid) {
+        ps_value_free(context.errors);
         if (context.failure) return (ps_result){NULL, context.failure};
         return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
     }
-    ps_value_free(properties); return validation_result(context.errors);
+    return validation_result(context.errors);
 }
 
 /* Compose a list or detail root; NULL with *error unset means an internal failure. */

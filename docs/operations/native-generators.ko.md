@@ -9,8 +9,8 @@
 
 ## 로컬 빌드와 검사
 
-동일한 설치의 `php-config`와 개발 헤더를 갖춘 64비트 PHP를 사용합니다. 순수 PHP는
-PHP 8.2 이상, 확장은 PHP 8.4 이상이 필요합니다. Composer, Node, Go, Cargo, C
+동일한 설치의 `php-config`와 개발 헤더를 갖춘 64비트 PHP를 사용합니다. 순수 PHP와
+확장 모두 PHP 8.4 이상이 필요하며 CI가 8.4부터 8.5까지 모든 버전을 검사합니다. Composer, Node, Go, Cargo, C
 컴파일러를 설치합니다. 아래 컨테이너는 필요한 Linux 빌드 도구를 제공합니다.
 
 ```sh
@@ -23,7 +23,9 @@ make docs-check
 
 `make test-native`는 JavaScript 패키지를 빌드한 다음 확장을 빌드하고 로드하며,
 생성기 패키지 검사 및 JavaScript 기준 구현(React 서버 렌더링), JavaScript HTML 렌더러, PHP,
-Go, Rust, 네이티브 PHP 비교를 실행합니다.
+Go, Rust, 네이티브 PHP 비교를 실행합니다. 각 런타임은 패키지의 공개 API를 호출하는
+[`tests/native-generators/programs`](../../tests/native-generators/README.ko.md#프로그램)의
+프로그램으로 응답하며, 패키지는 라이브러리만 배포합니다.
 확장 빌드는 `php-config`에서 PHP 실행 파일, 헤더, 빌드 플래그를 읽고 C 바인딩을
 컴파일한 뒤 Cargo 잠금 파일의 Rust 출력을 직접 연결합니다. `phpize`, Autoconf,
 libtool은 필요하지 않습니다. 도구 발견은 상대경로, 심볼릭 링크, 여러 결과를

@@ -228,15 +228,6 @@ JavaScript and PHP and a valid `ValidationResult` in Go; Rust returns `Ok(())`. 
 forbidden-key failure is a `ComposeLoadError`: JavaScript and PHP throw it, Go returns it as the
 error and Rust returns it as `Err`.
 
-The validator command-line programs accept `mode` `list` or `detail` in the request and ignore
-`data` in those modes. [Data validation](validation.md#results-and-failures) defines the request
-rules, exit statuses and messages.
-
-```sh
-echo '{"mode":"detail","spec":{"fields":{"name":{"field":"name"}}}}' \
-  | php packages/validator-php/bin/validate.php
-```
-
 ## Examples
 
 | Example | List and detail |

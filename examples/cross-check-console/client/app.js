@@ -1111,11 +1111,11 @@ function validateColumn(lang, entry, divergent) {
   if (!entry) {
     inner = `<div class="cc-cell-idle">응답 없음</div>`;
   } else if (state.raw) {
-    // raw wins over every cooked view so EVERY entry (incl. a failed CLI) is
+    // raw wins over every cooked view so EVERY entry (incl. a failed validator process) is
     // exposed verbatim for the user to re-judge against the console's verdict.
     inner = `<pre class="cc-raw">${esc(JSON.stringify(entry, null, 2))}</pre>`;
   } else if (entry.ok === false) {
-    inner = `<div class="cc-cell-error">CLI 실행 실패<br/><code>${esc(
+    inner = `<div class="cc-cell-error">검증기 프로세스 실행 실패<br/><code>${esc(
       entry.error?.message || entry.error || ''
     )}</code></div>`;
   } else if (entry.failure) {
@@ -1156,7 +1156,7 @@ function validateMismatchPanel(results, groups) {
     const entry = results.find((r) => r.lang === lang);
     let sig;
     if (!entry) sig = '(응답 없음)';
-    else if (entry.ok === false) sig = '(CLI 실패)';
+    else if (entry.ok === false) sig = '(프로세스 실패)';
     else if (entry.failure) sig = `failure ${entry.failure.code} ${entry.failure.message} ${entry.failure.at}`;
     else
       sig = `valid=${Boolean(entry.valid)} errors=${JSON.stringify(

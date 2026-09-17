@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * URL validation rule.
  * Validates that a value is a valid URL.
@@ -23,7 +25,7 @@ class Url implements RuleInterface
             return false;
         }
 
-        $url = trim($value);
+        $url = Whitespace::trim($value);
         if ($url === '') {
             return false;
         }
@@ -42,15 +44,5 @@ class Url implements RuleInterface
         }
 
         return in_array(strtolower($parsed['scheme']), ['http', 'https', 'ftp'], true);
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a valid URL.';
     }
 }

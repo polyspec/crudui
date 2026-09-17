@@ -5,8 +5,8 @@
 [`contracts/features.json`](../../contracts/features.json) is the standard every runtime is
 measured against. Each feature declares the runtimes that support it (`pass`, `partial` or
 `unsupported`) and the shared fixtures that prove it. The manifest's `fixtures` list registers
-every fixture: a `cases.json` family, a module fixture with its declared `cases` or the module
-export that lists them, or a `corpus` of shared input without cases.
+every fixture: a `cases.json` family, or a module fixture with its declared `cases` or the module
+export that lists them.
 
 ## Runtime keys
 

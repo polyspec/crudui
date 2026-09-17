@@ -2,7 +2,6 @@ import {
   buildList,
   buildOutline,
   formButtonsHtml,
-  parseStyle,
   type OutlineRow,
   type OutlineState,
   type FormMessages,
@@ -16,13 +15,12 @@ import {
   type NodeVM,
   type ListViewModel,
   buildDetail,
-  listLayout,
   type BuildDetailOptions,
   type DetailViewModel,
   type UnsupportedVM,
   type WidgetModel,
-  paginationPages,
 } from '@crudui/generator-core';
+import { listLayout, paginationPages, parseStyle } from '@crudui/generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 

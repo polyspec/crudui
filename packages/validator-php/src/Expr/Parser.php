@@ -17,10 +17,8 @@ namespace CRUDUI\Validator\Expr;
  *   primary    = "(" or ")" | path | literal
  *   path       = [ "." | ".." ] identifier { "." (identifier | number | "*") }
  *
- * This REPLACES legacy's regex/substr evaluation (php_gaps blockers: nested-ternary
- * priority collapse, missing operator precedence, single-comparison regex). The
- * priority and right-associativity now come from the grammar productions, not a
- * heuristic. No eval, no split (GRAMMAR §10).
+ * Operator precedence and ternary right-associativity come from the grammar
+ * productions, not a heuristic. No eval, no split (GRAMMAR §10).
  */
 final class Parser
 {

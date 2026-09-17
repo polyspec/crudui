@@ -2,7 +2,7 @@
 
 import type * as React from 'react';
 import type { Attrs } from '@crudui/generator-core';
-import { parseStyle } from '@crudui/generator-core';
+import { parseStyle } from '@crudui/generator-core/internal';
 
 /** Apply complete CSS declarations, including priority, and remove obsolete styles. */
 export function resolvedStyleProps(style: React.CSSProperties | undefined): {

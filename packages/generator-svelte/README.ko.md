@@ -5,7 +5,8 @@
 Svelte에서 폼 인스턴스, 목록, 상세를 렌더링합니다.
 
 ```ts
-import { compileForm, createForm, renderForm, renderList } from '@crudui/generator-svelte';
+import { compileForm, createForm } from '@crudui/generator-core';
+import { renderForm, renderList } from '@crudui/generator-svelte';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -20,9 +21,14 @@ const listHtml = renderList(listSpec, [{ name: 'Ada' }], { language: 'en' });
 `Form`에 `form` 속성을 전달하여 렌더링합니다. 공유 템플릿마다 한 번 컴파일하고 폼마다 폼 인스턴스를
 생성합니다. `renderForm(form)`은 서버 렌더링용으로 같은 마크업을 문자열로 반환합니다.
 
-`List`는 `vm`과 `layout` 속성을, `Detail`은 `vm` 속성을 받으며, 모델은 다시 내보낸
-`buildList(spec, rows, options)`와 `buildDetail(spec, record, options)`로 만듭니다.
+`List`는 `vm`과 `layout` 속성을, `Detail`은 `vm` 속성을 받으며, 모델은
+`@crudui/generator-core`의 `buildList(spec, rows, options)`와 `buildDetail(spec, record, options)`로 만듭니다.
 `renderList(spec, rows, options)`와 `renderDetail(spec, record, options)`는 문자열을 반환합니다.
+
+패키지 진입점은 컴포넌트(`Form`, `List`, `Detail`, `Node`, `Controls`, `Widget`, `Outline`,
+`OutlineView`, `DataView`, `DataPanel`)와 렌더 함수 `renderForm`, `renderList`, `renderDetail`을
+내보냅니다. 컴파일, 폼 인스턴스, 모델과 오류 클래스는 `@crudui/generator-core`에서 가져오며
+이 패키지는 이를 다시 내보내지 않습니다.
 
 이 패키지는 `svelte` 내보내기 조건으로 Svelte 컴포넌트를 배포합니다. 서버에서도
 `@sveltejs/vite-plugin-svelte`를 쓰는 Vite 같은 Svelte 인식 번들러로 불러옵니다(예: `ssrLoadModule`).

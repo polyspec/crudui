@@ -25,9 +25,8 @@ npm run build
 ## 데이터 로드 전 구성
 
 ```tsx
-import {
-  compileForm, createForm, Form, sequenceRowKey,
-} from '@crudui/generator-react';
+import { compileForm, createForm, sequenceRowKey } from '@crudui/generator-core';
+import { Form } from '@crudui/generator-react';
 
 const template = compileForm({
   type: 'group',
@@ -78,7 +77,7 @@ const listHtml = renderList(listSpec, rows, { layout: 'table' });
 HTML renderer는 fragment를 반환하며 외부 `form` 요소를 만들거나 브라우저 이벤트를
 연결하거나 데이터를 검증하거나 레코드를 로드하지 않습니다.
 
-`@crudui/validator`의 `Validator`와 원본 명세로 `submission`을 검증합니다.
+`@crudui/validator`의 `validate(spec, submission)`로 원본 명세에 대해 `submission`을 검증합니다.
 서버가 저장된 seq를 생성하면 해당 컬렉션 경로의 키를 변경합니다.
 데이터 객체 전체에서 토큰을 치환하지 않습니다.
 

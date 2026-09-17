@@ -11,7 +11,7 @@ use CRUDUI\Validator\Compose\Ref;
 use PHPUnit\Framework\TestCase;
 
 /**
- * legacy-parity unit tests for $ref resolution edge cases not isolated in cases.json:
+ * Unit tests for $ref resolution edge cases not isolated in cases.json:
  * self-cycle, three-node cycle, diamond-not-cycle, empty-path format error, and
  * the declaration-order rule (a sibling BEFORE $ref is overridden by the base; a
  * sibling AFTER $ref overrides the base). Port of
@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class RefTest extends TestCase
 {
-    // --- $ref cycle detection (legacy infinite-recurses; CRUDUI must throw) -------
+    // --- $ref cycle detection (a cycle must throw) ---------------------------------
 
     public function testSelfCycle(): void
     {
@@ -82,7 +82,7 @@ final class RefTest extends TestCase
         }
     }
 
-    // --- $ref declaration order (legacy positional array_merge) ---------------
+    // --- $ref declaration order (positional merge) -----------------------------
 
     public function testSiblingBeforeRefIsOverriddenByBase(): void
     {

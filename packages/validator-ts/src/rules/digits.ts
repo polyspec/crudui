@@ -6,6 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import { trim } from '../values/index';
 
 /**
  * Check if a value contains only digits
@@ -16,7 +17,7 @@ export function isDigitsOnly(value: unknown): boolean {
   }
 
   if (typeof value === 'string') {
-    const trimmed = value.trim();
+    const trimmed = trim(value);
     if (trimmed === '') {
       return false;
     }
@@ -50,8 +51,4 @@ export const digitsRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter only digits.',
 };
-
-export default digitsRule;

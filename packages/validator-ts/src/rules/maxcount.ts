@@ -36,8 +36,4 @@ export const maxcountRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please select no more than {0} items.',
 };
-
-export default maxcountRule;

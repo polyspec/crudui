@@ -28,7 +28,7 @@ import { extname } from 'node:path';
 
 import yaml from 'js-yaml';
 
-import { composeSpec, MemoryLoader } from '../../validator-ts/src/compose/index.ts';
+import { composeSpec, MemoryLoader } from '@crudui/validator/internal';
 import { describe, type DescribeResult, type RuleEntry } from './describe.ts';
 
 export interface ExplainOptions {

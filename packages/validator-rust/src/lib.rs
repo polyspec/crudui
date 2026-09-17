@@ -19,6 +19,4 @@ pub use types::{
     DEFAULT_KEY, FORBIDDEN_META_KEYS,
 };
 
-/// Explicit legacy schema and validator APIs.
-pub mod legacy;
 pub use validate::{validate, FormInputError, ValidateError, ValidateOptions, Validator};

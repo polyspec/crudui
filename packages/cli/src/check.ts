@@ -4,7 +4,7 @@
  * Three checks use the registered schema and widget catalog directly:
  *   1. ajv against schema/crudui.schema.json (additionalProperties:false →
  *      rejects non-first-class keys, unregistered slot keys, ForbiddenKeyNames).
- *   2. scanForbiddenKeys (validator-ts/CRUDUI/forbidden-scan.ts) — the runtime
+ *   2. scanForbiddenKeys (@crudui/validator/internal) — the runtime
  *      backstop that the meta-schema mirrors, walked to arbitrary depth.
  *   3. leaf-type catalog — compose the spec, walk the field tree, and reject any
  *      LEAF field (no `properties`) whose `type` is not a registered widget kind
@@ -28,11 +28,10 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import yaml from 'js-yaml';
 
-import { scanForbiddenKeys } from '../../validator-ts/src/forbidden-scan.ts';
-import { composeSpec, MemoryLoader } from '../../validator-ts/src/compose/index.ts';
+import { composeSpec, MemoryLoader, scanForbiddenKeys } from '@crudui/validator/internal';
 // Live widget registry (drift 0): the same key set `describe`/`list-widgets`
 // surface. Imported, never re-declared as a static enum.
-import { WIDGET_KINDS } from '../../generator-core/src/widget.ts';
+import { WIDGET_KINDS } from '@crudui/generator-core/internal';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * Accept validation rule.
  * Validates that a file has an acceptable MIME type or extension.
@@ -126,7 +128,7 @@ class Accept implements RuleInterface
         $acceptList = [];
 
         if (is_string($param)) {
-            $parts = array_map('trim', explode(',', strtolower($param)));
+            $parts = array_map(Whitespace::trim(...), explode(',', strtolower($param)));
 
             foreach ($parts as $part) {
                 if (str_starts_with($part, '.')) {
@@ -210,15 +212,5 @@ class Accept implements RuleInterface
         }
 
         return false;
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please upload a file with a valid format.';
     }
 }

@@ -19,11 +19,4 @@ interface RuleInterface
      * @return bool True if valid, false otherwise
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool;
-
-    /**
-     * Get the default error message for this rule.
-     *
-     * @return string The default error message with optional {0}, {1} placeholders
-     */
-    public function getDefaultMessage(): string;
 }

@@ -4,17 +4,16 @@
  * Composition is a pre-processing pass that runs BEFORE validation/render: the
  * parser expands `$ref`/`$patch` into a single spec first (G5). An unresolved
  * composition is therefore NOT a validation failure (`valid:false`) — it is a
- * LOAD FAILURE: the spec itself does not come into existence. Never let an
- * unresolved `$ref` pass as `valid:true` (the current legacy bug at
- * LargeForm.yml:873). Every throw here is a load error, distinct from a later
- * validation error.
+ * LOAD FAILURE: the spec itself does not come into existence. An unresolved
+ * `$ref` never passes as `valid:true`. Every throw here is a load error,
+ * distinct from a later validation error.
  *
- * legacy throw sites promoted to CRUDUI load errors:
- *   (1) $ref file missing            — ReferenceResolver.php:124 (yml_parse_file)
- *   (2) $ref format error            — ReferenceResolver.php:113,141 ('… ref error')
- *   (3) detectKey absent             — ReferenceResolver.php:133 ('… not found')
- *   (4) $ref cycle (A→B→A)           — legacy infinite-recurses (no guard); CRUDUI detects
- *   (5) $patch target/op error       — $merge/$change undefined key throws (Parser:241)
+ * Load errors:
+ *   (1) $ref file missing
+ *   (2) $ref format error
+ *   (3) detectKey absent
+ *   (4) $ref cycle (A→B→A)
+ *   (5) $patch target/op error
  */
 
 /** Base class for every composition load failure. NOT a validation error. */
@@ -36,13 +35,13 @@ export class ComposeLoadError extends Error {
 
 /** Machine-readable load-error codes. */
 export type ComposeErrorCode =
-  /** $ref points at a file that does not exist (legacy yml_parse_file fail). */
+  /** $ref points at a file that does not exist (or cannot be read). */
   | 'REF_FILE_NOT_FOUND'
   /** $ref string is malformed: `(…` with no closing `).keys`, or empty path. */
   | 'REF_FORMAT_ERROR'
   /** A detectKey path segment (or the trailing `properties`) is absent. */
   | 'REF_DETECT_KEY_NOT_FOUND'
-  /** $ref cycle detected (A→B→A); legacy would infinite-recurse. */
+  /** $ref cycle detected (A→B→A). */
   | 'REF_CYCLE'
   /** $ref value is neither a string nor an array of strings. */
   | 'REF_VALUE_TYPE'
@@ -54,8 +53,15 @@ export type ComposeErrorCode =
   | 'PATCH_REMOVE_TARGET_MISSING'
   /**
    * A forbidden meta key survived into the composed single spec at some depth
-   * (SPEC §6). The recursive forbidden-scan runs after compose/x-strip and
+   * (SPEC §6). The recursive forbidden-scan runs after composition and x-strip and
    * before validation; a forbidden key anywhere is a LOAD failure, never
    * `valid:true`. `trace` carries the dotted path to the offending key.
    */
-  | 'FORBIDDEN_META_KEY';
+  | 'FORBIDDEN_META_KEY'
+  /**
+   * A rule parameter outside the definitions of validation-rules.md ("Parameter
+   * errors"). `trace` is the field's declaration path without row keys.
+   */
+  | 'INVALID_RULE_PARAMETER'
+  /** A `match`/`pattern` string outside the CRUDUI pattern language. */
+  | 'INVALID_RULE_PATTERN';

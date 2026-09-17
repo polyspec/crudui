@@ -3,24 +3,17 @@
 [한국어](test-fixtures.ko.md).
 
 Fixtures define inputs and expected behavior. Their format depends on the tested
-contract. A passing legacy fixture does not establish current API conformance.
-
-The legacy comparison runner uses explicit legacy implementations. Every selected
-implementation must execute successfully, match the fixture expectation and agree
-with the other selected implementations. Missing output, execution failure or an
-unreadable suite fails the run. Native executables are rebuilt before comparison.
+contract.
 
 | Location | Contract |
 | --- | --- |
-| `tests/fixtures/validate/cases.json` | Current validation results and composition failures. |
-| `tests/fixtures/validator-cli/cases.json` | Validator command-line request rules and messages. |
+| `tests/fixtures/validate/cases.json` | Validation results and composition failures. |
 | `tests/fixtures/compose/` | Reference and patch composition. |
 | `tests/fixtures/expr/` | Tokens, ASTs and expression evaluation. |
 | `tests/fixtures/form-render/` | Expected form rendering. |
 | `tests/fixtures/form-session/` | Shared form controls and interaction scenarios. |
-| `tests/fixtures/legacy-validate/cases.json` | Legacy validation cases. |
 
-## Current validation
+## Validation
 
 The validation fixture is an array. Each entry has `name`, `spec` and `data`;
 optional `files` supplies composition inputs. `note` describes the case.
@@ -47,21 +40,6 @@ without exactly one expectation. PHP, the C PHP extension, Go and Rust consume t
 same validation fixture in their package suites and CLI checks.
 `tests/fixtures/validate/generate.ts` produces the fixture from the TypeScript
 engine; regenerate it instead of editing `cases.json`.
-
-## Legacy validation
-
-The legacy validation fixture is a list. Each entry has a unique `name`, the
-`suite` it belongs to, a `note`, a `spec` and `cases`. A case contains `input` and
-`expected`; `expected.valid` gives the result, while optional `error` and `field`
-assert the first rule and field path. The
-[fixture README](../../tests/fixtures/legacy-validate/README.md) lists the suites.
-
-The legacy bridge wraps a simple field spec in a group under `value` and wraps
-its input under the same key. A group with `properties` is used directly.
-The `"__undefined__"` input marker represents a missing value in the bridge.
-See the [legacy TypeScript bridge](../../packages/validator-ts/src/__tests__/conformance.test.ts).
-Each runtime's bridge records one `validateLegacy` evidence line per entry; see
-[conformance evidence](conformance.md).
 
 ## Adding and reviewing cases
 

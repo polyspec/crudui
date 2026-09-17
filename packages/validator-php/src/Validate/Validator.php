@@ -29,31 +29,31 @@ use CRUDUI\Validator\Rules\Step;
 use CRUDUI\Validator\Rules\RuleInterface;
 use CRUDUI\Validator\Expr\ConditionMap;
 use CRUDUI\Validator\Expr\Expression;
+use CRUDUI\Validator\Values\EmptyValue;
 
 /**
- * CRUDUI form validator — SPEC §2 G5→§3→§2 G1. Port of validator-ts
- * src/validate/validator.ts (Validator), function-for-function.
+ * CRUDUI form validator — SPEC §2 G5→§3→§2 G1. Port of
+ * validator-ts/src/validate/validator.ts (Validator), function-for-function.
  *
  * This is the THIRD pass of the CRUDUI pipeline. It consumes a CRUDUI field model (the
  * validate/design/behavior/options role slots) AFTER the compose pass has
  * expanded $ref/$patch into a single spec (Validate::run runs compose first).
- * It does NOT touch the legacy Validator (R7 parallel run) and it does NOT
- * re-implement the rule semantics or the expression engine — it CALLS the
- * existing legacy rule instances (CRUDUI\Validator\Rules) and the existing CRUDUI
- * expression engine (CRUDUI\Validator\Expr). The only CRUDUI-new logic here is:
- *   (a) reading the `validate` slot instead of the legacy `rules` key,
+ * It does NOT re-implement the rule semantics or the expression engine — it CALLS
+ * the rule instances (CRUDUI\Validator\Rules) and the CRUDUI expression engine
+ * (CRUDUI\Validator\Expr). The logic here is:
+ *   (a) reading the `validate` slot,
  *   (b) evaluating a rule value that is an expression OR a condition map (G1 —
  *       the condition is the value's expression, never a separate if/when key),
  *   (c) omitting display_switch/display_target visibility conditions (G1
  *       forbids those meta keys; visibility-driven requiredness is
  *       required:'<expr>').
  *
- * The legacy rule instances return a bool and skip nothing on empty values (the legacy
- * Validator centralizes the empty-skip in applyRule), so this engine reproduces
- * that central empty-skip and builds the error message itself (DEFAULT_MESSAGES
- * + per-field `messages` override) exactly as the legacy Validator does. The shared
- * 4-language fixture (tests/fixtures/validate/cases.json) carries those default
- * messages, so the JS reference output is matched bit-for-bit.
+ * The rule instances return a bool and skip nothing on empty values, so this engine
+ * applies the empty-value skip of the validation rules centrally and builds the error
+ * message itself (DEFAULT_MESSAGES + per-field `messages` override). Declared rule
+ * parameters, including every literal a condition can select, are checked when the
+ * validator is constructed (DeclarationCheck); a value a ternary takes from the data
+ * is checked when it is selected, before the empty-value skip. Both raise ComposeLoadError at the field's declaration path.
  */
 final class Validator
 {
@@ -64,35 +64,7 @@ final class Validator
     private const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
 
     /**
-     * Rules whose param is a field reference (relative path / filter condition) —
-     * preserved verbatim, never evaluated as a condition. PATH-REFERENCE-RULES.
-     */
-    private const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique', 'enddate'];
-
-    /**
-     * Rules whose string param is a literal value, never a condition. An `accept`
-     * param like `.jpg` would otherwise be misread as a relative field reference.
-     */
-    private const LITERAL_PARAM_RULES = ['accept'];
-
-    /**
-     * `match`/`pattern` carry a regex string preserved verbatim (SPEC §10: a
-     * regex exists only as a `match` argument).
-     */
-    private const REGEX_PARAM_RULES = ['match', 'pattern'];
-
-    /**
-     * Membership rules whose param is the allowed-value SET (an array, comma
-     * string, or a static value→label map, SPEC §2 G3). The param is data, NOT
-     * a condition map — an object param is the value→label map (key = option
-     * value, value = display label), so it is kept verbatim and never evaluated
-     * key-by-key as expressions. The rule's flatten reads keys for a value→label
-     * map (the label, possibly a LangMap or null, is display-only).
-     */
-    private const MEMBERSHIP_PARAM_RULES = ['in'];
-
-    /**
-     * Default error messages per rule (identical to the legacy Validator table). The
+     * Default error messages per rule (identical in every runtime). The
      * `pattern` and `match` aliases share one message. {0}/{1} are replaced from
      * the (possibly array) effective param.
      */
@@ -123,7 +95,7 @@ final class Validator
         'step' => 'Please enter a value that is a multiple of {0}.',
     ];
 
-    /** @var array<string, RuleInterface> reused legacy rule instances */
+    /** @var array<string, RuleInterface> rule instances by rule name */
     private array $rules;
 
     /** @var array<string, mixed> the composed root field map (composition-free) */
@@ -131,12 +103,14 @@ final class Validator
 
     /**
      * @param array<string, mixed> $composedSpec a composed CRUDUI root spec — a group
-     *        with `properties` (already free of $ref/$patch).
+     *        with `properties` (already free of $ref/$patch and forbidden keys).
+     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when a declared rule parameter is invalid
      */
     public function __construct(array $composedSpec)
     {
         $props = $composedSpec['properties'] ?? null;
         $this->properties = (is_array($props) && !array_is_list($props)) ? $props : [];
+        DeclarationCheck::run($this->properties);
         $this->registerRules();
     }
 
@@ -148,15 +122,14 @@ final class Validator
     public function validate(array $data): ValidationResult
     {
         $errors = [];
-        $this->validateProperties($this->properties, $data, [], $data, $errors);
+        $this->validateProperties($this->properties, $data, [], [], $data, $errors);
 
         return new ValidationResult(count($errors) === 0, array_values($errors));
     }
 
-    /** Register the reused legacy rule instances. `pattern`/`match` share one. */
+    /** Register the rule instances; `pattern` and `match` share one implementation. */
     private function registerRules(): void
     {
-        $pattern = new Pattern();
         $this->rules = [
             'required' => new Required(),
             'email' => new Email(),
@@ -164,8 +137,8 @@ final class Validator
             'maxlength' => new MaxLength(),
             'min' => new Min(),
             'max' => new Max(),
-            'match' => $pattern,
-            'pattern' => $pattern,
+            'match' => new Pattern('match'),
+            'pattern' => new Pattern('pattern'),
             'in' => new In(),
             'range' => new Range(),
             'rangelength' => new RangeLength(),
@@ -185,13 +158,14 @@ final class Validator
     }
 
     // =========================================================================
-    // Field traversal (SPEC §3; legacy Validator.validateProperties skeleton).
+    // Field traversal (SPEC §3).
     // =========================================================================
 
     /**
      * @param array<string, mixed> $properties
      * @param array<string, mixed> $data
      * @param list<string>         $currentPath
+     * @param list<string>         $declarationPath $currentPath without row keys
      * @param array<string, mixed> $allData
      * @param array<int, array<string, mixed>> $errors
      */
@@ -199,6 +173,7 @@ final class Validator
         array $properties,
         array $data,
         array $currentPath,
+        array $declarationPath,
         array $allData,
         array &$errors,
     ): void {
@@ -211,6 +186,7 @@ final class Validator
             $fieldName = (string) $propertyKey;
             $isMultiple = $this->isMultiple($field);
             $fieldPath = [...$currentPath, $fieldName];
+            $fieldDeclaration = [...$declarationPath, $fieldName];
             $present = array_key_exists($fieldName, $data);
             $fieldValue = $present ? $data[$fieldName] : null;
 
@@ -238,23 +214,23 @@ final class Validator
                             if (!self::isObject($row)) {
                                 throw new FormInputError('Group data must be an object: ' . implode('.', $rowPath));
                             }
-                            $this->validateProperties($childProps, (array) $row, $rowPath, $allData, $errors);
+                            $this->validateProperties($childProps, (array) $row, $rowPath, $fieldDeclaration, $allData, $errors);
                         }
-                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
+                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
                     }
                 } else {
                     if ($present && !self::isObject($fieldValue)) {
                         throw new FormInputError('Group data must be an object: ' . implode('.', $fieldPath));
                     }
-                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $allData, $errors);
-                    $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
+                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $fieldDeclaration, $allData, $errors);
+                    $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
                 }
             } elseif ($isMultiple && $present) {
                 // Repeated scalar field: collection rules on the keyed object, the
                 // rest on each row value.
-                $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
+                $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
             } else {
-                $this->validateFieldRules($field, $fieldValue, $fieldPath, $allData, $errors);
+                $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
             }
         }
     }
@@ -295,6 +271,7 @@ final class Validator
      *
      * @param array<string, mixed>|\stdClass $values keyed rows
      * @param list<string> $fieldPath
+     * @param list<string> $declarationPath
      * @param array<string, mixed> $allData
      * @param array<int, array<string, mixed>> $errors
      */
@@ -302,6 +279,7 @@ final class Validator
         array $field,
         array|\stdClass $values,
         array $fieldPath,
+        array $declarationPath,
         array $allData,
         array &$errors,
     ): void {
@@ -314,7 +292,7 @@ final class Validator
                 if (!in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
                     continue;
                 }
-                $error = $this->runRule($ruleName, $ruleValue, $values, $fieldPath, $field, $messages, $allData);
+                $error = $this->runRule($ruleName, $ruleValue, $values, $fieldPath, $declarationPath, $messages, $allData);
                 if ($error !== null) {
                     $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $values);
                     return;
@@ -326,7 +304,7 @@ final class Validator
         $values = (array) $values;
         ksort($values, SORT_STRING);
         foreach ($values as $i => $value) {
-            $this->validateElementRules($field, $value, [...$fieldPath, (string) $i], $allData, $errors);
+            $this->validateElementRules($field, $value, [...$fieldPath, (string) $i], $declarationPath, $allData, $errors);
         }
     }
 
@@ -334,6 +312,7 @@ final class Validator
      * Element-level rules for one element of a `multiple` field (no array-level).
      *
      * @param list<string> $itemPath
+     * @param list<string> $declarationPath
      * @param array<string, mixed> $allData
      * @param array<int, array<string, mixed>> $errors
      */
@@ -341,13 +320,14 @@ final class Validator
         array $field,
         mixed $value,
         array $itemPath,
+        array $declarationPath,
         array $allData,
         array &$errors,
     ): void {
         $messages = $this->fieldMessages($field);
         $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
 
-        if ($this->runImplicitNumber($field, $rules, $value, $itemPath, $messages, $allData, $errors)) {
+        if ($this->runImplicitNumber($field, $rules, $value, $itemPath, $declarationPath, $messages, $allData, $errors)) {
             return;
         }
         if ($rules === null) {
@@ -357,7 +337,7 @@ final class Validator
             if (in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
                 continue;
             }
-            $error = $this->runRule($ruleName, $ruleValue, $value, $itemPath, $field, $messages, $allData);
+            $error = $this->runRule($ruleName, $ruleValue, $value, $itemPath, $declarationPath, $messages, $allData);
             if ($error !== null) {
                 $errors[$this->pathKey($itemPath)] = $this->makeError($itemPath, $ruleName, $error, $value);
                 break;
@@ -369,6 +349,7 @@ final class Validator
      * All rules for a single (scalar or group-as-whole) field.
      *
      * @param list<string> $fieldPath
+     * @param list<string> $declarationPath
      * @param array<string, mixed> $allData
      * @param array<int, array<string, mixed>> $errors
      */
@@ -376,20 +357,21 @@ final class Validator
         array $field,
         mixed $value,
         array $fieldPath,
+        array $declarationPath,
         array $allData,
         array &$errors,
     ): void {
         $messages = $this->fieldMessages($field);
         $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
 
-        if ($this->runImplicitNumber($field, $rules, $value, $fieldPath, $messages, $allData, $errors)) {
+        if ($this->runImplicitNumber($field, $rules, $value, $fieldPath, $declarationPath, $messages, $allData, $errors)) {
             return;
         }
         if ($rules === null) {
             return;
         }
         foreach ($rules as $ruleName => $ruleValue) {
-            $error = $this->runRule($ruleName, $ruleValue, $value, $fieldPath, $field, $messages, $allData);
+            $error = $this->runRule($ruleName, $ruleValue, $value, $fieldPath, $declarationPath, $messages, $allData);
             if ($error !== null) {
                 $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $value);
                 break;
@@ -404,6 +386,7 @@ final class Validator
      *
      * @param array<string, mixed>|null $rules
      * @param list<string> $path
+     * @param list<string> $declarationPath
      * @param array<string, string>|null $messages
      * @param array<string, mixed> $allData
      * @param array<int, array<string, mixed>> $errors
@@ -413,6 +396,7 @@ final class Validator
         ?array $rules,
         mixed $value,
         array $path,
+        array $declarationPath,
         ?array $messages,
         array $allData,
         array &$errors,
@@ -423,7 +407,7 @@ final class Validator
         if ($rules !== null && array_key_exists('number', $rules)) {
             return false;
         }
-        $error = $this->runRule('number', true, $value, $path, $field, $messages, $allData);
+        $error = $this->runRule('number', true, $value, $path, $declarationPath, $messages, $allData);
         if ($error !== null) {
             $errors[$this->pathKey($path)] = $this->makeError($path, 'number', $error, $value);
             return true;
@@ -437,19 +421,21 @@ final class Validator
 
     /**
      * Run one rule: evaluate its (possibly conditional) value to an effective
-     * param, apply the central empty-skip, then call the rule instance and build
-     * the message. Returns the error message or null.
+     * param, check a selected param, apply the central empty-skip, then call the
+     * rule instance and build the message. Returns the error message or null.
      *
      * @param list<string> $path
+     * @param list<string> $declarationPath
      * @param array<string, string>|null $messages
      * @param array<string, mixed> $allData
+     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when a selected param is invalid
      */
     private function runRule(
         string $ruleName,
         mixed $ruleValue,
         mixed $value,
         array $path,
-        array $field,
+        array $declarationPath,
         ?array $messages,
         array $allData,
     ): ?string {
@@ -460,10 +446,17 @@ final class Validator
             return null;
         }
 
-        // Central empty-skip (legacy Validator::applyRule). The reused legacy rule
-        // instances do NOT skip empty themselves. required always fires;
-        // mincount/maxcount on an array fire on the empty array too.
-        if ($ruleName !== 'required' && $this->isEmpty($value)) {
+        // A param a condition selected is checked when selected, before the
+        // empty-value skip: literals were already checked at construction, so only a
+        // value taken from the data can fail here.
+        if (RuleParameters::isConditional($ruleName, $ruleValue)) {
+            RuleParameters::check($ruleName, $effectiveParam, $declarationPath);
+        }
+
+        // Central empty-skip. The rule instances do not skip empty values
+        // themselves. required always fires; mincount/maxcount on an array fire on
+        // the empty array too.
+        if ($ruleName !== 'required' && EmptyValue::is($value)) {
             $isCountRuleOnArray = (is_array($value) || $value instanceof \stdClass)
                 && in_array($ruleName, ['mincount', 'maxcount'], true);
             if (!$isCountRuleOnArray) {
@@ -472,8 +465,7 @@ final class Validator
         }
 
         // unique with a filter/field-reference param needs the CRUDUI expression
-        // engine and the array path form, which the legacy rule lacks. Run the CRUDUI
-        // native unique here (JS rules/unique parity).
+        // engine and the array path form. Run the CRUDUI native unique here (JS rules/unique parity).
         if ($ruleName === 'unique') {
             $ok = $this->validateUnique($value, $effectiveParam, $path, $allData);
             return $ok ? null : $this->buildMessage('unique', $effectiveParam, $messages);
@@ -518,12 +510,7 @@ final class Validator
         // Verbatim-param rules: never evaluate (field reference / literal / regex /
         // membership set). A membership param object is a value→label map (G3),
         // not a condition map, so it is preserved verbatim for the rule's flatten.
-        if (
-            in_array($ruleName, self::PATH_REFERENCE_RULES, true)
-            || in_array($ruleName, self::LITERAL_PARAM_RULES, true)
-            || in_array($ruleName, self::REGEX_PARAM_RULES, true)
-            || in_array($ruleName, self::MEMBERSHIP_PARAM_RULES, true)
-        ) {
+        if (in_array($ruleName, RuleParameters::UNCHANGED, true)) {
             return $ruleValue;
         }
 
@@ -620,7 +607,7 @@ final class Validator
                     if (!$this->itemPassesCondition($ruleParam, $itemPath, $allData)) {
                         continue;
                     }
-                    if (!$this->isEmpty($element)) {
+                    if (!EmptyValue::is($element)) {
                         $valuesToCheck[] = $element;
                     }
                 }
@@ -628,14 +615,14 @@ final class Validator
                 foreach ($value as $item) {
                     if (is_array($item) || $item instanceof \stdClass) {
                         $fv = ((array) $item)[$ruleParam] ?? null;
-                        if (!$this->isEmpty($fv)) {
+                        if (!EmptyValue::is($fv)) {
                             $valuesToCheck[] = $fv;
                         }
                     }
                 }
             } else {
                 foreach ($value as $v) {
-                    if (!$this->isEmpty($v)) {
+                    if (!EmptyValue::is($v)) {
                         $valuesToCheck[] = $v;
                     }
                 }
@@ -675,7 +662,7 @@ final class Validator
         }
 
         // Empty values never count as duplicates.
-        if ($this->isEmpty($value)) {
+        if (EmptyValue::is($value)) {
             return true;
         }
 
@@ -700,7 +687,7 @@ final class Validator
                 }
             }
             $siblingValue = ((array) $item)[$fieldName] ?? null;
-            if ($this->isEmpty($siblingValue)) {
+            if (EmptyValue::is($siblingValue)) {
                 continue;
             }
             if ($this->comparisonKey($siblingValue) === $currentKey) {
@@ -782,7 +769,7 @@ final class Validator
     }
 
     /**
-     * Read the per-field custom messages (CRUDUI keeps the legacy `messages` map).
+     * Read the per-field custom messages (the `messages` map).
      *
      * @return array<string, string>|null
      */
@@ -798,8 +785,7 @@ final class Validator
 
     /**
      * Build the display message: per-field override → DEFAULT_MESSAGES → fallback,
-     * with {0}/{1} replaced from the (possibly array) effective param. Mirrors the
-     * legacy Validator::getErrorMessage.
+     * with {0}/{1} replaced from the (possibly array) effective param.
      *
      * @param array<string, mixed>|null $messages
      */
@@ -896,23 +882,5 @@ final class Validator
             $current = ((array) $current)[$segment];
         }
         return $current;
-    }
-
-    /**
-     * Empty test (VALIDATION-RULES isEmpty / JS isEmpty): null, trim-empty string,
-     * empty array/object. 0, '0', false are NOT empty.
-     */
-    private function isEmpty(mixed $value): bool
-    {
-        if ($value === null) {
-            return true;
-        }
-        if (is_string($value)) {
-            return trim($value) === '';
-        }
-        if (is_array($value) || $value instanceof \stdClass) {
-            return count((array) $value) === 0;
-        }
-        return false;
     }
 }

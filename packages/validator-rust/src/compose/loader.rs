@@ -7,7 +7,7 @@
 //! is `MemoryLoader`; a disk + YAML backed loader is not implemented yet — when
 //! added it plugs into the same trait without touching the engine.
 //!
-//! Path normalization rules:
+//! Path normalization:
 //! - absolute (`/…`) paths pass through unchanged
 //! - relative paths get the basepath prefix (`basepath + '/' + path`)
 //!

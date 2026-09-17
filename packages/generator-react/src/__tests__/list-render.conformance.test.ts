@@ -17,7 +17,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { renderList, ComposeLoadError } from '../index';
+import { ComposeLoadError } from '@crudui/generator-core';
+import { renderList } from '../index';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
 // The shared fixture, imported as JSON — the SAME file Vue/Svelte load.

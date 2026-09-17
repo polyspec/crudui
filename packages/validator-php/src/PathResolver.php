@@ -25,229 +25,30 @@ class PathResolver
      * @param array $allData All form data
      * @return mixed The resolved value
      */
-    public function resolveExpression(string $expression, string $currentPath, array $allData, bool $fromGroup = false): mixed
+    public function resolveExpression(string $expression, string $currentPath, array $allData): mixed
     {
         $expression = trim($expression);
 
         // Handle relative path notation (., .., ...)
         if (str_starts_with($expression, '.')) {
-            $absolutePath = $this->resolveRelativePath($expression, $currentPath, $fromGroup);
+            $absolutePath = $this->resolveRelativePath($expression, $currentPath);
             return $this->getValueByPath($absolutePath, $allData);
         }
 
         // Handle absolute path
         return $this->getValueByPath($expression, $allData);
-    }
-
-    /**
-     * Resolve a path expression with wildcard support.
-     * Wildcards (*) are replaced with the current array index from the context path.
-     *
-     * @param string $expression The path expression (e.g., "items.*.is_close")
-     * @param string $currentPath The current field's path (dot notation, e.g., "items.0.price")
-     * @param array $allData All form data
-     * @return mixed The resolved value
-     */
-    public function resolveExpressionWithWildcard(string $expression, string $currentPath, array $allData, bool $fromGroup = false): mixed
-    {
-        $expression = trim($expression);
-
-        // Handle relative path notation (., .., ...)
-        if (str_starts_with($expression, '.')) {
-            $absolutePath = $this->resolveRelativePath($expression, $currentPath, $fromGroup);
-            return $this->getValueByPath($absolutePath, $allData);
-        }
-
-        // Check if expression contains wildcards
-        if (str_contains($expression, '*')) {
-            // Replace wildcards with the corresponding index from the current path
-            $resolvedPath = $this->replaceWildcardsWithCurrentIndex($expression, $currentPath, $allData);
-            return $this->getValueByPath($resolvedPath, $allData);
-        }
-
-        // Handle absolute path
-        return $this->getValueByPath($expression, $allData);
-    }
-
-    /**
-     * Replace wildcards in a path with the corresponding indices from the current path.
-     *
-     * Example:
-     * - expression: "items.*.is_close"
-     * - currentPath: "items.0.price"
-     * - result: "items.0.is_close"
-     *
-     * For paths like "option_single.items.*.is_close" with currentPath "option_single.items.0.price"
-     * - result: "option_single.items.0.is_close"
-     *
-     * For multiple: "only" pattern where data is an object:
-     * - expression: "option_single.items.*.is_close"
-     * - currentPath: "option_single.items.price"
-     * - data: option_single.items is an object (not array)
-     * - result: "option_single.items.is_close" (wildcard is skipped)
-     *
-     * @param string $expression The path with wildcards
-     * @param string $currentPath The current field path
-     * @param array $allData All form data
-     * @return string The path with wildcards replaced
-     */
-    private function replaceWildcardsWithCurrentIndex(string $expression, string $currentPath, array $allData): string
-    {
-        $exprParts = $this->pathToParts($expression);
-        $currentParts = $this->pathToParts($currentPath);
-
-        // Extract numeric indices from current path by matching path structure
-        $result = [];
-
-        foreach ($exprParts as $i => $part) {
-            if ($part === '*') {
-                // Get the path up to this point
-                $pathBeforeWildcard = implode('.', $result);
-                $valueAtPath = $pathBeforeWildcard === '' ? $allData : $this->getValueByPath($pathBeforeWildcard, $allData);
-
-                // Check if the value is an object (not an array) - this is the "multiple: only" pattern
-                if ($valueAtPath instanceof \stdClass || (is_array($valueAtPath) && !array_is_list($valueAtPath))) {
-                    // Skip the wildcard for "only" pattern - the data is an object, not an array
-                    continue;
-                }
-
-                // Find the corresponding index from current path
-                $index = $this->findMatchingIndex($exprParts, $i, $currentParts, $allData);
-                if ($index !== null) {
-                    $result[] = (string)$index;
-                } else {
-                    // If no matching index found, keep the wildcard (will be resolved later)
-                    $result[] = '*';
-                }
-            } else {
-                $result[] = $part;
-            }
-        }
-
-        return implode('.', $result);
-    }
-
-    /**
-     * Find the matching index for a wildcard at position $wildcardPos in the expression.
-     *
-     * @param array $exprParts Expression path parts
-     * @param int $wildcardPos Position of the wildcard in expression parts
-     * @param array $currentParts Current path parts
-     * @param array $allData All form data
-     * @return int|null The matching index or null
-     */
-    private function findMatchingIndex(array $exprParts, int $wildcardPos, array $currentParts, array $allData): ?int
-    {
-        // Build the path prefix before the wildcard in the expression
-        $exprPrefix = array_slice($exprParts, 0, $wildcardPos);
-
-        // Find where this prefix matches in the current path
-        // We need to find a numeric index in the current path that corresponds to this wildcard
-        $currentIndex = 0;
-        $wildcardCount = 0;
-
-        // Count wildcards before this position in expression to know which index we need
-        for ($i = 0; $i < $wildcardPos; $i++) {
-            if ($exprParts[$i] === '*') {
-                $wildcardCount++;
-            }
-        }
-
-        // Now find the (wildcardCount + 1)th numeric index in current path that matches
-        // the structure of the expression
-        $numericIndicesFound = 0;
-
-        // Match the expression prefix against current path
-        $exprIdx = 0;
-        $curIdx = 0;
-
-        while ($exprIdx < count($exprPrefix) && $curIdx < count($currentParts)) {
-            $exprPart = $exprPrefix[$exprIdx] ?? null;
-            $curPart = $currentParts[$curIdx] ?? null;
-
-            if ($exprPart === '*') {
-                // Skip to the numeric index in current path
-                if (is_numeric($curPart)) {
-                    $numericIndicesFound++;
-                    $curIdx++;
-                    $exprIdx++;
-                } else {
-                    $curIdx++;
-                }
-            } elseif ($exprPart === $curPart) {
-                $exprIdx++;
-                $curIdx++;
-            } else {
-                // Mismatch - try to skip numeric indices in current path
-                if (is_numeric($curPart)) {
-                    $curIdx++;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        // Now find the numeric index after the matching prefix
-        while ($curIdx < count($currentParts)) {
-            $curPart = $currentParts[$curIdx];
-            if (is_numeric($curPart)) {
-                return (int)$curPart;
-            }
-            $curIdx++;
-        }
-
-        // Fallback: find any numeric index in current path that could match
-        foreach ($currentParts as $part) {
-            if (is_numeric($part)) {
-                return (int)$part;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Resolve a simple field reference (for display_target etc.).
-     *
-     * @param string $fieldName The field name
-     * @param string $currentPath The current field's path
-     * @param array $allData All form data
-     * @return mixed The resolved value
-     */
-    public function resolve(string $fieldName, string $currentPath, array $allData): mixed
-    {
-        // If it looks like a path expression, use resolveExpression
-        if (str_starts_with($fieldName, '.')) {
-            return $this->resolveExpression($fieldName, $currentPath, $allData);
-        }
-
-        // Otherwise, look for the field in the same group
-        $currentParts = $this->pathToParts($currentPath);
-        if (count($currentParts) > 0) {
-            array_pop($currentParts); // Remove current field
-            $currentParts[] = $fieldName;
-            $path = implode('.', $currentParts);
-            return $this->getValueByPath($path, $allData);
-        }
-
-        return $this->getValueByPath($fieldName, $allData);
     }
 
     /**
      * Resolve a relative path to an absolute path.
      *
-     * For fields, each extra dot climbs one group: . = sibling, .. = parent's sibling.
-     * For groups ($fromGroup = true), the group itself counts as the first scope level:
-     * both . and .. resolve to the group's sibling scope, ... climbs one group, etc.
-     * (canonical per tests/fixtures/legacy-validate/cases.json: display-switch-group-001 and
-     * display-switch-nested-001 together force this asymmetry)
+     * Each extra dot climbs one group: . = sibling, .. = parent's sibling.
      *
      * @param string $relativePath The relative path (e.g., ".field", "..field")
      * @param string $currentPath The current field's absolute path
-     * @param bool $fromGroup Whether the path is resolved for a group's own condition
      * @return string The absolute path
      */
-    private function resolveRelativePath(string $relativePath, string $currentPath, bool $fromGroup = false): string
+    private function resolveRelativePath(string $relativePath, string $currentPath): string
     {
         $currentParts = $this->pathToParts($currentPath);
 
@@ -270,7 +71,7 @@ class PathResolver
         $fieldPath = substr($relativePath, $dots);
 
         // Go up directories based on dot count (. = same level, .. = parent, etc.)
-        $levelsUp = max(0, $dots - ($fromGroup ? 2 : 1));
+        $levelsUp = max(0, $dots - 1);
         for ($i = 0; $i < $levelsUp && count($currentParts) > 0; $i++) {
             // Pop non-numeric parts (skip array indices)
             while (count($currentParts) > 0 && is_numeric(end($currentParts))) {
@@ -308,7 +109,7 @@ class PathResolver
      * @param array $data The data to search
      * @return mixed The value or null if not found
      */
-    public function getValueByPath(string $path, array $data): mixed
+    private function getValueByPath(string $path, array $data): mixed
     {
         if ($path === '') {
             return $data;
@@ -380,37 +181,5 @@ class PathResolver
         }
 
         return $results;
-    }
-
-    /**
-     * Convert bracket notation to dot notation.
-     * e.g., "field[0][subfield]" -> "field.0.subfield"
-     */
-    public function bracketToDot(string $path): string
-    {
-        // Replace ][, [, ] with dots
-        $path = str_replace('][', '.', $path);
-        $path = str_replace('[', '.', $path);
-        $path = str_replace(']', '', $path);
-        return $path;
-    }
-
-    /**
-     * Convert dot notation to bracket notation.
-     * e.g., "field.0.subfield" -> "field[0][subfield]"
-     */
-    public function dotToBracket(string $path): string
-    {
-        $parts = $this->pathToParts($path);
-        if (count($parts) === 0) {
-            return '';
-        }
-
-        $first = array_shift($parts);
-        if (count($parts) === 0) {
-            return $first;
-        }
-
-        return $first . '[' . implode('][', $parts) . ']';
     }
 }

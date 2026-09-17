@@ -14,8 +14,7 @@
 //! ```
 //!
 //! Priority and right-associativity come from the grammar productions, not a
-//! heuristic. No eval, no split (GRAMMAR §10). CRUDUI-only; legacy
-//! (`crate::condition_parser`) is untouched (R7 parallel run).
+//! heuristic. No eval, no split (GRAMMAR §10).
 
 use super::ast::{LiteralValue, Node, PathSegment};
 use super::error::ParseError;

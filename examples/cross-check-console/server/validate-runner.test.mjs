@@ -4,18 +4,18 @@
  * compareIdempotency(results) is the single point that turns four per-language
  * envelopes into the cross-check verdict { idempotent, mismatch }. This is the
  * exact function the live gateway calls; here it is exercised in isolation so a
- * regression in the verdict logic is caught without spawning four CLIs.
+ * regression in the verdict logic is caught without spawning four processes.
  *
  * Two layers:
  *   (1) pure-comparator units — agreement → idempotent:true; a tampered
  *       (fake-divergent) language → idempotent:false with that language isolated
  *       in mismatch.groups; the f64-vs-int collapse stays true (false-mismatch
- *       regression lock); a failed CLI never silently agrees; <2 runnable → null.
- *   (2) one real fan-out smoke — actually spawnSync all four CRUDUI CLIs on a shared
+ *       regression lock); a failed process never silently agrees; <2 runnable → null.
+ *   (2) one real fan-out smoke — actually spawnSync all four validator processes on a shared
  *       fixture case and assert real four-language agreement (idempotent:true).
  *
  * The envelope shape under test is the gateway's own contract (validate-runner
- * runCli output): { lang, ok, valid, errors:[5-field], ms, failure }.
+ * runProcess output): { lang, ok, valid, errors:[5-field], ms, failure }.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -137,7 +137,7 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
     expect(rustGroup.langs).toEqual(['rust']);
   });
 
-  test('a failed CLI makes the four-language comparison fail', () => {
+  test('a failed process makes the four-language comparison fail', () => {
     const results = [
       env('js', { valid: true }), env('php', { valid: true }), env('go', { valid: true }),
       { lang: 'rust', ok: false, valid: false, errors: [], ms: 0, failure: null, error: 'binary missing' },
@@ -176,8 +176,8 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Real fan-out (spawns all four CRUDUI CLIs for every shared form fixture).
-// Requires the Go + Rust binaries to be built (npm run build:cli).
+// Real fan-out (spawns all four validator processes for every shared form fixture).
+// Requires the Go and Rust programs to be built (npm run build:validators).
 // ---------------------------------------------------------------------------
 const allCases = JSON.parse(fs.readFileSync(VALIDATE_FIXTURE, 'utf8'));
 describe('validateAll — real 4-language fan-out (every fixture case)', () => {

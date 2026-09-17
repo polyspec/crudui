@@ -2,11 +2,10 @@
 //!
 //! The third pass of the CRUDUI pipeline. It consumes a COMPOSED CRUDUI field model (the
 //! `validate`/`design`/`behavior`/`options` role slots) AFTER the compose pass has
-//! expanded `$ref`/`$patch`. It does NOT touch the legacy `crate::validator`
-//! (R7 parallel run). The only CRUDUI-new logic: (a) reading the `validate` slot, not
-//! legacy `rules`; (b) evaluating a rule value that is an expression OR a condition
+//! expanded `$ref`/`$patch`. Its field-model logic: (a) reading the `validate` slot
+//! (there is no `rules` key); (b) evaluating a rule value that is an expression OR a condition
 //! map (G1 — the condition is the value's expression, never a separate key); and
-//! (c) omitting `display_switch` and `display_target` visibility conditions (G1).
+//! (c) no visibility conditions (`display_switch`/`display_target` are forbidden keys, G1).
 //!
 //! Byte-for-byte with the JS reference; the shared 4-language fixture
 //! `tests/fixtures/validate/cases.json` is the single source of truth. errors are
@@ -16,7 +15,8 @@ use serde_json::{Map, Value};
 
 use crate::expr::{Evaluator, Expression, Node};
 
-use super::errors::FormInputError;
+use super::errors::{FormInputError, ValidateError};
+use super::parameters::{check, check_declared, Patterns};
 use super::rules::{get_rule, is_condition_expression, RuleContext};
 
 /// A single validation error (JS `ValidationError`: path/field/rule/message/value).
@@ -57,8 +57,7 @@ pub struct ValidationResult {
 }
 
 // ---------------------------------------------------------------------------
-// Rule-class tables (identical to legacy — single source of truth re-declared so the
-// CRUDUI engine never imports legacy private state, R7 isolation).
+// Rule-class tables (identical to the JS reference `Validator`).
 // ---------------------------------------------------------------------------
 
 /// Rules that apply to the whole array of a `multiple` field.
@@ -70,8 +69,8 @@ const PATH_REFERENCE_RULES: &[&str] = &["equalTo", "notEqual", "unique", "enddat
 /// Rules whose string param is a literal value, never a condition.
 const LITERAL_PARAM_RULES: &[&str] = &["accept"];
 
-/// Rules whose string param is a regex preserved verbatim.
-const REGEX_PARAM_RULES: &[&str] = &["match", "pattern"];
+/// Rules whose string param is a pattern preserved verbatim.
+const PATTERN_PARAM_RULES: &[&str] = &["match", "pattern"];
 
 /// Membership rules whose param is the allowed-value SET (an array, comma string,
 /// or a static value→label map, SPEC §2 G3). The param is data, NOT a
@@ -84,22 +83,31 @@ const MEMBERSHIP_PARAM_RULES: &[&str] = &["in"];
 /// The CRUDUI validator over a composed spec.
 pub struct Validator {
     properties: Map<String, Value>,
+    patterns: Patterns,
 }
 
 impl Validator {
-    /// Build from a composed root group's `properties` map.
-    pub fn new(properties: Map<String, Value>) -> Self {
-        Validator { properties }
+    /// Build from a composed root group's `properties` map, checking every
+    /// declared rule parameter. A parameter outside the validation-rule
+    /// definitions returns a load failure located at the field's declaration path.
+    pub fn new(properties: Map<String, Value>) -> Result<Self, ValidateError> {
+        let patterns = check_declared(&properties)?;
+        Ok(Validator {
+            properties,
+            patterns,
+        })
     }
 
     /// Validate `data` against the composed CRUDUI spec. Root, group and repeated
-    /// data with the wrong shape return a `FormInputError` and no result.
-    pub fn validate(&self, data: &Value) -> Result<ValidationResult, FormInputError> {
+    /// data with the wrong shape return an input failure, and a parameter selected
+    /// by a condition that is outside the definitions returns a load failure;
+    /// neither produces a result.
+    pub fn validate(&self, data: &Value) -> Result<ValidationResult, ValidateError> {
         if !data.is_object() {
-            return Err(FormInputError::new("Form data must be an object"));
+            return Err(FormInputError::new("Form data must be an object").into());
         }
         let mut errors: Vec<ValidationError> = Vec::new();
-        self.validate_properties(&self.properties, data, &[], data, &mut errors)?;
+        self.validate_properties(&self.properties, data, &[], &[], data, &mut errors)?;
         Ok(ValidationResult {
             valid: errors.is_empty(),
             errors,
@@ -107,17 +115,20 @@ impl Validator {
     }
 
     // =====================================================================
-    // Field traversal (SPEC §3; legacy validateProperties skeleton).
+    // Field traversal (SPEC §3).
     // =====================================================================
 
+    /// `current_path` is the data path (with row keys); `declaration_path` is the
+    /// field's declaration path (without row keys).
     fn validate_properties(
         &self,
         properties: &Map<String, Value>,
         data: &Value,
         current_path: &[String],
+        declaration_path: &[String],
         all_data: &Value,
         errors: &mut Vec<ValidationError>,
-    ) -> Result<(), FormInputError> {
+    ) -> Result<(), ValidateError> {
         let empty = Value::Object(Map::new());
         for (property_key, field) in properties {
             if !field.is_object() {
@@ -126,6 +137,9 @@ impl Validator {
             let is_multiple = is_multiple(field);
             let mut field_path = current_path.to_vec();
             field_path.push(property_key.clone());
+            let mut declaration = declaration_path.to_vec();
+            declaration.push(property_key.clone());
+            let declaration = declaration.as_slice();
             let present = data.get(property_key);
             let field_value = present.cloned().unwrap_or(Value::Null);
 
@@ -133,13 +147,11 @@ impl Validator {
                 return Err(FormInputError::new(format!(
                     "Repeated data must be a keyed object: {}",
                     path_to_string(&field_path)
-                )));
+                ))
+                .into());
             }
 
-            let is_group = field.get("type").and_then(Value::as_str) == Some("group");
-            let child_props = field.get("properties").and_then(Value::as_object);
-
-            if let (true, Some(child_props)) = (is_group, child_props) {
+            if let Some(child_props) = is_group_with_properties(field) {
                 if is_multiple {
                     if let Some(Value::Object(rows)) = present {
                         // Keyed rows use sorted-key traversal so the first reported
@@ -154,12 +166,14 @@ impl Validator {
                                 return Err(FormInputError::new(format!(
                                     "Group data must be an object: {}",
                                     path_to_string(&row_path)
-                                )));
+                                ))
+                                .into());
                             }
                             self.validate_properties(
                                 child_props,
                                 row,
                                 &row_path,
+                                declaration,
                                 all_data,
                                 errors,
                             )?;
@@ -168,20 +182,36 @@ impl Validator {
                             field,
                             &field_value,
                             &field_path,
+                            declaration,
                             all_data,
                             errors,
-                        );
+                        )?;
                     }
                 } else {
                     if present.is_some_and(|value| !value.is_object()) {
                         return Err(FormInputError::new(format!(
                             "Group data must be an object: {}",
                             path_to_string(&field_path)
-                        )));
+                        ))
+                        .into());
                     }
                     let nested = present.unwrap_or(&empty);
-                    self.validate_properties(child_props, nested, &field_path, all_data, errors)?;
-                    self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
+                    self.validate_properties(
+                        child_props,
+                        nested,
+                        &field_path,
+                        declaration,
+                        all_data,
+                        errors,
+                    )?;
+                    self.validate_field_rules(
+                        field,
+                        &field_value,
+                        &field_path,
+                        declaration,
+                        all_data,
+                        errors,
+                    )?;
                 }
             } else if let (true, Some(Value::Object(rows))) = (is_multiple, present) {
                 self.validate_multiple_field_rules(
@@ -189,11 +219,19 @@ impl Validator {
                     &field_value,
                     rows,
                     &field_path,
+                    declaration,
                     all_data,
                     errors,
-                );
+                )?;
             } else {
-                self.validate_field_rules(field, &field_value, &field_path, all_data, errors);
+                self.validate_field_rules(
+                    field,
+                    &field_value,
+                    &field_path,
+                    declaration,
+                    all_data,
+                    errors,
+                )?;
             }
         }
         Ok(())
@@ -204,15 +242,17 @@ impl Validator {
     // =====================================================================
 
     /// Collection rules and per-row rules for a repeated scalar field.
+    #[allow(clippy::too_many_arguments)]
     fn validate_multiple_field_rules(
         &self,
         field: &Value,
         values: &Value,
         rows: &Map<String, Value>,
         field_path: &[String],
+        declaration: &[String],
         all_data: &Value,
         errors: &mut Vec<ValidationError>,
-    ) {
+    ) -> Result<(), ValidateError> {
         let messages = field.get("messages");
         let mut entries: Vec<(String, &Value)> = rows.iter().map(|(k, v)| (k.clone(), v)).collect();
         entries.sort_by(|a, b| a.0.cmp(&b.0));
@@ -224,8 +264,14 @@ impl Validator {
                     continue;
                 }
                 if let Some(message) = self.run_rule(
-                    rule_name, rule_value, values, field_path, messages, all_data,
-                ) {
+                    rule_name,
+                    rule_value,
+                    values,
+                    field_path,
+                    declaration,
+                    messages,
+                    all_data,
+                )? {
                     errors.push(ValidationError {
                         path: path_to_string(field_path),
                         field: field_name(field_path),
@@ -233,7 +279,7 @@ impl Validator {
                         message,
                         value: values.clone(),
                     });
-                    return;
+                    return Ok(());
                 }
             }
         }
@@ -242,8 +288,9 @@ impl Validator {
         for (key, value) in entries {
             let mut item_path = field_path.to_vec();
             item_path.push(key);
-            self.validate_element_rules(field, value, &item_path, all_data, errors);
+            self.validate_element_rules(field, value, &item_path, declaration, all_data, errors)?;
         }
+        Ok(())
     }
 
     /// Element-level rules for one element of a `multiple` field.
@@ -252,26 +299,33 @@ impl Validator {
         field: &Value,
         value: &Value,
         item_path: &[String],
+        declaration: &[String],
         all_data: &Value,
         errors: &mut Vec<ValidationError>,
-    ) {
+    ) -> Result<(), ValidateError> {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(field, rules, value, item_path, messages, all_data, errors) {
-            return;
+        if self.run_implicit_number(field, rules, value, item_path, messages, all_data, errors)? {
+            return Ok(());
         }
         let rules = match rules {
             Some(r) => r,
-            None => return,
+            None => return Ok(()),
         };
         for (rule_name, rule_value) in rules {
             if ARRAY_LEVEL_RULES.contains(&rule_name.as_str()) {
                 continue;
             }
-            if let Some(message) =
-                self.run_rule(rule_name, rule_value, value, item_path, messages, all_data)
-            {
+            if let Some(message) = self.run_rule(
+                rule_name,
+                rule_value,
+                value,
+                item_path,
+                declaration,
+                messages,
+                all_data,
+            )? {
                 errors.push(ValidationError {
                     path: path_to_string(item_path),
                     field: field_name(item_path),
@@ -282,6 +336,7 @@ impl Validator {
                 break;
             }
         }
+        Ok(())
     }
 
     /// All rules for a single (scalar or group-as-whole) field.
@@ -290,23 +345,30 @@ impl Validator {
         field: &Value,
         value: &Value,
         field_path: &[String],
+        declaration: &[String],
         all_data: &Value,
         errors: &mut Vec<ValidationError>,
-    ) {
+    ) -> Result<(), ValidateError> {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(field, rules, value, field_path, messages, all_data, errors) {
-            return;
+        if self.run_implicit_number(field, rules, value, field_path, messages, all_data, errors)? {
+            return Ok(());
         }
         let rules = match rules {
             Some(r) => r,
-            None => return,
+            None => return Ok(()),
         };
         for (rule_name, rule_value) in rules {
-            if let Some(message) =
-                self.run_rule(rule_name, rule_value, value, field_path, messages, all_data)
-            {
+            if let Some(message) = self.run_rule(
+                rule_name,
+                rule_value,
+                value,
+                field_path,
+                declaration,
+                messages,
+                all_data,
+            )? {
                 errors.push(ValidationError {
                     path: path_to_string(field_path),
                     field: field_name(field_path),
@@ -317,6 +379,7 @@ impl Validator {
                 break;
             }
         }
+        Ok(())
     }
 
     /// `type:number` runs an implicit `number` rule first when no explicit
@@ -331,21 +394,23 @@ impl Validator {
         messages: Option<&Value>,
         all_data: &Value,
         errors: &mut Vec<ValidationError>,
-    ) -> bool {
+    ) -> Result<bool, ValidateError> {
         if field.get("type").and_then(Value::as_str) != Some("number") {
-            return false;
+            return Ok(false);
         }
         if rules.map(|r| r.contains_key("number")).unwrap_or(false) {
-            return false;
+            return Ok(false);
         }
+        // The implicit `number` parameter is `true`; it has nothing to check.
         if let Some(message) = self.run_rule(
             "number",
             &Value::Bool(true),
             value,
             path,
+            &[],
             messages,
             all_data,
-        ) {
+        )? {
             errors.push(ValidationError {
                 path: path_to_string(path),
                 field: field_name(path),
@@ -353,9 +418,9 @@ impl Validator {
                 message,
                 value: value.clone(),
             });
-            return true;
+            return Ok(true);
         }
-        false
+        Ok(false)
     }
 
     // =====================================================================
@@ -363,35 +428,46 @@ impl Validator {
     // =====================================================================
 
     /// Run one rule: resolve its (possibly conditional) value to an effective
-    /// param, skip on false/null, else call the rule. Returns the error or None.
+    /// param, skip on false/null, check the parameter, else call the rule.
+    /// Returns the error message, `None` on a pass, or the failure of a selected
+    /// parameter located at `declaration`.
+    #[allow(clippy::too_many_arguments)]
     fn run_rule(
         &self,
         rule_name: &str,
         rule_value: &Value,
         value: &Value,
         current_path: &[String],
+        declaration: &[String],
         messages: Option<&Value>,
         all_data: &Value,
-    ) -> Option<String> {
+    ) -> Result<Option<String>, ValidateError> {
         let effective = self.resolve_rule_value(rule_name, rule_value, current_path, all_data);
 
         // A false/null effective param disables the rule.
-        if effective == Value::Bool(false) || effective.is_null() {
-            return None;
+        if is_disabled(&effective) {
+            return Ok(None);
         }
 
         // unregistered rule: no error
-        let rule_fn = get_rule(rule_name)?;
+        let Some(rule_fn) = get_rule(rule_name) else {
+            return Ok(None);
+        };
+
+        // Declared parameters were checked when the specification loaded (patterns
+        // are compiled then); a selected parameter is checked now.
+        let parameter = check(rule_name, &effective, declaration, &self.patterns)?;
 
         let ctx = RuleContext {
             value,
             rule_param: &effective,
+            parameter: &parameter,
             messages,
             rule_name,
             path_segments: current_path,
             form_data: all_data,
         };
-        rule_fn(&ctx)
+        Ok(rule_fn(&ctx))
     }
 
     /// Resolve a rule value to the effective param (G1).
@@ -402,34 +478,18 @@ impl Validator {
         current_path: &[String],
         all_data: &Value,
     ) -> Value {
-        // Verbatim-param rules: never evaluate (field ref / literal / regex /
-        // membership set). A membership param object is a value→label map (G3),
-        // not a condition map, so it is preserved verbatim for the rule's flatten.
-        if PATH_REFERENCE_RULES.contains(&rule_name)
-            || LITERAL_PARAM_RULES.contains(&rule_name)
-            || REGEX_PARAM_RULES.contains(&rule_name)
-            || MEMBERSHIP_PARAM_RULES.contains(&rule_name)
-        {
-            return rule_value.clone();
-        }
-
-        // ConditionMap: a plain object of expression→value, declaration-ordered.
-        if let Value::Object(map) = rule_value {
-            return self.resolve_condition_map(map, current_path, all_data);
-        }
-
-        // String: ternary value-return or plain condition.
-        if let Value::String(s) = rule_value {
-            if let Some(v) = self.try_evaluate_ternary(s, current_path, all_data) {
-                return v;
+        match resolution(rule_name, rule_value) {
+            Resolution::Verbatim | Resolution::Literal => rule_value.clone(),
+            Resolution::ConditionMap(map) => {
+                self.resolve_condition_map(map, current_path, all_data)
             }
-            if is_condition_expression(s) && !has_ternary_regex(s) {
-                return evaluate_expression_value(s, all_data, current_path);
+            Resolution::Ternary(node) => {
+                Evaluator::new(all_data, current_path).evaluate_value(&node)
+            }
+            Resolution::Expression(expression) => {
+                evaluate_expression_value(expression, all_data, current_path)
             }
         }
-
-        // Literal param.
-        rule_value.clone()
     }
 
     /// Evaluate a ConditionMap (expressions.md §8): first truthy key wins;
@@ -453,20 +513,106 @@ impl Validator {
         }
         Value::Null
     }
+}
 
-    /// Evaluate a complete ternary AST; other strings remain literal parameters.
-    fn try_evaluate_ternary(
-        &self,
-        expression: &str,
-        current_path: &[String],
-        all_data: &Value,
-    ) -> Option<Value> {
-        let node = Expression::parse(expression).ok()?;
-        if !matches!(node, Node::Ternary { .. }) {
-            return None;
-        }
-        Some(Evaluator::new(all_data, current_path).evaluate_value(&node))
+// ---------------------------------------------------------------------------
+// How a rule value becomes its parameter (shared with the parameter checks).
+// ---------------------------------------------------------------------------
+
+/// How a declared rule value becomes the rule's parameter.
+enum Resolution<'a> {
+    /// A rule that receives its value unchanged.
+    Verbatim,
+    /// A condition map selecting a value.
+    ConditionMap(&'a Map<String, Value>),
+    /// A ternary expression selecting a branch value.
+    Ternary(Node),
+    /// A condition expression whose value is the parameter.
+    Expression(&'a str),
+    /// A literal parameter.
+    Literal,
+}
+
+fn resolution<'a>(rule_name: &str, rule_value: &'a Value) -> Resolution<'a> {
+    // Verbatim-param rules: never evaluate (field ref / literal / pattern /
+    // membership set). A membership param object is a value→label map (G3),
+    // not a condition map.
+    if PATH_REFERENCE_RULES.contains(&rule_name)
+        || LITERAL_PARAM_RULES.contains(&rule_name)
+        || PATTERN_PARAM_RULES.contains(&rule_name)
+        || MEMBERSHIP_PARAM_RULES.contains(&rule_name)
+    {
+        return Resolution::Verbatim;
     }
+    match rule_value {
+        Value::Object(map) => Resolution::ConditionMap(map),
+        Value::String(s) => {
+            // A complete ternary AST selects a branch; other strings are
+            // condition expressions or literal parameters.
+            if let Ok(node @ Node::Ternary { .. }) = Expression::parse(s) {
+                Resolution::Ternary(node)
+            } else if is_condition_expression(s) && !has_ternary_regex(s) {
+                Resolution::Expression(s)
+            } else {
+                Resolution::Literal
+            }
+        }
+        _ => Resolution::Literal,
+    }
+}
+
+/// Whether a declared rule value is selected by a condition, so its parameter is
+/// checked when it is selected rather than when the specification loads.
+pub(crate) fn is_conditional(rule_name: &str, rule_value: &Value) -> bool {
+    matches!(
+        resolution(rule_name, rule_value),
+        Resolution::ConditionMap(_) | Resolution::Ternary(_) | Resolution::Expression(_)
+    )
+}
+
+/// The literals a conditional rule value can select, which are checked when the
+/// specification loads: every condition-map value, and every literal ternary
+/// branch (through nested ternaries). A value a branch takes from the data is
+/// checked only when it is selected.
+pub(crate) fn selectable_literals(rule_name: &str, rule_value: &Value) -> Vec<Value> {
+    let mut literals = Vec::new();
+    match resolution(rule_name, rule_value) {
+        Resolution::ConditionMap(map) => literals.extend(map.values().cloned()),
+        Resolution::Ternary(node) => {
+            let mut pending = vec![&node];
+            while let Some(node) = pending.pop() {
+                match node {
+                    Node::Ternary {
+                        true_value,
+                        false_value,
+                        ..
+                    } => {
+                        // The true branch is collected first.
+                        pending.push(false_value);
+                        pending.push(true_value);
+                    }
+                    Node::Group(inner) => pending.push(inner),
+                    Node::Literal(literal) => literals.push(literal.to_value()),
+                    _ => {}
+                }
+            }
+        }
+        Resolution::Verbatim | Resolution::Expression(_) | Resolution::Literal => {}
+    }
+    literals
+}
+
+/// Whether a parameter disables its rule (`false` or `null`).
+pub(crate) fn is_disabled(parameter: &Value) -> bool {
+    matches!(parameter, Value::Bool(false) | Value::Null)
+}
+
+/// The member declarations of a group field the validator descends into.
+pub(crate) fn is_group_with_properties(field: &Value) -> Option<&Map<String, Value>> {
+    if field.get("type").and_then(Value::as_str) != Some("group") {
+        return None;
+    }
+    field.get("properties").and_then(Value::as_object)
 }
 
 // ---------------------------------------------------------------------------

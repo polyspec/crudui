@@ -7,9 +7,9 @@
  * Validator once per spec, loop validate($input) N times in a SINGLE process.
  * PHP process startup, autoload, JSON decode, and fixture I/O all happen
  * BEFORE timing — the measured window is validate-only, same as the other
- * languages. The per-case process spawn in compare-all.js is NOT used here; it
- * would fold the PHP interpreter boot cost into every iteration and is unfair
- * for a throughput comparison.
+ * languages. A per-case process spawn is NOT used here; it would fold the PHP
+ * interpreter boot cost into every iteration and is unfair for a throughput
+ * comparison.
  *
  * stdout: one JSON line per spec (same shape as the other drivers).
  *
@@ -99,7 +99,7 @@ function bench_spec(string $dir, string $name, int $iters, int $warmup): array
 }
 
 $args = parse_args($argv);
-$specs = $args['spec'] !== null ? [$args['spec']] : ['contact', 'large-form'];
+$specs = $args['spec'] !== null ? [$args['spec']] : ['contact', 'large'];
 foreach ($specs as $name) {
     $r = bench_spec($FIXTURES, $name, $args['iters'], $args['warmup']);
     echo json_encode($r) . "\n";

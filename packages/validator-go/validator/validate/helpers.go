@@ -4,7 +4,8 @@ package validate
 // resolution (the verbatim path-param rules equalTo / notEqual / unique / enddate
 // need it), the condition-expression heuristic, accept MIME/extension matching,
 // date parsing, and URL validation. All mirror the JS reference
-// (validator-ts/src/parser/PathResolver, ConditionParser, rules/accept|date|url).
+// (validator-ts/src/parser/PathResolver.ts, ConditionParser.ts and
+// src/rules/accept.ts, date.ts and url.ts).
 //
 // Field-reference resolution is the ONE piece of path logic this package owns
 // directly: the model expr engine resolves paths inside expressions, but a rule param
@@ -75,7 +76,7 @@ func getValueBySegments(data any, path []string) any {
 //   - "a.b.c" absolute-ish (dots inside, no leading dot) from root.
 //   - bare "field" sibling lookup within the current group.
 func resolveFieldReference(expression string, currentPath []string, formData map[string]any) any {
-	trimmed := strings.TrimSpace(expression)
+	trimmed := trimText(expression)
 	if trimmed == "" {
 		return nil
 	}
@@ -130,7 +131,7 @@ var ternaryRE = regexp.MustCompile(`\?.*:`)
 // when it starts with '.', is an identifier-dot path, contains an infix operator,
 // or contains a ternary "?...:".
 func isConditionExpression(value string) bool {
-	trimmed := strings.TrimSpace(value)
+	trimmed := trimText(value)
 	if strings.HasPrefix(trimmed, ".") {
 		return true
 	}
@@ -219,7 +220,7 @@ func parseAcceptParam(param any) []string {
 	switch p := param.(type) {
 	case string:
 		for _, raw := range strings.Split(p, ",") {
-			part := strings.ToLower(strings.TrimSpace(raw))
+			part := strings.ToLower(trimText(raw))
 			if strings.HasPrefix(part, ".") {
 				ext := part[1:]
 				if mimes, ok := extensionToMime[ext]; ok {
@@ -310,7 +311,7 @@ func parseExactDate(layout, s string) *time.Time {
 }
 
 // isValidURL reports a valid http/https/ftp URL with a host (JS-equivalent URL
-// rule semantics, matching the legacy Go url rule).
+// rule semantics).
 func isValidURL(s string) bool {
 	parsed, err := url.Parse(s)
 	if err != nil {

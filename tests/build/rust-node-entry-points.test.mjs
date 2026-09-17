@@ -71,7 +71,7 @@ if (process.env.TEST_RUSTDOC_OUTPUT) {
   }
 }
 if (args[0] === 'run') {
-  for (const spec of ['contact', 'large-form']) {
+  for (const spec of ['contact', 'large']) {
     process.stdout.write(JSON.stringify({
       spec, valid: true, error: null, field: null, opsSec: 1, avgUs: 1, ms: 1,
     }) + '\n');
@@ -242,8 +242,8 @@ test('cross-check server builds Rust through its module-located entry point', t 
 
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.deepEqual(commands(tools.commandLog), [{
-    args: ['build', '--locked', '--release', '--bin', 'validate'],
-    cwd: path.join(repository, 'packages/validator-rust'),
+    args: ['build', '--locked', '--release'],
+    cwd: path.join(repository, 'examples/cross-check-console/validators/rust'),
     rustc: tools.rustc,
     rustdoc: tools.rustdoc,
   }]);

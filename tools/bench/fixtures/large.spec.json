@@ -1,0 +1,485 @@
+{
+  "type": "group",
+  "properties": {
+    "field_001": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_002": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_003": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_004": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_005": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_006": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_007": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_008": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_009": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_010": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_011": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_012": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_013": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_014": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_015": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_016": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_017": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_018": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_019": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_020": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_021": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_022": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_023": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_024": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_025": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_026": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_027": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_028": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_029": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_030": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_031": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_032": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_033": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_034": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_035": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_036": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_037": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_038": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_039": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_040": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_041": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_042": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_043": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_044": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_045": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_046": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_047": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_048": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_049": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_050": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_051": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_052": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_053": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_054": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_055": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_056": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_057": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_058": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_059": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_060": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_061": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_062": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_063": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_064": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_065": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_066": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_067": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_068": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_069": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_070": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_071": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_072": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_073": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_074": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_075": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_076": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_077": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_078": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_079": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    },
+    "field_080": {
+      "type": "text",
+      "validate": {
+        "required": true
+      }
+    }
+  }
+}

@@ -41,6 +41,18 @@ test('rebuilds and restarts only the affected native server', () => {
     targets: ['crudui-php-extension', 'ordered-json-php-extension'], restarts: ['php-ext'],
     supervisor: false,
   });
+  for (const file of ['examples/cross-check-console/validators/go/main.go',
+    'examples/cross-check-console/validators/go/go.mod']) {
+    assert.deepEqual(summary([file]),
+      { targets: ['cross-check-go-validator'], restarts: ['public'], supervisor: false });
+  }
+  for (const file of ['examples/cross-check-console/validators/rust/src/main.rs',
+    'examples/cross-check-console/validators/rust/Cargo.lock']) {
+    assert.deepEqual(summary([file]),
+      { targets: ['cross-check-rust-validator'], restarts: ['public'], supervisor: false });
+  }
+  assert.deepEqual(summary(['examples/cross-check-console/validators/rust/target/release/x']),
+    { targets: [], restarts: [], supervisor: false });
   for (const file of [`${example}/servers/go/main.go`, 'packages/generator-go/form.go',
     'packages/validator-go/go.mod']) {
     assert.deepEqual(summary([file]), {
@@ -101,6 +113,12 @@ test('restarts the canonical public entry when the display console changes', () 
     targets: ['cross-check-console'], restarts: ['public'], supervisor: false,
   });
   assert.deepEqual(summary(['examples/cross-check-console/server/server.mjs']), {
+    targets: ['cross-check-console'], restarts: ['public'], supervisor: false,
+  });
+  assert.deepEqual(summary(['examples/cross-check-console/validators/js/validate.mjs']), {
+    targets: ['cross-check-console'], restarts: ['public'], supervisor: false,
+  });
+  assert.deepEqual(summary(['examples/cross-check-console/validators/php/validate.php']), {
     targets: ['cross-check-console'], restarts: ['public'], supervisor: false,
   });
 });

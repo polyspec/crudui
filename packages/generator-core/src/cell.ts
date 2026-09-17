@@ -22,7 +22,7 @@
  */
 
 import { FormInputError } from '@crudui/validator';
-import type { PathContext } from '@crudui/validator';
+import type { PathContext } from '@crudui/validator/internal';
 import { evalAppearance } from './expr';
 import type { Translate, LocalizedText } from './content';
 import { getValueByPath } from './util';

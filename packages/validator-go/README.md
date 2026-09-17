@@ -1,48 +1,36 @@
 # validator-go
 
-Go validator for the crudui system. Ships the legacy validator (`cmd/validate`)
-and the CRUDUI engine (`validator/CRUDUI`: compose → forbidden-scan → validate), kept in
-conformance lockstep with the JS/PHP/Rust implementations. The legacy model is never
-touched by CRUDUI (R7 parallel run).
+[한국어](README.ko.md).
 
-## CRUDUI CLI — `cmd/validate`
+Go validator for the crudui system. The `validator` packages compose a
+specification, reject forbidden keys and validate data, in conformance with the
+JavaScript, PHP and Rust implementations.
 
-The cross-check gateway drives all four languages as symmetric subprocesses
-(spawn, stdin JSON, utf-8). This is the Go wrapper:
+## API
 
+```go
+import "github.com/polyspec/crudui/packages/validator-go/validator/validate"
+
+result, err := validate.ValidateJSON(specJSON, dataJSON, files, basepath)
 ```
-go run ./cmd/validate < request.json
-```
 
-- stdin: `{"spec": <object>, "data": <object>, "files"?: {...}, "basepath"?: <string>, "mode"?: "form"|"list"|"detail"}`
-- stdout: `{"valid": <bool>, "errors": [{path, field, rule, message, value}, ...]}`
+- `validate.ValidateJSON(spec, data []byte, files map[string][]byte, basepath string)`
+  composes the form specification, rejects forbidden keys and validates `data`.
+  It returns a `ValidationResult` with `Valid` and `Errors`; each error has
+  `path`, `field`, `rule`, `message` and `value`.
+- `validate.ValidateListJSON(spec, files, basepath)` composes a list
+  specification and rejects forbidden keys. A list has no rows, so a clean load
+  is a valid result.
+- `validate.ValidateDetailJSON(spec, files, basepath)` performs the same structure
+  check for a detail specification, including its `fields` map.
 
-`mode` defaults to `form` (`ValidateJSON`: compose → forbidden-scan → DATA
-validate). `list` runs `ValidateListJSON` (SPEC §9): compose + forbidden-scan
-only — a list carries no rows, so `data` is ignored. `detail` runs
-`ValidateDetailJSON`: the detail root and its `fields` map are composed and
-forbidden-scanned the same way, and `data` is ignored. An absent `mode` selects
-`form`.
-
-Request rules, checked in this order; each failure exits 1 with stdout exactly
-`{"error": <message>}`:
-
-1. stdin is not valid JSON → `Request must be valid JSON`
-2. the request is not a JSON object → `Request must be an object`
-3. `spec` absent or not an object → `Request spec must be an object`
-4. `mode` present and not exactly `form`, `list` or `detail` (`null`, `""` and
-   non-strings included) → `Unsupported validation mode`
-5. `files` present, not `null` and not an object → `Request files must be an object`
-6. any `files` member not an object → `Request files must contain objects`
-7. `basepath` present, not `null` and not a string → `Request basepath must be a string`
-
-Absent or `null` `files`/`basepath` mean none. In `form` mode an omitted `data`
-member validates `{}`; a present `data` that is not an object (`null` included)
-is the input failure `{"error": "Form data must be an object", "code":
-"INVALID_FORM_INPUT", "at": ""}`. A load failure (unresolved `$ref`/`$patch` or
-forbidden meta key, `*compose.ComposeLoadError`) or an input failure
-(`*validate.FormInputError`) exits 2 with exactly `{"error", "code", "at"}`,
-never `valid:false`. Every language's CLI uses this contract.
+`files` maps `$ref` keys to JSON documents and `basepath` resolves relative
+references. An unresolved `$ref` or `$patch` or a forbidden key returns a
+`*compose.ComposeLoadError`; root, group or repeated data with the wrong shape
+returns a `*validate.FormInputError` with code `INVALID_FORM_INPUT`. A failure is
+returned as the error, never as an invalid result. The
+[validation procedure](../../docs/operations/validation.md) shows usage in every
+language.
 
 ## Test
 
@@ -51,5 +39,4 @@ From the repository root:
 ```sh
 node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...               # full suite
 node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/...     # CRUDUI conformance
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./cmd/validate/     # CRUDUI CLI conformance (form + list + detail)
 ```

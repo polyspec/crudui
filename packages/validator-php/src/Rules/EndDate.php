@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 use CRUDUI\Validator\PathResolver;
 
 /**
@@ -59,22 +61,12 @@ class EndDate implements RuleInterface
             return null;
         }
 
-        $stringValue = trim((string)$value);
+        $stringValue = Whitespace::trim((string)$value);
         if ($stringValue === '') {
             return null;
         }
 
         $timestamp = strtotime($stringValue);
         return $timestamp === false ? null : $timestamp;
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'End date must be after the start date.';
     }
 }

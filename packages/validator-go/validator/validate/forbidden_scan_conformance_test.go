@@ -42,7 +42,7 @@ type engineError struct {
 
 func loadForbiddenScanFixtures(t *testing.T) []forbiddenScanCase {
 	t.Helper()
-	// validator-go/validator/model/validate → repo root is five levels up.
+	// packages/validator-go/validator/validate → repo root is four levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "spec-validity", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

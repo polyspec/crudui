@@ -30,7 +30,8 @@ import { describe, test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateList, ComposeLoadError } from './index';
+import { validateList } from './index';
+import { ComposeLoadError } from '../compose/index';
 import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
 
 const __filename = fileURLToPath(import.meta.url);

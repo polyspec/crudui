@@ -28,7 +28,7 @@ type fixtureCase struct {
 
 func loadFixtures(t *testing.T) []fixtureCase {
 	t.Helper()
-	// validator-go/validator/model/compose → repo root is five levels up.
+	// packages/validator-go/validator/compose → repo root is four levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "compose", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

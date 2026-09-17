@@ -3,16 +3,14 @@
  *
  * The third pass of the CRUDUI pipeline. It consumes a CRUDUI field model (the
  * `validate`/`design`/`behavior`/`options` role slots) AFTER the compose pass
- * has expanded `$ref`/`$patch` into a single spec. It does NOT touch the legacy
- * `Validator` (R7 parallel run) and it does NOT re-implement the rule
- * semantics or the expression engine — it CALLS the existing rule registry
+ * has expanded `$ref`/`$patch` into a single spec. It does NOT re-implement the
+ * rule semantics or the expression engine — it CALLS the existing rule registry
  * (rules/index) and the existing expression engine (parser/ConditionParser,
- * parser/PathResolver). The only CRUDUI-new logic here is: (a) reading the
- * `validate` slot instead of the legacy `rules` key, (b) evaluating a rule value
- * that is an expression OR a condition map (G1 — the condition is the value's
- * expression, never a separate `if`/`when` key), and (c) dropping the legacy
- * `display_switch`/`display_target` visibility conditions (G1 forbids those meta
- * keys; visibility-driven requiredness is expressed as `required: '<expr>'`).
+ * parser/PathResolver). The logic here is: (a) reading the `validate` slot,
+ * (b) evaluating a rule value that is an expression OR a condition map (G1 — the
+ * condition is the value's expression, never a separate `if`/`when` key), and
+ * (c) expressing visibility-driven requiredness as `required: '<expr>'` (G1
+ * forbids the `display_switch`/`display_target` meta keys).
  *
  * Pipeline (SPEC):
  *   1. compose — `composeSpec`/`composeProperties` (compose/) is run by the
@@ -35,9 +33,11 @@ import type {
   ValidationContext,
   PathContext,
   MessagesSpec,
+  ASTNode,
 } from '../types';
 import { getRule } from '../rules/index';
 import { FormInputError } from './errors';
+import { assertRuleParameter } from './parameters';
 import {
   parseCondition,
   isConditionExpression,
@@ -50,8 +50,7 @@ import {
 } from '../parser/PathResolver';
 
 // ---------------------------------------------------------------------------
-// Rule-class tables (identical to legacy — single source of truth re-declared so
-// the CRUDUI engine never imports legacy private state, R7 isolation).
+// Rule-class tables.
 // ---------------------------------------------------------------------------
 
 /**
@@ -119,13 +118,92 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-/** Read the per-field custom messages (CRUDUI keeps the legacy `messages` map). */
+/** Read the per-field custom messages (the field's `messages` map). */
 function fieldMessages(field: ComposedField): MessagesSpec | undefined {
   const m = field.messages;
   if (m && typeof m === 'object' && !Array.isArray(m)) {
     return m as MessagesSpec;
   }
   return undefined;
+}
+
+/** How a declared rule value becomes the rule's effective parameter. */
+type RuleValueForm = 'literal' | 'conditionMap' | 'ternary' | 'expression';
+
+/** Whether a string parses as a complete ternary expression. */
+function isTernary(expression: string): boolean {
+  try {
+    return parseCondition(expression).type === 'Ternary';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Classify a declared rule value (G1).
+ *
+ *   - Path-reference / literal-param / regex / membership rules keep their
+ *     parameter verbatim (SPEC §10) — never evaluated as a condition. A
+ *     membership map is a value set, not a condition map.
+ *   - A plain object is a ConditionMap (expression → value, declaration order).
+ *   - A string that parses as a ternary returns its selected branch value.
+ *   - Another condition expression string evaluates to its value.
+ *   - Anything else is a literal parameter.
+ */
+function ruleValueForm(ruleName: string, ruleValue: unknown): RuleValueForm {
+  if (
+    PATH_REFERENCE_RULES.includes(ruleName) ||
+    LITERAL_PARAM_RULES.includes(ruleName) ||
+    REGEX_PARAM_RULES.includes(ruleName) ||
+    MEMBERSHIP_PARAM_RULES.includes(ruleName)
+  ) {
+    return 'literal';
+  }
+  if (isPlainObject(ruleValue)) {
+    return 'conditionMap';
+  }
+  if (typeof ruleValue === 'string') {
+    if (isTernary(ruleValue)) {
+      return 'ternary';
+    }
+    if (isConditionExpression(ruleValue) && !/\?[^:]*:/.test(ruleValue)) {
+      return 'expression';
+    }
+  }
+  return 'literal';
+}
+
+/**
+ * The literals a declared rule value can make the effective parameter: the value
+ * itself, every value of a condition map, and every literal branch of a ternary
+ * (through nested ternaries and parentheses). Branches that read the data
+ * (paths and computed conditions) are not literals; they are checked when
+ * selected. A plain condition expression always reads the data.
+ */
+function declaredLiterals(ruleName: string, ruleValue: unknown): unknown[] {
+  switch (ruleValueForm(ruleName, ruleValue)) {
+    case 'literal':
+      return [ruleValue];
+    case 'conditionMap':
+      return Object.values(ruleValue as Record<string, unknown>);
+    case 'ternary':
+      return ternaryLiterals(parseCondition(ruleValue as string));
+    case 'expression':
+      return [];
+  }
+}
+
+function ternaryLiterals(node: ASTNode): unknown[] {
+  switch (node.type) {
+    case 'Ternary':
+      return [...ternaryLiterals(node.trueValue), ...ternaryLiterals(node.falseValue)];
+    case 'Group':
+      return ternaryLiterals(node.expression);
+    case 'Literal':
+      return [node.value];
+    default:
+      return [];
+  }
 }
 
 /**
@@ -156,19 +234,56 @@ export class Validator {
     if (!isPlainObject(data)) {
       throw new FormInputError('Form data must be an object');
     }
+    this.checkDeclaredParameters(this.properties, []);
     const errors: ValidationError[] = [];
-    this.validateProperties(this.properties, data, [], data, errors);
+    this.validateProperties(this.properties, data, [], [], data, errors);
     return { valid: errors.length === 0, errors };
   }
 
   // =========================================================================
-  // Field traversal (SPEC §3; legacy Validator.validateProperties skeleton).
+  // Declared parameters (validation-rules.md, "Parameter errors").
+  // =========================================================================
+
+  /**
+   * Check every declared rule parameter before any value is validated: fields in
+   * declaration order (a group before its children), each field's rules in
+   * declaration order. Every literal a condition map or a ternary can select is
+   * checked here, selected or not; a value taken from the data is checked when
+   * it is selected (`runRule`).
+   *
+   * @throws {ComposeLoadError} for the first parameter outside the definitions.
+   */
+  private checkDeclaredParameters(
+    properties: Record<string, ComposedField>,
+    declarationPath: string[]
+  ): void {
+    for (const [propertyKey, field] of Object.entries(properties)) {
+      if (!field || typeof field !== 'object') {
+        continue;
+      }
+      const path = [...declarationPath, propertyKey];
+      const rules = normalizeValidateSlot(field.validate);
+      for (const [ruleName, ruleValue] of Object.entries(rules ?? {})) {
+        for (const literal of declaredLiterals(ruleName, ruleValue)) {
+          assertRuleParameter(ruleName, literal, path);
+        }
+      }
+      const childProps = this.childProperties(field);
+      if (field.type === 'group' && childProps) {
+        this.checkDeclaredParameters(childProps, path);
+      }
+    }
+  }
+
+  // =========================================================================
+  // Field traversal (SPEC §3).
   // =========================================================================
 
   private validateProperties(
     properties: Record<string, ComposedField>,
     data: Record<string, unknown>,
     currentPath: string[],
+    declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
@@ -179,6 +294,7 @@ export class Validator {
       const fieldName = propertyKey;
       const isMultiple = this.isMultiple(field);
       const fieldPath = [...currentPath, fieldName];
+      const fieldDeclaration = [...declarationPath, fieldName];
       const present = Object.prototype.hasOwnProperty.call(data, fieldName);
       const fieldValue = data[fieldName];
 
@@ -206,9 +322,9 @@ export class Validator {
                   `Group data must be an object: ${pathToString([...fieldPath, key])}`
                 );
               }
-              this.validateProperties(childProps, row, [...fieldPath, key], allData, errors);
+              this.validateProperties(childProps, row, [...fieldPath, key], fieldDeclaration, allData, errors);
             }
-            this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
+            this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
           }
         } else {
           if (present && !isPlainObject(fieldValue)) {
@@ -220,10 +336,11 @@ export class Validator {
             childProps,
             present ? (fieldValue as Record<string, unknown>) : {},
             fieldPath,
+            fieldDeclaration,
             allData,
             errors
           );
-          this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
+          this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
         }
       } else if (isMultiple && present) {
         // Repeated scalar field: collection rules on the keyed object, the rest
@@ -232,11 +349,12 @@ export class Validator {
           field,
           fieldValue as Record<string, unknown>,
           fieldPath,
+          fieldDeclaration,
           allData,
           errors
         );
       } else {
-        this.validateFieldRules(field, fieldValue, fieldPath, allData, errors);
+        this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
       }
     }
   }
@@ -267,6 +385,7 @@ export class Validator {
     field: ComposedField,
     values: Record<string, unknown>,
     fieldPath: string[],
+    declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
@@ -285,6 +404,7 @@ export class Validator {
           ruleValue,
           values,
           context,
+          declarationPath,
           field,
           messages
         );
@@ -308,6 +428,7 @@ export class Validator {
         field,
         value,
         [...fieldPath, key],
+        declarationPath,
         allData,
         errors
       );
@@ -319,6 +440,7 @@ export class Validator {
     field: ComposedField,
     value: unknown,
     itemPath: string[],
+    declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
@@ -326,7 +448,7 @@ export class Validator {
     const messages = fieldMessages(field);
     const rules = normalizeValidateSlot(field.validate);
 
-    if (this.runImplicitNumber(field, rules, value, context, messages, itemPath, errors)) {
+    if (this.runImplicitNumber(field, rules, value, context, declarationPath, messages, itemPath, errors)) {
       return;
     }
     if (!rules) {
@@ -336,7 +458,7 @@ export class Validator {
       if (ARRAY_LEVEL_RULES.includes(ruleName)) {
         continue;
       }
-      const error = this.runRule(ruleName, ruleValue, value, context, field, messages);
+      const error = this.runRule(ruleName, ruleValue, value, context, declarationPath, field, messages);
       if (error) {
         errors.push({
           path: pathToString(itemPath),
@@ -355,6 +477,7 @@ export class Validator {
     field: ComposedField,
     value: unknown,
     fieldPath: string[],
+    declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
@@ -362,14 +485,14 @@ export class Validator {
     const messages = fieldMessages(field);
     const rules = normalizeValidateSlot(field.validate);
 
-    if (this.runImplicitNumber(field, rules, value, context, messages, fieldPath, errors)) {
+    if (this.runImplicitNumber(field, rules, value, context, declarationPath, messages, fieldPath, errors)) {
       return;
     }
     if (!rules) {
       return;
     }
     for (const [ruleName, ruleValue] of Object.entries(rules)) {
-      const error = this.runRule(ruleName, ruleValue, value, context, field, messages);
+      const error = this.runRule(ruleName, ruleValue, value, context, declarationPath, field, messages);
       if (error) {
         errors.push({
           path: pathToString(fieldPath),
@@ -393,6 +516,7 @@ export class Validator {
     rules: Record<string, unknown> | undefined,
     value: unknown,
     context: PathContext,
+    declarationPath: string[],
     messages: MessagesSpec | undefined,
     path: string[],
     errors: ValidationError[]
@@ -403,7 +527,7 @@ export class Validator {
     if (rules && 'number' in rules) {
       return false;
     }
-    const error = this.runRule('number', true, value, context, field, messages);
+    const error = this.runRule('number', true, value, context, declarationPath, field, messages);
     if (error) {
       errors.push({
         path: pathToString(path),
@@ -431,6 +555,7 @@ export class Validator {
     ruleValue: unknown,
     value: unknown,
     context: PathContext,
+    declarationPath: string[],
     field: ComposedField,
     messages: MessagesSpec | undefined
   ): string | null {
@@ -439,6 +564,13 @@ export class Validator {
     // A false/null effective param disables the rule (VALIDATION-RULES common §3).
     if (effectiveParam === false || effectiveParam === null) {
       return null;
+    }
+
+    // A value taken from the data is checked when it is selected, before the
+    // empty-value skip. Declared literals already passed at load, so checking
+    // every resolved conditional value adds no other failure.
+    if (ruleValueForm(ruleName, ruleValue) !== 'literal') {
+      assertRuleParameter(ruleName, effectiveParam, declarationPath);
     }
 
     const ruleDefinition = getRule(ruleName);
@@ -481,43 +613,16 @@ export class Validator {
     ruleValue: unknown,
     context: PathContext
   ): unknown {
-    // Verbatim-param rules: never evaluate (field reference / literal / regex /
-    // membership set). A membership param object is a value→label map (G3), not
-    // a condition map, so it is preserved verbatim for the rule's own flatten.
-    if (
-      PATH_REFERENCE_RULES.includes(ruleName) ||
-      LITERAL_PARAM_RULES.includes(ruleName) ||
-      REGEX_PARAM_RULES.includes(ruleName) ||
-      MEMBERSHIP_PARAM_RULES.includes(ruleName)
-    ) {
-      return ruleValue;
+    switch (ruleValueForm(ruleName, ruleValue)) {
+      case 'conditionMap':
+        return this.resolveConditionMap(ruleValue as Record<string, unknown>, context);
+      case 'ternary':
+        return this.evaluateTernary(ruleValue as string, context);
+      case 'expression':
+        return this.evaluateExpressionValue(ruleValue as string, context);
+      case 'literal':
+        return ruleValue;
     }
-
-    // ConditionMap: a plain object of expression→value, declaration-ordered.
-    if (
-      ruleValue !== null &&
-      typeof ruleValue === 'object' &&
-      !Array.isArray(ruleValue)
-    ) {
-      return this.resolveConditionMap(
-        ruleValue as Record<string, unknown>,
-        context
-      );
-    }
-
-    // String: ternary value-return or plain condition.
-    if (typeof ruleValue === 'string') {
-      const ternary = this.tryEvaluateTernary(ruleValue, context);
-      if (ternary.handled) {
-        return ternary.value;
-      }
-      if (isConditionExpression(ruleValue) && !/\?[^:]*:/.test(ruleValue)) {
-        return this.evaluateExpressionValue(ruleValue, context);
-      }
-    }
-
-    // Literal param (number, boolean, array such as rangelength/range).
-    return ruleValue;
   }
 
   /**
@@ -545,17 +650,15 @@ export class Validator {
     return null;
   }
 
-  /** Evaluate a complete ternary AST; other strings remain literal parameters. */
-  private tryEvaluateTernary(
-    expression: string,
-    context: PathContext
-  ): { handled: boolean; value?: unknown } {
+  /**
+   * Evaluate a ternary; its selected branch value is the parameter. A ternary
+   * that cannot be evaluated remains the literal string.
+   */
+  private evaluateTernary(expression: string, context: PathContext): unknown {
     try {
-      const node = parseCondition(expression);
-      if (node.type !== 'Ternary') return { handled: false };
-      return { handled: true, value: evaluateExpressionValue(node, context) };
+      return evaluateExpressionValue(parseCondition(expression), context);
     } catch {
-      return { handled: false };
+      return expression;
     }
   }
 

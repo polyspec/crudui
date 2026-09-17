@@ -35,6 +35,3 @@ export function validateDetail(
   }
   return { valid: true, errors: [] };
 }
-
-export { ComposeLoadError } from '../compose/index';
-export default validateDetail;

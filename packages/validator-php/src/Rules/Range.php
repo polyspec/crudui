@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * Range validation rule.
  * Validates that a numeric value is within the specified range [min, max].
@@ -15,6 +17,9 @@ class Range implements RuleInterface
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
+        if (\is_string($value)) {
+            $value = Whitespace::trim($value);
+        }
         if (!is_numeric($value)) {
             return false;
         }
@@ -29,15 +34,5 @@ class Range implements RuleInterface
         $numValue = (float)$value;
 
         return $numValue >= $minValue && $numValue <= $maxValue;
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a value between {0} and {1}.';
     }
 }

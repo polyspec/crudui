@@ -2,8 +2,8 @@ package validator
 
 // Recursive forbidden meta-key scan (SPEC §6) — the runtime half of the
 // global rejection that the meta-schema's propertyNames enforces statically.
-// Byte-for-byte behavior parity with the JS reference (validator-ts/src/model/
-// forbidden-scan.ts).
+// Byte-for-byte behavior parity with the JS reference
+// (validator-ts/src/forbidden-scan.ts).
 //
 // R1: the types/parser PRESERVE every key (round-trip), so blocking forbidden
 // meta keys is the VALIDATION layer's job, not the model's. The typed models
@@ -20,7 +20,7 @@ package validator
 // comes into existence — never a valid:false validation result.
 //
 // Forbidden set (SPEC §6): the enumerated ForbiddenMetaKeys (condition-only /
-// legacy / magic-symbol meta keys) PLUS the x{key} comment family (any
+// composition-directive / magic-symbol meta keys) PLUS the x{key} comment family (any
 // x-prefixed key, length > 1). $ref/$patch are NOT forbidden — compose already
 // consumed them, so they do not survive to here; x{key} IS strip-eligible, so
 // any x{key} that survives to this scan is rejected (the strip belongs to the

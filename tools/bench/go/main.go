@@ -36,7 +36,7 @@ type report struct {
 	Field  *string `json:"field"`
 }
 
-// convertInput mirrors cmd/validate/main.go: a group spec receives the input
+// convertInput mirrors the cross-check console's Go validator process: a group spec receives the input
 // object as-is; everything else is wrapped under "value".
 func convertInput(isGroup bool, input interface{}) map[string]interface{} {
 	if isGroup {
@@ -78,7 +78,10 @@ func benchSpec(dir, name string, iters, warmup int) report {
 
 	// Build the validator once; reuse across iterations.
 	properties, _ := spec.Get("properties")
-	v := validator.NewValidator(properties.(*compose.OMap))
+	v, err := validator.NewValidator(properties.(*compose.OMap))
+	if err != nil {
+		panic(err)
+	}
 
 	// Warmup.
 	for i := 0; i < warmup; i++ {
@@ -127,13 +130,13 @@ func round4(f float64) float64 { return float64(int64(f*10000+0.5)) / 10000 }
 func main() {
 	iters := flag.Int("iters", 50000, "measured iterations")
 	warmup := flag.Int("warmup", 5000, "warmup iterations")
-	spec := flag.String("spec", "", "single spec name (default: contact + large-form)")
+	spec := flag.String("spec", "", "single spec name (default: contact + large)")
 	fixtures := flag.String("fixtures", "../fixtures", "path to the fixtures directory")
 	flag.Parse()
 
 	dir := *fixtures
 
-	specs := []string{"contact", "large-form"}
+	specs := []string{"contact", "large"}
 	if *spec != "" {
 		specs = []string{*spec}
 	}

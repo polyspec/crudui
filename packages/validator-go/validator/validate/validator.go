@@ -5,7 +5,7 @@ package validate
 // Operates on a COMPOSED properties tree (*compose.OMap, declaration order
 // preserved — composition keys already eliminated) and the decoded form data
 // (map[string]any / []any / scalars from encoding/json). The traversal mirrors the
-// JS Validator (validator-ts/src/model/validate/validator.ts) field for field; the
+// JS Validator (validator-ts/src/validate/validator.ts) field for field; the
 // rule-value resolution mirrors its resolveRuleValue / resolveConditionMap /
 // tryEvaluateTernary (G1 — the condition is the value's expression, never a
 // separate if/when key).
@@ -35,8 +35,8 @@ var pathReferenceRules = map[string]bool{
 // reference) — never evaluated (LITERAL-PARAM-RULES).
 var literalParamRules = map[string]bool{"accept": true}
 
-// regexParamRules carry a regex string preserved verbatim (SPEC §10).
-var regexParamRules = map[string]bool{"match": true, "pattern": true}
+// patternParamRules carry a CRUDUI pattern string preserved verbatim.
+var patternParamRules = map[string]bool{"match": true, "pattern": true}
 
 // membershipParamRules carry the allowed-value SET (array, comma string, or a
 // static value→label map, SPEC §2 G3). The param is data, NOT a condition
@@ -48,33 +48,64 @@ var membershipParamRules = map[string]bool{"in": true}
 // from a composed properties OMap.
 type Validator struct {
 	properties *compose.OMap
+	// patterns holds the matcher of every checked pattern parameter.
+	patterns map[string]*patternMatcher
 }
 
 // NewValidator builds a validator from a COMPOSED properties OMap (composition
-// keys already eliminated by the compose pass).
-func NewValidator(properties *compose.OMap) *Validator {
+// keys already eliminated by the compose pass) and checks its declared rule
+// parameters. A parameter outside its rule's definition returns a
+// *compose.ComposeLoadError (INVALID_RULE_PARAMETER or INVALID_RULE_PATTERN) at
+// the field's declaration path.
+func NewValidator(properties *compose.OMap) (*Validator, error) {
 	if properties == nil {
 		properties = compose.NewOMap()
 	}
-	return &Validator{properties: properties}
+	v := &Validator{properties: properties, patterns: map[string]*patternMatcher{}}
+	if err := v.checkDeclarations(properties, nil); err != nil {
+		return nil, err
+	}
+	return v, nil
 }
 
 // Validate validates data against the composed model spec. Root, group and
-// repeated data with the wrong shape return a *FormInputError and no result.
+// repeated data with the wrong shape return a *FormInputError and no result. A
+// rule parameter a condition selects outside its definition returns a
+// *compose.ComposeLoadError and no result.
 func (v *Validator) Validate(data any) (ValidationResult, error) {
 	root, ok := data.(map[string]any)
 	if !ok {
 		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
 	}
 	var errors []ValidationError
-	if err := v.validateProperties(v.properties, root, nil, root, &errors); err != nil {
+	if err := v.validateProperties(v.properties, root, nil, nil, root, &errors); err != nil {
 		return ValidationResult{}, err
 	}
 	return ValidationResult{Valid: len(errors) == 0, Errors: errors}, nil
 }
 
+// fieldRun is one field (or one element of a repeated field) being validated.
+type fieldRun struct {
+	// field is the field declaration.
+	field *compose.OMap
+	// path is the data path, row keys included.
+	path []string
+	// declaration is the declaration path, without row keys.
+	declaration []string
+	// allData is the whole form.
+	allData map[string]any
+}
+
+// report appends a failed rule to errors.
+func (r fieldRun) report(errors *[]ValidationError, rule, message string, value any) {
+	*errors = append(*errors, ValidationError{
+		Path: pathToString(r.path), Field: getFieldName(r.path),
+		Rule: rule, Message: message, Value: value,
+	})
+}
+
 // validateProperties recurses a properties map (SPEC §3; JS validateProperties).
-func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath []string, allData map[string]any, errors *[]ValidationError) error {
+func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath, declaration []string, allData map[string]any, errors *[]ValidationError) error {
 	for _, propertyKey := range properties.Keys() {
 		raw, _ := properties.Get(propertyKey)
 		field, ok := raw.(*compose.OMap)
@@ -84,7 +115,8 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 
 		fieldName := propertyKey
 		isMultiple := fieldIsMultiple(field)
-		fieldPath := appendPath(currentPath, fieldName)
+		run := fieldRun{field: field, path: appendPath(currentPath, fieldName), declaration: appendPath(declaration, fieldName), allData: allData}
+		fieldPath := run.path
 		fieldValue, present := data[fieldName]
 
 		childProps := childProperties(field)
@@ -105,28 +137,36 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 						if !ok {
 							return &FormInputError{Message: "Group data must be an object: " + pathToString(rowPath)}
 						}
-						if err := v.validateProperties(childProps, row, rowPath, allData, errors); err != nil {
+						if err := v.validateProperties(childProps, row, rowPath, run.declaration, allData, errors); err != nil {
 							return err
 						}
 					}
-					v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
+					if err := v.validateFieldRules(run, fieldValue, errors); err != nil {
+						return err
+					}
 				}
 				continue
 			}
 			if present && !isObject(fieldValue) {
 				return &FormInputError{Message: "Group data must be an object: " + pathToString(fieldPath)}
 			}
-			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, allData, errors); err != nil {
+			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, run.declaration, allData, errors); err != nil {
 				return err
 			}
-			v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
+			if err := v.validateFieldRules(run, fieldValue, errors); err != nil {
+				return err
+			}
 			continue
 		}
 
+		var err error
 		if isMultiple && present {
-			v.validateMultipleFieldRules(field, fieldValue.(map[string]any), fieldPath, allData, errors)
+			err = v.validateMultipleFieldRules(run, fieldValue.(map[string]any), errors)
 		} else {
-			v.validateFieldRules(field, fieldValue, fieldPath, allData, errors)
+			err = v.validateFieldRules(run, fieldValue, errors)
+		}
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -134,162 +174,158 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 
 // validateMultipleFieldRules runs collection rules on the keyed rows, then row
 // rules in sorted row-key order (the cross-runtime error-order contract).
-func (v *Validator) validateMultipleFieldRules(field *compose.OMap, values map[string]any, fieldPath []string, allData map[string]any, errors *[]ValidationError) {
-	rules := normalizeValidateSlot(field)
-	messages := fieldMessages(field)
-
+func (v *Validator) validateMultipleFieldRules(run fieldRun, values map[string]any, errors *[]ValidationError) error {
+	rules := normalizeValidateSlot(run.field)
 	if rules != nil {
 		for _, ruleName := range rules.Keys() {
 			if !arrayLevelRules[ruleName] {
 				continue
 			}
 			ruleValue, _ := rules.Get(ruleName)
-			msg, failed := v.runRule(ruleName, ruleValue, values, fieldPath, messages, allData)
+			msg, failed, err := v.runRule(run, ruleName, ruleValue, values)
+			if err != nil {
+				return err
+			}
 			if failed {
-				*errors = append(*errors, ValidationError{
-					Path: pathToString(fieldPath), Field: getFieldName(fieldPath),
-					Rule: ruleName, Message: msg, Value: values,
-				})
-				return
+				run.report(errors, ruleName, msg, values)
+				return nil
 			}
 		}
 	}
 
 	for _, key := range sortedKeys(values) {
-		v.validateElementRules(field, values[key], appendPath(fieldPath, key), allData, errors)
-	}
-}
-
-// validateElementRules runs element-level rules for one element of a multiple
-// field (no array-level rules). JS validateElementRules.
-func (v *Validator) validateElementRules(field *compose.OMap, value any, itemPath []string, allData map[string]any, errors *[]ValidationError) {
-	messages := fieldMessages(field)
-	rules := normalizeValidateSlot(field)
-
-	if v.runImplicitNumber(field, rules, value, itemPath, messages, allData, errors) {
-		return
-	}
-	if rules == nil {
-		return
-	}
-	for _, ruleName := range rules.Keys() {
-		if arrayLevelRules[ruleName] {
-			continue
-		}
-		ruleValue, _ := rules.Get(ruleName)
-		msg, failed := v.runRule(ruleName, ruleValue, value, itemPath, messages, allData)
-		if failed {
-			*errors = append(*errors, ValidationError{
-				Path: pathToString(itemPath), Field: getFieldName(itemPath),
-				Rule: ruleName, Message: msg, Value: value,
-			})
-			break
+		element := run
+		element.path = appendPath(run.path, key)
+		if err := v.runFieldRules(element, values[key], errors, func(rule string) bool { return !arrayLevelRules[rule] }); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 // validateFieldRules runs all rules for a single (scalar or whole-group) field
 // (JS validateFieldRules). First error per field stops the field.
-func (v *Validator) validateFieldRules(field *compose.OMap, value any, fieldPath []string, allData map[string]any, errors *[]ValidationError) {
-	messages := fieldMessages(field)
-	rules := normalizeValidateSlot(field)
-
-	if v.runImplicitNumber(field, rules, value, fieldPath, messages, allData, errors) {
-		return
-	}
-	if rules == nil {
-		return
-	}
-	for _, ruleName := range rules.Keys() {
-		ruleValue, _ := rules.Get(ruleName)
-		msg, failed := v.runRule(ruleName, ruleValue, value, fieldPath, messages, allData)
-		if failed {
-			*errors = append(*errors, ValidationError{
-				Path: pathToString(fieldPath), Field: getFieldName(fieldPath),
-				Rule: ruleName, Message: msg, Value: value,
-			})
-			break
-		}
-	}
+func (v *Validator) validateFieldRules(run fieldRun, value any, errors *[]ValidationError) error {
+	return v.runFieldRules(run, value, errors, func(string) bool { return true })
 }
 
-// runImplicitNumber runs an implicit number rule before everything else for a
-// type:number field with no explicit number rule (VALIDATION-RULES §2 — reported
-// as rule "number"). Returns true when it pushed an error.
-func (v *Validator) runImplicitNumber(field *compose.OMap, rules *compose.OMap, value any, path []string, messages map[string]string, allData map[string]any, errors *[]ValidationError) bool {
-	if fieldType(field) != "number" {
-		return false
+// runFieldRules runs the implicit number check, then the declared rules that
+// applies selects, and stops at the first failure.
+func (v *Validator) runFieldRules(run fieldRun, value any, errors *[]ValidationError, applies func(string) bool) error {
+	rules := normalizeValidateSlot(run.field)
+
+	// A type:number field with no explicit number rule runs an implicit number
+	// rule first (VALIDATION-RULES §2 — reported as rule "number").
+	if fieldType(run.field) == "number" && (rules == nil || !rules.Has("number")) {
+		msg, failed, err := v.runRule(run, "number", true, value)
+		if err != nil {
+			return err
+		}
+		if failed {
+			run.report(errors, "number", msg, value)
+			return nil
+		}
 	}
-	if rules != nil && rules.Has("number") {
-		return false
+	if rules == nil {
+		return nil
 	}
-	msg, failed := v.runRule("number", true, value, path, messages, allData)
-	if failed {
-		*errors = append(*errors, ValidationError{
-			Path: pathToString(path), Field: getFieldName(path),
-			Rule: "number", Message: msg, Value: value,
-		})
-		return true
+	for _, ruleName := range rules.Keys() {
+		if !applies(ruleName) {
+			continue
+		}
+		ruleValue, _ := rules.Get(ruleName)
+		msg, failed, err := v.runRule(run, ruleName, ruleValue, value)
+		if err != nil {
+			return err
+		}
+		if failed {
+			run.report(errors, ruleName, msg, value)
+			return nil
+		}
 	}
-	return false
+	return nil
 }
 
 // runRule resolves a (possibly conditional) rule value to an effective param,
-// skips when the result disables the rule (false/null), else calls the rule fn
-// (JS runRule). Returns (message, failed).
-func (v *Validator) runRule(ruleName string, ruleValue any, value any, path []string, messages map[string]string, allData map[string]any) (string, bool) {
-	effective := v.resolveRuleValue(ruleName, ruleValue, path, allData)
+// checks a param a condition selected (a literal was already checked at load;
+// a value taken from the data is checked here), skips when the result disables the rule
+// (false/null), else calls the rule fn (JS runRule). Returns (message, failed),
+// or the load failure of a selected param outside its definition.
+func (v *Validator) runRule(run fieldRun, ruleName string, ruleValue any, value any) (string, bool, error) {
+	effective, selected := v.resolveRuleValue(ruleName, ruleValue, run.path, run.allData)
+
+	if selected {
+		if perr := v.checkParameter(ruleName, effective); perr != nil {
+			return "", false, perr.loadError(run.declaration)
+		}
+	}
 
 	// A false/null effective param disables the rule (VALIDATION-RULES common §3).
-	if effective == nil {
-		return "", false
-	}
-	if b, ok := effective.(bool); ok && !b {
-		return "", false
+	if disablesRule(effective) {
+		return "", false, nil
 	}
 
 	fn, ok := getRule(ruleName)
 	if !ok {
 		// Unregistered rule: no error (VALIDATION-RULES common §4).
-		return "", false
+		return "", false, nil
 	}
 
 	ctx := ruleContext{
-		pathSegments: path,
-		formData:     allData,
-		messages:     messages,
+		pathSegments: run.path,
+		formData:     run.allData,
+		messages:     fieldMessages(run.field),
 		ruleName:     ruleName,
 	}
-	return fn(value, effective, ctx)
+	if source, ok := effective.(string); ok && patternParamRules[ruleName] {
+		ctx.pattern = v.patternFor(source)
+	}
+	msg, failed := fn(value, effective, ctx)
+	return msg, failed, nil
 }
 
-// resolveRuleValue resolves a rule value to the effective param (G1).
+// isConditionalRuleValue reports whether a rule value is resolved by a
+// condition: a condition map, a ternary expression or a condition expression.
+// Path-reference, literal, pattern and membership parameters never are.
+func isConditionalRuleValue(ruleName string, ruleValue any) bool {
+	if pathReferenceRules[ruleName] || literalParamRules[ruleName] || patternParamRules[ruleName] || membershipParamRules[ruleName] {
+		return false
+	}
+	switch value := ruleValue.(type) {
+	case *compose.OMap:
+		return value != nil
+	case string:
+		if _, ok := parseTernary(value); ok {
+			return true
+		}
+		return isConditionExpression(value) && !ternaryRE.MatchString(value)
+	}
+	return false
+}
+
+// resolveRuleValue resolves a rule value to the effective param (G1) and reports
+// whether a condition selected it.
 //
-//   - path-reference / literal-param / regex rules keep their param verbatim.
+//   - path-reference / literal-param / regex / membership rules keep their param
+//     verbatim.
 //   - a condition map (a plain object of expression→value, declaration-ordered):
 //     first truthy key's value; else the "true" key; else nil (disabled).
 //   - a string: a value-returning ternary, or a plain condition expression.
 //   - anything else: a literal param.
-func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []string, allData map[string]any) any {
-	if pathReferenceRules[ruleName] || literalParamRules[ruleName] || regexParamRules[ruleName] || membershipParamRules[ruleName] {
-		return ruleValue
+func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []string, allData map[string]any) (any, bool) {
+	if !isConditionalRuleValue(ruleName, ruleValue) {
+		return ruleValue, false
 	}
-
-	// Condition map: a plain object (OMap) of expression→value.
-	if m, ok := ruleValue.(*compose.OMap); ok && m != nil {
-		return v.resolveConditionMap(m, path, allData)
-	}
-
-	if s, ok := ruleValue.(string); ok {
-		if handled, branch := v.tryEvaluateTernary(s, path, allData); handled {
-			return branch
+	switch value := ruleValue.(type) {
+	case *compose.OMap:
+		return v.resolveConditionMap(value, path, allData), true
+	case string:
+		if node, ok := parseTernary(value); ok {
+			return expr.NewEvaluator(allData, path).EvaluateValue(node), true
 		}
-		if isConditionExpression(s) && !ternaryRE.MatchString(s) {
-			return v.evaluateExpressionValue(s, path, allData)
-		}
+		return v.evaluateExpressionValue(value, path, allData), true
 	}
-
-	return ruleValue
+	return ruleValue, false
 }
 
 // resolveConditionMap evaluates a condition map (expressions.md §8): keys in
@@ -312,16 +348,17 @@ func (v *Validator) resolveConditionMap(m *compose.OMap, path []string, allData 
 	return nil
 }
 
-// tryEvaluateTernary evaluates a complete ternary AST. Other strings remain literal parameters.
-func (v *Validator) tryEvaluateTernary(expression string, path []string, allData map[string]any) (bool, any) {
+// parseTernary parses a complete ternary expression. Other strings remain
+// literal parameters or condition expressions.
+func parseTernary(expression string) (expr.Node, bool) {
 	node, err := expr.Parse(expression)
 	if err != nil {
-		return false, nil
+		return nil, false
 	}
 	if _, ok := node.(*expr.TernaryNode); !ok {
-		return false, nil
+		return nil, false
 	}
-	return true, expr.NewEvaluator(allData, path).EvaluateValue(node)
+	return node, true
 }
 
 // evaluateCondition evaluates a condition string to a boolean (JS

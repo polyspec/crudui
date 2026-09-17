@@ -140,6 +140,8 @@ generator-core는 이 규칙을 불변 값에 대한 순수 함수로 export합�
 `rekeyRowView`, `collapsibleRows`이고, 이력은 `emptyHistory`, `recordChange`,
 `canUndo`, `canRedo`, `undoChange`, `redoChange`입니다. `bindForm`으로 데이터를 직접 관리하는
 응용 프로그램도 같은 함수를 사용합니다.
+`resolveAction(button)`은 `data-crudui-action` 버튼의 작업, 컬렉션 경로, 행 키를 읽고,
+`runAction(form, target)`은 그 대상을 폼 인스턴스에 적용합니다.
 
 ## 렌더링과 검증
 

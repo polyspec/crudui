@@ -11,7 +11,7 @@
  * What it inherits unchanged from fields.ts:
  *  - the data-attr trio (data-name/data-rule-name/data-default) via util.ts
  *    leafName/ruleNameForPath/phpString,
- *  - the main-node class base + resolved design.class (the legacy element_class slot),
+ *  - the main-node class base + resolved design.class,
  *  - placeholder/prepend/append CONTENT via t() over LocalizedText,
  *  - behavior → opaque on-event attrs (no minify, no expr eval),
  *  - options.* chrome settings → data-* values,
@@ -19,7 +19,8 @@
  *    dynamic { model, ... } → STUB (never enumerated, no fabricated options),
  *  - value formatting (date/datetime), applyDefaultString display value.
  *
- * No legacy meta key is read; no markup string is built; eval is never called.
+ * No meta key outside the role slots is read; no markup string is built; eval is
+ * never called.
  */
 
 import { formatDateValue } from './date';
@@ -142,7 +143,7 @@ function bracketName(ctx: WidgetCtx): string {
   return toBracketNotationWithPrefix(ctx.path, ctx.keyPrefix);
 }
 
-/** The legacy data-attr trio as a flat bag. */
+/** The data-name/data-rule-name/data-default attribute trio as a flat bag. */
 function dataAttrs(ctx: WidgetCtx): Attrs {
   return {
     'data-name': leafName(ctx.path, ctx.rowSegments),
@@ -192,7 +193,7 @@ function placeholder(ctx: WidgetCtx): string {
 
 /**
  * Behavior slot → opaque on-event attributes (verbatim, no minify, no expr eval,
- * no legacy event→onchange transform). `behavior: false/true` nullifies the slot.
+ * no event→onchange transform). `behavior: false/true` nullifies the slot.
  */
 function behaviorAttrs(ctx: WidgetCtx): Attrs {
   const b = ctx.spec.behavior;
@@ -628,7 +629,7 @@ const dummy: Evaluator = (ctx) => {
     if (looked !== undefined) v = looked;
   }
   const textVal = phpString(v);
-  // RAW html passthrough — value goes through nl2br only (not escaped), legacy parity.
+  // RAW html passthrough — value goes through nl2br only (not escaped).
   const rawHtml = phpTruthy(textVal) ? nl2br(textVal) : textVal;
   const attrs: Attrs = {
     ...(ctx.design.main.class ? { class: ctx.design.main.class } : {}),
@@ -763,7 +764,7 @@ const imageViewer: Evaluator = (ctx) => {
       .map((row) => `<img src="${phpString(row)}"${heightAttr}>`)
       .join('');
   } else {
-    // Hardcoded Korean empty literal — kept verbatim (legacy does not translate it).
+    // Hardcoded Korean empty literal — kept verbatim (it is not translated).
     rawHtml = '이미지가 없습니다.';
   }
   const attrs: Attrs = wrapCls ? { class: wrapCls } : {};
@@ -783,7 +784,7 @@ const search: Evaluator = (ctx) => {
   const keywordMinLength = optWith(ctx, 'keyword_min_length', '2');
   const delay = optWith(ctx, 'delay', '250');
   const apiServer = optWith(ctx, 'api_server', '');
-  // Original (legacy-parity) quirk: absent option → undefined !== '' → true.
+  // An absent option is not '', so hide_searching defaults to true.
   const hideSearching = optStr(ctx, 'hide_searching') !== '';
   const onchange = behaviorScript(ctx, 'onchange');
 

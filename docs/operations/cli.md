@@ -3,17 +3,19 @@
 [한국어](cli.ko.md).
 
 The private `@crudui/cli` workspace provides `describe`, `list-widgets`, `check`
-and `explain`. Install dependencies and build the validator from the repository
-root before running commands or tests:
+and `explain`. Install dependencies and build the packages from the repository
+root before running commands:
 
 ```sh
 npm ci --strict-allow-scripts
-npm run build:validator
+npm run build
 ```
 
-The CLI runs through `tsx`; its imported generator modules require the built
-validator package. Rebuild the validator after changing its source. CI uses the
-same installation, build and test order.
+The CLI runs through `tsx` and imports only package entries: `@crudui/validator`,
+`@crudui/generator-core` and their `internal` entries, which resolve to the built
+packages. Rebuild after changing package source. `npm test --workspace @crudui/cli`
+builds the packages first when their output is not current, and CI runs the same
+build before the tests.
 
 Run commands from the repository root:
 

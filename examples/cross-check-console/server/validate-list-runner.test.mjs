@@ -2,8 +2,8 @@
  * Gateway VALIDATE-LIST verdict — the read sister of validate-runner.test.mjs.
  *
  * `validateAllList(req)` is the exact function the live gateway's POST
- * /api/validate-list calls: it fans one list-spec STRUCTURE across the four CRUDUI
- * CLIs in `mode:list` (compose → forbidden-scan, SPEC §9 — no DATA pass, a list
+ * /api/validate-list calls: it fans one list-spec STRUCTURE across the four
+ * validator processes in `mode:list` (compose → forbidden-scan, SPEC §9 — no DATA pass, a list
  * carries no rows), then reduces the four per-language envelopes to the verdict
  * via the SAME compareIdempotency the form path uses. A clean load is
  * { valid:true, errors:[] }; a forbidden meta key / unresolved $ref surfaces as
@@ -21,7 +21,7 @@
  *       (idempotent on a load failure, never a silent valid:true).
  *
  * The envelope shape under test is the gateway's own contract (validate-runner
- * runCli output): { lang, ok, valid, errors:[5-field], ms, failure }.
+ * runProcess output): { lang, ok, valid, errors:[5-field], ms, failure }.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -85,7 +85,7 @@ describe('validateAllList — real 4-language list fan-out (forbidden meta key �
 });
 
 /**
- * A list per-language envelope (the SAME shape validateAllList's runCli emits): a
+ * A list per-language envelope (the SAME shape validateAllList's runProcess emits): a
  * clean list load is { valid:true, errors:[], failure:null }; a forbidden meta
  * key surfaces as { valid:false, failure:{code, message, at} }. The list verdict
  * reduces through the SAME compareIdempotency the form path uses, so a forged
@@ -120,7 +120,7 @@ describe('validateAllList — TAMPER (forged single-language list verdict → id
 
   test('three engines reject a forbidden-key list while one is forged to valid:true → idempotent:false, forged lang isolated', () => {
     // js/php/rust agree the list carries a forbidden meta key (the SAME failure
-    // record); a fake-PHP result is forged to a clean valid:true (the legacy
+    // record); a fake-PHP result is forged to a clean valid:true (the
     // silent-pass difference this check detects). The result must identify PHP
     // separately.
     const results = [

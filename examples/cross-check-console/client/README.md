@@ -135,7 +135,8 @@ shared:
   `{name,note,spec,data,options,expected_html}`, and list
   `{name,note,spec,rows,options,expected_html|expected_error}`, and detail
   `{name,note,spec,record,options,expected_html|expectError}`. Paste an exported
-  divergent case to the automated checks (`compare-all.js` / `*.conformance`)
+  divergent case to the automated checks (the shared `tests/fixtures/*/cases.json`
+  conformance suites)
   to retain it as a regression test.
 
 ## Run

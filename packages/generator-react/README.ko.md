@@ -5,7 +5,8 @@
 React에서 폼 인스턴스, 목록, 상세를 렌더링합니다.
 
 ```tsx
-import { buildList, compileForm, createForm, Form, List, renderForm, renderList } from '@crudui/generator-react';
+import { buildList, compileForm, createForm } from '@crudui/generator-core';
+import { Form, List, renderForm, renderList } from '@crudui/generator-react';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -23,9 +24,14 @@ const list = <List vm={buildList(listSpec, rows, { language: 'en' })} layout="ta
 `Form`에 `form` 속성을 전달하여 렌더링합니다. 공유 템플릿마다 한 번 컴파일하고 폼마다 폼 인스턴스를
 생성합니다. `renderForm(form)`은 서버 렌더링용으로 같은 마크업을 문자열로 반환합니다.
 
-`List`와 `Detail`은 다시 내보낸 `buildList(spec, rows, options)`와
+`List`와 `Detail`은 `@crudui/generator-core`의 `buildList(spec, rows, options)`와
 `buildDetail(spec, record, options)`로 만든 모델을 렌더링합니다. `renderList(spec, rows, options)`와
 `renderDetail(spec, record, options)`는 문자열을 반환합니다.
+
+패키지 진입점은 컴포넌트(`Form`, `List`, `Detail`, `Cell`, `Node`, `Controls`, `Widget`,
+`Outline`, `OutlineView`, `DataView`, `DataPanel`)와 렌더 함수 `renderForm`, `renderList`,
+`renderDetail`을 내보냅니다. 컴파일, 폼 인스턴스, 모델과 오류 클래스는
+`@crudui/generator-core`에서 가져오며 이 패키지는 이를 다시 내보내지 않습니다.
 
 - [런타임 계약](../../docs/spec/form-runtime.ko.md)
 - [폼 운영](../../docs/operations/forms.ko.md)

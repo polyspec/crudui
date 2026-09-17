@@ -14,7 +14,8 @@ import { describe, test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateDetail, ComposeLoadError } from './index';
+import { validateDetail } from './index';
+import { ComposeLoadError } from '../compose/index';
 import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
 
 const FIXTURE = path.resolve(

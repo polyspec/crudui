@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "58d9ede88b9820a63860d8aee4d7bf54",
+    "content-hash": "3becc1926b52910792ce824757abe388",
     "packages": [
         {
             "name": "crudui/validator",
@@ -12,10 +12,10 @@
             "dist": {
                 "type": "path",
                 "url": "../validator-php",
-                "reference": "bc9d58202823504977eccd0b343283c2e04e1419"
+                "reference": "ba1232027c370c8d63aa8f8498dd86fb8d8ef564"
             },
             "require": {
-                "php": "^8.2"
+                "php": "^8.4"
             },
             "require-dev": {
                 "phpunit/phpunit": "^10.0"
@@ -34,10 +34,7 @@
             },
             "scripts": {
                 "test": [
-                    "phpunit"
-                ],
-                "test:current": [
-                    "phpunit tests/Compose tests/Expr tests/Validate tests/FieldSpecTest.php"
+                    "node ../../scripts/run-tests.mjs phpunit --cwd packages/validator-php"
                 ]
             },
             "license": [
@@ -1715,7 +1712,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.2",
+        "php": "^8.4",
         "php-64bit": "^8.2",
         "ext-mbstring": "*"
     },

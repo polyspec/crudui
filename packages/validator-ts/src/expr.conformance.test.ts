@@ -25,7 +25,7 @@ import { provesConformance } from '../../../tests/conformance/evidence.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// src/CRUDUI -> repo root is five levels up.
+// packages/validator-ts/src -> repo root is three levels up.
 const FIXTURE = path.resolve(
   __dirname,
   '../../../tests/fixtures/expr/cases.json'

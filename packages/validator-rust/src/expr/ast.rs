@@ -36,7 +36,7 @@ impl LiteralValue {
         }
     }
 
-    fn to_value(&self) -> Value {
+    pub(crate) fn to_value(&self) -> Value {
         match self {
             LiteralValue::Str(s) => Value::String(s.clone()),
             LiteralValue::Int(n) => json!(n),
@@ -70,8 +70,7 @@ impl PathSegment {
     }
 }
 
-/// An expression AST node (expressions.md §4). CRUDUI-only; never reuse the legacy
-/// `crate::condition_parser` model (R7 parallel run).
+/// An expression AST node (expressions.md §4).
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
     /// `condition ? trueValue : falseValue` (right-associative).
