@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-09-17 — Linux 스타일 검사가 받은 이미지 제거
+
+`make test-form-styles-linux`는 고정된 버전의 Playwright 이미지(약 10GB)가 필요합니다. 이미지를 받은 실행은
+이제 성공 여부와 관계없이 끝날 때 이미지를 지우고, 이미 있던 이미지는 남겨 둡니다. 테스트 절차 문서가 이
+명령을 설명합니다.
+
 ## 2026-09-17 — 모든 JavaScript, TypeScript, Svelte 소스 린트
 
 - `npm run lint`는 `eslint packages`를 실행했고 설정은 모든 `.js`·`.mjs` 파일, 모든 테스트, 모든 Svelte
