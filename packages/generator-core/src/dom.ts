@@ -52,7 +52,8 @@ function firstRowControl(row: HTMLElement): HTMLElement | undefined {
  * Mark stuck sticky row headers in a browser without scroll-state container queries
  * (Firefox, Safari), and do nothing elsewhere. A header container is stuck while sticky
  * positioning moves it from the top of its row; `data-crudui-stuck` then shows its level
- * label, as the stylesheet's `scroll-state(stuck: top)` query does in other browsers.
+ * label and hides its card top edge, as the stylesheet's `scroll-state(stuck: top)` query
+ * does in other browsers.
  * Rendering inside the element is observed, so an application that renders the form
  * itself connects its container once; a render that drops the attribute is marked again before
  * the page is painted. Only the attribute changes, never a scroll position.

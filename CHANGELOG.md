@@ -267,6 +267,20 @@ every renderer. The wrapper owns `position: sticky` and `container-type: scroll-
 so header descendants can respond to the wrapper's stuck state without changing the
 header slot or its own styles.
 
+## 2026-09-16 — A sticky seam is one border wide wherever a row rests
+
+A sticky row has no top border of its own. Its card top edge is drawn inside the header
+container, the box that pins, and goes while the container is stuck, when the line of the
+container above is the seam; the `scroll-state(stuck: top)` query hides it, and in browsers
+without scroll-state queries the `data-crudui-stuck` marking does, as it shows the level label.
+The line under a header is the header's own bottom border, inside the container, and the sticky
+line is the depth times the header height less one row border (`--crudui-row-border`), so a
+pinned container lands on the line of the container above it and a row arriving on the line puts
+its own edge there too. The top border used to be on the row, where it scrolled with the row and
+stood one border below that line, drawing the seam as two borders at the position where a row
+meets it. The layout checks assert the line, the missing row border and the edge in both states,
+with the query and with the marking.
+
 ## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through

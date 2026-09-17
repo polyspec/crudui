@@ -289,20 +289,22 @@ textarea.crudui-input {
 /*
  * Sticky rows are CSS only, from one value. A sticky row carries
  * --crudui-sticky-depth, the number of enclosing sticky rows; its sticky line is
- * depth × header height.
- * 1. The header pins on the line in whatever scrolls it (a page, a frame or a
- *    scrolling box). Every header has exactly the header height and never wraps, so
- *    pinned levels meet without overlap.
- * 2. The level label shows only while its header is stuck (a scroll-state container
- *    query). Browsers without scroll-state queries (Firefox, Safari) get the
- *    `data-crudui-stuck` header attribute from connectForm instead.
+ * depth × (header height - row border).
+ * 1. The header container pins on the line in whatever scrolls it (a page, a frame or
+ *    a scrolling box). Every container has exactly the header height and never wraps,
+ *    so pinned levels meet on one shared border.
+ * 2. The level label shows, and the card top edge goes, only while the container is
+ *    stuck (a scroll-state container query). Browsers without scroll-state queries
+ *    (Firefox, Safari) get the `data-crudui-stuck` container attribute from connectForm
+ *    instead.
  * 3. A control inside a sticky row keeps a top scroll margin of the pinned headers
  *    above it, and every form control keeps a bottom scroll margin of the footer, so
  *    focusing a control scrolls it into view clear of them.
  */
 .crudui-node--sticky {
-  --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * var(--crudui-node-header-height));
+  --crudui-sticky-line: calc(var(--crudui-sticky-depth, 0) * (var(--crudui-node-header-height) - var(--crudui-row-border)));
   --crudui-sticky-cover: calc(var(--crudui-sticky-line) + var(--crudui-node-header-height));
+  border-top: 0;
 }
 
 .crudui-form :is(input, select, textarea, button) {
@@ -310,6 +312,16 @@ textarea.crudui-input {
   scroll-margin-bottom: var(--crudui-form-footer-height);
 }
 
+/*
+ * A sticky row's card top edge is drawn inside its header container, the box that pins,
+ * and goes while the container is stuck, when the line of the header above is the seam.
+ * The line under a header is the header's own bottom border, inside the container, and
+ * the sticky line is depth × (header height - row border), so a pinned container lands
+ * on the line of the container above it and a row arriving on its line puts its own
+ * edge there too. On the row the top border scrolls with the row and would stand one
+ * border below that line, drawing the seam twice at the position where a row meets it.
+ * A seam is one border wide wherever a row rests, and nothing is covered.
+ */
 .crudui-node--sticky > .crudui-node__header-container {
   position: sticky;
   top: var(--crudui-sticky-line);
@@ -320,7 +332,6 @@ textarea.crudui-input {
   min-width: 0;
   background: var(--crudui-subtle);
   border-radius: 0.5rem 0.5rem 0 0;
-  box-shadow: 0 var(--crudui-row-border) 0 var(--crudui-border);
   container-type: scroll-state;
 }
 
@@ -331,7 +342,21 @@ textarea.crudui-input {
   box-sizing: border-box;
   flex-wrap: nowrap;
   overflow: hidden;
+  border-bottom: var(--crudui-row-border) solid var(--crudui-border);
+}
+
+/* The card top edge, over the row's side borders, positioned by the container. */
+.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: calc(-1 * var(--crudui-row-border));
+  left: calc(-1 * var(--crudui-row-border));
+  height: 0.5rem;
+  border: var(--crudui-row-border) solid var(--crudui-border);
   border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+  pointer-events: none;
 }
 
 /* Hidden by default; the stuck state shows it. */
@@ -343,11 +368,19 @@ textarea.crudui-input {
   .crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__label {
     display: revert;
   }
+
+  .crudui-node--sticky > .crudui-node__header-container > .crudui-node__header::before {
+    display: none;
+  }
 }
 
 /* Browsers without scroll-state queries get the stuck state from connectForm. */
 .crudui-node--sticky > .crudui-node__header-container[data-crudui-stuck] > .crudui-node__header > .crudui-node__label {
   display: revert;
+}
+
+.crudui-node--sticky > .crudui-node__header-container[data-crudui-stuck] > .crudui-node__header::before {
+  display: none;
 }
 
 .crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__title {

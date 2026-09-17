@@ -115,25 +115,34 @@ input's own label inside the body, and its header holds only a description. A
   footer.
 - `multiple.header: sticky` adds `crudui-node--sticky`, and the row root style sets
   `--crudui-sticky-depth` to the number of enclosing sticky rows. The row's sticky
-  line is that depth times `--crudui-node-header-height`. Sticky rows are CSS only,
-  so they behave the same wherever the form scrolls: in a page, a frame or a
-  scrolling box. The header pins on the line and has exactly the header height,
-  border included, without wrapping (a long title is truncated), so pinned levels
-  meet without overlap. The level label shows only while its header is stuck, by a
+  line is that depth times `--crudui-node-header-height` less one row border
+  (`--crudui-row-border`). Sticky rows are CSS only, so they behave the same wherever
+  the form scrolls: in a page, a frame or a scrolling box. The header container pins
+  on the line and has exactly the header height, border included, without wrapping
+  (a long title is truncated). The line under a header is the header's own bottom
+  border, inside the container, so a pinned container lands on the line of the
+  container above it and pinned levels share that one border. A sticky row has no top
+  border of its own: its card top edge is drawn inside the header container, the box
+  that pins, and goes while the container is stuck, when the line of the container
+  above is the seam. A row arriving on the line puts its own edge on that same line,
+  so a seam is one border wide wherever a row rests and nothing is covered. The level
+  label shows, and the card top edge goes, only while the container is stuck, by a
   `scroll-state(stuck: top)` container query. In a browser without scroll-state
   queries (Firefox, Safari), `connectForm` sets `data-crudui-stuck` on a header
   container while sticky positioning moves it from the top of its row, and the
-  stylesheet shows the label from that attribute. A control inside a sticky row has a
-  top scroll margin of the headers pinned above it (`--crudui-sticky-cover`, the line
-  plus one header height), and every form control has a bottom scroll margin of the
-  footer height, so focusing a control scrolls it into view clear of them. No script
-  measures or marks rows while scrolling.
+  stylesheet shows the label and hides the card top edge from that attribute. That
+  attribute is the only thing a script changes; it never measures rows for layout or
+  moves a scroll position. A control inside a sticky row has a top scroll margin of
+  the headers pinned above it (`--crudui-sticky-cover`, the line plus one header
+  height), and every form control has a bottom scroll margin of the footer height, so
+  focusing a control scrolls it into view clear of them.
 
   A sticky node wraps its header in `crudui-node__header-container`. The wrapper is
-  the sticky scroll-state container; `crudui-node__header` remains the header
-  content. The wrapper supplies the sticky background, top radius and boundary while
-  the header supplies its content layout. This wrapper is required so state-dependent
-  styles target header descendants without changing the header's semantic slot.
+  the sticky scroll-state container and holds the card top edge; `crudui-node__header`
+  remains the header content and draws the line under it. The wrapper supplies the
+  sticky background and top radius while the header supplies its content layout. This
+  wrapper is required so state-dependent styles target header descendants without
+  changing the header's semantic slot.
 
 ## Form buttons
 
