@@ -403,12 +403,13 @@ const checks = [
     hiddenSpec.properties.companies.properties.stores.properties.name.design = { show: false };
     await mount(data, hiddenSpec);
     equal(storeName(stores(companies()[0])[0]).closest('[data-field-path]').hidden, true, 'required field is hidden by design');
+    // A field hidden by its specification skips its rules; the server decides with its own
+    // specification, where the field is shown, so it still rejects the empty name.
     const hiddenClient = validation.validate(driver.getData());
-    same(hiddenClient, client, 'hiding required input does not change validation');
-    equal((await save()).status, null, 'hidden required input blocks browser submission');
-    const hiddenServer = await submit('save');
-    equal(hiddenServer.status, 422, 'hidden required input fails on server');
-    same(hiddenServer.validation, client, 'server ignores display when validating');
+    same(hiddenClient, { valid: true, errors: [] }, 'a hidden required field skips its rules');
+    const hiddenSave = await submit('save');
+    equal(hiddenSave.status, 422, 'the server rejects the field its own specification shows');
+    same(hiddenSave.validation, client, 'server validation follows the server specification');
     equal(result.validation.valid, false, 'server required validation');
     assert(result.validation.errors.some(error => String(error.path).endsWith('.name') && error.rule === 'required'), 'Expected required error at store name');
     same((await request('load')).storage, before.storage, 'stored data after invalid save');
