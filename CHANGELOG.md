@@ -368,11 +368,13 @@ The public root now presents List → Detail → Form → Save → List refresh 
 between the stages and explicit client, server and CSR/SSR selectors. The benchmark entry is
 separate at `/benchmark/`. The obsolete `/displays/` route and its public files were removed.
 
-## 2026-09-15 — Add the canonical list and detail entry
+## 2026-09-16 — Reuse the existing comparison container during source sync
 
-The canonical `crudui.test` entry now links to `/displays/`, which serves the user-facing list and
-detail example through the same public process as the form comparison. The internal Cross-Check
-Console is not exposed as the canonical display page.
+The comparison deployment now separates first-time bootstrap from source synchronization. A
+running container with the expected image and exact mounts is inspected and reused; normal source
+changes do not call `containerctl down`, recreate the container, or reconnect build, cache, data,
+or results volumes. The public pipeline forwards list and detail rendering to the selected native
+PHP, PHP extension, Go, or Rust generator instead of rendering those requests in Node.
 
 ## 2026-09-16 — Correct the canonical display entry and renderer scope
 
@@ -380,6 +382,12 @@ The first `/displays/` implementation exposed the internal Cross-Check Console a
 entry. That was incorrect. `/displays/` now serves a user-facing List/Detail page that renders
 the framework-independent HTML output through the same public process. Cross-check render
 matrices now include HTML alongside React, Vue and Svelte, so parity covers four renderers.
+
+## 2026-09-15 — Add the canonical list and detail entry
+
+The canonical `crudui.test` entry now links to `/displays/`, which serves the user-facing list and
+detail example through the same public process as the form comparison. The internal Cross-Check
+Console is not exposed as the canonical display page.
 
 ## 2026-09-15 — Use the shared allocator for empty native button text
 
@@ -3489,10 +3497,3 @@ Removed the unnecessary `ignoreDeprecations: "6.0"` compiler setting because the
 schema generator's bundled TypeScript compiler rejects it. TypeScript type
 checking, schema generation with three example checks, and the documentation
 site build passed. Deployment: not deployed.
-## 2026-09-16 — Reuse the existing comparison container during source sync
-
-The comparison deployment now separates first-time bootstrap from source synchronization. A
-running container with the expected image and exact mounts is inspected and reused; normal source
-changes do not call `containerctl down`, recreate the container, or reconnect build, cache, data,
-or results volumes. The public pipeline forwards list and detail rendering to the selected native
-PHP, PHP extension, Go, or Rust generator instead of rendering those requests in Node.
