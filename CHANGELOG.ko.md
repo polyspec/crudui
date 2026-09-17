@@ -360,7 +360,7 @@ HTML을 포함하여 parity 대상이 네 렌더러가 되었습니다.
 PHP 확장은 생략된 버튼 content를 공용 문자열 할당기로 생성하므로 엄격한 GCC 빌드가
 비표준 `strdup` 선언에 의존하지 않습니다.
 
-이후 `923ffcbc`를 비교 배포한 트리에서 생성 450개, 저장 120개, 브라우저 7,008개 검사를
+이후 `847de4fb`를 비교 배포한 트리에서 생성 450개, 저장 120개, 브라우저 7,008개 검사를
 실패 없이 통과했습니다.
 
 ## 2026-09-15 — 네이티브 선택 목록 입력 경로 수정
@@ -624,9 +624,9 @@ CLI는 하나의 타입 노드로 스키마 정의를 읽고, 쓰지 않는 코�
 
 ## 2026-09-15 — 빈 객체를 잃지 않고 기대 PHP 시그니처 비교
 
-`2ef897a5` 후보 검증은 두 PHP 구현이 같은 메서드를 선언하는데도 PHP 모드 검사에서
+`afbddb8c` 후보 검증은 두 PHP 구현이 같은 메서드를 선언하는데도 PHP 모드 검사에서
 `Public PHP and extension signatures must match`로 멈췄습니다. 검사는 기대 시그니처를 연관 배열로 디코딩했고,
-이 방식은 빈 객체 기본값을 빈 배열로 바꿉니다. `353a0c10`부터 상세 메서드가 `record = new stdClass()`를 선언하므로
+이 방식은 빈 객체 기본값을 빈 배열로 바꿉니다. `53c49f54`부터 상세 메서드가 `record = new stdClass()`를 선언하므로
 기대값 `{}`가 `[]`가 되어 리플렉션한 `{}`와 맞지 않았습니다. 이제 검사는 기대 시그니처를 객체로 디코딩해 그대로
 비교합니다. 로컬에서 순수 PHP 시그니처를 객체로 쓰고 다시 읽으면 같았고, 연관 배열 왕복은 불일치를 재현했습니다.
 
@@ -762,7 +762,7 @@ C 확장의 링크 문구는 다른 런타임과 같은 경우에만 대체합�
 모든 런타임에서 상세는 `data`, `language`, `files`, `basepath`만 받고 `page`, `total`, `layout`은 검사하지도
 사용하지도 않으며, 공용 상세 사례 `list-options-ignored`가 이를 강제합니다.
 
-`18baaf68` 이후 교차 검증 콘솔 게이트웨이 CI 작업이 실패했습니다. 제가 로컬에서 실행하지 않은 작업입니다.
+`7b2c7bef` 이후 교차 검증 콘솔 게이트웨이 CI 작업이 실패했습니다. 제가 로컬에서 실행하지 않은 작업입니다.
 JavaScript 생성기는 입력 오류를 코드 없는 `TypeError`로 던져 게이트웨이가 `RENDER_ERROR`로 분류했고, 다른 모든
 런타임은 `INVALID_FORM_INPUT`을 보고합니다. 네이티브 러너의 JavaScript 어댑터가 코드 없는 오류에
 `INVALID_FORM_INPUT`을 채워 넣어 이 차이가 드러나지 않았습니다. 이제 generator-core의 모든 입력 오류는 검증기의
@@ -811,7 +811,7 @@ JavaScript 생성기는 입력 오류를 코드 없는 `TypeError`로 던져 게
 
 ## 2026-09-15 — 계약 검증 명령을 패키지 검사로 유지
 
-`353a0c10` 이후 폼 인스턴스 CI 작업이 실패했습니다. `npm run manifest:test`는 계약 목록의 모든 검증 명령을
+`53c49f54` 이후 폼 인스턴스 CI 작업이 실패했습니다. `npm run manifest:test`는 계약 목록의 모든 검증 명령을
 실행하는데, 제가 `buildDetail`과 `renderDetail`에 `make test-native`를 선언했습니다. 이 작업에는 네이티브 PHP
 도구가 없어 확장 빌드가 `Path contains a symbolic link: /usr/bin/php-config`에서 멈췄습니다. 다른 모든 계약은
 패키지 검사만 선언하며, 네이티브 비교는 `tests`의 러너로 기록하고 전용 CI 작업에서 실행합니다. 그 작업은
@@ -823,8 +823,8 @@ JavaScript 생성기는 입력 오류를 코드 없는 `TypeError`로 던져 게
 ## 2026-09-15 — 모든 런타임에서 상세 보기를 같은 수준으로 강제
 
 상세 보기는 JavaScript와 Go에만 있었고 그 출력을 비교하는 검사가 없었습니다. 이 작업 트리에는 Claude
-서명이 없고 어느 세션 기록에도 나오지 않는, 푸시되지 않은 커밋 세 개가 있었습니다. `012b3236`과
-`899bc37e`는 PHP·Rust 상세 렌더링과 네이티브 러너의 원본 HTML 상세 사례를 추가했고, `4dbe8157`은 PHP
+서명이 없고 어느 세션 기록에도 나오지 않는, 푸시되지 않은 커밋 세 개가 있었습니다. `db0bfe06`과
+`8e819ef0`는 PHP·Rust 상세 렌더링과 네이티브 러너의 원본 HTML 상세 사례를 추가했고, `4dbe8157`은 PHP
 JSON 경계 문서와 함께 제가 스테이징했지만 검증하지 않은 변경을 담았습니다. 그 위에 작업하기 전에
 검토한 결과 러너는 HTML만 비교했고, 러너가 모든 사례를 보내는데도 C 확장에는 상세 연산이 없었으며,
 JavaScript 렌더러는 각자의 부분 문자열 검사를 유지했고, 커밋 메시지는 내용의 일부만 설명했습니다.
@@ -870,7 +870,7 @@ Linux 전용 검사 1개는 건너뛰었습니다. React, Vue, Svelte, HTML 렌�
 
 ## 2026-09-15 — generator-core를 선언한 라이브러리로 빌드
 
-`3aeb4d6e` 이후 모든 CI 작업이 `npm run build`에서 실패했습니다. `detail.ts`가 패키지가 선언한
+`47ec944a` 이후 모든 CI 작업이 `npm run build`에서 실패했습니다. `detail.ts`가 패키지가 선언한
 TypeScript 라이브러리에 없는 `Object.hasOwn`을 호출했습니다. 그 커밋은 변경 기록 문구 수정으로
 설명했지만, 모든 변경을 스테이징하면서 진행 중이던 상세 작업도 함께 커밋했습니다. 상세 모델의 입력
 검사(객체가 아닌 선언, `fields`가 없는 선언, 객체가 아닌 레코드가 각각 고유한 메시지로 실패), 그
@@ -892,7 +892,7 @@ CI가 HTML 렌더러에서 실패했습니다. 기준 렌더러에서 이식한 
 
 ## 2026-09-15 — 서버 렌더링 프레임의 후보 검증 결과 기록
 
-`e1bb6f20`의 후보 검증이 통과했습니다. 생성 검증은 HTTP 요청 899개에서 결과 450개를 모두
+`d02762af`의 후보 검증이 통과했습니다. 생성 검증은 HTTP 요청 899개에서 결과 450개를 모두
 통과했고, 여기에는 빌드된 프레임 문서, 레코드 페이로드가 있는 SSR 폼 HTML, 조합마다 거부해야 하는
 SSR 쿼리 10개가 포함됩니다. PHP 두 모드는 각각 생성 검사 62개와 저장소 검사를 통과했습니다.
 서버별 브라우저 실행은 1,752개를 모두 통과했고 집계는 실패 없이 7,008개를 통과했습니다. 시나리오
@@ -1056,7 +1056,7 @@ sanitizer 테스트는 선언된 플랫폼 조건에 따라 Linux 밖에서 건�
 
 ## 2026-09-15 — 비교 페이지를 한 화면에 고정
 
-6273d16 배포 뒤 실제 Safari에서 왼쪽 프레임 안의 모두 펼치기를 누르고 포인터를 페이지 머리글로 옮긴 뒤
+0896cb2 배포 뒤 실제 Safari에서 왼쪽 프레임 안의 모두 펼치기를 누르고 포인터를 페이지 머리글로 옮긴 뒤
 PHP, React, bindForm 반복 주입 비교를 실행했습니다. 168/168 대신 비교 3개 뒤에 포인터 안내로
 멈췄습니다. 실행 중 기록을 보면 페이지는 `saved`까지 스크롤 0이었습니다. `copied` 단계가 새 행으로
 포커스를 옮기자 Safari가 페이지를 602px로 스크롤했고, 왼쪽 프레임의 위쪽이 602px에서 0으로 올라와
@@ -1073,13 +1073,13 @@ PHP, React, bindForm 반복 주입 비교를 실행했습니다. 168/168 대신 
 있지 않았습니다. 비교 계약에 이 배치를 명시했습니다.
 
 `npm run test:form-comparison:source` 141개와 `:browser` 4개, `make docs-check`가 통과했습니다. 배포된
-a40f434 페이지에서 실제 Safari로 왼쪽 프레임 안의 모두 펼치기를 누르고 포인터를 페이지 머리글로 옮긴
+3cc00fc 페이지에서 실제 Safari로 왼쪽 프레임 안의 모두 펼치기를 누르고 포인터를 페이지 머리글로 옮긴
 뒤 PHP, React, bindForm 반복 주입 비교를 실행한 결과 168/168 일치했습니다. 포인터를 왼쪽 프레임 위에
 둔 채 시작하면 비교는 결과 없이 포인터 안내로 멈췄습니다.
 
 ## 2026-09-15 — 포인터가 프레임 밖에 있을 때만 비교를 캡처
 
-3eb6db3 배포 뒤, safaridriver로 실행한 실제 Safari에서 포커스 테두리 차이를 재현했던 절차를
+f260561 배포 뒤, safaridriver로 실행한 실제 Safari에서 포커스 테두리 차이를 재현했던 절차를
 반복했습니다. 왼쪽 프레임 안의 모두 펼치기를 실제 포인터로 누른 뒤 PHP, React, bindForm 반복 주입
 비교를 실행했습니다. 이제 모든 단계에서 포커스된 컨트롤과 `:focus-visible` 상태는 같았지만 비교는
 `copy-removed`부터 `restored`까지 CSS에서 168개 중 7개가 실패했습니다. 다른 속성은 버튼의
@@ -1103,7 +1103,7 @@ a40f434 페이지에서 실제 Safari로 왼쪽 프레임 안의 모두 펼치�
 
 ## 2026-09-15 — 스크립트 포커스의 표시 여부를 명시
 
-Safari에서 배포된 68ee49c 페이지의 PHP, React, bindForm 반복 주입 비교가 `expanded-all`,
+Safari에서 배포된 47f8269 페이지의 PHP, React, bindForm 반복 주입 비교가 `expanded-all`,
 `undone`, `empty`, `restored`에서 CSS만 실패했습니다. 두 열 모두 같은 버튼에 포커스가 있었지만
 왼쪽 열은 포커스 테두리가 없고 오른쪽 열은 `:focus-visible` 테두리가 있었습니다. safaridriver로
 실행한 실제 Safari는 네 번 168/168 통과했고, 그중 한 번은 실제 포인터로 비교를 시작했습니다. 왼쪽
@@ -1141,7 +1141,7 @@ Playwright WebKit 비교가 배포에 대해 실행되는 동안 사용자의 Sa
 
 ## 2026-09-14 — 사용할 수 없는 조작을 aria-disabled로 표시
 
-Safari에서 배포된 9d6beec 페이지의 반복 주입 비교가 `restored`의 CSS와 포커스 차이를
+Safari에서 배포된 8c57e1d 페이지의 반복 주입 비교가 `restored`의 CSS와 포커스 차이를
 보고했습니다. 왼쪽 열은 비활성화된 되돌리기 버튼에 포커스와 포커스 테두리가 남았고 오른쪽 열은
 포커스가 없었습니다. Chrome(React, bindForm, PHP: 168/168), Playwright WebKit의 PHP 8개 조합(각
 168/168), 사용자의 Safari 전체 실행(보고서 96개, 실패 0개)에서는 재현되지 않았습니다.
@@ -1167,7 +1167,7 @@ test-native` 976/976, Go 생성기 테스트, Rust 생성기 테스트(20·4), P
 test:form-comparison:source`(141)와 `:browser`(3), `make docs-check`, `make format-check`가
 통과했습니다.
 
-배포된 68ee49c 페이지에서 PHP 서버의 모든 프레임워크·렌더링 경로의 두 프레임을 Playwright로
+배포된 47f8269 페이지에서 PHP 서버의 모든 프레임워크·렌더링 경로의 두 프레임을 Playwright로
 측정했습니다. 되돌리기 버튼은 처음에 `aria-disabled="true"`이고 `disabled`가 없습니다. `undone`
 단계처럼 포커스한 뒤 스크립트 클릭으로 누르거나 Enter로 누르면, 이력이 비고 렌더링 갱신이 여러 번
 지난 뒤에도 Chromium과 WebKit 모두 되돌리기에 포커스가 남습니다. WebKit에서는 어떤 버튼이든 마우스로
@@ -1176,7 +1176,7 @@ WebKit의 마우스 동작이며 렌더링 결과가 아닙니다.
 
 ## 2026-09-14 — 비교 저장소 작업을 한 번에 하나만 실행
 
-배포된 cf95123 페이지에서 왼쪽과 오른쪽 프레임의 검사 실행을 동시에 누르자 두 프레임 모두 여러
+배포된 db1dedc 페이지에서 왼쪽과 오른쪽 프레임의 검사 실행을 동시에 누르자 두 프레임 모두 여러
 검사가 "검사 오류"로 실패했습니다. 한 프레임만 실행하면 같은 검사가 19/19 통과했습니다. 두 프레임과
 페이지, origin의 모든 탭은 같은 저장 레코드를 읽고 교체하는데, 각 프레임과 페이지는 자기 `running`
 플래그로 자신만 막았고 페이지의 반복 주입 비교에는 막는 장치가 없었습니다. 두 실행이 서로의 레코드를
@@ -1193,7 +1193,7 @@ test:form-comparison:browser`가 3개를 통과했고 `make docs-check`가 통�
 
 ## 2026-09-14 — 빈 컬렉션 추가 뒤 컬렉션을 다시 조회
 
-HTML 프레임을 처음 빌드해 실행한 cc8cd95의 후보 검증은 생성 검증(결과 386개, 요청 547개)을 통과한 뒤
+HTML 프레임을 처음 빌드해 실행한 6b8b6c1의 후보 검증은 생성 검증(결과 386개, 요청 547개)을 통과한 뒤
 PHP 검사 1,744개 중 4개에서 실패했습니다. 두 렌더링 경로와 두 전송 방식의 HTML 렌더러 `empty` 시나리오가
 "add into empty collection: expected 1, actual 0"을 보고했습니다. 실행은 거기서 멈춰 다른 서버는 실행되지
 않았습니다. 시나리오는 추가 버튼을 누르기 전에 찾은 컬렉션 요소를 붙잡아 두고 그 뒤 그 요소에서 행을
@@ -1254,8 +1254,8 @@ CRUDUI에 순서가 있는 읽기 전용 표시 필드를 갖는 `Detail` 선언
 - 비교 명세는 새 규모를 적습니다. 시나리오 보고서 64개와 초기화 보고서 32개, 서버마다 보고서 24개(시나리오
   16, 초기화 8)의 작업, 상호작용 80개, 로드 전 마운트 8개, 정적 문서 8개, 집계 시나리오 검사 1,216개, 초기화
   비교 5,376개, 상호작용 320개, 마운트 32개, 정적 문서 32개, 생성 검증 결과 386개, 요청 547개, 조합 32개입니다.
-  이 문장의 오류 두 가지도 함께 바로잡았습니다. a384cfc가 범주를 일곱 개로 줄였는데도 집계는 초기화 비교
-  4,608개라고 적었고, 로드 전 마운트 프레임을 880cb11이 `csr`로 바꾼 열 이름 `inject`로 불렀습니다.
+  이 문장의 오류 두 가지도 함께 바로잡았습니다. dd8a4d2가 범주를 일곱 개로 줄였는데도 집계는 초기화 비교
+  4,608개라고 적었고, 로드 전 마운트 프레임을 b656194이 `csr`로 바꾼 열 이름 `inject`로 불렀습니다.
   런타임 패키지와 네이티브 생성기 문서도 브라우저 대상에 HTML 렌더러를 적습니다.
 
 `make format-check`, `npm run test:form-comparison`(소스 139, 라이브러리 10, 브라우저 작업 3),
@@ -1279,7 +1279,7 @@ HTML 렌더러의 적합성 테스트는 렌더링 가능한 모든 폼 사례�
 ## 2026-09-14 — 속성 순서에 관한 런타임 계약 정정
 
 폼 런타임 명세는 여전히 복원한 HTML 문자열이 "속성 순서까지" 같아야 하고 공통 DOM 바인딩이
-checkbox의 `checked` 속성을 마지막에 둔다고 적고 있었습니다. 이는 a384cfc가 정정한 기준이며 이를
+checkbox의 `checked` 속성을 마지막에 둔다고 적고 있었습니다. 이는 dd8a4d2가 정정한 기준이며 이를
 강제하던 코드도 그때 제거했지만 계약 문장은 바꾸지 않았습니다. 이제 명세는 정정한 규칙을 적습니다.
 속성 순서는 계약에 포함되지 않고, 바인딩은 속성을 재배치하지 않으며, 비교는 파싱한 DOM을 사용하고,
 문자열 렌더러의 바이트 단위 동일 HTML은 따로 검사합니다.
@@ -1330,7 +1330,7 @@ CI 네이티브 작업은 원본 테스트를 실행했습니다. 복사본과 �
 
 ## 2026-09-14 — 속성 순서 없이 브라우저 DOM을 비교하고 순서를 강제하던 코드 제거
 
-f3109ad에서 비교 페이지의 전체 검사를 Safari로 실행하자 네 서버 모두 Vue `bindForm`의
+0815cc9에서 비교 페이지의 전체 검사를 Safari로 실행하자 네 서버 모두 Vue `bindForm`의
 `ssr/restoration`과 `csr/restoration`이 `html` 범주에서 실패했고, 파싱 DOM을 포함한 다른 범주는
 모두 통과했습니다. 차이는 checkbox 하나였습니다. 마운트 때 `checked="" value="1"`, 복원 뒤
 `value="1" checked=""`였습니다. 후보 검증은 Chromium만 실행하므로 통과했습니다.
@@ -1395,10 +1395,10 @@ Puppeteer 다운로드 Chrome을 사용했고, 다른 브라우저 작업은 `/o
 
 ## 2026-09-14 — 화면 높이 프레임 후보 검증과 배포 기록
 
-`node examples/form-comparison/candidate-verification.mjs`가 f3109ad에서 통과했습니다. PHP,
+`node examples/form-comparison/candidate-verification.mjs`가 0815cc9에서 통과했습니다. PHP,
 PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
 실패 없이 기록했습니다. `node examples/form-comparison/comparison-deployment.mjs --commit
-f3109ad…`가 이를 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 798px
+0815cc9…`가 이를 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 798px
 브라우저 창에서 프레임은 798px 높이이고 SSR과 CSR 열은 8/8 일치합니다. 페이지를 프레임까지
 스크롤하고 프레임을 700px 스크롤하면 회사 헤더는 화면 맨 위 0px 고정선에, 스토어 헤더는 38.5px
 고정선의 39px에 있으며 둘 다 단계 레이블을 보이고, 고정되지 않은 부서와 Busan 헤더는 레이블을
@@ -1419,14 +1419,14 @@ generator-core 테스트(108)와 `npm run test:form-comparison:source`(140)가 �
 
 ## 2026-09-14 — CSS 전용 고정 행 후보 검증과 배포 기록
 
-`node examples/form-comparison/candidate-verification.mjs`가 3578158에서 통과했습니다. PHP,
+`node examples/form-comparison/candidate-verification.mjs`가 78e3117에서 통과했습니다. PHP,
 PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
-실패 없이 기록했습니다. 앞선 실행은 멈췄습니다. 338d060은 React의 고정 행 SSR 인계에서,
-5fbcf5a는 Chromium 스크린샷 오류로 실패했고 둘 다 이후 커밋에서 고쳐지거나 대체되었으며,
-3578158의 첫 실행은 디스크가 가득 차 이미지 구성 중 실패했습니다. 컨테이너 이미지 빌더가 반복된
+실패 없이 기록했습니다. 앞선 실행은 멈췄습니다. b524a7e은 React의 고정 행 SSR 인계에서,
+41993b6는 Chromium 스크린샷 오류로 실패했고 둘 다 이후 커밋에서 고쳐지거나 대체되었으며,
+78e3117의 첫 실행은 디스크가 가득 차 이미지 구성 중 실패했습니다. 컨테이너 이미지 빌더가 반복된
 후보 빌드로 약 75GB의 빌드 캐시를 갖고 있었고, `container prune`, `container image prune --all`,
 빌더 삭제(다음 빌드에서 캐시를 다시 만듦)로 83GiB를 확보했으며 실행 중인 컨테이너와 볼륨은
-건드리지 않았습니다. `node examples/form-comparison/comparison-deployment.mjs --commit 3578158…`가
+건드리지 않았습니다. `node examples/form-comparison/comparison-deployment.mjs --commit 78e3117…`가
 이를 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 브라우저에서 SSR과 CSR
 열은 8/8 일치하고, 각 프레임은 고정 행 4개를 가지며 `data-crudui-stuck`, `data-crudui-current`,
 게시 길이가 없고, SSR 프레임을 스크롤하면 회사 헤더가 고정선에 붙어 레이블을 보이며 아직 고정되지
@@ -1461,11 +1461,11 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
 클라이언트 10), `npm run test:form-comparison:source`(140), `npm run test:build`,
 `npm run test:dependencies`, `make docs-check`, Chromium 스타일 검사 6개(환경마다 2개)가
 통과했습니다. 마지막 `make docs-check`는 Rust 크레이트를 다시 빌드하다 디스크가 가득 차 먼저
-실패했고, 멈춘 5fbcf5a 후보 컨테이너·이미지·디렉터리를 지운 뒤 통과했습니다.
+실패했고, 멈춘 41993b6 후보 컨테이너·이미지·디렉터리를 지운 뒤 통과했습니다.
 
 ## 2026-09-14 — React에서 고정 행을 동일하게 넘겨받기
 
-338d060의 후보 검증은 `browser-php`에서 실패했습니다. React의 SSR 인계가 첫 고정 행에서 달랐는데,
+b524a7e의 후보 검증은 `browser-php`에서 실패했습니다. React의 SSR 인계가 첫 고정 행에서 달랐는데,
 서버는 그 style을 `--crudui-sticky-depth:0`으로, React는 `--crudui-sticky-depth: 0;`으로 씁니다.
 로컬 공유 인계 테스트는 스펙에 고정 행이 없어 이를 잡지 못했습니다. 저는 고정 행을 비교 예제에만
 선언했습니다.
@@ -1474,7 +1474,7 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
   객체 모델이 직렬화한 선언으로 비교합니다.
 - 공유 폼 세션 스펙이 회사와 스토어에 고정 행을 선언하므로 React, Vue, Svelte 폼 테스트가 이를
   렌더링하고 비교합니다.
-- 이로써 f7f814e부터 있던 React 결함이 드러났습니다. `resolvedStyleProps`는 React가 ref를 호출할
+- 이로써 4881362부터 있던 React 결함이 드러났습니다. `resolvedStyleProps`는 React가 ref를 호출할
   때마다, 즉 렌더링마다 style 속성을 지우고 다시 추가했으므로, 다시 렌더링된 행의 style이 브라우저
   바인딩이 쓴 `data-crudui-current` 뒤로 옮겨졌고, 나중에 데이터를 받은 폼이 데이터와 함께 만든 폼과
   원시 HTML에서 달랐습니다. 이제 style 속성은 요소가 처음 연결될 때만 렌더링된 속성 뒤에 놓이고,
@@ -1522,33 +1522,33 @@ Chromium 검사 두 개가 이를 확인합니다. 스크롤 박스 안 폼 뒤�
 
 ## 2026-09-13 — SSR/CSR 후보 검증 통과와 배포 기록
 
-`node examples/form-comparison/candidate-verification.mjs`가 8d0d467에서 통과했습니다. PHP,
+`node examples/form-comparison/candidate-verification.mjs`가 13e1475에서 통과했습니다. PHP,
 PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 여기에는 서버·렌더링 경로·
 프레임워크마다 SSR 인계를 포함한 초기화 비교 192개가 들어 있습니다. 브라우저 검증은 검사
-5,808개를 실패 없이 기록했습니다. 8d0d467의 첫 실행은 디스크가 가득 차 이미지 구성 중에
+5,808개를 실패 없이 기록했습니다. 13e1475의 첫 실행은 디스크가 가득 차 이미지 구성 중에
 멈췄고, Go 빌드 캐시와 임시 검사 디렉터리를 지운 뒤 같은 커밋으로 다시 실행했습니다.
-`node examples/form-comparison/comparison-deployment.mjs --commit 8d0d467…`가 이를
+`node examples/form-comparison/comparison-deployment.mjs --commit 13e1475…`가 이를
 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 브라우저에서 페이지는 SSR과
 CSR 열(너비 1,000px 초과 시 좌우)을 보여 주며 PHP·React·bindForm에서 비교 8/8이 일치합니다.
 
 ## 2026-09-13 — 브라우저 상호작용 검사에 SSR·CSR 열 이름 사용
 
-4607254의 후보 검증은 상호작용이 실행되기 전에 `browser-php`에서 실패했습니다. 상호작용 검사는
+be2208c의 후보 검증은 상호작용이 실행되기 전에 `browser-php`에서 실패했습니다. 상호작용 검사는
 여전히 `initialization=data` 프레임을, 초기 마운트 검사는 `initialization=inject` 프레임을
-찾았는데, 이는 880cb11이 바꾼 열 이름입니다. 이제 상호작용 검사는 `ssr` 프레임, 초기 마운트
+찾았는데, 이는 b656194이 바꾼 열 이름입니다. 이제 상호작용 검사는 `ssr` 프레임, 초기 마운트
 검사는 `csr` 프레임, 보고서 테스트 픽스처는 `ssr` 열을 사용합니다. 이 검사들은 후보 컨테이너
 안에서만 실행되므로 로컬 소스 검사(140개 통과)는 옛 이름을 드러내지 못했습니다.
 
 ## 2026-09-13 — 레거시 UI와 함께 삭제된 React 폼 세션 테스트 복원
 
-d26ecce가 레거시 FormBuilder 테스트와 함께 같은 파일의
+3ca967b가 레거시 FormBuilder 테스트와 함께 같은 파일의
 `packages/generator-react/src/__tests__/Form.test.tsx` 전체를 삭제해, Vue와 Svelte가 실행하는
 공유 초기화·세션 DOM·컨트롤·포커스 시나리오를 React는 실행하지 않게 되었습니다. 레거시 테스트를
 뺀 파일을 복원하고 `compareServerTakeover`도 실행합니다. React는 테스트 350개를 통과합니다.
 
 ## 2026-09-13 — Vue와 Svelte가 서버 렌더링 폼을 바꾸지 않고 넘겨받기
 
-d80a3a0의 첫 후보 검증은 SSR 열에서 실패했습니다. Vue는 조건 블록의 기준점으로 주석 노드를
+e433bfa의 첫 후보 검증은 SSR 열에서 실패했습니다. Vue는 조건 블록의 기준점으로 주석 노드를
 두고, Svelte 5는 템플릿 형제 요소 사이 공백을 텍스트 노드로 남기고 빈 텍스트 기준점을 두었으며
 input의 `value` 속성, textarea 텍스트, checkbox의 `checked` 속성을 브라우저 DOM에 쓰지
 않았습니다. 주석과 빈 텍스트는 아무것도 그리지 않으므로, 비교 프레임과 새 공유 테스트
@@ -1582,8 +1582,8 @@ HTML을 비교했고 속성 순서에서만 실패했습니다. React는 input�
 
 ## 2026-09-13 — crudui.css와 레거시 제거의 네 서버 후보 검증 통과 기록
 
-`node examples/form-comparison/candidate-verification.mjs`가 0ab3c93(`crudui.css`만으로 폼
-스타일링)과 eb9f7b7(레거시 UI 경로 제거, 빌드·의존성 검사 수정 후)에서 통과했습니다. 두 실행
+`node examples/form-comparison/candidate-verification.mjs`가 3d7e20d(`crudui.css`만으로 폼
+스타일링)과 76d1480(레거시 UI 경로 제거, 빌드·의존성 검사 수정 후)에서 통과했습니다. 두 실행
 모두 PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사
 5,808개를 실패 없이 기록했으며 명령은 상태 0을 반환했습니다.
 
@@ -1595,10 +1595,10 @@ HTML을 비교했고 속성 순서에서만 실패했습니다. React는 input�
 - `tests/build/public-types.mts`와 `public-types.cts`는 노드 뷰모델이 제거한 `FieldShape`와
   `MultipleSettings`를 여전히 참조했습니다. 이제 현재 공개 타입 `NodeVM`과 `ButtonVM`을
   참조합니다.
-- 폼 비교 컨트롤러는 7a2b73a부터 `@crudui/generator-core`를 import하지만 루트 패키지가 이를
+- 폼 비교 컨트롤러는 263d25a부터 `@crudui/generator-core`를 import하지만 루트 패키지가 이를
   선언하지 않았습니다. 이제 루트 패키지가 워크스페이스 패키지를 개발 의존성으로 선언합니다.
 - `tests/build/package-consumer-pack.test.mjs`는 존재하지 않는 경로를 넘겼는데, `packPackage`는
-  07e8f9f부터 패키지 이름을 확인하려고 원본 manifest를 읽습니다. 이제 테스트가 임시 디렉터리에
+  c57aec5부터 패키지 이름을 확인하려고 원본 manifest를 읽습니다. 이제 테스트가 임시 디렉터리에
   manifest를 만듭니다.
 
 `npm run test:build`, `npm run test:dependencies`, `npm run test:runtimes`와 `tests/build`,
@@ -1680,12 +1680,12 @@ format-check`는 추적 중인 모든 `Cargo.toml`에 대해 공용 Rust 명령 
 
 ## 2026-09-13 — 버튼·스크롤 변경의 네 서버 후보 검증 통과 기록
 
-`node examples/form-comparison/candidate-verification.mjs --ref e3f8c00`가 통과했습니다.
+`node examples/form-comparison/candidate-verification.mjs --ref 26435dc`가 통과했습니다.
 PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
-실패 없이 기록했으며 명령은 상태 0을 반환했습니다. 이 검증은 폼 버튼(dd37759), 명명·DOM 시나리오
-검사(6912b31), 스크롤 중 렌더링 없음(67f510e), 앞선 검증이 찾은 비교 페이지 수정 두 건을
-포함합니다. 67f510e 검증은 PHP 생성 테스트에서 실패했고(fc2ee17에서 수정), fc2ee17 검증은 참조
-컴파일 검사에서 실패했습니다(e3f8c00에서 수정).
+실패 없이 기록했으며 명령은 상태 0을 반환했습니다. 이 검증은 폼 버튼(fd32955), 명명·DOM 시나리오
+검사(97aee18), 스크롤 중 렌더링 없음(5b0aaee), 앞선 검증이 찾은 비교 페이지 수정 두 건을
+포함합니다. 5b0aaee 검증은 PHP 생성 테스트에서 실패했고(80a90e8에서 수정), 80a90e8 검증은 참조
+컴파일 검사에서 실패했습니다(26435dc에서 수정).
 
 ## 2026-09-13 — 스크롤은 아무것도 렌더링하지 않음: 현재 행은 더 이상 인스턴스 상태가 아님
 
@@ -1776,7 +1776,7 @@ Svelte 클라이언트가 10개, 정규화가 6개, Chromium 스타일 검사가
 generator-core가 타입 검사와 테스트 104개를 통과했고, 다시 생성한 구조 맵 사례로 HTML, React,
 Vue, Svelte가 116, 705, 348, 349개를 통과했습니다. 폼 비교 소스 검사 140개가 통과했고, 다섯 구현
 모두 빈 컬렉션 배치를 바꾼 뒤 `make test-native`가 생성기 검사 976개를 통과했습니다. Chrome에서
-맵은 단계마다 한 번씩 들여쓴 행만 보여 줍니다. 직전 변경 dad977d의 네 서버 후보 검증은 서버마다
+맵은 단계마다 한 번씩 들여쓴 행만 보여 줍니다. 직전 변경 7eb84f7의 네 서버 후보 검증은 서버마다
 검사 1,452개(브라우저 검사 5,808개)를 실패 없이 통과했습니다.
 
 ## 2026-09-13 — 행을 고정선에 정렬하고 현재 행이 스크롤을 따르게 함
@@ -1838,7 +1838,7 @@ node 검사 7개를 통과했으며 새 Chromium 검사가 포함됩니다. 이 
 이제 포커스를 받은 입력이 프레임 뷰포트와 메인 페이지 뷰포트 안에 모두 보여야 합니다.
 로컬 소스 검사와 Chromium 검사는 이 검사들을 실행하지 않으며, 후보 검증만 실행합니다.
 
-이후 e4d1375의 후보 검증이 통과했습니다. PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를
+이후 12b0df0의 후보 검증이 통과했습니다. PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를
 실패 없이 통과해 브라우저 검사가 모두 5,808개였고, 명령은 상태 0으로 끝났습니다.
 
 ## 2026-09-13 — 두 초기화 경로를 좌우로 비교
@@ -2025,7 +2025,7 @@ TypeScript, PHP, C PHP 확장, Go, Rust 검증기는 형태가 잘못된 제출 
 `at` 없이 1로 종료했고 PHP는 `rule: "compose"` 오류와 함께 0으로 종료했습니다.
 검증 사례는 `expectLoadError: {code}`를 `expectFailure: {code, message, at}`로
 대체하고 입력 실패 사례 6개를 추가합니다. 이전 배열 행 사례는 키 기반 행을
-사용합니다. 사례 생성기에는 커밋 `8688990`이 `cases.json`에만 추가했던 종료일
+사용합니다. 사례 생성기에는 커밋 `e93d0a6`이 `cases.json`에만 추가했던 종료일
 사례 7개를 넣어 재생성해도 사라지지 않습니다. 교차 검증 콘솔은 전체 `failure`
 기록을 비교합니다. 비교·예제 서버는 입력 실패에 HTTP 400으로 응답합니다.
 

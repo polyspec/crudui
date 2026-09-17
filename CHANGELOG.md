@@ -394,7 +394,7 @@ Console is not exposed as the canonical display page.
 The PHP extension now creates omitted button content with its shared string allocator, so
 strict GCC builds do not depend on the non-standard `strdup` declaration.
 
-The deployed comparison tree at `923ffcbc` then passed 450 generation, 120 persistence and
+The deployed comparison tree at `847de4fb` then passed 450 generation, 120 persistence and
 7,008 browser checks with zero failures.
 
 ## 2026-09-15 — Fix the native optional list input path
@@ -714,10 +714,10 @@ fragment link to it and `Café`. The site build suite passed 11 tests.
 
 ## 2026-09-15 — Compare expected PHP signatures without losing empty objects
 
-Candidate verification of `2ef897a5` stopped in the PHP modes check with `Public PHP and extension
+Candidate verification of `afbddb8c` stopped in the PHP modes check with `Public PHP and extension
 signatures must match`, although both PHP implementations declare the same methods. The check
 decoded the expected signatures as associative arrays, which turns an empty object default into
-an empty array; since `353a0c10` the detail methods declare `record = new stdClass()`, so the
+an empty array; since `53c49f54` the detail methods declare `record = new stdClass()`, so the
 expected `{}` became `[]` and no longer matched the reflected `{}`. The check now decodes the
 expected signatures as objects and compares them exactly. Locally, the pure PHP signatures written
 and read back as objects compared equal, and the associative round trip reproduced the mismatch.
@@ -882,7 +882,7 @@ the PHP library dropped them and the C extension never read them. A detail now t
 `data`, `language`, `files` and `basepath` and neither checks nor uses `page`, `total` or
 `layout` in any runtime; the shared detail case `list-options-ignored` enforces it.
 
-CI failed after `18baaf68` in the cross-check console gateway job, which I had not run locally.
+CI failed after `7b2c7bef` in the cross-check console gateway job, which I had not run locally.
 The JavaScript generators threw input errors as plain `TypeError` without a code, so the gateway
 classified them as `RENDER_ERROR` while every other runtime reports `INVALID_FORM_INPUT`. The
 native runner had not shown this because its JavaScript adapter filled in `INVALID_FORM_INPUT`
@@ -940,7 +940,7 @@ result in all six targets.
 
 ## 2026-09-15 — Keep contract verification commands to package checks
 
-CI failed in the form instance job after `353a0c10`: `npm run manifest:test` runs every
+CI failed in the form instance job after `53c49f54`: `npm run manifest:test` runs every
 verification command in the contract manifest, and I had declared `make test-native` for
 `buildDetail` and `renderDetail`. That job has no native PHP toolchain, so building the extension
 stopped at `Path contains a symbolic link: /usr/bin/php-config`. Every other contract declares
@@ -955,7 +955,7 @@ and `make docs-check` and `npm run test:docs` passed.
 
 Detail views existed in JavaScript and Go only, and nothing compared their output. Three
 unpushed commits in this working tree carried no Claude trailer and appear in no session
-transcript: `012b3236` and `899bc37e` added PHP and Rust detail rendering and raw-HTML detail
+transcript: `db0bfe06` and `8e819ef0` added PHP and Rust detail rendering and raw-HTML detail
 cases to the native runner, and `4dbe8157` added PHP JSON boundary documentation together with
 changes I had staged but not verified. Reviewing them before building on them showed that the
 runner compared HTML only, that the C extension had no detail operations although the runner
@@ -1009,7 +1009,7 @@ tests passed.
 
 ## 2026-09-15 — Build generator-core with its declared library
 
-Every CI job failed in `npm run build` after `3aeb4d6e`: `detail.ts` called `Object.hasOwn`,
+Every CI job failed in `npm run build` after `47ec944a`: `detail.ts` called `Object.hasOwn`,
 which the package's declared TypeScript library does not include. That commit was described as
 a changelog wording fix, but staging every change also committed unfinished detail work: the
 detail model's input checks (a declaration that is not an object, a declaration without
@@ -1034,7 +1034,7 @@ HTML renderer passed 207 tests.
 
 ## 2026-09-15 — Record the candidate verification of the server-rendered frame
 
-Candidate verification of `e1bb6f20` passed. Generation verification passed 450 of 450
+Candidate verification of `d02762af` passed. Generation verification passed 450 of 450
 results across 899 HTTP requests, which now include the built frame document, the SSR form
 HTML with its record payload and ten rejected SSR queries per combination. Each PHP mode
 passed 62 generation checks and the repository checks. Every server browser run passed 1,752
@@ -1216,7 +1216,7 @@ platform condition and runs in the Linux CI job.
 
 ## 2026-09-15 — Keep the comparison page on one screen
 
-After 6273d16 was deployed, real Safari pressed Expand all inside the left frame, moved the
+After 0896cb2 was deployed, real Safari pressed Expand all inside the left frame, moved the
 pointer to the page header and ran the repeated injection comparison for PHP, React and
 bindForm. It stopped with the pointer message after three comparisons instead of matching
 168/168. Recorded while it ran: the page stayed at scroll 0 through `saved`; when the `copied`
@@ -1235,14 +1235,14 @@ of each frame scrolls that frame (2,474 px and 2,862 px) and leaves the page at 
 pointer on the header is over neither frame. The comparison contract describes the layout.
 
 `npm run test:form-comparison:source` passed 141 and `:browser` 4, and `make docs-check`
-passed. On the deployed a40f434 page, real Safari pressed Expand all inside the left frame,
+passed. On the deployed 3cc00fc page, real Safari pressed Expand all inside the left frame,
 moved the pointer to the page header and ran the repeated injection comparison for PHP, React
 and bindForm: 168/168 matched. With the pointer resting over the left frame, the comparison
 stopped with the pointer message and produced no result.
 
 ## 2026-09-15 — Capture comparisons only while the pointer is outside the frames
 
-After 3eb6db3 was deployed, real Safari driven by safaridriver repeated the procedure that
+After f260561 was deployed, real Safari driven by safaridriver repeated the procedure that
 reproduced the focus outline difference: a real pointer press on Expand all inside the left
 frame, then the repeated injection comparison for PHP, React and bindForm. The focused
 control and its `:focus-visible` state were now equal in every stage, but the comparison
@@ -1270,7 +1270,7 @@ passed.
 ## 2026-09-15 — Set whether scripted focus is visible
 
 In Safari, the repeated injection comparison for PHP, React and bindForm on the deployed
-68ee49c page failed `expanded-all`, `undone`, `empty` and `restored` on CSS only: focus was on
+47f8269 page failed `expanded-all`, `undone`, `empty` and `restored` on CSS only: focus was on
 the same button in both columns, but the left column showed no focus outline and the right
 column showed the `:focus-visible` outline. Real Safari driven by safaridriver passed 168/168
 four times, once with the comparison started by a real pointer press. After a real pointer
@@ -1311,7 +1311,7 @@ framework; separating stores per run was considered and not adopted.
 
 ## 2026-09-14 — Mark unavailable actions with aria-disabled
 
-In Safari, the repeated injection comparison on the deployed 9d6beec page reported
+In Safari, the repeated injection comparison on the deployed 8c57e1d page reported
 `restored` with CSS and focus differences: the left column kept focus, with its focus
 outline, on the disabled Undo button, and the right column had no focus. It did not
 reproduce in Chrome (React, bindForm, PHP: 168/168), in Playwright WebKit for all eight PHP
@@ -1340,7 +1340,7 @@ Chromium 14), `make test-native` passed 976/976, the Go generator tests, the Rus
 tests (20 and 4), the PHP generator tests (163), `npm run test:form-comparison:source` (141)
 and `:browser` (3), `make docs-check` and `make format-check` passed.
 
-On the deployed 68ee49c page, measured with Playwright for both frames of every framework and
+On the deployed 47f8269 page, measured with Playwright for both frames of every framework and
 rendering path on PHP, the Undo button starts with `aria-disabled="true"` and no `disabled`.
 Focused and activated by a scripted click, as the `undone` stage does, or by Enter, Undo keeps
 focus in Chromium and WebKit after the history empties and several rendering updates pass. A
@@ -1350,7 +1350,7 @@ rendering result.
 
 ## 2026-09-14 — Run one comparison storage operation at a time
 
-On the deployed cf95123 page, pressing Run checks in the left and right frames at the same
+On the deployed db1dedc page, pressing Run checks in the left and right frames at the same
 time failed several checks in both frames with "Check error". Run in one frame alone, the
 same checks passed 19/19. Both frames, the page and every tab of the origin read and replace
 the same saved records, but each frame and the page guarded only itself with its own
@@ -1370,7 +1370,7 @@ not replace the result list being written.
 
 ## 2026-09-14 — Query the collection again after an empty-collection addition
 
-The candidate run of cc8cd95, the first to build and run the HTML frames, passed generation
+The candidate run of 6b8b6c1, the first to build and run the HTML frames, passed generation
 (386 results, 547 requests) and then failed 4 of the 1,744 PHP checks: the `empty` scenario
 of the HTML renderer on both rendering paths and both transports reported "add into empty
 collection: expected 1, actual 0". The run stopped there, so the other servers did not run.
@@ -1443,9 +1443,9 @@ servers accept its routes and render its SSR documents, and every check covers i
   1,216 scenario checks, 5,376 initialization comparisons, 320 interaction, 32 mount
   and 32 static-document checks; and generation verification of 386 results, 547
   requests and 32 combinations. Two errors in that text are corrected with it: the
-  aggregate still said 4,608 initialization comparisons although a384cfc had reduced
+  aggregate still said 4,608 initialization comparisons although dd8a4d2 had reduced
   the categories to seven, and it named the mount-before-load frame `inject`, the
-  column name 880cb11 replaced with `csr`. The runtime package and native generator
+  column name b656194 replaced with `csr`. The runtime package and native generator
   documents name the HTML renderer among the browser targets.
 
 `make format-check`, `npm run test:form-comparison` (source 139, library 10, browser
@@ -1473,7 +1473,7 @@ path as well. That includes the missing-data case the instance path skips, becau
 
 The form runtime specification still required the restored HTML string to match
 "including attribute order" and said the shared DOM binding places a checkbox's `checked`
-attribute last. That was the criterion a384cfc corrected, and the code that enforced it
+attribute last. That was the criterion dd8a4d2 corrected, and the code that enforced it
 was removed there, but the contract text was left unchanged. The specification now states
 the corrected rule: attribute order is not part of the contract, the bindings never
 rearrange attributes, the comparisons use the parsed DOM, and the string renderers'
@@ -1532,7 +1532,7 @@ CI job keep covering it.
 
 ## 2026-09-14 — Compare browser DOM without attribute order and remove the code that forced it
 
-Running the comparison page's complete check in Safari on f3109ad failed `ssr/restoration`
+Running the comparison page's complete check in Safari on 0815cc9 failed `ssr/restoration`
 and `csr/restoration` in the `html` category for Vue with `bindForm` on all four servers,
 while every other category, including the parsed DOM, passed. The only difference was one
 checkbox: mounted as `checked="" value="1"`, restored as `value="1" checked=""`. The
@@ -1606,10 +1606,10 @@ built the package and passed 140 tests.
 
 ## 2026-09-14 — Record the screen-sized frame candidate run and its deployment
 
-`node examples/form-comparison/candidate-verification.mjs` passed for f3109ad: PHP, the
+`node examples/form-comparison/candidate-verification.mjs` passed for 0815cc9: PHP, the
 PHP extension, Go and Rust each passed 1,452 checks with no failure, and the browser
 verification recorded 5,808 checks with no failure. `node
-examples/form-comparison/comparison-deployment.mjs --commit f3109ad…` deployed it at
+examples/form-comparison/comparison-deployment.mjs --commit 0815cc9…` deployed it at
 `https://crudui.test/` and passed the identical reapplication. In a 798 px browser
 window the frame is 798 px tall and the SSR and CSR columns match 8/8. With the page
 scrolled to the frame and the frame scrolled by 700 px, the company header is at the
@@ -1634,17 +1634,17 @@ The generator-core tests (108) and `npm run test:form-comparison:source` (140) p
 
 ## 2026-09-14 — Record the CSS-only sticky candidate run and its deployment
 
-`node examples/form-comparison/candidate-verification.mjs` passed for 3578158. PHP,
+`node examples/form-comparison/candidate-verification.mjs` passed for 78e3117. PHP,
 the PHP extension, Go and Rust each passed 1,452 checks with no failure, and the
 browser verification recorded 5,808 checks with no failure. Earlier runs had stopped:
-338d060 failed in the React SSR takeover of sticky rows and 5fbcf5a on a Chromium
+b524a7e failed in the React SSR takeover of sticky rows and 41993b6 on a Chromium
 screenshot error, both fixed or superseded by later commits, and the first run of
-3578158 failed while building the image because the disk was full. The container
+78e3117 failed while building the image because the disk was full. The container
 image builder held about 75 GB of build cache from the repeated candidate builds;
 `container prune`, `container image prune --all` and deleting the builder (which
 rebuilds its cache on the next build) left 83 GiB free, and the running containers
 and volumes were not touched. `node examples/form-comparison/comparison-deployment.mjs
---commit 3578158…` deployed it at `https://crudui.test/` and passed the identical
+--commit 78e3117…` deployed it at `https://crudui.test/` and passed the identical
 reapplication. In a browser the SSR and CSR columns match 8/8, each frame has four
 sticky rows and no `data-crudui-stuck`, `data-crudui-current` or published lengths,
 and after scrolling the SSR frame the company header sits on its line with its label
@@ -1685,11 +1685,11 @@ Svelte 338 and 10 client tests), `npm run test:form-comparison:source` (140),
 `npm run test:build`, `npm run test:dependencies`, `make docs-check` and the Chromium
 style checks (6: two in each host) passed. The last `make docs-check` run first failed
 because the disk was full while rebuilding the Rust crates; after removing the stopped
-5fbcf5a candidate container, image and directory it passed.
+41993b6 candidate container, image and directory it passed.
 
 ## 2026-09-14 — Take over sticky rows identically in React
 
-The candidate run of 338d060 failed in `browser-php`: the SSR takeover in React
+The candidate run of b524a7e failed in `browser-php`: the SSR takeover in React
 differed on the first sticky row, whose style the server writes as
 `--crudui-sticky-depth:0` and React as `--crudui-sticky-depth: 0;`. The local shared
 takeover test had not caught it because its specification had no sticky rows; I had
@@ -1700,7 +1700,7 @@ declared sticky rows only in the comparison example.
   serializes its declarations.
 - The shared form session specification declares sticky rows for companies and stores,
   so the React, Vue and Svelte form tests render and compare them.
-- That exposed a React fault present since f7f814e: `resolvedStyleProps` removed and
+- That exposed a React fault present since 4881362: `resolvedStyleProps` removed and
   re-added the style attribute each time React called its ref, on every render, so a
   re-rendered row's style moved after the `data-crudui-current` attribute the browser
   binding had written, and a form given its data later differed in raw HTML from one
@@ -1759,29 +1759,29 @@ stopping with it on its 87 px line.
 
 ## 2026-09-13 — Record the passing SSR/CSR candidate run and its deployment
 
-`node examples/form-comparison/candidate-verification.mjs` passed for 8d0d467. PHP,
+`node examples/form-comparison/candidate-verification.mjs` passed for 13e1475. PHP,
 the PHP extension, Go and Rust each passed 1,452 checks with no failure, including
 192 initialization comparisons per server, rendering path and framework with the SSR
 takeover. The browser verification recorded 5,808 checks with no failure. The first
-run of 8d0d467 stopped during image construction because the disk was full; the Go
+run of 13e1475 stopped during image construction because the disk was full; the Go
 build cache and temporary check directories were removed and the same commit was run
-again. `node examples/form-comparison/comparison-deployment.mjs --commit 8d0d467…`
+again. `node examples/form-comparison/comparison-deployment.mjs --commit 13e1475…`
 deployed it at `https://crudui.test/` and passed the identical reapplication. In a
 browser the page shows the SSR and CSR columns (side by side above 1,000 px wide)
 with 8/8 comparisons matching for PHP, React and bindForm.
 
 ## 2026-09-13 — Use the SSR and CSR column names in the browser interaction checks
 
-The candidate run of 4607254 failed in `browser-php` before any interaction ran: the
+The candidate run of be2208c failed in `browser-php` before any interaction ran: the
 interaction check still looked for the frame with `initialization=data`, and the initial
-mount check still looked for `initialization=inject`, the column names 880cb11 replaced.
+mount check still looked for `initialization=inject`, the column names b656194 replaced.
 The interaction check now uses the `ssr` frame, the initial mount check the `csr` frame,
 and the report test fixture the `ssr` column. These checks run only inside the candidate
 container, so the local source checks (140 passed) did not reveal the old names.
 
 ## 2026-09-13 — Restore the React form session tests removed with the legacy UI
 
-d26ecce deleted `packages/generator-react/src/__tests__/Form.test.tsx` together with
+3ca967b deleted `packages/generator-react/src/__tests__/Form.test.tsx` together with
 the legacy FormBuilder test in the same file, so React stopped running the shared
 initialization, session DOM, control and focus scenarios that Vue and Svelte run. The
 file is restored without the legacy test and also runs `compareServerTakeover`.
@@ -1789,7 +1789,7 @@ React passes 350 tests.
 
 ## 2026-09-13 — Make Vue and Svelte take over server-rendered forms without changing them
 
-The first candidate run of d80a3a0 failed in the SSR column. Vue keeps comment nodes as
+The first candidate run of e433bfa failed in the SSR column. Vue keeps comment nodes as
 anchors for conditional blocks, and Svelte 5 kept the whitespace between sibling
 elements of its templates as text nodes, left empty text anchors, and did not write the
 `value` attribute of inputs, the text of textareas or the `checked` attribute of
@@ -1832,8 +1832,8 @@ four-server candidate verification, recorded in a separate entry.
 
 ## 2026-09-13 — Record the passing four-server candidate runs for crudui.css and the legacy removal
 
-`node examples/form-comparison/candidate-verification.mjs` passed for 0ab3c93 (form
-styling with `crudui.css` alone) and for eb9f7b7 (after removing the legacy UI paths
+`node examples/form-comparison/candidate-verification.mjs` passed for 3d7e20d (form
+styling with `crudui.css` alone) and for 76d1480 (after removing the legacy UI paths
 and fixing the build and dependency checks). In each run PHP, the PHP extension, Go
 and Rust passed 1,452 checks with no failure, the browser verification recorded
 5,808 checks with no failure, and the command returned status 0.
@@ -1846,11 +1846,11 @@ suites used during this work did not run them:
 - `tests/build/public-types.mts` and `public-types.cts` still named `FieldShape` and
   `MultipleSettings`, which the node view model removed. They now name the current
   public types `NodeVM` and `ButtonVM`.
-- The form comparison controller imports `@crudui/generator-core` (since 7a2b73a),
+- The form comparison controller imports `@crudui/generator-core` (since 263d25a),
   but the root package did not declare it. The root package now declares the
   workspace package as a development dependency.
 - `tests/build/package-consumer-pack.test.mjs` passed paths that do not exist, while
-  `packPackage` reads the source manifest to check the package name (since 07e8f9f).
+  `packPackage` reads the source manifest to check the package name (since c57aec5).
   The tests now write a manifest in a temporary directory.
 
 `npm run test:build`, `npm run test:dependencies` and `npm run test:runtimes` passed,
@@ -1948,14 +1948,14 @@ built, and `make test-native` passed all 976 generator checks.
 
 ## 2026-09-13 — Record the passing four-server candidate run for the buttons and scrolling changes
 
-`node examples/form-comparison/candidate-verification.mjs --ref e3f8c00` passed:
+`node examples/form-comparison/candidate-verification.mjs --ref 26435dc` passed:
 PHP, the PHP extension, Go and Rust each passed 1,452 checks with no failure, the
 browser verification recorded 5,808 checks with no failure, and the command returned
-status 0. It covers the form buttons (dd37759), the naming and DOM scenario checks
-(6912b31), rendering nothing while scrolling (67f510e) and the two comparison fixes
-the earlier runs found: the run for 67f510e failed in the PHP generation test
-(fixed in fc2ee17) and the run for fc2ee17 failed in the reference compilation check
-(fixed in e3f8c00).
+status 0. It covers the form buttons (fd32955), the naming and DOM scenario checks
+(97aee18), rendering nothing while scrolling (5b0aaee) and the two comparison fixes
+the earlier runs found: the run for 5b0aaee failed in the PHP generation test
+(fixed in 80a90e8) and the run for 80a90e8 failed in the reference compilation check
+(fixed in 26435dc).
 
 ## 2026-09-13 — Scrolling renders nothing: the current row is no longer instance state
 
@@ -2066,7 +2066,7 @@ suites passed 116, 705, 348 and 349 with the regenerated structure map fixture;
 form comparison source checks passed 140; and `make test-native` passed 976 generator
 checks after the empty collection placement change in all five implementations. In
 Chrome the map lists only rows with one indentation step per level. The four-server
-candidate run for dad977d, the previous change, passed 1,452 checks per server
+candidate run for 7eb84f7, the previous change, passed 1,452 checks per server
 (5,808 browser checks) with no failure.
 
 ## 2026-09-13 — Align rows to their sticky line and follow the scroll with the current row
@@ -2137,7 +2137,7 @@ focus rule for a 1,450px frame; the checks now require the focused input to be
 visible in both the frame viewport and the main page viewport. The local source
 and Chromium suites do not run these checks; only candidate verification does.
 
-The candidate run for e4d1375 then passed: PHP, the PHP extension, Go and Rust each
+The candidate run for 12b0df0 then passed: PHP, the PHP extension, Go and Rust each
 passed 1,452 checks with no failure, 5,808 browser checks in total, and the command
 returned status 0.
 
@@ -2352,7 +2352,7 @@ change, TypeScript and Go exited 1 without `at`, and PHP exited 0 with a
 `rule: "compose"` error. Validation fixtures replace `expectLoadError: {code}`
 with `expectFailure: {code, message, at}` and add six input-failure cases. Former
 array-row cases use keyed rows. The fixture generator now contains the seven
-end-date cases that commit `8688990` had added only to `cases.json`, so they are
+end-date cases that commit `e93d0a6` had added only to `cases.json`, so they are
 no longer dropped on regeneration. The cross-check console compares the complete
 `failure` record. The comparison and example servers answer an input failure with
 HTTP 400.

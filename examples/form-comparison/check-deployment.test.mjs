@@ -110,14 +110,14 @@ test('rejects a relative repository root and an image other than the toolchain',
   assert.throws(() => renderDeploymentCompose({ repositoryRoot: '/a:b', imageReference }),
     /without a colon/);
   assert.throws(() => renderDeploymentCompose({
-    repositoryRoot, imageReference: 'localhost/crudui-form-comparison:a40f434f4f75',
+    repositoryRoot, imageReference: 'localhost/crudui-form-comparison:3cc00fc2cfcc',
   }), /toolchain image/);
 });
 
 test('selects comparison images that no container uses after deployment', () => {
   const retiredToolchain = `${toolchainImageName}:${'0'.repeat(16)}`;
   const usedToolchain = `${toolchainImageName}:${'1'.repeat(16)}`;
-  const retiredCandidate = 'localhost/crudui-form-comparison:a40f434f4f75';
+  const retiredCandidate = 'localhost/crudui-form-comparison:3cc00fc2cfcc';
   const plan = deploymentCleanupPlan({
     deployedImageReference: imageReference,
     imageReferences: [imageReference, retiredCandidate, retiredToolchain, usedToolchain,
