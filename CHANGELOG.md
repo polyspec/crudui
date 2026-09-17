@@ -54,6 +54,9 @@
 - The initialization report's `mounted` stage did not reset the repository and load the column's
   frame document again, as the specification says, so the server-rendered column showed whatever an
   earlier check had stored. Each column now resets the record and loads its frame again.
+- A change to a supervisor module stopped the comparison container: the supervisor started its
+  successor and exited, and as the init process's only child its exit ended the container. It now
+  replaces its own process image and keeps its process id.
 - The PHP extension wrote list numbers such as `30` as `3e+1`, and the PHP extension and the Go
   generator grouped `1e+21` as `1e,+21`. Both now write numbers as JavaScript does; the shared list
   case `format-number-shortest` checks every runtime.

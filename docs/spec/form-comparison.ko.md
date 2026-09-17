@@ -276,7 +276,9 @@ OrderedJSON 체크아웃의 Git 호출도 같은 방식으로 제한합니다. �
 PHP는 요청마다 소스를 읽으므로 PHP 소스 변경은 빌드나 재시작이 필요 없고 설치된 Composer
 사본만 교체합니다. `composer install`은 잠금 파일이 그대로면 검증기의 경로 저장소 사본을 유지하므로
 빌드는 그 사본을 다시 설치합니다(`composer reinstall crudui/validator`). `.gitignore`가 바뀌면 트리 전체를 동기화합니다. supervisor 모듈 변경은
-기존 컨테이너 안에서 supervisor 프로세스를 다시 로드해 적용하며 모든 볼륨을 유지합니다.
+기존 컨테이너 안에서 supervisor 프로세스를 다시 로드해 적용하며 모든 볼륨을 유지합니다. supervisor는
+컨테이너 init 프로세스의 유일한 자식이므로 서버를 멈춘 뒤 자기 프로세스 이미지를 새 supervisor로
+교체해(`process.execve`) 프로세스 ID를 유지합니다. 종료하면 컨테이너가 멈추기 때문입니다.
 
 ### 소스 식별자
 
